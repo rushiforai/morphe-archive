@@ -180,7 +180,7 @@ val gameReviewPatch = bytecodePatch(
         // In a Lichess-style review chess.com's mark lookups (color, phrase, icon per move type) answer
         // with Lichess's own; everywhere else they answer as before.
         // 4.10.23 inlines the mark resources; the lookups are skipped there.
-        if (mutableClassDefByOrNull("Lcom/chess/colors/a;") != null) {
+        if (classDefByOrNull("Lcom/chess/colors/a;") != null) {
         val marks = mutableClassDefBy("Lcom/chess/features/analysis/d;").methods.filter { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "I" &&
                 method.parameterTypes.map { it.toString() } == listOf(classification)

@@ -40,11 +40,21 @@ public class SettingsStatus {
     public static boolean favoritePlaylistGridEnabled = false;
     public static boolean favoritePlaylistSearchEnabled = false;
     public static boolean likedVideosSearchEnabled = false;
+    public static boolean likedVideosServerSearchEnabled = false;
     public static boolean chooseCollectionSearchEnabled = false;
     public static boolean keepCollectionsLoadedEnabled = false;
     public static boolean collectionSortEnabled = false;
     public static boolean collectionVideosSearchEnabled = false;
     public static boolean inboxActivitySearchEnabled = false;
+    public static boolean favoritesRetryEnabled = false;
+    public static boolean keepFavoritesTabEnabled = false;
+    public static boolean exactCountsEnabled = false;
+    public static boolean expandActivityListEnabled = false;
+    public static boolean copyIdsEnabled = false;
+    public static boolean blockAuthorEnabled = false;
+    public static boolean notInterestedEnabled = false;
+    public static boolean commentToolsEnabled = false;
+    public static boolean doubleTapEnabled = false;
 
     // Patched load() marks the features included in this APK. Run it before
     // any feature reads these flags, including feed hooks reached at startup.
@@ -188,6 +198,10 @@ public class SettingsStatus {
         likedVideosSearchEnabled = true;
     }
 
+    public static void enableLikedVideosServerSearch() {
+        likedVideosServerSearchEnabled = true;
+    }
+
     public static void enableChooseCollectionSearch() {
         chooseCollectionSearchEnabled = true;
     }
@@ -206,6 +220,43 @@ public class SettingsStatus {
 
     public static void enableInboxActivitySearch() {
         inboxActivitySearchEnabled = true;
+    }
+
+    public static void enableFavoritesRetry() {
+        favoritesRetryEnabled = true;
+    }
+
+    public static void enableKeepFavoritesTab() {
+        keepFavoritesTabEnabled = true;
+        app.czyeru.extension.tiktok.favorites.FavoritesTab.installed();
+    }
+
+    public static void enableExactCounts() {
+        exactCountsEnabled = true;
+    }
+
+    public static void enableExpandActivityList() {
+        expandActivityListEnabled = true;
+    }
+
+    public static void enableCopyIds() {
+        copyIdsEnabled = true;
+    }
+
+    public static void enableBlockAuthor() {
+        blockAuthorEnabled = true;
+    }
+
+    public static void enableNotInterested() {
+        notInterestedEnabled = true;
+    }
+
+    public static void enableCommentTools() {
+        commentToolsEnabled = true;
+    }
+
+    public static void enableDoubleTap() {
+        doubleTapEnabled = true;
     }
 
     public static void load() {

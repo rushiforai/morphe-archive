@@ -20,6 +20,9 @@ import androidx.media3.common.Tracks;
 import androidx.media3.common.text.Cue;
 import androidx.media3.common.text.CueGroup;
 
+import app.tikkamasalla.stremio.introskip.Media3Listeners;
+import app.tikkamasalla.stremio.tuning.SubtitleGate;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -37,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import app.tikkamasalla.stremio.tuning.LateSubsCues;
+
 /**
  * Runtime bridge that keeps hearing-impaired subtitles off the screen.
  * Three layers: metadata ranking, content check, cue cleaner.
@@ -51,8 +56,11 @@ public final class SdhAvoid {
     private static final ExecutorService NET = Executors.newCachedThreadPool();
     private static final Set<String> INFLIGHT = new HashSet<String>();
     private static volatile Context lastApp;
-    /** True while the selected subtitle track is English; the cleaner leaves other languages alone. */
-    private static volatile boolean activeEnglish;
+    /**
+     * True while the cue cleaner may run: the selected subtitle track is English and is hearing-impaired
+     * (by label or content) or no full-dialogue English track remains to switch to.
+     */
+    private static volatile boolean cleanActive;
     private static final long USER_GRACE_MS = 15000L;
     private static final int SAMPLE_CUES = 40;
     private static final int MAX_SWITCHES_PER_MEDIA = 4;
@@ -93,9 +101,10 @@ public final class SdhAvoid {
      */
     public static List cleanCues(List cues) {
         try {
+            cues = LateSubsCues.pick(cues);
             if (cues == null || cues.isEmpty()) return cues;
             Context app = lastApp;
-            if (app == null || !activeEnglish || !SdhPrefs.isCleanEnabled(app)) return cues;
+            if (app == null || !(cleanActive || LateSubsCues.isDrawing()) || !SdhPrefs.isCleanEnabled(app)) return cues;
             List<Object> out = new ArrayList<Object>(cues.size());
             boolean changed = false;
             for (Object item : cues) {
@@ -175,40 +184,51 @@ public final class SdhAvoid {
         private long firstEvalAt;
         private String lastState = "";
 
-        private final Player.Listener listener = new Player.Listener() {
+        /**
+         * A reflective proxy, not an anonymous Player.Listener: the desugared form references the
+         * companion class Player$Listener$-CC, absent from Stremio 1.10.4's Media3 (crash on playback).
+         */
+        private final Player.Listener listener = Media3Listeners.create(new Media3Listeners.Sink() {
             @Override
-            public void onTracksChanged(Tracks tracks) {
-                try {
-                    evaluate();
-                } catch (Throwable error) {
-                    Log.w(TAG, "rank failed", error);
+            public void onEvent(String name, Object[] args) {
+                if ("onTracksChanged".equals(name) && args.length == 1) {
+                    try {
+                        evaluate();
+                    } catch (Throwable error) {
+                        Log.w(TAG, "rank failed", error);
+                    }
+                } else if ("onMediaItemTransition".equals(name) && args.length == 2) {
+                    try {
+                        resetMedia();
+                    } catch (Throwable error) {
+                        Log.w(TAG, "reset failed", error);
+                    }
+                } else if ("onCues".equals(name) && args.length == 1 && args[0] instanceof CueGroup) {
+                    try {
+                        sampleCues((CueGroup) args[0]);
+                    } catch (Throwable error) {
+                        Log.w(TAG, "sample failed", error);
+                    }
                 }
             }
-
-            @Override
-            public void onMediaItemTransition(MediaItem mediaItem, int reason) {
-                try {
-                    resetMedia();
-                } catch (Throwable error) {
-                    Log.w(TAG, "reset failed", error);
-                }
-            }
-
-            @Override
-            public void onCues(CueGroup cueGroup) {
-                try {
-                    sampleCues(cueGroup);
-                } catch (Throwable error) {
-                    Log.w(TAG, "sample failed", error);
-                }
-            }
-        };
+        });
 
         TrackSession(Activity activity) {
             this.activity = activity;
         }
 
         void offer(Player next) {
+            if (!SdhPrefs.isAvoidEnabled(activity)) {
+                // Setting off: no listener on the player at all.
+                try {
+                    if (player != null) player.removeListener(listener);
+                } catch (Throwable ignored) {
+                    // Player already released.
+                }
+                player = null;
+                cleanActive = false;
+                return;
+            }
             if (next == player) return;
             try {
                 if (player != null) player.removeListener(listener);
@@ -232,6 +252,7 @@ public final class SdhAvoid {
 
         private void resetMedia() {
             mediaKey = "";
+            cleanActive = false;
             switchedAway.clear();
             sdhContent.clear();
             sample.clear();
@@ -297,8 +318,8 @@ public final class SdhAvoid {
                                 : format.id;
                         entry.lang = SdhLabels.normLang(format.language);
                         entry.label = format.label;
-                        entry.kind = SdhLabels.kindOf(format.label, format.roleFlags,
-                                format.selectionFlags);
+                        entry.kind = SdhLabels.kindOf(format.label, format.language,
+                                format.roleFlags, format.selectionFlags);
                         entry.bitmap = SdhLabels.isBitmapMime(format.sampleMimeType);
                         try {
                             entry.selected = group.isTrackSelected(i);
@@ -331,9 +352,12 @@ public final class SdhAvoid {
                     break;
                 }
             }
-            if (selected == null) return;
-            activeEnglish = "en".equals(selected.lang);
-            if (!activeEnglish) {
+            if (selected == null) {
+                cleanActive = false;
+                return;
+            }
+            updateCleaner(entries, selected);
+            if (!"en".equals(selected.lang)) {
                 // Other languages use brackets for signs and names: leave them untouched.
                 samplingId = null;
                 sample.clear();
@@ -354,6 +378,12 @@ public final class SdhAvoid {
             }
             lastSeenId = selected.id;
             logState(entries, selected);
+            if (selected.kind != SdhLabels.KIND_SDH && SubtitleGate.isSavedChoice(player, selected.format)) {
+                // The viewer's saved pick or remembered subtitle is showing: it wins over ranking.
+                samplingId = null;
+                sample.clear();
+                return;
+            }
             if (switchedAway.contains(selected.id)) return;
             String prefLang = selected.lang;
             List<Entry> pool = new ArrayList<Entry>();
@@ -400,6 +430,29 @@ public final class SdhAvoid {
             }
             if (isAddon(best)) resolveAddon(best, pool);
             else switchTo(best, "label");
+        }
+
+        /**
+         * The cleaner runs only on an English track that is SDH (label, role or content verdict), or when
+         * no other same-language track that is not SDH is left to switch to. A normal dialogue track
+         * with alternatives is shown untouched.
+         */
+        private void updateCleaner(List<Entry> entries, Entry selected) {
+            boolean on = false;
+            if ("en".equals(selected.lang)) {
+                on = selected.kind == SdhLabels.KIND_SDH || sdhContent.contains(selected.id);
+                if (!on) {
+                    boolean alternative = false;
+                    for (Entry entry : entries) {
+                        if (entry.id.equals(selected.id) || sdhContent.contains(entry.id)) continue;
+                        if (!entry.lang.equals(selected.lang) || entry.kind == SdhLabels.KIND_SDH) continue;
+                        alternative = true;
+                        break;
+                    }
+                    on = !alternative;
+                }
+            }
+            cleanActive = on;
         }
 
         private void logState(List<Entry> entries, Entry selected) {
@@ -470,6 +523,7 @@ public final class SdhAvoid {
                 if (entry.id.equals(id) && entry.selected) current = entry;
             }
             if (current == null) return;
+            updateCleaner(entries, current);
             String prefLang = current.lang;
             Entry next = null;
             List<Entry> pool = new ArrayList<Entry>();
@@ -515,7 +569,8 @@ public final class SdhAvoid {
                     boolean sdh = false;
                     boolean fetched = false;
                     try {
-                        String body = download(url);
+                        byte[] raw = download(url);
+                        String body = raw == null ? null : SdhLabels.decodeSubtitleBytes(raw);
                         if (body != null) {
                             fetched = true;
                             List<String> cues = SdhLabels.parseSubtitleFile(url, body);
@@ -598,7 +653,8 @@ public final class SdhAvoid {
             }
         }
 
-        private String download(String url) {
+        /** Raw bytes (first 300 KB); the caller decodes them with SdhLabels.decodeSubtitleBytes. */
+        private byte[] download(String url) {
             HttpURLConnection connection = null;
             try {
                 URL target = new URL(url);
@@ -624,7 +680,7 @@ public final class SdhAvoid {
                 }
                 byte[] bytes = out.toByteArray();
                 if (bytes.length == 0) return null;
-                return new String(bytes, "UTF-8");
+                return bytes;
             } catch (Throwable ignored) {
                 return null;
             } finally {

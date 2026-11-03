@@ -28,6 +28,15 @@ _Supported version(s): 3.3.5, 3.3.4.2_
 | **Remove ads & tracking** | Removes every ad (interstitial, banner, daily-reward) and every tracker (Mixpanel, Firebase, Facebook, AppsFlyer) — app events, network sends, ad-SDK requests (Google Ads / AppLovin / AnyMind / Prebid), SDK auto-collection, and the ipify IP leak. The app then phones home only to its own Jazz API. |
 | **Remove daily check-in ads** | Removes the SocialPlus daily check-in / in-feed ads (FeedAdsManager banner + native loaders) and the day-10/20/30 milestone-claim RewardedAd (the award is still granted, just with no ad). Separate from "Remove ads & tracking" to keep that patch Morphe-Manager-safe; enable this one when patching with the desktop CLI. |
 
+### ROX (`com.jazz.rox`)
+
+_Supported version(s): 3.0.13_
+
+| Patch | Description |
+|-------|-------------|
+| **Auto check-in daily streak** | Presses the Daily Streak Check-in button for you when the app is open, once a day. It runs the app's own check-in, so it needs you to be signed in and to open the app each day. |
+| **Remove ads** | Stops banner and full-screen ads from loading. Rewarded video ads are left alone, so the watch-an-ad-for-points option keeps working. |
+
 ### My Telenor (`com.telenor.pakistan.mytelenor`)
 
 _Supported version(s): 4.2.63_

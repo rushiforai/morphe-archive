@@ -5,7 +5,8 @@
 .DESCRIPTION
     release/release.ps1's publish stage refuses a bundle without a receipt that a whole-app walk
     of that exact bundle left (walk-receipt.ps1). This runs the walk. It patches Threads from the
-    repo's release bundle and installs it with patch-for-device.ps1, opens each Threads screen in
+    repo's release bundle with Manager's default selection (the catalog's off-by-default patches,
+    Change version code among them, stay out) and installs it with patch-for-device.ps1, opens each Threads screen in
     walk-app-core.ps1's list by its link, then goes the user's way into Threads' own settings and
     through its HushThreads row to every HushThreads settings page, reads the crash and system logs for a Threads crash or ANR since the walk began, and
     writes walk-receipt.json with New-WalkReceipt. The receipt names the SHA-256 of the .mpp the
@@ -158,8 +159,13 @@ function Invoke-WalkApp {
 
     if (-not $SkipPatch) {
         if ($PatchReceipt) { throw '-PatchReceipt is for -SkipPatch; a fresh patch writes its own provenance.' }
+        # Manager's default selection, the build users install. patch-for-device applies the whole
+        # catalog unless told otherwise, and Change version code would leave the phone on a code
+        # that no later default build can install over without an uninstall.
+        $catalog = Get-Content -LiteralPath (Join-Path $Root 'patches-list.json') -Raw | ConvertFrom-Json
+        [string[]]$offByDefault = @($catalog.patches | Where-Object { $_.use -eq $false } | ForEach-Object { $_.name })
         Write-WalkLog "patching Threads with $(Split-Path -Leaf $bundle) and installing it on $Serial"
-        $patchArguments = @{ Serial = $Serial; OutDir = $OutDir; Root = $Root } + $PatchArgs
+        $patchArguments = @{ Serial = $Serial; OutDir = $OutDir; Root = $Root; Exclude = $offByDefault } + $PatchArgs
         # patch-for-device.ps1 reports through Write-Host, so its lines come back on stream 6.
         $patchOut = @(& (Join-Path $PSScriptRoot 'patch-for-device.ps1') @patchArguments 6>&1 | ForEach-Object { "$_" })
         $patchOut | Out-Host

@@ -31,7 +31,7 @@ class ControlDiscoveryTest {
     )
 
     private fun completeFixture(): List<MutableClass> {
-        val methods = syntheticHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "ai_sticker_grid", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, INBOX_SEARCH_BAR, EMOJI_SEARCH, TAB_BADGES, FACEBOOK_BADGE, FACEBOOK_PROFILE_HEADER, TAB_CONFIG, AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, XHE_AUDIO, XHE_TRANSCODE, DISAPPEARING_SWIPE, RECENT_MEDIA, INSTANTS_BUTTON, SAVE_VOICE, SAVE_VOICE_MENU, GALLERY_TEMP_FILE, ANALYTICS_UPLOADS, ATTRIBUTION_UPLOADS, AD_EVENTS, MQTT_TELEMETRY, PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST, NEARBY_SCANS, WIFI_IDENTITY, PHONE_ID_SYNC, STORY_HOLD, SHARE_STORY, AVATAR_SHAPE, STORY_RING, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION, MARK_READ_BAR, HIDE_CALL_BAR, MARK_READ_CLICK, TEXT_STYLE, MESSAGE_LOG, UNSENT_CLEAR, AUTO_REPLY, SYSTEM_CAMERA, EXTERNAL_GALLERY, GALLERY_TO_CHAT, HIDE_READ_RECEIPTS, REPLY_READ, CAR_MESSAGES, LOCAL_CHAT_SEARCH, CALL_RECORDING) + CUSTOM_FONT_HOOKS }.flatMap { (key, ids) ->
+        val methods = syntheticHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "ai_sticker_grid", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, INBOX_SEARCH_BAR, EMOJI_SEARCH, TAB_BADGES, FACEBOOK_BADGE, FACEBOOK_PROFILE_HEADER, TAB_CONFIG, AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, XHE_AUDIO, XHE_TRANSCODE, DISAPPEARING_SWIPE, RECENT_MEDIA, INSTANTS_BUTTON, SAVE_VOICE, SAVE_VOICE_MENU, GALLERY_TEMP_FILE, ANALYTICS_UPLOADS, ATTRIBUTION_UPLOADS, AD_EVENTS, MQTT_TELEMETRY, PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST, NEARBY_SCANS, WIFI_IDENTITY, PHONE_ID_SYNC, STORY_HOLD, SHARE_STORY, AVATAR_SHAPE, STORY_RING, QUIET_CALL_RING, QUIET_CALL_NOTIFICATION, MARK_READ_BAR, HIDE_CALL_BAR, MARK_READ_CLICK, TEXT_STYLE, MESSAGE_LOG, MESSAGE_LOG_BUTTON, MESSAGE_LOG_CLICK, APP_THEME_PICK, UNSENT_CLEAR, AUTO_REPLY, SYSTEM_CAMERA, EXTERNAL_GALLERY, GALLERY_TO_CHAT, HIDE_READ_RECEIPTS, REPLY_READ, CAR_MESSAGES, LOCAL_CHAT_SEARCH, CALL_RECORDING, HOME_HEADER) + CUSTOM_FONT_HOOKS }.flatMap { (key, ids) ->
             ids.map { id ->
                 if (key == "people_jewel") return@map peopleJewelMethod()
                 if (key == "people_tab") return@map peopleTabMethod()
@@ -90,11 +90,12 @@ class ControlDiscoveryTest {
                     "anonymous_stories" -> STORY_MARK_READ_BODY
                     "save_stories" -> "const-string v0, \"$STORY_MENU_TAG\"\nreturn-void"
                     "chat_animation" -> FRAGMENT_ANIMATION_BODY
-                    "chat_fragment", "chat_inbox" -> "return-void"
+                    "chat_fragment", "chat_inbox", CHAT_JUMP -> "return-void"
                     "chat_legacy" -> LEGACY_CHAT_ANIMATION_BODY
                     "growth_notes" -> "const-string v0, \"$NOTES_TIP_SHEET\"\nconst-string v0, \"$NOTES_TIP_TYPE_ARG\"\nconst/4 v0, 0x0\nreturn-object v0"
                     "growth_story_card" -> "sget-object v0, LX/JVI;->A0E:LX/1BL;\nconst/4 v0, 0x1\nreturn v0"
                     APP_ICONS -> APP_ICON_GATE_BODY
+                    APP_THEMES -> APP_THEME_GATE_BODY
                     "menu_settings" -> when {
                         id.contains("ArrayList") ->
                             "const-string v0, \"messaging.navigation.settingsfolder.folderitem.SettingsFolderItem\"\nconst/4 v0, 0x0\nreturn-object v0"
@@ -107,7 +108,7 @@ class ControlDiscoveryTest {
                     else -> error("Missing synthetic resolver fixture for $key")
                 }
                 // 585's Context-reading app icon check is the one instance gate.
-                val staticGate = (key in pluginGates || key == "ai_search" || key == "growth_story_card" ||
+                val staticGate = (key in pluginGates || key == "ai_search" || key == "growth_story_card" || key == APP_THEMES ||
                     (key == APP_ICONS && "Landroid/content/Context;" !in id)) && !id.substringAfter('(').startsWith(')')
                 fixtureMethod(id, body, registers = when (key) { "original_photo" -> 22; ORIGINAL_VIDEO -> 24;"chat_animation", "chat_legacy" -> 5; else -> 8 }, flags = AccessFlags.PUBLIC.value or
                     if (staticGate) AccessFlags.STATIC.value else 0)
@@ -127,7 +128,7 @@ class ControlDiscoveryTest {
             fixtureMethod("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST",
                 "const/4 v0, 0x0\nreturn-object v0", flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value),
         )), peopleJewelKeyHolder(), storyCardKeyHolder(), debugDumperFixture(), messageWrapperFixture(type = "LX/K1Y;"), searchFieldFixture()) +
-            aiStickerCellFixture(grid = true) + galleryTempFileFixture() + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + searchIconFixture() + emojiSearchFixture() + tabBadgesFixture() + tabConfigFixture() + aiMentionsFixture() + searchBarFixture() + searchScreenFixture() + profileHeaderFixture() + aiMentionRowsFixture() + shareCopyFixture() + disappearingSwipeFixture() + recentMediaFixture() + instantsButtonFixture() + saveVoiceMenuFixture().filter { it.type != MESSAGE } + analyticsUploadFixture() + attributionUploadFixture() + adEventsFixture() + mqttClientFixture() + pinnedChatLimitFixture() + pinnedChatsFixture() + nearbyScansFixture() + phoneIdFixture() + storyHoldFixture() + shareStoryFixture() + avatarShapeFixture() + quietCallsFixture() + carMessagesFixture() + localChatSearchFixture() + callRecordingFixture() + markReadFixture(immutableList = false) + textFieldFixture() + messageLogFixture() + readReceiptsFixture() + systemCameraFixture() + galleryToChatFixture() + customFontFixture() +
+            aiStickerCellFixture(grid = true) + galleryTempFileFixture() + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + searchIconFixture() + emojiSearchFixture() + tabBadgesFixture() + tabConfigFixture() + aiMentionsFixture() + searchBarFixture() + searchScreenFixture() + profileHeaderFixture() + aiMentionRowsFixture() + shareCopyFixture() + disappearingSwipeFixture() + recentMediaFixture() + instantsButtonFixture() + saveVoiceMenuFixture().filter { it.type != MESSAGE } + analyticsUploadFixture() + attributionUploadFixture() + adEventsFixture() + mqttClientFixture() + pinnedChatLimitFixture() + pinnedChatsFixture() + nearbyScansFixture() + phoneIdFixture() + storyHoldFixture() + shareStoryFixture() + avatarShapeFixture() + quietCallsFixture() + carMessagesFixture() + localChatSearchFixture() + callRecordingFixture() + homeHeaderFixture() + markReadFixture(immutableList = false) + textFieldFixture() + messageLogFixture() + messageLogButtonFixture() + appThemePickFixture().filter { it.type != "LX/HQz;" } + readReceiptsFixture() + systemCameraFixture() + galleryToChatFixture() + customFontFixture() +
             syntheticHooks.getValue("screenshot_viewers").map { screenshotViewerFixture(it) }
                 .groupBy { it.definingClass }.map { (type, group) -> fixtureClass(type, group) })
         .let { classes ->

@@ -1212,18 +1212,19 @@ public class HushfacebookPreferenceFragmentTest {
             // Right under the status card and the section jump: the heading, the opening pause and
             // its length, Take breaks and its two lists, the switch, then the list.
             assertEquals("Jump to a section", String.valueOf(page.getPreferenceScreen().getPreference(1).getTitle()));
-            assertEquals("Opening Facebook", String.valueOf(page.getPreferenceScreen().getPreference(2).getTitle()));
-            assertEquals(Settings.OPENING_PAUSE.key, rows.get(2).getKey());
-            assertTrue(rows.get(3) instanceof ValueRows.PauseLengthRow);
-            assertFalse("the length works with the pause off", rows.get(3).isEnabled());
-            assertEquals(Settings.TAKE_BREAKS.key, rows.get(4).getKey());
-            assertEquals(Settings.BREAK_AFTER.key, rows.get(5).getKey());
-            assertEquals(Settings.BREAK_LENGTH.key, rows.get(6).getKey());
-            assertFalse("the break lists work with Take breaks off", rows.get(5).isEnabled() || rows.get(6).isEnabled());
-            assertEquals(Settings.OPEN_ON_CHOSEN_TAB.key, rows.get(7).getKey());
-            assertEquals("Open on a chosen tab", String.valueOf(rows.get(7).getTitle()));
-            assertTrue(rows.get(8) instanceof ValueRows.StartTabRow);
-            ValueRows.StartTabRow start = (ValueRows.StartTabRow) rows.get(8);
+            assertEquals("Switches that are on", String.valueOf(page.getPreferenceScreen().getPreference(2).getTitle()));
+            assertEquals("Opening Facebook", String.valueOf(page.getPreferenceScreen().getPreference(3).getTitle()));
+            assertEquals(Settings.OPENING_PAUSE.key, rows.get(3).getKey());
+            assertTrue(rows.get(4) instanceof ValueRows.PauseLengthRow);
+            assertFalse("the length works with the pause off", rows.get(4).isEnabled());
+            assertEquals(Settings.TAKE_BREAKS.key, rows.get(5).getKey());
+            assertEquals(Settings.BREAK_AFTER.key, rows.get(6).getKey());
+            assertEquals(Settings.BREAK_LENGTH.key, rows.get(7).getKey());
+            assertFalse("the break lists work with Take breaks off", rows.get(6).isEnabled() || rows.get(7).isEnabled());
+            assertEquals(Settings.OPEN_ON_CHOSEN_TAB.key, rows.get(8).getKey());
+            assertEquals("Open on a chosen tab", String.valueOf(rows.get(8).getTitle()));
+            assertTrue(rows.get(9) instanceof ValueRows.StartTabRow);
+            ValueRows.StartTabRow start = (ValueRows.StartTabRow) rows.get(9);
             assertEquals(Settings.START_TAB.key, start.getKey());
             assertEquals("Tab to open on", String.valueOf(start.getTitle()));
 
@@ -1282,9 +1283,9 @@ public class HushfacebookPreferenceFragmentTest {
             controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
-            assertTrue(rows.get(8) instanceof ValueRows.StartTabRow);
-            assertTrue(rows.get(9) instanceof ValueRows.FeedsSubtabRow);
-            ValueRows.FeedsSubtabRow subtab = (ValueRows.FeedsSubtabRow) rows.get(9);
+            assertTrue(rows.get(9) instanceof ValueRows.StartTabRow);
+            assertTrue(rows.get(10) instanceof ValueRows.FeedsSubtabRow);
+            ValueRows.FeedsSubtabRow subtab = (ValueRows.FeedsSubtabRow) rows.get(10);
             assertEquals(Settings.FEEDS_SUBTAB.key, subtab.getKey());
             assertEquals("Feeds opens on", String.valueOf(subtab.getTitle()));
 
@@ -1819,8 +1820,12 @@ public class HushfacebookPreferenceFragmentTest {
             int switchAt = indexOfKey(rows, Settings.HIDE_SEEN_POSTS.key);
             assertTrue("no Hide seen posts switch", switchAt >= 0);
             Preference seen = rows.get(switchAt);
-            Preference keep = rows.get(switchAt + 1);
-            Preference forget = rows.get(switchAt + 2);
+            Preference onceMore = rows.get(switchAt + 1);
+            Preference keep = rows.get(switchAt + 2);
+            Preference forget = rows.get(switchAt + 3);
+            assertEquals(Settings.SEEN_POSTS_COME_BACK_ONCE.key, onceMore.getKey());
+            assertEquals("Let each post come back once", String.valueOf(onceMore.getTitle()));
+            assertFalse("Let each post come back once is open with the switch off", onceMore.isEnabled());
             assertEquals(Settings.SEEN_POSTS_KEEP.key, keep.getKey());
             assertEquals("Forget seen posts", String.valueOf(forget.getTitle()));
             assertFalse("the keep time is open with the switch off", keep.isEnabled());
@@ -1838,6 +1843,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertFalse(file.exists());
 
             assertTrue(seen.getOnPreferenceChangeListener().onPreferenceChange(seen, true));
+            assertTrue(onceMore.isEnabled());
             assertTrue(keep.isEnabled());
             assertFalse("the open keep time still says to turn the switch on",
                     String.valueOf(keep.getSummary()).contains("Turn on"));
@@ -1845,6 +1851,7 @@ public class HushfacebookPreferenceFragmentTest {
             SeenPostsForTests.rememberAndWrite("seen with it on");
             assertTrue(file.exists());
             assertTrue(seen.getOnPreferenceChangeListener().onPreferenceChange(seen, false));
+            assertFalse(onceMore.isEnabled());
             assertFalse(keep.isEnabled());
             assertTrue(forget.isEnabled());
             assertEquals("turning the switch off kept the list", 0, SeenPostsForTests.size());

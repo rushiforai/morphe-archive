@@ -112,6 +112,13 @@ public final class ArrowsBar {
         return screen != null && Arrows.hasMarks(screen);
     }
 
+    /** The review bars show Clear only while drawing is on; reading the state redraws them. */
+    public static boolean reviewsDrawing() {
+        read();
+        View screen = screen();
+        return screen != null && Arrows.drawing(screen);
+    }
+
     public static int arrowsIcon() {
         return Utils.resourceId("glyph_arrow_line_diagonal_top_right", "drawable");
     }

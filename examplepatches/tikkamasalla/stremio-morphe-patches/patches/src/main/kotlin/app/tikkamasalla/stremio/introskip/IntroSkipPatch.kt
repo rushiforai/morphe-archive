@@ -29,17 +29,83 @@ val introSkipPatch = bytecodePatch(
 
     execute {
         val hookName = if (debugOption.value == true) "onPlayerSetDebug" else "onPlayerSet"
-        PlayerViewSetPlayerFingerprint.method.addInstructions(
+
+        // Version-independent hooks (TV 1.6.12 .. 1.12.0, phone 2.x): see PortFingerprints.kt.
+        // Core.dispatch carries stream start (ActionLoad.Player), TimeChanged, Seek, Paused, Unload.
+        CoreDispatchFingerprint.method.addInstructions(
             0,
-            """
-                invoke-static {p0, p1}, $EXTENSION_CLASS->$hookName(Landroid/view/View;Landroidx/media3/common/Player;)V
-            """.trimIndent(),
+            "invoke-static {p1, p2}, $PORT_HOOKS->onCoreDispatch(Ljava/lang/Object;Ljava/lang/Object;)V",
         )
+        // The app's own player interface (Exo, LibVLC, MPV, YouTube): resolved at patch time
+        // from the MPV engine. Absent in 1.6.12, where the legacy hooks below do the job.
+        val portIface = resolvePlayerInterface()
+        portIface?.let { iface ->
+            if (hookPlayerConstructors(iface) > 0) generatePlayerStubs(iface)
+        }
+        // Compose TV host (1.10.x / 1.12.x only: the resolver finds the MPV engine there, never in 1.6.12,
+        // so the 1.6.12 dex keeps exactly its legacy hooks). Each hook is optional and fails soft.
+        if (portIface != null) {
+            val wrapHook = if (debugOption.value == true) "wrapPlayerScreenDebug" else "wrapPlayerScreen"
+            try {
+                hookReturnObject(
+                    PlayerScreenViewFingerprint.method,
+                    "$PORT_HOOKS->$wrapHook(Landroid/view/View;)Landroid/view/View;",
+                    replace = true,
+                )
+            } catch (_: Exception) {
+                java.util.logging.Logger.getLogger("IntroSkipPatch").warning("PlayerFragment view factory not found: the Compose skip host is off")
+            }
+            try {
+                hookReturnObject(
+                    PlayerModelFingerprint.method,
+                    "$PORT_HOOKS->onPlayerState(Ljava/lang/Object;)V",
+                    replace = false,
+                )
+            } catch (_: Exception) {
+                java.util.logging.Logger.getLogger("IntroSkipPatch").warning("Player model decoder not found: meta type and title come from the video id only")
+            }
+            // TV: com.stremio.tv.MainActivity. Phone 2.x: com.stremio.android.MainActivity, which has no player
+            // Fragment, so PhoneOverlay keeps the skip anchor in the Activity content (see PhoneOverlay.java).
+            var activityHooked = false
+            try {
+                MainActivityOnCreateFingerprint.method.addInstructions(
+                    0,
+                    "invoke-static {p0}, $PORT_HOOKS->onMainActivity(Ljava/lang/Object;)V",
+                )
+                activityHooked = true
+            } catch (_: Exception) {
+                // Not a TV build.
+            }
+            if (!activityHooked) {
+                val phoneHook = if (debugOption.value == true) "onPhoneActivityDebug" else "onPhoneActivity"
+                try {
+                    PhoneMainActivityOnCreateFingerprint.method.addInstructions(
+                        0,
+                        "invoke-static {p0}, $PORT_HOOKS->$phoneHook(Ljava/lang/Object;)V",
+                    )
+                } catch (_: Exception) {
+                    java.util.logging.Logger.getLogger("IntroSkipPatch").warning("MainActivity.onCreate not found: activity capture and the phone skip host are off")
+                }
+            }
+        }
+
+        // Legacy Media3 hooks: real androidx names exist only up to 1.10.x (R8 renames Media3
+        // in 1.12.0 and phone 2.5.0), so each one is optional.
+        try {
+            PlayerViewSetPlayerFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static {p0, p1}, $EXTENSION_CLASS->$hookName(Landroid/view/View;Landroidx/media3/common/Player;)V
+                """.trimIndent(),
+            )
+        } catch (_: Exception) {
+            // Media3 PlayerView renamed in this build.
+        }
 
         // Direct surface setup hook (Stremio 1.6.12 TV flow):
         // p0 = ExoPlayerImpl (implements Player), p1 = SurfaceView.
         // Resolves p1.getParent() (the container ViewGroup) and passes (v0, p0) to IntroSkipBridge.
-        ExoPlayerSetVideoSurfaceViewFingerprint.method.addInstructionsWithLabels(
+        try { ExoPlayerSetVideoSurfaceViewFingerprint.method.addInstructionsWithLabels(
             0,
             """
                 if-eqz p1, :introskip_skip
@@ -52,13 +118,23 @@ val introSkipPatch = bytecodePatch(
                 :introskip_skip
                 nop
             """.trimIndent(),
-        )
+        ) } catch (_: Exception) {
+            // Media3 ExoPlayerImpl renamed in this build.
+        }
 
         // TV playback entry point hook (Stremio 1.6.12 flow, engine-agnostic):
         // Runs right after startStreamPlayback assigns this.player (index 5).
         // v0 = StremioPlayer (implements media3 Player), v1 = fragment root view.
-        StartStreamPlaybackFingerprint.method.addInstructions(
-            playerAssignedIndex(StartStreamPlaybackFingerprint.method),
+        // Present in 1.6.12 only (PlayerFragment became a Compose shell in 1.10.x).
+        val startStream = try {
+            StartStreamPlaybackFingerprint.method
+        } catch (_: Exception) {
+            // Legacy fragment entry point gone (Compose builds); Core.dispatch + player interface hooks cover it.
+            null
+        }
+        // Matched: a moved hook point must fail the patch visibly, so nothing below is caught.
+        startStream?.addInstructions(
+            playerAssignedIndex(startStream),
             """
                 iget-object v0, p0, Lcom/stremio/tv/views/player/PlayerFragment;->player:Lcom/stremio/common/players/StremioPlayer;
                 invoke-virtual {p0}, Landroidx/fragment/app/Fragment;->getView()Landroid/view/View;
@@ -69,17 +145,7 @@ val introSkipPatch = bytecodePatch(
 
         // Settings rows in Stremio Settings > Playback (fail soft).
         try {
-            PreferencesFragmentOnCreatePreferencesFingerprint.method.apply {
-                val returns = implementation!!.instructions.withIndex()
-                    .filter { it.value.opcode == Opcode.RETURN_VOID }
-                    .map { it.index }
-                returns.reversed().forEach { index ->
-                    addInstructions(
-                        index,
-                        "invoke-static {p0}, $EXTENSION_SETTINGS->add(Landroidx/preference/PreferenceFragmentCompat;)V",
-                    )
-                }
-            }
+            hookReturnVoidWithThis(PreferencesFragmentOnCreatePreferencesFingerprint.method, "$EXTENSION_SETTINGS->add(Landroidx/preference/PreferenceFragmentCompat;)V")
         } catch (_: Exception) {
             // Settings screen moved in this build; the skip keeps working with defaults.
         }

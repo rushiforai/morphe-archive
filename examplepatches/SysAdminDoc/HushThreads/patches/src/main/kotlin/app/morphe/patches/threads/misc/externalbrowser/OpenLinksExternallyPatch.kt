@@ -64,11 +64,11 @@ internal object BrowserLauncherFingerprint : Fingerprint(
  * register and parse it with java.net.URI, and that's how the hook finds which string is the link.
  * 453 (2026-10-26) reads the link from an instance field instead and keeps its context in another.
  *
- * Three places on 451 through 453 make the browser's Intent without the launcher (2026-10-14): the lead form
- * and privacy policy helper, the ad browser a call to action opens, and the media viewer's swipe up
- * on an ad. Each asks the extension the same way, with its own context and link, right before its
- * stock browser work, and goes on to its own ending for an opened browser when the link went out.
- * See [directBrowserSites].
+ * Two places make the browser's Intent without the launcher: the ad browser a call to action opens
+ * and the media viewer's swipe up on an ad. 451 through 453 had a third, the lead form's link helper,
+ * which 454 (2026-11-02) sends through the launcher. Each asks the extension the same way, with its
+ * own context and link, right before its stock browser work, and goes on to its own ending for an
+ * opened browser when the link went out. See [directBrowserSites].
  */
 @Suppress("unused")
 val openLinksExternallyPatch = bytecodePatch(

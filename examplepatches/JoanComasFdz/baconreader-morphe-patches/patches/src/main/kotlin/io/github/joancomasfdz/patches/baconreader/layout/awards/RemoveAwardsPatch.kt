@@ -10,7 +10,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.indexOfFirstInstructionReversedOrThrow
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import io.github.joancomasfdz.patches.baconreader.misc.extension.EXTENSION_PACKAGE
 import io.github.joancomasfdz.patches.baconreader.misc.extension.sharedExtensionPatch
 import io.github.joancomasfdz.patches.shared.Constants.COMPATIBILITY_BACONREADER
@@ -29,6 +32,27 @@ val removeAwardsPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
+        // The action bars' buttons are images without a description: each gets its action's name, and the
+        // overflow button the toolbar's "More options", so they can be told apart. Before the award buttons'
+        // early return below is added, so it describes only the buttons the bar shows. By then setButton has
+        // reused p1, the action's name, so the extension reads the name from the button.
+        ControlBarSetButtonFingerprint.method.apply {
+            val returnIndex = indexOfFirstInstructionReversedOrThrow(Opcode.RETURN_OBJECT)
+            val button = getInstruction<OneRegisterInstruction>(returnIndex).registerA
+            addInstruction(
+                returnIndex,
+                "invoke-static { v$button }, $EXTENSION_CLASS_DESCRIPTOR->describeButton(Ljava/lang/Object;)V",
+            )
+        }
+        ControlBarSetOverflowButtonFingerprint.method.apply {
+            val returnIndex = indexOfFirstInstructionReversedOrThrow(Opcode.RETURN_OBJECT)
+            val button = getInstruction<OneRegisterInstruction>(returnIndex).registerA
+            addInstruction(
+                returnIndex,
+                "invoke-static { v$button }, $EXTENSION_CLASS_DESCRIPTOR->describeOverflowButton(Ljava/lang/Object;)V",
+            )
+        }
+
         // Comment and post action bars: the award buttons are created outside the bar.
         ControlBarSetButtonFingerprint.method.addInstructionsWithLabels(
             0,

@@ -32,6 +32,16 @@ import semicoloncolonel.mobilestream.patches.paramount.shared.Constants as Param
 import semicoloncolonel.mobilestream.patches.peacock.shared.Constants as Peacock
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
 import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
+import semicoloncolonel.mobilestream.patches.tmobileplay.shared.Constants as TMobilePlay
+import semicoloncolonel.mobilestream.patches.tlife.shared.Constants as TLife
+import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
+import semicoloncolonel.mobilestream.patches.mint.shared.Constants as Mint
+import semicoloncolonel.mobilestream.patches.xfinity.shared.Constants as Xfinity
+import semicoloncolonel.mobilestream.patches.att.shared.Constants as Att
+import semicoloncolonel.mobilestream.patches.visible.shared.Constants as Visible
+import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
+import semicoloncolonel.mobilestream.patches.shared.GOV_APPS
+import semicoloncolonel.mobilestream.patches.recgov.shared.Constants as RecGov
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
@@ -103,7 +113,7 @@ val hideDeviceIdentifiersPatch = bytecodePatch(
         "experimental; test on-device.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, *SHOPPING_APPS)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, TMobilePlay.COMPATIBILITY, TLife.COMPATIBILITY, JustWatch.COMPATIBILITY, Mint.COMPATIBILITY, Xfinity.COMPATIBILITY, Att.COMPATIBILITY, Visible.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *GOV_APPS, RecGov.COMPATIBILITY, *SHOPPING_APPS)
 
     extendWith("extensions/extension.mpe")
 

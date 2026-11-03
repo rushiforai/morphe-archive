@@ -285,7 +285,10 @@ public final class MorpheSettingsActivity extends Activity {
             int index = i;
             if (i > 0) tiles.addView(divider(16));
             tiles.addView(reorderRow(HomeLayout.tileTitle(id), !hidden.contains(id),
-                checked -> HomeLayout.setTileHidden(id, !checked),
+                checked -> {
+                    HomeLayout.setTileHidden(id, !checked);
+                    restartNeeded();
+                },
                 index > 0 ? () -> moveTile(order, index, -1) : null,
                 index < order.size() - 1 ? () -> moveTile(order, index, 1) : null));
         }
@@ -297,9 +300,12 @@ public final class MorpheSettingsActivity extends Activity {
             String id = HomeLayout.SECTIONS[i];
             if (i > 0) sections.addView(divider(16));
             sections.addView(switchRow(HomeLayout.SECTION_TITLES[i], null, !hiddenSections.contains(id),
-                checked -> HomeLayout.setSectionHidden(id, !checked)));
+                checked -> {
+                    HomeLayout.setSectionHidden(id, !checked);
+                    restartNeeded();
+                }));
         }
-        list.addView(caption("Changes show when you go back to the Home screen. chess.com's own "
+        list.addView(caption("Restart the app to apply your changes. chess.com's own "
             + "Home settings (streak, Chess TV, recommendations) stay in its Settings."));
     }
 
@@ -308,7 +314,7 @@ public final class MorpheSettingsActivity extends Activity {
         String id = moved.remove(index);
         moved.add(index + delta, id);
         HomeLayout.setTileOrder(moved);
-        render();
+        restartNeeded();
     }
 
     private void renderTabs() {

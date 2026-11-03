@@ -910,7 +910,6 @@ Remove feed ads, creator commission posts, paid partnerships, and branded conten
 Hide voting cards and poll results above the comments, including polls that have ended.	Nasconde le schede di voto e i risultati dei sondaggi sopra i commenti, anche per i sondaggi già conclusi.
 Hide the Share via row.	Nascondi la riga "Condividi con".
 Hide the actions row of the share sheet.	Nascondi la riga delle azioni nel menu di condivisione.
-Hide the row of friends at the top of the share sheet.	Nascondi la riga degli amici in cima al menu di condivisione.
 Cuts the tracking bits out of links you share.	Elimina le parti di tracciamento dai link che condividi.
 Remove watermark	Rimuovi la filigrana
 Removed %1$s	%1$s rimosso
@@ -1047,7 +1046,6 @@ Sound on	Audio attivo
 Sound	Audio
 Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.	Riproduce i video del feed senza audio, lasciando inalterato il volume del telefono. La musica di un'altra app continua a essere riprodotta mentre questa opzione è attiva. I messaggi diretti, le storie e le LIVE mantengono il loro audio.
 Let other apps play until a video starts	Lascia suonare le altre app finché non parte un video
-Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound once a video starts playing.	Aprire TikTok o i tuoi messaggi non mette più in pausa la musica di un'altra app. TikTok prende l'audio solo quando parte un video.
 Show the mute button on videos	Mostra il pulsante per disattivare l'audio sui video
 Add a button beside the block control that turns the feed's sound off and on.	Aggiunge un pulsante accanto al controllo di blocco che attiva e disattiva l'audio del feed.
 Show the country a video was posted from next to the creator's name.	Mostra il paese da cui è stato pubblicato il video accanto al nome del creator.
@@ -1196,7 +1194,6 @@ The smallest value is above the largest	Il valore minimo è superiore al massimo
 The sound couldn't be saved. Try again.	Non è stato possibile salvare l'audio. Riprova.
 The sticker couldn't be saved. Try again.	Non è stato possibile salvare lo sticker. Riprova.
 The story couldn't be saved. Try again.	Non è stato possibile salvare la storia. Riprova.
-The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.	Il pollice verso su ogni commento blocca chi ha commentato invece di esprimere un dislike. Il commento si oscura, compare un banner per annullare, e un secondo tocco sblocca.
 Couldn't save. Try again, or choose Automatic.	Non salvato. Riprova o scegli Automatico.
 There is no Lab change to undo.	Non c'è nessuna modifica del Lab da annullare.
 There is no diagnostic data to clear	Non ci sono dati diagnostici da eliminare
@@ -1404,7 +1401,6 @@ Hide the unread badges on the bottom tabs	Nascondi i badge non letti sulle sched
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Nasconde i contatori rossi e i puntini su tutte le schede in basso, inclusi Posta in arrivo e Profilo, e la bolla sopra Posta in arrivo che conta nuovi Mi piace, follower, commenti e chi è in LIVE. La posta in arrivo continua comunque a mostrare cosa è arrivato.
 Speed while you hold the video	Velocità mentre tieni premuto il video
 Slide to change the hold speed	Scorri per cambiare la velocità di pressione
-While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Mentre tieni premuto un video, scorri a sinistra o a destra per passare tra le velocità del menu velocità. Una bolla mostra quella attuale. La prossima pressione parte da lì. Quando lasci torna normale. Il blocco tirando giù mantiene la velocità scelta.
 Hide mini dramas	Nascondi i mini drama
 Hide TikTok's short drama episodes and the cards that promote them.	Nasconde gli episodi dei mini drama di TikTok e le schede che li promuovono.
 Mini dramas	Mini drama
@@ -1812,12 +1808,10 @@ The proxy's address, like 192.168.1.20 or proxy.example.com.	L'indirizzo del pro
 Proxy port	Porta del proxy
 The port the proxy listens on, like 8080 or 1080.	La porta su cui il proxy è in ascolto, come 8080 o 1080.
 Proxy user name	Nome utente del proxy
-Optional. Only connections made by Android itself can sign in to a proxy, not TikTok's own. Leave empty for a proxy without a password.	Facoltativo. Solo le connessioni fatte da Android stesso possono accedere a un proxy, non quelle di TikTok. Lascia vuoto per un proxy senza password.
 Proxy password	Password del proxy
 Optional, used with the user name. It isn't shown, logged or put in a backup.	Facoltativa, usata con il nome utente. Non viene mostrata, registrata o inserita in un backup.
 Enter a server name or IP address, without http:// or a port number	Inserisci il nome di un server o un indirizzo IP, senza http:// né numero di porta
 A port is a whole number from 1 to 65535	Una porta è un numero intero da 1 a 65535
-TikTok can't send a password to proxy %1$s. Use another.	TikTok non invia password al proxy %1$s. Usane un altro.
 Proxy %1$s is down. Turn it off if TikTok won't load.	Proxy %1$s non risponde. Se TikTok non carica, spegnilo.
 Word rules only, not every feed filter:	Solo regole di parole, non tutti i filtri del feed:
 This list is too long to preview here. Saving still follows the usual limit.	Questo elenco è troppo lungo per l'anteprima. Il salvataggio segue comunque il limite consueto.
@@ -2328,7 +2322,6 @@ Fold the search into a button	Riduci la ricerca a un pulsante
 Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.	Mostra un pulsante di ricerca in alto a sinistra nei commenti al posto della casella, così i commenti riprendono quello spazio. Toccalo per cercare e toccalo di nuovo per chiudere la casella. Cerca nei commenti deve essere attivo.
 Put the comment search away	Chiudi la ricerca nei commenti
 Tap @names in bios	Tocca i @nomi nelle bio
-An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Un @nomeutente nella bio di un profilo apre quel profilo quando lo tocchi. Il resto della bio si traduce ancora con un tocco.
 autoplay auto play	riproduzione automatica autoplay
 picture in picture PiP	picture in picture PiP
 search suggestions	suggerimenti di ricerca
@@ -2386,3 +2379,58 @@ Recently used	Usati di recente
 Make sticker	Crea sticker
 TikTok refused the like: %1$s	TikTok ha rifiutato il Mi piace: %1$s
 TikTok refused the like with code %1$s	TikTok ha rifiutato il Mi piace con codice %1$s
+Hide read receipts	Nascondi le conferme di lettura
+Stops TikTok telling people you've read their messages. Your own unread badges still clear as usual.	Impedisce a TikTok di dire agli altri che hai letto i loro messaggi. I tuoi indicatori di messaggi non letti si azzerano comunque come sempre.
+Copy name	Copia nome
+Background play in the long-press menu	Riproduzione in background nel menu a pressione prolungata
+Adds TikTok's own background play row to the long-press menu, so you pick it for one video and other videos stop as usual. Has no effect while Keep playing in the background is on. Restart TikTok to apply this.	Aggiunge al menu a pressione prolungata la riga di riproduzione in background di TikTok, così la scegli per un solo video e gli altri si fermano come al solito. Non ha effetto mentre Continua la riproduzione in background è attivo. Riavvia TikTok per applicare.
+1, from Background play in the long-press menu	1, da "Riproduzione in background nel menu a pressione prolungata"
+Background play in the long-press menu is on in Hushfeed's Playback settings, so TikTok gets 1 for this key and an override here has no effect until that switch is off.	"Riproduzione in background nel menu a pressione prolungata" è attivo nelle impostazioni di Riproduzione di Hushfeed, quindi TikTok riceve 1 per questa chiave, e una sovrascrittura qui non ha effetto finché quell'interruttore non è disattivato.
+Keep LIVEs from these creators	Mantieni i LIVE di questi creator
+With Hide LIVE videos on, these creators' LIVEs stay when TikTok sends them. Separate handles or user IDs with commas.	Con Nascondi i video LIVE attivo, i LIVE di questi creator restano quando TikTok li invia. Separa nomi utente o ID utente con virgole.
+Optional. Leave empty for a proxy without a password. TikTok signs in through a small relay on this phone, which other apps here could reach while TikTok is open.	Facoltativo. Lascia vuoto per un proxy senza password. TikTok accede tramite un piccolo relay su questo telefono, che altre app qui potrebbero raggiungere mentre TikTok è aperto.
+Proxy %1$s needs a user name and password	Il proxy %1$s richiede nome e password
+Proxy %1$s refused your user name or password	Il proxy %1$s rifiuta nome o password
+Save this video	Salva questo video
+Show the save button on videos	Mostra il pulsante per salvare sui video
+Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	Aggiunge un pulsante accanto al controllo di blocco che salva il video sullo schermo con un tocco. Trascinalo dove vuoi.
+Couldn't save this one. Try again.	Non salvato. Riprova.
+Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	Aprire TikTok o i tuoi messaggi non mette più in pausa la musica di un'altra app. TikTok prende l'audio mentre un video è in riproduzione e lo restituisce quando esci dal video.
+While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to. On a locked video, letting go locks the new speed.	Mentre tieni premuto un video, scorri a sinistra o a destra per passare tra le velocità del menu velocità. Una bolla mostra quella attuale. La prossima pressione parte da lì. Quando lasci torna normale. Il blocco tirando giù mantiene la velocità scelta. Su un video bloccato, quando lasci si blocca la nuova velocità.
+Hide speed messages	Nascondi i messaggi di velocità
+Hides TikTok's message when you pick a speed from the menu, or lock or unlock one with a hold.	Nasconde il messaggio di TikTok quando scegli una velocità dal menu, o ne blocchi o sblocchi una tenendo premuto.
+Hide the All button on Following	Nascondi il pulsante Tutti in Seguiti
+Hide the Create circle in story rows	Nascondi il cerchio Crea nelle file delle storie
+Hide the All button at the end of the story row on the Following feed. The row and its stories stay.	Nasconde il pulsante Tutti alla fine della fila delle storie in Seguiti. La fila e le sue storie restano.
+Hide the Create circle at the start of the story row on the Following feed and in the Inbox. Your own Story still shows there once you post one.	Nasconde il cerchio Crea all'inizio della fila delle storie in Seguiti e in Posta in arrivo. La tua storia compare comunque lì quando ne pubblichi una.
+The thumbs down on each comment blocks the commenter instead of disliking. Their comments leave the list right away and an undo banner follows.	Il pollice verso su ogni commento blocca chi ha commentato invece di esprimere un dislike. I suoi commenti spariscono subito dall'elenco e compare un banner per annullare.
+Hide like counts on comments	Nascondi il numero di Mi piace sui commenti
+Hide the number beside the heart on each comment. The heart still works.	Nasconde il numero accanto al cuore su ogni commento. Il cuore continua a funzionare.
+Hide the thumbs down on comments	Nascondi il pollice verso sui commenti
+Hide the thumbs down beside the heart on each comment. It stays while Thumbs down blocks the commenter is on.	Nasconde il pollice verso accanto al cuore su ogni commento. Resta finché Il pollice verso blocca chi ha commentato è attivo.
+Hide the row of friends at the top of the share sheet and in the menu a long press on a comment opens.	Nasconde la fila di amici in cima al menu di condivisione e nel menu che si apre tenendo premuto un commento.
+An @username in a profile's bio opens that profile when you tap it. A full name typed after an @ opens a search for that name. The rest of the bio still translates on a tap.	Un @nomeutente nella bio di un profilo apre quel profilo quando lo tocchi. Un nome completo scritto dopo una @ apre una ricerca di quel nome. Il resto della bio si traduce ancora con un tocco.
+Hide the repost chip	Nascondi l'etichetta del repost
+TikTok's color	Colore di TikTok
+White	Bianco
+Light gray	Grigio chiaro
+Gray	Grigio
+Dark gray	Grigio scuro
+Yellow	Giallo
+None	Nessuno
+Video text color	Colore del testo del video
+Backdrop behind video text	Sfondo dietro il testo del video
+Colors the description, the author's name and the post date on videos.	Colora la descrizione, il nome dell'autore e la data di pubblicazione sui video.
+Puts a band of color behind the description, the author's name and the post date, so they stay readable on bright videos.	Mette una fascia colorata dietro la descrizione, il nome dell'autore e la data di pubblicazione, così restano leggibili sui video chiari.
+Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it.	Rimuove la piccola barra sopra la barra di avanzamento che indica che un amico ha ripubblicato il video o ti chiede di ripubblicarlo.
+Time zone	Fuso orario
+A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone.	Un nome di fuso come Europe/Belgrade, usato al posto di quello del paese. L'ora legale si applica da sola. Vuoto significa il fuso del paese.
+Enter a zone like Asia/Tokyo	Inserisci un fuso come Asia/Tokyo
+Keep my own watch history	Tieni la mia cronologia visualizzazioni
+Lists the videos you watch on this phone, with who posted each one and its caption. It stays on your phone.	Elenca i video che guardi su questo telefono, con chi li ha pubblicati e la loro descrizione. L'elenco resta sul tuo telefono.
+My watch history	La mia cronologia visualizzazioni
+Find and reopen the videos you've watched on this phone	Trova e riapri i video che hai guardato su questo telefono
+Videos you watch show up here	I video che guardi compaiono qui
+No videos match	Nessun video corrisponde
+Watch history cleared	Cronologia visualizzazioni cancellata
+Couldn't open that video. Try again.	Impossibile aprire il video. Riprova.

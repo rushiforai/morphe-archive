@@ -1,5 +1,12 @@
 package app.tikkamasalla.stremio.subs;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,18 +37,27 @@ public final class SdhLabels {
     }
 
     /**
-     * Whole-word match for SDH / CC / HI track labels. Non-alphanumeric
+     * Whole-word match for SDH / CC track labels. Non-alphanumeric
      * separators (spaces, dots, underscores, dashes, brackets) act as
-     * boundaries, so "eng.hi.srt" matches while "Chinese" and "Ethics"
-     * do not.
+     * boundaries, so "eng.cc.srt" matches while "Chinese" and "Ethics"
+     * do not. The bare token "hi" is deliberately not here: it is also the
+     * language code of Hindi, so it is judged in hiTokenIsSdh.
      */
     private static final Pattern SDH_LABEL = Pattern.compile(
             "(?i)(?<![A-Za-z0-9])(?:"
-                    + "sdh|cc|hi"
+                    + "sdh|cc"
                     + "|hearing[\\s._-]*impaired"
                     + "|closed[\\s._-]*captions?"
                     + "|deaf[\\s._-]*and[\\s._-]*hard[\\s._-]*of[\\s._-]*hearing"
                     + ")(?![A-Za-z0-9])");
+    /** The bare token "hi": hearing impaired ("English HI") or the Hindi language code ("hi"). */
+    private static final Pattern BARE_HI_LABEL =
+            Pattern.compile("(?i)(?<![A-Za-z0-9])hi(?![A-Za-z0-9])");
+    private static final Pattern ENGLISH_WORD =
+            Pattern.compile("(?i)(?<![A-Za-z0-9])(?:en|eng|english)(?![A-Za-z0-9])");
+    /** Hindi named in the label, or a "hi-IN" locale: a bare "hi" next to it is the language. */
+    private static final Pattern HINDI_HINT = Pattern.compile(
+            "(?i)(?<![A-Za-z0-9])(?:hindi|hin)(?![A-Za-z0-9])|(?<![A-Za-z0-9])hi[-_]in(?![A-Za-z0-9])|\\u0939\\u093F\\u0928\\u094D\\u0926\\u0940");
     private static final Pattern FORCED_LABEL = Pattern.compile("(?i)\\bforced\\b");
     private static final Pattern SIGNS_LABEL = Pattern.compile("(?i)\\bsigns\\b");
 
@@ -298,9 +314,52 @@ public final class SdhLabels {
     /** Scale parameter: 10 percent cue share maps to about 0.63 score. */
     private static final double SHARE_SCALE = 0.10;
 
-    /** True when the track name itself advertises hearing-impaired content. */
+    /**
+     * True when the track name itself advertises hearing-impaired content.
+     * Hindi is never SDH: a label that is just "hi" ("hi", "hi.srt", "hi Full") is the Hindi language
+     * code, while "English HI", "French HI" and "eng.hi.srt" are hearing-impaired tracks.
+     */
     public static boolean isSdhLabel(String label) {
-        return label != null && SDH_LABEL.matcher(label).find();
+        return isSdhLabel(label, null);
+    }
+
+    /**
+     * Like {@link #isSdhLabel(String)} with the track language: a Hindi track ("hi", "hin") is never SDH
+     * through the "hi" token, and a bare "HI" label on an English track is.
+     */
+    public static boolean isSdhLabel(String label, String lang) {
+        if (label == null) return false;
+        if (SDH_LABEL.matcher(label).find()) return true;
+        if (!BARE_HI_LABEL.matcher(label).find()) return false;
+        String norm = lang == null ? "" : normLang(lang);
+        if (norm.equals("hi") || HINDI_HINT.matcher(label).find()) return false;
+        if (norm.equals("en")) return true;
+        return hiTokenIsSdh(label);
+    }
+
+    /** Language-less rule for the "hi" token: hearing impaired unless it reads as the Hindi code. */
+    private static boolean hiTokenIsSdh(String label) {
+        if (HINDI_HINT.matcher(label).find()) return false;
+        Matcher m = BARE_HI_LABEL.matcher(label);
+        if (!m.find()) return false;
+        boolean first = !hasLetterOrDigit(label.substring(0, m.start()));
+        String others = BARE_HI_LABEL.matcher(label).replaceAll(" ");
+        boolean otherLetters = false;
+        for (int i = 0; i < others.length(); i++) {
+            if (Character.isLetter(others.charAt(i))) {
+                otherLetters = true;
+                break;
+            }
+        }
+        if (!otherLetters) return false;
+        return !first || ENGLISH_WORD.matcher(label).find();
+    }
+
+    private static boolean hasLetterOrDigit(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            if (Character.isLetterOrDigit(text.charAt(i))) return true;
+        }
+        return false;
     }
 
     public static boolean isForcedLabel(String label) {
@@ -313,9 +372,14 @@ public final class SdhLabels {
 
     /** Rank a track from its label and Media3 flags. Lower is better. */
     public static int kindOf(String label, int roleFlags, int selectionFlags) {
+        return kindOf(label, null, roleFlags, selectionFlags);
+    }
+
+    /** Like {@link #kindOf(String, int, int)} with the track language, so an English "HI" label counts as SDH. */
+    public static int kindOf(String label, String lang, int roleFlags, int selectionFlags) {
         if ((roleFlags & ROLE_DESCRIBES_SOUND) != 0) return KIND_SDH;
         if (label != null) {
-            if (SDH_LABEL.matcher(label).find()) return KIND_SDH;
+            if (isSdhLabel(label, lang)) return KIND_SDH;
             if (FORCED_LABEL.matcher(label).find()) return KIND_FORCED;
             if (SIGNS_LABEL.matcher(label).find()) return KIND_SIGNS;
         }
@@ -420,6 +484,86 @@ public final class SdhLabels {
     /** True when the cues score at or above SDH_THRESHOLD. Weak samples keep the track. */
     public static boolean isSdhContent(List<String> cues) {
         return scoreCues(cues) >= SDH_THRESHOLD;
+    }
+
+    /**
+     * Decode downloaded subtitle bytes without knowing the charset: BOM (UTF-8, UTF-16), BOM-less
+     * UTF-16 by NUL pattern, strict UTF-8, Shift_JIS when kana dominate the non-ASCII text, else
+     * windows-1252. A multi-byte sequence cut off at the end of the buffer (size-capped download)
+     * does not count as invalid. Never throws.
+     */
+    public static String decodeSubtitleBytes(byte[] data) {
+        try {
+            if (data == null || data.length == 0) return "";
+            int b0 = data[0] & 0xFF;
+            int b1 = data.length > 1 ? data[1] & 0xFF : -1;
+            if (data.length >= 3 && b0 == 0xEF && b1 == 0xBB && (data[2] & 0xFF) == 0xBF) {
+                return new String(data, 3, data.length - 3, StandardCharsets.UTF_8);
+            }
+            if (b0 == 0xFF && b1 == 0xFE) {
+                return new String(data, 2, data.length - 2, StandardCharsets.UTF_16LE);
+            }
+            if (b0 == 0xFE && b1 == 0xFF) {
+                return new String(data, 2, data.length - 2, StandardCharsets.UTF_16BE);
+            }
+            int probe = Math.min(data.length, 200);
+            int evenZero = 0;
+            int oddZero = 0;
+            for (int i = 0; i < probe; i++) {
+                if (data[i] != 0) continue;
+                if ((i & 1) == 0) evenZero++;
+                else oddZero++;
+            }
+            if ((evenZero + oddZero) * 100 / probe > 30) {
+                if (oddZero > evenZero * 5) return new String(data, StandardCharsets.UTF_16LE);
+                if (evenZero > oddZero * 5) return new String(data, StandardCharsets.UTF_16BE);
+            }
+            String utf8 = strictDecode(data, StandardCharsets.UTF_8);
+            if (utf8 != null) return utf8;
+            if (Charset.isSupported("Shift_JIS")) {
+                String sjis = strictDecode(data, Charset.forName("Shift_JIS"));
+                if (sjis != null && isMostlyKana(sjis)) return sjis;
+            }
+            Charset fallback;
+            try {
+                fallback = Charset.forName("windows-1252");
+            } catch (Exception e) {
+                fallback = StandardCharsets.ISO_8859_1;
+            }
+            return new String(data, fallback);
+        } catch (Throwable t) {
+            return data == null ? "" : new String(data, StandardCharsets.ISO_8859_1);
+        }
+    }
+
+    /** Strict decode; null on any invalid sequence. Input that ends inside a sequence is accepted. */
+    private static String strictDecode(byte[] data, Charset charset) {
+        try {
+            CharsetDecoder decoder = charset.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT);
+            ByteBuffer in = ByteBuffer.wrap(data);
+            CharBuffer out = CharBuffer.allocate((int) (data.length * decoder.maxCharsPerByte()) + 1);
+            CoderResult result = decoder.decode(in, out, false);
+            if (result.isError()) return null;
+            out.flip();
+            return out.toString();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /** True when at least 4 kana (U+3040..U+30FF) make up 30 percent or more of the non-ASCII chars. */
+    private static boolean isMostlyKana(String text) {
+        int nonAscii = 0;
+        int kana = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c <= 0x7F) continue;
+            nonAscii++;
+            if (c >= 0x3040 && c <= 0x30FF) kana++;
+        }
+        return kana >= 4 && kana * 100 / nonAscii >= 30;
     }
 
     /** Parse an .srt body into per-cue text (lines joined with line feeds). */

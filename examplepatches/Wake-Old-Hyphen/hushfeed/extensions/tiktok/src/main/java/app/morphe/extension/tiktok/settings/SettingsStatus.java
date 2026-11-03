@@ -130,6 +130,7 @@ public class SettingsStatus {
     public static boolean keepUnsentEnabled = false;
     public static boolean suggestedVideoPushBlockEnabled = false;
     public static boolean autoStreakEnabled = false;
+    public static boolean hideReadReceiptsEnabled = false;
     public static boolean hideSuggestedAccountsEnabled = false;
     public static boolean hideInboxStoriesEnabled = false;
     public static boolean chatDeclutterEnabled = false;
@@ -360,6 +361,13 @@ public class SettingsStatus {
         holdSpeedSlideEnabled = true;
     }
 
+    /** TikTok's speed messages show through the extension, so they can be left out. */
+    public static boolean hideSpeedToastsEnabled = false;
+
+    public static void enableHideSpeedToasts() {
+        hideSpeedToastsEnabled = true;
+    }
+
     public static void enableLongPressSpeedLock() {
         longPressSpeedLockEnabled = true;
     }
@@ -552,6 +560,10 @@ public class SettingsStatus {
         autoStreakEnabled = true;
     }
 
+    public static void enableHideReadReceipts() {
+        hideReadReceiptsEnabled = true;
+    }
+
     public static void enableInboxFilter() {
         inboxFilterEnabled = true;
     }
@@ -686,6 +698,20 @@ public class SettingsStatus {
 
     public static void enableFollowingSkylight() {
         followingSkylightEnabled = true;
+    }
+
+    /** Hide video overlays found the story rows' All button and Create circle and hooked them (#308, #309). */
+    public static boolean storyRowButtonsEnabled = false;
+
+    public static void enableStoryRowButtons() {
+        storyRowButtonsEnabled = true;
+    }
+
+    /** Hide video overlays found the trigger for the repost chip and hooked it (#319). */
+    public static boolean repostChipEnabled = false;
+
+    public static void enableRepostChip() {
+        repostChipEnabled = true;
     }
 
     /** Hide video overlays found the music disc's two animation settings on this build and hooked them (#68). */

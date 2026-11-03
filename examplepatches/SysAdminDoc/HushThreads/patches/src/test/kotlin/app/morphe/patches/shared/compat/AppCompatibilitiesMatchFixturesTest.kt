@@ -87,7 +87,7 @@ class AppCompatibilitiesMatchFixturesTest {
                         ApkUtils.getAndroidManifest(DataSources.asDataSource(file))
                     }
                     val code = ApkUtils.getVersionCodeFromBinaryAndroidManifest(manifest.duplicate())
-                    assertTrue("${fixture.name} version code $code is a 453.0.0.56.79 build", code in codes)
+                    assertTrue("${fixture.name} version code $code is a $version build", code in codes)
                     seenCodes += code
                     val minSdk = ApkUtils.getMinSdkVersionFromBinaryAndroidManifest(manifest.duplicate())
                     assertTrue(

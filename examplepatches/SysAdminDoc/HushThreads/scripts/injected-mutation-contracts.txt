@@ -28,7 +28,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 
 # The main-feed logo keeps all seven original clickable arguments in their original order.
 # A second hook, a leftover stock call or a hook on another argument bank is refused.
-sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object; replacing *->*(*Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)* in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; holding "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2820)"
+sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object; replacing *->*(*Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)* in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; holding "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2845)"
 
 # SoLoader's flags reach the extension before SoLoader reads them, in the one static init holding
 # both of its messages, so a merged build with compressed libraries can start.

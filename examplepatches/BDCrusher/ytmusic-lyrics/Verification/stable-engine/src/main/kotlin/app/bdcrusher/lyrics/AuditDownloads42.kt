@@ -25,7 +25,7 @@ fun main(args:Array<String>){
   val offline=all.values.flatMap {it.methods.toList()}.single {m->m.implementation?.instructions?.any {((it as? ReferenceInstruction)?.reference as? StringReference)?.string=="Object is not an offlineable video: %s"}==true}
   require(offline.contextCalls().any {it.definingClass==selected[0].definingClass&&it.parameterTypes==listOf("Ljava/lang/Object;")&&it.returnType !in listOf("Ljava/lang/Object;","Ljava/lang/String;")}){"Getter owner is unrelated to native offline context"}
   val route=all.getValue("Lapp/morphe/extension/music/patches/DownloadsPatch;").methods.single {it.name=="routeEncodedDownload"}.contextCalls()
-  require(route.any {it.name=="contextual"&&it.definingClass=="Lapp/bdcrusher/ytmusic/playlists/DownloadCommand;"}&&route.any {it.name=="target"&&it.definingClass==context.type}&&route.none {it.name=="getVideoId"})
+  require(route.any {it.name=="contextual"&&it.definingClass=="Lapp/bdcrusher/ytmusic/playlists/DownloadCommand;"}&&route.any {it.name=="target"&&it.definingClass=="Lapp/bdcrusher/ytmusic/playlists/DownloadViewContext;"}&&route.none {it.name=="getVideoId"})
   val strict=injectedInvokeAccess(all);require(strict.failures.isEmpty()){strict.failures.joinToString("\n")}
   val hash=MessageDigest.getInstance("SHA-256").digest(apk.readBytes()).joinToString(""){"%02x".format(it)}
   val out=apk.parentFile.resolve("downloads42-audit.json");require(!out.exists());out.writeText("""{"passed":true,"apkSha256":"$hash","nativeTagGetters":2,"nativeTagGetterOwner":"${selected[0].definingClass}","sourceGuardsReplaced":true,"emptyActionContextRouted":true,"noNowPlayingFallback":true,"privateInvokeFailures":0,"phoneVerified":false}

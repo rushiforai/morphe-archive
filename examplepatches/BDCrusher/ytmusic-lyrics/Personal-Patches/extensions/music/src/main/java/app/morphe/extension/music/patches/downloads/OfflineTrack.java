@@ -27,7 +27,7 @@ public record OfflineTrack(String videoId, String title, String artist, String a
         File artwork = new File(audioFile.getParentFile(), videoId + ".jpg");
 
         try {
-            if (metadata.isFile()) {
+            if (metadata.isFile()||new File(metadata+".bak").isFile()) {
                 JSONObject json = new JSONObject(OfflineStorage.readText(metadata));
                 return new OfflineTrack(videoId, json.optString("title", videoId),
                         json.optString("artist", ""), json.optString("album", ""),
@@ -59,6 +59,7 @@ public record OfflineTrack(String videoId, String title, String artist, String a
             }
         } catch (Exception ex) {
             Logger.printException(() -> "Could not save offline metadata: " + videoId, ex);
+            app.bdcrusher.ytmusic.common.FeatureDiagnostics.record("Downloads-storage","Song details or cover could not be saved; existing files were kept");
         }
     }
 

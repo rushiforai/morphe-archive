@@ -31,7 +31,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         return SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled
                 || SettingsStatus.h264PlaybackEnabled || SettingsStatus.playbackSpeedEnabled
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
-                || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.storyControlsEnabled
+                || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.fullScreenNextVideosEnabled
+                || SettingsStatus.storyControlsEnabled
                 || SettingsStatus.liveControlsEnabled
                 || SettingsStatus.feedMuteEnabled || SettingsStatus.keepPulledSoundsEnabled
                 || SettingsStatus.backgroundPlayEnabled || SettingsStatus.pictureInPictureEnabled
@@ -68,6 +69,12 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "Also turns on TikTok's own Auto scroll for videos opened from search. "
                             + "Restart TikTok to apply this.",
                     Settings.AUTO_ADVANCE_SEARCH));
+        }
+        if (SettingsStatus.fullScreenNextVideosEnabled) {
+            addPreference(new TogglePreference(context, "Keep the next videos in full screen",
+                    "Full screen opens with just your video on most pages, so there's nothing to "
+                            + "swipe to. This brings the videos after it along.",
+                    Settings.FULL_SCREEN_NEXT_VIDEOS));
         }
         // None of these is auto-advance, and under its heading they read as parts of it: each keeps
         // you on the video you're on, paused behind the comments, held or stopped at its end, or
@@ -275,7 +282,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     Settings.FEED_MUTED));
             addPreference(new TogglePreference(context, "Let other apps play until a video starts",
                     "Opening TikTok or your messages no longer pauses music from another app. "
-                            + "TikTok takes the sound once a video starts playing.",
+                            + "TikTok takes the sound while a video plays and gives it back when you leave the video.",
                     Settings.FOCUS_WAITS_FOR_VIDEO));
         }
         if (SettingsStatus.keepPulledSoundsEnabled) {
@@ -297,6 +304,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "instead of waiting for you to press Play in the notification. A "
                             + "call or another app's sound still pauses it.",
                     Settings.BACKGROUND_REPLAY));
+            addPreference(new TogglePreference(context, "Background play in the long-press menu",
+                    "Adds TikTok's own background play row to the long-press menu, so you pick it "
+                            + "for one video and other videos stop as usual. Has no effect while "
+                            + "Keep playing in the background is on. Restart TikTok to apply this.",
+                    Settings.BACKGROUND_PLAY_MENU));
         }
         if (SettingsStatus.pictureInPictureEnabled) {
             addPreference(new TogglePreference(context, "Keep watching in a small window",
@@ -347,8 +359,14 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 addPreference(new TogglePreference(context, "Slide to change the hold speed",
                         "While you hold a video, slide left or right to step through the speed menu's speeds, "
                                 + "and a bubble shows the one you're on. Your next hold starts there. "
-                                + "Letting go goes back to normal. A pull-down lock keeps the speed you slid to.",
+                                + "Letting go goes back to normal. A pull-down lock keeps the speed you slid to. "
+                                + "On a locked video, letting go locks the new speed.",
                         Settings.HOLD_SPEED_SLIDE));
+            }
+            if (SettingsStatus.hideSpeedToastsEnabled) {
+                addPreference(new TogglePreference(context, "Hide speed messages",
+                        "Hides TikTok's message when you pick a speed from the menu, or lock or unlock one with a hold.",
+                        Settings.HIDE_SPEED_TOASTS));
             }
         }
         if (SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled

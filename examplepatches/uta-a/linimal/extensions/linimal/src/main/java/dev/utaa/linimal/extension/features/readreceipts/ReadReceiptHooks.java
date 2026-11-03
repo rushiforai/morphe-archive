@@ -114,6 +114,23 @@ public final class ReadReceiptHooks {
         }
     }
 
+    /**
+     * 「すべて既読」が同じ thread で送信メソッドを呼ぶ直前に、対象トークだけを一回許可します。
+     * 呼び出し直後に {@link #clearPreparedSupplier()} で必ず破棄します。
+     */
+    public static void prepareExplicitRead(String chatId) {
+        try {
+            if (chatId == null) {
+                PREPARED_SUPPLIER.remove();
+            } else {
+                PREPARED_SUPPLIER.set(chatId);
+            }
+        } catch (Throwable ignored) {
+            // hook の異常では許可を残さず、自動経路を誤って許可しません。
+            PREPARED_SUPPLIER.remove();
+        }
+    }
+
     private static void removeClearedOrMatchingSuppliers(Object supplier) {
         Iterator<ManualSupplier> iterator = MANUAL_SUPPLIERS.iterator();
         while (iterator.hasNext()) {

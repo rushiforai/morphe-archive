@@ -47,6 +47,18 @@ public class MessageLogExportTest {
             + stamp(JAN + 2000) + ",\"Ana\",\"Ana\",\"second\",yes\r\n", csv);
     }
 
+    @Test public void aPhotoWithNoWordsReadsAsAnAttachmentUnderItsChatsPickedName() {
+        MessageLogExport.Labels labels = new MessageLogExport.Labels("Unknown chat", "Unsent", "No text", "Photo or attachment");
+        List<MessageLog.Entry> photo = List.of(new MessageLog.Entry(JAN, "GROUP:7", "", "Ana", "", "mid.1", false, true, ""));
+        java.util.Map<String, String> names = java.util.Map.of("GROUP:7", "Climbing");
+        assertEquals("== Climbing ==\n\n" + stamp(JAN) + "  Ana\nPhoto or attachment\n\n", MessageLogExport.text(photo, names, labels));
+        assertEquals((char) 0xFEFF + "Date,Chat,Sender,Message,Unsent\r\n"
+            + stamp(JAN) + ",\"Climbing\",\"Ana\",\"Photo or attachment\",\r\n", MessageLogExport.csv(photo, names, labels));
+        // Words the notification gave the photo stay as they are.
+        assertEquals("== Climbing ==\n\n" + stamp(JAN) + "  Ana\nAna sent a photo.\n\n", MessageLogExport.text(
+            List.of(new MessageLog.Entry(JAN, "GROUP:7", "Ana sent a photo.", "Ana", "", "mid.1", false, true, "")), names, labels));
+    }
+
     @Test public void csvKeepsQuotesCommasAndLineBreaksInsideOneCell() {
         assertEquals("\"she said \"\"hi, you\"\"\nthen left\"", MessageLogExport.cell("she said \"hi, you\"\nthen left"));
     }

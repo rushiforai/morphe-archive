@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    val COMPATIBILITY_CHZZK = Compatibility(
+    val COMPATIBILITY_CHZZK_MOBILE = Compatibility(
         name = "Chzzk",
         packageName = "com.navercorp.game.android.community",
         apkFileType = ApkFileType.APKM,
@@ -33,5 +33,19 @@ object Constants {
                 minSdk = 26,
             ),
         )
+    )
+
+    val COMPATIBILITY_CHZZK = Compatibility(
+        name = "Chzzk",
+        packageName = "com.navercorp.game.android.community",
+        apkFileType = COMPATIBILITY_CHZZK_MOBILE.apkFileType,
+        appIconColor = COMPATIBILITY_CHZZK_MOBILE.appIconColor,
+        signatures = COMPATIBILITY_CHZZK_MOBILE.signatures,
+        targets = COMPATIBILITY_CHZZK_MOBILE.targets + AppTarget(
+            version = "1.3.0",
+            minSdk = 26,
+            isExperimental = true,
+            description = "Android TV",
+        ),
     )
 }

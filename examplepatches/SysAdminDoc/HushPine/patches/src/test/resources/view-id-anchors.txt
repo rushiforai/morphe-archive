@@ -1,0 +1,62 @@
+# The view ids the extension looks up by name on the phone, one group per line:
+#
+#   source|group|names|package|owner|tell
+#
+# source   the extension file, under extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/
+# group    the constant that holds the names, or "inline" for a name written into the lookup call
+# names    the names, in the order the code tries them. One written 47.1.4:g85 is that build's
+#          name and resolves on it alone (BuildNames in the shared extension); one with no build
+#          in front is a real name, the same on every build. Each declared build is held to the
+#          names that apply on it, its owner and its tell
+# package  app for com.ss.android.ttmd.video, otherwise the dynamic feature module the id lives in
+# owner    a class of the declared PineDrama target whose code loads the id of the first name the
+#          target defines; layout:<class>, a class whose code loads a layout that sets that id;
+#          method-string:<text>, one method that loads both the id and a semantic string;
+#          layout-method-string:<text>, one method naming a semantic string loads a layout that
+#          sets the id (for a layout an obfuscated class inflates); or
+#          class-method:<name>, a class that declares a real method name and loads the id, with
+#          +<name> for each further name that class must declare too. Use - only where none
+#          exists. A dynamic feature module's classes count: its code ships as
+#          lib/<abi>/libdex_<module>.so, which the test reads
+# tell     what tells the id from the other ids the same owner loads, since an owner that loads
+#          many ids would pass any of them. on:<type>[#n], the id is set on, cast to or stored
+#          as a view of that type (the receiver of setId in a generated inflater, the check-cast
+#          after a findViewById, or the type of the field the found view lands in), and with #n
+#          the n-th distinct such id in code order; tag:<tag>[#n], for a layout owner, the id
+#          sits on an element with that tag, the n-th such id over the owner's layouts in the
+#          order of their ids; to:<class>, the id is handed to a method of that class other than
+#          a find or setId; at:<n>, the n-th distinct id the owner loads, for an id nothing else
+#          tells apart. A type may be written in full or by its simple name, never by an R8 name
+#          (X.05y1 is a different name on every build). - only where the owner loads one id.
+#          A method-string owner's order is that of the one method; a class-method owner's is
+#          the whole class's
+#
+# RuntimeViewIdAnchorsTest holds every line against the code and against the target fixture.
+# PineDrama hands the same short names out again on every build, mostly to other views, and they
+# aren't TikTok's even where the same name exists in both, so a name that resolves proves little.
+# The owner is what shows it is still the view. When the target moves, each owner that fails
+# names a group to read off the new build's live view tree again. An owner shared by two groups
+# (VideoDiggAssem holds the like button and its count) shows both ids are still its own, not
+# which is which, so two names swapped between such groups pass; read those pairs off the tree.
+inbox/InboxFilter.java|LIST_IDS|47.5.3:g7b|app|com.ss.android.ugc.aweme.inbox.BaseInboxFragment|at:2
+inbox/InboxFilter.java|SYSTEM_ROW_IDS|47.5.3:l1y|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:MultiSelectConstraintLayout
+inbox/InboxFilter.java|CHAT_ROW_IDS|47.5.3:ltd|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:MultiSelectConstraintLayout
+inbox/InboxFilter.java|MESSAGE_REQUESTS_IDS|47.5.3:oow|app|com.by.andInflater.im_item_session_inbox_message_request_cell|at:11
+inbox/InboxFilter.java|SAY_HI_ROW_IDS|47.5.3:hre|app|layout:com.ss.android.ugc.aweme.im.chatlist.impl.feature.maf.ui.MafChatListWidgetV2|tag:MultiSelectConstraintLayout
+inbox/InboxFilter.java|SYSTEM_ROW_TITLE_IDS|47.5.3:at1|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:TuxTextView#5
+inbox/InboxFilter.java|USER_ROW_TITLE_IDS|47.5.3:pfk|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:TuxTextView#1
+inbox/InboxFilter.java|SUGGESTED_HEADER_IDS|47.5.3:igv|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.TitleAreaCell|on:View#1
+inbox/InboxFilter.java|SUGGESTED_TITLE_IDS|47.5.3:kje|app|class-method:setDarkMode+setPreviousPage|on:TuxTextView
+inbox/InboxFilter.java|SUGGESTED_REMOVE_IDS|47.5.3:dck|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.BaseSquareRecUserCell|on:TuxIconView
+inbox/InboxFilter.java|HEADER_ADD_PEOPLE_IDS|47.5.3:d2v|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#1
+inbox/InboxFilter.java|HEADER_SEARCH_IDS|47.5.3:fti|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#2
+inbox/InboxFilter.java|HEADER_ACTIVITY_STATUS_IDS|47.5.3:g7d|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:LinearLayout#2
+blockauthor/FeedVisibility.java|HOME_TAB_RESOURCE_NAMES|47.5.3:hro|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.bottom.hometab.HomeTabProtocol|-
+blockauthor/FeedVisibility.java|INBOX_TAB_RESOURCE_NAMES|47.5.3:hrp|app|com.ss.android.ugc.aweme.notification.view.NotificationTabProtocol|-
+blockauthor/FeedVisibility.java|PROFILE_TAB_RESOURCE_NAMES|47.5.3:hrq|app|com.ss.android.ugc.profile.platform.framework.aweme.profile.ui.profiletab.ProfileTabProtocol|-
+blockauthor/FeedVisibility.java|COMMENT_SHEET_RESOURCE_NAMES|47.5.3:ick|app|layout:com.ss.android.ugc.aweme.commentv2.commentpage.commonvideo.DefaultCommentPageContainerFragment|tag:LinearLayout#1
+blockauthor/FeedVisibility.java|COMMENT_TITLE_RESOURCE_NAMES|47.5.3:m5m|app|com.ss.android.ugc.aweme.commentv2.actionbar.CommentPageActionBarAssem|on:TuxTextView#1
+comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.5.3:fgz|app|class-method:setHateVisibility|to:RelativeLayout$LayoutParams
+comment/CommentTools.java|DISLIKE_ICON_IDS|47.5.3:gwz|app|class-method:setHateVisibility|on:TuxIconView#4
+captions/CaptionStyle.java|TEXT_IDS|47.5.3:bw5|app|method-string:caption_balancer|at:1
+captions/CaptionStyle.java|BACKGROUND_IDS|47.5.3:bw2|app|layout-method-string:caption_balancer|tag:ConstraintLayout

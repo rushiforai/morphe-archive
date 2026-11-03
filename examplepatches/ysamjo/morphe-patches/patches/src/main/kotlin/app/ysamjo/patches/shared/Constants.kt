@@ -76,6 +76,11 @@ object Constants {
         packageName = "io.gh.reisxd.tizentube.cobalt",
         targets = listOf(
             AppTarget(version = "2.0.2"),
+            AppTarget(
+                version = "2.0.3",
+                description = "Offizielles ARM-APK: SHA-256 und Cobalt-/JNI-Fingerprints statisch geprüft; " +
+                    "Hardwareprüfung getrennt im Verifikationsbericht.",
+            ),
         ),
     )
 

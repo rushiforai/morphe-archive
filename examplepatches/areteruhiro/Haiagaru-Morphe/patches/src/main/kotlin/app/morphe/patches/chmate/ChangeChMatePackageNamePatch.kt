@@ -78,16 +78,16 @@ val changeChMatePackageNamePatch = resourcePatch(
             val newPackageName = packageNameOption.value!!
             patchPackageNameDerivedObfuscationInputs()
             patchSelfNavigationIntents()
-            classDefForEach { classDef ->
+            boundClassForEach("ChangeChMatePackageNamePatch:1") { classDef ->
                 if (classDef.type.startsWith("Lapp/morphe/extension/")) {
-                    return@classDefForEach
+                    return@boundClassForEach
                 }
                 val methodsWithPackageLiteral = classDef.methods.filter { method ->
                     method.implementation?.instructions?.any { instruction ->
                         instruction.packageNameLiteralOrNull() == ORIGINAL_PACKAGE_NAME
                     } == true
                 }
-                if (methodsWithPackageLiteral.isEmpty()) return@classDefForEach
+                if (methodsWithPackageLiteral.isEmpty()) return@boundClassForEach
 
                 val mutableClass = mutableClassDefBy(classDef)
                 methodsWithPackageLiteral.forEach { method ->
@@ -265,8 +265,8 @@ val shizukuDataMigrationPatch = resourcePatch(
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchSelfNavigationIntents() {
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+    boundClassForEach("ChangeChMatePackageNamePatch:2") { classDef ->
+        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@boundClassForEach
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
         classDef.methods.forEach { method ->
@@ -309,8 +309,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSelfNavigationInt
  * package; ordinary getPackageName() calls remain untouched.
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchPackageNameDerivedObfuscationInputs() {
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+    boundClassForEach("ChangeChMatePackageNamePatch:3") { classDef ->
+        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@boundClassForEach
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
         classDef.methods.forEach { method ->

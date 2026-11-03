@@ -196,7 +196,7 @@ private fun constIntInstruction(register: Int, value: Int): String {
 @Suppress("unused")
 val presetBrowserSettingsPatch = bytecodePatch(
     name = "Preset browser settings",
-    description = "Sets fresh-install browser fallbacks for normal and incognito modes: Brave search, matching suggestions, and Google search by image by default. Saved or imported choices are preserved and can be changed later in 1DM.",
+    description = "Sets Brave as the default search engine on fresh installs. You can change it anytime in 1DM.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_ONEDM)
@@ -458,7 +458,7 @@ private fun MutableMethod.injectPromptShownRecord(site: PromptShowSite) {
 @Suppress("unused")
 val browserSetupPromptsOnlyOncePatch = bytecodePatch(
     name = "Browser setup prompts only once",
-    description = "Shows the default-browser, accessibility, shortcut-menu-strip, and adblocker setup prompts once, recording each as shown as soon as it appears so closing the browser before dismissing cannot make it repeat.",
+    description = "Shows the one-time browser setup prompts only once, even if you close the browser early.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_ONEDM)

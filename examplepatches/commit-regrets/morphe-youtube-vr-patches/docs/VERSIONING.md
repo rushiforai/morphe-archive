@@ -48,6 +48,25 @@ checker's regex (`AppTarget\s*\(\s*version`) cannot cross a comment line, so a c
 parens would hide the target from it — which is exactly why `SupportedVersionsPolicyTest` reads the
 file the same way that checker does.
 
+## Where users see the supported list
+
+Three generated places, all fed from `Constants.kt` so they cannot drift from what the patcher
+actually does:
+
+| place | what carries it |
+|---|---|
+| the README | the "🎯 Supported versions" table (`generate_patches_readme.py` over `patches-list.json`) |
+| Morphe Manager | each `AppTarget`'s description, compiled into the bundle |
+| **every release's notes** | a trailing **"📱 Supported app versions"** section — "This release patches **YouTube VR 1.90.05** and **1.89.09** (Meta Quest)…" |
+
+The release section is written by `.github/scripts/supported-versions-notes.mjs`, a
+semantic-release `generateNotes` plugin, so it lands in the GitHub release body, `CHANGELOG.md`,
+and `patches-bundle.json`'s description (which Morphe Desktop's "Patch notes" viewer renders) in
+one stroke. It states the *state* of support; the *change* per release ("support X added, Y
+dropped") still arrives the usual way, as a commit bullet. The parser it reads `Constants.kt` with
+is the same module the upstream checker uses (`scripts/supported-versions.mjs`), mirrored by
+`SupportedVersionsPolicyTest` — one reader, everywhere.
+
 ## Trying a version that is not listed
 
 Two ways, both of which attempt the patches anyway:

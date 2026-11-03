@@ -10,11 +10,11 @@ import app.noam.patches.chesscom.shared.markFeaturePatched
 import app.noam.patches.chesscom.shared.returnString
 import java.io.BufferedInputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.security.DigestInputStream
 import java.security.DigestOutputStream
 import java.security.MessageDigest
 import java.util.logging.Logger
@@ -33,15 +33,22 @@ private const val STOCKFISH_URL =
 private const val STOCKFISH_ARCHIVE_SHA256 = "ebb24051aa4a222b4daaf049b882ecf1163d370c128fe02316602643f4d5e426"
 private const val STOCKFISH_MEMBER = "stockfish/stockfish-android-arm64-universal"
 private const val STOCKFISH_SHA256 = "ffd8fc2004d3d19f9fdab95d84c92709aea92e8d3af405eda0b281b23cf1daf8"
+/** The archive's size: a shorter file is a download that stopped, not a wrong one. */
+private const val STOCKFISH_ARCHIVE_SIZE = 80_233_187L
 
 private val stockfishResourcePatch = resourcePatch(
     description = "Adds the official Stockfish 19 to the app's native libraries, downloaded (80 MB) from " +
         "Stockfish's GitHub while patching.",
 ) {
     execute {
-        // A copy downloaded before is used again when it still checks out.
+        // A copy downloaded before is used again when it still checks out. The patcher's log then
+        // has no progress lines, so say that the download is not happening at all.
         val engine = File(System.getProperty("java.io.tmpdir"), "morphe-stockfish-19-${STOCKFISH_SHA256.take(16)}")
-        if (!engine.isFile || sha256(engine) != STOCKFISH_SHA256) download(engine)
+        if (engine.isFile && sha256(engine) == STOCKFISH_SHA256) {
+            logger.info("Stockfish 19 is already downloaded; no download is needed")
+        } else {
+            download(engine)
+        }
         // Android extracts native libraries into the one folder an app may run programs from.
         val target = get("lib/arm64-v8a/libstockfish.so")
         target.parentFile.mkdirs()
@@ -57,11 +64,13 @@ private const val GITHUB = "github.com"
 
 private val logger = Logger.getLogger("Stockfish analysis")
 
-/** Downloads Stockfish, trying again after a failure; the last failure says what to check. */
+/** Downloads Stockfish, trying again after a failure; a retry continues the archive where it stopped. */
 private fun download(engine: File) {
+    val archive = File(engine.parentFile, engine.name + ".tar.gz.part")
+    logger.info("Downloading Stockfish 19 (about 80 MB, once)")
     for (attempt in 0..RETRY_PAUSES_MS.size) {
         try {
-            downloadOnce(engine)
+            downloadOnce(archive, engine)
             return
         } catch (e: IOException) {
             if (attempt == RETRY_PAUSES_MS.size) throw PatchException(failure(e), e)
@@ -73,35 +82,78 @@ private fun download(engine: File) {
 }
 
 /**
- * Streams the official archive (never holding it in memory, as Morphe Manager patches on a phone),
- * unpacks Stockfish from it and checks the archive and the engine against their published SHA-256.
+ * Downloads the archive to a file, unpacks Stockfish from it and checks the archive and the engine
+ * against their published SHA-256. The file stays on disk for a later try: 80 MB on a phone's
+ * connection often outlives one connection, and its next try takes only the rest.
  */
-private fun downloadOnce(engine: File) {
+private fun downloadOnce(archive: File, engine: File) {
+    if (archive.length() > STOCKFISH_ARCHIVE_SIZE) archive.delete()
+    if (archive.length() != STOCKFISH_ARCHIVE_SIZE) fetch(archive)
+    val got = sha256(archive)
+    if (got != STOCKFISH_ARCHIVE_SHA256) {
+        // A short file is a download that stopped, and the next try continues it; a whole one is wrong.
+        if (archive.length() != STOCKFISH_ARCHIVE_SIZE) {
+            throw IOException("The download stopped at ${archive.length()} of $STOCKFISH_ARCHIVE_SIZE bytes")
+        }
+        archive.delete()
+        throw PatchException(
+            "The Stockfish 19 download does not match its published SHA-256 ($got instead of " +
+                "$STOCKFISH_ARCHIVE_SHA256). Patch again; if it keeps happening, something changed the download.",
+        )
+    }
+    unpack(archive, engine)
+    archive.delete()
+}
+
+/** Takes the archive's missing bytes, continuing the file it already has with a Range request. */
+private fun fetch(archive: File) {
+    val from = archive.length().coerceIn(0L, STOCKFISH_ARCHIVE_SIZE)
+    val download = open(from)
+    try {
+        val offset = download.offset
+        if (offset == 0L) {
+            archive.delete()
+        } else {
+            logger.info("Continuing the Stockfish 19 download at ${percent(offset)}%")
+        }
+        var written = offset
+        var next = percent(written) / 10 * 10 + 10
+        FileOutputStream(archive, offset > 0L).use { out ->
+            BufferedInputStream(download.connection.inputStream, BUFFER).use { input ->
+                val buffer = ByteArray(BUFFER)
+                while (true) {
+                    val n = input.read(buffer)
+                    if (n < 0) break
+                    out.write(buffer, 0, n)
+                    written += n
+                    val done = percent(written)
+                    while (done >= next && next <= 90) {
+                        logger.info("Downloading Stockfish 19: $next%")
+                        next += 10
+                    }
+                }
+            }
+        }
+        if (written < STOCKFISH_ARCHIVE_SIZE) {
+            throw IOException("The download stopped at $written of $STOCKFISH_ARCHIVE_SIZE bytes")
+        }
+    } finally {
+        download.connection.disconnect()
+    }
+}
+
+private fun percent(bytes: Long) = (bytes * 100 / STOCKFISH_ARCHIVE_SIZE).toInt()
+
+/** Unpacks Stockfish from the checked archive and checks it against its published SHA-256 too. */
+private fun unpack(archive: File, engine: File) {
     val partial = File(engine.path + ".part")
     try {
-        val archiveDigest = MessageDigest.getInstance("SHA-256")
         val engineDigest = MessageDigest.getInstance("SHA-256")
-        val connection = open()
-        val found = try {
-            DigestInputStream(BufferedInputStream(connection.inputStream, BUFFER), archiveDigest).use { raw ->
-                val gzip = GZIPInputStream(raw, BUFFER)
-                val copied = Tar(gzip).copy(STOCKFISH_MEMBER) { member ->
-                    DigestOutputStream(partial.outputStream().buffered(BUFFER), engineDigest).use { member.copyTo(it, BUFFER) }
-                }
-                // The archive's checksum is over every byte of it, not just the part Stockfish is in.
-                drain(gzip)
-                drain(raw)
-                copied
+        val found = BufferedInputStream(archive.inputStream(), BUFFER).use { raw ->
+            val gzip = GZIPInputStream(raw, BUFFER)
+            Tar(gzip).copy(STOCKFISH_MEMBER) { member ->
+                DigestOutputStream(partial.outputStream().buffered(BUFFER), engineDigest).use { member.copyTo(it, BUFFER) }
             }
-        } finally {
-            connection.disconnect()
-        }
-        val archive = hex(archiveDigest.digest())
-        if (archive != STOCKFISH_ARCHIVE_SHA256) {
-            throw PatchException(
-                "The Stockfish 19 download does not match its published SHA-256 ($archive instead of " +
-                    "$STOCKFISH_ARCHIVE_SHA256). Patch again; if it keeps happening, something changed the download.",
-            )
         }
         if (!found) throw PatchException("The official Stockfish 19 archive has no $STOCKFISH_MEMBER.")
         val unpacked = hex(engineDigest.digest())
@@ -115,23 +167,27 @@ private fun downloadOnce(engine: File) {
 }
 
 /**
- * The archive's connection. GitHub answers with a redirect to its download server; it is followed
- * here rather than by the connection, so a failure can say which of the two didn't answer.
+ * The archive's connection, starting at [from] bytes. GitHub answers with a redirect to its
+ * download server; it is followed here rather than by the connection, so a failure can say which
+ * of the two didn't answer, and the Range request is sent to the download server it leads to.
  */
-private fun open(): HttpURLConnection {
+private fun open(from: Long): Download {
     var url = URL(STOCKFISH_URL)
     repeat(5) {
         val connection = url.openConnection() as HttpURLConnection
         connection.instanceFollowRedirects = false
         connection.connectTimeout = CONNECT_TIMEOUT_MS
         connection.readTimeout = READ_TIMEOUT_MS
+        if (from > 0L) connection.setRequestProperty("Range", "bytes=$from-")
         val code = try {
             connection.responseCode
         } catch (e: IOException) {
             connection.disconnect()
             throw Unanswered(url.host, e)
         }
-        if (code == HttpURLConnection.HTTP_OK) return connection
+        if (code == HttpURLConnection.HTTP_OK) return Download(connection, 0L)
+        // The server took the Range request: it is sending the rest of the archive.
+        if (code == HttpURLConnection.HTTP_PARTIAL) return Download(connection, from)
         val location = connection.getHeaderField("Location")
         connection.disconnect()
         if (code !in 300..399 || location == null) throw IOException("${url.host} answered $code")
@@ -140,6 +196,9 @@ private fun open(): HttpURLConnection {
     }
     throw IOException("Too many redirects from $STOCKFISH_URL")
 }
+
+/** A connection and where in the archive it starts: 0 when the server ignored the Range request. */
+private class Download(val connection: HttpURLConnection, val offset: Long)
 
 /** A server that couldn't be reached. */
 private class Unanswered(val host: String, cause: IOException) : IOException(cause.message, cause)
@@ -164,11 +223,6 @@ private fun failure(e: IOException): String {
 }
 
 private const val BUFFER = 64 * 1024
-
-private fun drain(input: InputStream) {
-    val buffer = ByteArray(BUFFER)
-    while (input.read(buffer) >= 0) Unit
-}
 
 private fun sha256(file: File): String {
     val digest = MessageDigest.getInstance("SHA-256")

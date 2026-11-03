@@ -18,6 +18,11 @@ import app.morphe.patcher.string
  * through a settings holder, so the shape-based search survives those swaps too.
  */
 object StaffAccountFingerprint : Fingerprint(
+    // The staff check is the manager's no-arg Boolean getter (240: ixb.m()). The parameterless
+    // shape also keeps out a second, unrelated method that happens to hold the same address
+    // (240: ks4.b(Lir4;)Z).
+    returnType = "Z",
+    parameters = listOf(),
     strings = listOf(string("norapps.as@", StringComparisonType.CONTAINS)),
 )
 

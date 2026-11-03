@@ -46,8 +46,6 @@ Loading older messages.	Đang tải tin nhắn cũ hơn.
 Loading older messages. %1$d message so far.	Đang tải tin nhắn cũ hơn. Đã có %1$d tin nhắn.
 Loading older messages. %1$d messages so far.	Đang tải tin nhắn cũ hơn. Đã có %1$d tin nhắn.
 Lock these settings	Khóa các cài đặt này
-Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Mở một cuộc trò chuyện, nhấn giữ tên ở đầu màn hình và chọn Xuất cuộc trò chuyện. Toàn bộ cuộc trò chuyện được lưu thành tệp văn bản trong thư mục HushGram của Downloads, mỗi tin nhắn một dòng.
-Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Mở một cuộc trò chuyện, nhấn giữ tên ở đầu màn hình và chọn Chuyển đến tin nhắn đầu tiên hoặc Chuyển đến một ngày. Cuộc trò chuyện tự tải các tin nhắn cũ hơn, có hiển thị số lượng và nút Hủy.
 Mark a chat seen when you reply	Đánh dấu đã xem khi bạn trả lời
 No messages found to save.	Không có tin nhắn nào để lưu.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Chọn thời gian chờ từ 1 đến 72 giờ. Khi đã khóa, không có gì ở đây thay đổi được cho đến khi bạn yêu cầu mở khóa và hết thời gian chờ.
@@ -218,6 +216,12 @@ Download on stories	Tải xuống trên tin
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Thêm Tải xuống vào menu tin của bất kỳ ai, ảnh hay video, lưu ở chất lượng tải xuống của bạn. Khi tắt hoặc tạm dừng, menu của Instagram trở lại.
 Upload stories at full quality	Tải tin lên ở chất lượng đầy đủ
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	Tin video bạn đăng được gửi ở 1080p và tốc độ bit cao hơn, giống khi bật cài đặt Tải lên ở chất lượng cao nhất của Instagram. Instagram vẫn thu nhỏ video tin xuống 720p trên máy chủ nên người xem ít thấy khác biệt. Tin ảnh vốn đã được tải lên lớn hơn mức Instagram giữ.
+# context: Stories settings under Upload stories at full quality: which uploads it covers (Stories only, or Stories, posts and reels), and the video bitrate; %1$s is a number of megabits a second (#37)
+Upload quality applies to	Chất lượng tải lên áp dụng cho
+Stories only	Chỉ tin
+Stories, posts and reels	Tin, bài viết và Reels
+Video bitrate	Tốc độ bit video
+%1$s Mbps	%1$s Mbps
 Download feed videos	Tải video trên bảng feed
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Thêm Tải xuống vào menu của bài viết có video trong bảng feed. Dùng chất lượng bên dưới. Khi tắt hoặc tạm dừng, menu của Instagram trở lại.
 Playback	Phát lại
@@ -1359,8 +1363,10 @@ Puts a border and Instagram's view once icon on a one-time photo or video in a c
 Fall back to Following	Quay về Đang theo dõi
 When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Khi Dành cho bạn chỉ đưa bài viết gợi ý cho một tài khoản, hết trang này đến trang khác, trang chủ mở ở Đang theo dõi cho tài khoản đó. Bảng feed bạn chọn ở đầu trang chủ vẫn giữ. Hãy khởi động lại Instagram để thấy thay đổi.
 Only suggestions in For you. Home will open on Following.	Dành cho bạn chỉ có gợi ý. Trang chủ sẽ mở ở Đang theo dõi.
+Mix in Following	Trộn Đang theo dõi
+For you shows a page of posts from accounts you follow after each page of its own, until you've seen them all. Pull down on Home to start both over. Restart Instagram to see the change.	Dành cho bạn hiện một trang bài viết từ các tài khoản bạn theo dõi sau mỗi trang của chính nó, cho đến khi bạn xem hết. Kéo trang chủ xuống để bắt đầu lại cả hai. Hãy khởi động lại Instagram để thấy thay đổi.
 Explore without personalization	Khám phá không cá nhân hóa
-Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Nơi Instagram có tính năng này (ở EU), Khám phá luôn mở với lưới không cá nhân hóa và ở lại đó quá mười phút.
+Explore asks for the grid that isn't personalized every time it opens, and stays on it past ten minutes. Instagram only promises that grid in the EU.	Khám phá yêu cầu lưới không cá nhân hóa mỗi khi mở và ở lại đó quá mười phút. Instagram chỉ cam kết lưới này ở EU.
 Hide Explore's personalized menu	Ẩn menu cá nhân hóa của Khám phá
 Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Ẩn nút trên thanh trên cùng chuyển cá nhân hóa của Khám phá, nơi Instagram hiện nút này (ở EU).
 Carousel arrows	Mũi tên ảnh nhiều trang
@@ -1456,12 +1462,16 @@ Couldn't read that picture.	Không đọc được ảnh đó.
 This launcher can't add it.	Launcher này không thêm được.
 Glass in chats	Kính trong trò chuyện
 Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Làm thanh trên cùng của cuộc trò chuyện có hiệu ứng kính mờ và đặt các nút quay lại, gọi và video lên những vòng tròn kính. Hiện ở lần mở cuộc trò chuyện tiếp theo. Hiệu ứng làm mờ cần Android 12 trở lên.
-# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Ẩn reel có ít lượt xem
-Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Bỏ qua các reel trong tab Reels có ít người xem hơn con số bên dưới. Reel của tài khoản bạn theo dõi, reel được gửi cho bạn và reel không có lượt xem vẫn phát bình thường.
+Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Bỏ qua các reel trong tab Reels có lượt xem hoặc lượt thích ít hơn các con số bên dưới. Reel của tài khoản bạn theo dõi, reel được gửi cho bạn và reel không có con số vẫn phát bình thường.
 Minimum views	Số lượt xem tối thiểu
 Reels with fewer views than this are left out. Type a whole number.	Reel có ít lượt xem hơn số này sẽ bị bỏ qua. Nhập một số nguyên.
 Fewer than %1$s views	Dưới %1$s lượt xem
+Minimum likes	Số lượt thích tối thiểu
+Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Reel có ít lượt thích hơn số này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không xét lượt thích.
+Fewer than %1$s likes	Dưới %1$s lượt thích
+Likes aren't looked at	Không xét lượt thích
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	Ưu tiên tin
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Đưa các tài khoản trong danh sách của bạn lên đầu hàng tin ở đầu Trang chủ khi họ có tin bạn chưa xem, theo thứ tự trong danh sách. Xem xong thì vị trí mặc định của Instagram được áp dụng lại. Tin của chính bạn vẫn ở đầu.
@@ -1470,3 +1480,103 @@ Usernames, one on each line. The first line goes first. A leading @ and capital 
 No accounts yet	Chưa có tài khoản nào
 %1$d account	%1$d tài khoản
 %1$d accounts	%1$d tài khoản
+Home header text	Chữ ở đầu trang chủ
+Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Chữ của riêng bạn ở đầu trang chủ, thay cho logo Instagram. Tối đa %1$d ký tự. Để trống để giữ logo.
+Instagram's logo stays at the top of Home.	Logo Instagram vẫn ở đầu trang chủ.
+The top of Home says %1$s.	Đầu trang chủ ghi %1$s.
+Home header picture	Ảnh ở đầu trang chủ
+Remove the header picture	Gỡ ảnh ở đầu trang
+The top of Home goes back to your header text, or to Instagram's logo.	Đầu trang chủ trở lại chữ của bạn, hoặc logo Instagram.
+Pick a picture to show at the top of Home, in place of Instagram's logo or your text.	Chọn một ảnh để hiện ở đầu trang chủ, thay cho logo Instagram hoặc chữ của bạn.
+The top of Home shows %1$s. Tap to pick another.	Đầu trang chủ đang hiện %1$s. Nhấn để chọn ảnh khác.
+Header picture set.	Đã đặt ảnh đầu trang chủ.
+Header picture removed.	Đã gỡ ảnh đầu trang chủ.
+That isn't a picture.	Đó không phải là ảnh.
+That picture is over %1$d MB.	Ảnh đó lớn hơn %1$d MB.
+Couldn't save the picture.	Không lưu được ảnh.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Mở một cuộc trò chuyện, nhấn nút đồng hồ cạnh các nút gọi ở đầu màn hình, hoặc nhấn giữ tên cuộc trò chuyện, rồi chọn Chuyển đến tin nhắn đầu tiên hoặc Chuyển đến một ngày. Cuộc trò chuyện tự tải các tin nhắn cũ hơn, có hiển thị số lượng và nút Hủy.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Mở một cuộc trò chuyện, nhấn nút đồng hồ cạnh các nút gọi ở đầu màn hình, hoặc nhấn giữ tên cuộc trò chuyện, rồi chọn Xuất cuộc trò chuyện. Toàn bộ cuộc trò chuyện được lưu thành tệp văn bản trong thư mục HushGram của Downloads, mỗi tin nhắn một dòng.
+Instagram stopped loading older messages.	Instagram đã ngừng tải tin nhắn cũ hơn.
+Black settings page	Trang cài đặt màu đen
+Black rows and dialogs, HushGram's name at the top, and each category on one line.	Hàng và hộp thoại màu đen, tên HushGram ở trên cùng, mỗi danh mục trên một dòng.
+Mark as read	Đánh dấu là đã đọc
+Nothing to mark as read	Không có gì để đánh dấu
+Mark as read button in chats	Nút Đánh dấu là đã đọc trong cuộc trò chuyện
+A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	Dấu tích hiện ở đầu cuộc trò chuyện khi người kia chưa biết bạn đã xem. Nhấn vào đó và họ sẽ thấy Đã xem.
+Red story mentions	Lượt nhắc tin màu đỏ
+Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Vẽ chữ của nhãn lượt nhắc bằng màu đỏ thay vì trắng, để nổi bật trên tin sáng màu.
+Only received reels	Chỉ reel đã nhận
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Khi vuốt qua các reel của một cuộc trò chuyện, những reel bạn đã gửi ở đó sẽ bị bỏ qua, chỉ đi qua các reel người kia chia sẻ. Hoạt động khi bật Vuốt qua các reel của cuộc trò chuyện.
+Hide the audio icon on posts	Ẩn biểu tượng âm thanh trên bài viết
+Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Gỡ biểu tượng loa khỏi các video trong bảng tin của bạn. Chạm vào video vẫn bật hoặc tắt âm thanh như cũ. Các bài viết đã có trên màn hình sẽ thay đổi khi được tải lại.
+Light when paused	Sáng khi tạm dừng
+Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Tạm dừng một reel và Chống ám màn hình sẽ đưa các nút về độ sáng đầy đủ cho đến khi bạn phát lại hoặc vuốt sang reel khác. Sau đó thời gian chờ bắt đầu lại từ đầu.
+Grow the heart	Phóng to trái tim
+Double tap the same post again within a second and a half and the heart pops up bigger, up to nearly twice its size. A pause and it starts small again.	Chạm đúp lại vào cùng một bài viết trong vòng một giây rưỡi và trái tim hiện lên to hơn, tối đa gần gấp đôi kích thước. Nghỉ một lúc thì nó lại bắt đầu nhỏ.
+Instagram in pink	Instagram màu hồng
+# context: Stories settings: a speed button in a video story's header, cycling 1x, 1.5x and 2x (#469)
+Speed button on stories	Nút tốc độ trên tin
+Puts a speed button at the top of a video story, beside the three dots. Tap it for 1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you change it or restart Instagram. Ads play at normal speed.	Đặt nút tốc độ ở đầu tin video, cạnh ba chấm. Nhấn để chuyển sang 1,5x, nhấn lần nữa để 2x và thêm lần nữa để về 1x. Các tin video tiếp theo giữ tốc độ đó cho đến khi bạn đổi hoặc khởi động lại Instagram. Quảng cáo phát ở tốc độ bình thường.
+# context: TalkBack label of that button; %1$s is the speed shown on it, such as 1.5x
+Playback speed, %1$s	Tốc độ phát, %1$s
+Where the mention pill goes	Vị trí nhãn lượt nhắc
+Under the name, 1 mention	Dưới tên, 1 lượt nhắc
+Top bar, @1 mention	Thanh trên cùng, @1 lượt nhắc
+Top bar, @1	Thanh trên cùng, @1
+The pill sits under the story's name and reads like 1 mention. Its list opens over the story.	Nhãn nằm dưới tên của tin và ghi kiểu 1 lượt nhắc. Danh sách mở ra trên tin.
+The pill sits in the top bar next to the menu and reads like @1 mention. Its list opens from the bottom of the screen.	Nhãn nằm trên thanh trên cùng cạnh menu và ghi kiểu @1 lượt nhắc. Danh sách mở ra từ cuối màn hình.
+The pill sits in the top bar next to the menu and shows only the count, like @1. Its list opens from the bottom of the screen.	Nhãn nằm trên thanh trên cùng cạnh menu và chỉ hiện con số, kiểu @1. Danh sách mở ra từ cuối màn hình.
+Turn on See who a story mentions to use this choice.	Hãy bật Xem tin nhắc đến ai để dùng lựa chọn này.
+Story mentions	Lượt nhắc trong tin
+Accounts mentioned in this story	Các tài khoản được nhắc trong tin này
+# context: Feed settings: picks how the carousel page-dots pill looks (#471)
+Pill look	Kiểu viên thuốc
+# context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
+Seek bar look	Kiểu thanh tua
+# context: a look for the page-dots pill and the seek bars: opaque, as before
+Solid	Đặc
+# context: a look for the page-dots pill and the seek bars: partly transparent
+See-through	Trong suốt
+# context: a look for the page-dots pill and the seek bars: blurs what's under it
+Frosted glass	Kính mờ
+A light pill with dark dots, as it's always been.	Viên thuốc sáng màu với chấm tối, như trước giờ.
+A see-through dark pill with white dots, so more of the photo shows.	Viên thuốc tối trong suốt với chấm trắng, để thấy rõ ảnh hơn.
+A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Viên thuốc kính mờ làm nhòe ảnh bên dưới. Trước Android 12, viên thuốc chỉ trong suốt.
+Turn on Page dots on a pill to use this choice.	Hãy bật Chấm trang trên viên thuốc để dùng lựa chọn này.
+Turn on Seek bar on feed videos or its button to use this choice.	Hãy bật Thanh tua trên video bảng feed hoặc nút của nó để dùng lựa chọn này.
+Turn on Seek bar on stories to use this choice.	Hãy bật Thanh tua trên tin để dùng lựa chọn này.
+A white bar and handle, as they've always been.	Thanh và nút kéo màu trắng, như trước giờ.
+A fainter bar and handle, so more of the video shows through.	Thanh và nút kéo nhạt hơn, để thấy rõ video hơn.
+A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	Thanh trắng trên một dải kính mờ làm nhòe video bên dưới. Trước Android 12, dải này chỉ trong suốt.
+# context: Instagram's Blend, the shared reels feed in a chat, as Instagram names it in this language (Turkish Instagram: Derleme).
+Don't report Blend visits	Không báo lượt ghé Blend
+Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend and its reels open as usual.	Mở một Blend không báo cho đoạn chat chứa nó rằng bạn đã ghé xem. Blend và các reel của nó vẫn mở như bình thường.
+# context: the little round profile pictures in a corner of a feed post or reel showing that a friend liked, commented on or reshared it. Instagram's own setting for them comes from its server, not the app.
+Hide activity bubbles	Ẩn bong bóng hoạt động
+Takes the little round pictures off posts and reels that show a friend liked, commented on or reshared them. Posts already on screen change when they load again.	Gỡ các ảnh tròn nhỏ trên bài viết và reel cho biết một người bạn đã thích, bình luận hoặc chia sẻ lại. Bài viết đang hiện trên màn hình sẽ đổi khi tải lại.
+# context: a switch for foldable phones and tablets. Instagram normally moves its tab bar to a rail down the side on a wide screen; this keeps the narrow phone layout instead.
+Phone layout on big screens	Bố cục điện thoại trên màn hình lớn
+On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	Trên máy gập hoặc máy tính bảng, Instagram giữ bố cục điện thoại trên toàn màn hình, với thanh tab ở dưới thay vì ở bên cạnh. Hãy khởi động lại Instagram để thấy thay đổi.
+# context: a switch on the Messages page. It adds a Preview row to the menu a long press on a chat in the inbox opens; Preview shows the chat's newest messages in a box without opening the chat, so no seen receipt goes out. "Seen" is Instagram's own read receipt label in a chat.
+Preview chats	Xem trước cuộc trò chuyện
+Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too.	Nhấn giữ một cuộc trò chuyện trong tin nhắn rồi nhấn Xem trước để đọc các tin nhắn mới nhất mà không mở nó, nên không ai thấy Đã xem. Bạn cũng có thể trả lời ngay tại đó.
+# context: the row in a chat's long press menu and the title of the box it opens, which shows the chat's newest messages without opening the chat.
+Preview	Xem trước
+# context: the hint in the reply field at the bottom of the chat preview box.
+Write a message	Viết tin nhắn
+# context: shown in the chat preview box while its messages load.
+Loading	Đang tải
+Nothing here yet	Chưa có gì ở đây
+# context: the chat preview box, and a short toast, when the chat's messages can't be read. Toasts stay short.
+Couldn't load this chat	Không tải được cuộc trò chuyện này
+# context: a short toast after a reply typed in the chat preview box went out.
+Sent	Đã gửi
+Couldn't send	Không gửi được
+# context: what a message with no text shows as in the chat preview box, by what it holds.
+Photo or video	Ảnh hoặc video
+GIF or sticker	GIF hoặc nhãn dán
+# context: a view once photo or video in the chat preview box shows only this label, never the photo or video. Use Instagram's own wording for view once.
+View once message	Tin nhắn xem một lần
+Attachment	Tệp đính kèm
+# context: the button next to the reply field in the chat preview box.
+Send	Gửi

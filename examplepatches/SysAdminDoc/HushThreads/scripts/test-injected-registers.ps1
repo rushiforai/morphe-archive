@@ -450,7 +450,7 @@ try {
 
 # The verifier run end to end, with stand-ins for the tools it starts: a java that answers the
 # version probe and plays DexDiff with the given exit code, an aapt2 that describes Threads
-# 453.0.0.56.79, and an apksigner that reports a Threads signer from patches-list.json. With
+# 454.0.0.54.79, and an apksigner that reports a Threads signer from patches-list.json. With
 # -JavaGone the apksigner also deletes that java, which leaves it unable to start by the time
 # DexDiff runs, as a JDK replaced mid-run would. A Continue preference around the DexDiff call
 # once turned exactly that into '[registers] success.'.
@@ -471,7 +471,7 @@ function Write-StandIn {
 
 function Invoke-VerifierWithStandIns {
     param([string]$Name, [int]$DexDiffExit, [switch]$JavaGone, [string[]]$SelectedPatches,
-        [string]$PatchedVersionCode = '512308675')
+        [string]$PatchedVersionCode = '512408636')
     $case = Join-Path $standIns $Name
     New-Item -ItemType Directory -Path $case -Force | Out-Null
     $javaStandIn = Join-Path $case 'java.cmd'
@@ -505,11 +505,11 @@ exit /b $DexDiffExit
     # The patched APK can report a version code of its own, as Change version code makes it.
     Write-StandIn (Join-Path $case 'aapt2.cmd') @"
 @echo off
-set "standInCode=512308675"
+set "standInCode=512408636"
 echo %* | findstr /c:"patched.apk" >nul && set "standInCode=$PatchedVersionCode"
 echo   E: manifest (line=2)
 echo     A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=%standInCode%
-echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="453.0.0.56.79" (Raw: "453.0.0.56.79")
+echo     A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="454.0.0.54.79" (Raw: "454.0.0.54.79")
 echo     A: package="$standInPackage" (Raw: "$standInPackage")
 exit /b 0
 "@
@@ -737,8 +737,8 @@ try {
         'resume-post-link-bypass', 'quick-remember-missing', 'quick-remember-post', 'quick-recall-key', 'quick-post-link-bypass',
         'browser-missing', 'browser-register', 'browser-bypass', 'browser-clobber',
         'pigeon-missing', 'pigeon-replaced', 'pigeon-bypass',
-        'default-missing', 'mqtt-missing', 'trust-missing', 'trust-replaced', 'trust-fallback',
-        'tile-missing', 'tile-swapped', 'tile-answer', 'tile-live',
+        'default-missing', 'default-joined', 'mqtt-missing', 'trust-missing', 'trust-replaced', 'trust-fallback',
+        'tile-missing', 'tile-feed-missing', 'tile-swapped', 'tile-answer', 'tile-live',
         'status-missing', 'status-false', 'zero-mask', 'unknown-mask')
     foreach ($fault in $featureFaults) {
         $case = "features-bad-$fault"
@@ -751,17 +751,16 @@ try {
         $structural = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
         Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid: $((Get-Findings $structural).Fails -join '; ')"
     }
-    # Direct ad, media and lead/policy handoffs share the cleaner, while the factory and immersive
-    # browser retain their stock code. Every corruption below remains structurally valid.
-    $browserDirectFaults = @('lead-missing', 'lead-url', 'lead-double-open', 'lead-parameter', 'lead-live', 'ad-missing', 'ad-url', 'ad-context', 'ad-double-open', 'ad-return', 'ad-bypass',
+    # Direct ad and media handoffs share the cleaner, while the factory and immersive browser retain
+    # their stock code. Every corruption below remains structurally valid.
+    $browserDirectFaults = @('ad-missing', 'ad-url', 'ad-context', 'ad-parameter', 'ad-double-open', 'ad-return', 'ad-bypass',
         'media-missing', 'media-url', 'media-context', 'media-double-open', 'media-false', 'media-uninitialized', 'media-live', 'media-bypass', 'factory-hook', 'immersive-hook', 'omitted-body')
     # Each scratch fault reaches one part of the liveness check, and the check names the first edge it
-    # hits, in the order the locals bound, the hook site, then the completion: the lead one the locals
-    # bound only, the other lead one the hook site only, the media one both of the read edges and so the hook
-    # site's, which comes first. The completion edge alone takes a stock shape of its own, checked after these.
+    # hits, in the order the locals bound, the hook site, then the completion: the ad one the locals
+    # bound only, the media one both of the read edges and so the hook site's, which comes first. The
+    # completion edge alone takes a stock shape of its own, checked after these.
     $browserScratchFaults = @{
-        'lead-parameter' = "past the method's locals"
-        'lead-live' = 'read at the hook site'
+        'ad-parameter' = "past the method's locals"
         'media-live' = 'read at the hook site'
     }
     foreach ($fault in $browserDirectFaults) {
@@ -1036,6 +1035,36 @@ try {
         ("autoplay-ad-live was not rejected solely by the video autoplay check of what its hook writes. " + ($autoplayLive.Output -join [Environment]::NewLine))
     $autoplayLiveStructural = Invoke-DexDiff -Clean $autoplayLiveClean -Patched $autoplayLiveApk -Allowlist $emptyAllowlist -Name 'features-bad-autoplay-ad-live-structural'
     Assert-True ($autoplayLiveStructural.ExitCode -eq 0 -and (Get-Findings $autoplayLiveStructural).Fails.Count -eq 0) 'autoplay-ad-live was not structurally valid.'
+    # 454's shape: PostVideo and-s its mask with a constant 0x8000, and an overload pins its play
+    # flag to false, so a caller with the bit set picks its mask by the answer. The good and omitted
+    # builds pass. Then one build per wrong hook: the trend preview's missing, the ad card's masks
+    # swapped, the ad card asking with no choice after, the Instagram post hooked though its clear
+    # bit keeps it still, the trend preview's branch landing past its hook, the ad card's yes jump
+    # landing past the mask with the bit, the viewer hooked, an overload pinning the flag to true,
+    # and an ad card reading its mask again after the call, which only the chosen mask's check of
+    # what it writes can refuse.
+    $pinnedClean = New-DexApk -Name 'features-autoplay-pinned-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-autoplay-pinned-clean') })
+    foreach ($case in @('features-autoplay-pinned-good', 'features-autoplay-pinned-omitted')) {
+        $selected = if ($case.EndsWith('-good')) { 'disableVideoAutoplay' } else { 'none' }
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $pinnedClean -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features $selected
+        Assert-True ($checked.ExitCode -eq 0 -and (Get-Findings $checked).Fails.Count -eq 0) ("Pinned video selection $case failed. " + ($checked.Output -join [Environment]::NewLine))
+    }
+    foreach ($fault in @('pinned-missing', 'pinned-swapped', 'pinned-asked', 'pinned-unbit', 'pinned-bypass', 'pinned-jump', 'pinned-viewer', 'pinned-true', 'pinned-live')) {
+        $case = "features-bad-$fault"
+        $stock = if ($fault -in @('pinned-true', 'pinned-live')) {
+            New-DexApk -Name "features-autoplay-$fault-clean" -Entries ([ordered]@{ 'classes.dex' = (Get-Dex "features-autoplay-$fault-clean") })
+        } else { $pinnedClean }
+        $expected = if ($fault -eq 'pinned-live') { "``[diff``] FAIL: contract: disableVideoAutoplay: the chosen mask's hook at instruction * writes v3, which *" } else { '`[diff`] FAIL: contract: disableVideoAutoplay: *' }
+        $apk = New-DexApk -Name $case -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case) })
+        $checked = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name $case -Contracts $contracts -Features 'disableVideoAutoplay'
+        $findings = Get-Findings $checked
+        Assert-True ($checked.ExitCode -ne 0 -and $findings.Fails.Count -gt 0 -and
+            @($findings.Fails | Where-Object { $_ -notlike $expected }).Count -eq 0) `
+            ("$fault was not rejected solely by the pinned video contract. " + ($checked.Output -join [Environment]::NewLine))
+        $structural = Invoke-DexDiff -Clean $stock -Patched $apk -Allowlist $emptyAllowlist -Name "$case-structural"
+        Assert-True ($structural.ExitCode -eq 0 -and (Get-Findings $structural).Fails.Count -eq 0) "$fault was not structurally valid."
+    }
     # The video prefetcher's skip test, selected alone: one build per way the hook can be wrong, each
     # refused by its own check with its own message and nothing else. The call missing, the 0 in v1
     # passed instead of the check's answer in v0, the answer dropped or moved into v1, the call put

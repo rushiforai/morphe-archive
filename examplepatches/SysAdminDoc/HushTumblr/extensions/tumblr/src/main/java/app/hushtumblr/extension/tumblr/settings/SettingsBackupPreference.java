@@ -517,6 +517,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_words_summary": return L10n.t("Match post summaries");
             case "hushtumblr_show_post_timestamps": return L10n.t("Show post timestamps");
             case "hushtumblr_show_image_descriptions": return L10n.t("Visible image descriptions");
+            case "hushtumblr_share_video_links": return L10n.t("Share video links");
             case "hushtumblr_mute_root_posts": return L10n.t("Mute posts locally");
             case "hushtumblr_reveal_allowed_mature_content": return L10n.t("Reveal allowed mature content");
             case "hushtumblr_show_mutual_markers": return L10n.t("Show mutual markers");

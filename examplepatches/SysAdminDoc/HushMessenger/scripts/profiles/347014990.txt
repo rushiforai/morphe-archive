@@ -51,6 +51,8 @@ hook anonymous_stories LX/MOQ;->DTY(Lcom/facebook/messaging/montage/model/Montag
 hook anonymous_stories Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V
 hook app_icons LX/7k6;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook app_icons LX/7k6;->A03(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)Z
+hook app_theme_pick LX/Jv4;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+hook app_themes LX/HTJ;->A00(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook attribution_uploads LX/7hg;->A02(Landroid/content/Context;LX/7hh;Lcom/facebook/auth/usersession/FbUserSession;IJZ)V
 hook auto_reply Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9kY;LX/5ek;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V
 hook avatar_shape LX/2lh;->A09(Landroid/content/Context;Landroid/graphics/Path;Landroid/graphics/drawable/Drawable;Lcom/facebook/auth/usersession/FbUserSession;LX/2k6;LX/2lq;LX/2mJ;FIIZZ)V
@@ -77,6 +79,7 @@ hook chat_channel_keep LX/1yz;->A09(Landroid/app/NotificationChannel;Lcom/facebo
 hook chat_channel_raise LX/7sT;->run()V
 hook chat_fragment LX/1kZ;-><init>()V
 hook chat_inbox LX/1j8;-><init>()V
+hook chat_jump LX/1kZ;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
 hook chat_legacy LX/1kY;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
 hook chat_promotions LX/WAP;->A0E()Z
 hook chat_promotions LX/WAP;->A0F()Z
@@ -142,6 +145,7 @@ hook growth_story_card Lcom/facebook/messaging/montage/viewer/MontageViewerFragm
 hook hide_call_bar LX/53w;->A07(Landroid/content/Context;LX/0XU;Lcom/facebook/auth/usersession/FbUserSession;LX/4yA;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/Jx7;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/5N1;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/D4Q;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZZZZ)Lcom/google/common/collect/ImmutableList;
 hook hide_call_bar LX/7NK;->Ey6(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/75L;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V
 hook hide_read_receipts LX/4lY;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4lY;Ljava/lang/String;)V
+hook home_header LX/2aZ;->render(LX/2Ed;)LX/1Ig;
 hook inbox_promotions LX/26P;->A0J()Z
 hook inbox_promotions LX/26P;->A0K()Z
 hook inbox_search_bar LX/1mq;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1nL;
@@ -165,6 +169,8 @@ hook menu_settings LX/HeW;->onClick(Landroid/view/View;)V
 hook menu_settings LX/ZSl;->Dda(LX/4qm;I)V
 hook menu_settings LX/ZSm;->A0I(Ljava/util/List;)V
 hook message_log Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9kY;LX/5ek;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V
+hook message_log_button LX/2Z3;->Cdt()Ljava/util/List;
+hook message_log_click LX/2Z3;->Dgf(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;I)V
 hook moments LX/HWY;->A05()Z
 hook moments LX/JPu;->A05()Z
 hook mqtt_telemetry LX/0y8;->A0N(Ljava/lang/String;)V

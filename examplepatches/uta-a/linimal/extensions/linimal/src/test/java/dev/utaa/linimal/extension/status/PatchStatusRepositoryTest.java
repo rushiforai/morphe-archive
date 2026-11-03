@@ -281,6 +281,27 @@ public final class PatchStatusRepositoryTest {
     }
 
     @Test
+    public void readReceiptFeatureIsErrorWhenAnExplicitEntryIsMissing() {
+        // 明示操作の入口が 1 つでも欠けると、停止中にその操作だけ既読が送られません。
+        StringBuilder patches = new StringBuilder();
+        for (String suffix : new String[]{
+                "gate", "pending-queue-clear", "manual-caller", "supplier-registration",
+                "supplier-preparation", "mark-all-as-read", "context-menu-read", "chat-subtab-read"}) {
+            if (patches.length() > 0) {
+                patches.append(',');
+            }
+            patches.append(patchJson("linimal.patch.read-receipts-main-chat-" + suffix,
+                    "linimal.read-receipts-main-chat", "OK", 1, 1));
+        }
+
+        PatchStatusReport report = parser.parse(
+                "{\"schemaVersion\":1,\"patches\":[" + patches + "]}");
+
+        assertEquals(PatchStatus.ERROR,
+                report.getFeatureStatus("linimal.read-receipts-main-chat"));
+    }
+
+    @Test
     public void unknownFieldsAreRejected() {
         assertInvalid("{\"schemaVersion\":1,\"patches\":[],\"unexpected\":true}");
     }

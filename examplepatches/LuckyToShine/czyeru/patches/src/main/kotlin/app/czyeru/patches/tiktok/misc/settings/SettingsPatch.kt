@@ -45,7 +45,7 @@ private data class OpenDebugTargets(
 @Suppress("unused")
 val settingsPatch = bytecodePatch(
     name = "Settings",
-    description = "Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 47.4.3 and 47.2.41.",
+    description = "Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 47.6.3, 47.4.3 and 47.2.41.",
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)

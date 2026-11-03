@@ -14,8 +14,17 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val BUILD_CLASS_DESCRIPTOR = "Landroid/os/Build;"
 
+// Fields dynamically managed at runtime by DeviceSpoofHelper reflection & settings
+private val DYNAMIC_BUILD_FIELDS = setOf(
+    "BRAND",
+    "DEVICE",
+    "FINGERPRINT",
+    "MANUFACTURER",
+    "MODEL",
+    "PRODUCT",
+)
+
 fun baseSpoofBuildInfoPatch(buildInfoSupplier: () -> BuildInfo) = bytecodePatch {
-    // Lazy, so that patch options above are initialized before they are accessed.
     val replacements by lazy {
         with(buildInfoSupplier()) {
             buildMap {
@@ -51,6 +60,7 @@ fun baseSpoofBuildInfoPatch(buildInfoSupplier: () -> BuildInfo) = bytecodePatch 
         transformInstructionsPatch(
             filterMap = filterMap@{ classDef, _, instruction, instructionIndex ->
                 val type = classDef.type
+                if (type.startsWith("Lapp/morphe/")) return@filterMap null
                 // Do not spoof Build properties in media, video player, and codec classes
                 // so OEM hardware decoders (e.g. Samsung Exynos) function correctly.
                 if (type.startsWith("Landroidx/media") ||
@@ -66,11 +76,11 @@ fun baseSpoofBuildInfoPatch(buildInfoSupplier: () -> BuildInfo) = bytecodePatch 
 
                 val reference = instruction.getReference<FieldReference>() ?: return@filterMap null
                 if (reference.definingClass != BUILD_CLASS_DESCRIPTOR) return@filterMap null
+                if (reference.name in DYNAMIC_BUILD_FIELDS) return@filterMap null
 
                 return@filterMap replacements[reference.name]?.let { instructionIndex to it }
             },
-            transform = { mutableMethod, entry ->
-                val (index, replacement) = entry
+            transform = { mutableMethod, (index, replacement) ->
                 val (opcode, operand) = replacement
                 val register = mutableMethod.getInstruction<OneRegisterInstruction>(index).registerA
 

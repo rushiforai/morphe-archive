@@ -37,8 +37,33 @@ final class ChatNotifications {
      * it: by the "msgId" a line carries in its extras, or by the notification's own "msgId", which names its newest
      * line. Null when no notification shows that message.
      */
-    @SuppressWarnings("deprecation")
     static String[] showing(Context context, String id) {
+        Line line = line(context, id);
+        return line == null || line.text == null ? null : new String[] {line.shown.getTag(), line.text};
+    }
+
+    /** One message's line in a chat notification: its words, who sent it and what it carries. */
+    static final class Line {
+        final StatusBarNotification shown;
+        final String text;
+        /** Null for your own line or one that names nobody. */
+        final String sender;
+        /** What Messenger attached to the line, a photo's preview say, and its type. Null when it attached nothing. */
+        final android.net.Uri data;
+        final String type;
+
+        Line(StatusBarNotification shown, String text, String sender, android.net.Uri data, String type) {
+            this.shown = shown;
+            this.text = text;
+            this.sender = sender;
+            this.data = data;
+            this.type = type;
+        }
+    }
+
+    /** The line showing message [id], found the way {@link #showing} finds it. Null when no notification shows it. */
+    @SuppressWarnings("deprecation")
+    static Line line(Context context, String id) {
         if (context == null || id == null || id.isEmpty()) return null;
         NotificationManager manager = context.getSystemService(NotificationManager.class);
         if (manager == null) return null;
@@ -46,23 +71,33 @@ final class ChatNotifications {
             Bundle extras = shown.getNotification().extras;
             if (extras == null || shown.getTag() == null) continue;
             Parcelable[] messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES);
-            CharSequence text = null;
-            CharSequence newest = null;
+            Bundle found = null;
+            Bundle newest = null;
             if (messages != null) {
                 for (Parcelable item : messages) {
                     if (!(item instanceof Bundle)) continue;
-                    Bundle message = (Bundle) item;
-                    newest = message.getCharSequence("text");
-                    Bundle lineExtras = message.getBundle("extras");
+                    newest = (Bundle) item;
+                    Bundle lineExtras = newest.getBundle("extras");
                     Object lineId = lineExtras == null ? null : lineExtras.get("msgId");
-                    if (lineId != null && id.equals(String.valueOf(lineId))) text = newest;
+                    if (lineId != null && id.equals(String.valueOf(lineId))) found = newest;
                 }
             }
             Object notificationId = extras.get("msgId");
-            if (text == null && notificationId != null && id.equals(String.valueOf(notificationId))) {
-                text = newest != null ? newest : extras.getCharSequence(Notification.EXTRA_TEXT);
+            if (found == null && notificationId != null && id.equals(String.valueOf(notificationId))) {
+                if (newest == null) {
+                    CharSequence text = extras.getCharSequence(Notification.EXTRA_TEXT);
+                    if (text != null) return new Line(shown, text.toString(), null, null, null);
+                    continue;
+                }
+                found = newest;
             }
-            if (text != null) return new String[] {shown.getTag(), text.toString()};
+            if (found == null) continue;
+            CharSequence text = found.getCharSequence("text");
+            String sender = senderOf(found);
+            if (sender != null && sender.equals(selfName(extras))) sender = null;
+            Object data = found.getParcelable("uri");
+            return new Line(shown, text == null ? null : text.toString(), sender,
+                data instanceof android.net.Uri ? (android.net.Uri) data : null, found.getString("type"));
         }
         return null;
     }

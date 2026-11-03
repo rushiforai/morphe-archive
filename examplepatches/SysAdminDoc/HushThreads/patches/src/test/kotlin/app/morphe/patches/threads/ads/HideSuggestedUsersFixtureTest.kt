@@ -108,11 +108,12 @@ class HideSuggestedUsersFixtureTest {
         for (vendor in vendors) {
             val context = context(vendor)
             val targets = context.suggestedTargets()
-            assertEquals(vendor.name, "A0V", targets.suggestedSlot.name)
-            assertEquals(vendor.name, "A0M", targets.kickstartSlot.name)
-            assertEquals(vendor.name, "A0L", targets.rawType.name)
             // 450 added an item field ahead of the impression item, so the same store lands one name later.
-            assertEquals(vendor.name, "A0r", targets.content.name)
+            // On 454 the kickstart slot and the wrapper's raw type are both A0L, each in its own class.
+            assertEquals(
+                vendor.name, listOf("A0U", "A0L", "A0L", "A0r"),
+                listOf(targets.suggestedSlot, targets.kickstartSlot, targets.rawType, targets.content).map { it.name },
+            )
             hideSuggestedUsersPatch.execute(context)
             val stubs = context.mutableClassDefBy(FEED_ADS).methods
             assertTrue(stubs.single { it.name == "isSuggestedUserItem" }.instructions().size > 2)

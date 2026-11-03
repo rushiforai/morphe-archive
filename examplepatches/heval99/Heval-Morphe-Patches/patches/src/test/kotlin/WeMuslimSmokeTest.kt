@@ -22,6 +22,7 @@ private const val AUTHORITY_TYPE = "Lcom/fyxtech/muslim/protobuf/MembershipConfi
 private const val WALLET_EXPORT = "Lcom/fyxtech/muslim/bizcore/router/export/IWalletExport;"
 private const val OPEN_PAGE_MODEL = "Lcom/fyxtech/muslim/bizcore/resource/LocResourceOpenPageUiModel;"
 private const val VIP_CARD_VIEW = "Lcom/fyxtech/muslim/about/module/main/VipCardView;"
+private const val INFO_STREAM_UNIT = "Lcom/fyxtech/muslim/protobuf/InfoStreamProto\$InfoStreamUnit;"
 private const val GMA = "Lcom/google/android/gms/ads/"
 
 class WeMuslimSmokeTest {
@@ -66,6 +67,7 @@ class WeMuslimSmokeTest {
                 "Disable ads",
                 "Disable telemetry",
                 "Hide premium banners",
+                "Hide feed clutter",
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -282,6 +284,22 @@ class WeMuslimSmokeTest {
                     "${constructor.label()} does not hide the card before returning (found $call)",
                 )
             }
+        }
+
+        // Hide feed clutter: each unit accessor answers false, so the stream builder drops it.
+        val unit = cls("Lcom/fyxtech/muslim/protobuf/InfoStreamProto\$InfoStreamUnit;")
+        for (name in listOf(
+            "hasLoginGuide",
+            "hasNearby",
+            "hasPostInfo",
+            "hasStore",
+            "hasFirstRecharge",
+            "hasWatchAdWinRewards",
+        )) {
+            val accessor = unit.methods.singleOrNull {
+                it.name == name && it.returnType == "Z" && it.params().isEmpty()
+            } ?: error("$INFO_STREAM_UNIT->$name()Z not found")
+            assertForcedBoolean(accessor, expected = false, label = "${unit.type}->$name()")
         }
     }
 }

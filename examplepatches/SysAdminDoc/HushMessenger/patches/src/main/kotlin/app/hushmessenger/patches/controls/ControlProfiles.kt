@@ -84,6 +84,8 @@ internal val PROFILE_347015062 = ControlProfile(
             "LX/7m4;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7m4;->A03(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)Z",
         ),
+        "app_theme_pick" to setOf("LX/HTn;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
+        "app_themes" to setOf("LX/HR1;->A00(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "attribution_uploads" to setOf("LX/7je;->A02(Landroid/content/Context;LX/7jf;Lcom/facebook/auth/usersession/FbUserSession;IJZ)V"),
         "auto_reply" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9md;LX/5fM;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
         "avatar_shape" to setOf(
@@ -109,6 +111,7 @@ internal val PROFILE_347015062 = ControlProfile(
         "chat_channel_raise" to setOf("LX/7uR;->run()V"),
         "chat_fragment" to setOf("LX/1k9;-><init>()V"),
         "chat_inbox" to setOf("LX/1ii;-><init>()V"),
+        "chat_jump" to setOf("LX/1k9;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "chat_legacy" to setOf("LX/1k8;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
         "chat_promotions" to setOf("LX/HWk;->A0E()Z", "LX/HWk;->A0F()Z"),
         "community_inbox" to setOf("LX/27v;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
@@ -163,6 +166,7 @@ internal val PROFILE_347015062 = ControlProfile(
             "LX/7PI;->Exj(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/77J;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
         ),
         "hide_read_receipts" to setOf("LX/4mA;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4mA;Ljava/lang/String;)V"),
+        "home_header" to setOf("LX/2a9;->render(LX/2ED;)LX/1IG;"),
         "inbox_promotions" to setOf("LX/25z;->A0J()Z", "LX/25z;->A0K()Z"),
         "inbox_search_bar" to setOf(
             "LX/1mQ;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1mv;",
@@ -187,6 +191,8 @@ internal val PROFILE_347015062 = ControlProfile(
             "LX/T5X;->DdN(LX/4rO;I)V", "LX/T5k;->A0I(Ljava/util/List;)V",
         ),
         "message_log" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9md;LX/5fM;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
+        "message_log_button" to setOf("LX/2Yd;->Cdh()Ljava/util/List;"),
+        "message_log_click" to setOf("LX/2Yd;->DgR(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;I)V"),
         "moments" to setOf("LX/HVh;->A05()Z", "LX/JlM;->A05()Z"),
         "mqtt_telemetry" to setOf(
             "LX/14U;->A0N(Ljava/lang/String;)V",
@@ -348,6 +354,8 @@ internal val PROFILE_347014996 = ControlProfile(
             "LX/7m4;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7m4;->A03(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)Z",
         ),
+        "app_theme_pick" to setOf("LX/HTn;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
+        "app_themes" to setOf("LX/HR1;->A00(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "attribution_uploads" to setOf("LX/7je;->A02(Landroid/content/Context;LX/7jf;Lcom/facebook/auth/usersession/FbUserSession;IJZ)V"),
         "auto_reply" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9md;LX/5fM;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
         "avatar_shape" to setOf(
@@ -373,6 +381,7 @@ internal val PROFILE_347014996 = ControlProfile(
         "chat_channel_raise" to setOf("LX/7uR;->run()V"),
         "chat_fragment" to setOf("LX/1k9;-><init>()V"),
         "chat_inbox" to setOf("LX/1ii;-><init>()V"),
+        "chat_jump" to setOf("LX/1k9;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "chat_legacy" to setOf("LX/1k8;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
         "chat_promotions" to setOf("LX/HWk;->A0E()Z", "LX/HWk;->A0F()Z"),
         "community_inbox" to setOf("LX/27v;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
@@ -427,6 +436,7 @@ internal val PROFILE_347014996 = ControlProfile(
             "LX/7PI;->Exj(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/77J;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
         ),
         "hide_read_receipts" to setOf("LX/4mA;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4mA;Ljava/lang/String;)V"),
+        "home_header" to setOf("LX/2a9;->render(LX/2ED;)LX/1IG;"),
         "inbox_promotions" to setOf("LX/25z;->A0J()Z", "LX/25z;->A0K()Z"),
         "inbox_search_bar" to setOf(
             "LX/1mQ;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1mv;",
@@ -451,6 +461,8 @@ internal val PROFILE_347014996 = ControlProfile(
             "LX/T5X;->DdN(LX/4rO;I)V", "LX/T5k;->A0I(Ljava/util/List;)V",
         ),
         "message_log" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9md;LX/5fM;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
+        "message_log_button" to setOf("LX/2Yd;->Cdh()Ljava/util/List;"),
+        "message_log_click" to setOf("LX/2Yd;->DgR(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;I)V"),
         "moments" to setOf("LX/HVh;->A05()Z", "LX/JlM;->A05()Z"),
         "mqtt_telemetry" to setOf(
             "LX/14U;->A0N(Ljava/lang/String;)V",
@@ -612,6 +624,8 @@ internal val PROFILE_347014974 = ControlProfile(
             "LX/7q1;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7q1;->A03(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)Z",
         ),
+        "app_theme_pick" to setOf("LX/HdJ;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
+        "app_themes" to setOf("LX/Haj;->A00(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "attribution_uploads" to setOf("LX/7nN;->A02(Landroid/content/Context;LX/7nO;Lcom/facebook/auth/usersession/FbUserSession;IJZ)V"),
         "auto_reply" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9r3;LX/5i7;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
         "avatar_shape" to setOf(
@@ -637,6 +651,7 @@ internal val PROFILE_347014974 = ControlProfile(
         "chat_channel_raise" to setOf("LX/7yj;->run()V"),
         "chat_fragment" to setOf("LX/1lQ;-><init>()V"),
         "chat_inbox" to setOf("LX/1jz;-><init>()V"),
+        "chat_jump" to setOf("LX/1lQ;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "chat_legacy" to setOf("LX/1lP;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
         "chat_promotions" to setOf("LX/HgI;->A0E()Z", "LX/HgI;->A0F()Z"),
         "community_inbox" to setOf("LX/29H;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
@@ -691,6 +706,7 @@ internal val PROFILE_347014974 = ControlProfile(
             "LX/7Sf;->EyE(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/7Af;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
         ),
         "hide_read_receipts" to setOf("LX/4ot;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4ot;Ljava/lang/String;)V"),
+        "home_header" to setOf("LX/2be;->render(LX/2Fc;)LX/1J8;"),
         "inbox_promotions" to setOf("LX/27L;->A0J()Z", "LX/27L;->A0K()Z"),
         "inbox_search_bar" to setOf(
             "LX/1nh;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1oC;",
@@ -715,6 +731,8 @@ internal val PROFILE_347014974 = ControlProfile(
             "LX/QZm;->Ddd(LX/4u7;I)V", "LX/QZy;->A0I(Ljava/util/List;)V",
         ),
         "message_log" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9r3;LX/5i7;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
+        "message_log_button" to setOf("LX/2a8;->Cds()Ljava/util/List;"),
+        "message_log_click" to setOf("LX/2a8;->Dgh(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;I)V"),
         "moments" to setOf("LX/Hf7;->A05()Z", "LX/Jqy;->A05()Z"),
         "mqtt_telemetry" to setOf(
             "LX/0ko;->A0N(Ljava/lang/String;)V",
@@ -876,6 +894,8 @@ internal val PROFILE_347014990 = ControlProfile(
             "LX/7k6;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7k6;->A03(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)Z",
         ),
+        "app_theme_pick" to setOf("LX/Jv4;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
+        "app_themes" to setOf("LX/HTJ;->A00(Lcom/facebook/auth/usersession/FbUserSession;)Z"),
         "attribution_uploads" to setOf("LX/7hg;->A02(Landroid/content/Context;LX/7hh;Lcom/facebook/auth/usersession/FbUserSession;IJZ)V"),
         "auto_reply" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9kY;LX/5ek;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
         "avatar_shape" to setOf(
@@ -901,6 +921,7 @@ internal val PROFILE_347014990 = ControlProfile(
         "chat_channel_raise" to setOf("LX/7sT;->run()V"),
         "chat_fragment" to setOf("LX/1kZ;-><init>()V"),
         "chat_inbox" to setOf("LX/1j8;-><init>()V"),
+        "chat_jump" to setOf("LX/1kZ;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "chat_legacy" to setOf("LX/1kY;->onCreateAnimation(IZI)Landroid/view/animation/Animation;"),
         "chat_promotions" to setOf("LX/WAP;->A0E()Z", "LX/WAP;->A0F()Z"),
         "community_inbox" to setOf("LX/28L;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
@@ -955,6 +976,7 @@ internal val PROFILE_347014990 = ControlProfile(
             "LX/7NK;->Ey6(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/75L;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V",
         ),
         "hide_read_receipts" to setOf("LX/4lY;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4lY;Ljava/lang/String;)V"),
+        "home_header" to setOf("LX/2aZ;->render(LX/2Ed;)LX/1Ig;"),
         "inbox_promotions" to setOf("LX/26P;->A0J()Z", "LX/26P;->A0K()Z"),
         "inbox_search_bar" to setOf(
             "LX/1mq;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1nL;",
@@ -979,6 +1001,8 @@ internal val PROFILE_347014990 = ControlProfile(
             "LX/ZSl;->Dda(LX/4qm;I)V", "LX/ZSm;->A0I(Ljava/util/List;)V",
         ),
         "message_log" to setOf("Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9kY;LX/5ek;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V"),
+        "message_log_button" to setOf("LX/2Z3;->Cdt()Ljava/util/List;"),
+        "message_log_click" to setOf("LX/2Z3;->Dgf(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;I)V"),
         "moments" to setOf("LX/HWY;->A05()Z", "LX/JPu;->A05()Z"),
         "mqtt_telemetry" to setOf(
             "LX/0y8;->A0N(Ljava/lang/String;)V",

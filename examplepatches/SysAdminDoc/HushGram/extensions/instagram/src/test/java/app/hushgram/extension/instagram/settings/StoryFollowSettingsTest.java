@@ -86,7 +86,9 @@ public class StoryFollowSettingsTest {
         for (int i = 0; i < keys.length; i++) keys[i] = stories.getPreference(i).getKey();
         int mentions = Arrays.asList(keys).indexOf(Settings.SHOW_STORY_MENTIONS.key);
         assertTrue(Arrays.toString(keys), mentions >= 0);
-        assertEquals("right after See who a story mentions", Settings.HIDE_STORY_FOLLOW.key, keys[mentions + 1]);
+        assertEquals("its own switch under it first", Settings.RED_STORY_MENTIONS.key, keys[mentions + 1]);
+        assertEquals("then its choice of where the pill goes", Settings.STORY_MENTIONS_LOOK.key, keys[mentions + 2]);
+        assertEquals("then right after See who a story mentions", Settings.HIDE_STORY_FOLLOW.key, keys[mentions + 3]);
         assertFalse(row.isChecked());
         assertFalse(Settings.HIDE_STORY_FOLLOW.get());
         assertFalse("each bind reads the switch, so no restart prompt", Settings.HIDE_STORY_FOLLOW.rebootApp);

@@ -9,68 +9,30 @@ import java.lang.reflect.Method;
 
 import dev.utaa.linimal.extension.features.readreceipts.ReadReceiptHooks;
 
-/** 明示した既読操作だけを worker に許可し、後続メッセージの自動既読は抑制し続けます。 */
+/** 「すべて既読にする」だけを worker に許可します。成功すると閲覧セッションを終えます。 */
 public final class ReadWithoutReceiptManualHooks {
     private static final String BRIDGE = "linimalMarkReadManually";
     private static final ThreadLocal<ReadWithoutReceiptHooks.Suppression> INVOCATION = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> INVOCATION_BLOCKED = new ThreadLocal<>();
 
     /** 構成変更では引き継ぎ、再入室では破棄する操作状態です。 */
     static final class State {
-        private long completedPoint;
-        private long baseline = Long.MIN_VALUE;
         private boolean pending;
 
-        synchronized void observeBaseline(String value) {
-            if (baseline != Long.MIN_VALUE) {
-                return;
-            }
-            try {
-                long parsed = value == null || value.isEmpty() ? 0L : Long.parseLong(value);
-                if (parsed >= 0L) {
-                    baseline = parsed;
-                }
-            } catch (NumberFormatException ignored) {
-                // 壊れた read_up を「全履歴が未読」と解釈しません。
-            }
-        }
-
-        synchronized int presentation(long point, boolean firstUnread) {
-            if (baseline == Long.MIN_VALUE || point <= 0L) {
-                return -1;
-            }
-            if (completedPoint > baseline && point == completedPoint) {
-                return 4;
-            }
-            if (point <= Math.max(baseline, completedPoint)) {
-                return 0;
-            }
-            return 1 | (completedPoint <= baseline && firstUnread ? 2 : 0);
-        }
-
-        synchronized boolean begin(long point, boolean all) {
-            if (pending || (!all && (baseline == Long.MIN_VALUE || point <= 0L
-                    || point <= Math.max(baseline, completedPoint)))) {
+        synchronized boolean begin() {
+            if (pending) {
                 return false;
             }
             pending = true;
             return true;
         }
 
-        synchronized void finish(long point) {
-            completedPoint = Math.max(completedPoint, point);
+        synchronized void finish() {
             pending = false;
         }
 
         synchronized boolean isPending() {
             return pending;
-        }
-
-        synchronized boolean isRead(long point) {
-            return baseline != Long.MIN_VALUE && point > 0L && point <= Math.max(baseline, completedPoint);
-        }
-
-        synchronized long atLeastCompleted(long point) {
-            return Math.max(Math.max(0L, baseline), Math.max(completedPoint, point));
         }
     }
 
@@ -82,37 +44,6 @@ public final class ReadWithoutReceiptManualHooks {
         return session != null && session.sendState.hasReadAttempt() && !session.manualState.isPending();
     }
 
-    static void markAll(Activity activity) {
-        submit(activity, 0L, true);
-    }
-
-    static void markMessage(Activity activity, long point) {
-        submit(activity, point, false);
-    }
-
-    static boolean isRead(Activity activity, long point) {
-        ReadWithoutReceiptHooks.Suppression session = sessionFor(activity);
-        return session != null && session.manualState.isRead(point);
-    }
-
-    /** adapter が入室時に保持した ChatData.read_up だけを初期位置として採用します。 */
-    public static void observeReadPosition(Activity activity, String chatId, String readUp) {
-        try {
-            ReadWithoutReceiptHooks.Suppression session = sessionFor(activity);
-            if (session != null && session.chatId.equals(chatId)) {
-                session.manualState.observeBaseline(readUp);
-            }
-        } catch (Throwable ignored) {
-            // 不明な初期位置は維持し、公式表示へ例外を伝播させません。
-        }
-    }
-
-    /** -1 は不明、1 は未読操作、2 は境界前、4 は手動既読位置の境界後です。 */
-    static int presentation(Activity activity, long point, boolean firstUnread) {
-        ReadWithoutReceiptHooks.Suppression session = sessionFor(activity);
-        return session == null ? -1 : session.manualState.presentation(point, firstUnread);
-    }
-
     private static ReadWithoutReceiptHooks.Suppression sessionFor(Activity activity) {
         try {
             ReadWithoutReceiptHooks.Suppression session = ReadWithoutReceiptHooks.currentSuppression();
@@ -121,6 +52,15 @@ public final class ReadWithoutReceiptManualHooks {
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    /** 実行中にセッションが替わって送信を止めた場合は、この呼び出しを未送信として記録します。 */
+    static boolean blockManualInvocation(String chatId) {
+        if (isManualRead(chatId)) {
+            return false;
+        }
+        INVOCATION_BLOCKED.set(Boolean.TRUE);
+        return true;
     }
 
     static boolean hasManualInvocation() {
@@ -135,27 +75,26 @@ public final class ReadWithoutReceiptManualHooks {
                 && current.token == allowed.token && current.chatId.equals(chatId);
     }
 
-    private static void submit(Activity activity, long point, boolean all) {
+    static void markAll(Activity activity) {
         ReadWithoutReceiptHooks.Suppression session = sessionFor(activity);
         if (session == null) {
             return;
         }
         ReadWithoutReceiptSendHooks.ReadAttempt attempt = session.sendState.snapshot();
-        if (attempt == null || !session.manualState.begin(point, all)) {
+        if (attempt == null || !session.manualState.begin()) {
             return;
         }
-        long requestedPoint = all ? session.manualState.atLeastCompleted(attempt.readPoint) : point;
         WeakReference<Activity> owner = new WeakReference<>(activity);
         try {
-            AsyncTask.SERIAL_EXECUTOR.execute(() -> execute(owner, session, attempt.executor, requestedPoint, all));
+            AsyncTask.SERIAL_EXECUTOR.execute(() -> execute(owner, session, attempt.executor, attempt.readPoint));
         } catch (Throwable ignored) {
-            session.manualState.finish(0L);
-            showResult(session.token, false);
+            session.manualState.finish();
+            showResult(resultTarget(session), false, false);
         }
     }
 
     private static void execute(WeakReference<Activity> owner, ReadWithoutReceiptHooks.Suppression session,
-            Object executor, long point, boolean all) {
+            Object executor, long point) {
         long completed = 0L;
         try {
             Activity activity = owner.get();
@@ -163,40 +102,56 @@ public final class ReadWithoutReceiptManualHooks {
             if (current == null || current.token != session.token) {
                 return;
             }
-            completed = invokeRead(session, executor, point, all);
+            completed = invokeRead(session, executor, point);
         } catch (Throwable ignored) {
             // 元の RPC 再送経路は変更せず、bridge の例外を UI へ伝播させません。
         } finally {
-            session.manualState.finish(completed);
-            showResult(session.token, completed > 0L);
+            // 実行中の回転で所有者が移っても、終了前に最新の Activity を通知先として確定します。
+            ReadWithoutReceiptHooks.Suppression target = resultTarget(session);
+            showResult(target, completed > 0L, finishRead(session, completed));
         }
+    }
+
+    /** 同じセッションが続いていれば、構成変更後の所有者を持つ最新の状態を返します。 */
+    static ReadWithoutReceiptHooks.Suppression resultTarget(ReadWithoutReceiptHooks.Suppression session) {
+        ReadWithoutReceiptHooks.Suppression current = ReadWithoutReceiptHooks.currentSuppression();
+        return current != null && current.token == session.token ? current : session;
+    }
+
+    /** トーク全体を既読にできた場合は閲覧セッションを終え、以降を通常の LINE へ戻します。失敗時は続けます。 */
+    static boolean finishRead(ReadWithoutReceiptHooks.Suppression session, long completed) {
+        session.manualState.finish();
+        return completed > 0L && ReadWithoutReceiptHooks.endConfirmedSuppression(session.chatId, session);
     }
 
     /** Android に依存しない worker 境界。失敗・入室変更時にも thread 上の許可を残しません。 */
     static long invokeRead(ReadWithoutReceiptHooks.Suppression session, Object executor,
-            long point, boolean all) throws ReflectiveOperationException {
+            long point) throws ReflectiveOperationException {
         ReadWithoutReceiptHooks.Suppression current = ReadWithoutReceiptHooks.currentSuppression();
         if (current == null || !current.confirmed || current.token != session.token) {
             return 0L;
         }
-        Method bridge = executor.getClass().getMethod(BRIDGE, long.class, String.class, boolean.class);
+        Method bridge = executor.getClass().getMethod(BRIDGE, long.class, String.class);
         if (bridge.getReturnType() != long.class) {
             return 0L;
         }
         try {
             INVOCATION.set(session);
             ReadReceiptHooks.prepareSentMessageRead(session.chatId);
-            return (Long) bridge.invoke(executor, point, session.chatId, all);
+            long completed = (Long) bridge.invoke(executor, point, session.chatId);
+            return INVOCATION_BLOCKED.get() == null ? completed : 0L;
         } finally {
             INVOCATION.remove();
+            INVOCATION_BLOCKED.remove();
             ReadReceiptHooks.clearPreparedSupplier();
         }
     }
 
-    private static void showResult(long token, boolean success) {
+    private static void showResult(ReadWithoutReceiptHooks.Suppression session, boolean success, boolean ended) {
         ReadWithoutReceiptHooks.Suppression current = ReadWithoutReceiptHooks.currentSuppression();
-        Object candidate = current != null && current.token == token && current.owner != null
-                ? current.owner.get() : null;
+        long token = session.token;
+        Object candidate = (ended || (current != null && current.token == token)) && session.owner != null
+                ? session.owner.get() : null;
         if (!(candidate instanceof Activity)) {
             return;
         }
@@ -204,8 +159,8 @@ public final class ReadWithoutReceiptManualHooks {
         activity.runOnUiThread(() -> {
             try {
                 if (!activity.isFinishing() && !activity.isDestroyed()
-                        && ReadWithoutReceiptHooks.sessionTokenFor(activity) == token) {
-                    // worker の状態変更だけでは次の描画が起きないため、完了した行の操作を更新します。
+                        && (ended || ReadWithoutReceiptHooks.sessionTokenFor(activity) == token)) {
+                    // worker の状態変更だけでは次の描画が起きないため、案内とボタンの更新を促します。
                     activity.getWindow().getDecorView().invalidate();
                     Toast.makeText(activity, success ? "既読処理を実行しました" : "既読を反映できませんでした",
                             Toast.LENGTH_SHORT).show();

@@ -40,7 +40,7 @@ internal val playerResources = resourcePatch {
     }
 }
 
-internal fun BytecodePatchContext.addPlayerHooks() {
+internal fun BytecodePatchContext.addSeekHooks() {
     val model = "${COMMUNITY}core/feature/feature/player/BasePlayerViewModel;"
     val context = "Lcom/naver/prismplayer/ui/PrismUiContext;"
     val media = "Lcom/naver/prismplayer/Media;"
@@ -48,7 +48,7 @@ internal fun BytecodePatchContext.addPlayerHooks() {
         uiBridge(hook, 9, """
             if-eqz p0, :unavailable
             check-cast p0, $model
-            invoke-virtual {p0}, $model->R()$context
+            invoke-virtual {p0}, $model->${if (packageMetadata.versionName == "1.3.0") "y" else "R"}()$context
             move-result-object v0
             if-eqz v0, :unavailable
             invoke-virtual {v0}, $context->w()$PLAYER
@@ -89,6 +89,10 @@ internal fun BytecodePatchContext.addPlayerHooks() {
             return v0
         """)
     }
+}
+
+internal fun BytecodePatchContext.addPlayerHooks() {
+    addSeekHooks()
     val semantic = classDefBy("${COMMUNITY}core/ui/ui/image/SemanticImageKt;").methods.single { it.name == "c" }
     val modifierField = if (packageMetadata.versionName == "3.16.0") "V" else "Z"
     for (rewind in listOf(true, false)) {

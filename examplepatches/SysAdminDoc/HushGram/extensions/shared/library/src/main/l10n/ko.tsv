@@ -47,8 +47,6 @@ Loading older messages.	이전 메시지를 불러오는 중입니다.
 Loading older messages. %1$d message so far.	이전 메시지를 불러오는 중입니다. 지금까지 %1$d개입니다.
 Loading older messages. %1$d messages so far.	이전 메시지를 불러오는 중입니다. 지금까지 %1$d개입니다.
 Lock these settings	이 설정 잠그기
-Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	채팅을 열고 위쪽의 이름을 길게 누른 뒤 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다.
-Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	채팅을 열고 위쪽의 이름을 길게 누른 뒤 첫 메시지로 이동 또는 날짜로 이동을 고르세요. 채팅이 이전 메시지를 스스로 불러오며, 개수와 취소 버튼이 표시됩니다.
 Mark a chat seen when you reply	답장하면 채팅을 읽음으로 표시
 No messages found to save.	저장할 메시지가 없어요.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1~72시간 중 대기 시간을 고르세요. 잠기면 잠금 해제를 요청하고 대기 시간이 끝날 때까지 여기서 아무것도 바뀌지 않습니다.
@@ -221,6 +219,12 @@ Download on stories	스토리 다운로드 메뉴 추가
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	다른 사람의 스토리, 사진 또는 동영상 메뉴에 다운로드를 추가하며, 설정한 다운로드 화질로 저장할 수 있습니다. 이 기능을 비활성화하거나 HushGram을 일시 정지하면 Instagram의 원래 메뉴가 다시 표시됩니다
 Upload stories at full quality	스토리를 최대 화질로 업로드
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	올린 동영상 스토리가 1080p와 더 높은 비트레이트로 전송됩니다. Instagram의 최고 화질로 업로드 설정을 켰을 때와 같습니다. Instagram은 서버에서 스토리 동영상을 여전히 720p로 줄이므로 보는 사람이 느끼는 차이는 작습니다. 사진 스토리는 이미 Instagram이 보관하는 것보다 크게 업로드됩니다.
+# context: Stories settings under Upload stories at full quality: which uploads it covers (Stories only, or Stories, posts and reels), and the video bitrate; %1$s is a number of megabits a second (#37)
+Upload quality applies to	업로드 화질 적용 대상
+Stories only	스토리만
+Stories, posts and reels	스토리, 게시물, 릴스
+Video bitrate	동영상 비트레이트
+%1$s Mbps	%1$s Mbps
 Download feed videos	피드 동영상 다운로드 메뉴 추가
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	피드에서 동영상이 포함된 게시물의 메뉴에 다운로드를 추가하며, 설정한 다운로드 화질로 저장할 수 있습니다. 이 기능을 비활성화하거나 HushGram을 일시 정지하면 Instagram의 원래 메뉴가 다시 표시됩니다
 Playback	재생
@@ -1416,8 +1420,10 @@ Puts a border and Instagram's view once icon on a one-time photo or video in a c
 Fall back to Following	팔로잉으로 대체
 When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	추천 피드가 한 계정에 페이지마다 추천 게시물만 보여 주면 그 계정은 홈이 팔로잉으로 열립니다. 홈 상단에서 직접 고른 피드는 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Only suggestions in For you. Home will open on Following.	추천 피드에 추천 게시물만 있습니다. 홈을 팔로잉으로 엽니다.
+Mix in Following	팔로잉 섞기
+For you shows a page of posts from accounts you follow after each page of its own, until you've seen them all. Pull down on Home to start both over. Restart Instagram to see the change.	추천 피드가 자체 페이지를 하나 보여 줄 때마다 팔로우하는 계정의 게시물 페이지를 하나 보여 주며, 모두 볼 때까지 계속됩니다. 홈을 아래로 당기면 둘 다 처음부터 다시 시작합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Explore without personalization	개인화 없는 탐색
-Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Instagram이 제공하는 곳(EU)에서는 탐색이 항상 개인화되지 않은 그리드로 열리고 10분이 지나도 그대로 유지됩니다.
+Explore asks for the grid that isn't personalized every time it opens, and stays on it past ten minutes. Instagram only promises that grid in the EU.	탐색을 열 때마다 개인화되지 않은 그리드를 요청하고 10분이 지나도 그대로 유지합니다. Instagram은 EU에서만 이 그리드를 보장합니다.
 Hide Explore's personalized menu	탐색 개인화 메뉴 숨기기
 Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Instagram이 표시하는 곳(EU)에서 탐색의 개인화를 바꾸는 상단 바 버튼을 숨깁니다.
 # context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
@@ -1538,12 +1544,16 @@ Couldn't read that picture.	사진을 읽을 수 없습니다.
 This launcher can't add it.	이 런처는 추가할 수 없습니다.
 Glass in chats	채팅 유리 효과
 Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	채팅 상단 바에 반투명 유리 효과를 주고 뒤로가기, 통화, 영상 버튼을 둥근 유리 원 위에 올립니다. 다음에 채팅을 열 때부터 적용됩니다. 흐림 효과는 Android 12 이상이 필요합니다.
-# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	조회수가 적은 릴스 숨기기
-Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	아래 숫자보다 적은 사람이 본 릴스를 릴스 탭에서 숨깁니다. 팔로우하는 계정의 릴스, 받은 릴스, 조회수가 없는 릴스는 그대로 재생됩니다.
+Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	조회수나 좋아요 수가 아래 숫자보다 적은 릴스를 릴스 탭에서 숨깁니다. 팔로우하는 계정의 릴스, 받은 릴스, 숫자가 없는 릴스는 그대로 재생됩니다.
 Minimum views	최소 조회수
 Reels with fewer views than this are left out. Type a whole number.	이보다 조회수가 적은 릴스는 숨겨집니다. 정수를 입력하세요.
 Fewer than %1$s views	조회수 %1$s회 미만
+Minimum likes	최소 좋아요 수
+Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	이보다 좋아요가 적은 릴스는 숨겨집니다. 정수를 입력하거나, 좋아요를 보지 않으려면 0을 입력하세요.
+Fewer than %1$s likes	좋아요 %1$s개 미만
+Likes aren't looked at	좋아요 수를 보지 않음
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	스토리 우선 표시
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	목록에 있는 계정에 아직 보지 않은 스토리가 있으면 홈 상단 스토리 줄 맨 앞에 목록 순서대로 놓습니다. 스토리를 보고 나면 인스타그램의 기본 위치로 돌아갑니다. 내 스토리는 계속 맨 앞에 있습니다.
@@ -1552,3 +1562,103 @@ Usernames, one on each line. The first line goes first. A leading @ and capital 
 No accounts yet	아직 계정이 없습니다
 %1$d account	계정 %1$d개
 %1$d accounts	계정 %1$d개
+Home header text	홈 상단 문구
+Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Instagram 로고 대신 홈 상단에 표시할 나만의 문구입니다. 최대 %1$d자까지 입력할 수 있습니다. 비워 두면 로고가 유지됩니다.
+Instagram's logo stays at the top of Home.	홈 상단에 Instagram 로고가 유지됩니다.
+The top of Home says %1$s.	홈 상단에 %1$s 문구가 표시됩니다.
+Home header picture	홈 상단 이미지
+Remove the header picture	상단 이미지 삭제
+The top of Home goes back to your header text, or to Instagram's logo.	홈 상단이 내 문구 또는 Instagram 로고로 돌아갑니다.
+Pick a picture to show at the top of Home, in place of Instagram's logo or your text.	Instagram 로고나 내 문구 대신 홈 상단에 표시할 이미지를 선택하세요.
+The top of Home shows %1$s. Tap to pick another.	홈 상단에 %1$s 이미지가 표시됩니다. 다른 이미지를 선택하려면 탭하세요.
+Header picture set.	홈 상단 이미지를 설정했습니다.
+Header picture removed.	홈 상단 이미지를 삭제했습니다.
+That isn't a picture.	이미지가 아닙니다.
+That picture is over %1$d MB.	이미지가 %1$dMB를 넘습니다.
+Couldn't save the picture.	이미지를 저장하지 못했습니다.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	채팅을 열고 위쪽 통화 버튼 옆의 시계 버튼을 누르거나 채팅 이름을 길게 누른 뒤 첫 메시지로 이동 또는 날짜로 이동을 고르세요. 채팅이 이전 메시지를 스스로 불러오며, 개수와 취소 버튼이 표시됩니다.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	채팅을 열고 위쪽 통화 버튼 옆의 시계 버튼을 누르거나 채팅 이름을 길게 누른 뒤 채팅 내보내기를 고르세요. 채팅 전체가 다운로드의 HushGram 폴더에 텍스트 파일로 저장되며, 메시지 한 개가 한 줄입니다.
+Instagram stopped loading older messages.	Instagram이 이전 메시지 불러오기를 멈췄습니다.
+Black settings page	검은색 설정 페이지
+Black rows and dialogs, HushGram's name at the top, and each category on one line.	검은색 행과 대화상자, 맨 위의 HushGram 이름, 한 줄로 줄인 각 카테고리.
+Mark as read	읽음으로 표시
+Nothing to mark as read	읽음으로 표시할 항목이 없습니다
+Mark as read button in chats	채팅의 읽음으로 표시 버튼
+A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	상대방에게 아직 봤다고 알리지 않은 동안 채팅 상단에 체크 표시가 나타납니다. 누르면 상대방에게 읽음이 표시됩니다.
+Red story mentions	빨간색 스토리 멘션
+Draws the mention pill's text in red instead of white, so it stands out on bright stories.	멘션 알약의 글자를 흰색 대신 빨간색으로 표시해서 밝은 스토리에서도 눈에 띄게 합니다.
+Only received reels	받은 릴스만
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	채팅의 릴스를 넘길 때 내가 보낸 릴스는 건너뛰고 상대방이 공유한 릴스만 보여줍니다. 채팅의 릴스 넘기기를 켜 두면 작동합니다.
+Hide the audio icon on posts	게시물의 오디오 아이콘 숨기기
+Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	피드의 동영상에서 스피커 아이콘을 없앱니다. 동영상을 탭하면 이전처럼 소리가 켜지거나 꺼집니다. 이미 화면에 있는 게시물은 다시 불러올 때 바뀝니다.
+Light when paused	일시정지 시 밝게
+Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	릴스를 일시정지하면 번인 방지가 버튼을 다시 최대 밝기로 되돌리고, 다시 재생하거나 넘길 때까지 유지합니다. 그 뒤 대기 시간이 처음부터 다시 시작됩니다.
+Grow the heart	하트 키우기
+Double tap the same post again within a second and a half and the heart pops up bigger, up to nearly twice its size. A pause and it starts small again.	같은 게시물을 1.5초 안에 다시 두 번 탭하면 하트가 더 크게 나타나며, 최대 두 배에 가깝게 커집니다. 잠시 쉬면 다시 작게 시작합니다.
+Instagram in pink	분홍색 Instagram
+# context: Stories settings: a speed button in a video story's header, cycling 1x, 1.5x and 2x (#469)
+Speed button on stories	스토리 속도 버튼
+Puts a speed button at the top of a video story, beside the three dots. Tap it for 1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you change it or restart Instagram. Ads play at normal speed.	동영상 스토리 상단의 점 세 개 옆에 속도 버튼을 추가합니다. 탭하면 1.5x, 다시 탭하면 2x, 한 번 더 탭하면 1x가 됩니다. 이후 동영상 스토리도 속도를 바꾸거나 Instagram을 다시 시작할 때까지 그 속도를 유지합니다. 광고는 보통 속도로 재생됩니다.
+# context: TalkBack label of that button; %1$s is the speed shown on it, such as 1.5x
+Playback speed, %1$s	재생 속도, %1$s
+Where the mention pill goes	언급 표시 위치
+Under the name, 1 mention	이름 아래, 언급 1개
+Top bar, @1 mention	상단 바, @언급 1개
+Top bar, @1	상단 바, @1
+The pill sits under the story's name and reads like 1 mention. Its list opens over the story.	스토리 이름 아래에 언급 1개처럼 표시됩니다. 목록은 스토리 위에 열립니다.
+The pill sits in the top bar next to the menu and reads like @1 mention. Its list opens from the bottom of the screen.	메뉴 옆 상단 바에 @언급 1개처럼 표시됩니다. 목록은 화면 아래쪽에서 열립니다.
+The pill sits in the top bar next to the menu and shows only the count, like @1. Its list opens from the bottom of the screen.	메뉴 옆 상단 바에 @1처럼 숫자만 표시됩니다. 목록은 화면 아래쪽에서 열립니다.
+Turn on See who a story mentions to use this choice.	이 옵션을 사용하려면 ‘스토리에서 언급한 사람 보기’를 켜세요
+Story mentions	스토리 언급
+Accounts mentioned in this story	이 스토리에서 언급한 계정
+# context: Feed settings: picks how the carousel page-dots pill looks (#471)
+Pill look	알약 스타일
+# context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
+Seek bar look	탐색 막대 스타일
+# context: a look for the page-dots pill and the seek bars: opaque, as before
+Solid	불투명
+# context: a look for the page-dots pill and the seek bars: partly transparent
+See-through	반투명
+# context: a look for the page-dots pill and the seek bars: blurs what's under it
+Frosted glass	젖빛 유리
+A light pill with dark dots, as it's always been.	지금까지처럼 밝은 알약에 어두운 점을 표시합니다.
+A see-through dark pill with white dots, so more of the photo shows.	사진이 더 잘 보이도록 반투명한 어두운 알약에 흰색 점을 표시합니다.
+A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	아래 사진을 흐리게 비추는 젖빛 유리 알약입니다. Android 12 이전에는 대신 반투명하게 표시됩니다.
+Turn on Page dots on a pill to use this choice.	이 옵션을 사용하려면 ‘알약 모양 페이지 점’을 켜세요
+Turn on Seek bar on feed videos or its button to use this choice.	이 옵션을 사용하려면 ‘피드 동영상 탐색 막대’ 또는 그 버튼을 켜세요
+Turn on Seek bar on stories to use this choice.	이 옵션을 사용하려면 ‘스토리 탐색 막대’를 켜세요
+A white bar and handle, as they've always been.	지금까지처럼 흰색 막대와 손잡이를 표시합니다.
+A fainter bar and handle, so more of the video shows through.	동영상이 더 잘 보이도록 막대와 손잡이를 더 흐리게 표시합니다.
+A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	아래 동영상을 흐리게 비추는 젖빛 유리 띠 위에 흰색 막대를 표시합니다. Android 12 이전에는 띠가 대신 반투명하게 표시됩니다.
+# context: Instagram's Blend, the shared reels feed in a chat, as Instagram names it in this language (Turkish Instagram: Derleme).
+Don't report Blend visits	Blend 방문 알리지 않기
+Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend and its reels open as usual.	Blend를 열어도 그 Blend가 있는 채팅에 방문했다고 알리지 않습니다. Blend와 릴스는 평소처럼 열립니다.
+# context: the little round profile pictures in a corner of a feed post or reel showing that a friend liked, commented on or reshared it. Instagram's own setting for them comes from its server, not the app.
+Hide activity bubbles	활동 버블 숨기기
+Takes the little round pictures off posts and reels that show a friend liked, commented on or reshared them. Posts already on screen change when they load again.	친구가 좋아요를 누르거나 댓글을 달거나 다시 공유한 게시물과 릴스에 보이는 작은 동그란 사진을 없앱니다. 이미 화면에 있는 게시물은 다시 불러올 때 바뀝니다.
+# context: a switch for foldable phones and tablets. Instagram normally moves its tab bar to a rail down the side on a wide screen; this keeps the narrow phone layout instead.
+Phone layout on big screens	큰 화면에서 휴대폰 레이아웃 사용
+On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	폴더블이나 태블릿에서도 Instagram이 화면 전체에 휴대폰 레이아웃을 유지하고, 하단바를 옆이 아닌 아래에 둡니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+# context: a switch on the Messages page. It adds a Preview row to the menu a long press on a chat in the inbox opens; Preview shows the chat's newest messages in a box without opening the chat, so no seen receipt goes out. "Seen" is Instagram's own read receipt label in a chat.
+Preview chats	채팅 미리 보기
+Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too.	메시지에서 채팅을 길게 누르고 미리 보기를 누르면 채팅을 열지 않고 최신 메시지를 읽을 수 있어서 아무도 읽음을 보지 못합니다. 거기서 답장도 보낼 수 있습니다.
+# context: the row in a chat's long press menu and the title of the box it opens, which shows the chat's newest messages without opening the chat.
+Preview	미리 보기
+# context: the hint in the reply field at the bottom of the chat preview box.
+Write a message	메시지 쓰기
+# context: shown in the chat preview box while its messages load.
+Loading	불러오는 중
+Nothing here yet	아직 아무것도 없습니다
+# context: the chat preview box, and a short toast, when the chat's messages can't be read. Toasts stay short.
+Couldn't load this chat	이 채팅을 불러올 수 없습니다
+# context: a short toast after a reply typed in the chat preview box went out.
+Sent	보냄
+Couldn't send	보낼 수 없습니다
+# context: what a message with no text shows as in the chat preview box, by what it holds.
+Photo or video	사진 또는 동영상
+GIF or sticker	GIF 또는 스티커
+# context: a view once photo or video in the chat preview box shows only this label, never the photo or video. Use Instagram's own wording for view once.
+View once message	한 번만 볼 수 있는 메시지
+Attachment	첨부 파일
+# context: the button next to the reply field in the chat preview box.
+Send	보내기

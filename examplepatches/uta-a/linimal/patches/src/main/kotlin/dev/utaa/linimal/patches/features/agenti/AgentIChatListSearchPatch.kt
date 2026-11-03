@@ -25,7 +25,7 @@ import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.VOID
 
-private const val FUNCTION3 = "Lvb8/q;"
+private const val FUNCTION3 = "Lnt8/q;"
 
 /** 検索バー composable の引数の並び。AI ボタンの表示 boolean と、その直後の icon variant boolean。 */
 private const val SEARCH_BAR_PARAMETER_COUNT = 10

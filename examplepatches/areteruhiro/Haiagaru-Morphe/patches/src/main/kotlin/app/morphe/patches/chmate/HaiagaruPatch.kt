@@ -110,7 +110,7 @@ private fun BytecodePatchContext.patchHiddenNgMenu(version: String) {
 private fun BytecodePatchContext.patchNgEditGesture(version: String) {
     if (version !in setOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev")) return
     val candidates = mutableListOf<ClassDef>()
-    classDefForEach { cls ->
+    boundClassForEach("HaiagaruPatch:1") { cls ->
         if (cls.superclass == "Landroid/widget/LinearLayout;" && cls.methods.any {
             it.name == "setOnGestureListener"
         }) candidates.add(cls)
@@ -118,7 +118,7 @@ private fun BytecodePatchContext.patchNgEditGesture(version: String) {
     check(candidates.size == 1) { "$version gesture layout changed (${candidates.size})" }
     val gestureFields = candidates.single().fields.map { it.type }.toSet()
     val recognizers = mutableListOf<ClassDef>()
-    classDefForEach { cls ->
+    boundClassForEach("HaiagaruPatch:2") { cls ->
         if (cls.type in gestureFields && cls.methods.any {
             it.parameterTypes == listOf("Landroid/view/MotionEvent;") && it.returnType == "Z"
         } && cls.methods.any {
@@ -273,8 +273,8 @@ private fun BytecodePatchContext.patchBrowsingAndSearchHistory(version: String) 
         ctor.addInstruction(index + 1, "move-result-wide v$destination")
     } else {
         var matches = 0
-        classDefForEach { cls ->
-            if (!cls.type.startsWith("Lo/")) return@classDefForEach
+        boundClassForEach("HaiagaruPatch:3") { cls ->
+            if (!cls.type.startsWith("Lo/")) return@boundClassForEach
             cls.methods.forEach { method ->
                 val body = method.implementation?.instructions?.toList() ?: return@forEach
                 if (body.none { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "access" }) return@forEach
@@ -1613,6 +1613,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchClipboardHistory(packageMetadata.versionName)
         patchNgEditGesture(packageMetadata.versionName)
         patchViewingUserAgent(packageMetadata.versionName)
+        patchReadingChallenge(packageMetadata.versionName)
         patchToolbarIcons(packageMetadata.versionName)
         patchHiddenNgMenu(packageMetadata.versionName)
         patchNativeUploadHistory(packageMetadata.versionName)
@@ -1698,6 +1699,8 @@ private val haiagaruBytecodePatch = bytecodePatch {
             patchImageSelectionReflectionTrap()
             patchImageUploadIntegrityComparison()
         }
+        patchInlineSettingsEntry(packageMetadata.versionName)
+        if(packageMetadata.versionName=="0.8.10.242 dev")patchS2mSettingsStartup242()
         SettingsOnResumeFingerprint.method.addBeforeEveryReturn(
             "invoke-static/range { p0 .. p0 }, $EXTENSION->onSettingsResume(Landroid/app/Activity;)V"
         )
@@ -2768,7 +2771,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchWacchoiLongPressM
     }
 
     var dispatcherCount = 0
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:4") { classDef ->
         classDef.methods.forEach methodLoop@ { method ->
             if (method.returnType != "Z") return@methodLoop
             val instructions = method.implementation?.instructions?.toList()
@@ -2931,7 +2934,7 @@ private fun BytecodePatchContext.patchImageListResolvedMedia(version: String) {
 private fun BytecodePatchContext.patchWacchoiSuffixLongPress(version: String) {
     var rowHooks = 0
     val compose = mutableListOf<Pair<String, Method>>()
-    classDefForEach { cls ->
+    boundClassForEach("HaiagaruPatch:5") { cls ->
         cls.methods.toList().forEach { method ->
             if (method.name == "getView" && method.returnType == "Landroid/view/View;"
                 && method.parameterTypes.map(CharSequence::toString) == listOf("I", "Landroid/view/View;", "Landroid/view/ViewGroup;")
@@ -3010,7 +3013,7 @@ private fun BytecodePatchContext.patchWacchoiNgPopupDispatch(version: String) {
     // These custom popups bypass MenuItem's listener. Match the shared structure
     // rather than a version-specific obfuscated name, and touch only our action.
     val candidates = mutableListOf<Pair<ClassDef, Method>>()
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:6") { classDef ->
         classDef.methods.filter { method ->
             method.name == "onItemClick" && method.returnType == "V"
                 && method.parameters.map(CharSequence::toString) == listOf(
@@ -3127,7 +3130,7 @@ private fun BytecodePatchContext.patchResponseArchive(version: String) {
         val owners = if(version == "0.8.10.191 dev") listOf(mutableClassDefBy("Lo/r8lambdafLXKIgI8H4VR9SponZBKnK7_9gE;"))
             else {
                 val found=mutableListOf<String>()
-                classDefForEach { if(it.type.startsWith("Ljp/syoboi/a2chMate/fragment/ResMenuDialogFragment\$"))found.add(it.type) }
+                boundClassForEach("HaiagaruPatch:7") { if(it.type.startsWith("Ljp/syoboi/a2chMate/fragment/ResMenuDialogFragment\$"))found.add(it.type) }
                 found.map { mutableClassDefBy(it) }
             }
         val resultType=if(version == "0.8.10.191 dev") "Lo/r8lambdaElkXfNt4VbdvffL9Z700R6oMDo;" else "Ljp/syoboi/a2chMate/feature/toolbar/ToolbarDefault;"
@@ -3243,15 +3246,15 @@ private fun BytecodePatchContext.patchThreadTitleSpacing(version: String) {
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchXVideoAttachmentProjection() {
     var count = 0
-    classDefForEach { classDef ->
-        if (!classDef.type.startsWith("Lo/") || !classDef.interfaces.contains("Ljava/lang/CharSequence;")) return@classDefForEach
+    boundClassForEach("HaiagaruPatch:8") { classDef ->
+        if (!classDef.type.startsWith("Lo/") || !classDef.interfaces.contains("Ljava/lang/CharSequence;")) return@boundClassForEach
         val factory = classDef.methods.singleOrNull { method ->
             (method.accessFlags and 0x8) != 0 && method.returnType == classDef.type
                 && method.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;")
                 && method.implementation?.instructions?.any { instruction ->
                     ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == "/i.imgur.com/"
                 } == true
-        } ?: return@classDefForEach
+        } ?: return@boundClassForEach
         val method = mutableClassDefBy(classDef).methods.single { it.name == factory.name && it.returnType == factory.returnType }
         val scratch = method.findFreeRegister(0)
         check(scratch < 16 && method.implementation!!.registerCount - 1 < 16)
@@ -3570,10 +3573,10 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageViewerRotati
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchHissiExternalIntentBoundaries() {
     var patched = 0
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:9") { classDef ->
         if (classDef.type.startsWith("Lapp/morphe/extension/")
             || (!classDef.type.startsWith("Ljp/syoboi/")
-                && !classDef.type.startsWith("Lo/"))) return@classDefForEach
+                && !classDef.type.startsWith("Lo/"))) return@boundClassForEach
         val mutableClass = mutableClassDefBy(classDef)
         classDef.methods.forEach methodLoop@ { method ->
             val instructions = method.implementation?.instructions?.toList()
@@ -4744,6 +4747,15 @@ val haiagaruPatch = resourcePatch(
                 get("assets/haiagaru-ui-$name.txt").outputStream().use(input::copyTo)
             }
         }
+        document("res/values/strings.xml").use { strings ->
+            strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name","haiagaru_settings_entry")
+                textContent="Haiagaru設定"
+            })
+        }
+        PublicXmlManager(get("res/values/public.xml")).use {
+            it.createPublicId("string","haiagaru_settings_entry")
+        }
         val boardXmls = get("res/xml").listFiles().orEmpty().filter {
             it.extension == "xml" && it.readText().contains("updateBbsMenu")
         }
@@ -4968,6 +4980,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_wacchoi_upper" to "ﾜｯﾁｮｲ上4桁で検索",
             "haiagaru_hissi_droid_plus" to "必死チェッカーDroid＋で開く",
             "haiagaru_auto_ng_exclusions" to "自動NG除外ID",
+            "haiagaru_thread_watch" to "このスレの新着通知",
         )) {
             for (values in listOf("values", "values-en")) {
                 document("res/$values/strings.xml").use { strings ->
@@ -4982,6 +4995,8 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_thread_watch" ->
+                    "M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.9,2 2,2zM18,16v-5c0,-3.1 -1.6,-5.6 -4.5,-6.3V4c0,-0.8 -0.7,-1.5 -1.5,-1.5S10.5,3.2 10.5,4v0.7C7.6,5.4 6,7.9 6,11v5l-2,2v1h16v-1z"
                 "haiagaru_auto_ng_exclusions" ->
                     "M12,2L3,6v6c0,5 9,10 9,10s9,-5 9,-10V6zM12,5l6,2.7V12c0,3 -4,6.2 -6,7.6C10,18.2 6,15 6,12V7.7zM8,11h8v2H8z"
                 "haiagaru_hissi_droid_plus" ->
@@ -5333,7 +5348,7 @@ val haiagaruPatch = resourcePatch(
                     })
                 })
             })
-            for(permission in listOf("android.permission.FOREGROUND_SERVICE", "android.permission.FOREGROUND_SERVICE_DATA_SYNC", "android.permission.POST_NOTIFICATIONS")){
+            for(permission in listOf("android.permission.RECEIVE_BOOT_COMPLETED", "android.permission.FOREGROUND_SERVICE", "android.permission.FOREGROUND_SERVICE_DATA_SYNC", "android.permission.POST_NOTIFICATIONS")){
                 val exists=(0 until document.getElementsByTagName("uses-permission").length).any {
                     (document.getElementsByTagName("uses-permission").item(it) as Element).getAttributeNS(ANDROID_XML_NAMESPACE,"name")==permission
                 }
@@ -5341,6 +5356,11 @@ val haiagaruPatch = resourcePatch(
                     setAttributeNS(ANDROID_XML_NAMESPACE,"android:name",permission)
                 })
             }
+            application.appendChild(document.createElement("service").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.ThreadWatchService")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
+                setAttributeNS(ANDROID_XML_NAMESPACE,"android:permission","android.permission.BIND_JOB_SERVICE")
+            })
             application.appendChild(document.createElement("service").apply {
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:name","app.morphe.extension.chmate.VideoFrameDecodeService")
                 setAttributeNS(ANDROID_XML_NAMESPACE,"android:exported","false")
@@ -6168,9 +6188,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLevelPlayTrackerI
     levelPlayInitMethods.forEach { it.addHideAdsGuard() }
 
     var adQualityInitMethodCount = 0
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:10") { classDef ->
         if (classDef.superclass != "Lcom/ironsource/adqualitysdk/sdk/IronSourceAdQuality;") {
-            return@classDefForEach
+            return@boundClassForEach
         }
 
         val mutableClass = mutableClassDefBy(classDef)
@@ -6195,9 +6215,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLevelPlayTrackerI
     // Unity Ads generations before 4.16 do not contain AdsSdkInitializer.
     // Guard the entry point when present while retaining the LevelPlay and Ad
     // Quality guards above for older ChMate targets such as 0.8.10.226 dev.
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:11") { classDef ->
         if (classDef.type != "Lcom/unity3d/services/core/configuration/AdsSdkInitializer;") {
-            return@classDefForEach
+            return@boundClassForEach
         }
         val mutableClass = mutableClassDefBy(classDef)
         classDef.methods.filter { method ->
@@ -6252,9 +6272,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchCommonAdSdkInitia
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyFragmentBannerDiscovery() {
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:12") { classDef ->
         if (!classDef.type.startsWith("Ljp/syoboi/") && !classDef.type.startsWith("Lo/")) {
-            return@classDefForEach
+            return@boundClassForEach
         }
 
         val candidates = classDef.methods.filter { method ->
@@ -6264,7 +6284,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyFragmentBan
                 listOf("Landroid/view/View;", "Landroid/os/Bundle;")
                 && method.implementation != null
         }
-        if (candidates.isEmpty()) return@classDefForEach
+        if (candidates.isEmpty()) return@boundClassForEach
 
         val mutableClass = mutableClassDefBy(classDef)
         candidates.forEach { method ->
@@ -6730,12 +6750,12 @@ private fun MutableMethod.rewriteEdgeSubjectUrl() {
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchDistributedIntegrityComparisons(
     includeAllObfuscatedClasses: Boolean = false,
 ) {
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:13") { classDef ->
         if (!classDef.type.startsWith("Ljp/syoboi/")
             && classDef.type != "Lo/getLabel;"
             && !(includeAllObfuscatedClasses && classDef.type.startsWith("Lo/"))
         ) {
-            return@classDefForEach
+            return@boundClassForEach
         }
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
@@ -7028,14 +7048,14 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyImageUpload
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchSetTextCalls() {
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:14") { classDef ->
         // setText is only patched in ChMate's own obfuscated/application
         // classes. Walking every bundled AndroidX/ad-SDK class made 226/241/
         // 243 patching needlessly expensive and touched unrelated widgets.
         if (classDef.type.startsWith("Lapp/morphe/extension/chmate/")
             || (!classDef.type.startsWith("Ljp/syoboi/")
                 && !classDef.type.startsWith("Lo/"))) {
-            return@classDefForEach
+            return@boundClassForEach
         }
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
@@ -7045,7 +7065,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSetTextCalls() {
                     val reference = (instruction as? ReferenceInstruction)
                         ?.reference as? MethodReference
                         ?: return@mapIndexedNotNull null
-                    if (reference.name != "setText"
+                    if (instruction.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+                        || reference.name != "setText"
                         || reference.parameterTypes.firstOrNull() != "Ljava/lang/CharSequence;"
                     ) {
                         return@mapIndexedNotNull null
@@ -7056,20 +7077,25 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSetTextCalls() {
                         is RegisterRangeInstruction -> instruction.startRegister + 1
                         else -> return@mapIndexedNotNull null
                     }
-                    index to argumentRegister
+                    val emojiCall = when(instruction){
+                        is FiveRegisterInstruction -> "invoke-static {v${instruction.registerC}, v$argumentRegister}, $EXTENSION->processEmojiTextForView(Ljava/lang/Object;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;"
+                        is RegisterRangeInstruction -> "invoke-static/range {v${instruction.startRegister} .. v$argumentRegister}, $EXTENSION->processEmojiTextForView(Ljava/lang/Object;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;"
+                        else -> error("Unsupported text invocation")
+                    }
+                    Triple(index,argumentRegister,emojiCall)
                 }
                 ?.toList()
                 .orEmpty()
 
             if (matches.isEmpty()) return@forEach
             val mutableMethod = mutableClass.findMutableMethodOf(method)
-            matches.asReversed().forEach { (index, register) ->
+            matches.asReversed().forEach { (index, register, emojiCall) ->
                 mutableMethod.addInstructionsWithLabels(
                     index,
                     """
                         invoke-static/range { v$register .. v$register }, $EXTENSION->replace5chDomain(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
                         move-result-object v$register
-                        invoke-static/range { v$register .. v$register }, $EXTENSION->processEmojiText(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+                        $emojiCall
                         move-result-object v$register
                     """
                 )
@@ -7132,10 +7158,10 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyBeResponseB
             move-result-object v$urls
         """)
         // The 242 row renderer also inlines extraction, bypassing the model getter.
-        classDefForEach { owner ->
+        boundClassForEach("HaiagaruPatch:15") { owner ->
             // The gallery has its own common-loop hook, including cache reuse.
             // Do not also expand its uncached extraction branch here.
-            if (owner.type == "Lo/getWrappedCursor;") return@classDefForEach
+            if (owner.type == "Lo/getWrappedCursor;") return@boundClassForEach
             val candidates = owner.methods.filter { method ->
                 method.implementation?.instructions?.any { instruction ->
                     val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
@@ -7143,7 +7169,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyBeResponseB
                         && field.name == "c" && field.type == "[Ljava/lang/String;"
                 } == true
             }
-            if (candidates.isEmpty() || owner.type == responseModelClass) return@classDefForEach
+            if (candidates.isEmpty() || owner.type == responseModelClass) return@boundClassForEach
             val mutable = mutableClassDefBy(owner)
             candidates.forEach { original ->
                 val method = mutable.methods.single { it.name == original.name && it.parameterTypes == original.parameterTypes && it.returnType == original.returnType }
@@ -7474,9 +7500,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchBbsMenuUrl(
     // migrate a URL that already exists, so give its first menu preference a
     // default without changing any explicitly saved user value.
     val menuDefaults = mutableListOf<Pair<MutableMethod, Int>>()
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:16") { classDef ->
         if (!classDef.type.startsWith("Ljp/syoboi/") && !classDef.type.startsWith("Lo/")) {
-            return@classDefForEach
+            return@boundClassForEach
         }
         classDef.methods.filter { it.name == "<clinit>" }.forEach { method ->
             val index = method.implementation?.instructions?.indexOfFirst { instruction ->
@@ -7557,9 +7583,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoDomainCompat
 
     // Update constants used outside BBSUrlInfo as well: board menus, search,
     // posting, cookies, UPLIFT/BE, and auxiliary 5ch endpoints.
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:17") { classDef ->
         if (!classDef.type.startsWith("Ljp/syoboi/") && !classDef.type.startsWith("Lo/")) {
-            return@classDefForEach
+            return@boundClassForEach
         }
         val mutableClass by lazy { mutableClassDefBy(classDef) }
         classDef.methods.forEach { method ->
@@ -7999,9 +8025,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
 
     // Update fixed service hosts and domain filters used by menus, search-result
     // acceptance, cookies, and auxiliary 5ch endpoints.
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:18") { classDef ->
         if (!classDef.type.startsWith("Ljp/syoboi/") && !classDef.type.startsWith("Lo/")) {
-            return@classDefForEach
+            return@boundClassForEach
         }
         val mutableClass by lazy { mutableClassDefBy(classDef) }
         classDef.methods.forEach { method ->
@@ -8211,9 +8237,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPostPreflightVali
         patchLegacy191PostPreflightValidation()
         patched++
     }
-    classDefForEach { classDef ->
+    boundClassForEach("HaiagaruPatch:19") { classDef ->
         if (!classDef.type.contains("/feature/resedit/ResEditFragment;")) {
-            return@classDefForEach
+            return@boundClassForEach
         }
         classDef.methods.forEach { method ->
             if (method.returnType != "Z" || method.parameterTypes.isNotEmpty()) {

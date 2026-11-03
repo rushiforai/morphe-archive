@@ -1,3 +1,75 @@
+# [1.9.15](https://github.com/quwi26/Quwis-Patches/compare/v1.9.14...v1.9.15) (2026-11-03)
+
+### Bug Fixes
+
+* **Arrows in games:** bot games no longer show the floating Arrows and Clear panel; it covered the board and is being replaced with proper bar buttons later. Live, daily, archived, pass and play, and coach games keep their buttons
+
+# [1.9.14](https://github.com/quwi26/Quwis-Patches/compare/v1.9.13...v1.9.14) (2026-11-03)
+
+### Bug Fixes
+
+* **Arrows in reviews:** the Analysis screen is left alone again. Its bottom bar is built from a branch per state, so the two buttons could not be placed in it; Game Review keeps its own Arrows and Clear
+* **Arrows in games:** bot games get the floating Arrows and Clear chip back. The patch stopped adding the chip after trying the bot bar, and the bot bar's buttons were only drawn in one game state
+* **Stockfish analysis:** the patch log now says when the 80 MB engine is already downloaded and when a download starts, so missing progress lines are no longer puzzling
+
+# [1.9.13](https://github.com/quwi26/Quwis-Patches/compare/v1.9.12...v1.9.13) (2026-11-03)
+
+### Bug Fixes
+
+* **Arrows in reviews:** Game Review's bar is rebuilt from the app's own actions every time it is drawn, so Clear is usually not in the list yet. Removing it then stopped Arrows from being added, and the bar came up without either button. Arrows is added whether or not Clear was there, and Clear still folds away while drawing is off
+
+# [1.9.12](https://github.com/quwi26/Quwis-Patches/compare/v1.9.8...v1.9.12) (2026-11-03)
+
+### Bug Fixes
+
+* **Patching:** the bundle is built with Morphe patcher 2.1.0, the version Morphe 2.3.0 ships, so patching no longer warns that it was built for the older patcher 1.14.1. The patches themselves are unchanged
+
+# [1.9.11](https://github.com/quwi26/Quwis-Patches/compare/v1.9.10...v1.9.11) (2026-11-02)
+
+### Bug Fixes
+
+* **Bundle:** 1.9.10 was packaged without the compiled patch code, so Morphe showed no patches in it. The bundle ships it again; everything from 1.9.10 is unchanged
+
+# [1.9.10](https://github.com/quwi26/Quwis-Patches/compare/v1.9.9...v1.9.10) (2026-11-02)
+
+### Bug Fixes
+
+* **Arrows in reviews:** the Analysis bar's buttons no longer disappear when the screen is built before the switch is read. The draw button follows the reviews switch each time the bar is shown, and a button that stays hidden is written to the log
+* **Arrows in reviews:** Clear now appears next to Arrows only while drawing is on, and folds away when Arrows is pressed again. Game Review and the Analysis bars save the space; game bars keep both buttons as before
+
+# [1.9.9](https://github.com/quwi26/Quwis-Patches/compare/v1.9.7...v1.9.9) (2026-11-02)
+
+### Bug Fixes
+
+* **Stockfish analysis:** the 80 MB engine download no longer starts over after a timeout. It is kept in a partial file and continued with a Range request, and the patch log shows the progress every 10%, so a slow connection can finish in several tries
+
+# [1.9.8](https://github.com/quwi26/Quwis-Patches/compare/v1.9.5...v1.9.8) (2026-11-02)
+
+### Bug Fixes
+
+* **Stockfish analysis:** the 80 MB engine download no longer starts over after a timeout. It is kept in a partial file and continued with a Range request, and the patch log shows the progress every 10%, so a slow connection can finish in several tries
+
+# [1.9.7](https://github.com/quwi26/Quwis-Patches/compare/v1.9.6...v1.9.7) (2026-11-02)
+
+### Bug Fixes
+
+* **Arrows in reviews:** pressing Arrows in Game Review answered "open a board first" because that screen's board was built without the marks layers. The button now finds the board already on screen and adds the layers before it starts drawing
+* **Arrows:** 4.10.23 renamed the newer board's piece layer, so the arrows layers were not added to it; the patch now passes that version's own class name to the extension
+* **Arrows in reviews:** the Analysis bar's buttons read their tag from the layout attributes when they are created, so they follow the reviews switch instead of being hidden when the tag is read late
+
+# [1.9.6](https://github.com/quwi26/Quwis-Patches/compare/v1.9.5...v1.9.6) (2026-11-02)
+
+### Bug Fixes
+
+* **Arrows in reviews:** Game Review's bottom bar wraps each of its actions in a small holder class before drawing them, so the Arrows and Clear actions added as plain actions were skipped and the floating buttons were switched off at the same time, leaving none. They are now wrapped the same way, and the buttons appear next to Show, Best, Skills or Retry, and Share
+* **Arrows in reviews:** a single-action review bar keeps a fixed-size list, which cannot take the two new actions; it is replaced with a growable one first
+
+# [1.9.5](https://github.com/quwi26/Quwis-Patches/compare/v1.9.4...v1.9.5) (2026-11-02)
+
+### Bug Fixes
+
+* **Patching:** the patch set no longer runs out of memory on phones with little RAM. Two scans, Customize bottom bar and Lichess puzzles, made every class they visited mutable, and every mutable class is rewritten into a new DEX file; they now read the app's classes unchanged and make mutable only the few that get a hook. Checks that only test whether a class exists no longer make it mutable either
+
 # [1.9.4](https://github.com/quwi26/Quwis-Patches/compare/v1.9.3...v1.9.4) (2026-11-01)
 
 ### Bug Fixes

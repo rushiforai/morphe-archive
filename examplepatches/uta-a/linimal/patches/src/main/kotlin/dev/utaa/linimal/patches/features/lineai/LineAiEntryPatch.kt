@@ -28,18 +28,17 @@ private val lineAiEntryFingerprint = Fingerprint(
     name = "<init>",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     returnType = "V",
-    parameters = listOf("Z", "Lvb8/a;"),
+    parameters = listOf("L", "Z"),
     filters = listOf(
         literal(0x7f0807d0), // chatmenu_ic_list_line_ai
-        literal(0x7f151f03), // lineai_assistant_title_lineai
-        literal(0x7f0e0245), // chathistory_menu_text_with_icon_item
+        literal(0x7f1520e5), // lineai_assistant_title_lineai
+        literal(0x7f0e0221), // chathistory_menu_text_with_icon_item
         methodCall(
             parameters = listOf("I", "I", "I", "Z", "Z"),
             returnType = "V",
             opcode = Opcode.INVOKE_DIRECT_RANGE,
         ),
     ),
-    custom = { _, classDef -> classDef.superclass == "Lj00/f;" },
 )
 
 val lineAiEntryPatch = bytecodePatch(
@@ -75,7 +74,7 @@ val lineAiEntryPatch = bytecodePatch(
         val firstSuperCall = matches.single().instructionMatches[3].instruction as? ReferenceInstruction
         val superReference = firstSuperCall?.reference as? MethodReference
 
-        // p2 の null check 後かつ visibility boolean を parent model へ copy する前に注入します。
+        // p1 の null check 後かつ visibility boolean (p2) を parent model へ copy する前に注入します。
         if (
             first?.opcode != Opcode.INVOKE_VIRTUAL ||
             firstReference?.definingClass != "Ljava/lang/Object;" ||
@@ -96,8 +95,8 @@ val lineAiEntryPatch = bytecodePatch(
         method.addInstructions(
             1,
             """
-                invoke-static { p1 }, $LINE_AI_HOOK
-                move-result p1
+                invoke-static { p2 }, $LINE_AI_HOOK
+                move-result p2
             """.trimIndent(),
         )
         recordFeatureStatus(

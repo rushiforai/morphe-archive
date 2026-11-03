@@ -5,7 +5,7 @@ group = "app.bdcrusher.ytmusic"
 patches {
     about {
         name = "BDCrusher YT-Music Lyrics"
-        description = "Personal Full Collection with optional Shaders and Playlist downloads. Expanded Lyrics and Shaders diagnostics."
+        description = "Personal Full Collection with native playback, Audio/Video downloads, playlist recovery, Lyrics and optional Shaders."
         source = "https://github.com/BDCrusher/ytmusic-lyrics"
         contact = "na"
         website = "https://github.com/BDCrusher/ytmusic-lyrics"

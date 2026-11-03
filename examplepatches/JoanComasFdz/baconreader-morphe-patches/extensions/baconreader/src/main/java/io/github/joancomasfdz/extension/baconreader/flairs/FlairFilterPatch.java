@@ -105,9 +105,12 @@ public final class FlairFilterPatch {
             int textColor = textColor(activity);
             if (selected.isEmpty()) {
                 control.setText(str("revanced_flair_filter_button"));
+                control.setContentDescription(str("revanced_flair_filter_content_description"));
                 control.setTextColor(textColor);
             } else {
-                control.setText(TextUtils.join(", ", selected));
+                String flairs = TextUtils.join(", ", selected);
+                control.setText(flairs);
+                control.setContentDescription(str("revanced_flair_filter_content_description_chosen", flairs));
                 control.setTextColor(accentColor(activity, textColor));
             }
             for (Drawable drawable : control.getCompoundDrawablesRelative()) {

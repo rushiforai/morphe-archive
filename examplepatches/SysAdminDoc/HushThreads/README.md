@@ -4,7 +4,7 @@
   <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.16-000000" alt="Version 0.0.16"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
-  <img src="https://img.shields.io/badge/Threads-453.0.0.56.79-000000" alt="Threads 453.0.0.56.79">
+  <img src="https://img.shields.io/badge/Threads-454.0.0.54.79-000000" alt="Threads 454.0.0.54.79">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.3.0%2B-8A2BE2" alt="For Morphe Manager 2.3.0 or newer">
 </p>
 
@@ -24,7 +24,7 @@ HushThreads is a Morphe patch bundle for Android that takes the ads out of Threa
 
 Sponsored posts and suggested-account cards leave your feed before Threads shows them. Shared links lose their tracking tags, and a short `/share/` link becomes the post's own link. Web links open in your browser instead of Threads' own, with its click tracker skipped. You can also save photos and videos, keep your place in the feed, stop autoplay and make dark mode pure black.
 
-The latest release is [v0.0.16](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.16), with 20 patches. It's for Threads 452.0.0.50.64. The source build has moved to Threads 453.0.0.56.79, which ships in the next release. What changed in each version is in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.16](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.16), with 20 patches. It's for Threads 452.0.0.50.64. The source build has moved to Threads 454.0.0.54.79, which ships in the next release. What changed in each version is in the [changelog](CHANGELOG.md).
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads) | [Download a release](https://github.com/SysAdminDoc/HushThreads/releases/latest) | [Browse the patches](#patches)
 
@@ -32,47 +32,37 @@ The latest release is [v0.0.16](https://github.com/SysAdminDoc/HushThreads/relea
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.3.0 or newer.
 2. Add HushThreads as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads
-3. Get Threads 453.0.0.56.79 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're installing the v0.0.16 release instead, get the arm64-v8a build of Threads 452.0.0.50.64 (512207626). If you're on an older Threads, update it to 453 before you patch the source build.
+3. Get Threads 454.0.0.54.79 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're installing the v0.0.16 release instead, get the arm64-v8a build of Threads 452.0.0.50.64 (512207626). If you're on an older Threads, update it to 454 before you patch the source build.
 4. Uninstall the stock Threads. A patched Threads can't install over Meta's signed copy.
 5. In Morphe Manager, pick that file and patch. The default selection has every patch except the three the [Patches](#patches) section names, so you don't need Expert mode.
 
 To add one of those three, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved your own selection in Expert mode before, Manager may keep using it, so look over the list once.
 
-The source build patches Threads 453 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80 and v0.0.16 is the last release for 452.0.0.50.64. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
+The source build patches Threads 454 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80 and v0.0.16 is the last release for 452.0.0.50.64. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
 
 ### Supported Threads build
 
 | Threads version | Version code | Android floor |
 |---|---|---|
-| 453.0.0.56.79 | 512308671 (arm64-v8a, 480-640dpi) | Android 9 |
-| 453.0.0.56.79 | 512308673 (x86_64, 480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308675 (arm64-v8a, 160-480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308676 (x86, 480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308685 (armeabi-v7a, 480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308686 (arm64-v8a, 480-640dpi) | Android 9 |
-| 453.0.0.56.79 | 512308688 (x86_64, 480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308695 (armeabi-v7a, 480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308696 (arm64-v8a, 120-640dpi) | Android 9 |
-| 453.0.0.56.79 | 512308697 (x86, 480dpi) | Android 9 |
-| 453.0.0.56.79 | 512308698 (x86_64, 480dpi) | Android 9 |
+| 454.0.0.54.79 | 512408621 (arm64-v8a, 160dpi) | Android 9 |
+| 454.0.0.54.79 | 512408622 (x86, 480dpi) | Android 9 |
+| 454.0.0.54.79 | 512408625 (arm64-v8a, 240dpi) | Android 9 |
+| 454.0.0.54.79 | 512408635 (armeabi-v7a, 480dpi) | Android 9 |
+| 454.0.0.54.79 | 512408636 (arm64-v8a, 480dpi) | Android 9 |
+| 454.0.0.54.79 | 512408648 (x86_64, 480dpi) | Android 9 |
 
 Release checks run on these stock bundles:
 
 ```text
-fc4aa8c2c4d7bafd9b3aeed54376cf5275e658db1cf2c7d5b51bbb71abdce360  threads-453.0.0.56.79-512308671.apkm
-a91ba5517e4289ca2069bc72289669f18a27d1f5ac0df840ef4b0fd0b39309ab  threads-453.0.0.56.79-512308673.apkm
-3975362986715ed3427daa4523caf9f9903dced230ed20b888fd944410a3aecf  threads-453.0.0.56.79-512308675.apkm
-6d979b160123284be15d439d2740c2bfd14e3fa48764057ef7bbaecae679360b  threads-453.0.0.56.79-512308676.apkm
-9280b76463811bff8a03c5110a9ebae0a9e7fbe17573ead03db7d979b44fc2fd  threads-453.0.0.56.79-512308685.apkm
-091e9f9b75b444cf06faa006518e73721f5195bd0bb85793d6ceeaad7fbd3ce1  threads-453.0.0.56.79-512308686.apkm
-3e2e4b324d779ab8b020ce201c4feb53223672f4229f48c4c214002b825d033e  threads-453.0.0.56.79-512308688.apkm
-42c7c997674a55ff728450d02e01f9b97c3710f4127e41998419af167b953018  threads-453.0.0.56.79-512308695.apkm
-9c85958ba3df1d1dec203a65489918681fa49990285df56068c59ad545a406c8  threads-453.0.0.56.79-512308696.apkm
-d0093f4973c6c1af9beeb9b5f971342e2e13ec1874cfa12461654dc3e14a7925  threads-453.0.0.56.79-512308697.apkm
-bcbf7d907d12190f8eaf53cdbf16ca29cacb82c91243db647b4734dd67be55ed  threads-453.0.0.56.79-512308698.apkm
+bb3c799dd07c71ae6a4c4a2a74489a6dd37302a43c741df749b6d351ac001a32  threads-454.0.0.54.79-512408621.apkm
+3d5dcf74d56079751770ed2d9673b7c30f42e2932df1e43028aba5f5c6bec4de  threads-454.0.0.54.79-512408622.apkm
+7d63c40f2ad4fce80542dfa8e4a6c718496e9250f27c53d6885a4cb8e78b4b47  threads-454.0.0.54.79-512408625.apkm
+ce9a0cdde01928a88e859d905a710d0f5316b1a178ecb4ebe1b2e76b780afb22  threads-454.0.0.54.79-512408635.apkm
+2f9516f16e8fd8cd3f2fa478c7246d3274e5a14f04109c1de4996c9fbd5f45da  threads-454.0.0.54.79-512408636.apkm
+672004103783b1c1d0f7e752f7408921c8248b52531987ffbbbd0a05b2eeb7e1  threads-454.0.0.54.79-512408648.apkm
 ```
 
-A copy from another site may be packed differently and have another hash. HushThreads matches the Threads version name, so any 453.0.0.56.79 build works. The table lists the eleven APKMirror variants checked here.
+A copy from another site may be packed differently and have another hash. HushThreads matches the Threads version name, so any 454.0.0.54.79 build works. The table lists the six APKMirror variants checked here.
 
 ## Keep your signing key
 

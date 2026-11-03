@@ -12,7 +12,7 @@ public final class PlaylistPageModel {
     private PlaylistPageModel(){}
     public static byte[] rewrite(byte[] bytes,String playlist){return rewrite(bytes,playlist,"");}
     static byte[] rewrite(byte[] bytes,String playlist,String token){
-        if(!PlaylistRuntime.tracked(playlist))return bytes;
+        
         try{byte[][] first={null};byte[] result=rows(bytes,playlist,PlaylistRuntime.pageOffset(playlist,token),new int[]{0},0,first);return playCommands(result,playlist,0,new int[]{0},first[0]);}
         catch(IllegalArgumentException unsupported){return bytes;}
     }
@@ -45,7 +45,7 @@ public final class PlaylistPageModel {
         return changed?message.bytes():bytes;
     }
     public static byte[] rowStatus(byte[] bytes){
-        try{ProtoWire row=new ProtoWire(bytes),command=new ProtoWire(row.child(5)),watch=new ProtoWire(command.child(48687757));String playlist=new String(watch.child(2),StandardCharsets.US_ASCII);if(!PlaylistRuntime.tracked(playlist))return bytes;return row(bytes,playlist,-1);}catch(IllegalArgumentException unsupported){return bytes;}
+        try{ProtoWire row=new ProtoWire(bytes),command=new ProtoWire(row.child(5)),watch=new ProtoWire(command.child(48687757));String playlist=new String(watch.child(2),StandardCharsets.US_ASCII);return row(bytes,playlist,-1);}catch(IllegalArgumentException unsupported){return bytes;}
     }
     private static byte[] row(byte[] bytes,String playlist,int index){
         ProtoWire row=new ProtoWire(bytes);ProtoWire.Field tap=row.one(5);if(tap==null||tap.wire!=2)return bytes;
@@ -53,13 +53,22 @@ public final class PlaylistPageModel {
         ProtoWire endpoint=new ProtoWire(watch.data);String video=new String(endpoint.child(1),StandardCharsets.US_ASCII);
         if(!video.matches("[A-Za-z0-9_-]{11}"))return bytes;
         if(index>=0){command.put(ProtoWire.blob(PLAY,marker(playlist,video,index)));row.put(ProtoWire.blob(5,command.bytes()));}
-        boolean ownStatus=row.one(STATUS)!=null;
-        String state=PlaylistRuntime.state(video),label=switch(state){case "complete"->"✓ Downloaded";case "downloading"->"↓ Downloading";case "queued"->"◷ Queued";case "failed","missing"->"Download failed";case "external"->"Sent to downloader";default->"";};
-        if(!label.isEmpty()){
-            ProtoWire.Field subtitle=row.one(4);if(subtitle!=null&&subtitle.wire==2){ProtoWire formatted=new ProtoWire(subtitle.data);
-                if(ownStatus&&!formatted.fields.isEmpty()){ProtoWire.Field last=formatted.fields.get(formatted.fields.size()-1);if(last.number==1&&last.wire==2)formatted.fields.remove(formatted.fields.size()-1);}
-                // Append a genuine text run. The original artist/duration and native styling are retained.
-                formatted.fields.add(ProtoWire.blob(1,ProtoWire.message(ProtoWire.blob(1,(" · "+label).getBytes(StandardCharsets.UTF_8)))));row.put(ProtoWire.blob(4,formatted.bytes()));row.put(ProtoWire.number(STATUS,1));}
+        ProtoWire.Field priorStatus=row.one(STATUS);
+        String label=DownloadCatalog.label(video);
+        ProtoWire.Field subtitle=row.one(4);
+        if(subtitle!=null&&subtitle.wire==2&&(priorStatus!=null||!label.isEmpty())){
+            ProtoWire formatted=new ProtoWire(subtitle.data);
+            if(priorStatus!=null&&!formatted.fields.isEmpty()){
+                // Recognize the previous suffix layout as well as this version's prefix.
+                int at=priorStatus.wire==0&&priorStatus.value>=2?0:formatted.fields.size()-1;
+                ProtoWire.Field owned=formatted.fields.get(at);if(owned.number==1&&owned.wire==2)formatted.fields.remove(at);
+            }
+            row.remove(STATUS);
+            if(!label.isEmpty()){
+                formatted.fields.add(0,ProtoWire.blob(1,ProtoWire.message(ProtoWire.blob(1,(label+" \u00b7 ").getBytes(StandardCharsets.UTF_8)))));
+                row.put(ProtoWire.number(STATUS,2));
+            }
+            row.put(ProtoWire.blob(4,formatted.bytes()));
         }
         return row.bytes();
     }

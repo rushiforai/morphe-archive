@@ -14,8 +14,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * The Simosa daily check-in: two-tier token (the app's cached auth token, then our stored refresh
- * token), 419/401 retry, 409 day-gate, JSON {@code data}-wrapper fallback.
+ * The Simosa daily check-in: three-tier token (the app's cached auth token, our stored refresh
+ * token, then a new session from the app's main login via {@link AppAuth}), 419/401 retry, 409
+ * day-gate, JSON {@code data}-wrapper fallback. A renewed token goes back into the app's cache, so
+ * the cache and this class never hold different refresh tokens.
  *
  * <p>Run from {@link DailyCheckinWorker#doWork()} on WorkManager's background thread, so this class
  * may block and may do network I/O.
@@ -118,12 +120,8 @@ public final class BackgroundCheckin {
 
         String bearer = acquireBearer(context);
         if (bearer == null) {
-            if (loadToken(context, account) == null) {
-                sCheckin = "no token";
-                return true; // permanent: needs app login
-            }
-            sCheckin = "refresh fail";
-            return false; // transient: network/server issue, retry
+            sCheckin = "no session: " + truncate(AppAuth.sFailure);
+            return false; // the main login may be dead (needs a sign-in) or the server may be down
         }
         boolean fromCache = "cached".equals(sSession);
 
@@ -136,9 +134,8 @@ public final class BackgroundCheckin {
         // A stale cached token answers 401/419 "expired": refresh once and replay.
         if (fromCache && (result.code == 401 || result.code == 419)) {
             log("CHECKIN_TOKEN_EXPIRED retrying via refresh");
-            String fresh = tryRefresh(context, account);
+            String fresh = renew(context, account);
             if (fresh != null) {
-                sLastBearer = fresh;
                 HttpResult retried = httpPost(context, CHECKIN_URL, "{}", fresh);
                 if (checkedIn(context, retried)) {
                     MilestoneClaim.tryClaimMilestone(context, fresh);
@@ -162,7 +159,7 @@ public final class BackgroundCheckin {
         return false; // transient failure, retry-worthy
     }
 
-    /** Acquire a bearer token via cache (tier 1) or refresh (tier 2). Sets sSession/sLastBearer. */
+    /** Acquire a bearer token via cache (tier 1), refresh (tier 2) or main login (tier 3). Sets sSession/sLastBearer. */
     static String acquireBearer(Context context) {
         String account = AccountScope.id(context);
         if (account == null) return null;
@@ -172,7 +169,7 @@ public final class BackgroundCheckin {
 
         // Tier 1: cached auth token
         try {
-            Object cached = getCachedToken(context);
+            Object cached = AppAuth.readCache(context);
             if (cached != null) {
                 String refreshToken = invoke(cached, "getRefresh_token");
                 String uuid = invoke(cached, "getUuid");
@@ -190,28 +187,61 @@ public final class BackgroundCheckin {
             log("CHECKIN_CACHE_ERR " + t);
         }
 
-        // Tier 2: stored refresh token
-        if (bearer == null) {
-            bearer = tryRefresh(context, account);
+        if (fromCache) {
+            sSession = "cached";
+            sLastBearer = bearer;
+            return bearer;
         }
+        return renew(context, account);
+    }
 
+    /** Force a renewal, bypassing the app cache. Used by MilestoneClaim on 419. */
+    static String refreshBearer(Context context) {
+        String account = AccountScope.id(context);
+        if (account == null) return null;
+        return renew(context, account);
+    }
+
+    /**
+     * The app's order: refresh, and when the refresh token is missing or refused, a new session from
+     * the main login. Sets sSession/sLastBearer on success.
+     */
+    private static String renew(Context context, String account) {
+        String bearer = tryRefresh(context, account);
         if (bearer != null) {
-            sSession = fromCache ? "cached" : "refreshed";
+            sSession = "refreshed";
+        } else {
+            bearer = mint(context, account);
+            if (bearer != null) {
+                sSession = "new session";
+            }
+        }
+        if (bearer != null) {
             sLastBearer = bearer;
         }
         return bearer;
     }
 
-    /** Force a tier-2 refresh, bypassing the app cache. Used by MilestoneClaim on 419. */
-    static String refreshBearer(Context context) {
-        String account = AccountScope.id(context);
-        if (account == null) return null;
-        String bearer = tryRefresh(context, account);
-        if (bearer != null) {
-            sSession = "refreshed";
-            sLastBearer = bearer;
+    private static String mint(Context context, String account) {
+        Object response = AppAuth.mint(context);
+        if (response == null) {
+            log("CHECKIN_MINT_FAIL " + truncate(AppAuth.sFailure));
+            return null;
         }
-        return bearer;
+        String accessToken = invoke(response, "resolveAccessToken");
+        if (accessToken == null || accessToken.isEmpty()) {
+            AppAuth.sFailure = "no access token";
+            log("CHECKIN_MINT_FAIL no_access_token");
+            return null;
+        }
+        String refreshToken = invoke(response, "getRefresh_token");
+        String uuid = invoke(response, "getUuid");
+        if (refreshToken != null && !refreshToken.isEmpty() && uuid != null && !uuid.isEmpty()) {
+            saveToken(context, account, refreshToken, uuid);
+        }
+        AppAuth.writeCache(context, response);
+        log("CHECKIN_MINTED");
+        return "Bearer " + accessToken;
     }
 
     /** Latch and report a 2xx check-in. Returns true when the run is finished. */
@@ -221,39 +251,9 @@ public final class BackgroundCheckin {
         }
         AutoClaim.latch(context, "checkin");
         log("CHECKIN_OK " + result.code + " " + truncate(result.body));
+        MilestoneClaim.noteCheckin(result.body);
         sCheckin = "done";
         return true;
-    }
-
-    // --- token cache (app side) ---
-
-    private static Object getCachedToken(Context context) {
-        try {
-            Class<?> networkCache = Class.forName(
-                "com.jazz.jazzworld.data.network.networkcache.NetworkCacheManager");
-            Object instance = networkCache.getField("INSTANCE").get(null);
-            Class<?> tokenClass = Class.forName(
-                "com.jazz.jazzworld.data.appmodels.dailyreward.response.DailyRewardAuthTokenResponse");
-
-            String rawKey = "key_gamification_authToken";
-            String hashedKey = rawKey;
-            try {
-                hashedKey = (String) Class.forName("K8.X")
-                    .getMethod("M", String.class).invoke(null, rawKey);
-            } catch (Throwable ignored) {
-                // Best effort: the unhashed key is what some builds store the entry under.
-            }
-
-            Object cacheData = networkCache.getMethod("getCacheData",
-                    Context.class, Class.class, String.class, long.class, long.class)
-                .invoke(instance, context, tokenClass, hashedKey, Long.MAX_VALUE, 0L);
-            if (cacheData == null) {
-                return null;
-            }
-            return cacheData.getClass().getMethod("getData").invoke(cacheData);
-        } catch (Throwable t) {
-            return null;
-        }
     }
 
     // --- token store (ours, per account) ---
@@ -272,7 +272,8 @@ public final class BackgroundCheckin {
                 }
             }
             editor.putString(KEY_TOKEN_PREFIX + account, blob.toString());
-            editor.apply();
+            // commit, not apply: a rotated token the system kills us before writing is gone for good
+            editor.commit();
         } catch (Throwable t) {
             log("CHECKIN_TOKEN_SAVE_ERR " + t);
         }
@@ -329,10 +330,18 @@ public final class BackgroundCheckin {
             }
 
             String rotated = data.optString("refresh_token", null);
+            String newRefresh = rotated == null || rotated.isEmpty() ? token[0] : rotated;
+            String newUuid = data.optString("uuid", null);
+            if (newUuid == null || newUuid.isEmpty()) {
+                newUuid = token[1];
+            }
             if (rotated != null && !rotated.isEmpty()) {
-                String uuid = data.optString("uuid", null);
-                saveToken(context, account, rotated,
-                    uuid == null || uuid.isEmpty() ? token[1] : uuid);
+                saveToken(context, account, newRefresh, newUuid);
+            }
+            Object response = AppAuth.newResponse(accessToken, newRefresh, data.optString("token_type", null),
+                data.has("expires_in") ? Integer.valueOf(data.optInt("expires_in")) : null, newUuid);
+            if (response != null) {
+                AppAuth.writeCache(context, response);
             }
 
             log("CHECKIN_REFRESHED");
@@ -461,7 +470,8 @@ public final class BackgroundCheckin {
         return value.length() > 200 ? value.substring(0, 200) : value;
     }
 
-    private static void log(String message) {
+    static void log(String message) {
         Log.i(TAG, message);
+        Trace.line(message);
     }
 }

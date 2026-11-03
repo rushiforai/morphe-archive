@@ -1,4 +1,4 @@
-// Stand-ins for the Discord 350.8 design-system components Venus pages are built from, so the real bootstrap.js can be
+// Stand-ins for the Discord 351.11 design-system components Venus pages are built from, so the real bootstrap.js can be
 // drawn in a browser. Not Discord's code: sizes follow Discord's redesign, colors are the real tokens decoded from the
 // APK (tests/ui/setup.sh) and icons are Discord's own PNGs. Close enough to judge layout, spacing, wording and states;
 // Discord's exact row padding and ripple effects only show on a phone.
@@ -152,13 +152,13 @@ export function createStyles(spec) {
 export const colors = new Proxy({}, { get: (_, k) => typeof k === "string" && T[k] ? { __token: k } : undefined });
 
 // Discord's SettingsList, enough to draw the Features list and its rows (toggle, pressable, route) from Venus's nodes.
-// Like Discord's SettingsList (14971): the rows come through toSettingListItems (14974) and each is drawn by renderSettingItem
-// (14973), the two places Venus changes, and the list redraws when SettingBlocklistStore (14838) changes.
+// Like Discord's SettingsList (15733): the rows come through toSettingListItems (15736) and each is drawn by renderSettingItem
+// (15735), the two places Venus changes, and the list redraws when SettingBlocklistStore (15601) changes.
 export function makeSettingsList(registry) {
   return function SettingsList({ node }) {
     const [, bump] = React.useState(0);
-    React.useEffect(() => { const store = global.__r(14838).default; return store && store.subscribe ? store.subscribe(() => bump(n => n + 1)) : undefined; }, []);
-    const items = global.__r(14974).toSettingListItems, render = global.__r(14973).renderSettingItem;
+    React.useEffect(() => { const store = global.__r(15601).default; return store && store.subscribe ? store.subscribe(() => bump(n => n + 1)) : undefined; }, []);
+    const items = global.__r(15736).toSettingListItems, render = global.__r(15735).renderSettingItem;
     const list = typeof items === "function" ? items(node) : node;
     return <RN.View style={{ paddingHorizontal: 12, paddingVertical: 16, gap: 24 }}>
       {list.ListHeaderComponent || null}

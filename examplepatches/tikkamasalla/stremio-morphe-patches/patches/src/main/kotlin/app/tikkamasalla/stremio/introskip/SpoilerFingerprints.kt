@@ -43,3 +43,38 @@ object VideoLabelWithDateFingerprint : Fingerprint(
     name = "getLabelWithDate",
     parameters = listOf("Lcom/stremio/core/types/resource/Video;"),
 )
+
+/**
+ * Marker for the builds that have the MPV engine (1.10.4 and later, the Compose UI generation).
+ * Absent in 1.6.12, which keeps only the legacy bind hooks.
+ */
+object SpoilerComposeMarkerFingerprint : Fingerprint(
+    definingClass = "Ldev/jdtech/mpv/MPVLib;",
+    name = "init",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+/** stremio-core-kotlin Video.getThumbnail(): R8 keeps the name in every build. */
+object VideoGetThumbnailFingerprint : Fingerprint(
+    definingClass = "Lcom/stremio/core/types/resource/Video;",
+    name = "getThumbnail",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+)
+
+/** stremio-core-kotlin Video.getOverview(). */
+object VideoGetOverviewFingerprint : Fingerprint(
+    definingClass = "Lcom/stremio/core/types/resource/Video;",
+    name = "getOverview",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+)
+
+/** stremio-core-kotlin Video.getTitle(). */
+object VideoGetTitleFingerprint : Fingerprint(
+    definingClass = "Lcom/stremio/core/types/resource/Video;",
+    name = "getTitle",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+)

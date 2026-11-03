@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.0.23-7CE6C4" alt="Version 0.0.23">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
-  <img src="https://img.shields.io/badge/Telegram-13.1.1%20Play%20%7C%2013.1.0%20telegram.org-2AABEE" alt="Telegram 13.1.1 from Google Play and 13.1.0 from telegram.org">
+  <img src="https://img.shields.io/badge/Telegram-13.1.1%20Play%20%7C%2013.1.1%20telegram.org-2AABEE" alt="Telegram 13.1.1 from Google Play and 13.1.1 from telegram.org">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.3.0%2B-8A2BE2" alt="For Morphe Manager 2.3.0 or newer">
 </p>
 

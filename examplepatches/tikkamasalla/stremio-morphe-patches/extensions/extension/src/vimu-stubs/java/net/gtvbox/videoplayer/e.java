@@ -26,4 +26,17 @@ public interface e {
     boolean q0();
 
     void L0(String path);
+
+    // Audio track API used by VimuTracks (count, display text, selected index, select).
+    int f0();
+
+    String p0(int index);
+
+    int M();
+
+    void e0(int index);
+
+    boolean R0();
+
+    void J0();
 }

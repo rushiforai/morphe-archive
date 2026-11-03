@@ -1,0 +1,251 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
+package app.morphe.extension.pinedrama.download;
+
+import app.morphe.extension.pinedrama.blockauthor.Reflect;
+import app.morphe.extension.pinedrama.settings.Settings;
+import com.ss.android.ugc.aweme.base.model.UrlModel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/** Selects only actual video gears, never cover or thumbnail URLs. */
+public final class QualitySelector {
+    private static final Pattern HEIGHT = Pattern.compile("(?<![0-9])(2160|1440|1080|960|720|640|576|540|480|432|360|288|240)(?![0-9])");
+    private QualitySelector() {}
+
+    /**
+     * Every rendition of the video as PineDrama received it, never the playback getter, which
+     * Playback quality may narrow. getRawBitRate returns the backing list whole (Playback quality
+     * leaves it alone for exactly this); without it the field is read under both names it has
+     * had: bitRate on 46.2.3, bitRateList on 47.0.3. Reading bitRate alone found nothing on
+     * 47.0.3, so every chosen quality fell back to TikTok's own save (S22, 2026-09-23).
+     */
+    static Object rawGears(Object video) {
+        if (video == null) return null;
+        Object raw = Reflect.invoke(video, "getRawBitRate");
+        if (raw == null) raw = Reflect.readField(video, "bitRateList");
+        if (raw == null) raw = Reflect.readField(video, "bitRate");
+        return raw;
+    }
+
+    /**
+     * A gear list that tops out below this height is short of a good file, so the video's own
+     * play addresses are looked at too (#240).
+     */
+    static final int TALL_ENOUGH = 720;
+
+    /**
+     * One of the video's own play addresses, shaped like a gear so the save path takes it as a
+     * pick: it has a name, a play address and a codec code, and nothing else.
+     */
+    public static final class SourceGear {
+        private final String name;
+        private final Object address;
+        private final int codec;
+
+        SourceGear(String name, Object address, int codec) {
+            this.name = name;
+            this.address = address;
+            this.codec = codec;
+        }
+
+        public String getGearName() { return name; }
+        public Object getPlayAddr() { return address; }
+        public int isBytevc1() { return codec; }
+    }
+
+    /** Name, getter, field and codec code of each play address the Video model carries besides its gears. */
+    private static final String[][] SOURCES = {
+            {"play_addr_h264", "getPlayAddrH264", "playAddrValue", "0"},
+            {"h264_play_addr", "getH264PlayAddr", "h264PlayAddrValue", "0"},
+            {"play_addr_bytevc1", "getPlayAddrBytevc1", "playAddrBytevc1Value", "1"},
+    };
+
+    /**
+     * The video's own H.264 and HEVC play addresses (H.264 and HEVC only), each
+     * wrapped as a gear. A source the video lacks has a null address, so a report can say so. The
+     * field is read before the getter: the getters tidy the model's codec fields as they answer.
+     */
+    static List<SourceGear> sources(Object video) {
+        List<SourceGear> found = new ArrayList<>();
+        if (video == null) return found;
+        for (String[] source : SOURCES) {
+            Object address = Reflect.readField(video, source[2]);
+            if (address == null) address = Reflect.invoke(video, source[1]);
+            found.add(new SourceGear(source[0], address, Integer.parseInt(source[3])));
+        }
+        return found;
+    }
+
+    public static UrlModel download(Object video) {
+        String mode = Settings.DOWNLOAD_VIDEO_QUALITY.get();
+        if ("auto".equals(mode)) return null;
+        // Separate DASH tracks need the full download path and muxer, not a video-only URL.
+        if (Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"))) return null;
+        Object raw = rawGears(video);
+        Object gear = raw instanceof List<?> ? chooseForFile(video, (List<?>) raw, mode) : null;
+        Object address = Reflect.property(gear, "getPlayAddr", "playAddr");
+        return address instanceof UrlModel ? (UrlModel) address : null;
+    }
+
+    /** The rendition PineDrama's player is to play: any codec, since PineDrama decodes them all. */
+    public static Object choose(List<?> gears, String mode) {
+        return choose(gears, mode, false);
+    }
+
+    /**
+     * The rendition a saved file is made from: only one other players open ({@link #playable}),
+     * and at the same height H.264 over HEVC.
+     */
+    static Object chooseForFile(List<?> gears, String mode) {
+        return choose(gears, mode, true);
+    }
+
+    /**
+     * The rendition a saved file of this video is made from, or null for PineDrama's own file. When
+     * the asked height is served only as ByteVC2 the playable choice is a shorter one, and
+     * PineDrama's own watermark-free download, which is H.264, can be the asked height: it wins when
+     * its address says it is taller than the choice and no taller than asked (refutation review
+     * of bd52abf1). An address that says nothing keeps the playable choice.
+     */
+    static Object chooseForFile(Object video, List<?> gears, String mode) {
+        Object chosen = chooseForFile(gears, mode);
+        if (chosen == null || "lowest".equals(mode)) return chosen;
+        int chosenHeight = height(chosen);
+        Object tallest = choose(gears, mode, false);
+        if (tallest == null || height(tallest) <= chosenHeight) return chosen;
+        int own = ownHeight(video);
+        int asked = "highest".equals(mode) ? 0 : Integer.parseInt(mode);
+        return own > chosenHeight && (asked == 0 || own <= asked) ? null : chosen;
+    }
+
+    /**
+     * How tall PineDrama's own watermark-free download is, as the shorter side the way gear names
+     * count; 0 when unknown or when only the watermarked address exists. Only the clean address
+     * counts: a deferred save falls to the download addresses, and deferring onto a video with
+     * nothing but the watermarked one would put the watermark on a save the rendition path kept
+     * clean (refutation review of f792e71e).
+     */
+    static int ownHeight(Object video) {
+        Object address = Reflect.property(video, "getDownloadNoWatermarkAddr", "downloadNoWatermarkAddr");
+        return usable(address) ? dimension(address) : 0;
+    }
+
+    private static Object choose(List<?> gears, String mode, boolean forFile) {
+        if (gears == null || "auto".equals(mode)) return null;
+        int target;
+        switch (mode == null ? "" : mode) {
+            case "highest": case "lowest": target = 0; break;
+            case "1080": case "720": case "540": case "480": case "360": target = Integer.parseInt(mode); break;
+            default: return null;
+        }
+        Object best = null;
+        for (Object gear : gears) {
+            if (!hasUsableAddress(gear)) continue;
+            if (forFile && !playable(gear)) continue;
+            if (target > 0 && height(gear) == 0) continue;
+            if (best == null || better(gear, best, target, "lowest".equals(mode), forFile)) best = gear;
+        }
+        return best;
+    }
+
+    /**
+     * PineDrama's codec code for a rendition (is_bytevc1): 0 is H.264, 1 is ByteVC1, which is HEVC
+     * and plays on Android and in most players, and 2 is ByteVC2, which only PineDrama's own player
+     * decodes. A rendition without the code reads as H.264.
+     */
+    static int codec(Object gear) {
+        Object code = Reflect.property(gear, "isBytevc1", "isBytevc1");
+        return code instanceof Number ? ((Number) code).intValue() : 0;
+    }
+
+    /**
+     * Whether a saved file of this rendition plays outside TikTok. 47.0.3 serves some heights only
+     * as ByteVC2 (gear names ending in _2): saved, those came out with a video track no player
+     * knew (codec tag bvc2, S22, 2026-09-23). None of them is chosen for a file; when nothing else
+     * is left, PineDrama's own save, which is H.264, runs instead. Playback keeps them.
+     */
+    static boolean playable(Object gear) {
+        int code = codec(gear);
+        return code == 0 || code == 1;
+    }
+
+    private static boolean better(Object candidate, Object current, int target, boolean lowest, boolean forFile) {
+        int a = height(candidate), b = height(current);
+        if (target > 0) {
+            if ((a <= target) != (b <= target)) return a <= target;
+            if (a != b) return a <= target ? a > b : a < b;
+        }
+        // At the same height, the file more players can open: H.264 over HEVC.
+        if (forFile && a == b && codec(candidate) != codec(current)) return codec(candidate) < codec(current);
+        int compare = Integer.compare(a, b);
+        if (compare == 0) compare = Long.compare(number(candidate, "getBitRate", "bitRate"), number(current, "getBitRate", "bitRate"));
+        if (compare == 0) compare = Long.compare(size(candidate), size(current));
+        return lowest ? compare < 0 : compare > 0;
+    }
+
+    /** A gear the way a report names it: its gear name and the height it plays at. */
+    public static String describe(Object gear) {
+        String name = Reflect.string(gear, "getGearName", "gearName");
+        int height = height(gear);
+        return (name == null || name.isEmpty() ? "unnamed" : name) + (height > 0 ? " " + height + "p" : "");
+    }
+
+    /** A gear's size as the shorter side, from its name or its address, or 0. */
+    public static int heightOf(Object gear) {
+        return height(gear);
+    }
+
+    private static int height(Object gear) {
+        String name = Reflect.string(gear, "getGearName", "gearName");
+        if (name != null) {
+            Matcher matcher = HEIGHT.matcher(name);
+            if (matcher.find()) return Integer.parseInt(matcher.group(1));
+        }
+        return dimension(Reflect.property(gear, "getPlayAddr", "playAddr"));
+    }
+
+    /** An address's size as the shorter side, or the one side it gives, or 0. */
+    static int dimension(Object address) {
+        long width = number(address, "getWidth", "width"), height = number(address, "getHeight", "height");
+        return (int) (width > 0 && height > 0 ? Math.min(width, height) : Math.max(width, height));
+    }
+
+    static long size(Object gear) {
+        return addressSize(Reflect.property(gear, "getPlayAddr", "playAddr"));
+    }
+
+    /** The size PineDrama lists for an address, or 0. */
+    static long addressSize(Object address) {
+        return number(address, "getSize", "size");
+    }
+
+    private static long number(Object value, String getter, String field) {
+        Object raw = Reflect.property(value, getter, field);
+        return raw instanceof Number ? ((Number) raw).longValue() : 0;
+    }
+
+    /**
+     * Whether a rendition's play address holds a URL this would choose: the same test for the
+     * player's gears and a save's, and nothing about the codec, so ByteVC2 passes it. A missing,
+     * empty or unreadable address does not.
+     */
+    public static boolean hasUsableAddress(Object gear) {
+        return usable(Reflect.property(gear, "getPlayAddr", "playAddr"));
+    }
+
+    private static boolean usable(Object address) {
+        Object urls = Reflect.property(address, "getUrlList", "urlList");
+        if (!(urls instanceof List<?>)) return false;
+        for (Object url : (List<?>) urls) {
+            if (url instanceof String && MediaTransport.hasAllowedShape((String) url)) return true;
+        }
+        return false;
+    }
+}

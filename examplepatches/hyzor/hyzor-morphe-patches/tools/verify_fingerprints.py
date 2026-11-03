@@ -26,6 +26,7 @@ MARKERS = {
     "SnoreLab": "Lcom/snorelab/",
     "NYT Games": "Lcom/nytimes/games/",
     "Duolingo": "Lcom/duolingo/",
+    "Nova Launcher": "Lcom/teslacoilsw/launcher/",
 }
 
 # App -> (class descriptor, method name) -> (return type, required, patch, description)
@@ -69,6 +70,25 @@ TARGETS = {
         ("Lcom/nytimes/games/designsystem/theme/ExtendedColorsKt;", "<clinit>"):
             ("V", True, "AMOLED Black", "static light/dark palette; dark greys rewritten to #000000"),
     },
+    # Nova Launcher 8.9.6 (versionName "89600 (8.9.6)"):
+    #   qx.b1.b()                    the static "is Prime or Prime APK" gate (17 callers);
+    #                                the patch replaces its body with return true
+    #   j10.h2.a(SharedPreferences)  derives Prime (j10.h2.h) from the persisted "1" value;
+    #                                the patch overwrites the getInt() result with 0x200
+    #   gy.d0.w(Context)             active-subscription check, which also gates the Play
+    #                                licence revocation path; the patch returns true
+    # The class and method names are obfuscated and change with every release. They are pinned
+    # here only as a fast exact-name pre-check; the fingerprints themselves match instruction
+    # shapes (field access, literal sequence, string + opcode). Re-resolve all three when
+    # bumping the supported version.
+    "Nova Launcher": {
+        ("Lqx/b1;", "b"):
+            ("Z", True, "Enable Prime", "static isPrime gate"),
+        ("Lj10/h2;", "a"):
+            ("V", True, "Enable Prime", "prime state initialiser"),
+        ("Lgy/d0;", "w"):
+            ("Z", True, "Enable Prime", "active-subscription check"),
+    },
     # Duolingo 6.104.3:
     #   Most Duolingo fingerprints are structural (toString literals, field-usage shapes,
     #   opcode windows) and are validated by building and applying the bundle, not by method
@@ -91,6 +111,11 @@ TARGETS = {
 # App -> (class, method) -> parameter lists that must each be present.
 # Fingerprint `parameters` are matched with startswith(), so "L" pins any reference type.
 REQUIRED_PARAMS = {
+    "Nova Launcher": {
+        ("Lqx/b1;", "b"): [[]],
+        ("Lj10/h2;", "a"): [["Landroid/content/SharedPreferences;"]],
+        ("Lgy/d0;", "w"): [["Landroid/content/Context;"]],
+    },
     "Duolingo": {
         ("Lcom/duolingo/data/signuplogin/LoginRequest$EmailLoginRequest;", "<init>"): [
             ["Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "L"],

@@ -247,7 +247,7 @@ internal fun Method.markReadFactorySite(details: String, isBuild: (Instruction) 
  * bars hoist the listener case into a high register and move it down at the call, so the definition is not always a
  * literal. Null unless one definition reaches each step.
  */
-private fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 4): Int? {
+internal fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 4): Int? {
     if (depth < 0) return null
     val definition = definitionsAt(target, register).singleOrNull()?.takeIf { it >= 0 } ?: return null
     val instruction = code[definition]

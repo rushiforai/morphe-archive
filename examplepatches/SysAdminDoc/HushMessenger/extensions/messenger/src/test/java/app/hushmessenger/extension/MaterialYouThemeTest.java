@@ -182,6 +182,44 @@ public class MaterialYouThemeTest {
         assertEquals("light mode passthrough", grey, MaterialYouTheme.fds(grey));
     }
 
+    @Test public void theLightSwitchGivesLightModesBluesTheAccentAndNothingElse() {
+        org.robolectric.util.ReflectionHelpers.setStaticField(MaterialYouTheme.class, "bound", true);
+        try {
+            TonePalette pink = TonePalette.fromAccent(0xFFE1306C);
+            MaterialYouTheme.use(pink);
+            MaterialYouTheme.darkModeAnswer(false);
+            int blue = 0xFF0866FF, grey = 0xFF333334, white = 0xFFFFFFFF, translucent = 0x800866FF;
+            // Off by default: light mode keeps Messenger's colors on both routes.
+            for (int color : new int[] {blue, grey, white}) {
+                assertEquals(color, MaterialYouTheme.fds(color));
+                assertEquals(color, MaterialYouTheme.migLight(color));
+            }
+
+            Settings.preferences.edit().putBoolean(MaterialYouTheme.LIGHT_KEY, true).commit();
+            int accent = pink.sameLightness(TonePalette.ACCENT, blue);
+            assertNotEquals(blue, accent);
+            assertEquals(accent, MaterialYouTheme.fds(blue));
+            assertEquals(accent, MaterialYouTheme.migLight(blue));
+            for (int color : new int[] {grey, white, translucent, 0xFFE53935}) {
+                assertEquals(Integer.toHexString(color), color, MaterialYouTheme.fds(color));
+                assertEquals(Integer.toHexString(color), color, MaterialYouTheme.migLight(color));
+            }
+            // Dark mode is unchanged by the light switch: greys still take the neutral.
+            MaterialYouTheme.darkModeAnswer(true);
+            assertEquals(pink.sameLightness(TonePalette.NEUTRAL, grey), MaterialYouTheme.fds(grey));
+            MaterialYouTheme.darkModeAnswer(false);
+
+            Settings.preferences.edit().putBoolean("paused", true).commit();
+            assertEquals(blue, MaterialYouTheme.fds(blue));
+            assertEquals(blue, MaterialYouTheme.migLight(blue));
+            Settings.preferences.edit().putBoolean("paused", false).putBoolean(MaterialYouTheme.KEY, false).commit();
+            assertEquals(blue, MaterialYouTheme.fds(blue));
+            assertEquals(blue, MaterialYouTheme.migLight(blue));
+        } finally {
+            org.robolectric.util.ReflectionHelpers.setStaticField(MaterialYouTheme.class, "bound", false);
+        }
+    }
+
     // --- Dark surface detection ---
 
     @Test public void knownSurfacesAreDetected() {

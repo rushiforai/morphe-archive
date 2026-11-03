@@ -8,7 +8,7 @@ patches {
         author = "PiX"
         contact = "na"
         website = "https://github.com/pixincreate/morpheus"
-        license = "CC0 1.0 Universal"
+        license = "Apache-2.0"
     }
 }
 
@@ -25,6 +25,10 @@ dependencies {
 }
 
 tasks {
+    jar {
+        from(rootProject.file("LICENSE"))
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
         dependsOn(build)

@@ -157,21 +157,19 @@ public final class LocalDownloadsFragment extends PreferenceFragment
 
         showTracks();
 
-        miniPlayer = createStockMiniPlayer();
-        miniPlayer.setVisibility(View.GONE);
-        root.addView(miniPlayer, new LinearLayout.LayoutParams(-1, -2));
+        // Native MusicActivity owns the sole mini-player; never add a file-player strip.
         return root;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        OfflinePlaybackService.addListener(this);
+
     }
 
     @Override
     public void onStop() {
-        OfflinePlaybackService.removeListener(this);
+
         super.onStop();
     }
 
@@ -181,7 +179,7 @@ public final class LocalDownloadsFragment extends PreferenceFragment
     private void loadTracks() {
         tracks = new ArrayList<>();
         File[] files = musicRoot.listFiles(file -> file.isFile()
-                && (file.getName().endsWith(".webm") || file.getName().endsWith(".m4a")));
+                && (file.getName().matches("[A-Za-z0-9_-]{11}\\.(webm|m4a)")));
         if (files == null) return;
 
         // A new Opus download may coexist with a retained older AAC file.
@@ -632,26 +630,7 @@ public final class LocalDownloadsFragment extends PreferenceFragment
     }
 
     private void play(OfflineTrack track) {
-        try {
-            ArrayList<String> queue = new ArrayList<>(queuePaths);
-            final int queueIndex = Math.max(0, queue.indexOf(track.audioFile().getAbsolutePath()));
-
-            Intent intent = new Intent(getActivity(), OfflinePlaybackService.class)
-                    .setAction(OfflinePlaybackService.ACTION_PLAY_FILE)
-                    .putExtra(OfflinePlaybackService.EXTRA_PATH, track.audioFile().getAbsolutePath())
-                    .putExtra(OfflinePlaybackService.EXTRA_TITLE, track.displayTitle())
-                    .putExtra(OfflinePlaybackService.EXTRA_ARTIST, track.displayArtist())
-                    .putExtra(OfflinePlaybackService.EXTRA_ARTWORK_PATH,
-                            track.artworkFile().getAbsolutePath())
-                    .putStringArrayListExtra(OfflinePlaybackService.EXTRA_QUEUE, queue)
-                    .putExtra(OfflinePlaybackService.EXTRA_QUEUE_INDEX, queueIndex);
-            getActivity().startForegroundService(intent);
-
-            applyTrackVisuals(track);
-        } catch (Exception ex) {
-            Logger.printException(() -> "Offline playback failed: " + track.audioFile(), ex);
-            Utils.showToastShort(str("morphe_music_downloads_play_failed"));
-        }
+        app.bdcrusher.ytmusic.playlists.NativePlayback.open(track.videoId());
     }
 
     @Override

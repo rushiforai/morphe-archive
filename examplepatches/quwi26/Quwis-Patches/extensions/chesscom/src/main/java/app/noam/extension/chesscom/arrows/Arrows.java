@@ -83,6 +83,11 @@ public final class Arrows {
         return Features.arrowsReviewsPatched() && Features.isEnabled(Features.ARROWS_REVIEWS);
     }
 
+    /** The switch a bar's button follows: reviews for the review bars, games for the game bars. */
+    static boolean featureEnabled(boolean reviews) {
+        return reviews ? reviewsEnabled() : gamesEnabled();
+    }
+
     /** Either feature: the board needs its marks layers even when only one of them is on. */
     public static boolean enabled() {
         return gamesEnabled() || reviewsEnabled();
@@ -98,10 +103,32 @@ public final class Arrows {
         if (board == null || !layersWanted()) return;
         for (int i = 0; i < board.getChildCount(); i++) {
             View child = board.getChildAt(i);
-            if (child instanceof ViewGroup && BoardViews.V2_PIECES.equals(child.getClass().getName())) {
+            if (child instanceof ViewGroup && BoardViews.isV2Pieces(child)) {
                 attach((ViewGroup) child);
                 return;
             }
+        }
+    }
+
+    /**
+     * Gives the boards already in a window their marks layers. Screens whose board was built
+     * before the patch's hook ran (or by a path the hook does not cover) reach the buttons without
+     * marks otherwise, and Arrows answers "open a board first".
+     */
+    public static void attachShown(View view) {
+        if (!layersWanted() || !(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (!(child instanceof ViewGroup)) continue;
+            String name = child.getClass().getName();
+            if (BoardViews.CHESS_BOARD_VIEW.equals(name) || BoardViews.V2_BOARD.equals(name)) {
+                attachBoard((ViewGroup) child);
+            }
+            if (BoardViews.PIECE_VIEW.equals(name) || BoardViews.isV2Pieces(child)) {
+                attach((ViewGroup) child);
+            }
+            attachShown(child);
         }
     }
 
@@ -119,7 +146,7 @@ public final class Arrows {
             pieceView.addView(squares, 0);
             pieceView.addView(arrows, BoardViews.indexUnderMovingPieces(pieceView));
             // The v2 board adds its pieces later, on top; a higher Z keeps the arrows over them.
-            if (BoardViews.V2_PIECES.equals(pieceView.getClass().getName())) arrows.setZ(1f);
+            if (BoardViews.isV2Pieces(pieceView)) arrows.setZ(1f);
             BoardViews.fill(pieceView, squares);
             BoardViews.fill(pieceView, arrows);
             marks.layers.add(new WeakReference<>(squares));
@@ -214,6 +241,10 @@ public final class Arrows {
     /** Switches the board between moving pieces and drawing; false when there is no board. */
     static boolean toggleDrawing(View button) {
         Marks marks = marksNear(button);
+        if (marks == null) {
+            attachShown(button.getRootView());
+            marks = marksNear(button);
+        }
         if (marks == null) {
             Utils.toast("Open a board first");
             return false;

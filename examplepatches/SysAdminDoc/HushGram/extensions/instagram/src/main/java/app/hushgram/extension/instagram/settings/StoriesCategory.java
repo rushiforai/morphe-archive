@@ -10,9 +10,13 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.onFlip;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.priorityAccountsRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyBarRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyMentionsLookRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyRingColorRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyRingRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storySeekBarLookRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.storyTimeModeRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadBitrateRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.uploadScopeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.trayBadgeRow;
 
@@ -104,6 +108,13 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.STORY_SEEK_BAR, L10n.t("Seek bar on stories"),
                     L10n.t("Shows a bar near the bottom of a video story. Drag it to jump to any point in the "
                             + "video. Photos don't get one.")));
+            stories.add(storySeekBarLookRow(context));
+        }
+        if (build.contains(PatchFamily.STORY_SPEED)) {
+            stories.add(toggle(context, Settings.STORY_SPEED_BUTTON, L10n.t("Speed button on stories"),
+                    L10n.t("Puts a speed button at the top of a video story, beside the three dots. Tap it for "
+                            + "1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you "
+                            + "change it or restart Instagram. Ads play at normal speed.")));
         }
         if (build.contains(PatchFamily.AMBIENT_LIGHT)) {
             stories.add(onFlip(toggle(context, Settings.AMBIENT_LIGHT_STORIES, L10n.t("Ambient light in stories"),
@@ -140,6 +151,9 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.SHOW_STORY_MENTIONS, L10n.t("See who a story mentions"),
                     L10n.t("A story's header says how many accounts it mentions, even when the mention is hidden. "
                             + "Tap that for the list, and tap someone to open their profile.")));
+            stories.add(toggle(context, Settings.RED_STORY_MENTIONS, L10n.t("Red story mentions"),
+                    L10n.t("Draws the mention pill's text in red instead of white, so it stands out on bright stories.")));
+            stories.add(storyMentionsLookRow(context));
         }
         if (build.contains(PatchFamily.STORY_FOLLOW)) {
             stories.add(toggle(context, Settings.HIDE_STORY_FOLLOW, L10n.t("Hide Follow on stories"),
@@ -180,6 +194,8 @@ final class StoriesCategory {
                     L10n.t("Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at "
                             + "highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the "
                             + "difference viewers see is small. Photo stories already go up larger than Instagram keeps.")));
+            stories.add(uploadScopeRow(context));
+            stories.add(uploadBitrateRow(context));
         }
         if (build.contains(PatchFamily.STORY_FONTS)) {
             stories.add(toggle(context, Settings.STORY_FONTS, L10n.t("Your fonts in story text"),

@@ -26,7 +26,8 @@
         "com.eurosport",
         "lequipe.fr",
         "de.transfermarkt.v2",
-        "com.bleacherreport.android.teamstream"
+        "com.bleacherreport.android.teamstream",
+        "se.footballaddicts.livescore"
       ]
     },
     {
@@ -35,9 +36,11 @@
       "packages": [
         "com.guardian",
         "wsj.reader_sp",
+        "ie.rte.news",
         "com.divum.MoneyControl",
         "com.rammigsoftware.bluecoins",
-        "com.monefy.app.lite"
+        "com.monefy.app.lite",
+        "bbc.mobile.news.ww"
       ]
     },
     {
@@ -70,7 +73,9 @@
       "emoji": "📺",
       "packages": [
         "app.expert.player",
-        "com.duplila.screenshare"
+        "com.duplila.screenshare",
+        "dk.dr.webplayer",
+        "com.viaplay.android"
       ]
     },
     {
@@ -88,7 +93,8 @@
         "com.hevy",
         "com.myfitnesspal.android",
         "cc.dreamspark.intervaltimer",
-        "net.smartwod.timer"
+        "net.smartwod.timer",
+        "dk.bold"
       ]
     },
     {
@@ -107,10 +113,15 @@
       "emoji": "📝",
       "packages": [
         "com.ztnstudio.notepad",
+        "com.fenchtose.reflog",
+        "com.getupnote.android",
+        "com.twodoor.bookly",
+        "io.unorderly.structured",
         "easynotes.notes.notepad.notebook.privatenotes.note",
         "com.appgenix.bizcal",
         "com.alarmclock.xtreme.free",
-        "net.dinglisch.android.taskerm"
+        "net.dinglisch.android.taskerm",
+        "com.gmail.jmartindev.timetune"
       ]
     },
     {
@@ -129,7 +140,10 @@
       "packages": [
         "easy.launcher",
         "projekt.launcher",
-        "app.prolauncher"
+        "app.prolauncher",
+        "com.qqlabs.minimalistlauncher",
+        "app.pinya.mango",
+        "bitpit.launcher"
       ]
     },
     {
@@ -144,9 +158,11 @@
         "com.Relmtech.Remote",
         "me.kavishdevar.librepods",
         "com.rawcam.app",
+        "com.rarecam.app",
         "com.pocketcolorwheel.PCW",
         "com.peter890331.luckyclick.app",
-        "com.fyxtech.muslim"
+        "com.fyxtech.muslim",
+        "com.dev47apps.obsdroidcam"
       ]
     }
   ]

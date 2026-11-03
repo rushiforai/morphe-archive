@@ -1,15 +1,15 @@
 # Reference APKM contract
 
-`line-26.11.0-arm64-v8a.json` は Linimal v1 が受け付ける唯一のローカル入力を固定する公開メタデータです。公式 APK/APKM、本体の展開物、逆コンパイル結果はこのディレクトリへ保存しません。
+`line-26.16.0-arm64-v8a.json` は Linimal v1 が受け付ける唯一のローカル入力を固定する公開メタデータです。公式 APK/APKM、本体の展開物、逆コンパイル結果はこのディレクトリへ保存しません。
 
 ## 対象
 
 - package: `jp.naver.line.android`
-- versionName / versionCode: `26.11.0` / `261100124`
+- versionName / versionCode: `26.16.0` / `261600106`
 - ABI: `arm64-v8a`
 - 入力形式: APKM（base、arm64-v8a、端末 density split を含む）
 
-descriptor は APKM と全 9 split の名称・SHA-256、base の 13 DEX、arm64 split の 77 native library、SDK 要件、base が要求する `base__abi` と `base__density` を記録します。armeabi-v7a split も原本完全性のため記録しますが、v1 のパッチ対象ではありません。
+descriptor は APKM と全 8 split の名称・SHA-256、base の 14 DEX、arm64 split の 73 native library、SDK 要件、base が要求する `base__abi` と `base__density` を記録します。armeabi-v7a split も原本完全性のため記録しますが、v1 のパッチ対象ではありません。
 
 ## 実行
 

@@ -11,7 +11,7 @@ Every patch is on by default except GmsCore support. Morphe Manager groups them 
 |---|---|---|
 | Feature | GmsCore support | Makes "Sign in with Google" work, so the collection and playlists saved to your Google account come back. Signs in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services, so it needs microG RE installed and signed in. Off by default. |
 | Premium | Premium unlock | Unlocks premium on your phone: no ads and every premium feature. The patched app also opens normally instead of closing on Google Play's license check, and the ad SDK never starts. |
-| Premium | Fix song playback | Lets songs actually play. A patched app is signed with a different key, which the server rejects when it hands out the encrypted song, so without this every song hangs on "loading". |
+| Premium | Fix song playback | Makes songs play. A patched app is signed with a different key, which the server rejects when it hands out the encrypted song, so without this every song hangs on "loading". |
 | Privacy | Disable analytics | Stops Adjust and TikTok from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics and Sessions. |
 
 ## How the unlock works
@@ -35,11 +35,11 @@ original certificate again (through a reflective PackageManager proxy, the same 
 request and the song decrypts. It needs no root. Without it the app installs and shows your library,
 but no song plays, premium or not.
 
-## What the app ships with, in plain terms
+## What the app ships with
 
-Disabling an SDK's manifest component is not enough on its own here: the app starts Adjust, TikTok
-and the ad SDK from its own `Application` code, so **Disable analytics** and **Premium unlock** stub
-those start-up calls too.
+The app starts Adjust, TikTok and the ad SDK from its own `Application` code, so disabling their
+manifest components does not stop them. **Disable analytics** and **Premium unlock** stub those
+start-up calls too.
 
 | SDK | What it is | What it does on your phone |
 |---|---|---|
@@ -50,7 +50,7 @@ those start-up calls too.
 | **Google AdMob** | Ad network | Loads and shows the full-screen ads, and reads the advertising id to target them. |
 | **Facebook SDK** (Meta) | Meta's app SDK | Its auto-start component is disabled. What else it would send is not visible from the patch code. |
 
-**How the patches stop them:** **Disable analytics** stubs Adjust and TikTok's start-up calls, sets
+**Disable analytics** stubs Adjust and TikTok's start-up calls, sets
 Firebase's own off switches in the manifest, and disables Firebase's data-transport service so even
 events queued by an earlier run are never uploaded. **Premium unlock** stubs the ad SDK's start-up
 call and disables the ad, Facebook and Adjust auto-start components. After this the only servers the

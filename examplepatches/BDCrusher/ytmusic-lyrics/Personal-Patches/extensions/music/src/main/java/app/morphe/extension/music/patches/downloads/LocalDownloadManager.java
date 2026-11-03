@@ -97,6 +97,22 @@ public final class LocalDownloadManager {
 
     /** A batch has already received its one quality confirmation. */
     public static void enqueueBatch(String videoId, app.bdcrusher.ytmusic.playlists.AudioQuality.Tier quality) {
+        enqueueMedia(videoId,app.bdcrusher.ytmusic.playlists.MediaSelection.audio(quality));
+    }
+
+    private static final Object JOBS=new Object();
+    private static final java.util.concurrent.Semaphore MEDIA_SLOTS=new java.util.concurrent.Semaphore(2,true);
+    private static final java.util.Set<String> SCHEDULED=java.util.concurrent.ConcurrentHashMap.newKeySet(),CANCELLED=java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final java.util.Map<String,app.bdcrusher.ytmusic.playlists.MediaSelection> REQUESTED=new java.util.concurrent.ConcurrentHashMap<>();
+    public static boolean active(String id){return ACTIVE_DOWNLOADS.contains(id);}
+    public static void cancelQueued(String id){if(!active(id))CANCELLED.add(id);}
+    private static app.bdcrusher.ytmusic.playlists.MediaSelection merge(app.bdcrusher.ytmusic.playlists.MediaSelection a,app.bdcrusher.ytmusic.playlists.MediaSelection b){return new app.bdcrusher.ytmusic.playlists.MediaSelection(a.kind()==app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO||b.kind()==app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO?app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO:app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.AUDIO,a.audio().ceiling>=b.audio().ceiling?a.audio():b.audio(),Math.max(a.height(),b.height()));}
+    private static app.bdcrusher.ytmusic.playlists.MediaSelection upgrade(String id,app.bdcrusher.ytmusic.playlists.MediaSelection completed){var requested=REQUESTED.get(id);var state=app.bdcrusher.ytmusic.playlists.DownloadCatalog.progress(id);if(requested!=null&&state!=null&&state.state().equals("complete")&&requested.kind()==app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO&&(completed.kind()!=requested.kind()||requested.height()>completed.height())){app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(id,"queued",0,-1,"Video upgrade queued; audio retained",requested);return requested;}REQUESTED.remove(id);return null;}
+    private static void finishJob(String id,app.bdcrusher.ytmusic.playlists.MediaSelection next){SCHEDULED.remove(id);if(next!=null)enqueueMedia(id,next);}
+    public static void enqueueMedia(String videoId,app.bdcrusher.ytmusic.playlists.MediaSelection choice){
+        if(choice==null||videoId==null||!videoId.matches("[A-Za-z0-9_-]{11}"))return;
+        synchronized(JOBS){REQUESTED.merge(videoId,choice,LocalDownloadManager::merge);CANCELLED.remove(videoId);if(!SCHEDULED.add(videoId))return;}
+        app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(videoId,"queued",0,-1,"",choice);
         // Every file of a download is named after the id, so anything that is not a plain id
         // is refused rather than written under a different name than it is looked up by.
         if (!VIDEO_ID.matcher(videoId).matches()) {
@@ -117,85 +133,58 @@ public final class LocalDownloadManager {
         Bitmap artwork = isPlayingTrack ? metadata.getCurrentArtwork() : null;
 
         Utils.submitOnBackgroundThread(() -> {
-            downloadBlocking(videoId, title, artist, album, duration, artwork, quality);
+            boolean acquired=false;try{MEDIA_SLOTS.acquire();acquired=true;if(CANCELLED.remove(videoId)){SCHEDULED.remove(videoId);REQUESTED.remove(videoId);app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(videoId,"cancelled",0,-1,"Cancelled before download",choice);app.bdcrusher.ytmusic.playlists.PlaylistRuntime.finished(videoId);return null;}downloadBlocking(videoId, title, artist, album, duration, artwork, REQUESTED.getOrDefault(videoId,choice));}
+            catch(InterruptedException cancelled){Thread.currentThread().interrupt();synchronized(JOBS){SCHEDULED.remove(videoId);REQUESTED.remove(videoId);}app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(videoId,"failed",0,-1,"Interrupted; resume to continue",choice);app.bdcrusher.ytmusic.playlists.PlaylistRuntime.finished(videoId);}
+            finally{if(acquired)MEDIA_SLOTS.release();}
             return null;
         });
     }
 
-    private static void downloadBlocking(String videoId, String title, String artist, String album,
-                                         int duration, Bitmap artwork, app.bdcrusher.ytmusic.playlists.AudioQuality.Tier quality) {
-        if (!ACTIVE_DOWNLOADS.add(videoId)) {
-            Utils.showToastShort(str("morphe_music_downloads_already_running"));
-            return;
-        }
-
-        try {
-            Context context = Utils.getContext();
-            File directory = new File(
-                    context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Morphe");
-
-            if (new File(directory, videoId + ".webm").isFile()
-                    && app.bdcrusher.ytmusic.playlists.LocalPlayback.response(videoId) != null) {
-                Logger.printDebug(() -> "Already downloaded: " + videoId);
-                Utils.showToastShort(str("morphe_music_downloads_already_saved"));
-                return;
+    private static void downloadBlocking(String videoId,String title,String artist,String album,
+                                         int duration,Bitmap artwork,app.bdcrusher.ytmusic.playlists.MediaSelection selection){
+        if(!ACTIVE_DOWNLOADS.add(videoId))return;
+        try{
+            Context context=Utils.getContext();File directory=app.bdcrusher.ytmusic.playlists.DownloadCatalog.directory();
+            if(!directory.isDirectory()&&!directory.mkdirs())throw new IOException("Could not create download directory");
+            AudioOptions options=mediaOptions(videoId,selection.kind()==app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO);
+            Format audio=app.bdcrusher.ytmusic.playlists.AudioQuality.select(options.formats(),selection.audio());
+            if(audio==null)throw new IOException("No accessible Opus stream returned");
+            Format video=selection.kind()==app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO?selection.chooseVideo(options.formats(),app.bdcrusher.ytmusic.playlists.DownloadCatalog::videoSupported):null;
+            VideoDetails details=options.details();if(!videoId.equals(details.getVideoId()))throw new IOException("Returned recording identity differs");
+            title=firstNotBlank(title,details.getTitle(),videoId);artist=firstNotBlank(artist,stripTopic(details.getOwnerChannelName()),"");if(duration<=0)duration=details.getLengthSeconds();if(artwork==null)artwork=resolveArtwork(videoId,details);
+            File saved=app.bdcrusher.ytmusic.playlists.PlaylistRuntime.audio(videoId);byte[] prior=app.bdcrusher.ytmusic.playlists.LocalPlayback.response(videoId);
+            if(saved!=null&&prior!=null){boolean compatible=false;for(Format f:PlayerResponse.parseFrom(prior).getStreamingData().getAdaptiveFormatsList())if(f.getMimeType().startsWith("audio/")&&f.getItag()==audio.getItag()){audio=f;compatible=true;break;}if(!compatible){saved=null;prior=null;}}
+            long audioBytes=audio.getContentLength(),videoBytes=video==null?0:video.getContentLength();long total=audioBytes>0&&(video==null||videoBytes>0)?audioBytes+videoBytes:-1;
+            OfflineTrack.save(directory,videoId,title,artist,album,duration,artwork);
+            beginPhase(videoId,selection,0,total);
+            if(saved==null||prior==null){File temporary=new File(directory,videoId+".webm.part");downloadWithResume(videoId,title,audio.getUrl(),temporary,audioBytes,audio.getItag()+":"+audio.getMimeType());try{validateOpus(temporary);}catch(Exception invalid){RangeJournal.reset(temporary);throw invalid;}saved=new File(directory,videoId+".webm");finishMedia(temporary,saved);RangeJournal.finished(temporary);}
+            OfflineTrack.save(directory,videoId,title,artist,album,duration,artwork);
+            app.bdcrusher.ytmusic.playlists.LocalPlayback.saved(videoId,audio,details);
+            if(video!=null){
+                File destination=new File(directory,videoId+".video."+(video.getMimeType().contains("webm")?"webm":"mp4"));File existing=app.bdcrusher.ytmusic.playlists.DownloadCatalog.video(videoId);
+                boolean reusable=false;if(existing!=null&&prior!=null)for(Format f:PlayerResponse.parseFrom(prior).getStreamingData().getAdaptiveFormatsList())if(f.getMimeType().startsWith("video/")&&f.getItag()==video.getItag()&&existing.length()==f.getContentLength()){reusable=true;break;}
+                if(!reusable){beginPhase(videoId,selection,saved.length(),total);File temporary=new File(directory,destination.getName()+".part");downloadWithResume(videoId,title,video.getUrl(),temporary,videoBytes,video.getItag()+":"+video.getMimeType());try{validateVideo(temporary);}catch(Exception invalid){RangeJournal.reset(temporary);throw invalid;}finishMedia(temporary,destination);RangeJournal.finished(temporary);}
+                app.bdcrusher.ytmusic.playlists.LocalPlayback.savedVideo(videoId,video,details,destination);if(app.bdcrusher.ytmusic.playlists.DownloadCatalog.video(videoId)==null)throw new IOException("Video saved; playback metadata needs repair");
             }
-
-            ResolvedStream resolved = resolveStream(videoId, quality);
-            if (resolved == null || resolved.format().getUrl().isBlank()) {
-                throw new IllegalStateException("Audio stream unavailable");
-            }
-
-            Format format = resolved.format();
-            Logger.printDebug(() -> "Downloading " + videoId + " as itag " + format.getItag()
-                    + " (" + format.getMimeType() + ")");
-
-            VideoDetails details = resolved.details();
-
-            // Anything the caller already knows wins, the player response only fills the blanks.
-            title = firstNotBlank(title, details.getTitle(), videoId);
-            artist = firstNotBlank(artist, stripTopic(details.getOwnerChannelName()), "");
-            if (duration <= 0) duration = details.getLengthSeconds();
-            if (artwork == null) artwork = resolveArtwork(videoId, details);
-            if (!directory.isDirectory() && !directory.mkdirs()) {
-                throw new IllegalStateException("Could not create download directory");
-            }
-
-            String extension = format.getMimeType().contains("mp4") ? ".m4a" : ".webm";
-            File destination = new File(directory, videoId + extension);
-            File temporary = new File(directory, destination.getName() + ".part");
-
-            if (temporary.exists() && !temporary.delete()) {
-                throw new IllegalStateException("Could not reset partial audio file");
-            }
-
-            downloadWithResume(videoId, title, format.getUrl(), temporary,
-                    format.getContentLength());
-            validateOpus(temporary);
-            // Same-directory rename replaces atomically on Android; never delete the old file first.
-            if (!temporary.renameTo(destination)) {
-                throw new IllegalStateException("Could not finish audio file");
-            }
-            Logger.printDebug(() -> "Saved " + destination + " (" + destination.length() + " bytes)");
-
-            OfflineTrack.save(directory, videoId, title, artist, album, duration, artwork);
-            app.bdcrusher.ytmusic.playlists.LocalPlayback.saved(videoId, format, details);
             app.bdcrusher.ytmusic.playlists.PlaylistArtwork.downloaded(videoId,new File(directory,videoId+".jpg"),details);
-            final int savedDuration = duration;
-            Utils.runOnBackgroundThread(() -> app.bdcrusher.ytmusic.playlists.DownloadChapters.fetch(videoId, savedDuration));
-            app.bdcrusher.ytmusic.lyrics.LyricsPrefetch.enqueue(context, videoId, title, artist, duration, saved -> {});
-            awaitNotificationSlot();
-            showDownloadNotification(videoId, title, 100, false, str("morphe_music_downloads_complete"));
-            Utils.showToastShort(str("morphe_music_downloads_complete"));
-        } catch (Exception ex) {
-            synchronized (OPTIONS) { OPTIONS.remove(videoId); }
-            Logger.printException(() -> "Local audio download failed: " + videoId, ex);
-            awaitNotificationSlot();
-            showDownloadNotification(videoId, title, 0, false, str("morphe_music_downloads_failed"));
-            Utils.showToastShort(str("morphe_music_downloads_failed"));
-        } finally {
-            ACTIVE_DOWNLOADS.remove(videoId);
-        }
+            final int savedDuration=duration;Utils.runOnBackgroundThread(()->app.bdcrusher.ytmusic.playlists.DownloadChapters.fetch(videoId,savedDuration));
+            app.bdcrusher.ytmusic.lyrics.LyricsPrefetch.enqueue(context,videoId,title,artist,duration,result->{});
+            if(app.bdcrusher.ytmusic.playlists.LocalPlayback.response(videoId)==null)throw new IOException("Media saved; playback metadata needs repair");
+            String detail=selection.kind()==app.bdcrusher.ytmusic.playlists.MediaSelection.Kind.VIDEO&&video==null?"Audio only":video==null?"Audio":"Video + audio";
+            app.bdcrusher.ytmusic.playlists.DownloadCatalog.complete(videoId,selection,detail);
+            awaitNotificationSlot();showDownloadNotification(videoId,title,100,false,str("morphe_music_downloads_complete"));Utils.showToastShort(str("morphe_music_downloads_complete"));
+        }catch(Exception failure){synchronized(OPTIONS){OPTIONS.remove(videoId);}app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(videoId,"failed",0,-1,failure.getMessage(),selection);Logger.printException(()->"Local media download failed: "+videoId,failure);awaitNotificationSlot();showDownloadNotification(videoId,title,0,false,str("morphe_music_downloads_failed"));Utils.showToastShort(str("morphe_music_downloads_failed"));}
+        finally{PHASES.remove(videoId);synchronized(JOBS){var next=upgrade(videoId,selection);ACTIVE_DOWNLOADS.remove(videoId);finishJob(videoId,next);}}
+    }
+    private record Phase(app.bdcrusher.ytmusic.playlists.MediaSelection selection,long base,long total){}
+    private static final java.util.Map<String,Phase> PHASES=new java.util.concurrent.ConcurrentHashMap<>();
+    private static void beginPhase(String id,app.bdcrusher.ytmusic.playlists.MediaSelection choice,long base,long total){PHASES.put(id,new Phase(choice,base,total));app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(id,"downloading",base,total,"",choice);}
+    private static void transferred(String id,long bytes){Phase phase=PHASES.get(id);if(phase!=null)app.bdcrusher.ytmusic.playlists.DownloadCatalog.update(id,"downloading",phase.base()+bytes,phase.total(),"",phase.selection());}
+    private static void finishMedia(File temporary,File destination)throws IOException{
+        java.nio.file.Files.move(temporary.toPath(),destination.toPath(),java.nio.file.StandardCopyOption.ATOMIC_MOVE,java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+    }
+    private static void validateVideo(File file)throws IOException{
+        android.media.MediaExtractor extractor=new android.media.MediaExtractor();try{extractor.setDataSource(file.getAbsolutePath());for(int n=0;n<extractor.getTrackCount();n++){String mime=extractor.getTrackFormat(n).getString(android.media.MediaFormat.KEY_MIME);if(mime!=null&&mime.startsWith("video/")){extractor.selectTrack(n);if(extractor.readSampleData(java.nio.ByteBuffer.allocate(4*1024*1024),0)>0)return;}}throw new IOException("No readable video stream");}finally{extractor.release();}
     }
 
     private record ResolvedStream(Format format, VideoDetails details) {
@@ -286,7 +275,7 @@ public final class LocalDownloadManager {
     }
 
     private static void downloadWithResume(String videoId, String title, String url,
-                                           File temporary, long expectedLength) throws Exception {
+                                           File temporary, long expectedLength,String formatKey) throws Exception {
         Utils.showToastShort(str("morphe_music_downloads_started"));
         awaitNotificationSlot();
         showDownloadNotification(videoId, title, 0, true, str("morphe_music_downloads_starting"));
@@ -295,9 +284,9 @@ public final class LocalDownloadManager {
         final long totalLength = expectedLength;
 
         if (totalLength <= 0) {
-            downloadUnknownLength(url, temporary);
+            downloadUnknownLength(videoId,url, temporary);
         } else {
-            downloadInParallel(videoId, title, url, temporary, totalLength);
+            downloadInParallel(videoId, title, url, temporary, totalLength,formatKey);
         }
 
         if (totalLength > 0 && temporary.length() != totalLength) {
@@ -322,13 +311,10 @@ public final class LocalDownloadManager {
     }
 
     private static void downloadInParallel(String videoId, String title, String url,
-                                           File temporary, long totalLength) throws Exception {
-        try (RandomAccessFile file = new RandomAccessFile(temporary, "rw")) {
-            file.setLength(totalLength);
-        }
-
-        AtomicLong downloaded = new AtomicLong();
-        long segmentSize = (totalLength + SEGMENT_COUNT - 1) / SEGMENT_COUNT;
+                                           File temporary, long totalLength,String formatKey) throws Exception {
+        RangeJournal journal=new RangeJournal(temporary,totalLength,formatKey);
+        AtomicLong downloaded = new AtomicLong(journal.state.completed());
+        transferred(videoId,downloaded.get());
 
         // Android's ExecutorService is not AutoCloseable, so it is shut down in the finally below.
         //noinspection resource
@@ -337,14 +323,16 @@ public final class LocalDownloadManager {
 
         try {
             for (int index = 0; index < SEGMENT_COUNT; index++) {
-                long start = index * segmentSize;
-                long end = Math.min(totalLength - 1, start + segmentSize - 1);
+                int segment=index;long start=journal.state.position(segment);
+                long end=journal.state.end(segment);
                 if (start > end) continue;
 
                 futures.add(executor.submit(() -> {
-                    downloadRange(url, temporary, start, end, downloaded, bytes -> {
+                    downloadRange(url, temporary, start, end, journal,segment,downloaded, bytes -> {
+                        transferred(videoId,bytes);
                         if (!canPostProgress()) return;
-                        int progress = (int) Math.min(99, bytes * 100 / totalLength);
+                        var shared=app.bdcrusher.ytmusic.playlists.DownloadCatalog.progress(videoId);
+                        int progress=shared==null||shared.percent()<0?(int)Math.min(99,bytes*100/totalLength):shared.percent();
                         showDownloadNotification(videoId, title, progress, true,
                                 str("morphe_music_downloads_progress", progress));
                     });
@@ -363,12 +351,33 @@ public final class LocalDownloadManager {
         }
     }
 
+    private static final class RangeJournal {
+        final File temporary;final android.util.AtomicFile file;
+        final app.bdcrusher.ytmusic.playlists.RangeResume state;final long[] checkpoint=new long[SEGMENT_COUNT];
+        RangeJournal(File temporary,long total,String format)throws IOException{
+            this.temporary=temporary;file=new android.util.AtomicFile(new File(temporary+".resume"));
+            app.bdcrusher.ytmusic.playlists.RangeResume restored=null;
+            if(temporary.isFile()&&temporary.length()==total)try(InputStream input=file.openRead()){restored=app.bdcrusher.ytmusic.playlists.RangeResume.read(input,total,SEGMENT_COUNT,format);}catch(IOException invalid){Logger.printDebug(()->"Starting this media variant with fresh ranges");}
+            if(restored==null){restored=new app.bdcrusher.ytmusic.playlists.RangeResume(total,SEGMENT_COUNT,format);try(RandomAccessFile data=new RandomAccessFile(temporary,"rw")){data.setLength(0);data.setLength(total);data.getFD().sync();}}
+            state=restored;for(int i=0;i<SEGMENT_COUNT;i++)checkpoint[i]=state.position(i);persist();
+        }
+        synchronized void advance(int segment,long position,boolean complete)throws IOException{
+            // Only advertise durable bytes: flush the media before publishing the atomic journal.
+            if(!complete&&position-checkpoint[segment]<1024*1024)return;
+            try(RandomAccessFile data=new RandomAccessFile(temporary,"rw")){data.getFD().sync();}
+            state.advance(segment,position);checkpoint[segment]=position;persist();
+        }
+        void persist()throws IOException{FileOutputStream out=null;try{out=file.startWrite();out.write(state.bytes());file.finishWrite(out);}catch(IOException failure){if(out!=null)file.failWrite(out);throw failure;}}
+        static void finished(File temporary){new android.util.AtomicFile(new File(temporary+".resume")).delete();}
+        static void reset(File temporary){try(RandomAccessFile data=new RandomAccessFile(temporary,"rw")){data.setLength(0);}catch(IOException ignored){}finished(temporary);}
+    }
+
     private interface ProgressCallback {
         void update(long bytes);
     }
 
     private static void downloadRange(String url, File destination, long start, long end,
-                                      AtomicLong downloaded, ProgressCallback progress) throws Exception {
+                                      RangeJournal journal,int segment,AtomicLong downloaded, ProgressCallback progress) throws Exception {
         long position = start;
         int failures = 0;
 
@@ -383,6 +392,8 @@ public final class LocalDownloadManager {
                             "Range request returned HTTP " + connection.getResponseCode());
                 }
 
+                String contentRange=connection.getHeaderField("Content-Range");
+                if(!("bytes "+position+"-"+end+"/"+destination.length()).equals(contentRange))throw new IOException("Download range response mismatch");
                 try (InputStream input = connection.getInputStream();
                      RandomAccessFile output = new RandomAccessFile(destination, "rw")) {
                     output.seek(position);
@@ -396,6 +407,7 @@ public final class LocalDownloadManager {
 
                         output.write(buffer, 0, read);
                         position += read;
+                        journal.advance(segment,position,position>end);
                         progress.update(downloaded.addAndGet(read));
                     }
                 }
@@ -442,7 +454,7 @@ public final class LocalDownloadManager {
         return connection;
     }
 
-    private static void downloadUnknownLength(String url, File destination) throws Exception {
+    private static void downloadUnknownLength(String videoId,String url, File destination) throws Exception {
         HttpURLConnection connection = Requester.openConnection(url);
         connection.setConnectTimeout(CONNECT_TIMEOUT_MILLISECONDS);
         connection.setReadTimeout(READ_TIMEOUT_MILLISECONDS);
@@ -458,7 +470,7 @@ public final class LocalDownloadManager {
                 byte[] buffer = new byte[BUFFER_SIZE];
                 int read;
                 while ((read = input.read(buffer)) != -1) {
-                    output.write(buffer, 0, read);
+                    output.write(buffer, 0, read);transferred(videoId,destination.length());
                 }
             }
         } finally {
@@ -533,6 +545,14 @@ public final class LocalDownloadManager {
         } finally { if (task.isDone()) RESOLVING.remove(videoId,task); }
     }
 
+    public static AudioOptions mediaOptions(String id,boolean video){
+        AudioOptions audio=options(id);if(!video)return audio;
+        try{StreamingDataRequest request=StreamingDataRequest.fetchRequestForDownload(id,SpoofVideoStreamsPatch.getAvailableClients(),Settings.SPOOF_VIDEO_STREAMS_CLIENT_TYPE.get());var stream=request.getStream();if(stream==null)return audio;PlayerResponse response=PlayerResponse.parseFrom(stream.streamingData());if(response.hasPlayabilityStatus()&&response.getPlayabilityStatus().getStatus()!=app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Status.OK)return audio;
+            java.util.Map<Integer,Format> formats=new java.util.LinkedHashMap<>();for(Format f:audio.formats())formats.put(f.getItag(),f);for(Format f:response.getStreamingData().getAdaptiveFormatsList())formats.put(f.getItag(),f);
+            VideoDetails details=response.getVideoDetails();if(!id.equals(details.getVideoId()))return audio;return new AudioOptions(java.util.List.copyOf(formats.values()),details,details.getLengthSeconds());
+        }catch(Exception unavailable){Logger.printDebug(()->"Video formats unavailable; retained audio",unavailable);return audio;}
+    }
+
     private static AudioOptions freshOptions(String videoId) {
         // Playback-only responses can omit videoDetails and cannot name an offline recording.
         StreamingDataRequest request = StreamingDataRequest.fetchRequestForOpusDownload(videoId,
@@ -547,6 +567,7 @@ public final class LocalDownloadManager {
 
         try {
             PlayerResponse response = PlayerResponse.parseFrom(stream.streamingData());
+            if(!videoId.equals(response.getVideoDetails().getVideoId())||response.hasPlayabilityStatus()&&response.getPlayabilityStatus().getStatus()!=app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Status.OK)return new AudioOptions(List.of(),VideoDetails.getDefaultInstance(),0);
             return new AudioOptions(response.getStreamingData().getAdaptiveFormatsList(),
                     response.getVideoDetails(), response.getVideoDetails().getLengthSeconds());
         } catch (Exception ex) {

@@ -1,235 +1,171 @@
-
-◆8LNH56sLs6 
+◆8LNH56sLs6
 # Haiagaru for Morphe
 
-ChMate `0.8.10.191 dev` / `0.8.10.226 dev` / `0.8.10.242 dev` 対応のMorpheパッチです。 <br>
+ChMateに設定・閲覧・検索・NG・バックアップ機能を追加するMorpheパッチです。
+対応する元APKは **0.8.10.191 dev／0.8.10.226 dev／0.8.10.242 dev** です。0.8.10.241と0.8.10.243 devは対応対象外です。
 
-**0.8.10.241／0.8.10.243 devは対応対象外です。** 191 dev／226 dev／242 devをご利用ください。
+**[最新の正式リリースと配布ファイル](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest)** ／ [変更履歴](CHANGELOG.md) ／ [使い方](使い方.md) ／ [FAQ](docs/faq.md)
 
-ChMateに追加設定・閲覧・メディア・バックアップ機能を組み込むパッチです。
-従来の機能紹介は [Haiagaru](https://github.com/areteruhiro/Haiagaru) も参照してください。
+このREADMEは現在のソースに対応します。公開済みの内容は上のリリース説明で確認してください。開発ブランチの変更が公開前の場合もあります。従来の機能紹介は[Haiagaru](https://github.com/areteruhiro/Haiagaru)も参照できます。
 
-最新正式版: [1.11.2](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest) ／ [変更内容・更新手順・確認範囲](docs/release-1.11.2.md)
+## 導入と更新
 
-次期プレ版の公開前検証中: [初回最低限構成・.haiagaru設定共有・履歴から走査再開](docs/settings-sharing-history-resume.md)、
-[検索・フィルター改善](docs/search-filter-2026-10-20.md)、
-[過去ログ文字倍率・折りたたみ端末判定](docs/archive-scale-fold-fix.md)。
-ローカル実装の案内であり、公開済みを意味しません。
+1. 更新前にChMateの設定・必要なログをバックアップします。`.haiagaru`の設定共有ファイルだけでは、スレ本文や全履歴のバックアップにはなりません。
+2. Morpheへ[Haiagaruのパッチソースを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)します。
+3. 対応する元APKを選び、`Haiagaru`を適用します。動画専用ビューア、MEGA、パッケージ名変更などの任意パッチは用途に合わせて選択します。
+4. 作成したAPKをインストールします。上書き更新では、既存アプリと**パッケージ名・署名鍵をそろえてください**。
+5. ChMateの設定を開き、**「セーフモード」の直前にある「Haiagaru設定」**から追加機能を設定します。旧版で表示されていた浮動ボタンは、設定画面内の入口へ置き換わります。
 
-更新前にバックアップしてください。**[正式版1.7.1からの変更](docs/release-1.9.0-from-1.7.1.md)** ／ **[プレ版1.8.15からの差分・操作案内](docs/release-1.9.0.md)**。versionCode最大化が初期有効です。
+パッチ適用後に選べる機能と、Haiagaru設定でオン／オフする機能は異なります。機能を有効にする際は、各項目の説明と初期値を確認してください。
 
-更新履歴: [CHANGELOG.md](CHANGELOG.md)  
-操作案内: [使い方.md](使い方.md)
+### 任意の追加ファイル
 
-## よくある質問・困ったとき
+通常のHaiagaru利用に、以下の追加ファイルは必須ではありません。対象機能を使う場合だけ[ReleaseのAssets](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest)から保存し、ZIPを展開せずMorpheのファイル選択で指定します。
 
-**[よくある質問（FAQ）はこちら](docs/faq.md)**
+| 機能 | 指定するファイル | 補足 |
+|---|---|---|
+| 191の自動NG画像判定の修正 | `haiagaru-image-ng.zip` | 191のみ。修正オプションがONでも、ファイル未選択なら元ライブラリを維持します。226／242には不要です。 |
+| 画像取得専用VPN | `haiagaru-image-vpn-v2.zip` | 実験用の任意パッチです。Image NG用ZIPとは別です。 |
+| 絵文字フォント | `NotoColorEmoji.ttf`などの対応フォント | パッチオプションで指定します。未選択なら端末標準を使用します。 |
 
-Cookieエラー、ワッチョイ検索、画像一覧、高度なNGなどを案内しています。
-導入時の問題は[インストールできない場合](#インストールできない場合)、不具合の報告・相談は[サポート](#サポート)をご覧ください。
+[追加ファイルの導入案内](docs/optional-assets.md)
+
+## Haiagaru設定
+
+設定は次の9カテゴリに整理しています。検索欄から項目名・説明を探して変更でき、設定は自動保存されます。再表示や再起動が必要な項目は画面の説明に従ってください。
+
+| カテゴリ | 主な内容 |
+|---|---|
+| スレッド | 本文・一覧の表示、投稿者の強調、コピー、X投稿プレビュー |
+| 探す・過去ログ | IDチェッカー、取得済みスレ検索、DAT取得経路、アーカイブ |
+| 書き込む | 入力欄、BE、スレ立てコマンド、添付・アップロード |
+| 画像・動画 | サムネイル、GIF／動画ビューア、保存、ジェスチャー |
+| NG・ミュート | 通常NGの補助、自動NG、連鎖あぼーん、高度なNG |
+| 履歴・コピーした記事 | 閲覧履歴、コピー履歴、巡回エラー履歴 |
+| バックアップ・機種変更 | ローカル・自動バックアップ、任意のMEGA同期 |
+| アプリ・通信 | テーマ、追加タブ、通信・認証 |
+| エキスパート設定 | 個別の動作や互換設定の細かな切り替え |
+
+ツールバー項目の表示・並び順はChMate標準のツールバー設定で変更します。
+[設定画面の使い方](docs/settings-navigation.md) ／ [カテゴリ一覧](docs/settings-organization.md)
 
 ## 主な機能
 
-* Remove ads (including margins)
-* 画像キャッシュサイズを最大256GBまで選択（4／8／16／32／64／128／256GBを追加、現在の設定は維持）。[詳細](docs/image-cache-size.md)
-* 画像を含むHTTP通信のHTTPS切り替え（Haiagaru設定でON/OFF、初期値OFF）
-* Remove MonaKey
-* GitHubから更新できるDAT落ちスレ用検索プリセット
-* 自動DAT取得経路の並べ替えと任意HTTPS経路の追加
-* SS速報VIPの過去ログdat取得と、DAT経路変数の部分取り出し（`{$key:0:4}` など）。191／226／242 dev対応。[設定・書式](docs/dat-routes.md)
-* 自動DAT取得のON/OFF切り替え
-* 古いDAT・過去ログの改行保持と`.io` URL直接起動時の自動DAT取得
-* Talkの現行・旧形式板URLからの板一覧／スレ取得と書き込み互換処理
-* モバイル回線固定時の投稿で失効したNetwork IDを再利用しない接続更新（Haiagaru設定でON/OFF、初期値ON）
-* ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のスレ内広告行の非表示
-* 5ch.io板が外部板扱いと5ch扱いで重複した場合の内部板一覧一括整理
-* パッケージ名・アプリ名・アイコン・versionCodeの変更
-* クラッシュログ保存（Morpheで無効化可能、初期値ON）
-* レス本文の直接選択・コピー: 本文長押しで一部を選択し、Android標準メニューからコピーできます。Haiagaru設定、またはスレ内ツールバー設定に追加した「長押しコピー」でオン／オフ可能（初期オフ）。191／226／242 dev対応。[使い方](docs/direct-body-selection.md)
-* 画像／動画のアップロード先切り替え: Imgur、画像専用imgbox（10MB）、imgpile（API不要100MB／API方式97MB）、動画専用Sendvidを選択可能。標準添付の成功結果を本文へ挿入し標準履歴へ記録します。imgbox／imgpileの保存済み管理情報から選択・確認付きの一括削除も追加。権限・画像単位のフォーム・成功応答を確認できない場合は停止します。手動Web画面は別操作です（開発中・実送信／実削除成功は未確認）。[使い方・制限](docs/upload-hosts.md)
-* 専用ビュワーの追加　<オフに出来ないとの報告があります>
-* 動画専用ビューアの左右上下スワイプ（明るさ／音量）・左右ダブルタップの相対シーク設定、およびYouTube公式プレーヤーのアプリ内表示。[操作と制限](docs/video-viewer-controls.md)
-* エッヂ過去ログビューアーで開けない場合はエラーコードを表示し、`Download/Haiagaru` に診断ログを保存
-* ChMate `0.8.10.191 dev`／`0.8.10.226 dev` のChMate+互換設定
-  * 単発ID表示を省略
-  * [コピペ省略2](docs/chmate-plus-compat.md)（変更後に再起動して反映。標準の判定条件を使用）
-  * 荒らし省略
-* エッヂ板でスレタイ末尾に記者IDを表示（初期値ON、Haiagaru設定から切り替え）
-* 端末内JavaScriptで複雑なNG条件を作れる「高度なNGルール」
-* [5chのIDなしレスを非表示](docs/hidden-id-ng.md)（初期オフ、ID付きレスのあるスレ内のみ。191／226／242 dev）
-* NGワード・NG ID・NG名前などの登録上限をHaiagaru設定から変更（0で無制限、191 dev／226 dev／242 dev共通）
+- 広告と余白の非表示、MonaKey削除、ChMate+互換設定（単発ID・コピペ・荒らしの省略）。[ChMate+互換機能](docs/chmate-plus-compat.md)
+- 画像キャッシュ上限の拡張（最大256GB）、任意のHTTP→HTTPS切り替え。[キャッシュ](docs/image-cache-size.md) ／ [HTTPS](docs/https-switching.md)
+- 必死チェッカー、ワッチョイ検索、取得済みスレ検索、外部検索。必死チェッカー専用ビューアを使わない場合は、パッチオプション`dedicatedCheckerViewer=false`を指定します。[専用ビューア](docs/id-search-viewer.md)
+- DAT落ちスレの取得、任意のHTTPS取得経路、SS速報VIPの過去ログ、保存レス・保存用スレ。[DAT経路](docs/dat-routes.md) ／ [レスアーカイブ](docs/response-archive.md)
+- レス本文の直接選択・コピー、投稿者の強調、X投稿の本文プレビュー。[直接選択](docs/direct-body-selection.md) ／ [投稿者の強調](docs/poster-highlight.md) ／ [Xプレビュー](docs/x-post-preview.md)
+- 画像・GIF・動画の閲覧、スレ全体のメディアへの移動、動画の相対シーク・再生速度・保存。専用動画ビューアは任意パッチです。[動画操作](docs/video-viewer-controls.md)
+- 通常NGの登録上限の変更（0で無制限）、IDなしレスの非表示、自動NGと除外ID、JavaScriptによる高度なNG。[IDなしNG](docs/hidden-id-ng.md) ／ [高度なNG](docs/advanced-ng.md)
+- **連鎖あぼーんを常に非表示**（初期OFF）。元のNG対象レスや保存済みルールを変えず、連鎖されたレスの行を隠します。「NGWord-IDへの返信も非表示」とは独立した設定です。
+- 登録スレの新着通知、巡回時の画像保存、巡回エラーのURL表示。[巡回画像](docs/patrol-images.md) ／ [新着通知](docs/thread-notifications.md)
+- エッヂの記者ID表示、過去ログ検索、外部板の認証と登録板の編集。[記者ID](docs/edge-reporter-id.md) ／ [認証](docs/external-board-auth.md) ／ [外部板編集](docs/external-board-editor.md)
+- 標準添付のアップロード先切り替え、アップロード履歴管理。[対応先・制限](docs/upload-hosts.md) ／ [標準履歴](docs/native-upload-history.md)
+- ローカルバックアップ・自動バックアップ、任意のMEGA同期、設定の`.haiagaru`共有。[自動バックアップ](docs/local-auto-backup.md) ／ [MEGA](docs/mega-backup.md) ／ [設定共有](docs/settings-sharing-history-resume.md)
+- 自作テーマ、アプリ名・パッケージ名・アイコン・versionCodeの変更、クラッシュログ保存。[テーマ](docs/custom-theme-import.md)
 
-## 最近の追加機能
+機能ごとの追加時点は[最近の追加機能](docs/recent-features.md)、全変更は[CHANGELOG](CHANGELOG.md)を参照してください。過去のリリース文書には当時の設定名や未確認事項が含まれます。
 
-[最近の追加機能・版別の説明](docs/recent-features.md)にまとめています。最新の操作方法は[使い方](使い方.md)、全変更履歴は[CHANGELOG](CHANGELOG.md)をご覧ください。
+### 登録スレの新着通知
 
-## 機能別ドキュメント
+スレタイトルを長押しし、**「このスレの新着通知」→「通知を登録」**を選びます。同じ画面から解除・確認間隔の変更ができます。ツールバーの選択項目にも追加できます。
 
-- [ID検索と専用ビュワー](docs/id-search-viewer.md)
-- [エッヂの記者ID表示](docs/edge-reporter-id.md)
-- [HTTP通信のHTTPS切り替え](docs/https-switching.md)
-- [MEGAバックアップ](docs/mega-backup.md)
-- [ChMate+互換機能](docs/chmate-plus-compat.md)
-- [高度なNGルール](docs/advanced-ng.md)
-- [本文の文字列置換（外部TXT）](docs/replace-str.md)
-- [Haiagaru設定のカテゴリ・検索](docs/settings-organization.md)
-- [巡回時の画像自動保存・フィルタリング](docs/patrol-images.md)
-- [自作テーマの取り込み](docs/custom-theme-import.md)
-- [画像キャッシュサイズ](docs/image-cache-size.md)
-- [標準画像アップロード履歴・一括削除](docs/native-upload-history.md)
-- [動画ビューアの操作](docs/video-viewer-controls.md)
-- [X／Twitter本文プレビュー](docs/x-post-preview.md)
-- [スレ立てコマンド](docs/thread-commands.md)
-- [ワッチョイ下4桁検索](docs/wacchoi-suffix-search.md)
-- [非表示NGメニューの表示設定](docs/hidden-ng-menu.md)
-- [エッヂ過去ログ検索の表示調整](docs/edge-archive-display.md)
-- [レス単位アーカイブ](docs/response-archive.md)
-- [191 devの通信改善・検証範囲](docs/chmate191-update-performance.md)
-- [外部板の認証ページ](docs/external-board-auth.md)
-- [登録した外部板の名前・URL編集](docs/external-board-editor.md)
-- Cookieエラー、ワッチョイ検索、画像一覧、高度なNGワードについては [よくある質問](docs/faq.md) を参照してください。
+- 初期15分。1分〜7日を日・時間・分で指定し、登録した全スレへ適用します。
+- 初回確認はレス数を記録するだけで通知せず、以後の増加を通知します。
+- スレ名・新着件数・本文プレビューを表示します。本文は新着があるときだけ取得し、最新の新着レス最大3件を省略表示します。取得できない場合もスレ名と件数で通知します。アイコンはインストール先アプリのものを使います。
+- 通知をタップするとスレを開きます。Androidの通知許可が必要です。
+- アプリを閉じていてもJobSchedulerで確認しますが、通信条件・省電力・実行回数制限により遅れます。**1分設定は正確な毎分通知を保証しません。** Androidでの強制停止中は通常のバックグラウンド確認が動きません。
 
+[使い方・取得内容・制約](docs/thread-notifications.md)
 
 ### DAT落ちスレの自動取得
 
-DAT落ちスレ用プリセットは、通常閲覧時ではなく設定画面の更新ボタンを押した時だけ、
-[`presets/chmate-dat-fallen-search-urls.txt`](presets/chmate-dat-fallen-search-urls.txt) を取得します。
-GitHubへ接続できない場合は、基本3経路を収録した内蔵プリセットを使用します。
-2ch.scの板一覧参照先は [`https://menu.2ch.sc/bbsmenu.html`](https://menu.2ch.sc/bbsmenu.html) です。
+Haiagaru設定の「自動DAT取得経路」を上から順に試します。初期経路は元サーバーの`5ch.io` DAT、`kako.5ch.io`、`itest.5ch.io`、同サーバーの`2ch.sc` DATです。並べ替え・任意HTTPS経路の追加・自動取得のOFFに対応します。
 
-Haiagaru設定の「自動DAT取得経路」は、上の行から順に試行します。
-初期状態では、元スレと同じサーバーの `5ch.io` DAT、`kako.5ch.io`、
-`itest.5ch.io`、同じサーバーの `2ch.sc` DATの順です。
-行を並べ替えると優先順を変更でき、1行追加すると任意のHTTPS経路も追加できます。
+通常の最近の未取得5chスレでは、先に画面を開いてから取得したDATを読み込みます。現役スレのDATを画面遷移前に取得して破棄し、再取得する経路を取り除きました。通信時間そのものや端末での改善率を保証するものではありません。
 
-各行は `auto|`、`dat|`、`kako|`、`itest|` のいずれかにURLを続けます。
-URLでは `{$server}`、`{$bbs}`、`{$key}`、`{$rand}` を使用できます。
-空行と `#` で始まる行は無視され、無効な設定しかない場合は初期経路へ戻ります。
+DAT落ちスレ用の検索プリセットは設定画面の更新操作で[`presets/chmate-dat-fallen-search-urls.txt`](presets/chmate-dat-fallen-search-urls.txt)を取得します。接続できない場合は内蔵プリセットを使います。自動DAT取得経路とは別の設定です。
 
-## 既知の不具合
+経路の書式、`{$host}`や`{$key:0:4}`などの変数は[DAT取得経路](docs/dat-routes.md)を参照してください。2ch.scの板一覧は[`menu.2ch.sc/bbsmenu.html`](https://menu.2ch.sc/bbsmenu.html)です。
 
+### 認証・通信
 
-### スレ内の検索長押しで「URLを開けるアプリがありません」と表示される場合
+スレタイトル長押しから「エッヂの閲覧認証」を開けます。認証後は閲覧用Cookieと対応するブラウザUAを引き継ぎます。確認画面を完了できない場合は、状態表示と再読み込みを確認してください。VPN・回線・サイト側の判断により認証できない場合があります。閲覧認証と書き込み認証は別です。
 
-Androidの「標準アプリとして設定」から、以下の項目をOFFにしてください。
+User-Agentは固定テンプレート／カスタム指定方式です。5秒ごとのランダムUA実験は含みません。191の接続・巡回に関する設定と確認範囲は[通信改善](docs/chmate191-update-performance.md)を参照してください。
 
-- `itest.5ch.io`
-- `*.5ch.io`
+### 開発中の機能
 
-この設定をOFFにすると、書き込みボタンを長押しした際に外部ブラウザで開けるようになります。
+**共有NG／F9対策、エッヂの公開レベルNGは開発中です。** 共有NGは同意した利用者が送信・受信を使う機能で、各端末の個人NGとは別です。エッヂの認証日を記録・全利用者へ共有する機能は含みません。
 
-設定例: https://i.imgur.com/lmYxXZD.jpeg
-
-なお、「標準アプリとして設定」内の項目をOFFにしても、Haiagaru内で `*.5ch.io` のURLを開いた場合は、Haiagaru内で正常に開かれます。
-
-情報提供: (ﾜｯﾁｮｲ 0de3-uUZJ)
+アップロード先切り替えやサーバー側の一括削除には、実サイトでの未確認経路があります。[対応先別の制限](docs/upload-hosts.md)を確認してください。軽量版専用パッチは配布していません。
 
 ## インストールできない場合
 
-### パッチ適用時にエラーが発生して適用できない
+### パッケージの競合・証明書の違い
 
-Morpheでパッチを適用しようとした際にエラーが発生する場合は、Morphe右下の設定から以下のように変更してください。
+パッチ済みAPKは再署名されます。同じパッケージ名でも、既存アプリと署名鍵が違うAPKは上書きできません。**パッチ適用・署名処理の成功と、既存アプリへの上書き可否は別です。** Morpheの再インストール・別環境での作成・署名鍵の切り替えにも注意してください。
 
-`Morphe右下 → 別プロセスで実行 → 1024MB`
+まずパッケージ名・署名証明書SHA-256・versionCodeと、インストール時のログを比較します。同じ署名鍵を使ったAPKへそろえるか、`Change ChMate package name`で別アプリとして導入できます。既存データを保つため、競合画面からすぐアンインストールせず、バックアップと復元方法を確認してください。
 
-設定変更後、もう一度パッチ適用をお試しください。
+`Change ChMate package name`は初期有効で、標準のパッケージ名は`jp.co.airfront.android.a2chMate.haiagaru`、表示名は`Haiagaru`です。versionCodeは初期値`2100000000`で、通常はそれより小さいAPKへ上書きできません。パッケージ名・署名鍵が一致する場合の対応版間の更新に使えますが、非対応版への対応を追加する機能ではありません。アイコン未指定なら元アイコンを維持します。
 
-以前のChMateをアプリデータを残してアンインストールした場合など、既存のパッケージとの競合が表示されることがあります。まずパッケージ名・署名の違いを確認してください。データを消す操作は最終手段です（過去の241での報告。現在241は対応対象外）。
+### パッチ作成が失敗する
 
-1. ChMateの設定や必要なデータをバックアップします。
-2. 以前のChMateを、アプリデータも含めて完全にアンインストールします。
-3. パッチ済みAPKをインストールします。
-4. 必要に応じて、手順1のバックアップからデータを復元します。
+Morpheのログにある`ERROR`／例外と末尾を確認してください。Haiagaruの適用内容が`[WARN] [STDIO]`で表示されるだけでは失敗を意味しません。
 
-アプリデータを削除すると、バックアップしていない設定や履歴は失われます。必ずアンインストール前にバックアップを確認してください。
+実行環境やメモリ不足による失敗では、Morphe設定の実行環境・別プロセス・メモリ上限を端末の空きRAMに合わせて見直します。項目名はMorpheの版で異なります。全端末に共通するメモリ値はありません。
 
-初期状態で有効なパッチ `Change ChMate package name` では、別アプリとしてインストールするための
-パッケージ名に加えて、アプリ名、PNG/WebPアイコン、versionCodeを設定できます。
-アイコン・versionCodeを未指定にした項目は元の値を保持します。
+### バックアップ・クラッシュログ
 
-標準設定ではShizukuを組み込みません。旧ChMateの共有データをShizukuでコピーする場合だけ、
-任意パッチ `Migrate ChMate data with Shizuku` を追加で有効にしてください。
-この任意パッチを有効にしたAPKはAndroid 7.0（API 24）以降が必要です。
-データ移行にはchmate本来のバックアップ/復元を推奨しています。
+ChMate標準のバックアップ／復元、またはHaiagaruのローカルバックアップを使用してください。MEGAは任意パッチです。Shizukuによる移行は必要な場合だけ`Migrate ChMate data with Shizuku`を選択し、Android 7.0（API 24）以降で利用します。
 
-備考: パッケージ名の変更により予期せぬエラーが発生する可能性がありますが、
-既存のChMateとは別アプリとして扱われるため、インストール時の競合エラーを抑えられます。
+`Save ChMate crash logs`を有効にすると、未処理例外のログを`Download/Haiagaru/`へ保存します。報告時にはアプリ・Haiagaruの版、再現手順、エラー末尾を添えてください。Cookieやトークン、認証情報入りバックアップは公開しないでください。
 
-任意パッチ `Save ChMate crash logs` を有効にすると、未処理例外でクラッシュした際に
-`Download/Haiagaru/` へログを保存します。投稿本文、Cookieなどのアプリデータは記録しません。
+## 既知の制約とFAQ
 
-情報提供: あかまつさん
+外部板やサービス側の変更、Cloudflare認証、Androidのバックグラウンド制限によって利用できない経路があります。特定端末だけの症状は、その端末で確認済みとは限りません。各機能文書と[FAQ](docs/faq.md)の確認範囲も参照してください。
 
-## URV Manager / Morphe Managerへの追加と更新
+スレ内の検索長押しなどで「URLを開けるアプリがありません」と表示される場合は、Androidの「標準アプリとして設定」で`itest.5ch.io`や`*.5ch.io`の扱いを確認してください。外部ブラウザで開く設定との競合が報告されています。[設定例](https://i.imgur.com/lmYxXZD.jpeg)（情報提供: ﾜｯﾁｮｲ 0de3-uUZJ）
 
-### Morpheへリポジトリとして追加
+## Morpheのパッチソース
 
-Morpheのパッチソースには、次のGitHubリポジトリURLをそのまま登録できます。
+通常はGitHubリポジトリURLを登録します。
 
 ```text
 https://github.com/areteruhiro/Haiagaru-Morphe/
 ```
 
-[MorpheへHaiagaruを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)
+直接メタデータを指定する場合のURLは次のとおりです。
 
-通常版は`master/patches-bundle.json`、プレリリースは`dev/patches-bundle.json`から取得します。
-配布物はAndroid拡張を内包したMPPです。リリースと生成メタデータはMorphe公式テンプレート準拠のSemantic Release CIで更新します。
+- 正式版：[`master/patches-bundle.json`](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json)
+- プレリリース：[`dev/patches-bundle.json`](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/patches-bundle.json)
 
-正式版を取得するパッチソースです。
+プレリリースを有効にしていても、その時点で正式版と同じ版が配信される場合があります。表示が古い場合はパッチソースを再読み込みしてください。GitHubのキャッシュにより反映が遅れることがあります。
 
-```text
-https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
-```
+## 対応する元APKとビルド
 
-プレリリースを有効にしたリポジトリソースは、`dev`ブランチのメタデータを取得します。
+| ChMate | 元versionCode | 元minSdk |
+|---|---:|---:|
+| 0.8.10.191 dev | 459 | 21 |
+| 0.8.10.226 dev | 494 | 23 |
+| 0.8.10.242 dev | 512 | 23 |
 
-```text
-https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/patches-bundle.json
-```
+元パッケージは`jp.co.airfront.android.a2chMate`です。元APKの署名SHA-256は`7dd84d97df4666fbc8188b8d6167ce59314636997f0edae82d685fffda4059d2`です。これはパッチ後のAPKの署名とは異なります。
 
-正式版は`master`、プレリリースは`dev`のSemantic Releaseが更新します。生成されるJSONやCHANGELOGを手作業で編集・公開しないでください。更新が表示されない場合はパッチソース画面から再読み込みしてください。GitHubの配信キャッシュにより反映に数分かかる場合があります。
-変更履歴で「このリリースは空です」と出る場合は、Morphe Managerも最新版へ更新してください。
-
-## 更新履歴
-
-各バージョンの変更内容は [CHANGELOG.md](CHANGELOG.md) を参照してください。
-
-## 対象
-
-- パッケージ: `jp.co.airfront.android.a2chMate`
-- バージョン: `0.8.10.191 dev`（versionCode 459、minSdk 21）
-- バージョン: `0.8.10.226 dev`（versionCode 494、minSdk 23）
-- バージョン: `0.8.10.242 dev`（versionCode 512、minSdk 23）
-- 元APKの署名 SHA-256:
-  `7dd84d97df4666fbc8188b8d6167ce59314636997f0edae82d685fffda4059d2`
-
-## ビルド
+ローカルの主開発先は[AGENTS.md](AGENTS.md)に従ってください。
 
 ```powershell
 .\gradlew.bat :patches:buildAndroid --no-daemon --max-workers=1
 ```
 
-生成物:
-
-```text
-patches\build\libs\patches-1.8.9.mpp
-```
-
-公開には`:patches:buildAndroid`で生成したMPPを使用し、`classes.dex`が含まれることを確認してください。
-
-191 devの自動NG画像判定でTFLiteがクラッシュする場合は、パッチ適用時の
-「191の自動NG画像判定クラッシュを修正」（`imageNgTfliteFix`）を有効にしてください。
-既定では有効です。`false`を指定すると元APKのTFLiteライブラリを維持します。
-このオプションは191 dev以外には影響しません。
-
-Morphe Desktopでは `Haiagaru` を有効にして対象APKへ適用します。
-APKは再署名されるため、Play版など署名が異なるChMateとはそのまま上書きできません。
+生成物は`patches/build/libs/patches-<version>.mpp`です。Android拡張を内包したMPPを使用します。正式版は`dev`から`master`へ統合し、既存のSemantic Release CIで公開します。生成されるバージョン・CHANGELOG・配布JSONは手作業で編集しません。
 
 ## サポート
 何かあればGitHubのIssueか
 以下のサーバーで対応させていただきます。
 お気軽にご質問等お願いします。
-~~＊開発者自身がchmateを開かないため~~
 
 [Haiagaru サポートチャンネル](https://discord.gg/ypTzS4VWaz)
 

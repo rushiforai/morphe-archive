@@ -9,6 +9,7 @@ package app.morphe.extension.facebook.reels;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -57,8 +58,10 @@ import app.morphe.extension.shared.settings.Setting;
  * Facebook's views carry no ids to know a reel by, and the Reels tab and a reel or video opened full
  * screen are built differently, but each plays on one surface that fills the screen. A reel takes
  * about 87% of an S22's window with the tab bar showing, a tall video in the feed about 58% and a
- * landscape one about 26%. Facebook's camera and story editor fill the screen with a preview too,
- * and their shutter and tools are never dimmed ({@link #camera}).
+ * landscape one about 26%. A video opened from the feed plays on a page of Facebook's full-screen
+ * viewer sized to the video, so a wide one there is small too, but its page is the screen's size
+ * ({@link #onAFullPage}, #370). Facebook's camera and story editor fill the screen with a preview
+ * too, and their shutter and tools are never dimmed ({@link #camera}).
  *
  * <p>The dim: once the Reels screen has gone the Dim after choice ({@link BurnInWait}) without a
  * touch, what shows beside the video is drawn at {@link #IDLE_LEVEL} of what Facebook draws it at,
@@ -76,7 +79,8 @@ import app.morphe.extension.shared.settings.Setting;
  *
  * <p>The shift moves the window's content around a small square, {@link #STEP_DP} at a time, every
  * {@link #SHIFT_EVERY_MS}. It's one view's translation, the content frame's, which Facebook doesn't
- * animate, where each control's would be fought over with Facebook's own animations.
+ * animate, where each control's would be fought over with Facebook's own animations. A window the
+ * screen under it shows through, the story viewer's, is never moved ({@link #seeThrough}, #369).
  *
  * <p>Both run only on the Reels screen, with the choice on, Hushfacebook not paused and the activity
  * in front. While guarding, a look that doesn't find the Reels screen is made again {@link
@@ -103,6 +107,8 @@ public final class BurnInGuard {
      * the video a view that takes taps covers for a tap on it to be a tap on the video.
      */
     static final float REELS_SHARE = 0.7f;
+    /** The least share of a full-screen viewer's page on the screen for it to have settled there. */
+    static final float PAGE_SHOWN = 0.95f;
     /** The package of Facebook's camera and story editor screens (585: InspirationCameraActivity). */
     static final String CAMERA_PACKAGE = "com.facebook.inspiration.";
     /** How long the content stays in one place. */
@@ -148,6 +154,8 @@ public final class BurnInGuard {
     private static Handler handler;
     /** The activity in front, the one every pass looks at. */
     private static WeakReference<Activity> front = new WeakReference<>(null);
+    /** The activity in front lets the screen under it show through ({@link #seeThrough}). */
+    private static boolean frontSeeThrough;
     /** The decor view whose observer has the listeners. */
     private static WeakReference<View> observed = new WeakReference<>(null);
     private static boolean layoutWatched;
@@ -212,6 +220,7 @@ public final class BurnInGuard {
         try {
             leave();
             front = new WeakReference<>(activity);
+            frontSeeThrough = seeThrough(activity);
             View decor = activity.getWindow() == null ? null : activity.getWindow().peekDecorView();
             if (decor == null) return;
             ViewTreeObserver observer = decor.getViewTreeObserver();
@@ -293,7 +302,7 @@ public final class BurnInGuard {
             } else {
                 undim();
             }
-            boolean shifting = on && mode == BurnInMode.DIM_AND_SHIFT;
+            boolean shifting = on && mode == BurnInMode.DIM_AND_SHIFT && !frontSeeThrough;
             place(activity, shifting, now);
             long next = !on || fingerDown ? Long.MAX_VALUE : dim ? now + KEEP_MS : touchedAt + wait;
             schedule(Math.min(next,
@@ -314,6 +323,20 @@ public final class BurnInGuard {
         return activity.getClass().getName().startsWith(CAMERA_PACKAGE);
     }
 
+    /**
+     * Whether [activity]'s window lets the screen under it show through, as the story viewer's does
+     * (585: StoryViewerActivity's theme is translucent on a clear background). Moved a step, its
+     * content would uncover a strip of the feed beneath along one edge (#369), so it's never moved.
+     */
+    static boolean seeThrough(Activity activity) {
+        TypedArray style = activity.obtainStyledAttributes(new int[]{android.R.attr.windowIsTranslucent});
+        try {
+            return style.getBoolean(0, false);
+        } finally {
+            style.recycle();
+        }
+    }
+
     /** The video the Reels screen in [decor] plays, or null when [decor] isn't showing it. */
     @Nullable
     static View reelOf(View decor) {
@@ -322,7 +345,8 @@ public final class BurnInGuard {
 
     /**
      * The largest of [surfaces] (the shown ones in [decor]) by the part of it on the screen, when the
-     * window has focus and that part is at least {@link #REELS_SHARE} of the window. Null otherwise.
+     * window has focus and that part is at least {@link #REELS_SHARE} of the window or it plays on a
+     * full-screen viewer's page ({@link #onAFullPage}). Null otherwise.
      */
     @Nullable
     private static View reelOf(View decor, List<View> surfaces) {
@@ -340,7 +364,40 @@ public final class BurnInGuard {
                 largest = surface;
             }
         }
-        return most >= REELS_SHARE * width * height ? largest : null;
+        if (largest == null) return null;
+        return most >= REELS_SHARE * width * height || onAFullPage(largest, decor) ? largest : null;
+    }
+
+    /**
+     * Whether [surface] plays on a page of a scrolling view that shows over at least {@link
+     * #REELS_SHARE} of the window, the page exactly the scrolling view's size and settled on the
+     * screen: Facebook's full-screen video viewer, where a video sits on a page the size of the screen
+     * whatever its own shape (585 on a 720x1600 emulator: the pager and its page are 720x1453 of a
+     * 720x1558 content frame, and the TextureView in it is the video's shape, 720x1280 for a tall one)
+     * (#370). The pager is a RecyclerView ({@link PostLongPress#LIST}), which doesn't scroll while it
+     * holds just the one video, so a list counts whether it scrolls or not. A post in the feed is a
+     * page of a scrolling list too, but never exactly the list's own height. The nearest scrolling
+     * view or list above [surface] decides.
+     */
+    private static boolean onAFullPage(View surface, View decor) {
+        View content = decor.findViewById(android.R.id.content);
+        Rect shown = new Rect();
+        for (View page = surface; page != content; ) {
+            View pager = parentOf(page);
+            if (pager == null) return false;
+            if (pager.canScrollVertically(1) || pager.canScrollVertically(-1)
+                    || PostLongPress.isNamed(pager, PostLongPress.LIST)) {
+                if (page.getWidth() != pager.getWidth() || page.getHeight() != pager.getHeight()) return false;
+                if (!pager.getGlobalVisibleRect(shown) || !shown.intersect(0, 0, decor.getWidth(), decor.getHeight())
+                        || (long) shown.width() * shown.height() < REELS_SHARE * decor.getWidth() * decor.getHeight()) {
+                    return false;
+                }
+                return page.getGlobalVisibleRect(shown)
+                        && (long) shown.width() * shown.height() >= PAGE_SHOWN * page.getWidth() * page.getHeight();
+            }
+            page = pager;
+        }
+        return false;
     }
 
     /** The shown TextureViews and SurfaceViews under [root], looking at no more than {@link #MAX_VIEWS} views. */
@@ -757,6 +814,7 @@ public final class BurnInGuard {
     static void resetForTests() {
         leave();
         if (handler != null) handler.removeCallbacks(TICK);
+        frontSeeThrough = false;
         tickAt = -1L;
         touchedAt = 0L;
         doubtSince = -1L;

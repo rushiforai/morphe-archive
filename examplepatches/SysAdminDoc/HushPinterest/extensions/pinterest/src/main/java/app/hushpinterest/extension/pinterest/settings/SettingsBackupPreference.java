@@ -68,6 +68,8 @@ import app.hushpinterest.extension.shared.settings.preference.AbstractPreference
 import app.hushpinterest.extension.shared.settings.preference.ImmediateAction;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
 
+import static app.hushpinterest.extension.pinterest.settings.SaveButtonColorSetting.SAVE_BUTTON_COLOR;
+
 /**
  * Export settings, Import settings and Undo import.
  *
@@ -385,7 +387,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         shown.dismiss();
     }
 
-    /** Named saved-value changes, including switches whose patch isn't installed in this build. */
+    /** Named saved-value changes, including settings whose patch isn't installed in this build. */
     static String previewMessage(SettingsBackup.Snapshot snapshot) {
         synchronized (Setting.class) {
             Map<Setting<?>, Object> changes = snapshot.changes();
@@ -394,22 +396,29 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                     ? L10n.quantity(switches, "%1$d switch will change.", "%1$d switches will change.", switches)
                     : changes.isEmpty()
                     ? L10n.t("Your switches already match that file, so nothing will change.")
-                    : L10n.t("Your muted words will change."));
+                    : !changes.containsKey(SAVE_BUTTON_COLOR)
+                    ? L10n.t("Your muted words will change.")
+                    : changes.containsKey(Settings.MUTED_WORDS)
+                    ? L10n.t("Your muted words and Save button color will change.")
+                    : L10n.t("Your Save button color will change."));
             for (Map.Entry<Setting<?>, Object> entry : changes.entrySet()) {
+                boolean installed;
                 if (entry.getKey() instanceof MutedWordsSetting) {
                     MutedWordsSetting list = (MutedWordsSetting) entry.getKey();
                     message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Muted words"),
                             listSize(list.persistedValue()), listSize((String) entry.getValue())));
-                    if (!PatchFamily.Capability.FEED_MUTED_WORDS.installed()) {
-                        message.append('\n').append(L10n.t("Your choice is saved, but this build doesn't include the "
-                            + "patch for it."));
-                    }
-                    continue;
+                    installed = PatchFamily.Capability.FEED_MUTED_WORDS.installed();
+                } else if (entry.getKey() == SAVE_BUTTON_COLOR) {
+                    message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Save button color"),
+                            colorName(SAVE_BUTTON_COLOR.persistedValue()), colorName((String) entry.getValue())));
+                    installed = PatchFamily.Capability.CLOSEUP_SAVE_BUTTON.installed();
+                } else {
+                    BooleanSetting setting = (BooleanSetting) entry.getKey();
+                    message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
+                            switchValue(setting.persistedValue()), switchValue((Boolean) entry.getValue())));
+                    installed = available(setting);
                 }
-                BooleanSetting setting = (BooleanSetting) entry.getKey();
-                message.append("\n\n").append(L10n.f("%1$s (%2$s to %3$s)", switchName(setting),
-                        switchValue(setting.persistedValue()), switchValue((Boolean) entry.getValue())));
-                if (!available(setting)) {
+                if (!installed) {
                     message.append('\n').append(L10n.t("Your choice is saved, but this build doesn't include the "
                         + "patch for it."));
                 }
@@ -432,6 +441,11 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     private static String listSize(String saved) {
         int count = MutedWordsSetting.entries(saved).size();
         return count == 0 ? L10n.t("none") : L10n.quantity(count, "%1$d word", "%1$d words", count);
+    }
+
+    /** A saved Save button color in the preview: its code, or Pinterest's red when there's none. */
+    private static String colorName(String saved) {
+        return saved.isEmpty() ? L10n.t("Pinterest's red") : saved;
     }
 
     static String switchName(BooleanSetting setting) {
@@ -475,6 +489,13 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_closeup_back": return L10n.t("Hide back arrow on pins");
             case "hushpinterest_hide_closeup_lens": return L10n.t("Hide lens button on pins");
             case "hushpinterest_hide_closeup_search_label": return L10n.t("Hide Search image label on pins");
+            case "hushpinterest_hide_closeup_like": return L10n.t("Hide like button on pins");
+            case "hushpinterest_hide_closeup_comments": return L10n.t("Hide comment button on pins");
+            case "hushpinterest_hide_closeup_share": return L10n.t("Hide share button on pins");
+            case "hushpinterest_hide_closeup_more": return L10n.t("Hide more button on pins");
+            case "hushpinterest_hide_closeup_remix": return L10n.t("Hide Remix button on pins");
+            case "hushpinterest_hide_closeup_visit_site": return L10n.t("Hide Visit site button on pins");
+            case "hushpinterest_smaller_save_button": return L10n.t("Smaller Save button on pins");
             case "hushpinterest_hide_pin_menu_collage": return L10n.t("Hide collage menu items");
             case "hushpinterest_hide_pin_menu_visual_search": return L10n.t("Hide Search image menu item");
             case "hushpinterest_hide_pin_menu_pin_boost": return L10n.t("Hide Promote pin menu item");

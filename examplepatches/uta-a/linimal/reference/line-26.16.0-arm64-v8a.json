@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": 1,
+  "referenceId": "line-26.16.0-arm64-v8a",
+  "apkm": {
+    "fileName": "jp.naver.line.android_26.16.0-261600106_2arch_6dpi_27e24416bed2114af71681c9f1fc7b86_apkmirror.com.apkm",
+    "sha256": "4a82c3173a935c52dbe96b8768b73a2dda7284b860f37e4982d72b5672dbf1af",
+    "source": "APKMirror",
+    "sourceUrl": "https://www.apkmirror.com/",
+    "acquiredAt": "2026-11-02",
+    "releaseDate": "2026-10-22"
+  },
+  "package": {
+    "name": "jp.naver.line.android",
+    "versionName": "26.16.0",
+    "versionCode": 261600106,
+    "minSdk": 32,
+    "targetSdk": 36
+  },
+  "containerEntries": [
+    "META-INF/MANIFEST.MF",
+    "META-INF/APKMIRRO.SF",
+    "META-INF/APKMIRRO.RSA",
+    "info.json",
+    "icon.png",
+    "base.apk",
+    "split_config.armeabi_v7a.apk",
+    "split_config.hdpi.apk",
+    "split_config.mdpi.apk",
+    "split_config.xxhdpi.apk",
+    "split_config.xhdpi.apk",
+    "split_config.tvdpi.apk",
+    "split_config.arm64_v8a.apk",
+    "split_config.ldpi.apk",
+    "APKM_installer.url"
+  ],
+  "splits": {
+    "base.apk": {
+      "sha256": "a2a39613d1899d967cd016725e12e14268b6fc6d79386eee8ff821d3a9a90d16",
+      "kind": "base"
+    },
+    "split_config.arm64_v8a.apk": {
+      "sha256": "3f651de022917ec012848dcd2bb3e3632e0b99c88b45e1ca1ba3eb2f49b55d6c",
+      "splitName": "config.arm64_v8a",
+      "kind": "abi",
+      "abi": "arm64-v8a"
+    },
+    "split_config.armeabi_v7a.apk": {
+      "sha256": "c996b7cd3a9bb17cedd821497a47d8c3e5b98422d1ccf0af6826ba9e64035666",
+      "splitName": "config.armeabi_v7a",
+      "kind": "abi",
+      "abi": "armeabi-v7a"
+    },
+    "split_config.ldpi.apk": {
+      "sha256": "6be6884e90a433d185e21e6f138013d962e09c3eb1d3cd01d1aaadfda021e17a",
+      "splitName": "config.ldpi",
+      "kind": "density",
+      "density": "ldpi"
+    },
+    "split_config.mdpi.apk": {
+      "sha256": "f6d542e3b0dc573e553d22695882f41f977f8248cedef16fc6e67496ccad20d5",
+      "splitName": "config.mdpi",
+      "kind": "density",
+      "density": "mdpi"
+    },
+    "split_config.tvdpi.apk": {
+      "sha256": "22832bca75ded871fd9ed615824175a2b23e22d228b059ee7e8ebd738b0727db",
+      "splitName": "config.tvdpi",
+      "kind": "density",
+      "density": "tvdpi"
+    },
+    "split_config.hdpi.apk": {
+      "sha256": "c22be89df5e258107a665e2c28b5e43d142c1c93e6f571ac1a7f7d4ae22ed4c3",
+      "splitName": "config.hdpi",
+      "kind": "density",
+      "density": "hdpi"
+    },
+    "split_config.xhdpi.apk": {
+      "sha256": "778dfaafa43d7b96428547f77c61ceaf64ec5b545b2174d080a49ba358666f66",
+      "splitName": "config.xhdpi",
+      "kind": "density",
+      "density": "xhdpi"
+    },
+    "split_config.xxhdpi.apk": {
+      "sha256": "f1d6606336923b3e8d016d9c07daa7572d6f027555e6f293f876d8cc933787e5",
+      "splitName": "config.xxhdpi",
+      "kind": "density",
+      "density": "xxhdpi"
+    }
+  },
+  "requiredSplits": {
+    "baseRequiredSplitTypes": [
+      "base__abi",
+      "base__density"
+    ],
+    "arm64V8a": "split_config.arm64_v8a.apk",
+    "density": [
+      "split_config.ldpi.apk",
+      "split_config.mdpi.apk",
+      "split_config.tvdpi.apk",
+      "split_config.hdpi.apk",
+      "split_config.xhdpi.apk",
+      "split_config.xxhdpi.apk"
+    ]
+  },
+  "apkContents": {
+    "base": {
+      "dexCount": 14
+    },
+    "arm64V8a": {
+      "nativeLibraryCount": 73
+    }
+  },
+  "signature": {
+    "numberOfSigners": 1,
+    "verifiedSchemes": {
+      "v1": false,
+      "v2": false,
+      "v3": true,
+      "v3.1": true,
+      "v3.2": false,
+      "v4": false,
+      "sourceStamp": true
+    },
+    "lineage": [
+      {
+        "scheme": "V3.0",
+        "minSdkVersion": 24,
+        "maxSdkVersion": 32,
+        "certificateSha256": "e682fe0bcd60907dfed515e0b8a4de03aa1c281d111a07833986602b6098afd2"
+      },
+      {
+        "scheme": "V3.1",
+        "minSdkVersion": 33,
+        "maxSdkVersion": 2147483647,
+        "certificateSha256": "e6e8036e01234e919fbe9cf9ea5d210435cfc0542328641aa70a018f52f63cf8"
+      }
+    ],
+    "sourceStampCertificateSha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d"
+  },
+  "security": {
+    "maxContainerEntries": 32,
+    "maxContainerEntryUncompressedBytes": 268435456,
+    "maxContainerUncompressedBytes": 536870912,
+    "maxContainerCompressionRatio": 100
+  }
+}

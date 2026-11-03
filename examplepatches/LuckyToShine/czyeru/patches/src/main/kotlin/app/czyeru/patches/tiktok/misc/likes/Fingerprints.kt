@@ -31,3 +31,20 @@ internal object ProfileGridBindViewHolderFingerprint : Fingerprint(
             classDef.fields.any { it.type.endsWith("/IExternalHeaderProvider;") }
     },
 )
+
+/**
+ * TikTok's favorites search request (profile list presenter): builds the
+ * /tiktok/user/profile/search/item/v1 URL and runs it through the network client.
+ */
+internal object FavoriteSearchRequestFingerprint : Fingerprint(
+    returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+    strings = listOf("scene_id", "keyword", "search_method", "request_source"),
+)
+
+/** Extension stub replaced with TikTok's favorites search request. */
+internal object ServerSearchRequestStubFingerprint : Fingerprint(
+    definingClass = "/LikedVideosServerSearch;",
+    name = "requestPage",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("I", "Ljava/lang/String;", "J", "I", "Ljava/lang/String;"),
+)

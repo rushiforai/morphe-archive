@@ -171,7 +171,8 @@ public final class ChzzkSettings {
         }
         int saved = number("chat_width_scale", 100);
         int value = ChatUi.dragPercent >= 0 ? ChatUi.dragPercent : saved;
-        return original * value / 100f;
+        float width = original * value / 100f;
+        return TvSettings.active ? Math.min(width, TvSettings.maxChatWidth(windowWidthDp(host))) : width;
     }
 
     static float windowWidthDp(Activity host) {
@@ -377,6 +378,7 @@ public final class ChzzkSettings {
         panel.addView(row);
         SeekBar seek = new SeekBar(context);
         seek.setMax((max - min) / seekUnit);
+        if (TvSettings.active) seek.setKeyProgressIncrement(stepped ? Math.max(1, stepSize / seekUnit) : 1);
         seek.setProgress(Math.max(0, (current - min) / seekUnit));
         seek.setProgressTintList(ColorStateList.valueOf(GREEN));
         seek.setProgressBackgroundTintList(ColorStateList.valueOf(0xff434950));
@@ -507,13 +509,15 @@ public final class ChzzkSettings {
             scroll.addView(content);
             root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
             setContentView(root);
-            setOnKeyListener((dialog, key, event) -> {
-                if (key == android.view.KeyEvent.KEYCODE_BACK && onBack != null) {
-                    if (event.getAction() == android.view.KeyEvent.ACTION_UP) onBack.run();
-                    return true;
-                }
-                return false;
-            });
+            if (!TvSettings.active || android.os.Build.VERSION.SDK_INT < 33) {
+                setOnKeyListener((dialog, key, event) -> {
+                    if (key == android.view.KeyEvent.KEYCODE_BACK && onBack != null) {
+                        if (event.getAction() == android.view.KeyEvent.ACTION_UP) onBack.run();
+                        return true;
+                    }
+                    return false;
+                });
+            }
         }
 
         void page(String heading, Runnable backAction) {
@@ -522,6 +526,7 @@ public final class ChzzkSettings {
             back.setVisibility(backAction == null ? View.GONE : View.VISIBLE);
             content.removeAllViews();
             scroll.scrollTo(0, 0);
+            if (TvSettings.active) content.post(() -> TvSettings.prepareFocus(content));
         }
 
         @Override public void show() {
@@ -535,6 +540,16 @@ public final class ChzzkSettings {
             window.setLayout(Math.min(dp(host, 480), width - dp(host, 24)), Math.min(dp(host, heightDp), height - dp(host, 40)));
             window.setDimAmount(0.55f);
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            if (TvSettings.active) {
+                TvSettings.prepareFocus(window.getDecorView());
+                if (android.os.Build.VERSION.SDK_INT >= 33) {
+                    getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                        android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, () -> {
+                            if (onBack != null) onBack.run();
+                            else dismiss();
+                        });
+                }
+            }
         }
     }
 
@@ -783,10 +798,11 @@ public final class ChzzkSettings {
     private static void home(Sheet sheet) {
         sheet.page("Morphe", null);
         label(sheet.content, "치지직을 내 화면에 맞게 · 변경 즉시 저장");
+        if (TvSettings.active) label(sheet.content, "리모컨 방향키로 이동하고 확인 버튼으로 선택하세요. 방송 중 메뉴 버튼으로도 열 수 있습니다.");
         navigation(sheet.content, "채팅 화면", "폭 · 글자 · 간격 · 전송 시각", () -> chatPage(sheet));
         navigation(sheet.content, "닉네임과 배지", "닉네임과 각 배지를 따로 표시", () -> badgePage(sheet));
         navigation(sheet.content, "메시지와 채팅 주변", "원문 표시 · 안내 메시지 · 순위", () -> messagePage(sheet));
-        navigation(sheet.content, "플레이어", "실시간 따라잡기 · 버튼 표시", () -> playerPage(sheet));
+        navigation(sheet.content, "플레이어", TvSettings.active ? "되감기 · 실시간 따라잡기 · 시청자 수" : "실시간 따라잡기 · 버튼 표시", () -> playerPage(sheet));
         navigation(sheet.content, "소리", "소리 평준화 · 추가 증폭", () -> audioPage(sheet));
         navigation(sheet.content, "최근 채팅", "화면에 표시된 대화 다시 보기", () -> showHistory(sheet));
         navigation(sheet.content, "설정 관리", "설정 복사 · 붙여넣기 · 초기화", () -> managePage(sheet));
@@ -799,8 +815,10 @@ public final class ChzzkSettings {
 
     private static void chatPage(Sheet sheet) {
         LinearLayout content = page(sheet, "채팅 화면");
-        toggle(content, "드래그로 채팅 폭 조절", "drag_chat_width", true);
-        label(content, "영상과 채팅 사이 손잡이를 좌우로 움직이세요. 가볍게 누르면 폭과 글자 크기를 바로 조절할 수 있습니다.");
+        if (!TvSettings.active) {
+            toggle(content, "드래그로 채팅 폭 조절", "drag_chat_width", true);
+            label(content, "영상과 채팅 사이 손잡이를 좌우로 움직이세요. 가볍게 누르면 폭과 글자 크기를 바로 조절할 수 있습니다.");
+        }
         slider(content, "채팅 폭", "chat_width_scale", 50, 300, 100, "%");
         action(content, "채팅 폭을 기본값으로", () -> { setNumber("chat_width_scale", 100); chatPage(sheet); });
         label(content, "100%가 앱 기본 폭입니다. 영상과 채팅이 나란히 있을 때 적용되며, 영상 공간을 남기도록 화면 크기에 따라 최대 폭이 제한됩니다.");
@@ -824,10 +842,12 @@ public final class ChzzkSettings {
         slider(content, "시각 크기 · 닉네임 대비", "timestamp_size", 60, 100, 80, "%");
         toggle(content, "PC·모바일·iOS 아이콘 표시", "device_icons", false);
         label(content, "PC는 모니터, 안드로이드는 휴대폰, iOS는 Apple 아이콘으로 표시합니다. 접속 기기 정보가 있는 채팅에만 적용됩니다.");
-        label(content, "채팅 입력창 버튼");
-        toggle(content, "프로필 버튼 표시", "chat_profile_button", true);
-        toggle(content, "이모티콘 버튼 표시", "chat_emoji_button", true);
-        toggle(content, "치즈 후원 버튼 표시", "chat_donation_button", true);
+        if (!TvSettings.active) {
+            label(content, "채팅 입력창 버튼");
+            toggle(content, "프로필 버튼 표시", "chat_profile_button", true);
+            toggle(content, "이모티콘 버튼 표시", "chat_emoji_button", true);
+            toggle(content, "치즈 후원 버튼 표시", "chat_donation_button", true);
+        }
     }
 
     private static void badgePage(Sheet sheet) {
@@ -840,8 +860,10 @@ public final class ChzzkSettings {
         toggle(content, "인증 마크 숨기기", "hide_verified_badge", false);
         toggle(content, "채널 배지 숨기기", "hide_channel_badge", false);
         toggle(content, "스트리머·관리자 배지 숨기기", "hide_role_badge", false);
-        slider(content, "배지 크기", "badge_scale", 80, 200, 100, "%");
-        label(content, "글자 크기에 배지 배율을 추가로 적용합니다.");
+        if (!TvSettings.active) {
+            slider(content, "배지 크기", "badge_scale", 80, 200, 100, "%");
+            label(content, "글자 크기에 배지 배율을 추가로 적용합니다.");
+        }
     }
 
     private static void messagePage(Sheet sheet) {
@@ -855,12 +877,14 @@ public final class ChzzkSettings {
         toggle(content, "승부예측 메시지 숨기기", "hide_prediction", false);
         toggle(content, "같이보기 안내 숨기기", "hide_party", false);
         toggle(content, "스트리머샵 구매 메시지 숨기기", "hide_shop", false);
-        label(content, "채팅 주변 요소");
-        toggle(content, "후원 순위 숨기기", "hide_donation_rank", false);
-        toggle(content, "통나무 순위 숨기기", "hide_tongpow_rank", false);
-        toggle(content, "승부예측 패널 숨기기", "hide_prediction_panel", false);
-        toggle(content, "게임 프로모션 숨기기", "hide_chat_promotions", false);
-        toggle(content, "팔로우 권유 팝업 숨기기", "hide_follow_prompt", false);
+        if (!TvSettings.active) {
+            label(content, "채팅 주변 요소");
+            toggle(content, "후원 순위 숨기기", "hide_donation_rank", false);
+            toggle(content, "통나무 순위 숨기기", "hide_tongpow_rank", false);
+            toggle(content, "승부예측 패널 숨기기", "hide_prediction_panel", false);
+            toggle(content, "게임 프로모션 숨기기", "hide_chat_promotions", false);
+            toggle(content, "팔로우 권유 팝업 숨기기", "hide_follow_prompt", false);
+        }
         action(content, "숨길 단어", () -> editList(sheet.host, "본문에 포함된 단어", "keywords"));
         action(content, "숨길 닉네임", () -> editList(sheet.host, "정확히 일치하는 닉네임", "blocked_users"));
     }
@@ -868,15 +892,19 @@ public final class ChzzkSettings {
     private static void playerPage(Sheet sheet) {
         LinearLayout content = page(sheet, "플레이어");
         navigation(content, "시청자 수 표시", "모서리 위치 · 색 · 크기 · 외곽선 · 투명도", () -> viewerPage(sheet));
-        toggle(content, "라이브 되감기 버튼", "live_rewind", true);
+        if (TvSettings.active) action(content, "지금 라이브 되감기", () -> TvSettings.seek(false));
+        else toggle(content, "라이브 되감기 버튼", "live_rewind", true);
         slider(content, "한 번에 되감을 시간", "live_rewind_seconds", 5, 60, 5, "초");
         label(content, "현재 방송에서 재생 가능한 구간 안에서 되감습니다. 방송에 따라 이동 가능한 길이가 다를 수 있습니다.");
-        toggle(content, "실시간 따라잡기 버튼", "live_catch_up", true);
+        if (TvSettings.active) action(content, "지금 실시간 따라잡기", () -> TvSettings.seek(true));
+        else toggle(content, "실시간 따라잡기 버튼", "live_catch_up", true);
         slider(content, "남길 버퍼", "live_catch_up_buffer_seconds", 1, 10, 3, "초");
-        label(content, "동심원 버튼으로 앞으로 이동할 때 남길 영상의 길이입니다. 값을 줄이면 더 최신 위치로 이동하지만 끊김이 늘 수 있습니다.");
-        toggle(content, "클립 만들기 버튼 숨기기", "hide_clip_button", false);
-        toggle(content, "크롬캐스트 버튼 숨기기", "hide_cast_button", false);
-        toggle(content, "공유 버튼 숨기기", "hide_share_button", false);
+        label(content, "실시간 따라잡기로 앞으로 이동할 때 남길 영상의 길이입니다. 값을 줄이면 더 최신 위치로 이동하지만 끊김이 늘 수 있습니다.");
+        if (!TvSettings.active) {
+            toggle(content, "클립 만들기 버튼 숨기기", "hide_clip_button", false);
+            toggle(content, "크롬캐스트 버튼 숨기기", "hide_cast_button", false);
+            toggle(content, "공유 버튼 숨기기", "hide_share_button", false);
+        }
         if (autoClaimAvailable()) toggle(content, "통나무 파워 자동 수령", "auto_claim", true);
     }
 

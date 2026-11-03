@@ -40,10 +40,7 @@ private const val AES_IV = "d2WT1lR4ckEvUsdk"         // 16 bytes, second native
 @Suppress("unused")
 val removeAdsTelemetryAndRestrictionsPatch = bytecodePatch(
     name = "Remove ads, telemetry & restrictions",
-    description = "Replaces native signature-locked config decryption in pure Java so encrypted " +
-        "channel and event feeds keep loading after Morphe re-signs the APK, removes all " +
-        "banner/start/support/external ads, optionally disables the in-app web view, suppresses update lockouts, and optionally bypasses root/sniffer/proxy-cert " +
-        "checks. Strips Firebase telemetry and push notifications.",
+    description = "Removes ads, tracking, and forced updates, and keeps channels working after patching.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SK_TECH_TV)

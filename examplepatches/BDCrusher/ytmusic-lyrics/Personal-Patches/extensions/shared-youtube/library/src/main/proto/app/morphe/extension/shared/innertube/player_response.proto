@@ -61,6 +61,9 @@ message StreamingData {
 }
 
 message Format {
+  // Dimensions verified in both target APK Format message schemas.
+  optional int32 width = 7;
+  optional int32 height = 8;
   optional int32 itag = 1;
   optional int32 bitrate = 6;
   optional int32 averageBitrate = 31;

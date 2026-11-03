@@ -38,6 +38,7 @@ family|fixPushNotifications|Fix push notifications|firebaseCertificate
 family|filterActivityNotifications|Filter activity notifications|activityNotificationList
 family|showPostTimestamps|Show post timestamps|nativePostTimestamps
 family|visibleAltText|Visible image descriptions|photoAltTextCaptions,galleryAltTextCaptions
+family|shareVideoLinks|Share video links|videoLinkPress
 family|muteRootPosts|Mute posts locally|rootPostMutes
 family|revealAllowedMatureContent|Reveal allowed mature content|accountSafeMatureReveal
 family|hideAdFreeBanner|Hide the ad-free banner|adFreeBannerFlags
@@ -122,8 +123,11 @@ mutation|reviewPrompt|reviewPrompt|Lapp/hushtumblr/extension/tumblr/ui/ReviewPro
 mutation|blogNotificationReminder|blogNotificationReminder|Lapp/hushtumblr/extension/tumblr/ui/OptionalNudges;->hideBlogNotificationReminder()Z|blog_notify_enabled
 mutation|giftMessagePopup|giftMessagePopup|Lapp/hushtumblr/extension/tumblr/ui/OptionalNudges;->hideGiftMessage(Ljava/lang/String;)Z|key_has_seen_ad_free_browsing_gift_popup|key_has_seen_summon_crabs_popup
 mutation|postLine|postLine|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paintsGaps(I)I|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paintGap(Landroid/graphics/Canvas;FFFFLandroid/graphics/Paint;)V|debug_timeline_object_spacing
+# A video in a post hands its container and address over after the binder builds its details, and the
+# timeline controls' long-press listener goes through the extension.
+mutation|videoLinkPress|videoLinkPress|Lapp/hushtumblr/extension/tumblr/ui/VideoLinks;->bind(Landroid/view/View;Ljava/lang/String;)V|Lapp/hushtumblr/extension/tumblr/ui/VideoLinks;->press(Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener;|Lcom/tumblr/R$layout;->tumblr_video_player_timeline_controller|Lcom/tumblr/rumblr/model/video/VideoDetails;-><init>(Ljava/lang/String;II)V|Lcom/tumblr/ui/widget/NewVideoPlayerContainer;|Lcom/tumblr/rumblr/model/post/blocks/TumblrVideoBlock;
 mutation|fontChoice|fontChoice|Lapp/hushtumblr/extension/tumblr/ui/AppFont;->replacement(Landroid/content/Context;I)Landroid/graphics/Typeface;|Lapp/hushtumblr/extension/tumblr/ui/AppFont;->provided(Landroid/graphics/Typeface;)Landroid/graphics/Typeface;|Font resource ID #0x|sans-serif-medium|Returning pre-inflated View for resId: |Lapp/hushtumblr/extension/tumblr/ui/AppFont;->preinflated(Landroid/view/View;)V
-mutation|followButton|followButton|Lapp/hushtumblr/extension/tumblr/ui/PostParts;->hideFollowButton()Z|Lcom/tumblr/ui/widget/PostCardHeader;|Lcom/tumblr/rumblr/model/post/PostHeaderAction$ActionType;->FOLLOW
+mutation|followButton|followButton|Lapp/hushtumblr/extension/tumblr/ui/PostParts;->hideFollowButton()Z|Lcom/tumblr/ui/widget/PostCardHeader;|Lcom/tumblr/rumblr/model/post/PostHeaderAction$ActionType;->FOLLOW|Lapp/hushtumblr/extension/tumblr/ui/PostParts;->trailFollow(Ljava/lang/Object;)Ljava/lang/Object;|Lcom/tumblr/ui/widget/graywater/viewholder/ReblogHeaderViewHolder;
 # A footer button's question, the Compose function it guards (by its source note) and the
 # community footer hook the family adds, or none.
 mutation|likeButton|footerButton|Lapp/hushtumblr/extension/tumblr/ui/PostFooter;->hideLikeButton()Z|com.tumblr.ui.widget.splitnotescount.composable.LikeEngagement|Lapp/hushtumblr/extension/tumblr/ui/PostFooter;->hideCommunityReactions(Landroid/view/ViewGroup;)V

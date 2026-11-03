@@ -17,4 +17,14 @@ dependencies {
     implementation(libs.guava)
 
     implementation(libs.morphe.patches.library)
+
+    testImplementation(libs.morphe.patcher)
+    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    forkEvery = 1
 }

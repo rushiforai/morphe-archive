@@ -3,8 +3,8 @@ function exportReviewedSharedNg(){
  const lock=LockService.getScriptLock();lock.waitLock(15000);try{return ngExportReviewedLocked_();}finally{lock.releaseLock();}
 }
 function ngExportReviewedLocked_(){
- ngReviewPersonalLocked_();const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),rows=ngAllPersonalRows_(book),active=new Map();
- for(const row of rows){const c=ngParsedInboxCondition_(row);if(!c)continue;const key=ngConditionKey_(c);active.set(row[1]+':'+key,{row,c,key});}
+ ngReviewPersonalLocked_();const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),rows=ngAllPersonalRows_(book),active=new Map(),ignored=new Set(ngIgnoredReporters_());
+ for(const row of rows){if(ignored.has(row[1]))continue;const c=ngParsedInboxCondition_(row);if(!c)continue;const key=ngConditionKey_(c);active.set(row[1]+':'+key,{row,c,key});}
  const groups=new Map();for(const x of active.values())if(x.row[3]==='upsert'&&x.row[5]==='approved'){
   const key=x.key;if(!groups.has(key))groups.set(key,{id:key,board:ngFamilyBoard_(x.c.board),boardName:ngFamilyName_(x.c.board),kind:x.c.kind,value:x.c.value,period:"",regex:!!x.c.regex,flags:x.c.flags&~9,votes:0,revoked:false,minLevel:JSON.parse(x.row[8]).minLevel,minVotes:1});groups.get(key).votes++;
  }
@@ -46,7 +46,7 @@ function installSharedNgPublishTrigger(){
 
 /** GAS cache entries are limited to 100KB; commit the chunk manifest last. */
 function ngReviewedCacheGet_(){
- const cache=CacheService.getScriptCache(),raw=cache.get('reviewed-feed-v9');if(!raw)return null;
+ const cache=CacheService.getScriptCache(),raw=cache.get(ngReviewedCacheKey_());if(!raw)return null;
  try{const m=JSON.parse(raw);if(!Number.isInteger(m.count)||m.count<1||m.count>1000||!/^[a-f0-9]{64}$/.test(m.hash))return null;
   let data='';for(let i=0;i<m.count;i++){const part=cache.get('reviewed-part:'+m.hash+':'+i);if(part===null||part===undefined)return null;data+=part;}
   return ngHash_(data)===m.hash?data:null;
@@ -57,7 +57,7 @@ function ngReviewedCachePut_(data){
  for(let start=0;start<data.length;){let end=Math.min(start+20000,data.length);const last=data.charCodeAt(end-1);if(end<data.length&&last>=0xd800&&last<=0xdbff)end--;
   if(count>=1000)return;cache.put('reviewed-part:'+hash+':'+count++,data.slice(start,end),300);start=end;
  }
- if(count)cache.put('reviewed-feed-v9',JSON.stringify({hash,count}),240);
+ if(count)cache.put(ngReviewedCacheKey_(),JSON.stringify({hash,count}),240);
 }
 /** Anonymous reads expose only the same approved data as the optional GitHub feed. */
 function reviewedSharedNgFeed(e){
@@ -74,11 +74,12 @@ function auditReviewedSharedNg(){
 }
 function ngAuditReviewedLocked_(){
  const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),sheet=book.getSheetByName('Inbox');
- const issues={},warnings={},states={},reasons={},kinds={},active=new Map();
+ const issues={},warnings={},states={},reasons={},kinds={},active=new Map(),ignored=new Set(ngIgnoredReporters_());
  function issue(code){issues[code]=(issues[code]||0)+1;}
  function warning(code){warnings[code]=(warnings[code]||0)+1;}
  const rows=sheet?ngAllPersonalRows_(book):[];if(!sheet)issue('INBOX_MISSING');
  for(const row of rows){
+  if(ignored.has(row[1]))continue;
   if(ngEmptyInboxRow_(row))continue;
   try{
    const raw=JSON.parse(row[2]),c=ngInboxValidate_(Object.assign({},raw,{operationId:row[0],action:row[3]})).condition;

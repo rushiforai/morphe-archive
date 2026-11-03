@@ -83,8 +83,8 @@ internal fun BytecodePatchContext.patchExternalBoardAuth(version: String) {
         """.trimIndent())
     })
     var observed = 0
-    classDefForEach { cls ->
-        if (!(cls.type.startsWith("Lo/") || cls.type.startsWith("Ljp/syoboi/"))) return@classDefForEach
+    boundClassForEach("ExternalBoardAuthPatch:1") { cls ->
+        if (!(cls.type.startsWith("Lo/") || cls.type.startsWith("Ljp/syoboi/"))) return@boundClassForEach
         val matches = cls.methods.flatMap { method ->
             method.implementation?.instructions?.withIndex()?.mapNotNull { (index,insn) ->
                 val ref=(insn as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null

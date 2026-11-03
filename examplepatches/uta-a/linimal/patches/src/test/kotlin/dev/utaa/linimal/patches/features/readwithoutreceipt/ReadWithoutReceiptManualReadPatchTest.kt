@@ -2,9 +2,10 @@ package dev.utaa.linimal.patches.features.readwithoutreceipt
 
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -20,31 +21,34 @@ import kotlin.test.assertTrue
 
 class ReadWithoutReceiptManualReadPatchTest {
     @Test
-    fun `bridge preserves wide point and passes original all flag without touching executor registers`() {
+    fun `bridge preserves wide point and clears local unread without touching executor registers`() {
         val outbound = method("execute", listOf("J", STRING, "Z"), "V")
         val getter = method("latest", listOf(STRING), "J")
         val bridge = manualReadBridge(outbound, getter)
         val dex = checkNotNull(ImmutableMethodImplementation.of(bridge.implementation))
         val instructions = dex.instructions.toList()
         assertEquals("J", bridge.returnType)
-        assertEquals(listOf("J", STRING, "Z"), bridge.parameterTypes.map(CharSequence::toString))
+        assertEquals(listOf("J", STRING), bridge.parameterTypes.map(CharSequence::toString))
         assertTrue(AccessFlags.PUBLIC.isSet(bridge.accessFlags))
         assertTrue(AccessFlags.FINAL.isSet(bridge.accessFlags))
         assertFalse(AccessFlags.STATIC.isSet(bridge.accessFlags))
-        assertEquals(8, dex.registerCount)
-        val invoke = instructions.single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE } as RegisterRangeInstruction
-        assertEquals(3, invoke.startRegister)
-        assertEquals(5, invoke.registerCount)
-        assertEquals(outbound, (invoke as ReferenceInstruction).reference)
+        assertEquals(7, dex.registerCount)
+        val send = instructions.indexOfFirst { (it as? ReferenceInstruction)?.reference == outbound }
+        val invoke = instructions[send] as FiveRegisterInstruction
+        assertEquals(listOf(3, 4, 5, 6, 2), listOf(invoke.registerC, invoke.registerD, invoke.registerE,
+            invoke.registerF, invoke.registerG))
+        val flag = instructions[send - 1] as NarrowLiteralInstruction
+        assertEquals(Opcode.CONST_4, instructions[send - 1].opcode)
+        assertEquals(1, flag.narrowLiteral)
+        assertEquals(2, (instructions[send - 1] as OneRegisterInstruction).registerA)
         // 正常終了後だけ、渡した point の両 register を戻します。
-        val callIndex = instructions.indexOfFirst { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
-        assertEquals(Opcode.RETURN_WIDE, instructions[callIndex + 1].opcode)
-        assertEquals(4, (instructions[callIndex + 1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.RETURN_WIDE, instructions[send + 1].opcode)
+        assertEquals(4, (instructions[send + 1] as OneRegisterInstruction).registerA)
         assertEquals(8, checkNotNull(outbound.implementation).registerCount)
     }
 
     @Test
-    fun `all reads getter once and keeps observed point when getter is zero or older`() {
+    fun `bridge reads getter once and keeps observed point when getter is zero or older`() {
         val getter = method("latest", listOf(STRING), "J")
         val instructions = checkNotNull(manualReadBridge(
             method("execute", listOf("J", STRING, "Z"), "V"), getter).implementation).instructions.toList()
@@ -56,11 +60,9 @@ class ReadWithoutReceiptManualReadPatchTest {
         val move = instructions.single { it.opcode == Opcode.MOVE_WIDE } as TwoRegisterInstruction
         assertEquals(4, move.registerA)
         assertEquals(0, move.registerB)
-        // null chat、selected、非正の point の分岐は既存処理の呼び出しより前です。
+        // null chat と非正の point の分岐は既存処理の呼び出しより前です。
         assertEquals(Opcode.IF_EQZ, instructions[0].opcode)
         assertEquals(6, (instructions[0] as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.IF_EQZ, instructions[1].opcode)
-        assertEquals(7, (instructions[1] as OneRegisterInstruction).registerA)
         assertEquals(2, instructions.count { it.opcode == Opcode.IF_LEZ })
     }
 

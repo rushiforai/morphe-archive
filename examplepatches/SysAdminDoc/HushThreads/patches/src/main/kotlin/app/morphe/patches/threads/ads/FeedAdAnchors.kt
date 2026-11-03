@@ -24,14 +24,14 @@ internal val INJECTED_FIELD = "injected".hashCode()
 /**
  * The feed cache's merge of one fetched page, For You and Following alike: a suspend function
  * taking the page's items as its fifth parameter. The lambda it builds to save them keeps its
- * Kotlin name, and nothing else in the class builds it.
+ * Kotlin name, and nothing else in the class builds it. 454 added a Function0 ahead of the Function3.
  */
 internal object FeedPageMergeFingerprint : Fingerprint(
     definingClass = FEED_CACHE,
     returnType = "Ljava/lang/Object;",
     parameters = listOf(
         "L", "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;",
-        "L", "Lkotlin/jvm/functions/Function3;", "Z",
+        "L", "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;", "Z",
     ),
     filters = listOf(
         methodCall(

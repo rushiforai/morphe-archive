@@ -9,6 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.czyeru.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -82,5 +83,45 @@ internal fun BytecodePatchContext.hookAppAbIntBoundary(
                     """,
                 )
             }
+    }
+}
+
+/** The boolean getter: `(int, String key, boolean, boolean)` returning boolean; key in p2. */
+private val APP_AB_BOOLEAN_PARAMETERS = listOf("I", STRING, "Z", "Z")
+private const val APP_AB_BOOLEAN_KEY_REGISTER = 2
+
+/**
+ * As [hookAppAbIntBoundary], for the app AB boolean getter: every value it returns first goes
+ * through `extensionMethod(String key, boolean value)` (from Hushfeed).
+ */
+internal fun BytecodePatchContext.hookAppAbBooleanBoundary(
+    extensionDescriptor: String,
+    extensionMethod: String,
+) {
+    val getters = appAbClass().methods.filter { it.instanceShape() == ("Z" to APP_AB_BOOLEAN_PARAMETERS) }
+    if (getters.size != 1) {
+        throw PatchException("App AB boolean boundary: expected one boolean getter, found ${getters.size}.")
+    }
+    getters.single().apply {
+        val registerCount = implementation!!.registerCount
+        // p2 as a v-register: parameters sit at the top of the frame (this, int, key, ...).
+        val keyRegister = registerCount - 5 + APP_AB_BOOLEAN_KEY_REGISTER
+        val returns = implementation!!.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN }
+            .map { it.index }
+        if (returns.isEmpty()) throw PatchException("App AB boolean boundary: the getter has no return.")
+        returns.asReversed().forEach { returnIndex ->
+            val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
+            if (keyRegister > 15 || register > 15) {
+                throw PatchException("App AB boolean boundary: registers above v15 (key v$keyRegister, value v$register).")
+            }
+            addInstructionsAtControlFlowLabel(
+                returnIndex,
+                """
+                    invoke-static {v$keyRegister, v$register}, $extensionDescriptor->$extensionMethod(Ljava/lang/String;Z)Z
+                    move-result v$register
+                """,
+            )
+        }
     }
 }

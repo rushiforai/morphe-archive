@@ -72,3 +72,16 @@ tasks.register<JavaExec>("inspectDownloads41"){dependsOn("classes");classpath=so
 tasks.register<JavaExec>("auditDownloads41"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.AuditDownloads41Kt");workingDir=rootDir;maxHeapSize="5g";doFirst{setArgs(listOf(providers.gradleProperty("auditManifest").get()))}}
 tasks.register<JavaExec>("inspectDownloads42"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.InspectDownloads42Kt");workingDir=rootDir;maxHeapSize="4g";doFirst{setArgs(listOf(providers.gradleProperty("target42").get(),providers.gradleProperty("phase42").getOrElse("action"),providers.gradleProperty("focus42").getOrElse("")))}}
 tasks.register<JavaExec>("auditDownloads42"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.AuditDownloads42Kt");workingDir=rootDir;maxHeapSize="5g";doFirst{setArgs(listOf(providers.gradleProperty("auditManifest").get()))}}
+
+tasks.register<JavaExec>("inspectDownloads43"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.InspectDownloads43Kt");workingDir=rootDir;maxHeapSize="4g";doFirst{setArgs(listOf(providers.gradleProperty("target43").get(),providers.gradleProperty("phase43").getOrElse("owners"),providers.gradleProperty("focus43").getOrElse("")))}}
+
+tasks.register<JavaExec>("auditDownloads43") {
+ dependsOn("classes"); classpath=sourceSets["main"].runtimeClasspath
+ mainClass.set("app.bdcrusher.lyrics.AuditDownloads43Kt");workingDir=rootDir;maxHeapSize="4g"
+ doFirst {setArgs(listOf(providers.gradleProperty("auditManifest").get()))}
+}
+
+tasks.register<JavaExec>("inspectDownloads44"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.InspectDownloads44Kt");workingDir=rootDir;maxHeapSize="4g";doFirst {setArgs(listOf(providers.gradleProperty("target44").get(),providers.gradleProperty("phase44").get(),providers.gradleProperty("focus44").getOrElse("")))}}
+tasks.register<JavaExec>("auditDownloads44"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.AuditDownloads44Kt");workingDir=rootDir;maxHeapSize="4g";doFirst{setArgs(listOf(providers.gradleProperty("auditManifest").get(),providers.gradleProperty("receiverExpected").getOrElse("expect-pass")))}}
+
+tasks.register<JavaExec>("auditReferenceReturns45"){dependsOn("classes");classpath=sourceSets["main"].runtimeClasspath;mainClass.set("app.bdcrusher.lyrics.AuditReferenceReturns45Kt");workingDir=rootDir;maxHeapSize="4g";doFirst{setArgs(listOf(providers.gradleProperty("auditManifest").get(),providers.gradleProperty("returnExpected").getOrElse("expect-pass")))}}

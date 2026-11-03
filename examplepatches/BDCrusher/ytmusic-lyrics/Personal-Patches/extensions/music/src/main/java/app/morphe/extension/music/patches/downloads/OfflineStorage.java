@@ -9,6 +9,7 @@ package app.morphe.extension.music.patches.downloads;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.AtomicFile;
 
 import androidx.annotation.Nullable;
 
@@ -33,11 +34,12 @@ final class OfflineStorage {
     }
 
     static String readText(File file) throws IOException {
-        try (FileInputStream input = new FileInputStream(file)) {
+        try (FileInputStream input = new AtomicFile(file).openRead()) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             byte[] chunk = new byte[4096];
             int read;
             while ((read = input.read(chunk)) != -1) {
+                if(buffer.size()+read>1024*1024)throw new IOException("Offline metadata size limit");
                 buffer.write(chunk, 0, read);
             }
             //noinspection CharsetObjectCanBeUsed
@@ -46,15 +48,15 @@ final class OfflineStorage {
     }
 
     static void writeText(File file, String value) throws IOException {
-        try (FileOutputStream output = new FileOutputStream(file)) {
-            output.write(value.getBytes(StandardCharsets.UTF_8));
-        }
+        AtomicFile atomic=new AtomicFile(file);FileOutputStream output=null;
+        try{output=atomic.startWrite();output.write(value.getBytes(StandardCharsets.UTF_8));atomic.finishWrite(output);}
+        catch(IOException|RuntimeException failure){if(output!=null)atomic.failWrite(output);throw failure;}
     }
 
     static void writeJpeg(File file, Bitmap bitmap) throws IOException {
-        try (FileOutputStream output = new FileOutputStream(file)) {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output);
-        }
+        AtomicFile atomic=new AtomicFile(file);FileOutputStream output=null;
+        try{output=atomic.startWrite();if(!bitmap.compress(Bitmap.CompressFormat.JPEG,90,output))throw new IOException("Cover encoding failed");atomic.finishWrite(output);}
+        catch(IOException|RuntimeException failure){if(output!=null)atomic.failWrite(output);throw failure;}
     }
 
     /**
@@ -64,7 +66,8 @@ final class OfflineStorage {
      */
     @Nullable
     static Bitmap decodeArtwork(File file, int maxSize) {
-        if (!file.isFile()) return null;
+        if (!file.isFile()&&!new File(file+".bak").isFile()) return null;
+        try(FileInputStream restored=new AtomicFile(file).openRead()){}catch(IOException failure){Logger.printDebug(()->"Saved cover unavailable",failure);return null;}
         String path = file.getAbsolutePath();
 
         BitmapFactory.Options bounds = new BitmapFactory.Options();

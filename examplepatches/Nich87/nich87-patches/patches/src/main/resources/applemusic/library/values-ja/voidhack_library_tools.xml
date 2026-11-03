@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voidhack_library_title">ライブラリツール</string>
+    <string name="voidhack_library_export_all">ライブラリとプレイリストを書き出す</string>
+    <string name="voidhack_library_export_playlists">プレイリストを書き出す</string>
+    <string name="voidhack_library_import_backup">バックアップを読み込む</string>
+    <string name="voidhack_library_download_all">ライブラリを一括ダウンロード</string>
+    <string name="voidhack_library_cancel">キャンセル</string>
+    <string name="voidhack_library_close">閉じる</string>
+    <string name="voidhack_library_import">読み込む</string>
+    <string name="voidhack_library_download">ダウンロード</string>
+    <string name="voidhack_library_stop">停止</string>
+    <string name="voidhack_library_stopping">停止しています…</string>
+    <string name="voidhack_library_reading_library">ライブラリとプレイリストを確認しています…</string>
+    <string name="voidhack_library_writing_backup">バックアップを書き出しています…</string>
+    <string name="voidhack_library_reading_backup">バックアップを確認しています…</string>
+    <string name="voidhack_library_importing">バックアップを読み込んでいます…</string>
+    <string name="voidhack_library_checking_downloads">ダウンロード状況を確認しています…</string>
+    <string name="voidhack_library_requesting_downloads">ダウンロードをリクエストしています…</string>
+    <string name="voidhack_library_stop_export">停止すると、書き出し途中のバックアップファイルが残る場合があります。</string>
+    <string name="voidhack_library_stop_import">停止しても、追加済みの曲とプレイリストは残ります。</string>
+    <string name="voidhack_library_stop_download">停止しても、送信済みのダウンロードリクエストは取り消されません。</string>
+    <string name="voidhack_library_stopped">停止しました</string>
+    <string name="voidhack_library_stopped_read">処理を停止しました。</string>
+    <string name="voidhack_library_export_finished">バックアップを書き出しました</string>
+    <string name="voidhack_library_import_result">読み込み結果</string>
+    <string name="voidhack_library_download_result">ダウンロードリクエスト</string>
+    <string name="voidhack_library_count_pair">%1$s\n%2$s</string>
+    <string name="voidhack_library_import_preview">%1$s\n\n未登録の曲と新しいプレイリストを追加し、内容が一致するプレイリストはスキップします。既存の曲やプレイリストは保持されます。</string>
+    <string name="voidhack_library_download_preview">%1$s\n\nコンテンツ制限で許可された利用可能な曲をダウンロードしますか？Apple Musicのダウンロード設定が適用されます。</string>
+    <string name="voidhack_library_download_empty">利用可能な曲はすべてダウンロード済みか、ダウンロード待ちです。</string>
+    <string name="voidhack_library_download_progress">ダウンロードリクエスト：%1$d / %2$d</string>
+    <string name="voidhack_library_download_summary">%1$s\n\n進行状況はライブラリの「ダウンロード中」で確認できます。Apple Musicのアカウント、通信、ストレージの設定が適用されます。</string>
+    <string name="voidhack_library_download_stopped">送信済みのリクエストは保持されます。</string>
+    <string name="voidhack_library_restore_summary">%1$s\n%2$s\n%3$s\n%4$s\n%5$s\n\n同期はApple Musicが行います。カタログIDのない曲はライブラリ内にある場合のみ利用でき、不足するローカル曲を含むプレイリストは内容を保つためスキップします。</string>
+    <string name="voidhack_library_failed_title">処理を完了できませんでした</string>
+    <string name="voidhack_library_operation_failed">Apple Musicで処理を完了できませんでした。通信状態とライブラリの同期を確認してから、もう一度お試しください。</string>
+    <string name="voidhack_library_restarted">アプリが再起動しました。書き出しをもう一度選択してください。</string>
+    <string name="voidhack_library_open_destination">保存先のファイルを開けませんでした。別の保存先を選択してお試しください。</string>
+    <string name="voidhack_library_open_backup">バックアップを開けませんでした。ファイルとアクセス権限を確認して、もう一度選択してください。</string>
+    <string name="voidhack_library_file_read_failed">バックアップを読み取れませんでした。ファイルにアクセスできるか確認してお試しください。</string>
+    <string name="voidhack_library_file_write_failed">バックアップを保存できませんでした。保存先と空き容量を確認してから、もう一度書き出してください。</string>
+    <string name="voidhack_library_backup_too_large">バックアップが32 MiBを超えています。プレイリストのみを書き出すか、小さいバックアップを選択してください。</string>
+    <string name="voidhack_library_backup_unsupported">対応するApple Musicのバックアップではありません。ライブラリツールで作成したバックアップを選択してください。</string>
+    <string name="voidhack_library_backup_invalid">バックアップが破損しているか、データが正しくありません。別のバックアップを選択してください。</string>
+    <string name="voidhack_library_backup_encode">バックアップを作成できませんでした。ライブラリを確認してから、もう一度書き出してください。</string>
+    <string name="voidhack_library_sync_required">Apple Musicのライブラリを開き、同期が完了してからもう一度お試しください。</string>
+    <string name="voidhack_library_subscription_required">有効なサブスクリプションのあるApple Musicアカウントでサインインしてお試しください。</string>
+    <string name="voidhack_library_download_connection">Wi-Fiに接続するか、Apple Musicの設定でモバイル通信でのダウンロードを許可してお試しください。</string>
+    <string name="voidhack_library_download_moving">Apple Musicがダウンロード済みの曲を移動しています。完了してからもう一度お試しください。</string>
+    <string name="voidhack_library_download_data_saver">Wi-Fiに接続するか、Apple Musicの設定でデータセーバーをオフにしてお試しください。</string>
+    <string name="voidhack_library_library_changed">読み取り中にライブラリが変更されました。同期が完了してからもう一度お試しください。</string>
+    <string name="voidhack_library_playlist_mismatch">保存されたプレイリストの内容が一致しません。ライブラリを確認してから、もう一度読み込んでください。</string>
+    <string name="voidhack_library_playlist_unresolved">Apple Musicでプレイリストの曲を見つけられませんでした。プレイリストは保存されていません。</string>
+    <string name="voidhack_library_native_error">Apple Musicでエラー%1$dが発生しました。適用済みの変更は残るため、ライブラリを確認してからお試しください。</string>
+    <plurals name="voidhack_library_songs"><item quantity="other">ライブラリの曲：%d曲</item></plurals>
+    <plurals name="voidhack_library_playlists"><item quantity="other">プレイリスト：%d件</item></plurals>
+    <plurals name="voidhack_library_download_songs"><item quantity="other">対象の曲：%d曲</item></plurals>
+    <plurals name="voidhack_library_requested"><item quantity="other">ダウンロードリクエスト：%d件</item></plurals>
+    <plurals name="voidhack_library_added"><item quantity="other">ライブラリへの追加リクエスト：%d曲</item></plurals>
+    <plurals name="voidhack_library_created"><item quantity="other">作成したプレイリスト：%d件</item></plurals>
+    <plurals name="voidhack_library_existing"><item quantity="other">重複リスト（スキップ）：%d件</item></plurals>
+    <plurals name="voidhack_library_unresolved_tracks"><item quantity="other">未解決の曲（スキップ）：%d曲</item></plurals>
+    <plurals name="voidhack_library_unresolved_playlists"><item quantity="other">曲不足のリスト（スキップ）：%d件</item></plurals>
+</resources>

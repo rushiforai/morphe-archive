@@ -105,6 +105,8 @@ public final class FeatureDexFixture {
     private static final String CAROUSEL = "Lcom/tumblr/rumblr/model/carousel/Carousel;";
     private static final String POST_HEADER = "Lcom/tumblr/ui/widget/PostCardHeader;";
     private static final String POST_PARTS = BASE + "ui/PostParts;";
+    private static final String REBLOG_HEADER = "Lcom/tumblr/ui/widget/graywater/viewholder/ReblogHeaderViewHolder;";
+    private static final String TRAIL_HEADER = "Lfixture/TrailHeader;";
     private static final String FOOTER = BASE + "ui/PostFooter;";
     private static final String COMMUNITY_FOOTER = "Lcom/tumblr/ui/widget/CommunityPostCardFooter;";
     private static final String BAR = "Lfixture/BottomBar;";
@@ -559,7 +561,30 @@ public final class FeatureDexFixture {
         header.add(new ImmutableMethod(POST_HEADER, check.getName(), check.getParameters(), "Z", AccessFlags.PRIVATE.getValue(),
                 Set.of(), Set.of(), check.getImplementation()));
         classes.put(POST_HEADER, header);
-        if (!variant.equals("clean")) classes.put(POST_PARTS, List.of(booleanHook(POST_PARTS, "hideFollowButton")));
+        // The reblog trail's header keeps its header_cta view, and one method shows it for an entry.
+        String button = "Landroid/widget/Button;", view = "Landroid/view/View;", entry = "Lfixture/TrailEntry;";
+        Method init = method(REBLOG_HEADER, "<init>", VOID, false, 3, List.of(
+                new ImmutableInstruction21c(Opcode.SGET, 0, new ImmutableFieldReference("Lcom/tumblr/R$id;", "header_cta", "I")),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(view, "findViewById", view, "I"), 2, 0), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 0, new ImmutableTypeReference(button)),
+                member(Opcode.IPUT_OBJECT, 0, 1, REBLOG_HEADER, "E", button), end()), view);
+        classes.put(REBLOG_HEADER, List.of(new ImmutableMethod(REBLOG_HEADER, "<init>", init.getParameters(), VOID,
+                        AccessFlags.PUBLIC.getValue() | AccessFlags.CONSTRUCTOR.getValue(), Set.of(), Set.of(), init.getImplementation()),
+                method(REBLOG_HEADER, "j1", button, false, 2, List.of(member(Opcode.IGET_OBJECT, 0, 1, REBLOG_HEADER, "E", button),
+                        new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)))));
+        ImmutableMethodReference visibility = ref(view, "setVisibility", VOID, "I");
+        List<Instruction> shows = new ArrayList<>();
+        if (!variant.equals("clean") && !variant.equals("missing")) shows.addAll(List.of(
+                invoke(Opcode.INVOKE_STATIC, ref(POST_PARTS, "trailFollow", OBJECT, OBJECT), 4), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4),
+                new ImmutableInstruction21c(Opcode.CHECK_CAST, 4, new ImmutableTypeReference(entry))));
+        shows.addAll(List.of(invoke(Opcode.INVOKE_VIRTUAL, ref(REBLOG_HEADER, "j1", button), 2), new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 4, 7), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                invoke(Opcode.INVOKE_VIRTUAL, visibility, 0, 1), end(), new ImmutableInstruction21s(Opcode.CONST_16, 1, 8),
+                invoke(Opcode.INVOKE_VIRTUAL, visibility, 0, 1), end()));
+        classes.put(TRAIL_HEADER, List.of(method(TRAIL_HEADER, "u", VOID, true, 5, shows, REBLOG_HEADER, OBJECT, entry)));
+        if (!variant.equals("clean")) classes.put(POST_PARTS, List.of(booleanHook(POST_PARTS, "hideFollowButton"),
+                method(POST_PARTS, "trailFollow", OBJECT, true, 2, List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0),
+                        new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), OBJECT)));
     }
 
     private static void footerButtons(Map<String, List<Method>> classes, String family, String variant) {

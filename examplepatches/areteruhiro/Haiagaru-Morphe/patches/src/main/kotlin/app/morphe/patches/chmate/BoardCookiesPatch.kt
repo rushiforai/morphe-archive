@@ -37,7 +37,7 @@ internal fun BytecodePatchContext.patchBoardCookies(version:String){
     data class Candidate(val owner:ClassDef,val method:com.android.tools.smali.dexlib2.iface.Method,
         val requestMethod:MethodReference)
     val candidates=mutableListOf<Candidate>()
-    classDefForEach{cls->
+    boundClassForEach("BoardCookiesPatch:1") {cls->
         for(method in cls.methods){
             if(method.parameterTypes.size!=1||method.returnType=="V"||!method.returnType.startsWith("Lo/"))continue
             val chainType=method.parameterTypes.single().toString()

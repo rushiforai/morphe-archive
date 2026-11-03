@@ -18,8 +18,8 @@ import kotlin.test.assertTrue
 class ReadWithoutReceiptSendPatchTest {
     @Test
     fun `hook is selected only after queue submission returns with original request intact`() {
-        val call = ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 3, 0, 15, 1, 0, 0,
-            ImmutableMethodReference("Lqueue;", "submit", listOf(REQUEST, "Lcallback;"), "V"))
+        val call = ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 4, 0, 15, 1, 2, 0,
+            ImmutableMethodReference("Lqueue;", "submit", listOf(REQUEST, "Lcallback;", "Z"), "V"))
         val method = method(listOf(call, ImmutableInstruction10x(Opcode.RETURN_VOID)), registers = 20)
         assertEquals(listOf(SendSubmissionSite(1, 15)), readWithoutReceiptSendSites(method, REQUEST))
     }
@@ -44,6 +44,14 @@ class ReadWithoutReceiptSendPatchTest {
     }
 
     @Test
+    fun `a submission without the trailing boolean is not the queue api`() {
+        val twoArguments = ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 3, 0, 1, 2, 0, 0,
+            ImmutableMethodReference("Lqueue;", "submit", listOf(REQUEST, "Lcallback;"), "V"))
+        assertTrue(readWithoutReceiptSendSites(method(listOf(twoArguments,
+            ImmutableInstruction10x(Opcode.RETURN_VOID))), REQUEST).isEmpty())
+    }
+
+    @Test
     fun `read observation preserves wide position and chatId even in high parameter registers`() {
         val method = ImmutableMethod("Lreader;", "markRead",
             listOf("J", "Ljava/lang/String;", "Z").map { ImmutableMethodParameter(it, null, null) },
@@ -62,7 +70,7 @@ class ReadWithoutReceiptSendPatchTest {
     }
 
     private fun call(returnType: String = "V") = ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL,
-        3, 0, 1, 2, 0, 0, ImmutableMethodReference("Lqueue;", "submit", listOf(REQUEST, "Lcallback;"), returnType))
+        4, 0, 1, 2, 3, 0, ImmutableMethodReference("Lqueue;", "submit", listOf(REQUEST, "Lcallback;", "Z"), returnType))
 
     private fun method(instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>,
         registers: Int = 4, flags: Int = AccessFlags.PUBLIC.value) = ImmutableMethod(

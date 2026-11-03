@@ -169,6 +169,132 @@ public final class AiFeatureFilter {
     }
 
     /**
+     * myAT&T: Andi, the AI assistant, its "Fusion" chat (voice, AI search, and AI cards), and the
+     * Personal Assistant are switched by flags in a JSON document that native code hands to
+     * the app's JavaScript through a callback. The callback is wrapped, and every AI flag in
+     * the document is set to false before the JavaScript reads it.
+     */
+    public static boolean isAttAiFlag(String name) {
+        if (name == null) {
+            return false;
+        }
+        String n = name.toUpperCase(Locale.US).replace('-', '_');
+        return n.startsWith("SVC_")
+                && (n.contains("FUSION") || n.contains("ANDI_CHAT") || n.contains("PERSONAL_ASSISTANT"));
+    }
+
+    public static Object wrapAttFeatureFlagsCallback(final Object callback) {
+        if (callback == null) {
+            return null;
+        }
+        try {
+            ClassLoader loader = callback.getClass().getClassLoader();
+            return java.lang.reflect.Proxy.newProxyInstance(loader, callback.getClass().getInterfaces(),
+                    (proxy, method, args) -> {
+                        if ("invoke".equals(method.getName()) && args != null && args.length == 1
+                                && args[0] instanceof Object[]) {
+                            Object[] values = (Object[]) args[0];
+                            if (values.length > 0 && values[0] instanceof String) {
+                                values[0] = disableAttAiFlags((String) values[0]);
+                            }
+                        }
+                        try {
+                            return method.invoke(callback, args);
+                        } catch (java.lang.reflect.InvocationTargetException e) {
+                            throw e.getCause();
+                        }
+                    });
+        } catch (Throwable t) {
+            Log.w(TAG, "wrap AT&T flags failed: " + t);
+            return callback;
+        }
+    }
+
+    /**
+     * myAT&T's JavaScript also fetches the flag allocations itself. React Native hands every
+     * response body to the JavaScript through NetworkEventUtil.onDataReceived, which calls this
+     * first: flag documents get the same treatment, and everything else passes through.
+     */
+    public static String filterAttJsResponse(String body) {
+        if (body == null || body.indexOf("\"allocations\"") < 0 || body.indexOf("svc-") < 0) {
+            return body;
+        }
+        return disableAttAiFlags(body);
+    }
+
+    private static final String BLOCKED_URL = "http://127.0.0.1:9/";
+
+    /**
+     * myAT&T: Andi's own API gets the usual network error: its chat service (chatlogicprocessor,
+     * which also hands chats to agents), its AI endpoints, and its streaming hub.
+     */
+    public static String filterJsRequestUrl(String url) {
+        return isAttAndiUrl(url) ? BLOCKED_URL : url;
+    }
+
+    public static java.net.URL filterJsRequestUrl(java.net.URL url) {
+        try {
+            return url != null && isAttAndiUrl(url.toString()) ? new java.net.URL(BLOCKED_URL) : url;
+        } catch (Exception e) {
+            return url;
+        }
+    }
+
+    /** myAT&T: Andi's live chat connection (a WebSocket to its streaming hub) is refused. */
+    public static String filterAttWebSocketUrl(String url) {
+        return isAttAndiUrl(url) ? "ws://127.0.0.1:9/" : url;
+    }
+
+    private static boolean isAttAndiUrl(String url) {
+        return url != null && (url.contains("/andiai/") || url.contains("/user/andi") || url.contains("andistreaminghub")
+                || url.contains("/chatlogicprocessor/")) && logOff("Andi API");
+    }
+
+    private static String disableAttAiFlags(String json) {
+        if (json == null || json.isEmpty()) {
+            return json;
+        }
+        try {
+            Object root = new org.json.JSONTokener(json).nextValue();
+            disableAttAi(root, null);
+            return root.toString();
+        } catch (Throwable t) {
+            Log.w(TAG, "AT&T flags not changed: " + t);
+            return json;
+        }
+    }
+
+    /** Sets AI flags to false, whether stored as name: value or as {name, value/enabled}. */
+    private static void disableAttAi(Object node, String owner) throws Exception {
+        if (node instanceof org.json.JSONObject) {
+            org.json.JSONObject object = (org.json.JSONObject) node;
+            String name = object.optString("name", object.optString("key", owner));
+            boolean aiEntry = isAttAiFlag(name);
+            java.util.Iterator<String> keys = object.keys();
+            java.util.List<String> names = new java.util.ArrayList<>();
+            while (keys.hasNext()) {
+                names.add(keys.next());
+            }
+            for (String key : names) {
+                Object value = object.get(key);
+                boolean flag = isAttAiFlag(key)
+                        || (aiEntry && (key.equals("value") || key.equals("enabled") || key.equals("isEnabled")));
+                if (flag && (value instanceof Boolean || "true".equals(value))) {
+                    object.put(key, value instanceof Boolean ? Boolean.FALSE : "false");
+                    logOff(isAttAiFlag(key) ? key : name);
+                } else {
+                    disableAttAi(value, key);
+                }
+            }
+        } else if (node instanceof org.json.JSONArray) {
+            org.json.JSONArray array = (org.json.JSONArray) node;
+            for (int i = 0; i < array.length(); i++) {
+                disableAttAi(array.get(i), owner);
+            }
+        }
+    }
+
+    /**
      * The Home Depot's web pages have their own Magic Apron button. This hides it with a style
      * rule, using the selector the app itself uses to find the button.
      */

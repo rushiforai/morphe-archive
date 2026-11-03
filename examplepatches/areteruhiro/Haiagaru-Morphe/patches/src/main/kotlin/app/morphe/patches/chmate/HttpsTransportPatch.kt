@@ -20,9 +20,9 @@ private const val HTTPS = "Lapp/morphe/extension/chmate/HttpsTransport;"
 internal fun BytecodePatchContext.patchHttpsTransport() {
     var builders = 0
     var connections = 0
-    classDefForEach { classDef ->
+    boundClassForEach("HttpsTransportPatch:1") { classDef ->
         // The extension wrappers must retain their actual java.net calls.
-        if (classDef.type == HTTPS) return@classDefForEach
+        if (classDef.type == HTTPS) return@boundClassForEach
         val mutableClass by lazy { mutableClassDefBy(classDef) }
         classDef.methods.forEach methodLoop@ { method ->
             val instructions = method.implementation?.instructions?.toList() ?: return@methodLoop

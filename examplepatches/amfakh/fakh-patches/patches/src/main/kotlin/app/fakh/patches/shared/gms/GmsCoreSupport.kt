@@ -1,4 +1,7 @@
 /*
+ * Portions copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
  * The lists of GmsCore permissions, intent actions and content provider authorities, and the approach of
  * redirecting them, come from Morphe's GmsCore support patch (GPLv3):
  * https://github.com/MorpheApp/morphe-patches/blob/main/patches/src/main/kotlin/app/morphe/patches/shared/misc/gms/GmsCoreSupportPatch.kt

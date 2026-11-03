@@ -38,6 +38,8 @@ public final class SettingsStatus {
     public static boolean visibleAltText() { return false; }
     public static boolean photoAltTextCaptions() { return false; }
     public static boolean galleryAltTextCaptions() { return false; }
+    public static boolean shareVideoLinks() { return false; }
+    public static boolean videoLinkPress() { return false; }
     public static boolean showPostTimestamps() { return false; }
     public static boolean nativePostTimestamps() { return false; }
     public static boolean filterActivityNotifications() { return false; }

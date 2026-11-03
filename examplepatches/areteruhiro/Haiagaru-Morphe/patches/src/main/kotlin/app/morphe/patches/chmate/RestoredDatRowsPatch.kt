@@ -7,14 +7,14 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal fun BytecodePatchContext.patchRestoredDatRows() {
     val responseLists = mutableSetOf<String>()
-    classDefForEach { type ->
+    boundClassForEach("RestoredDatRowsPatch:1") { type ->
         if (type.fields.any { it.name == "mBase" && it.type == type.type } &&
             type.fields.any { it.name == "title" && it.type == "Ljava/lang/String;" }) {
             responseLists.add(type.type)
         }
     }
     val readers = mutableListOf<Pair<String, com.android.tools.smali.dexlib2.iface.Method>>()
-    classDefForEach { type ->
+    boundClassForEach("RestoredDatRowsPatch:2") { type ->
         type.methods.filter { method ->
             method.returnType in responseLists &&
             method.parameterTypes.map(CharSequence::toString) == listOf("Ljava/io/File;", "I") &&

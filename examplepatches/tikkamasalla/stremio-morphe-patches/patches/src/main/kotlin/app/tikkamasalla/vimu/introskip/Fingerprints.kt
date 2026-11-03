@@ -36,6 +36,18 @@ object VimuPlayerPrepareFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/**
+ * Runs the signature check in Vimu 12.00: compares the signing certificate hash
+ * to "-1886143585" and exits on a mismatch.
+ */
+object VimuResignCheckFingerprint : Fingerprint(
+    definingClass = "Landroidx/activity/ComponentActivity;",
+    name = "getView",
+    parameters = listOf("Landroid/content/Context;"),
+    returnType = "V",
+    strings = listOf("-1886143585"),
+)
+
 /** Releases the media session on exit in Vimu 12.00 instead of only deactivating it. */
 object VimuMediaSessionReleaseFingerprint : Fingerprint(
     definingClass = "Lnet/gtvbox/videoplayer/m;",
@@ -65,6 +77,16 @@ object VimuOwnScreenFingerprint : Fingerprint(
     definingClass = "Lnet/gtvbox/videoplayer/PlayerFragment;",
     name = "j",
     parameters = emptyList(),
+)
+
+/**
+ * Shows the playback error dialog in Vimu 12.00 (public t(l)): the journal records state "error"
+ * when it starts.
+ */
+object VimuPlaybackErrorFingerprint : Fingerprint(
+    definingClass = "Lnet/gtvbox/videoplayer/PlayerFragment;",
+    name = "t",
+    parameters = listOf("Lnet/gtvbox/videoplayer/l;"),
 )
 
 /**

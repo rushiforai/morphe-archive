@@ -12,7 +12,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
@@ -23,54 +22,34 @@ import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
-private const val DEBUG_METADATA = "Llb8/e;"
-private const val COMPOSER = "Lh3/t;"
-private const val COMPOSER_IMPL = "Lh3/f1;"
-private const val END_RESTART_GROUP_RESULT = "Lh3/p3;"
-private const val FEED_MODULE_STATE = "Ll72/f;"
+private const val COMPOSER = "Lj3/r;"
+private const val COMPOSER_IMPL = "Lj3/d1;"
+private const val END_RESTART_GROUP_RESULT = "Lj3/p3;"
+private const val FEED_MODULE_STATE = "Lsg2/h;"
 private const val HOME_TRENDING_HOOK =
     "Ldev/utaa/linimal/extension/features/HomeTrendingHooks;->shouldSuppress()Z"
 
-/** Home26 の話題枠を描く module controller。source metadata で特定します。 */
-private const val MATOME_CONTROLLER_SOURCE = "GcsHomeFeedMatomeSingleModuleController"
-private const val MATOME_CONTROLLER_FILE = "GcsHomeFeedMatomeSingleModuleController.kt"
+/**
+ * Home26 の話題枠の view data が `toString()` に残す marker。
+ *
+ * <p>26.16.0 では話題 module から coroutine がなくなり、DebugMetadata を anchor にできません。
+ * data class の `toString()` は R8 後も平文で残るため、ここから view data の型を特定します。
+ * 別経路の `GcsHomeFeedMatomeCarousel` は 26.11.0 から対象外です。</p>
+ */
+private const val MATOME_SINGLE_PAYLOAD_MARKER = "GcsHomeFeedMatomeSingle(item="
 
 /** 話題枠の module renderer は 1 件だけです。解決できなければ一切注入しません。 */
 internal const val HOME_TRENDING_TARGET_COUNT = 1
 
-/**
- * 話題 module の stateful continuation。source metadata は R8 後も残るため、
- * 難読化された class / method 名を anchor にせず、Home の話題枠だけに絞り込みます。
- */
-private val matomeSourceMetadataFingerprint = Fingerprint(
-    custom = { _, classDef ->
-        classDef.annotations.any { annotation ->
-            if (annotation.type != DEBUG_METADATA) {
-                false
-            } else {
-                val declaringController = annotation.elements.firstOrNull { it.name == "c" }
-                    ?.value
-                    .let { it as? StringEncodedValue }
-                    ?.value
-                    ?.contains(MATOME_CONTROLLER_SOURCE) == true
-                val sourceFile = annotation.elements.firstOrNull { it.name == "f" }
-                    ?.value
-                    .let { it as? StringEncodedValue }
-                    ?.value == MATOME_CONTROLLER_FILE
-                declaringController && sourceFile
-            }
-        }
-    },
-)
+private val matomeSinglePayloadFingerprint = Fingerprint(strings = listOf(MATOME_SINGLE_PAYLOAD_MARKER))
 
 /**
- * 話題 module の restartable composable。難読化された class / method 名ではなく、
- * module renderer の引数の並びと composer lifecycle の呼出しで絞り込みます。
+ * 話題 module の restartable composable。難読化された class / method 名ではなく、話題枠の
+ * view data を受け取る引数の並びと composer lifecycle の呼出しで絞り込みます。
  */
-private fun matomeRendererFingerprint(ownerType: String) = Fingerprint(
-    definingClass = ownerType,
+private fun matomeRendererFingerprint(payloadType: String) = Fingerprint(
     returnType = VOID,
-    custom = { method, _ -> isMatomeModuleRendererSignature(method) },
+    custom = { method, _ -> isMatomeModuleRendererSignature(method, payloadType) },
     filters = listOf(
         methodCall(
             definingClass = COMPOSER_IMPL,
@@ -88,7 +67,7 @@ private fun matomeRendererFingerprint(ownerType: String) = Fingerprint(
         ),
         methodCall(
             definingClass = COMPOSER_IMPL,
-            name = "Y",
+            name = "Z",
             parameters = emptyList(),
             returnType = END_RESTART_GROUP_RESULT,
             opcode = Opcode.INVOKE_VIRTUAL,
@@ -120,22 +99,17 @@ val homeTrendingPatch = bytecodePatch(
     dependsOn(homeContentsRecommendationPatch)
 
     execute {
-        val owners = matomeSourceMetadataFingerprint.matchAllOrNull().orEmpty()
+        val payloadTypes = matomeSinglePayloadFingerprint.matchAllOrNull().orEmpty()
             .map { it.originalClassDef.type }
             .toSet()
-            .let(::matomeRendererOwnerCandidates)
-        if (owners.isEmpty()) {
+        if (payloadTypes.size != HOME_TRENDING_TARGET_COUNT) {
             patchStatusCollector.record(
-                homeTrendingUnappliedRecord(0, "HomeMatomeModuleContinuationNotUnique"),
+                homeTrendingUnappliedRecord(payloadTypes.size, "HomeMatomePayloadTypeNotUnique"),
             )
             return@execute
         }
 
-        // continuation の enclosing type は nest の深さが version で変わり得るため、
-        // 直接の enclosing から最外殻までを候補にし、合計 1 件に絞れた場合だけ注入します。
-        val renderers = owners.flatMap { owner ->
-            matomeRendererFingerprint(owner).matchAllOrNull().orEmpty()
-        }
+        val renderers = matomeRendererFingerprint(payloadTypes.single()).matchAllOrNull().orEmpty()
         if (renderers.size != HOME_TRENDING_TARGET_COUNT) {
             patchStatusCollector.record(
                 homeTrendingUnappliedRecord(renderers.size, "HomeMatomeModuleRendererNotUnique"),
@@ -197,34 +171,12 @@ internal fun homeTrendingUnappliedRecord(resolvedCount: Int, reason: String) = P
     reason = reason,
 )
 
-/**
- * continuation を囲む type を、直接の enclosing から最外殻まで列挙します。continuation が
- * 0 件、複数件、または nest されていない場合は owner を確定できないため、候補を返しません。
- */
-internal fun matomeRendererOwnerCandidates(continuationTypes: Set<String>): Set<String> {
-    val continuation = continuationTypes.singleOrNull() ?: return emptySet()
-    if (!continuation.startsWith("L") || !continuation.endsWith(";")) {
-        return emptySet()
-    }
-
-    val body = continuation.substring(1, continuation.length - 1)
-    return generateSequence(body) { type ->
-        type.substringBeforeLast('$', missingDelimiterValue = "").takeIf { it.isNotEmpty() }
-    }
-        .drop(1)
-        .map { "L$it;" }
-        .toSet()
-}
-
-/**
- * module renderer の引数の並び。view data の型だけが module ごとに変わるため、その位置は
- * 型を問わず、feed module state・composer・changed flag の並びだけを検証します。
- */
-internal fun isMatomeModuleRendererSignature(method: Method): Boolean {
+/** `(id, view data, feed module state, Composer, $$changed)` の並びと view data の型を検証します。 */
+internal fun isMatomeModuleRendererSignature(method: Method, payloadType: String): Boolean {
     val parameters = method.parameterTypes.map { it.toString() }
     return parameters.size == 5 &&
         parameters[0] == "Ljava/lang/String;" &&
-        parameters[1].startsWith("L") &&
+        parameters[1] == payloadType &&
         parameters[2] == FEED_MODULE_STATE &&
         parameters[3] == COMPOSER &&
         parameters[4] == "I"
@@ -260,7 +212,7 @@ internal fun homeTrendingModuleGateShape(
     if (composerCallIndices(instructions, "l", VOID).size != 1) {
         return null
     }
-    if (composerCallIndices(instructions, "Y", END_RESTART_GROUP_RESULT).size != 1) {
+    if (composerCallIndices(instructions, "Z", END_RESTART_GROUP_RESULT).size != 1) {
         return null
     }
 

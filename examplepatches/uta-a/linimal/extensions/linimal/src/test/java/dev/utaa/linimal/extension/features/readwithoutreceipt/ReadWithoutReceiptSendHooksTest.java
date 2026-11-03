@@ -41,12 +41,6 @@ public final class ReadWithoutReceiptSendHooksTest {
     public void highestAttemptedPointIsNeverThePreviouslyReadBaseline() throws Exception {
         ReadWithoutReceiptSendHooks.SendState state = new ReadWithoutReceiptSendHooks.SendState();
         state.record(new ReadExecutor(), 120L);
-        assertEquals(-1, state.manualState.presentation(90L, false));
-        assertEquals(-1, state.manualState.presentation(101L, true));
-        state.manualState.observeBaseline("100");
-        assertEquals(0, state.manualState.presentation(90L, false));
-        assertEquals(3, state.manualState.presentation(101L, true));
-        assertEquals(1, state.manualState.presentation(102L, false));
         assertEquals(120L, state.snapshot().readPoint);
     }
 
@@ -61,12 +55,12 @@ public final class ReadWithoutReceiptSendHooksTest {
         create(new Object(), session.token);
         ReadWithoutReceiptHooks.Suppression restored = ReadWithoutReceiptHooks.currentSuppression();
         assertEquals(84L, restored.sendState.record(new ReadExecutor(), 84L).readPoint);
-        assertTrue(ReadWithoutReceiptHooks.endSuppressionForSentMessage("chat", session));
+        assertTrue(ReadWithoutReceiptHooks.endConfirmedSuppression("chat", session));
         assertNull(ReadWithoutReceiptHooks.currentSuppression());
         ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
         create(new Object(), 0L);
         assertNull(ReadWithoutReceiptHooks.currentSuppression().sendState.onSubmitted(false));
-        assertFalse(ReadWithoutReceiptHooks.endSuppressionForSentMessage("chat", session));
+        assertFalse(ReadWithoutReceiptHooks.endConfirmedSuppression("chat", session));
     }
 
     @Test

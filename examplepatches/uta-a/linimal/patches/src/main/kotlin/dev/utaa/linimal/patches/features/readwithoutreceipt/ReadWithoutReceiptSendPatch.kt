@@ -141,9 +141,11 @@ internal fun readWithoutReceiptSendSites(method: Method, requestType: String): L
     return instructions.withIndex().mapNotNull { (index, instruction) ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null
         val args = instruction as? FiveRegisterInstruction ?: return@mapNotNull null
+        // 投入 API は (request, callback, Z)V。Z は送信 task へ渡るだけなので、値は判定に使いません。
         if (instruction.opcode != Opcode.INVOKE_VIRTUAL || reference.returnType != "V" ||
-            reference.parameterTypes.size != 2 || reference.parameterTypes[0] != requestType ||
-            args.registerCount != 3 || args.registerD >= implementation.registerCount ||
+            reference.parameterTypes.size != 3 || reference.parameterTypes[0] != requestType ||
+            reference.parameterTypes[2] != "Z" ||
+            args.registerCount != 4 || args.registerD >= implementation.registerCount ||
             instructions.getOrNull(index + 1)?.opcode != Opcode.RETURN_VOID ||
             isDivertedInjectionIndex(instructions, index + 1, exceptionHandlerAddresses(implementation))) return@mapNotNull null
         SendSubmissionSite(index + 1, args.registerD)

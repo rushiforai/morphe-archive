@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import dev.utaa.linimal.extension.core.KotlinUnit;
+
 import java.lang.reflect.Method;
 
 /**
@@ -28,7 +30,6 @@ public final class ReadWithoutReceiptAction {
 
     /** Kotlin の Unit class 名を定数として書くと shrinker が同名クラスを extension へ取り込むため、
      * SettingsEntryFactory と同様に実行時に組み立てます。 */
-    private static final String[] UNIT_CLASS_NAME = {"kotlin", "Unit"};
 
     private final String chatId;
     private final Object dismiss;
@@ -47,7 +48,7 @@ public final class ReadWithoutReceiptAction {
 
     /**
      * {@code Lvb8/a;->invoke()Ljava/lang/Object;} と erased signature が一致する実装です。
-     * 戻り値は呼び出し側で破棄されるため、{@code kotlin.Unit.INSTANCE} を取得できなければ null を返します。
+     * 戻り値は呼び出し側で破棄されるため、Kotlin の Unit を取得できなければ null を返します。
      */
     public Object invoke() {
         // 先にメニューを閉じます。閉じられなくても既読抑制とトークの表示は続行します。
@@ -111,13 +112,6 @@ public final class ReadWithoutReceiptAction {
     }
 
     private static Object unitInstance() {
-        try {
-            String name = UNIT_CLASS_NAME[0] + '.' + UNIT_CLASS_NAME[1];
-            return Class.forName(name, false, ReadWithoutReceiptAction.class.getClassLoader())
-                    .getField("INSTANCE")
-                    .get(null);
-        } catch (Throwable ignored) {
-            return null;
-        }
+        return KotlinUnit.get(ReadWithoutReceiptAction.class.getClassLoader());
     }
 }

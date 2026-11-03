@@ -68,6 +68,14 @@ public static class CommentSnapshotAssertions
         return that;
     }
 
+    /// <summary>The comment shows no award icon.</summary>
+    public static AssertingThat<CommentSnapshot> ShowsNoAward(this AssertingThat<CommentSnapshot> that)
+    {
+        var comment = that.InstanceToAssert;
+        Assert.True(comment.Awards == 0, $"The comment \"{comment.Text}\" shows {comment.Awards} award icons, but none was expected.");
+        return that;
+    }
+
     private static string Media(CommentSnapshot comment) =>
         $"{comment.Images} images, {comment.Gifs} GIFs and {comment.Videos} videos";
 }

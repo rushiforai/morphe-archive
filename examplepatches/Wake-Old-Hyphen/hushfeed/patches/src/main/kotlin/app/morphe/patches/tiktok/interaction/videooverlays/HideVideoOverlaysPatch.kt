@@ -92,6 +92,21 @@ val hideVideoOverlaysPatch = bytecodePatch(
             println("[$PATCH_NAME] Left out the Following LIVE row on ${packageMetadata.versionName}: ${problem.message}")
             null
         }
+        // The story rows' All button and Create circle (#308, #309), the same way: required where
+        // StoryRowButtonsAnchorsTest holds them, left out with a note anywhere else.
+        val storyRowButtons = try {
+            val allShows = mutableClassDefBy(SKYLIGHT_LIST_ASSEM).methods.filter { allButtonShowIndex(it) >= 0 }
+            if (allShows.size != 2) throw PatchException("$PATCH_NAME: $SKYLIGHT_LIST_ASSEM shows All ${allShows.size} times.")
+            val binds = listOf(FOLLOWING_STORY_CELL, INBOX_STORY_CELL).map { cell ->
+                mutableClassDefBy(cell).methods.singleOrNull(::isStoryCellBind)
+                    ?: throw PatchException("$PATCH_NAME: $cell has no one bind writing the Create flag.")
+            }
+            allShows to binds
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out the story row buttons on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
         // The Not interested and Interested buttons (#293), the same way: required where
         // InterestButtonsAnchorsTest holds the factory's check, left out with a note anywhere else.
         val interestButtons = try {
@@ -103,6 +118,26 @@ val hideVideoOverlaysPatch = bytecodePatch(
         } catch (problem: Exception) {
             if (packageMetadata.versionName in declaredVersions()) throw problem
             println("[$PATCH_NAME] Left out the interest buttons on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
+        // The chip saying someone you follow reposted the video (#319), the same way: required where
+        // RepostChipAnchorsTest holds the trigger's answer, left out with a note anywhere else.
+        val repostChip = try {
+            RepostChipTriggerFingerprint.method.also {
+                if (repostChipAnswer(it.implementation!!.instructions.toList()) < 0) {
+                    throw PatchException("$PATCH_NAME: ${it.definingClass} no longer asks about the repost chip the way it did.")
+                }
+            }
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out the repost chip on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
+        val repostBar = try {
+            RepostBarVisibilityFingerprint.method
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out the repost bar on ${packageMetadata.versionName}: ${problem.message}")
             null
         }
         // The music disc's two switches (#68), the same way: required where MusicDiscSpinAnchorsTest
@@ -161,8 +196,27 @@ val hideVideoOverlaysPatch = bytecodePatch(
                 "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableFollowingSkylight()V",
             )
         }
+        // Both decide in the extension from each cell's bind and each show call, and a bound row
+        // only changes after a restart, so these rows ask for one.
+        if (storyRowButtons != null) {
+            val (allShows, binds) = storyRowButtons
+            allShows.forEach { it.hookAllButtonShow(PATCH_NAME) }
+            binds.forEach { it.hookStoryCreateCell(PATCH_NAME) }
+            status.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableStoryRowButtons()V",
+            )
+        }
         // The interest buttons go with Hide surveys; the switch decides in the extension.
         interestButtons?.dropInterestButtons(PATCH_NAME)
+        if (repostChip != null) {
+            repostChip.dropRepostChip(PATCH_NAME)
+            repostBar?.dropRepostBar()
+            status.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableRepostChip()V",
+            )
+        }
         // The music disc. 47.1.4 ships music_animation_close_exp at 3, which keeps the disc from
         // turning; each lazy read hands its value to MusicDiscSpin before boxing it. The holds
         // past it (anim_opt, the high frame rate hold, the play animation's load downgrade and

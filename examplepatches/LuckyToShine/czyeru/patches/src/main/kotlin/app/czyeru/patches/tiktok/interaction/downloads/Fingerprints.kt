@@ -182,8 +182,8 @@ internal object PhotoMediaStoreInsertFingerprint : Fingerprint(
 )
 
 /** `X.0VPx.LJJIJIIJIL` on 47.2.41, `X.03rb.LJJIJIIJIL` on 47.4.3. */
+// Found by shape: renamed per build (LJJIJIIJIL on 47.4.3, LJJIJIL on 47.6.3).
 internal object ImagePostMediaCopyFingerprint : Fingerprint(
-    name = "LJJIJIIJIL",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Landroid/net/Uri;",
     parameters = listOf(
@@ -199,9 +199,9 @@ internal object ImagePostMediaCopyFingerprint : Fingerprint(
         val calls = method.implementation?.instructions?.mapNotNull { instruction ->
             instruction.getReference<MethodReference>()
         } ?: emptyList()
-        // The MediaStore helper's video and photo inserts.
-        calls.any { it.name == "LJ" && it.returnType == "Landroid/net/Uri;" && it.parameterTypes.size == 4 } &&
-            calls.any { it.name == "LIZJ" && it.returnType == "Landroid/net/Uri;" && it.parameterTypes.size == 4 }
+        // The MediaStore helper's video and photo inserts: two different (Context, 3 strings) -> Uri calls.
+        calls.filter { it.returnType == "Landroid/net/Uri;" && it.parameterTypes.size == 4 }
+            .map { it.name }.distinct().size >= 2
     },
 )
 

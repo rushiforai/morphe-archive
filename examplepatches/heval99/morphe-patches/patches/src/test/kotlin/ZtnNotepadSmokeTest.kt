@@ -1,3 +1,4 @@
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
@@ -6,13 +7,32 @@ import java.io.File
 
 private const val PKG = "com.ztnstudio.notepad"
 
+private val AD_LOADS = mapOf(
+    "Lcom/applovin/mediation/ads/MaxAdView;" to listOf("loadAd", "startAutoRefresh"),
+    "Lcom/applovin/mediation/ads/MaxInterstitialAd;" to listOf("loadAd", "showAd"),
+    "Lcom/applovin/mediation/ads/MaxRewardedAd;" to listOf("loadAd", "showAd"),
+    "Lcom/applovin/mediation/ads/MaxAppOpenAd;" to listOf("loadAd", "showAd"),
+    "Lcom/applovin/mediation/nativeAds/MaxNativeAdLoader;" to listOf("loadAd"),
+    "Lcom/google/android/gms/ads/BaseAdView;" to listOf("loadAd"),
+    "Lcom/google/android/gms/ads/admanager/AdManagerAdView;" to listOf("loadAd"),
+    "Lcom/google/android/gms/ads/AdLoader;" to listOf("loadAd", "loadAds"),
+    "Lcom/google/android/gms/ads/interstitial/InterstitialAd;" to listOf("load"),
+    "Lcom/google/android/gms/ads/admanager/AdManagerInterstitialAd;" to listOf("load"),
+    "Lcom/google/android/gms/ads/rewarded/RewardedAd;" to listOf("load"),
+    "Lcom/google/android/gms/ads/rewardedinterstitial/RewardedInterstitialAd;" to listOf("load"),
+    "Lcom/google/android/gms/ads/appopen/AppOpenAd;" to listOf("load"),
+    "Lcom/facebook/ads/InterstitialAd;" to listOf("loadAd"),
+    "Lcom/facebook/ads/AdView;" to listOf("loadAd"),
+    "Lcom/facebook/ads/RewardedVideoAd;" to listOf("loadAd"),
+)
+
 class ZtnNotepadSmokeTest {
 
     @TempDir
     lateinit var workDir: File
 
     @Test
-    fun `premium getters are forced and Calldorado never starts`() {
+    fun `premium getters are forced and every ad SDK load is neutered`() {
         val root = repoRoot()
         val apk = File(root, "apks/ztnnotepad/base.apk")
 
@@ -21,7 +41,7 @@ class ZtnNotepadSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "5.4.3.19019",
+            apk = apk, workDir = workDir, pkg = PKG, version = "5.4.4.19080",
             patchNames = setOf("Enable Premium", "Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -40,12 +60,20 @@ class ZtnNotepadSmokeTest {
         }
         assertForcedBoolean(adFreeGetter, expected = true, label = "BuyAdFreePreferenceHelper.${adFreeGetter.name}()")
 
-        val calldorado = klass("Lcom/calldorado/Calldorado;").methods.filter {
-            it.implementation != null && it.returnType == "V" &&
-                (it.name == "start" || it.name == "startInAppAdManager")
+        // 5.4.4 mediates through AppLovin MAX with Meta and GMA underneath: every load is neutered.
+        val diagnostics = "emitted classes=${classes.size}"
+        for ((owner, names) in AD_LOADS) {
+            val cls: ClassDef = klass(owner)
+            for (name in names) {
+                val methods = cls.methods.filter {
+                    it.name == name && it.returnType == "V" && it.implementation != null
+                }
+                assertTrue(methods.isNotEmpty(), "$owner has no concrete void $name")
+                methods.forEach {
+                    assertReturnsEarlyVoid(it, "$owner->$name(${it.parameterTypes.joinToString()})", diagnostics)
+                }
+            }
         }
-        assertTrue(calldorado.count { it.name == "start" } >= 3, "expected the Calldorado.start overloads")
-        assertTrue(calldorado.any { it.name == "startInAppAdManager" }, "expected Calldorado.startInAppAdManager")
-        calldorado.forEach { assertReturnsEarlyVoid(it, label = "Calldorado.${it.name}${it.parameterTypes}") }
+        assertMaxAdViewHidden(classes)
     }
 }

@@ -26,7 +26,7 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;50 patches total
+> **[v1.13.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
 <details open>
 <summary>📦 SofaScore&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -44,18 +44,20 @@ Or
 </details>
 
 <details open>
-<summary>📦 CCleaner&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 MiXplorer&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 26.08.0 |
-| :---: |
+| 6.71.15 | 6.71.14 | 6.71.12 | 6.71.10 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable Telemetry](#disable-telemetry) | Disables analytics and telemetry event tracking. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks CCleaner Premium / Pro features (Ultimate Multi + Lifetime style). |  |
+| [Disable signature verification](#disable-signature-verification) | Allows re-signed MiXplorer builds by adding the installed signing cert fingerprint to the internal allow-list. |  |
+| [Hide browser Download component](#hide-browser-download-component) | Removes DownloadActivity intent-filters so MiXplorer is not offered in browser/Firefox download choosers. |  |
+| [Limit Copy to share menu](#limit-copy-to-share-menu) | Removes CopyActivity VIEW filters (open-with) while keeping SEND filters so Copy remains in the system share menu. |  |
+| [Remove HTTP/HTTPS intent filters](#remove-http-https-intent-filters) | Strips http/https schemes from VIEW/BROWSABLE intent-filters so MiXplorer is not offered for web links. |  |
 
 </details>
 
@@ -65,12 +67,28 @@ Or
 
 **🎯 Supported versions:**
 
-| 12.0.17.0 |
+| 🧪&nbsp;12.0.17.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable premium license](#enable-premium-license) | Best-effort unlock of ESET premium UI / client-side license flags. Native libems + server checks may still limit some features. |  |
+
+</details>
+
+<details open>
+<summary>📦 InShot&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.214.1539 | 2.243.1555 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Fix video engine on re-sign](#fix-video-engine-on-re-sign) | Stops the bundled video engine library from terminating the process when the APK is re-signed. Covers arm64-v8a and armeabi-v7a copies of libisvideoengine.so so the editor can load after a custom signature. |  |
+| [Unlock Premium](#unlock-premium) | Enables InShot Pro entitlements offline: export without watermark, no interstitial ads, and access to paid effects, transitions, stickers and HD. Built-in AI features that validate the store signature in native code may still refuse a re-signed package. |  |
 
 </details>
 
@@ -107,18 +125,34 @@ Or
 </details>
 
 <details open>
+<summary>📦 SideMe&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.19.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlimited Energy](#unlimited-energy) | Bypasses energy limits so lessons can be started freely (bonus QoL). |  |
+| [Unlock Premium](#unlock-premium) | Unlocks SideMe Super / Premium subscription features. |  |
+
+</details>
+
+<details open>
 <summary>📦 Pou&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.4.135 |
+| 1.4.139 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlimited Coins (Experimental)](#unlimited-coins-experimental) | Gives unlimited coins in POU. WARNING: May cause crashes or reset progress. |  |
-| [Unlock Everything (Experimental)](#unlock-everything-experimental) | Unlocks all items in POU and bypasses integrity check. WARNING: May cause crashes. |  |
+| [Unlimited coins](#unlimited-coins) | Forces Pou's coin balance getter to a very large value so shop and unlock checks always pass (local save). |  |
+| [Unlock everything](#unlock-everything) | Sets shop item prices to zero and relaxes lock UI gates so items can be obtained freely (works best with Unlimited coins). |  |
 
 </details>
 
@@ -153,17 +187,32 @@ Or
 </details>
 
 <details open>
-<summary>📦 InShot&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Adobe Photoshop&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.214.1539 | 2.243.1555 |
+| 1.7.0.2322 | 🧪&nbsp;1.7.0 |
 | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Unlocks InShot Pro: no export watermark, no ads, paid filters/effects/HD. On-device AI tools may still require original signing key. |  |
+| [Unlock Photoshop Premium](#unlock-photoshop-premium) | Forces local Adobe Photoshop entitlement checks to paid/ENTITLED. Cloud-only features may still require a server-side Adobe subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 Call Filter&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.50.2 | 🧪&nbsp;1.50.1 | 🧪&nbsp;1.50.0 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Forces Call Filter local subscription flag isSubscribed to true (SharedPreferences reads + persist on app start). |  |
 
 </details>
 
@@ -209,16 +258,6 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium ](#unlock-premium) | Unlocks PhotoApp Premium by forcing UserViewModel.isPremium to true. WARNING: May cause crashes. |  |
-
-</details>
-
-<details open>
-<summary>📦 Callfilter.app&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Callfilter.app premium by forcing the 'isSubscribed' check to return true. WARNING: May cause crashes or unexpected behavior.  |  |
 
 </details>
 
@@ -320,6 +359,21 @@ Or
 </details>
 
 <details open>
+<summary>📦 ReelShort&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.2.20 | 🧪&nbsp;4.2.00 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium Features](#unlock-premium-features) | Forces local VIP membership (status, type, expire) and unlocks ad/paywall episode flags. Server-side purchases are not forged. |  |
+
+</details>
+
+<details open>
 <summary>📦 Screen Translate&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -391,21 +445,6 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium Features](#unlock-premium-features) | Forces the purchase verification method to always return true, unlocking premium features in Music Player. |  |
-
-</details>
-
-<details open>
-<summary>📦 ReelShort&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 4.2.20 | 🧪&nbsp;4.2.00 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Unlocks ReelShort VIP (vip_status=1) and unlocks ad-gated episodes. |  |
 
 </details>
 
@@ -560,18 +599,20 @@ Or
 </details>
 
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Change app name](#change-app-name) | Sets a custom application label (best-effort). | • App name |
-| [Change package name](#change-package-name) | Rewrites the manifest package attribute (experimental). | • Package name |
+| [Bypass in-app purchase](#bypass-in-app-purchase) | Best-effort local Play Billing bypass for offline games (Purchase state = PURCHASED, acknowledged = true). Does not defeat server-side validation. |  |
+| [Change app name](#change-app-name) | Sets a custom application / launcher display name (strings.xml + manifest labels). | • App name |
+| [Change package name](#change-package-name) | Appends ".mightymich" to the package name by default. Changing the package name of the app can lead to unexpected issues. | • Package name<br>• Update permissions<br>• Update providers |
 | [Change version code](#change-version-code) | Overrides android:versionCode (and optional versionName). | • Version code<br>• Version name |
 | [Disable ads (basic)](#disable-ads-basic) | Best-effort no-op of common ad SDK load/show methods. |  |
 | [Disable all telemetry](#disable-all-telemetry) | Best-effort disable of Firebase/AppsFlyer/Mixpanel/Segment style track methods. |  |
 | [Disable screenshot restriction](#disable-screenshot-restriction) | Best-effort bypass of FLAG_SECURE screenshot blocks. |  |
 | [Remove INTERNET permission](#remove-internet-permission) | Removes INTERNET / ACCESS_NETWORK_STATE permissions from the manifest. |  |
+| [Spoof device & network](#spoof-device-network) | Spoofs device model/manufacturer, hides common root/emulator signals, and can force simple in-app network type checks. | • Device model<br>• Manufacturer<br>• Hide root<br>• Hide emulator<br>• Connection type |
 
 </details>
 

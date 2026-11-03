@@ -346,6 +346,7 @@ public final class Settings {
         for (String keep : KEEP_BADGES.values()) owners.put(keep, TAB_BADGES);
         owners.put(QuietCalls.CHOSEN_ONLY, QuietCalls.KEY);
         owners.put(MessageLog.SAVE_EXPIRING, MessageLog.KEY);
+        owners.put(MessageLogButton.KEY, MessageLog.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -1139,6 +1140,8 @@ public final class Settings {
     public static boolean allowScreenshot() { return enabled("allow_screenshot"); }
     /** Messenger's subscription check for its built-in launcher icons. Off, paused or safe mode keeps Messenger's answer. */
     public static boolean unlockAppIcons() { return enabled("app_icons"); }
+    /** Messenger's subscription check for its paid app themes (#132). Off, paused or safe mode keeps Messenger's answer. */
+    public static boolean unlockAppThemes() { return enabled("app_themes"); }
     public static void addScreenshotFlags(Window window, int flags) {
         window.addFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags);
     }

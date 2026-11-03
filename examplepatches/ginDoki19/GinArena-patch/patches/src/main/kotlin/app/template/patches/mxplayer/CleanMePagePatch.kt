@@ -9,8 +9,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 @Suppress("unused")
 val cleanMePagePatch = bytecodePatch(
     name = "Clean Me page",
-    description = "Removes the Status Saver, Legal, and Help sections from the Me page while keeping " +
-        "the 8-item local tools grid, App Theme, Settings, and Custom Pop-up Play.",
+    description = "Removes Status Saver, Legal, and Help from the Me page.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER_AD)

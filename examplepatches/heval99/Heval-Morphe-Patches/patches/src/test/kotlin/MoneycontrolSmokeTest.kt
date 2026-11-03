@@ -76,7 +76,7 @@ class MoneycontrolSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "14.6.2",
+            apk = apk, workDir = workDir, pkg = PKG, version = "14.6.3.RC0",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

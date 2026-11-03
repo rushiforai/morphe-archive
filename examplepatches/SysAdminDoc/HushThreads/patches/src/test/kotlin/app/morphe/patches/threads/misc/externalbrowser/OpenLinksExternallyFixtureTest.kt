@@ -48,7 +48,7 @@ class OpenLinksExternallyFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             BrowserLauncherFingerprint.clearMatch()
             val where = build.name
-            // The launcher, the factory it shares with the three direct callers, and those callers.
+            // The launcher, the factory it shares with the two direct callers, and those callers.
             val classes = browserFixture(build).classes
             val launchers = classes.flatMap { it.methods }.filter { it.isLauncher() }
             assertEquals("$where: launchers", 1, launchers.size)

@@ -13,7 +13,7 @@ private val videoViewerGesturesPatch = bytecodePatch {
     dependsOn(haiagaruPatch)
     execute {
         val layouts = mutableListOf<ClassDef>()
-        classDefForEach { cls ->
+        boundClassForEach("VideoViewerPatch:1") { cls ->
             if (cls.superclass == "Landroid/widget/LinearLayout;" && cls.methods.any {
                 it.name == "setOnGestureListener"
             }) layouts.add(cls)
@@ -21,7 +21,7 @@ private val videoViewerGesturesPatch = bytecodePatch {
         check(layouts.size == 1) { "Video gesture layout changed (${layouts.size})" }
         val fields = layouts.single().fields.map { it.type }.toSet()
         val recognizers = mutableListOf<ClassDef>()
-        classDefForEach { cls ->
+        boundClassForEach("VideoViewerPatch:2") { cls ->
             if (cls.type in fields && cls.methods.any {
                 it.parameterTypes == listOf("Landroid/view/MotionEvent;") && it.returnType == "Z"
             } && cls.methods.any {

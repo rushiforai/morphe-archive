@@ -1,3 +1,69 @@
+## [1.21.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.20.0...v1.21.0) (2026-11-02)
+
+### 🚀 Updated App Support
+
+* **Discord:** Add support for `351.11 - Stable`
+
+### ✨ New Features
+
+* **Discord:** Add `Listen along` patch: play a friend's Spotify song on your phone at the same spot and follow along as it changes, thanks to @maayan080
+* **Discord:** Add `Fake deafen` patch: look deafened in a call while you can still hear, with your mic muted or working, thanks to @maayan080
+* **Discord:** Add `View raw data` patch: hold a message, channel, server, person or role to read and copy its raw data as JSON ([#141](https://github.com/VenusIsJaded/Venus-Patches/issues/141))
+* **Discord:** Add `Expand the message bar` patch: a button in the corner of the message bar opens it up tall to read long messages
+* **Discord:** Add `Reply without pinging` patch: replies start with the ping off in servers and group DMs, and the @ button turns it on ([#128](https://github.com/VenusIsJaded/Venus-Patches/issues/128))
+* **Discord:** Add `Keep media playing` patch: voice messages and audio keep playing in the background with lock screen controls, and videos pop out into a small window ([#134](https://github.com/VenusIsJaded/Venus-Patches/issues/134))
+* **Discord:** Add `Compress big files` patch: photos, videos and audio over Discord's size limit are made smaller to fit as you send them ([#136](https://github.com/VenusIsJaded/Venus-Patches/issues/136))
+* **Discord:** Add `Download voice messages` patch: a Download button under each voice message saves the recording to Downloads ([#125](https://github.com/VenusIsJaded/Venus-Patches/issues/125))
+* **Discord:** Add `Clone emojis and stickers` patch: an Add to a server button in Discord's emoji and sticker sheets ([#125](https://github.com/VenusIsJaded/Venus-Patches/issues/125))
+* **Discord:** Add `Show timeout duration` patch: a tag next to a timed-out person's name counts down until they can talk again ([#125](https://github.com/VenusIsJaded/Venus-Patches/issues/125))
+* **Discord:** Add `Banners in Do Not Disturb` patch: new messages still slide down at the top in Do Not Disturb, with no sound or buzz ([#125](https://github.com/VenusIsJaded/Venus-Patches/issues/125))
+* **Discord:** Add `Full-screen chat in landscape` patch: turn your phone sideways and the chat fills the whole screen ([#125](https://github.com/VenusIsJaded/Venus-Patches/issues/125))
+* **Discord:** Add `Edit without "(edited)"` patch: edit your latest message with no tag; it only works while your message is the latest in the chat ([#46](https://github.com/VenusIsJaded/Venus-Patches/issues/46))
+* **Discord:** Add `Delete without a trace` patch: your message is blanked a moment before it's deleted, so message loggers keep nothing ([#46](https://github.com/VenusIsJaded/Venus-Patches/issues/46))
+* **Discord:** Add `Edit messages on this phone` patch: hold any message and change how it reads, seen only by you, kept in backups and restorable any time ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Leave group DMs silently` patch: leave a group DM without the "left the group" message the others would see ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Preview servers without joining` patch: read a server as a guest from its ID, a link or the Preview button on an invite ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `HypeSquad house` patch: join or leave Bravery, Brilliance or Balance from Venus settings ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Custom idle time` patch: pick how long Discord waits before setting you to Idle, or never ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Mutual group DMs` patch: a profile lists the group DMs you share with that person ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Fast delete channels` patch: delete a channel without the confirmation or from its hold menu, with no undo ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Pause invites` patch: hold a server's icon to pause or resume its invites for 1, 6 or 24 hours ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord:** Add `Platform spoof` patch: show as desktop, web or console instead of mobile, with a warning that Discord doesn't allow it ([#129](https://github.com/VenusIsJaded/Venus-Patches/issues/129))
+* **Discord - Translate messages:** Pick languages to never translate, so their messages stay as written even with automatic translation on ([#124](https://github.com/VenusIsJaded/Venus-Patches/issues/124))
+* **Discord - Account switcher:** Get phone notifications from every saved account, each labeled with its account ([#126](https://github.com/VenusIsJaded/Venus-Patches/issues/126))
+* **Discord - Account switcher:** Same theme on every account keeps your theme and Nitro theme when you switch accounts
+* **Discord - Keep deleted messages:** A Message log, a No limit option, and Dismiss message and Remove edit history links in chat ([#130](https://github.com/VenusIsJaded/Venus-Patches/issues/130))
+* **Discord - User activity notifications:** An Activity log of the status changes, typing and messages of the people you watch ([#130](https://github.com/VenusIsJaded/Venus-Patches/issues/130))
+* **Discord - Bulk delete messages:** Your selection follows you across chats, servers and DMs, with a Review sheet before deleting
+* **Discord - Remove anything:** Remove rows and quick reactions from a message's hold menu ([#131](https://github.com/VenusIsJaded/Venus-Patches/issues/131))
+* **Discord - Venus settings:** Troubleshooting on the About page, with Debug logging, log export and a crash screen that shows what went wrong
+
+### 🐛 Bug Fixes
+
+* **Discord - Account switcher:** Fixed importing accounts signing you out later, because the last imported account's token replaced the one in use ([#137](https://github.com/VenusIsJaded/Venus-Patches/issues/137))
+* **Discord - Account switcher:** Fixed switching to an account whose saved sign-in had stopped working signing you out of every account ([#137](https://github.com/VenusIsJaded/Venus-Patches/issues/137))
+* **Discord - Account switcher:** Fixed removing a saved account signing you out when it held the token you were using ([#137](https://github.com/VenusIsJaded/Venus-Patches/issues/137))
+* **Discord - Unlock Nitro themes:** Fixed a Nitro theme picked without Nitro being lost after switching to another account and back
+* **Discord - Complete badges automatically:** Fixed game time and Add hours reaching every saved account instead of only the one it was turned on in
+* **Discord - Translate messages:** Fixed some translated messages showing blank, and English messages being shown as translations from another language
+* **Discord - Translate messages:** Fixed translating a message stripping the color, title, fields and images from forwarded embeds, even after restarting ([#142](https://github.com/VenusIsJaded/Venus-Patches/issues/142))
+* **Discord - Pastel name colors:** Fixed a bot's name losing its role color and getting a pastel one after someone used its application command, even with Replace role colors off ([#144](https://github.com/VenusIsJaded/Venus-Patches/issues/144))
+* **Discord - Bulk delete messages:** Fixed selection circles staying on kept deleted messages after deleting finished or was cancelled ([#138](https://github.com/VenusIsJaded/Venus-Patches/issues/138))
+* **Discord - Read all button:** Fixed the pill's label shrinking to nothing on phones with a fractional display density
+* **Discord - Fix link previews:** Fixed X's new `?a=` share tracker going out with fixed X links
+
+### 🔧 Improvements
+
+* **Discord - Fix link previews:** Each site gets its own settings sheet with only what its service supports, replacing the page-wide Post style, Translate posts, Dark Tumblr posts and Remove tracking options
+* **Discord - Custom branding:** No longer offered for root mount installs, where Android keeps the stock app's package and icon ([#121](https://github.com/VenusIsJaded/Venus-Patches/issues/121))
+* **Discord - Venus settings:** Tons of UI changes across settings, including a single Add account row in Account switcher, tidier option rows and a cleaner Who to watch section
+
+### ⚡ Performance Improvements
+
+* **Discord:** Over 30 Venus hooks across features skip extra work on every call, running 1.2 to 2.5 times faster
+* **Discord - Keep deleted messages:** Chats with kept deleted messages sort about 1.4 times faster
+* **Discord - Remove anything:** Profile menus, server sheets and settings rows do much less work while they're drawn
+
 ## [1.20.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.19.0...v1.20.0) (2026-10-30)
 
 ### ✨ New Features

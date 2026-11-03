@@ -1,0 +1,1834 @@
+%1$s isn't a language code. Use two letters, like en, es or de.	%1$s dil kodu deyil. İki hərf yazın, məsələn en, es və ya de.
+Adds Save cover next to Download when you share a video, so you save the cover only when you want it. While this is on, Download saves just the video, even with Save the cover as well on.	Videonu paylaşanda Endir düyməsinin yanına Örtüyü saxla əlavə edir, beləliklə örtüyü yalnız istədiyiniz zaman saxlayırsınız. Bu açıq olduqca, Örtüyü də saxla açıq olsa belə, Endir yalnız videonu saxlayır.
+Applies to Save the sound as well. Opus makes a smaller file. Opus and MP3 are encoded again from PineDrama's copy, unless it's an MP3 already.	Səsi də saxla üçün keçərlidir. Opus daha kiçik fayl yaradır. Opus və MP3 PineDrama-nın nüsxəsindən yenidən kodlanır, nüsxə artıq MP3 deyilsə.
+As PineDrama sent it (M4A or MP3)	PineDrama-nın göndərdiyi kimi (M4A və ya MP3)
+Couldn't add the caption. Saving without it.	Açıqlama əlavə olunmadı. Onsuz saxlanılır.
+Importing new history ended Undo for the earlier clear. You can clear the imported history.	Yeni tarixçənin idxalı əvvəlki təmizləməni geri qaytarmaq imkanını bitirdi. İdxal olunmuş tarixçəni təmizləyə bilərsiniz.
+%1$d setting in that file can't be restored here and was skipped	Bu fayldakı %1$d ayar burada bərpa edilə bilmir və ötürüldü
+%1$d settings in that file can't be restored here and were skipped	Bu fayldakı %1$d ayar burada bərpa edilə bilmir və ötürüldü
+Import watch history	İzləmə tarixçəsini idxal et
+Keep the language picked in PineDrama	PineDrama-da seçilən dili saxla
+Nothing is playing to speed up	Sürətləndirmək üçün oxunan heç nə yoxdur
+One language code, like en or es. Comments and captions PineDrama translates come out in this language instead of the app's. Leave it empty to keep PineDrama's choice.	Bir dil kodu, məsələn en və ya es. PineDrama-nın tərcümə etdiyi şərhlər və başlıqlar tətbiqin dili əvəzinə bu dildə çıxır. PineDrama-nın seçimini saxlamaq üçün boş buraxın.
+MP3 (.mp3), plays anywhere	MP3 (.mp3), hər yerdə işləyir
+Opus (.ogg), a smaller file	Opus (.ogg), daha kiçik fayl
+Opus didn't work. Saving PineDrama's own file.	Opus işləmədi. PineDrama-nın öz faylı saxlanılır.
+MP3 didn't work. Saving PineDrama's own file.	MP3 işləmədi. PineDrama-nın öz faylı saxlanılır.
+Opus needs Android 10 or later, so it saves sounds as PineDrama sent them. MP3 works on any phone.	Opus üçün Android 10 və ya daha yeni versiya lazımdır, ona görə səslər PineDrama-nın göndərdiyi kimi saxlanılır. MP3 istənilən telefonda işləyir.
+Playing at %1$sx	%1$sx sürətlə oxunur
+Save cover	Örtüyü saxla
+Save cover button in the share sheet	Paylaşma vərəqində Örtüyü saxla düyməsi
+Saved videos show the @username and the first line of the caption in the bottom left corner. The phone encodes the whole video again to do it, so saving takes longer. Applies to saves made by HushPine.	Saxlanan videolarda sol alt küncdə @istifadəçi adı və açıqlamanın ilk sətri görünür. Bunun üçün telefon bütün videonu yenidən kodlayır, ona görə saxlamaq daha uzun çəkir. HushPine-in etdiyi saxlamalara aiddir.
+Sound format	Səs formatı
+Only a watermarked copy existed. Saved to %1$s	Yalnız su nişanlı nüsxə vardı. Saxlandı: %1$s
+Translate button in comments	Şərhlərdə tərcümə düyməsi
+Adds PineDrama's translate button next to the comment count. One tap translates every comment, and another shows the originals again.	PineDrama-nın tərcümə düyməsini şərh sayının yanına əlavə edir. Bir toxunuş bütün şərhləri tərcümə edir, növbəti toxunuş isə orijinalları yenidən göstərir.
+Translate into	Bu dilə tərcümə et
+Type one language code here, like en.	Buraya bir dil kodu yazın, məsələn en.
+Use this account's PineDrama JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.	Bu hesabın PineDrama JSON ixracını seçin. Fayl ən çox %1$s MB və %2$s qeyd ola bilər. Saat qurşağı olmayan tarixlər üçün bu telefonun saat qurşağı istifadə edilir.
+Sign in to PineDrama before importing watch history.	İzləmə tarixçəsini idxal etməzdən əvvəl PineDrama-ya daxil olun.
+When PineDrama starts and decides the phone's language changed, it forgets the language you picked in its settings and follows the phone. With this on, your pick stays. Counts from PineDrama's next start.	PineDrama açılanda telefonun dilinin dəyişdiyinə qərar verərsə, ayarlarında seçdiyiniz dili atır və telefona uyğunlaşır. Bu yandırılanda seçiminiz qalır. PineDrama-nın növbəti açılışından etibarən keçərlidir.
+Write the username and caption on the video	İstifadəçi adını və açıqlamanı videonun üzərinə yaz
+Writing the caption on the video	Açıqlama videonun üzərinə yazılır
+Writing the caption on the video: %1$s	Açıqlama videonun üzərinə yazılır: %1$s
+Your PineDrama account changed. Choose the file again for this account.	PineDrama hesabınız dəyişdi. Bu hesab üçün faylı yenidən seçin.
+Reading watch history	İzləmə tarixçəsi oxunur
+Importing watch history	İzləmə tarixçəsi idxal edilir
+Reopen HushPine settings, then choose the file	HushPine ayarlarını yenidən açın, sonra faylı seçin
+Couldn't start the import. Try again in a moment.	İdxal başlaya bilmədi. Bir az sonra yenidən cəhd edin.
+Your seen history changed before the import finished. Choose the file again.	İdxal bitməzdən əvvəl baxılmış videoların tarixçəsi dəyişdi. Faylı yenidən seçin.
+Couldn't import watch history. Your saved history is unchanged.	İzləmə tarixçəsi idxal edilə bilmədi. Saxlanmış tarixçəniz dəyişməyib.
+%1$s watched video added.	%1$s izlənmiş video əlavə edildi.
+%1$s watched videos added.	%1$s izlənmiş video əlavə edildi.
+%1$s entry skipped.	%1$s qeyd ötürüldü.
+%1$s entries skipped.	%1$s qeyd ötürüldü.
+Skipped entries are invalid, expired, already recorded, or older than the newest %1$s videos.	Ötürülmüş qeydlər etibarsızdır, vaxtı keçib, artıq saxlanıb və ya ən yeni %1$s videodan köhnədir.
+Watch history was imported for the account that chose the file. Switch back to see it.	İzləmə tarixçəsi faylı seçən hesab üçün idxal edildi. Görmək üçün həmin hesaba qayıdın.
+Couldn't read that file. Choose it again.	Bu fayl oxuna bilmədi. Onu yenidən seçin.
+That file is larger than %1$s MB. Choose a smaller watch-history export.	Bu fayl %1$s MB-dan böyükdür. Daha kiçik izləmə tarixçəsi ixracı seçin.
+That file has more than %1$s watch-history entries.	Bu faylda %1$s-dən çox izləmə tarixçəsi qeydi var.
+That JSON file doesn't contain the supported PineDrama watch history.	Bu JSON faylında dəstəklənən PineDrama izləmə tarixçəsi yoxdur.
+That watch-history file is damaged. Nothing was imported.	Bu izləmə tarixçəsi faylı zədələnib. Heç nə idxal edilmədi.
+%1$d already matched	%1$d dənəsi artıq uyğun gəlir
+%1$d areas were checked and everything they need is here.	%1$d sahə yoxlanıldı və onların ehtiyac duyduğu hər şey burada var.
+%1$d fields overridden	%1$d sahə əvəzlənib
+%1$d fields will be overridden when requested	Tələb olunduqda %1$d sahə əvəzlənəcək
+%1$d gates selected	%1$d funksiya qapısı seçildi
+%1$d minutes left	%1$d dəqiqə qalıb
+%1$d overrides off. Check them for PineDrama %2$s.	%1$d əvəzləmə söndürüldü. %2$s üçün yoxlayın.
+%1$d rejected	%1$d rədd edildi
+%1$d results	%1$d nəticə
+%1$d results so far	Hələlik %1$d nəticə
+%1$d results so far, and more not counted	Hələlik %1$d nəticə, sayılmayanlar da var
+%1$d results, filtered to %2$s	%1$d nəticə, filtr: %2$s
+%1$d setting wasn't in that file and was left as it is	%1$d ayar həmin faylda yox idi və olduğu kimi saxlanıldı
+%1$d settings weren't in that file and were left as they are	%1$d ayar həmin faylda yox idi və olduğu kimi saxlanıldı
+%1$d unavailable	%1$d əlçatan deyil
+%1$s (%2$s)	%1$s (%2$s)
+%1$s (PineDrama value)	%1$s (PineDrama dəyəri)
+%1$s (custom, unverified)	%1$s (fərdi, təsdiqlənməyib)
+%1$s (override returned)	%1$s (əvəzləmə qaytarıldı)
+%1$s (will be returned when requested)	%1$s (tələb olunduqda qaytarılacaq)
+%1$s and above	%1$s və yuxarı
+%1$s appears more than once in this file.	%1$s bu faylda bir neçə dəfə rast gəlinir.
+%1$s destinations must start with %2$s	%1$s təyinatları %2$s ilə başlamalıdır
+%1$s is too long for a settings backup. Shorten it, then save the backup again.	%1$s ayarların ehtiyat nüsxəsi üçün çox uzundur. Onu qısaldın, sonra ehtiyat nüsxəni yenidən saxlayın.
+%1$s isn't a language code, so no video would ever match it. Use two letters, like en, es or de.	%1$s dil kodu deyil, ona görə heç bir video onunla uyğun gəlməyəcək. İki hərf yazın, məsələn en, es və ya de.
+%1$s needs fixing. %2$s.	%1$s düzəliş tələb edir. %2$s.
+%1$s is a kind of value the Lab can't override.	%1$s Lab-ın əvəzləyə bilmədiyi dəyər növüdür.
+%1$s has type %2$s, but the file says %3$s.	%1$s növü %2$s-dir, lakin faylda %3$s yazılıb.
+%1$s is already hidden	%1$s artıq gizlidir
+%1$s isn't a country code, so no video would ever match it. Use two letters, like GB, IE or US.	%1$s ölkə kodu deyil, ona görə heç bir video onunla uyğun gəlməyəcək. İki hərf yazın, məsələn GB, IE və ya US.
+%1$s isn't in this Lab catalog.	%1$s bu Lab kataloqunda yoxdur.
+%1$s isn't installed or doesn't take links	%1$s quraşdırılmayıb və ya keçidləri qəbul etmir
+%1$s left	%1$s qalıb
+%1$s to %2$s	%1$s - %2$s arası
+%1$s was rejected. %2$s	%1$s rədd edildi. %2$s
+%1$s · HushPine's list only	%1$s · yalnız HushPine siyahısında
+%1$s · current value only	%1$s · yalnız cari dəyər
+%1$s · declared by PineDrama	%1$s · PineDrama tərəfindən elan edilib
+%1$s · declared by PineDrama, with a current value	%1$s · PineDrama tərəfindən elan edilib, cari dəyəri ilə
+%1$s, %2$s, %3$s, %4$s, %5$s	%1$s, %2$s, %3$s, %4$s, %5$s
+%1$s, selected	%1$s, seçilib
+%1$s. %2$s	%1$s. %2$s
+%1$s: %2$d found, %3$d missing	%1$s: %2$d tapıldı, %3$d çatışmır
+%1$s: %2$d found, %3$d missing, and more it stopped counting	%1$s: %2$d tapıldı, %3$d çatışmır, sayılmayanlar da var
+%1$s: %2$d found, %3$d missing, and more it stopped counting. First missing: %4$s	%1$s: %2$d tapıldı, %3$d çatışmır, sayılmayanlar da var. İlk çatışan: %4$s
+%1$s: %2$d found, %3$d missing. First missing: %4$s	%1$s: %2$d tapıldı, %3$d çatışmır. İlk çatışan: %4$s
+%1$s: %2$s	%1$s: %2$s
+1 field overridden	1 sahə əvəzlənib
+1 field will be overridden when requested	Tələb olunduqda 1 sahə əvəzlənəcək
+1 gate selected	1 funksiya qapısı seçildi
+Turned off 1 override. Check it for PineDrama %2$s.	1 əvəzləmə söndürüldü. %2$s üçün yoxlayın.
+1 result	1 nəticə
+1 result so far	Hələlik 1 nəticə
+A Lab change is already running	Lab dəyişikliyi artıq icra olunur
+A diagnostic report is already being saved	Diaqnostik hesabat artıq saxlanılır
+Couldn't read a field value. Check and try again.	Sahə dəyəri oxunmadı. Yoxlayıb yenidən cəhd edin.
+A good place to stop, if you want one.	İstəsəniz, dayanmaq üçün yaxşı məqamdır.
+A green square in the top corner while PineDrama has the camera open, and an orange diamond while it records sound. They go when the access ends.	PineDrama kameranı açdığı müddətdə yuxarı küncdə yaşıl kvadrat, səs yazdığı müddətdə isə narıncı romb görünür. Giriş bitdikdə yox olurlar.
+Type a website name to use instead of tiktok.com in links you share or copy, like vxtiktok.com. Leave empty to share PineDrama's own links. Only PineDrama links change, and only the website name.	Paylaşdığınız və ya kopyaladığınız linklərdə tiktok.com əvəzinə istifadə ediləcək sayt adını yazın, məsələn vxtiktok.com. PineDrama-nın öz linklərini paylaşmaq üçün boş buraxın. Yalnız PineDrama linkləri və yalnız sayt adı dəyişir.
+A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Lentdəki kiçik etiket bugünkü büdcədən qalan dəqiqələri və ya videoları göstərir, hansı daha tez bitirsə.
+A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Sənin üçün göstərilərkən Ana səhifə və ya Sənin üçün nişanına toxunmaq artıq onu yenidən yükləmir. Baxdığınız video qalır.
+A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.	Dayandırdığınız video tətbiqə qayıdanda yenidən başlamır, dayandırılmış qalır. Oynayan video isə həmişəki kimi davam edir. Android 10 və daha yeni versiyalarda işləyir.
+AI-generated posts	Süni intellekt ilə yaradılmış paylaşımlar
+A forced value applies to this copy of PineDrama whichever account is signed in. It can't get past a check the server makes.	Məcburi dəyər hansı hesabla daxil olmağınızdan asılı olmayaraq PineDrama-nın bu nüsxəsinə tətbiq olunur. Serverin etdiyi yoxlamanı keçə bilməz.
+Caption languages	Başlıq dilləri
+Separate handles or user IDs with commas. Their videos stay when a filter on post type, labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages still apply.	Hesab adlarını (handle) və ya istifadəçi ID-lərini vergüllə ayırın. Yazı növü, etiketlər, yaş, uzunluq və ya say üzrə filtr onları gizlədəcəksə də, videoları qalır. Reklamlar, bloklanmış yaradıcılar, sözlər, səslər, ölkələr və başlıq dilləri yenə də tətbiq olunur.
+Separate language codes with commas, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.	Dil kodlarını vergüllə ayırın, məsələn en, es. Orijinal başlığı başqa dildə olan video gizlədilir. Başlığı olmayan və ya yalnız tərcümə olunmuş başlığı olan videolar həmişə qalır.
+Comma separated names, exactly as PineDrama shows them under a profile's bio. Restart PineDrama to apply this.	PineDrama-nın profilin bio hissəsinin altında göstərdiyi kimi vergüllə ayrılmış adlar. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Couldn't copy. Use Save build details instead.	Kopyalanmadı. Əvəzinə Build təfərrüatlarını saxlayın.
+Couldn't copy the report. Use Save report instead.	Hesabat kopyalanmadı. Əvəzinə Hesabatı saxla.
+Couldn't read PineDrama's current values (%1$s). Refresh values from the menu to try again.	PineDrama-nın cari dəyərlərini oxumaq alınmadı (%1$s). Yenidən cəhd etmək üçün menyudan dəyərləri yeniləyin.
+Couldn't restart PineDrama. Close it and open it again.	PineDrama-nı yenidən başlatmaq alınmadı. Onu bağlayıb yenidən açın.
+Couldn't undo that. Try again.	Bunu geri qaytarmaq alınmadı. Yenidən cəhd edin.
+Forget the %1$s videos @%2$s has seen.	@%2$s tərəfindən izlənmiş %1$s videonu unudun.
+Forget the seen video.	İzlənmiş videonu unudun.
+Forget the video @%2$s has seen.	@%2$s tərəfindən izlənmiş videonu unudun.
+Got it	Aydındır
+Hide profile shortcuts	Profil qısayollarını gizlədin
+Hide profile shortcuts by name	Profil qısayollarını adına görə gizlədin
+Later	Sonra
+Leave when PineDrama says time is up	PineDrama vaxtın bitdiyini dedikdə çıxın
+Loading the gate list and PineDrama's current values…	Funksiya qapıları siyahısı və PineDrama-nın cari dəyərləri yüklənir…
+New value	Yeni dəyər
+No app on this phone opens that file	Bu telefonda həmin faylı açan tətbiq yoxdur
+No profile shortcuts have been seen yet	Hələ heç bir profil qısayolu görünməyib
+Only these caption languages	Yalnız bu başlıq dilləri
+Open	Açın
+Open your profile once, then return here to choose its shortcuts.	Profilinizi bir dəfə açın, sonra qısayolları seçmək üçün bura qayıdın.
+Photos can't be saved to the folder in that file, so your photo folder was kept	Fotolar həmin fayldakı qovluğa saxlanıla bilmir, ona görə foto qovluğunuz saxlanıldı
+Pick the shortcuts to remove from under a profile's bio, if PineDrama shows any there. Restart PineDrama to apply this.	PineDrama göstərirsə, profilin bio hissəsinin altından silinəcək qısayolları seçin. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Preview shortened. Save report keeps the full report.	Önizləmə qısaldıldı. Hesabatı saxla tam hesabatı saxlayır.
+Refreshing PineDrama's current values…	PineDrama-nın cari dəyərləri yenilənir…
+Restart PineDrama to apply this	Tətbiq üçün PineDrama-nı yenidən başladın
+Save report	Hesabatı saxla
+Stay on the video in full screen	Tam ekranda videoda qalın
+Stickers can't be saved to the folder in that file, so your sticker folder was kept	Stikerlər həmin fayldakı qovluğa saxlanıla bilmir, ona görə stiker qovluğunuz saxlanıldı
+Stop PineDrama's speed tests	PineDrama-nın sürət testlərini dayandır
+Skipped a creator pattern that could stall: %1$s	Donma riski olan yaradıcı şablonu atlandı: %1$s
+That creator pattern could stall the feed, so it wasn't added: %1$s	Bu yaradıcı şablonu lentin donmasına səbəb ola bilər, ona görə əlavə edilmədi: %1$s
+This key isn't in HushPine's list, so its type can't be checked. Reset the override.	Bu açar HushPine siyahısında yoxdur, ona görə növü yoxlanıla bilmir. Əvəzləməni sıfırlayın.
+This key touches account safety. Forcing it can change login, region, payment or security checks.	Bu açar hesab təhlükəsizliyinə toxunur. Onu məcbur etmək giriş, region, ödəniş və ya təhlükəsizlik yoxlamalarını dəyişə bilər.
+Activity	Fəaliyyət
+Activity center (PIA)	Fəaliyyət mərkəzi (PIA)
+Add	Əlavə edin
+Add a creator	Yaradıcı əlavə edin
+Add hidden creator	Gizlədilən yaradıcı əlavə edin
+Added %1$s	%1$s əlavə edildi
+Ads	Reklamlar
+Advanced	Əlavə
+Advanced JSON value	Qabaqcıl JSON dəyəri
+All	Hamısı
+All events	Bütün hadisələr
+All loaded tabs	Bütün yüklənmiş nişanlar
+Allow Duet and Stitch anyway	Duet və Stitch-ə yenə də icazə verin
+Allow Add to Story anyway	Hekayəyə əlavə etməyə yenə də icazə verin
+Allow screenshots and Circle to Search	Ekran görüntülərinə və Circle to Search-ə icazə verin
+Allow storage for PineDrama to save profile pictures	Profil şəkilləri üçün yaddaşa icazə verin
+Allow storage for PineDrama to save sounds	Səslər üçün yaddaşa icazə verin
+Allow storage for PineDrama to save stories	Hekayələr üçün yaddaşa icazə verin
+Already marked as not interested	Artıq maraqlı deyil kimi qeyd edilib
+Also apply these filters to downloaded videos PineDrama uses when the feed can't load enough new items.	Bu filtrləri, lent kifayət qədər yeni element yükləyə bilmədikdə PineDrama-nın istifadə etdiyi endirilmiş videolara da tətbiq edin.
+Also change the region PineDrama reports internally and set PineDrama to the country's time zone. Keeps your interface language. Your IP address and your account's own rules still apply.	PineDrama-nın daxildə bildirdiyi regionu da dəyişin və PineDrama-nı ölkənin saat qurşağına keçirin. İnterfeys dilinizi saxlayır. IP ünvanınız və hesabınızın öz qaydaları yenə də tətbiq olunur.
+Always show publish date	Paylaşım tarixini həmişə göstərin
+Always show the publish date in video author information. Restart PineDrama to apply this.	Paylaşım tarixini video müəllifi məlumatında həmişə göstərin. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Type the other app's ID, like com.dv.adm. The save button sends the video's link there instead of saving. Leave empty to save here.	Digər tətbiqin ID-sini yazın, məsələn com.dv.adm. Saxla düyməsi videonun linkini saxlamaq əvəzinə ora göndərir. Burada saxlamaq üçün boş buraxın.
+Couldn't recover a change. Restore a backup if needed.	Əməliyyat bərpa olunmadı. Lazımsa nüsxəni bərpa edin.
+An operator code is five or six digits, like 310260	Operator kodu beş və ya altı rəqəmdir, məsələn 310260
+An override changes the value PineDrama reads from this gate. It doesn't change PineDrama's saved copy or prove the named feature changed.	Üstələmə PineDrama-nın bu açardan oxuduğu dəyəri dəyişir. O, PineDrama-nın saxlanmış nüsxəsini dəyişmir və adı çəkilən funksiyanın dəyişdiyini sübut etmir.
+Animated sticker format	Animasiyalı stiker formatı
+Save box for chat stickers	Söhbət stikerləri üçün saxlama qutusu
+Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.	Söhbətdə kiminsə göndərdiyi stikerə toxunanda Medianı saxlayın düyməsi olan qutu açılır. Onu keçmək üçün bunu söndürün.
+PineDrama gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.	PineDrama telefonunuzdan heç bir məkan almır. Region ayarları ölkənizi və saat qurşağınızı dəyişir. Bu açar dəqiq mövqeyi dayandırır.
+PineDrama sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.	PineDrama sizin əvəzinizə boş kontakt siyahısı görür. Find Friends və People you may know artıq kontaktlarınızdan istifadə edə bilmir.
+PineDrama sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when PineDrama opens an app you tap, still work.	PineDrama telefonunuzdakı tətbiqlərin əvəzinə boş tətbiq siyahısı görür. Konkret bir tətbiqin yoxlanması, məsələn PineDrama-nın toxunduğunuz tətbiqi açması, yenə də işləyir.
+App	Tətbiq
+App AB	App AB
+Appearance	Görünüş
+Applies to both video and photo downloads.	Həm video, həm də foto endirmələrinə tətbiq olunur.
+Apply	Tətbiq edin
+Around the video	Videonun ətrafında
+Arrange your feed and bottom tabs	Lentinizi və alt nişanları tənzimləyin
+Ask PineDrama for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.	PineDrama-dan hesabınıza fərdiləşdirilməmiş axtarış nəticələri istəyin. Bu, axtarış düymələrini və ya təklifləri yox, nəticələri dəyişir.
+Attention	Diqqət
+Audio	Audio
+Auto translate comments	Şərhləri avtomatik tərcümə edin
+Auto-advance	Avtomatik keçid
+Staying on a video	Videoda qalmaq
+Auto-advance session limit	Avtomatik keçid sessiya limiti
+Auto-advance stopped after %1$d videos	Avtomatik keçid %1$d videodan sonra dayandı
+Auto-advance stopped after one video	Avtomatik keçid bir videodan sonra dayandı
+Auto-advance videos	Avtomatik keçid videoları
+Automatic	Avtomatik
+Automatic Clear display	Avtomatik təmiz ekran
+Back	Geri
+Back up settings	Ayarların ehtiyat nüsxəsini yaradın
+Backup and restore	Ehtiyat nüsxə və bərpa
+Block clipboard reads	Mübadilə buferinin oxunmasını bloklayın
+Hide a VPN connection	VPN bağlantısını gizlə
+Android stops telling PineDrama a VPN is on, and the VPN's tunnel is left out of the network list. PineDrama can still see the VPN's IP address. Leave this off if you need a feature that checks for a VPN.	Android artıq PineDrama-ya VPN-in açıq olduğunu demir və VPN tuneli şəbəkə siyahısında görünmür. PineDrama VPN-in IP ünvanını yenə də görür. VPN yoxlayan bir funksiyaya ehtiyacınız varsa, bunu söndürülmüş saxlayın.
+Block the advertising ID	Reklam ID-sini blokla
+PineDrama gets a blank advertising ID, like the one Android gives after you delete yours. Apps can't use it to recognize your phone.	PineDrama boş reklam ID-si alır, Android-in sizinkini sildikdən sonra verdiyi kimi. Tətbiqlər onunla telefonunuzu tanıya bilmir.
+Block contact list access	Kontakt siyahısına girişi bloklayın
+Block installed app scanning	Quraşdırılmış tətbiqlərin skanını bloklayın
+Block location	Məkanı bloklayın
+Block motion sensors	Hərəkət sensorlarını bloklayın
+Block new bottom tabs	Yeni alt nişanları bloklayın
+Block new feed tabs	Yeni lent nişanlarını bloklayın
+Block this commenter	Bu şərh yazanı bloklayın
+Block this creator	Bu yaradıcını bloklayın
+Block this sound	Bu səsi bloklayın
+Blocked	Bloklanıb
+Blocked %1$s	%1$s bloklandı
+Blocked %1$s. Unblock	%1$s bloklandı. Blokdan çıxarın
+Blocked caption words	Bloklanmış başlıq sözləri
+Blocked creators	Bloklanmış yaradıcılar
+Blocked sound ids	Bloklanmış səs ID-ləri
+Blocked sound names	Bloklanmış səs adları
+Blocked sounds	Bloklanmış səslər
+Blocking	Bloklama
+On or off	Açıq və ya qapalı
+Bottom tabs to keep	Saxlanacaq alt nişanlar
+Browse	Baxış
+Camera and microphone in use	Kamera və mikrofon istifadə olunur
+Camera in use	Kamera istifadə olunur
+Cancel	Ləğv edin
+Buttons, profile grids and gestures	Düymələr, profil şəbəkələri və jestlər
+Capture crash reports locally	Qəza hesabatlarını yerli olaraq toplayın
+Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart PineDrama to apply this.	%1$d - %2$d video seçin. Bu aralıqdan kənar dəyərlər ən yaxın etibarlı limitdən istifadə edir. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Choose a backup file. Your current settings are kept for Undo.	Ehtiyat nüsxə faylını seçin. Cari ayarlarınız Geri qaytar üçün saxlanılır.
+Pick a folder on internal storage, not an SD card	Daxili yaddaşda qovluq seçin, SD kart olmaz
+Choose a preset to fill the SIM details.	SIM məlumatlarını doldurmaq üçün hazır ayar seçin.
+Choose a subfolder under %1$s.	%1$s altında alt qovluq seçin.
+Choose what reaches your feed	Lentinizə nələrin çatacağını seçin
+Choose which bottom tabs stay visible.	Hansı alt tabların görünən qalacağını seçin.
+Choose which feed tabs stay visible. If only For You is left, its tab name is hidden.	Hansı lent tablarının görünən qalacağını seçin. Yalnız For You qalarsa, tabın adı gizlədilir.
+Choose which rows and controls appear	Hansı sətirlərin və idarəetmələrin görünəcəyini seçin
+Clear all	Hamısını təmizləyin
+Clear all Lab data (overrides, switch, recordings)	Bütün Lab məlumatlarını təmizləyin (əvəzləmələr, açar, qeydlər)
+Clear all suggested accounts	Bütün təklif olunan hesabları təmizləyin
+Clears the recent events, saved crash reports, a recorded screen layout and the Hook status results above.	Son hadisələri, saxlanmış çökmə hesabatlarını, qeydə alınmış ekran düzümünü və yuxarıdakı Hook status nəticələrini silir.
+Record a screen's layout	Ekranın düzümünü qeyd edin
+Tap, then go to the screen with what you want hidden. After %1$d seconds HushPine records how that screen is built, without any of its text, for the diagnostic report.	Toxunun, sonra gizlətmək istədiyiniz şeyin olduğu ekrana keçin. %1$d saniyədən sonra HushPine diaqnostik hesabat üçün həmin ekranın mətni olmadan necə qurulduğunu qeyd edir.
+PineDrama sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when PineDrama restarts.	PineDrama bəzən telefonunuzun sürətini çoxlu yaddaş istifadə edə bilən arxa plan prosesində sınayır. Bu, həmin testin başlamasının qarşısını alır. Artıq işləyən test PineDrama yenidən başlayanda bitir.
+Waiting to record. Go to the screen you want recorded.	Qeyd üçün gözlənilir. Qeyd etmək istədiyiniz ekrana keçin.
+A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.	Ekranın düzümü qeyd edildi. Göndərmək üçün diaqnostik hesabatı ixrac edin və ya başqasını qeyd etmək üçün toxunun.
+Go to the screen. Recording in %1$d seconds.	Ekrana keçin. %1$d saniyə sonra qeyd başlayır.
+Layout recorded. Export the report to send it.	Düzüm qeyd edildi. Göndərmək üçün hesabatı ixrac edin.
+Nothing recorded. Start, then leave settings.	Qeyd yoxdur. Başlayın, sonra ayarlardan çıxın.
+Layout not recorded. Try again from Diagnostics.	Düzüm qeyd edilmədi. Diaqnostikadan təkrarlayın.
+Clear diagnostic data	Diaqnostik məlumatları təmizləyin
+Clear display	Təmiz ekran
+Clear display delay	Təmiz ekran gecikməsi
+Keep Clear display across videos	Təmiz ekranı videolar arasında saxlayın
+Clear display you turn on stays on as you swipe to the next video. Off, each new video starts with its controls showing.	Açdığınız Təmiz ekran növbəti videoya keçəndə açıq qalır. Söndürüləndə hər yeni video idarəetmələri görünən halda başlayır.
+Clear preset	Hazır ayarı təmizləyin
+Clear search	Axtarışı təmizləyin
+Recent searches	Son axtarışlar
+Clear search history	Axtarış tarixçəsini təmizləyin
+Delete search	Axtarışı silin
+Clear seen videos	İzlənmiş videoları təmizləyin
+Clear the search	Axtarışı təmizləyin
+Cleared. Tap to undo before PineDrama closes.	Təmizləndi. PineDrama bağlanmazdan əvvəl geri qaytarmaq üçün toxunun.
+Clearing	Təmizlənir
+Clearing suggested accounts	Təklif olunan hesablar təmizlənir
+Clearing, %1$d so far	Təmizlənir, hələlik %1$d
+Close	Bağlayın
+Separate account handles or user IDs with commas. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a search pattern checked against the handle and display name.	Hesab adlarını (handle) və ya istifadəçi ID-lərini vergüllə ayırın. Bu hesabların videoları həmişə gizlədilir. /^news_/ kimi çəpəki xətlər arasındakı yazı ad və göstərilən ada qarşı yoxlanan axtarış nümunəsidir.
+Separate country codes with commas, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.	Ölkə kodlarını vergüllə ayırın, məsələn GB, IE. Başqa yerlərdən paylaşılan videolar gizlədilir. Bütün ölkələr üçün boş buraxın.
+Separate country codes with commas. Videos posted from these are hidden, whatever the list above says.	Ölkə kodlarını vergüllə ayırın. Bunlardan paylaşılan videolar yuxarıdakı siyahıdan asılı olmayaraq gizlədilir.
+Separate the titles of any other Inbox rows you want to hide with commas, spelled exactly. Use this for anything not listed above.	Gizlətmək istədiyiniz digər Inbox sətirlərinin başlıqlarını dəqiq yazılışla, vergüllə ayırın. Yuxarıda olmayan hər şey üçün istifadə edin.
+Sound IDs to hide, separated by commas. Remove one to unblock it.	Gizlədiləcək səs ID-ləri, vergüllə ayrılmış. Blokdan çıxarmaq üçün birini silin.
+Separate words or phrases with commas. Videos whose caption matches are hidden. Capital letters don't matter. Write "a" & "b" to need both phrases, or "a" !& "b" to need the first without the second.	Sözləri və ya ifadələri vergüllə ayırın. Başlığı uyğun gələn videolar gizlədilir. Böyük hərflərin əhəmiyyəti yoxdur. Hər iki ifadənin olmasını tələb etmək üçün "a" & "b" yazın, birincinin olub ikincinin olmamasını tələb etmək üçün "a" !& "b" yazın.
+Separate words with commas, like saxophone, to match against sound names. Capital letters don't matter.	Səs adlarına qarşı yoxlanacaq sözləri vergüllə ayırın, məsələn saxophone. Böyük hərflərin əhəmiyyəti yoxdur.
+Comment media filename	Şərh mediasının fayl adı
+Comments	Şərhlər
+Comments aren't available for this video	Bu video üçün şərhlər əlçatan deyil
+Clear display isn't available for this video	Bu video üçün təmiz ekran əlçatan deyil
+Compare gate reads with their previous values.	Qapı oxunuşlarını əvvəlki dəyərləri ilə müqayisə edin.
+Kept an interrupted change. Restart PineDrama to apply.	Kəsik əməliyyat saxlanıldı. Yenidən başladın.
+Config	Konfiqurasiya
+Config (Settings Manager)	Konfiqurasiya (Ayar meneceri)
+Continue supported videos from where you stopped when you scroll back to them.	Dəstəklənən videolara geri sürüşdürəndə onları dayandığınız yerdən davam etdirin.
+Controls	İdarəetmələr
+Feature gate report copied	Funksiya qapısı hesabatı kopyalandı
+# context: Diagnostics, the feed capture row (its titles and summaries) and its toasts
+Capture the feed	Lenti qeydə alın
+Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it.	Başlamaq üçün toxunun, sonra lentdəki problem görünənə qədər sürüşdürün və saxlamaq üçün bura qayıdın. Faylda başlıqlar və adlar olmur, videolar və yaradıcılar yalnız qısa kodlarla göstərilir. Paylaşmazdan əvvəl onu oxuyun.
+Stop and save the feed capture	Lent qeydini dayandırın və saxlayın
+Recording what the feed filters keep and hide. Tap to stop and save it in %1$s.	Lent filtrlərinin saxladığı və gizlətdiyi qeydə alınır. Dayandırıb %1$s qovluğunda saxlamaq üçün toxunun.
+Save the feed capture	Lent qeydini saxlayın
+The last feed capture wasn't saved. Tap to try again.	Son lent qeydi saxlanılmadı. Yenidən cəhd etmək üçün toxunun.
+Capturing. Find the problem, then come back to stop.	Qeyd edilir. Problemi tapın, sonra qayıdıb dayandırın.
+The feed capture is still being saved	Lent qeydi hələ saxlanılır
+Feed capture saved to %1$s. Read it before you share it.	Lent qeydi saxlandı: %1$s. Paylaşmazdan əvvəl oxuyun.
+Feed capture not saved. Tap the row to retry.	Lent qeydi saxlanmadı. Təkrar üçün sətirə toxunun.
+Couldn't save the feed capture. Try again.	Lent qeydi saxlanmadı. Yenidən cəhd edin.
+Copy a quick report or save the full report as a file.	Qısa hesabatı kopyalayın və ya tam hesabatı fayl kimi saxlayın.
+Copy comments without username	Şərhləri istifadəçi adı olmadan kopyalayın
+Copy only the comment text when using PineDrama's copy comment action.	PineDrama-nın şərhi kopyalama əməliyyatından istifadə edəndə yalnız şərhin mətnini kopyalayın.
+Copy quick report	Qısa hesabatı kopyalayın
+Copy report	Hesabatı kopyalayın
+Couldn't change the Lab settings. Try again.	Lab ayarlarını dəyişmək alınmadı. Yenidən cəhd edin.
+Couldn't clear suggestions. Reopen Inbox to retry.	Təkliflər silinmədi. Gələnləri yenidən açın.
+Couldn't open the file picker to export. Try again.	İxrac üçün fayl seçicisi açılmadı. Yenidən cəhd edin.
+Couldn't open the file picker to import. Try again.	İdxal üçün fayl seçicisi açılmadı. Yenidən cəhd edin.
+Couldn't put back the diagnostic data. Try again.	Diaqnostik məlumatları geri qaytarmaq alınmadı. Yenidən cəhd edin.
+Can't tell who wrote this. Block them on their profile.	Şərhin müəllifi oxunmadı. Profilindən bloklayın.
+Couldn't reset this override. Try again.	Bu əvəzləməni sıfırlamaq alınmadı. Yenidən cəhd edin.
+Couldn't restore the settings. Try again.	Ayarları bərpa etmək alınmadı. Yenidən cəhd edin.
+Couldn't reset the settings. Try again.	Ayarları sıfırlamaq alınmadı. Yenidən cəhd edin.
+Couldn't undo the last change. Try again.	Son dəyişikliyi geri qaytarmaq alınmadı. Yenidən cəhd edin.
+Couldn't save the settings backup. Try again.	Ayarların ehtiyat nüsxəsini saxlamaq alınmadı. Yenidən cəhd edin.
+Couldn't save this override. Try again.	Bu əvəzləməni saxlamaq alınmadı. Yenidən cəhd edin.
+Couldn't send the feedback. Try again in a moment.	Rəyi göndərmək alınmadı. Bir azdan yenidən cəhd edin.
+Couldn't start the Lab change. Try again.	Lab dəyişikliyi başlamadı. Yenidən cəhd edin.
+Couldn't start the report export. Try again.	Hesabat ixracı başlamadı. Yenidən cəhd edin.
+Couldn't start the settings change. Try again in a moment.	Ayar dəyişikliyini başlatmaq alınmadı. Bir azdan yenidən cəhd edin.
+Couldn't tell which folder to update. Choose it again.	Qovluq müəyyən edilmədi. Yenidən seçin.
+Couldn't undo the clear. Try again.	Təmizləməni geri qaytarmaq alınmadı. Yenidən cəhd edin.
+Couldn't confirm blocking %1$s. Check their profile.	Bloklama təsdiqlənmədi: %1$s. Profilə baxın.
+Couldn't confirm unblocking %1$s. Check their profile.	Blokdan çıxarma yoxlanmadı: %1$s. Profilə baxın.
+Country and network preferences	Ölkə və şəbəkə seçimləri
+Country code	Ölkə kodu
+Create	Yaradın
+Creators and sounds	Yaradıcılar və səslər
+Creators hidden on this phone	Bu telefonda gizlədilən yaradıcılar
+Creators you add here are hidden on this phone. Search the list and remove one at a time.	Bura əlavə etdiyiniz yaradıcılar bu telefonda gizlədilir. Siyahıda axtarın və birər-birər silin.
+Current	Cari
+Current %1$s	Cari %1$s
+Current state	Cari vəziyyət
+Current: %1$s	Cari: %1$s
+Custom SIM details	Fərdi SIM məlumatları
+Custom value	Fərdi dəyər
+Custom value…	Fərdi dəyər…
+Protect external pages in PineDrama's browser	PineDrama brauzerində xarici səhifələri qoruyun
+Daily budget	Gündəlik büdcə
+Daily budgets, reminders and the hold	Gündəlik büdcələr, xatırlatmalar və fasilə
+Daily time budget	Gündəlik vaxt büdcəsi
+Daily video budget	Gündəlik video büdcəsi
+Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.	Gün. Sıfır bütün yaşları saxlayır. İstifadə edilə bilən vaxt damğası olmayan paylaşımlar, o cümlədən gələcək paylaşımlar, görünən qalır.
+Default	Defolt
+Default playback speed	Defolt oxutma sürəti
+Destination updated	Təyinat yeniləndi
+Device access	Cihaz girişi
+Diagnostic data cleared. Tap again to put it back.	Diaqnostik məlumatlar təmizləndi. Geri qaytarmaq üçün yenidən toxunun.
+Diagnostic data put back	Diaqnostik məlumatlar geri qaytarıldı
+Diagnostic report copied to the clipboard	Diaqnostik hesabat mübadilə buferinə kopyalandı
+Diagnostics	Diaqnostika
+Disable	Söndürün
+Keep For You on a Home tap	Ana səhifəyə toxunanda Sənin üçün nişanında qalın
+Keep For You on a pull down	Aşağı çəkəndə Sənin üçün nişanında qalın
+Keep long press from quick sharing	Uzun basmanın sürətli paylaşmanı işə salmasının qarşısını alın
+Keep long press from reposting	Uzun basmanın yenidən paylaşmanı işə salmasının qarşısını alın
+Disabled	Qapalıb
+Discard edits	Redaktələri ləğv edin
+Dismissed %1$s suggested accounts	%1$s təklif olunan hesab bağlandı
+Dismissed one suggested account	Bir təklif olunan hesab bağlandı
+Don't start the feed on returning	Qayıdanda lenti başlatmayın
+Done	Hazırdır
+Download original photos	Orijinal fotoları endirin
+Downloads	Endirmələr
+Drag to move, release to place	Daşımaq üçün sürüşdürün, yerləşdirmək üçün buraxın
+Drama and Series	Dram və Seriallar
+Shows PineDrama's text in your phone's font instead of TikTok Sans. Icons and gift animations keep their own fonts. Restart PineDrama to see the change.	PineDrama-nın mətnini TikTok Sans əvəzinə telefonunuzun şriftində göstərir. İkonlar və hədiyyə animasiyaları öz şriftlərini saxlayır. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.	Yeni kiminsə sizi izlədiyini bildirən bildirişi şəkildə çatmazdan əvvəl gizlədin. Digər bütün bildirişlərə toxunulmur və izləyici yenə də Gələnlərdə görünür.
+Each area shows how many of the things HushPine looks for were found in this PineDrama and how many are missing.	Hər sahə HushPine-in axtardığı şeylərdən neçəsinin bu PineDrama-da tapıldığını və neçəsinin çatışmadığını göstərir.
+Empty	Boş
+Empty the menu that opens when you press and hold PineDrama's icon on the home screen. Turning this off asks PineDrama to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Ana ekranda PineDrama ikonunu basıb saxlayanda açılan menyunu boşaldın. Bunu söndürmək PineDrama-dan onları yenidən yaratmasını istəyir. İkona toxunmaq tətbiqi yenə də açır, özünüz sancdığınız qısayol isə qoyduğunuz yerdə qalır.
+Enable	Yandırın
+Log diagnostics	Diaqnostikanı qeyd edin
+Lock the hold speed with a pull down	Basıb saxlama sürətini aşağı çəkməklə kilidləyin
+Apply overrides	Əvəzləmələri tətbiq edin
+Enabled	Yandırılıb
+Enter a JSON object or array	JSON obyekti və ya massivi daxil edin
+Enter a creator handle or id	Yaradıcının istifadəçi adını və ya ID-sini daxil edin
+Enter a finite number	Sonlu ədəd daxil edin
+Enter a number	Ədəd daxil edin
+Enter an hour, like 6 or 06:00	Saat daxil edin, məsələn 6 və ya 06:00
+Enter a valid structured value	Etibarlı strukturlu dəyər daxil edin
+Enter a valid two-letter country code	Etibarlı iki hərfli ölkə kodu daxil edin
+Enter a whole number, or one like 20K, 1.5M or 2B	Tam ədəd və ya 20K, 1.5M, 2B kimi dəyər daxil edin
+Enter a whole number	Tam ədəd daxil edin
+Enter true or false	true və ya false daxil edin
+Enter up to %1$d comma-separated speeds from %2$s to %3$s	%2$s ilə %3$s arasında vergüllə ayrılmış ən çox %1$d sürət daxil edin
+Check the brackets and quotes in this JSON	JSON-dakı mötərizə və dırnaqları yoxlayın
+Entry %1$d has a field with the wrong data type.	%1$d nömrəli girişdə səhv məlumat növü olan sahə var.
+Entry %1$d isn't an object.	%1$d nömrəli giriş obyekt deyil.
+Errors	Xətalar
+Expand activity list	Fəaliyyət siyahısını genişləndirin
+Explore or Community	Kəşf et və ya İcma
+Export diagnostic report	Diaqnostik hesabatı ixrac edin
+Export loaded values	Yüklənmiş dəyərləri ixrac edin
+Exported %1$d loaded values	%1$d yüklənmiş dəyər ixrac edildi
+Exported 1 loaded value	1 yüklənmiş dəyər ixrac edildi
+Fade the feed out before the hold	Fasilədən əvvəl lenti sönükləşdirin
+Feature Gate Lab	Feature Gate Lab
+Feature gate override reset	Funksiya qapısı əvəzləməsi sıfırlandı
+Feature gate override saved	Funksiya qapısı əvəzləməsi saxlanıldı
+Feed and navigation	Lent və naviqasiya
+Feed filter	Lent filtri
+Feed screen	Lent ekranı
+Feed tabs	Lent nişanları
+Feed tabs to keep	Saxlanacaq lent nişanları
+Field %1$s can't be changed on this build. Take it out of the override, or reset the override.	%1$s sahəsi bu buildə dəyişdirilə bilməz. Onu əvəzləmədən çıxarın və ya əvəzləməni sıfırlayın.
+Field edits were discarded	Sahə redaktələri ləğv edildi
+Field edits weren't saved	Sahə redaktələri saxlanılmadı
+Files	Fayllar
+Filter bottom tabs	Alt nişanları süzün
+Filter feed tabs	Lent nişanlarını süzün
+Filter location-tagged videos	Məkan etiketli videoları süzün
+Filter PineDrama's offline videos	PineDrama-nın oflayn videolarını süzün
+Filter settings	Ayarları süzün
+Filter the list	Siyahını süzün
+Filter: %1$s	Filtr: %1$s
+Filters, translation and copy options	Filtrlər, tərcümə və kopyalama seçimləri
+First caller	İlk çağıran
+First rejection:	İlk rədd:
+Fit the video to the screen	Videonu ekrana sığdırın
+Fill the screen with the video	Ekranı videoyla doldurun
+Crop the video until it covers the whole window. On a tall phone the black strip PineDrama leaves under a video goes and so does a little of each side.	Videonu bütün pəncərəni örtənə qədər kəsin. Hündür telefonda PineDrama-nın videonun altında buraxdığı qara zolaq yox olur, hər iki tərəfdən də bir az kəsilir.
+Focus	Fokus
+Follow probe	İzləmə yoxlaması
+Following	İzlənilənlər
+For You	Sənin üçün
+Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.	Yalnız YTDLnis (com.deniscerri.ytdl) ilə işləyir. Saxla düyməsi ona link göndərəndə səs və ya video seçir.
+Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.	Yalnız YTDLnis (com.deniscerri.ytdl) ilə işləyir. Yükləməni yükləmə kartını göstərmədən arxa planda başladır.
+Forced %1$d of %2$d gates	%1$d/%2$d məcbur edildi
+Forced %1$d gates	%1$d qapı məcbur edildi
+Forced 1 of %2$d gates	1/%2$d məcbur edildi
+Forced 1 gate	1 qapı məcbur edildi
+Forced result	Məcburi nəticə
+Forget the %1$s seen videos.	%1$s izlənmiş videonu unudun.
+Forget what has been counted today and end any hold. The budgets themselves are left alone.	Bu gün sayılanları unudun və bütün fasilələri bitirin. Büdcələrin özünə toxunulmur.
+Friends	Dostlar
+Full comment sort options	Tam şərh çeşidləmə seçimləri
+Full license	Tam lisenziya
+Full report saved to %1$s	Tam hesabat %1$s yerinə saxlanıldı
+GIF	GIF
+Gate data unavailable	Qapı məlumatları əlçatan deyil
+Gate details	Qapı təfərrüatları
+Generated defaults	Yaradılmış defoltlar
+Gestures	Jestlər
+Ghost mode	Xəyal rejimi
+Hand-off	Ötürmə
+Handle or id	İstifadəçi adı və ya ID
+Hidden %1$s on this phone	Bu telefonda %1$s gizlədildi
+Blocked and hidden creators	Bloklanmış və gizlədilən yaradıcılar
+Hide	Gizlədin
+Hide AI-generated videos	Süni intellektlə yaradılmış videoları gizlədin
+Hide LIVE replays	LIVE təkrarlarını gizlədin
+Hide LIVE videos	LIVE videoları gizlədin
+Hide LIVE videos from the feed.	LIVE videoları lentdən gizlədin.
+Hide Series	Seriyaları gizlədin
+Hide TikTok Shop	TikTok Shop-u gizlədin
+Hide TikTok Shop posts from the feed, and the shop buttons under captions.	TikTok Shop paylaşımlarını lentdən, mağaza düymələrini isə başlıqların altından gizlədin.
+Shop order updates and coupon messages no longer take up rows in the Inbox. Your orders are unchanged.	Shop sifariş yenilikləri və kupon mesajları artıq Gələnlərdə yer tutmur. Sifarişləriniz dəyişmir.
+Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.	Yazarkən görünən sürətli emoji sətrini və avtomatik stiker təkliflərini gizlədin. Emoji və stiker düymələri yenə də işləyir.
+Hide activity	Fəaliyyəti gizlədin
+Hide activity status	Fəaliyyət statusunu gizlədin
+Hide archive	Arxivi gizlədin
+Hide bottom tabs PineDrama adds later unless you allow them.	PineDrama-nın sonradan əlavə etdiyi alt nişanları siz icazə verməyincə gizlədin.
+Hide comment popup ads	Şərh pəncərəsi reklamlarını gizlədin
+Hide controls after each video starts. Tap to restore them.	Hər video başlayandan sonra idarəetmələri gizlədin. Bərpa etmək üçün toxunun.
+Hide conversations	Söhbətləri gizlədin
+Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still turned on.	Bütün birbaşa mesaj söhbətlərini gizlədin. Hələ də yandırılmış başqa şeylər istisna olmaqla, Gələnlər boş qalır.
+Hide floating promotion badges, coins, and timer banners on the feed.	Lentdəki üzən tanıtım nişanlarını, sikkələri və taymer bannerlərini gizlədin.
+Hide floating promotions	Üzən tanıtımları gizlədin
+Hide inserted cards	Əlavə edilmiş kartları gizlədin
+Hide message requests	Mesaj sorğularını gizlədin
+Hide message streaks	Mesaj seriyalarını gizlədin
+Hide new follower notifications	Yeni izləyici bildirişlərini gizlədin
+Hide new followers	Yeni izləyiciləri gizlədin
+Hide paid partnerships	Ödənişli tərəfdaşlıqları gizlədin
+Hide photo posts	Foto paylaşımlarını gizlədin
+Hide photo posts from the feed.	Foto paylaşımlarını lentdən gizlədin.
+Hide playlist videos	Pleylist videolarını gizlədin
+Hide subscriber-only videos	Yalnız abunəçilər üçün olan videoları gizlədin
+Hide promotional music	Tanıtım musiqisini gizlədin
+Hide comment typing suggestions	Şərh yazma təkliflərini gizlədin
+Hide recommended searches before you type on PineDrama's search page. Your search history stays. This doesn't hide suggestions above comments.	PineDrama-nın axtarış səhifəsində yazmazdan əvvəl tövsiyə olunan axtarışları gizlədin. Axtarış tarixçəniz qalır. Bu, şərhlərin üstündəki təklifləri gizlətmir.
+Hide rows by title	Sətirləri başlığa görə gizlədin
+Hide search rewards	Axtarış mükafatlarını gizlədin
+Hide stories	Hekayələri gizlədin
+Hide stories from the feed.	Hekayələri lentdən gizlədin.
+The accounts PineDrama suggests you follow no longer take up rows in the Inbox.	PineDrama-nın izləməyi təklif etdiyi hesablar artıq Gələnlərdə yer tutmur.
+Hide suggested accounts	Təklif olunan hesabları gizlədin
+Hide suggestions on the search page	Axtarış səhifəsindəki təklifləri gizlədin
+Hide tabs PineDrama adds later unless you allow them.	PineDrama-nın sonradan əlavə etdiyi nişanları siz icazə verməyincə gizlədin.
+The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.	Postlarınızdakı bəyənmə və şərhlərin Fəaliyyət sətri Gələnlərdən çıxır. Onlar haqqında bildirişlər yenə də gəlir.
+The Archive row leaves the Inbox. Archived chats are kept.	Arxiv sətri Gələnlərdən çıxır. Arxivlənmiş söhbətlər saxlanılır.
+Hide the Inbox search button	Gələnlər axtarış düyməsini gizlədin
+The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.	Mesaj sorğuları sətri Gələnlərdən çıxır. Sorğular gəlməyə davam edir və bunu söndürənə qədər orada gözləyir.
+The New followers row leaves the top of the Inbox. The accounts still follow you.	Yeni izləyicilər sətri Gələnlərin yuxarısından çıxır. Hesablar yenə də sizi izləyir.
+Hide the Tako AI bubble above the profile button or in the bottom corner of videos, the Ask bar under videos, the Ask Tako button on the search page, the Ask Tako tab on search results and the Tako bar above comments.	Profil düyməsinin üstündəki və ya videoların alt küncündəki Tako AI qabarcığını, videoların altındakı Ask panelini, axtarış səhifəsindəki Ask Tako düyməsini, axtarış nəticələrindəki Ask Tako nişanını və şərhlərin üstündəki Tako panelini gizlədin.
+The Tako assistant's conversation leaves the Inbox list.	Tako köməkçisinin söhbəti Gələnlər siyahısından çıxır.
+Hide the Tako bubble	Tako qabarcığını gizlədin
+Hide the Tako chat	Tako söhbətini gizlədin
+The activity status control leaves the Inbox header. Whether others see you as active is unchanged.	Fəaliyyət statusu idarəetməsi Gələnlərin başlığından çıxır. Başqalarının sizi aktiv görüb-görmədiyi dəyişmir.
+Hide the add people icon	İnsan əlavə et ikonunu gizlədin
+The add people icon leaves the Inbox header. Only the shortcut goes, so friend suggestions elsewhere are unchanged.	İnsan əlavə et ikonu Gələnlərin başlığından çıxır. Yalnız qısayol yox olur, ona görə başqa yerlərdəki dost təklifləri dəyişmir.
+Hide the event badge	Tədbir nişanını gizlədin
+Hide the floating promotional badge over the feed.	Lentin üstündəki üzən tanıtım nişanını gizlədin.
+Hide the follow button on the feed	Lentdəki izləmə düyməsini gizlədin
+Hide the friend recommendation card and the other cards PineDrama slots between videos.	Dost tövsiyəsi kartını və PineDrama-nın videolar arasına yerləşdirdiyi digər kartları gizlədin.
+Hide the launcher shortcuts	Başladıcı qısayollarını gizlədin
+Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Lentin yuxarı sağındakı böyüdücü şüşəni gizlədin. Gələnlərdəki axtarış və şərhlərin üstündəki təkliflər dəyişmir.
+Hide the playlist bar	Pleylist panelini gizlədin
+Hide the playlist bar along the bottom of videos that belong to a series.	Serialın bir hissəsi olan videoların altındakı pleylist panelini gizlədin.
+Hide the plus button under the creator's picture in the right column.	Sağ sütunda yaradıcının şəklinin altındakı plyus düyməsini gizlədin.
+Hide the points banner under the search box and the coin counter floating over search results, which PineDrama shows in some regions. Searching works as before.	PineDrama-nın bəzi bölgələrdə göstərdiyi axtarış qutusunun altındakı xal bannerini və axtarış nəticələrinin üstündəki üzən sikkə sayğacını gizlədin. Axtarış əvvəlki kimi işləyir.
+Hide the rewards button on your profile, if PineDrama shows you one.	PineDrama göstərirsə, profilinizdəki mükafat düyməsini gizlədin.
+Hide the rewards shortcut	Mükafat qısayolunu gizlədin
+Hide the save button on the feed	Lentdəki saxla düyməsini gizlədin
+Hide the save button in the right column.	Sağ sütundakı saxla düyməsini gizlədin.
+Hide the search bar below videos	Videoların altındakı axtarış çubuğunu gizlədin
+Hide the search button on the feed	Lentdəki axtarış düyməsini gizlədin
+Hide the tab names above the feed	Lentin üstündəki nişan adlarını gizlədin
+The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.	Lentin üstündəki İzlənilənlər və Sənin üçün adları yox olur. Lentlər arasında sürüşdürmə və axtarış düyməsi olduğu kimi qalır.
+Hide this creator on this phone	Bu yaradıcını bu telefonda gizlədin
+Hide verified accounts	Təsdiqlənmiş hesabları gizlədin
+Hide videos with PineDrama's AI-generated label, AI content credentials, a PineDrama AI effect such as AI Alive, or a tag like #ai or #aigenerated.	PineDrama-nın süni intellekt etiketini, süni intellekt məzmun etimadnaməsini, AI Alive kimi PineDrama süni intellekt effektini və ya #ai, #aigenerated kimi teqi daşıyan videoları gizlədin.
+Hide videos marked as paid partnership or branded content.	Ödənişli tərəfdaşlıq və ya brendli məzmun kimi qeyd edilmiş videoları gizlədin.
+Hide videos posted as part of a playlist.	Pleylistin tərkibində paylaşılmış videoları gizlədin.
+Hide posts only a creator's subscribers can watch, the ones with a lock, on the feed and on profiles.	Yalnız yaradıcının abunəçilərinin izləyə bildiyi kilidli paylaşımları lentdə və profillərdə gizlədin.
+Hide videos posted by verified accounts.	Təsdiqlənmiş hesabların paylaşdığı videoları gizlədin.
+Hide videos that belong to a paid Series.	Ödənişli Seriala aid videoları gizlədin.
+Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.	Çoxlu baxışı və az şərhi olan videoları gizlədin. Hər bəyənməyə düşən baxış ilə eyni qaydada işləyir. Sıfır onu söndürür.
+Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if everything the feed just sent would go.	Çoxlu baxışı və az bəyənməsi olan videoları gizlədin. Aşağı rəqəmlər daha sərtdir, sıfır qaydanı söndürür və lentin göndərdiyi hamısı gizlədiləcəksə, bir video saxlanılır.
+Hiding	Gizlətmə
+Highest	Ən yüksək
+Historical	Tarixi
+Historical values	Tarixi dəyərlər
+Hold a gate to choose several	Bir neçəsini seçmək üçün qapını basıb saxlayın
+Hold the feed after the budget	Büdcədən sonra lenti saxlayın
+Home	Ana səhifə
+Hook status	Qoşulma statusu
+HushPine can't read the creator pattern %1$s	HushPine %1$s yaradıcı şablonunu oxuya bilmir
+HushPine is active	HushPine aktivdir
+Shows the Duet and Stitch options even when the creator turned them off. PineDrama may still refuse to accept the result.	Yaradıcı onları söndürsə belə Duet və Stitch seçimlərini göstərir. PineDrama nəticəni yenə də qəbul etməyə bilər.
+Shows Add to Story in the share sheet even when the creator turned off content reuse. PineDrama may still refuse to post it.	Yaradıcı məzmundan təkrar istifadəni söndürsə belə paylaşım menyusunda Hekayəyə əlavə et seçimini göstərir. PineDrama yerləşdirməni yenə də rədd edə bilər.
+Import finished	İdxal tamamlandı
+Import loaded values	Yüklənmiş dəyərləri idxal edin
+Imported %1$d values	%1$d dəyər idxal edildi
+Imported %1$d values. The menu can undo it.	%1$d dəyər idxal edildi. Menyudan geri qaytarın.
+Inbox	Gələnlər
+Include diagnostic events	Diaqnostik hadisələri daxil edin
+Included diagnostics	Daxil edilən diaqnostika
+Includes all diagnostic events.	Bütün diaqnostik hadisələri daxil edir.
+Includes these events: %1$s	Bu hadisələri daxil edir: %1$s
+Inserted cards	Əlavə edilmiş kartlar
+Keep a paused video paused	Dayandırılmış videonu dayandırılmış saxlayın
+Keep going	Davam edin
+Keep the Favorites tab	Favoritlər nişanını saxlayın
+Dark Favorites popup	Qaranlıq Favoritlər pəncərəsi
+When PineDrama is in dark mode, the list of collections you get by holding the Favorites button is dark too instead of white.	PineDrama qaranlıq rejimdə olanda Favoritlər düyməsini basıb saxlayanda açılan kolleksiyalar siyahısı ağ yox, qaranlıq olur.
+Keep the screen's refresh rate	Ekranın yenilənmə tezliyini saxlayın
+Keep the speed you chose for the next video. Off, each new video starts at 1x and a manual choice lasts for that video only.	Seçdiyiniz sürəti növbəti video üçün saxlayın. Qapalı olduqda hər yeni video 1x ilə başlayır və əllə seçim yalnız həmin video üçün qüvvədədir.
+Keep this string to %1$s characters or fewer	Bu mətni %1$s simvol və ya daha az saxlayın
+Keep this structured value to %1$s KB or less	Bu strukturlu dəyəri %1$s KB və ya daha az saxlayın
+Kept to %1$s, the nearest value this row allows	Sətir üçün ən yaxın icazəli dəyər: %1$s
+Kinds of post	Paylaşım növləri
+LIVE	LIVE
+LIVE replays	LIVE təkrarları
+LIVE settings	LIVE ayarları
+LIVE videos	LIVE videolar
+Lab data reset	Lab məlumatları sıfırlandı
+Lab data reset with no undo	Lab birdəfəlik sıfırlandı
+Lab overrides reset	Lab əvəzləmələri sıfırlandı
+Last original value	Son orijinal dəyər
+Last recording: %1$d gates.	Son qeyd: %1$d qapı.
+Last recording: 1 gate.	Son qeyd: 1 qapı.
+Appearance, search, profile and system	Görünüş, axtarış, profil və sistem
+Leave maximum empty to keep it unlimited.	Limitsiz saxlamaq üçün maksimumu boş buraxın.
+Leave the sound out of the saved video. Save the sound as well still writes the sound file beside it if you want both.	Səsi saxlanılan videodan çıxarın. İkisini də istəyirsinizsə, Səsi də saxla yenə də səs faylını onun yanında yazır.
+Length and views per like	Uzunluq və bəyənməyə düşən baxışlar
+Less than a minute left	Bir dəqiqədən az qalıb
+Let screenshots, screen recording and Circle to Search work on PineDrama again. Restart PineDrama to apply this.	Ekran görüntülərinin, ekran yazısının və Circle to Search-in PineDrama-da yenidən işləməsinə icazə verin. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Let the Offline videos menu use your own limit instead of PineDrama's fixed one. Restart PineDrama to apply this.	Oflayn videolar menyusu PineDrama-nın sabit limiti əvəzinə sizin öz limitinizdən istifadə etsin. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Licenses	Lisenziyalar
+Limits	Limitlər
+Link copied	Keçid kopyalandı
+Links	Keçidlər
+Loaded current values. Loading all known gates…	Cari dəyərlər yükləndi. Bütün məlum qapılar yüklənir…
+Still reading loaded values. Try again soon.	Dəyərlər hələ oxunur. Bir az sonra yenidən cəhd edin.
+Loaded-value file export failed	Yüklənmiş dəyər faylının ixracı alınmadı
+Loading gates…	Qapılar yüklənir…
+Location-tagged videos	Məkan etiketli videolar
+Lock today's budget	Bugünkü büdcəni kilidləyin
+Logging, hook status and reports	Qeydiyyat, qoşulma statusu və hesabatlar
+Long press	Uzun basma
+Lowest	Ən aşağı
+Manager	Menecer
+Marked as not interested	Maraqlı deyil kimi qeyd edilib
+Match locale and timezone to country	Dil mühitini və saat qurşağını ölkəyə uyğunlaşdırın
+Maximum	Maksimum
+Maximum post age	Maksimum paylaşım yaşı
+Maximum video length	Maksimum video uzunluğu
+Maximum views per comment	Şərhə düşən maksimum baxış
+Maximum views per like	Bəyənməyə düşən maksimum baxış
+Minimum video length	Minimum video uzunluğu
+Media	Media
+Media config (VE)	Media konfiqurasiyası (VE)
+Messages, profiles and search still work.	Mesajlar, profillər və axtarış yenə də işləyir.
+Microphone in use	Mikrofon istifadə olunur
+Comments range	Şərh aralığı
+Favorites range	Favoritlər aralığı
+Likes aren't available for this video	Bu video üçün bəyənmələr əlçatan deyil
+Likes range	Bəyənmə aralığı
+Shares range	Paylaşma aralığı
+PineDrama's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under PineDrama's Settings and privacy, under Time and well-being.	PineDrama-nın öz gündəlik ekran vaxtı xatırlatması tətbiqi bağlanmasını gözləmək əvəzinə fona göndərir. Dərhal geri qayıtmaq xatırlatmanı ekranda saxlayır, ona görə limitə çatmaq mümkün qalır. PineDrama-nın Settings and privacy altında, Time and well-being bölməsində gündəlik limit təyin edilməlidir.
+Try a different word or clear the search. Switches from patches you didn't tick in Morphe Manager aren't listed.	Başqa söz yoxlayın və ya axtarışı təmizləyin. Morphe Manager-də işarələmədiyiniz yamaqlardan olan açarlar siyahıya daxil edilmir.
+Use Save report for this large report	Bu böyük hesabat üçün Hesabatı saxla istifadə edin
+Video player settings	Video pleyer ayarları
+The network proxy from that file is off. Check its address before you turn it on	Həmin fayldan gələn şəbəkə proksisi söndürülüb. Onu açmazdan əvvəl ünvanını yoxlayın
+Your network proxy was kept, since a backup can't change it	Şəbəkə proksiniz saxlanıldı, çünki ehtiyat nüsxə onu dəyişə bilməz
+Videos can't be saved to the folder in that file, so your video folder was kept	Videolar həmin fayldakı qovluğa saxlanıla bilmir, ona görə video qovluğunuz saxlanıldı
+Views range	Baxış aralığı
+Minimum	Minimum
+More options	Daha çox seçim
+Move down	Aşağı daşıyın
+Move left	Sola daşıyın
+Move right	Sağa daşıyın
+Move to the next video when the current one ends. Pauses and open dialogs stop it. Restart PineDrama to apply this.	Cari video bitəndə növbətiyə keçin. Fasilələr və açıq dialoqlar onu dayandırır. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Move up	Yuxarı daşıyın
+Nearby	Yaxında
+Never from these countries	Bu ölkələrdən heç vaxt
+No	Xeyr
+No creator to block on this video	Bu videoda bloklanacaq yaradıcı yoxdur
+No creator to hide on this video	Bu videoda gizlədiləcək yaradıcı yoxdur
+No creators are hidden yet. Hide one from a video, or add a handle above.	Hələ heç bir yaradıcı gizlədilməyib. Birini videodan gizlədin və ya yuxarıdan istifadəçi adı əlavə edin.
+No current value	Cari dəyər yoxdur
+No current value and no active override	Cari dəyər və aktiv əvəzləmə yoxdur
+No delay	Gecikmə yoxdur
+No gate data is available. Refresh values from the menu to try again.	Qapı məlumatları əlçatan deyil. Yenidən cəhd etmək üçün menyudan dəyərləri yeniləyin.
+No gate reads were recorded. Use a PineDrama feature while recording.	Heç bir qapı oxunuşu qeydə alınmadı. Qeyd edərkən PineDrama funksiyasından istifadə edin.
+No gates match this filter.	Bu filtrə uyğun qapı yoxdur.
+No gates match this search and filter.	Bu axtarışa və filtrə uyğun qapı yoxdur.
+No hidden creators match this search. Clear the search to see them all.	Bu axtarışa uyğun gizlədilmiş yaradıcı yoxdur. Hamısını görmək üçün axtarışı təmizləyin.
+No limit	Limit yoxdur
+No matching comments. Try a different word, or clear the search with the X in the box.	Uyğun şərh yoxdur. Başqa söz yoxlayın və ya qutudakı X ilə axtarışı təmizləyin.
+No matching countries. Try a country name or a two-letter code.	Uyğun ölkə yoxdur. Ölkə adını və ya iki hərfli kodu yoxlayın.
+No matching diagnostics found	Uyğun diaqnostika tapılmadı
+No matching settings	Uyğun ayar yoxdur
+No preset selected. Choose a preset above.	Hazır ayar seçilməyib. Yuxarıdan hazır ayar seçin.
+No recording yet. Start one, use a feature, then return here.	Hələ qeyd yoxdur. Birini başladın, funksiyadan istifadə edin, sonra bura qayıdın.
+No seen videos recorded yet.	Hələ heç bir izlənmiş video qeydə alınmayıb.
+No sound to block on this video	Bu videoda bloklanacaq səs yoxdur
+No suggested accounts to clear	Təmizlənəcək təklif olunan hesab yoxdur
+No video selected. Open a video first.	Video seçilməyib. Əvvəlcə videonu açın.
+None of these gates had an override to reset	Bu qapılarda əvəzləmə yox idi
+None of these gates takes a true or false value	Bu qapıların heç biri true və ya false qəbul etmir
+None recorded	Qeyd yoxdur
+Not blocked	Bloklanmayıb
+Not interested in this video	Bu video maraqlı deyil
+Not read yet	Hələ oxunmayıb
+Not requested in this process yet	Bu prosesdə hələ tələb edilməyib
+Not saved yet	Hələ saxlanılmayıb
+Not seen	İzlənməyib
+Not seen yet	Hələ izlənməyib
+Nothing has been checked yet, so there's nothing to report.	Hələ heç nə yoxlanılmayıb, ona görə hesabat verməli bir şey yoxdur.
+Nothing has been looked up yet. Use the app for a moment, then come back.	Hələ heç nə axtarılmayıb. Bir müddət tətbiqdən istifadə edin, sonra qayıdın.
+Nothing is playing to seek	İrəli-geri çəkmək üçün oxunan heç nə yoxdur
+Nothing new was imported	Yeni heç nə idxal edilmədi
+Nothing on this page changes what PineDrama does until they are on.	Bu səhifədəki heç bir şey onlar yandırılmayana qədər PineDrama-nın işini dəyişmir.
+Nothing to undo yet.	Hələ geri qaytarılacaq heç nə yoxdur.
+Notices from this project and the ones it's built on	Bu layihənin və əsaslandığı layihələrin bildirişləri
+OK	OK
+Off	Qapalı
+Off forces the value to false, on forces it to true. Reset lets PineDrama decide again.	Söndürülmüş dəyəri false, açıq isə true edir. Sıfırlama qərarı yenidən PineDrama-ya verir.
+Offline videos	Oflayn videolar
+Offline videos limit	Oflayn videolar limiti
+On mobile data	Mobil data ilə
+Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.	Bugünkü büdcə bitəndə fasilə qalır və bağlana bilməz. Büdcə ayarları gün yenidən başlayana qədər kilidlənir. Büdcə bitməzdən əvvəl istənilən vaxt bunu söndürün.
+One area was checked and everything it needs is here.	Bir sahə yoxlanıldı və ona lazım olan hər şey burada var.
+One minute left	Bir dəqiqə qalıb
+One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.	Həmin siyahıdakı dırnaq işarələrindən birinin bağlanışı yoxdur, ona görə sətrin qalanı bir ifadə kimi oxunur. Çatışmayan dırnağı əlavə edin və ya artıq olanı silin.
+One value per line	Hər sətirdə bir dəyər
+Only bottom tabs PineDrama has loaded on this device are shown here. This doesn't force unavailable tabs to appear.	Burada yalnız PineDrama-nın bu cihazda yüklədiyi alt nişanlar göstərilir. Bu, əlçatan olmayan nişanları görünməyə məcbur etmir.
+Only fields the Lab can check and copy safely are shown.	Yalnız Lab-ın yoxlaya və təhlükəsiz kopyalaya biləcəyi sahələr göstərilir.
+Only from these countries	Yalnız bu ölkələrdən
+Only tabs PineDrama has loaded on this device are shown here. This doesn't force unavailable tabs to appear.	Burada yalnız PineDrama-nın bu cihazda yüklədiyi nişanlar göstərilir. Bu, əlçatan olmayan nişanları görünməyə məcbur etmir.
+Open external links directly	Xarici keçidləri birbaşa açın
+Open messages	Mesajları açın
+Open profile website links in your system browser instead of PineDrama's in-app browser.	Profil veb sayt keçidlərini PineDrama-nın tətbiqdaxili brauzeri əvəzinə sistem brauzerinizdə açın.
+Open the feed anyway	Lenti yenə də açın
+Open the feed anyway, %1$d left today	Lenti yenə də açın, bu gün %1$d qalıb
+Open the feed anyway, the last time today	Lenti yenə də açın, bu gün sonuncu dəfə
+Open the feed once so HushPine can see which bottom tabs PineDrama loaded.	HushPine-in PineDrama-nın hansı alt nişanları yüklədiyini görməsi üçün lenti bir dəfə açın.
+Open the feed once so HushPine can see which tabs PineDrama loaded.	HushPine-in PineDrama-nın hansı nişanları yüklədiyini görməsi üçün lenti bir dəfə açın.
+Open the profile again and try once more	Profili yenidən açın və bir dəfə də cəhd edin
+Open the story again and try once more	Hekayəni yenidən açın və bir dəfə də cəhd edin
+Open PineDrama on	PineDrama-nı burada açın
+Opens github.com in your browser	github.com brauzerinizdə açılır
+Operator code	Operator kodu
+Operator name	Operator adı
+Other	Digər
+Other feed filters	Digər lent filtrləri
+Overridden	Əvəzlənib
+Override	Əvəzləmə
+Override SIM details	SIM məlumatlarını əvəzləyin
+Override set, not read yet	Əvəzləmə təyin edilib, hələ oxunmayıb
+Override store region (experimental)	Mağaza regionunu əvəzləyin (eksperimental)
+Override this configuration	Bu konfiqurasiyanı əvəzləyin
+Override this gate	Bu qapını əvəzləyin
+Overrides are disabled in the Feature Gate Lab.	Feature Gate Lab-da əvəzləmələr qapalıb.
+Overrides disabled. Restart PineDrama to apply.	Əvəzləmələr söndürüldü. Yenidən başladın.
+Overrides enabled. Restart PineDrama to apply.	Əvəzləmələr yandırıldı. Yenidən başladın.
+Paid partnerships	Ödənişli tərəfdaşlıqlar
+Duet, Stitch and Add to Story	Duet, Stitch və Hekayəyə əlavə et
+Photo	Foto
+Photo and image posts	Foto və şəkil paylaşımları
+Photo destination	Foto təyinatı
+Photo filename	Foto fayl adı
+Photos and stickers	Fotolar və stikerlər
+Plays videos that PineDrama covers with a content warning without asking you to tap through first.	PineDrama-nın məzmun xəbərdarlığı ilə örtdüyü videoları əvvəlcə toxunub keçməyinizi tələb etmədən oynadır.
+Playback	Oxutma
+Player	Pleyer
+Playlist posts	Pleylist paylaşımları
+Subscriber-only posts	Yalnız abunəçilər üçün paylaşımlar
+Popular	Populyar
+Popups	Pop-uplar
+Press and hold a profile picture to save the full size original to your photo destination.	Tam ölçülü orijinalı foto təyinatınıza saxlamaq üçün profil şəklini basıb saxlayın.
+Privacy	Məxfilik
+Profile	Profil
+Profile picture saved to %1$s	Profil şəkli %1$s yerinə saxlanıldı
+Promotional music	Tanıtım musiqisi
+Proof	Sübut
+Post age	Paylaşım yaşı
+Pulling down at the top of For You no longer reloads it.	Sənin üçün lentinin yuxarısında aşağı çəkmək artıq onu yenidən yükləmir.
+Putting the settings back to their defaults	Ayarlar defoltlarına qaytarılır
+Quality	Keyfiyyət
+Quality, files, sounds and hand-off	Keyfiyyət, fayllar, səslər və ötürmə
+Quality, speed and auto-advance	Keyfiyyət, sürət və avtomatik keçid
+Reading	Oxunuş
+Recorded gate reads (%1$d)	Qeydə alınmış qapı oxunuşları (%1$d)
+Recording. Use a feature, then come back to stop.	Yazılır. Funksiyanı işlədin, sonra qayıdıb dayandırın.
+Put back the settings saved before the last restore or reset.	Son bərpa və ya sıfırlamadan əvvəl saxlanılmış ayarları geri qaytarın.
+Undid an interrupted change. Restart PineDrama to apply.	Kəsik əməliyyat qaytarıldı. Yenidən başladın.
+Refresh values	Dəyərləri yeniləyin
+Region	Region
+Country filters	Ölkə filtrləri
+Remember the last speed	Son sürəti xatırlayın
+Remind me every	Mənə bu qədər tez-tez xatırladın
+Remove	Silin
+Remove %1$s	%1$s silin
+Remove all overrides	Bütün əvəzləmələri silin
+Remove feed ads	Lent reklamlarını silin
+Remove feed ads, creator commission posts, paid partnerships, and branded content.	Lent reklamlarını, yaradıcı komissiyalı paylaşımları, ödənişli tərəfdaşlıqları və brendli məzmunu silin.
+Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.	Gələnlərin yuxarısındakı böyüdücü şüşəni gizlədin. Lentdəki və şərhlərdəki axtarış dəyişmir.
+Hide the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.	Alt nişanların üstündəki təklif olunan axtarış zolağını gizlədin və video təfərrüatları ilə yan idarəetmələrin onun yerindən istifadə etməsinə icazə verin. Yuxarıdakı axtarış düyməsi və şərhlər dəyişmir.
+Cuts the tracking bits out of links you share.	Paylaşdığınız linklərdən izləmə hissələrini çıxarır.
+Remove watermark	Su nişanını silin
+Removed %1$s	%1$s silindi
+Replace values when PineDrama asks for them	PineDrama istəyəndə dəyərləri əvəz edin
+Report saved to %1$s	Hesabat %1$s yerinə saxlanıldı
+Required	Tələb olunur
+Researched	Araşdırılıb
+Researched values	Araşdırılmış dəyərlər
+Reset	Sıfırlayın
+Reset %1$d of %2$d gates	%1$d/%2$d sıfırlandı
+Reset %1$d gates	%1$d qapı sıfırlandı
+Reset 1 of %2$d gates	1/%2$d sıfırlandı
+Reset 1 gate	1 qapı sıfırlandı
+Reset override	Əvəzləməni sıfırlayın
+Reset position	Mövqeyi sıfırlayın
+Reset settings	Ayarları sıfırlayın
+Restart PineDrama to apply %1$d changes	%1$d dəyişikliyi tətbiq etmək üçün PineDrama-nı yenidən başladın
+Restart PineDrama to apply this change	Bu dəyişikliyi tətbiq etmək üçün PineDrama-nı yenidən başladın
+Restart PineDrama to apply this.	Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Restart now	İndi yenidən başladın
+Restart pending	Yenidən başlatma gözlənilir
+Put every setting back to its default straight away. Your current settings are kept for Undo.	Bütün ayarları dərhal defoltlarına qaytarın. Cari ayarlarınız Geri qaytar üçün saxlanılır.
+Restore failed. Some settings may still be changed.	Bərpa alınmadı. Bəzi ayarlar hələ də dəyişmiş ola bilər.
+Reset didn't finish. Some settings may still be changed. Use Undo to put them back.	Sıfırlama tamamlanmadı. Bəzi ayarlar hələ də dəyişmiş ola bilər. Onları geri qaytarmaq üçün Geri qaytar seçimini istifadə edin.
+Reset didn't finish. Some settings may still be changed.	Sıfırlama tamamlanmadı. Bəzi ayarlar hələ də dəyişmiş ola bilər.
+Undo didn't finish. Some settings may still be changed. Try Undo again.	Geri qaytarma tamamlanmadı. Bəzi ayarlar hələ də dəyişmiş ola bilər. Geri qaytarmağı yenidən cəhd edin.
+Undo didn't finish. Some settings may still be changed.	Geri qaytarma tamamlanmadı. Bəzi ayarlar hələ də dəyişmiş ola bilər.
+Restore failed. Some settings may still be changed. Use Undo to put them back.	Bərpa alınmadı. Bəzi ayarlar hələ də dəyişmiş ola bilər. Onları geri qaytarmaq üçün Geri qaytar seçimini istifadə edin.
+Restore settings	Ayarları bərpa edin
+Lab settings put back	Lab ayarları qaytarıldı
+Restoring your settings	Ayarlarınız bərpa edilir
+Resume videos after scrolling	Sürüşdürdükdən sonra videoları davam etdirin
+Retry	Yenidən cəhd edin
+Return a copy with the fields below changed	Aşağıdakı sahələri dəyişdirilmiş nüsxəni qaytarın
+Return after using a PineDrama feature to see every gate read during the recording.	Qeyd zamanı oxunan hər qapını görmək üçün PineDrama funksiyasından istifadə etdikdən sonra qayıdın.
+Returns %1$s	%1$s qaytarır
+Right column	Sağ sütun
+Rows	Sətirlər
+SIM country preset	SIM ölkəsi üçün hazır ayar
+STEM	STEM
+Clean up shared links	Paylaşılan linkləri təmizlə
+Save	Saxla
+Save a profile picture on a long press	Uzun basmaqla profil şəklini saxlayın
+Save every photo in the post at full size, not as the screen shows it. Each one is a JPEG unless Keep photos as PineDrama sent them is on.	Paylaşımdakı hər fotonu ekranda göründüyü kimi deyil, tam ölçüdə saxlayın. "Fotoları PineDrama-nın göndərdiyi kimi saxla" açıq deyilsə, hər biri JPEG olur.
+Keep photos as PineDrama sent them	Fotoları PineDrama-nın göndərdiyi kimi saxla
+Saved photos, covers and stickers that don't move are the exact files PineDrama sent, not a new JPEG or PNG. Some galleries and computers can't open HEIF or WebP.	Saxlanılan fotolar, örtüklər və hərəkətsiz stikerlər yeni JPEG və ya PNG deyil, PineDrama-nın göndərdiyi faylların özüdür. Bəzi qalereyalar və kompüterlər HEIF və ya WebP faylları aça bilmir.
+Save field values	Sahə dəyərlərini saxlayın
+Save full report	Tam hesabatı saxlayın
+Save media	Medianı saxlayın
+Saves your HushPine settings and Feature Gate Lab rules to a file.	HushPine ayarlarınızı və Feature Gate Lab qaydalarınızı fayla saxlayır.
+Saves PineDrama's latest crash report on this phone so it can go in the diagnostic report.	PineDrama-nın ən son çökmə hesabatını bu telefonda saxlayır ki, diaqnostik hesabata daxil edilə bilsin.
+Save the sound as well	Səsi də saxla
+Save videos without sound	Videoları səssiz saxlayın
+Save, restore, reset and undo your settings	Ayarlarınızın ehtiyat nüsxəsini yaradın, bərpa edin, sıfırlayın və geri qaytarın
+Saved	Saxlanıldı
+Saved %1$s	%1$s saxlanıldı
+Saved %1$s of %2$s photos before the story failed	Hekayə uğursuz oldu: %2$s fotodan %1$s saxlanıldı
+Saved %1$s original photos	%1$s orijinal foto saxlanıldı
+Saved one original photo	Bir orijinal foto saxlanıldı
+Saved, override off	Saxlanıldı, əvəzləmə qapalıdır
+Saved. Restart PineDrama to apply this.	Saxlanıldı. PineDrama-nı yenidən başladın.
+Saving	Saxlanılır
+Saving %1$s original photos	%1$s orijinal foto saxlanılır
+Saving one original photo	Bir orijinal foto saxlanılır
+Saving settings backup	Ayarların ehtiyat nüsxəsi saxlanılır
+Saving the sticker	Stiker saxlanılır
+Saving the story	Hekayə saxlanılır
+Saving the sound	Səs saxlanılır
+Saving the profile picture	Profil şəkli saxlanılır
+Saving the live photo's clip	Canlı fotonun klipi saxlanılır
+Screen time	Ekran vaxtı
+Search	Axtarış
+Advanced. Find and force the hidden switches PineDrama uses to test features.	Qabaqcıl. PineDrama-nın funksiyaları sınaqdan keçirmək üçün istifadə etdiyi gizli açarları tapın və məcbur edin.
+Search by name or gate key	Ada və ya qapı açarına görə axtarın
+Search by name, description or category.	Ada, təsvirə və ya kateqoriyaya görə axtarın.
+Search countries or operators	Ölkələri və ya operatorları axtarın
+Search hidden creators	Gizlədilən yaradıcıları axtarın
+Search settings	Ayarlarda axtarın
+Search these comments	Bu şərhlərdə axtarın
+Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty.	Saniyə. Sıfır bütün uzunluqları saxlayır. Lentin göndərdiyi hər şey süzüləcəksə, lent boş qalmasın deyə limitinizə ən yaxın video saxlanılır.
+Seconds. Zero keeps every length. Photo posts and videos without a known length stay. If everything the feed just sent would be filtered out, the video closest to your limit is kept.	Saniyə. Sıfır bütün uzunluqları saxlayır. Foto paylaşımlar və uzunluğu bilinməyən videolar qalır. Lentin göndərdiyi hər şey süzüləcəksə, limitinizə ən yaxın video saxlanılır.
+Seen	İzlənib
+Seen this session	Bu sessiyada izlənib
+Seen videos	İzlənmiş videolar
+Seen videos cleared. You can undo until PineDrama closes.	İzlənmiş videolar təmizləndi. PineDrama bağlanana qədər geri qaytara bilərsiniz.
+Seen videos put back	İzlənmiş videolar geri qaytarıldı
+Select	Seçin
+Select at least one field	Ən azı bir sahə seçin
+Select every tab	Bütün nişanları seçin
+Selected	Seçilib
+Send links to another app	Keçidləri başqa tətbiqə göndərin
+Sending feedback	Rəy göndərilir
+Series posts	Serial paylaşımları
+Settings	Ayarlar
+Settings are back to their defaults. Restart PineDrama to apply all changes.	Ayarlar defoltlarına qaytarıldı. Bütün dəyişiklikləri tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Settings backup saved	Ayarların ehtiyat nüsxəsi saxlanıldı
+Settings couldn't open	Ayarlar açıla bilmədi
+Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tam yenilənə bilmədi. Ayarları yenidən açın və yenidən cəhd edin.
+Settings restored. Restart PineDrama to apply all changes.	Ayarlar bərpa edildi. Bütün dəyişiklikləri tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Settings restored. The Feature Gate Lab rules were for another PineDrama version and were left out. Restart PineDrama to apply all changes.	Ayarlar bərpa edildi. Feature Gate Lab qaydaları başqa PineDrama versiyası üçün idi və kənarda qoyuldu. Bütün dəyişiklikləri tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Swap the website in shared links	Paylaşılan linklərdə saytı dəyiş
+Share sheet	Paylaşma vərəqi
+Shop	Shop
+Shop posts	Shop paylaşımları
+Show	Göstərin
+Show PineDrama's own progress bar on videos where it's normally hidden.	Normalda gizlədilən videolarda PineDrama-nın öz irəliləyiş panelini göstərin.
+Shows PineDrama's full sort menu on every post, with hot, newest, media and creator options, instead of the shorter one your account got. Restart PineDrama to see the change.	Hər yazıda PineDrama-nın tam çeşidləmə menyusunu göstərir: məşhur, ən yeni, media və yaradıcı seçimləri ilə, hesabınıza verilən qısa menyu əvəzinə. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+Show a video preview thumbnail while dragging the progress bar.	İrəliləyiş panelini sürüşdürəndə video önizləmə şəkli göstərin.
+Show failures on screen	Xətaları ekranda göstərin
+Show gates	Qapıları göstərin
+Show last report	Son hesabatı göstərin
+Show search in LIVE	LIVE-da axtarışı göstərin
+Show PineDrama's feed buttons	PineDrama-nın lent düymələrini göstərin
+Mute feed videos	Lent videolarını səssiz edin
+Muted	Səssiz
+Sound on	Səs açıq
+Sound	Səs
+Show the progress bar	İrəliləyiş panelini göstərin
+Show the time beside the progress bar	İrəliləyiş panelinin yanında vaxtı göstərin
+Show the time played and the video's length at the end of the progress bar while it's on screen.	İrəliləyiş paneli ekranda olanda onun sonunda keçən vaxtı və videonun uzunluğunu göstərin.
+Bigger progress bar handle	Daha böyük irəliləyiş paneli tutacağı
+Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.	İrəliləyiş panelində daha böyük tutacaq və bir az qalın xətt çəkin ki, harada olduğunuzu görmək asan olsun.
+Seek bar on video stories	Video hekayələrdə irəli-geri çəkmə zolağı
+Add a thin line along the bottom of a video story that you can drag to go back or skip ahead. The time shows while you drag, and a tap on it still moves between stories.	Video hekayənin aşağısına geri qayıtmaq və ya irəli keçmək üçün sürüşdürə biləcəyiniz nazik xətt əlavə edin. Sürüşdürərkən vaxt göstərilir, xəttə toxunmaq isə yenə hekayələr arasında keçid edir.
+Story position	Hekayədəki mövqe
+Seek bar on sound previews	Səs önizləmələrində irəli-geri çəkmə zolağı
+Add a line along the bottom of a sound's cover while its preview plays, with the time played and the preview's length. Tap or drag it to move through the preview.	Səsin önizləməsi oxunarkən onun örtüyünün aşağısına oxunan vaxtı və önizləmənin uzunluğunu göstərən xətt əlavə edin. Önizləmədə irəli-geri keçmək üçün ona toxunun və ya sürüşdürün.
+Sound position	Səsdəki mövqe
+%1$s of %2$s	%1$s / %2$s
+Show the progress bar thumbnail	İrəliləyiş paneli önizləmə şəklini göstərin
+Show the search entry inside PineDrama's LIVE drawer, where available. This doesn't add a search box to video comments.	Mövcud olduqda axtarış girişini PineDrama-nın LIVE çəkməcəsində göstərin. Bu, video şərhlərinə axtarış qutusu əlavə etmir.
+Show the whole Activity and New followers lists instead of stopping at a View all button.	Fəaliyyət və Yeni izləyicilər siyahılarının hamısını Hamısına bax düyməsində dayanmaq əvəzinə göstərin.
+Show the whole video instead of cropping it to the window. Nothing changes on a tall phone, where it already fits. On a folding phone opened up, a squarer screen or a split view the sides or the ends stop being cut off. Photo slideshows get the same treatment on a squarer screen.	Videonu pəncərəyə uyğun kəsmək əvəzinə bütövlüyü ilə göstərin. Artıq sığdığı hündür telefonda heç nə dəyişmir. Açılmış qatlanan telefonda, daha kvadrat ekranda və ya bölünmüş görünüşdə yanlar və ya uclar artıq kəsilmir. Foto slayd şouları daha kvadrat ekranda eyni qaydada işlənir.
+Show what is left of the budget	Büdcədən nə qaldığını göstərin
+Show when the camera or microphone is in use	Kamera və ya mikrofon istifadə olunanda göstərin
+Show commenters' handles	Şərh yazanların istifadəçi adlarını göstərin
+Show each commenter's @username instead of the display name they chose. A reply to a reply names the person it answers the same way once their own comment has loaded.	Hər şərh yazanın seçdiyi görünən ad əvəzinə @istifadəçi adını göstərin. Cavaba yazılan cavab, cavab verdiyi şəxsin öz şərhi yükləndikdən sonra onu da eyni şəkildə göstərir.
+Show where commenters are from	Şərh yazanların haradan olduğunu göstərin
+Show the country a commenter's account is set to after the comment's time. Comments from accounts PineDrama sends no country for stay as they are.	Şərhin vaxtından sonra şərh yazanın hesabında qurulmuş ölkəni göstərin. PineDrama-nın ölkə göndərmədiyi hesablardan gələn şərhlər olduğu kimi qalır.
+Showing %1$s again	%1$s yenidən göstərilir
+Hide videos with blocked sounds	Bloklanmış səsləri olan videoları gizlədin
+Skip content warnings	Məzmun xəbərdarlıqlarını keçin
+Hide feed videos with place badges, even when they aren't paid ads.	Ödənişli reklam olmasalar belə, məkan nişanları olan lent videolarını gizlədin.
+Hide recorded LIVE broadcasts from the feed.	Qeydə alınmış LIVE yayımlarını lentdən gizlədin.
+Hide videos marked as using promotional music.	Tanıtım musiqisi istifadə etdiyi qeyd edilmiş videoları gizlədin.
+Hide videos that use a sound named or listed below.	Aşağıda adı çəkilən və ya siyahıda olan səsdən istifadə edən videoları gizlədin.
+Skipping videos with %1$s	%1$s olan videolar keçilir
+Something is missing from %1$s. Tap for the whole report.	%1$s üzrə nəsə çatışmır. Bütün hesabat üçün toxunun.
+Sound link copied	Səsin keçidi kopyalandı
+Sound saved to %1$s	Səs %1$s yerinə saxlanıldı
+Source	Mənbə
+Speed	Sürət
+Speed menu choices	Sürət menyusu seçimləri
+Start each new video at your default. A manual choice lasts until the video changes.	Hər yeni videonu defoltunuzla başladın. Əllə seçim video dəyişənə qədər qüvvədə qalır.
+Start feature gate recording	Funksiya qapısı qeydini başladın
+Start recording	Qeydi başladın
+Start the day at	Günü bu vaxt başladın
+Start today over	Bu günü yenidən başladın
+Start typing	Yazmağa başlayın
+Sticker	Stiker
+Sticker destination	Stiker təyinatı
+Sticker saved to %1$s	Stiker %1$s yerinə saxlanıldı
+Still here. Nothing is waiting.	Hələ buradadır. Heç nə gözləmir.
+Still reading the record. Tap again in a moment.	Qeyd hələ oxunur. Bir azdan yenidən toxunun.
+Still saving the last one	Sonuncu hələ saxlanılır
+The last one is still waiting to start	Sonuncunun başlaması hələ gözlənilir
+Stops PineDrama from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.	PineDrama-nın ekranınızı hər videonun kadr sürətinə uyğun yavaşlatmasının qarşısını alır. 90 və ya 120 Hz telefonda bu tələb bütün tətbiqi, o cümlədən sürüşdürməni yavaşladır.
+Stops PineDrama from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	PineDrama-nın telefonunuzun hərəkət və kompas sensorlarını oxumasının qarşısını alır. Tətbiqlər onlarla telefonunuzu tanıya bilər.
+Stop PineDrama reading what you copied. Copying a link from PineDrama still works.	PineDrama-nın kopyaladığınızı oxumasını dayandırın. PineDrama-dan keçid kopyalamaq yenə də işləyir.
+Stop a long press on Like from opening PineDrama's repost action.	Bəyənməyə uzun basmanın PineDrama-nın yenidən paylaşma əməliyyatını açmasının qarşısını alın.
+Stop a long press on Share from opening PineDrama's quick share action.	Paylaşmaya uzun basmanın PineDrama-nın sürətli paylaşma əməliyyatını açmasının qarşısını alın.
+Stop feature gate recording	Funksiya qapısı qeydini dayandırın
+Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.	Kimsənin yazdığı reklamçının tətikləyicisinə uyğun gələndə şərhlərin üstündə oynanan brend animasiyasını dayandırın.
+Stops websites you open from inside PineDrama from reaching back into the app. PineDrama's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working.	PineDrama-nın içindən açdığınız saytların tətbiqə geri çıxış əldə etməsinin qarşısını alır. Activity center, Watch history, mağaza ödənişi və CAPTCHA kimi PineDrama-nın öz səhifələri işləməyə davam edir.
+Stopped after dismissing %1$s suggested accounts	%1$s təklif olunan hesab bağlandıqdan sonra dayandı
+Stopped after dismissing one suggested account	Bir təklif olunan hesab bağlandıqdan sonra dayandı
+Stories	Hekayələr
+Story saved to %1$s	Hekayə %1$s yerinə saxlanıldı
+Structured value observed	Strukturlu dəyər müşahidə edildi
+System	Sistem
+Hide the streak button in a chat and the reminder message that goes with it.	Söhbətdəki seriya düyməsini və onunla gələn xatırlatma mesajını gizlədin.
+Tap again to follow	İzləmək üçün yenidən toxunun
+Tap again to like	Bəyənmək üçün yenidən toxunun
+Tap again to repost	Yenidən paylaşmaq üçün yenidən toxunun
+Technical details	Texniki təfərrüatlar
+Technical details, %1$s	Texniki təfərrüatlar, %1$s
+That backup was written by a newer HushPine than this one. Nothing was altered.	Həmin ehtiyat nüsxə bu versiyadan daha yeni HushPine tərəfindən yazılıb. Heç nə dəyişdirilmədi.
+That creator is already in the list	Həmin yaradıcı artıq siyahıdadır
+Skipped a creator pattern that's too long: %1$s	Çox uzun yaradıcı şablonu atlandı: %1$s
+That creator pattern is too long, so it wasn't added: %1$s	Bu yaradıcı şablonu çox uzundur, ona görə əlavə edilmədi: %1$s
+That file isn't a loaded-values export, or it's larger than the Lab accepts	Həmin fayl yüklənmiş dəyərlərin ixracı deyil və ya Lab-ın qəbul etdiyindən böyükdür
+That file isn't readable text, so it may have been damaged in transit. Nothing was altered.	Həmin fayl oxuna bilən mətn deyil, ona görə yolda zədələnmiş ola bilər. Heç nə dəyişdirilmədi.
+That file is too large to be a settings backup. Nothing was altered.	Həmin fayl ayarların ehtiyat nüsxəsi olmaq üçün çox böyükdür. Heç nə dəyişdirilmədi.
+That folder name has a character Android doesn't allow. Use letters, numbers, spaces or dashes.	Həmin qovluq adında Android-in icazə vermədiyi simvol var. Hərflər, rəqəmlər, boşluqlar və ya tire istifadə edin.
+That is %1$d minutes today	Bu, bu gün %1$d dəqiqədir
+That is %1$d videos today	Bu, bu gün %1$d videodur
+That isn't a HushPine settings backup. Nothing was altered.	Bu, HushPine ayarlarının ehtiyat nüsxəsi deyil. Heç nə dəyişdirilmədi.
+That isn't an app name. Try something like com.example.downloader, or leave the box empty to keep saving in PineDrama.	Bu tətbiq adı deyil. com.example.downloader kimi bir şey yoxlayın və ya PineDrama-da saxlamağa davam etmək üçün qutunu boş buraxın.
+That is one minute today	Bu, bu gün bir dəqiqədir
+That is one video today	Bu, bu gün bir videodur
+That list has too many entries. Keep it to %1$s or fewer.	Həmin siyahıda çox giriş var. Onu %1$s və ya daha az saxlayın.
+That list is too large. Keep it to %1$s KB or less.	Həmin siyahı çox böyükdür. Onu %1$s KB və ya daha az saxlayın.
+That preset isn't recognized. Choose another.	Həmin hazır ayar tanınmır. Başqasını seçin.
+That settings backup contains a feed rule list larger than HushPine accepts. Nothing was altered.	Həmin ehtiyat nüsxədə HushPine-in qəbul etdiyindən böyük lent qaydası siyahısı var. Heç nə dəyişdirilmədi.
+That settings backup holds a value HushPine can't read. Nothing was altered.	Həmin ehtiyat nüsxədə HushPine-in oxuya bilmədiyi dəyər var. Heç nə dəyişdirilmədi.
+That settings backup holds more Feature Gate Lab rules than the Lab takes. Nothing was altered.	Həmin ehtiyat nüsxədə Lab-ın qəbul etdiyindən çox Feature Gate Lab qaydası var. Heç nə dəyişdirilmədi.
+That settings backup is damaged or only partly downloaded. Nothing was altered.	Həmin ehtiyat nüsxə zədələnib və ya yalnız qismən yüklənib. Heç nə dəyişdirilmədi.
+That settings backup is incomplete, so it may have been cut short. Nothing was altered.	Həmin ehtiyat nüsxə tam deyil, ona görə yarımçıq kəsilmiş ola bilər. Heç nə dəyişdirilmədi.
+That settings change didn't go through. Nothing was altered.	Həmin ayar dəyişikliyi alınmadı. Heç nə dəyişdirilmədi.
+That sticker is in a format HushPine can't read	Həmin stiker HushPine-in oxuya bilmədiyi formatdadır
+The Lab can't check this. PineDrama gets it exactly as typed.	Lab bunu yoxlaya bilmir. PineDrama onu yazıldığı kimi alır.
+The Lab couldn't open. Go back and open it again.	Lab açıla bilmədi. Geri qayıdın və yenidən açın.
+%2$s rules, but the limit is %1$s. Nothing changed.	%2$s qayda olardı, limit isə %1$s. Heç nə dəyişmədi.
+The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.	Kataloqa görə bu açar %1$s, bu əvəzləmə isə %2$s-dir. Əvəzləməni sıfırlayın və yenisini yaradın.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Diaqnostik hesabat hələ saxlanıla bilmədi. Bir azdan yenidən cəhd edin.
+The diagnostic report couldn't be saved. Try again.	Diaqnostik hesabat saxlanıla bilmədi. Yenidən cəhd edin.
+Your downloader app isn't installed. Check Downloads.	Endirmə tətbiqi yoxdur. Yoxlayın: Endirmələr.
+The feed slowly dims during the last 45 seconds before the hold, so it doesn't come as a sudden stop. Needs a time budget and a hold.	Feed bloklanmadan əvvəlki son 45 saniyədə tədricən qaralır, beləliklə qəfil dayanma olmur. Vaxt büdcəsi və blok tələb olunur.
+The feed doesn't end. This is a fine time to leave it.	Lent bitmir. İndi onu tərk etmək üçün yaxşı vaxtdır.
+The feed is open again	Lent yenidən açıqdır
+The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away.	Tətbiqə qayıdanda lent yenidən oynamağa başlamazdan əvvəl bir toxunuş gözləyir. Mesajlar, profillər və axtarış hələ də bir toxunuş uzaqlıqdadır.
+The hour both budgets reset, on a 24 hour clock. The default is 4 in the morning, so a late night still counts as the same day.	Hər iki büdcənin sıfırlandığı saat, 24 saatlıq formatda. Standart 4:00-dır, beləliklə gec gecə eyni gün sayılır.
+Last change put back. Restart PineDrama to apply all changes.	Son dəyişiklik geri qaytarıldı. Bütün dəyişiklikləri tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Last change put back. The Feature Gate Lab rules were for another PineDrama version and were left out. Restart PineDrama to apply all changes.	Son dəyişiklik geri qaytarıldı. Feature Gate Lab qaydaları başqa PineDrama versiyası üçün idi və kənarda qoyuldu. Bütün dəyişiklikləri tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Show only videos with this many comments.	Yalnız bu qədər şərhi olan videoları göstərin.
+Show only videos with this many favorites.	Yalnız bu qədər favoritə əlavə edilmiş videoları göstərin.
+Show only videos with this many likes.	Yalnız bu qədər bəyənməsi olan videoları göstərin.
+Show only videos with this many shares.	Yalnız bu qədər paylaşılmış videoları göstərin.
+Show only videos with this many views.	Yalnız bu qədər baxışı olan videoları göstərin.
+No original photos, so PineDrama saves it instead	Orijinal fotolar yoxdur, ona görə PineDrama saxlayır
+No video saved. The original photos are missing.	Video saxlanmadı. Orijinal fotolar yoxdur.
+The override changes no fields. Edit the field values, or reset the override.	Əvəzləmə heç bir sahəni dəyişmir. Sahə dəyərlərini redaktə edin və ya əvəzləməni sıfırlayın.
+The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Əvəzləmə tətbiq oluna bilmədi: %1$s. Sahə dəyərlərini redaktə edin və ya əvəzləməni sıfırlayın.
+The override doesn't say what list to return. Edit the field values, or reset the override.	Əvəzləmə hansı siyahının qaytarılacağını demir. Sahə dəyərlərini redaktə edin və ya əvəzləməni sıfırlayın.
+The profile picture couldn't be saved. Try again.	Profil şəkli saxlanıla bilmədi. Yenidən cəhd edin.
+Couldn't read an interrupted change. Check your settings.	Kəsik əməliyyat oxunmadı. Ayarlarınızı yoxlayın.
+The report couldn't be saved. Try again.	Hesabat saxlanıla bilmədi. Yenidən cəhd edin.
+Couldn't read that file. Try again.	Fayl oxunmadı. Yenidən cəhd edin.
+The setting couldn't finish updating. Its saved value is shown.	Ayar yenilənməni tamamlaya bilmədi. Onun saxlanılmış dəyəri göstərilir.
+The settings backup was rejected. Nothing was altered.	Ayarların ehtiyat nüsxəsi rədd edildi. Heç nə dəyişdirilmədi.
+The smallest value is above the largest	Ən kiçik dəyər ən böyükdən yüksəkdir
+The sound couldn't be saved. Try again.	Səs saxlanıla bilmədi. Yenidən cəhd edin.
+The sticker couldn't be saved. Try again.	Stiker saxlanıla bilmədi. Yenidən cəhd edin.
+The story couldn't be saved. Try again.	Hekayə saxlanıla bilmədi. Yenidən cəhd edin.
+Couldn't save. Try again, or choose Automatic.	Saxlanmadı. Yenidən cəhd edin və ya Avtomatik seçin.
+There is no Lab change to undo.	Geri qaytarılacaq Lab dəyişikliyi yoxdur.
+There is no diagnostic data to clear	Təmizlənəcək diaqnostik məlumat yoxdur
+There is no diagnostic data to put back	Geri qaytarılacaq diaqnostik məlumat yoxdur
+There was nothing to put back	Geri qaytarılacaq heç nə yox idi
+These loaded values are for another PineDrama version	Bu yüklənmiş dəyərlər başqa PineDrama versiyası üçündür
+This catalog entry is no longer available. Refresh the Lab and try again.	Bu kataloq girişi artıq mövcud deyil. Lab-ı yeniləyin və yenidən cəhd edin.
+This change couldn't be saved. Try again.	Bu dəyişiklik saxlanıla bilmədi. Yenidən cəhd edin.
+This configuration has no fields that can be copied and changed safely on this build.	Bu konfiqurasiyada bu buildə təhlükəsiz kopyalanıb dəyişdirilə bilən sahə yoxdur.
+This file has no loaded values in it	Bu faylda heç bir yüklənmiş dəyər yoxdur
+This file isn't a loaded-values export	Bu fayl yüklənmiş dəyərlərin ixracı deyil
+This gate type isn't supported	Bu qapı növü dəstəklənmir
+This line opens a rule and doesn't finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Bu sətir qayda açır və onu bitirmir: %1$s. İki ifadəni hər ikisi üçün "a" & "b", birincini ikincisi olmadan isə "a" !& "b" kimi yazın.
+This phone has no file picker, so there's no way to choose a file here	Bu telefonda fayl seçicisi yoxdur, ona görə burada fayl seçmək mümkün deyil
+No folder picker here. Type the folder in the row.	Qovluq seçicisi yoxdur. Qovluğu sətrə yazın.
+This profile picture isn't available to save	Bu profil şəklini saxlamaq mümkün deyil
+No full file at this quality, so the app saves it	Bu keyfiyyətdə tam fayl yoxdur, PineDrama saxlayır
+This setting's value can't be copied on this build, so it can't be overridden. Reset the override.	Bu ayarın dəyəri bu buildə kopyalana bilmir, ona görə əvəzlənə bilməz. Əvəzləməni sıfırlayın.
+This story isn't available to save	Bu hekayəni saxlamaq mümkün deyil
+This value is required	Bu dəyər tələb olunur
+This video has no link to copy	Bu videoda kopyalanacaq keçid yoxdur
+No link to send, so PineDrama saves it instead	Göndəriləcək keçid yoxdur, PineDrama saxlayır
+This video has no original sound to save	Bu videoda saxlanılacaq orijinal səs yoxdur
+This video has no sound of its own	Bu videonun öz səsi yoxdur
+PineDrama default	PineDrama defoltu
+Didn't block %1$s. Try again in a moment.	%1$s bloklanmadı. Təkrar edin.
+Didn't unblock %1$s. Try again in a moment.	PineDrama %1$s blokdan çıxarmadı. Təkrar edin.
+PineDrama didn't accept the feedback. Try again later.	PineDrama rəyi qəbul etmədi. Sonra yenidən cəhd edin.
+PineDrama hasn't loaded this setting yet. Open the part of the app that uses it, then come back.	PineDrama bu ayarı hələ yükləməyib. Onu istifadə edən tətbiq hissəsini açın, sonra qayıdın.
+PineDrama read it	PineDrama oxudu
+PineDrama read it, but the override couldn't be applied. Reset it and save it again.	PineDrama oxudu, lakin əvəzləmə tətbiq oluna bilmədi. Onu sıfırlayın və yenidən saxlayın.
+PineDrama's own value	PineDrama-nın öz dəyəri
+Shows PineDrama's play, pause, previous and next buttons on the feed. PineDrama normally shows them only to people who use a screen reader. PineDrama can see when you use them.	Lentdə PineDrama-nın oynat, fasilə, əvvəlki və növbəti düymələrini göstərir. PineDrama onları normalda yalnız ekran oxuyucusu istifadə edənlərə göstərir. PineDrama onlardan istifadə etdiyinizi görə bilər.
+PineDrama sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.	PineDrama bəzən profilinizdəki Favorites tabını boşaldan dəyişikliyi sınaqdan keçirir. Bu, tabı və saxlanmış videolarınızı qoruyur.
+Times you can open the feed anyway	Lenti yenə də açmaq üçün imkan sayı
+Wait a day to loosen the budget	Büdcəni yumşaltmaq üçün bir gün gözləyin
+A change that makes your budget looser waits until the day starts over, and a stricter one applies at once. Looser means a higher or no budget, a shorter hold, more times to open the feed anyway, a new start hour, or turning this off. A restored backup follows the same rule, and Start today over is off while this is on.	Büdcənizi yumşaldan dəyişiklik gün yenidən başlayana qədər gözləyir, sərtləşdirən isə dərhal tətbiq olunur. Yumşaltmaq daha yüksək büdcə və ya büdcənin olmaması, daha qısa blok, feedi yenə də açmaq üçün daha çox imkan, yeni başlama saatı və ya bunu söndürmək deməkdir. Bərpa olunan ehtiyat nüsxə də eyni qaydaya tabedir və bu açıq olarkən Start today over söndürülür.
+Changes to %1$s at %2$s	%2$s vaxtında %1$s olacaq
+Turns off at %1$s	%1$s vaxtında qapalır
+That loosens the budget. It waits until %1$s.	Bu büdcəni yumşaldır. O, %1$s vaxtına qədər gözləyir.
+That loosens the lock. It waits until %1$s.	Bu kilidi yumşaldır. O, %1$s vaxtına qədər gözləyir.
+Today can't start over while Wait a day to loosen the budget is on. The day starts over at %1$s.	Büdcəni yumşaltmaq üçün bir gün gözləyin seçimi açıq olduqda bu gün yenidən başlaya bilməz. Gün %1$s vaxtında yenidən başlayır.
+Wait a day to loosen the budget is on, so HushPine stays on	Büdcəni yumşaltmaq üçün bir gün gözləyin seçimi açıqdır, ona görə HushPine aktiv qalır
+Today has moved on, so there's nothing to put back	Bu gün irəlilədi, ona görə geri qaytarılacaq heç nə yoxdur
+Today is back where it was	Bu gün əvvəlki vəziyyətinə qayıtdı
+Today started over. Tap again to put the counts back.	Bu gün yenidən başladı. Sayları geri qaytarmaq üçün yenidən toxunun.
+Today starts again	Bu gün yenidən başlayır
+Today's budget is locked. The day starts over at %1$s.	Bugünkü büdcə kilidlənib. Gün %1$s vaxtında yenidən başlayır.
+Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.	Bugünkü büdcə kilidlənib. Lent %1$s vaxtında yenidən açılır. Mesajlar, profillər və axtarış hələ də işləyir.
+Today's budget is locked. This can be changed again at %1$s.	Bugünkü büdcə kilidlənib. Bunu %1$s vaxtında yenidən dəyişmək olar.
+Today: %1$d minute	Bu gün: %1$d dəqiqə
+Today: %1$d minutes	Bu gün: %1$d dəqiqə
+Today: %1$d video	Bu gün: %1$d video
+Today: %1$d videos	Bu gün: %1$d video
+Use {creator}, {date}, {video_id} and {index} to build the name. {index} numbers the photos of a slideshow saved with Download original photos. PineDrama's own save button numbers files by folder instead. The file ending is added for you.	Adı qurmaq üçün {creator}, {date}, {video_id} və {index} istifadə edin. {index} “Orijinal fotoları endirin” ilə saxlanan slayd şousunun şəkillərini nömrələyir. PineDrama-nın öz saxlama düyməsi isə faylları qovluğa görə nömrələyir. Fayl uzantısı sizin üçün əlavə olunur.
+Use {date} and {media_id} to build the name. Works for image and video stickers.	Adı qurmaq üçün {date} və {media_id} istifadə edin. Şəkil və video stikerləri üçün işləyir.
+Too many saves running. Try again soon.	Çox saxlama gedir. Bir az sonra yenidən yoxlayın.
+Tracking	İzləmə
+Tracking, device access and links	İzləmə, cihaz girişi və keçidlər
+Translate comments as they load, using PineDrama's own translator.	Şərhləri yükləndikcə PineDrama-nın öz tərcüməçisi ilə tərcümə edin.
+Try again, or go back to PineDrama.	Yenidən cəhd edin və ya PineDrama-ya qayıdın.
+Turn on %1$s first.	Əvvəlcə %1$s seçimini yandırın.
+Put %1$s in %2$s first.	Əvvəlcə %1$s dəyərini %2$s sahəsinə yazın.
+Turn on overrides	Əvəzləmələri yandırın
+Turned off %1$d of %2$d gates	%1$d/%2$d söndürüldü
+Turned off %1$d gates	%1$d qapı söndürüldü
+Turned off 1 of %2$d gates	1/%2$d söndürüldü
+Turned off 1 gate	1 qapı söndürüldü
+Two letters, like us, gb or jp.	İki hərf, məsələn us, gb və ya jp.
+Type	Növ
+Unavailable	Əlçatan deyil
+Unblock	Blokdan çıxarın
+Unblock this commenter	Bu şərh yazanı blokdan çıxarın
+Unblocked %1$s	%1$s blokdan çıxarıldı
+Undo	Geri qaytarın
+Undo clearing seen videos	İzlənmiş videoların təmizlənməsini geri qaytarın
+Undo last Lab change	Son Lab dəyişikliyini geri qaytarın
+Undo last restore or reset	Son bərpa və ya sıfırlamanı geri qaytarın
+Undoing the last change	Son dəyişiklik geri qaytarılır
+Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for PineDrama's list. Restart PineDrama to apply this.	%2$s ilə %3$s arasında vergüllə ayrılmış ən çox %1$d sürət. Nümunə: 0.5, 1, 1.5, 2, 2.5, 3. PineDrama-nın siyahısı üçün boş buraxın. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Use PineDrama's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.	Basıb saxlama sürətində oynatmağa davam etmək üçün PineDrama-nın öz basıb saxla, aşağı çək və burax jestindən istifadə edin, Oxutma başqa sürət təyin etməyibsə 2x.
+Use a default playback speed	Defolt oxutma sürətindən istifadə edin
+Use non-personalized search	Fərdiləşdirilməmiş axtarışdan istifadə edin
+Use system font	Sistem şriftindən istifadə edin
+Use the preset for the region PineDrama reports for your account and its shop too. May affect search.	Hesabınız və onun mağazası üçün PineDrama-nın bildirdiyi region üçün də hazır ayardan istifadə edin. Axtarışa təsir edə bilər.
+Makes PineDrama see the country and carrier you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make PineDrama keep your current region. Restart PineDrama to see the change.	PineDrama-nın seçdiyiniz ölkə və operatoru SIM kartınız kimi görməsini təmin edir. IP ünvanınız, hesab tarixçəniz və dilinizlə dəyişmir və onlardan hər biri PineDrama-nın cari regionunuzu saxlamasına səbəb ola bilər. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+Makes PineDrama see the country you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make PineDrama keep your current region. Restart PineDrama to see the change.	PineDrama-nın seçdiyiniz ölkəni SIM kartınız kimi görməsini təmin edir. IP ünvanınız, hesab tarixçəniz və dilinizlə dəyişmir və onlardan hər biri PineDrama-nın cari regionunuzu saxlamasına səbəb ola bilər. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+Use value	Dəyərdən istifadə edin
+Use your own offline videos limit	Öz oflayn videolar limitinizdən istifadə edin
+Using PineDrama's value	PineDrama-nın dəyəri istifadə olunur
+Value	Dəyər
+Value to return	Qaytarılacaq dəyər
+Verified accounts	Təsdiqlənmiş hesablar
+Version %1$s	Versiya %1$s
+Version %1$s for PineDrama %2$s	Versiya %1$s, PineDrama %2$s üçün
+Video	Video
+Video (MP4)	Video (MP4)
+Video destination	Video təyinatı
+Video download quality	Video endirmə keyfiyyəti
+Video filename	Video fayl adı
+Video info	Video məlumatı
+Video playback quality	Video oxutma keyfiyyəti
+Video saved	Video saxlanıldı
+Saved in %1$s with %2$s of %3$s subtitles	Saxlandı: %1$s, altyazı %2$s / %3$s
+Video saved with %1$s subtitles in %2$s	Video %2$s yerinə %1$s altyazı ilə saxlanıldı
+Wait before hiding the controls.	İdarəetmələri gizlətməzdən əvvəl gözləyin.
+WebP, exactly as PineDrama sent it	WebP, PineDrama-nın göndərdiyi kimi
+What PineDrama gets	PineDrama-nın aldığı
+When PineDrama requests this key, return the selected value below	PineDrama bu açarı tələb edəndə aşağıdakı seçilmiş dəyəri qaytarın
+When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on.	Video tam ekranda bitəndə növbətiyə keçmək əvəzinə onda qalın. Sürüşdürmək yenə də davam edir.
+While diagnostic logging is on, a message names the part of HushPine that failed. Off keeps failures in the report only.	Diaqnostik qeydiyyat açıq olduqda mesaj HushPine-in hansı hissəsinin uğursuz olduğunu bildirir. Qapalı olduqda uğursuzluqlar yalnız hesabatda qalır.
+Words, countries and languages	Sözlər, ölkələr və dillər
+Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.	Videonun səsini onun yanında, Səs formatı altında seçilən formatda yazın. Android 10 və daha yeni versiyalar audionu ayrıca fayllayır, ona görə o, videolarınızla eyni qovluq adı altında Music qovluğuna düşür.
+YTDLnis background mode	YTDLnis fon rejimi
+YTDLnis download type	YTDLnis endirmə növü
+Yes	Bəli
+Your filters hid everything PineDrama just sent. Most were %1$s.	Filtrləriniz PineDrama-nın indicə göndərdiyi hər şeyi gizlətdi. Çoxu %1$s idi.
+Your filters hid everything PineDrama sent, %1$d times in a row. Most were %2$s.	Filtrləriniz PineDrama-nın göndərdiyi hər şeyi ardıcıl %1$d dəfə gizlətdi. Çoxu %2$s idi.
+Your operator's name, like T-Mobile.	Operatorunuzun adı, məsələn T-Mobile.
+Your operator's numeric code, like 310260.	Operatorunuzun rəqəmli kodu, məsələn 310260.
+Zero means the way out of the hold is always there. Any other number is how many times a day it works. Once they're used up, the hold stays until the day starts over. Ignored while the budget is locked, which removes the way out.	Sıfır deməkdir ki, bloklamadan çıxış yolu həmişə var. Başqa rəqəm onun gündə neçə dəfə işlədiyini göstərir. Onlar bitəndə blok gün yenidən başlayana qədər qalır. Büdcə kilidlənibsə nəzərə alınmır, çünki kilid çıxış yolunu götürür.
+Zero means no limit. Counts the videos HushPine advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.	Sıfır limit yoxdur deməkdir. HushPine-in sizin əvəzinizə keçdiyi videoları sayır, özünüzün sürüşdürdüklərinizi yox, lent yenidən qurulanda və ya bu ədədi dəyişəndə yenidən başlayır.
+Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.	Sıfır bildirişi göstərir və lentə toxunmur. Başqa dəyər büdcəyə çatıldıqda lenti bu qədər dəqiqəliyə örtür. Mesajlar, profillər və axtarış işləyir, lentdəki heç nə atılmır.
+Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search doesn't count, and nothing is shown while the feed is on hold.	Sıfır bunu söndürür. Bu qədər dəqiqə izləmədən sonra qısa xatırlatma və yenə eyni müddətdən sonra təkrar. Mesajlarda, profildə və ya axtarışda keçirilən vaxt sayılmır və lent fasilədə olanda heç nə göstərilmir.
+Zero switches this off. Counts every video that comes up in the feed and tells you when you reach the limit. Separate from the auto-advance session limit under Playback, which counts only videos HushPine moved past for you.	Sıfır bunu söndürür. Lentdə çıxan hər videonu sayır və limitə çatanda sizə bildirir. Playback altındakı avtomatik keçid sessiya limitindən ayrıdır, o isə yalnız HushPine-in sizin üçün keçdiyi videoları sayır.
+Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search doesn't count.	Sıfır bunu söndürür. Pleyerin lentdə işlədiyi dəqiqələri sayın. Mesajlarda, profildə və ya axtarışda keçirilən vaxt sayılmır.
+collapsed	yığılıb
+expanded	açılıb
+%1$s hid everything PineDrama sent, %2$d times in a row. Turn it off if that's not what you wanted.	%1$s PineDrama-nın göndərdiyi hər şeyi ardıcıl %2$d dəfə gizlətdi. İstədiyiniz bu deyilsə, onu söndürün.
+Show the switch	Açarı göstərin
+
+
+this creator	bu yaradıcı
+
+%1$s day	%1$s gün
+%1$s days	%1$s gün
+%1$s millisecond	%1$s millisaniyə
+%1$s milliseconds	%1$s millisaniyə
+%1$s minute	%1$s dəqiqə
+%1$s minutes	%1$s dəqiqə
+%1$s second	%1$s saniyə
+%1$s seconds	%1$s saniyə
+%1$s time	%1$s dəfə
+%1$s times	%1$s dəfə
+%1$s video	%1$s video
+%1$s videos	%1$s video
+%1$s view per comment	şərhə düşən %1$s baxış
+%1$s views per comment	şərhə düşən %1$s baxış
+%1$s view per like	bəyənməyə düşən %1$s baxış
+%1$s views per like	bəyənməyə düşən %1$s baxış
+%1$s, %2$s, %3$s or %4$s	%1$s, %2$s, %3$s və ya %4$s
+%1$s, %2$s or %3$s	%1$s, %2$s və ya %3$s
+HushPine is paused	HushPine durdurulub
+HushPine's switches are paused. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	HushPine-in açarları dayandırılıb. Ayarlarınız saxlanılır. Yamaqlayanda edilən dəyişikliklər, məsələn tətbiqin adı və ya ikonu, qalır.
+PineDrama closed three times within a minute of starting, so HushPine paused itself. Your settings stay as they are.	PineDrama başladıqdan sonra bir dəqiqə ərzində üç dəfə bağlandı, ona görə HushPine özünü durdurdu. Ayarlarınız olduğu kimi qalır.
+A file named hushpine-safe-mode in PineDrama's folder under Android/data paused HushPine. Your settings stay as they are.	Android/data altında PineDrama-nın qovluğundakı hushpine-safe-mode adlı fayl HushPine-i durdurdu. Ayarlarınız olduğu kimi qalır.
+Turn HushPine back on	HushPine-i yenidən yandırın
+Pause HushPine	HushPine-i durdurun
+Pause HushPine's switches after PineDrama restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	PineDrama yenidən başladıqdan sonra HushPine-in açarlarını dayandırın. Ayarlarınız saxlanılır. Yamaqlayanda edilən dəyişikliklər, məsələn tətbiqin adı və ya ikonu, qalır.
+HushPine turns back on when PineDrama restarts.	PineDrama yenidən başlayanda HushPine yenidən yanır.
+The file hushpine-safe-mode couldn't be removed. Delete it from PineDrama's folder under Android/data to turn HushPine back on.	hushpine-safe-mode faylı silinə bilmədi. HushPine-i yenidən yandırmaq üçün onu Android/data altında PineDrama-nın qovluğundan silin.
+Hide TikTok Shop in search	Axtarışda TikTok Shop-u gizlədin
+Hide the Products block and product cards in search results.	Axtarış nəticələrindəki Məhsullar blokunu və məhsul kartlarını gizlədin.
+Hide PineDrama's Auto scroll button	PineDrama-nın Auto scroll düyməsini gizlədin
+Takes PineDrama's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	PineDrama-nın öz Auto scroll əməliyyatını video panelindən, planşetlərdə və açılmış qatlanan telefonlarda isə videonun yanındakı Auto scroll açarını çıxarır. Avtomatik keçid söndürülü olanda da işləyir.
+Hide the unread badges on the bottom tabs	Alt nişanlardakı oxunmamış nişanları gizlədin
+Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gələnlər və Profil daxil olmaqla hər alt nişandakı qırmızı say və nöqtələri, həmçinin Gələnlər üzərində yeni bəyənmələri, izləyiciləri, şərhləri və kimin LIVE-da olduğunu sayan balonu gizlədin. Gələnlərin özü yenə də nələrin gəldiyini göstərir.
+Speed while you hold the video	Videonu basıb saxlayarkən sürət
+Slide to change the hold speed	Saxlama sürətini sürüşdürərək dəyiş
+While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Videonu basıb saxlayarkən sürət menyusunun sürətləri arasında keçmək üçün sola və ya sağa sürüşdür, seçilən sürət balonda görünür. Növbəti basıb saxlama oradan başlayır. Barmağını çəkəndə normala qayıdır. Aşağı çəkib kilidləsən, seçdiyin sürət qalır.
+Hide mini dramas	Mini dramaları gizlədin
+Hide PineDrama's short drama episodes and the cards that promote them.	PineDrama-nın qısa drama epizodlarını və onları təbliğ edən kartları gizlədin.
+Mini dramas	Mini dramalar
+Saving %1$s of %2$s	%2$s saxlamadan %1$s saxlanılır
+Stopping after this file	Bu fayldan sonra dayandırılır
+Waiting to save %1$s files	%1$s fayl saxlamaq gözlənilir
+Waiting to save one file	Bir fayl saxlamaq gözlənilir
+Save cancelled. Nothing was saved.	Saxlama ləğv edildi. Heç nə saxlanılmadı.
+The server asked us to wait. Try again later.	Server gözləməyimizi istədi. Daha sonra yenidən cəhd edin.
+Saved %1$s of %2$s. Try the rest later.	%1$s / %2$s saxlanıldı. Qalanını sonra yoxlayın.
+One more save waiting	Daha bir saxlama gözləyir
+%1$s more saves waiting	Daha %1$s saxlama gözləyir
+Starts after one other save	Bir digər saxlamadan sonra başlayır
+Starts after %1$s other saves	%1$s digər saxlamadan sonra başlayır
+# context: the banner the next start shows when PineDrama closed before some saves ended. A heading, then one line per save: the kind of save, a colon, and how many of its files didn't finish. It must not promise the save will carry on by itself.
+PineDrama closed during these saves	PineDrama bu saxlamalar zamanı bağlandı
+%1$s: didn't finish	%1$s: tamamlanmadı
+%1$s: one of %3$s files didn't finish	%1$s: %3$s fayldan biri tamamlanmadı
+%1$s: %2$s of %3$s files didn't finish	%1$s: %3$s fayldan %2$s tamamlanmadı
+%1$s: might not have finished	%1$s: tamamlanmamış ola bilər
+%1$s: one of %3$s files might not have finished	%1$s: %3$s fayldan biri tamamlanmamış ola bilər
+%1$s: %2$s of %3$s files might not have finished	%1$s: %3$s fayldan %2$s tamamlanmamış ola bilər
+And one more save	Və daha bir saxlama
+And %1$s more saves	Və daha %1$s saxlama
+Original photos	Orijinal fotolar
+Story	Hekayə
+Original sound	Orijinal səs
+Profile picture	Profil şəkli
+Live photo clip	Canlı foto klipi
+Media save	Media saxlama
+Saved %1$s of %2$s, the rest cancelled	%1$s / %2$s saxlanıldı, qalanı ləğv edildi
+Saved %1$s of %2$s, %3$s skipped	%2$s saxlamadan %1$s saxlanıldı, %3$s keçildi
+Saved %1$s of %2$s, %3$s skipped, rest cancelled	%1$s / %2$s saxlanıldı, %3$s keçildi, qalanı ləğv
+None of the photos could be saved. Try again.	Fotoların heç biri saxlanıla bilmədi. Yenidən cəhd edin.
+Saved %1$s of %2$s, the rest need more free space	%1$s / %2$s saxlanıldı, qalanı üçün yer çatmadı
+Saved %1$s of %2$s, the rest ran out of time	%1$s / %2$s saxlanıldı, qalanın vaxtı bitdi
+Live photo clip saved to %1$s	Canlı foto klipi %1$s yerinə saxlanıldı
+Couldn't save the live photo's clip. Try again.	Canlı foto klipi saxlanmadı. Yenidən cəhd edin.
+Creator exceptions	Yaradıcı istisnaları
+An exception names one creator, so a pattern can't be one: %1$s	İstisna bir yaradıcının adını çəkir, ona görə şablon ola bilməz: %1$s
+An exception takes a handle or id, not a display name: %1$s	İstisna istifadəçi adı və ya ID qəbul edir, görünən ad yox: %1$s
+Also on a block list, so still hidden: %1$s	Həm də bloklama siyahısındadır, ona görə yenə gizlədilir: %1$s
+YouTube Music isn't installed	YouTube Music quraşdırılmayıb
+This video's sound has no title to look for	Bu videonun səsində axtarılacaq ad yoxdur
+YouTube Music didn't open. Open it yourself to search.	YouTube Music açılmadı. Özünüz açıb axtarın.
+Allow storage for PineDrama to save the clip	Klip üçün yaddaşa icazə verin
+This original sound isn't on YouTube Music	Bu orijinal səs YouTube Music-də yoxdur
+Not a handle or id, so ignored: %1$s	İstifadəçi adı və ya ID deyil, ona görə nəzərə alınmadı: %1$s
+What's new	Yeniliklər
+Changes in HushPine %1$s	HushPine %1$s versiyasındakı dəyişikliklər
+Reviewed presets	Yoxlanılmış hazır ayarlar
+Show See translation	Tərcüməyə bax düyməsini göstərin
+Reviewed for PineDrama %1$s	PineDrama %1$s üçün yoxlanılıb
+Value: %1$s to %2$s	Dəyər: %1$s - %2$s
+The presets couldn't load. Open the Lab again.	Hazır ayarlar yüklənə bilmədi. Lab-ı yenidən açın.
+Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	Tətbiq etmək bu əvəzləmələri yandırır. Son Lab dəyişikliyini geri qaytarın seçimi Lab-da başqa bir şeyi dəyişənə qədər əvvəlki qaydalarınızı geri qaytarır.
+Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.	Tətbiq etmək bu əvəzləmələri saxlayır. Onlardan istifadə etmək üçün Lab-da əvəzləmələri yandırın. Onları yandırmaq da Lab dəyişikliyidir, ona görə bundan sonra Geri qaytar əvvəlki qaydalarınızı qaytarmaq əvəzinə onları söndürür.
+This preset isn't available for your installed PineDrama version.	Bu hazır ayar quraşdırılmış PineDrama versiyanız üçün əlçatan deyil.
+Preset applied	Hazır ayar tətbiq edildi
+Preset saved. Turn on overrides to use it.	Hazır ayar saxlanıldı. Əvəzləmələri yandırın.
+Preset doesn't match the gates. Nothing changed.	Hazır ayar qapılara uyğun deyil. Dəyişiklik yoxdur.
+About overrides	Əvəzləmələr haqqında
+Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.	Adı qurmaq üçün {creator}, {date} və {video_id} istifadə edin. Hər yaradıcını ayrıca qovluğa qoymaq üçün {creator}/ ilə başlayın. Fayl uzantısı sizin üçün əlavə olunur.
+Save details beside the video	Təfərrüatları videonun yanında saxlayın
+Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by HushPine.	Başlığı, yaradıcını, linki və paylaşım tarixini videonun yanında mətn faylında, foto paylaşımının orijinal fotoları üçün isə bir faylda saxlayır. Android 10 və daha yenisində onlar Download və ya Documents içində eyni qovluq adı ilə qalır. HushPine-in etdiyi saxlamalara aiddir.
+Couldn't write the details file. Save the post again.	Təfərrüat faylı yazılmadı. Postu yenidən saxlayın.
+Check for already-saved videos	Artıq saxlanılmış videoları yoxlayın
+Forget saved videos	Saxlanılmış videoları unudun
+Undo forgetting saved videos	Saxlanılmış videoların unudulmasını geri qaytarın
+Forget which videos HushPine saved here, so the already-saved check starts over. The saved files and your settings stay. Turning the check off doesn't erase this record.	HushPine-in burada hansı videoları saxladığını unudun ki, artıq saxlanılıb yoxlaması yenidən başlasın. Saxlanılmış fayllar və ayarlarınız qalır. Yoxlamanı söndürmək bu qeydi silmir.
+Forgetting saved videos	Saxlanılmış videolar unudulur
+Putting the saved videos back	Saxlanılmış videolar geri qaytarılır
+Forgotten. Tap to put them back.	Unudulub. Geri qaytarmaq üçün toxunun.
+Saved videos forgotten. The files are still there.	Saxlanılmış videolar unudulub. Fayllar hələ də yerindədir.
+There were no saved videos to forget	Unudulacaq saxlanılmış video yox idi
+Couldn't forget the saved videos. Try again.	Saxlanılmış videoları unutmaq alınmadı. Yenidən cəhd edin.
+Saved videos put back	Saxlanılmış videolar geri qaytarıldı
+Couldn't put the saved videos back. Try again.	Saxlanılmış videoları geri qaytarmaq alınmadı. Yenidən cəhd edin.
+Too late to put the saved videos back	Saxlanılmış videoları geri qaytarmaq üçün çox gecdir
+Remembers up to %1$s videos you saved here. If the file is still there, you get Open or Save again instead of a second copy.	Burada saxladığınız %1$s videoya qədər yadda saxlayır. Fayl hələ də yerindədirsə, ikinci nüsxə əvəzinə Open və ya Save again seçimini görürsünüz.
+Already saved. Open the app to save another copy.	Artıq saxlanıb. Başqa nüsxə üçün PineDrama-nı açın.
+This video is already saved	Bu video artıq saxlanılıb
+Save again	Yenidən saxla
+The saved-video choice couldn't open. Try again.	Saxlanmış video seçimi açılmadı. Yenidən yoxlayın.
+The saved-video choice is still open	Saxlanılmış video seçimi hələ də açıqdır
+No full file for this video. Try again later.	Bu video üçün tam fayl yoxdur. Sonra yoxlayın.
+Saving video to %1$s	Video %1$s yerinə saxlanılır
+Video and details saved to %1$s	Video və təfərrüatlar %1$s yerinə saxlanıldı
+Saved, but a later save may make a second copy	Saxlandı. Təkrar saxlama ikinci nüsxə yarada bilər
+The already-saved check failed. Try again.	Artıq saxlanılıb yoxlaması alınmadı. Yenidən cəhd edin.
+Show download progress	Endirmə irəliləyişini göstərin
+Show a progress bar while a video saves.	Video saxlanılarkən irəliləyiş paneli göstərin.
+Skip the Share to sheet after a save	Saxladıqdan sonra paylaşma vərəqini keçin
+PineDrama opens a Share to sheet a few seconds after it saves a video. This stops it. The share button and the saved notice stay as they are.	PineDrama videonu saxladıqdan bir neçə saniyə sonra paylaşma vərəqi açır. Bu, onun qarşısını alır. Paylaş düyməsi və saxlanıldı bildirişi olduğu kimi qalır.
+Saving video	Video saxlanılır
+Waiting to save video	Video saxlamaq gözlənilir
+Saving video: %1$s	Video saxlanılır: %1$s
+Saving %1$s of %2$s: %3$s	%2$s saxlamadan %1$s saxlanılır: %3$s
+Couldn't save the change. Try again.	Dəyişikliyi saxlamaq alınmadı. Yenidən cəhd edin.
+Off. PineDrama can report views and typing.	Qapalıdır. PineDrama baxışları və yazmanı bildirə bilər.
+HushPine is paused. Ghost mode isn't active.	HushPine durdurulub. Xəyal rejimi aktiv deyil.
+Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until PineDrama restarts.	Problem aşkarlandı. Hekayə baxışları hələ də bildirilə bilər. Xəyal rejimi diaqnostikasını yoxlayın. Xəbərdarlıq PineDrama yenidən başlayana qədər qalır.
+HushPine blocked PineDrama's reports here. It hasn't confirmed that you stay off viewer lists.	HushPine burada PineDrama-nın hesabatlarını blokladı. Baxanlar siyahılarında görünmədiyinizi hələ təsdiqləməyib.
+On. HushPine hasn't seen PineDrama send any reports since it started.	Açıq. HushPine PineDrama başlayandan bəri onun heç bir hesabat göndərdiyini görməyib.
+Ghost mode diagnostics	Xəyal rejimi diaqnostikası
+The partial file couldn't be removed. Delete it from the folder you chose.	Yarımçıq fayl silinə bilmədi. Onu seçdiyiniz qovluqdan silin.
+The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.	Ehtiyat nüsxə başlamadı və yarımçıq faylı silinə bilmədi. Onu seçdiyiniz qovluqdan silin.
+Problem detected.	Problem aşkarlandı.
+Couldn't save these choices. Try again.	Bu seçimləri saxlamaq alınmadı. Yenidən cəhd edin.
+Clearing seen videos	İzlənmiş videolar təmizlənir
+Couldn't clear seen videos. Try again.	İzlənmiş videoları təmizləmək alınmadı. Yenidən cəhd edin.
+Keep playing in the background	Fonda oxutmağa davam edin
+The video you're watching keeps playing to its end after you leave PineDrama or turn the screen off, with PineDrama's own media notification to pause it. PineDrama's background play switch stays on while this is on. Restart PineDrama to apply this.	PineDrama-dan çıxandan və ya ekranı söndürəndən sonra izlədiyiniz video sonuna qədər oxunmağa davam edir, dayandırmaq üçün PineDrama-nın öz media bildirişi var. Bu açıq olduqda PineDrama-nın fonda oxutma açarı açıq qalır. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Replay in the background	Fonda təkrar oxut
+When a video ends while PineDrama plays in the background, it starts over instead of waiting for you to press Play in the notification. A call or another app's sound still pauses it.	PineDrama fonda oxuyarkən video bitəndə, bildirişdə Oxut düyməsini basmağınızı gözləmədən yenidən başlayır. Zəng və ya başqa tətbiqin səsi onu yenə də dayandırır.
+Keep playing in the background is on in HushPine's Playback settings, so PineDrama gets 2 for this key and an override here has no effect until that switch is off.	Fonda oxutmağa davam edin HushPine-in Oxutma ayarlarında açıqdır, ona görə PineDrama bu açar üçün 2 alır və buradakı əvəzləmə həmin açar qapanana qədər təsirsizdir.
+2, from Keep playing in the background	2, Fonda oxutmağa davam edin seçimindən
+Let the last video finish	Sonuncu videonun bitməsinə icazə verin
+When the budget runs out, the video on screen plays to its end before the hold starts, and you can't swipe to another video meanwhile. If the fade already dimmed the feed, the hold starts right away. Needs a hold. It waits %1$d minutes at most.	Büdcə bitəndə ekrandakı video blok başlamazdan əvvəl sonuna qədər oynayır və bu müddətdə başqa videoya sürüşdürə bilməzsiniz. Qaralma feedi artıq qaraldıbsa, blok dərhal başlayır. Blok tələb olunur. Ən çoxu %1$d dəqiqə gözləyir.
+The feed stops when this video ends.	Bu video bitəndə lent dayanır.
+Streak	Seriya
+Keep a streak going	Seriyanı davam etdirin
+Who to message	Kimə mesaj yazılsın
+When to send	Nə vaxt göndərilsin
+The time of day the message goes out.	Mesajın göndərildiyi gün vaxtı.
+Message	Mesaj
+What gets sent each day.	Hər gün nə göndərilir.
+Send it now	İndi göndərin
+Sends today's message right away. The daily one then waits for tomorrow.	Bugünkü mesajı dərhal göndərir. Gündəlik mesaj sonra sabaha gözləyir.
+Turn on Keep a streak going first	Əvvəlcə Seriyanı davam etdirin seçimini yandırın
+Sending the message	Mesaj göndərilir
+A message is already on its way	Mesaj artıq yoldadır
+Enter who to message below to start.	Başlamaq üçün aşağıda kimə mesaj yazılacağını daxil edin.
+Next message: today at %1$s.	Növbəti mesaj: bu gün saat %1$s.
+Next message: tomorrow at %1$s.	Növbəti mesaj: sabah saat %1$s.
+No chat with @%1$s turned up on this account. Open your chat with them once, then try again.	Bu hesabda @%1$s ilə söhbət tapılmadı. Onunla söhbətinizi bir dəfə açın, sonra yenidən cəhd edin.
+No group chat named %1$s turned up on this account. Open your Inbox once so PineDrama loads it, then try again.	Bu hesabda %1$s adlı qrup söhbəti tapılmadı. Gələnlər qutusunu bir dəfə açın ki, PineDrama onu yükləsin, sonra yenidən cəhd edin.
+Nobody was signed in to PineDrama. Sign in, and it tries again at %1$s.	PineDrama-da heç kim daxil olmayıb. Daxil olun, %1$s vaxtında yenidən cəhd edəcək.
+A different account is signed in. Switch back to the one you set this up on, or enter who to message again.	Fərqli hesab daxil olub. Bunu qurduğunuz hesaba qayıdın və ya kimə mesaj yazılacağını yenidən daxil edin.
+PineDrama's messages didn't start in time. It tries again at %1$s.	PineDrama-nın mesajları vaxtında başlamadı. %1$s vaxtında yenidən cəhd edəcək.
+The message didn't go through. It tries again at %1$s.	Mesaj göndərilmədi. %1$s vaxtında yenidən cəhd edəcək.
+Found %1$s in your chats.	Söhbətlərinizdə %1$s tapıldı.
+Pass PineDrama's install checks	PineDrama-nın quraşdırma yoxlamalarından keç
+PineDrama checks how it was signed and installed. This answers those checks the way the Play Store version would. Try it if follows or likes undo themselves after a refresh. It may not help, since PineDrama has other checks.	PineDrama onun necə imzalandığını və quraşdırıldığını yoxlayır. Bu, həmin yoxlamalara Play Store versiyasının cavab verdiyi kimi cavab verir. İzləmələr və ya bəyənmələr yenilənəndən sonra özü-özünə geri qayıdırsa, sınayın. PineDrama-nın başqa yoxlamaları da olduğu üçün kömək etməyə bilər.
+LIVE feed	LIVE lenti
+Filter the LIVE feed	LIVE lentini süzün
+Hides rooms in the LIVE feed you swipe through, using the rules below. Blocked creators, Creators hidden on this phone and Creator exceptions apply here too, and Blocked caption words are checked against each LIVE's title. The first room the LIVE button opens isn't filtered. If every room would be hidden, one gets through so the feed keeps loading.	Aşağıdakı qaydalarla sürüşdürdüyünüz LIVE lentindəki otaqları gizlədir. “Bloklanmış yaradıcılar”, “Bu telefonda gizlədilən yaradıcılar” və “Yaradıcı istisnaları” burada da tətbiq olunur, “Bloklanmış başlıq sözləri” isə hər LIVE-ın başlığına qarşı yoxlanır. LIVE düyməsinin açdığı ilk otaq filtrlənmir. Bütün otaqlar gizlədiləcəksə, biri keçir ki, lent yüklənməyə davam etsin.
+Hide gaming LIVEs	Oyun LIVE-larını gizlədin
+Hide LIVEs that PineDrama tags with a game or a gaming category.	PineDrama-nın oyun və ya oyun kateqoriyası ilə etiketlədiyi LIVE-ları gizlədin.
+Hide shopping LIVEs	Alış-veriş LIVE-larını gizlədin
+Hide LIVEs that sell products or carry a TikTok Shop tag.	Məhsul satan və ya TikTok Shop etiketi daşıyan LIVE-ları gizlədin.
+Hide sponsored LIVEs	Sponsorlu LIVE-ları gizlədin
+Hide LIVEs that PineDrama labels as a paid partnership or promotional content.	PineDrama-nın ödənişli tərəfdaşlıq və ya tanıtım məzmunu kimi etiketlədiyi LIVE-ları gizlədin.
+Hide verified creators' LIVEs	Təsdiqlənmiş yaradıcıların LIVE-larını gizlədin
+Hide LIVEs hosted by verified accounts.	Təsdiqlənmiş hesabların apardığı LIVE-ları gizlədin.
+Hidden LIVE categories	Gizlədilən LIVE kateqoriyaları
+Separate words with commas, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Capital letters don't matter.	Sözləri vergüllə ayırın, məsələn music, chat. LIVE-ın kateqoriyasında, mövzu teqlərində və ya oyun adında bunlardan biri varsa, gizlədilir. Böyük hərflərin əhəmiyyəti yoxdur.
+LIVE viewers range	LIVE izləyici aralığı
+Show only LIVEs with this many people watching.	Yalnız bu qədər adamın izlədiyi LIVE-ları göstərin.
+LIVE followers range	LIVE izləyən aralığı
+Show only LIVEs from creators with this many followers.	Yalnız bu qədər izləyicisi olan yaradıcıların LIVE-larını göstərin.
+Build details	Build təfərrüatları
+Copy or save which patches and options this HushPine was built with.	Bu HushPine-in hansı yamaqlar və seçimlərlə qurulduğunu kopyalayın və ya saxlayın.
+Copy build details	Build təfərrüatlarını kopyalayın
+Save build details	Build təfərrüatlarını saxlayın
+Build details copied to the clipboard	Build təfərrüatları mübadilə buferinə kopyalandı
+Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open PineDrama.	Aşağıdakı hər kəsə aşağıdakı vaxtda gündə bir mesaj göndərir ki, PineDrama-nı açmadığınız günlərdə də seriyalarınız davam etsin.
+Usernames or group chat names, separated by commas or new lines. Each chat must already exist. A group is found by the name your Inbox shows for it.	İstifadəçi adları və ya qrup söhbət adları, vergüllə və ya yeni sətirlərlə ayrılmış. Hər söhbət artıq mövcud olmalıdır. Qrup, Gələnlər qutusunun göstərdiyi adla tapılır.
+Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.	Çatdırılma təsdiqlənməyib: %1$d/%2$d söhbət. Bu söhbətlər bu gün yenidən cəhd edilməyəcək.
+Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.	Çatdırılma təsdiqlənməyib: %1$d/%2$d söhbət. Qalan söhbətlərə hələ də mesaj lazımdır.
+Sent to %1$d/%2$d chats. They won't get another message today.	%1$d/%2$d söhbətə göndərildi. Bu gün başqa mesaj almayacaqlar.
+Sent to %1$d/%2$d chats. The rest still need a message.	%1$d/%2$d söhbətə göndərildi. Qalan söhbətlərə hələ də mesaj lazımdır.
+PineDrama may have taken this message. Delivery isn't confirmed, so it won't be retried today.	PineDrama bu mesajı götürmüş ola bilər. Çatdırılma təsdiqlənməyib, ona görə bu gün yenidən cəhd edilməyəcək.
+Nothing was sent. Check the streak settings and try again.	Heç nə göndərilmədi. Seriya ayarlarını yoxlayın və yenidən cəhd edin.
+Don't save new searches	Yeni axtarışları saxlamayın
+Keep what you search for out of the search history PineDrama saves on this phone. Searches already there stay until you delete them, and PineDrama's servers may still keep their own record.	Axtardıqlarınızı PineDrama-nın bu telefonda saxladığı axtarış tarixçəsindən kənarda saxlayın. Orada artıq olan axtarışlar siz silənə qədər qalır və PineDrama-nın serverləri öz qeydini hələ də saxlaya bilər.
+Block suggested video notifications	Təklif olunan video bildirişlərini bloklayın
+Stop the notifications PineDrama sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.	PineDrama-nın sizin üçün seçdiyi populyar videolar haqqında göndərdiyi bildirişləri dayandırın. Mesajlar, şərhlər, bəyənmələr, yeni izləyicilər və izlədiyiniz hesabların videoları yenə gəlir.
+
+Seen videos put back: %1$s of %2$s	Bərpa edilən baxılmış videolar: %1$s / %2$s
+No cleared videos fit the current history limits	Silinmiş videolardan heç biri limitə uymur
+Putting seen videos back	Baxılmış videolar bərpa edilir
+# context: a line above the What's new release notes, which come from the English changelog and are not translated.
+These notes are in English.	Bu qeydlər ingilis dilindədir.
+Still waiting for the file app. Tap to stop waiting.	Hələ də fayl tətbiqi gözlənilir. Gözləməni dayandırmaq üçün toxunun.
+Stopped waiting for the file app. Nothing was changed.	Fayl tətbiqini gözləmək dayandırıldı. Heç nə dəyişdirilmədi.
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.	Fayl tətbiqini gözləmək dayandırıldı. O, ehtiyat nüsxənin saxlanılıb-saxlanılmadığını hələ bildirməyib.
+The backup wasn't saved. Back up again when the file app is ready.	Ehtiyat nüsxə saxlanılmadı. Fayl tətbiqi hazır olanda yenidən ehtiyat nüsxə yaradın.
+The file app still has the last file. Try again once it lets go, or restart PineDrama.	Fayl tətbiqi son faylı hələ də saxlayır. O, faylı buraxdıqdan sonra yenidən cəhd edin və ya PineDrama-nı yenidən başladın.
+Waiting for the file app to let go of the last file. Restart PineDrama if it doesn't.	Fayl tətbiqinin son faylı buraxması gözlənilir. Buraxmasa, PineDrama-nı yenidən başladın.
+Stopped waiting for the file app. Nothing was imported.	Fayl tətbiqini gözləmək dayandırıldı. Heç nə idxal edilmədi.
+The last report is still being saved	Son hesabat hələ saxlanılır
+Still waiting for the file app.	Hələ də fayl tətbiqi gözlənilir.
+Stop waiting	Gözləməni dayandır
+Stopped waiting for the file app. Nothing was exported.	Fayl tətbiqini gözləmək dayandırıldı. Heç nə ixrac edilmədi.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Fayl tətbiqini gözləmək dayandırıldı. O, ixracın saxlanılıb-saxlanılmadığını hələ bildirməyib.
+The export wasn't saved. Try again.	İxrac saxlanılmadı. Yenidən cəhd edin.
+Hide unpersonalized feed videos	Fərdiləşdirilməmiş lent videolarını gizlədin
+Hide the fill-in videos PineDrama sends to the feed without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	PineDrama-nın lentə sizin üçün seçmədən göndərdiyi doldurucu videoları gizlədin. Bütün partiya doldurucudursa, lent boş qalmasın deyə saxlanılır.
+Unpersonalized feed videos	Fərdiləşdirilməmiş lent videoları
+Reviewed presets for PineDrama %1$s	PineDrama %1$s üçün yoxlanılmış hazır ayarlar
+No reviewed presets for PineDrama %1$s yet	PineDrama %1$s üçün hələ yoxlanmış hazır ayar yoxdur
+Repost with a comment	Şərhlə yenidən paylaşın
+Profile banner	Profil banneri
+Profile banner and new profile layout	Profil banneri və yeni profil görünüşü
+Comment with live photos, the camera or audio	Canlı fotolar, kamera və ya səslə şərh yazın
+Save comments to Favorites	Şərhləri Sevimlilərə saxlayın
+Comment sort and dislike styles	Şərh sıralaması və bəyənməmə üslubları
+Message bubble colors, Inbox archive and sharing to more chats	Mesaj balonu rəngləri, Gələnlər arxivi və daha çox söhbətə paylaşma
+Manage topics	Mövzuları idarə edin
+Visual search	Vizual axtarış
+AI Self	AI Self
+Long-press menu on every post	Hər paylaşımda uzun basma menyusu
+PineDrama's hold to speed up	PineDrama-nın basıb saxlayaraq sürətləndirməsi
+PineDrama's background play and Auto scroll	PineDrama-nın arxa planda oynatma və avtomatik sürüşdürməsi
+Post dates in the feed	Lentdə paylaşım tarixləri
+Play SDR instead of HDR	HDR əvəzinə SDR oynat
+HDR videos light the screen extra bright. This plays the standard (SDR) version instead, so the screen doesn't jump to full brightness. Videos with no standard version still play in HDR.	HDR videolar ekranı əlavə parlaq edir. Bu, ekranın tam parlaqlığa sıçramaması üçün əvəzinə standart (SDR) versiyanı oynadır. Standart versiyası olmayan videolar yenə HDR ilə oynayır.
+Writing	Yazmaq
+Latest first on Following	İzlənilənlər lentində ən yenilər əvvəl
+Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.	İzlənilənlər lentini ən yeni paylaşımdan başlayaraq oynadın. Sonradan yüklənən daha yeni paylaşım izlədiyiniz videodan dərhal sonraya keçir, artıq keçdiyiniz heç nə yerini dəyişmir. Reklamlar və LIVE-lar yerində qalır.
+Prefer H.264 video	H.264 videoya üstünlük ver
+Picks the older H.264 video format when PineDrama also offers a newer one (HEVC or ByteVC2). It helps phones that stutter or run hot. Videos without an H.264 version still play.	PineDrama daha yeni format (HEVC və ya ByteVC2) də təklif etdikdə köhnə H.264 video formatını seçir. Donan və ya qızan telefonlara kömək edir. H.264 versiyası olmayan videolar yenə oynayır.
+Save photo posts as a video	Foto paylaşımlarını video kimi saxla
+On a one-photo post, Download video makes an MP4 with the post's sound and no PineDrama logo or end card. On a post with several photos, Download asks if you want the originals or one video.	Tək fotolu yazıda Download video yazının səsi ilə, PineDrama loqosu və son kart olmadan MP4 hazırlayır. Bir neçə fotolu yazıda Download orijinalları, yoxsa tək video istədiyinizi soruşur.
+Seconds per photo	Hər foto üçün saniyə
+How long each photo stays on screen in a video made from a photo post.	Foto paylaşımından hazırlanan videoda hər fotonun ekranda nə qədər qalması.
+Save photos or a video?	Fotolar, yoxsa video saxlanılsın?
+Save photos	Fotoları saxla
+Save as video	Video kimi saxla
+Making a video of the photos	Fotolardan video hazırlanır
+Saved the photos as a video in %1$s	Fotolar video kimi %1$s yerinə saxlanıldı
+Saved to %1$s, but without sound	Saxlandı: %1$s, lakin səssiz
+Couldn't make the video. Try again.	Video hazırlanmadı. Yenidən cəhd edin.
+Video of photos	Fotolardan video
+# context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
+debug debugging logs logging	sazlama xəta axtarışı jurnallar loglar
+Export CSV	CSV ixracı
+Export JSON	JSON ixracı
+1 comment or reply loaded	1 şərh və ya cavab yüklənib
+%1$d comments and replies loaded	%1$d şərh və cavab yüklənib
+No comments are loaded to export yet.	İxrac üçün hələ şərh yüklənməyib.
+Exported %1$d comments and %2$d replies	%1$d şərh və %2$d cavab ixrac edildi
+Comment export failed	Şərh ixracı alınmadı
+Some of these notes are in English.	Bu qeydlərin bir hissəsi ingilis dilindədir.
+More than %1$d comments were loaded, so the rest aren't in the file.	%1$d-dən çox şərh yüklənmişdi, ona görə qalanları faylda yoxdur.
+Lock the feed	Lenti kilidlə
+For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed.	Sizin üçün, İzlədiklərim və digər lent tabları sakit bir panelin arxasında qalır və sürüşdürülmür. Mesajlar, profillər və axtarış həmişəki kimi işləyir, bir videoya keçid yenə də həmin videonu açır, tətbiq isə lentin əvəzinə Gələnlər qutusunda açılır.
+The feed is locked	Lent kilidlidir
+Store PineDrama thinks it came from	PineDrama-nın haradan gəldiyini düşündüyü mağaza
+Play Store	Play Store
+Galaxy Store	Galaxy Store
+AppGallery	AppGallery
+Amazon Appstore	Amazon Appstore
+Stop search results playing on their own	Axtarış nəticələri özbaşına oynamasın
+Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Axtarış nəticələrindəki videolar örtüyünü göstərir və onları açanda oynayır. Lent və açdığınız videolar həmişəki kimi oynayır.
+In a chat	Çatda
+Hide call buttons	Zəng düymələrini gizlədin
+The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	Səsli və video zəng düymələri çatın yuxarısından yoxa çıxır. Zənglər yenə də çalır, çat təfərrüatları düyməsi isə qalır.
+Hide sticker suggestions	Stiker təkliflərini gizlədin
+The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	Stiker təklifi bannerı çatda göstərilməyi dayandırır. Öz stikerləriniz stiker seçicisində qalır.
+Hide suggested replies	Təklif olunan cavabları gizlədin
+PineDrama's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	PineDrama-nın təklif etdiyi cavab xanaları və onların təqdimat bannerı çatda göstərilməyi dayandırır. Yazdığınız və ya aldığınız mesajlara toxunulmur.
+Hide online status	Onlayn statusu gizlət
+Friends won't see a green dot or Active now while you're in PineDrama. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.	Siz PineDrama-dasınızkən dostlar yaşıl nöqtə və ya Active now görməyəcək. Ghost mode açıq olmalıdır. Onların statusu sizdə yenilənməyə bilər, sizin son statusunuz isə bir müddət görünə bilər.
+Play sounds PineDrama pulled	PineDrama-nın çıxardığı səsləri oynat
+Play the audio on videos PineDrama silenced because their sound was pulled for copyright or in your region. PineDrama may still say the sound isn't available.	Səsi müəllif hüququna görə və ya bölgənizdə çıxarıldığı üçün PineDrama-nın səssizləşdirdiyi videolarda səsi oynadır. PineDrama yenə də səsin əlçatan olmadığını göstərə bilər.
+Match region fields in requests	Sorğulardakı region sahələrini uyğunlaşdır
+Keep the feed on your real SIM	Lenti əsl SIM-də saxla
+Sticker search and the rest of PineDrama still see the SIM above, while the feed asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	Stiker axtarışı və PineDrama-nın qalanı yuxarıdakı SIM-i görməyə davam edir, lent isə telefonunuzun öz SIM ölkəsi və operatoru ilə video istəyir. IP ünvanınız və hesab tarixçəniz yenə də nəzərə alınır.
+Play	Oynat
+Pause	Fasilə
+Posting	Paylaşım
+# context: a switch under Posting. AI Cast is PineDrama's own name for the button on the camera's side toolbar; keep it as PineDrama shows it
+Hide the AI Cast button	AI Cast düyməsini gizlət
+Takes PineDrama's AI Cast button off the camera's side toolbar. Open the camera again to see the change.	PineDrama-nın AI Cast düyməsini kameranın yan alət panelindən götürür. Dəyişikliyi görmək üçün kameranı yenidən açın.
+Keeps logging until you turn it off, even after a restart. PineDrama can feel slower while it's on.	Siz söndürənə qədər, hətta yenidən başladıqdan sonra da qeyd etməyə davam edir. Açıq olduqda PineDrama daha yavaş işləyə bilər.
+Log diagnostics for 15 minutes	Diaqnostikanı 15 dəqiqə qeyd edin
+Logs for 15 minutes, then stops on its own. Restarting PineDrama doesn't move the end, and the switch above stays as you set it.	15 dəqiqə qeyd edir, sonra özü dayanır. PineDrama-nı yenidən başlatmaq bitmə vaxtını dəyişmir, yuxarıdakı açar isə sizin qoyduğunuz kimi qalır.
+Logging until %1$s. Tap to stop now.	%1$s-dək qeyd edilir. İndi dayandırmaq üçün toxunun.
+Logging diagnostics until %1$s	Diaqnostika %1$s-dək qeyd edilir
+Timed logging stopped	Vaxtlı qeyd dayandırıldı
+Preview with a made-up post:	Uydurma paylaşımla önizləmə:
+HushPine's downloader: %1$s	HushPine yükləyicisi: %1$s
+PineDrama's downloader: %1$s	PineDrama yükləyicisi: %1$s
+Sound: %1$s	Səs: %1$s
+Details: %1$s	Təfərrüatlar: %1$s
+Stickers: %1$s	Stikerlər: %1$s
+Live photo clips: %1$s	Canlı foto klipləri: %1$s
+PineDrama's own name	PineDrama-nın öz adı
+Not a part HushPine fills in, so it's kept as typed: %1$s	HushPine-in doldurduğu hissə deyil, ona görə yazdığınız kimi saxlanır: %1$s
+HushPine's downloader doesn't fill this in, so it's kept as typed: %1$s	HushPine-in yükləyicisi bunu doldurmur, ona görə yazdığınız kimi saxlanır: %1$s
+If that name is taken, Android adds a number to the new file.	Bu ad artıq varsa, Android yeni fayla nömrə əlavə edir.
+If that name is taken, HushPine adds a number to the new file.	Bu ad artıq varsa, HushPine yeni fayla nömrə əlavə edir.
+Don't start the first video	İlk videonu başlatmayın
+When you open PineDrama from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.	PineDrama-nı ikonundan açanda lentdəki ilk video oynamazdan əvvəl bir toxunuş gözləyir. Keçid, bildiriş və ya qısayol həmişəki kimi açılır.
+Network proxy	Şəbəkə proksisi
+Send PineDrama through a proxy	PineDrama-nı proksi ilə göndərin
+Sends PineDrama's feed, search, comments and other app traffic through the proxy below. Videos and LIVE streams still connect directly. Saves and short-link lookups from HushPine also connect directly, after their own address checks. Other apps aren't affected.	PineDrama-nın lentini, axtarışını, şərhlərini və digər tətbiq trafikini aşağıdakı proksi vasitəsilə göndərir. Videolar və LIVE yayımlar yenə də birbaşa qoşulur. HushPine-in saxlamaları və qısa link yoxlamaları da öz ünvan yoxlamalarından sonra birbaşa qoşulur. Digər tətbiqlərə təsir etmir.
+Proxy type	Proksi növü
+HTTP	HTTP
+SOCKS5	SOCKS5
+Proxy host	Proksi hostu
+The proxy's address, like 192.168.1.20 or proxy.example.com.	Proksinin ünvanı, məsələn 192.168.1.20 və ya proxy.example.com.
+Proxy port	Proksi portu
+The port the proxy listens on, like 8080 or 1080.	Proksinin dinlədiyi port, məsələn 8080 və ya 1080.
+Proxy user name	Proksi istifadəçi adı
+Optional. Only connections made by Android itself can sign in to a proxy, not PineDrama's own. Leave empty for a proxy without a password.	İstəyə bağlıdır. Proksiyə yalnız Android-in özünün etdiyi bağlantılar daxil ola bilər, PineDrama-nın öz bağlantıları yox. Parolsuz proksi üçün boş buraxın.
+Proxy password	Proksi parolu
+Optional, used with the user name. It isn't shown, logged or put in a backup.	İstəyə bağlı, istifadəçi adı ilə istifadə olunur. Göstərilmir, jurnala yazılmır və ehtiyat nüsxəyə düşmür.
+Enter a server name or IP address, without http:// or a port number	Server adı və ya IP ünvanı daxil edin, http:// və port nömrəsi olmadan
+A port is a whole number from 1 to 65535	Port 1 ilə 65535 arasında tam ədəddir
+Can't send a password to proxy %1$s. Use another.	%1$s proksisinə parol göndərilmir. Başqa seçin.
+Proxy %1$s is down. Turn it off if PineDrama won't load.	Proksi %1$s işləmir. Tətbiq açılmasa, söndürün.
+Word rules only, not every feed filter:	Yalnız söz qaydaları, lentdəki bütün filtrlər deyil:
+This list is too long to preview here. Saving still follows the usual limit.	Bu siyahı burada önbaxış üçün çox uzundur. Saxlayanda adi limit keçərli qalır.
+Can't check yet: %1$s	Hələ yoxlamaq olmur: %1$s
+No rules yet, so nothing would match.	Hələ qayda yoxdur, ona görə heç nə uyğun gəlməz.
+Type some sample text to see whether these rules match it.	Bu qaydaların uyğun gəlib-gəlmədiyini görmək üçün nümunə mətn yazın.
+No rule matches this text.	Heç bir qayda bu mətnə uyğun gəlmir.
+Matches the rule: %1$s	Uyğun gələn qayda: %1$s
+Only the first %1$s characters of the sample were checked.	Nümunənin yalnız ilk %1$s simvolu yoxlandı.
+Sample caption to test	Sınamaq üçün nümunə təsvir
+Sample category to test	Sınamaq üçün nümunə kateqoriya
+Keep videos out of Watch history	Videoları Baxış tarixçəsindən kənarda saxlayın
+Stops PineDrama from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and your feed learns less. Likes, follows and searches are still seen.	PineDrama-nın izlədiyiniz videoları bildirməsinin qarşısını alır, buna görə də onlar Activity center-dəki Baxış tarixçəsinə əlavə olunmur. Baxışlarınız sayılmır və lentiniz daha az öyrənir. Bəyənmələr, izləmələr və axtarışlar hələ də görünür.
+Close PineDrama after	PineDrama-nı bu müddətdən sonra bağla
+Turn off the timer (PineDrama closes at %1$s)	Taymeri söndür (PineDrama-nın bağlanma vaxtı: %1$s)
+PineDrama closes at %1$s	PineDrama-nın bağlanma vaxtı: %1$s
+Sleep timer off	Yuxu taymeri söndürüldü
+Keep offline videos out of the feed	Oflayn videoları lentdən kənarda saxlayın
+PineDrama slips the videos it saved for offline viewing back into the feed when it can't load enough new ones. This takes them all out. Your offline list stays as it is.	PineDrama kifayət qədər yeni video yükləyə bilməyəndə oflayn baxış üçün saxladığı videoları lentə geri qatır. Bu, hamısını çıxarır. Oflayn siyahınız olduğu kimi qalır.
+About %1$s of storage at this limit	Bu limitdə təxminən %1$s yaddaş
+Save seen history to a file	İzlənmiş videoları fayla saxla
+Restore seen history from a file	İzlənmiş videoları fayldan bərpa et
+Save the videos @%1$s has seen, and when, to a JSON file. Anyone who opens the file can see that viewing history.	@%1$s hesabının izlədiyi videoları və nə vaxt izlənildiklərini JSON faylına saxlayın. Faylı açan hər kəs bu izləmə tarixçəsini görə bilər.
+Save this account's seen videos, and when they were watched, to a JSON file. Anyone who opens the file can see that viewing history.	Bu hesabın izlədiyi videoları və nə vaxt izlənildiklərini JSON faylına saxlayın. Faylı açan hər kəs bu izləmə tarixçəsini görə bilər.
+Add a seen-history file saved by HushPine to the videos @%1$s has seen. A video in both keeps the newer date.	HushPine-in saxladığı tarixçə faylını @%1$s hesabının izlədiyi videolara əlavə edin. Hər ikisində olan video daha yeni tarixi saxlayır.
+Add a seen-history file saved by HushPine to this account's seen videos. A video in both keeps the newer date.	HushPine-in saxladığı tarixçə faylını bu hesabın izlədiyi videolara əlavə edin. Hər ikisində olan video daha yeni tarixi saxlayır.
+Sign in to PineDrama before saving or restoring seen history.	İzlənmiş videoları saxlamazdan və ya bərpa etməzdən əvvəl PineDrama-ya daxil olun.
+Saving seen history	İzlənmiş videolar saxlanılır
+Reading the seen-history file	Tarixçə faylı oxunur
+Restoring seen history	İzlənmiş videolar bərpa olunur
+Saved 1 seen video to the file	Fayla 1 izlənmiş video saxlanıldı
+Saved %1$s seen videos to the file	Fayla %1$s izlənmiş video saxlanıldı
+Couldn't save the seen-history file. Try again.	Tarixçə faylı saxlanıla bilmədi. Yenidən cəhd edin.
+Couldn't start the export. Try again in a moment.	İxrac başladıla bilmədi. Bir az sonra yenidən cəhd edin.
+Added 1 seen video	1 izlənmiş video əlavə edildi
+Added %1$s seen videos	%1$s izlənmiş video əlavə edildi
+Added 1 seen video.	1 izlənmiş video əlavə edildi.
+Added %1$s seen videos.	%1$s izlənmiş video əlavə edildi.
+%1$s video was already recorded.	%1$s video artıq qeydə alınmışdı.
+%1$s videos were already recorded.	%1$s video artıq qeydə alınmışdı.
+%1$s video was older than Forget seen videos after allows.	%1$s video İzlənmiş videoları bu müddətdən sonra unudun ayarının icazə verdiyindən köhnə idi.
+%1$s videos were older than Forget seen videos after allows.	%1$s video İzlənmiş videoları bu müddətdən sonra unudun ayarının icazə verdiyindən köhnə idi.
+%1$s video had a date later than this phone's clock.	%1$s videonun tarixi bu telefonun saatından sonra idi.
+%1$s videos had dates later than this phone's clock.	%1$s videonun tarixi bu telefonun saatından sonra idi.
+%1$s video didn't fit in the newest %2$s.	%1$s video ən yeni %2$s videoya sığmadı.
+%1$s videos didn't fit in the newest %2$s.	%1$s video ən yeni %2$s videoya sığmadı.
+%1$s older seen video was dropped to keep the newest %2$s.	Ən yeni %2$s video qalsın deyə %1$s köhnə izlənmiş video silindi.
+%1$s older seen videos were dropped to keep the newest %2$s.	Ən yeni %2$s video qalsın deyə %1$s köhnə izlənmiş video silindi.
+Couldn't restore seen history. Your saved history is unchanged.	İzlənmiş videolar bərpa edilə bilmədi. Saxlanmış tarixçəniz dəyişmədi.
+That file is larger than %1$s MB. Choose a seen-history file saved by HushPine.	Bu fayl %1$s MB-dan böyükdür. HushPine-in saxladığı tarixçə faylını seçin.
+That file lists more than %1$s videos. Nothing was restored.	Bu faylda %1$s videodan çox var. Heç nə bərpa edilmədi.
+That isn't a seen-history file saved by HushPine. For PineDrama's own data export, use Import watch history.	Bu, HushPine-in saxladığı tarixçə faylı deyil. PineDrama-nın öz məlumat ixracı üçün İzləmə tarixçəsini idxal et funksiyasından istifadə edin.
+That file was saved by a newer HushPine. Update HushPine, then try again.	Bu fayl HushPine-in daha yeni versiyası ilə saxlanılıb. HushPine-i yeniləyin, sonra yenidən cəhd edin.
+That seen-history file is damaged or was edited. Nothing was restored.	Bu tarixçə faylı zədələnib və ya redaktə olunub. Heç nə bərpa edilmədi.
+Turn off haptics	Haptik titrəməni söndürün
+Stop the short vibrations PineDrama plays on its own taps and gestures. Your keyboard and your phone's own haptics stay as they are.	PineDrama-nın öz toxunuşlarında və jestlərində çaldığı qısa titrəmələri dayandırın. Klaviaturanız və telefonunuzun öz haptikası olduğu kimi qalır.
+Turn off screen transitions	Ekran keçidlərini söndürün
+Open and close PineDrama's screens without their slide. Swipes inside a screen still follow your finger.	PineDrama ekranlarını sürüşmə animasiyası olmadan açın və bağlayın. Ekran daxilində sürüşdürmələr yenə barmağınızı izləyir.
+There's no video on screen to save a frame from	Ekranda kadrı saxlanıla biləcək video yoxdur
+Saving frames needs Android 7 or newer	Kadr saxlamaq üçün Android 7 və ya daha yeni lazımdır
+Allow storage for PineDrama to save frames	Kadrlar üçün yaddaşa icazə verin
+The frame couldn't be read. Try again.	Kadr oxuna bilmədi. Yenidən cəhd edin.
+Saving the frame	Kadr saxlanılır
+Frame saved to %1$s	Kadr %1$s yerinə saxlanıldı
+The frame couldn't be saved. Try again.	Kadr saxlanıla bilmədi. Yenidən cəhd edin.
+Video frame	Video kadrı
+Auto-advance in search results	Axtarış nəticələrində avtomatik keçid
+Also turns on PineDrama's own Auto scroll for videos opened from search. Restart PineDrama to apply this.	Axtarışdan açılan videolar üçün PineDrama-nın öz avtomatik sürüşdürməsini də aktivləşdirir. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Use system emoji	Sistem emojilərindən istifadə edin
+Shows every emoji in your phone's own emoji font. The newest emoji your phone doesn't have yet may show as a box or in pieces.	Bütün emojiləri telefonunuzun öz emoji şriftində göstərir. Telefonunuzda hələ olmayan ən yeni emojilər qutu kimi və ya parçalanmış görünə bilər.
+Turn off push notifications	Push bildirişlərini söndürün
+Turns off PineDrama's notification service, so nothing it sends reaches your notification shade and it can't wake your phone. You won't hear about new messages until you open PineDrama. Notifications hidden while this is on don't come back. Ongoing ones like media controls stay.	PineDrama-nın bildiriş xidmətini söndürür, ona görə də göndərdiyi heç nə bildiriş panelinizə çatmır və o, telefonunuzu oyada bilmir. PineDrama-nı açana qədər yeni mesajlardan xəbərdar olmayacaqsınız. Bu açıq olarkən gizlədilən bildirişlər geri qayıtmır. Media idarələri kimi davamlı bildirişlər qalır.
+Save details as JSON	Təfərrüatları JSON kimi saxlayın
+Saves the details file in JSON format instead of plain text. Useful if another tool will read it.	Təfərrüat faylını adi mətn əvəzinə JSON formatında saxlayır. Başqa alət onu oxuyacaqsa faydalıdır.
+Tag saved videos with their details	Saxlanılan videolara təfərrüatlarını etiket kimi yazın
+Stores the caption, creator, post date and link inside the video file, where media players can read them. Applies to saves made by HushPine.	Başlığı, yaradıcını, paylaşım tarixini və linki video faylının içində saxlayır, media pleyerlər onları oxuya bilir. HushPine-in etdiyi saxlamalara aiddir.
+Save the cover as well	Örtüyü də saxla
+Save the video's cover picture at the largest size PineDrama has, each time you tap Download. It goes to your photo folder, named after the video.	Hər dəfə Endir düyməsinə toxunduqda videonun örtük şəklini PineDrama-da olan ən böyük ölçüdə saxlayın. O, videonun adı ilə foto qovluğunuza düşür.
+This video has no cover to save	Bu videoda saxlanılacaq örtük yoxdur
+Allow storage for PineDrama to save covers	Örtüklər üçün yaddaşa icazə verin
+The cover couldn't be saved. Try again.	Örtük saxlanıla bilmədi. Yenidən cəhd edin.
+Cover saved to %1$s	Örtük %1$s yerinə saxlanıldı
+Saving the cover	Örtük saxlanılır
+Show the time to the second	Vaxtı saniyəsinə qədər göstərin
+Show when a video was posted down to the second, with your time zone, in place of PineDrama's short date by the creator's name.	Videonun nə vaxt paylaşıldığını saniyəsinə qədər və saat qurşağınızla, yaradıcının adının yanındakı PineDrama-nın qısa tarixi əvəzinə göstərin.
+Show dates on profile grids	Profil şəbəkəsində tarixləri göstərin
+Show the day each video was posted under its view count on profile grids.	Profil şəbəkəsində hər videonun paylaşıldığı günü baxış sayının altında göstərin.
+Show video length on profile grids	Profil şəbəkəsində video uzunluğunu göstərin
+Show how long each video runs under its view count on profile grids. Photo posts and videos PineDrama sent no length for show none.	Profil şəbəkəsində hər videonun nə qədər davam etdiyini baxış sayının altında göstərin. Foto paylaşımlarında və PineDrama-nın uzunluğunu göndərmədiyi videolarda heç nə göstərilmir.
+Fall back to the watermarked copy	Su nişanlı nüsxəyə keçin
+When the video without the watermark can't be fetched, save PineDrama's own watermarked copy instead and say so. It's the size PineDrama's own save uses, so it may be smaller than the quality you picked.	Su nişanı olmayan video alına bilmədikdə, əvəzində PineDrama-nın öz su nişanlı nüsxəsini saxlayın və bunu bildirin. Ölçüsü PineDrama-nın öz saxlamasındakı kimidir, ona görə seçdiyiniz keyfiyyətdən kiçik ola bilər.
+No clean copy yet. Saved the watermarked one to %1$s	Təmiz nüsxə yoxdur. Su nişanlısı saxlandı: %1$s
+Match text stickers too	Mətn stikerlərini də yoxlayın
+Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in PineDrama's editor. Text that's part of the picture itself can't be read.	Mətn stikerləri bloklanmış başlıq sözünə uyğun gələn videoları da gizlədin. Mətn stikerləri yaradıcının PineDrama redaktorunda videonun üzərinə yazdığı sözlərdir. Şəklin özünə aid olan mətn oxuna bilməz.
+Text sticker words	Mətn stikeri sözləri
+Show how many were filtered	Neçəsinin süzüldüyünü göstərin
+Shows a small count under PineDrama's top tabs of what the feed filter has removed since PineDrama started. It shows only on the feed, and taps on it go through to the video under it.	PineDrama-nın yuxarı tablarının altında PineDrama başlayandan bəri lent filtrinin çıxardıqlarının kiçik sayını göstərir. Yalnız lentdə görünür və ona toxunuşlar altındakı videoya keçir.
+1 filtered out	1 süzüldü
+%1$d filtered out	%1$d süzüldü
+Copy the full link for short links	Qısa linklər üçün tam linki kopyalayın
+When Copy link gives a short vt.tiktok.com or vm.tiktok.com link, HushPine opens it once in the background to find the full video link and copies that instead. PineDrama sees that visit, and it connects directly even when a proxy is on. Links you send to another app go out as they were.	Link kopyala qısa vt.tiktok.com və ya vm.tiktok.com linki verəndə, HushPine onu arxa planda bir dəfə açıb tam video linkini tapır və onu kopyalayır. PineDrama bu ziyarəti görür və proksi aktiv olsa belə birbaşa qoşulur. Başqa tətbiqə göndərdiyiniz linklər olduğu kimi gedir.
+Full link copied	Tam link kopyalandı
+Mark saved videos	Saxlanılmış videoları işarələyin
+Puts a ✓ by videos and photo posts you saved with HushPine, on profile grids and next to the time in the feed. Works only while Check for already-saved videos is on.	HushPine ilə saxladığınız video və foto yazıların yanına profil şəbəkələrində və lentdə vaxtın yanında ✓ qoyur. Yalnız “Artıq saxlanılmış videoları yoxlayın” açıq olduqda işləyir.
+Also replaces the saved region and country code PineDrama sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	PineDrama-nın hər sorğu ilə göndərdiyi saxlanmış region və ölkə kodunu da əvəz edir. Daxil olmaq yenə də əsl regionunuzu göndərir. IP ünvanınız və hesabınızın öz qaydaları hələ də tətbiq olunur.
+Turn off double tap to react	Reaksiya üçün iki dəfə toxunmanı söndür
+A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.	Mesaja iki dəfə toxunmaq artıq ona ürək əlavə etmir. Bir dəfə toxunma və uzun basma əvvəlki kimi işləyir.
+Turn off swipe to reply	Cavab üçün sürüşdürməni söndür
+Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.	Mesajı yana sürüşdürmək artıq ona cavab başlatmır. Toxunmalar və uzun basmalar əvvəlki kimi işləyir.
+Hide Bulletin board	Bulletin board-u gizlədin
+The Bulletin board rows PineDrama adds to the Inbox leave the list. Chats and the other rows stay where they are.	PineDrama-nın Gələnlərə əlavə etdiyi Bulletin board sətirləri siyahıdan çıxır. Söhbətlər və digər sətirlər yerində qalır.
+Hide the group chat prompt	Qrup söhbəti təklifini gizlədin
+The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.	Gələnlərin yuxarısındakı qrup söhbəti başlatmağa dəvət edən banner göstərilməyi dayandırır. Artıq üzv olduğunuz qruplar dəyişmir.
+Skip PineDrama's setup screens	PineDrama-nın quraşdırma ekranlarını keç
+Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and PineDrama's notification page when PineDrama runs its setup. Consent, age and sign-in screens still show.	PineDrama quraşdırmanı işə salanda maraq seçimini, dil və cins suallarını, izləmək üçün təklif olunan yaradıcıları, yuxarı sürüşdürmə təlimatını və PineDrama-nın bildiriş səhifəsini burax. Razılıq, yaş və giriş ekranları yenə də göstərilir.
+Hide unverified content notices	Təsdiqlənməmiş məzmun bildirişlərini gizlət
+Hide the Check sources banner PineDrama puts on videos it marks as unverified, and the warnings it shows when you share one.	PineDrama-nın təsdiqlənməmiş kimi işarələdiyi videolardakı Mənbələri yoxla bannerini və belə videonu paylaşanda göstərdiyi xəbərdarlıqları gizlət.
+Hide Check your sources warnings	Mənbələrini yoxla xəbərdarlıqlarını gizlət
+Hide the Check your sources banner PineDrama puts across the top of some videos, and the prompt it shows when you share one.	PineDrama-nın bəzi videoların üst hissəsinə qoyduğu Mənbələrini yoxla bannerini və belə videonu paylaşanda göstərdiyi xəbərdarlığı gizlət.
+Keep offline videos until you delete them	Oflayn videoları siz silənə qədər saxlayın
+PineDrama removes videos saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in PineDrama's Offline videos settings. PineDrama can still clear watched ones when your phone is low on space.	PineDrama oflayn izləmək üçün saxlanan videoları müəyyən vaxtdan sonra, bəzən cəmi iki gündən sonra, izlənsə də izlənməsə də silir. Bu açıq olduqda onlar PineDrama-nın Offline videos ayarlarında özünüz silənə qədər qalır. Telefonda yer azaldıqda PineDrama izlənmişləri yenə də silə bilər.
+Hide Thoughts on profiles	Profillərdə Thoughts-u gizlədin
+Hide the Thoughts bubble PineDrama shows above a profile picture, and the prompt to share one on your own profile. Restart PineDrama to apply this.	PineDrama-nın profil şəklinin üstündə göstərdiyi Thoughts balonunu və öz profilinizdə onu paylaşmaq təklifini gizlədin. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+Turn on Thoughts	Thoughts-u aktivləşdirin
+Show Thoughts on profiles and in your inbox, and the prompt to share one, for accounts PineDrama hasn't turned them on for. PineDrama's servers may still refuse to post one. Restart PineDrama to apply this.	PineDrama-nın Thoughts-u açmadığı hesablarda Thoughts-u profillərdə və Gələnlər bölməsində, həmçinin onu paylaşmaq təklifini göstərin. PineDrama-nın serverləri yenə də onu dərc etməyə icazə verməyə bilər. Tətbiq etmək üçün PineDrama-nı yenidən başladın.
+
+About HushPine	HushPine haqqında
+Version, changes and licenses	Versiya, dəyişikliklər və lisenziyalar
+Active	Aktiv
+Paused	Dayandırılıb
+Budgets and reminders	Limitlər və xatırlatmalar
+Don't auto translate these languages	Bu dilləri avtomatik tərcümə etməyin
+Separate language codes with commas, like es, de. When PineDrama translates for you, captions and comments in these languages stay as they were written. See translation still works when you tap it. PineDrama's own Don't translate list stays the way it is.	Dil kodlarını vergüllə ayırın, məsələn es, de. PineDrama sizin yerinizə tərcümə edəndə bu dillərdəki başlıqlar və şərhlər yazıldığı kimi qalır. Tərcüməyə bax düyməsinə toxunanda isə yenə işləyir. PineDrama-nın öz Tərcümə etmə siyahısı olduğu kimi qalır.
+Don't auto translate videos	Videoları avtomatik tərcümə etməyin
+Descriptions, captions and text on videos stay in the language they were made in, even with PineDrama's Always translate on. See translation still works when you tap it. Comments have their own switch above.	Videolardakı təsvirlər, başlıqlar və mətn çəkildikləri dildə qalır, PineDrama-nın Həmişə tərcümə et seçimi açıq olsa belə. Tərcüməyə bax düyməsinə toxunanda isə yenə işləyir. Şərhlərin yuxarıda öz açarı var.
+Performance	Performans
+Skip the splash ad	Açılış reklamını ötür
+Stop the full-screen ad PineDrama can show while it starts up.	PineDrama-nın açılarkən göstərə biləcəyi tam ekran reklamı dayandırır.
+Skip update checks	Yeniləmə yoxlamalarını ötür
+Stop the two background tasks PineDrama uses to check for updates, one of them when your phone starts. Some in-app update prompts may stop. Play Store updates still work.	PineDrama-nın yeniləmələri yoxlamaq üçün istifadə etdiyi iki arxa fon tapşırığını dayandırır, onlardan biri telefon işə düşəndə işləyir. Tətbiqdaxili bəzi yeniləmə bildirişləri görünməyə bilər. Play Store yeniləmələri işləməyə davam edir.
+Limit background traffic	Arxa fon trafikini məhdudlaşdır
+Stop PineDrama loading upcoming videos ahead of time and setting up notifications. You won't get notifications, messages included, while this is on. Videos may take a moment longer to start.	PineDrama-nın növbəti videoları əvvəlcədən yükləməsini və bildirişləri qurmasını dayandırır. Bu açıq olduqca mesajlar da daxil olmaqla heç bir bildiriş almayacaqsınız. Videoların başlaması bir az çox çəkə bilər.
+Stop PineDrama loading upcoming videos ahead of time. It uses less data, but videos may take a moment longer to start.	PineDrama-nın növbəti videoları əvvəlcədən yükləməsini dayandırır. Daha az məlumat sərf edir, amma videoların başlaması bir az çox çəkə bilər.
+Don't decode animated frames ahead	Animasiya kadrlarını əvvəlcədən hazırlama
+Animated stickers and GIFs decode each frame as it's shown instead of a few ahead, so they use a little less memory. Applies to the next ones that load.	Animasiyalı stikerlər və GIF-lər hər kadrı bir neçə kadr qabaqcadan deyil, göstəriləndə hazırlayır ki, bir az daha az yaddaş istifadə etsinlər. Bundan sonra yüklənənlərə tətbiq olunur.
+Stop on-device AI profiling	Cihazdaxili süni intellekt profilləşdirməsini dayandır
+Stop PineDrama's built-in AI engine from starting, so it doesn't get a copy of everything PineDrama logs about your use. PineDrama works as if the engine weren't there.	PineDrama-nın daxili süni intellekt mühərrikinin işə düşməsinin qarşısını alır ki, o, PineDrama-nın istifadəniz haqqında qeydə aldığı hər şeyin surətini almasın. PineDrama mühərrik yoxmuş kimi işləyir.
+Allow voice comments	Səsli şərhlərə icazə ver
+Show PineDrama's button for recording a spoken comment, on accounts that don't have it yet. It hasn't been tried on a real account, so it may not work.	Hələ olmayan hesablarda PineDrama-nın səsli şərh yazmaq üçün düyməsini göstərir. Real hesabda sınaqdan keçirilməyib, ona görə də işləməyə bilər.
+Sign in without a passkey	Passkey olmadan daxil olun
+PineDrama treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If PineDrama's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.	PineDrama telefonunuza passkey dəstəkləməyən telefon kimi baxır, ona görə də daxil olanda bunun əvəzinə parolunuzu və ya e-poçt ya da SMS ilə gələn kodu soruşur. Parol menecerləri yamaqlanmış tətbiqə passkey vermir. PineDrama-nın iki addımlı yoxlaması hələ də yalnız passkey istəyirsə, əvvəlcə tiktok.com-da və ya başqa telefonda təsdiq üsulu kimi e-poçt ya da SMS əlavə edin.
+# context: opens the complete published changelog from the concise What's new dialog.
+Full changelog	Bütün dəyişikliklər
+More hashtags per post	Hər paylaşımda daha çox həştəq
+New comment emoji	Yeni şərh emojiləri
+Hide root	Rootu gizlət
+Hide root status and details about root tools from PineDrama.	Root statusunu və root alətləri haqqında məlumatı PineDrama-dan gizlət.
+Clear	Təmizlə
+Search Activity notifications already loaded on this screen. Loading more pauses while you search.	Bu ekranda artıq yüklənmiş Fəaliyyət bildirişlərində axtarın. Axtarış zamanı əlavə yükləmə dayanır.
+Search is unavailable on this screen	Bu ekranda axtarış mövcud deyil
+Search loaded activity	Yüklənmiş fəaliyyətdə axtarış
+Wait for loading to finish	Yükləmənin bitməsini gözləyin
+
+
+Use an imported font	İdxal edilmiş şriftdən istifadə edin
+Shows PineDrama's text in the font file you import below. While both are on, this one wins over Use system font. If the file is removed or can't be read, the text goes back to what Use system font shows.	PineDrama mətnini aşağıda idxal etdiyiniz şrift faylı ilə göstərir. Hər ikisi açıq olduqda bu ayar Sistem şriftindən istifadə edin ayarından üstündür. Fayl silinərsə və ya oxuna bilməzsə, mətn Sistem şriftindən istifadə edin ayarının göstərdiyi kimi olur.
+Import a font file	Şrift faylını idxal edin
+Remove the imported font	İdxal edilmiş şrifti silin
+Pick a .ttf or .otf file of up to %1$s MB.	Ən çoxu %1$s MB olan .ttf və ya .otf faylı seçin.
+Imported: %1$s. Pick another file to replace it.	İdxal edilib: %1$s. Onu əvəz etmək üçün başqa fayl seçin.
+Reading the font file	Şrift faylı oxunur
+Deletes %1$s from PineDrama's storage.	%1$s faylını PineDrama-nın yaddaşından silir.
+No font is imported	İdxal edilmiş şrift yoxdur
+%1$s is imported. Restart PineDrama to see it.	%1$s idxal edildi. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+%1$s is imported. Turn on Use an imported font to see it.	%1$s idxal edildi. Onu görmək üçün İdxal edilmiş şriftdən istifadə edin ayarını açın.
+%1$s is removed. Restart PineDrama to see the change.	%1$s silindi. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+%1$s is removed	%1$s silindi
+Couldn't remove the imported font. Try again.	İdxal edilmiş şrift silinə bilmədi. Yenidən cəhd edin.
+Couldn't save the font in PineDrama's storage. Free up some space and try again.	Şrift PineDrama-nın yaddaşında saxlanıla bilmədi. Bir az yer boşaldıb yenidən cəhd edin.
+That file is larger than %1$s MB. Choose a smaller font file.	Bu fayl %1$s MB-dan böyükdür. Daha kiçik şrift faylı seçin.
+That file isn't a font Android can use. Choose a .ttf or .otf file.	Bu fayl Android-in istifadə edə biləcəyi şrift deyil. .ttf və ya .otf faylı seçin.
+Profile background	Profil fonu
+Opens PineDrama's own profile background editor in Edit profile, and shows the backgrounds other profiles have set. PineDrama's servers may still refuse to save one for an account PineDrama hasn't offered it to yet.	PineDrama-nın öz profil fonu redaktorunu Profili redaktə et bölməsində açır və digər profillərin qoyduğu fonları göstərir. PineDrama bu funksiyanı hesabınıza hələ təklif etməyibsə, PineDrama serverləri onu saxlamaqdan yenə də imtina edə bilər.
+Ask for the quality on each save	Hər saxlamada keyfiyyəti soruşun
+Download lists the qualities this video comes in, with the size PineDrama gives for each, and saves the one you pick. The quality above stays as it is for the next save.	Endirmə bu videonun hansı keyfiyyətlərdə olduğunu, PineDrama-nın hər biri üçün verdiyi ölçü ilə göstərir və seçdiyinizi saxlayır. Yuxarıdakı keyfiyyət növbəti saxlama üçün olduğu kimi qalır.
+Save in which quality?	Hansı keyfiyyətdə saxlansın?
+Automatic (PineDrama's file)	Avtomatik (PineDrama-nın faylı)
+%1$s, about %2$s	%1$s, təxminən %2$s
+%1$s, size unknown	%1$s, ölçü bilinmir
+The quality choice is still open	Keyfiyyət seçimi hələ də açıqdır
+Unknown resolution	Ayırdetmə bilinmir
+Your settings	Parametrlərin
+Report a problem	Problem barədə bildirin
+Opens a GitHub report with your versions and settings filled in. Add what happened.	Versiyalarınız və ayarlarınız artıq doldurulmuş GitHub hesabatını açır. Nə baş verdiyini əlavə edin.
+Support HushPine	HushPine-i dəstəkləyin
+No app on this phone opens web links	Bu telefonda veb keçidləri açan tətbiq yoxdur
+# context: a heading on the settings home page, over HushPine's status, Pause, Diagnostics, About, Report a problem and Support; the app's name, usually kept as is
+HushPine	HushPine
+Open HushPine settings	HushPine ayarlarını açın
+Several photos in one comment	Bir şərhdə bir neçə foto
+Scrolling comments on videos	Videoların üzərində sürüşən şərhlər
+LIVE chat auto-translate	LIVE söhbətinin avtomatik tərcüməsi
+
+The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in HushPine settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart PineDrama.	LIVE otağındakı Translate comments düyməsi üçün Yapon SIM-i də lazımdır. HushPine ayarları > Region bölməsində SIM məlumatlarını əvəzləyin seçimini aktiv edin, SIM ölkəsi üçün hazır ayar olaraq Japan, NTT DOCOMO (44010) seçin, sonra PineDrama-nı yenidən başladın.
+Comments only scroll on videos PineDrama has turned them on for, so most videos stay the same.	Şərhlər yalnız PineDrama-nın bunu açdığı videoların üzərində sürüşür, buna görə videoların çoxu dəyişmir.
+
+Pick videos to save from profile grids	Profil şəbəkələrindən saxlamaq üçün videolar seçin
+Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.	Profil, Bəyənilənlər və ya Sevimlilər şəbəkəsindəki hər videonun üzərinə dairə qoyur. %1$s videoya qədər seçin, sonra Saxla düyməsinə toxunun: onlar sayğac və Ləğv edin ilə bir-bir saxlanılır.
+Pick for saving	Saxlamaq üçün seçin
+You can pick up to %1$s at a time	Bir dəfəyə ən çox %1$s seçə bilərsiniz
+One picked	Biri seçildi
+%1$s picked	%1$s seçildi
+None of the picked videos could be saved. Try again.	Heç bir video saxlanmadı. Yenidən cəhd edin.
+Saved one video	Bir video saxlanıldı
+Saved %1$s videos	%1$s video saxlanıldı
+One was already saved	Biri artıq saxlanılmışdı
+%1$s were already saved	%1$s artıq saxlanılmışdı
+Picked videos	Seçilmiş videolar
+Pick all	Hamısını seç
+Picked %1$s. Save, then tap Pick all for more.	%1$s seçildi. Saxlayın, sonra yenə Hamısını seç.
+All loaded items are picked or saved. Scroll for more.	Hamısı seçilib və ya saxlanılıb. Sürüşdürün.
+
+Record LIVEs you watch	Baxdığın LIVE-ları yaz
+Record	Yaz
+Stop	Dayandır
+Stop recording this LIVE	Bu LIVE-ın yazısını dayandır
+Record this LIVE from now	Bu LIVE-ı indidən yaz
+Saving the recording	Yazı saxlanılır
+LIVE recording saved to %1$s	LIVE yazısı %1$s qovluğuna saxlanıldı
+LIVE ended or dropped. Recording saved to %1$s	LIVE bitdi və ya kəsildi. Qeyd saxlandı: %1$s
+Storage almost full. Recording saved to %1$s	Yaddaş dolmaq üzrədir. Qeyd saxlandı: %1$s
+Size limit reached. Recording saved to %1$s	Ölçü həddinə çatıldı. Qeyd saxlandı: %1$s
+PineDrama closed. What was recorded is saved to %1$s	PineDrama bağlandı. Qeyd saxlandı: %1$s
+Recording stopped early. Saved to %1$s	Qeyd vaxtından əvvəl dayandı. Saxlandı: %1$s
+This LIVE's stream can't be saved	Bu LIVE-ın yayımını saxlamaq mümkün deyil
+There isn't enough room on the phone to record	Yazmaq üçün telefonda kifayət qədər yer yoxdur
+Nothing was recorded	Heç nə yazılmadı
+The recording couldn't be saved. Try again.	Yazı saxlanıla bilmədi. Yenidən cəhd et.
+Can't retry those photos. Save the post again.	Fotoları təkrarlamaq olmur. Paylaşımı yenidən saxlayın.
+Show the time zone	Saat qurşağını göstərin
+Puts your time zone after the time to the second, like EDT.	Saniyəsinə qədər göstərilən vaxtın ardından saat qurşağınızı yazır, məsələn EDT.
+Short date	Qısa tarix
+Writes the date before the time to the second the short way your language does, like 10/7/25.	Saniyəsinə qədər göstərilən vaxtdan əvvəlki tarixi dilinizin qısa yazılışı ilə yazır, məsələn 07.10.25.
+Color commenter names	Şərh yazanların adlarını rənglə
+Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.	Hər şərh yazanın adına öz rəngini verin. O hesabı hər dəfə gördükdə eyni rəng olur, beləcə uzun müzakirəni izləmək asanlaşır.
+# context: a switch on the Comments page. Language, Settings and privacy and App language are PineDrama's own labels: its language page, the menu that page sits in, and the page's first row
+Bring back PineDrama's translation	PineDrama-nın tərcüməsini geri qaytar
+Brings back the translation rows on PineDrama's Language page, under Settings and privacy, for accounts that only see App language there.	PineDrama-nın Settings and privacy altındakı Language səhifəsində yalnız App language görən hesablar üçün tərcümə sətirlərini geri qaytarır.
+For accounts PineDrama took translation away from. Brings back See translation under video descriptions and in captions. Restart PineDrama to see the change.	PineDrama-nın tərcüməni götürdüyü hesablar üçün. Video təsvirlərinin altında və altyazılarda See translation-ı geri qaytarır. Dəyişikliyi görmək üçün PineDrama-nı yenidən başladın.
+For accounts PineDrama took translation away from. Brings back See translation under video descriptions and in captions, and the translation rows on the Language page in Settings and privacy. Restart PineDrama to see it on videos.	PineDrama-nın tərcüməni götürdüyü hesablar üçün. Video təsvirlərinin altında və altyazılarda See translation-ı, həmçinin Settings and privacy altındakı Language səhifəsində tərcümə sətirlərini geri qaytarır. Videolarda görmək üçün PineDrama-nı yenidən başladın.
+Where the time goes	Vaxt harada görünsün
+Beside the bar	Panelin yanında
+Above the bar	Panelin üstündə
+Above moves the caption and the buttons up a little so the time fits over the right end of the bar. When something else is in the way, the time goes beside the bar.	Panelin üstündə seçimi açıqlamanı və düymələri bir az yuxarı qaldırır ki, vaxt panelin sağ ucunun üstünə sığsın. Başqa bir şey mane olanda vaxt panelin yanında görünür.
+Full-width progress bar	Tam enli irəliləyiş paneli
+Run the progress bar from one screen edge to the other, without the gap PineDrama leaves at each end.	İrəliləyiş paneli PineDrama-nın hər iki ucda qoyduğu boşluq olmadan ekranın bir kənarından o birinə qədər uzanır.
+New device identity	Yeni cihaz kimliyi
+Wipe PineDrama's data and give it a new Android ID and advertising ID on the next start, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. HushPine's settings stay.	PineDrama-nın məlumatlarını silir və növbəti açılışda ona yeni Android ID və reklam ID-si verir ki, tanımadığı telefon görsün. Hesabdan çıxış ediləcək və qaralamalarınız silinəcək. HushPine ayarları qalır.
+PineDrama starts as a new phone after the restart. Tap again to cancel.	PineDrama yenidən başladıqdan sonra yeni telefon kimi açılır. Ləğv etmək üçün yenidən toxunun.
+Couldn't set up a new device identity. Try again.	Yeni cihaz kimliyi qurmaq alınmadı. Yenidən cəhd edin.
+Saves at once	Eyni anda saxlamalar
+How many saves run at the same time. The others wait in line and start as each one ends.	Eyni anda neçə saxlamanın işlədiyi. Digərləri növbədə gözləyir və hər biri bitdikcə başlayır.
+Saves right now	Hazırkı saxlamalar
+Nothing is saving right now	Hazırda heç nə saxlanılmır
+Earlier this session	Bu seansda əvvəl
+Stopped by an unexpected error	Gözlənilməz xəta ilə dayandı
+Cover	Örtük
+One at a time	Bir-bir
+Two at once	Eyni anda iki
+Three at once	Eyni anda üç
+Open the comments at full height	Şərhləri tam hündürlükdə açın
+Opens the comment sheet at the full height of the screen instead of part way up. Drag it down to close it, as before.	Şərhləri ekranın bir hissəsi əvəzinə tam hündürlüyündə açır. Bağlamaq üçün əvvəlki kimi aşağı çəkin.
+Sort loaded videos on profile grids	Profil şəbəkələrində yüklənmiş videoları sıralayın
+Original order	Orijinal sıra
+Newest first	Əvvəlcə ən yenilər
+Oldest first	Əvvəlcə ən köhnələr
+Longest first	Əvvəlcə ən uzunlar
+Shortest first	Əvvəlcə ən qısalar
+Most viewed first	Əvvəlcə ən çox baxılanlar
+Least viewed first	Əvvəlcə ən az baxılanlar
+Most liked first	Əvvəlcə ən çox bəyənilənlər
+Least liked first	Əvvəlcə ən az bəyənilənlər
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Profil və ya bəyənilənlər şəbəkəsini sıralayır, sancılmış videolar əvvəldə qalır. Sıra seçiləndə şəbəkə 300 videoya qədər özü yüklənməyə davam edir, beləliklə sıra ilk ekrandan daha çoxunu əhatə edir. Şəbəkənin yuxarı küncündəki düymə sıranı elə oradaca dəyişir.
+Sort loaded videos on Liked grids	Bəyənilənlər şəbəkələrində yüklənmiş videoları sıralayın
+Same as profile grids	Profil şəbəkələri ilə eyni
+Sort this grid	Bu şəbəkəni sırala
+Recording this LIVE's screen	Bu LIVE-ın ekranı yazılır
+Tap Stop or leave the room to save it.	Saxlamaq üçün Dayandır düyməsinə toxunun və ya otaqdan çıxın.
+Allow photo comments	Foto şərhlərə icazə ver
+Show the gallery tab in the comment box, so you can add a photo to a comment. PineDrama turns it off for everyone, and its server still decides whether your account can post one.	Şərh qutusunda qalereya bölməsini göstərir ki, şərhə foto əlavə edə biləsiniz. PineDrama onu hamı üçün söndürür və hesabınızın foto paylaşa bilib-bilməyəcəyinə yenə də onun serveri qərar verir.
+This screen recording has no sound	Bu ekran yazısında səs yoxdur
+Export recording files	Qeyd fayllarını ixrac et
+Delete recording files	Qeyd fayllarını sil
+The publication state of these older recording files is unknown. Export a copy or delete the retained files.	Bu köhnə qeyd fayllarının yayımlanma vəziyyəti məlum deyil. Bir nüsxə ixrac edin və ya saxlanılan faylları silin.
+The screen recording did not finish. Its files can be exported but may not play.	Ekran qeydi tamamlanmadı. Faylları ixrac etmək olar, lakin onlar açılmaya bilər.
+Recording files need recovery	Yazı fayllarını bərpa etmək lazımdır
+The recovery record is damaged. Export a copy of the recording files or delete them.	Bərpa qeydi zədələnib. Yazı fayllarının surətini ixrac edin və ya onları silin.
+Export may be incomplete. The recordings are kept.	İxrac natamam ola bilər. Qeydlər saxlanılır.
+Some recording files remain. Try deleting them again.	Bəzi qeyd faylları qalıb. Yenidən silin.
+
+# context: Explicit recording Retry when the original stop reason was not retained.
+Recovered recording saved to %1$s	Bərpa edilmiş çəkiliş %1$s qovluğunda saxlanıldı
+
+# context: Settings search switch location action, gesture hint, and missing original row.
+Open setting location	Parametrin yerini aç
+Expanded	Genişləndirilib
+Collapsed	Yığılıb
+This setting isn't available. Search for another setting.	Bu ayar əlçatan deyil. Başqa ayar axtarın.
+Hide the HushPine row	HushPine sətrini gizlət
+Take HushPine out of PineDrama's Settings and privacy. To open these settings, press and hold any tab at the top of the feed.	HushPine-i PineDrama-nın Parametrlər və məxfilik siyahısından çıxarın. Bu ayarları açmaq üçün lentin yuxarısındakı istənilən tabı basılı saxlayın.
+Search didn't open. Restart PineDrama and try again.	Axtarış açılmadı. Yenidən başladıb yoxlayın.
+Put the comment search away	Şərh axtarışını gizlət
+autoplay auto play	avtomatik oynatma avtooynatma
+picture in picture PiP	şəkil içində şəkil PiP
+search suggestions	axtarış təklifləri
+AI chat	Sİ söhbəti
+AI Tako	Sİ Tako
+save photos	fotoları saxla
+Lock the feed at set times	Lenti müəyyən saatlarda kilidlə
+The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Lent bu saatlarda telefonunun saatına görə özü kilidlənir. Günləri və saatları belə yaz: Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Hər gün üçün günləri yazma. Başladığından tez bitən vaxt gecə yarısını keçir.
+Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	%1$s oxuna bilmədi. Günləri və saatları Mon-Fri 21:00-07:00 kimi yaz.
+%1$s starts and ends at the same time. Give it a different end time.	%1$s eyni vaxtda başlayır və bitir. Başqa bitmə vaxtı ver.
+Locked all week	Bütün həftə kilidlidir
+Locked now, until %1$s	İndi kilidlidir, açılır: %1$s
+Next lock starts %1$s	Növbəti kilid: %1$s
+Save only on Wi-Fi	Yalnız Wi-Fi ilə saxla
+Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.	Saxlamalar 30 dəqiqəyədək Wi-Fi və ya limitsiz başqa şəbəkə gözləyir, ondan çıxsanız dayanır. Kadrın saxlanması hər yerdə işləyir.
+Waiting for Wi-Fi	Wi-Fi gözlənilir
+The last one is still waiting for Wi-Fi	Sonuncu hələ Wi-Fi gözləyir
+No Wi-Fi for 30 minutes. Save again on Wi-Fi.	30 dəqiqə Wi-Fi yoxdur. Wi-Fi ilə yenidən saxlayın.
+Saved %1$s of %2$s. Save the rest on Wi-Fi.	%1$s / %2$s saxlanıldı. Qalanını Wi-Fi ilə saxlayın.
+Save stopped when Wi-Fi dropped. Retry on Wi-Fi.	Wi-Fi yox, saxlama dayandı. Wi-Fi ilə yenidən saxlayın.
+Leave after no touch	Toxunuş olmadıqda çıxın
+Zero switches this off. After that many minutes with no touch on the screen, the video stops and PineDrama goes to the background, for when you fall asleep watching. Any touch starts the wait over.	Sıfır bunu söndürür. Ekrana bu qədər dəqiqə toxunulmadıqda video dayanır və PineDrama arxa plana keçir, izləyərkən yuxuya getdiyiniz hallar üçün. İstənilən toxunuş gözləməni yenidən başladır.
+# context: PineDrama's comment sticker panel. Create is a button on its Saved page that turns a photo into a sticker. These are its spoken label and its toasts. The panel's tab names come from PineDrama's server, not the app, so the last toast describes the saved stickers instead of quoting the tab
+Make a sticker from a photo	Fotodan stiker yaradın
+Making your sticker	Stikeriniz hazırlanır
+Couldn't open your photos. Try again.	Fotoları açmaq alınmadı. Yenidən cəhd edin.
+Couldn't make the sticker. Try again.	Stikeri yaratmaq alınmadı. Yenidən cəhd edin.
+Couldn't read that photo. Try another one.	Bu fotonu oxumaq alınmadı. Başqa birini seçin.
+This account can't make stickers	Bu hesab stiker yarada bilməz
+Sticker added to Saved	Stiker saxlanılanlara əlavə edildi
+# context: PineDrama's comment sticker panel. Recently used is a heading HushPine adds above Saved, over the last stickers you sent. PineDrama's own label for it isn't in the APK, so this is the usual phone wording
+Recently used	Son istifadə olunanlar
+# context: A video's share sheet. Make sticker is a button HushPine adds after Save cover, and it turns the video's cover into one of your saved comment stickers. Keep it about as short as Save cover, since share sheet labels get two short lines under the icon
+Make sticker	Stiker yarat

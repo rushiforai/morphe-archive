@@ -5,16 +5,15 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object CallFilterCompatibility {
-    val CALL_FILTER = Compatibility(
-        name = "Callfilter.app",
+    val CALLFILTER = Compatibility(
+        name = "Call Filter",
         packageName = "callfilter.app",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0x2196F3,
+        appIconColor = 0x1976D2,
         targets = listOf(
-            AppTarget(
-                version = null,
-                isExperimental = true
-            )
-        )
+            AppTarget(version = "1.50.2"),
+            AppTarget(version = "1.50.1", isExperimental = true),
+            AppTarget(version = "1.50.0", isExperimental = true),
+        ),
     )
 }

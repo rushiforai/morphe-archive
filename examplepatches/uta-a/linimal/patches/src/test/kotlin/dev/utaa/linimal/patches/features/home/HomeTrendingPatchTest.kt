@@ -18,51 +18,38 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+private const val MATOME_PAYLOAD = "Lexample/home/MatomeSingle;"
+
 class HomeTrendingPatchTest {
     @Test
-    fun `metadata continuation resolves every enclosing renderer owner candidate`() {
-        assertEquals(
-            listOf("Lexample/home/MatomeModule;"),
-            matomeRendererOwnerCandidates(setOf("Lexample/home/MatomeModule\$1;")).toList(),
-        )
-        // nest の深さは version で変わり得るため、直接の enclosing から最外殻までを候補にします。
-        assertEquals(
-            listOf("Lexample/home/MatomeModule\$Stateful;", "Lexample/home/MatomeModule;"),
-            matomeRendererOwnerCandidates(setOf("Lexample/home/MatomeModule\$Stateful\$1;")).toList(),
-        )
-    }
-
-    @Test
-    fun `missing ambiguous or non nested continuation leaves the target unresolved`() {
-        assertEquals(emptySet(), matomeRendererOwnerCandidates(emptySet()))
-        assertEquals(
-            emptySet(),
-            matomeRendererOwnerCandidates(
-                setOf("Lexample/home/First\$1;", "Lexample/home/Second\$1;"),
-            ),
-        )
-        // enclosing type を持たない continuation からは owner を導けません。
-        assertEquals(emptySet(), matomeRendererOwnerCandidates(setOf("Lexample/home/MatomeModule;")))
-        assertEquals(emptySet(), matomeRendererOwnerCandidates(setOf("Lexample/home/MatomeModule\$1")))
-    }
-
-    @Test
-    fun `only the five argument module renderer is accepted`() {
+    fun `only the five argument module renderer of the payload is accepted`() {
         assertTrue(
             isMatomeModuleRendererSignature(
-                renderer("Ljava/lang/String;", "Lm52/n;", "Ll72/f;", "Lh3/t;", "I"),
+                renderer("Ljava/lang/String;", MATOME_PAYLOAD, "Lsg2/h;", "Lj3/r;", "I"),
+                MATOME_PAYLOAD,
+            ),
+        )
+        // 同じ形の別 module（Carousel など）は view data の型が違うため対象にしません。
+        assertFalse(
+            isMatomeModuleRendererSignature(
+                renderer("Ljava/lang/String;", "Lexample/home/Carousel;", "Lsg2/h;", "Lj3/r;", "I"),
+                MATOME_PAYLOAD,
             ),
         )
         // 話題枠の compose body は 5 引数版だけです。引数の数や並びが違うものは対象にしません。
-        assertFalse(isMatomeModuleRendererSignature(renderer("Lm52/n;", "Ll72/f;", "Lh3/t;", "I")))
+        assertFalse(
+            isMatomeModuleRendererSignature(renderer(MATOME_PAYLOAD, "Lsg2/h;", "Lj3/r;", "I"), MATOME_PAYLOAD),
+        )
         assertFalse(
             isMatomeModuleRendererSignature(
-                renderer("Ljava/lang/String;", "Lm52/n;", "Lm52/n;", "Lh3/t;", "I"),
+                renderer("Ljava/lang/String;", MATOME_PAYLOAD, MATOME_PAYLOAD, "Lj3/r;", "I"),
+                MATOME_PAYLOAD,
             ),
         )
         assertFalse(
             isMatomeModuleRendererSignature(
-                renderer("Ljava/lang/String;", "Lm52/n;", "Ll72/f;", "Lh3/t;", "J"),
+                renderer("Ljava/lang/String;", MATOME_PAYLOAD, "Lsg2/h;", "Lj3/r;", "J"),
+                MATOME_PAYLOAD,
             ),
         )
     }
@@ -71,7 +58,7 @@ class HomeTrendingPatchTest {
     fun `only one target is expected and nothing is injected without it`() {
         assertEquals(1, HOME_TRENDING_TARGET_COUNT)
 
-        val notFound = homeTrendingUnappliedRecord(0, "HomeMatomeModuleContinuationNotUnique")
+        val notFound = homeTrendingUnappliedRecord(0, "HomeMatomePayloadTypeNotUnique")
         assertEquals(PatchId.HOME_MATOME_SINGLE_MODULE, notFound.patchId)
         assertEquals(PatchStatus.TARGET_NOT_FOUND, notFound.status)
         assertEquals(HOME_TRENDING_TARGET_COUNT, notFound.expectedTargetCount)
@@ -169,7 +156,7 @@ class HomeTrendingPatchTest {
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(shouldExecuteCount - 1) { add(composerCall("A", listOf("I", "Z"), "Z")) }
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }
-        repeat(endRestartGroupCount) { add(composerCall("Y", emptyList(), "Lh3/p3;")) }
+        repeat(endRestartGroupCount) { add(composerCall("Z", emptyList(), "Lj3/p3;")) }
     }
 
     private fun composerCall(
@@ -180,6 +167,6 @@ class HomeTrendingPatchTest {
         Opcode.INVOKE_VIRTUAL,
         1,
         6, 0, 0, 0, 0,
-        ImmutableMethodReference("Lh3/f1;", name, parameters, returnType),
+        ImmutableMethodReference("Lj3/d1;", name, parameters, returnType),
     )
 }

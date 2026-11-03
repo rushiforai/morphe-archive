@@ -7,7 +7,6 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.ApkArchitecture
 import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -24,10 +23,8 @@ import dev.utaa.linimal.patches.status.PatchStatusRecord
 import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 
-private const val HOME_AGENT_ICON = 0x7f080b83
-private const val HOME_AGENT_ACCESSIBILITY_LABEL = 0x7f15006b
-private const val HOME_AGENT_DEEP_LINK = "line://lineai/thread"
-private const val HOME_AGENT_ENTRY = "hometab_v4_header"
+private const val HOME_AGENT_ICON = 0x7f080b92
+private const val HOME_AGENT_ACCESSIBILITY_LABEL = 0x7f15006c
 private const val HOME_HEADER_HOOK =
     "Ldev/utaa/linimal/extension/features/agenti/AgentIHomeHeaderHooks;->adjustVisibility(Z)Z"
 
@@ -39,17 +36,17 @@ private val homeAgentIconFingerprint = Fingerprint(
         literal(HOME_AGENT_ACCESSIBILITY_LABEL),
         literal(HOME_AGENT_ICON),
         methodCall(
-            definingClass = "Loa2/m;",
-            name = "c",
+            definingClass = "Lfm2/n;",
+            name = "b",
             parameters = listOf(
                 "I",
                 "Ljava/lang/String;",
-                "Lvb8/a;",
-                "Ly3/j;",
-                "Loa2/n;",
+                "Lnt8/a;",
+                "Lb4/j;",
+                "Lfm2/o;",
                 "Lcom/linecorp/line/compose/theme/g;",
                 "Ljava/util/Set;",
-                "Lh3/t;",
+                "Lj3/r;",
                 "I",
                 "I",
             ),
@@ -57,51 +54,37 @@ private val homeAgentIconFingerprint = Fingerprint(
             opcode = Opcode.INVOKE_STATIC_RANGE,
         ),
     ),
-    custom = { _, classDef -> classDef.interfaces.contains("Lvb8/q;") },
+    custom = { _, classDef -> classDef.interfaces.contains("Lnt8/q;") },
 )
 
-/** Agent i deeplink と entry metadata を持つ click lambda。 */
-private val homeAgentEntryActionFingerprint = Fingerprint(
-    returnType = "Ljava/lang/Object;",
-    parameters = emptyList(),
-    filters = listOf(
-        string(HOME_AGENT_DEEP_LINK),
-        methodCall(
-            definingClass = "Landroid/net/Uri;",
-            name = "parse",
-            parameters = listOf("Ljava/lang/String;"),
-            returnType = "Landroid/net/Uri;",
-            opcode = Opcode.INVOKE_STATIC,
-        ),
-        string(HOME_AGENT_ENTRY),
-    ),
-    custom = { _, classDef -> classDef.interfaces.contains("Lvb8/a;") },
+private val homeHeaderSupplierParameters = listOf(
+    "Lts2/r;",
+    "Z",
+    "Z",
+    "Z",
+    "Z",
+    "Lts2/j;",
+    "Lts2/i;",
+    "Lts2/i;",
+    "Lts2/i;",
+    "Lts2/i;",
+    "Lj3/r;",
+    "I",
 )
 
-/** deeplink lambda を Compose callback へ束ねる creator。 */
-private fun homeAgentEntryCallbackFingerprint(entryActionType: String) = Fingerprint(
-    returnType = "Ljava/lang/Object;",
-    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
-    custom = { method, _ -> methodCreatesType(method, entryActionType) },
-)
-
-/** deeplink callback を生成する Home composable host。難読化 owner はこの creation chain からだけ導出します。 */
-private fun homeAgentEntryHostFingerprint(entryCallbackType: String) = Fingerprint(
+/**
+ * 4 icon callback を生成する composable のうち Agent i icon callback を持つ唯一の boolean supplier。
+ * click は設定 URL 起点へ変わり deeplink 文字列が消えたため、resource で確定した icon callback から導出します。
+ */
+private fun homeAgentHeaderSupplierFingerprint(iconCallbackType: String) = Fingerprint(
     returnType = "V",
-    parameters = listOf("Lvb8/a;", "Lh3/t;", "I"),
-    custom = { method, _ -> methodCreatesType(method, entryCallbackType) },
-)
-
-/** 4 icon callback を生成する composable のうち Agent i icon callback を持つ唯一の boolean supplier。 */
-private fun homeAgentHeaderSupplierFingerprint(homeOwner: String) = Fingerprint(
-    definingClass = homeOwner,
-    name = "b",
-    returnType = "V",
+    parameters = homeHeaderSupplierParameters,
+    custom = { method, _ -> methodCreatesType(method, iconCallbackType) },
 )
 
 /**
  * Home 上部ナビゲーションが再 composition ごとに受け取る Agent i 専用 boolean を制御します。
- * icon row や他の 3 button callback、deeplink dispatcher、analytics は変更しません。
+ * icon row や他の 3 button callback、遷移処理、analytics は変更しません。
  */
 val agentIHomeHeaderPatch = bytecodePatch(
     name = "ホーム上部の Agent i",
@@ -124,29 +107,8 @@ val agentIHomeHeaderPatch = bytecodePatch(
             return@execute
         }
 
-        val entryActionMatches = homeAgentEntryActionFingerprint.matchAllOrNull().orEmpty()
-        if (entryActionMatches.size != 1) {
-            recordHomeHeaderUnapplied(entryActionMatches.size, "AgentIHomeHeaderEntryMetadataNotUnique")
-            return@execute
-        }
-
-        val entryActionType = entryActionMatches.single().originalClassDef.type
-        val entryCallbackMatches = homeAgentEntryCallbackFingerprint(entryActionType).matchAllOrNull().orEmpty()
-        if (entryCallbackMatches.size != 1) {
-            recordHomeHeaderUnapplied(entryCallbackMatches.size, "AgentIHomeHeaderEntryCallbackNotUnique")
-            return@execute
-        }
-
-        val homeHostMatches = homeAgentEntryHostFingerprint(
-            entryCallbackMatches.single().originalClassDef.type,
-        ).matchAllOrNull().orEmpty()
-        if (homeHostMatches.size != 1) {
-            recordHomeHeaderUnapplied(homeHostMatches.size, "AgentIHomeHeaderHostNotUnique")
-            return@execute
-        }
-
         val supplierMatches = homeAgentHeaderSupplierFingerprint(
-            homeHostMatches.single().originalClassDef.type,
+            iconMatches.single().originalClassDef.type,
         ).matchAllOrNull().orEmpty()
         if (supplierMatches.size != 1) {
             recordHomeHeaderUnapplied(supplierMatches.size, "AgentIHomeHeaderSupplierNotUnique")
@@ -183,20 +145,7 @@ val agentIHomeHeaderPatch = bytecodePatch(
 private fun guardHomeHeaderSupplier(method: Method, iconCallbackType: String): Boolean {
     val implementation = method.implementation ?: return false
     val instructions = implementation.instructions.toList()
-    val expectedParameters = listOf(
-        "Lgg2/r;",
-        "Z",
-        "Z",
-        "Z",
-        "Z",
-        "Lgg2/j;",
-        "Lgg2/i;",
-        "Lgg2/i;",
-        "Lgg2/i;",
-        "Lgg2/i;",
-        "Lh3/t;",
-        "I",
-    )
+    val expectedParameters = homeHeaderSupplierParameters
     val constructorIndices = instructions.mapIndexedNotNull { index, instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
         index.takeIf {
@@ -205,13 +154,13 @@ private fun guardHomeHeaderSupplier(method: Method, iconCallbackType: String): B
                 reference.name == "<init>" &&
                 reference.parameterTypes == listOf(
                     "Z",
-                    "Lgg2/i;",
+                    "Lts2/i;",
                     "Z",
-                    "Lgg2/i;",
+                    "Lts2/i;",
                     "Z",
-                    "Lgg2/i;",
+                    "Lts2/i;",
                     "Z",
-                    "Lgg2/i;",
+                    "Lts2/i;",
                 ) &&
                 reference.returnType == "V"
         }

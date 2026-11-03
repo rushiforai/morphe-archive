@@ -428,6 +428,24 @@ class MarkReadButtonTest {
         }
     }
 
+    @Test fun askBeforeACallSharesTheSeamWithBothOtherTopBarControls() {
+        val barMethod = bar()
+        val factoryMethod = factory()
+        val clickMethod = click()
+        mirroredControls(markReadFixture(barMethod = barMethod, clickMethod = clickMethod, factoryMethod = factoryMethod))
+        val clickBefore = clickMethod.code()
+        assertEquals(setOf(HIDE_CALL_BAR), controlHooks.getValue("call_confirm"))
+        injectControl("call_confirm", mapOf(HIDE_CALL_BAR to listOf(barMethod, factoryMethod)))
+        assertEquals(MARK_READ_ADD, barMethod.code()[BAR_SITE].ref())
+        assertEquals(1, factoryMethod.code().count { it.ref() == MARK_READ_ADD_TO })
+        assertEquals(clickBefore, clickMethod.code())
+        injectControl(HIDE_CALL_BUTTONS, mapOf(HIDE_CALL_BAR to listOf(barMethod, factoryMethod)))
+        injectControl(MARK_READ_BUTTON, mapOf(MARK_READ_BAR to listOf(barMethod, factoryMethod), MARK_READ_CLICK to listOf(clickMethod)))
+        assertEquals(1, barMethod.code().count { it.ref() == MARK_READ_ADD })
+        assertEquals(1, factoryMethod.code().count { it.ref() == MARK_READ_ADD_TO })
+        assertEquals(1, clickMethod.code().count { it.ref() == MARK_READ_CLICKED })
+    }
+
     @Test fun hideCallButtonsAloneStillGetsTheSeamAndLeavesTheTapAlone() {
         val barMethod = bar()
         val factoryMethod = factory()

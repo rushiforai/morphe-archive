@@ -152,7 +152,7 @@ public final class BlockNsfwContentPatch {
         Constructor<?> constructor = null;
         for (Constructor<?> c : lambdaClass.getDeclaredConstructors()) {
             Class<?>[] types = c.getParameterTypes();
-            if (types.length == 3 && types[0].isInstance(repository) && types[1] == boolean.class) {
+            if (types.length >= 3 && types[0].isInstance(repository) && types[1] == boolean.class) {
                 constructor = c;
                 break;
             }
@@ -163,7 +163,8 @@ public final class BlockNsfwContentPatch {
         constructor.setAccessible(true);
 
         // Continuation interface.
-        Class<?> continuationClass = constructor.getParameterTypes()[2];
+        Class<?>[] paramTypes = constructor.getParameterTypes();
+        Class<?> continuationClass = paramTypes[paramTypes.length - 1];
         Class<?> coroutineContextClass = Class.forName("kotlin.coroutines.CoroutineContext", true, classLoader);
         Object emptyCoroutineContext = Class.forName("kotlin.coroutines.EmptyCoroutineContext", true, classLoader)
                 .getField("INSTANCE").get(null);
@@ -188,7 +189,19 @@ public final class BlockNsfwContentPatch {
                     return null;
                 });
 
-        Object lambda = constructor.newInstance(repository, false, null);
+        Object[] initArgs = new Object[paramTypes.length];
+        initArgs[0] = repository;
+        initArgs[1] = false;
+        for (int i = 2; i < paramTypes.length - 1; i++) {
+            if (paramTypes[i] == boolean.class) {
+                initArgs[i] = false;
+            } else {
+                initArgs[i] = null;
+            }
+        }
+        initArgs[paramTypes.length - 1] = null;
+
+        Object lambda = constructor.newInstance(initArgs);
         // Function1.invoke(Continuation) creates a new instance with the completion and runs it.
         Method invoke = lambdaClass.getMethod("invoke", Object.class);
         invoke.setAccessible(true);

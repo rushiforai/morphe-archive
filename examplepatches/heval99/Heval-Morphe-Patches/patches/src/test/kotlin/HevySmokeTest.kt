@@ -60,7 +60,7 @@ class HevySmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "3.2.2",
+            version = "3.2.4",
             patchNames = HEVY_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

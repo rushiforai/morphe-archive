@@ -28,3 +28,9 @@ The TikTok patches and their extensions (`app.czyeru.patches.tiktok`, `app.czyer
 (https://github.com/icysymmetra/tiktok-patches-for-morphe), which itself builds on the ReVanced and
 Morphe patch sources. The original copyright headers are kept in the individual files. The code is
 distributed under the GNU General Public License v3 (see LICENSE).
+
+Patches ported from Hushfeed (https://github.com/SysAdminDoc/hushfeed): Keep the Favorites tab,
+Show exact counts, Expand activity list, Copy bio and IDs, Block author button, Not interested
+button, Double-tap controls and Comment tools, with the code they need. Hushfeed also builds on
+icysymmetra/tiktok-patches-for-morphe and is GPL-3.0. Its copyright headers are kept in the
+ported files.

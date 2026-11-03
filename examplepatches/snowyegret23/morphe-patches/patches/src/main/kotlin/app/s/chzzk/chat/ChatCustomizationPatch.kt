@@ -62,6 +62,10 @@ val chatCustomizationPatch = bytecodePatch(
     dependsOn(playerResources)
 
     execute {
+        if (packageMetadata.versionName == "1.3.0") {
+            addTvCustomization()
+            return@execute
+        }
         addSettingsEntry()
         addChatUiHooks()
         addPlayerHooks()

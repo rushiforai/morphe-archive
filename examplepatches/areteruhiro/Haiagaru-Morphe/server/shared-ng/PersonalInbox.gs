@@ -37,6 +37,8 @@ function ngEmptyInboxRow_(row){return row.every(value=>value===''||value===null|
 function ngReceivePersonal_(body){
  if(body.version!==2||body.action!=='personal'||typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||!Array.isArray(body.reports)||!body.reports.length||body.reports.length>20)throw Error('Invalid personal batch');
  const incoming=body.reports.map(ngInboxValidate_),props=PropertiesService.getScriptProperties(),pepper=props.getProperty('REPORTER_PEPPER');if(!pepper)throw Error('Run setupSharedNg first');
+ const reporter=ngHash_(pepper+':'+body.device);
+ if(ngReporterIgnored_(reporter))return ngJson_({ok:true,accepted:new Set(incoming.map(r=>r.operationId)).size,ack:incoming.map(r=>r.operationId)});
  const lock=LockService.getScriptLock();lock.waitLock(15000);try{
   ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);ngRecoverPersonalTransfer_(b);const s=b.getSheetByName('Inbox'),rows=ngAllPersonalRows_(b),reporter=ngHash_(pepper+':'+body.device),known=new Set(rows.filter(r=>r[1]===reporter).map(r=>r[0]));
   const day=new Date().toISOString().slice(0,10);let used=rows.filter(r=>r[1]===reporter&&String(r[4]).startsWith(day)).length;let accepted=0;
@@ -136,7 +138,7 @@ function ngStorePersonalRows_(book,rows){
  ngWritePersonalRows_(book.getSheetByName('ReviewTransfer'),rows);
  props.setProperty('REVIEW_TRANSFER',JSON.stringify({phase:'staged',count:rows.length}));
  ngRecoverPersonalTransfer_(book);
- const cache=CacheService.getScriptCache();if(cache.remove)cache.remove('reviewed-feed-v9');
+ const cache=CacheService.getScriptCache();if(cache.remove)cache.remove(ngReviewedCacheKey_());
 }
 function ngRecoverPersonalTransfer_(book){
  const props=PropertiesService.getScriptProperties(),raw=props.getProperty('REVIEW_TRANSFER');if(!raw)return;

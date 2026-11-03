@@ -61,6 +61,14 @@ public final class DanmakuSettings {
     private static final String SEPARATE_LAYER = "danmaku_separate_layer";
     private static final String MAX_FPS = "danmaku_max_fps";
 
+    /**
+     * Morphe's official "Niconico comments" patch keeps its settings here. While it shows live
+     * chat, danmaku leaves live chat to it so the same messages are not drawn and fetched twice.
+     */
+    private static final String OFFICIAL_PREFERENCES_NAME = "morphe_prefs";
+    private static final String OFFICIAL_NICONICO = "morphe_niconico_comments";
+    private static final String OFFICIAL_NICONICO_SHOWN = "morphe_niconico_comments_shown";
+
     private static final String[] ALL_KEYS = {
             MASTER, REGULAR, LIVE, PREMIERE, STREAM, REGULAR_MODE, STREAM_COMMENT_MODE,
             EXCLUDE_LONG, MAX_LENGTH, NG_WORDS, MERGE_DUPLICATES, HIGHLIGHT_PAID,
@@ -73,7 +81,8 @@ public final class DanmakuSettings {
             DURATION, SPEED_MODE, COVERAGE, CROWD_MODE, SMALL_PLAYER_SCALE, MAX_COMMENTS, MAX_FPS
     };
     private static final Set<String> FETCH_KEYS = new HashSet<>(Arrays.asList(
-            MASTER, REGULAR, LIVE, PREMIERE, STREAM_COMMENT_MODE, MAX_COMMENTS));
+            MASTER, REGULAR, LIVE, PREMIERE, STREAM_COMMENT_MODE, MAX_COMMENTS,
+            OFFICIAL_NICONICO, OFFICIAL_NICONICO_SHOWN));
     private static final Set<String> FILTER_KEYS = new HashSet<>(Arrays.asList(
             REGULAR_MODE, EXCLUDE_LONG, MAX_LENGTH, NG_WORDS, MERGE_DUPLICATES,
             HIGHLIGHT_PAID));
@@ -92,10 +101,15 @@ public final class DanmakuSettings {
 
     private static final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener =
             (sharedPreferences, key) -> {
-                if (key != null && key.startsWith("danmaku_")) reloadAndNotify(key);
+                if (key != null && (key.startsWith("danmaku_")
+                        || key.equals(OFFICIAL_NICONICO) || key.equals(OFFICIAL_NICONICO_SHOWN))) {
+                    reloadAndNotify(key);
+                }
             };
 
     private static volatile SharedPreferences preferences;
+    private static volatile SharedPreferences officialPreferences;
+    private static volatile boolean officialLiveChat;
     private static volatile boolean masterEnabled = true;
     private static volatile boolean regularEnabled = true;
     private static volatile boolean liveEnabled = true;
@@ -138,8 +152,11 @@ public final class DanmakuSettings {
         migrateCombinedStreamPreference(nativePreferences);
         normalizeNumericPreferences(nativePreferences);
         preferences = nativePreferences;
+        officialPreferences = application.getSharedPreferences(
+                OFFICIAL_PREFERENCES_NAME, Context.MODE_PRIVATE);
         reload();
         nativePreferences.registerOnSharedPreferenceChangeListener(preferenceListener);
+        officialPreferences.registerOnSharedPreferenceChangeListener(preferenceListener);
     }
 
     /** Converts values written by older builds before a ListPreference reads them. */
@@ -177,6 +194,9 @@ public final class DanmakuSettings {
         smallPlayerEnabled = prefs.getBoolean(SMALL_PLAYER, true);
         smallPlayerScale = clamp(getInt(prefs, SMALL_PLAYER_SCALE, 80), 50, 100);
         maxComments = clamp(getInt(prefs, MAX_COMMENTS, DanmakuController.configMaxComments()), 20, 500);
+        SharedPreferences official = officialPreferences;
+        officialLiveChat = official != null && official.getBoolean(OFFICIAL_NICONICO, false)
+                && official.getBoolean(OFFICIAL_NICONICO_SHOWN, true);
         styleGeneration++;
     }
 
@@ -314,6 +334,8 @@ public final class DanmakuSettings {
     static boolean isPremiereEnabled() { return premiereEnabled; }
     static int getRegularMode() { return regularMode; }
     static int getStreamCommentMode() { return streamCommentMode; }
+    /** True while Morphe's official Niconico comments patch shows live chat and chat replays. */
+    static boolean isOfficialLiveChatShown() { return officialLiveChat; }
     static boolean shouldExcludeLong() { return excludeLong; }
     static int getMaxLength() { return maxLength; }
     static CommentFilter getNgFilter() { return ngFilter; }

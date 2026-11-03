@@ -1,0 +1,180 @@
+/*
+ * Forked from:
+ * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/tiktok/interaction/cleardisplay/RememberClearDisplayPatch.kt
+ */
+package app.morphe.patches.pinedrama.interaction.cleardisplay
+
+import app.morphe.util.addInstruction
+import app.morphe.util.addInstructions
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinedrama.misc.settings.configurableBytecodePatch as bytecodePatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.pinedrama.misc.extension.sharedExtensionPatch
+import app.morphe.patches.pinedrama.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.patches.pinedrama.misc.settings.settingsPatch
+import app.morphe.patches.pinedrama.shared.buildName
+import app.morphe.patches.pinedrama.shared.declaredVersions
+import app.morphe.patches.pinedrama.interaction.blockauthor.PlayerProgressAidFingerprint
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.cloneMutable
+import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
+import app.morphe.util.returnEarly
+import app.morphe.util.singleOrPatchException
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val EXTENSION = "Lapp/morphe/extension/pinedrama/cleardisplay/RememberClearDisplayPatch;"
+
+@Suppress("unused")
+val rememberClearDisplayPatch = bytecodePatch(
+    name = "Remember clear display",
+    description = "Keeps clear display, PineDrama's mode that hides the buttons over a video, on " +
+        "as you swipe to the next video (`Keep Clear display across videos` turns that part off). " +
+        "It can also turn on by itself after a delay you pick, " +
+        "which starts off in HushPine settings > Feed screen. When clear display ends, the " +
+        "Following stories bubble PineDrama hid comes back too.",
+    default = true,
+) {
+    category("Playback")
+    dependsOn(settingsPatch, sharedExtensionPatch)
+    compatibleWith(*AppCompatibilities.pineDrama())
+    execute {
+        // Entering clear display by itself must not look to PineDrama like the reader asked for
+        // it, so the events its own code sends are stopped. Two of the three were written as bare
+        // signatures, both had stopped matching anything on 46.2.3, and both call sites were
+        // methodOrNull, so the patch skipped them and still reported Applied. They are found
+        // inside the logging class now, which the one surviving signature identifies.
+        val stateMethod = ClearModeLogStateFingerprint.method
+        val loggerClass = mutableClassDefBy(stateMethod.definingClass)
+        stateMethod.returnEarly()
+
+        fun suppress(event: String, parameterPrefix: List<String>) {
+            val matches = loggerClass.methods.filter { candidate ->
+                candidate.returnType == "V" &&
+                    AccessFlags.STATIC.isSet(candidate.accessFlags) &&
+                    candidate.parameters.map { it.type }.take(parameterPrefix.size) == parameterPrefix
+            }
+            if (matches.isEmpty()) {
+                throw PatchException(
+                    "Remember clear display: ${stateMethod.definingClass} no longer logs the " +
+                        "$event event, so entering clear display would be reported as a tap.",
+                )
+            }
+            matches.forEach { it.returnEarly() }
+        }
+
+        suppress(
+            "clear mode change",
+            listOf(
+                "Z",
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                "Ljava/lang/String;",
+                "J",
+                "I",
+            ),
+        )
+        suppress(
+            "clear mode playtime",
+            listOf("F", "I", "J", "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+        )
+        val eventMethod = OnClearDisplayEventFingerprint.method
+        val controllerMembers = resolveClearDisplayController(eventMethod) { classDefByOrNull(it) }
+        hookClearDisplayCompletion(eventMethod, ClearDisplayCellFingerprint.method)
+        val eventClass = eventMethod.parameters[0].type
+        val frameMethod = OnRenderFirstFrameBodyFingerprint.method
+        val awemeGetter = frameMethod.implementationOrPatchException("Remember clear display")
+            .instructions.mapNotNull {
+            it.getReference<MethodReference>()
+        }.filter {
+            it.definingClass == frameMethod.definingClass && it.parameterTypes.isEmpty() &&
+                it.returnType == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
+        }.distinctBy { it.toString() }
+            .singleOrPatchException("Remember clear display: first-frame Aweme getter")
+        val extension = mutableClassDefBy(EXTENSION)
+        val panelOriginal = extension.methods.filter { it.name == "onNativePanelApply" }
+            .singleOrPatchException("Remember clear display: extension panel controller bridge")
+        extension.methods.remove(panelOriginal)
+        extension.methods.add(clearDisplayPanelBridge(panelOriginal, controllerMembers))
+        val postOriginal = extension.methods.filter { it.name == "postClear" }
+            .singleOrPatchException("Remember clear display: extension postClear bridge")
+        val post = postOriginal.cloneMutable(additionalRegisters = 5)
+        extension.methods.remove(postOriginal)
+        extension.methods.add(post)
+        post.addInstructions(0, """
+            new-instance v0, $eventClass
+            move/from16 v1, p0
+            const/4 v2, 0x0
+            const-string v3, ""
+            const-string v4, "long_press"
+            invoke-direct { v0, v1, v2, v3, v4 }, $eventClass-><init>(ZILjava/lang/String;Ljava/lang/String;)V
+            invoke-static { v0, v1 }, $EXTENSION->beginNativeDispatch(Ljava/lang/Object;Z)V
+            invoke-virtual { v0 }, $eventClass->post()Lcom/ss/android/ugc/governance/eventbus/IEvent;
+            invoke-static {}, $EXTENSION->finishNativeDispatch()Z
+            move-result v0
+            return v0
+        """)
+        // Double tap or Long press set to Clear display (#136): the same event without the
+        // native dispatch mark, so the hook below reads it as the reader's own change.
+        val readerOriginal = extension.methods.filter { it.name == "postAsReader" }
+            .singleOrPatchException("Remember clear display: extension postAsReader bridge")
+        val reader = readerOriginal.cloneMutable(additionalRegisters = 5)
+        extension.methods.remove(readerOriginal)
+        extension.methods.add(reader)
+        reader.addInstructions(0, """
+            new-instance v0, $eventClass
+            move/from16 v1, p0
+            const/4 v2, 0x0
+            const-string v3, ""
+            const-string v4, "long_press"
+            invoke-direct { v0, v1, v2, v3, v4 }, $eventClass-><init>(ZILjava/lang/String;Ljava/lang/String;)V
+            invoke-virtual { v0 }, $eventClass->post()Lcom/ss/android/ugc/governance/eventbus/IEvent;
+            return-void
+        """)
+        val readOriginal = extension.methods.filter { it.name == "readCurrentAweme" }
+            .singleOrPatchException("Remember clear display: extension readCurrentAweme bridge")
+        val read = readOriginal.cloneMutable(additionalRegisters = 1)
+        extension.methods.remove(readOriginal)
+        extension.methods.add(read)
+        read.addInstructions(0, """
+            check-cast p0, @OWNER@
+            invoke-virtual/range { p0 .. p0 }, $awemeGetter
+            move-result-object v0
+            return-object v0
+        """.replace("@OWNER@", frameMethod.definingClass))
+        eventMethod.addInstruction(0,
+            "invoke-static/range { p1 .. p1 }, $EXTENSION->rememberClearDisplayEvent(Ljava/lang/Object;)V")
+        frameMethod.addInstruction(0,
+            "invoke-static/range { p0 .. p0 }, $EXTENSION->onFirstFrame(Ljava/lang/Object;)V")
+        PlayerProgressAidFingerprint.method.addInstruction(0,
+            "invoke-static/range { p0 .. p1 }, $EXTENSION->onPlaybackProgress(Ljava/lang/Object;Ljava/lang/String;)V")
+        // A new video picked as a swipe lets go: with Keep Clear display across videos off, a
+        // clear by hand ends there instead of after that video has settled (#232).
+        val pageSelected = if (packageMetadata.buildName in declaredVersions()) FeedPagerPageSelectedFingerprint.method
+            else FeedPagerPageSelectedFingerprint.methodOrNull
+        if (pageSelected != null) {
+            pageSelected.addInstruction(0,
+                "invoke-static/range { p0 .. p2 }, $EXTENSION->onFeedPageSelected(Ljava/lang/Object;IZ)V")
+        } else {
+            println("[Remember clear display] Left out ending a clear as the swipe lets go on " +
+                "${packageMetadata.buildName}: no video pager selection dispatch")
+        }
+        // PineDrama's Following stories bubble hides itself as clear display starts and stays gone
+        // after it ends. Held to declared builds by FollowingStoriesBubbleAnchorsTest.
+        try {
+            val bubble = mutableClassDefByOrNull(SKYLIGHT_BUBBLE)
+                ?: throw PatchException("Following stories bubble: $SKYLIGHT_BUBBLE is missing")
+            checkBubbleList { classDefByOrNull(it) }
+            val found = findBubbleClearMode(bubble)
+            (found.handler as MutableMethod).hookBubbleClearMode(found)
+        } catch (problem: Exception) {
+            if (packageMetadata.buildName in declaredVersions()) throw problem
+            println("[Remember clear display] Left out the Following stories bubble on " +
+                "${packageMetadata.buildName}: ${problem.message}")
+        }
+        SettingsStatusLoadFingerprint.method.addInstruction(0,
+            "invoke-static {}, Lapp/morphe/extension/pinedrama/settings/SettingsStatus;->enableAutomaticClearDisplay()V")
+    }
+}

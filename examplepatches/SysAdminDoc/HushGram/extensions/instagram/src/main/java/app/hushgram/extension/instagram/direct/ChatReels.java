@@ -15,6 +15,12 @@ import android.view.ViewTreeObserver;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.Utils;
@@ -38,6 +44,11 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * switch on it ends after the chat's reels (#390). The viewer also puts a loading placeholder
  * after the reels it adds, for the next ones to replace, which {@link #placeholder(Object, int)}
  * leaves out there, so the last page is the chat's last reel and not a gray one that never loads.
+ * Paging the two-sided source, the viewer asks for more of the chat's own reels the same way it asks
+ * for suggested ones, so the patch lets that request through for that source and leaves the stop to
+ * the second side's. Pulling down at the top loads fresh reels, suggested ones, wherever the viewer's
+ * config allows it, so the patch asks {@link #refresh(Object)} at every read of that permission, and
+ * past the chat's last reel {@link ChatReelsExit} takes a swipe up back to the chat.
  *
  * <p>The patch also asks {@link #open(Object, View)} first on every tap on media in a chat. On a slow
  * phone a shared post or reel takes a while to open, and each tap while it loads starts another
@@ -50,9 +61,18 @@ public final class ChatReels {
     /** How long a repeat tap on a message waits at most for the first tap's viewer, in ms. */
     static final long OPENING_MS = 10_000;
 
+    /** How many reels the viewer sent in chats are remembered at most. */
+    static final int SENT_KEPT = 500;
+
     /** The message whose viewer is on its way, or null, and when it was tapped. */
     @Nullable private static volatile Object opening;
     private static volatile long openedAt;
+    /** The media ids of reels the viewer sent in chats, oldest first. */
+    private static final Map<String, Boolean> SENT = new LinkedHashMap<String, Boolean>() {
+        @Override protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+            return size() > SENT_KEPT;
+        }
+    };
     /** The application the activity watcher is registered on. */
     @Nullable private static Application watched;
 
@@ -91,12 +111,164 @@ public final class ChatReels {
     }
 
     /**
+     * Whether [message], one of the chat's messages the opener is about to add to the chain of reels,
+     * joins it: no for a message the viewer sent while "Only received reels" is on, unless it's the one
+     * just tapped (its id shows in the tapped message's text). Yes for any other message, with the
+     * switch off, while HushGram is paused, before the settings are ready and on any failure. A sent
+     * message's reel, read from [wrapper], the message's wrapper, is also remembered for
+     * {@link #leaveOutSent(List, Object)}, or forgotten when it's the one tapped. Never throws.
+     */
+    public static boolean received(@Nullable Object message, @Nullable Object wrapper) {
+        boolean sent;
+        String id;
+        try {
+            HookStatus.invoked(FamilyNames.CHAT_REELS);
+            if (message == null || !Utils.settingsReady() || HushgramPause.isPaused()) return true;
+            if (!Settings.ONLY_RECEIVED_CHAT_REELS.get()) return true;
+            sent = sentByViewer(message);
+            id = sent ? itemId(message) : null;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.CHAT_REELS, "chat reels sender", failure);
+            return true;
+        }
+        if (sent && wrapper != null) remember(wrapper, id);
+        return received(sent, id);
+    }
+
+    /** The test behind {@link #received(Object, Object)}, for a message the viewer sent or not and its item id. */
+    static boolean received(boolean sent, @Nullable String id) {
+        if (!sent || isTapped(id)) return true;
+        HookStatus.counted(FamilyNames.CHAT_REELS, "sent reel left out of the chain");
+        return false;
+    }
+
+    /** Remembers the reel of [wrapper], a message the viewer sent with item [id], or forgets it when it's the one tapped. */
+    private static void remember(Object wrapper, @Nullable String id) {
+        try {
+            Object reel = reel(wrapper);
+            rememberSent(reel == null ? null : mediaId(reel), id);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.CHAT_REELS, "chat reels sent media", failure);
+        }
+    }
+
+    /** Remembers [media], the reel of a message the viewer sent with item [id], or forgets it when that message is the one tapped. */
+    static void rememberSent(@Nullable String media, @Nullable String id) {
+        if (media == null) return;
+        boolean tapped = isTapped(id);
+        synchronized (SENT) {
+            if (tapped) SENT.remove(media);
+            else SENT.put(media, Boolean.TRUE);
+        }
+    }
+
+    /**
+     * The reels to add to a viewer whose source is [source], its ClipsViewerSource, out of [items], a
+     * page of them. A viewer opened from a chat pages the chat's reels from the server too, past the
+     * opener, and merges each page in through its update or an insert rather than its add, so while
+     * "Only received reels" is on the reels the viewer sent there, as remembered by
+     * {@link #received(Object, Object)}, are left out of the page whichever way it comes in. [items] for
+     * any other viewer, with the switch off, while HushGram is paused, before the settings are ready and
+     * on any failure. Never throws.
+     */
+    @Nullable
+    public static List<?> leaveOutSent(@Nullable List<?> items, @Nullable Object source) {
+        return leaveOutSent(items, source, ChatReels::mediaId);
+    }
+
+    /** {@link #leaveOutSent(List, Object)}, reading each reel's media id with [ids]. */
+    @Nullable
+    static List<?> leaveOutSent(@Nullable List<?> items, @Nullable Object source, Function<Object, String> ids) {
+        try {
+            HookStatus.invoked(FamilyNames.CHAT_REELS);
+            if (items == null || items.isEmpty() || !fromChat(source)) return items;
+            if (!Utils.settingsReady() || HushgramPause.isPaused() || !Settings.ONLY_RECEIVED_CHAT_REELS.get()) return items;
+            synchronized (SENT) {
+                if (SENT.isEmpty()) return items;
+            }
+            List<Object> kept = null;
+            for (int i = 0; i < items.size(); i++) {
+                Object item = items.get(i);
+                if (!isSent(item == null ? null : ids.apply(item))) {
+                    if (kept != null) kept.add(item);
+                    continue;
+                }
+                if (kept == null) kept = new ArrayList<>(items.subList(0, i));
+                HookStatus.counted(FamilyNames.CHAT_REELS, "sent reel left out of a page");
+            }
+            return kept == null ? items : kept;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.CHAT_REELS, "chat reels page", failure);
+            return items;
+        }
+    }
+
+    /** Whether [media] is a reel remembered as sent by the viewer in a chat. */
+    static boolean isSent(@Nullable String media) {
+        if (media == null) return false;
+        synchronized (SENT) {
+            return SENT.containsKey(media);
+        }
+    }
+
+    /** Forgets every reel remembered as sent, for tests. */
+    static void forgetSent() {
+        synchronized (SENT) {
+            SENT.clear();
+        }
+    }
+
+    /** Whether the message just tapped is the one with [id]. */
+    static boolean isTapped(@Nullable String id) {
+        Object tapped = opening;
+        return id != null && tapped != null && String.valueOf(tapped).contains(id);
+    }
+
+    /** Stub: the patch writes this, answering whether the viewer sent [message]. */
+    public static boolean sentByViewer(Object message) {
+        return false;
+    }
+
+    /** Stub: the patch writes this, answering [message]'s item id. */
+    @Nullable
+    public static String itemId(Object message) {
+        return null;
+    }
+
+    /** Stub: the patch writes this, answering the reel item of [wrapper], a message's wrapper, or null. */
+    @Nullable
+    public static Object reel(Object wrapper) {
+        return null;
+    }
+
+    /** Stub: the patch writes this, answering the media id of [reel], a reel item, or null. */
+    @Nullable
+    public static String mediaId(Object reel) {
+        return null;
+    }
+
+    /**
      * Whether the viewer skips putting in one of Instagram's cached reels: yes while the switch is on
      * and [source], the viewer's ClipsViewerSource, is a chat's. No for any other viewer, and while
      * the switch is off, HushGram is paused or the settings aren't ready. Never throws.
      */
     public static boolean stopCached(Object source) {
-        return source instanceof Enum && CHAT_SOURCE.equals(((Enum<?>) source).name()) && stop();
+        return fromChat(source) && stop();
+    }
+
+    /** Whether [source], a viewer's ClipsViewerSource, is a chat's. */
+    static boolean fromChat(@Nullable Object source) {
+        return source instanceof Enum && CHAT_SOURCE.equals(((Enum<?>) source).name());
+    }
+
+    /**
+     * Whether a Reels viewer Instagram lets load fresh reels at a pull down still may: no while
+     * {@link #stopCached(Object)} is yes for [source], the viewer's ClipsViewerSource, since the fresh
+     * reels are suggested ones and they'd take the chat's place (#390). Yes for any other viewer, and
+     * while the switch is off, HushGram is paused or the settings aren't ready. Never throws.
+     */
+    public static boolean refresh(Object source) {
+        return !stopCached(source);
     }
 
     /**

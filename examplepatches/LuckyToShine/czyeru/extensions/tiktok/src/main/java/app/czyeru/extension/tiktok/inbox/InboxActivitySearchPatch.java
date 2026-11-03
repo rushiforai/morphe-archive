@@ -2,11 +2,14 @@ package app.czyeru.extension.tiktok.inbox;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.FrameLayout;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 import app.czyeru.extension.shared.Logger;
 import app.czyeru.extension.tiktok.search.ListSearch;
@@ -36,6 +39,7 @@ public final class InboxActivitySearchPatch {
             View recyclerView = resolveRecyclerView(fragment, root);
             if (recyclerView != null) {
                 recyclerView.post(() -> ListSearch.install(
+                        searchAnchor(recyclerView),
                         recyclerView,
                         root,
                         "Search activity",
@@ -46,6 +50,7 @@ public final class InboxActivitySearchPatch {
                     View delayed = resolveRecyclerView(fragment, root);
                     if (delayed != null) {
                         ListSearch.install(
+                                searchAnchor(delayed),
                                 delayed,
                                 root,
                                 "Search activity",
@@ -99,6 +104,19 @@ public final class InboxActivitySearchPatch {
      */
     public static void onBind(Object adapter) {
         ListSearch.onBind(adapter);
+    }
+
+    /**
+     * The view the Activity search bar goes above. There the list is the direct child of
+     * TikTok's pull-to-refresh "Spring layout" (a FrameLayout subclass) that lays out only its
+     * header and one child, and throws with more children, so the bar goes above that layout.
+     * (On New followers the list sits in a plain FrameLayout, so the bar goes above the list.)
+     */
+    private static View searchAnchor(View list) {
+        ViewParent parent = list.getParent();
+        return parent instanceof FrameLayout && parent.getClass() != FrameLayout.class
+                ? (View) parent
+                : list;
     }
 
     /**
@@ -187,57 +205,74 @@ public final class InboxActivitySearchPatch {
         return false;
     }
 
+    private static final ListSearch.TextCache itemTexts = new ListSearch.TextCache();
+
     /**
-     * Matches an item against the folded search query.
+     * Matches an item against the folded search query. The texts are collected once per item
+     * (deep reflection is slow) and are the same strings the matcher used to test one by one.
      */
     public static boolean matches(Object item, String query) {
-        return matchItem(item, query, 0);
+        return ListSearch.anyTextMatches(item, query, itemTexts, InboxActivitySearchPatch::readTexts);
     }
 
-    private static boolean matchItem(Object item, String query, int depth) {
+    private static String[] readTexts(Object item) {
+        List<String> texts = new ArrayList<>();
+        collectTexts(item, 0, texts);
+        return texts.toArray(new String[0]);
+    }
+
+    private static void addText(List<String> texts, Object value) {
+        String folded = ListSearch.foldOrNull(value);
+        if (folded != null && !folded.isEmpty()) {
+            texts.add(folded);
+        }
+    }
+
+    private static void addUserTexts(List<String> texts, Object user) {
+        if (user == null) {
+            return;
+        }
+        addText(texts, ListSearch.call(user, "getNickname"));
+        addText(texts, ListSearch.call(user, "getUniqueId"));
+        addText(texts, ListSearch.call(user, "getSignature"));
+    }
+
+    private static void collectTexts(Object item, int depth, List<String> texts) {
         if (item == null || depth > 2) {
-            return false;
+            return;
         }
 
         if (item instanceof CharSequence) {
-            return ListSearch.containsAllWords(item.toString(), query);
+            addText(texts, item.toString());
+            return;
         }
 
-        if (ListSearch.userMatches(item, query)) {
-            return true;
-        }
-
-        if (ListSearch.commentMatches(item, query)) {
-            return true;
-        }
-
-        if (ListSearch.awemeMatches(item, query)) {
-            return true;
-        }
+        // User: nickname, handle, bio. Comment: text and its author. Video: caption, title, creator.
+        addUserTexts(texts, item);
+        addText(texts, ListSearch.call(item, "getText"));
+        addUserTexts(texts, ListSearch.call(item, "getUser"));
+        addText(texts, ListSearch.call(item, "getDesc"));
+        addText(texts, ListSearch.call(item, "getTitle"));
+        Object author = ListSearch.call(item, "getAuthor");
+        addText(texts, ListSearch.call(author, "getNickname"));
+        addText(texts, ListSearch.call(author, "getUniqueId"));
 
         if (item instanceof Iterable) {
             for (Object child : (Iterable<?>) item) {
-                if (matchItem(child, query, depth + 1)) {
-                    return true;
-                }
+                collectTexts(child, depth + 1, texts);
             }
-            return false;
+            return;
         }
 
-        // Check common bean getter methods
+        // Common bean getters.
         for (String getter : new String[]{"getUser", "getAweme", "getComment", "getText", "getContent", "getTitle"}) {
-            try {
-                Method method = item.getClass().getMethod(getter);
-                method.setAccessible(true);
-                Object val = method.invoke(item);
-                if (val != null && matchItem(val, query, depth + 1)) {
-                    return true;
-                }
-            } catch (Throwable ignored) {
+            Object value = ListSearch.call(item, getter);
+            if (value != null) {
+                collectTexts(value, depth + 1, texts);
             }
         }
 
-        // Reflectively inspect fields
+        // Fields of TikTok's own classes.
         for (Class<?> clazz = item.getClass(); clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
             String className = clazz.getName();
             if (className.startsWith("android.") || className.startsWith("java.")) {
@@ -255,34 +290,26 @@ public final class InboxActivitySearchPatch {
 
                 try {
                     field.setAccessible(true);
-                    Object val = field.get(item);
-                    if (val == null) {
+                    Object value = field.get(item);
+                    if (value == null) {
                         continue;
                     }
 
-                    if (val instanceof CharSequence) {
-                        if (ListSearch.containsAllWords(val.toString(), query)) {
-                            return true;
-                        }
-                    } else if (val instanceof Iterable) {
-                        for (Object child : (Iterable<?>) val) {
-                            if (matchItem(child, query, depth + 1)) {
-                                return true;
-                            }
+                    if (value instanceof CharSequence) {
+                        addText(texts, value.toString());
+                    } else if (value instanceof Iterable) {
+                        for (Object child : (Iterable<?>) value) {
+                            collectTexts(child, depth + 1, texts);
                         }
                     } else {
                         String typeName = type.getName();
                         if (typeName.startsWith("com.ss.android.ugc.aweme") || typeName.startsWith("com.bytedance")) {
-                            if (matchItem(val, query, depth + 1)) {
-                                return true;
-                            }
+                            collectTexts(value, depth + 1, texts);
                         }
                     }
                 } catch (Throwable ignored) {
                 }
             }
         }
-
-        return false;
     }
 }

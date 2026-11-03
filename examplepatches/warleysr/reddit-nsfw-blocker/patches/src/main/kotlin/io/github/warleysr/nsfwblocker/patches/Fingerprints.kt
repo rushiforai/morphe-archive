@@ -62,9 +62,8 @@ internal object PreferenceRepositoryIsOver18Fingerprint : Fingerprint(
 internal object PreferenceRepositorySetOver18Fingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Z", "L"),
     filters = listOf(
-        newInstance($$"Lcom/reddit/account/repository/RedditPreferenceRepository$setOver18$1;")
+        newInstance("Lcom/reddit/account/repository/RedditPreferenceRepository\$setOver18\$1;")
     )
 )
 

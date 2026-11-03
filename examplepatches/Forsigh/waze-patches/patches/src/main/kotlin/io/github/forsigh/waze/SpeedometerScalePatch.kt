@@ -40,6 +40,18 @@ private val SpeedometerUpdateFingerprint = Fingerprint(
     returnType = "V",
 )
 
+/**
+ * 5.26.90.901 moved the cluster out of `main_screen.floating_buttons.b` into `main_screen.g.b`.
+ * The class shape is unchanged: field `a` is the cluster root, field `d` the limit sign's container,
+ * and `g()` is still the show method. Matched by class + method, and the injected block takes its
+ * class descriptor from whichever fingerprint bound, so the letters never need to be hardcoded twice.
+ */
+private val SpeedometerUpdateV2Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/main_screen/g/b/e;",
+    name = "g",
+    returnType = "V",
+)
+
 /** Raw IEEE-754 bits as a smali `const` literal. */
 private fun floatBits(value: Float): String =
     "0x%08x".format(java.lang.Float.floatToRawIntBits(value).toLong() and 0xffffffffL)
@@ -60,10 +72,10 @@ private fun pivot(dp: Float, axis: String) = buildString {
  * Scale block. The dial scales the whole cluster; the sign is counter-scaled so it ends up at its
  * own factor regardless of the dial's.
  */
-private fun scaleBlock(dial: Float, sign: Float) = buildString {
+private fun scaleBlock(dial: Float, sign: Float, cls: String) = buildString {
     val counter = sign / dial
     // Dial: root view, pivot bottom-left (stock cluster is 110dp square).
-    appendLine("iget-object v0, p0, Lcom/waze/main_screen/floating_buttons/b/e;->a:Landroid/view/View;")
+    appendLine("iget-object v0, p0, ${cls}->a:Landroid/view/View;")
     appendLine("const/4 v1, 0x0")
     appendLine("int-to-float v1, v1")
     appendLine("invoke-virtual {v0, v1}, Landroid/view/View;->setPivotX(F)V")
@@ -72,7 +84,7 @@ private fun scaleBlock(dial: Float, sign: Float) = buildString {
     appendLine("invoke-virtual {v0, v2}, Landroid/view/View;->setScaleX(F)V")
     appendLine("invoke-virtual {v0, v2}, Landroid/view/View;->setScaleY(F)V")
     // Sign: its own container, pivot bottom-right (stock sign is a 40dp square).
-    appendLine("iget-object v0, p0, Lcom/waze/main_screen/floating_buttons/b/e;->d:Landroid/view/View;")
+    appendLine("iget-object v0, p0, ${cls}->d:Landroid/view/View;")
     append(pivot(40f, "X"))
     append(pivot(40f, "Y"))
     appendLine("const v2, ${floatBits(counter)}")
@@ -137,14 +149,18 @@ val speedometerScalePatch = bytecodePatch(
         }
         val dialScale = (dial ?: "1.0x").removeSuffix("x").toFloat()
         val signScale = (sign ?: "1.0x").removeSuffix("x").toFloat()
+        // Resolved before the stock-size early return: a build that moved the cluster must fail the
+        // row loudly, not report success while scaling nothing.
+        val method = resolveAnchor(
+            "speedometer cluster", SpeedometerUpdateV2Fingerprint, SpeedometerUpdateFingerprint,
+        )
         if (dialScale == 1f && signScale == 1f) {
             println("speedometerScalePatch: both at stock size, always-on = ${if (always == true) "on" else "off"}")
             return@execute
         }
-        val method = SpeedometerUpdateFingerprint.method
         method.implementation
             ?: error("speedometerScalePatch: speedometer update method found but has no body")
-        method.addInstructions(0, scaleBlock(dialScale, signScale))
+        method.addInstructions(0, scaleBlock(dialScale, signScale, method.definingClass))
         println("speedometerScalePatch: dial ${dialScale}x, sign ${signScale}x")
     }
 }

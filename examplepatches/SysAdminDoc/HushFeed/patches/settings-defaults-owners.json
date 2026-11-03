@@ -1,6 +1,8 @@
 {
   "patches": {
     "Advanced downloads": [
+      "DOWNLOAD_BUTTON",
+      "DOWNLOAD_BUTTON_POSITION",
       "DOWNLOAD_VIDEO_QUALITY",
       "DOWNLOAD_ASK_QUALITY",
       "DOWNLOAD_ORIGINAL_PHOTOS",
@@ -118,6 +120,8 @@
       "COMMENT_BLOCKED_USERS",
       "BLOCK_FROM_COMMENT",
       "BLOCK_FROM_COMMENT_MENU",
+      "HIDE_COMMENT_LIKE_COUNT",
+      "HIDE_COMMENT_DISLIKE",
       "COMMENT_SEARCH",
       "COMMENT_EXPORT",
       "COMMENT_SEARCH_FOLDED",
@@ -215,6 +219,7 @@
       "BLOCKED_CREATORS",
       "LOCAL_HIDDEN_CREATORS",
       "CREATOR_FILTER_EXCEPTIONS",
+      "LIVE_KEPT_CREATORS",
       "REGION_ONLY_FROM",
       "CAPTION_LANGUAGES",
       "REGION_NEVER_FROM",
@@ -295,7 +300,9 @@
     ],
     "Feed text sizes": [
       "FEED_DESCRIPTION_TEXT_SIZE",
-      "FEED_AUTHOR_TEXT_SIZE"
+      "FEED_AUTHOR_TEXT_SIZE",
+      "FEED_TEXT_COLOR",
+      "FEED_TEXT_BACKDROP"
     ],
     "Fit the video to the screen": [
       "FIT_VIDEO_TO_SCREEN",
@@ -312,7 +319,8 @@
     "Hide already seen videos": [
       "HIDE_SEEN_VIDEOS",
       "SEEN_VIDEO_RETENTION_DAYS",
-      "SEEN_VIDEO_MARK_PERCENT"
+      "SEEN_VIDEO_MARK_PERCENT",
+      "LOCAL_WATCH_HISTORY"
     ],
     "Hide CAPTCHA popups": [
       "HIDE_CAPTCHA_POPUPS"
@@ -396,6 +404,9 @@
       "HIDE_FEED_SURVEYS",
       "HIDE_FOOTNOTES",
       "HIDE_FOLLOWING_LIVE_ROW",
+      "HIDE_FOLLOWING_ALL_BUTTON",
+      "HIDE_STORY_CREATE",
+      "HIDE_REPOST_CHIP",
       "HIDE_DETAIL_COMMENT_BAR",
       "HIDE_CLEAR_DISPLAY_CONTROLS",
       "KEEP_CLEAR_DISPLAY_SEEK_BAR",
@@ -446,6 +457,9 @@
     "In-app browser privacy guard": [
       "BLOCK_WEBVIEW_JS_INTERFACES"
     ],
+    "Hide read receipts": [
+      "HIDE_READ_RECEIPTS"
+    ],
     "Keep a streak going": [
       "AUTO_STREAK",
       "AUTO_STREAK_RECIPIENT",
@@ -454,6 +468,7 @@
     ],
     "Keep playing in the background": [
       "BACKGROUND_PLAY",
+      "BACKGROUND_PLAY_MENU",
       "BACKGROUND_REPLAY"
     ],
     "Keep pulled sounds": [
@@ -559,6 +574,7 @@
       "CUSTOM_SPEEDS",
       "HOLD_SPEED",
       "HOLD_SPEED_SLIDE",
+      "HIDE_SPEED_TOASTS",
       "REMEMBERED_SPEED"
     ],
     "Prefer H.264 playback": [
@@ -573,6 +589,7 @@
       "REGION_REQUEST_SPOOF",
       "SIM_SPOOF",
       "SIM_SPOOF_ISO",
+      "SIM_SPOOF_TIME_ZONE",
       "SIMSPOOF_MCCMNC",
       "SIMSPOOF_OP_NAME",
       "SIM_SPOOF_FEED_REAL"
@@ -682,6 +699,9 @@
     ],
     "Skip update checks": [
       "SKIP_UPDATE_CHECKS"
+    ],
+    "Keep the next videos in full screen": [
+      "FULL_SCREEN_NEXT_VIDEOS"
     ],
     "Stay on the video in full screen": [
       "FULL_SCREEN_HOLD"

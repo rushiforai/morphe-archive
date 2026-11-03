@@ -46,8 +46,10 @@
         <meta-data android:name="hush.feature.quiet_calls" android:value="true" />
         <meta-data android:name="hush.feature.car_messages" android:value="true" />
         <meta-data android:name="hush.feature.local_chat_search" android:value="true" />
+        <meta-data android:name="hush.feature.chat_jump" android:value="true" />
         <meta-data android:name="hush.feature.call_recording" android:value="true" />
         <meta-data android:name="hush.feature.hide_call_buttons" android:value="true" />
+        <meta-data android:name="hush.feature.call_confirm" android:value="true" />
         <meta-data android:name="hush.feature.external_browser" android:value="true" />
         <meta-data android:name="hush.feature.bubbles" android:value="true" />
         <meta-data android:name="hush.feature.allow_screenshot" android:value="true" />
@@ -67,7 +69,9 @@
         <meta-data android:name="hush.feature.save_stories" android:value="true" />
         <meta-data android:name="hush.feature.material_you" android:value="true" />
         <meta-data android:name="hush.feature.app_icons" android:value="true" />
+        <meta-data android:name="hush.feature.app_themes" android:value="true" />
         <meta-data android:name="hush.feature.avatar_shape" android:value="true" />
+        <meta-data android:name="hush.feature.home_header" android:value="true" />
         <meta-data android:name="hush.feature.custom_font" android:value="true" />
         <provider android:name="app.hushmessenger.extension.SettingsProvider" android:authorities="${applicationId}.hush.settings" android:exported="false" />
         <activity android:name="app.hushmessenger.extension.SettingsActivity" android:icon="@android:drawable/ic_menu_preferences" android:exported="true" android:excludeFromRecents="true" />

@@ -27,6 +27,7 @@ import android.widget.LinearLayout;
 import android.preference.SwitchPreference;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -348,10 +349,24 @@ final class SettingsNavigation extends BaseAdapter {
         if (route.isEmpty()) {
             leftPage();
             expanded.clear();
-        } else expanded.add(route);
+        } else openAlone(route);
         rebuild();
         showPage();
         showAt(route.isEmpty() ? 0 : visible.indexOf(header(route)), 0);
+    }
+
+    /**
+     * Opens [id] and folds every other open section (#368), so the list never grows into several
+     * sections at once. A folded section's new rows count as seen, as when it's folded by hand.
+     */
+    private void openAlone(String id) {
+        for (Iterator<String> open = expanded.iterator(); open.hasNext(); ) {
+            String other = open.next();
+            if (other.equals(id)) continue;
+            for (Section section : sections) if (section.id.equals(other)) acknowledge(section);
+            open.remove();
+        }
+        expanded.add(id);
     }
 
     boolean isExpanded(String id) {
@@ -410,7 +425,7 @@ final class SettingsNavigation extends BaseAdapter {
         String anchor = position < visible.size() ? rowToken(getItem(position)) : "";
         View first = list.getChildAt(0);
         int offset = first == null ? 0 : first.getTop();
-        if (open) expanded.add(id);
+        if (open) openAlone(id);
         else {
             for (Section section : sections) if (section.id.equals(id)) acknowledge(section);
             expanded.remove(id);
@@ -596,7 +611,11 @@ final class SettingsNavigation extends BaseAdapter {
         int offset = first == null ? pendingOffset : first.getTop();
         visible.clear();
         List<String> terms = SettingsSearch.terms(query);
+        // Switches that are on (#353) sits above the sections, on the main list and in search.
+        Preference favorites = screen.findPreference(FavoriteSwitchesScreen.ROW);
         if (!terms.isEmpty()) {
+            if (favorites != null && SettingsSearch.matchesTerms(terms, favorites.getTitle(), favorites.getSummary()))
+                visible.add(favorites);
             for (Section section : sections) {
                 boolean headingAdded = false;
                 CharSequence subheading = null;
@@ -634,9 +653,13 @@ final class SettingsNavigation extends BaseAdapter {
             // Only in a build that lacks Restore screens on a re-signed install: its own line under the card.
             Preference restore = screen.findPreference(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST);
             if (restore != null) visible.add(restore);
+            // Only while Facebook's images are coarser than the screen (#365): its own line under the card.
+            Preference soft = screen.findPreference(HushfacebookPreferenceFragment.SOFT_ICONS);
+            if (soft != null) visible.add(soft);
             // Only in a build that lacks another default patch: the card's own line under it.
             Preference missing = screen.findPreference(HushfacebookPreferenceFragment.MISSING_DEFAULTS);
             if (missing != null) visible.add(missing);
+            if (favorites != null) visible.add(favorites);
             for (Section section : sections) {
                 visible.add(section.link);
                 if (expanded.contains(section.id)) {

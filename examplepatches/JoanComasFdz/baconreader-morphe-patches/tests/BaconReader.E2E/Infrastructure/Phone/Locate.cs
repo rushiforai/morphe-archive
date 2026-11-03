@@ -40,6 +40,10 @@ public static class Locate
     public static By AppIdWithText(string id, string text) =>
         UiSelector($"resourceId({Quote($"{E2EDevice.Package}:id/{id}")}).text({Quote(text)})");
 
+    /// <summary>The view of Android's own with resource id <paramref name="id"/> that shows exactly <paramref name="text"/> (a dialog's list item).</summary>
+    public static By AndroidIdWithText(string id, string text) =>
+        UiSelector($"resourceId({Quote($"android:id/{id}")}).text({Quote(text)})");
+
     /// <summary>
     /// The view of BaconReader with resource id <paramref name="id"/> that shows exactly <paramref name="text"/>, inside a
     /// disabled view: a menu entry greyed out, whose row is disabled while its title still reads as enabled.

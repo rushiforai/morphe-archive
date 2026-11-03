@@ -25,12 +25,19 @@ public final class StreamRanker {
         public final String title;
         public final String url;
         public final String addonName;
+        /** File the addon selected inside a pack (Torrentio behaviorHints.filename); "" when not given. */
+        public final String fileName;
 
         public Stream(String name, String title, String url, String addonName) {
+            this(name, title, url, addonName, "");
+        }
+
+        public Stream(String name, String title, String url, String addonName, String fileName) {
             this.name = name != null ? name : "";
             this.title = title != null ? title : "";
             this.url = url;
             this.addonName = addonName != null ? addonName : "";
+            this.fileName = fileName != null ? fileName : "";
         }
 
         @Override
@@ -118,7 +125,8 @@ public final class StreamRanker {
     private static final String B_START = "(?<![A-Za-z0-9])";
     private static final String B_END = "(?![A-Za-z0-9])";
 
-    // AI Upscale patterns (includes common "upcale" typo seen in release titles)
+    // AI Upscale label (includes common "upcale" typo). It is only a label: a release counts as 4K
+    // solely through an explicit 2160/4K token below, never through "upscaled" or "UHD" alone.
     private static final Pattern AI_UPSCALE_PATTERN = Pattern.compile(
             B_START + "(?:ai[\\s._-]*upscal(?:e|ed|ing)?|upscal(?:e|ed|ing)?|ai[\\s._-]*upcale|upcale|ai[\\s._-]*4k)" + B_END,
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
@@ -126,7 +134,7 @@ public final class StreamRanker {
 
     // Resolution patterns
     private static final Pattern RES_2160_PATTERN = Pattern.compile(
-            B_START + "(?:2160p?|4k|uhd)" + B_END,
+            B_START + "(?:\\d{3,4}x)?(?:2160p?|4k)" + B_END,
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
     private static final Pattern RES_1440_PATTERN = Pattern.compile(
@@ -134,7 +142,7 @@ public final class StreamRanker {
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
     private static final Pattern RES_1080_PATTERN = Pattern.compile(
-            B_START + "(?:1080[pi]?|fhd)" + B_END,
+            B_START + "(?:\\d{3,4}x)?(?:1080[pi]?|fhd)" + B_END,
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
     private static final Pattern RES_720_PATTERN = Pattern.compile(
@@ -180,13 +188,20 @@ public final class StreamRanker {
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
     private static final Pattern DEBRID_ADDON_PATTERN = Pattern.compile(
-            B_START + "(?:torbox|real[\\s._-]*debrid|all[\\s._-]*debrid|premiumize|debrid|torrentio|comet|mediafusion|knightcrawler|jackettio|stremthru|rd|tb|ad|pm)" + B_END,
+            B_START + "(?:torbox|real[\\s._-]*debrid|all[\\s._-]*debrid|premiumize|debrid|torrentio|comet|mediafusion|knightcrawler|jackettio|stremthru|aiostreams|sootio|orion|easynews|debridio|nzbdav|usenet|rd|tb|ad|pm)" + B_END,
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
 
     // Bad source patterns (exclude bare "ts" so .ts containers and [TS] anime typesetting tags are not dropped)
     private static final Pattern BAD_SOURCE_PATTERN = Pattern.compile(
             B_START + "(hdcams?|camrip|cams?|hdts|tsrip|telesync|telecine|tcrip|tc|screeners?|dvdscr|bdscr|scr|r5|korsub|3d|sample)" + B_END,
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
+    );
+    // Bare "TS" is a telesync only next to a resolution (upper case, so "1080p.ts" the container is not
+    // hit) or a codec ("1080p TS x264"); elsewhere it is a container or an anime typesetting tag.
+    private static final Pattern TS_CONTEXT_PATTERN = Pattern.compile(
+            "(?:" + B_START + "(?:480|576|720|1080|2160)p?[\\s._-]+(?-i:(TS))" + B_END
+                    + "|" + B_START + "(ts)[\\s._-]+(?:x26[45]|h[._-]?26[45]|xvid|hevc|avc)" + B_END + ")",
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE
     );
 
@@ -237,6 +252,16 @@ public final class StreamRanker {
      * unknown (kitsu ids) and episode 0 to disable the check.
      */
     public static List<Ranked> rank(List<Stream> streams, boolean isMovie, int reqSeason, int reqEpisode) {
+        return rank(streams, isMovie, reqSeason, reqEpisode, 0);
+    }
+
+    /**
+     * Same as {@link #rank(List, boolean, int, int)} with the requested episode's absolute number
+     * ({@link #absoluteEpisode}, 0 = unknown): a release that numbers its episodes without a season
+     * ("Show - 27") also matches when that number is the absolute one.
+     */
+    public static List<Ranked> rank(List<Stream> streams, boolean isMovie, int reqSeason, int reqEpisode,
+                                    int absEpisode) {
         if (streams == null || streams.isEmpty()) {
             return Collections.emptyList();
         }
@@ -250,16 +275,19 @@ public final class StreamRanker {
             }
             int kind = EP_UNKNOWN;
             if (!isMovie && reqEpisode > 0) {
-                kind = episodeKind(s, reqSeason, reqEpisode);
+                kind = episodeKind(s, reqSeason, reqEpisode, absEpisode);
                 if (kind == EP_REJECT) {
                     continue;
                 }
+            }
+            if (isWarningCard(s)) {
+                continue;
             }
             ParsedMeta meta = parse(s);
             long score = computeScore(meta);
             Candidate c = new Candidate(s, meta, score);
             c.multi = kind == EP_MULTI || kind == EP_PACK;
-            c.oversize = !isMovie && reqEpisode > 0 && meta.sizeBytes > MAX_EPISODE_BYTES;
+            c.packFile = kind == EP_PACKFILE;
             allCandidates.add(c);
             if (!meta.badSource) {
                 goodCandidates.add(c);
@@ -270,9 +298,11 @@ public final class StreamRanker {
             return Collections.emptyList();
         }
 
-        // Rule 1: Exclude bad sources unless that is all there is
-        final boolean onlyBadSources = goodCandidates.isEmpty();
-        List<Candidate> activePool = onlyBadSources ? allCandidates : goodCandidates;
+        // Never pick CAM/TS/screener releases: with nothing else, return no pick (the list stays on screen).
+        if (goodCandidates.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Candidate> activePool = goodCandidates;
 
         boolean anyCached = false;
         for (Candidate c : activePool) {
@@ -290,11 +320,7 @@ public final class StreamRanker {
                 if (a.meta.badSource != b.meta.badSource) {
                     return a.meta.badSource ? 1 : -1;
                 }
-                // 2. A single episode over the size cap is a pack or a file the TV cannot play
-                if (a.oversize != b.oversize) {
-                    return a.oversize ? 1 : -1;
-                }
-                // 3. Cached before uncached
+                // 2. Cached (instantly playable) before uncached, so uncached only wins when nothing is cached
                 if (a.meta.cached != b.meta.cached) {
                     return a.meta.cached ? -1 : 1;
                 }
@@ -334,7 +360,7 @@ public final class StreamRanker {
 
         for (int i = 0; i < activePool.size(); i++) {
             Candidate current = activePool.get(i);
-            String reason = buildReason(current, i == 0 ? runnerUp : winner, i == 0, allUncached, onlyBadSources, isMovie);
+            String reason = buildReason(current, i == 0 ? runnerUp : winner, i == 0, allUncached, isMovie);
             result.add(new Ranked(current.stream, current.score, reason, current.meta));
         }
 
@@ -361,8 +387,27 @@ public final class StreamRanker {
         }
     }
 
-    /** Episodes above this size are packs or remuxes the TV cannot play; they rank last. */
-    static final long MAX_EPISODE_BYTES = 25_000_000_000L;
+    /**
+     * Absolute number of an episode for season-less numbering ("Show - 27" is S2E2 when season 1 has 25
+     * episodes): the episode counts of seasons 1 to reqSeason-1 (seasonCounts maps season to its episode
+     * count) plus reqEpisode. 0 when it does not apply (season below 2) or any earlier season is unknown.
+     */
+    public static int absoluteEpisode(int reqSeason, int reqEpisode, java.util.Map<Integer, Integer> seasonCounts) {
+        if (reqSeason < 2 || reqEpisode <= 0 || seasonCounts == null) return 0;
+        int total = reqEpisode;
+        for (int s = 1; s < reqSeason; s++) {
+            Integer n = seasonCounts.get(s);
+            if (n == null || n <= 0) return 0;
+            total += n;
+        }
+        return total;
+    }
+
+    /**
+     * Not a cap: when a batch stream lists both a size above this and one at or below it, the smaller
+     * one is the episode file and is the size shown. Large 4K remux files are never demoted for size.
+     */
+    static final long PACK_SIZE_HINT_BYTES = 25_000_000_000L;
 
     // Episode kinds returned by episodeKind().
     static final int EP_REJECT = -1;
@@ -370,6 +415,8 @@ public final class StreamRanker {
     static final int EP_SINGLE = 1;
     static final int EP_MULTI = 2;
     static final int EP_PACK = 3;
+    /** A pack whose stream names the exact requested episode file; ranks like a single episode. */
+    static final int EP_PACKFILE = 4;
 
     private static final String SEP = "[\\s._\u2022\u00b7-]{0,5}";
     // S01E02, S01 • E02, S01E02E03, S01E02-E04, S01E02-04 (ranges need an E or a hyphen).
@@ -403,25 +450,32 @@ public final class StreamRanker {
         return episodeKind(stream, reqSeason, reqEpisode) != EP_REJECT;
     }
 
+    static int episodeKind(Stream stream, int reqSeason, int reqEpisode) {
+        return episodeKind(stream, reqSeason, reqEpisode, 0);
+    }
+
     /**
      * Classifies a stream against the requested episode: EP_REJECT when its text names another
      * season or episode, EP_SINGLE when it names the requested episode alone, EP_MULTI for a
      * multi-episode file that contains it, EP_PACK for a season or series pack, EP_UNKNOWN when
-     * it carries no explicit numbers.
+     * it carries no explicit numbers. A pack whose later title line or file name (Stream.fileName)
+     * names the requested episode is EP_PACKFILE: the exact file is known, so it is not demoted.
      */
-    static int episodeKind(Stream stream, int reqSeason, int reqEpisode) {
+    static int episodeKind(Stream stream, int reqSeason, int reqEpisode, int absEpisode) {
         try {
             String name = stream.name != null ? stream.name : "";
             String title = stream.title != null ? stream.title : "";
-            int kind = kindOfText(name + "\n" + title, reqSeason, reqEpisode);
-            if (kind == EP_SINGLE && title.contains("\n")) {
-                String[] lines = title.split("\\r?\\n", 2);
-                int firstKind = kindOfText(lines[0], reqSeason, reqEpisode);
-                int restKind = kindOfText(lines[1], reqSeason, reqEpisode);
-                // If line 1 is a pack header, keep EP_SINGLE only when the later line itself
-                // explicitly identifies the single target episode (e.g. the selected file in the batch).
-                if (firstKind == EP_PACK && restKind != EP_SINGLE) {
-                    return EP_PACK;
+            String file = stream.fileName != null ? stream.fileName : "";
+            String detail = file.length() > 0 ? title + "\n" + file : title;
+            int kind = kindOfText(name + "\n" + detail, reqSeason, reqEpisode, absEpisode);
+            if (kind == EP_SINGLE && detail.contains("\n")) {
+                String[] lines = detail.split("\\r?\\n", 2);
+                int firstKind = kindOfText(lines[0], reqSeason, reqEpisode, absEpisode);
+                int restKind = kindOfText(lines[1], reqSeason, reqEpisode, absEpisode);
+                // If line 1 is a pack header, it is a pack unless the later line (or the selected file
+                // name) itself explicitly identifies the target episode.
+                if (firstKind == EP_PACK) {
+                    return restKind == EP_SINGLE ? EP_PACKFILE : EP_PACK;
                 }
             }
             return kind;
@@ -430,7 +484,7 @@ public final class StreamRanker {
         }
     }
 
-    private static int kindOfText(String text, int reqSeason, int reqEpisode) {
+    private static int kindOfText(String text, int reqSeason, int reqEpisode, int absEpisode) {
         try {
             // Seen as episode refs: {season or -1, from, to}.
             List<int[]> eps = new ArrayList<int[]>();
@@ -507,13 +561,16 @@ public final class StreamRanker {
 
             for (int[] ep : eps) {
                 boolean seasonOk = ep[0] < 0 || reqSeason <= 0 || ep[0] == reqSeason;
+                // A season-less number of a season 2+ request may be the absolute episode number.
+                boolean absHit = ep[0] < 0 && reqSeason >= 2 && absEpisode > 0
+                        && absEpisode >= ep[1] && absEpisode <= ep[2];
                 if (ep[2] == ep[1]) {
-                    if (seasonOk && reqEpisode == ep[1]) {
+                    if ((seasonOk && reqEpisode == ep[1]) || absHit) {
                         sawSingleMatch = true;
                     } else {
                         sawSingleOther = true;
                     }
-                } else if (seasonOk && reqEpisode >= ep[1] && reqEpisode <= ep[2]) {
+                } else if ((seasonOk && reqEpisode >= ep[1] && reqEpisode <= ep[2]) || absHit) {
                     sawRangeMatch = true;
                 }
             }
@@ -561,7 +618,7 @@ public final class StreamRanker {
         String combined = (stream.name != null ? stream.name : "") + "\n" + (stream.title != null ? stream.title : "");
 
         // 1. AI Upscale check (counts as 4K / 2160p)
-        boolean aiUpscale = AI_UPSCALE_PATTERN.matcher(combined).find();
+        boolean aiUpscaleLabel = AI_UPSCALE_PATTERN.matcher(combined).find();
 
         // 2. Resolution check
         int resolution = 0;
@@ -576,9 +633,8 @@ public final class StreamRanker {
         } else if (RES_480_PATTERN.matcher(combined).find()) {
             resolution = 480;
         }
-        if (aiUpscale && resolution < 2160) {
-            resolution = 2160;
-        }
+        // An upscale label only matters (and only counts as 4K) when the release also says 2160/4K.
+        boolean aiUpscale = aiUpscaleLabel && resolution == 2160;
 
         // 3. File size check: if a batch stream lists both a >25 GB pack size and a <=25 GB
         // episode file size, prefer the episode file size.
@@ -588,7 +644,7 @@ public final class StreamRanker {
         while (diskMatcher.find()) {
             long candidateBytes = parseSizeToBytes(diskMatcher.group(1), diskMatcher.group(2));
             String candidateDisplay = diskMatcher.group(1) + " " + diskMatcher.group(2).toUpperCase(Locale.ROOT);
-            if (sizeBytes == 0L || (sizeBytes > MAX_EPISODE_BYTES && candidateBytes > 0L && candidateBytes <= MAX_EPISODE_BYTES)) {
+            if (sizeBytes == 0L || (sizeBytes > PACK_SIZE_HINT_BYTES && candidateBytes > 0L && candidateBytes <= PACK_SIZE_HINT_BYTES)) {
                 sizeBytes = candidateBytes;
                 sizeDisplay = candidateDisplay;
             }
@@ -598,7 +654,7 @@ public final class StreamRanker {
             while (generalSizeMatcher.find()) {
                 long candidateBytes = parseSizeToBytes(generalSizeMatcher.group(1), generalSizeMatcher.group(2));
                 String candidateDisplay = generalSizeMatcher.group(1) + " " + generalSizeMatcher.group(2).toUpperCase(Locale.ROOT);
-                if (sizeBytes == 0L || (sizeBytes > MAX_EPISODE_BYTES && candidateBytes > 0L && candidateBytes <= MAX_EPISODE_BYTES)) {
+                if (sizeBytes == 0L || (sizeBytes > PACK_SIZE_HINT_BYTES && candidateBytes > 0L && candidateBytes <= PACK_SIZE_HINT_BYTES)) {
                     sizeBytes = candidateBytes;
                     sizeDisplay = candidateDisplay;
                 }
@@ -639,6 +695,12 @@ public final class StreamRanker {
         if (badMatcher.find()) {
             badSource = true;
             badSourceLabel = badMatcher.group(1).toUpperCase(Locale.ROOT);
+        } else {
+            Matcher tsMatcher = TS_CONTEXT_PATTERN.matcher(combined);
+            if (tsMatcher.find()) {
+                badSource = true;
+                badSourceLabel = "TS";
+            }
         }
 
         // 7. Remux and Codec check
@@ -751,15 +813,10 @@ public final class StreamRanker {
             Candidate comparison,
             boolean isWinner,
             boolean allUncached,
-            boolean onlyBadSources,
             boolean isMovie) {
 
         ParsedMeta m = current.meta;
         List<String> parts = new ArrayList<String>();
-
-        if (onlyBadSources && m.badSource) {
-            parts.add("fallback bad source (" + m.badSourceLabel + " - no clean sources available)");
-        }
 
         if (m.cached) {
             parts.add("cached");
@@ -787,11 +844,10 @@ public final class StreamRanker {
 
         parts.add(m.sizeDisplay);
 
-        if (current.oversize) {
-            parts.add("over 25 GB");
-        }
         if (current.multi) {
             parts.add("pack or multi-episode");
+        } else if (current.packFile) {
+            parts.add("exact episode file in pack");
         }
 
         if (!"unknown".equals(m.codec)) {
@@ -815,9 +871,6 @@ public final class StreamRanker {
         if (isWinner) {
             if (m.cached != other.cached) {
                 return summary + " - wins: cached/instant-play beats uncached";
-            }
-            if (current.oversize != comparison.oversize) {
-                return summary + " - wins: the other stream is over 25 GB";
             }
             if (current.multi != comparison.multi) {
                 return summary + " - wins: single-episode file beats a pack";
@@ -859,6 +912,184 @@ public final class StreamRanker {
         }
     }
 
+    /** True for an addon notice card (warning sign or a block/limit message) that is not a real stream. */
+    public static boolean isWarningCard(Stream stream) {
+        String name = stream.name;
+        return name.indexOf('⚠') >= 0 || name.indexOf('⛔') >= 0
+                || stream.title.indexOf('⚠') >= 0;
+    }
+
+    /**
+     * Normalises a title for matching: Unicode NFKD with combining marks stripped, apostrophe variants
+     * (' ’ ` ´) dropped so "Grey's" equals "Greys", × read as x, every other
+     * non-alphanumeric run turned into one space, lower-cased. Non-Latin text is dropped.
+     */
+    public static String normalizeTitle(String s) {
+        if (s == null) return "";
+        String t = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFKD)
+                .replaceAll("\\p{M}+", "")
+                .replace("ß", "ss").replace("ø", "o").replace("Ø", "O").replace("æ", "ae")
+                .replace("Æ", "AE").replace("œ", "oe").replace("ł", "l").replace("Ł", "L")
+                .replace("đ", "d").replace("×", "x");
+        t = t.replaceAll("['‘’ʼʻ`´]", "");
+        return t.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
+    /**
+     * True when the stream text names one of the already normalised candidate titles (normalizeTitle
+     * output). Words match as tokens; a title written without separators ("ReZero", "FateZero") matches
+     * when consecutive tokens concatenate to the title. An empty candidate list accepts everything.
+     */
+    public static boolean titleMatches(String streamText, List<String> candidates) {
+        try {
+            if (candidates == null || candidates.isEmpty()) return true;
+            List<String> list = new ArrayList<String>();
+            for (String t : normalizeTitle(streamText).split(" ")) {
+                if (t.length() > 0) list.add(t);
+            }
+            java.util.Set<String> tokens = new java.util.HashSet<String>(list);
+            for (String raw : candidates) {
+                String candidate = normalizeTitle(raw);
+                if (matchesSingleTitle(tokens, candidate) || matchesCompact(list, candidate)) return true;
+                // Release names often drop a leading brand or possessive ("Agents of S.H.I.E.L.D.").
+                String bare = withoutBrandPrefix(candidate);
+                if (bare != null && matchesCompact(list, bare)) return true;
+            }
+            return false;
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    /**
+     * Like titleMatches(streamText, candidates), and also true when the stream text writes the MAIN title
+     * of a long name ("ReZero", "Re.Zero", "Re Zero" for "Re:ZERO -Starting Life in Another World-").
+     * mainTitles come from mainTitles(rawName). Only the compact form is used for them (consecutive
+     * tokens concatenate to the whole main title), never the partial word match, so "Zero S01E01" or
+     * "Re S01E01" still do not match. A null or empty list behaves exactly like the two-argument method.
+     * Spin-offs that share the main title ("Attack on Titan: Junior High" vs "Attack on Titan") cannot be told
+     * apart from "Code Geass: Lelouch of the Rebellion" vs "Code Geass" by name alone; the main title wins
+     * in both directions and the season/episode checks and the addon's own id lookup separate them.
+     */
+    public static boolean titleMatches(String streamText, List<String> candidates, List<String> mainTitles) {
+        try {
+            if (titleMatches(streamText, candidates)) return true;
+            if (mainTitles == null || mainTitles.isEmpty()) return false;
+            List<String> list = new ArrayList<String>();
+            for (String t : normalizeTitle(streamText).split(" ")) {
+                if (t.length() > 0) list.add(t);
+            }
+            for (String mainTitle : mainTitles) {
+                if (mainTitle != null && matchesCompact(list, mainTitle)) return true;
+            }
+            return false;
+        } catch (Throwable ignored) {
+            return titleMatches(streamText, candidates);
+        }
+    }
+
+    /**
+     * Normalised main titles of a RAW meta name, longest first: the text before each subtitle separator
+     * (" - ", " -", en dash, "~", ": "), kept when it has at least two words (a one-word franchise name like "Batman" would match unrelated films), its
+     * compact form has at least 5 letters/digits and it differs
+     * from the whole name. A trailing "(2016)" is ignored. "Re: Zero - Starting Life..." gives ["re zero"]
+     * (the 2-letter "Re" before ": " is too short); "Grey's Anatomy" gives [].
+     */
+    public static List<String> mainTitles(String rawName) {
+        List<String> results = new ArrayList<String>();
+        if (rawName == null || rawName.trim().length() == 0) return results;
+        try {
+            String stripped = rawName.replaceAll("\\s*[(\\[]\\s*(?:19|20)\\d{2}[^)\\]]*[)\\]]\\s*$", "");
+            String fullNorm = normalizeTitle(stripped);
+            String[] separators = {" - ", " -", " – ", "–", "~", ": "};
+            for (String sep : separators) {
+                int idx = -1;
+                while ((idx = stripped.indexOf(sep, idx + 1)) != -1) {
+                    String norm = normalizeTitle(stripped.substring(0, idx));
+                    if (norm.indexOf(' ') > 0 && norm.replace(" ", "").length() >= 5 && !norm.equals(fullNorm) && !results.contains(norm)) {
+                        results.add(norm);
+                    }
+                }
+            }
+            java.util.Collections.sort(results, new java.util.Comparator<String>() {
+                @Override
+                public int compare(String a, String b) {
+                    return b.length() - a.length();
+                }
+            });
+        } catch (Throwable ignored) {
+            // Optional extra; the plain matcher still runs.
+        }
+        return results;
+    }
+
+    /** Droppable brand or author prefixes (normalizeTitle form: apostrophes gone, words separated by one space). */
+    private static final String[] BRAND_PREFIXES = {
+            "marvels", "marvel", "dcs", "dc", "tom clancys", "disneys", "disney", "netflixs",
+            "stephen kings", "agatha christies", "tyler perrys", "dr seusss", "dr seuss",
+            "shonda rhimes", "guillermo del toros", "jim hensons", "steven spielbergs", "tim burtons",
+            "neil gaimans", "roald dahls", "terry pratchetts", "j r r tolkiens"
+    };
+
+    /**
+     * Candidate without a leading brand from the explicit BRAND_PREFIXES list ("marvels agents of s h i e l d"
+     * gives "agents of s h i e l d"; "tom clancys jack ryan" gives "jack ryan"). The prefix must be whole
+     * words at the start. Null when there is nothing to drop, or when the rest has no real title word
+     * ("season 1"). The caller requires the whole rest as a phrase in the stream, so "Agents" alone never
+     * matches. No guessing from a trailing s: "Greys Anatomy" and "Girls Last Tour" stay whole.
+     */
+    static String withoutBrandPrefix(String candidate) {
+        for (String prefix : BRAND_PREFIXES) {
+            if (!candidate.startsWith(prefix + " ")) continue;
+            String bare = candidate.substring(prefix.length() + 1).trim();
+            if (bare.length() == 0) return null;
+            // The rest must carry a real title word, not just "season 1" or "the".
+            return bare.matches("(?:(?:season|series|part|episode|chapter|vol|volume|movie|film|the|and|of|in|a|\\d+) ?)+")
+                    ? null : bare;
+        }
+        return null;
+    }
+
+    private static boolean matchesCompact(List<String> tokens, String candidate) {
+        String target = candidate.replace(" ", "");
+        if (target.length() < 5) return false;
+        for (int i = 0; i < tokens.size(); i++) {
+            StringBuilder sb = new StringBuilder();
+            for (int j = i; j < tokens.size() && sb.length() < target.length(); j++) {
+                sb.append(tokens.get(j));
+            }
+            if (sb.length() == target.length() && sb.toString().equals(target)) return true;
+        }
+        return false;
+    }
+
+    private static boolean matchesSingleTitle(java.util.Set<String> tokens, String name) {
+        String[] words = name.split(" ");
+        if (words.length > 1) {
+            String last = words[words.length - 1];
+            if (last.matches("ii|iii|iv|v|vi|vii|viii|ix|[2-9]") && !tokens.contains(last)) return false;
+        }
+        int significant = 0;
+        int matched = 0;
+        for (String word : words) {
+            if (word.length() < 3 || word.equals("the") || word.equals("and") || word.equals("der")
+                    || word.equals("die") || word.equals("das") || word.equals("des")
+                    || word.equals("no") || word.equals("wa") || word.equals("ni") || word.equals("ga")) {
+                continue;
+            }
+            significant++;
+            if (tokens.contains(word)) matched++;
+        }
+        if (significant == 0) return true;
+        // A plural first word cannot be dropped by the partial match ("Girls Last Tour" is not "Last Tour");
+        // real brand prefixes go through BRAND_PREFIXES.
+        if (significant >= 3 && words[0].length() >= 4 && words[0].endsWith("s") && !tokens.contains(words[0])) {
+            return false;
+        }
+        // Both words of a two-word title are required ("Attack on Titan" needs attack and titan).
+        return significant >= 2 ? matched >= 2 : matched >= 1;
+    }
+
     private static String join(List<String> items, String delimiter) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {
@@ -875,7 +1106,7 @@ public final class StreamRanker {
         final ParsedMeta meta;
         final long score;
         boolean multi;
-        boolean oversize;
+        boolean packFile;
 
         Candidate(Stream stream, ParsedMeta meta, long score) {
             this.stream = stream;

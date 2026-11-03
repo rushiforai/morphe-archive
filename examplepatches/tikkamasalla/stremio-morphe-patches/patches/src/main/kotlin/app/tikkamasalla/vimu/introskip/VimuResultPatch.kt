@@ -31,6 +31,7 @@ val vimuResultPatch = bytecodePatch(
 ) {
     compatibleWith(Constants.VIMU_COMPATIBILITY)
     extendWith("extensions/extension.mpe")
+    dependsOn(vimuProgressManifestPatch)
 
     execute {
         // Start position: v1 holds the extras Bundle right before "startfrom" is read.
@@ -71,6 +72,29 @@ val vimuResultPatch = bytecodePatch(
             )
         }
 
+        // Progress journal moments (pause, destroy, playback error). Exit and natural end already
+        // reach the journal through the j1 hook above (onStop calls j1(0)); the 1 s tick does the rest.
+        // Each site is optional: a missing one only drops that journal moment.
+        try {
+            VimuPlayerFragmentOnPauseFingerprint.method.insertAfterSuper(
+                "invoke-static {p0}, $VIMU_RESULT->pause(Ljava/lang/Object;)V",
+            )
+        } catch (_: Exception) {
+        }
+        try {
+            VimuPlayerFragmentOnDestroyFingerprint.method.insertAfterSuper(
+                "invoke-static {p0}, $VIMU_RESULT->destroy(Ljava/lang/Object;)V",
+            )
+        } catch (_: Exception) {
+        }
+        try {
+            VimuPlaybackErrorFingerprint.method.addInstructions(
+                0,
+                "invoke-static {p0}, $VIMU_RESULT->error(Ljava/lang/Object;)V",
+            )
+        } catch (_: Exception) {
+        }
+
         // Home or recents: return the result right away, while the caller can still take it.
         // Vimu opening its own preferences from the player is reported first, so it is skipped.
         try {
@@ -108,6 +132,15 @@ val vimuResultPatch = bytecodePatch(
             // The result still returns when Vimu stops, as before.
         }
     }
+}
+
+/** Inserts smali right after the leading invoke-super; throws (the caller skips the hook) otherwise. */
+private fun MutableMethod.insertAfterSuper(smali: String) {
+    val first = implementation!!.instructions.firstOrNull()
+    if (first?.opcode != Opcode.INVOKE_SUPER) {
+        throw PatchException("Expected invoke-super first in $definingClass->$name.")
+    }
+    addInstructions(1, smali)
 }
 
 /** Index of the first instruction matching the predicate, or throws. */

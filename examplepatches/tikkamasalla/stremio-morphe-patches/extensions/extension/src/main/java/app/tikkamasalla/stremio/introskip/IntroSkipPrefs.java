@@ -17,10 +17,26 @@ public final class IntroSkipPrefs {
     public static final String CREDITS_BUTTON = "button";
     public static final String CREDITS_OFF = "off";
     public static final String KEY_PREVIEWS = "introskip_previews";
+    public static final String KEY_SEEKMARKS = "introskip_seekmarks";
     public static final String KEY_BINGE_EXTERNAL = "external_binge";
     public static final String KEY_TRACKMEM = "trackmem_enabled";
     public static final String KEY_AUTOPICK = "autopick_enabled";
     public static final String KEY_SHOWLIST = "autopick_showlist";
+    /** Prepare the next episode (streams + skip data) while the current one plays. */
+    public static final String KEY_PREPARE_NEXT = "prepare_next";
+    /** Playback diary on/off; read by PlaybackDiary itself under the same literal key. */
+    public static final String KEY_DIARY = "playback_diary";
+
+    /** Players the external-player code learned (ExternalProgress KEY_PLAYER / KEY_LEARNED). Not KEY_*: they are not switches. */
+    public static final String EXT_PLAYER_PICK = "external_binge_player";
+    public static final String EXT_PLAYER_LEARNED = "external_player_learned";
+
+    /** Smoother playback (tuning/PlayerTuning): frame-rate matching mode and the larger network buffer. */
+    public static final String KEY_MATCH_FPS = "playertune_match_fps";
+    public static final String MATCH_SEAMLESS = "seamless";
+    public static final String MATCH_ALWAYS = "always";
+    public static final String MATCH_OFF = "off";
+    public static final String KEY_BIG_BUFFER = "playertune_big_buffer";
 
     private IntroSkipPrefs() {
     }
@@ -54,6 +70,18 @@ public final class IntroSkipPrefs {
 
     public static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
+    }
+
+    /** Clears the external player the chooser or binge learned. True when something was stored. */
+    public static boolean forgetExternalPlayer(Context context) {
+        try {
+            SharedPreferences p = prefs(context);
+            boolean had = p.contains(EXT_PLAYER_PICK) || p.contains(EXT_PLAYER_LEARNED);
+            p.edit().remove(EXT_PLAYER_PICK).remove(EXT_PLAYER_LEARNED).apply();
+            return had;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     public static boolean isEnabled(Context context) {
@@ -124,6 +152,15 @@ public final class IntroSkipPrefs {
         }
     }
 
+    /** Coloured skip marks on the progress bar; default on. */
+    public static boolean isSeekMarksEnabled(Context context) {
+        try {
+            return prefs(context).getBoolean(KEY_SEEKMARKS, true);
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
     public static boolean isBingeExternalEnabled(Context context) {
         try {
             return prefs(context).getBoolean(KEY_BINGE_EXTERNAL, true);
@@ -148,11 +185,27 @@ public final class IntroSkipPrefs {
         }
     }
 
+    public static boolean isDiaryEnabled(Context context) {
+        try {
+            return prefs(context).getBoolean(KEY_DIARY, true);
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
     public static boolean isShowListEnabled(Context context) {
         try {
             return prefs(context).getBoolean(KEY_SHOWLIST, false);
         } catch (Throwable ignored) {
             return false;
+        }
+    }
+
+    public static boolean isPrepareNextEnabled(Context context) {
+        try {
+            return prefs(context).getBoolean(KEY_PREPARE_NEXT, true);
+        } catch (Throwable ignored) {
+            return true;
         }
     }
 }

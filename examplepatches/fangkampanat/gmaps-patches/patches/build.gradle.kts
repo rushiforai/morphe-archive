@@ -6,7 +6,7 @@ group = "app.morphe"
 patches {
     about {
         name = "Maps Patches"
-        description = "Google Maps patch for MicroG-RE 7.2.2, applied with Morphe Desktop"
+        description = "Google Maps patch for MicroG-RE 7.3.0, applied with Morphe Desktop"
         source = "https://github.com/fangkampanat/gmaps-patches"
         author = "fangkampanat"
         contact = "https://github.com/fangkampanat/gmaps-patches/issues"

@@ -1,14 +1,15 @@
 package app.tikkamasalla.stremio.introskip;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.SharedPreferences;
 
-import androidx.preference.PreferenceManager;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Hide spoilers logic. Mirrors the hand made SpoilerPrefs smali:
@@ -22,20 +23,166 @@ public final class SpoilerHide {
     private static final Map<Object, Boolean> REFRESH_CACHE =
             Collections.synchronizedMap(new WeakHashMap<Object, Boolean>());
 
+    /** Setting cache, kept current by {@link #LISTENER}. Set once the application is available. */
+    private static volatile boolean setupDone = false;
+    private static volatile boolean enabled = false;
+
+    /** Strong reference: SharedPreferences holds its listeners weakly. */
+    private static SharedPreferences.OnSharedPreferenceChangeListener listener;
+
+    /** Reflection handles of one Video / SeriesInfo class (Method may be null when absent). */
+    private static final class Shape {
+        final Method watched;
+        final Method seriesInfo;
+
+        Shape(Method watched, Method seriesInfo) {
+            this.watched = watched;
+            this.seriesInfo = seriesInfo;
+        }
+    }
+
+    private static final class MethodRef {
+        final Method method;
+
+        MethodRef(Method method) {
+            this.method = method;
+        }
+    }
+
+    private static final ConcurrentHashMap<Class<?>, Shape> VIDEO_SHAPES =
+            new ConcurrentHashMap<Class<?>, Shape>();
+    private static final ConcurrentHashMap<Class<?>, MethodRef> EPISODE_METHODS =
+            new ConcurrentHashMap<Class<?>, MethodRef>();
+
     private SpoilerHide() {
     }
 
+    /**
+     * The default preferences file by name (what androidx PreferenceManager would open, and what
+     * the Mod settings screen writes), so builds without androidx.preference work too.
+     */
+    private static SharedPreferences prefsOf(Application app) {
+        return app.getSharedPreferences(app.getPackageName() + "_preferences", Context.MODE_PRIVATE);
+    }
+
+    /** The setting, read fresh from the preferences (legacy paths, unchanged). */
     public static boolean isEnabled() {
         try {
             Class<?> thread = Class.forName("android.app.ActivityThread");
             Method current = thread.getMethod("currentApplication");
             Application app = (Application) current.invoke(null);
             if (app == null) return false;
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(app);
+            SharedPreferences prefs = prefsOf(app);
             if (prefs == null) return false;
             return prefs.getBoolean(KEY, false);
         } catch (Throwable ignored) {
             return false;
+        }
+    }
+
+    /**
+     * The setting for the hot getter path: cached after the first successful call, a change
+     * listener on the default SharedPreferences keeps it current. Before the application exists
+     * it returns false and tries again on the next call.
+     */
+    private static boolean cachedEnabled() {
+        if (!setupDone) setup();
+        return enabled;
+    }
+
+    private static synchronized void setup() {
+        if (setupDone) return;
+        try {
+            Class<?> thread = Class.forName("android.app.ActivityThread");
+            Method current = thread.getMethod("currentApplication");
+            Application app = (Application) current.invoke(null);
+            if (app == null) return;
+            SharedPreferences prefs = prefsOf(app);
+            if (prefs == null) return;
+            enabled = prefs.getBoolean(KEY, false);
+            listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    if (key == null || KEY.equals(key)) {
+                        enabled = sharedPreferences.getBoolean(KEY, false);
+                    }
+                }
+            };
+            prefs.registerOnSharedPreferenceChangeListener(listener);
+            setupDone = true;
+        } catch (Throwable ignored) {
+            // Retry on the next call.
+        }
+    }
+
+    private static Shape shapeOf(Class<?> type) {
+        Shape shape = VIDEO_SHAPES.get(type);
+        if (shape == null) {
+            Method watched = null;
+            Method seriesInfo = null;
+            try {
+                watched = type.getMethod("getWatched");
+            } catch (Throwable ignored) {
+            }
+            try {
+                seriesInfo = type.getMethod("getSeriesInfo");
+            } catch (Throwable ignored) {
+            }
+            shape = new Shape(watched, seriesInfo);
+            Shape raced = VIDEO_SHAPES.putIfAbsent(type, shape);
+            if (raced != null) shape = raced;
+        }
+        return shape;
+    }
+
+    private static Method episodeMethodOf(Class<?> type) {
+        MethodRef ref = EPISODE_METHODS.get(type);
+        if (ref == null) {
+            Method method = null;
+            try {
+                method = type.getMethod("getEpisode");
+            } catch (Throwable ignored) {
+            }
+            ref = new MethodRef(method);
+            MethodRef raced = EPISODE_METHODS.putIfAbsent(type, ref);
+            if (raced != null) ref = raced;
+        }
+        return ref.method;
+    }
+
+    /**
+     * Compose builds, called from the patched Video.getThumbnail / getOverview: true when the
+     * setting is ON and this is an UNWATCHED EPISODE (watched=false and seriesInfo present).
+     * Watched episodes and movies (no seriesInfo) are never hidden. Fail soft: false.
+     */
+    public static boolean hidesEpisode(Object video) {
+        if (video == null || !cachedEnabled()) return false;
+        try {
+            Shape shape = shapeOf(video.getClass());
+            if (shape.watched == null || shape.seriesInfo == null) return false;
+            if (Boolean.TRUE.equals(shape.watched.invoke(video))) return false;
+            return shape.seriesInfo.invoke(video) != null;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /**
+     * Compose builds, called from the patched Video.getTitle: "Episode N" for a hidden episode,
+     * else null (the getter then returns the real title).
+     */
+    public static String hiddenTitle(Object video) {
+        if (!hidesEpisode(video)) return null;
+        try {
+            Object info = shapeOf(video.getClass()).seriesInfo.invoke(video);
+            if (info == null) return null;
+            Method getter = episodeMethodOf(info.getClass());
+            if (getter == null) return null;
+            Object value = getter.invoke(info);
+            long episode = value instanceof Number ? ((Number) value).longValue() : 0L;
+            return episode > 0 ? "Episode " + episode : null;
+        } catch (Throwable ignored) {
+            return null;
         }
     }
 

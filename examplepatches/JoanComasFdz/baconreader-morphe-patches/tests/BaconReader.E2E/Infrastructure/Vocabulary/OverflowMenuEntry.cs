@@ -11,6 +11,9 @@ public partial record OverflowMenuEntry
 {
     public partial record ListView;
 
+    /// <summary>Offered instead of "List View" while the list shows posts as rows.</summary>
+    public partial record CardView;
+
     /// <summary>The feed's subreddit's sidebar: greyed out by "Disable unavailable sidebar" on feeds without one.</summary>
     public partial record ViewSidebar;
 
@@ -20,12 +23,13 @@ public partial record OverflowMenuEntry
 
 public static class OverflowMenuEntryShowing
 {
-    private static readonly OverflowMenuEntry[] Listed = [new OverflowMenuEntry.ListView(), new OverflowMenuEntry.ViewSidebar()];
+    private static readonly OverflowMenuEntry[] Listed = [new OverflowMenuEntry.ListView(), new OverflowMenuEntry.CardView(), new OverflowMenuEntry.ViewSidebar()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this OverflowMenuEntry value) =>
         value.Match(
             listView => "List View",
+            cardView => "Card View",
             viewSidebar => "View Sidebar",
             unlisted => unlisted.Shown);
 

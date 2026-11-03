@@ -51,8 +51,6 @@ Loading older messages.	正在載入較舊的訊息。
 Loading older messages. %1$d message so far.	正在載入較舊的訊息。目前 %1$d 則。
 Loading older messages. %1$d messages so far.	正在載入較舊的訊息。目前 %1$d 則。
 Lock these settings	鎖定這些設定
-Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	開啟聊天，長按上方的名稱，選擇「匯出聊天」。整個聊天會存成文字檔，放在「下載」的 HushGram 資料夾，每則訊息一行。
-Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	開啟聊天，長按上方的名稱，選擇「跳到第一則訊息」或「跳到某個日期」。聊天會自動載入較舊的訊息，並顯示數量和取消按鈕。
 Mark a chat seen when you reply	回覆時將聊天標示為已讀
 No messages found to save.	沒有可儲存的訊息。
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	選擇 1 至 72 小時的等待時間。鎖定後，必須提出解鎖申請並等待時間結束，才能變更此處的設定。
@@ -225,6 +223,12 @@ Download on stories	限時動態下載選項
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	在任何人的限時動態選單中新增「下載」，照片與影片皆適用，並依下載畫質設定儲存。關閉或暫停後會還原 Instagram 原本的選單。
 Upload stories at full quality	以完整畫質上傳限時動態
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	影片限時動態會以 1080p 與較高位元率上傳，等同啟用 Instagram 的「以最高畫質上傳」。Instagram 伺服器仍會將影片縮小為 720p，因此觀眾看到的差異不大。照片限時動態的上傳尺寸原本就大於 Instagram 保留的尺寸。
+# context: Stories settings under Upload stories at full quality: which uploads it covers (Stories only, or Stories, posts and reels), and the video bitrate; %1$s is a number of megabits a second (#37)
+Upload quality applies to	上傳畫質套用範圍
+Stories only	僅限時動態
+Stories, posts and reels	限時動態、貼文和 Reels
+Video bitrate	影片位元率
+%1$s Mbps	%1$s Mbps
 Download feed videos	下載動態首頁影片
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	在動態首頁的影片貼文選單中新增「下載」，使用下方的畫質設定。關閉或暫停後會還原 Instagram 原本的選單。
 Playback	播放
@@ -1420,8 +1424,10 @@ Puts a border and Instagram's view once icon on a one-time photo or video in a c
 Fall back to Following	改用「追蹤中」
 When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	若「為你推薦」對某個帳號一頁接一頁只顯示推薦貼文，該帳號的首頁會改為開啟「追蹤中」。你在首頁頂端選擇的動態會維持不變。請重新啟動 Instagram 以套用變更。
 Only suggestions in For you. Home will open on Following.	「為你推薦」只有推薦貼文，首頁將改開「追蹤中」。
+Mix in Following	穿插「追蹤中」
+For you shows a page of posts from accounts you follow after each page of its own, until you've seen them all. Pull down on Home to start both over. Restart Instagram to see the change.	「為你推薦」每顯示一頁自己的內容後，就會顯示一頁你追蹤帳號的貼文，直到你全部看完。在首頁往下拉即可讓兩者從頭開始。請重新啟動 Instagram 以套用變更。
 Explore without personalization	不個人化的探索
-Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	在 Instagram 提供此選項的地區（歐盟），探索每次都會以非個人化的網格開啟，十分鐘後也不會切換回去。
+Explore asks for the grid that isn't personalized every time it opens, and stays on it past ten minutes. Instagram only promises that grid in the EU.	探索每次開啟時都會要求非個人化的網格，十分鐘後也不會切換回去。Instagram 只在歐盟保證提供這個網格。
 Hide Explore's personalized menu	隱藏探索的個人化選單
 Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	在 Instagram 顯示此按鈕的地區（歐盟），隱藏頂端列上切換探索個人化的按鈕。
 # context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
@@ -1542,12 +1548,16 @@ Couldn't read that picture.	無法讀取這張圖片。
 This launcher can't add it.	這個啟動器無法加入。
 Glass in chats	聊天室玻璃效果
 Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	讓聊天室頂端列呈現毛玻璃效果,並把返回、通話和視訊按鈕放在圓形玻璃圈上。下次開啟聊天室時生效。模糊效果需要 Android 12 或更新版本。
-# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	隱藏觀看次數少的 Reels
-Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	在 Reels 分頁中略過觀看人數低於下方數字的 Reels。你追蹤的帳號、別人傳給你的 Reels，以及沒有觀看次數的 Reels 仍會播放。
+Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	在 Reels 分頁中略過觀看次數或按讚數低於下方數字的 Reels。你追蹤的帳號、別人傳給你的 Reels，以及沒有數字的 Reels 仍會播放。
 Minimum views	最低觀看次數
 Reels with fewer views than this are left out. Type a whole number.	觀看次數低於此數字的 Reels 會被略過。請輸入整數。
 Fewer than %1$s views	觀看次數低於 %1$s
+Minimum likes	最低按讚數
+Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	按讚數低於此數字的 Reels 會被略過。請輸入整數，或輸入 0 不看按讚數。
+Fewer than %1$s likes	按讚數低於 %1$s
+Likes aren't looked at	不看按讚數
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	限時動態優先順序
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	清單中的帳號只要有你還沒看的限時動態，就會依清單順序排在首頁上方限時動態列的最前面。看過之後，會回到 Instagram 原本的排列。你自己的限時動態仍在最前面。
@@ -1556,3 +1566,103 @@ Usernames, one on each line. The first line goes first. A leading @ and capital 
 No accounts yet	尚未加入帳號
 %1$d account	%1$d 個帳號
 %1$d accounts	%1$d 個帳號
+Home header text	首頁頂端文字
+Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	在首頁頂端顯示你自己的文字，取代 Instagram 標誌。最多 %1$d 個字元。留空即可保留標誌。
+Instagram's logo stays at the top of Home.	首頁頂端保留 Instagram 標誌。
+The top of Home says %1$s.	首頁頂端顯示「%1$s」。
+Home header picture	首頁頂端圖片
+Remove the header picture	移除頂端圖片
+The top of Home goes back to your header text, or to Instagram's logo.	首頁頂端會恢復為你的文字，或 Instagram 標誌。
+Pick a picture to show at the top of Home, in place of Instagram's logo or your text.	選擇一張圖片，顯示在首頁頂端，取代 Instagram 標誌或你的文字。
+The top of Home shows %1$s. Tap to pick another.	首頁頂端顯示 %1$s。點擊即可選擇其他圖片。
+Header picture set.	已設定首頁頂端圖片。
+Header picture removed.	已移除首頁頂端圖片。
+That isn't a picture.	這不是圖片。
+That picture is over %1$d MB.	這張圖片超過 %1$d MB。
+Couldn't save the picture.	無法儲存圖片。
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	開啟聊天，點一下上方通話按鈕旁的時鐘按鈕，或長按聊天名稱，選擇「跳到第一則訊息」或「跳到某個日期」。聊天會自動載入較舊的訊息，並顯示數量和取消按鈕。
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	開啟聊天，點一下上方通話按鈕旁的時鐘按鈕，或長按聊天名稱，選擇「匯出聊天」。整個聊天會存成文字檔，放在「下載」的 HushGram 資料夾，每則訊息一行。
+Instagram stopped loading older messages.	Instagram 已停止載入較舊的訊息。
+Black settings page	黑色設定頁面
+Black rows and dialogs, HushGram's name at the top, and each category on one line.	黑色的列和對話框，頂端顯示 HushGram 名稱，每個類別只佔一行。
+Mark as read	標示為已讀
+Nothing to mark as read	沒有可標示為已讀的內容
+Mark as read button in chats	聊天中的「標示為已讀」按鈕
+A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	在對方還不知道您已看過聊天時，聊天頂端會顯示勾號。點擊它，對方就會看到「已讀」。
+Red story mentions	紅色限時動態標註
+Draws the mention pill's text in red instead of white, so it stands out on bright stories.	將標註標籤的文字改用紅色而非白色，在明亮的限時動態上更醒目。
+Only received reels	僅限收到的 Reels
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	滑動瀏覽聊天室的 Reels 時，會略過你在該處傳送的，只瀏覽對方分享的 Reels。需開啟「滑動瀏覽聊天室的 Reels」才會生效。
+Hide the audio icon on posts	隱藏貼文上的音訊圖示
+Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	移除動態中影片上的喇叭圖示。點一下影片仍可開啟或關閉聲音。畫面上已有的貼文會在重新載入後更新。
+Light when paused	暫停時亮起
+Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	暫停 Reels 後，防烙印保護會讓按鈕恢復全亮，直到你再次播放或滑到下一部。之後等待時間會重新計算。
+Grow the heart	放大愛心
+Double tap the same post again within a second and a half and the heart pops up bigger, up to nearly twice its size. A pause and it starts small again.	在一秒半內再次連點兩下同一則貼文，愛心會彈出得更大，最多接近兩倍大。停一下就會從小的重新開始。
+Instagram in pink	粉紅色 Instagram
+# context: Stories settings: a speed button in a video story's header, cycling 1x, 1.5x and 2x (#469)
+Speed button on stories	限時動態速度按鈕
+Puts a speed button at the top of a video story, beside the three dots. Tap it for 1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you change it or restart Instagram. Ads play at normal speed.	在影片限時動態頂端的三個點旁加入速度按鈕。點一下切換為 1.5x，再點一下為 2x，再點一次回到 1x。之後的影片限時動態會沿用這個速度，直到你更改或重新啟動 Instagram。廣告以正常速度播放。
+# context: TalkBack label of that button; %1$s is the speed shown on it, such as 1.5x
+Playback speed, %1$s	播放速度，%1$s
+Where the mention pill goes	提及標籤的位置
+Under the name, 1 mention	名稱下方，1 個提及
+Top bar, @1 mention	頂端列，@1 個提及
+Top bar, @1	頂端列，@1
+The pill sits under the story's name and reads like 1 mention. Its list opens over the story.	標籤顯示在限時動態名稱下方，例如 1 個提及。清單會在限時動態上方開啟。
+The pill sits in the top bar next to the menu and reads like @1 mention. Its list opens from the bottom of the screen.	標籤顯示在頂端列的選單旁，例如 @1 個提及。清單會從畫面底部開啟。
+The pill sits in the top bar next to the menu and shows only the count, like @1. Its list opens from the bottom of the screen.	標籤顯示在頂端列的選單旁，只顯示數字，例如 @1。清單會從畫面底部開啟。
+Turn on See who a story mentions to use this choice.	請啟用「檢視限時動態提及」以使用此選項。
+Story mentions	限時動態提及
+Accounts mentioned in this story	此限時動態提及的帳號
+# context: Feed settings: picks how the carousel page-dots pill looks (#471)
+Pill look	膠囊樣式
+# context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
+Seek bar look	拖曳列樣式
+# context: a look for the page-dots pill and the seek bars: opaque, as before
+Solid	不透明
+# context: a look for the page-dots pill and the seek bars: partly transparent
+See-through	半透明
+# context: a look for the page-dots pill and the seek bars: blurs what's under it
+Frosted glass	毛玻璃
+A light pill with dark dots, as it's always been.	淺色膠囊配深色圓點，與以往相同。
+A see-through dark pill with white dots, so more of the photo shows.	半透明深色膠囊配白色圓點，能看到更多相片。
+A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	毛玻璃膠囊，會模糊其下方的相片。Android 12 以前改為半透明。
+Turn on Page dots on a pill to use this choice.	請啟用「膠囊頁面圓點」以使用此選項。
+Turn on Seek bar on feed videos or its button to use this choice.	請啟用「動態影片拖曳列」或其按鈕以使用此選項。
+Turn on Seek bar on stories to use this choice.	請啟用「限時動態拖曳列」以使用此選項。
+A white bar and handle, as they've always been.	白色拖曳列與控點，與以往相同。
+A fainter bar and handle, so more of the video shows through.	較淡的拖曳列與控點，能看到更多影片。
+A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	白色拖曳列置於毛玻璃條上，會模糊其下方的影片。Android 12 以前此條改為半透明。
+# context: Instagram's Blend, the shared reels feed in a chat, as Instagram names it in this language (Turkish Instagram: Derleme).
+Don't report Blend visits	不回報 Blend 造訪
+Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend and its reels open as usual.	開啟 Blend 時，不會告訴它所屬的聊天室你造訪過。Blend 和其中的 Reels 照常開啟。
+# context: the little round profile pictures in a corner of a feed post or reel showing that a friend liked, commented on or reshared it. Instagram's own setting for them comes from its server, not the app.
+Hide activity bubbles	隱藏動態泡泡
+Takes the little round pictures off posts and reels that show a friend liked, commented on or reshared them. Posts already on screen change when they load again.	移除貼文和 Reels 上顯示朋友按讚、留言或轉發的小圓形照片。已在畫面上的貼文會在重新載入時變更。
+# context: a switch for foldable phones and tablets. Instagram normally moves its tab bar to a rail down the side on a wide screen; this keeps the narrow phone layout instead.
+Phone layout on big screens	大螢幕使用手機版面
+On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	在摺疊手機或平板上，Instagram 會在整個螢幕維持手機版面，分頁列留在底部而不是側邊。請重新啟動 Instagram 以套用變更。
+# context: a switch on the Messages page. It adds a Preview row to the menu a long press on a chat in the inbox opens; Preview shows the chat's newest messages in a box without opening the chat, so no seen receipt goes out. "Seen" is Instagram's own read receipt label in a chat.
+Preview chats	預覽聊天
+Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too.	在訊息中長按聊天並點擊「預覽」，就能在不開啟聊天的情況下閱讀最新訊息，對方不會看到「已讀」。您也可以直接在那裡回覆。
+# context: the row in a chat's long press menu and the title of the box it opens, which shows the chat's newest messages without opening the chat.
+Preview	預覽
+# context: the hint in the reply field at the bottom of the chat preview box.
+Write a message	輸入訊息
+# context: shown in the chat preview box while its messages load.
+Loading	載入中
+Nothing here yet	這裡還沒有內容
+# context: the chat preview box, and a short toast, when the chat's messages can't be read. Toasts stay short.
+Couldn't load this chat	無法載入這個聊天
+# context: a short toast after a reply typed in the chat preview box went out.
+Sent	已傳送
+Couldn't send	無法傳送
+# context: what a message with no text shows as in the chat preview box, by what it holds.
+Photo or video	相片或影片
+GIF or sticker	GIF 或貼圖
+# context: a view once photo or video in the chat preview box shows only this label, never the photo or video. Use Instagram's own wording for view once.
+View once message	限看一次的訊息
+Attachment	附件
+# context: the button next to the reply field in the chat preview box.
+Send	傳送

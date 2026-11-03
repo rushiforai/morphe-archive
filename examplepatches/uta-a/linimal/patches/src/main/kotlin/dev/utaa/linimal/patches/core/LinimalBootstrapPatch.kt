@@ -19,7 +19,6 @@ import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
 private const val LINE_APPLICATION = "Ljp/naver/line/android/LineApplication;"
 private const val ANDROID_APPLICATION = "Landroid/app/Application;"
-private const val KOTLIN_UNIT = "Lkotlin/Unit;"
 private const val BOOTSTRAP_METHOD =
     "Ldev/utaa/linimal/extension/core/LinimalBootstrap;->initialize(Landroid/content/Context;)V"
 
@@ -30,8 +29,7 @@ private const val BOOTSTRAP_METHOD =
  */
 internal val lineApplicationInitializeFingerprint = Fingerprint(
     definingClass = LINE_APPLICATION,
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = KOTLIN_UNIT,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     parameters = listOf(LINE_APPLICATION),
     filters = listOf(
         methodCall("$ANDROID_APPLICATION->onCreate()V", Opcode.INVOKE_SUPER),

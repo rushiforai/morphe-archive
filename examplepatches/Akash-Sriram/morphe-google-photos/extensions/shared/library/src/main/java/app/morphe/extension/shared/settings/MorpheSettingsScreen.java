@@ -33,7 +33,9 @@ import android.widget.Toast;
 import java.util.Map;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticsDialog;
+import app.morphe.extension.shared.patches.DeviceSpoofHelper;
 import app.morphe.extension.shared.patches.LocalCreationDownloader;
 import app.morphe.extension.shared.patches.PhenotypeFlagManager;
 import app.morphe.extension.shared.patches.PhenotypeFlagManager.MaterialVectorDrawable;
@@ -283,6 +285,8 @@ public final class MorpheSettingsScreen {
         chipsRow.setGravity(Gravity.CENTER_VERTICAL);
         chipsRow.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        chipsRow.addView(createMiniChip(activity, density, theme, 
+                "Backup: " + DeviceSpoofHelper.getProfileChipName()));
         chipsRow.addView(createMiniChip(activity, density, theme, "Flags: " + activeOverrides + " active"));
         chipsRow.addView(createMiniChip(activity, density, theme, "Toolkit: Ready"));
         chipsRow.addView(createMiniChip(activity, density, theme, "On-Device AI: OK"));
@@ -290,6 +294,21 @@ public final class MorpheSettingsScreen {
         chipsScroll.addView(chipsRow);
         overviewCard.addView(chipsScroll);
         content.addView(overviewCard);
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 1.5. Backup Storage Profile
+        // ─────────────────────────────────────────────────────────────────────
+        content.addView(createSectionHeader(activity, density, theme, "Backup & Storage"));
+        LinearLayout backupGroup = createCardContainer(activity, density, theme);
+
+        backupGroup.addView(createPreferenceItem(activity, density, theme,
+                "quantum_gm_ic_backup_vd_theme_24",
+                MaterialVectorDrawable.TYPE_SYNC,
+                "Backup Storage Profile",
+                DeviceSpoofHelper.getProfileDisplayName(),
+                () -> showBackupProfileDialog(activity, onBack, theme)));
+
+        content.addView(backupGroup);
 
         // ─────────────────────────────────────────────────────────────────────
         // 2. Feature Flags & Experiments
@@ -720,5 +739,148 @@ public final class MorpheSettingsScreen {
                 },
                 true
         ).show();
+    }
+
+    private static void showBackupProfileDialog(Activity activity, Runnable onBack, Theme theme) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        String current = DeviceSpoofHelper.getSelectedProfile();
+        final String[] selected = new String[] { current };
+
+        LinearLayout layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int padH = (int) (20 * density);
+        layout.setPadding(padH, (int) (4 * density), padH, (int) (12 * density));
+
+        TextView tvDesc = new TextView(activity);
+        tvDesc.setText("Select the backup profile to spoof for Google Photos unlimited cloud storage:");
+        tvDesc.setTextSize(13f);
+        tvDesc.setTextColor(theme.textSecondary);
+        tvDesc.setLineSpacing(0, 1.2f);
+        layout.addView(tvDesc);
+
+        LinearLayout optionsContainer = new LinearLayout(activity);
+        optionsContainer.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams ocLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        ocLp.setMargins(0, (int) (14 * density), 0, (int) (8 * density));
+        optionsContainer.setLayoutParams(ocLp);
+
+        View cardAuto = createProfileOptionCard(
+                activity, density, theme,
+                "Auto-Sync Mode (Recommended)",
+                "Dynamic: Original Quality → Pixel XL, Storage Saver → Pixel 5",
+                DeviceSpoofHelper.PROFILE_AUTO.equals(selected[0])
+        );
+
+        View cardXl = createProfileOptionCard(
+                activity, density, theme,
+                "Google Pixel XL",
+                "Forced unmetered Original Quality • Quality selector hidden in Photos",
+                DeviceSpoofHelper.PROFILE_PIXEL_XL.equals(selected[0])
+        );
+
+        View cardP5 = createProfileOptionCard(
+                activity, density, theme,
+                "Google Pixel 5",
+                "Forced unmetered Storage Saver • Original Quality & Express locked out",
+                DeviceSpoofHelper.PROFILE_PIXEL_5.equals(selected[0])
+        );
+
+        Runnable refreshSelection = () -> {
+            updateOptionCardSelection(cardAuto, DeviceSpoofHelper.PROFILE_AUTO.equals(selected[0]), theme);
+            updateOptionCardSelection(cardXl, DeviceSpoofHelper.PROFILE_PIXEL_XL.equals(selected[0]), theme);
+            updateOptionCardSelection(cardP5, DeviceSpoofHelper.PROFILE_PIXEL_5.equals(selected[0]), theme);
+        };
+
+        cardAuto.setOnClickListener(v -> {
+            selected[0] = DeviceSpoofHelper.PROFILE_AUTO;
+            refreshSelection.run();
+        });
+
+        cardXl.setOnClickListener(v -> {
+            selected[0] = DeviceSpoofHelper.PROFILE_PIXEL_XL;
+            refreshSelection.run();
+        });
+
+        cardP5.setOnClickListener(v -> {
+            selected[0] = DeviceSpoofHelper.PROFILE_PIXEL_5;
+            refreshSelection.run();
+        });
+
+        optionsContainer.addView(cardAuto);
+        optionsContainer.addView(cardXl);
+        optionsContainer.addView(cardP5);
+        layout.addView(optionsContainer);
+
+        TextView tvNotice = new TextView(activity);
+        tvNotice.setText("Notice: Changing profiles requires restarting Google Photos to apply new device parameters and entitlements.");
+        tvNotice.setTextSize(11.5f);
+        tvNotice.setTextColor(theme.primary);
+        tvNotice.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        layout.addView(tvNotice);
+
+        PhenotypeFlagManager.createM3ActionDialog(
+                activity,
+                "Backup Storage Profile",
+                layout,
+                "Apply & Restart",
+                () -> {
+                    if (!selected[0].equals(current)) {
+                        DeviceSpoofHelper.setProfile(activity, selected[0]);
+                        Toast.makeText(activity, "Profile updated! Restarting Photos...", Toast.LENGTH_SHORT).show();
+                        DeviceSpoofHelper.restartApp(activity);
+                    }
+                }
+        ).show();
+    }
+
+    private static LinearLayout createProfileOptionCard(Activity activity, float density, Theme theme,
+                                                         String title, String subtitle, boolean isSelected) {
+        LinearLayout card = new LinearLayout(activity);
+        card.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (14 * density);
+        card.setPadding(pad, pad, pad, pad);
+        card.setClickable(true);
+        card.setFocusable(true);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, (int) (10 * density));
+        card.setLayoutParams(lp);
+
+        updateOptionCardSelection(card, isSelected, theme);
+
+        TextView tvTitle = new TextView(activity);
+        tvTitle.setText(title);
+        tvTitle.setTextSize(15f);
+        tvTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        tvTitle.setTextColor(theme.textPrimary);
+        card.addView(tvTitle);
+
+        TextView tvSub = new TextView(activity);
+        tvSub.setText(subtitle);
+        tvSub.setTextSize(12f);
+        tvSub.setTextColor(theme.textSecondary);
+        LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        subLp.setMargins(0, (int) (3 * density), 0, 0);
+        tvSub.setLayoutParams(subLp);
+        card.addView(tvSub);
+
+        return card;
+    }
+
+    private static void updateOptionCardSelection(View card, boolean isSelected, Theme theme) {
+        float density = card.getResources().getDisplayMetrics().density;
+        GradientDrawable gd = new GradientDrawable();
+        gd.setCornerRadius(14 * density);
+        if (isSelected) {
+            gd.setColor(theme.isDark ? 0x284CDAC6 : 0x1A006A60);
+            gd.setStroke((int) (2 * density), theme.primary);
+        } else {
+            gd.setColor(theme.surfaceContainer);
+            gd.setStroke((int) (1 * density), theme.isDark ? 0x22FFFFFF : 0x14000000);
+        }
+        card.setBackground(gd);
     }
 }

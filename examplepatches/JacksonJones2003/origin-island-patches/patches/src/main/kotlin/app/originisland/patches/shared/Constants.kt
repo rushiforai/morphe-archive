@@ -46,6 +46,19 @@ internal object Constants {
         )
     )
 
+    val COMPATIBILITY_APPLE_MUSIC = Compatibility(
+        name = "Apple Music",
+        packageName = "com.apple.android.music",
+        apkFileType = ApkFileType.APK_REQUIRED,
+        appIconColor = 0xFA243C,
+        targets = listOf(
+            AppTarget(
+                version = "7.0.0",
+                minSdk = 26
+            )
+        )
+    )
+
     val COMPATIBILITY_LASTWAVE = Compatibility(
         name = "LastWave",
         packageName = "com.lastwave.app",

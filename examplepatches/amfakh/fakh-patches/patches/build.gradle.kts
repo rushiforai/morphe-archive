@@ -22,6 +22,13 @@ dependencies {
 }
 
 tasks {
+    // GPLv3 Section 7b requires the NOTICE text to ship with binaries, not only the source.
+    named<Jar>("jar") {
+        from(rootProject.files("NOTICE", "LICENSE")) {
+            into("META-INF")
+        }
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

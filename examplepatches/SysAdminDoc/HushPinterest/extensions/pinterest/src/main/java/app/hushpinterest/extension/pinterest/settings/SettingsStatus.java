@@ -93,6 +93,10 @@ public final class SettingsStatus {
     public static boolean hideCloseupButtons() { return false; }
     public static boolean closeupButtons() { return false; }
     public static boolean closeupSearchLabel() { return false; }
+    public static boolean closeupActionBar() { return false; }
+    public static boolean closeupRemix() { return false; }
+    public static boolean closeupVisitSite() { return false; }
+    public static boolean closeupSaveButton() { return false; }
     public static boolean hidePinMenuItems() { return false; }
     public static boolean pinMenuItems() { return false; }
     public static boolean hideComments() { return false; }

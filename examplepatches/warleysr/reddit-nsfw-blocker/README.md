@@ -21,7 +21,7 @@ The **Block NSFW content** patch:
 
 | App | Package | Version |
 |-----|---------|---------|
-| Reddit | `com.reddit.frontpage` | `2026.39.0`, `2026.42.0` |
+| Reddit | `com.reddit.frontpage` | `2026.39.0`, `2026.42.0`, `2026.44.0` |
 
 ## How to use
 

@@ -16,6 +16,41 @@ import androidx.preference.SwitchPreference;
  * and the skip keeps working with defaults.
  */
 public final class IntroSkipSettings {
+    // Row texts shared with the Mod settings screen (compile-time constants: inlined, no class load).
+    public static final String T_ENABLED = "Skip intros";
+    public static final String S_ENABLED = "Skip intros and recaps during playback";
+    public static final String T_ANIME = "Skip anime openings (AniSkip)";
+    public static final String S_ANIME = "Look up anime openings online";
+    public static final String T_MODE = "Skip mode";
+    public static final String S_MODE_AUTO = "Skip automatically";
+    public static final String S_MODE_MANUAL = "Show the button, never skip alone";
+    public static final String T_RECAPS = "Skip recaps";
+    public static final String S_RECAPS = "Skip recap segments too";
+    public static final String T_CREDITS = "Skip credits";
+    public static final String S_CREDITS_AUTO = "Skip automatically";
+    public static final String S_CREDITS_BUTTON = "Show the button";
+    public static final String S_CREDITS_OFF = "Never skip credits";
+    public static final String T_PREVIEWS = "Skip previews";
+    public static final String S_PREVIEWS = "Skip preview segments too";
+    public static final String T_SEEKMARKS = "Show skip marks";
+    public static final String S_SEEKMARKS = "Coloured marks on the progress bar where a skip is offered";
+    public static final String T_BINGE = "Auto-play next episode in external player";
+    public static final String S_BINGE = "Start the next episode in the same external player when one finishes";
+    public static final String T_FORGET = "Forget remembered player";
+    public static final String S_FORGET = "Ask again which external player to use";
+    public static final String M_FORGET_DONE = "Remembered player forgotten";
+    public static final String M_FORGET_NONE = "No remembered player";
+    public static final String T_TRACKMEM = "Remember tracks per show";
+    public static final String S_TRACKMEM = "Reuse the last audio and subtitle choice for other episodes";
+    public static final String T_AUTOPICK = "Auto-pick best stream";
+    public static final String S_AUTOPICK = "Play the top ranked stream without showing the list";
+    public static final String T_DIARY = "Keep playback diary";
+    public static final String S_DIARY = "A small log of lookups, skips and stalls that a PC can read over adb (no links or accounts)";
+    public static final String T_SHOWLIST = "Always show stream list";
+    public static final String S_SHOWLIST = "Never auto-pick, always show every stream";
+    public static final String T_PREPARE = "Prepare next episode";
+    public static final String S_PREPARE = "Near the end, find the next episode's stream and skip times so Next starts at once";
+
     private IntroSkipSettings() {
     }
 
@@ -49,33 +84,63 @@ public final class IntroSkipSettings {
         // Attach first: a category only gets its PreferenceManager once it is in the screen.
         target.addPreference(section);
 
-        addSwitch(section, context, IntroSkipPrefs.KEY_ENABLED, "Skip intros",
-                "Skip intros and recaps during playback", IntroSkipPrefs.isEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_ENABLED, T_ENABLED,
+                S_ENABLED, IntroSkipPrefs.isEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_ANIME,
-                "Skip anime openings (AniSkip)", "Look up anime openings online",
+                T_ANIME, S_ANIME,
                 IntroSkipPrefs.isAnimeEnabled(context));
         addMode(section, modeRow(context), IntroSkipPrefs.mode(context));
-        addSwitch(section, context, IntroSkipPrefs.KEY_RECAPS, "Skip recaps",
-                "Skip recap segments too", IntroSkipPrefs.isRecapsEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_RECAPS, T_RECAPS,
+                S_RECAPS, IntroSkipPrefs.isRecapsEnabled(context));
         addCredits(section, creditsRow(context), IntroSkipPrefs.creditsMode(context));
-        addSwitch(section, context, IntroSkipPrefs.KEY_PREVIEWS, "Skip previews",
-                "Skip preview segments too", IntroSkipPrefs.isPreviewsEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_PREVIEWS, T_PREVIEWS,
+                S_PREVIEWS, IntroSkipPrefs.isPreviewsEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_SEEKMARKS, T_SEEKMARKS,
+                S_SEEKMARKS, IntroSkipPrefs.isSeekMarksEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_BINGE_EXTERNAL,
-                "Auto-play next episode in external player",
-                "Start the next episode in the same external player when one finishes",
+                T_BINGE,
+                S_BINGE,
                 IntroSkipPrefs.isBingeExternalEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_TRACKMEM,
-                "Remember tracks per show",
-                "Reuse the last audio and subtitle choice for other episodes",
+                T_TRACKMEM,
+                S_TRACKMEM,
                 IntroSkipPrefs.isTrackMemEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_AUTOPICK,
-                "Auto-pick best stream",
-                "Play the top ranked stream without showing the list",
+                T_AUTOPICK,
+                S_AUTOPICK,
                 IntroSkipPrefs.isAutoPickEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_SHOWLIST,
-                "Always show stream list",
-                "Never auto-pick, always show every stream",
+                T_SHOWLIST,
+                S_SHOWLIST,
                 IntroSkipPrefs.isShowListEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_PREPARE_NEXT, T_PREPARE, S_PREPARE,
+                IntroSkipPrefs.isPrepareNextEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_DIARY, T_DIARY, S_DIARY,
+                IntroSkipPrefs.isDiaryEnabled(context));
+        addForgetPlayer(section, context);
+    }
+
+    private static void addForgetPlayer(PreferenceCategory section, Context context) {
+        Preference row = new Preference(context);
+        row.setKey("introskip_forget_player");
+        row.setTitle(T_FORGET);
+        row.setSummary(S_FORGET);
+        row.setPersistent(false);
+        row.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                try {
+                    Context c = preference.getContext();
+                    boolean had = IntroSkipPrefs.forgetExternalPlayer(c);
+                    android.widget.Toast.makeText(c, had ? M_FORGET_DONE : M_FORGET_NONE,
+                            android.widget.Toast.LENGTH_SHORT).show();
+                } catch (Throwable ignored) {
+                    return false;
+                }
+                return true;
+            }
+        });
+        section.addPreference(row);
     }
 
     /**
@@ -128,7 +193,7 @@ public final class IntroSkipSettings {
     private static ListPreference modeRow(Context context) {
         final ListPreference row = new ListPreference(context);
         row.setKey(IntroSkipPrefs.KEY_MODE);
-        row.setTitle("Skip mode");
+        row.setTitle(T_MODE);
         row.setEntries(new CharSequence[]{"Auto", "Manual"});
         row.setEntryValues(new CharSequence[]{IntroSkipPrefs.MODE_AUTO, IntroSkipPrefs.MODE_MANUAL});
         row.setPersistent(false);
@@ -154,14 +219,14 @@ public final class IntroSkipSettings {
 
     private static String modeSummary(String value) {
         return IntroSkipPrefs.MODE_MANUAL.equals(value)
-                ? "Show the button, never skip alone"
-                : "Skip automatically";
+                ? S_MODE_MANUAL
+                : S_MODE_AUTO;
     }
 
     private static ListPreference creditsRow(Context context) {
         final ListPreference row = new ListPreference(context);
         row.setKey(IntroSkipPrefs.KEY_CREDITS);
-        row.setTitle("Skip credits");
+        row.setTitle(T_CREDITS);
         row.setEntries(new CharSequence[]{"Auto", "Button", "Off"});
         row.setEntryValues(new CharSequence[]{IntroSkipPrefs.CREDITS_AUTO,
                 IntroSkipPrefs.CREDITS_BUTTON, IntroSkipPrefs.CREDITS_OFF});
@@ -187,8 +252,8 @@ public final class IntroSkipSettings {
     }
 
     private static String creditsSummary(String value) {
-        if (IntroSkipPrefs.CREDITS_AUTO.equals(value)) return "Skip automatically";
-        if (IntroSkipPrefs.CREDITS_OFF.equals(value)) return "Never skip credits";
-        return "Show the button";
+        if (IntroSkipPrefs.CREDITS_AUTO.equals(value)) return S_CREDITS_AUTO;
+        if (IntroSkipPrefs.CREDITS_OFF.equals(value)) return S_CREDITS_OFF;
+        return S_CREDITS_BUTTON;
     }
 }

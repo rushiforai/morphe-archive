@@ -626,7 +626,7 @@ public class SettingsEntryTest {
         List<String> titles = titles(pageOver(activity.get()));
         assertTrue(titles.toString(), titles.contains("Save videos other apps can open"));
         assertTrue(pageOver(activity.get()).navigation.isExpanded("Downloads"));
-        assertTrue("a setting request collapsed an open section", pageOver(activity.get()).navigation.isExpanded("Playback"));
+        assertFalse("the section open before stayed open (#368)", pageOver(activity.get()).navigation.isExpanded("Playback"));
         assertNull("the request was kept for the next screen", SettingsEntry.takeRequestedSetting());
     }
 
@@ -640,8 +640,8 @@ public class SettingsEntryTest {
         ShadowLooper.idleMainLooper();
         HushfacebookPreferenceFragment page = pageOver(activity.get());
         ListView list = page.getView().findViewById(android.R.id.list);
-        org.junit.Assert.assertEquals(23, list.getCount());
-        org.junit.Assert.assertEquals("section_Opening Facebook", ((Preference) list.getItemAtPosition(0)).getKey());
+        org.junit.Assert.assertEquals(24, list.getCount());
+        org.junit.Assert.assertEquals("section_Opening Facebook", ((Preference) list.getItemAtPosition(1)).getKey());
         assertFalse(page.navigation.isExpanded("Downloads"));
         assertFalse(titles(pageOver(activity.get())).contains("More settings"));
         String report = app.morphe.extension.shared.settings.preference.LogBufferManager.buildExportText();

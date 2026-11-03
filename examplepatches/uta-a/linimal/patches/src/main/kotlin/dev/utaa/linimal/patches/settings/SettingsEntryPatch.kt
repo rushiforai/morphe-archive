@@ -18,9 +18,9 @@ import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.patchStatusCollector
 
-private const val SETTINGS_CATEGORY_SUPER = "Lpx4/p1;"
+private const val SETTINGS_CATEGORY_SUPER = "Lec5/f2;"
 private const val LIST_TYPE = "Ljava/util/List;"
-private const val LIST_BUILDER = "Leb8/r;->E([Ljava/lang/Object;)Ljava/util/List;"
+private const val LIST_BUILDER = "Lws8/p;->F([Ljava/lang/Object;)Ljava/util/List;"
 private const val APPEND_ENTRY_METHOD =
     "Ldev/utaa/linimal/extension/settings/SettingsEntryHooks;->appendEntry(Ljava/util/List;)Ljava/util/List;"
 
@@ -34,8 +34,8 @@ internal val mainSettingsListFingerprint = Fingerprint(
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(
-        string("createLypItemDescription"),
-        string("isPremiumSubscribed"),
+        string("createLypPremiumItemDescription"),
+        string("getSettingsPremiumSubscriptionStatus"),
         string("shouldShowCustomAppIconSettings"),
         string("openIapPurchaseHistory"),
         methodCall(LIST_BUILDER, Opcode.INVOKE_STATIC),
@@ -55,15 +55,16 @@ internal val settingsItemConstructorFingerprint = Fingerprint(
         "Ljava/lang/String;",
         "Ljava/lang/Integer;",
         "I",
-        "Lvb8/p;",
-        "Lvb8/p;",
+        "Lnt8/p;",
+        "Lnt8/p;",
         "Ljava/lang/Integer;",
-        "Lvb8/p;",
-        "Lu08/e;",
-        "Lvb8/l;",
-        "Lvb8/l;",
-        "Lpx4/t0;",
-        "Lvb8/p;",
+        "Lnt8/p;",
+        "Lnt8/p;",
+        "Lmi8/e;",
+        "Lnt8/l;",
+        "Lnt8/l;",
+        "Lec5/g1;",
+        "Lnt8/p;",
         "Z",
     ),
 )

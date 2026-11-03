@@ -4,6 +4,45 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+### Features
+
+* **TikTok:** `Keep my own watch history` lists the videos you watch on this phone with who posted them and their captions, in Hushfeed settings > Feed filter. `My watch history` searches the list and a tap opens the video again. It starts off and stays on your phone (#172).
+* **TikTok:** A new `Time zone` row under Region lets you type a zone like Europe/Belgrade to use in place of the country's. Daylight saving follows by itself, and leaving it empty keeps the country's zone (#198).
+* **TikTok:** `Hide read receipts` keeps the "seen" mark off the chats you open, so the other person doesn't see that you've read their message. It starts off, and it lives in Hushfeed settings > Inbox. Thanks to @maayan080 (#295).
+* **TikTok:** The settings screen and What's new now come in Vietnamese. Thanks to @hautv404 (#306).
+* **TikTok:** The LIVE record button hides along with everything else when you turn on TikTok's LIVE Clear screen, and it comes back when you turn it off. A recording that's running keeps going. Thanks to @Hiiva (#297).
+* **TikTok:** `Copy bio and IDs` has a `Copy name` button now, so a profile's share sheet copies the display name as well as the username. Buttons that don't fit move down to a second line instead of running off the sheet.
+* **TikTok:** `Background play in the long-press menu` adds TikTok's own background play row to the long-press menu, so one video can keep playing while the others stop as usual. It starts off, and it's under Playback.
+* **TikTok:** `Keep LIVEs from these creators` lets the LIVEs of creators you pick stay in the feed while `Hide LIVE videos` is on. Add as many as you like, by handle or user ID. It keeps what TikTok sends you, so it won't bring in a LIVE TikTok didn't serve.
+* **TikTok:** `Show the save button on videos` puts a save button on the video, so one tap saves it with your save settings. It starts off, you can drag it wherever you like, and it's in Feed screen under Buttons on videos when `Advanced downloads` is patched in.
+* **TikTok:** With `Slide to change the hold speed` on, the bubble's padlock shows whether the video is locked, and letting go on a new speed while it's locked locks that speed.
+* **TikTok:** `Hide speed messages` leaves out TikTok's message when you pick a speed from the menu, or lock or unlock one with a hold. It starts off, and it's under Playback.
+* **TikTok:** `Hide the All button on Following` takes the All button off the end of the story row on Following, and `Hide the Create circle in story rows` takes the Create circle off that row and the Inbox's. The stories stay, and both start off under Feed screen.
+* **TikTok:** `Hide like counts on comments` takes the number off the heart on each comment, and `Hide the thumbs down on comments` takes the thumbs down off. The heart still works. Both start off, and they're in Hushfeed settings > Comments.
+* **TikTok:** `Video text color` and `Backdrop behind video text` under Feed screen color the description, the creator's name and the post date on videos, and can put a see-through band behind them.
+* **TikTok:** `Hide the repost chip` under Feed screen takes out the small bar above the progress bar that says someone you follow reposted the video, or asks you to repost it.
+
+### Bug Fixes
+* **TikTok:** What you type in a LIVE room's comment box is readable under `Dark LIVE panels in dark mode` now, on a recommended build too. The fix used to come only with `AMOLED dark theme`, so everyone else typed dark text on a dark bar. With the switch off, the box keeps TikTok's own colors.
+* **TikTok:** `Auto-advance videos` now moves on from videos you open from a profile or a list, where TikTok has no auto scroll of its own. Before, the first one just looped at its end.
+* **TikTok:** A sorted profile or Liked grid stays out of sight while its pages load, with a small spinner and a running count, then shows once in its final order. Before, you watched it reshuffle page by page, and a pull to refresh looked like it had dropped the order.
+* **TikTok:** The Inbox doesn't flicker when it opens with `Hide stories tray` on. The tray used to go a moment too late, so the chats jumped down and back up. The same fix covers every other row the Inbox hides.
+* **TikTok:** A full name typed after an @ in a bio, like @First Last, is one link now and opens a search for that name. Before, only the first word lit up, and it opened a stranger's profile or nothing. A name like @José no longer links as @Jos.
+* **TikTok:** `Thumbs down blocks the commenter` takes that person's comments out of the list right away now. Before, the comment only dimmed and stayed where it was.
+* **TikTok:** `Hide the Send to row` and `Hide people and options by name` reach the row of friends in the menu a long press on a comment opens. They only reached the share sheet's row before.
+* **TikTok:** `AMOLED dark theme` turns the gray cards in the comment menu and the long-press video menu black, along with the panel behind them.
+* **TikTok:** The "Saving video" message no longer sits under the "Video saved" banner on a quick save. The banner takes its place.
+* **TikTok:** With `Let other apps play until a video starts` on, music from another app comes back when you leave a video for your messages, a profile or another tab. TikTok used to keep the sound until you closed it. It asks again when the next video plays, and a video you've paused on the feed still holds on to it.
+* **TikTok:** `Network proxy` works with a proxy that has a user name and password now, for both HTTP and SOCKS5. Before, TikTok's own traffic couldn't sign in, so the app acted like it had no connection.
+* **TikTok:** `Network proxy` no longer says a working proxy is down because one website behind it failed. It asks the proxy first, and gives a slow proxy a second try. A wrong password gets its own message.
+* **TikTok:** `Speed menu choices` and the offline video limit no longer ask you to restart TikTok twice in a row when the settings are in another language.
+
+* **TikTok:** The README's install steps point at TikTok 47.6.3 now. After v0.80.0 went out they still sent you to 47.5.3, which v0.80.0 doesn't patch.
+
+### Build
+
+* **TikTok:** The release walk keeps its device reserved from the install until Android's code check is done, so another job can't take the phone in between and cost a walk that passed. It cold boots the emulator it starts and waits for a paused video to settle before it reads the screen. A LIVE that never sits still gets swiped past instead of tapped, since a tap opens the LIVE room. It turns off an emulator's system animations for the walk and puts them back after, because a creator's animated avatar ring kept the screen from being read.
+
 ## 0.80.0 (2026-11-01)
 
 ### Features

@@ -1,4 +1,4 @@
-# 🧩 Morphe Patches for Pixel Camera (v1.0.9)
+# 🧩 Morphe Patches for Pixel Camera (v1.1.1)
 
 Official Morphe Patch definitions to unlock Google Pixel 11 **Camera Looks**, **Viewfinder Quick Access Controls**, **True 50MP Pro Capture**, and **Creator Suite** on older Pixel devices (Pixel 6 through Pixel 10).
 
@@ -7,8 +7,8 @@ Official Morphe Patch definitions to unlock Google Pixel 11 **Camera Looks**, **
 ## 🔗 Quick Links & Navigation
 
 * **Master Guide**: [Root Project README](../README.md)
-* **Pre-Patched Standalone APK**: [⬇️ Download Latest Patched APK v1.0.9 (SourceForge)](https://sourceforge.net/projects/pixel-camera-patches/files/Camera-v11.1.040.982810059.19-patches-v1.0.9.apk/download)
-* **Morphe Patch Package**: [⬇️ Download Morphe Patch .mpp v1.0.9 (SourceForge)](https://sourceforge.net/projects/pixel-camera-patches/files/morphe-patches-pixelcamera-1.0.9.mpp/download) • [GitHub Raw](https://github.com/Akshayykadam/Pixel-Camera/raw/main/morphe-patches-pixelcamera-1.0.9.mpp)
+* **Pre-Patched Standalone APK**: [Download Latest Patched APK v1.1.1 (SourceForge)](https://sourceforge.net/projects/pixel-camera-patches/files/Camera-v11.1.040.982810059.19-patches-v1.1.1.apk/download)
+* **Morphe Patch Package**: [Download Morphe Patch .mpp v1.1.1 (SourceForge)](https://sourceforge.net/projects/pixel-camera-patches/files/morphe-patches-pixelcamera-1.1.1.mpp/download) • [GitHub Raw](https://github.com/Akshayykadam/Pixel-Camera/raw/main/morphe-patches-pixelcamera-1.1.1.mpp)
 * **Smali Reference & Helper Classes**: [smali_patches/README.md](../smali_patches/README.md)
 * **Unified Smali Diffs**: [patches/README.md](../patches/README.md)
 * **Automated Python Builder**: [`build_and_patch_pixelcamera.py`](../build_and_patch_pixelcamera.py)
@@ -36,7 +36,7 @@ Official Morphe Patch definitions to unlock Google Pixel 11 **Camera Looks**, **
 | :--- | :---: | :--- | :--- |
 | **Camera Looks Backport** | `BytecodePatch` | [`CameraLooksPatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/looks/CameraLooksPatch.kt) | Unlocks 13 hardware-gated Camera Looks (Sauce/Tomte) across Tensor G1–G5 and fixes photo saving. |
 | **Viewfinder Quick Access** | `BytecodePatch` | [`QuickAccessPatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/quickaccess/QuickAccessPatch.kt) | Enables customizable Left/Right viewfinder quick-access slots, interactive Dual/Single EV sliders, and mode-aware sync. |
-| **10x Viewfinder Quick Zoom** | `BytecodePatch` | [`TelephotoPortraitAndZoomPatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/portrait/TelephotoPortraitAndZoomPatch.kt) | Exposes discrete 10x quick zoom button on viewfinder in Photo mode for telephoto Pixels. |
+| **10x Viewfinder Quick Zoom** | `BytecodePatch` | [`TelephotoPortraitAndZoomPatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/portrait/TelephotoPortraitAndZoomPatch.kt) | Discrete 10x zoom on Photo mode, dynamic 1x focal cycling (1.0x -> 1.2x -> 1.5x), and automatic focal memory. |
 | **Permanent Portrait Mode Fix** | `BytecodePatch` | [`PortraitModeFixPatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/portrait/PortraitModeFixPatch.kt) | Resolves front camera blur and EdgeTPU permission crashes via pure-TFLite monocular depth pipeline. |
 | **Pixel 10 Photo Saving Fix** | `BytecodePatch` | [`PhotoSavingFixPatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/photosaving/PhotoSavingFixPatch.kt) | Populates binned RAW dimension mappings and disables failing Eclipse AE, allowing 12MP photos to save properly. |
 | **Creator Suite** | `BytecodePatch` | [`CreatorSuitePatch.kt`](patches/src/main/kotlin/app/morphe/patches/pixelcamera/creator/CreatorSuitePatch.kt) | Unlocks Teleprompter HUD (Biotite), Audio VU Meter (Mica), and Framing Guides (Slate). |
@@ -67,11 +67,9 @@ Because Morphe patches run in an unprivileged `untrusted_app` SELinux context on
 
 1. **Motion Blur (Action Pan & Long Exposure) Disabled**:
    - **Reason**: Motion estimation neural networks require Google EdgeTPU hardware access (`/dev/gxp`), which the Linux kernel restricts to system-signed OEM packages. Non-root apps lack DAC and SELinux permissions to open `/dev/gxp`. Since the custom operators (`edgetpu-custom-op-2`) have no CPU/GPU fallback, the mode has been cleanly hidden via `camera.lasagna` flags to ensure captures in Photo, Portrait, Night Sight, and Video never stall.
-2. **Looks Applied Post-Capture**:
-   - **Reason**: Live 60 fps viewfinder tone-mapping on Pixel 11 relies on a proprietary vendor Camera HAL hardware tag (`REQUEST_TOMTE_TYPE`). On Tensor G1–G5, the patch utilizes Google's native Halide C++ pipeline (`tomte_tonemap.cc`) during HDR+ processing, guaranteeing full-resolution quality with zero viewfinder lag.
-3. **Creator Suite "Save to Project" Disabled**:
+2. **Creator Suite "Save to Project" Disabled**:
    - **Reason**: Cross-process gRPC calls to Google Photos require matching OEM platform signatures. The option is neutralized to prevent authorization errors.
-4. **Physical Periscope Lens Required for 10x Quick Zoom**:
+3. **Physical Periscope Lens Required for 10x Quick Zoom**:
    - **Reason**: 10x Quick Zoom utilizes Google's Super Res Zoom and telephoto fusion. Base/non-Pro devices without a physical periscope sensor use standard zoom ranges.
 
 ---
@@ -80,14 +78,14 @@ Because Morphe patches run in an unprivileged `untrusted_app` SELinux context on
 
 > [!TIP]
 > **Prefer a pre-patched 1-tap install?**
-> **[⬇️ Download Latest Patched APK (SourceForge Direct)](https://sourceforge.net/projects/pixel-camera-patches/files/Camera-v11.1.040.982810059.19-patches-v1.0.9.apk/download)** • **[All Files](https://sourceforge.net/projects/pixel-camera-patches/files/)**.
+> **[⬇️ Download Latest Patched APK (SourceForge Direct)](https://sourceforge.net/projects/pixel-camera-patches/files/Camera-v11.1.040.982810059.19-patches-v1.1.1.apk/download)** • **[All Files](https://sourceforge.net/projects/pixel-camera-patches/files/)**.
 
 ### Option 1: On Your Android Phone (Morphe Manager — Recommended)
 
 1. **Install Morphe Manager**: Download the latest release from [morphe.software](https://morphe.software) or GitHub.
 2. **Add Patch Source**:
    * **1-Click**: Tap [Add to Morphe Manager](https://morphe.software/add-source?github=Akshayykadam/Pixel-Camera) on your phone.
-   * **Or Manually**: Open Morphe Manager → **Settings** → **Sources** → Add custom source: `Akshayykadam/Pixel-Camera` (or import the [morphe-patches-pixelcamera-1.0.9.mpp](https://github.com/Akshayykadam/Pixel-Camera/raw/main/morphe-patches-pixelcamera-1.0.9.mpp) file directly from GitHub or [SourceForge](https://sourceforge.net/projects/pixel-camera-patches/files/morphe-patches-pixelcamera-1.0.9.mpp/download)).
+   * **Or Manually**: Open Morphe Manager → **Settings** → **Sources** → Add custom source: `Akshayykadam/Pixel-Camera` (or import the [morphe-patches-pixelcamera-1.1.1.mpp](https://github.com/Akshayykadam/Pixel-Camera/raw/main/morphe-patches-pixelcamera-1.1.1.mpp) file directly from GitHub or [SourceForge](https://sourceforge.net/projects/pixel-camera-patches/files/morphe-patches-pixelcamera-1.1.1.mpp/download)).
 3. **Get the Base Camera APK**:
    * Download `Pixel Camera 11.1.040.982810059.19` (`.apkm` bundle) from APKMirror.
 4. **Patch & Install**:
@@ -105,7 +103,7 @@ Because Morphe patches run in an unprivileged `untrusted_app` SELinux context on
 ### Option 2: On Your PC / Mac (Morphe Desktop / CLI)
 
 1. Download **Morphe Desktop** from [morphe.software](https://morphe.software).
-2. Download the latest [morphe-patches-pixelcamera-1.0.9.mpp](https://github.com/Akshayykadam/Pixel-Camera/raw/main/morphe-patches-pixelcamera-1.0.9.mpp) directly from GitHub or [SourceForge](https://sourceforge.net/projects/pixel-camera-patches/files/morphe-patches-pixelcamera-1.0.9.mpp/download).
+2. Download the latest [morphe-patches-pixelcamera-1.1.1.mpp](https://github.com/Akshayykadam/Pixel-Camera/raw/main/morphe-patches-pixelcamera-1.1.1.mpp) directly from GitHub or [SourceForge](https://sourceforge.net/projects/pixel-camera-patches/files/morphe-patches-pixelcamera-1.1.1.mpp/download).
 3. Drop the `Pixel Camera 11.1.040` APKM into Morphe Desktop.
 4. Select the patches and click **Start Patching**.
 5. Transfer the generated `PixelCamera_signed.apk` to your phone or install via ADB:
@@ -124,9 +122,6 @@ Because Morphe patches run in an unprivileged `untrusted_app` SELinux context on
   2. Verify that the file size matches the APKMirror listing (~650 MB to 1.1 GB depending on split bundle).
   3. Alternatively, rename the file to `.zip`, extract `base.apk` using ZArchiver or 7-Zip, and feed `base.apk` directly to Morphe Manager.
 
-### 2. Viewfinder Live Looks Preview vs Capture Processing (Issue #28 Part 2)
-* Live 60 fps viewfinder Looks preview requires Google's proprietary Camera HAL vendor tag `REQUEST_TOMTE_TYPE` (Pixel 11 hardware ISP).
-* On Pixel 6 through Pixel 10 (Tensor G1–G5), the viewfinder renders the standard preview stream, and full 3D LUT + Halide look styling is rendered seamlessly during HDR+ post-capture processing (`tomte_tonemap.cc`).
 
 ---
 
@@ -150,7 +145,7 @@ export GITHUB_TOKEN="your-github-pat"
 
 The output patch package will be generated at:
 ```text
-morphe-patches/patches/build/libs/patches-1.0.9.mpp
+morphe-patches/patches/build/libs/patches-1.1.1.mpp
 ```
 
 ---

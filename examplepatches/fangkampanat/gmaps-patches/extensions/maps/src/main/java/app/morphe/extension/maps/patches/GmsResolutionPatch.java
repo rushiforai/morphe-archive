@@ -17,7 +17,7 @@ public final class GmsResolutionPatch {
 
     /**
      * Replaces the Activity call in Status.startResolutionForResult and in the AndroidX
-     * ActivityResultRegistry IntentSender launch. MicroG-RE 7.2.1 and 7.2.2 return a
+     * ActivityResultRegistry IntentSender launch. MicroG-RE 7.2.1 to 7.3.0 return a
      * location-settings PendingIntent that resolves to no activity (issue #15). Both places and
      * their Maps callers handle only SendIntentException, so convert ActivityNotFoundException:
      * Status callers skip the dialog, and the registry delivers RESULT_CANCELED to the requester.

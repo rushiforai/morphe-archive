@@ -10,7 +10,10 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Enables InShot Pro",
+    description = "Enables InShot Pro entitlements offline: export without watermark, " +
+        "no interstitial ads, and access to paid effects, transitions, stickers and HD. " +
+        "Built-in AI features that validate the store signature in native code may still " +
+        "refuse a re-signed package.",
     default = true
 ) {
     dependsOn(patchVideoEngineKillPatch)

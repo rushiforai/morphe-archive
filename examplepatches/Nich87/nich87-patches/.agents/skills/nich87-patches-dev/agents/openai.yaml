@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nich87 Patches Development"
+  short_description: "Build and develop Nich87's Morphe-compatible patches"
+  default_prompt: "Use $nich87-patches-dev to develop and validate a patch in Nich87/nich87-patches."

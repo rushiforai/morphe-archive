@@ -1,0 +1,28 @@
+# Build output
+build/
+.gradle/
+.kotlin/
+*.mpp
+*.mpe
+
+# Local configuration and credentials
+local.properties
+morphe-signing.key
+*.keystore
+*.jks
+*.p12
+*.bks
+.env
+
+# Never publish apps or files extracted from them
+*.apk
+*.apkm
+*.xapk
+*.apks
+*.dex
+
+# IDE and system files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

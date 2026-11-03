@@ -168,6 +168,12 @@
   ],
   "settings": [
    {
+    "key": "download_button",
+    "default": false,
+    "type": "bool",
+    "row": "Show the save button on videos"
+   },
+   {
     "key": "download_video_quality",
     "default": "auto",
     "type": "string",
@@ -2369,6 +2375,20 @@
     "default": false,
     "type": "bool",
     "row": "Thumbs down blocks the commenter"
+   },
+   {
+    "key": "hide_comment_like_count",
+    "default": false,
+    "type": "bool",
+    "row": "Hide like counts on comments",
+    "restart": true
+   },
+   {
+    "key": "hide_comment_dislike",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the thumbs down on comments",
+    "restart": true
    }
   ],
   "surface": "comments",
@@ -5453,6 +5473,18 @@
     "default": 0,
     "type": "int",
     "row": "Author text size"
+   },
+   {
+    "key": "feed_text_color",
+    "default": "off",
+    "type": "string",
+    "row": "Video text color"
+   },
+   {
+    "key": "feed_text_backdrop",
+    "default": "off",
+    "type": "string",
+    "row": "Backdrop behind video text"
    }
   ],
   "surface": "feed",
@@ -6136,6 +6168,7 @@
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/seen/HideSeenVideosPatch.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/seen/SeenVideoHistory.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/seen/LocalWatchHistory.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/SeenVideoFilter.java"
   ],
   "settings": [
@@ -6157,6 +6190,12 @@
     "default": 0,
     "type": "int",
     "row": "Count a video as seen after"
+   },
+   {
+    "key": "local_watch_history",
+    "default": false,
+    "type": "bool",
+    "row": "Keep my own watch history"
    }
   ],
   "surface": "feed",
@@ -8330,7 +8369,9 @@
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/videooverlays/HideVideoOverlaysPatch.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/VideoOverlayHider.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/FeedOverlayControls.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/MusicDiscSpin.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/MusicDiscSpin.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/videooverlays/StoryRowButtons.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feed/StoryRowButtons.java"
   ],
   "settings": [
    {
@@ -8368,6 +8409,24 @@
     "default": false,
     "type": "bool",
     "row": "Hide the LIVE row on Following"
+   },
+   {
+    "key": "hide_following_all_button",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the All button on Following"
+   },
+   {
+    "key": "hide_story_create",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the Create circle in story rows"
+   },
+   {
+    "key": "hide_repost_chip",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the repost chip"
    },
    {
     "key": "hide_feed_report_button",
@@ -9963,6 +10022,43 @@
    }
   ],
   "notes": "Issue #200. The camera is a page inside SplashActivity, opened from the + tab, and Back doesn't close it (its X does). With the switch off, `dumpsys window windows` shows sbrt= on TikTok's window while the camera is open (0.39 on the S22 at system brightness 50: the phone's level plus TikTok's step, over 255); with it on there's no sbrt. The front flash and fill light (47.5.3: the record screen's fill light and front flash, the flash button's screen flash, the Tako AI camera's flash and the avatar camera's flash) store their own full brightness: with the switch off, flash on with the front camera shows sbrt=1.0, and with it on the white overlay still comes up while sbrt stays where it was. Opening the camera needs a tap the audit doesn't script, so the device check is by hand."
+ },
+ {
+  "name": "Hide read receipts",
+  "category": "Inbox",
+  "default": true,
+  "kind": "infrastructure",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/HideReadReceiptsPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/HideReadReceipts.java"
+  ],
+  "settings": [
+   {
+    "key": "hide_read_receipts",
+    "default": false,
+    "type": "bool",
+    "row": "Hide read receipts"
+   }
+  ],
+  "surface": "apk",
+  "checks": [
+   {
+    "id": "registered",
+    "what": "The patch registered its switch and its extension class is shipped. (The dex-string step shows the class is in the dex, the whole extension is kept; the registered-switch step is what shows the patch ran.)",
+    "steps": [
+     {
+      "probe": "report",
+      "expect": "registered_switches:[^\n]*\bhideReadReceipts\b"
+     },
+     {
+      "apk": "dex-string",
+      "expect": "Lapp/morphe/extension/tiktok/inbox/HideReadReceipts;"
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Only a second account can see whether Seen shows up, and the audit has none, so only its registration is checked. Owed natural check with a controlled sender: the switch on, open their new message, their chat doesn't show Seen while your own unread badge clears; switch off, Seen comes back."
  },
  {
   "name": "Keep unsent messages",
@@ -11886,6 +11982,12 @@
     "default": "us",
     "type": "string",
     "row": "Country code"
+   },
+   {
+    "key": "simspoof_time_zone",
+    "default": "",
+    "type": "string",
+    "row": "Time zone"
    }
   ],
   "surface": "app-start",
@@ -15160,6 +15262,44 @@
    }
   ],
   "notes": "One of the two tasks runs when the phone boots, which the audit cannot trigger. The in-app update prompt that the description says may stop is server-driven and not reproducible. skip_update_checks is restart-gated."
+ },
+ {
+  "name": "Keep the next videos in full screen",
+  "category": "Playback",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/looping/FullScreenNextVideosPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/interaction/FullScreenNextVideos.java"
+  ],
+  "settings": [
+   {
+    "key": "full_screen_next_videos",
+    "default": false,
+    "type": "bool",
+    "row": "Keep the next videos in full screen"
+   }
+  ],
+  "surface": "feed",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.fullScreenNextVideosEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "fullScreenNextVideosEnabled"
+      },
+      "expect": "\\bfullScreenNextVideosEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Needs a landscape video on a page with more videos after it. Whether the viewer then has a next page takes a look at the screen, which the audit can't do."
  },
  {
   "name": "Stay on the video in full screen",

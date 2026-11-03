@@ -81,7 +81,7 @@ class HomeTopAdPatchTest {
                 1,
                 1, 0, 0, 0, 0,
                 ImmutableMethodReference(
-                    "Leb8/v;",
+                    "Lws8/t;",
                     "g",
                     listOf("Ljava/lang/Object;"),
                     "Ljava/util/List;",
@@ -105,7 +105,7 @@ class HomeTopAdPatchTest {
                 1,
                 1, 0, 0, 0, 0,
                 ImmutableMethodReference(
-                    "Leb8/v;",
+                    "Lws8/t;",
                     "g",
                     listOf("Ljava/lang/Object;"),
                     "Ljava/util/List;",

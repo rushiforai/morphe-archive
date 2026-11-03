@@ -54,7 +54,7 @@ val notificationReadWithoutReceiptEntryPatch = bytecodePatch(
     availability { _, architecture ->
         if (architecture == ApkArchitecture.ARM64_V8A) PatchAvailability.REQUIRED else PatchAvailability.UNAVAILABLE
     }
-    dependsOn(readWithoutReceiptMessageControlsPatch)
+    dependsOn(readWithoutReceiptManualReadPatch)
     execute {
         val dispatches = notificationDispatchFingerprint.matchAllOrNull().orEmpty()
         val getters = notificationNavigationGetterFingerprint.matchAllOrNull().orEmpty()

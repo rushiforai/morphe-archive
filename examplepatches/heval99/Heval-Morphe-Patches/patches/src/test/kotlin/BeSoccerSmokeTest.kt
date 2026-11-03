@@ -26,7 +26,7 @@ class BeSoccerSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "6.6.0",
+            apk = apk, workDir = workDir, pkg = PKG, version = "6.7.0",
             patchNames = setOf("Disable license check", "Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

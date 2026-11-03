@@ -36,6 +36,14 @@ final class InnertubeCommentClient {
     private static final int READ_TIMEOUT_MS = 30_000;
     private static final int MAX_RESPONSE_BYTES = 16 * 1024 * 1024;
     private static final int MAX_REGULAR_PAGES = 30;
+    /**
+     * A comment list read to its end without a single comment is retried this often, in case
+     * the request context was not captured yet. Videos without comments (including ones whose
+     * "comments are turned off" message is in a language the parser does not know) then stop.
+     */
+    private static final int MAX_EMPTY_REGULAR_RETRIES = 2;
+    /** Live chat is not polled while YouTube has not reported playback for this long. */
+    private static final long LIVE_IDLE_AFTER_MS = 30_000;
     private static final long REPLAY_PREFETCH_WINDOW_MS = 60_000;
 
     private static volatile AuthSnapshot authSnapshot = AuthSnapshot.EMPTY;
@@ -44,9 +52,9 @@ final class InnertubeCommentClient {
     }
 
     static Session start(String videoId, int maxComments, int streamCommentMode,
-                         Callback callback) {
+                         boolean officialLiveChat, Callback callback) {
         Session session = new Session(videoId, Math.max(20, maxComments),
-                streamCommentMode, callback);
+                streamCommentMode, officialLiveChat, callback);
         session.start();
         return session;
     }
@@ -87,24 +95,32 @@ final class InnertubeCommentClient {
 
         long getCurrentVideoTimeMs();
 
+        /** Milliseconds since YouTube last reported the playback position of this video. */
+        long millisSincePlaybackReport();
+
         /** True while enough upcoming chat is buffered and fetching further ahead should wait. */
         boolean isStreamBufferFull();
 
         void onFetchState(String state);
     }
 
+    /**
+     * @param officialLiveChat Morphe's official Niconico comments patch already shows the
+     *                         chat, so it is neither fetched nor drawn a second time.
+     */
     static SourcePlan selectSources(VideoKind kind, boolean chatAvailable,
-                                    int streamCommentMode) {
+                                    int streamCommentMode, boolean officialLiveChat) {
         if (kind == VideoKind.REGULAR) return new SourcePlan(false, true);
         if (streamCommentMode == DanmakuSettings.STREAM_MODE_REGULAR_ONLY) {
             return new SourcePlan(false, true);
         }
+        boolean chat = chatAvailable && !officialLiveChat;
         if (streamCommentMode == DanmakuSettings.STREAM_MODE_CHAT_AND_TIMESTAMPS) {
-            return new SourcePlan(chatAvailable, true);
+            return new SourcePlan(chat, true);
         }
         // The default keeps chat authoritative and uses regular comments only
         // when YouTube confirms that no chat/replay continuation exists.
-        return new SourcePlan(chatAvailable, !chatAvailable);
+        return new SourcePlan(chat, !chatAvailable);
     }
 
     static final class SourcePlan {
@@ -121,6 +137,7 @@ final class InnertubeCommentClient {
         private final String videoId;
         private final int maxComments;
         private final int streamCommentMode;
+        private final boolean officialLiveChat;
         private final Callback callback;
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final AtomicLong replaySeekVersion = new AtomicLong();
@@ -131,10 +148,12 @@ final class InnertubeCommentClient {
         private volatile Thread regularWorker;
         private volatile boolean regularCompleted;
 
-        Session(String videoId, int maxComments, int streamCommentMode, Callback callback) {
+        Session(String videoId, int maxComments, int streamCommentMode,
+                boolean officialLiveChat, Callback callback) {
             this.videoId = videoId;
             this.maxComments = maxComments;
             this.streamCommentMode = streamCommentMode;
+            this.officialLiveChat = officialLiveChat;
             this.callback = callback;
         }
 
@@ -151,6 +170,7 @@ final class InnertubeCommentClient {
 
         private void run() {
             long retryMs = 1_000;
+            int emptyRegularRuns = 0;
             while (!cancelled.get()) {
                 try {
                     callback.onFetchState("bootstrap");
@@ -174,9 +194,11 @@ final class InnertubeCommentClient {
                     VideoKind kind = classifyVideo(initial, player);
                     if (!callback.onVideoKind(kind, player.liveStartEpochMs)) return;
                     SourcePlan sources = selectSources(kind,
-                            initial.liveContinuation != null, streamCommentMode);
+                            initial.liveContinuation != null, streamCommentMode,
+                            officialLiveChat);
                     callback.onFetchState("sources-stream-" + sources.stream
                             + "-regular-" + sources.regular);
+                    if (!sources.stream && !sources.regular) return;
                     if (sources.stream) {
                         if (sources.regular) {
                             startRegularWorker(initial.commentContinuation);
@@ -184,6 +206,10 @@ final class InnertubeCommentClient {
                         runLive(initial, player, kind);
                     } else {
                         if (runRegular(initial.commentContinuation)) return;
+                        if (++emptyRegularRuns > MAX_EMPTY_REGULAR_RETRIES) {
+                            callback.onFetchState("regular-empty");
+                            return;
+                        }
                         callback.onFetchState("regular-retry");
                         if (!waitFor(retryMs)) return;
                         retryMs = Math.min(30_000, retryMs * 2);
@@ -236,11 +262,17 @@ final class InnertubeCommentClient {
             final String seed = continuation;
             regularWorker = new Thread(() -> {
                 long retryMs = 1_000;
+                int emptyRuns = 0;
                 while (!cancelled.get() && !regularCompleted) {
                     try {
                         if (runRegular(seed)) {
                             regularCompleted = true;
                             callback.onFetchState("mixed-regular-complete");
+                            return;
+                        }
+                        if (++emptyRuns > MAX_EMPTY_REGULAR_RETRIES) {
+                            regularCompleted = true;
+                            callback.onFetchState("mixed-regular-empty");
                             return;
                         }
                         callback.onFetchState("mixed-regular-retry");
@@ -275,6 +307,16 @@ final class InnertubeCommentClient {
             String continuation = initial.liveContinuation;
             boolean firstBatch = true;
             while (!cancelled.get()) {
+                if (callback.millisSincePlaybackReport() >= LIVE_IDLE_AFTER_MS) {
+                    // Paused, closed or in the background: nothing would be shown, so stop
+                    // polling until playback reports again. The backlog is then trimmed like
+                    // the first batch instead of flooding the screen.
+                    callback.onFetchState("live-idle");
+                    while (callback.millisSincePlaybackReport() >= LIVE_IDLE_AFTER_MS) {
+                        if (!waitFor(1_000)) return;
+                    }
+                    firstBatch = true;
+                }
                 InnertubeResponseParser.LivePage page = InnertubeResponseParser.parseLivePage(
                         post("live_chat/get_live_chat", continuationBody(continuation, true)));
                 callback.onLiveComments(page.comments, player.liveStartEpochMs, firstBatch);

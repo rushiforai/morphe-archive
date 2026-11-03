@@ -17,6 +17,7 @@ private const val CREDITS_KEY = "introskip_credits"
 private const val PREVIEWS_KEY = "introskip_previews"
 private const val AUDIO_PRIMARY_KEY = "introskip_audio_primary"
 private const val AUDIO_ANIME_KEY = "introskip_audio_anime"
+private const val DIARY_KEY = "playback_diary"
 
 private const val MODE_ENTRIES_ARRAY = "introskip_mode_entries"
 private const val MODE_VALUES_ARRAY = "introskip_mode_values"
@@ -64,7 +65,7 @@ private val AUDIO_LANG_VALUES = listOf(
 )
 
 /**
- * Adds the eight Intro Skip preference rows to Vimu Settings:
+ * Adds the nine Intro Skip preference rows to Vimu Settings:
  * - Skip intros (CheckBoxPreference, default true)
  * - Skip anime openings (AniSkip) (CheckBoxPreference, default true)
  * - Skip mode (ListPreference: Auto / Manual, default Auto)
@@ -73,6 +74,7 @@ private val AUDIO_LANG_VALUES = listOf(
  * - Skip previews (CheckBoxPreference, default false)
  * - Primary audio language (ListPreference: ISO-639-1, default English / "en")
  * - Anime audio language (ListPreference: ISO-639-1, default Japanese / "ja")
+ * - Keep playback diary (CheckBoxPreference, default true)
  *
  * Appends standard Preference rows to res/xml/prefs.xml and the mode arrays to
  * res/values/arrays.xml (falling back to res/values/strings.xml). All rows persist
@@ -203,6 +205,18 @@ val vimuSettingsPatch = resourcePatch(
                         entriesArray = AUDIO_LANG_ENTRIES_ARRAY,
                         valuesArray = AUDIO_LANG_VALUES_ARRAY,
                         defaultValue = "ja",
+                    ),
+                )
+            }
+
+            if (!hasPreferenceKey(doc, DIARY_KEY)) {
+                root.appendChild(
+                    createCheckBox(
+                        doc = doc,
+                        key = DIARY_KEY,
+                        title = "Keep playback diary",
+                        summary = "A small log of lookups, skips and stalls that a PC can read over adb (no links or accounts)",
+                        defaultValue = "true",
                     ),
                 )
             }

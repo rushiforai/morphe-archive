@@ -236,7 +236,7 @@ function Start-Avd([string]$Name) {
     $started = "emulator-$(5600 + 2 * (Get-Random -Maximum 40))"
     Say "starting $Name on $started"
     Start-Process (Join-Path $env:ANDROID_HOME 'emulator/emulator.exe') -WindowStyle Hidden -ArgumentList @(
-        '-avd', $Name, '-port', $started.Substring(9), '-no-window', '-no-audio', '-no-boot-anim', '-no-snapshot-save', '-gpu', 'host', '-cores', '2', '-memory', '3072')
+        '-avd', $Name, '-port', $started.Substring(9), '-no-window', '-no-audio', '-no-boot-anim', '-no-snapshot-load', '-no-snapshot-save', '-gpu', 'host', '-cores', '2', '-memory', '3072')
     $deadline = (Get-Date).AddMinutes(5)
     while ((Get-Date) -lt $deadline) {
         Start-Sleep -Seconds 5
@@ -275,13 +275,13 @@ function Step-walk {
         foreach ($property in $key.PSObject.Properties) { $patchArgs[$property.Name] = $property.Value }
         New-Item -ItemType Directory -Force -Path $patchArgs.OutDir | Out-Null
         $receipt = Join-Path $stateDir "walk-$package.json"
+        $walkArgs = @{ Serial = $device.Serial; Package = $package; Bundle = $bundlePath; Out = $receipt; PatchArgs = $patchArgs }
+        # The walk runs ART's verifier after its PASS under the same lease, so no other task
+        # can take the phone between the two.
+        if ($package -eq $Repo.Verify) { $walkArgs.VerifyCleanApk = $patchArgs.Apk }
         Say "walking $package on $($device.Serial)"
         try {
-            Invoke-Queued "walk $package" {
-                & (Join-Path $work 'scripts/walk-app.ps1') -Serial $device.Serial -Package $package -Bundle $bundlePath -Out $receipt -PatchArgs $patchArgs
-            }
-            # ART's verifier reads every class, so it sees a bad hook on a screen the walk never opened.
-            if ($package -eq $Repo.Verify) { Invoke-Queued "verify $package" { & (Join-Path $work 'scripts/verify-injected-registers.ps1') -CleanApk $patchArgs.Apk -PatchedApk (Resolve-Path (Join-Path $patchArgs.OutDir '*-signed.apk')).Path -Serial $device.Serial } }
+            Invoke-Queued "walk $package" { & (Join-Path $work 'scripts/walk-app.ps1') @walkArgs }
         } catch {
             $why = if (Test-Path -LiteralPath $receipt) { @((Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json).problems) -join '; ' }
             throw "$package didn't pass the walk or the verifier: $why ($($_.Exception.Message))"

@@ -2,8 +2,8 @@
 morphe-patcher = "2.0.0"
 #noinspection GradleDependency
 smali = "4220ae75f7"
-gson = "2.14.0"
-kotlin-stdlib = "2.3.21"
+gson = "2.15.0"
+kotlin-stdlib = "2.4.21"
 annotation = "1.9.1"
 
 [libraries]

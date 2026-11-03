@@ -17,6 +17,10 @@ import {
   decide,
   extractStorefrontBinary,
 } from '../check-upstream-version.mjs';
+import {
+  parseSupportedVersions,
+  readSupportedVersionsFile,
+} from '../supported-versions.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.join(__dirname, 'meta-store.html');
@@ -34,13 +38,16 @@ function equal(what, got, want) {
   check(`${what}: want ${JSON.stringify(want)} (got ${JSON.stringify(got)})`, got === want);
 }
 
-// The supported list this decision table assumes -- the repo's shipped two-normal-target policy
-// (Constants.kt's AppTargets). The storefront fixture below is a saved 2026-10-15 page and is
-// NOT regenerated, so its served version (1.88.10) drifts further behind the policy at every
-// bump; the fixture-based expectations therefore have to be re-read at each bump (the
-// fixture-storefront case is asserted as the rollback it becomes). The synthetic scenarios
-// below pin the policy's real cases with the current version family.
-const supported = ['1.90.05', '1.89.09'];
+// The supported list this decision table assumes -- read from the checkout's Constants.kt by the
+// same shared parser the checker itself imports, so the two can never disagree and the list
+// needs no hand-edit at a version bump. The storefront fixture below is a saved 2026-10-15 page
+// and is NOT regenerated, so its served version (1.88.10) drifts further behind the policy at
+// every bump; the fixture cases stay truthful across bumps because they assert only what the
+// latest-two policy guarantees (1.88.10 stays dropped). The synthetic scenarios further down pin
+// the policy's real cases with an explicit current version family, and DO need re-reading when
+// that family collides with a future supported list.
+const supported = parseSupportedVersions(readSupportedVersionsFile());
+check('supported list parsed from Constants.kt is non-empty', supported.length > 0);
 
 // ---- reading the storefront -------------------------------------------------
 const html = fs.readFileSync(FIXTURE, 'utf8');

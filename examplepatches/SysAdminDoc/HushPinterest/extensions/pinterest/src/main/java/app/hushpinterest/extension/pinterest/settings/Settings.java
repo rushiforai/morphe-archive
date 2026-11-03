@@ -161,6 +161,20 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_closeup_lens", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_SEARCH_LABEL =
             new BooleanSetting("hushpinterest_hide_closeup_search_label", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_LIKE =
+            new BooleanSetting("hushpinterest_hide_closeup_like", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_COMMENTS =
+            new BooleanSetting("hushpinterest_hide_closeup_comments", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_SHARE =
+            new BooleanSetting("hushpinterest_hide_closeup_share", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_MORE =
+            new BooleanSetting("hushpinterest_hide_closeup_more", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_REMIX =
+            new BooleanSetting("hushpinterest_hide_closeup_remix", FALSE);
+    public static final BooleanSetting HIDE_CLOSEUP_VISIT_SITE =
+            new BooleanSetting("hushpinterest_hide_closeup_visit_site", FALSE);
+    public static final BooleanSetting SMALLER_SAVE_BUTTON =
+            new BooleanSetting("hushpinterest_smaller_save_button", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_COLLAGE =
             new BooleanSetting("hushpinterest_hide_pin_menu_collage", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_VISUAL_SEARCH =

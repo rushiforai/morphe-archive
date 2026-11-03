@@ -28,14 +28,15 @@ final class ReadWithoutReceiptNotice {
     private static final String MESSAGE = "現在、既読は無効です。メッセージを送信すると既読になります";
     private static final String KEEP_UNREAD_MESSAGE = "現在、既読は無効です。送信しても既読はつきません";
     // LINE 26.11.0 の chat_ui_history_main → chat_ui_input_area のルート。
-    private static final int COMPOSER_ID = 0x7f0b077b; // chat_ui_message
+    private static final int COMPOSER_ID = 0x7f0b0731; // chat_ui_message
     // ヘッダー直下の本文コンテナと、その中のメッセージ一覧。
-    private static final int HISTORY_BODY_ID = 0x7f0b0772;
-    private static final int MESSAGE_LIST_ID = 0x7f0b096a; // chathistory_message_list
+    private static final int HISTORY_BODY_ID = 0x7f0b0728;
+    private static final int MESSAGE_LIST_ID = 0x7f0b0925; // chathistory_message_list
 
     private long pendingToken;
     private WeakReference<Activity> owner;
     private WeakReference<FrameLayout> decor;
+    private final ListHeightFollower heightFollower = new ListHeightFollower();
     private LinearLayout notice;
     private TextView messageText;
     private Button markAll;
@@ -70,6 +71,7 @@ final class ReadWithoutReceiptNotice {
                 markAll.setEnabled(ReadWithoutReceiptManualHooks.isReady(activity));
                 positionMarkAll(activity);
                 reserveMarkAllSpace(activity);
+                followListHeight();
             }
         } catch (Throwable ignored) {
             dismiss();
@@ -226,6 +228,7 @@ final class ReadWithoutReceiptNotice {
         View list = messageList == null ? null : messageList.get();
         if (list == null || !list.isAttachedToWindow()) {
             restoreMarkAllSpace();
+            heightFollower.reset();
             list = activity.findViewById(MESSAGE_LIST_ID);
             if (list == null) {
                 return;
@@ -245,6 +248,18 @@ final class ReadWithoutReceiptNotice {
             appliedListBottom = padding;
             // 一覧の末尾をボタンより上までスクロールできるようにし、入力欄は動かしません。
             list.setPadding(list.getPaddingLeft(), list.getPaddingTop(), list.getPaddingRight(), padding);
+        }
+    }
+
+    /** キーボードや入力欄の拡大で一覧が縮んだ分だけ送り、表示中のメッセージを隠しません。 */
+    private void followListHeight() {
+        View list = messageList == null ? null : messageList.get();
+        if (list == null || !list.isShown()) {
+            return;
+        }
+        int distance = heightFollower.onHeight(list.getHeight());
+        if (distance > 0) {
+            list.scrollBy(0, distance);
         }
     }
 

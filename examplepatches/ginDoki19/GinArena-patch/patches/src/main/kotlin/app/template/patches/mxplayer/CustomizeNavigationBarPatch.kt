@@ -21,8 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val removeBottomBarPatch = bytecodePatch(
     name = "Remove bottom navigation bar",
-    description = "Removes the bottom navigation bar from the UI and moves Me to the upper-right " +
-        "corner of the Home toolbar. Leave unchecked to keep the bottom navigation bar.",
+    description = "Removes the bottom navigation bar and moves Me to the top-right corner.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER_AD)

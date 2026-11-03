@@ -17,7 +17,7 @@ import app.morphe.extension.shared.theme.ThemeUtils;
 /** Native Downloads storage card, with the same accessible segments/legends as Shaders. */
 @SuppressWarnings("deprecation")
 public final class AudioStoragePreference extends Preference {
-    private static final int[] COLORS={0xff64b5f6,0xffb39ddb,0xff80cbc4,0xffffd28e,0xff9ba6b2};
+    private static final int[] COLORS={0xff64b5f6,0xfff48fb1,0xffb39ddb,0xff80cbc4,0xffffd28e,0xff9ba6b2};
     public AudioStoragePreference(Context c){super(c);setSelectable(false);}
     private int dp(float n){return Math.round(n*getContext().getResources().getDisplayMetrics().density);}
     private TextView text(String value){TextView t=new TextView(getContext());t.setText(value);t.setTextSize(14);t.setTextColor(ThemeUtils.getAppForegroundColor());return t;}
@@ -39,9 +39,9 @@ public final class AudioStoragePreference extends Preference {
     private void render(LinearLayout card,LinearLayout bar,TextView summary,DownloadStorage.Snapshot snapshot){
         long free=snapshot.free(),total=Math.max(1,snapshot.owned()+Math.max(0,free));
         summary.setText(size(snapshot.owned())+" used"+(free>=0?" \u00b7 "+size(free)+" free":" \u00b7 Free space unavailable"));
-        for(int i=0;i<5;i++){
-            long amount=i==4?free:snapshot.bytes()[i];String name=i==4?"Free device storage":DownloadStorage.LABELS[i];
-            String detail=name+": "+(amount<0?"Unavailable":size(amount))+(i==4?"":" \u00b7 "+snapshot.counts()[i]+" files");
+        for(int i=0;i<COLORS.length;i++){
+            long amount=i==DownloadStorage.LABELS.length?free:snapshot.bytes()[i];String name=i==DownloadStorage.LABELS.length?"Free device storage":DownloadStorage.LABELS[i];
+            String detail=name+": "+(amount<0?"Unavailable":size(amount))+(i==DownloadStorage.LABELS.length?"":" \u00b7 "+snapshot.counts()[i]+" files");
             if(amount>0){View segment=new View(getContext());segment.setBackgroundColor(COLORS[i]);segment.setFocusable(true);segment.setContentDescription(detail);segment.setOnClickListener(v->callout(v,detail));bar.addView(segment,new LinearLayout.LayoutParams(0,-1,Math.max(.025f,(float)amount/total)));}
             TextView legend=text("\u25cf  "+detail);SpannableString label=new SpannableString(legend.getText());label.setSpan(new ForegroundColorSpan(COLORS[i]),0,1,0);legend.setText(label);legend.setMinHeight(dp(40));legend.setGravity(Gravity.CENTER_VERTICAL);legend.setFocusable(true);legend.setOnClickListener(v->callout(v,detail));card.addView(legend);
         }

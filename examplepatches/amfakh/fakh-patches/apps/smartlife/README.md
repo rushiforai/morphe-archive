@@ -25,16 +25,17 @@ of them.
 | Layout | Hide App Mall | BARDI | Removes the "App Mall" row from the Me tab. |
 | Privacy | Hide ads | Smart Life, Tuya Smart | Removes the ad banners and the AdMob ad entry. |
 | Privacy | Disable analytics | Smart Life, Tuya Smart | Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics and Sessions. Tuya's own usage statistics stay on. |
+| Feature | Spoof signature | all | Lets the patched app start. Without it the app's integrity check closes it a few seconds after it opens. |
 | Feature | GmsCore support | all | Makes "Sign in with Google" and location work through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services, so it needs microG RE installed and signed in. Off by default. |
 
-The layout patches, Hide ads and Disable analytics are on by default.
+The layout patches, Hide ads, Disable analytics and Spoof signature are on by default.
 
 ## Signature check
 
 The native security library reads the app's signing certificate and kills the process when it
-is not Tuya's, so a resigned app closes a few seconds after it starts. Every patch here pulls in a
-hidden helper that makes the app see the original certificate again, through a PackageManager proxy
-(the same idea as [ApkSignatureKillerEx](https://github.com/L-JINBIN/ApkSignatureKillerEx)).
+is not Tuya's, so a resigned app closes a few seconds after it starts. **Spoof signature** makes the
+app see the original certificate again, through a PackageManager proxy (the same idea as
+[ApkSignatureKillerEx](https://github.com/L-JINBIN/ApkSignatureKillerEx)). Keep it on.
 
 The installed app must be replaced: the Play Store build is signed with another key, so uninstall it
 first (local data is lost, devices stay in your Tuya account).

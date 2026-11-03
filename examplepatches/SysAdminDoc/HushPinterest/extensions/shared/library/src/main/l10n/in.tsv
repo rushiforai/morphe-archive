@@ -69,7 +69,6 @@ Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi 
 GitHub is turning away checks from this network for now. Try again later.	GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.
 GitHub sent back something HushPinterest couldn't read. Try again later.	GitHub mengirim sesuatu yang tidak bisa dibaca HushPinterest. Coba lagi nanti.
 Saving the settings file	Menyimpan file pengaturan
-Set when you patched	Diatur saat Anda menambal
 Settings couldn't open	Pengaturan tidak dapat dibuka
 Settings didn't fully refresh. Reopen them and try again.	Pengaturan tidak dimuat ulang penuh. Buka kembali lalu coba lagi.
 Settings exported.	Pengaturan diekspor.
@@ -517,9 +516,37 @@ Hides the back arrow that floats over a pin you open. Your phone's back gesture 
 Hide lens button on pins	Sembunyikan tombol Lens di pin
 Hide closeup buttons	Sembunyikan tombol di pin
 Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Menyembunyikan tombol pencarian visual di sudut pin yang Anda buka. Cari gambar di menu pin tetap berfungsi. Perubahan terlihat pada pin berikutnya yang Anda buka.
-# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label. The last line names this part of the patch in a build report.
+Hide like button on pins	Sembunyikan tombol suka di pin
+Hides the heart under a pin you open, along with its count. The change shows on the next pin you open.	Menyembunyikan ikon hati di bawah pin yang Anda buka, beserta jumlahnya. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide comment button on pins	Sembunyikan tombol komentar di pin
+Hides the comment button under a pin you open. The change shows on the next pin you open.	Menyembunyikan tombol komentar di bawah pin yang Anda buka. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide share button on pins	Sembunyikan tombol bagikan di pin
+Hides the share button under a pin you open. The change shows on the next pin you open.	Menyembunyikan tombol bagikan di bawah pin yang Anda buka. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide more button on pins	Sembunyikan tombol lainnya di pin
+Hides the three dots under a pin you open. Their menu, Download pin included, can't be opened from that page while this is on. The change shows on the next pin you open.	Menyembunyikan tiga titik di bawah pin yang Anda buka. Menunya, termasuk Unduh Pin, tidak bisa dibuka dari halaman itu selama ini aktif. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide Remix button on pins	Sembunyikan tombol Remix di pin
+Hides the Remix button on a pin you open. The change shows on the next pin you open.	Menyembunyikan tombol Remix di pin yang Anda buka. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide Visit site button on pins	Sembunyikan tombol Kunjungi situs di pin
+Hides the Visit site button under a pin that links to a website. The change shows on the next pin you open.	Menyembunyikan tombol Kunjungi situs di bawah pin yang menautkan ke situs web. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide pin action buttons	Sembunyikan tombol aksi pin
+Hide Remix button	Sembunyikan tombol Remix
+Hide Visit site button	Sembunyikan tombol Kunjungi situs
+# context: two more Hide closeup buttons rows on the Interface page for Pinterest's red Save button on a pin someone opens: a switch that draws it at 80 percent of its size, and a row that opens a box for a hex color to paint it. %1$s is a color code like #3366FF. The first line names this part of the patch in a build report.
+Save button size and color	Ukuran dan warna tombol Simpan
+Smaller Save button on pins	Tombol Simpan lebih kecil di pin
+Shrinks the red Save button on a pin you open to four fifths of its size, keeping its spot at the end of the row. The change shows on the next pin you open.	Mengecilkan tombol Simpan merah di pin yang Anda buka menjadi empat perlima ukurannya, tetap di tempatnya di ujung baris. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Save button color	Warna tombol Simpan
+Paints the red Save button on a pin you open in a color you pick. It's Pinterest's red for now.	Mewarnai tombol Simpan merah di pin yang Anda buka dengan warna pilihan Anda. Saat ini masih merah Pinterest.
+Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	Tombol Simpan diwarnai %1$s. Ketuk untuk mengubahnya. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	Ketik warna hex, misalnya #3366FF, atau tiga digit, misalnya #36F. Warna terang mendapat teks gelap agar tombol tetap terbaca.
+Couldn't open the Save button color. Try again.	Warna tombol Simpan tidak dapat dibuka. Coba lagi.
+That isn't a hex color, so nothing changed. Try one like #3366FF.	Itu bukan warna hex, jadi tidak ada yang berubah. Coba seperti #3366FF.
+Couldn't save the Save button color. Try again.	Warna tombol Simpan tidak dapat disimpan. Coba lagi.
+The Save button is back to Pinterest's red on the next pin you open.	Tombol Simpan kembali ke merah Pinterest pada pin berikutnya yang Anda buka.
+The Save button turns %1$s on the next pin you open.	Tombol Simpan menjadi %1$s pada pin berikutnya yang Anda buka.
+# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Sembunyikan label Cari gambar di pin
-Keeps the lens button on a pin you open but leaves off the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Tetap menampilkan tombol Lens di pin yang Anda buka, tetapi tanpa label Cari gambar yang Pinterest tambahkan pada pin pertama Anda setiap hari. Mengetuk Lens tetap mencari. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Keeps the lens button on a pin you open but leaves off its glow and the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Tetap menampilkan tombol Lens di pin yang Anda buka, tetapi tanpa cahayanya dan tanpa label Cari gambar yang Pinterest tambahkan pada pin pertama Anda setiap hari. Mengetuk Lens tetap mencari. Perubahan terlihat pada pin berikutnya yang Anda buka.
 Hide Search image label	Sembunyikan label Cari gambar
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 File left alone. If it's empty, delete it in your files app.	File dibiarkan. Jika kosong, hapus di aplikasi file.
@@ -616,6 +643,12 @@ none	tidak ada
 %1$d word	%1$d kata
 # context: the same for any other number
 %1$d words	%1$d kata
+# context: heading of the settings import preview when the file changes no switch but changes the Save button color (the hex color painted on the Save button of a pin someone opens)
+Your Save button color will change.	Warna tombol Simpan Anda akan berubah.
+# context: the same heading when the file changes both the muted words list and the Save button color
+Your muted words and Save button color will change.	Kata yang Anda bisukan dan warna tombol Simpan akan berubah.
+# context: in the import preview line that reads like Save button color (Pinterest's red to #3366FF): no color is picked, so the button keeps Pinterest's own red
+Pinterest's red	merah Pinterest
 Pinterest's own AI setting	Pengaturan AI milik Pinterest
 Pinterest can show you fewer AI pins among the ones it picks for you. It works alongside the switches above, and neither one catches every AI pin. Tap to open it.	Pinterest bisa menampilkan lebih sedikit pin AI di antara pin yang dipilihkannya untuk Anda. Ini bekerja bersama sakelar di atas, dan keduanya tidak menangkap semua pin AI. Ketuk untuk membukanya.
 Pinterest couldn't open that page.	Pinterest tidak bisa membuka halaman itu.

@@ -44,26 +44,51 @@ public final class InnertubeCommentClientTest {
     public void liveSourceModesSelectExpectedWorkers() {
         InnertubeCommentClient.SourcePlan preferred = InnertubeCommentClient.selectSources(
                 InnertubeCommentClient.VideoKind.LIVE_REPLAY, true,
-                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED);
+                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED, false);
         assertTrue(preferred.stream);
         assertTrue(!preferred.regular);
 
         InnertubeCommentClient.SourcePlan fallback = InnertubeCommentClient.selectSources(
                 InnertubeCommentClient.VideoKind.PREMIERE_REPLAY, false,
-                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED);
+                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED, false);
         assertTrue(!fallback.stream);
         assertTrue(fallback.regular);
 
         InnertubeCommentClient.SourcePlan regularOnly = InnertubeCommentClient.selectSources(
                 InnertubeCommentClient.VideoKind.LIVE, true,
-                DanmakuSettings.STREAM_MODE_REGULAR_ONLY);
+                DanmakuSettings.STREAM_MODE_REGULAR_ONLY, false);
         assertTrue(!regularOnly.stream);
         assertTrue(regularOnly.regular);
 
         InnertubeCommentClient.SourcePlan mixed = InnertubeCommentClient.selectSources(
                 InnertubeCommentClient.VideoKind.PREMIERE, true,
-                DanmakuSettings.STREAM_MODE_CHAT_AND_TIMESTAMPS);
+                DanmakuSettings.STREAM_MODE_CHAT_AND_TIMESTAMPS, false);
         assertTrue(mixed.stream);
         assertTrue(mixed.regular);
+    }
+
+    @Test
+    public void officialNiconicoCommentsKeepLiveChat() {
+        InnertubeCommentClient.SourcePlan preferred = InnertubeCommentClient.selectSources(
+                InnertubeCommentClient.VideoKind.LIVE, true,
+                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED, true);
+        assertTrue(!preferred.stream);
+        assertTrue(!preferred.regular);
+
+        InnertubeCommentClient.SourcePlan mixed = InnertubeCommentClient.selectSources(
+                InnertubeCommentClient.VideoKind.LIVE_REPLAY, true,
+                DanmakuSettings.STREAM_MODE_CHAT_AND_TIMESTAMPS, true);
+        assertTrue(!mixed.stream);
+        assertTrue(mixed.regular);
+
+        InnertubeCommentClient.SourcePlan withoutChat = InnertubeCommentClient.selectSources(
+                InnertubeCommentClient.VideoKind.PREMIERE_REPLAY, false,
+                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED, true);
+        assertTrue(withoutChat.regular);
+
+        InnertubeCommentClient.SourcePlan regular = InnertubeCommentClient.selectSources(
+                InnertubeCommentClient.VideoKind.REGULAR, false,
+                DanmakuSettings.STREAM_MODE_CHAT_PREFERRED, true);
+        assertTrue(regular.regular);
     }
 }

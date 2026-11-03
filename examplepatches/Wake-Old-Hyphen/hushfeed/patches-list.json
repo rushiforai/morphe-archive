@@ -124,10 +124,11 @@
     },
     {
       "name": "Advanced downloads",
-      "description": "Adds more ways to save: pick the video quality, save full-size photos, the sound on its own or a photo post as one video, hold a profile picture or story to save it, save a story or a video's cover from the share sheet, and pick videos on a profile grid to save in one run. Starts off. Turn it on in Hushfeed settings > Downloads.",
+      "description": "Adds more ways to save: pick the video quality, save full-size photos, the sound on its own or a photo post as one video, hold a profile picture or story to save it, save a story or a video's cover from the share sheet, put a save button on the video, and pick videos on a profile grid to save in one run. Starts off. Turn it on in Hushfeed settings > Downloads.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
+        "Block author button",
         "BytecodePatch",
         "RawResourcePatch",
         "Settings"
@@ -161,6 +162,24 @@
         }
       ],
       "options": [
+        {
+          "key": "download_button",
+          "title": "Default: download button",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "download_button_position",
+          "title": "Default: download button position",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
         {
           "key": "download_video_quality",
           "title": "Default: download video quality",
@@ -1701,6 +1720,24 @@
           "values": null
         },
         {
+          "key": "hide_comment_like_count",
+          "title": "Default: hide comment like count",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_comment_dislike",
+          "title": "Default: hide comment dislike",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "comment_search",
           "title": "Default: comment search",
           "description": null,
@@ -1935,7 +1972,7 @@
     },
     {
       "name": "Copy bio and IDs",
-      "description": "Lets you long-press a bio to copy it, makes the @names in a bio open those profiles on a tap, and adds share sheet buttons that copy a username, user ID or video ID. On a profile card inside a LIVE room, long-press the bio or the name to copy it, long-press the username for the user ID, or tap the copy mark by the username. On by default. Turn it off in Hushfeed settings > App.",
+      "description": "Lets you long-press a bio to copy it, makes the @names in a bio open those profiles on a tap, and adds share sheet buttons that copy a display name, username, user ID or video ID. On a profile card inside a LIVE room, long-press the bio or the name to copy it, long-press the username for the user ID, or tap the copy mark by the username. On by default. Turn it off in Hushfeed settings > App.",
       "category": "Interaction",
       "use": true,
       "dependencies": [
@@ -3196,6 +3233,15 @@
           "values": null
         },
         {
+          "key": "live_kept_creators",
+          "title": "Default: live kept creators",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
           "key": "region_only_from",
           "title": "Default: region only from",
           "description": null,
@@ -3915,7 +3961,7 @@
     },
     {
       "name": "Feed text sizes",
-      "description": "Lets you make video descriptions, creator names and post dates bigger or smaller, so they're easier to read. Starts off. Pick a size in Hushfeed settings > Feed screen.",
+      "description": "Lets you make video descriptions, creator names and post dates bigger or smaller, or give them a color and a backdrop, so they're easier to read. Starts off. Pick them in Hushfeed settings > Feed screen.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -3968,6 +4014,24 @@
           "required": false,
           "type": "kotlin.Int",
           "default": 0,
+          "values": null
+        },
+        {
+          "key": "feed_text_color",
+          "title": "Default: feed text color",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "off",
+          "values": null
+        },
+        {
+          "key": "feed_text_backdrop",
+          "title": "Default: feed text backdrop",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "off",
           "values": null
         }
       ]
@@ -4315,7 +4379,7 @@
     },
     {
       "name": "Hide already seen videos",
-      "description": "Remembers the videos you've watched and hides them when the feed sends them again, so you only see new ones. The list stays on your phone. Starts off. Turn it on in Hushfeed settings > Feed filter.",
+      "description": "Remembers the videos you've watched and hides them when the feed sends them again, so you only see new ones. It can also keep a watch history you can search and reopen videos from. Both stay on your phone. Starts off. Turn them on in Hushfeed settings > Feed filter.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -4378,6 +4442,15 @@
           "required": false,
           "type": "kotlin.Int",
           "default": 0,
+          "values": null
+        },
+        {
+          "key": "local_watch_history",
+          "title": "Default: local watch history",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         }
       ]
@@ -5135,6 +5208,56 @@
       ]
     },
     {
+      "name": "Hide read receipts",
+      "description": "Stops TikTok telling people you've read their messages. Your own unread badges still clear as usual. Starts off. Turn it on in Hushfeed settings > Inbox.",
+      "category": "Inbox",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "RawResourcePatch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.6.3"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.6.3",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024706030,
+                "ARMEABI_V7A": 2024706030,
+                "X86": 2024706030,
+                "X86_64": 2024706030
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "hide_read_receipts",
+          "title": "Default: hide read receipts",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "Hide search suggestions",
       "description": "Hides the searches TikTok suggests before you type, and can hide the search rewards banner. Your own search history stays. Starts off. Turn it on in Hushfeed settings > App.",
       "category": "Search",
@@ -5455,6 +5578,33 @@
         {
           "key": "hide_following_live_row",
           "title": "Default: hide following live row",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_following_all_button",
+          "title": "Default: hide following all button",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_story_create",
+          "title": "Default: hide story create",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_repost_chip",
+          "title": "Default: hide repost chip",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -6030,7 +6180,7 @@
     },
     {
       "name": "Keep playing in the background",
-      "description": "Keeps the video playing when you leave TikTok or turn the screen off, with a notification to pause it. It can also start the video over when it ends. Handy for music and talks. Starts off. Turn it on in Hushfeed settings > Playback, then restart TikTok.",
+      "description": "Keeps the video playing when you leave TikTok or turn the screen off, with a notification to pause it. It can also start the video over when it ends. Handy for music and talks. If you only want it on some videos, a second switch adds TikTok's own row to the long-press menu. Starts off. Turn it on in Hushfeed settings > Playback, then restart TikTok.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -6070,6 +6220,15 @@
         {
           "key": "background_play",
           "title": "Default: background play",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "background_play_menu",
+          "title": "Default: background play menu",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -6965,7 +7124,7 @@
     },
     {
       "name": "Mute feed videos",
-      "description": "Mutes feed videos without changing your phone's volume, so music from another app keeps playing. You can also add a mute button on videos, or keep the sound and let other apps play until a video starts. Starts off. Turn it on in Hushfeed settings > Playback.",
+      "description": "Mutes feed videos without changing your phone's volume, so music from another app keeps playing. You can also add a mute button on videos, or keep the sound and let other apps play until a video starts and after you leave it. Starts off. Turn it on in Hushfeed settings > Playback.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -7043,7 +7202,7 @@
     },
     {
       "name": "Network proxy",
-      "description": "Sends TikTok's feed, search and comments through a proxy server you set up. Videos and LIVEs still load directly, and so do Hushfeed's own saves and short-link lookups. Other apps aren't affected. Starts off. Turn it on in Hushfeed settings > Region, then restart TikTok.",
+      "description": "Sends TikTok's feed, search and comments through a proxy server you set up. Videos and LIVEs still load directly, and so do Hushfeed's own saves and short-link lookups. HTTP and SOCKS5 both work, with or without a password. Other apps aren't affected. Starts off. Turn it on in Hushfeed settings > Region, then restart TikTok.",
       "category": "Settings",
       "use": true,
       "dependencies": [
@@ -7656,6 +7815,15 @@
           "values": null
         },
         {
+          "key": "hide_speed_toasts",
+          "title": "Default: hide speed toasts",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "remembered_speed_v2",
           "title": "Default: remembered speed v2",
           "description": null,
@@ -7848,6 +8016,15 @@
           "required": false,
           "type": "kotlin.String",
           "default": "us",
+          "values": null
+        },
+        {
+          "key": "simspoof_time_zone",
+          "title": "Default: simspoof time zone",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
           "values": null
         },
         {

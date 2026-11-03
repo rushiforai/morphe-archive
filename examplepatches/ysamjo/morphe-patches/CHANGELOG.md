@@ -1,8 +1,24 @@
-## [1.0.1](https://github.com/ysamjo/morphe-patches/compare/v1.0.0...v1.0.1) (2026-10-18)
+## [1.1.0](https://github.com/ysamjo/morphe-patches/compare/v1.0.1...v1.1.0) (2026-11-03)
 
 ### 🐛 Bug Fixes
 
-* Wiedergabegeschwindigkeit ueber Videowechsel und App-Neustart halten ([6c8144e](https://github.com/ysamjo/morphe-patches/commit/6c8144e374f7d91a500a716701113b31ebf80308))
+* Automatische Tempoänderungen bei offenem TV-Menü abfangen ([e0f0779](https://github.com/ysamjo/morphe-patches/commit/e0f0779048f3f4b5a3d9c32cbad93dcf6b77be0e))
+* TV-Payload als generierte Android-Quelle einbinden ([723229e](https://github.com/ysamjo/morphe-patches/commit/723229e154b7c091e6cb8c8664c2bd2f683dfbf9))
+
+### ✨ New Features
+
+* Kanalgeschwindigkeiten für TizenTube Cobalt 2.0.3 ergänzen ([1bad23a](https://github.com/ysamjo/morphe-patches/commit/1bad23a0fa522951cc6b3cccf2cc39beefdba5ee))
+
+## [1.1.0-dev.1](https://github.com/ysamjo/morphe-patches/compare/v1.0.1-dev.1...v1.1.0-dev.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* Automatische Tempoänderungen bei offenem TV-Menü abfangen ([e0f0779](https://github.com/ysamjo/morphe-patches/commit/e0f0779048f3f4b5a3d9c32cbad93dcf6b77be0e))
+* TV-Payload als generierte Android-Quelle einbinden ([723229e](https://github.com/ysamjo/morphe-patches/commit/723229e154b7c091e6cb8c8664c2bd2f683dfbf9))
+
+### ✨ New Features
+
+* Kanalgeschwindigkeiten für TizenTube Cobalt 2.0.3 ergänzen ([1bad23a](https://github.com/ysamjo/morphe-patches/commit/1bad23a0fa522951cc6b3cccf2cc39beefdba5ee))
 
 ## [1.0.1-dev.1](https://github.com/ysamjo/morphe-patches/compare/v1.0.0...v1.0.1-dev.1) (2026-10-18)
 

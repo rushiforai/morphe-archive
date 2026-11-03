@@ -25,11 +25,11 @@ import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
-private const val DEBUG_METADATA = "Llb8/e;"
-private const val COMPOSER = "Lh3/t;"
-private const val COMPOSER_IMPL = "Lh3/f1;"
-private const val END_RESTART_GROUP_RESULT = "Lh3/p3;"
-private const val FEED_MODULE_STATE = "Ll72/f;"
+private const val DEBUG_METADATA = "Ldt8/f;"
+private const val COMPOSER = "Lj3/r;"
+private const val COMPOSER_IMPL = "Lj3/d1;"
+private const val END_RESTART_GROUP_RESULT = "Lj3/p3;"
+private const val FEED_MODULE_STATE = "Lsg2/h;"
 private const val HOME_FEATURED_COLLECTIONS_HOOK =
     "Ldev/utaa/linimal/extension/features/HomeFeaturedCollectionsHooks;->shouldSuppress()Z"
 
@@ -139,7 +139,7 @@ val homeFeaturedCollectionsPatch = bytecodePatch(
                 ),
                 methodCall(
                     definingClass = COMPOSER_IMPL,
-                    name = "Y",
+                    name = "Z",
                     parameters = emptyList(),
                     returnType = END_RESTART_GROUP_RESULT,
                     opcode = Opcode.INVOKE_VIRTUAL,
@@ -270,7 +270,7 @@ internal fun homeFeaturedCollectionsGateShape(
     if (composerCallIndices(instructions, "l", VOID).size != 1) {
         return null
     }
-    if (composerCallIndices(instructions, "Y", END_RESTART_GROUP_RESULT).size != 1) {
+    if (composerCallIndices(instructions, "Z", END_RESTART_GROUP_RESULT).size != 1) {
         return null
     }
 

@@ -35,6 +35,7 @@ public final class FamilyNames {
     public static final String FULL_POST_TEXT = "Show full post text";
     public static final String TRANSLATE_POSTS = "Translate posts";
     public static final String WHO_SHARED = "See who shared";
+    public static final String PHOTO_CAROUSEL = "Photo carousel";
     public static final String AUTO_TRANSLATION = "Turn off auto-translation";
     public static final String FEEDS_HEADER = "Hide the Feeds header";
     public static final String STORIES_TRAY = "Hide Stories tray";
@@ -98,6 +99,7 @@ public final class FamilyNames {
     public static final String FOLLOWING_HOME = "Following feed on Home";
     public static final String MARKETPLACE_ONLY = "Marketplace only";
     public static final String SELLER_VIEW_PROFILE = "Show View profile on Marketplace sellers";
+    public static final String LISTING_GAP = "Remove the gap above Marketplace listings";
     public static final String REELS_TAB = "Hide the Reels tab";
     public static final String REELS_TAB_DOT = "Hide the Reels tab dot";
     public static final String TAB_BADGES = "Hide tab badges";
@@ -113,6 +115,7 @@ public final class FamilyNames {
     public static final String META_AI_SEARCH = "Hide Meta AI in search";
     public static final String SEARCH_HISTORY = "Don't save search history";
     public static final String SEARCH_DATE_RANGE = "Search date range";
+    public static final String SEARCH_POSTS_TAB = "Search posts tab";
     public static final String PROMO_NOTIFICATIONS = "Block promotional notifications";
     public static final String AD_PREFETCH = "Block background ad prefetch";
     public static final String AD_TELEMETRY = "Block ad telemetry";

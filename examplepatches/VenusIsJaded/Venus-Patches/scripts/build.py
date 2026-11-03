@@ -125,11 +125,24 @@ async function compactLazyChunks(code) {
         const chunk = lazyGroups(JSON.parse(code.slice(start, end)), 400, 60000);
         const result = await context.Terser.minify(chunk, {compress:false, mangle:{toplevel:false},
             format:{comments:false, ascii_only:true, quote_style:1}});
-        if (/[^.\w$](eval|Function)\s*\(|\bwith\s*\(/.test(chunk)) throw new Error('lazy chunk uses eval/with: renaming is unsafe');
+        if (usesDynamicScope(chunk)) throw new Error('lazy chunk uses eval/with: renaming is unsafe');
         const literal = JSON.stringify(result.code).replace(/[\u007f-\uffff]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
         code = code.slice(0, start) + literal + code.slice(end);
     }
     return code;
+}
+// A real eval(...)/Function(...) call or with (...) statement, read from JavaScript tokens. A text search also matched
+// words inside strings: the Silent edit hint "...edited the normal way, with (edited)." stopped every build.
+function usesDynamicScope(chunk) {
+    const acorn = require(process.argv[3]);
+    let prev = null, prev2 = null;
+    for (const token of acorn.tokenizer(chunk, {ecmaVersion: 'latest'})) {
+        if (token.type.label === '(' && prev && (prev.type.label === 'with' ||
+            prev.type.label === 'name' && (prev.value === 'eval' || prev.value === 'Function') && !(prev2 && prev2.type.label === '.')))
+            return true;
+        prev2 = prev; prev = token;
+    }
+    return false;
 }
 // Hermes compiles a function body on its first call, and the first call of $core (when the first hooked Discord module
 // loads) builds a closure for every one of its ~570 top-level functions. Most of them are only ever reached from one
@@ -283,13 +296,16 @@ function lazyCoreRuntime(code) {
         nrStr = stage2Code.slice(nrLit.start - off, nrLit.end - off);
         stage2Code = stage2Code.slice(0, nrLit.start - off) + '$nrStr' + stage2Code.slice(nrLit.end - off);
     }
-    const stage2Fn = '(function(global,features,revision,DISCORD_VERSION,settings,status' + (nrStr ? ',$nrStr' : '') + '){' + stage2Code + '})';
+    // Every eager-header name the core reads has to be passed in: the core is eval'd as its own function, so a name it
+    // isn't given is a missing global. targetModules was left out, and the debug log's "what's loaded" summary threw
+    // "Property 'targetModules' doesn't exist" on every export.
+    const stage2Fn = '(function(global,features,revision,DISCORD_VERSION,settings,status,targetModules' + (nrStr ? ',$nrStr' : '') + '){' + stage2Code + '})';
     const stage2Str = JSON.stringify(stage2Fn).replace(/[\u007f-\uffff]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 
     let eagerHeader = '';
     for (let i = 0; i <= setIdx; i++) eagerHeader += items[i].src;
     eagerHeader += items[stIdx].src;
-    eagerHeader += 'let pastelHash,$c;function $core(){return $c||($c=(0,eval)(' + stage2Str + ')(global,features,revision,DISCORD_VERSION,settings,status' + (nrStr ? ',' + nrStr : '') + '));}';
+    eagerHeader += 'let pastelHash,$c;function $core(){return $c||($c=(0,eval)(' + stage2Str + ')(global,features,revision,DISCORD_VERSION,settings,status,targetModules' + (nrStr ? ',' + nrStr : '') + '));}';
 
     const ddSrc = items[ddIdx].src
         .replace(/listImport\(/g, '$core().listImport(')
@@ -752,6 +768,69 @@ def build():
     run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
         "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
         "--classpath", stubs, "--output", audio_dex, audio_classes)
+    # Keep media playing: Java-only rules again (it reaches Discord's player through reflection, so no host stubs).
+    media_classes = BUILD / "media-classes.jar"
+    run(compiler, "-no-stdlib", "-no-reflect", "-language-version", "2.1", "-api-version", "2.1", "-Xsuppress-version-warnings",
+        "-jvm-target", "11", "-Xlambdas=class", "-cp", f"{TOOLS / 'android.jar'}:{TOOLS / 'morphe.jar'}:{stubs}",
+        *sorted((ROOT / "extensions/media/src/main/kotlin").rglob("*.kt")), "-d", media_classes)
+    with zipfile.ZipFile(media_classes) as native:
+        for name in native.namelist():
+            if not name.endswith(".class"):
+                continue
+            content = native.read(name)
+            for unsafe in (b"kotlin/text/", b"kotlin/collections/", b"kotlin/Result", b"kotlin/Unit", b"kotlin/io/", b"kotlin/ranges/",
+                           b"kotlin/jvm/functions/"):
+                if unsafe in content:
+                    raise SystemExit(f"Unsafe host Kotlin helper in {name}: {unsafe.decode()}; use Java APIs")
+    media_dex = BUILD / "media-dex"
+    media_dex.mkdir(exist_ok=True)
+    for stale in media_dex.glob("classes*.dex"):
+        stale.unlink()
+    run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
+        "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
+        "--classpath", stubs, "--output", media_dex, media_classes)
+    # Crash screen and troubleshooting logs (part of Venus settings): Java-only rules again.
+    diag_classes = BUILD / "diag-classes.jar"
+    run(compiler, "-no-stdlib", "-no-reflect", "-language-version", "2.1", "-api-version", "2.1", "-Xsuppress-version-warnings",
+        "-jvm-target", "11", "-Xlambdas=class", "-cp", f"{TOOLS / 'android.jar'}:{TOOLS / 'morphe.jar'}:{stubs}",
+        *sorted((ROOT / "extensions/diag/src/main/kotlin").rglob("*.kt")), "-d", diag_classes)
+    with zipfile.ZipFile(diag_classes) as native:
+        for name in native.namelist():
+            if not name.endswith(".class"):
+                continue
+            content = native.read(name)
+            for unsafe in (b"kotlin/text/", b"kotlin/collections/", b"kotlin/Result", b"kotlin/Unit", b"kotlin/io/", b"kotlin/ranges/",
+                           b"kotlin/jvm/functions/"):
+                if unsafe in content:
+                    raise SystemExit(f"Unsafe host Kotlin helper in {name}: {unsafe.decode()}; use Java APIs")
+    diag_dex = BUILD / "diag-dex"
+    diag_dex.mkdir(exist_ok=True)
+    for stale in diag_dex.glob("classes*.dex"):
+        stale.unlink()
+    run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
+        "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
+        "--classpath", stubs, "--output", diag_dex, diag_classes)
+    # Compress big files (photos and audio): the same Java-only rules again.
+    compress_classes = BUILD / "compress-classes.jar"
+    run(compiler, "-no-stdlib", "-no-reflect", "-language-version", "2.1", "-api-version", "2.1", "-Xsuppress-version-warnings",
+        "-jvm-target", "11", "-Xlambdas=class", "-cp", f"{TOOLS / 'android.jar'}:{TOOLS / 'morphe.jar'}:{stubs}",
+        *sorted((ROOT / "extensions/compress/src/main/kotlin").rglob("*.kt")), "-d", compress_classes)
+    with zipfile.ZipFile(compress_classes) as native:
+        for name in native.namelist():
+            if not name.endswith(".class"):
+                continue
+            content = native.read(name)
+            for unsafe in (b"kotlin/text/", b"kotlin/collections/", b"kotlin/Result", b"kotlin/Unit", b"kotlin/io/", b"kotlin/ranges/",
+                           b"kotlin/jvm/functions/"):
+                if unsafe in content:
+                    raise SystemExit(f"Unsafe host Kotlin helper in {name}: {unsafe.decode()}; use Java APIs")
+    compress_dex = BUILD / "compress-dex"
+    compress_dex.mkdir(exist_ok=True)
+    for stale in compress_dex.glob("classes*.dex"):
+        stale.unlink()
+    run("java", "-Xmx384m", "-cp", TOOLS / "r8.jar", "com.android.tools.r8.D8",
+        "--release", "--min-api", "26", "--lib", TOOLS / "android.jar",
+        "--classpath", stubs, "--output", compress_dex, compress_classes)
     check_languages()
     classes = BUILD / "classes.jar"
     sources = sorted((ROOT / "patches/src/main/kotlin").rglob("*.kt"))
@@ -807,6 +886,9 @@ def build():
         add("extensions/monet.mpe", (monet_dex / "classes.dex").read_bytes())
         add("extensions/chat.mpe", (chat_dex / "classes.dex").read_bytes())
         add("extensions/audio.mpe", (audio_dex / "classes.dex").read_bytes())
+        add("extensions/media.mpe", (media_dex / "classes.dex").read_bytes())
+        add("extensions/diag.mpe", (diag_dex / "classes.dex").read_bytes())
+        add("extensions/compress.mpe", (compress_dex / "classes.dex").read_bytes())
         for path in sorted(dex.glob("classes*.dex")):
             add(path.name, path.read_bytes())
     run("java", "-Xmx256m", "-cp", f"{bundle}:{TOOLS / 'morphe.jar'}:{TOOLS / 'gson.jar'}",

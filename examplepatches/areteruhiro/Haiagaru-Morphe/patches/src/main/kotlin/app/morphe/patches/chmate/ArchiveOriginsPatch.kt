@@ -43,8 +43,8 @@ internal fun BytecodePatchContext.patchArchiveOrigins(version: String) {
     ctor.addInstructions(returns.single().index,"invoke-static/range {p0 .. p0}, $ORIGINS->onModel(Ljava/lang/Object;)V")
 
     var methods = 0; var copies = 0
-    classDefForEach { cls ->
-        if(!cls.type.startsWith("Lo/")) return@classDefForEach
+    boundClassForEach("ArchiveOriginsPatch:1") { cls ->
+        if(!cls.type.startsWith("Lo/")) return@boundClassForEach
         cls.methods.forEach { method ->
             if(method.parameterTypes != listOf("Ljava/lang/String;","J","Ljava/lang/String;","I") || method.returnType != "V") return@forEach
             val ins = method.implementation?.instructions?.toList() ?: return@forEach

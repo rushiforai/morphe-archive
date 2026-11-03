@@ -226,6 +226,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             }
             if (gate && "com.facebook.messaging.friendsinboxunit.plugins.inboxunit.FriendsInboxUnitKillSwitch" in strings) add("stories")
             if (cls.type in appIconManagers && method.isAppIconGate()) add(APP_ICONS)
+            if (method.isAppThemeGate()) add(APP_THEMES)
             if (gate) {
                 val shortcuts = instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
                     .mapNotNull { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type }
@@ -337,9 +338,10 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             // The chat and the inbox under it inherit that answer. androidx needs each fragment's no-argument
             // constructor, so it names the class the animation hook tells apart.
             if (method.name == "<init>" && method.parameterTypes.isEmpty()) {
-                if (original == "MsysThreadViewFragment") add("chat_fragment")
+                if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
                 if (original == "M4TabNavigationFragment") add("chat_inbox")
             }
+            if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) add(CHAT_JUMP)
             // Chats on Messenger's older route open in this fragment, which loads its own animation.
             if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&
                 method.hookId() == "${cls.type}->onCreateAnimation(IZI)$ANIMATION") add("chat_legacy")
@@ -412,6 +414,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(CAR_MESSAGES).addAll(findCarMessages(classes))
     found.getValue(LOCAL_CHAT_SEARCH).addAll(findLocalChatSearch(classes))
     found.getValue(CALL_RECORDING).addAll(findCallRecording(classes))
+    found.getValue(HOME_HEADER).addAll(findHomeHeader(classes))
     found.getValue(TEXT_STYLE).addAll(findTextStyleField(classes))
     found.getValue(MESSAGE_LOG).addAll(findMessageLogHook(classes))
     found.getValue(AUTO_REPLY).addAll(findMessageLogHook(classes))
@@ -426,6 +429,10 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(MARK_READ_BAR).addAll(markReadBar)
     found.getValue(HIDE_CALL_BAR).addAll(markReadBar)
     found.getValue(MARK_READ_CLICK).addAll(markReadClick)
+    val (logBar, logClick) = findMessageLogButton(classes)
+    found.getValue(MESSAGE_LOG_BUTTON).addAll(logBar)
+    found.getValue(MESSAGE_LOG_CLICK).addAll(logClick)
+    found.getValue(APP_THEME_PICK).addAll(findAppThemePick(classes))
     found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
     found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
     found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))

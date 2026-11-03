@@ -38,22 +38,20 @@ import dev.utaa.linimal.patches.util.STRING
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.branchTargetAddress
 import dev.utaa.linimal.patches.util.exceptionHandlerAddresses
-import dev.utaa.linimal.patches.util.fallsThrough
 import dev.utaa.linimal.patches.util.instructionAddress
 import dev.utaa.linimal.patches.util.instructionWritesRegister
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 import dev.utaa.linimal.patches.util.registerSurvivesBetween
 
-private const val CONTINUATION = "Lkotlin/coroutines/Continuation;"
 private const val SHARED_PREFERENCES = "Landroid/content/SharedPreferences;"
 private const val SHARED_PREFERENCES_EDITOR = "Landroid/content/SharedPreferences\$Editor;"
 private const val TALK_SERVICE_CLIENT = "Ljp/naver/line/android/thrift/client/TalkServiceClient;"
-private const val RX_SINGLE = "Lip7/w;"
-private const val RX_SINGLE_CREATE = "Lip7/i;"
-private const val RX_SINGLE_ON_SUBSCRIBE = "Ldp7/a;"
-private const val RX_SCHEDULER = "Lap7/r;"
-private const val CANCELLATION_EXCEPTION = "Ljava/util/concurrent/CancellationException;"
-private const val DEBUG_METADATA = "Llb8/e;"
+private const val THROWABLE_SCRATCH_REGISTER = 0
+
+/** 公式の「既読にする」ボタンの coroutine。DebugMetadata の `c` / `f` は難読化されません。 */
+private const val MARK_AS_READ_BUTTON_COROUTINE =
+    "com.linecorp.line.chat.ui.impl.message.list.row.UnreadMarkViewController\$bindMarkAsReadButton\$1\$1"
+private const val MARK_AS_READ_BUTTON_SOURCE = "UnreadMarkViewController.kt"
 private const val READ_RECEIPT_HOOKS =
     "Ldev/utaa/linimal/extension/features/readreceipts/ReadReceiptHooks;"
 private const val SHOULD_SUPPRESS =
@@ -77,8 +75,9 @@ private const val OUTBOUND_GATE_MERGE_INDEX = 5
  * SharedPreferences remove・RPC の全てを組み合わせて識別します。OpenChat/Square、Service Chat、
  * AI Character の経路はこの fingerprint に含めません。
  *
- * <p>このメソッドは「既読にする」処理そのもので、ローカル未読のクリア（`Y`）と既読位置の前進
- * （`Q0`）を実行してから RPC（`j1`）を呼びます。`readWithoutReceiptLocalReadBlockPatch` が
+ * <p>このメソッドは「既読にする」処理そのもので、ローカル未読のクリア（`(String)V`）と既読位置の
+ * 前進（`(J, String)V`）を実行してから RPC（`(I, String, String)V`）を呼びます。これらの名前は
+ * 版ごとに難読化が変わるため、署名と呼び出し順で識別します。`readWithoutReceiptLocalReadBlockPatch` が
  * 同じメソッドの先頭へ別の gate を注入するため、fingerprint は複製せずここを共有します。
  * 両者が同じメソッドへ当たることを定義として保証するためです。</p>
  */
@@ -98,25 +97,20 @@ private val failedChatCheckedStoreFingerprint = Fingerprint(
     custom = { _, classDef -> classDef.fields.any { it.type == SHARED_PREFERENCES } },
 )
 
-/** MainChatMarkAsReadExecutor.kt の DebugMetadata を持つ coroutine continuation。 */
-private val mainChatMarkAsReadMetadataFingerprint = Fingerprint(
+/**
+ * 公式の「既読にする」ボタンが動かす coroutine。26.11.0 の `MainChatMarkAsReadExecutor` は metadata も
+ * 消え、26.16.0 では送信後・リアクション後・メッセージ削除後の自動既読も同じ executor を通るため、
+ * executor ではなくボタンの coroutine だけを「手動」の起点にします。
+ */
+private val markAsReadButtonFingerprint = Fingerprint(
     name = "invokeSuspend",
     returnType = OBJECT,
     parameters = listOf(OBJECT),
-    custom = { _, classDef ->
-        classDef.annotations.any(::isMainChatMarkAsReadMetadata)
-    },
+    custom = { _, classDef -> classDef.annotations.any(::isMarkAsReadButtonMetadata) },
 )
 
-/** source metadata owner から導く、manual caller の signature/coroutine/Rx chain。 */
-private val manualCallerFingerprint = Fingerprint(
-    returnType = OBJECT,
-    parameters = listOf(STRING, CONTINUATION),
-)
-
-/** q33.e.e 相当の supplier factory。constructor -> Rx Single -> cached scheduler chain を必須にします。 */
-private val supplierFactoryFingerprint = Fingerprint(
-    returnType = RX_SINGLE,
+/** Rx Single を作る supplier factory。constructor -> Rx Single -> cached scheduler chain を必須にします。 */
+internal val supplierFactoryFingerprint = Fingerprint(
     parameters = listOf(STRING),
     custom = { method, classDef ->
         hasSupplierFactoryReferences(method) && classDef.methods.any(::hasOutboundGateReferences)
@@ -136,19 +130,17 @@ private data class OutboundGateShape(
     val storePreferencesField: FieldReference,
 )
 
-/**
- * manual caller への注入位置。いずれも「この index の直前へ挿入する」意味で保持し、後方から順に
- * 注入するため狭義単調増加であることを前提にします。
- */
-private data class ManualCallerShape(
-    val beginIndex: Int,
-    val resultCleanupIndex: Int,
-    val genericCleanupIndex: Int,
-    val cancellationCleanupIndex: Int,
+/** 手動既読ボタンから executor を呼ぶ命令の位置。いずれも注入前の index です。 */
+internal data class ManualButtonShape(
+    val executorCallIndex: Int,
+    val cleanupIndex: Int,
+    val chatIdRegister: Int,
+    val executorCall: MethodReference,
 )
 
 private data class SupplierFactoryShape(
     val supplierType: String,
+    val onSubscribeType: String,
     val constructorIndex: Int,
     val supplierRegister: Int,
     val chatIdRegister: Int,
@@ -163,7 +155,7 @@ private fun hasOutboundGateReferences(method: Method): Boolean {
         }?.index ?: -1
 
     val localUpdate = indexOfCallAfter(-1) { reference, opcode ->
-        opcode == Opcode.INVOKE_INTERFACE && reference.name == "Y" &&
+        opcode == Opcode.INVOKE_INTERFACE &&
             reference.parameterTypes.map(CharSequence::toString) == listOf(STRING) && reference.returnType == VOID
     }
     val runnable = indexOfCallAfter(localUpdate) { reference, opcode ->
@@ -177,12 +169,11 @@ private fun hasOutboundGateReferences(method: Method): Boolean {
         opcode == Opcode.INVOKE_VIRTUAL && methodMatches(reference, HASH_MAP, "put", listOf(OBJECT, OBJECT), OBJECT)
     }
     val localRead = indexOfCallAfter(mapPut) { reference, opcode ->
-        opcode == Opcode.INVOKE_INTERFACE && reference.name == "Q0" &&
+        opcode == Opcode.INVOKE_INTERFACE &&
             reference.parameterTypes.map(CharSequence::toString) == listOf(LONG, STRING) && reference.returnType == VOID
     }
     val rpc = indexOfCallAfter(localRead) { reference, opcode ->
-        opcode == Opcode.INVOKE_INTERFACE &&
-            methodMatches(reference, TALK_SERVICE_CLIENT, "j1", listOf("I", STRING, STRING), VOID)
+        opcode == Opcode.INVOKE_INTERFACE && isChatCheckedRpc(reference)
     }
     val remove = indexOfCallAfter(rpc) { reference, opcode ->
         opcode == Opcode.INVOKE_INTERFACE &&
@@ -196,44 +187,33 @@ private fun hasOutboundGateReferences(method: Method): Boolean {
         rpc >= 0 && remove >= 0 && failedSave >= 0
 }
 
-private fun hasManualCallerReferences(method: Method): Boolean {
-    val instructions = method.implementation?.instructions?.toList() ?: return false
-    return instructions.any { instruction ->
-        methodReference(instruction)?.let { reference ->
-            instruction.opcode == Opcode.INVOKE_VIRTUAL && reference.parameterTypes.map(CharSequence::toString) == listOf(STRING) &&
-                reference.returnType == RX_SINGLE
-        } == true
-    } && instructions.any { instruction ->
-        methodReference(instruction)?.let { reference ->
-            instruction.opcode == Opcode.INVOKE_STATIC &&
-                reference.parameterTypes.map(CharSequence::toString) == listOf("Lap7/b;", "Llb8/c;") && reference.returnType == OBJECT
-        } == true
-    } && instructions.any { instruction ->
-        methodReference(instruction)?.let { reference ->
-            instruction.opcode == Opcode.INVOKE_STATIC &&
-                methodMatches(reference, "Lkotlin/ResultKt;", "throwOnFailure", listOf(OBJECT), VOID)
-        } == true
-    }
-}
+/** Talk サービスの既読送信 RPC。interface は非難読化で、メソッド名だけが版ごとに変わります。 */
+private fun isChatCheckedRpc(reference: MethodReference): Boolean =
+    reference.definingClass == TALK_SERVICE_CLIENT &&
+        reference.parameterTypes.map(CharSequence::toString) == listOf("I", STRING, STRING) &&
+        reference.returnType == VOID
 
 private fun hasSupplierFactoryReferences(method: Method): Boolean {
+    if (!method.returnType.startsWith("L")) {
+        return false
+    }
     val instructions = method.implementation?.instructions?.toList() ?: return false
     return instructions.any { instruction ->
         methodReference(instruction)?.let { reference ->
-            instruction.opcode == Opcode.INVOKE_DIRECT &&
-                methodMatches(reference, RX_SINGLE_CREATE, "<init>", listOf(RX_SINGLE_ON_SUBSCRIBE), VOID)
+            instruction.opcode == Opcode.INVOKE_DIRECT && reference.name == "<init>" &&
+                reference.parameterTypes.size == 1 && reference.returnType == VOID
         } == true
     } && instructions.any { instruction ->
         methodReference(instruction)?.let { reference ->
-            instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-                methodMatches(reference, "Lap7/b;", "o", listOf(RX_SCHEDULER), RX_SINGLE)
+            instruction.opcode == Opcode.INVOKE_VIRTUAL && reference.parameterTypes.size == 1 &&
+                reference.returnType == method.returnType
         } == true
     }
 }
 
 /**
  * local update と chat-list Runnable を元どおり実行した直後に gate を置きます。suppression 時は
- * Q0、RPC、失敗保存より前で終了し、同じ FAILED_CHAT_CHECKED queue の map/prefs だけを消去します。
+ * 既読位置の前進、RPC、失敗保存より前で終了し、同じ FAILED_CHAT_CHECKED queue の map/prefs だけを消去します。
  *
  * <p>注入は合流点そのものではなく、その直後の location に置きます。合流点は先頭の if-eqz の分岐先
  * であり、dexlib2 の注入では Label が既存 location に残るため、第 4 引数 Z が false の経路だけが
@@ -319,7 +299,13 @@ val readReceiptOutboundGatePatch = bytecodePatch(
     }
 }
 
-/** MainChatMarkAsReadExecutor の caller thread で supplier factory 呼び出しを囲みます。 */
+/**
+ * 公式の「既読にする」ボタンの coroutine で、executor 呼び出しを囲みます。
+ *
+ * <p>26.16.0 の executor は送信後（`SendMessageReadPointUpdaterImpl`）、リアクション送信後、メッセージ削除後
+ * からも呼ばれます。executor 自体へ注入すると、それらが「手動」扱いになり、自動既読を停止していても
+ * 既読が相手へ届きます。26.11.0 までと同じく、明示的なボタン操作だけを手動として扱います。</p>
+ */
 val readReceiptManualCallerPatch = bytecodePatch(
     name = "手動既読の呼び出し元",
     description = "LINE 自身の手動既読操作を識別できるよう、呼び出し元スレッドへ印を付けます。",
@@ -335,20 +321,11 @@ val readReceiptManualCallerPatch = bytecodePatch(
     dependsOn(readReceiptOutboundGatePatch)
 
     execute {
-        val metadataMatches = mainChatMarkAsReadMetadataFingerprint.matchAllOrNull().orEmpty()
-        val metadataOwners = metadataMatches
-            .map { metadata ->
-                val nestedType = metadata.originalClassDef.type
-                nestedType.substringBeforeLast('$', missingDelimiterValue = "").takeIf { it.isNotEmpty() }?.plus(";")
-            }
-            .filterNotNull()
-            .toSet()
-        val factoryMatches = supplierFactoryFingerprint.matchAllOrNull().orEmpty()
-        val manualMatches = manualCallerFingerprint.matchAllOrNull().orEmpty()
-            .filter { it.originalClassDef.type in metadataOwners }
-        if (manualMatches.size != 1 || metadataOwners.size != 1 || factoryMatches.size != 1) {
-            if (manualMatches.size == 1) {
-                // metadata / supplier chain が一意でなければ、caller anchor だけを適用済みとしない。
+        val buttons = markAsReadButtonFingerprint.matchAllOrNull().orEmpty()
+        val factories = supplierFactoryFingerprint.matchAllOrNull().orEmpty()
+        if (buttons.size != 1 || factories.size != 1) {
+            if (buttons.size == 1) {
+                // supplier chain が一意でなければ、caller anchor だけを適用済みとしない。
                 recordUnsafeFeatureStatus(
                     listOf(PatchId.READ_RECEIPTS_MAIN_CHAT_MANUAL_CALLER),
                     expectedTargetCount = 1,
@@ -359,26 +336,50 @@ val readReceiptManualCallerPatch = bytecodePatch(
                 recordFeatureStatus(
                     listOf(PatchId.READ_RECEIPTS_MAIN_CHAT_MANUAL_CALLER),
                     expectedTargetCount = 1,
-                    actualTargetCount = manualMatches.size,
+                    actualTargetCount = buttons.size,
                     reason = "ReadReceiptManualCallerNotUnique",
                 )
             }
             return@execute
         }
 
-        val factory = factoryMatches.single()
-        val callerShape = manualCallerShape(manualMatches.single(), factory)
-        if (callerShape == null) {
+        val button = buttons.single()
+        val shape = manualButtonShape(button.originalMethod)
+        if (shape == null) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.READ_RECEIPTS_MAIN_CHAT_MANUAL_CALLER),
                 expectedTargetCount = 1,
                 actualTargetCount = 1,
-                reason = "ReadReceiptManualCallerStateMachineMismatch",
+                reason = "ReadReceiptManualCallerInstructionShapeMismatch",
             )
             return@execute
         }
 
-        injectManualCaller(manualMatches.single().method, callerShape)
+        // ボタンが呼ぶ interface の実装のうち、通常チャットの supplier factory へ届くものが 1 つだけであること。
+        // OpenChat 用の実装は factory を呼ばないため、ここで除外されます。
+        val factoryMethod = factories.single().originalMethod
+        val executors = Fingerprint(
+            parameters = shape.executorCall.parameterTypes.map(CharSequence::toString),
+            returnType = shape.executorCall.returnType,
+            custom = { method, classDef ->
+                method.name == shape.executorCall.name &&
+                    classDef.interfaces.contains(shape.executorCall.definingClass) &&
+                    method.implementation?.instructions?.any { instruction ->
+                        methodReference(instruction)?.sameMethod(factoryMethod) == true
+                    } == true
+            },
+        ).matchAllOrNull().orEmpty()
+        if (executors.size != 1) {
+            recordUnsafeFeatureStatus(
+                listOf(PatchId.READ_RECEIPTS_MAIN_CHAT_MANUAL_CALLER),
+                expectedTargetCount = 1,
+                actualTargetCount = 1,
+                reason = "ReadReceiptManualExecutorNotUnique",
+            )
+            return@execute
+        }
+
+        injectManualCaller(button.method, shape)
         recordFeatureStatus(
             listOf(PatchId.READ_RECEIPTS_MAIN_CHAT_MANUAL_CALLER),
             expectedTargetCount = 1,
@@ -502,7 +503,7 @@ val readReceiptSupplierPreparationPatch = bytecodePatch(
             return@execute
         }
 
-        val workerMatches = supplierWorkerFingerprint(factoryShape.supplierType).matchAllOrNull().orEmpty()
+        val workerMatches = supplierWorkerFingerprint(factoryShape.supplierType, factoryShape.onSubscribeType).matchAllOrNull().orEmpty()
         if (workerMatches.size != 1) {
             recordFeatureStatus(
                 listOf(PatchId.READ_RECEIPTS_MAIN_CHAT_SUPPLIER_PREPARATION),
@@ -549,7 +550,7 @@ private fun outboundGateShape(match: Match, failedStoreType: String): OutboundGa
         instructions.size < 76 ||
         !isOneRegister(instructions[0], Opcode.IF_EQZ, localMark) ||
         !isIgetObject(instructions[1], localMark, thisRegister) ||
-        !isInvoke(instructions[2], Opcode.INVOKE_INTERFACE, listOf(localMark, chatId), "Y", listOf(STRING), VOID) ||
+        !isInvoke(instructions[2], Opcode.INVOKE_INTERFACE, listOf(localMark, chatId), null, listOf(STRING), VOID) ||
         !isIgetObject(instructions[3], localMark, thisRegister) ||
         !isInvoke(instructions[4], Opcode.INVOKE_VIRTUAL, listOf(localMark), "run", emptyList(), VOID) ||
         !isIgetObject(instructions[5], localMark, thisRegister)
@@ -636,14 +637,12 @@ private fun hasOutboundTail(
     thisRegister: Int,
 ): Boolean {
     val q0Index = instructions.indexOfFirst { instruction ->
-        methodReference(instruction)?.let { method ->
-            method.name == "Q0" && method.parameterTypes == listOf(LONG, STRING) && method.returnType == VOID
+        instruction.opcode == Opcode.INVOKE_INTERFACE && methodReference(instruction)?.let { method ->
+            method.parameterTypes.map(CharSequence::toString) == listOf(LONG, STRING) && method.returnType == VOID
         } == true
     }
     val rpcIndex = instructions.indexOfFirst { instruction ->
-        methodReference(instruction)?.let { method ->
-            methodMatches(method, TALK_SERVICE_CLIENT, "j1", listOf("I", STRING, STRING), VOID)
-        } == true
+        methodReference(instruction)?.let(::isChatCheckedRpc) == true
     }
     val putLongIndex = instructions.indexOfFirst { instruction ->
         methodReference(instruction)?.let { method ->
@@ -707,100 +706,76 @@ private fun injectOutboundGate(method: MutableMethod, shape: OutboundGateShape) 
     )
 }
 
-private fun isMainChatMarkAsReadMetadata(annotation: Annotation): Boolean {
-    if (annotation.type != DEBUG_METADATA) {
-        return false
-    }
+private fun isMarkAsReadButtonMetadata(annotation: Annotation): Boolean {
     val strings = annotation.elements.associate { element ->
         element.name to (element.value as? StringEncodedValue)?.value
     }
-    return strings["f"] == "MainChatMarkAsReadExecutor.kt" && strings["m"] == "markAsRead"
+    return strings["c"] == MARK_AS_READ_BUTTON_COROUTINE && strings["f"] == MARK_AS_READ_BUTTON_SOURCE
 }
 
-private fun manualCallerShape(match: Match, factory: Match): ManualCallerShape? {
-    val method = match.method
+/**
+ * ボタンの coroutine から executor 呼び出しの位置を求めます。suspend 呼び出しは同じ thread で
+ * 同期的に戻るため、`move-result-object` の直後で解除すれば印は次の処理へ漏れません。
+ * supplier 登録が印を消費するので、通常は解除時点で既に空です。
+ */
+internal fun manualButtonShape(method: Method): ManualButtonShape? {
     val implementation = method.implementation ?: return null
-    val instructions = implementation.instructions
-    val factoryCallIndex = instructions.indexOfFirst { instruction ->
-        methodReference(instruction)?.let { it.sameMethod(factory.method) } == true
+    if (implementation.tryBlocks.isNotEmpty()) {
+        return null
     }
+    val instructions = implementation.instructions.toList()
+    val calls = instructions.indices.filter { index ->
+        instructions[index].opcode == Opcode.INVOKE_INTERFACE && methodReference(instructions[index])?.let { reference ->
+            val parameters = reference.parameterTypes.map(CharSequence::toString)
+            parameters.size == 2 && parameters[0] == STRING && parameters[1].startsWith("L") &&
+                reference.returnType == OBJECT
+        } == true
+    }
+    val callIndex = calls.singleOrNull() ?: return null
+    val call = instructions[callIndex] as? FiveRegisterInstruction ?: return null
+    val cleanupIndex = callIndex + 2
+    val handlerAddresses = exceptionHandlerAddresses(implementation)
     if (
-        !hasManualCallerReferences(match.originalMethod) ||
-        implementation.registerCount != 7 ||
-        instructions.size < 41 ||
-        factoryCallIndex < 1 ||
-        !isIgetObject(instructions[factoryCallIndex - 1], 4, 4) ||
-        !isInvokeRegisters(instructions[factoryCallIndex], listOf(4, 5)) ||
-        !isOneRegister(instructions[factoryCallIndex + 1], Opcode.MOVE_RESULT_OBJECT, 4) ||
-        !isTwoRegister(instructions[factoryCallIndex + 2], Opcode.IPUT, 3, 0) ||
-        !isInvoke(instructions[factoryCallIndex + 3], Opcode.INVOKE_STATIC, listOf(4, 0), "a", listOf("Lap7/b;", "Llb8/c;"), OBJECT)
+        call.registerCount != 3 ||
+        instructions.getOrNull(callIndex + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT ||
+        cleanupIndex > instructions.lastIndex ||
+        isDivertedInjectionIndex(instructions, callIndex, handlerAddresses) ||
+        isDivertedInjectionIndex(instructions, cleanupIndex, handlerAddresses)
     ) {
         return null
     }
-
-    // Mutable implementation の label placement ではなく、transform 前 Match の exception table を検証します。
-    val originalImplementation = match.originalMethod.implementation ?: return null
-    val originalInstructions = originalImplementation.instructions.toList()
-    val originalAddresses = instructionCodeAddresses(originalInstructions)
-    val factoryAddress = originalAddresses.getOrNull(factoryCallIndex) ?: return null
-    val coveringBlock = originalImplementation.tryBlocks.singleOrNull { block ->
-        block.startCodeAddress <= factoryAddress && factoryAddress < block.startCodeAddress + block.codeUnitCount
-    } ?: return null
-    val genericHandlerAddress = coveringBlock.exceptionHandlers
-        .singleOrNull { it.exceptionType == null }
-        ?.handlerCodeAddress ?: return null
-    val cancellationHandlerAddress = coveringBlock.exceptionHandlers
-        .singleOrNull { it.exceptionType == CANCELLATION_EXCEPTION }
-        ?.handlerCodeAddress ?: return null
-    val genericHandlerIndex = originalAddresses.indexOf(genericHandlerAddress)
-    val cancellationHandlerIndex = originalAddresses.indexOf(cancellationHandlerAddress)
-    if (genericHandlerIndex < 0 || cancellationHandlerIndex < 0 ||
-        !isOneRegister(originalInstructions[genericHandlerIndex], Opcode.CONST_4, 3) ||
-        !isOneRegister(originalInstructions[cancellationHandlerIndex], Opcode.MOVE_EXCEPTION, 4)
-    ) {
-        return null
-    }
-
-    // begin と正常完了 cleanup は、全経路が注入を通ることを求めます。
-    val handlerAddresses = exceptionHandlerAddresses(originalImplementation)
-    val resultCleanupIndex = factoryCallIndex + 2
-    if (
-        isDivertedInjectionIndex(originalInstructions, factoryCallIndex, handlerAddresses) ||
-        isDivertedInjectionIndex(originalInstructions, resultCleanupIndex, handlerAddresses)
-    ) {
-        return null
-    }
-
-    // 例外時 cleanup は handler 先頭ではなく直後へ置きます。先頭は Label ごと後ろへずれるため、
-    // 先頭へ注入すると例外経路が cleanup を飛び越し、手動既読の ThreadLocal が残留します。
-    val genericCleanupIndex = exceptionHandlerCleanupIndex(originalInstructions, genericHandlerIndex)
-        ?: return null
-    val cancellationCleanupIndex = exceptionHandlerCleanupIndex(originalInstructions, cancellationHandlerIndex)
-        ?: return null
-
-    val injectionIndices = listOf(factoryCallIndex, resultCleanupIndex, genericCleanupIndex, cancellationCleanupIndex)
-    // 後方から注入して先行 index を保つため、狭義単調増加でなければ shape を受け付けません。
-    if (injectionIndices != injectionIndices.sorted() || injectionIndices.toSet().size != injectionIndices.size) {
-        return null
-    }
-    return ManualCallerShape(
-        beginIndex = factoryCallIndex,
-        resultCleanupIndex = resultCleanupIndex,
-        genericCleanupIndex = genericCleanupIndex,
-        cancellationCleanupIndex = cancellationCleanupIndex,
+    return ManualButtonShape(
+        executorCallIndex = callIndex,
+        cleanupIndex = cleanupIndex,
+        chatIdRegister = call.registerD,
+        executorCall = checkNotNull(methodReference(call)),
     )
 }
 
 /**
- * 後方から注入して、先行する注入位置の index がずれないようにします。CancellationException と
- * `<any>` の cleanup はいずれも handler 先頭ではなくその直後へ入り、例外経路でも必ず手動既読の
- * ThreadLocal を解放します。
+ * executor 呼び出しの直前で印を付け、正常時は結果を受け取った直後、例外時は handler で解除します。
+ * 元のメソッドに try block は無く、handler は例外を投げ直すだけなので、v0 を潰しても元の処理へ影響しません。
  */
-private fun injectManualCaller(method: MutableMethod, shape: ManualCallerShape) {
-    method.addInstructions(shape.cancellationCleanupIndex, "invoke-static { }, $CLEAR_MANUAL")
-    method.addInstructions(shape.genericCleanupIndex, "invoke-static { }, $CLEAR_MANUAL")
-    method.addInstructions(shape.resultCleanupIndex, "invoke-static { }, $CLEAR_MANUAL")
-    method.addInstructions(shape.beginIndex, "invoke-static { v5 }, $BEGIN_MANUAL")
+private fun injectManualCaller(method: MutableMethod, shape: ManualButtonShape) {
+    method.addInstructions(shape.cleanupIndex, "invoke-static { }, $CLEAR_MANUAL")
+    method.addInstructions(shape.executorCallIndex, "invoke-static { v${shape.chatIdRegister} }, $BEGIN_MANUAL")
+
+    val implementation = checkNotNull(method.implementation)
+    val handlerIndex = implementation.instructions.size
+    method.addInstructions(
+        handlerIndex,
+        """
+            move-exception v$THROWABLE_SCRATCH_REGISTER
+            invoke-static { }, $CLEAR_MANUAL
+            throw v$THROWABLE_SCRATCH_REGISTER
+        """.trimIndent(),
+    )
+    // begin の次（executor 呼び出し）から cleanup の手前までを覆います。
+    implementation.addCatch(
+        implementation.newLabelForIndex(shape.executorCallIndex + 1),
+        implementation.newLabelForIndex(shape.cleanupIndex + 1),
+        implementation.newLabelForIndex(handlerIndex),
+    )
 }
 
 private fun supplierFactoryShape(
@@ -851,32 +826,36 @@ private fun supplierFactoryShape(
     val wrapperConstructor = instructions.getOrNull(wrapperNewIndex + 1)
     val schedulerRead = instructions.getOrNull(wrapperNewIndex + 2)
     val schedule = instructions.getOrNull(wrapperNewIndex + 3)
+    val scheduleReference = methodReference(schedule)
+    val onSubscribeType = methodReference(wrapperConstructor)?.parameterTypes?.singleOrNull()?.toString()
     val result = instructions.getOrNull(wrapperNewIndex + 4)
     val returned = instructions.getOrNull(wrapperNewIndex + 5)
     val schedulerField = fieldReference(schedulerRead)
     if (
         wrapperNew?.opcode != Opcode.NEW_INSTANCE ||
         !isOneRegister(wrapperNew, Opcode.NEW_INSTANCE, 1) ||
+        onSubscribeType == null ||
         !isInvoke(
             wrapperConstructor,
             Opcode.INVOKE_DIRECT,
             listOf(1, supplierRegister),
             "<init>",
-            listOf(RX_SINGLE_ON_SUBSCRIBE),
+            listOf(onSubscribeType),
             VOID,
-            definingClass = RX_SINGLE_CREATE,
+            definingClass = typeReference(wrapperNew),
         ) ||
         schedulerField == null ||
         schedulerField.type !in cachedSchedulerTypes ||
         !isOneRegister(schedulerRead, Opcode.SGET_OBJECT, parameterStart + 1) ||
+        scheduleReference == null ||
+        scheduleReference.parameterTypes.size != 1 ||
         !isInvoke(
             schedule,
             Opcode.INVOKE_VIRTUAL,
             listOf(1, parameterStart + 1),
-            "o",
-            listOf(RX_SCHEDULER),
-            RX_SINGLE,
-            definingClass = "Lap7/b;",
+            null,
+            scheduleReference.parameterTypes.map(CharSequence::toString),
+            method.returnType,
         ) ||
         !isOneRegister(result, Opcode.MOVE_RESULT_OBJECT, 1) ||
         !isOneRegister(returned, Opcode.RETURN_OBJECT, 1)
@@ -885,6 +864,7 @@ private fun supplierFactoryShape(
     }
     return SupplierFactoryShape(
         supplierType = supplierType,
+        onSubscribeType = onSubscribeType,
         constructorIndex = 1,
         supplierRegister = supplierRegister,
         chatIdRegister = parameterStart + 1,
@@ -913,7 +893,7 @@ internal val SUPPLIER_PREPARATION_INJECTION_INDICES = listOf(0, 7, 10)
 
 internal data class SupplierWorkerShape(val chatIdField: FieldReference)
 
-private fun supplierWorkerFingerprint(supplierType: String) = Fingerprint(
+private fun supplierWorkerFingerprint(supplierType: String, onSubscribeType: String) = Fingerprint(
     definingClass = supplierType,
     name = "run",
     returnType = VOID,
@@ -922,7 +902,7 @@ private fun supplierWorkerFingerprint(supplierType: String) = Fingerprint(
         methodCall(parameters = listOf(STRING), returnType = LONG, opcode = Opcode.INVOKE_VIRTUAL),
         methodCall(parameters = listOf(LONG, STRING, BOOLEAN), returnType = VOID, opcode = Opcode.INVOKE_VIRTUAL),
     ),
-    custom = { _, classDef -> classDef.interfaces.contains(RX_SINGLE_ON_SUBSCRIBE) },
+    custom = { _, classDef -> classDef.interfaces.contains(onSubscribeType) },
 )
 
 private fun supplierWorkerShape(match: Match, factory: Match): SupplierWorkerShape? {
@@ -1125,7 +1105,7 @@ private fun isInvoke(
     instruction: Instruction?,
     opcode: Opcode,
     registers: List<Int>,
-    name: String,
+    name: String?,
     parameters: List<String>,
     returnType: String,
     definingClass: String? = null,
@@ -1133,7 +1113,7 @@ private fun isInvoke(
     val reference = methodReference(instruction) ?: return false
     return instruction?.opcode == opcode &&
         (definingClass == null || reference.definingClass == definingClass) &&
-        reference.name == name &&
+        (name == null || reference.name == name) &&
         reference.parameterTypes.map(CharSequence::toString) == parameters &&
         reference.returnType == returnType &&
         isInvokeRegisters(instruction, registers)
@@ -1144,26 +1124,6 @@ private fun isInvokeRegisters(instruction: Instruction?, expected: List<Int>): B
     val actual = listOf(invoke.registerC, invoke.registerD, invoke.registerE, invoke.registerF, invoke.registerG)
         .take(invoke.registerCount)
     return actual == expected
-}
-
-private fun instructionCodeAddresses(instructions: List<Instruction>): List<Int> {
-    var address = 0
-    return instructions.map { instruction ->
-        address.also { address += instruction.codeUnits }
-    }
-}
-
-/**
- * 例外 handler の cleanup 注入位置。handler ラベルは既存 location に残るため、handler 先頭へ注入すると
- * 例外経路が cleanup を飛び越します。よって先頭ではなく、その直後の location を注入位置にします。
- * 先頭が fall-through しない命令なら直後へ置いても実行されないため、その shape は受け付けません。
- */
-internal fun exceptionHandlerCleanupIndex(instructions: List<Instruction>, handlerIndex: Int): Int? {
-    val head = instructions.getOrNull(handlerIndex) ?: return null
-    if (!fallsThrough(head)) {
-        return null
-    }
-    return (handlerIndex + 1).takeIf { it in instructions.indices }
 }
 
 /**

@@ -3,7 +3,7 @@
  * with the wallpaper palette on Android 12+.
  *
  * Four routes:
- * 1. Mig dark scheme resolver returns → mig() recolours greys and blues
+ * 1. Mig dark scheme resolver returns → mig() recolours greys and blues; the light scheme's → migLight() its blues
  * 2. FDS colour resolver returns → fds() recolours greys and blues
  * 3. Dark surface constants (0xFF080809 etc.) → reads from volatile fields
  * 4. Color.parseColor and Context.getColor → surface-aware wrappers
@@ -31,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val THEME = "Lapp/hushmessenger/extension/MaterialYouTheme;"
 internal const val DARK_SCHEME = "Lcom/facebook/mig/scheme/schemes/DarkColorScheme;"
+internal const val LIGHT_SCHEME = "Lcom/facebook/mig/scheme/schemes/LightColorScheme;"
 internal const val FDS_COLORS = "Lcom/facebook/fds/core/theme/component/FDSColors;"
 
 /**
@@ -103,7 +104,7 @@ private val materialYouResources = resourcePatch(description = "Record HushMesse
 @Suppress("unused")
 val materialYouPatch = bytecodePatch(
     name = "Material You theme",
-    description = "Colors Messenger's dark mode with your wallpaper colors on Android 12 and newer, and a fixed blue on Android 11. Light mode stays the same. Turn on dark mode in Messenger first. Starts off. Turn it on in HushMessenger settings > Controls.",
+    description = "Colors Messenger's dark mode with your wallpaper colors on Android 12 and newer, and a fixed blue on Android 11. Turn on dark mode in Messenger first. Light mode keeps its colors unless you turn on Light mode accent. Starts off. Turn it on in HushMessenger settings > Controls.",
 ) {
     category("Theme")
     compatibleWith(MessengerTarget.COMPATIBILITY)
@@ -133,6 +134,12 @@ val materialYouPatch = bytecodePatch(
         val resolver = classDefBy(DARK_SCHEME).methods.filter(::isTokenColorMethod).singleOrNull()
             ?: throw app.morphe.patcher.patch.PatchException("DarkColorScheme's color token method not found")
         planReturns(resolver, "$THEME->mig(I)I")
+        // Light mode's accent (#132). A build without the light scheme keeps the dark routes; CompatReport flags it.
+        classDefByOrNull(LIGHT_SCHEME)?.let { light ->
+            val lightResolver = light.methods.filter(::isTokenColorMethod).singleOrNull()
+                ?: throw app.morphe.patcher.patch.PatchException("LightColorScheme's color token method not found")
+            planReturns(lightResolver, "$THEME->migLight(I)I")
+        }
 
         var surfaceCount = 0
         var colorCount = 0

@@ -34,15 +34,15 @@ private const val URI = "Landroid/net/Uri;"
 private const val INTENT = "Landroid/content/Intent;"
 private const val VIEW = "Landroid/view/View;"
 private const val FRAGMENT_ACTIVITY = "Landroidx/fragment/app/b0;"
-private const val REFERRER_PARAM = "Lna1/p;"
-private const val REFERRER_LOCATION = "Lna1/p\$b;"
-private const val REFERRER_ACTION = "Lna1/p\$a;"
-private const val LINK_OPTIONS = "Lna1/a;"
-private const val LINK_ROUTER = "Lna1/c;"
-private const val LINK_ROUTING_INTERFACE = "Lna1/b;"
-private const val CHAT_REFERRER = "Lna1/q;"
-private const val CHAT_REFERRER_VALUE = "Lna1/q\$a;"
-private const val NORMALIZED_LINK = "Lna1/o;"
+private const val REFERRER_PARAM = "Lci1/q;"
+private const val REFERRER_LOCATION = "Lci1/q\$b;"
+private const val REFERRER_ACTION = "Lci1/q\$a;"
+private const val LINK_OPTIONS = "Lci1/a;"
+private const val LINK_ROUTER = "Lci1/c;"
+private const val LINK_ROUTING_INTERFACE = "Lci1/b;"
+private const val CHAT_REFERRER = "Lci1/r;"
+private const val CHAT_REFERRER_VALUE = "Lci1/r\$a;"
+private const val NORMALIZED_LINK = "Lci1/p;"
 private const val EXTERNAL_BROWSER_HOOK =
     "Ldev/utaa/linimal/extension/features/browser/ExternalBrowserHooks;" +
         "->tryOpenNormalLinkExternally(Landroid/content/Context;Landroid/net/Uri;)Z"
@@ -126,7 +126,7 @@ private val chatClickPresetFingerprint = Fingerprint(
 )
 
 /**
- * テキストメッセージ binder が URL を正規化し、h を読み、na1/b へ渡す経路を確認します。
+ * テキストメッセージ binder が URL を正規化し、h を読み、routing interface へ渡す経路を確認します。
  * 汎用 target を変更する前に、h が通常チャット本文リンクで使われることを保証します。
  */
 private val chatTextLinkCallerFingerprint = Fingerprint(
@@ -154,7 +154,7 @@ private val chatTextLinkCallerFingerprint = Fingerprint(
 )
 
 /**
- * 変更対象は最終の汎用実装だけですが、View click → Kotlin callback → text binder → na1/b routing
+ * 変更対象は最終の汎用実装だけですが、View click → Kotlin callback → text binder → routing interface
  * という完全なクリック経路が存在することも必須にします。
  */
 private fun textLinkCallbackFingerprint(textLinkCaller: Match) = Fingerprint(
@@ -283,7 +283,7 @@ val externalBrowserChatTextLinkPatch = bytecodePatch(
         target.method.addInstructionsWithLabels(
             targetShape.insertionIndex,
             """
-                sget-object v${targetShape.presetScratchRegister}, Lna1/p;->h:Lna1/p;
+                sget-object v${targetShape.presetScratchRegister}, $REFERRER_PARAM->h:$REFERRER_PARAM
                 if-ne p2, v${targetShape.presetScratchRegister}, :original
                 iget-object v${targetShape.contextScratchRegister}, p0, $contextFieldSmali
                 invoke-static { v${targetShape.contextScratchRegister}, v${targetShape.uriRegister} }, $EXTERNAL_BROWSER_HOOK

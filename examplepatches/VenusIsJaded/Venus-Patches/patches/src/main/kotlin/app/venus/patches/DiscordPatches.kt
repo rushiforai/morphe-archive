@@ -18,8 +18,8 @@ internal val discord = Compatibility(
     apkFileType = ApkFileType.APKM,
     appIconColor = 0x5865F2,
     targets = listOf(AppTarget(
-        version = "350.8 - Stable",
-        versionCode = 350008,
+        version = "351.11 - Stable",
+        versionCode = 351011,
         minSdk = 26
     ))
 )
@@ -47,6 +47,8 @@ private var freeNitroSelected = false
 private var questAgentGuarded = false
 private var messageGutterGuarded = false
 private val additionalSelections = mutableSetOf<String>()
+/** Turns on a runtime feature from a patch kept in another file. */
+internal fun selectRuntimeFeature(key: String) { additionalSelections += key }
 internal val discordBundleGuard = rawResourcePatch {
     execute { HbcPrivacy.verifyOriginal(get("assets/index.android.bundle")) }
 }
@@ -74,7 +76,7 @@ private val runtimeAssets = rawResourcePatch {
             "{picker:$pickerSelected,voice:$voiceSelected,copyBios:$copyBiosSelected," +
                 "favouriteAnything:$favouriteAnythingSelected,freeNitro:$freeNitroSelected," +
                 listOf("noTyping", "quickDelete", "noDelete", "jumpToTop", "hiddenChannels", "pastelize", "platformIndicators", "reviewDB", "readAll", "quests", "badges", "systemFont",
-                    "systemEmoji", "gestures", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "materialYou", "iconPacks", "messageHighlight", "serverInfo", "serverEdit", "fixEmbeds", "tenorGifs", "hideBlocked", "bulkDelete", "experiments", "cleanChannels", "noHandsfree", "voiceOptions", "anonFiles", "staffTag", "removedAlerts", "fullImages", "hideAnything", "alwaysTrust", "noConfirmPin", "clickableMentions", "listenAlong")
+                    "systemEmoji", "gestures", "validUser", "youBarSettings", "splitMessages", "translate", "userNotif", "accountSwitcher", "appIcons", "nitroThemes", "customThemes", "materialYou", "iconPacks", "messageHighlight", "serverInfo", "serverEdit", "fixEmbeds", "tenorGifs", "hideBlocked", "bulkDelete", "experiments", "cleanChannels", "noHandsfree", "voiceOptions", "anonFiles", "staffTag", "removedAlerts", "fullImages", "hideAnything", "alwaysTrust", "noConfirmPin", "clickableMentions", "expandBar", "quietReplies", "silentLeave", "guildLurk", "compressUploads", "timeoutDuration", "dndBanners", "landscapeFull", "voiceDownload", "cloneExpressions", "listenAlong", "silentEdit", "silentDelete", "localEdit", "hypeSquad", "customIdle", "mutualGroupDMs", "fastDeleteChannels", "pauseInvites", "platformSpoof", "backgroundMedia", "viewRaw", "fakeDeafen")
                     .joinToString(",") { "$it:${it in additionalSelections}" } + "}"
         )
         asset.writeText(selected)
@@ -223,6 +225,63 @@ internal val settingsLanguages = bytecodePatch {
     }
 }
 
+internal const val DIAGNOSTICS = "Lapp/venus/diag/Diagnostics;"
+/** Instructions [diagnosticsBridge] adds before Discord's own clearFolder code, counting the nop its label lands on. */
+internal const val DIAGNOSTICS_BRIDGE_SIZE = 9
+
+/**
+ * Lets Venus settings read crash reports, the phone's details and Discord's logcat, and preview the crash screen.
+ * clearFolder(storageDir, path, promise): p1 is the folder, p2 the path, p3 the Promise. Discord only ever passes "cache"
+ * or "documents" as the folder, so a request with the private prefix can't be one of its own. No other Venus guard uses it.
+ */
+internal fun diagnosticsBridge(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    if (method.parameterTypes.map { it.toString() } != listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE) || method.returnType != "V" ||
+        (method.implementation?.registerCount ?: 0) - 4 < 2)
+        throw PatchException("FileModule.clearFolder ABI changed")
+    requireUnpatched(method, "venus-")
+    method.addInstructions(0, """
+        const-string v0, "venus-diag-v1:"
+        invoke-virtual {p1, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+        move-result v0
+        if-eqz v0, :venus_clear_folder
+        invoke-static {p1, p2, p3}, $DIAGNOSTICS->dispatch(Ljava/lang/String;Ljava/lang/String;$PROMISE)Z
+        move-result v1
+        if-eqz v1, :venus_clear_folder
+        return-void
+        :venus_clear_folder
+        nop
+    """)
+}
+
+/** Installs the crash catcher right after Application.onCreate's super call, before Discord starts anything else. */
+internal fun readDiagnostics(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    val first = method.implementation?.instructions?.firstOrNull()
+    val target = (first as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString()
+    if (first?.opcode != com.android.tools.smali.dexlib2.Opcode.INVOKE_SUPER || target != "Landroid/app/Application;->onCreate()V")
+        throw PatchException("MainApplication.onCreate no longer starts with super.onCreate()")
+    method.addInstructions(1, "invoke-static {p0}, $DIAGNOSTICS->init(Landroid/content/Context;)V")
+}
+
+/** Hidden helper of Venus settings: the crash screen and the bridge to troubleshooting logs. */
+internal val diagnostics = bytecodePatch {
+    dependsOn(discordBundleGuard)
+    extendWith("extensions/diag.mpe")
+    execute {
+        diagnosticsBridge(Fingerprint(
+            definingClass = FILE_MODULE,
+            name = "clearFolder",
+            returnType = "V",
+            parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE)
+        ).method)
+        readDiagnostics(Fingerprint(
+            definingClass = "Lcom/discord/MainApplication;",
+            name = "onCreate",
+            returnType = "V",
+            parameters = listOf()
+        ).method)
+    }
+}
+
 @Suppress("unused")
 val venusSettings = bytecodePatch(
     name = "Venus settings",
@@ -230,7 +289,7 @@ val venusSettings = bytecodePatch(
 ) {
     compatibleWith(discord)
     section(PLUGINS)
-    dependsOn(runtimeAssets, packagedDiscordBundle, passkeyErrorHint, settingsLanguages)
+    dependsOn(runtimeAssets, packagedDiscordBundle, passkeyErrorHint, settingsLanguages, diagnostics)
 }
 
 
@@ -273,6 +332,82 @@ val noConfirmPin = bundledPlugin("noConfirmPin", "Skip pin confirmation",
 @Suppress("unused")
 val clickableMentions = bundledPlugin("clickableMentions", "Tap mentions to open profiles",
     "Tap an @mention in the message bar to see who it is. Based on ClickableMentions by mwittrien.")
+
+@Suppress("unused")
+val expandBar = bundledPlugin("expandBar", "Expand the message bar",
+    "Adds a button to the top right of the message bar that opens it up tall, so you can see much more of what you're typing.")
+
+@Suppress("unused")
+val silentLeave = bundledPlugin("silentLeave", "Leave group DMs silently",
+    "Leave group DMs without the \"left the group\" message. Based on SilentLeave by coder.gg.")
+
+@Suppress("unused")
+val silentEdit = bundledPlugin("silentEdit", "Edit without \"(edited)\"",
+    "Edit a message without the \"(edited)\" tag. Only works while your message is the latest one in the chat: Venus sends the new text as a new message and deletes the old one. Older messages are edited the normal way.")
+
+@Suppress("unused")
+val silentDelete = bundledPlugin("silentDelete", "Delete without a trace",
+    "Blanks your message before deleting it, so message loggers on other clients keep nothing.")
+
+@Suppress("unused")
+val localEdit = bundledPlugin("localEdit", "Edit messages on this phone",
+    "Hold any message and change how it reads to you. Only you see the change.")
+
+@Suppress("unused")
+val hypeSquad = bundledPlugin("hypeSquad", "HypeSquad house",
+    "Join or leave a HypeSquad house (Bravery, Brilliance or Balance) from Venus settings. Discord limits how often you can change house.")
+
+@Suppress("unused")
+val customIdle = bundledPlugin("customIdle", "Custom idle time",
+    "Choose how long Discord waits before setting you to Idle, or never. Discord's own time is 10 minutes.")
+
+@Suppress("unused")
+val mutualGroupDMs = bundledPlugin("mutualGroupDMs", "Mutual group DMs",
+    "Profiles show the group DMs you share with that person.")
+
+@Suppress("unused")
+val fastDeleteChannels = bundledPlugin("fastDeleteChannels", "Fast delete channels",
+    "Delete a channel without the confirmation, or hold it and tap Delete channel in its menu. Needs Manage Channels. There is no undo.")
+
+@Suppress("unused")
+val pauseInvites = bundledPlugin("pauseInvites", "Pause invites",
+    "Hold a server's icon to pause or resume its invites for a while, to stop a raid. Needs Manage Server.")
+
+@Suppress("unused")
+val platformSpoof = bundledPlugin("platformSpoof", "Platform spoof",
+    "Show as desktop, web or console instead of mobile. Discord doesn't allow this and it could put your account at risk. Use at your own risk.")
+
+@Suppress("unused")
+val guildLurk = bundledPlugin("guildLurk", "Preview servers without joining",
+    "Open a server from its ID or invite link and read it without joining. Based on GuildLurk by fshin.")
+
+@Suppress("unused")
+val quietReplies = bundledPlugin("quietReplies", "Reply without pinging",
+    "Replies start with the ping off, so nobody gets pinged unless you turn it on.")
+
+@Suppress("unused")
+val viewRaw = bundledPlugin("viewRaw", "View raw data",
+    "Hold a message, channel, server, person or role to read its raw data as JSON and copy it. Email and phone number are left out.")
+
+@Suppress("unused")
+val showTimeoutDuration = bundledPlugin("timeoutDuration", "Show timeout duration",
+    "A tag next to timed-out people says how long until they can talk again. Based on ShowTimeoutDuration by Ven.")
+
+@Suppress("unused")
+val voiceDownload = bundledPlugin("voiceDownload", "Download voice messages",
+    "A Download button under each voice message saves it to your phone. Based on VoiceDownload by puv.")
+
+@Suppress("unused")
+val cloneExpressions = bundledPlugin("cloneExpressions", "Clone emojis and stickers",
+    "Tap a custom emoji or sticker in chat to add it to one of your servers. Based on ExpressionCloner by Ven.")
+
+@Suppress("unused")
+val dndBanners = bundledPlugin("dndBanners", "Banners in Do Not Disturb",
+    "New messages still pop up at the top while you're on Do Not Disturb, without a sound.")
+
+@Suppress("unused")
+val landscapeFull = bundledPlugin("landscapeFull", "Full-screen chat in landscape",
+    "Chat fills the screen sideways. Swipe from the left for servers and channels.")
 
 @Suppress("unused")
 val copyBios = rawResourcePatch(
@@ -364,6 +499,36 @@ internal fun voiceBridge(method: app.morphe.patcher.util.proxy.mutableTypes.Muta
     """)
 }
 
+internal const val MEDIA_COMPRESSOR = "Lapp/venus/compress/MediaCompressor;"
+/** Instructions [compressBridge] adds before Discord's own removeFile code, counting the nop its label lands on. */
+internal const val COMPRESS_BRIDGE_SIZE = 11
+
+/**
+ * Compress big files shrinks photos and audio natively. removeFile(storageDir, path, promise) is the one FileModule
+ * Promise method no other Venus feature guards: p1 carries the private prefix and the request, p3 is the Promise.
+ * Discord never passes a "venus-compress-v1:" folder, so its own calls fall straight through.
+ */
+internal fun compressBridge(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    if (method.parameterTypes.map { it.toString() } != listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE) || method.returnType != "V" ||
+        (method.implementation?.registerCount ?: 0) - 4 < 2)
+        throw PatchException("FileModule.removeFile ABI changed")
+    requireUnpatched(method, "venus-")
+    method.addInstructions(0, """
+        const-string v0, "venus-compress-v1:"
+        invoke-virtual {p1, v0}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+        move-result v0
+        if-eqz v0, :venus_original_remove
+        invoke-virtual {p0}, Lcom/facebook/react/bridge/ReactContextBaseJavaModule;->getReactApplicationContext()Lcom/facebook/react/bridge/ReactApplicationContext;
+        move-result-object v0
+        invoke-static {p1, p3, v0}, $MEDIA_COMPRESSOR->dispatch(Ljava/lang/String;${PROMISE}Landroid/content/Context;)Z
+        move-result v1
+        if-eqz v1, :venus_original_remove
+        return-void
+        :venus_original_remove
+        nop
+    """)
+}
+
 /** Fails the patch, instead of freezing Discord, if another Venus prefix already sits in this method. */
 internal fun requireUnpatched(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, marker: String) {
     val strings = method.implementation?.instructions?.mapNotNull {
@@ -390,7 +555,30 @@ private fun bundledPlugin(key: String, title: String, summary: String) = rawReso
 }
 
 @Suppress("unused")
+val compressUploads = bytecodePatch(
+    name = "Compress big files",
+    description = "Photos, videos and audio over Discord's file size limit are made smaller to fit as you send them, instead of being refused."
+) {
+    compatibleWith(discord)
+    section(PLUGINS)
+    dependsOn(venusSettings)
+    extendWith("extensions/compress.mpe")
+    execute {
+        additionalSelections += "compressUploads"
+        compressBridge(Fingerprint(
+            definingClass = FILE_MODULE,
+            name = "removeFile",
+            returnType = "V",
+            parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE)
+        ).method)
+    }
+}
+
+@Suppress("unused")
 val noTyping = bundledPlugin("noTyping", "Hide typing indicator", "Others won't see when you're typing. You still see when they are.")
+
+@Suppress("unused")
+val fakeDeafen = bundledPlugin("fakeDeafen", "Fake deafen", "Look deafened in a call while you can still hear. Choose whether your mic stays muted.")
 
 @Suppress("unused")
 val quickDelete = bundledPlugin("quickDelete", "Skip delete confirmation", "Messages and link previews are removed right away, with no \"Are you sure?\". It can't be undone.")
@@ -680,7 +868,7 @@ val messageGestures = bundledPlugin("gestures", "Double-tap to reply",
 
 @Suppress("unused")
 val removeAnything = bundledPlugin("hideAnything", "Remove anything",
-    "Tap a button you never use to remove it, right where it is: turn on removal mode, then tap the red X on the voice message, attach, gift, call, video, search, Quests, Shop or Nitro buttons, the Quests banner, attach menu items, profile menu items, Settings rows and more. Bring them back any time in Venus.")
+    "Tap a button you never use to remove it, right where it is: turn on removal mode, then tap the red X on the voice message, attach, gift, call, video, search, Quests, Shop or Nitro buttons, the Quests banner, attach menu items, message menu rows and quick reactions, profile menu items, Settings rows and more. Bring them back any time in Venus.")
 
 @Suppress("unused")
 val validUser = bundledPlugin("validUser", "Fix unknown mentions",
@@ -867,7 +1055,7 @@ internal const val QUEST_DESKTOP_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x
 internal const val QUEST_AGENT_GUARD_SIZE = 14
 
 /**
- * Discord's OkHttp interceptor replaces every request's User-Agent with Discord-Android/350008;RNA.
+ * Discord's OkHttp interceptor replaces every request's User-Agent with Discord-Android/351011;RNA.
  * A request that already says it's the Windows desktop app passes through untouched; everything else is unchanged.
  * Locals v0-v2 are free: the interceptor has 5 registers and 2 of them are parameters.
  */
@@ -1064,7 +1252,7 @@ val unlockExperiments = bundledPlugin("experiments", "Unlock Discord experiments
 @Suppress("unused")
 val bulkDelete = bytecodePatch(
     name = "Bulk delete messages",
-    description = "Select multiple messages in chat and delete them all at once."
+    description = "Select multiple messages and delete them all at once, in one chat or across channels, servers and DMs."
 ) {
     compatibleWith(discord)
     section(PLUGINS)

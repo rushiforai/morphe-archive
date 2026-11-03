@@ -146,7 +146,7 @@ class BleacherReportSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "11.12.0.33",
+            version = "11.13.0.39",
             patchNames = setOf("Disable ads", "Disable telemetry", "Hide betting content"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

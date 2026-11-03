@@ -391,6 +391,17 @@ public class SettingsDialogTest {
         }
     }
 
+    @Test public void theChatsButtonSwitchStartsOffAndSitsUnderTheLog() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            android.widget.Switch button = screen.get().getWindow().getDecorView().findViewWithTag(MessageLogButton.KEY);
+            assertNotNull(button);
+            assertFalse(button.isChecked());
+            button.performClick();
+            assertTrue(Settings.preferences.getBoolean(MessageLogButton.KEY, false));
+            assertEquals(MessageLog.KEY, Settings.SUB_SWITCHES.get(MessageLogButton.KEY));
+        }
+    }
+
     @Test public void aSaveThatCantWriteSaysSo() throws Exception {
         MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis(), "t", "a line")));
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

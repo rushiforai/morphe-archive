@@ -6,7 +6,7 @@
 
 [![Morphe](https://img.shields.io/badge/Morphe-patches-ff4500?style=flat-square)](https://morphe.software)
 [![BaconReader](https://img.shields.io/badge/BaconReader-6.1.4-f57c00?style=flat-square)](#-install)
-[![Patches](https://img.shields.io/badge/patches-30-2ea44f?style=flat-square)](#-whats-inside)
+[![Patches](https://img.shields.io/badge/patches-31-2ea44f?style=flat-square)](#-whats-inside)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
 
 [**➕ Add to Morphe Manager**](https://morphe.software/add-source?github=JoanComasFdz/baconreader-morphe-patches)
@@ -40,6 +40,7 @@ Settings live in BaconReader → **Settings → Patches**.
 | Fix load more comments | "load more comments" loads the hidden comments again |
 | Fix meme templates | Meme templates load again |
 | Fix empty saved files | Saving media no longer leaves empty files |
+| Fix Reddit links | Share links and other Reddit links open in the app, not its browser |
 | Save videos with sound | Saved Reddit videos keep their audio |
 | Show request errors | The real error instead of "BaconReader stopped working" |
 

@@ -23,7 +23,8 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * tags under the video when the post has no description, and {@link #tvTags} hands it none to write.
  * {@code PostCardHeader}
  * hides its Follow button when its own check says so, and {@link #hideFollowButton} makes the
- * check say so.
+ * check say so. Each entry of a reblog trail has a header with a Follow button of its own, shown
+ * only for an entry, and {@link #trailFollow} hands it none.
  */
 public final class PostParts {
     private PostParts() {}
@@ -57,6 +58,17 @@ public final class PostParts {
     public static boolean hideFollowButton() {
         return hides(PatchFamily.Capability.FOLLOW_BUTTON, FamilyNames.HIDE_FOLLOW_BUTTON,
                 Settings.HIDE_FOLLOW_BUTTON, "follow button hidden");
+    }
+
+    /**
+     * Injected first thing in the method that shows a reblog trail entry's Follow button, on the
+     * entry it shows the button for. Null while Hide the Follow button is on, so Tumblr hides the
+     * button the way it does when there's nobody to follow. The entry itself otherwise. Never throws.
+     */
+    public static Object trailFollow(Object entry) {
+        if (entry == null) return null;
+        return hides(PatchFamily.Capability.FOLLOW_BUTTON, FamilyNames.HIDE_FOLLOW_BUTTON,
+                Settings.HIDE_FOLLOW_BUTTON, "reblog trail follow button hidden") ? null : entry;
     }
 
     private static boolean hides(PatchFamily.Capability hook, String family, BooleanSetting setting,

@@ -24,10 +24,10 @@ import dev.utaa.linimal.patches.util.INT
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
-private const val DEBUG_METADATA = "Llb8/e;"
-private const val COMPOSER = "Lh3/t;"
-private const val COMPOSER_IMPL = "Lh3/f1;"
-private const val END_RESTART_GROUP_RESULT = "Lh3/p3;"
+private const val DEBUG_METADATA = "Ldt8/f;"
+private const val COMPOSER = "Lj3/r;"
+private const val COMPOSER_IMPL = "Lj3/d1;"
+private const val END_RESTART_GROUP_RESULT = "Lj3/p3;"
 private const val HOME_RECENT_HISTORY_HOOK =
     "Ldev/utaa/linimal/extension/features/HomeRecentHistoryHooks;->shouldSuppress()Z"
 
@@ -46,6 +46,12 @@ private const val ACTIVITY_CARD_SOURCE_FILE = "ActivityCardContents.kt"
  * 「サービス」（`FixedService`）から区別できる非難読化の手掛かりです。</p>
  */
 internal const val RECENTLY_USED_SERVICE_MARKER = "RecentlyUsedService(id="
+
+/**
+ * 26.16.0 では GlobalHome の別 model も同じ `RecentlyUsedService(id=` を `toString()` に持ちます。
+ * Home26 の model だけが持つ field 名を併せて確認し、GlobalHome 側の model を対象から外します。
+ */
+internal const val RECENTLY_USED_SERVICE_CONFIG_MARKER = ", config="
 
 /** 「最近の履歴」card の renderer は 1 件だけです。解決できなければ一切注入しません。 */
 internal const val HOME_RECENT_HISTORY_TARGET_COUNT = 1
@@ -82,7 +88,9 @@ private val activityCardSourceMetadataFingerprint = Fingerprint(
 )
 
 /** 「最近の履歴」card の内容を表す data class。`toString()` の marker だけを anchor にします。 */
-private val recentlyUsedServiceCardFingerprint = Fingerprint(strings = listOf(RECENTLY_USED_SERVICE_MARKER))
+private val recentlyUsedServiceCardFingerprint = Fingerprint(
+    strings = listOf(RECENTLY_USED_SERVICE_MARKER, RECENTLY_USED_SERVICE_CONFIG_MARKER),
+)
 
 /**
  * ホーム上部の「最近の履歴」card を、LINE 自身の skip 経路へ倒して描かせません。
@@ -172,7 +180,7 @@ val homeRecentHistoryPatch = bytecodePatch(
                 ),
                 methodCall(
                     definingClass = COMPOSER_IMPL,
-                    name = "Y",
+                    name = "Z",
                     parameters = emptyList(),
                     returnType = END_RESTART_GROUP_RESULT,
                     opcode = Opcode.INVOKE_VIRTUAL,
@@ -291,7 +299,7 @@ internal fun homeRecentHistoryGateShape(
     if (composerCallIndices(instructions, "l", VOID).size != 1) {
         return null
     }
-    if (composerCallIndices(instructions, "Y", END_RESTART_GROUP_RESULT).size != 1) {
+    if (composerCallIndices(instructions, "Z", END_RESTART_GROUP_RESULT).size != 1) {
         return null
     }
 

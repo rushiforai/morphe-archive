@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="@dimen/default_padding">
+    <ProgressBar
+        android:id="@android:id/progress"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/default_padding"
+        android:visibility="invisible"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/color_primary"
+        android:importantForAccessibility="no" />
+    <com.apple.android.music.common.views.CustomTextView
+        android:id="@android:id/message"
+        style="@style/Subhead"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:accessibilityLiveRegion="polite" />
+</LinearLayout>

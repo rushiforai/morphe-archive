@@ -1248,6 +1248,13 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_CLOSEUP_BACK.key, "back arrow that floats over a pin", "back gesture or button", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_LENS.key, "visual search button", "Search image in the pin menu still works", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key, "Search image label", "first pins each day", "Tapping the lens still searches", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_LIKE.key, "heart under a pin you open", "its count", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_COMMENTS.key, "comment button under a pin you open", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_SHARE.key, "share button under a pin you open", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_MORE.key, "three dots under a pin you open", "Download pin included", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_REMIX.key, "Remix button on a pin you open", "next pin you open");
+        summaryContains(Settings.HIDE_CLOSEUP_VISIT_SITE.key, "Visit site button under a pin that links to a website", "next pin you open");
+        summaryContains(Settings.SMALLER_SAVE_BUTTON.key, "red Save button on a pin you open", "four fifths of its size", "next pin you open");
         summaryContains(Settings.HIDE_PIN_MENU_COLLAGE.key, "Add to collage and Remix collage", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "pin menus you open from now on", "already open won't change");

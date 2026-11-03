@@ -117,9 +117,10 @@ val favoritePlaylistGridPatch = bytecodePatch(
 
 @Suppress("unused")
 val favoritePlaylistSearchPatch = bytecodePatch(
-    name = "Favorite playlists search",
+    name = "Favorite playlists search V1",
     description = "Adds an option to show a search bar on the favorite playlists page " +
-        "that filters loaded playlists by name.",
+        "that instantly filters your playlists by name, " +
+        "loading the remaining pages in the background while you search.",
     default = true,
 ) {
     dependsOn(favoritePlaylistsHooksPatch)

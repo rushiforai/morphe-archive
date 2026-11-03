@@ -19,7 +19,7 @@ public final class DebugLogPolicy {
   try{if(c!=null){android.content.pm.PackageInfo p=c.getPackageManager().getPackageInfo(c.getPackageName(),0);apk=p.versionName+"/"+(Build.VERSION.SDK_INT>=28?p.getLongVersionCode():p.versionCode);}}catch(Exception ignored){}
   if(Build.VERSION.SDK_INT>=26)try{android.content.pm.PackageInfo p=android.webkit.WebView.getCurrentWebViewPackage();if(p!=null)web=p.packageName+"/"+p.versionName;}catch(Exception ignored){}
   String rate="unknown";try{rate=app.morphe.extension.shared.settings.SharedYouTubeSettings.APP_REFRESH_RATE.get();}catch(Exception ignored){}
-  return "YT-Music personal patches 0.6.0-beta.1; APK="+apk+"; Android="+Build.VERSION.SDK_INT+"; WebView="+web+"; debug="+BaseSettings.DEBUG.get()+"; entry="+FeatureDiagnostics.entry()+"; lyricsOpen="+FeatureDiagnostics.panelOpen()+"; appRefresh="+rate+". Callback cadence is distinct from Android missed deadlines.";
+  return "YT-Music personal patches 0.8.0-beta.2; APK="+apk+"; Android="+Build.VERSION.SDK_INT+"; WebView="+web+"; debug="+BaseSettings.DEBUG.get()+"; entry="+FeatureDiagnostics.entry()+"; lyricsOpen="+FeatureDiagnostics.panelOpen()+"; appRefresh="+rate+". Callback cadence is distinct from Android missed deadlines.";
  }
  public static String export(String logs){return context()+"\n"+boundExport(logs);}
  private static String boundExport(String value){if(value==null)return "";String s=URL.matcher(value).replaceAll("[url omitted]");s=SECRET.matcher(s).replaceAll("$1=[redacted]");return JWT.matcher(s).replaceAll("[credential omitted]");}

@@ -10,6 +10,8 @@ import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.media.taptoplay.FRAGMENT_ACTIVITY
+import app.morphe.patches.facebook.media.taptoplay.touchDispatches
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
@@ -35,9 +37,11 @@ class TranslatePostsFixtureTest {
 
     private fun Instruction.names(call: String) = (this as? ReferenceInstruction)?.reference?.toString() == call
 
-    private fun builderAfter(bundle: File, patches: List<BytecodePatch>, builder: Method): List<Instruction> {
-        val owner = FixtureDex.classes(bundle, setOf(builder.definingClass)).getValue(builder.definingClass)
-        val context = PatchContexts.of(listOf(owner, ExtensionDex.classDef(SETTINGS_STATUS)))
+    /** The builder after [patches], with the feed post component and its state ([foldTypes]) there for Show full post text. */
+    private fun builderAfter(bundle: File, patches: List<BytecodePatch>, builder: Method, foldTypes: Set<String>): List<Instruction> {
+        val classes = FixtureDex.classes(bundle, setOf(builder.definingClass, FRAGMENT_ACTIVITY) + foldTypes)
+        val owner = classes.getValue(builder.definingClass)
+        val context = PatchContexts.of((classes.values + ExtensionDex.classDef(SETTINGS_STATUS)).toList())
         patches.forEach { it.execute(context) }
         return context.mutableClassDefBy(owner.type).methods.single {
             it.name == builder.name && it.parameterTypes == builder.parameterTypes
@@ -52,20 +56,35 @@ class TranslatePostsFixtureTest {
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
                 val name = bundle.name
-                val builder = FixtureDex.methodsWhere(bundle, { true }) {
-                    !it.definingClass.startsWith(EXTENSION_CLASSES) && cutShaped(it)
-                }.single()
+                val found = FixtureDex.methodsWhere(bundle, { true }) {
+                    !it.definingClass.startsWith(EXTENSION_CLASSES) && (cutShaped(it) || foldMarked(it))
+                }
+                val builder = found.filter(::cutShaped).single()
+                val folds = foldTypes(found)
                 val original = builder.code()
                 val returns = original.count { it.opcode == Opcode.RETURN_OBJECT }
                 assertTrue("$name: the builder has no return", returns > 0)
                 val textRegister = builder.implementation!!.registerCount - builder.parameterTypes.size
 
-                val owner = FixtureDex.classes(bundle, setOf(builder.definingClass)).getValue(builder.definingClass)
-                val context = PatchContexts.of(listOf(owner, ExtensionDex.classDef(SETTINGS_STATUS)))
+                val classes = FixtureDex.classes(bundle, setOf(builder.definingClass, FRAGMENT_ACTIVITY))
+                val owner = classes.getValue(builder.definingClass)
+                val activity = classes.getValue(FRAGMENT_ACTIVITY)
+                val dispatch = touchDispatches(activity).single()
+                val context = PatchContexts.of(listOf(owner, activity, ExtensionDex.classDef(SETTINGS_STATUS)))
                 translatePostsPatch.execute(context)
                 val patched = context.mutableClassDefBy(owner.type).methods.single {
                     it.name == builder.name && it.parameterTypes == builder.parameterTypes
                 }.code()
+
+                // Every touch reaches the line's clock first, read through the range form, and goes on unchanged.
+                val touch = context.mutableClassDefBy(FRAGMENT_ACTIVITY).methods.single {
+                    it.name == dispatch.name && it.parameterTypes == dispatch.parameterTypes
+                }.code()
+                assertTrue("$name: the touch clock comes first", touch[0].names(TRANSLATION_TOUCH))
+                val event = touch[0] as RegisterRangeInstruction
+                assertEquals("$name: the event is handed over", (dispatch.implementation!!.registerCount - 1) to 1,
+                    event.startRegister to event.registerCount)
+                assertEquals("$name: one instruction in dispatchTouchEvent", dispatch.code().size + 1, touch.size)
 
                 assertEquals("$name: two instructions per hook", original.size + 2 * (returns + 1), patched.size)
                 assertTrue("$name: the text's hook comes first", patched[0].names(TRANSLATION_TEXT))
@@ -91,7 +110,7 @@ class TranslatePostsFixtureTest {
 
                 // Either order, Show full post text's hook stays right before its null check, on the cut's answer.
                 for (order in listOf(listOf(translatePostsPatch, showFullPostTextPatch), listOf(showFullPostTextPatch, translatePostsPatch))) {
-                    val both = builderAfter(bundle, order, builder)
+                    val both = builderAfter(bundle, order, builder, folds)
                     val at = both.indexOfFirst { it.names(CUT) }
                     assertTrue("$name: no cut hook after ${order.map { it.name }}", at > 0)
                     assertEquals(Opcode.MOVE_RESULT_OBJECT, both[at - 1].opcode)

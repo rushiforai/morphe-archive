@@ -485,7 +485,7 @@ public class FeedFilterTest {
     /** Debug logging names the saved fields a kept pin carries, but never the board or the repin's id. */
     @Test
     public void theDebugMarkersShowSavedFieldsWithoutTheirValues() {
-        assertEquals("[is_repin=true,new_repin_id=set,pinned_to_board=set]", ModuleItems.markers(new SavedPin()));
+        assertEquals("[is_repin=true,new_repin_id=set,pinned_to_board=set,pinned_to_profile=true]", ModuleItems.markers(new SavedPin()));
     }
 
     @Test

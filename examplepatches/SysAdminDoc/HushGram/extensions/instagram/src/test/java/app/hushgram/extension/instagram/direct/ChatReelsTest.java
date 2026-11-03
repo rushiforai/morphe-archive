@@ -4,7 +4,9 @@
  */
 package app.hushgram.extension.instagram.direct;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -24,6 +26,9 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowSystemClock;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
@@ -52,10 +57,12 @@ public class ChatReelsTest {
     public void restore() {
         Settings.SWIPE_CHAT_REELS.resetToDefault();
         Settings.STOP_AFTER_CHAT_REELS.resetToDefault();
+        Settings.ONLY_RECEIVED_CHAT_REELS.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
         ChatReels.covered();
+        ChatReels.forgetSent();
     }
 
     /** The patch is in Manager's default selection, so its switch starts off. */
@@ -137,6 +144,122 @@ public class ChatReelsTest {
         assertFalse("off", ChatReels.stop());
     }
 
+    /** Only received reels starts off, and a sent reel leaves the chain only with it on (#460). */
+    @Test
+    public void aSentReelLeavesTheChainOnlyWithOnlyReceivedOn() {
+        assertFalse(Settings.ONLY_RECEIVED_CHAT_REELS.get());
+        assertTrue("off, an unsent message", ChatReels.received(new Object(), new Object()));
+        Settings.ONLY_RECEIVED_CHAT_REELS.save(true);
+        assertTrue("on, a message the stub says wasn't sent", ChatReels.received(new Object(), new Object()));
+        assertTrue("null", ChatReels.received(null, null));
+        assertTrue("a received reel", ChatReels.received(false, "a1"));
+        assertFalse("a sent reel", ChatReels.received(true, "a1"));
+        assertFalse("a sent reel with no id", ChatReels.received(true, null));
+        assertTrue(HookStatus.missing(FamilyNames.CHAT_REELS).toString(), HookStatus.missing(FamilyNames.CHAT_REELS).isEmpty());
+    }
+
+    /** The reel just tapped stays in the chain even when you sent it. */
+    @Test
+    public void theTappedReelStaysEvenWhenSent() {
+        Settings.ONLY_RECEIVED_CHAT_REELS.save(true);
+        Object tapped = new Object() {
+            @Override public String toString() {
+                return "MessageIdentifier{itemId=a1}";
+            }
+        };
+        assertTrue(ChatReels.open(tapped, null));
+        assertTrue("the tapped one", ChatReels.received(true, "a1"));
+        assertFalse("another sent one", ChatReels.received(true, "b2"));
+        ChatReels.covered();
+        assertFalse("after the viewer opened", ChatReels.received(true, "a1"));
+    }
+
+    /** Off, paused or before the settings are read, every message joins the chain. */
+    @Test
+    public void pausedAndUnreadyKeepEveryMessage() {
+        Settings.ONLY_RECEIVED_CHAT_REELS.save(true);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertTrue("paused", ChatReels.received(new Object(), new Object()));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertTrue("no context", ChatReels.received(new Object(), new Object())));
+    }
+
+    /** A page of a chat's reels from the server, read by media id: the item itself here. */
+    private static List<?> page(Object source, String... media) {
+        return ChatReels.leaveOutSent(Arrays.asList(media), source, String::valueOf);
+    }
+
+    /**
+     * The chat's reels the viewer pages from the server leave out the ones you sent, once the opener
+     * has seen them, only from a chat and only with the switch on (#460).
+     */
+    @Test
+    public void aServerPageLeavesOutTheReelsYouSentOnlyFromAChatWithTheSwitchOn() {
+        ChatReels.rememberSent("m1", "a1");
+        List<String> items = Arrays.asList("m0", "m1", "m2");
+        assertSame("off, the page stands", items, ChatReels.leaveOutSent(items, Source.DIRECT, String::valueOf));
+
+        Settings.ONLY_RECEIVED_CHAT_REELS.save(true);
+        assertEquals(Arrays.asList("m0", "m2"), page(Source.DIRECT, "m0", "m1", "m2"));
+        assertEquals("a page of only sent reels", Collections.emptyList(), page(Source.DIRECT, "m1"));
+        assertEquals("a sent reel first", Collections.singletonList("m2"), page(Source.DIRECT, "m1", "m2"));
+        assertSame("the Reels tab", items, ChatReels.leaveOutSent(items, Source.CLIPS_TAB, String::valueOf));
+        assertSame("no source", items, ChatReels.leaveOutSent(items, null, String::valueOf));
+        List<String> received = Arrays.asList("m0", "m2");
+        assertSame("nothing you sent", received, ChatReels.leaveOutSent(received, Source.DIRECT, String::valueOf));
+        assertSame("no page", null, ChatReels.leaveOutSent(null, Source.DIRECT, String::valueOf));
+        assertEquals("a null item stays", Arrays.asList(null, "m2"),
+            ChatReels.leaveOutSent(Arrays.asList(null, "m1", "m2"), Source.DIRECT, String::valueOf));
+        assertSame("items with no media", items, ChatReels.leaveOutSent(items, Source.DIRECT, item -> null));
+        assertTrue(HookStatus.missing(FamilyNames.CHAT_REELS).toString(), HookStatus.missing(FamilyNames.CHAT_REELS).isEmpty());
+    }
+
+    /** The reel you tapped is forgotten as sent, so a page holding it keeps it; other sent ones go. */
+    @Test
+    public void theTappedReelStaysInAServerPageEvenWhenSent() {
+        Settings.ONLY_RECEIVED_CHAT_REELS.save(true);
+        ChatReels.rememberSent("m1", "a1");
+        ChatReels.rememberSent("m2", "b2");
+        Object tapped = new Object() {
+            @Override public String toString() {
+                return "MessageIdentifier{itemId=a1}";
+            }
+        };
+        assertTrue(ChatReels.open(tapped, null));
+        ChatReels.rememberSent("m1", "a1");
+        ChatReels.covered();
+        assertEquals(Arrays.asList("m0", "m1"), page(Source.DIRECT, "m0", "m1", "m2"));
+    }
+
+    /** Paused, before the settings are read or on a failure, the page stands. */
+    @Test
+    public void pausedUnreadyAndFailingPagesStand() {
+        Settings.ONLY_RECEIVED_CHAT_REELS.save(true);
+        ChatReels.rememberSent("m1", "a1");
+        List<String> items = Arrays.asList("m0", "m1");
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertSame("paused", items, ChatReels.leaveOutSent(items, Source.DIRECT, String::valueOf));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertSame("no context", items, ChatReels.leaveOutSent(items, Source.DIRECT, String::valueOf)));
+        assertSame("a failing read", items, ChatReels.leaveOutSent(items, Source.DIRECT, item -> {
+            throw new IllegalStateException("no media");
+        }));
+        assertTrue("the stub's page stands", ChatReels.leaveOutSent(items, Source.DIRECT) == items);
+    }
+
+    /** Only the latest sent reels are remembered. */
+    @Test
+    public void onlyTheLatestSentReelsAreRemembered() {
+        for (int i = 0; i <= ChatReels.SENT_KEPT; i++) ChatReels.rememberSent("m" + i, "a" + i);
+        assertFalse("the oldest", ChatReels.isSent("m0"));
+        assertTrue("the second oldest", ChatReels.isSent("m1"));
+        assertTrue("the newest", ChatReels.isSent("m" + ChatReels.SENT_KEPT));
+    }
+
     /** Stand-ins for Instagram's viewer sources, named as its enum names them. */
     private enum Source { DIRECT, DIRECT_SEARCH, CLIPS_TAB }
 
@@ -157,6 +280,26 @@ public class ChatReelsTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         assertTrue("back on", ChatReels.stopCached(Source.DIRECT));
+        assertTrue(HookStatus.missing(FamilyNames.CHAT_REELS).toString(), HookStatus.missing(FamilyNames.CHAT_REELS).isEmpty());
+    }
+
+    /** A pull down refreshes everywhere but a chat's viewer with the stop on, where it would bring suggestions (#390). */
+    @Test
+    public void aPullDownRefreshesEverywhereButAChatsViewer() {
+        assertTrue("off to start, Instagram refreshes", ChatReels.refresh(Source.DIRECT));
+        Settings.STOP_AFTER_CHAT_REELS.save(true);
+        assertFalse("a chat's viewer", ChatReels.refresh(Source.DIRECT));
+        assertTrue("the Reels tab", ChatReels.refresh(Source.CLIPS_TAB));
+        assertTrue("search in chats", ChatReels.refresh(Source.DIRECT_SEARCH));
+        assertTrue("no source", ChatReels.refresh(null));
+
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertTrue("paused", ChatReels.refresh(Source.DIRECT));
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> assertTrue("no context", ChatReels.refresh(Source.DIRECT)));
+        assertFalse("back on", ChatReels.refresh(Source.DIRECT));
         assertTrue(HookStatus.missing(FamilyNames.CHAT_REELS).toString(), HookStatus.missing(FamilyNames.CHAT_REELS).isEmpty());
     }
 

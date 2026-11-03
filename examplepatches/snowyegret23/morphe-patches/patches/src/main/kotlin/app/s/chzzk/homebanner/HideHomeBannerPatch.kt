@@ -5,7 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.initializeField
-import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK
+import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK_MOBILE
 import app.s.chzzk.shared.nativeKeyboxPatch
 
 @Suppress("unused")
@@ -13,7 +13,7 @@ val hideHomeBannerPatch = bytecodePatch(
     name = "Home without promotions",
     description = "Removes home carousels, campaign exposure and promotional topic rows while preserving content rows.",
 ) {
-    compatibleWith(COMPATIBILITY_CHZZK)
+    compatibleWith(COMPATIBILITY_CHZZK_MOBILE)
     dependsOn(nativeKeyboxPatch)
 
     execute {

@@ -29,7 +29,7 @@ class OneCricketSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.08.01",
+            version = "26.10.01",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

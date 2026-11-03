@@ -9,8 +9,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
-import app.noam.patches.chesscom.shared.addArrowsBarButtons
-import app.noam.patches.chesscom.shared.composeBarButton
 import app.noam.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -22,10 +20,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val ARROWS_BAR = "${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;"
-private const val ARROWS_CHIP = "${Constants.EXTENSION_PACKAGE}/arrows/ArrowsChip;"
 
 private const val BUTTON_CLASS = "app.noam.extension.chesscom.arrows.ArrowsButton"
-private const val BOT_GAME_PACKAGE = "Lcom/chess/features/versusbots/"
 /** Compose game screens whose bottom bar gets Arrows and Clear: bots, guided coach games. */
 private val COMPOSE_GAME_BARS = listOf(
     "Lcom/chess/features/versusbots/ui/game/BotGameActivityContentKt;",
@@ -125,7 +121,7 @@ private val arrowsResourcePatch = resourcePatch(
 val arrowsPatch = bytecodePatch(
     name = "Arrows in games",
     description = "Adds Arrows and Clear buttons to the game bars (live, daily, archived, pass and " +
-        "play, bots, coach). While Arrows is on, dragging on the board draws an arrow and tapping marks a " +
+        "play, coach). While Arrows is on, dragging on the board draws an arrow and tapping marks a " +
         "square, as on the website, and pieces don't move.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
@@ -135,55 +131,12 @@ val arrowsPatch = bytecodePatch(
     execute {
         markFeaturePatched("arrowsPatched")
 
-        // 4.10.23's Compose bars are out of reach for the older fingerprint; the bot bar is a row
-        // of the app's own buttons, so Arrows and Clear go in as two more of them.
-        var barInjected = false
-        if (BottomButtonFingerprint.matchOrNull() == null) {
-            var barType: String? = null
-            var barMethod: String? = null
-            classDefForEach { classDef ->
-                if (barType != null || !classDef.type.startsWith(BOT_GAME_PACKAGE)) return@classDefForEach
-                val method = classDef.methods.firstOrNull { candidate ->
-                    candidate.composeBarButton() != null && candidate.implementation?.instructions?.any {
-                        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "\$this\$BottomActionsBar"
-                    } == true
-                } ?: return@classDefForEach
-                barType = classDef.type
-                barMethod = method.name + "(" + method.parameterTypes.joinToString("") + ")" + method.returnType
-            }
-            val type = barType
-            val key = barMethod
-            if (type != null && key != null) {
-                mutableClassDefBy(type).methods.first {
-                    it.name + "(" + it.parameterTypes.joinToString("") + ")" + it.returnType == key
-                }.addArrowsBarButtons("show")
-                barInjected = true
-            }
-        }
-
-        // The chip stays for screens without a bar we can reach.
-        if (!barInjected && BottomButtonFingerprint.matchOrNull() == null) {
-            val chipActivity = "Lcom/chess/features/versusbots/game/BotGameActivityV2;"
-            run {
-                val type = mutableClassDefByOrNull(chipActivity) ?: return@run
-                val resume = type.methods.firstOrNull { it.name == "onResume" && it.parameterTypes.isEmpty() }
-                if (resume != null) {
-                    resume.addInstructions(0, "invoke-static/range { p0 .. p0 }, $ARROWS_CHIP->attach(Landroid/app/Activity;)V")
-                } else {
-                    type.methods.firstOrNull { it.name == "onCreate" }?.apply {
-                        instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
-                            .sortedDescending()
-                            .forEach { index ->
-                                addInstructions(index, "invoke-static/range { p0 .. p0 }, $ARROWS_CHIP->attach(Landroid/app/Activity;)V")
-                            }
-                    }
-                }
-            }
-        }
+        // 4.10.23's bot bar is one Compose method with a separate branch for every game state, so
+        // two extra buttons cannot be added at a single point. Bot games get no Arrows buttons for
+        // now; the older boards below still get their bar buttons.
 
         // The older boards: Arrows and Clear go into their Compose bar buttons.
         BottomButtonFingerprint.matchOrNull()?.let { match ->
-            barInjected = true
             // Bot and coach games have Compose bars: Arrows and Clear go in as two more of chess.com's bar
             // buttons. They read a state of ours, so the bar redraws them when the arrows change.
             val button = match.method

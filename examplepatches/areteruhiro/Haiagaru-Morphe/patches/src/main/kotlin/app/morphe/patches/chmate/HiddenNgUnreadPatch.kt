@@ -20,11 +20,11 @@ internal fun BytecodePatchContext.patchHiddenNgUnread(version:String){
         return field.type == "I" && fields[field.definingClass] == field.name
     }
     var count=0
-    classDefForEach { klass ->
+    boundClassForEach("HiddenNgUnreadPatch:1") { klass ->
         val targets=klass.methods.filter { method -> method.implementation?.instructions?.any {
             isTotal(it)
         }==true }
-        if(targets.isEmpty())return@classDefForEach
+        if(targets.isEmpty())return@boundClassForEach
         val mutable=mutableClassDefBy(klass.type)
         targets.forEach { original ->
             val method=mutable.methods.single { it.name==original.name&&it.parameterTypes==original.parameterTypes&&it.returnType==original.returnType }

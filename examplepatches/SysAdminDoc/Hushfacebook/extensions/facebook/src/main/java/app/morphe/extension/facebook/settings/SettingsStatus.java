@@ -342,6 +342,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean listingGap() {
+        return false;
+    }
+
     public static boolean reelsTab() {
         return false;
     }
@@ -394,6 +398,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean photoCarousel() {
+        return false;
+    }
+
     public static boolean autoTranslation() {
         return false;
     }
@@ -439,6 +447,10 @@ public final class SettingsStatus {
     }
 
     public static boolean searchDateRange() {
+        return false;
+    }
+
+    public static boolean searchPostsTab() {
         return false;
     }
 

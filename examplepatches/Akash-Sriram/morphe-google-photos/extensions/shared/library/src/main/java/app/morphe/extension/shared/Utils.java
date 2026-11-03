@@ -505,6 +505,10 @@ public class Utils {
         }
     }
 
+    public static Context getContextOrNull() {
+        return context;
+    }
+
     public static Context getContext() {
         if (context == null) {
             Logger.printException(() -> "Context is not set by extension hook, returning null");
@@ -528,6 +532,7 @@ public class Utils {
             setActivity(activity);
         }
 
+        app.morphe.extension.shared.patches.DeviceSpoofHelper.init(appContext);
         seedPhenotypeEarly(appContext);
         ensureNotificationChannels(appContext);
 

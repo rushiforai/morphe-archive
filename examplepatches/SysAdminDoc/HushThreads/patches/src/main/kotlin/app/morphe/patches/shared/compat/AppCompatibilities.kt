@@ -42,38 +42,33 @@ internal object AppCompatibilities {
      * stable release. A newer stable build replaces it in the same release, and the one before
      * goes.
      */
-    const val THREADS_TARGET_VERSION = "453.0.0.56.79"
+    const val THREADS_TARGET_VERSION = "454.0.0.54.79"
 
     /**
      * The version code of the arm64-v8a build of [THREADS_TARGET_VERSION] the fixtures were read
-     * from: APKMirror's 160-480dpi ARM64 bundle. Other density variants have different codes.
+     * from: APKMirror's 480dpi ARM64 bundle. Other density variants have different codes.
      */
-    const val THREADS_TARGET_VERSION_CODE = 512308675
+    const val THREADS_TARGET_VERSION_CODE = 512408636
 
     /**
      * The version code of the armeabi-v7a build of [THREADS_TARGET_VERSION], APKMirror's 480dpi
-     * ARM bundle. Other density variants have different codes.
+     * ARM bundle.
      */
-    const val THREADS_TARGET_ARMV7_VERSION_CODE = 512308695
+    const val THREADS_TARGET_ARMV7_VERSION_CODE = 512408635
 
     /**
      * Every version code APKMirror shipped for [THREADS_TARGET_VERSION] when it was read
-     * (2026-10-31): four arm64-v8a density variants, two armeabi-v7a, three x86_64 and two x86. The
-     * bundle names the version without pinning a code, so any genuine build of this version
-     * patches, including a reupload with a new code.
+     * (2026-11-02, its release day): three arm64-v8a density variants, one armeabi-v7a, one x86_64
+     * and one x86. The bundle names the version without pinning a code, so any genuine build of
+     * this version patches, including a variant APKMirror adds later.
      */
     internal val THREADS_TARGET_VERSION_CODES = setOf(
-        512308671, // arm64-v8a, 480-640dpi
-        512308673, // x86_64, 480dpi
-        512308675, // arm64-v8a, 160-480dpi
-        512308676, // x86, 480dpi, Android 8.0+ listing
-        512308685, // armeabi-v7a, 480dpi
-        512308686, // arm64-v8a, 640dpi
-        512308688, // x86_64, 480dpi
-        512308695, // armeabi-v7a, 480dpi
-        512308696, // arm64-v8a, 120-640dpi
-        512308697, // x86, 480dpi
-        512308698, // x86_64, 480dpi, Android 9.0+ listing
+        512408621, // arm64-v8a, 160dpi
+        512408622, // x86, 480dpi, Android 8.0+
+        512408625, // arm64-v8a, 240dpi
+        512408635, // armeabi-v7a, 480dpi, Android 8.0+
+        512408636, // arm64-v8a, 480dpi
+        512408648, // x86_64, 480dpi
     )
 
     /** Threads' own floor on this build, Android 9. */

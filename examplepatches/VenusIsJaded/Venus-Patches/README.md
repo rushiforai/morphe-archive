@@ -1,122 +1,117 @@
 # Venus Patches
 
-Extra features and privacy options for Discord on Android, built into the app with **[Morphe](https://morphe.software)**. Everything works offline, except the few features that say they use a service (ReviewDB, Translate messages, Fix link previews, Bring back Tenor GIFs). Nothing is downloaded from the internet to run, and nothing is tracked.
+Extra features and privacy options for Discord on Android, patched in with **[Morphe](https://morphe.software)**. No tracking, and everything works offline except ReviewDB, Translate messages, Fix link previews and Bring back Tenor GIFs.
 
 [**Add to Morphe**](https://morphe.software/add-source?github=VenusIsJaded/Venus-Patches&name=Venus%20Patches) · [Downloads](https://github.com/VenusIsJaded/Venus-Patches/releases) · [What's new](CHANGELOG.md) · [Report a problem](https://github.com/VenusIsJaded/Venus-Patches/issues)
 
-**Works with:** Discord **350.8 - Stable** (the original APKM).
+**Works with:** Discord **351.11 - Stable** (the original APKM).
 
 ## Install
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases).
-2. Tap **[Add to Morphe](https://morphe.software/add-source?github=VenusIsJaded/Venus-Patches&name=Venus%20Patches)**. You can also add `https://github.com/VenusIsJaded/Venus-Patches` as a source.
-3. Choose the **original** Discord 350.8 APKM. Don't pick an APK you've already patched.
-4. Every patch except **Custom branding** is selected for you, under **Features** and **Privacy**. Leave **Venus settings** on, then patch and install.
-5. Open **Discord Settings → Venus → Features** and turn on the ones you want. They all start off.
+2. Tap **[Add to Morphe](https://morphe.software/add-source?github=VenusIsJaded/Venus-Patches&name=Venus%20Patches)**, or add `https://github.com/VenusIsJaded/Venus-Patches` as a source.
+3. Pick the **original** Discord 351.11 APKM, not an already patched one.
+4. Keep the default selection (everything except **Custom branding**), then patch and install.
+5. Open **Discord Settings → Venus → Features** and turn on what you want. Everything starts off.
 
-You can also download `patches-<version>.mpp` from [Releases](https://github.com/VenusIsJaded/Venus-Patches/releases) and import it under **Sources → + → Local**.
+You can also import `patches-<version>.mpp` from [Releases](https://github.com/VenusIsJaded/Venus-Patches/releases) under **Sources → + → Local**.
 
-> **Heads up:** the patched app is signed with your key, not Discord's, so you may need to uninstall official Discord first, unless you use [Custom branding](#custom-branding) to install it next to Discord. Uninstalling deletes Discord's local data. Keep the same Morphe signing key so later updates install over the top.
+> The patched app is signed with your key, so you may need to uninstall official Discord first (which deletes its local data), unless you use [Custom branding](#custom-branding). Keep the same signing key so updates install over the top.
 
 ## Features
 
-Open **Discord Settings → Venus → Features** to turn things on or off at any time. Type in the search bar at the top to find a feature by its name, what it does or one of its options. The first time you open it, a **Start with the essentials** card at the top turns on eight popular features in one tap (Keep deleted messages, Nitro stickers and emojis as links, Device indicators, Read all, Jump to first message, Fix unknown mentions, Copy profile bios and file sizes). None of them needs a sign-in, an outside service or a restart. **Undo** switches back exactly those, and **Not now** hides the card for good. Rows with an arrow button have more options. Too many rows? Tap **Edit list** under the search bar and tap the eye on any feature you don't use to hide it; tap **Done** when you're finished. Hidden features move to one **features hidden** row at the bottom of the list, which opens to show them (they keep working while hidden, and search still finds them), and **Show all** brings every one back. Backups include what you've hidden, and Reset to defaults leaves it alone. Each feature has the same name in Venus and in Morphe. **Everything starts off**, so Discord looks and works like normal until you turn on what you want. Your choices from an earlier version are kept.
-
 | Group | Feature | What it does |
 | --- | --- | --- |
-| **Messages** | Keep deleted messages | Deleted messages stay in chat, outlined in red, and edits keep their history. Pick their color, brightness and how many to keep |
-| | Bulk delete messages | Select multiple messages in chat and delete them all at once |
-| | Hide blocked or ignored messages | Removes the "blocked messages" and "ignored messages" rows from chat, and can hide replies to them too. Can also close your DM with someone as soon as you block them, so they leave the Messages list (no messages are deleted). Based on RemoveBlockedUsers |
-| | Message highlights | Pick bar width, plus the color and brightness of replies and mentions |
-| | Translate messages | Messages in other languages show in yours, automatically or only when you ask: a whole chat from a bar that appears when it has messages in another language, or one message from its menu. Translate into Discord's language, your phone's, or any of 70 others |
-| | Double-tap to reply | Double-tap a message to reply, or your own to edit it |
-| | Load full-quality images | Pictures in chat and full screen load the file that was uploaded instead of Discord's smaller, compressed copy. Choose chat, full screen or both, and whether GIFs load whole too. Profile pictures and banners load at a high resolution, so they stay sharp in profiles and full screen. Pictures over 16 megapixels stay as Discord sends them so the app doesn't run out of memory. Based on Uncompressed Discord Images by Knewest and HighResProfileImages by Kawtious |
-| | Skip delete confirmation | Messages and link previews are removed with no "Are you sure?" |
-| | Skip pin confirmation | Pinning and unpinning a message happen at once, with no "Are you sure?". Based on NoConfirmPin by Skamt |
-| | Always trust links and files | No "Leaving Discord" before opening links, and no "potentially dangerous download" warning before opening files, each with its own switch. Links Discord knows are harmful stay blocked. Based on AlwaysTrust by zt and Trwy |
-| | Jump to first message | A button to go straight to the start of a chat |
-| | Favourite any image or video | Star any image or video to keep it in your GIF favourites |
-| **Sending** | Send Nitro stickers and emojis as links | Sends Nitro emojis and stickers as links that show as the image |
-| | Bring back Tenor GIFs | Tenor GIFs show in Discord's own GIF picker again: search, trending and categories. Mix them with Discord's GIFs or use only Tenor. If Tenor doesn't answer, Discord's own GIFs show |
-| | Fix link previews | Links to X, Instagram, TikTok, Reddit, Bluesky, Threads, Tumblr, Facebook, PTT, Twitch clips, Bilibili, pixiv, DeviantArt, Fur Affinity, Imgur and Newgrounds show the post, with its picture or video. YouTube, Spotify, Mastodon and Pinterest can be turned on too. Pick the embed service per site (FxTwitter, vxTwitter or FixEmbed, and so on), translate X and Bluesky posts into Discord's, your phone's or any language, pick a post style (full post, media only, text only, or just the file), Tumblr posts can be drawn dark to match Discord, and share tracking like `?igsh=` is removed |
-| | Send audio as voice messages | Audio files are sent as real voice messages, with a waveform |
-| | Send long messages | Type past the character limit; long messages are sent in parts |
-| | Hide typing indicator | Others won't see when you're typing |
-| | Show file sizes when attaching | Photos and videos in the picker show their size |
-| | Anonymous file names | Files you send get a random name like `k3Vq9TzL0b.jpg` instead of the one on your phone, so names like `IMG_20261027_142233.jpg` or `Bank statement March.pdf` never reach Discord. The file type stays, so previews and players still work. Spoilers stay spoilers. Based on Anonymous File Names by k1ng_op |
-| | Tap mentions to open profiles | Tap an @mention you typed in the message bar to open that person's profile, to check you picked the right one. Typing never opens one. Based on ClickableMentions by mwittrien |
-| **People** | Pastel name colors | Names without a role color get a soft pastel color |
-| | Show device indicators | Desktop, mobile, web, console or VR icons next to names |
-| | Show owner and mod tags | Shows an Owner, Admin, Manager or Mod tag next to people's names in chat, worked out from the roles you can see. Pick who gets one and whether owners get a crown. Based on StaffTag by mwittrien |
-| | Alert when you're removed | Get a heads-up when a friend unfriends you, or a server kicks or bans you, and catch up on anything that happened while Discord was closed. Choose friends, servers or both, and whether to also get a phone notification. Things you remove or leave yourself never alert. Based on RemovedConnectionAlerts by iyu46. |
-| | Fix unknown mentions | @unknown-user mentions show the person's name |
-| | Copy profile bios | Hold a bio to select and copy it |
-| | User and server reviews | Read and write reviews, from ReviewDB |
-| | User activity notifications | Shows a notice when chosen friends or users change status, start typing or send a message. Nothing shows for the chat you have open, and typing is announced once a minute per person and chat |
-| | Account switcher | Switch between up to 50 Discord accounts from the profile bar or Venus settings. Create a new account from Discord's Add account screen or the Account switcher page, without logging out. Export your saved accounts to a file and import them on another phone or a fresh install, without signing in again |
-| | Listen along | A small button next to **Play on Spotify** on a friend's profile plays their song on your phone at the same spot, and follows them as they change songs. Needs Spotify Premium, Spotify linked in Discord and the Spotify app open on your phone. A slider on its page shifts your song up to 10 seconds. Starts off. By maayan080 |
-| **Servers** | Read all button | Marks servers, DMs or both as read in one tap |
-| | Show hidden channels | Channels you can't open appear with a lock. Only a tap opens their details menu, which you can turn off |
-| | Server info | Hold a server's icon to see live details: who's online, channels, roles, emojis, boost progress, the owner, your friends there, when it was made and when you joined |
-| | Edit servers locally | Give any server your own name and icon, from a picture on your phone or a link. Hold a server's icon and tap **Edit locally**, or pick one on the Venus page, which lists every server you've edited and resets them. Only this phone sees it: Discord's own server settings always show the real name and icon, so nothing is ever saved to the server. Backups keep names and icon links; pictures from your phone stay on it. Based on EditServers by mwittrien |
-| | Clean channel names | Removes emoji, dividers and symbols (🎫┃, ✦, 「」) and fancy fonts (𝐂𝐎𝐌𝐌𝐔𝐍𝐈𝐓𝐘) from channel and category names, each with its own switch, and can show "general chat" instead of "general-chat". Only how names look changes: links, mentions and search still use the real name, and a name made only of emoji stays as it is |
-| **Appearance** | Use your phone's font | Replaces Discord's font everywhere |
-| | Use your phone's emojis | Your phone's emojis instead of Discord's, or the emojis from a color emoji font you import (like Twemoji or Noto Color Emoji) |
-| | Remove anything | Turn on **removal mode** and go anywhere in Discord: every button you can remove gets a dashed outline and a red ✕. Tap the ✕, say yes, and it's gone right away, with Undo on the floating bar. Buttons keep working while removal mode is on (menus open, Block blocks); only the ✕ removes. What's left closes up: the Messages tab and channel list headers shrink when all their buttons are gone, a profile's tab bar goes when only Main is left, and the ⋯ button goes for anyone whose menu has nothing left in it. Covers the voice message, attach, Apps and gift buttons in the message bar; call, video call and search in DMs; search, message requests, Add Friends and new message on the Messages tab; Apps, Polls and Photos in the attach menu; the ⋯ button, server tag, badges, mutual servers, Add Friend, Message, Call, the Activity and Wishlist tabs, either Member Since date, Roles, Connections and the note on profiles; Search, Invite and Events above a server's channel list; the server menu's Community Server pill, Boost, Invite and Notifications, Mark as Read, Channels & Roles, Edit Per-server Profile, Show All Channels, Hide Muted Channels, Allow Direct Messages, Allow Message Requests, Report Server, Leave Server and Server Emoji; Quests, Shop, Nitro and the Quests banner on your profile; any item in a profile's ⋯ menu (Add Friend Nickname, Invite to Server, Copy Username, Apps, Ignore, Block, Report…); any row in Discord's Settings, Venus rows included; and single switches on Venus pages. Venus → Remove anything lists what you removed, to bring each back, plus a switch for every button |
-| | Venus button on profile bar | A shortcut to Venus, next to the notifications bell |
-| | Unlock app icons | Use any Discord app icon in Settings without Nitro |
-| | Unlock Nitro themes | Use Discord's gradient themes in Settings > Appearance without Nitro. Only this phone sees them |
-| | Material You colors | Colors Discord to match your wallpaper, in light and dark, like Android 12+ apps. Or pick one of five colors or any color; choose how much the backgrounds take the tint. Wallpaper colors need Android 12 or newer |
-| | Custom themes | Install Revenge and Vendetta color themes from a link, then pick one from a gallery that previews each in its own colors |
-| | Icon packs | Replace Discord's icons across the app with built-in community icon packs (Rosiecord Plumpy, Rosiecord Iconsax, MD3, Solar, Deco, Material Two Tone, Iconsax Bulk) or a custom icon pack link |
-| **Quests** | Complete Quests automatically | Finishes video, Play and timed Activity Quests in the background |
-| | Complete badges automatically | **Risky, experimental:** the row is marked Risky and Experimental, and turning it on asks "Are you sure?" first. Plays real, detectable PC games in the background the way Discord for Windows reports them, toward your Hours Played and Unique Games Played badges, with each game's own art on your profile. Up to 3 games at once count up to 3 hours of game time every hour. Advanced Add hours now sends past sessions right away, behind a warning you confirm three times, because it can get an account suspended. Needs Discord's "Use data to personalize my Discord experience" on; progress can take a day or two to show |
-| **Advanced** | Unlock Discord experiments | Adds Dev Tools to Discord's Settings, with its Experiments screen, so you can try features Discord is still testing (like server folders or favorites). Only on this phone, nothing is sent anywhere. Turning it off asks to reopen Discord. Based on Experiments by maisy |
-| | Keep Bluetooth audio clear in calls | Bluetooth headphones stay in music quality (A2DP) when you join a call, voice channel or Stage, instead of switching to the muffled hands-free mode. Your phone's own microphone picks up your voice. Only while Bluetooth headphones are connected; applies from the next call |
-| | Voice channel options | Settings for voice channels, each off until you turn it on. When you join: start every call at a volume you pick (0% joins with everyone muted), and play calls through the speaker, earpiece, Bluetooth or a wired headset if it's connected. Join and leave chimes: turn off the chime Discord plays as people join or leave your voice channel, or make it quieter; voices and other sounds stay the same. When you leave: a goodbye sound, one of your soundboard sounds that plays for everyone in the channel when you tap Disconnect. It needs Nitro, so nothing is sent without it. You can still change everything in the call. |
+| **Messages** | Keep deleted messages | Deleted messages and edit history stay in chat, with a searchable message log |
+| | Bulk delete messages | Select and delete many messages at once, even across chats |
+| | Hide blocked or ignored messages | Removes blocked and ignored message rows (based on RemoveBlockedUsers) |
+| | Message highlights | Custom colors and bar width for replies and mentions |
+| | Translate messages | Translate a whole chat or a single message, automatically or on request |
+| | Double-tap to reply | Double-tap to reply or edit your own message; optional triple-tap to delete |
+| | Load full-quality images | Loads original images instead of compressed copies (based on Uncompressed Discord Images by Knewest and HighResProfileImages by Kawtious) |
+| | Skip delete confirmation | No "Are you sure?" when deleting messages |
+| | Skip pin confirmation | No "Are you sure?" when pinning (based on NoConfirmPin by Skamt) |
+| | Download voice messages | A download button under every voice message (based on VoiceDownload by puv) |
+| | Keep media playing | Audio keeps playing in the background, videos pop out into a small window |
+| | Banners in Do Not Disturb | Silent in-app message banners while on Do Not Disturb |
+| | Always trust links and files | No link or download warnings (based on AlwaysTrust by zt and Trwy) |
+| | Jump to first message | Go straight to the start of a chat |
+| | Favourite any image or video | Save any image or video to your GIF favourites |
+| **Sending** | Send Nitro stickers and emojis as links | Sends Nitro emojis and stickers as image links |
+| | Bring back Tenor GIFs | Tenor GIFs in Discord's GIF picker |
+| | Fix link previews | Working embeds for X, Instagram, TikTok, Reddit and more, with tracking removed |
+| | Send audio as voice messages | Audio files are sent as voice messages |
+| | Send long messages | Messages over the limit are sent in parts |
+| | Hide typing indicator | Others won't see you typing |
+| | Show file sizes when attaching | File sizes in the media picker |
+| | Anonymous file names | Sent files get random names (based on Anonymous File Names by k1ng_op) |
+| | Tap mentions to open profiles | Tap a typed @mention to open that profile (based on ClickableMentions by mwittrien) |
+| | Expand the message bar | A button that makes the message bar taller |
+| | Compress big files | Shrinks photos, videos and audio to fit the upload limit |
+| | Reply without pinging | Replies start with the ping off |
+| | View raw data | See the raw JSON of messages, channels, servers, people and roles |
+| | Edit without "(edited)" | Edits your latest message without the tag by resending it |
+| | Delete without a trace | Blanks a message before deleting it, so loggers keep nothing |
+| | Edit messages on this phone | Change how any message reads, only on your phone |
+| **People** | Pastel name colors | Soft colors for names without a role color |
+| | Show device indicators | Device icons next to names |
+| | Show owner and mod tags | Owner, Admin and Mod tags in chat (based on StaffTag by mwittrien) |
+| | Alert when you're removed | Know when you're unfriended, kicked or banned (based on RemovedConnectionAlerts by iyu46) |
+| | Fix unknown mentions | Shows names instead of @unknown-user |
+| | Copy profile bios | Select and copy profile bios |
+| | Leave group DMs silently | Leave without the "left the group" message (based on SilentLeave by coder.gg) |
+| | Show timeout duration | Shows how long someone is timed out (based on ShowTimeoutDuration by Ven) |
+| | User and server reviews | Reviews from ReviewDB |
+| | User activity notifications | Notices and a log when chosen people change status, type or message |
+| | Account switcher | Switch between up to 50 accounts, with notifications from all of them |
+| | Listen along | Listen along to a friend's Spotify (needs Premium; by maayan080) |
+| | HypeSquad house | Join or leave a HypeSquad house |
+| | Custom idle time | Choose when you go Idle, or never |
+| | Mutual group DMs | Group DMs you share with someone, on their profile |
+| | Platform spoof | Show as desktop, web or console. **Against Discord's rules, may risk your account** |
+| **Servers** | Read all button | Mark everything as read in one tap |
+| | Show hidden channels | Shows channels you can't open, with a lock |
+| | Server info | Live server details from its icon |
+| | Edit servers locally | Your own server names and icons, only on your phone (based on EditServers by mwittrien) |
+| | Clone emojis and stickers | Add any emoji or sticker to your own server (based on ExpressionCloner by Ven) |
+| | Clean channel names | Strips emoji, symbols and fancy fonts from channel names |
+| | Preview servers without joining | Browse servers that allow previews without joining (based on GuildLurk by fshin) |
+| | Pause invites | Pause a server's invites for a while (needs Manage Server) |
+| | Fast delete channels | Delete channels without confirmation. **No undo** |
+| **Appearance** | Use your phone's font | Your phone's font everywhere |
+| | Use your phone's emojis | Your phone's emojis, or an imported emoji font |
+| | Remove anything | Hide almost any button or menu row in Discord |
+| | Venus button on profile bar | A shortcut to Venus settings |
+| | Unlock app icons | Any app icon without Nitro |
+| | Unlock Nitro themes | Gradient themes without Nitro, only on your phone |
+| | Full-screen chat in landscape | Chat fills the screen sideways |
+| | Material You colors | Colors from your wallpaper or a color you pick |
+| | Custom themes | Revenge and Vendetta themes |
+| | Icon packs | Replace Discord's icons with an icon pack |
+| **Quests** | Complete Quests automatically | Finishes video, Play and timed Activity Quests (not achievement Quests) |
+| | Complete badges automatically | **Risky, experimental.** Earns game-time badges in the background |
+| **Advanced** | Unlock Discord experiments | Dev Tools and Experiments in Settings (based on Experiments by maisy) |
+| | Keep Bluetooth audio clear in calls | Keeps headphones in music quality during calls |
+| | Voice channel options | Join volume, audio output, join chimes and a goodbye sound |
+| | Fake deafen | Look deafened while still hearing the call (by maayan080) |
 
-**In the background:** Play and Activity Quests keep going while Discord is in the background or the screen is off, like Discord for Windows running unfocused. Video Quests are reported at normal speed, and only while Discord is open, the same as Discord's own player. Leaving Discord pauses a video Quest, the background Quests go ahead in the meantime, and the video picks up where it stopped when you come back. New Quests are accepted while Discord is open.
-
-**Double-tap to reply:** a double-tap replies, or opens the editor on your own message; with Triple-tap to delete, a third tap deletes it. It follows Discord's own rules: messages Discord won't let you delete (calls, group DM changes, a thread's first message) are never deleted, and where you can't reply (an announcement channel, a locked thread, a timeout) a double-tap adds your double-tap reaction as usual. Kept deleted messages ignore double-taps, and the screen reader's Add quick reaction action still reacts.
-
-**Send long messages:** parts go out one at a time, a second apart (or after the slowmode wait), so they stay in order. Each part keeps code blocks closed, `@silent`, text-to-speech and Nitro emoji links. If a part fails to send, Venus says so and lets you copy the parts that didn't go out. An edit replaces one message, so it can't be split: an edit over Discord's limit isn't sent, and you can copy it instead. Scheduled messages are never split.
-
-**Activity Quest support:** automatic completion currently handles `PLAY_ACTIVITY` tasks, which count time. It does not handle `ACHIEVEMENT_IN_ACTIVITY` tasks, such as **VALORANT Aces Round 3**, which require an achievement event rather than elapsed time. Those quests are skipped, including automatic acceptance, and must currently be completed in the Activity through Discord's Launch button. A one-achievement target is not a one-second timer; sending time heartbeats does not implement achievement completion.
-
-**Language** sets the language Venus settings are shown in. It follows Discord's language until you pick another one. 30 languages are included, among them Russian, Ukrainian, German, Spanish, French, Portuguese, Polish, Turkish, Japanese, Korean and Chinese. Counts use each language's plural forms. Corrections are welcome on GitHub ([`patches/src/main/resources/venus/i18n`](patches/src/main/resources/venus/i18n)).
-
-**Backup and restore** keeps your Venus setup safe when you patch again, reinstall or move to a new phone. **Save to a file** opens Android's Save to screen so you can keep the backup in Downloads, Drive or anywhere else, and **Copy to clipboard** lets you paste it into a note. **Restore from a file** or **Paste from clipboard** brings every feature, option, watched person and installed theme back after asking first. Backups are small JSON files and never include your ReviewDB sign-in, saved accounts or kept deleted messages. **Reset to defaults** turns every feature off again.
-
-**About** shows your version, how many features are on (in total and per group), whether everything is working, and links to what's new and to report a problem. Venus settings animate gently as you use them, and follow Android's **Remove animations** setting.
+Venus settings also have **Language** (30 languages), **Backup and restore**, and **About** with debug logs and a crash screen.
 
 ### Custom branding
 
-Want Venus next to the normal Discord app? Select **Custom branding** under **Features** in Morphe (it's the only patch that starts off) and tap its gear to choose:
-
-| Option | What it does |
-| --- | --- |
-| **App name** | The name on your home screen. Type anything; **Venus** by default |
-| **Package name** | Type any name of lowercase words joined by dots; `com.discord.venus` by default, so both apps install side by side. Type `com.discord` to replace Discord instead |
-| **Icon color** | The color behind the logo: Discord's blurple, green, yellow, fuchsia, red or black, or any color you choose |
-| **Icon picture** | Your own square PNG, JPG or WebP picture (512 × 512 is ideal) in place of Discord's logo. It fills the icon's shape, so keep the important part away from the corners |
-
-**Icon color and Icon picture work together:** the color fills the icon's background and the picture sits on top, so the color only shows through transparent parts of the picture. With neither, the icon stays Discord's. With only a color, it's Discord's logo on your color.
-
-A copy with a new package name is a separate app: it starts signed out and has its own settings. Notifications work in both apps: each one registers for push notifications under its own name, so signing in to the same account in both gets them in both, and the copy's notification sounds, pictures and **Notification settings** button all use its new name. Keep the same package name every time you patch so updates install over the top.
+Select **Custom branding** in Morphe to install Venus next to Discord. Options: **App name**, **Package name** (`com.discord.venus` by default), **Icon color** and **Icon picture**. The copy is a separate app with its own sign-in and settings; keep the same package name so updates install over the top.
 
 ### Privacy options
 
-These are listed under **Privacy** in Morphe and are all selected. They work once you patch, with nothing to turn on in Discord. To change them, patch again.
+Selected by default in Morphe; nothing to turn on. Patch again to change them.
 
 | Option | What it stops |
 | --- | --- |
 | **Disable analytics** | Discord's usage tracking |
-| **Disable crash reporting** | Crash reports and logs sent to Sentry |
-| **Disable telemetry and touch logging** | Performance tracking, per-screen smoothness (jank) stats and records of what you tap |
-| **Disable advertising identifiers** | Reading your Google advertising ID, by Discord or by AppsFlyer |
-| **Disable install attribution** | Tracking of how you installed the app (AppsFlyer) |
-
-Discord can still see what any client needs to work, like your messages, calls and activity on its servers.
+| **Disable crash reporting** | Crash reports sent to Sentry |
+| **Disable telemetry and touch logging** | Performance tracking and tap logging |
+| **Disable advertising identifiers** | Reading your Google advertising ID |
+| **Disable install attribution** | AppsFlyer install tracking |
 
 ## For developers
 

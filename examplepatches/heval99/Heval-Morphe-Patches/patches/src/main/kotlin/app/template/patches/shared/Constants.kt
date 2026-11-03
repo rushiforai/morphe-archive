@@ -185,9 +185,14 @@ object Constants {
             //   incidents on a live match). Push, MicroG sign-in and the NATS transport not observed.
             //   The rule-9 MobileAds statics step was added after those runs: it is covered by
             //   SofascoreSmokeTest and a separate CLI decompile check, not by the emulator run.
+            // 2026-10-28: updated to 26.10.19 (versionCode 261019002, APKPure XAPK, armeabi-v7a
+            // only, signer unchanged). All seven patches apply unchanged: the smoke test passes,
+            // CLI without -f applies all seven, and the patched UserAccount gates decompile to
+            // getForceAds=false, getForceHideAds=true, getHasServerAds=false. No emulator run (the
+            // bundle is 32-bit ARM only).
             AppTarget(
-                version = "26.10.12",
-                versionCode = 261012002
+                version = "26.10.19",
+                versionCode = 261019002
             )
         )
     )
@@ -298,9 +303,22 @@ object Constants {
         targets = listOf(
             // 2026-10-22: 239.17834.20261016 replaces 238.17794.20261012 (latest version only,
             // owner 2026-10-19); see the 2026-10-22 note above for what was verified on it.
+            // 2026-10-29: 240.17974.20261023 (versionCode 17974, APKMirror arm64/universal, same
+            // CN=Christer Nordvik cert). StaffAccountFingerprint gained the no-arg Boolean shape:
+            // 240 has a second method holding the staff address (ks4.b(Lir4;)Z), which made the
+            // string-only fingerprint match twice. All eight patches apply unchanged.
+            // 2026-11-02: "Use system font" (opt-in, issue #110) added on 240.17974.20261023,
+            // verified by FotMobSmokeTest and the Morphe matcher (FingerprintProbe, both
+            // OK-unique). It moves the app onto FotMob's own system-font path (its Burmese path):
+            // the static <clinit> that stores `SDK_INT > 27 && language != "my"` into a boolean of
+            // its own class (mf5 in 240) stores false, the static (Context, I, String, I)Typeface
+            // loader that reads SDK_INT and calls both Typeface.create overloads (pae.k, 16 View
+            // callers) returns Typeface.create(family, style) at once, and the resource part sets
+            // the six font items of style Base.Theme.FotMob.V26 (values-v26) to the base theme's
+            // sans-serif families and TextAppearance.FotMob.Switch to sans-serif-medium.
             AppTarget(
-                version = "239.17834.20261016",
-                versionCode = 17834
+                version = "240.17974.20261023",
+                versionCode = 17974
             )
         )
     )
@@ -336,7 +354,10 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0072BC,
         signatures = setOf("e2f39185315095611b23f9602cef6332a89db8960ee76a45fb41eeef4975d95d"), // CN=MyFitnessPal LLC
-        targets = listOf(AppTarget(version = "26.42.0", versionCode = 51610))
+        // 2026-10-28: updated to 26.43.0 (versionCode 51626, arm64-v8a). Both patches apply
+        // unchanged: smoke test green, CLI without -f applied both, and the patched Datadog start
+        // decision decompiles to Skip(FLAG_DISABLED).
+        targets = listOf(AppTarget(version = "26.43.0", versionCode = 51626))
     )
 
     // Verified 2026-09-18 against club.boxbox.android 5.4.9 (versionCode 251, the current
@@ -458,8 +479,21 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFFC107,
         signatures = setOf("08ab809258f8d7c0ac7451033d6b12c8ca70053ab4f37942fc988cb6571b963b"), // CN=Roe Aharoni, O=365 Scores
+        // 2026-10-28: updated to 14.9.8 (versionCode 1498, APKPure arm64-v8a, same signer). 14.9.8
+        // replaced the classic Google Mobile Ads SDK with the next-gen Ads SDK, which is compiled
+        // into the app and R8-renamed to ads_mobile_sdk.*: there is no MobileAds.initialize and no
+        // BaseAdView/AdLoader/InterstitialAd/RewardedAd/AppOpenAd left, so the old GMA hooks cannot
+        // anchor. Disable ads now works at the app layer: EntitlementRepository's "ads removed" gate
+        // (the ()Z logging "isUserAdsRemoved=", uej.e in 14.9.8) and its sibling that reads
+        // forceShowAds + IsUserRemovedAdsPackageBuying (uej.a) both answer true, and every
+        // per-activity showAdsForContext/isBannerNeedToBeShown gate still answers false. Every
+        // banner, interstitial, in-feed/MPU, AllScores and betting-promo path checks those gates,
+        // so the app now behaves as ad-free and the betting promos (BPMB) are blocked too. The
+        // per-activity presence check uses GameCenterBaseActivity (BaseActionBarActivity was renamed
+        // u41). Disable update prompts anchors on the onCreate(Bundle) shape (both extras) instead
+        // of the two class names.
         targets = listOf(
-            AppTarget(version = "14.9.7", versionCode = 1497)
+            AppTarget(version = "14.9.8", versionCode = 1498)
         )
     )
 
@@ -489,7 +523,7 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xC8102E,
         signatures = setOf("82bf3a1c6498d93a22c4fe6ab8f272d5a8495093a8e04a66b0b1c92cdcd12ebb"), // CN=Sebastian, O=Cloeme
-        targets = listOf(AppTarget(version = "10.3.2", versionCode = 2230))
+        targets = listOf(AppTarget(version = "10.4", versionCode = 2250))
     )
 
     // Verified 2026-08-20 against FishBuddy v11.0.84 (universal, Android 7.0+).
@@ -579,7 +613,11 @@ object Constants {
             // stock control): Origin opens without the paywall, all switches ON, toggling shows
             // the "Changing Brave features" restart snackbar, brave_origin_off_* prefs are written,
             // the activation flow does not appear, no crash.
-            AppTarget(version = "1.98.60"),
+            // 2026-10-29: 1.98.62 (versionCode 429806204, GitHub Bravearm64Universal.apk). The
+            // update-scout row said 1.100.36, but that tag is a Nightly build
+            // (com.brave.browser_nightly); the stable "Latest" release is 1.98.62, so that is the
+            // target. Brave Origin applies unchanged.
+            AppTarget(version = "1.98.62"),
         )
     )
 
@@ -618,8 +656,11 @@ object Constants {
             // default-browser dialog this patch skips (that one needs many app opens, not
             // reproduced). Sponsored new tab images never appeared on the emulator, so Disable ads
             // is verified in bytecode only.
+            // 2026-10-29: target moved 1.98.60 -> 1.98.62 (versionCode 429806204, GitHub release
+            // Bravearm64Universal.apk). All three experimental patches apply unchanged without -f;
+            // BraveSmokeTest passes.
             AppTarget(
-                version = "1.98.60",
+                version = "1.98.62",
                 isExperimental = true,
             ),
         )
@@ -699,8 +740,8 @@ object Constants {
             // 2026-10-25: updated to version 1.3.64.0929 (versionCode 10570; APKPure XAPK merged,
             // same signer); EasyNotesSmokeTest passes on patcher 2.0.0; anchors unchanged.
             AppTarget(
-                version = "1.3.64.0929",
-                versionCode = 10570
+                version = "1.3.65.1019",
+                versionCode = 10571
             )
         )
     )
@@ -776,7 +817,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x00B0FF,
         signatures = setOf("da3a93962f82949130f2869637f7abbd0d8f4fff3527a089b06a1078acb7d684"), // CN=Kostya Vasilyev, O="Hypnotica, Inc."
-        targets = listOf(AppTarget(version = "2.7.0", versionCode = 200700061))
+        targets = listOf(AppTarget(version = "2.8.1", versionCode = 200801029))
     )
 
     // Verified 2026-09-17 against com.wunderground.android.weather 6.20.1
@@ -1030,6 +1071,19 @@ object Constants {
     // are told apart by the state they test: intValue()==1 is forced true (licensed),
     // intValue()==0 is forced false. No method names are used.
     // 2026-10-19: older target 4.85 dropped (latest version only, owner).
+    // 2026-11-02 (GitHub #108, "4.87 crash on start"): the current Play build of 4.87
+    // (versionCode 48767, arm64) is now wrapped by the full PairIP native VM:
+    // com.pairip.application.Application.attachBaseContext runs VMRunner.setContext +
+    // SignatureCheck.verifyIntegrity, StartupLauncher.launch() runs in App.<clinit>, and
+    // libpairipcore.so ships for arm64-v8a. Emulator differential control: the Play-signed
+    // splits reach InitialSyncActivity, but any re-signed build (unpatched STOCK control AND
+    // the Enable Pro build) SIGSEGVs in libpairipcore.so ~2 s after start, before onCreate.
+    // That is Morphe's re-signing tripping the native tamper check, NOT this patch - the
+    // Enable Pro bytecode still applies and the smoke test passes. Same native-VM blocker as
+    // Zedge/Backdrops/HabitNow; the Java SignatureCheck.verifySignatureMatches force does not
+    // help there. Enable Pro should be withdrawn for the PairIP-wrapped Play build (see
+    // docs/patch-blocklist.md). Play app-signing cert (verified 2026-11-02):
+    // a93dd7bddbe5d1539d0450fda15dbcd28c793c390d5fcf04169a4f385c8aff82 (CN=Android, O=Google Inc.).
     val COMPATIBILITY_TEXTRA = Compatibility(
         name = "Textra",
         packageName = "com.textra",
@@ -1270,7 +1324,11 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1565C0,
         signatures = setOf("78601372350f222eed7007cd300a115fd215dacd7b2352c5077d6db026b4168a"), // Google Play app signing key
-        targets = listOf(AppTarget(version = "11.3.0", versionCode = 309))
+        // 2026-10-29: updated to 11.4.0 (versionCode 311, same Play signer). Disable ads and Enable
+        // Premium apply unchanged: both smoke tests green and CLI without -f applied them. The
+        // APKPure bundle is armeabi-v7a only (no arm64 build on APKPure; the APKMirror slug was not
+        // found), so this update is bytecode-verified only.
+        targets = listOf(AppTarget(version = "11.4.0", versionCode = 311))
     )
 
     // Verified 2026-09-29 against com.streema.simpleradio 6.2.0 (versionCode 872,
@@ -1461,7 +1519,9 @@ object Constants {
             // bffeb14903fbc92fffe6404a3654098a3f85c81a3513afd5dceac121cd678d1c, SHA-1 b804e188...d8b6,
             // unchanged). The real matcher resolves all 11 Shazam fingerprints uniquely (4 R8
             // renames only) and ShazamSmokeTest passes; 16.63.0 dropped (latest verified only).
-            AppTarget(version = "16.64.0-261015", versionCode = 1606400),
+            // 2026-10-28: updated to 16.65.0-261022 (versionCode 1606500, arm64-v8a, same signer).
+        // All four patches apply unchanged: smoke test green and CLI without -f applied them.
+        AppTarget(version = "16.65.0-261022", versionCode = 1606500),
         )
     )
 
@@ -1565,7 +1625,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0D47A1,
         signatures = setOf("6e795e00c60134f927a1a8d61677926fadac536befce84d617358def4ae8a4d9"), // CN=OneCricket, O=OneCricket
-        targets = listOf(AppTarget(version = "26.08.01", versionCode = 90))
+        targets = listOf(AppTarget(version = "26.10.01", versionCode = 91))
     )
 
     // Verified 2026-10-07 against com.gregacucnik.fishingpoints 4.7.3 (versionCode 410,
@@ -1652,7 +1712,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x2E7D32,
         signatures = setOf("97f9d6deb3d9d3ca623528b77dddc530c49516c90e948628e0354bb530cc3b6f"), // CN=Alejandro Sanchez Blanes, O=Resultados-Futbol.com
-        targets = listOf(AppTarget(version = "6.6.0", versionCode = 23005536))
+        targets = listOf(AppTarget(version = "6.7.0", versionCode = 23005544))
     )
 
     // Verified 2026-10-07 against com.rawcam.app 1.4.3 (versionCode 55, APKPure split bundle
@@ -1704,7 +1764,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFFC107,
         signatures = setOf("d7508eb3c26f90cbf457dc823b6008f4927d78bf0e64edcde5472fff9564bde5"), // O=ZTN Studios
-        targets = listOf(AppTarget(version = "5.4.3.19019", versionCode = 19019))
+        targets = listOf(AppTarget(version = "5.4.4.19080", versionCode = 19080))
     )
 
     // Verified 2026-10-12 against net.smartwod.timer 1.46.9 (versionCode 10000399, APKMirror
@@ -1756,7 +1816,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x006CEF,
         signatures = setOf("46cc9dad502c7581cb5fa56c1e7ea092db8f31948f4a6af2388fcf9391c41af6"), // O=BlueMail
-        targets = listOf(AppTarget(version = "2.2.408", versionCode = 47587))
+        targets = listOf(AppTarget(version = "2.2.418", versionCode = 48013))
     )
 
     // Verified 2026-10-12 against com.truecaller 26.39.6 (versionCode 2639006, APKMirror bundle
@@ -2044,13 +2104,62 @@ object Constants {
     //   it. That setter (ud8.f(FilterType) here, the (kept com.truecaller.calllog.api.FilterType)V
     //   call after "set_missed_filter" and FilterType.MISSED in TruecallerInit.onNewIntent; onCreate
     //   calls the same one) now always selects NONE, the value behind the All chip.
+    // 2026-10-26 (#90, 26.41.5; TruecallerSmokeTest + CLI decompile check, exactly these 2 methods
+    //   change; emulator: 2 cold starts with both + Disable ads/telemetry/Enable Premium, no crash or
+    //   linkage error; the rows themselves NOT runtime-tested, the call log and inbox need SMS
+    //   registration; with Restore classic call log the revamped builder is not used): Hide
+    //   frequently called contacts and Hide important senders (both opt-in). Both screens are Compose LazyColumns built in R8-merged Function1
+    //   lambdas (invoke(Object)Object), which add each optional item as a const-string key passed to
+    //   a static void item helper behind a branch that jumps past it. Anchors are the exact item keys:
+    //   "frequent_contacts_id" (qh8 here; if-eqz on the row's show flag) and
+    //   "important-senders-header" (c67 here; if-lt on importantSenders.size() against 6, the list
+    //   read from the BusinessHomeScreenState field that its toString prints after
+    //   ", importantSenders="). The shared skipLazyListItem inserts "goto <guard target>" right
+    //   before the guard; it checks the key is loaded once, the guard is the nearest branch after
+    //   the previous item that jumps past the item helper call without skipping the next item, and
+    //   nothing else jumps into the item. The Categories row, the section titles (kc4.A here) and
+    //   Recents are untouched.
+    // 2026-11-02 (#98): updated to 26.42.5 (versionCode 2642005, owner-supplied APKCube .apks merged
+    //   with APKEditor, arm64; signer CN=truecaller, cert SHA-256 7712b5f2...4913ae as pinned). 26.42.5
+    //   added a local override read (a SharedPreferences contains(key) + getBoolean(key) behind a
+    //   flag check) to all three (String, FeatureState)Z resolvers (doo.a SharedPreferences store,
+    //   f5k.a Firebase experiments, rpq.a default only), so the old "reads SharedPreferences" /
+    //   "never touches SharedPreferences" split matched three and zero methods and Hide promotions
+    //   failed on FirebaseFeatureToggleResolverFingerprint. The keys did not move (every overridden
+    //   key is read through the same store as in 26.41.5). FeatureToggleResolverFingerprint now
+    //   matches every concrete (String, FeatureState)Z method and every override goes into each
+    //   resolver; requireFeatureToggleRead accepts a read through any of them.
+    // 2026-11-02 (#114, 26.42.5; TruecallerSmokeTest + CLI disassembly, NOT runtime-tested: the
+    //   incoming call screen needs a real call): Swap call answer and decline buttons (opt-in). The
+    //   incoming call buttons composable (iis.d here; the only static void method loading both test
+    //   tags "rejectCallButton" and "answerCallButton") places both swipe buttons in one Box with
+    //   the same alignment and moves them sideways with offset(x = -/+ width / 3.5). The x of the
+    //   (Float, Float, Int, Modifier)Modifier offset call right before each tag is negated, so answer
+    //   sits left and decline right. Each button is dragged in any direction (progress is the drag
+    //   distance), so the gesture does not depend on the side. The PiP actions are not changed.
+    // 2026-11-02 (#113, 26.42.5; TruecallerSmokeTest + CLI without -f with all 28 patches + apkanalyzer
+    //   disassembly of hk8/h09/tb6 invoke; patched cold start reached WizardActivity with no
+    //   VerifyError and `cmd package compile -m verify` passed; the haptics themselves NOT
+    //   runtime-tested, they need a real incoming call): Disable call button haptics (opt-in), three
+    //   sources. 1) Completion: each call UI action handler dispatches new p89(CallUIHaptic.X) to
+    //   m89.b and then reports an analytics enum; the dispatch is removed in the handlers that report
+    //   ACCEPT or REJECT of CallUIActions, CallUIDetailsViewAction or CallUIPipActions (6 sites in
+    //   hk8/h09, found by walking back from the enum read to the CallUIHaptic read on the same
+    //   straight-line path; CONFIRM/REJECT must match). HANGUP and KEYPAD_END_CALL keep the same REJECT
+    //   haptic. 2) Drag start and 3) drag vibration live in the R8-merged Function1 lambda (tb6 here)
+    //   that the incoming call composable passes as the function references
+    //   "onCallUiSwipeButtonDraggingStateChanged" / "onDraggingProgressChanged" (the last constructor
+    //   argument is the switch case): the CallUIHaptic.CLICK dispatch behind "state != IDLE" is
+    //   removed, and the progress is set to 0 right before its cmpg-float against 0.1f, so the
+    //   handler always takes the stop path (j99.a, Vibrator.cancel) and never starts the looping
+    //   one-shot.
     val COMPATIBILITY_TRUECALLER = Compatibility(
         name = "Truecaller",
         packageName = "com.truecaller",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0087FF,
         signatures = setOf("7712b5f255f2c85b8b164519116ac4381bb9a3582dcdd2b73ac06ee7464913ae"), // CN=truecaller
-        targets = listOf(AppTarget(version = "26.41.5", versionCode = 2641005))
+        targets = listOf(AppTarget(version = "26.42.5", versionCode = 2642005))
     )
 
     // Verified 2026-10-13 against com.hevy 3.1.16 (versionCode 3325935, XAPK base + arm64 + en +
@@ -2106,7 +2215,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x101012,
         signatures = setOf("add9aa0d804a1a14a04119d44fa7cb4cc229c86322991eda526f5455d11580ef"), // Google Play app signing key
-        targets = listOf(AppTarget(version = "3.2.2", versionCode = 3398745))
+        targets = listOf(AppTarget(version = "3.2.4", versionCode = 3403347))
     )
 
     // Verified 2026-10-13 against easy.launcher 1.10.28 (versionCode 11028, the owner's APKMirror
@@ -2155,7 +2264,11 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x212121,
         signatures = setOf("b85f085f998a77c5feedc1ddc5c75c51b68bb1a0e0c7881cd924130c9f7bb45a"), // Google Play app signing key
-        targets = listOf(AppTarget(version = "1.10.28", versionCode = 11028))
+        // 2026-10-29: updated to 1.10.29 (versionCode 11029, arm64-v8a, same Play signer). Amplitude
+        // was removed from the app (no com.amplitude classes, no AmplitudeAnalyticsService), so the
+        // telemetry patch no longer hooks it; the other five patches apply unchanged. Smoke test
+        // green and CLI without -f applied all six.
+        targets = listOf(AppTarget(version = "1.10.29", versionCode = 11029))
     )
 
     // Verified 2026-10-13 against in.cricketexchange.app.cricketexchange 26.10.06 (versionCode
@@ -2192,7 +2305,9 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x262626,
         signatures = setOf("b9e623fa79aeb566d3388d717d074da7ae4e63160440d24f89c5c0f2af37ea07"), // CN=Purushotam Rawat
-        targets = listOf(AppTarget(version = "26.10.07", versionCode = 668))
+        // 2026-10-28: updated to 26.10.09 (versionCode 673, arm64-v8a, same signer). Enable Premium
+        // and Disable ads apply unchanged: smoke test green and CLI without -f applied both.
+        targets = listOf(AppTarget(version = "26.10.09", versionCode = 673))
     )
 
     // Added 2026-10-14 from the Reddit request queue ("the ads mess with the UI"). Verified
@@ -2353,7 +2468,9 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x000000, // Black WSJ logotype on a #F7F7F7 adaptive-icon background.
         signatures = setOf("23bb0cd3b5fbc3fdd4f869b2c423ef79ea25ff7c54b06ea29ccd49472f66451f"), // CN=Wall Street Journal Digital Network, O=The Wall Street Journal
-        targets = listOf(AppTarget(version = "15.11.0.42207", versionCode = 700042207))
+        // 2026-10-29: updated to 15.12.0.42675 (versionCode 700042675, arm64-v8a, same signer).
+        // Disable ads applies unchanged: smoke test green and CLI without -f applied it.
+        targets = listOf(AppTarget(version = "15.12.0.42675", versionCode = 700042675))
     )
 
     // Verified 2026-10-14 against me.piebridge.brevent 4.2.31.1 (versionCode 539, APKPure).
@@ -2413,7 +2530,11 @@ object Constants {
     // PKCS#8 RSA private key for the Yami mini-program signature check is deliberately omitted;
     // its call site returns an empty key, so Yami fails closed. The core app (prayer times, Qibla,
     // Quran/Hadith, ad and telemetry hooks) does not use it.
-    // Disable ads, Disable telemetry and Hide premium banners depend on the bypass patch.
+    // Disable ads, Disable telemetry, Hide premium banners and Hide feed clutter depend on the
+    // bypass patch. Hide feed clutter answers false from six InfoStreamUnit accessors (LoginGuide,
+    // Nearby, PostInfo, Store, FirstRecharge, WatchAdWinRewards), so the feed builder drops those
+    // server units without a gap; the Ad-Free buttons, Ask AI search, Me-screen rows and bottom
+    // navigation tabs are not InfoStream units and stay (issue #93's remaining items).
     // Native anti-debug markers (TracerPid/frida in libagora-ey.so, ptrace in libapminsightb.so)
     // are SDK self-protection and are not touched; on the Java side the signing cert is only
     // reported (Facebook app events, the app's SecModel log), never enforced.
@@ -2463,7 +2584,7 @@ object Constants {
         // Experimental (owner decision 2026-10-14): shipped without a device test because the
         // emulator is blocked by Akamai even on the original app.
         signatures = setOf("032e7418eec3fc2935e7235dca5abb40f180f57b616977499b24634c96b26064"), // CN=Ganapathy, O=Divum Corporate Services
-        targets = listOf(AppTarget(version = "14.6.2", versionCode = 637, isExperimental = true))
+        targets = listOf(AppTarget(version = "14.6.3.RC0", versionCode = 638, isExperimental = true))
     )
 
     // Verified 2026-10-15 against projekt.launcher 2.2.7 (versionCode 20207, APKMirror bundle
@@ -2493,7 +2614,7 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x3C59AD, // Mid-point of the icon's blue-to-indigo background gradient.
         signatures = setOf("b83ad17c73dc062be4dc188f2b91e7f7632f69f85f962616e6866effe43bf603"), // O=projekt
-        targets = listOf(AppTarget(version = "2.2.13", versionCode = 20213))
+        targets = listOf(AppTarget(version = "2.2.14", versionCode = 20214))
     )
 
     // Written 2026-10-15/16 against com.guardian 6.238.23405 (versionCode 23405), the STABLE
@@ -2723,6 +2844,58 @@ object Constants {
         appIconColor = 0x111111, // The icon's near-black background (white glyph).
         signatures = setOf("07fd559fb0d1e34ee71433f11e1ca05945a069f8009d7214f74c3770a6bd6da7"), // Google Play app signing key
         targets = listOf(AppTarget(version = "v2.4.3", versionCode = 271))
+    )
+
+    // Verified 2026-10-26 against bitpit.launcher 1.16.33 (versionCode 1639, owner-supplied
+    // universal APK from APKCube; signer CN=Peter Huber, SHA-256 ccb91800...98ed, the same cert as
+    // the APKPure 1.16.28 build). App code and the bundled androidx/Kotlin/Firebase classes are
+    // R8-renamed into b/*; the WorkManager worker classes keep their names. Disable telemetry:
+    //   - The six telemetry workers (GdprConsentSyncWorker, RetentionEventsWorker, the three
+    //     Singular report workers and UsageReportUploadWorker) return Result.success() at entry
+    //     from their renamed doWork (each one's only instance (1 arg)Object method). Success is
+    //     found by its "Success {mOutputData=" toString; success() is its superclass's only static
+    //     no-arg method returning it.
+    //   - The Singular request sender (the only method with the "attribution" path string, shape
+    //     (String, L, KSerializer, L)Object) returns Unit at entry; Unit is the class whose
+    //     toString is "kotlin.Unit", and its INSTANCE field is the sender's own sget-object.
+    //   - The app's Crashlytics enable method (()V, UUID.randomUUID + putString of
+    //     "bitpit.launcher.key.CRASHLYTICS_USER_ID", in the class whose constructor throws
+    //     "FirebaseCrashlytics component is not present.") returns at once.
+    //   - The "firebase_analytics_collection_deactivated" read answers TRUE (shared
+    //     forceAnalyticsDeactivated, bytecode only, no resource re-encode): the app turns
+    //     collection on after its terms screen, and the deactivated switch overrides that.
+    // NiagaraSmokeTest asserts all four steps. The CLI (no -f) applies it and exactly these 9
+    // methods change; resources.arsc and AndroidManifest.xml stay byte-identical. Emulator (x86_64,
+    // stock re-signed vs patched, analytics allowed): Firebase Analytics logged 28 events in stock
+    // and 0 patched ("deactivated via the manifest"); the consent-sync and Singular workers succeed
+    // at once without sending, the follow-up Singular workers are never queued, no retries, no
+    // crash, the launcher works. Side effect: the consent choice is no longer synced to Niagara's
+    // server. HTTP traffic was not captured (the app does not log requests), and a local
+    // crashlytics.installation.id is still created.
+    // Enable Premium (2026-10-27): Niagara keeps its Pro entitlement as a three-boolean account
+    // state (1.16.33: b/gzD9a0YbOD6gO7InQ4, toString "E(1=%s, 2=%s)") that the account JWT parse
+    // builds from the "pro" claim and "flg" bit 0x20000 (a free/no-claim state is
+    // (false,false,true), a Pro claim is (true,true,false)). The first flag is the Pro switch read
+    // by ~100 methods (settings header, feature gates); the second is the account access switch
+    // AccessDeniedActivity finishes on; the third is the app's own trial/no-claim value. The patch
+    // finds the account record constructor (UUID, String, String, <flags>, com.auth0.android.jwt.*),
+    // takes the flags type from its 4th parameter, checks it is three booleans with equals and a
+    // (Z,Z,Z) constructor, and loads 1 into the constructor's first two parameters at entry. The
+    // JWT parse, the DataStore and the Play Billing publishers are left alone, so the third flag
+    // keeps the value the app built. NiagaraSmokeTest asserts the two constants and that the rest
+    // of the constructor is the stock body. The CLI (no -f) applies it with Disable telemetry;
+    // resources.arsc and AndroidManifest.xml stay byte-identical. Emulator (x86_64, stock re-signed
+    // vs patched, same data): stock's Niagara settings header shows "Free version" and the Pro
+    // screen offers the trial; patched shows no "Free version" line and the Pro screen reads
+    // "Thank you for your support." (Discover features / Manage membership), no crash, the home
+    // screen works. Account sync is server-backed and still needs a real account.
+    val COMPATIBILITY_NIAGARA = Compatibility(
+        name = "Niagara Launcher",
+        packageName = "bitpit.launcher",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x03004C, // The adaptive icon's background colour (ic_launcher_background).
+        signatures = setOf("ccb918002c40334b416899258de4f730a36c5d38821b3cb6fcb8c15a4b8198ed"), // CN=Peter Huber
+        targets = listOf(AppTarget(version = "1.16.33", versionCode = 1639))
     )
 
     // Verified 2026-10-15 against mark.via.gp 7.3.3 (versionCode 20260823, single universal
@@ -3078,7 +3251,10 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x001AA3, // The adaptive icon's blue background.
         signatures = setOf("69932f3cc60e277715dd59f601a6ad3455b2850f03cace2131eef8ccb1454f08"), // Google Play app signing key
-        targets = listOf(AppTarget(version = "4.3.2", versionCode = 2075))
+        // 2026-10-28: updated to 4.3.3 (versionCode 2078, arm64-v8a, same Play signer).
+        // Disable ads and Disable telemetry apply unchanged: smoke test green and CLI without -f
+        // applied both.
+        targets = listOf(AppTarget(version = "4.3.3", versionCode = 2078))
     )
 
     // Written 2026-10-18 against org.mozilla.focus 158.0 (versionCode 402802337 for both the
@@ -3090,7 +3266,8 @@ object Constants {
     //     manager starts are allowed with private browsing, anything else asks. FocusApplication
     //     .onCreate tracks the foreground Activity. WebExtensionBrowserMenuBuilder's constructor
     //     forces showAddonsInMenu and swaps onAddonsManagerTapped for the manager (install
-    //     uBlock Origin / Violentmonkey / Tampermonkey from AMO, settings, enable, update, remove).
+    //     uBlock Origin / Violentmonkey / Tampermonkey / Dark Reader from AMO, settings, enable,
+    //     update, remove).
     //     WebExtension$Action.openPopup shows popups in a GeckoView dialog. Installed add-ons are
     //     checked for updates on addons.mozilla.org at most once a day.
     //   - Enable about:config: GeckoRuntime.create(Context, GeckoRuntimeSettings) sets it first.
@@ -3112,6 +3289,11 @@ object Constants {
     // XAPK merged, armeabi-v7a, same Mozilla signer; Mozilla's archive builds use other per-ABI
     // codes). FirefoxFocusSmokeTest passes; CLI (no -f) applies all 5 patches, 14 methods change
     // plus the extension classes. Emulator not re-run for this bump.
+    // 2026-10-26 (#86): the manager also offers Dark Reader (addon@darkreader.org); it has no
+    // options_ui, so Open settings falls back to its popup page. FirefoxFocus smoke tests pass.
+    // Emulator (morphe-test, arm64 158.0.2 merged from APKMirror, same signer, all 5 patches):
+    // Dark Reader 4.9.133 installs from the manager, darkens example.com, its popup and Open
+    // settings render, On/Off works, and it survives Erase and a relaunch; no crash.
     val COMPATIBILITY_FIREFOX_FOCUS = Compatibility(
         name = "Firefox Focus",
         packageName = "org.mozilla.focus",
@@ -3213,6 +3395,400 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1A1A1A, // The adaptive icon's background colour.
         signatures = setOf("60baa40540f4950406f327d85761d6e4c533a169d7129e20dfac56fb3124a4f0"), // CN=Sam Parnell, O=Bleacher Report
-        targets = listOf(AppTarget(version = "11.12.0.33", versionCode = 54053))
+        targets = listOf(AppTarget(version = "11.13.0.39", versionCode = 54189))
+    )
+
+    // Verified 2026-10-27 against com.getupnote.android 9.22.8 (versionCode 360, APKPure XAPK merged
+    // with APKEditor; signer CN=Android, OU=Android, O=Google Inc., cert SHA-256 2b546d93...d196 - the
+    // Play app-signing key). Small Kotlin app, R8-renamed, Play Billing and Play Integrity present, no
+    // ads. Premium is the account's subscription record (valid / cancelled / expiresDateMs from the
+    // UpNote API): a no-arg Boolean getter in the record class (9.22.8: mo3.h(), one Long and two
+    // Boolean fields) answers "premium", and the settings singleton copies it once at startup.
+    // Enable Premium makes that getter return Boolean.TRUE. Local only: cloud sync still needs a real
+    // account and is left to the server. UpNoteSmokeTest asserts the hook.
+    val COMPATIBILITY_UPNOTE = Compatibility(
+        name = "UpNote",
+        packageName = "com.getupnote.android",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x2F6FED,
+        signatures = setOf("2b546d93493095f7314f6b26d17fb238a8c94d95594a52d76db78e81f73ed196"),
+        targets = listOf(AppTarget(version = "9.22.8", versionCode = 360))
+    )
+
+    // Verified 2026-10-27 against io.unorderly.structured 3.9.6 (versionCode 30533, APKPure XAPK
+    // merged with APKEditor; signer CN=Android, OU=Android, O=Google Inc., cert SHA-256 9e808bcb...36bc
+    // - the Play app-signing key). Kotlin/Compose app, R8-renamed, RevenueCat for "pro" and
+    // "recurring_tasks"; PairIP is the licence-check wrapper only (LicenseClient, no VM shield), so a
+    // re-signed stock build stops at LicenseActivity. Disable license check returns from
+    // LicenseClient.checkLicense(Context). Enable Premium: the app's only CustomerInfo consumer is a
+    // static (CustomerInfo) mapper that reads entitlements.active.keySet() and tests "pro" and
+    // "recurring_tasks"; the patch loads 1 into the "pro" answer right after Set.contains.
+    // StructuredSmokeTest asserts both hooks. The CLI (no -f) applies both; resources.arsc and
+    // AndroidManifest.xml stay byte-identical.
+    val COMPATIBILITY_STRUCTURED = Compatibility(
+        name = "Structured",
+        packageName = "io.unorderly.structured",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x4D6BFE,
+        signatures = setOf("9e808bcb0eed0fb8620403fbf174186a5fe3a7ade002d547a79ce3beea7e36bc"),
+        targets = listOf(AppTarget(version = "3.9.6", versionCode = 30533))
+    )
+
+    // Verified 2026-10-27 against com.twodoor.bookly 2.4.2 (versionCode 505, APKPure XAPK merged with
+    // APKEditor; signer CN=Iancu Tudor, OU=TwoDoor, O=TwoDoor, cert SHA-256 abe821f2...2255). Kotlin
+    // app with readable app packages, RevenueCat for the lifetime entitlement (active product id
+    // "chest_of_diamonds_3000") and Superwall for the paywall UI. The billing client's RevenueCat
+    // listener sets SubscriptionManager's StateFlow to Active when that product is active and Free
+    // otherwise; every Pro gate reads that flow. Enable Premium returns true from the entitlement
+    // check and seeds the manager with Active, so both the pre-callback frames and the listener are
+    // Pro. Ads (GMA) are not touched.
+    val COMPATIBILITY_BOOKLY = Compatibility(
+        name = "Bookly",
+        packageName = "com.twodoor.bookly",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x2E7D5B,
+        signatures = setOf("abe821f2d1f04d226fe1e994f68e13929c2b75745a8c0ed08fffa7bd1a362255"),
+        targets = listOf(AppTarget(version = "2.4.2", versionCode = 505))
+    )
+
+    // Verified 2026-10-27 against com.qqlabs.minimalistlauncher 1.22.8 (versionCode 236, APKPure XAPK
+    // merged with APKEditor; signer CN=Android, OU=Android, O=Google Inc., cert SHA-256 30ab0a6a...6a47a
+    // - the Play app-signing key). Kotlin/Compose launcher, R8-renamed; Play Billing for the one-time
+    // "full version", Braze/Branch for the referrer upload, no ad view in the dex (only
+    // AdvertisingIdClient refs). The purchase flag lives in the default SharedPreferences under "full
+    // version": a no-arg boolean getter (9.22.8: f83.u()) seeds the purchase StateFlow, and a setter
+    // (qz.l(boolean, purchase), log line "setting full version to ") writes the pref and the flow on
+    // every billing refresh. Enable Premium returns true from the getter and loads 1 into the setter's
+    // boolean parameter, so both the startup seed and later refreshes report the purchase.
+    val COMPATIBILITY_MINIMALIST = Compatibility(
+        name = "Minimalist Launcher",
+        packageName = "com.qqlabs.minimalistlauncher",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x1B1B1B,
+        signatures = setOf("30ab0a6a032881270eed4c161fc304d3d5c22f5822dcf4505708f97e6fb6a47a"),
+        targets = listOf(AppTarget(version = "1.22.8v236", versionCode = 236))
+    )
+
+    // Verified 2026-10-27 against com.dev47apps.obsdroidcam 8.2 (versionCode 575, APKPure single APK;
+    // signer O=DEV47APPS, C=CA, cert SHA-256 c7190a0f...27f3). App classes are R8-mangled with random
+    // unicode names, so the anchors are the ad SDK library APIs. Ads run through AppLovin MAX
+    // (MaxAdView, MaxInterstitialAd, MaxRewardedAd, MaxAppOpenAd, MaxNativeAdLoader) and Google Mobile
+    // Ads, with InMobi as a MAX adapter; the Meta/Unity/Vungle/Pangle/IronSource entry classes are not
+    // in the APK. Disable ads neuters AppLovinSdk.initialize and InMobiSdk.init, neutralises every
+    // MobileAds static (rule 9), returns from every GMA/MAX load/show, and keeps MaxAdView GONE.
+    val COMPATIBILITY_DROIDCAM = Compatibility(
+        name = "DroidCam",
+        packageName = "com.dev47apps.obsdroidcam",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1F8B4C,
+        signatures = setOf("c7190a0fe7b87e46212ae3ddf26dd31435c5aa9558bfeb442f2f64386fff27f3"),
+        targets = listOf(AppTarget(version = "8.2", versionCode = 575))
+    )
+
+    // Verified 2026-10-27 against app.pinya.mango 1.64 (versionCode 64, APKPure XAPK merged with
+    // APKEditor; signer CN=Android, OU=Android, O=Google Inc., cert SHA-256 7959db39...e98d - the Play
+    // app-signing key). Mango Launcher; R8-renamed, Play Billing for the subscription
+    // "mango_pro_yearly" plus the lifetime in-app "mango_pro_lifetime", no ads. The billing client
+    // keeps a Play-Billing-backed state (REAL/FREE/EXPIRED/YEARLY/YEARLY_CANCELED/LIFETIME, cached in
+    // "billing_cached_is_pro") and seeds a StateFlow with "YEARLY, YEARLY_CANCELED or LIFETIME" in its
+    // constructor; every Pro gate reads that flow. Enable Premium loads 1 into that seed. PairIP is
+    // the licence-check wrapper only, so Disable license check returns from checkLicense(Context).
+    val COMPATIBILITY_MANGO = Compatibility(
+        name = "Mango Launcher",
+        packageName = "app.pinya.mango",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xF5A524,
+        signatures = setOf("7959db394ab099fd6827d09ecc2ae865b1e5952f0bdf4e273aa37004a668e98d"),
+        targets = listOf(AppTarget(version = "1.64", versionCode = 64))
+    )
+
+    // Verified 2026-10-27 against ie.rte.news 10.0.2 (versionCode 440, APKPure XAPK merged with
+    // APKEditor, armeabi-v7a only; signer CN=Karina Carroll, OU=RTÉ Publishing, O=RTÉ, cert SHA-256
+    // fe9b87e6...2117). Compose/Kotlin app, app modules R8-renamed, no PairIP and no billing. The ad
+    // is an app widget, not an SDK slot: the article renderer builds an RteAdContainer (advertising
+    // info + AdView), calls AdView.loadAd(request), and a Compose block draws the "ADVERTISEMENT"
+    // heading and hosts the view ("adContainer" is its parameter name; "Ad request targeting: " is
+    // the loader's log line). Disable ads returns from that block, so neither heading nor empty
+    // placeholder is laid out, and removes the loadAd call so no request is made; the AdView and its
+    // request object are still built, and the OneTrust consent stack is untouched.
+    // RteNewsSmokeTest asserts both hooks. The CLI (no -f) applies the patch and changes the two
+    // methods; resources.arsc and AndroidManifest.xml stay byte-identical. The APK is armeabi-v7a
+    // only, which the x86_64 emulator refuses (INSTALL_FAILED_NO_MATCHING_ABIS), so the runtime check
+    // used a copy with lib/ stripped and re-signed for both builds: stock shows the "ADVERTISEMENT"
+    // heading and an empty black AdView placeholder in an article; the patched build shows the same
+    // article with no heading and no placeholder, and no crash. That stripped copy is a test vehicle
+    // only - the shipped APK keeps its libs.
+    val COMPATIBILITY_RTENEWS = Compatibility(
+        name = "RTÉ News",
+        packageName = "ie.rte.news",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x0B6E69,
+        signatures = setOf("fe9b87e61648c71b5ecc586907a04698334f953c450bfc076c518d50f9112117"),
+        targets = listOf(AppTarget(version = "10.0.2", versionCode = 440))
+    )
+
+    // Verified 2026-10-27 against com.rarecam.app 1.0.90 (versionCode 90, APKPure XAPK merged with
+    // APKEditor; signer CN=Android, OU=Android, O=Google Inc., cert SHA-256 42947b25...31cd - the Play
+    // app-signing key, still to be cross-checked against a second mirror). Kotlin/Compose app, R8
+    // renamed, no ad SDK. RevenueCat sells the single "rarecam_pro" entitlement; PairIP is the
+    // licence-check wrapper only (LicenseClient, no VMRunner/libpairipcore), so a re-signed stock
+    // build stops at LicenseActivity.
+    // Disable license check: LicenseClient.checkLicense(Context) returns at its entry.
+    // Enable Premium: the app's only CustomerInfo consumer is a static (CustomerInfo)V that reads
+    // entitlements.get("rarecam_pro")?.isActive() and stores the boolean into a Compose MutableState
+    // every Pro gate reads; the patch loads 1 into that boolean at the merge point before the state
+    // write, so both the missing and the expired branch report Pro. RevenueCat, the offerings and the
+    // purchase screen are untouched.
+    // RareCamSmokeTest asserts both hooks and that the state method otherwise matches stock. The CLI
+    // (no -f) applies both; resources.arsc and AndroidManifest.xml stay byte-identical. Emulator
+    // (x86_64, stock + licence check only vs full patch, same data): the licence-only build starts and
+    // shows "PRO" badges on LOG and StackND; the fully patched build runs the same screens with no PRO
+    // badges, no paywall when a Pro format is selected, and no crash. The licence bypass alone is what
+    // lets either build start; the premium hook is what removes the badges.
+    val COMPATIBILITY_RARECAM = Compatibility(
+        name = "RareCam",
+        packageName = "com.rarecam.app",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFF6D00,
+        signatures = setOf("42947b25f3b0a5fc1b3905ba33f7e61cfc4b1fab9be3cc2173edf4103f2231cd"),
+        targets = listOf(AppTarget(version = "1.0.92", versionCode = 92))
+    )
+
+    // Verified 2026-10-26 against se.footballaddicts.livescore 6.15.10 (versionCode 731,
+    // owner-supplied APKCube split bundle merged with APKEditor, arm64-v8a only), developer signer
+    // O=FootballAddicts, C=SE (cert SHA-256 57c298f0...6c2c). Kotlin Multiplatform app, heavily
+    // R8-renamed; anchors are toString/log/event strings, kept class names and method shape, and
+    // kotlin.Unit is copied from each patched method's own return (its field is renamed).
+    //   - Disable ads: the ad slot's suspend load (the only method with the "AdOpportunity" event
+    //     and the "ads/opportunity" trace) returns Unit at entry, so slots stay idle; the next-gen
+    //     GMA SDK still initialises (rule 9). AdsSettings ("AdsSettings(appVersionName=") stores
+    //     prebidEnabled = false (field after ", prebidEnabled=") before every constructor return.
+    //     subscriptionActive is not touched.
+    //   - Disable telemetry: the single "firebase_analytics_collection_deactivated" read answers TRUE
+    //     (shared forceAnalyticsDeactivated, bytecode only); com.forzafootball.SentryInitializer.create
+    //     (kept, named in the manifest) returns Unit; every concrete AppsFlyerLib start / logEvent /
+    //     logSession / logAdRevenue returns at once; the Crashlytics arbiter (the synchronized ()Z
+    //     calling the "firebase_crashlytics_collection_enabled manifest flag" logger) answers false.
+    //     Intercom (support chat) and Firebase Performance are not touched.
+    //   - Hide betting content: Betting ("Betting(country=") stores optedOut = true (field after
+    //     ", optedOut=", the app's "Opt out of gambling ads" setting) before every constructor
+    //     return, so betting is never allowed; the opt-out switch cannot be turned off while the
+    //     patch is on. Remote-config odds switches are not touched.
+    // ForzaFootballSmokeTest asserts every step. The CLI (no -f) applies all three and exactly 15
+    // methods change; resources.arsc and AndroidManifest.xml stay byte-identical. Emulator (ARM
+    // translation, stock re-signed vs patched): no crash or ANR through onboarding, home, a match
+    // page, news and Intercom; Firebase Analytics logged 35 events in stock and 1 patched (31 more
+    // refused as "Event not sent since app measurement is disabled"), Sentry's native libs never load, Crashlytics fetches no settings. Neither build
+    // requested an ad and the gambling setting never showed (en-US/en-GB), so Disable ads and Hide
+    // betting content are bytecode-verified only. Push: the re-signed stock build gets 403
+    // API_KEY_ANDROID_APP_BLOCKED from Firebase Installations and never registers ("FCM
+    // Registration failed!"), so Spoof signature is part of the app's patch set (below).
+    // Enable Premium (2026-10-27): Forza Legend is a RevenueCat entitlement. The app's only gate is
+    // a static (CustomerInfo)Z that walks customerInfo.entitlements.active and asks whether the
+    // identifier "Forza Legend" is among them (its (CustomerInfo) neighbour only reads the
+    // expiration date for display). The patch returns true from it; RevenueCat, the offerings, the
+    // purchase screen and the expiration date stay untouched, so account-backed features still need
+    // a real account.
+    // Spoof signature (2026-10-27): the Play signing certificate (O=FootballAddicts, SHA-1
+    // 6e1189e8...6529, DER from the v2/v3 block of the owner-supplied 6.15.10 base split) is
+    // injected into the shared signature extension, which routes every
+    // PackageManager.getPackageInfo call, so Firebase's X-Android-Cert is the original and
+    // Installations accepts the re-signed build. On by default; the patch comment records the
+    // certificate.
+    // The smoke test (2026-10-27) applies all five patches. The CLI (no -f) applies them and
+    // changes 72 classes (the signature extension rewrites every getPackageInfo call site);
+    // resources.arsc and AndroidManifest.xml stay byte-identical. Emulator (ARM translation, stock
+    // re-signed vs patched, same data): stock Settings shows "Become A Legend", patched shows
+    // "Thanks for being a subscriber!"; the patched build logs a new FCM token and
+    // OnNewTokenWorker SUCCESS, while the re-signed stock build logs 403
+    // API_KEY_ANDROID_APP_BLOCKED and "FCM Registration failed!".
+    val COMPATIBILITY_FORZA_FOOTBALL = Compatibility(
+        name = "Forza Football",
+        packageName = "se.footballaddicts.livescore",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x2BC4CC, // The teal of the icon's stripe (its background is white).
+        signatures = setOf("57c298f08356061f9028f9b13b641b18a577660a7ff60cf2e7814944effb6c2c"), // O=FootballAddicts
+        targets = listOf(AppTarget(version = "6.15.10", versionCode = 731))
+    )
+
+    // Verified 2026-10-28 against com.fenchtose.reflog 1.3.3 (versionCode 1331, APKPure single
+    // APK, all four ABIs; signer CN=Jay Rambhia, cert SHA-256 5ab41983...6727, the developer's own
+    // key). The package is still named reflog but the app label is Taskito (it was Reflog).
+    // Kotlin app, R8-renamed, Play Billing, Firebase Analytics, no ad SDK (the triage's
+    // "Google Mobile Ads" hits are only the advertising-ID client inside Firebase Measurement).
+    // Premium is local: the server entitlement is cached in SharedPreferences "entitlement"
+    // ("premium" plus "sku_<id>") and verified Play orders in "orders"/"order_tokens", and one
+    // Boolean getter answers "premium" for the app - features.purchase.d.d()Z in 1.3.3, the only
+    // method behind purchase-keeper f.d(). Its only caller, features.purchases.g.q(), ORs it into
+    // every feature gate (the t7.e implementation), so a single returnEarly(true) unlocks them all.
+    // Enable Premium hooks that getter; the billing client and the entitlement sync stay intact,
+    // and account-backed features still need a real account.
+    // 2026-11-02 (issue #100), 1.3.3: Hide Premium tab. The bottom bar appends a "premium" tab
+    // when purchase-keeper o() ("no entitlement and no orders", which Enable Premium leaves alone)
+    // and the remote "premium_tab" experiment are both true. Anchor: the builder returning the
+    // kept custom View BottomNavigationBar with the "premium" and "base_activity" strings
+    // (base.i.d1() in 1.3.3, "base_activity" is unique to it); the experiment result before the
+    // if-eqz that skips the tab is forced to 0. Smoke test, CLI without -f and decompile checked;
+    // emulator: with "premium_tab":"1" put in the cached Remote Config, stock shows Timeline/Board/
+    // Unplanned/More/Premium and the patched build (same data) the first four, all tabs open.
+    val COMPATIBILITY_TASKITO = Compatibility(
+        name = "Taskito",
+        packageName = "com.fenchtose.reflog",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x2E7D32, // The green of the icon's background.
+        signatures = setOf("5ab419834c1f5279b1ccaf262d75a6db2c2dcd9e8c1dab9bead92a640cf26727"), // CN=Jay Rambhia
+        targets = listOf(AppTarget(version = "1.3.3", versionCode = 1331))
+    )
+
+    // Verified 2026-10-28 against com.gmail.jmartindev.timetune 5.6.3 (versionCode 584, APKPure
+    // single APK, no native libs; signer CN=Joaquin Martin, C=ES, cert SHA-256 e7d2d2ab...4e87).
+    // Kotlin app, readable app packages, Play Billing (the old com.android.billingclient library),
+    // Firebase Analytics, no ad SDK. Premium is cached in the billing preferences:
+    // "PREF_PREMIUM_SUBS" for the premium_subs subscription and "PREF_DIALOG" for the legacy
+    // one-time purchase (SKU dialog_title). One static getter per flag feeds the public premium
+    // check (5.6.3: Lug$a->a(Context) ORs b() and c()), and the whole app (schedule, backup,
+    // calendar, widgets, settings) calls it. Enable Premium returns true from the subscription
+    // getter (Lug$a->c(Context), anchored on the PREF_PREMIUM_SUBS string); the billing client and
+    // the preference writes stay intact. Local only: Google Play account features are untouched.
+    val COMPATIBILITY_TIMETUNE = Compatibility(
+        name = "TimeTune",
+        packageName = "com.gmail.jmartindev.timetune",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1E88E5, // The blue of the icon.
+        signatures = setOf("e7d2d2abeead23bb674aaf5524bced66325b5e57d53e5f3b332ed684931f4e87"), // CN=Joaquin Martin
+        targets = listOf(AppTarget(version = "5.6.3", versionCode = 584))
+    )
+
+    // Verified 2026-10-28 against bbc.mobile.news.ww 2026.9.1 (versionCode 10007111, APKPure XAPK
+    // merged with APKEditor, armeabi-v7a only; signer O=BBC Worldwide Limited, C=GB, cert SHA-256
+    // fd76b3b8...65dc7). React Native app (13.5 MB assets/index.android.bundle), 12 dex, 540k
+    // methods, Play Billing, Play Integrity and a large analytics stack (AppsFlyer, Firebase,
+    // Comscore, Permutive, Optimizely). No premium tier: the only "subscribe" strings are Urban
+    // Airship notification topics, and there is no Pro/premium UI, so an Enable Premium patch has
+    // nothing to unlock. Ads are Google Mobile Ads only (all eight load entry points present, no
+    // AppLovin MAX classes): Disable ads neuters every GMA load with the shared hooks and leaves
+    // MobileAds.initialize alone, because the React Native module awaits it and the next-gen
+    // statics throw without it. The JS side already handles a failed (no-fill) load. Bytecode-only
+    // verification: the APKPure bundle is armeabi-v7a and the x86_64 AVD cannot install it.
+    val COMPATIBILITY_BBCNEWS = Compatibility(
+        name = "BBC News",
+        packageName = "bbc.mobile.news.ww",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xBB1919, // BBC News red.
+        signatures = setOf("fd76b3b8df5fe8fd590957eb0f78a996967dd3c8bd87aff41f47e7799d065dc7"), // O=BBC Worldwide Limited
+        targets = listOf(AppTarget(version = "2026.9.1", versionCode = 10007111))
+    )
+
+    // Verified 2026-10-29 against dk.dr.webplayer 4.39.0 (versionCode 439000, APKMirror bundle
+    // merged with APKEditor, no native libs; signer CN=DR TV, O=DR TV, L=København, C=DK, cert
+    // SHA-256 0f5de4c3...3743, same as APKPure). The app is the Massive Axis SDK
+    // (axis.android.sdk.*) and R8 keeps its class and member names, as it keeps the Firebase,
+    // Segment and NPAW ones, so kept names are used as anchors here, each paired with a string or
+    // call unique to the method (fingerprints in drtv/misc/telemetry and drtv/player).
+    //   - Disable telemetry: Crashlytics DataCollectionArbiter.isAutomaticDataCollectionEnabled
+    //     and Firebase Performance ConfigResolver.isPerformanceMonitoringEnabled answer false;
+    //     SegmentAnalyticsProvider.initializeSegmentSDK ("writeKey") and NielsenUtilManager's
+    //     initNielsen ("Nielsen_AppSDK") return at entry, leaving their clients null (every reader
+    //     null-checks; live Nielsen tracking only starts once a NielsenUtil was handed over); the
+    //     "npawEnabled" flag reader answers false and initializeNpaw passes false to
+    //     AnalyticsOptions.setEnabled. Firebase Analytics is already deactivated in the manifest.
+    //     ResumePointService (continue watching) and PlayerStatisticsManager (debug overlay) are
+    //     untouched.
+    //   - Auto skip intro: in PlayerFragment.checkForBingMarkerButton(J)V (the progress-tick check
+    //     that calls BingeMarkerUtility.getTimeCodeWrapper and checkSkipThresholdInRange), right
+    //     after the single setViewVisibility(skipButton, 0) the patch calls skipButton.callOnClick(),
+    //     which runs the app's own Skip handler (hide, record, seek to the time code's end + 1 s).
+    //     Only intro/recap codes get the button; end credits and the server's threshold-0 switch
+    //     are left to the app.
+    //   - Allow free rotation (opt-in): PlayerActivity.onResume requests sensorLandscape (6) on API
+    //     27+; the patch requests full sensor (10) instead, which overrides the manifest's 6. The
+    //     player declares orientation in configChanges. Bytecode only, so API 26 and older keep 6.
+    // Skipped: a seek-step patch. ExoPlayerSurface builds the player with
+    // integer/player_forward_rewind_increment, which is already 15000 ms, not the 10 s default.
+    // DrtvSmokeTest asserts every step. The CLI (no -f) applies all three; resources.arsc and
+    // AndroidManifest.xml stay byte-identical; a whole-APK compare shows exactly the 8 intended
+    // methods. Runtime 2026-10-29 (emulator, dev.3 bundle, stock control): the patched cold start
+    // reaches MainActivity and loads the home page with no crash, and the Nielsen SDK that stock
+    // starts at launch stays silent. Playback needs a DR login, so the auto-skipped intro and
+    // portrait rotation have not been seen; the owner accepted a clean start as enough.
+    val COMPATIBILITY_DRTV = Compatibility(
+        name = "DRTV",
+        packageName = "dk.dr.webplayer",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFD001E,
+        signatures = setOf("0f5de4c316dc42f22ed62dd9b442b19902005e005c169cf146180a03998d3743"), // CN=DR TV, O=DR TV
+        targets = listOf(AppTarget(version = "4.39.0", versionCode = 439000))
+    )
+
+    // Verified 2026-10-29 against com.viaplay.android 26.42.1 (versionCode 2642010, user-supplied
+    // APKCube .apks merged with APKEditor, arm64-v8a only; signer CN=Niklas BJorkholm, OU=MTG,
+    // cert SHA-256 8b1a306b...aa2c). The app and most of Firebase are R8-obfuscated into rotating
+    // top-level classes, so the anchors are stable strings, kept library classes (com.npaw.*,
+    // com.nielsen.*, androidx.media3.*), the kept com.viaplay.tracking model classes and method
+    // shape (fingerprints in viaplay/misc/telemetry and viaplay/ads).
+    //   - Disable telemetry: the Crashlytics data-collection gate (the ()Z method logging
+    //     "Crashlytics automatic data collection ") and Firebase Performance's monitoring check
+    //     ("fpr_enabled" + "com.google.firebase.perf.SdkEnabled") answer false; the shared
+    //     forceAnalyticsDeactivated() makes the "firebase_analytics_collection_deactivated" read
+    //     answer true (the manifest does not set it); the NPAW initializer ("Viaplay Android
+    //     Mobile", the only NpawPluginProvider.initialize caller) and the Nielsen wrapper ("Failed
+    //     to initialize Nielsen SDK", the only AppSdk constructor call) return at entry, and every
+    //     reader null-checks NpawPluginProvider.getInstance() / the AppSdk field; the static
+    //     Cronos dispatcher (VPTrackingEvent, BaseData, List)V returns at entry, so no
+    //     cronos-events.viaplay.com session or event is sent (its callers ignore the result).
+    //     The CSE playback/ad beacons, OneTrust and continue watching are untouched.
+    // ViaplaySmokeTest asserts every step; the CLI (no -f) applies it. Runtime 2026-10-29
+    // (emulator, dev.3 bundle, stock control): the patched cold start reaches the login screen
+    // through the permission and consent dialogs with no crash, and Firebase Analytics logs "App
+    // measurement deactivated via the manifest" where stock initializes it. Sign-in and VOD
+    // playback need a subscription and have not been seen.
+    val COMPATIBILITY_VIAPLAY = Compatibility(
+        name = "Viaplay",
+        packageName = "com.viaplay.android",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xE40050, // The icon's pink-to-red gradient (mid-tone).
+        signatures = setOf("8b1a306bfad5bc14025c488f6350751657dcb2b6e7eab311778d64c78a82aa2c"), // CN=Niklas BJorkholm, OU=MTG
+        targets = listOf(AppTarget(version = "26.42.1", versionCode = 2642010))
+    )
+
+    // Same app, used only by "Skip ads", so Morphe Manager flags it as experimental (2026-10-29,
+    // 26.42.1 / versionCode 2642010). VOD ads are server-side inserted DASH periods: the only
+    // implementation of Media3's ServerSideAdInsertionMediaSource$AdPlaybackStateUpdater builds
+    // an AdPlaybackState for EVERY period: "ad-id-signaling" periods get one server-side ad
+    // group, content periods and every live period get an empty state with no ad groups. Its
+    // tail marks the ad skipped (withSkippedAd(0, 0)) only when the period is in the set of ad
+    // breaks before the resume position. The patch keeps that if-eqz but feeds it the state's
+    // adGroupCount instead of Set.contains (an iget inserted right before it), so every state
+    // with an ad group is marked skipped and Media3 plays past it, while empty states are left
+    // alone (withSkippedAd(0, 0) on them would index adGroups[0] and throw). The ad-period
+    // detector is untouched. (The first draft removed the branch outright; the pre-commit review
+    // caught that it would have thrown on every content period.)
+    // Smoke-verified, and an apktool disassembly of the CLI-patched APK shows the adGroupCount iget
+    // before the if-eqz guarding withSkippedAd (2026-10-29). The patched build starts cleanly, but
+    // no real ad break has been watched (needs a subscription), and whether the app's ad UI or the
+    // CSE ad beacons react badly to never-played ads is unknown, so it stays experimental.
+    val COMPATIBILITY_VIAPLAY_EXPERIMENTAL = Compatibility(
+        name = "Viaplay",
+        packageName = "com.viaplay.android",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xE40050,
+        signatures = setOf("8b1a306bfad5bc14025c488f6350751657dcb2b6e7eab311778d64c78a82aa2c"), // CN=Niklas BJorkholm, OU=MTG
+        targets = listOf(AppTarget(version = "26.42.1", versionCode = 2642010, isExperimental = true))
+    )
+
+    // Verified 2026-10-29 against dk.bold 6.5.2 (versionCode 261, owner-supplied APKCube .apks
+    // bundle merged with APKEditor, arm64-v8a; signer OU=Bold.dk, O=Bold.dk, C=NL, cert SHA-256
+    // 4a82f8d0...8d3c). Native Android app, 179k methods; Google Mobile Ads is the only ad SDK (all
+    // eight load entry points present, no AppLovin MAX) and Firebase Analytics/Crashlytics the only
+    // telemetry SDK. There is no Play Billing or RevenueCat class, so the app has no premium tier
+    // and no Enable Premium to write. Disable ads neuters every GMA load with the shared hooks and
+    // leaves MobileAds.initialize alone (rule 9).
+    val COMPATIBILITY_BOLD = Compatibility(
+        name = "Bold",
+        packageName = "dk.bold",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x111111,
+        signatures = setOf("4a82f8d055489660354920bffe80b57f851093b16e98d51043ca564468b28d3c"), // O=Bold.dk
+        targets = listOf(AppTarget(version = "6.5.2", versionCode = 261))
     )
 }

@@ -1,0 +1,117 @@
+name: 🐞 Bug report
+description: Something in HushPine doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # HushPine bug report
+
+        Thanks for taking the time to report this. Before you start:
+
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/HushPine/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Not sure it's a bug?** Ask in [Discussions](https://github.com/SysAdminDoc/HushPine/discussions/categories/q-a) instead.
+  - type: input
+    id: versions
+    attributes:
+      label: HushPine and PineDrama versions
+      description: In HushPine settings, tap the status beside the title to show the full status card. Copy the version line here.
+      placeholder: Version 0.0.1 for PineDrama 47.5.3
+    validations:
+      required: true
+  - type: dropdown
+    id: manager
+    attributes:
+      label: What did you patch PineDrama with?
+      options:
+        - Morphe Manager (the Android app)
+        - morphe-desktop (on a computer)
+        - Universal ReVanced Manager
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: manager_version
+    attributes:
+      label: Its version
+      description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
+      placeholder: Morphe Manager 2.3.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      description: Both are in your phone's Settings, under About phone.
+      placeholder: Samsung Galaxy S22, Android 15
+    validations:
+      required: true
+  - type: textarea
+    id: selected_patches
+    attributes:
+      label: Which patches did you select?
+      description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
+      placeholder: The default selection, plus Change app name.
+    validations:
+      required: true
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - Feed
+        - Following
+        - Search
+        - Inbox
+        - Profile
+        - Comments
+        - Downloads
+        - HushPine settings
+        - Notifications
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: What went wrong?
+      description: What happened, and what did you expect to happen instead? A screenshot or a screen recording helps a lot.
+      placeholder: |
+        What happened:
+        What I expected:
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What did you tap, in order?
+      description: Start from opening PineDrama. Include every HushPine switch you changed before it went wrong, and say whether it still happens after you close PineDrama and open it again.
+      placeholder: |
+        1. Opened PineDrama
+        2. Turned on Hide series in HushPine settings > Feed filter
+        3. Opened a creator's profile
+        4. The profile showed no videos
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic_report
+    attributes:
+      label: Diagnostic report
+      description: |
+        This file answers most of our questions, so please add it if you can. In PineDrama, open Settings and privacy > HushPine > Diagnostics > Export diagnostic report and choose Save full report. Then drag the file into this box. It's in your phone's Downloads folder, under Morphe. Copy quick report works too: paste it here.
+        The Diagnostics controls are only there if Diagnostic tools was selected when you patched. The report is redacted, but please look it over before you post it.
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed bug reports and this isn't one of them.
+          required: true
+        - label: I answered every question above as well as I could.
+          required: true

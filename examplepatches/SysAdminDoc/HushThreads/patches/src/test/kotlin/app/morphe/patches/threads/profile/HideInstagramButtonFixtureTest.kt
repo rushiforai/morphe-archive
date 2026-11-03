@@ -65,8 +65,8 @@ class HideInstagramButtonFixtureTest {
             val register = (stockBody[guard] as OneRegisterInstruction).registerA
             val parameter = stock.parameterTypes.indices.single { stock.parameterRegisterNumber(it) == register }
             assertEquals("$where: the flag", "Z", stock.parameterTypes[parameter].toString())
-            // The flag moved from parameter 24 on 452 to 20 on 453.
-            assertEquals(where, 20, parameter)
+            // The flag moved from parameter 24 on 452 to 20 on 453, and to 27 on 454.
+            assertEquals(where, 27, parameter)
 
             val context = context(build)
             assertEquals(where, 0, status(context))

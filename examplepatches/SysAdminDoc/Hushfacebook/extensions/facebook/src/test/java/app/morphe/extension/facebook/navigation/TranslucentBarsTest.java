@@ -17,6 +17,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.RenderNode;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -231,7 +232,7 @@ public class TranslucentBarsTest {
         int[] origin = new int[2];
         screen.page.getLocationInWindow(origin);
         TranslucentBars.Frost frost = new TranslucentBars.Frost(screen.page, 47f);
-        frost.update(new Rect(0, 1440, 720, 1600), 0.5f, 1);
+        frost.update(new Rect(0, 1440, 720, 1600), 0.5f, 1, 0f);
         assertEquals("the fade is on the clipping node", 0.5f, frost.node.getAlpha(), 0f);
         assertEquals(1440 - origin[1], frost.node.getTop());
         assertEquals(1600 - origin[1], frost.node.getBottom());
@@ -239,6 +240,36 @@ public class TranslucentBarsTest {
         assertEquals(0, frost.blur.getTop());
         assertEquals(160, frost.blur.getBottom());
         assertEquals(720, frost.blur.getRight());
+        assertFalse("a square bar's frost is its box", frost.node.getClipToOutline());
+
+        // #344: a rounded tab bar's frost gets the pill's round ends, and loses them with the pill.
+        frost.update(new Rect(36, 1429, 684, 1530), 1f, 2, 50.5f);
+        assertTrue(frost.node.getClipToOutline());
+        frost.update(new Rect(0, 1440, 720, 1600), 1f, 3, 0f);
+        assertFalse(frost.node.getClipToOutline());
+        frost.remove();
+    }
+
+    @Test
+    @Config(sdk = 34)
+    public void theFrostOfAScrolledHostIsDrawnWhereTheHostShows() {
+        // A host's overlay draws in its scrolled content, so a scrolled host put the frost off by
+        // its scroll and left the bar plain over a sharp feed (#250).
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        int[] origin = new int[2];
+        screen.page.getLocationInWindow(origin);
+        screen.page.scrollTo(720, 0);
+        TranslucentBars.Frost frost = new TranslucentBars.Frost(screen.page, 47f);
+        frost.update(new Rect(0, 1440, 720, 1600), 1f, 1, 0f);
+        Tracking canvas = new Tracking();
+        canvas.hardware = true;
+        // The host's own drawing: its overlay comes after the scroll is applied.
+        canvas.translate(-720, 0);
+
+        frost.draw(canvas);
+
+        assertEquals(1, canvas.nodes.size());
+        assertEquals("on screen, over the bar", new Rect(0, 1440 - origin[1], 720, 1600 - origin[1]), canvas.nodes.get(0));
         frost.remove();
     }
 
@@ -326,9 +357,11 @@ public class TranslucentBarsTest {
         }
     }
 
-    /** A canvas that keeps its translation and each cleared box, in its starting coordinates. */
+    /** A canvas that keeps its translation, each cleared box and each node drawn, in its starting coordinates. */
     private static final class Tracking extends Canvas {
         final List<Rect> cleared = new ArrayList<>();
+        final List<Rect> nodes = new ArrayList<>();
+        boolean hardware;
         private final Deque<float[]> stack = new ArrayDeque<>();
         private float x;
         private float y;
@@ -362,6 +395,17 @@ public class TranslucentBarsTest {
             if (paint.getXfermode() instanceof PorterDuffXfermode) {
                 cleared.add(new Rect(Math.round(left + x), Math.round(top + y), Math.round(right + x), Math.round(bottom + y)));
             }
+        }
+
+        @Override
+        public boolean isHardwareAccelerated() {
+            return hardware;
+        }
+
+        @Override
+        public void drawRenderNode(RenderNode node) {
+            nodes.add(new Rect(Math.round(node.getLeft() + x), Math.round(node.getTop() + y),
+                    Math.round(node.getRight() + x), Math.round(node.getBottom() + y)));
         }
     }
 

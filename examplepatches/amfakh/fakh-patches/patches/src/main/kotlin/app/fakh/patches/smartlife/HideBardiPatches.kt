@@ -39,7 +39,6 @@ val hideMeBannerPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute {
         // The banner is a mini-app card the Tuya cloud configures; the advertising cell is the ad slot above it.
@@ -56,7 +55,6 @@ val hideAppMallPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute { appMallFingerprint.method.addInstructions(0, HIDE_CELL) }
 }

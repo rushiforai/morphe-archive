@@ -31,19 +31,19 @@ class HomeFeedLoadingIndicatorPatchTest {
         // (size, Modifier, Boolean, Composer, $$changed, $$default)
         assertTrue(
             isLdsSpinnerSignature(
-                renderer(listOf("Lexample/Size;", "Ly3/j;", "Z", "Lh3/t;", "I", "I")),
+                renderer(listOf("Lexample/Size;", "Lb4/j;", "Z", "Lj3/r;", "I", "I")),
             ),
         )
         // Material3 の確定進捗版はこの並びではありません。取り違えると実機で何も起きません。
         assertFalse(
             isLdsSpinnerSignature(
-                renderer(listOf("Lvb8/a;", "Ly3/j;", "J", "J", "I", "F", "Lvb8/l;", "Lh3/t;", "I")),
+                renderer(listOf("Lvb8/a;", "Lb4/j;", "J", "J", "I", "F", "Lvb8/l;", "Lj3/r;", "I")),
             ),
         )
         // Modifier / Boolean / Composer の位置が違えば対象外です。
         assertFalse(
             isLdsSpinnerSignature(
-                renderer(listOf("Lexample/Size;", "Z", "Ly3/j;", "Lh3/t;", "I", "I")),
+                renderer(listOf("Lexample/Size;", "Z", "Lb4/j;", "Lj3/r;", "I", "I")),
             ),
         )
     }
@@ -51,10 +51,10 @@ class HomeFeedLoadingIndicatorPatchTest {
     @Test
     fun `only the loading renderer signature is accepted`() {
         // 読み込み表示の renderer は view data を持たず、Modifier と Composer と $$changed だけを取ります。
-        assertTrue(isLoadingIndicatorRendererSignature(renderer(listOf("Ly3/j;", "Lh3/t;", "I"))))
-        assertFalse(isLoadingIndicatorRendererSignature(renderer(listOf("I", "Lh3/t;"))))
-        assertFalse(isLoadingIndicatorRendererSignature(renderer(listOf("Ly3/j;", "Lh3/t;"))))
-        assertFalse(isLoadingIndicatorRendererSignature(renderer(listOf("Ly3/j;", "Lh3/t;", "I", "I"))))
+        assertTrue(isLoadingIndicatorRendererSignature(renderer(listOf("Lb4/j;", "Lj3/r;", "I"))))
+        assertFalse(isLoadingIndicatorRendererSignature(renderer(listOf("I", "Lj3/r;"))))
+        assertFalse(isLoadingIndicatorRendererSignature(renderer(listOf("Lb4/j;", "Lj3/r;"))))
+        assertFalse(isLoadingIndicatorRendererSignature(renderer(listOf("Lb4/j;", "Lj3/r;", "I", "I"))))
     }
 
     @Test
@@ -133,7 +133,7 @@ class HomeFeedLoadingIndicatorPatchTest {
         add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 4))
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }
-        add(composerCall("Y", emptyList(), "Lh3/p3;"))
+        add(composerCall("Z", emptyList(), "Lj3/p3;"))
     }
 
     private fun composerCall(
@@ -144,7 +144,7 @@ class HomeFeedLoadingIndicatorPatchTest {
         Opcode.INVOKE_VIRTUAL,
         1,
         6, 0, 0, 0, 0,
-        ImmutableMethodReference("Lh3/f1;", name, parameters, returnType),
+        ImmutableMethodReference("Lj3/d1;", name, parameters, returnType),
     )
 
     /**
@@ -153,12 +153,12 @@ class HomeFeedLoadingIndicatorPatchTest {
      */
     @Test
     fun `the caller matching key distinguishes overloads`() {
-        val modifierAndComposer = methodKey("Lw72/q;", "a", listOf("Ly3/j;", "Lh3/t;", "I"), "V")
-        val composerOnly = methodKey("Lw72/q;", "a", listOf("Lh3/t;", "I"), "V")
-        val differentReturn = methodKey("Lw72/q;", "a", listOf("Ly3/j;", "Lh3/t;", "I"), "Ljava/lang/Object;")
+        val modifierAndComposer = methodKey("Ldh2/p;", "a", listOf("Lb4/j;", "Lj3/r;", "I"), "V")
+        val composerOnly = methodKey("Ldh2/p;", "a", listOf("Lj3/r;", "I"), "V")
+        val differentReturn = methodKey("Ldh2/p;", "a", listOf("Lb4/j;", "Lj3/r;", "I"), "Ljava/lang/Object;")
 
         assertNotEquals(modifierAndComposer, composerOnly)
         assertNotEquals(modifierAndComposer, differentReturn)
-        assertEquals(modifierAndComposer, methodKey("Lw72/q;", "a", listOf("Ly3/j;", "Lh3/t;", "I"), "V"))
+        assertEquals(modifierAndComposer, methodKey("Ldh2/p;", "a", listOf("Lb4/j;", "Lj3/r;", "I"), "V"))
     }
 }

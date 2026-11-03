@@ -112,10 +112,29 @@ public class StoryMentionsTest {
         }
     }
 
+    /** What the list asked of the story viewer, in order, and of which viewer. */
+    static final class PlaybackRecorder implements StoryMentions.Playback {
+        final List<String> asked = new ArrayList<>();
+        final List<Object> viewers = new ArrayList<>();
+        boolean throwing;
+
+        @Override public void hold(Object viewer) {
+            asked.add("hold");
+            viewers.add(viewer);
+            if (throwing) throw new IllegalStateException("the viewer went away");
+        }
+
+        @Override public void play(Object viewer) {
+            asked.add("play");
+            viewers.add(viewer);
+        }
+    }
+
     private static final Account ANA = new Account("ana", "Ana Lima", "https://scontent.cdninstagram.com/ana.jpg");
     private static final Account BO = new Account("bo.k", null, null);
 
     private final Reads reads = new Reads();
+    private final PlaybackRecorder playback = new PlaybackRecorder();
     private ActivityController<Activity> controller;
     private Activity activity;
     private FrameLayout root;
@@ -129,6 +148,7 @@ public class StoryMentionsTest {
         Settings.SHOW_STORY_MENTIONS.save(true);
         StoryMentions.resetForTests();
         StoryMentions.readsForTests = reads;
+        StoryMentions.playbackForTests = playback;
         HookStatus.clear();
         controller = Robolectric.buildActivity(Activity.class).setup();
         activity = controller.get();
@@ -151,11 +171,14 @@ public class StoryMentionsTest {
         Utils.awaitBackgroundTasksForTests();
         controller.close();
         StoryMentions.readsForTests = null;
+        StoryMentions.playbackForTests = null;
         StoryMentions.picturesForTests = null;
         StoryMentions.headerIdForTests = 0;
         StoryMentions.titleIdForTests = 0;
+        StoryMentions.topBarIdForTests = 0;
         StoryMentions.resetForTests();
         Settings.SHOW_STORY_MENTIONS.resetToDefault();
+        Settings.STORY_MENTIONS_LOOK.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -165,8 +188,30 @@ public class StoryMentionsTest {
     public void theSwitchStartsOffAndIsTheFamilysOnly() {
         Settings.SHOW_STORY_MENTIONS.resetToDefault();
         assertFalse(Settings.SHOW_STORY_MENTIONS.get());
-        assertEquals(Collections.singletonList(Settings.SHOW_STORY_MENTIONS), PatchFamily.STORY_MENTIONS.switches);
+        assertEquals(Arrays.asList(Settings.SHOW_STORY_MENTIONS, Settings.RED_STORY_MENTIONS), PatchFamily.STORY_MENTIONS.switches);
         assertEquals(FamilyNames.STORY_MENTIONS, PatchFamily.STORY_MENTIONS.patchName);
+    }
+
+    @Test
+    public void redStoryMentionsStartsOffAndDrawsTheTextWhite() {
+        Settings.RED_STORY_MENTIONS.resetToDefault();
+        assertFalse(Settings.RED_STORY_MENTIONS.get());
+        bind(ANA);
+        assertEquals(android.graphics.Color.WHITE, pill().getCurrentTextColor());
+    }
+
+    @Test
+    public void redStoryMentionsDrawsTheTextInInstagramsRed() {
+        try {
+            Settings.RED_STORY_MENTIONS.save(true);
+            bind(ANA);
+            assertEquals(0xFFFF3040, pill().getCurrentTextColor());
+            Settings.RED_STORY_MENTIONS.save(false);
+            bind(ANA, BO);
+            assertEquals("a later bind puts it back", android.graphics.Color.WHITE, pill().getCurrentTextColor());
+        } finally {
+            Settings.RED_STORY_MENTIONS.resetToDefault();
+        }
     }
 
     @Test
@@ -618,6 +663,251 @@ public class StoryMentionsTest {
         assertNotNull(find(again.getWindow().getDecorView(), view -> "@bo.k".equals(textOf(view))));
     }
 
+    /** #403 again: the viewer brings back the pages beside the story first, and one of them mentions others. */
+    @Test
+    public void aStoryBesideItComingBackFirstDoesntEndTheComeBack() {
+        FrameLayout beside = new FrameLayout(activity);
+        FrameLayout besideItem = new FrameLayout(activity);
+        LinearLayout besideHeader = new LinearLayout(activity);
+        besideHeader.setOrientation(LinearLayout.VERTICAL);
+        besideHeader.setId(header.getId());
+        TextView besideName = new TextView(activity);
+        besideName.setText("someone else");
+        besideHeader.addView(besideName);
+        beside.addView(besideItem);
+        beside.addView(besideHeader);
+        beside.setTranslationX(5000f);
+        FrameLayout page = new FrameLayout(activity);
+        root.removeAllViews();
+        page.addView(itemView);
+        page.addView(header);
+        root.addView(beside);
+        root.addView(page);
+        idle();
+        bind(ANA, BO);
+        StoryMentions.bind(besideItem, Collections.singletonList(BO));
+        idle();
+        StoryMentions.Pill besidePill = StoryMentions.pillIn(besideHeader);
+        assertNotNull(besidePill);
+        assertTrue("laid out beside the story", besidePill.isShown());
+        assertFalse("but not on the screen", StoryMentions.onScreen(besidePill));
+        assertTrue(StoryMentions.onScreen(pill()));
+
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        root.setVisibility(View.GONE);
+        idle();
+        root.setVisibility(View.VISIBLE);
+        idle();
+
+        AlertDialog again = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotSame(first, again);
+        assertTrue("the list is open again", again.isShowing());
+    }
+
+    /**
+     * #403 on 453: the profile opens in an activity you can see through, so the story's activity
+     * only goes behind it and its pill never leaves the screen.
+     */
+    @Test
+    public void theListComesBackWhenTheStoryComesBackToTheFront() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        controller.pause();
+        idle();
+        assertSame("nothing opens while the profile has the screen", first, ShadowDialog.getLatestDialog());
+        assertTrue("the pill never left", StoryMentions.onScreen(pill()));
+        controller.resume();
+        idle();
+        AlertDialog again = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotSame(first, again);
+        assertTrue("the list is open again", again.isShowing());
+        assertNotNull(find(again.getWindow().getDecorView(), view -> "@bo.k".equals(textOf(view))));
+    }
+
+    @Test
+    public void thePillAndTheActivityBothComingBackOpenTheListOnce() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        StoryMentions.Pill pill = pill();
+        controller.pause();
+        pill.setVisibility(View.GONE);
+        idle();
+        controller.resume();
+        pill.setVisibility(View.VISIBLE);
+        idle();
+        assertEquals("the first list and one more", 2, ShadowDialog.getShownDialogs().size());
+        assertTrue(ShadowDialog.getLatestDialog().isShowing());
+    }
+
+    @Test
+    public void theActivityComingBackAfterCloseOpensNothing() {
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        controller.pause();
+        controller.resume();
+        idle();
+        AlertDialog again = (AlertDialog) ShadowDialog.getLatestDialog();
+        again.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        idle();
+        controller.pause();
+        controller.resume();
+        idle();
+        assertSame("Close ends it", again, ShadowDialog.getLatestDialog());
+        assertFalse(again.isShowing());
+    }
+
+    /** #403: the story waits under the list, past a photo's time, and plays on when Close ends it. */
+    @Test
+    public void theListHoldsTheStoryUntilCloseEndsIt() {
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA, BO);
+        AlertDialog list = openedList();
+        assertEquals(Collections.singletonList("hold"), playback.asked);
+        assertSame(viewer, playback.viewers.get(0));
+        assertTrue("Instagram's resume waits", StoryMentions.holdsStory(viewer));
+        assertFalse("another viewer's doesn't", StoryMentions.holdsStory(new Object()));
+        assertFalse(StoryMentions.holdsStory(null));
+
+        list.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        idle();
+        assertEquals(Arrays.asList("hold", "play"), playback.asked);
+        assertSame(viewer, playback.viewers.get(1));
+        assertFalse("nothing holds it now", StoryMentions.holdsStory(viewer));
+    }
+
+    @Test
+    public void backPlaysTheStoryOnAsCloseDoes() {
+        // Held here: the viewer is only weakly held, and a GC between the calls would leave nothing to hold.
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA);
+        openedList().cancel();
+        idle();
+        assertEquals(Arrays.asList("hold", "play"), playback.asked);
+        assertEquals(Arrays.asList(viewer, viewer), playback.viewers);
+    }
+
+    /**
+     * #403: a profile opened from the list doesn't play the story, and neither does the resume
+     * Instagram makes as the story comes back. On the S22 a video played on from that resume under
+     * the list that opened again, and ran the story out.
+     */
+    @Test
+    public void aProfileFromTheListHoldsTheStoryAgainAsItComesBack() {
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        idle();
+        assertEquals("the profile doesn't play it", Collections.singletonList("hold"), playback.asked);
+        controller.pause();
+        idle();
+        controller.resume();
+        StoryMentions.viewerShown(viewer);
+        assertTrue("the resume as the story comes back waits for the list", StoryMentions.holdsStory(viewer));
+        assertFalse("another viewer's doesn't", StoryMentions.holdsStory(new Object()));
+        idle();
+        AlertDialog again = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotSame(first, again);
+        assertTrue(again.isShowing());
+        assertEquals(Arrays.asList("hold", "hold"), playback.asked);
+        assertSame(viewer, playback.viewers.get(1));
+        assertTrue(StoryMentions.holdsStory(viewer));
+
+        shadowOf(Looper.getMainLooper()).idleFor(StoryMentions.COMEBACK_HOLD_MS, TimeUnit.MILLISECONDS);
+        assertEquals("the list came back, so nothing plays it", Arrays.asList("hold", "hold"), playback.asked);
+        again.cancel();
+        idle();
+        assertEquals("Back plays it on", Arrays.asList("hold", "hold", "play"), playback.asked);
+        assertFalse(StoryMentions.holdsStory(viewer));
+    }
+
+    /** #403: a story back from a profile whose list doesn't open again plays on after a moment. */
+    @Test
+    public void theStoryPlaysWhenItsListStaysAway() {
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA, BO);
+        tapAccount(openedList(), "Ana Lima, @ana");
+        idle();
+        assertTrue(StoryMentions.holdsStory(viewer));
+        idle();
+        assertEquals(Collections.singletonList("hold"), playback.asked);
+
+        shadowOf(Looper.getMainLooper()).idleFor(StoryMentions.COMEBACK_HOLD_MS, TimeUnit.MILLISECONDS);
+        assertEquals(Arrays.asList("hold", "play"), playback.asked);
+        assertSame(viewer, playback.viewers.get(1));
+        assertFalse("Instagram's resumes run again", StoryMentions.holdsStory(viewer));
+    }
+
+    /** A resume while the profile still has the screen leaves the story held until it comes back. */
+    @Test
+    public void aResumeBehindTheProfileWaitsForTheStoryToComeBack() {
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA, BO);
+        tapAccount(openedList(), "Ana Lima, @ana");
+        controller.pause();
+        idle();
+        assertTrue(StoryMentions.holdsStory(viewer));
+        shadowOf(Looper.getMainLooper()).idleFor(StoryMentions.COMEBACK_HOLD_MS, TimeUnit.MILLISECONDS);
+        assertEquals("nothing plays it under the profile", Collections.singletonList("hold"), playback.asked);
+
+        controller.resume();
+        idle();
+        assertTrue("the list is open again", ShadowDialog.getLatestDialog().isShowing());
+        shadowOf(Looper.getMainLooper()).idleFor(StoryMentions.COMEBACK_HOLD_MS, TimeUnit.MILLISECONDS);
+        assertEquals(Arrays.asList("hold", "hold"), playback.asked);
+    }
+
+    /** #403: Home and back leaves the list up, and the resume Instagram makes as the story returns waits for it. */
+    @Test
+    public void homeAndBackKeepsTheStoryHeld() {
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA, BO);
+        AlertDialog list = openedList();
+        controller.pause().stop();
+        idle();
+        controller.restart().start().resume();
+        StoryMentions.viewerShown(viewer);
+        idle();
+        assertSame("no second list", list, ShadowDialog.getLatestDialog());
+        assertTrue("the list is still up", list.isShowing());
+        assertTrue("so the story's resume waits", StoryMentions.holdsStory(viewer));
+        assertEquals("held once and never played", Collections.singletonList("hold"), playback.asked);
+    }
+
+    /** With no viewer seen, the list holds nothing and Instagram's resume runs as it always did. */
+    @Test
+    public void noViewerSeenHoldsNothing() {
+        bind(ANA);
+        AlertDialog list = openedList();
+        assertTrue(list.isShowing());
+        assertFalse(StoryMentions.holdsStory(new Object()));
+        list.cancel();
+        idle();
+        assertTrue(playback.asked.toString(), playback.asked.isEmpty());
+    }
+
+    @Test
+    public void aHoldThatThrowsStillOpensTheList() {
+        playback.throwing = true;
+        Object viewer = new Object();
+        StoryMentions.viewerShown(viewer);
+        bind(ANA);
+        assertTrue(openedList().isShowing());
+        String missing = HookStatus.missing(FamilyNames.STORY_MENTIONS).toString();
+        assertTrue(missing, missing.contains("story mentions list") && missing.contains("IllegalStateException"));
+        assertEquals(Collections.singletonList(viewer), playback.viewers);
+    }
+
     @Test
     public void theListStaysClosedWhileTheProfileIsStillUp() {
         bind(ANA, BO);
@@ -655,6 +945,128 @@ public class StoryMentionsTest {
         bind(ANA, BO);
         idle();
         assertSame("and the old list is forgotten", first, ShadowDialog.getLatestDialog());
+    }
+
+    /** The look starts under the name, as the pill was before there was a choice (#468). */
+    @Test
+    public void theLookStartsUnderTheNameAndIsntASwitch() {
+        Settings.STORY_MENTIONS_LOOK.resetToDefault();
+        assertEquals(StoryMentionsLook.UNDER_NAME, Settings.STORY_MENTIONS_LOOK.get());
+        assertFalse(PatchFamily.STORY_MENTIONS.switches.contains(Settings.STORY_MENTIONS_LOOK));
+        LinearLayout bar = topBar();
+        bind(ANA);
+        assertSame("under the name, the top bar's left alone", header, pill().getParent());
+        assertEquals(1, bar.getChildCount());
+    }
+
+    /** In the top bar the pill goes left of Instagram's buttons and reads "@1 mention" (#468). */
+    @Test
+    public void theTopBarLookPutsThePillBeforeTheMenu() {
+        LinearLayout bar = topBar();
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.TOP_BAR);
+        bind(ANA, BO);
+        StoryMentions.Pill pill = pill();
+        assertNotNull(pill);
+        assertSame(bar, pill.getParent());
+        assertEquals("first, before the menu", 0, bar.indexOfChild(pill));
+        assertEquals("@2 mentions", pill.getText().toString());
+        assertEquals("a screen reader still hears it in words", "2 mentions, see who this story mentions",
+                pill.getContentDescription().toString());
+        assertEquals("nothing goes under the name", 1, header.getChildCount());
+
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.TOP_BAR_SHORT);
+        bind(ANA);
+        assertSame("the same pill, now short", pill, pill());
+        assertEquals("@1", pill.getText().toString());
+    }
+
+    /** A change of look moves the pill on the next story, and only one pill is ever left. */
+    @Test
+    public void aNewLookMovesThePill() {
+        LinearLayout bar = topBar();
+        bind(ANA);
+        StoryMentions.Pill under = pill();
+        assertSame(header, under.getParent());
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.TOP_BAR);
+        bind(ANA);
+        StoryMentions.Pill top = pill();
+        assertSame(bar, top.getParent());
+        assertNull("the old pill went", under.getParent());
+        assertEquals(1, header.getChildCount());
+
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.UNDER_NAME);
+        bind(ANA, BO);
+        assertSame(header, pill().getParent());
+        assertEquals("2 mentions", pill().getText().toString());
+        assertEquals("the top bar is back to Instagram's", 1, bar.getChildCount());
+    }
+
+    /** With no top bar to go in, the pill stays under the name and says what it does there. */
+    @Test
+    public void noTopBarKeepsThePillUnderTheName() {
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.TOP_BAR);
+        bind(ANA);
+        assertSame(header, pill().getParent());
+        assertEquals("1 mention", pill().getText().toString());
+    }
+
+    /** From the top bar the list is a sheet along the bottom, with a Close as wide as it (#468). */
+    @Test
+    public void theTopBarPillsListIsASheetAlongTheBottom() {
+        topBar();
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.TOP_BAR);
+        bind(ANA, BO);
+        assertTrue(pill().performClick());
+        AlertDialog dialog = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotNull(dialog);
+        assertTrue(dialog.isShowing());
+        android.view.WindowManager.LayoutParams window = dialog.getWindow().getAttributes();
+        assertEquals(android.view.Gravity.BOTTOM, window.gravity & android.view.Gravity.VERTICAL_GRAVITY_MASK);
+        assertEquals(ViewGroup.LayoutParams.MATCH_PARENT, window.width);
+        View content = dialog.getWindow().getDecorView();
+        assertNotNull("its title", find(content, view -> "Story mentions".equals(textOf(view))));
+        assertNotNull("what it lists", find(content, view -> "Accounts mentioned in this story".equals(textOf(view))));
+        assertNull("no dialog title", find(content, view -> "Mentioned in this story".equals(textOf(view))));
+        assertNotNull("Ana's row", find(content, view -> "Ana Lima, @ana".contentEquals(String.valueOf(view.getContentDescription()))));
+        View close = find(content, view -> view instanceof android.widget.Button && "Close".equals(textOf(view)));
+        assertNotNull(close);
+        assertEquals("as wide as the sheet", ViewGroup.LayoutParams.MATCH_PARENT, close.getLayoutParams().width);
+        assertTrue(close.performClick());
+        assertFalse("Close closes it", dialog.isShowing());
+    }
+
+    /** A row in the sheet opens the profile and the sheet comes back with the story, as the list does. */
+    @Test
+    public void theSheetComesBackWithTheStory() {
+        topBar();
+        Settings.STORY_MENTIONS_LOOK.save(StoryMentionsLook.TOP_BAR_SHORT);
+        bind(ANA, BO);
+        AlertDialog first = openedList();
+        tapAccount(first, "Ana Lima, @ana");
+        assertFalse(first.isShowing());
+        StoryMentions.Pill pill = pill();
+        pill.setVisibility(View.GONE);
+        idle();
+        pill.setVisibility(View.VISIBLE);
+        idle();
+        AlertDialog again = (AlertDialog) ShadowDialog.getLatestDialog();
+        assertNotSame(first, again);
+        assertTrue(again.isShowing());
+        View content = again.getWindow().getDecorView();
+        assertNotNull("still the sheet", find(content, view -> "Story mentions".equals(textOf(view))));
+    }
+
+    /** A top bar row of buttons beside the header, the way 453's header holds Follow and the menu. */
+    private LinearLayout topBar() {
+        LinearLayout bar = new LinearLayout(activity);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setId(View.generateViewId());
+        View menu = new View(activity);
+        menu.setLayoutParams(new LinearLayout.LayoutParams(Dim.dp(24), Dim.dp(24)));
+        bar.addView(menu);
+        root.addView(bar);
+        StoryMentions.topBarIdForTests = bar.getId();
+        return bar;
     }
 
     private static String textOf(View view) {

@@ -21,6 +21,14 @@ internal object ControlBarSetButtonFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/String;"),
 )
 
+/** Makes the ⋮ button of the action bar of comments and posts, which shows the actions that don't fit. */
+internal object ControlBarSetOverflowButtonFingerprint : Fingerprint(
+    definingClass = CONTROL_BAR_CLASS_DESCRIPTOR,
+    name = "setOverflowButton",
+    returnType = CONTROL_BAR_BUTTON_CLASS_DESCRIPTOR,
+    parameters = listOf("Landroid/widget/LinearLayout;", "Z"),
+)
+
 /** Handles the clicks of the post bar, including the ⋮ button that shows its menu. */
 internal object ControlbarBaseOnClickFingerprint : Fingerprint(
     definingClass = "Lcom/onelouder/baconreader/controlbar/ControlbarBase;",

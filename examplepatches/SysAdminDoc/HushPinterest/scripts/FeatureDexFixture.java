@@ -518,9 +518,17 @@ public final class FeatureDexFixture {
         List<Method> menu = new ArrayList<>(List.of(method(PIN_MENU, "createModalView", VIEW, false, 2, build)));
         if (doubled) menu.add(method(PIN_MENU, "createModalView", VIEW, false, 3, build, CONTEXT));
         classes.put(PIN_MENU, menu);
+        // The See more and See less cards come from a builder of their own, found by the card drawable it reads.
+        List<Instruction> card = new ArrayList<>(List.of(new ImmutableInstruction21c(Opcode.SGET, 0,
+                new ImmutableFieldReference("Lfixture/Drawables;", "bento_card_background", "I")), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)));
+        if (hooked) card.add(invoke(Opcode.INVOKE_STATIC, ref(AMOLED, "pinMenuCard", VOID, VIEW), 0));
+        card.add(new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
+        classes.put("Lfixture/MenuCards;", List.of(method("Lfixture/MenuCards;", "f", "Landroid/widget/LinearLayout;", true, 1, card)));
         if (variant.startsWith("no-glass")) classes.put(BOTTOM_BAR, List.of());
         if (hooked) classes.put(AMOLED, List.of(method(AMOLED, "pinMenu", VOID, true, 2,
-                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), VIEW)));
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), VIEW),
+                method(AMOLED, "pinMenuCard", VOID, true, 2,
+                        List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), end()), VIEW)));
     }
 
     private static void feed(Map<String, List<Method>> classes, String variant) {

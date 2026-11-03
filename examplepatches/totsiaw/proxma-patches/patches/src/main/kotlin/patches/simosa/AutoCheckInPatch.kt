@@ -57,6 +57,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *  - When it fires, every guard is re-checked against the ViewModel's current state: day latch,
  *    response/data present, `claimed != "true"`, `a0 == false`, a selected rung (ladder), or
  *    `can_checkin_today && !must_restore` (check-in).
+ *  - The ladder only ever claims `currentStatus == "0"`, the free route. After a free claim the server
+ *    moves to the next day with status "1", and a claim in that state is the paid route: it spends
+ *    real balance. The app asks first in that state (`g2` shows a "Rs." dialog), and `L1` itself has
+ *    no such check, so calling it here with status "1" would buy the reward without asking. Skipped
+ *    without latching, so a later response with status "0" can still claim today.
  *  - The latch (`proxma_claim_<msisdn-hash>_<yyyyMMdd>` in SharedPreferences "proxma_simosa") is
  *    committed *before* the app's own claim call. `a0` is never forced (`n2(false)` is not called).
  *  - Each outcome is one `PROXMA_CLAIM` logcat line; nothing is shown to the user.
@@ -470,14 +475,18 @@ val autoCheckInPatch = bytecodePatch(
                 if-eqz v2, :proxma_no_rung
                 invoke-virtual {v1}, $SIMOSA_REWARD_DATA->getCurrentStatus()Ljava/lang/String;
                 move-result-object v3
-                if-nez v3, :proxma_have_status
-                const-string v3, ""
-                :proxma_have_status
+                const-string v4, "0"
+                invoke-static {v3, v4}, Lkotlin/jvm/internal/Intrinsics;->areEqual(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v4
+                if-eqz v4, :proxma_not_free
                 invoke-static {v0, v6}, $AUTO_CLAIM->latch($CONTEXT Ljava/lang/String;)V
                 invoke-virtual {v2}, $SIMOSA_REWARD_DAY_ITEM->getDay()Ljava/lang/String;
                 move-result-object v4
                 invoke-static {v6, v4, v3}, $AUTO_CLAIM->fired(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
                 invoke-virtual {p0, v2, v3}, $SIMOSA_REWARD_LADDER_VIEW_MODEL->L1(${SIMOSA_REWARD_DAY_ITEM}Ljava/lang/String;)V
+                return-void
+                :proxma_not_free
+                invoke-static {v6, v3}, $AUTO_CLAIM->notFree(Ljava/lang/String;Ljava/lang/String;)V
                 return-void
                 :proxma_no_response
                 const-string v1, "skip no-response"
@@ -490,6 +499,7 @@ val autoCheckInPatch = bytecodePatch(
                 goto :proxma_skip
                 :proxma_no_rung
                 const-string v1, "skip no-rung"
+                goto :proxma_skip
                 :proxma_skip
                 invoke-static {v6, v1}, $AUTO_CLAIM->log(Ljava/lang/String;Ljava/lang/String;)V
                 return-void

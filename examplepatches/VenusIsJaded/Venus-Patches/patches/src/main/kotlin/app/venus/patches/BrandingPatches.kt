@@ -1,6 +1,8 @@
 package app.venus.patches
 
 import app.morphe.patcher.patch.ImageSize
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.colorOption
@@ -99,6 +101,12 @@ val customBranding = resourcePatch(
 ) {
     compatibleWith(discord)
     section(PLUGINS)
+    // A root mount (#121) lays the patched APK over the installed Discord, and Android keeps reading that Discord's own
+    // manifest: a new package name can't be mounted over com.discord, and a new name or icon would never show. Morphe's
+    // own Custom branding patches are left out of mounts for the same reason.
+    availability { installer, _ ->
+        if (installer == InstallerType.MOUNT) PatchAvailability.UNAVAILABLE else PatchAvailability.ENABLED
+    }
 
     // Shown in this order in Morphe. Name and package are plain text fields with no presets: with presets Morphe draws
     // a dropdown, which hid that you can type anything.

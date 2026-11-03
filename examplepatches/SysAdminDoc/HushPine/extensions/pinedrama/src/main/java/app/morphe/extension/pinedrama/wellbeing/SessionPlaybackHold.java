@@ -1,0 +1,555 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ */
+package app.morphe.extension.pinedrama.wellbeing;
+
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.pinedrama.blockauthor.FeedVisibility;
+import app.morphe.extension.pinedrama.blockauthor.Reflect;
+import app.morphe.extension.pinedrama.playback.FeedMute;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/** Owns only pauses made for the daily-budget panel. Native player objects remain weakly held. */
+public final class SessionPlaybackHold {
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final AtomicBoolean syncQueued = new AtomicBoolean();
+    private static volatile Target current;
+    // Progress can arrive off main while a first-frame observation waits on main. Only these
+    // two writers take the lock; native reads and playback commands stay outside it.
+    private static final Object OWNER_LOCK = new Object();
+    private static long progressRevision;
+
+    // Private, bounded callback receipts. Host owners stay weak; reading them calls no host code.
+    private static final Object FRAME_RECEIPT_LOCK = new Object();
+    private static final FirstFrameReceipt[] FRAME_RECEIPTS = new FirstFrameReceipt[32];
+    private static int nextFrameReceipt;
+
+    private static final class FirstFrameReceipt {
+        final WeakReference<Object> controller, aweme, manager;
+        final String sourceId;
+        final long elapsedRealtimeMs;
+
+        FirstFrameReceipt(Object controller, Object aweme, Object manager, String sourceId, long at) {
+            this.controller = new WeakReference<>(controller);
+            this.aweme = new WeakReference<>(aweme);
+            this.manager = new WeakReference<>(manager);
+            this.sourceId = sourceId;
+            this.elapsedRealtimeMs = at;
+        }
+    }
+
+    /** Reflection-only private verification access. Copying never asks the native player anything. */
+    private static FirstFrameReceipt[] snapshotFirstFrameReceipts() {
+        synchronized (FRAME_RECEIPT_LOCK) {
+            return FRAME_RECEIPTS.clone();
+        }
+    }
+
+    private static void rememberFirstFrame(
+            Object controller, Object aweme, Object manager, String aid, Object sourceAtEntry, long at) {
+        // mCurrentSourceId is the native 47.5.3 source key. A missing/renamed field is no evidence.
+        // Read it directly: never populate a native cache or substitute an unkeyed frame scalar.
+        if (at <= 0 || aid.length() > 128 || !aid.equals(sourceAtEntry)
+                || !sourceAtEntry.equals(Reflect.readField(controller, "mCurrentSourceId"))) return;
+        FirstFrameReceipt receipt = new FirstFrameReceipt(controller, aweme, manager, aid, at);
+        synchronized (FRAME_RECEIPT_LOCK) {
+            FRAME_RECEIPTS[nextFrameReceipt] = receipt;
+            nextFrameReceipt = (nextFrameReceipt + 1) % FRAME_RECEIPTS.length;
+        }
+    }
+    // Accessed only on the main thread, where the panel changes and native playback is controlled.
+    private static Target held;
+    // Published by main-thread release; progress can prove an independent resume before focus returns.
+    private static volatile Target waitingForFocus;
+    // A queued LIZ can still report PLAYING until its native dispatcher applies the pause.
+    private static volatile boolean heldPauseObserved;
+    private static WeakReference<Object> heldManager = new WeakReference<>(null);
+    // The pause switches' own pause (comments open, or the feed waiting for a tap after a
+    // return), kept apart from the panel's so neither hands back a video the other paused.
+    private static volatile boolean switchWanted;
+    // The app lock's own wish for the same pause, so it and the switches each hand it back alone.
+    private static volatile boolean lockWanted;
+    private static final AtomicBoolean switchQueued = new AtomicBoolean();
+    // Written on the main thread only, like held. Volatile because PineDrama's play and resume, which
+    // ask about them, can run on its player's own threads.
+    private static volatile Target switchHeld;
+    private static volatile WeakReference<Object> switchManager = new WeakReference<>(null);
+    // True while the hold itself is pausing or resuming, so its own resume isn't turned down as
+    // PineDrama's. Main thread.
+    private static boolean ownCommand;
+    // Native requests may run on an executor while focus callbacks arrive on another thread.
+    // Compare listener identity, and never retain an activity's listener through static state.
+    private static final List<WeakReference<Object>> nativeFocusListeners = new ArrayList<>();
+    private static WeakReference<Object> nativeFocusOwner = new WeakReference<>(null);
+
+    private SessionPlaybackHold() { }
+
+    private static boolean hasNativeFocus() {
+        // Muted, the feed's focus is turned down on purpose and no grant is coming to wait for.
+        if (FeedMute.isHoldingFocus()) return true;
+        synchronized (nativeFocusListeners) {
+            return nativeFocusOwner.get() != null;
+        }
+    }
+
+    private static final class Target {
+        final WeakReference<Object> controller;
+        final String awemeId;
+
+        Target(Object controller, String awemeId) {
+            this.controller = new WeakReference<>(controller);
+            this.awemeId = awemeId;
+        }
+
+        boolean isCurrentCell(Object controller) {
+            Object aweme;
+            try {
+                aweme = currentAweme(controller);
+            } catch (RuntimeException notAController) {
+                return false;
+            }
+            return awemeId.equals(Reflect.invoke(aweme, "getAid"));
+        }
+    }
+
+    /**
+     * What the hold calls on PineDrama's player: the video a PlayerController has on screen, and its
+     * player manager's pause and resume. PineDrama renames all three with every build (the pause was
+     * LIZ on 46.2.3 and is LJJLIIIJJI on 47.0.3, where LIZ reads a number instead), and naming
+     * them here left the hold covering a video that played on. So nothing here names them: the
+     * Block author patch reads them off PlayerController.pauseVideo and the For You feed's
+     * space-key toggle and writes these three bodies. Unpatched, as in the tests, they go to
+     * {@link #nativeForTests}.
+     */
+    interface NativeControls {
+        Object currentAweme(Object controller);
+        void pause(Object manager);
+        void resume(Object manager);
+    }
+
+    static volatile NativeControls nativeForTests;
+
+    static Object currentAweme(Object controller) {
+        NativeControls controls = nativeForTests;
+        return controls == null ? null : controls.currentAweme(controller);
+    }
+
+    static boolean pauseNative(Object manager) {
+        NativeControls controls = nativeForTests;
+        if (controls == null) return false;
+        controls.pause(manager);
+        return true;
+    }
+
+    static boolean resumeNative(Object manager) {
+        NativeControls controls = nativeForTests;
+        if (controls == null) return false;
+        controls.resume(manager);
+        return true;
+    }
+
+    /** Called with p0 and p1 from PlayerController.onPlayProgressChange(String, long, long). */
+    public static void onPlayerProgress(Object controller, String awemeId) {
+        if (controller == null || awemeId == null || awemeId.isEmpty()) return;
+        // A video that started without a play on screen still takes the focus it waits for (#283).
+        synchronized (OWNER_LOCK) {
+            // Even another report from the same owner supersedes a queued first frame.
+            progressRevision++;
+            Target previous = current;
+            if (previous == null || previous.controller.get() != controller
+                    || !awemeId.equals(previous.awemeId)) {
+                current = new Target(controller, awemeId);
+            }
+        }
+        FeedLock.onVideo(awemeId);
+        if (!SessionBudget.isLocked()) {
+            Target waiting = waitingForFocus;
+            if (waiting != null && waiting == current) {
+                Object manager = Reflect.invoke(controller, "getPlayerManager");
+                boolean pauseWasObserved = heldPauseObserved;
+                boolean playing = Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"));
+                if ((playing && pauseWasObserved)
+                        || (!playing && Boolean.TRUE.equals(Reflect.invoke(manager, "isPaused")))) {
+                    // Only playback after an observed pause proves an independent resume.
+                    // The old PLAYING state before our queued pause must retain its handback.
+                    if (Looper.myLooper() == Looper.getMainLooper()) {
+                        observeNativePlayback(waiting, manager, playing);
+                    } else {
+                        WeakReference<Object> observedManager = new WeakReference<>(manager);
+                        MAIN.post(() -> observeNativePlayback(waiting, observedManager.get(), playing));
+                    }
+                }
+            }
+            // PineDrama starts the video again by itself, on a return above all, so while a pause
+            // switch wants it stopped each report of it playing pauses it again.
+            if ((switchWanted || lockWanted) && switchQueued.compareAndSet(false, true)) {
+                MAIN.post(() -> {
+                    switchQueued.set(false);
+                    if (pauseForSwitchIfPlaying()) log("paused " + awemeId + " after a progress report");
+                });
+            }
+            // The feed lock puts the same panel up with no budget behind it, so each report is
+            // where it finds out the feed is on screen, as the hold does just below.
+            if (FeedLock.covers() && syncQueued.compareAndSet(false, true)) {
+                MAIN.post(() -> {
+                    syncQueued.set(false);
+                    SessionLockOverlay.sync();
+                });
+            }
+            return;
+        }
+        if (!syncQueued.compareAndSet(false, true)) return;
+        // Do not pause reentrantly inside a native callback. A fresh report also catches native
+        // auto-resume while the panel already exists, including a return from settings.
+        MAIN.post(() -> {
+            syncQueued.set(false);
+            SessionLockOverlay.sync();
+        });
+    }
+
+    /**
+     * Called with p0 from PlayerController.onRenderFirstFrame. Remember the playing owner even
+     * before a hold is wanted: comments can open between this frame and the first progress report
+     * (#151). A preloaded neighbour's frame does not make it current. A wanted hold still pauses
+     * here rather than waiting for progress (#83).
+     */
+    public static void onFirstFrame(Object controller) {
+        if (controller == null) return;
+        // Callback receipt, before native reads or queued main work. Not a displayed-frame time.
+        long receivedAt = android.os.SystemClock.elapsedRealtime();
+        Object sourceAtEntry = Reflect.readField(controller, "mCurrentSourceId");
+        long revision;
+        synchronized (OWNER_LOCK) {
+            revision = progressRevision;
+        }
+        Object aid;
+        Object aweme;
+        Object manager;
+        try {
+            aweme = currentAweme(controller);
+            aid = Reflect.invoke(aweme, "getAid");
+            manager = Reflect.invoke(controller, "getPlayerManager");
+        } catch (RuntimeException notAController) {
+            return;
+        }
+        if (!(aid instanceof String) || ((String) aid).isEmpty() || manager == null) return;
+        rememberFirstFrame(controller, aweme, manager, (String) aid, sourceAtEntry, receivedAt);
+        // Snapshot identity now: a recycled controller can have another video or manager by the
+        // time main runs. Neither the controller nor the manager is retained by the queued work.
+        Target frame = new Target(controller, (String) aid);
+        WeakReference<Object> frameManager = new WeakReference<>(manager);
+        MAIN.post(() -> pauseAtFirstFrame(frame, frameManager, revision));
+    }
+
+    private static void pauseAtFirstFrame(
+            Target frame, WeakReference<Object> frameManager, long revision) {
+        if (SessionBudget.isLocked()) return;
+        Object controller = frame.controller.get();
+        Object manager = frameManager.get();
+        if (controller == null || manager == null || !frame.isCurrentCell(controller)
+                || Reflect.invoke(controller, "getPlayerManager") != manager
+                || !Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))) {
+            return;
+        }
+        synchronized (OWNER_LOCK) {
+            // Check and publish together: progress on another thread must not be overwritten
+            // between the revision check and the assignment.
+            if (progressRevision != revision) return;
+            Target previous = current;
+            if (previous == null || previous.controller.get() != controller
+                    || !frame.awemeId.equals(previous.awemeId)) {
+                current = frame;
+            }
+        }
+        // This also checks the current hold state, so observing a frame alone never pauses it.
+        if (pauseForSwitchIfPlaying()) log("paused at the first frame of " + frame.awemeId);
+    }
+
+    /**
+     * Asked at the start of PlayerController's play method, with p0 and the Aweme it was asked to
+     * play. On a cold start PineDrama plays the first video a second time about 1.7 s after the
+     * first-frame pause (#83, S22): the feed panel's resume, a new surface, a network change and
+     * the end of a TopView ad all reach this method. While a pause switch or the app lock holds
+     * this controller's video, the play is turned down before the player starts, so the video
+     * doesn't play for the moment it took the next progress report to pause it again. The play
+     * that starts a video before the hold has paused anything goes through, since the tap that
+     * ends the hold resumes that player. Any thread.
+     *
+     * @return whether to answer the play the way PineDrama answers one while casting
+     */
+    public static boolean refusePlay(Object controller, Object aweme) {
+        try {
+            Target owner = switchHeld;
+            if (owner == null || controller == null || owner.controller.get() != controller
+                    || !refusing()) return false;
+            log("blocked PineDrama's play of " + Reflect.invoke(aweme, "getAid"), true);
+            return true;
+        } catch (Throwable failure) {
+            Logger.printException(() -> "The session hold could not answer PineDrama's play", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Asked at the start of the player manager's own resume, which PineDrama calls without the play
+     * method from its feed events and as some sheets and dialogs close. Turned down for the
+     * manager a pause switch or the app lock has paused, until the hold hands the video back.
+     * Any thread.
+     *
+     * @return whether to skip the resume
+     */
+    public static boolean refuseResume(Object manager) {
+        try {
+            if (manager == null || switchHeld == null || switchManager.get() != manager
+                    || !refusing()) return false;
+            log("blocked PineDrama's resume", true);
+            return true;
+        } catch (Throwable failure) {
+            Logger.printException(() -> "The session hold could not answer PineDrama's resume", failure);
+            return false;
+        }
+    }
+
+    /** Whether a held pause is still wanted and the call isn't the hold's own. */
+    private static boolean refusing() {
+        if (!(switchWanted || lockWanted)) return false;
+        return !(ownCommand && Looper.myLooper() == Looper.getMainLooper());
+    }
+
+    /**
+     * A debug log line for the device check, with the uptime it happened at. With {@code route}
+     * it also names the first frames outside HushPine, read inside the message so the stack is
+     * only walked with Log diagnostics on.
+     */
+    private static void log(String what, boolean route) {
+        long at = android.os.SystemClock.uptimeMillis();
+        Logger.printDebug(() -> "Session hold at " + at + " ms: " + what + (route ? caller() : ""));
+    }
+
+    private static void log(String what) {
+        log(what, false);
+    }
+
+    /** The first few frames outside HushPine, so a debug log names the route a play came by. */
+    private static String caller() {
+        StringBuilder route = new StringBuilder(" from");
+        int shown = 0;
+        for (StackTraceElement frame : new Throwable().getStackTrace()) {
+            String type = frame.getClassName();
+            if (type.startsWith("app.morphe.") || type.startsWith("java.") || type.startsWith("dalvik.")) continue;
+            route.append(' ').append(type).append('.').append(frame.getMethodName());
+            if (++shown == 5) break;
+        }
+        return route.toString();
+    }
+
+    /** The video the player last reported, or null before any report. */
+    public static String currentAwemeId() {
+        Target target = current;
+        return target == null ? null : target.awemeId;
+    }
+
+    /**
+     * Whether the player of the last reported video is playing it now, or null when there is no
+     * such player or it has moved to another video. Reports stop while a video is paused, so the
+     * last one names the video the reader paused.
+     */
+    public static Boolean currentPlaying() {
+        Target target = current;
+        if (target == null) return null;
+        Object controller = target.controller.get();
+        if (controller == null || !target.isCurrentCell(controller)) return null;
+        Object playing = Reflect.invoke(Reflect.invoke(controller, "getPlayerManager"), "isPlaying");
+        return playing instanceof Boolean ? (Boolean) playing : null;
+    }
+
+    /**
+     * Plays or pauses the video on screen with PineDrama's own controls, for a button that toggles it
+     * the way a tap on the video does (the picture-in-picture window's). Does nothing while the
+     * daily panel, a pause switch or the app lock holds the video, since each of those hands it
+     * back itself. Main thread.
+     *
+     * @return whether PineDrama's player took the command
+     */
+    public static boolean setCurrentPlaying(boolean play) {
+        if (SessionBudget.isLocked() || switchWanted || lockWanted) return false;
+        Target target = current;
+        if (target == null) return false;
+        Object controller = target.controller.get();
+        if (controller == null || !target.isCurrentCell(controller)) return false;
+        return control(Reflect.invoke(controller, "getPlayerManager"), !play);
+    }
+
+    /** The post the player of the last reported video has on screen, or null. */
+    public static Object currentPlayingAweme() {
+        Target target = current;
+        Object controller = target == null ? null : target.controller.get();
+        if (controller == null) return null;
+        try {
+            return currentAweme(controller);
+        } catch (RuntimeException notAController) {
+            return null;
+        }
+    }
+
+    /** Runs on each visible hold sync, not only when the panel is first attached. */
+    static void pauseIfPlaying() {
+        Target target = current;
+        if (target == null) return;
+        Object controller = target.controller.get();
+        if (!target.isCurrentCell(controller)) return;
+        Object manager = Reflect.invoke(controller, "getPlayerManager");
+        if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))) return;
+        // PineDrama's feed play/pause control uses this same manager pair. Pause is queued by the
+        // native engine, so successful intent is owned without requiring an immediate state flip.
+        if (control(manager, true)) {
+            held = target;
+            heldManager = new WeakReference<>(manager);
+            waitingForFocus = null;
+            heldPauseObserved = false;
+        }
+    }
+
+    /**
+     * The pause switches want the video on screen stopped: the comments are open, or the feed is
+     * waiting for a tap after a return. They ask for the audio focus, and TikTok 47.0.3's player
+     * plays on through that, so they stop it the way the panel does, with PineDrama's own pause: now
+     * if it is playing, and again on any report of it playing, until {@link #releaseForSwitch}.
+     * Main thread.
+     */
+    public static void pauseForSwitch() {
+        switchWanted = true;
+        if (pauseForSwitchIfPlaying()) log("paused the video for a pause switch");
+    }
+
+    /**
+     * The switch is done. With {@code resume} the video it paused plays on from where it stopped,
+     * but only while it is still the one on screen in the same player and no panel is up; a video
+     * the reader had paused was never taken, so it is never started. A panel that came up in
+     * between keeps the video stopped after it, for the reader to start. Going away passes false,
+     * since PineDrama stops its player itself then. Main thread.
+     */
+    public static void releaseForSwitch(boolean resume) {
+        switchWanted = false;
+        // The app lock still covers the screen, so the video stays stopped until it lifts.
+        if (lockWanted) return;
+        handBackSwitchPause(resume);
+    }
+
+    /** A newly created pager can hydrate the scope while its original player is unchanged. */
+    public static boolean switchPlayerNotReplaced() {
+        Target owner = switchHeld;
+        return owner == null || owner == current;
+    }
+
+    private static void handBackSwitchPause(boolean resume) {
+        Target owner = switchHeld;
+        Object manager = switchManager.get();
+        switchHeld = null;
+        switchManager.clear();
+        if (!resume || owner == null || manager == null || SessionBudget.isLocked()) return;
+        Object controller = owner.controller.get();
+        if (current != owner || !owner.isCurrentCell(controller)
+                || Reflect.invoke(controller, "getPlayerManager") != manager) return;
+        // As in release: playing can still be the state before the queued pause, and the resume
+        // queues behind it.
+        if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))
+                && !Boolean.TRUE.equals(Reflect.invoke(manager, "isPaused"))) return;
+        if (control(manager, false)) log("handed " + owner.awemeId + " back");
+    }
+
+    /** Pauses the current video for a switch or the lock. Answers whether it paused one. */
+    private static boolean pauseForSwitchIfPlaying() {
+        if (!(switchWanted || lockWanted) || SessionBudget.isLocked()) return false;
+        app.morphe.extension.pinedrama.playback.PausePlayback.onPlaybackPageChanged();
+        if (!(switchWanted || lockWanted)) return false;
+        Target target = current;
+        if (target == null) return false;
+        Object controller = target.controller.get();
+        if (!target.isCurrentCell(controller)) return false;
+        Object manager = Reflect.invoke(controller, "getPlayerManager");
+        if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))) return false;
+        if (!control(manager, true)) return false;
+        switchHeld = target;
+        switchManager = new WeakReference<>(manager);
+        return true;
+    }
+
+    private static void observeNativePlayback(Target owner, Object manager, boolean playing) {
+        if (playing) relinquishAfterPlayback(owner, manager);
+        else if (waitingForFocus == owner && heldManager.get() == manager) heldPauseObserved = true;
+    }
+
+    private static void relinquishAfterPlayback(Target owner, Object manager) {
+        if (waitingForFocus == owner && heldManager.get() == manager) forgetHeld();
+    }
+
+    private static void forgetHeld() {
+        waitingForFocus = null;
+        heldPauseObserved = false;
+        held = null;
+        heldManager.clear();
+    }
+
+    /** Hands back only the still-current video this hold paused, while its feed is foreground. */
+    static void release(boolean mayResume) {
+        Target owner = held;
+        Object manager = heldManager.get();
+        if (owner == null) return;
+        Activity activity = Utils.getActivity();
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()
+                || !activity.hasWindowFocus() || !FeedVisibility.isOnFeed(activity)) {
+            forgetHeld();
+            return;
+        }
+        Object controller = owner.controller.get();
+        if (current != owner || !owner.isCurrentCell(controller)
+                || manager == null || Reflect.invoke(controller, "getPlayerManager") != manager) {
+            forgetHeld();
+            return;
+        }
+        // Pause and resume share the native dispatcher. Playing can still be the state before
+        // our queued pause; its matching resume must follow it when the hold is released early.
+        // Read playing first so the PLAYING -> PAUSED transition cannot fall between the checks.
+        if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))) {
+            if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPaused"))) {
+                forgetHeld();
+                return;
+            }
+            heldPauseObserved = true;
+        }
+        if (!mayResume && !hasNativeFocus()) {
+            // Keep this exact weak owner through repeated detach calls until focus can return it.
+            waitingForFocus = owner;
+            return;
+        }
+        forgetHeld();
+        control(manager, false);
+    }
+
+    private static boolean control(Object manager, boolean pause) {
+        if (manager == null) return false;
+        boolean outer = ownCommand;
+        ownCommand = true;
+        try {
+            boolean done = pause ? pauseNative(manager) : resumeNative(manager);
+            if (!done) Logger.printDebug(() -> "The session hold has no native playback control");
+            return done;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "The session hold could not change native playback", failure);
+            return false;
+        } finally {
+            ownCommand = outer;
+        }
+    }
+}

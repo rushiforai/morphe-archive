@@ -8,7 +8,7 @@ conventions the repository follows.
 
 ## What this repository is
 
-- A **Morphe patch bundle** for five Android apps. It contains Kotlin patches that edit
+- A **Morphe patch bundle** for six Android apps. It contains Kotlin patches that edit
   Dalvik bytecode and decoded resources, plus one Java extension that is merged into the
   patched app as extra classes.
 - **Not an app, and not a fork of the apps.** The build output is `patches/build/libs/patches-<version>.mpp`
@@ -28,6 +28,7 @@ conventions the repository follows.
 | NYT Games | `com.nytimes.crossword` | `6.48.0` | `patches/.../nytgames/` |
 | Chess.com | `com.chess` | `4.10.18`, `4.10.23` | `patches/.../chesscom/` + `extensions/chesscom/` |
 | Duolingo | `com.duolingo` | `6.104.3` | `patches/.../duolingo/` |
+| Nova Launcher | `com.teslacoilsw.launcher` | `8.9.5` | `patches/.../nova/` |
 
 ## Repository map
 
@@ -51,8 +52,9 @@ docs/apps/                            per-app technical write-ups
 
 `.tmp/` is the working directory for everything temporary: stock APKs and XAPKs, patched
 outputs, decompiles, harnesses and logs. Keep one folder per app, named after the app
-(`.tmp/chesscom/`, `.tmp/duolingo/`, `.tmp/nytimes_games/`, `.tmp/sleep_as_android/`,
-`.tmp/snorelab/`), instead of dropping files at the top of `.tmp/` or in the repository root.
+(`.tmp/chesscom/`, `.tmp/duolingo/`, `.tmp/nova_launcher/`, `.tmp/nytimes_games/`,
+`.tmp/sleep_as_android/`, `.tmp/snorelab/`), instead of dropping files at the top of `.tmp/`
+or in the repository root.
 It is gitignored: nothing the build needs may live there, and it is never committed.
 
 ## Toolchain
@@ -339,6 +341,7 @@ claim in the PR.
 | NYT Games | Me → Settings reports a Games subscriber; archive opens; bonus puzzle is playable; AMOLED screens are black while WebView games stay dark grey. |
 | Chess.com | Noam's Patches row appears; only selected patches are listed; ads gone; Arrows draws on the board; Stockfish analyses offline (after the patch-time download); optionally clone installs as `com.chess.noam` alongside the stock app. |
 | Duolingo | Fresh install + email login works; Super Dashboard and profile badge; debug options open; one launcher icon; RampUp timer only if the account has a challenge. |
+| Nova Launcher | Settings → version row reads `Nova Prime <version>` instead of `Nova Launcher <version>`; `Prime` badges next to App drawer → Hide apps (and similar rows) are gone and the rows open instead of the subscription screen. |
 
 Record what was **not** exercised (e.g. “MAX variant applied but not installed”, “RampUp
 verified in the patched DEX, account has no challenge”). Be explicit about static-only
@@ -381,10 +384,14 @@ force-stop the app so the next test starts cold.
 ## Git and releases
 
 - Work on `dev` (or a feature branch that merges into it). `main` is stable.
+- **Fetch before you branch and again before you open a PR.** `git status` compares against
+  the cached `origin/dev` ref, not the server, so a clean tree can still be hours behind.
+  Run `git fetch origin` and check `git log --oneline HEAD..origin/dev` first; a stale base is
+  how parallel fixes turn into duplicate commits.
 - Conventional commits drive semantic-release:
   `fix` → patch, `feat` → minor, `perf` → patch, `bump` → “Updated App Support”,
   `build` with scope `Needs bump` → patch, `chore`/`docs`/`ci` → no release.
-- Scopes used here: `chesscom`, `duolingo`, `nytgames`, `sleep`, `snorelab`.
+- Scopes used here: `chesscom`, `duolingo`, `nova`, `nytgames`, `sleep`, `snorelab`.
 - Pushing to `dev` publishes a pre-release (`vX.Y.Z-dev.N`); pushing to `main` publishes a
   stable release. Merge `dev` into `main` with a merge commit — don't squash, the history is
   what semantic-release reads.

@@ -20,6 +20,10 @@ function revokeSelectedSharedNg(){const book=SpreadsheetApp.getActiveSpreadsheet
 function ngJson_(value){return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);}
 function ngHash_(text){return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,text,Utilities.Charset.UTF_8).map(b=>('0'+((b+256)%256).toString(16)).slice(-2)).join('');}
 function ngText_(value){return String(value).normalize('NFKC').replace(/\s+/g,' ').trim();}
+/** Private server configuration; acknowledge ignored reports without persisting them. */
+function ngIgnoredReporters_(){return String(PropertiesService.getScriptProperties().getProperty('IGNORED_REPORTERS')||'').split(/[\s,]+/).filter(value=>/^[a-f0-9]{64}$/.test(value));}
+function ngReporterIgnored_(reporter){return ngIgnoredReporters_().includes(reporter);}
+function ngReviewedCacheKey_(){const ignored=Array.from(new Set(ngIgnoredReporters_())).sort();return 'reviewed-feed-v9'+(ignored.length?':'+ngHash_(JSON.stringify(ignored)):'');}
 function ngValidate_(r){
   if(!r||typeof r.board!=='string'||!/^([a-z0-9.-]+)(:\d+)?(\/[A-Za-z0-9_.-]+)+$/.test(r.board)||r.board.length>300)throw Error('Invalid board');
   if(!['id','wacchoi','keyword'].includes(r.kind)||typeof r.value!=='string'||r.value.length>2000||typeof r.period!=='string')throw Error('Invalid condition');
@@ -96,8 +100,10 @@ function doPost(e){
   const raw=e&&e.postData?e.postData.contents:'';if(raw.length>65536||Utilities.newBlob(raw).getBytes().length>65536)throw Error('Request too large');const body=JSON.parse(raw);
   if(body.version!==1||typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||!Array.isArray(body.reports)||body.reports.length===0||body.reports.length>NG_CONFIG.maxBatch)throw Error('Invalid batch');
   const incoming=body.reports.map(ngValidate_),props=PropertiesService.getScriptProperties(),pepper=props.getProperty('REPORTER_PEPPER');if(!pepper)throw Error('Run setupSharedNg first');
+  const reporter=ngHash_(pepper+':'+body.device);
+  if(ngReporterIgnored_(reporter))return ngJson_({ok:true,accepted:incoming.length,revision:Number(props.getProperty('REVISION')||0)});
   if(props.getProperty('ALLOW_LEGACY_REPORTS')!=='true')throw Error('Legacy reports disabled; use reviewed personal submissions');
-  const reporter=ngHash_(pepper+':'+body.device);lock.waitLock(15000);
+  lock.waitLock(15000);
   const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);ngRecover_(book,props);
   const rulesSheet=book.getSheetByName('Rules'),votesSheet=book.getSheetByName('Votes');
   const rows=ngRows_(rulesSheet),votes=ngRows_(votesSheet),byId=new Map(rows.map((r,i)=>[String(r[0]),i]));

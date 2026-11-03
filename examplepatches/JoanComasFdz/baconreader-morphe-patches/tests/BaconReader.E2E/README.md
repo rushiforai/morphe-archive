@@ -192,8 +192,12 @@ arguments: a Markdown table is `Scores\n\n¦ Player ¦ Score ¦\n¦---¦---¦\n�
 | `post: <subreddit> \| <title>` | a text post |
 | `post with text and image: <subreddit> \| <title> \| <text>` | a text post with an image under its text |
 | `post with text: <subreddit> \| <title> \| <text>` | a text post whose text is that Markdown |
+| `post with flair: <subreddit> \| <title> \| <flair>` | a text post with that flair |
+| `post with silver: <subreddit> \| <title> \| <count>` | a text post given Reddit's Silver that many times |
+| `flairs: <subreddit> \| <flair> \| <flair>…` | the flairs Reddit lists for the subreddit; without it, Reddit keeps them private |
 | `comment: <post title> \| <text>`, `comment with image`, `comment with gif`, `comment with image link`, `comment with video`, `comment with video link` | a comment on the post, and its media |
 | `comment by: <post title> \| <author> \| <text>` | a comment by that user |
+| `comment with silver: <post title> \| <text> \| <count>` | a comment given Reddit's Silver that many times |
 | `comment with table link: <post title> \| <text> \| <link>` | a comment with a table whose cell is a link to an image |
 | `comment with spoiler link: <post title> \| <spoiler>` | a comment that is a spoiler linking to an image |
 | `comments: <post title> \| <count>` | that many comments, "Comment 1" to "Comment &lt;count&gt;" |

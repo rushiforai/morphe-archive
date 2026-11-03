@@ -1,3 +1,47 @@
+# YT-Music personal patches 0.8.0-beta.2
+
+Fixes the **Library VerifyError introduced in 0.8.0-beta.1**. The native content bridge now has separate typed ViewGroup and explicit null returns, with safe fallback for missing/non-container content. Existing Audio/Video downloads, playlist routing and native-player integration are retained; files, lyrics, settings, credentials and chosen-folder grants are unchanged.
+
+Exact experimental original arm64-v8a Music **9.42.52/94252240** and **9.43.51/94351240**, minSDK26. Full Collection only; Shaders and Download playlist optional. In-app playlist batching requires Downloads plus Download playlist. Jam remains 9.42.52-only. Do not combine complete collections. MPP SHA256 `4c1c23dcb54be422c31b88cd9b4bcb16664688a98fb86903a47a33f2d6c0fe34`.
+
+Build/JVM/lint, **8 positive configurations**, **2 missing-Downloads rejections**, catalog/Jam guards and **8 compiled audit groups** pass. New control-flow/register-type analysis reproduces beta.1's bad reference return on both targets and checks all selected bridge returns in the corrected outputs. Four actual-DEX content fixtures per output cover absent root, missing/wrong content and valid container. This is scoped desktop analysis, not complete ART verification.
+
+**820 source/harness checks: 39 fresh normal-logger checks, 781 inherited after exact source-hash validation.** Other production files match beta.1 except the bridge, version, logger version and notice version. Existing renderer/retrieval/playback fixture evidence is inherited rather than described as fresh device testing.
+
+Reopening Library on the Samsung phone remains required acceptance. Native playback/decoder/queue, Audio/Video switching, offline actions, sheet/Downloads appearance, Samsung navigation, Shaders and recording-free lyric smoothness remain phone checks. The approved matching-component catalogue stays inside Library Downloads; the stock offline database is untouched. No MuMu/device, signing, installation, actual media downloading or cleanup operations occurred.
+
+Refresh the beta source with Pre-release patches and Experimental app versions enabled and **repatch a supported original APK**. Refreshing the feed alone does not fix an installed APK. The playlist-header download button uses your configured mode: In-app shows one Audio/Video sheet for the batch; External sends the playlist URL to the selected app; Default retains native handling. Enable Download playlist during patch selection for in-app batching, not as an extra per-download menu step. Existing Enable debug logging / Export debug logs remains available without a timer.
+
+## Prior releases
+
+# YT-Music personal patches 0.8.0-beta.1
+
+Original arm64-v8a Music **9.42.52/94252240** and **9.43.51/94351240**, minSDK26. Full Collection only; Shaders and Download playlist optional. In-app playlist batches require Downloads and Download playlist. Jam remains 9.42.52-only. Do not combine complete collections. MPP SHA256 `295e7be5d92ce91d5064b75d30e9c6cd1067ff5f4fd18c78d872b1fe880d0101`.
+
+Fixes the constructor receiver clobber and invalid-owner poisoning. Adds the Audio/Video sheet, dual-stream saved media, durable range recovery, shared progress/status icons and native-watch playback. Owned downloads render inside the existing Library Downloads destination using the approved native-component fallback. The native offline database/provider is not altered. Default account handling and native authorization rejection are preserved. Existing files, lyrics, credentials, preferences and chosen-folder grants remain.
+
+Build/JVM/lint, **12 positive selections** and **2 missing-Downloads rejections**, catalog/Jam guards, compiled feature/access/reference, Lyrics, media, settings, target/context and receiver-flow audits pass. **820 source/harness checks: 549 fresh, 271 inherited after source-hash validation.** The receiver audit reproduces the broken previous release on both targets. Android views/codecs/auth/client and launch boundaries are simulated in fixtures; actual APK contracts are audited separately. This is not phone acceptance.
+
+Phone acceptance remains for quality-sheet appearance/insets, Library, native mini-player expansion, actual decoding/Audio-Video switching, queue shuffle/repeat, online/offline transitions and native offline network-action states. Existing Samsung navigation/Shaders and recording-free Lyrics performance remain device checks. No universal zero-stutter or pixel-parity claim. No MuMu, signing, installation, actual media downloading or cleanup.
+
+Refresh the source with Pre-release patches and Experimental app versions enabled, then repatch an original supported APK. **Morphe → Player → Downloads → In-app** opens the quality sheet; External keeps the selected app's review flow. Enable Download playlist for whole-playlist batches. **Library → Downloads** opens the integrated destination. Use the existing Enable debug logging / Export debug logs; no timer.
+
+## Prior releases
+
+# YT-Music personal patches 0.7.0-beta.5
+
+Fixes the download identity defect exposed by the latest phone log. The app supplies no endpoint tag for these actions. Downloads now binds to the native action-bar/header containers, reads their actual recording/header model, decodes escaped playlist entity keys, and captures the result before worker dispatch. Flyout IDs are scoped to the popup's lifetime. A later track/page change cannot retarget a captured click. Ambiguous/unsupported identities are rejected; no global Now Playing substitution.
+
+Existing In-app and External settings, prompt and selected-app review flow are retained. Default keeps native account/eligibility handling. Existing preferences, music files, credentials, permanent lyrics and folder grants are preserved. Full Collection only; optional Shaders and Download playlist. In-app playlist batches require Downloads and Download playlist. External playlist handoff works without personal Lyrics or the optional batching patch. Jam remains9.42.52-only.
+
+Exact original arm64 Music **9.42.52/94252240** and **9.43.51/94351240**, minSDK26. Build/JVM/lint, six positive configurations, two missing-Downloads rejections, catalog/Jam guards and compiled feature/access/reference, Lyrics, media/settings/tag and new owner/dispatcher audits pass. **656 source/harness checks:129 fresh,527 inherited by source hashes.** Exact published beta.4 reproduces both absent-tag failures. Source fixtures simulate Android/UI/native getter and downloader/app-launch boundaries; concrete adapters are separately audited in target DEX. Browser/provider evidence is inherited with unchanged executable sources.
+
+Phone click ownership, prompt/handoff appearance, native decoding/queue/SAF, Samsung graphics/navigation and recording-free lyric performance remain acceptance checks. No universal button or zero-stutter guarantee. No devices/MuMu/sign/install/uninstall, actual media downloads or cleanup. Existing format/metadata/SponsorBlock sidecar limitations remain. Raw logs/vendor fixtures remain private. Shared Toolkit in place.
+
+Refresh the source with Pre-release patches and Experimental app versions enabled, then repatch an original supported APK. Settings: **Morphe > Player > Downloads**. In-app opens the audio prompt; External uses the existing selected app's review flow. The normal Enable debug logging / Export debug logs includes owner-match and bounded sender ancestry diagnostics; no timer.
+
+## Prior releases
+
 # YT-Music personal patches 0.7.0-beta.4
 
 Adds the missing client-generated download-action path exposed by the phone log. Empty command443434441 keeps its identity in tagged native context, rather than encoded133724106 parameters. APK-selected native recording/playlist getters now resolve that context through owned adapters, without reflection or Now Playing substitution. External playlist actions retain original-playlist/folder tracking. Explicit row recordings win over associated playlists; raw11-character recording IDs, including PL-prefixed IDs, remain recordings.

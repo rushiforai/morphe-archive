@@ -90,6 +90,7 @@ public class ViewerTopBarTest {
     public void tearDown() {
         PauseForTests.resume();
         Settings.HIDE_VIEWER_TOP_BUTTONS.resetToDefault();
+        Settings.HIDE_REELS_TAB_TITLE.resetToDefault();
         ViewerTopBar.reset();
         HookStatus.clear();
     }
@@ -106,6 +107,31 @@ public class ViewerTopBarTest {
         assertTrue(reported(ViewerTopBar.HIDDEN));
     }
 
+    /** #362: the text of the tab's title sits in a host of its own beside Menu. */
+    @Test
+    public void theReelsTitleGoesOnTheTabAndNothingElseDoes() {
+        ComponentHost title = new ComponentHost(activity);
+        place(row, title, 160, 98, 360, 199);
+        layOut();
+        assertEquals(0, ViewerTopBar.tidy(bar, true));
+        assertEquals("the title went with its switch off", View.VISIBLE, title.getVisibility());
+
+        Settings.HIDE_REELS_TAB_TITLE.save(true);
+        assertEquals("a bar that isn't the tab's lost its title", 0, ViewerTopBar.tidy(bar));
+        assertEquals(View.VISIBLE, title.getVisibility());
+
+        assertEquals("only the buttons count", 0, ViewerTopBar.tidy(bar, true));
+        assertEquals(View.INVISIBLE, title.getVisibility());
+        assertEquals("Menu went with the title", View.VISIBLE, back.getVisibility());
+        assertEquals("Search went with the title", View.VISIBLE, search.getVisibility());
+        assertEquals(View.VISIBLE, profile.getVisibility());
+        assertTrue(reported(ViewerTopBar.TITLE_HIDDEN));
+
+        Settings.HIDE_REELS_TAB_TITLE.save(false);
+        ViewerTopBar.tidy(bar, true);
+        assertEquals("the title stayed away with the switch off", View.VISIBLE, title.getVisibility());
+    }
+
     @Test
     public void theOpenScreenTakesTheButtonsAfterALayout() {
         Settings.HIDE_VIEWER_TOP_BUTTONS.save(true);
@@ -119,7 +145,8 @@ public class ViewerTopBarTest {
     }
 
     @Test
-    public void theReelsTabsHeaderIsLeftAlone() {
+    public void theReelsTabsHeaderLosesSearchAndTheProfileButtonAndKeepsMenu() {
+        // #346: the tab's header is the same bar inside the tab pages, Menu where Back would be.
         Settings.HIDE_VIEWER_TOP_BUTTONS.save(true);
         Activity main = Robolectric.buildActivity(Activity.class).setup().get();
         ComponentHost[] header = reelsTab(main);
@@ -128,6 +155,12 @@ public class ViewerTopBarTest {
         layOut(main);
 
         assertEquals(View.VISIBLE, header[0].getVisibility());
+        assertEquals(View.INVISIBLE, header[1].getVisibility());
+        assertEquals(View.INVISIBLE, header[2].getVisibility());
+
+        Settings.HIDE_VIEWER_TOP_BUTTONS.save(false);
+        layOut(main);
+
         assertEquals(View.VISIBLE, header[1].getVisibility());
         assertEquals(View.VISIBLE, header[2].getVisibility());
     }
@@ -154,8 +187,8 @@ public class ViewerTopBarTest {
         assertEquals(View.VISIBLE, playerBack.getVisibility());
         assertEquals(View.INVISIBLE, playerSearch.getVisibility());
         assertEquals(View.INVISIBLE, playerMore.getVisibility());
-        assertEquals(View.VISIBLE, header[1].getVisibility());
-        assertEquals(View.VISIBLE, header[2].getVisibility());
+        assertEquals(View.VISIBLE, header[0].getVisibility());
+        assertEquals(View.INVISIBLE, header[1].getVisibility());
     }
 
     @Test

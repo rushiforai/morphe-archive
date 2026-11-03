@@ -18,12 +18,15 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.czyeru.extension.shared.Logger;
@@ -42,6 +45,11 @@ public final class ListSearch {
     /** Decides whether a list item stays visible. The query is already folded (see {@link #fold}). */
     public interface Matcher {
         boolean keep(Object item, String query);
+    }
+
+    /** Told about every query change. The query is the trimmed text as typed (not folded). */
+    public interface QueryListener {
+        void onQuery(View recyclerView, String query);
     }
 
     private static final int SEARCH_HEIGHT_DP = 40;
@@ -68,6 +76,11 @@ public final class ListSearch {
         int shownSize;
         String query = "";
         boolean reapplyPosted;
+        boolean autoLoad;
+        /** Source size when the last page was requested, so each page is requested once. */
+        int loadRequestedSize = -1;
+        /** Items found elsewhere (server search) for the current query, shown after the matches. */
+        List extras;
     }
 
     // region Install
@@ -77,12 +90,20 @@ public final class ListSearch {
      * the list's parent is a FrameLayout, or {@link #installWrapped} otherwise.
      */
     public static void install(View recyclerView, View root, String hint, Matcher matcher) {
-        if (recyclerView == null) {
+        install(recyclerView, recyclerView, root, hint, matcher);
+    }
+
+    /**
+     * @param anchor the view the bar is placed above: the list, or a container that must stay
+     *               the list's only child (TikTok's pull-to-refresh layout)
+     */
+    public static void install(View anchor, View recyclerView, View root, String hint, Matcher matcher) {
+        if (anchor == null || recyclerView == null) {
             return;
         }
-        ViewParent parent = recyclerView.getParent();
+        ViewParent parent = anchor.getParent();
         if (parent instanceof FrameLayout) {
-            installOverlay(recyclerView, root, hint, matcher);
+            installOverlay(anchor, recyclerView, root, hint, matcher, false, null);
         } else if (parent instanceof ViewGroup) {
             installWrapped(recyclerView, hint, matcher);
         }
@@ -95,8 +116,27 @@ public final class ListSearch {
      * @param root optional fragment root, used by {@link #onResume(Object)} to find the list
      */
     public static void installOverlay(View recyclerView, View root, String hint, Matcher matcher) {
+        installOverlay(recyclerView, recyclerView, root, hint, matcher, false, null);
+    }
+
+    /**
+     * @param autoLoad while a query is typed, keep asking the adapter's load-more listener for
+     *                 the next page, so items that were never scrolled to are searched too
+     */
+    public static void installOverlay(View recyclerView, View root, String hint, Matcher matcher, boolean autoLoad) {
+        installOverlay(recyclerView, recyclerView, root, hint, matcher, autoLoad, null);
+    }
+
+    /** @param queryListener optional, told about every query change (see {@link #setExtraItems}) */
+    public static void installOverlay(View recyclerView, View root, String hint, Matcher matcher,
+                                      boolean autoLoad, QueryListener queryListener) {
+        installOverlay(recyclerView, recyclerView, root, hint, matcher, autoLoad, queryListener);
+    }
+
+    private static void installOverlay(View anchor, View recyclerView, View root, String hint,
+                                       Matcher matcher, boolean autoLoad, QueryListener queryListener) {
         try {
-            ViewParent parent = recyclerView.getParent();
+            ViewParent parent = anchor.getParent();
             if (!(parent instanceof FrameLayout)) {
                 Logger.printDebug(() -> "List search: unsupported list parent " + parent);
                 return;
@@ -110,7 +150,7 @@ public final class ListSearch {
             int margin = dp(context, SEARCH_MARGIN_DP);
             int gap = dp(context, SEARCH_GAP_DP);
 
-            EditText search = createSearchBox(recyclerView, hint, matcher, false);
+            EditText search = createSearchBox(recyclerView, hint, matcher, false, autoLoad, queryListener);
             FrameLayout.LayoutParams searchParams = new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     searchHeight,
@@ -121,10 +161,10 @@ public final class ListSearch {
             searchParams.topMargin = gap;
             ((FrameLayout) parent).addView(search, searchParams);
 
-            ViewGroup.LayoutParams params = recyclerView.getLayoutParams();
+            ViewGroup.LayoutParams params = anchor.getLayoutParams();
             if (params instanceof ViewGroup.MarginLayoutParams) {
                 ((ViewGroup.MarginLayoutParams) params).topMargin += searchHeight + gap;
-                recyclerView.setLayoutParams(params);
+                anchor.setLayoutParams(params);
             }
 
             searchBars.put(recyclerView, Boolean.TRUE);
@@ -166,7 +206,7 @@ public final class ListSearch {
             int margin = dp(context, SEARCH_MARGIN_DP);
             int gap = dp(context, SEARCH_GAP_DP);
 
-            EditText search = createSearchBox(recyclerView, hint, matcher, rebuilds);
+            EditText search = createSearchBox(recyclerView, hint, matcher, rebuilds, false, null);
 
             int index = parent.indexOfChild(recyclerView);
             ViewGroup.LayoutParams listParams = recyclerView.getLayoutParams();
@@ -203,7 +243,8 @@ public final class ListSearch {
         }
     }
 
-    private static EditText createSearchBox(View recyclerView, String hint, Matcher matcher, boolean rebuilds) {
+    private static EditText createSearchBox(View recyclerView, String hint, Matcher matcher,
+                                            boolean rebuilds, boolean autoLoad, QueryListener queryListener) {
         Context context = recyclerView.getContext();
         boolean dark = isDarkMode(context);
 
@@ -242,7 +283,14 @@ public final class ListSearch {
 
             @Override
             public void afterTextChanged(Editable s) {
-                applyQuery(recyclerView, s.toString(), matcher, rebuilds);
+                applyQuery(recyclerView, s.toString(), matcher, rebuilds, autoLoad);
+                if (queryListener != null) {
+                    try {
+                        queryListener.onQuery(recyclerView, s.toString().trim());
+                    } catch (Throwable throwable) {
+                        Logger.printException(() -> "List search query listener failed", throwable);
+                    }
+                }
             }
         });
         return search;
@@ -318,7 +366,7 @@ public final class ListSearch {
 
     // region Filtering
 
-    private static void applyQuery(View recyclerView, String query, Matcher matcher, boolean rebuilds) {
+    private static void applyQuery(View recyclerView, String query, Matcher matcher, boolean rebuilds, boolean autoLoad) {
         try {
             Object adapter = invoke(recyclerView, "getAdapter");
             if (adapter == null) {
@@ -333,7 +381,12 @@ public final class ListSearch {
             state.listRef = new WeakReference<>(recyclerView);
             state.matcher = matcher;
             state.rebuilds = rebuilds;
-            state.query = query == null ? "" : fold(query.trim());
+            state.autoLoad = autoLoad;
+            String folded = query == null ? "" : fold(query.trim());
+            if (!folded.equals(state.query)) {
+                state.extras = null;
+            }
+            state.query = folded;
             applyFilter(adapter, state);
         } catch (Throwable throwable) {
             Logger.printException(() -> "List search failed", throwable);
@@ -352,15 +405,24 @@ public final class ListSearch {
             state.full = new ArrayList(current);
         } else if (current != null && state.full != null && current.size() != state.shownSize) {
             // TikTok changed the list we set. Mirror its additions and removals in the source list.
+            // Hash sets keep this linear: List.contains in both loops was quadratic on big lists.
             if (state.shownSnapshot != null) {
+                Set currentItems = new HashSet(current);
+                Set removed = new HashSet();
                 for (Object item : state.shownSnapshot) {
-                    if (!current.contains(item)) {
-                        state.full.remove(item);
+                    if (!currentItems.contains(item)) {
+                        removed.add(item);
                     }
                 }
+                if (!removed.isEmpty()) {
+                    state.full.removeAll(removed);
+                }
             }
+            Set fullItems = new HashSet(state.full);
+            Set extraKeys = keysOf(state.extras);
             for (Object item : current) {
-                if (!state.full.contains(item)) {
+                // Extras are shown in our list but are not TikTok's items: keep them out of the source.
+                if ((extraKeys.isEmpty() || !extraKeys.contains(keyOf(item))) && fullItems.add(item)) {
                     state.full.add(item);
                 }
             }
@@ -378,12 +440,76 @@ public final class ListSearch {
             }
         }
 
+        if (next != null && next != state.full && state.extras != null) {
+            Set shownKeys = keysOf(next);
+            for (Object extra : state.extras) {
+                if (shownKeys.add(keyOf(extra))) {
+                    next.add(extra);
+                }
+            }
+        }
+
         if (next != current) {
             setAdapterList(adapter, state, next);
         }
         state.shown = next;
         state.shownSize = next == null ? 0 : next.size();
         state.shownSnapshot = next == null || next == state.full ? null : new ArrayList(next);
+
+        if (state.query.isEmpty()) {
+            state.loadRequestedSize = -1;
+        } else if (state.autoLoad && state.full != null && state.full.size() != state.loadRequestedSize) {
+            // A new page arrived (or the search just started): ask for the next one. TikTok
+            // ignores the call while a page is loading or when there are no more pages.
+            state.loadRequestedSize = state.full.size();
+            requestNextPage(adapter);
+        }
+    }
+
+    /**
+     * Shows items found elsewhere (server search) after the matches, while the query is still
+     * the one they were found for. Items already shown (same video id) are not added twice.
+     */
+    public static void setExtraItems(View recyclerView, String query, List items) {
+        try {
+            Object adapter = invoke(recyclerView, "getAdapter");
+            FilterState state = adapter == null ? null : filterStates.get(adapter);
+            if (state == null || query == null || state.query.isEmpty()
+                    || !state.query.equals(fold(query.trim()))) {
+                return;
+            }
+            state.extras = items == null || items.isEmpty() ? null : new ArrayList(items);
+            applyFilter(adapter, state);
+        } catch (Throwable throwable) {
+            Logger.printException(() -> "List search: extra items failed", throwable);
+        }
+    }
+
+    /** Video id for videos (two Aweme objects of one video differ in equals), the item itself otherwise. */
+    private static Object keyOf(Object item) {
+        Object id = item == null ? null : invoke(item, "getAid");
+        return id != null ? id : item;
+    }
+
+    private static Set keysOf(List items) {
+        Set keys = new HashSet();
+        if (items != null) {
+            for (Object item : items) {
+                keys.add(keyOf(item));
+            }
+        }
+        return keys;
+    }
+
+    /** Calls the adapter's load-more listener, the same one TikTok calls when the list is scrolled to the end. */
+    public static void requestNextPage(Object adapter) {
+        Object listener = readField(adapter, "mmLoadMoreListener");
+        if (listener == null) {
+            Logger.printDebug(() -> "List search: no load-more listener on " + adapter);
+            return;
+        }
+        // Post: the caller may be inside a text change or a bind.
+        app.czyeru.extension.shared.Utils.runOnMainThread(() -> invoke(listener, "loadMore"));
     }
 
     private static List getAdapterList(Object adapter, FilterState state) {
@@ -468,8 +594,14 @@ public final class ListSearch {
         if (text == null || text.isEmpty()) {
             return false;
         }
-        String haystack = fold(text);
-        for (String word : query.split("\\s+")) {
+        return foldedContainsAllWords(fold(text), queryWords(query));
+    }
+
+    private static boolean foldedContainsAllWords(String haystack, String[] words) {
+        if (haystack == null || haystack.isEmpty()) {
+            return false;
+        }
+        for (String word : words) {
             if (!word.isEmpty() && !haystack.contains(word)) {
                 return false;
             }
@@ -477,16 +609,92 @@ public final class ListSearch {
         return true;
     }
 
+    // Main thread only. Splitting with a regex for every field of every item was the main cost.
+    private static String lastQuery;
+    private static String[] lastQueryWords;
+
+    private static String[] queryWords(String query) {
+        if (!query.equals(lastQuery)) {
+            lastQueryWords = query.split("\\s+");
+            lastQuery = query;
+        }
+        return lastQueryWords;
+    }
+
+    /** Reads the searchable texts of an item, already folded (see {@link #fold}). Nulls are allowed. */
+    public interface TextReader {
+        String[] read(Object item);
+    }
+
+    /**
+     * Folded texts per item, read once so a keystroke only runs String.contains.
+     * Keyed by instance: TikTok's equals compares mutable fields (Aweme) or is not paired with
+     * a matching hashCode (MusNotice), so a lookup also checks that it found the same object.
+     */
+    public static final class TextCache {
+        private static final class Entry {
+            final WeakReference<Object> item;
+            final String[] texts;
+
+            Entry(Object item, String[] texts) {
+                this.item = new WeakReference<>(item);
+                this.texts = texts;
+            }
+        }
+
+        private final Map<Object, Entry> entries = new WeakHashMap<>();
+
+        public String[] get(Object item, TextReader reader) {
+            Entry entry = entries.get(item);
+            if (entry != null && entry.item.get() == item) {
+                return entry.texts;
+            }
+            String[] texts = reader.read(item);
+            entries.put(item, new Entry(item, texts));
+            return texts;
+        }
+    }
+
+    /** True when one of the folded texts of the item contains every word of the folded query. */
+    public static boolean anyTextMatches(Object item, String query, TextCache cache, TextReader reader) {
+        if (query.isEmpty()) {
+            return true;
+        }
+        if (item == null) {
+            return false;
+        }
+        String[] words = queryWords(query);
+        for (String text : cache.get(item, reader)) {
+            if (foldedContainsAllWords(text, words)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static final TextCache awemeTexts = new TextCache();
+
+    private static final TextReader AWEME_TEXTS = aweme -> {
+        Object author = call(aweme, "getAuthor");
+        return new String[]{
+                foldOrNull(call(aweme, "getDesc")),
+                foldOrNull(call(aweme, "getTitle")),
+                foldOrNull(call(author, "getNickname")),
+                foldOrNull(call(author, "getUniqueId")),
+        };
+    };
+
     /**
      * Matches a video (Aweme) by description, title, creator name or creator username.
      * Aweme and User keep their real getter names.
      */
     public static boolean awemeMatches(Object aweme, String query) {
-        Object author = call(aweme, "getAuthor");
-        return containsAllWords(text(call(aweme, "getDesc")), query)
-                || containsAllWords(text(call(aweme, "getTitle")), query)
-                || containsAllWords(text(call(author, "getNickname")), query)
-                || containsAllWords(text(call(author, "getUniqueId")), query);
+        return anyTextMatches(aweme, query, awemeTexts, AWEME_TEXTS);
+    }
+
+    /** {@link #fold} of a String, or null for anything else. */
+    public static String foldOrNull(Object value) {
+        return value instanceof String ? fold((String) value) : null;
     }
 
     /**
@@ -538,6 +746,22 @@ public final class ListSearch {
             Class<?>[] params = m.getParameterTypes();
             if (params.length == 2 && java.util.Collection.class.isAssignableFrom(params[0]) && Runnable.class.isAssignableFrom(params[1])) {
                 return m;
+            }
+        }
+        return null;
+    }
+
+    /** Reads a field declared on the object's class or a superclass. Returns null on any failure. */
+    private static Object readField(Object target, String name) {
+        for (Class<?> type = target.getClass(); type != null; type = type.getSuperclass()) {
+            try {
+                Field field = type.getDeclaredField(name);
+                field.setAccessible(true);
+                return field.get(target);
+            } catch (NoSuchFieldException ignored) {
+                // Check the superclass.
+            } catch (Throwable throwable) {
+                return null;
             }
         }
         return null;

@@ -1,3 +1,9 @@
+## [0.30.47](https://github.com/Forsigh/waze-patches/compare/v0.30.46...v0.30.47) (2026-11-02)
+
+### Fixed
+
+* **Speedometer & limit sign** on Waze 5.26.90.901 - the beta moved the speedometer cluster, so the row now finds it again instead of failing when a size is picked
+
 ## [0.30.46](https://github.com/Forsigh/waze-patches/compare/v0.30.45...v0.30.46) (2026-11-01)
 
 ### Fixed

@@ -302,8 +302,8 @@ public class DexDiff {
             Map.entry("answers", 4), Map.entry("settings", 3), Map.entry("firebaseCertificate", 1), Map.entry("activityNotifications", 7),
             Map.entry("settingsRow", 3), Map.entry("featureSwitch", 4), Map.entry("timelineList", 7), Map.entry("timelinePaging", 5),
             Map.entry("timelineCarousel", 3), Map.entry("paidPostBridge", 6), Map.entry("postJsonPresence", 3), Map.entry("imageDescriptions", 10), Map.entry("reviewPrompt", 3),
-            Map.entry("blogNotificationReminder", 2), Map.entry("giftMessagePopup", 3), Map.entry("postLine", 3), Map.entry("fontChoice", 6),
-            Map.entry("followButton", 3), Map.entry("footerButton", 3), Map.entry("postTags", 5),
+            Map.entry("blogNotificationReminder", 2), Map.entry("giftMessagePopup", 3), Map.entry("postLine", 3), Map.entry("videoLinkPress", 6), Map.entry("fontChoice", 6),
+            Map.entry("followButton", 5), Map.entry("footerButton", 3), Map.entry("postTags", 5),
             Map.entry("noteCounts", 6), Map.entry("unreadDots", 2), Map.entry("nativeTimestamps", 6), Map.entry("bottomBarTabs", 3),
             Map.entry("darkBackground", 9), Map.entry("storeButtons", 5), Map.entry("accountIdentity", 10),
             Map.entry("matureContent", 12), Map.entry("rootPostMutes", 10), Map.entry("mutualMarkers", 13));
@@ -5230,7 +5230,90 @@ public class DexDiff {
             capability(c.callee, shaped);
         }
 
-        /** The post header's Follow button check, which the header's Follow action test calls, answering yes first when asked. */
+        /**
+         * A video in a post hands its container and address over right after the binder builds the
+         * video's details, and the timeline controls' long-press listener, set up from the controls'
+         * inflater, goes through the extension before the controls take it.
+         */
+        void videoLinkPress(Contract c) {
+            String details = c.strings.get(3), container = c.strings.get(4), block = c.strings.get(5);
+            List<Method> binders = new ArrayList<>(), inflaters = new ArrayList<>();
+            for (Method m : tumblrMethods()) {
+                if (isStatic(m)) continue;
+                List<Instruction> body = instructions(m);
+                if (m.getReturnType().equals("V") && m.getParameterTypes().stream().anyMatch(p -> p.toString().equals(block))
+                        && !callSites(body, details).isEmpty() && body.stream().anyMatch(i -> readsContainer(i, container))) binders.add(m);
+                if (descriptor(m).equals("(Landroid/content/Context;)Landroid/view/View;")
+                        && body.stream().anyMatch(i -> names(field(i), c.strings.get(2)))) inflaters.add(m);
+            }
+            Method oldBinder = unique(binders, "the post video binder");
+            Method inflater = unique(inflaters, "the timeline video controls' inflater");
+            Method oldControls = null;
+            if (inflater != null) {
+                Set<String> setups = new TreeSet<>();
+                for (Instruction i : instructions(inflater)) {
+                    MethodReference r = called(i);
+                    if (r != null && r.getDefiningClass().equals(inflater.getDefiningClass()) && descriptor(r).equals("(Landroid/view/View;)V"))
+                        setups.add(r.toString());
+                }
+                List<Method> found = new ArrayList<>();
+                for (String key : setups) if (clean.methods.get(key) != null) found.add(clean.methods.get(key));
+                oldControls = setups.size() == 1 ? unique(found, "the controls' setup") : unique(List.of(), "the controls' setup");
+            }
+            if (oldBinder == null || oldControls == null) { capability(c.callee, false); return; }
+
+            List<Instruction> was = instructions(oldBinder);
+            List<Integer> built = callSites(was, details);
+            List<Integer> made = built.size() == 1 ? arguments(was.get(built.get(0))) : List.of();
+            int address = made.size() == 4 ? made.get(1) : -1;
+            int read = address < 0 ? -1 : firstIndex(was, built.get(0) + 1, i -> readsContainer(i, container));
+            int holder = read < 0 ? -1 : firstRegister(was.get(read));
+            Method binder = actual(oldBinder);
+            List<Integer> binds = calls(binder, c.strings.get(0), 1);
+            boolean bound = read > 0 && holder != address && !writtenBetween(was, built.get(0) + 1, read, address)
+                    && binds.size() == 1 && binds.get(0) == read + 1
+                    && arguments(instructions(binder).get(read + 1)).equals(List.of(holder, address));
+            if (bound) {
+                fallthroughOnly(oldBinder, read + 1, "the video address hook");
+                remove(binder, read + 1, read + 2);
+                vouch(binder, read + 1, List.of(holder, address));
+            } else fail("the video address hook doesn't follow the container read with the container and the address in " + oldBinder);
+
+            List<Instruction> setup = instructions(oldControls);
+            List<Integer> sets = new ArrayList<>();
+            for (int k = 0; k < setup.size(); k++) {
+                MethodReference r = called(setup.get(k));
+                if (r != null && r.getName().equals("setOnLongClickListener") && descriptor(r).equals("(Landroid/view/View$OnLongClickListener;)V")) sets.add(k);
+            }
+            Method controls = actual(oldControls);
+            List<Integer> presses = calls(controls, c.strings.get(1), 1);
+            List<Integer> passed = sets.size() == 1 ? arguments(setup.get(sets.get(0))) : List.of();
+            int listener = passed.size() == 2 ? passed.get(1) : -1;
+            boolean pressed = listener >= 0 && presses.size() == 1 && presses.get(0).equals(sets.get(0));
+            if (pressed) {
+                int at = presses.get(0);
+                List<Instruction> body = instructions(controls);
+                Instruction set = setup.get(at);
+                pressed = arguments(body.get(at)).equals(List.of(listener)) && movesTo(get(body, at + 1), listener, Opcode.MOVE_RESULT_OBJECT)
+                        && callIs(get(body, at + 2), set.getOpcode(), String.valueOf(reference(set)), passed.toArray(new Integer[0]));
+                if (pressed) {
+                    fallthroughOnly(oldControls, at, "the long-press hook");
+                    remove(controls, at, at + 2);
+                    vouch(controls, at, List.of(listener));
+                }
+            }
+            if (!pressed) fail("the long-press hook doesn't hand the controls' listener through in " + oldControls);
+            capability(c.callee, bound && pressed);
+        }
+
+        static boolean readsContainer(Instruction i, String container) {
+            return i.getOpcode() == Opcode.IGET_OBJECT && field(i) != null && field(i).getType().equals(container);
+        }
+
+        /**
+         * The post header's Follow button check, which the header's Follow action test calls, answering
+         * yes first when asked, and the reblog trail's Follow button handed its entry through the trail hook.
+         */
         void followButton(Contract c) {
             String header = c.strings.get(1);
             ClassDef view = clean.classes.get(header);
@@ -5253,7 +5336,68 @@ public class DexDiff {
             }
             Tail yes = (body, from) -> body.get(from).getOpcode() == Opcode.CONST_4 && ((NarrowLiteralInstruction) body.get(from)).getNarrowLiteral() == 1
                     && body.get(from + 1).getOpcode() == Opcode.RETURN && firstRegister(body.get(from + 1)) == firstRegister(body.get(from));
-            capability(c.callee, old != null && guardFirst(old, c.strings.get(0), List.of(), 2, yes));
+            boolean found = old != null && guardFirst(old, c.strings.get(0), List.of(), 2, yes);
+            found &= trailFollow(c.strings.get(3), c.strings.get(4));
+            capability(c.callee, found);
+        }
+
+        /**
+         * The method that shows a reblog trail entry's Follow button: it takes [header], asks it for
+         * the view its constructors keep from header_cta, sets a view's visibility more than once and
+         * tests one object parameter, the entry. [hook] handed that entry first thing, its answer
+         * moved back over the entry and cast to the entry's type.
+         */
+        boolean trailFollow(String hook, String header) {
+            ClassDef view = clean.classes.get(header);
+            if (view == null) { fail("Tumblr's " + header + " is absent"); return false; }
+            Set<String> kept = new TreeSet<>();
+            for (Method m : view.getMethods()) if (m.getName().equals("<init>") && m.getImplementation() != null) {
+                List<Instruction> body = instructions(m);
+                int id = firstIndex(body, 0, i -> i.getOpcode() == Opcode.SGET && names(field(i), VIEW_IDS + "->header_cta"));
+                FieldReference put = field(get(body, firstIndex(body, id, i -> i.getOpcode() == Opcode.IPUT_OBJECT)));
+                if (put != null && put.getDefiningClass().equals(header)) kept.add(put.getName() + ":" + put.getType());
+            }
+            if (kept.size() != 1) { fail("the reblog header's Follow button field has " + kept.size() + " clean targets, expected 1"); return false; }
+            String button = kept.iterator().next();
+            List<Method> getters = new ArrayList<>();
+            for (Method m : view.getMethods()) if (!isStatic(m) && m.getParameterTypes().isEmpty() && m.getImplementation() != null) {
+                List<Instruction> body = instructions(m);
+                FieldReference read = field(get(body, 0));
+                if (body.size() == 2 && body.get(0).getOpcode() == Opcode.IGET_OBJECT && read != null
+                        && button.equals(read.getName() + ":" + read.getType()) && body.get(1).getOpcode() == Opcode.RETURN_OBJECT) getters.add(m);
+            }
+            Method getter = unique(getters, "the reblog header's Follow button getter");
+            if (getter == null) return false;
+            List<Method> showers = new ArrayList<>();
+            for (Method m : tumblrMethods()) {
+                if (m.getParameterTypes().stream().noneMatch(p -> p.toString().equals(header))) continue;
+                List<Instruction> body = instructions(m);
+                if (body.stream().anyMatch(i -> isCall(i, header, getter.getName(), "()" + getter.getReturnType()))
+                        && body.stream().filter(i -> isCall(i, "Landroid/view/View;", "setVisibility", "(I)V")).count() > 1) showers.add(m);
+            }
+            Method old = unique(showers, "the method that shows a reblog trail entry's Follow button");
+            if (old == null) return false;
+            List<Instruction> was = instructions(old);
+            List<Integer> entries = new ArrayList<>();
+            for (int k = 0; k < old.getParameterTypes().size(); k++) {
+                String type = old.getParameterTypes().get(k).toString();
+                int register = parameter(old, k);
+                if (type.startsWith("L") && !type.equals(header) && was.stream().anyMatch(i ->
+                        (i.getOpcode() == Opcode.IF_EQZ || i.getOpcode() == Opcode.IF_NEZ) && firstRegister(i) == register)) entries.add(k);
+            }
+            if (entries.size() != 1) { fail("the trail entry the Follow button is shown for has " + entries.size() + " clean targets, expected 1"); return false; }
+            int entry = parameter(old, entries.get(0));
+            String type = old.getParameterTypes().get(entries.get(0)).toString();
+            Method m = actual(old);
+            if (!hookAt(old, m, 0, hook, List.of(entry), entry, List.of())) return false;
+            int at = callSites(instructions(m), hook).get(0);
+            Instruction cast = get(instructions(m), at + 2);
+            if (!movesTo(cast, entry, Opcode.CHECK_CAST) || !type.equals(String.valueOf(reference(cast)))) {
+                fail(hook + "'s answer isn't cast back to " + type + " in " + m);
+                return false;
+            }
+            remove(m, at + 2, at + 3);
+            return true;
         }
 
         /** The footer function Compose names [control], found by its source note. */
@@ -6071,6 +6215,7 @@ public class DexDiff {
                     case "blogNotificationReminder": blogNotificationReminder(c); break;
                     case "giftMessagePopup": giftMessagePopup(c); break;
                     case "postLine": postLine(c); break;
+                    case "videoLinkPress": videoLinkPress(c); break;
                     case "fontChoice": fontChoice(c); break;
                     case "followButton": followButton(c); break;
                     case "footerButton": footerButton(c); break;

@@ -23,7 +23,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
-import dev.utaa.linimal.patches.features.readreceipts.readReceiptSupplierPreparationPatch
+import dev.utaa.linimal.patches.features.readreceipts.readReceiptExplicitMarkAsReadPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
@@ -33,17 +33,17 @@ import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 import dev.utaa.linimal.patches.status.unsafeFeatureStatus
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
-private const val DEBUG_METADATA = "Llb8/e;"
-private const val PERFORMANCE_AD_MODEL = "Lyj2/c;"
-private const val FLOW_COLLECTOR = "Lze8/j;"
+private const val DEBUG_METADATA = "Ldt8/f;"
+private const val PERFORMANCE_AD_MODEL = "Llw2/c;"
+private const val FLOW_COLLECTOR = "Luw8/j;"
 private const val FLOW_CONTINUATION = "Lkotlin/coroutines/Continuation;"
 private const val FLOW_EMIT = "emit"
-private const val SINGLETON_LIST_OWNER = "Leb8/v;"
+private const val SINGLETON_LIST_OWNER = "Lws8/t;"
 private const val SINGLETON_LIST_METHOD = "i"
 private const val GCS_AD_LIST_METHOD = "g"
 private const val LIST = "Ljava/util/List;"
 private const val OBJECT_ARRAY = "[Ljava/lang/Object;"
-private const val HOME_DEFAULT_MODULE_CATALOG_CONTEXT = "Lm52/c;"
+private const val HOME_DEFAULT_MODULE_CATALOG_CONTEXT = "Lse2/b;"
 private const val HOME_PERFORMANCE_AD_MIDDLE_ID =
     "home-content-server_home-performance-ad-middle"
 private const val HOME_PERFORMANCE_AD_BOTTOM_ID =
@@ -53,8 +53,8 @@ private const val HOME_LAN_BANNER_MODULE_ID = "home-content-server_home-lan-bann
 private const val HOME_RECENTLY_UPDATED_PROFILE_MODULE_ID =
     "home-content-server_home-recently-profile-update"
 private const val HOME_PERFORMANCE_AD_CATALOG_TARGET_COUNT = 2
-private const val HOME_PERFORMANCE_AD_LAYOUT = 0x7f0e0405
-private const val HOME_GCS_AD_LAYOUT = 0x7f0e036d
+private const val HOME_PERFORMANCE_AD_LAYOUT = 0x7f0e03e1
+private const val HOME_GCS_AD_LAYOUT = 0x7f0e0346
 private const val CREATE_VIEW_DATA_FLOW_SOURCE =
     "GcsHomePerformanceAdModuleController\$createViewDataFlow\$\$inlined\$map\$1\$2"
 private const val MODULE_CONTROLLER_SOURCE = "GcsHomePerformanceAdModuleController.kt"
@@ -133,7 +133,7 @@ private val performanceAdViewDataFingerprint = Fingerprint(
         string(VIEW_DATA_TO_STRING),
         fieldAccess(type = PERFORMANCE_AD_MODEL, opcode = Opcode.IGET_OBJECT),
     ),
-    custom = { _, classDef -> classDef.interfaces.contains("Ll72/j;") },
+    custom = { _, classDef -> classDef.interfaces.contains("Lsg2/l;") },
 )
 
 /**
@@ -155,12 +155,12 @@ private val homePerformanceAdCatalogFingerprint = Fingerprint(
 )
 
 /**
- * `GcsHomePerformanceAdModuleController.d` の layout inflation path。mapper と同じ outer owner に
+ * `GcsHomePerformanceAdModuleController` の row factory の layout inflation path。mapper と同じ outer owner に
  * 存在することを確認し、generic Home module や SmartChannel を対象から除外します。
  */
 private fun moduleControllerFingerprint(controllerType: String) = Fingerprint(
     definingClass = controllerType,
-    returnType = "Ll72/k;",
+    returnType = "Lsg2/m;",
     parameters = listOf("Landroid/view/ViewGroup;", "Ljava/lang/Enum;"),
     filters = listOf(
         literal(HOME_PERFORMANCE_AD_LAYOUT),
@@ -174,10 +174,10 @@ private fun moduleControllerFingerprint(controllerType: String) = Fingerprint(
     ),
 )
 
-/** `GcsAdModuleController.d` の広告専用 row factory。 */
+/** `GcsAdModuleController` の広告専用 row factory。 */
 private fun homeGcsAdModuleControllerFingerprint(controllerType: String) = Fingerprint(
     definingClass = controllerType,
-    returnType = "Ll72/k;",
+    returnType = "Lsg2/m;",
     parameters = listOf("Landroid/view/ViewGroup;", "Ljava/lang/Enum;"),
     filters = listOf(literal(HOME_GCS_AD_LAYOUT)),
 )
@@ -225,7 +225,7 @@ val homeTopAdPatch = bytecodePatch(
             PatchAvailability.UNAVAILABLE
         }
     }
-    dependsOn(readReceiptSupplierPreparationPatch)
+    dependsOn(readReceiptExplicitMarkAsReadPatch)
 
     execute {
         val catalogMatches = homePerformanceAdCatalogFingerprint.matchAllOrNull().orEmpty()

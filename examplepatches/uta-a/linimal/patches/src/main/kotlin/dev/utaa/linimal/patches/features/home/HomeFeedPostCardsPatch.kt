@@ -12,7 +12,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import dev.utaa.linimal.patches.features.agenti.agentIChatListSearchPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
@@ -24,60 +23,38 @@ import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
-private const val DEBUG_METADATA = "Llb8/e;"
-private const val COMPOSER = "Lh3/t;"
-private const val COMPOSER_IMPL = "Lh3/f1;"
-private const val END_RESTART_GROUP_RESULT = "Lh3/p3;"
-private const val FEED_MODULE_STATE = "Ll72/f;"
+private const val COMPOSER = "Lj3/r;"
+private const val COMPOSER_IMPL = "Lj3/d1;"
+private const val END_RESTART_GROUP_RESULT = "Lj3/p3;"
+private const val FEED_MODULE_STATE = "Lsg2/h;"
 private const val HOME_FEED_POST_CARD_HOOK =
     "Ldev/utaa/linimal/extension/features/HomeFeedPostCardHooks;->shouldSuppress()Z"
 
 /**
- * Home Feed の下部に投稿カードを描く module controller。error module と、別 feature が扱う
- * Matome module は含めません。
+ * Home Feed の下部に投稿カードを描く module の view data が `toString()` に残す marker。
+ * error module と、別 feature が扱う Matome module は含めません。
+ *
+ * <p>26.16.0 では UnitSingle と BigVisual の module から coroutine がなくなり、DebugMetadata を
+ * anchor にできません。data class の `toString()` は R8 後も平文で残るため、module の種類を
+ * ここから特定します。BigVisual だけは sealed 型の wrapper をそのまま受け取るので、wrapper 側の
+ * marker を使います。</p>
  */
-private val HOME_FEED_POST_MODULE_CONTROLLERS = listOf(
-    "GcsHomeFeedPostModuleController",
-    "GcsHomeFeedUnitSingleModuleController",
-    "GcsHomeFeedUnitBigVisualModuleController",
+private val HOME_FEED_POST_MODULE_PAYLOAD_MARKERS = listOf(
+    "GcsHomeFeedPost(postId=",
+    "GcsHomeFeedUnitSingle(id=",
+    "HomeFeedUnitBigVisual(homeFeedUnitBigVisual=",
 )
 
-/** card を描く module controller の数。1件でも解決できなければ一切注入しません。 */
-internal val HOME_FEED_POST_CARDS_TARGET_COUNT = HOME_FEED_POST_MODULE_CONTROLLERS.size
+/** card を描く module の数。1件でも解決できなければ一切注入しません。 */
+internal val HOME_FEED_POST_CARDS_TARGET_COUNT = HOME_FEED_POST_MODULE_PAYLOAD_MARKERS.size
 
 /**
- * 各 module controller の stateful continuation。source metadata は R8 後も残るため、
- * 難読化された class / method 名を anchor にせず、Home 下部の投稿カードにだけ絞り込みます。
+ * module の restartable composable。難読化された class / method 名ではなく、その module の
+ * view data を受け取る引数の並びと composer lifecycle の呼出しで一意に絞り込みます。
  */
-private fun moduleSourceMetadataFingerprint(controller: String) = Fingerprint(
-    custom = { _, classDef ->
-        classDef.annotations.any { annotation ->
-            if (annotation.type != DEBUG_METADATA) {
-                false
-            } else {
-                val declaringController = annotation.elements.firstOrNull { it.name == "c" }
-                    ?.value
-                    .let { it as? StringEncodedValue }
-                    ?.value
-                    ?.contains(controller) == true
-                val sourceFile = annotation.elements.firstOrNull { it.name == "f" }
-                    ?.value
-                    .let { it as? StringEncodedValue }
-                    ?.value == "$controller.kt"
-                declaringController && sourceFile
-            }
-        }
-    },
-)
-
-/**
- * module の restartable composable。引数は module ごとに view data の型だけが変わるため、
- * その位置は型を問わず、残りの並びと composer lifecycle の呼出しで一意に絞り込みます。
- */
-private fun moduleRendererFingerprint(ownerType: String) = Fingerprint(
-    definingClass = ownerType,
+private fun moduleRendererFingerprint(payloadType: String) = Fingerprint(
     returnType = VOID,
-    custom = { method, _ -> isModuleRendererSignature(method) },
+    custom = { method, _ -> isModuleRendererSignature(method, payloadType) },
     filters = listOf(
         methodCall(
             definingClass = COMPOSER_IMPL,
@@ -95,7 +72,7 @@ private fun moduleRendererFingerprint(ownerType: String) = Fingerprint(
         ),
         methodCall(
             definingClass = COMPOSER_IMPL,
-            name = "Y",
+            name = "Z",
             parameters = emptyList(),
             returnType = END_RESTART_GROUP_RESULT,
             opcode = Opcode.INVOKE_VIRTUAL,
@@ -126,24 +103,24 @@ val homeFeedPostCardsPatch = bytecodePatch(
     dependsOn(agentIChatListSearchPatch)
 
     execute {
-        val owners = HOME_FEED_POST_MODULE_CONTROLLERS.map { controller ->
-            moduleSourceMetadataFingerprint(controller).matchAllOrNull().orEmpty()
+        val payloadTypes = HOME_FEED_POST_MODULE_PAYLOAD_MARKERS.map { marker ->
+            Fingerprint(strings = listOf(marker)).matchAllOrNull().orEmpty()
                 .map { it.originalClassDef.type }
                 .toSet()
-                .let(::homeFeedPostRendererOwner)
+                .singleOrNull()
         }
-        if (owners.any { it == null }) {
+        if (payloadTypes.any { it == null }) {
             patchStatusCollector.record(
                 homeFeedPostCardsUnappliedRecord(
-                    owners.count { it != null },
-                    "HomeFeedPostModuleContinuationNotUnique",
+                    payloadTypes.count { it != null },
+                    "HomeFeedPostPayloadTypeNotUnique",
                 ),
             )
             return@execute
         }
 
-        val renderers = owners.filterNotNull().map { owner ->
-            moduleRendererFingerprint(owner).matchAllOrNull().orEmpty()
+        val renderers = payloadTypes.filterNotNull().map { payloadType ->
+            moduleRendererFingerprint(payloadType).matchAllOrNull().orEmpty()
         }
         if (renderers.any { it.size != 1 }) {
             patchStatusCollector.record(
@@ -211,16 +188,12 @@ internal fun homeFeedPostCardsUnappliedRecord(resolvedCount: Int, reason: String
     reason = reason,
 )
 
-/** A missing, malformed, or ambiguous continuation intentionally leaves the target unmodified. */
-internal fun homeFeedPostRendererOwner(continuationTypes: Set<String>): String? =
-    continuationTypes.singleOrNull()?.let(::directEnclosingType)
-
-/** view data の型だけが module ごとに変わるため、その位置は型を問わず並びだけを検証します。 */
-internal fun isModuleRendererSignature(method: Method): Boolean {
+/** `(id, view data, feed module state, Composer, $$changed)` の並びと view data の型を検証します。 */
+internal fun isModuleRendererSignature(method: Method, payloadType: String): Boolean {
     val parameters = method.parameterTypes.map { it.toString() }
     return parameters.size == 5 &&
         parameters[0] == "Ljava/lang/String;" &&
-        parameters[1].startsWith("L") &&
+        parameters[1] == payloadType &&
         parameters[2] == FEED_MODULE_STATE &&
         parameters[3] == COMPOSER &&
         parameters[4] == "I"
@@ -256,7 +229,7 @@ internal fun homeFeedPostModuleGateShape(
     if (composerCallIndices(instructions, "l", VOID).size != 1) {
         return null
     }
-    if (composerCallIndices(instructions, "Y", END_RESTART_GROUP_RESULT).size != 1) {
+    if (composerCallIndices(instructions, "Z", END_RESTART_GROUP_RESULT).size != 1) {
         return null
     }
 
@@ -295,9 +268,4 @@ private fun composerCallIndices(
             reference.name == name &&
             reference.returnType == returnType
     }
-}
-
-private fun directEnclosingType(type: String): String? {
-    val separator = type.lastIndexOf('$')
-    return if (separator > 1 && type.endsWith(';')) type.substring(0, separator) + ";" else null
 }

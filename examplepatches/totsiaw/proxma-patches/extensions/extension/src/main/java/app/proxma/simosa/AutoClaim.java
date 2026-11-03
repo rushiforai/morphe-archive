@@ -43,9 +43,15 @@ public final class AutoClaim {
 
     private AutoClaim() {}
 
+    /** The on-screen claim saw a state that is not the free route, and skipped it. */
+    public static void notFree(String kind, String status) {
+        log(kind, "skip not-free status=" + status);
+    }
+
     public static void log(String kind, String detail) {
         try {
             Log.i(TAG, kind + " " + detail);
+            Trace.line(kind + " " + detail);
         } catch (Throwable ignored) {
             // logging must never break a claim
         }

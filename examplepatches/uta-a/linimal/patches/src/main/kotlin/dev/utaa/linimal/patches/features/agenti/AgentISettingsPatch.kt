@@ -28,12 +28,12 @@ import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.BOXED_BOOLEAN
 import dev.utaa.linimal.patches.util.boxedBooleanReturnGateShape
 
-private const val SETTINGS_AGENT_I_TITLE = 0x7f151e38
-private const val SETTINGS_LINE_AI_SERVICES_TITLE = 0x7f151e3b
-private const val SETTINGS_ITEM = "Lpx4/v;"
-private const val SETTINGS_TARGET = "Llx4/m0;"
+private const val SETTINGS_AGENT_I_TITLE = 0x7f152018
+private const val SETTINGS_LINE_AI_SERVICES_TITLE = 0x7f15201b
+private const val SETTINGS_ITEM = "Lec5/b0;"
+private const val SETTINGS_TARGET = "Lac5/s0;"
 private const val SETTINGS_TARGET_LINE_AI_SERVICE = "TARGET_LINE_AI_SERVICE"
-private const val DEBUG_METADATA = "Llb8/e;"
+private const val DEBUG_METADATA = "Ldt8/f;"
 private const val MAIN_SETTINGS_CATEGORY_SOURCE = "LineUserMainSettingsCategory.kt"
 private const val SETTINGS_HOOK =
     "Ldev/utaa/linimal/extension/features/agenti/AgentISettingsHooks;->adjustVisibility(Z)Z"
@@ -73,13 +73,13 @@ private val settingsAgentActionFingerprint = Fingerprint(
         ),
         methodCall(
             definingClass = "Lcom/linecorp/line/settings/main/LineUserMainSettingsFragment;",
-            name = "H3",
-            parameters = listOf("Lb18/c;"),
+            name = "m4",
+            parameters = listOf("Lti8/c;"),
             returnType = "V",
             opcode = Opcode.INVOKE_STATIC,
         ),
     ),
-    custom = { _, classDef -> classDef.interfaces.contains("Lvb8/l;") },
+    custom = { _, classDef -> classDef.interfaces.contains("Lnt8/l;") },
 )
 
 /**
@@ -92,15 +92,15 @@ private val settingsVisibilityPredicateFingerprint = Fingerprint(
     parameters = listOf("Ljava/lang/Object;"),
     filters = listOf(
         methodCall(
-            definingClass = "Lpg0/e;",
+            definingClass = "Lao0/f;",
             name = "isEnabled",
             returnType = "Z",
             opcode = Opcode.INVOKE_INTERFACE,
         ),
         methodCall(
-            definingClass = "Lug0/s;",
+            definingClass = "Lfo0/s;",
             name = "a",
-            parameters = listOf("Ljw4/m2;"),
+            parameters = listOf("Lya5/t2;"),
             returnType = "Z",
             opcode = Opcode.INVOKE_STATIC,
         ),
@@ -226,7 +226,7 @@ private data class VisibilityGate(
     val booleanRegister: Int,
 )
 
-/** Associates each title-bearing px4/v construction segment with one action and one generated predicate. */
+/** Associates each title-bearing item construction segment with one action and one generated predicate. */
 private fun resolveSettingsVariants(
     catalogMatch: Match,
     actionMatches: List<Match>,

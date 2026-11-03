@@ -18,6 +18,18 @@ public final class ReadWithoutReceiptHooks {
     static final String SESSION_TOKEN_KEY = "dev.utaa.linimal.readWithoutReceipt.sessionToken";
     private static final AtomicLong NEXT_TOKEN = new AtomicLong();
     private static final AtomicReference<Suppression> SUPPRESSION = new AtomicReference<>();
+    private static final AtomicReference<RecentlyEnded> RECENTLY_ENDED = new AtomicReference<>();
+    static final long ENDED_GRACE_MILLIS = 2000L;
+
+    private static final class RecentlyEnded {
+        final String chatId;
+        final long atMillis;
+
+        RecentlyEnded(String chatId, long atMillis) {
+            this.chatId = chatId;
+            this.atMillis = atMillis;
+        }
+    }
 
     /** セッション所有者の不変 snapshot。既読観測は同じ token の SendState にだけ保存します。 */
     static final class Suppression {
@@ -105,12 +117,15 @@ public final class ReadWithoutReceiptHooks {
     public static void onChatCreated(Activity activity, Bundle savedState) {
         Suppression observed = currentSuppression();
         try {
+            Bundle extras = activity.getIntent().getExtras();
+            Object request = extras == null ? null : extras.getParcelable("chatHistoryRequest");
+            if (RECENTLY_ENDED.get() != null) {
+                clearRecentlyEnded(chatIdFromRequest(request));
+            }
             if (!isSuppressionEnabled(observed)) {
                 SUPPRESSION.compareAndSet(observed, null);
                 return;
             }
-            Bundle extras = activity.getIntent().getExtras();
-            Object request = extras == null ? null : extras.getParcelable("chatHistoryRequest");
             long savedToken = savedState == null ? 0L : savedState.getLong(SESSION_TOKEN_KEY, 0L);
             boolean registered = ReadWithoutReceiptForegroundTracker.ensureRegistered(activity);
             onChatCreatedRequestObserved(activity, request, savedToken, SystemClock.elapsedRealtime(),
@@ -179,7 +194,10 @@ public final class ReadWithoutReceiptHooks {
     public static boolean shouldBlockMarkAsRead(String chatId) {
         try {
             if (ReadWithoutReceiptManualHooks.hasManualInvocation()) {
-                return !ReadWithoutReceiptManualHooks.isManualRead(chatId);
+                return ReadWithoutReceiptManualHooks.blockManualInvocation(chatId);
+            }
+            if (isRecentlyEnded(chatId, monotonicMillis())) {
+                return true;
             }
             LinimalConfig config = LinimalConfig.get();
             return shouldBlockGivenSources(chatId, SystemClock.elapsedRealtime(), currentSuppression(),
@@ -233,8 +251,8 @@ public final class ReadWithoutReceiptHooks {
         return false;
     }
 
-    /** 送信が投入されたトークの確定セッションだけを終了します。予約や別トークには触れません。 */
-    static boolean endSuppressionForSentMessage(String chatId, Suppression observed) {
+    /** 指定トークの確定セッションだけを終了します。予約や別トークには触れません。 */
+    static boolean endConfirmedSuppression(String chatId, Suppression observed) {
         if (observed == null || !observed.confirmed || chatId == null || !observed.chatId.equals(chatId)) {
             return false;
         }
@@ -259,19 +277,53 @@ public final class ReadWithoutReceiptHooks {
 
     static void endActivityObserved(Object activity, boolean changingConfigurations, boolean ending,
             Suppression observed) {
+        endActivityObserved(activity, changingConfigurations, ending, observed, monotonicMillis());
+    }
+
+    static void endActivityObserved(Object activity, boolean changingConfigurations, boolean ending,
+            Suppression observed, long endMillis) {
         if (observed == null || !observed.confirmed || !observed.owns(activity)) {
             return;
         }
         if (changingConfigurations) {
             SUPPRESSION.compareAndSet(observed, observed.withOwner(null));
-        } else if (ending) {
-            SUPPRESSION.compareAndSet(observed, null);
+        } else if (ending && SUPPRESSION.compareAndSet(observed, null)) {
+            RECENTLY_ENDED.set(new RecentlyEnded(observed.chatId, endMillis));
         }
+    }
+
+    private static long monotonicMillis() {
+        return System.nanoTime() / 1_000_000L;
+    }
+
+    /**
+     * 閲覧中に予約された公式の既読タスクが、閉じた直後に抑制なしで実行されないようにします。
+     * タスクの出所は判別できないため、閉じた直後の短い間だけ同じトークの自動既読を止めます。
+     * 同じトークへの再入室では {@link #onChatCreated} の時点で解除します。別トークの入室では解除しません。
+     */
+    static void clearRecentlyEnded(String chatId) {
+        RecentlyEnded ended = RECENTLY_ENDED.get();
+        if (ended != null && ended.chatId.equals(chatId)) {
+            RECENTLY_ENDED.compareAndSet(ended, null);
+        }
+    }
+
+    static boolean isRecentlyEnded(String chatId, long nowMillis) {
+        RecentlyEnded ended = RECENTLY_ENDED.get();
+        if (ended == null) {
+            return false;
+        }
+        if (nowMillis < ended.atMillis || nowMillis - ended.atMillis >= ENDED_GRACE_MILLIS) {
+            RECENTLY_ENDED.compareAndSet(ended, null);
+            return false;
+        }
+        return ended.chatId.equals(chatId);
     }
 
     /** 設定 OFF・patch health 失敗時にも、以前の予約と閲覧セッションを破棄します。 */
     public static void clearSuppression() {
         SUPPRESSION.set(null);
+        RECENTLY_ENDED.set(null);
     }
 
     static Suppression currentSuppression() {

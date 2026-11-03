@@ -9,6 +9,7 @@ Patches for apps I use, for use with [Morphe](https://morphe.software).
 | [NYT Games](docs/apps/nyt-games.md) | `com.nytimes.crossword` | `6.48.0` |
 | [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.18`, `4.10.23` |
 | [Duolingo](docs/apps/duolingo.md) | `com.duolingo` | `6.104.3` |
+| [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `8.9.6` |
 
 ### How to use these patches
 
@@ -25,7 +26,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.1](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+> **[v1.5.1](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
 <details open>
 <summary>📦 NYT Games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -122,6 +123,21 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Premium](#enable-premium) | Enables app features locked behind the subscription paywall. |  |
+
+</details>
+
+<details open>
+<summary>📦 Nova Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 89600 (8.9.6) |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Prime](#enable-prime) | Unlocks Nova Launcher Prime by starting the app in the prime state and reporting an active subscription, so the settings and features gated on Prime are available. |  |
 
 </details>
 
@@ -278,13 +294,17 @@ attribution:
 - **Duolingo:** port of
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (GPLv3), re-resolved
   for 6.104.3.
+- **Nova Launcher:** port of
+  [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and
+  [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (both GPLv3),
+  re-resolved for 8.9.5.
 
 Original patch code is © the upstream authors and contributors — ImNoammm, hoo-dles,
 rushiranpise, Entree3k, PrathxmOp and their contributors. New code in this repository is
 © hyzor.
 
-Not affiliated with Urbandroid, The New York Times, Duolingo, Chess.com, the Morphe
-project, or the above authors.
+Not affiliated with Urbandroid, The New York Times, Duolingo, Chess.com, Nova Launcher,
+TeslaCoil Software, the Morphe project, or the above authors.
 
 ## ⚠️ Disclaimer
 

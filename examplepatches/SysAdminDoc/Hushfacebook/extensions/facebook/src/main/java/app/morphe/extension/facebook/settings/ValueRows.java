@@ -9,6 +9,7 @@ package app.morphe.extension.facebook.settings;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.backgroundSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInWaitSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reelDateStyleSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.downloadActionSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabSummary;
@@ -69,6 +70,7 @@ import java.util.function.Function;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -925,14 +927,22 @@ final class ValueRows {
      * the top of Home shows.
      */
     static final class HeaderTextRow extends EditTextPreference {
+        /** What the summary says for the text, the header's words or the emoji after the logo. */
+        private final java.util.function.Function<String, String> summary;
+
         HeaderTextRow(Context context) {
+            this(context, HushfacebookPreferenceFragment::headerTextSummary);
+        }
+
+        HeaderTextRow(Context context, java.util.function.Function<String, String> summary) {
             super(context);
+            this.summary = summary;
         }
 
         @Override
         public void setText(String text) {
             super.setText(text);
-            setSummary(headerTextSummary(text));
+            setSummary(summary.apply(text));
         }
 
         @Override
@@ -1570,6 +1580,42 @@ final class ValueRows {
         }
     }
 
+    /** Show the post date as (#357). Its summary follows its value, as Dim after's does. */
+    static final class ReelDateStyleRow extends PlainSummaryList {
+        ReelDateStyleRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            ReelDateStyle style = ReelDateStyle.AGO;
+            for (ReelDateStyle candidate : ReelDateStyle.values()) {
+                if (candidate.name().equals(getValue())) style = candidate;
+            }
+            setSummary(reelDateStyleSummary(style));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
     /**
      * The text size row. Its summary follows its value, whoever sets it: the person, the shared
      * page syncing it from the setting, or an import.
@@ -1659,6 +1705,19 @@ final class ValueRows {
         AccentRow(Context context, boolean materialYou) {
             super(context);
             this.materialYou = materialYou;
+        }
+
+        /** Opens the Custom color editor when Custom is picked (#355). Null where there is no page to show it on. */
+        @Nullable
+        Runnable customEditor;
+
+        @Override
+        protected void onDialogClosed(boolean positiveResult) {
+            super.onDialogClosed(positiveResult);
+            if (positiveResult && customEditor != null
+                    && AccentColor.Preset.CUSTOM.name().equals(getValue())) {
+                customEditor.run();
+            }
         }
 
         @Override

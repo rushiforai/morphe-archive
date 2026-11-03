@@ -9,6 +9,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
@@ -18,7 +19,6 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference
-import dev.utaa.linimal.patches.util.instructionAddress
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -26,38 +26,42 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-private const val COMPOSER = "Lh3/t;"
-private const val ITEM = "Llz0/m3\$a;"
-private const val FUNCTION0 = "Lvb8/a;"
-private const val FUNCTION2 = "Lvb8/p;"
-private const val MODIFIER = "Ly3/j;"
-private const val COMPOSABLE_LAMBDA = "Lr3/j;"
-private const val DONOR = "Lmz0/j;"
+private const val COMPOSER = "Lj3/r;"
+private const val ITEM = "Lz61/j3\$a;"
+private const val FUNCTION0 = "Lnt8/a;"
+private const val FUNCTION1 = "Lnt8/l;"
+private const val FUNCTION2 = "Lnt8/p;"
+private const val MODIFIER = "Lb4/j;"
+private const val COMPOSABLE_LAMBDA = "Lt3/k;"
+private const val DONOR = "La71/d;"
+private const val ROW_LIST_OWNER = "La71/f;"
 
-/** shouldExecute の結果を見る if-eqz の index と、行の呼び出しを差し込む index。 */
-private const val SHOULD_EXECUTE_BRANCH_INDEX = 17
-private const val ROW_INSERTION_INDEX = 22
+/** 行一覧を呼ぶ命令の index。これが注入位置です。 */
+private const val ROW_LIST_INDEX = 10
 
 /**
- * メニュー本体の命令列を、実測した index・register・reference の並びどおりに fixture で再現して
- * 検証します。行 composable を 4 回呼ぶこと、Composer の引数なしメソッドが 2 種類
- * （endReplaceGroup と skipToGroupEnd）現れることまで含めて、実 APK と同じ形にしています。
+ * メニュー本体と行一覧の composable を、26.16.0 で実測した並びと register のまま fixture で再現します。
+ * トーク項目の分岐内で行一覧を呼び、その直前へ 1 行を差し込む形を検証します。
  */
 class ReadWithoutReceiptComposeMenuPatchTest {
+    private val rowList = rowListMethod()
+
+    private fun shapeOf(method: Method) = composeMenuShape(method, ITEM) { rowList }
+
     @Test
     fun `the measured menu shape resolves every reference it injects`() {
-        val shape = composeMenuShape(menuMethod())
+        val shape = checkNotNull(shapeOf(menuMethod()))
 
-        checkNotNull(shape)
         assertEquals(COMPOSER, shape.composerType)
         assertEquals(ITEM, shape.itemType)
         assertEquals(DONOR, shape.labelDonorType)
-        assertEquals(4, shape.composerRegister)
-        assertEquals(12, shape.itemRegister)
+        assertEquals(6, shape.composerRegister)
+        assertEquals(10, shape.itemRegister)
         assertEquals(8, shape.dismissRegister)
+        assertEquals(ROW_LIST_INDEX, shape.insertionIndex)
         assertEquals("a", shape.rowComposable.name)
         assertEquals("b", shape.rememberLambda.name)
-        assertEquals("p", shape.startReplaceGroup.name)
+        assertEquals("q", shape.startReplaceGroup.name)
         assertEquals("m", shape.endReplaceGroup.name)
         assertEquals("l", shape.skipToGroupEnd.name)
         assertEquals("A", shape.shouldExecute.name)
@@ -65,71 +69,52 @@ class ReadWithoutReceiptComposeMenuPatchTest {
 
     @Test
     fun `the fingerprint filter accepts the measured shape`() {
-        assertTrue(looksLikeComposeMenu(menuMethod()))
+        assertTrue(looksLikeComposeMenu(menuMethod(), ITEM))
     }
 
     @Test
-    fun `a method with a different number of rows is not the menu`() {
-        assertFalse(looksLikeComposeMenu(menuMethod(rowCount = 3)))
-        assertFalse(looksLikeComposeMenu(menuMethod(rowCount = 5)))
+    fun `a method that never tests the item type is not the menu`() {
+        assertFalse(looksLikeComposeMenu(menuMethod(), "Lother;"))
     }
 
     @Test
-    fun `a method that never casts the item type is not the menu`() {
-        assertFalse(looksLikeComposeMenu(menuMethod(includeItemCasts = false)))
+    fun `a method calling the row list twice is not the menu`() {
+        assertFalse(looksLikeComposeMenu(menuMethod(rowListCalls = 2), ITEM))
     }
 
     @Test
     fun `a missing composer cast is rejected`() {
-        assertNull(composeMenuShape(menuMethod(includeComposerCast = false)))
+        assertNull(shapeOf(menuMethod(includeComposerCast = false)))
     }
 
     @Test
-    fun `an instance-of on a register other than the item is rejected`() {
-        assertNull(composeMenuShape(menuMethod(instanceOfRegister = 11)))
+    fun `an unresolved row list is rejected`() {
+        assertNull(composeMenuShape(menuMethod(), ITEM) { null })
     }
 
     @Test
-    fun `endReplaceGroup is told apart from skipToGroupEnd by where it is called`() {
-        // どちらも Composer の `()V` です。行 composable の直後に呼ばれる方だけが endReplaceGroup で、
-        // 取り違えると行が閉じられないまま次の行が始まります。
-        val shape = checkNotNull(composeMenuShape(menuMethod()))
-
-        assertEquals("m", shape.endReplaceGroup.name)
-        assertEquals("l", shape.skipToGroupEnd.name)
-    }
-
-    @Test
-    fun `a menu without a skipToGroupEnd call is rejected`() {
-        assertNull(composeMenuShape(menuMethod(includeSkipToGroupEnd = false)))
-    }
-
-    @Test
-    fun `an injection point that is also a branch target is rejected`() {
-        // shouldExecute の if-eqz が注入位置そのもの (addr 001d) へ飛ぶ形にします。dexlib2 は注入位置へ
-        // 新しい location を挿入し、既存 location は Label を保持したまま後ろへずれるため、この経路
-        // だけが行を飛び越し、recomposition ごとに slot 構造がずれます。
-        val instructions = menuMethod(branchTargetIndex = ROW_INSERTION_INDEX)
-            .implementation!!
-            .instructions
-            .toList()
-
-        assertTrue(isDivertedInjectionIndex(instructions, ROW_INSERTION_INDEX))
-        assertNull(composeMenuShape(menuMethod(branchTargetIndex = ROW_INSERTION_INDEX)))
-    }
-
-    @Test
-    fun `the measured branch target leaves the injection point alone`() {
-        // 実 APK と同じく、if-eqz は本体を丸ごと飛ばして末尾の skipToGroupEnd へ向かいます。
-        val instructions = menuMethod().implementation!!.instructions.toList()
-
-        assertFalse(isDivertedInjectionIndex(instructions, ROW_INSERTION_INDEX))
+    fun `an item register overwritten before the insertion point is rejected`() {
+        assertNull(shapeOf(menuMethod(overwriteItemRegister = true)))
     }
 
     @Test
     fun `a composer register the row invocation cannot address is rejected`() {
         // 注入する invoke-static は 35c 形式なので、引数の register は 4bit（v0〜v15）に限られます。
-        assertNull(composeMenuShape(menuMethod(composerCastRegister = 16)))
+        assertNull(shapeOf(menuMethod(dismissRegister = 16)))
+    }
+
+    @Test
+    fun `an injection point that is also a branch target is rejected`() {
+        // 分岐が注入位置そのものへ来ると、その経路だけが行を飛び越し、slot 構造がずれます。
+        val diverted = menuMethod(branchToRowList = true)
+
+        assertTrue(isDivertedInjectionIndex(diverted.implementation!!.instructions.toList(), ROW_LIST_INDEX))
+        assertNull(shapeOf(diverted))
+    }
+
+    @Test
+    fun `a menu without a skipToGroupEnd call is rejected`() {
+        assertNull(shapeOf(menuMethod(includeSkipToGroupEnd = false)))
     }
 
     @Test
@@ -144,7 +129,7 @@ class ReadWithoutReceiptComposeMenuPatchTest {
         val donor = checkNotNull(labelDonorShape(listOf(donorInvoke())))
 
         assertEquals("b", donor.text.name)
-        assertEquals("INSTANCE", donor.unitField.name)
+        assertEquals("a", donor.unitField.name)
     }
 
     @Test
@@ -155,14 +140,14 @@ class ReadWithoutReceiptComposeMenuPatchTest {
     private fun itemClass(extraStringField: Boolean = false) = ImmutableClassDef(
         ITEM,
         0,
-        "Llz0/m3;",
+        "Lz61/j3;",
         null,
         null,
         null,
         null,
         buildList {
             add(ImmutableField(ITEM, "a", "Ljava/lang/String;", 0, null, null, null))
-            add(ImmutableField(ITEM, "b", "Llz0/y2;", 0, null, null, null))
+            add(ImmutableField(ITEM, "b", "Lz61/q2;", 0, null, null, null))
             if (extraStringField) {
                 add(ImmutableField(ITEM, "c", "Ljava/lang/String;", 0, null, null, null))
             }
@@ -189,12 +174,12 @@ class ReadWithoutReceiptComposeMenuPatchTest {
                     Opcode.INVOKE_STATIC_RANGE,
                     0,
                     textRegisterCount,
-                    ImmutableMethodReference("Lc3/gg;", "b", listOf("Ljava/lang/String;"), "V"),
+                    ImmutableMethodReference("Ld3/kh;", "b", listOf("Ljava/lang/String;"), "V"),
                 ),
                 ImmutableInstruction21c(
                     Opcode.SGET_OBJECT,
                     0,
-                    ImmutableFieldReference("Lkotlin/Unit;", "INSTANCE", "Lkotlin/Unit;"),
+                    ImmutableFieldReference("Lvs8/i0;", "a", "Lvs8/i0;"),
                 ),
                 ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
             ),
@@ -204,187 +189,160 @@ class ReadWithoutReceiptComposeMenuPatchTest {
     )
 
     private fun menuMethod(
-        rowCount: Int = 4,
-        includeItemCasts: Boolean = true,
+        rowListCalls: Int = 1,
         includeComposerCast: Boolean = true,
         includeSkipToGroupEnd: Boolean = true,
-        instanceOfRegister: Int = 12,
-        composerCastRegister: Int = 4,
-        branchTargetIndex: Int? = null,
-    ): Method = ImmutableMethod(
-        "Lmz0/f;",
-        "i",
-        List(3) { ImmutableMethodParameter("Ljava/lang/Object;", null, null) },
+        overwriteItemRegister: Boolean = false,
+        dismissRegister: Int = 8,
+        branchToRowList: Boolean = false,
+    ): Method = method(
+        "Lb71/e;",
+        "k",
+        List(3) { "Ljava/lang/Object;" },
         "Ljava/lang/Object;",
-        0,
-        null,
-        null,
-        ImmutableMethodImplementation(
-            14,
-            menuInstructions(
-                rowCount = rowCount,
-                includeItemCasts = includeItemCasts,
-                includeComposerCast = includeComposerCast,
-                includeSkipToGroupEnd = includeSkipToGroupEnd,
-                instanceOfRegister = instanceOfRegister,
-                composerCastRegister = composerCastRegister,
-                branchTargetIndex = branchTargetIndex,
-            ),
-            null,
-            null,
+        29,
+        menuInstructions(
+            rowListCalls,
+            includeComposerCast,
+            includeSkipToGroupEnd,
+            overwriteItemRegister,
+            dismissRegister,
+            branchToRowList,
         ),
     )
 
-    /**
-     * index 2・15・17・19・20・21 だけを実測どおりに置き、残りは内容を問わない nop で埋めます。
-     *
-     * <p>shouldExecute の if-eqz は、既定では実 APK と同じく本体を丸ごと飛ばして末尾の
-     * skipToGroupEnd へ向かいます。nop 埋めの fixture は実 APK と code address が一致しないため、
-     * offset は組み上げた命令列の実際の address から求め、必ず命令境界に乗せます。</p>
-     */
+    /** `b71.e.k` の冒頭から行一覧の呼び出しまで。分岐と無関係な命令は省略しています。 */
     private fun menuInstructions(
-        rowCount: Int,
-        includeItemCasts: Boolean,
+        rowListCalls: Int,
         includeComposerCast: Boolean,
         includeSkipToGroupEnd: Boolean,
-        instanceOfRegister: Int,
-        composerCastRegister: Int,
-        branchTargetIndex: Int?,
-    ): List<Instruction> {
-        val body = menuBody(
-            rowCount = rowCount,
-            includeItemCasts = includeItemCasts,
-            includeComposerCast = includeComposerCast,
-            includeSkipToGroupEnd = includeSkipToGroupEnd,
-            instanceOfRegister = instanceOfRegister,
-            composerCastRegister = composerCastRegister,
-        )
-        val targetIndex = branchTargetIndex ?: body.lastIndex
-        val offset = instructionAddress(body, targetIndex) - instructionAddress(body, SHOULD_EXECUTE_BRANCH_INDEX)
-        return body.mapIndexed { index, instruction ->
-            if (index == SHOULD_EXECUTE_BRANCH_INDEX) {
-                ImmutableInstruction21t(Opcode.IF_EQZ, 11, offset)
-            } else {
-                instruction
-            }
-        }
-    }
-
-    /** 分岐 offset を確定させる前の命令列。index 17 の if-eqz は暫定の offset を持ちます。 */
-    private fun menuBody(
-        rowCount: Int,
-        includeItemCasts: Boolean,
-        includeComposerCast: Boolean,
-        includeSkipToGroupEnd: Boolean,
-        instanceOfRegister: Int,
-        composerCastRegister: Int,
+        overwriteItemRegister: Boolean,
+        dismissRegister: Int,
+        branchToRowList: Boolean,
     ): List<Instruction> = buildList {
-        add(ImmutableInstruction10x(Opcode.NOP))
-        add(ImmutableInstruction10x(Opcode.NOP))
+        // index 0
         if (includeComposerCast) {
-            add(ImmutableInstruction21c(Opcode.CHECK_CAST, composerCastRegister, ImmutableTypeReference(COMPOSER)))
+            add(ImmutableInstruction21c(Opcode.CHECK_CAST, 6, ImmutableTypeReference(COMPOSER)))
         } else {
             add(ImmutableInstruction10x(Opcode.NOP))
         }
-        repeat(12) { add(ImmutableInstruction10x(Opcode.NOP)) }
+        // index 1: shouldExecute
+        add(composerCall("A", listOf("I", "Z"), "Z", 6, 2, 1))
+        // index 2
+        add(ImmutableInstruction11x(Opcode.MOVE_RESULT, 1))
+        // index 3
+        add(ImmutableInstruction22c(Opcode.IGET_OBJECT, 10, 1, ImmutableFieldReference("Lb71/k;", "b", "Lz61/j3;")))
+        // index 4
+        add(ImmutableInstruction22c(Opcode.INSTANCE_OF, 2, 10, ImmutableTypeReference(ITEM)))
+        // index 5: 閉じる動作の lambda
         add(
-            ImmutableInstruction35c(
-                Opcode.INVOKE_INTERFACE,
-                3,
-                4, 12, 11, 0, 0,
-                ImmutableMethodReference(COMPOSER, "A", listOf("I", "Z"), "Z"),
-            ),
+            if (dismissRegister <= 15) {
+                ImmutableInstruction22c(
+                    Opcode.IGET_OBJECT,
+                    dismissRegister,
+                    0,
+                    ImmutableFieldReference("Lb71/e;", "b", FUNCTION0),
+                )
+            } else {
+                ImmutableInstruction22cHigh(dismissRegister)
+            },
         )
-        add(ImmutableInstruction11x(Opcode.MOVE_RESULT, 11))
-        add(ImmutableInstruction21t(Opcode.IF_EQZ, 11, 0))
+        // index 6: startReplaceGroup
+        add(composerCall("q", listOf("I"), "V", 6, 1))
+        // index 7: 注入位置より前の分岐。既定では index 9 へ、branchToRowList では注入位置へ向かいます。
+        add(ImmutableInstruction21t(Opcode.IF_EQZ, 2, if (branchToRowList) 4 else 5))
+        // index 8
+        add(if (overwriteItemRegister) ImmutableInstruction11n(Opcode.CONST_4, 10, 0) else ImmutableInstruction10x(Opcode.NOP))
+        // index 9
         add(ImmutableInstruction10x(Opcode.NOP))
-        add(
-            ImmutableInstruction22c(
-                Opcode.IGET_OBJECT,
-                12,
-                11,
-                ImmutableFieldReference("Lmz0/n;", "b", "Llz0/m3;"),
-            ),
-        )
-        add(
-            ImmutableInstruction22c(
-                Opcode.INSTANCE_OF,
-                13,
-                instanceOfRegister,
-                ImmutableTypeReference(ITEM),
-            ),
-        )
-        add(
-            ImmutableInstruction22c(
-                Opcode.IGET_OBJECT,
-                8,
-                10,
-                ImmutableFieldReference("Lmz0/f;", "b", FUNCTION0),
-            ),
-        )
-        add(ImmutableInstruction10x(Opcode.NOP))
-
-        repeat(rowCount) { addAll(rowInstructions(includeItemCasts)) }
-
-        if (includeSkipToGroupEnd) {
+        // index 10: 行一覧の呼び出し
+        repeat(rowListCalls) {
             add(
                 ImmutableInstruction35c(
-                    Opcode.INVOKE_INTERFACE,
+                    Opcode.INVOKE_STATIC,
+                    4,
                     1,
-                    4, 0, 0, 0, 0,
-                    ImmutableMethodReference(COMPOSER, "l", emptyList(), "V"),
+                    4,
+                    6,
+                    0,
+                    0,
+                    ImmutableMethodReference(ROW_LIST_OWNER, "a", listOf("Lpi1/b;", FUNCTION1, COMPOSER, "I"), "V"),
                 ),
             )
         }
+        // endReplaceGroup
+        add(composerCall("m", emptyList(), "V", 6))
+        if (includeSkipToGroupEnd) {
+            add(composerCall("l", emptyList(), "V", 6))
+        }
     }
 
-    /** 1 行ぶんの発行。startReplaceGroup → lambda 生成 → 行 composable → endReplaceGroup の順です。 */
-    private fun rowInstructions(includeItemCast: Boolean): List<Instruction> = buildList {
-        add(
-            ImmutableInstruction35c(
-                Opcode.INVOKE_INTERFACE,
-                2,
-                4, 0, 0, 0, 0,
-                ImmutableMethodReference(COMPOSER, "p", listOf("I"), "V"),
-            ),
-        )
-        if (includeItemCast) {
-            add(ImmutableInstruction21c(Opcode.CHECK_CAST, 0, ImmutableTypeReference(ITEM)))
-        }
-        add(ImmutableInstruction21c(Opcode.NEW_INSTANCE, 13, ImmutableTypeReference(DONOR)))
-        add(
+    /** `a71.f.a` の行描画部分。 */
+    private fun rowListMethod(): Method = method(
+        ROW_LIST_OWNER,
+        "a",
+        listOf("Lpi1/b;", FUNCTION1, COMPOSER, "I"),
+        "V",
+        16,
+        listOf(
+            ImmutableInstruction21c(Opcode.NEW_INSTANCE, 2, ImmutableTypeReference(DONOR)),
             ImmutableInstruction35c(
                 Opcode.INVOKE_STATIC,
                 3,
-                1, 13, 4, 0, 0,
-                ImmutableMethodReference(
-                    "Lr3/k;",
-                    "b",
-                    listOf("I", "Lkotlin/Function;", COMPOSER),
-                    COMPOSABLE_LAMBDA,
-                ),
+                1,
+                2,
+                5,
+                0,
+                0,
+                ImmutableMethodReference("Lt3/l;", "b", listOf("I", "Lvs8/g;", COMPOSER), COMPOSABLE_LAMBDA),
             ),
-        )
-        add(
             ImmutableInstruction3rc(
                 Opcode.INVOKE_STATIC_RANGE,
-                0,
+                1,
                 7,
                 ImmutableMethodReference(
-                    "Lzz1/v;",
+                    "Lz82/r;",
                     "a",
                     listOf(FUNCTION0, MODIFIER, FUNCTION2, FUNCTION2, COMPOSER, "I", "I"),
                     "V",
                 ),
             ),
+            ImmutableInstruction10x(Opcode.RETURN_VOID),
+        ),
+    )
+
+    private fun composerCall(name: String, parameters: List<String>, result: String, vararg registers: Int) =
+        ImmutableInstruction35c(
+            Opcode.INVOKE_INTERFACE,
+            registers.size,
+            registers.getOrElse(0) { 0 },
+            registers.getOrElse(1) { 0 },
+            registers.getOrElse(2) { 0 },
+            0,
+            0,
+            ImmutableMethodReference(COMPOSER, name, parameters, result),
         )
-        add(
-            ImmutableInstruction35c(
-                Opcode.INVOKE_INTERFACE,
-                1,
-                4, 0, 0, 0, 0,
-                ImmutableMethodReference(COMPOSER, "m", emptyList(), "V"),
-            ),
-        )
-    }
+
+    private fun method(
+        owner: String,
+        name: String,
+        parameters: List<String>,
+        result: String,
+        registers: Int,
+        instructions: List<Instruction>,
+    ): Method = ImmutableMethod(
+        owner,
+        name,
+        parameters.map { ImmutableMethodParameter(it, null, null) },
+        result,
+        0,
+        null,
+        null,
+        ImmutableMethodImplementation(registers, instructions, null, null),
+    )
+
+    /** 4bit に収まらない dismiss register を持つ iget 相当。22c は表現できないため 21c で代用します。 */
+    @Suppress("TestFunctionName")
+    private fun ImmutableInstruction22cHigh(register: Int): Instruction =
+        ImmutableInstruction21c(Opcode.SGET_OBJECT, register, ImmutableFieldReference("Lb71/e;", "b", FUNCTION0))
 }

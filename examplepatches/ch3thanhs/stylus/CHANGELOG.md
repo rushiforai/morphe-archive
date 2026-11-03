@@ -1,3 +1,22 @@
+## [1.9.1](https://github.com/ch3thanhs/stylus/compare/v1.9.0...v1.9.1) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **bitwarden:** inject the font feature call with low registers ([594c859](https://github.com/ch3thanhs/stylus/commit/594c859328c18e5551adc91dc1484417b9d7af76))
+* **bitwarden:** use the real this register for the font feature call ([f67ac89](https://github.com/ch3thanhs/stylus/commit/f67ac89e72d53ce349e06aa1068482fe5dcc2f03))
+
+## [1.9.1-dev.2](https://github.com/ch3thanhs/stylus/compare/v1.9.1-dev.1...v1.9.1-dev.2) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **bitwarden:** use the real this register for the font feature call ([f67ac89](https://github.com/ch3thanhs/stylus/commit/f67ac89e72d53ce349e06aa1068482fe5dcc2f03))
+
+## [1.9.1-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.9.0...v1.9.1-dev.1) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **bitwarden:** inject the font feature call with low registers ([594c859](https://github.com/ch3thanhs/stylus/commit/594c859328c18e5551adc91dc1484417b9d7af76))
+
 ## [1.9.0](https://github.com/ch3thanhs/stylus/compare/v1.8.3...v1.9.0) (2026-11-01)
 
 ### ✨ New Features

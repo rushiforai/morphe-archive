@@ -52,14 +52,18 @@ public final class TextPostIconPatch {
     }
 
     /**
-     * Injected at the start of rotateSelftextArrow(expanded, duration). Returns true when the
-     * icon was handled here (the app's rotation must then be skipped).
+     * Injected at the start of rotateSelftextArrow(expanded, duration). Flips the chevron, says in the
+     * button's description whether the text is open, and returns true when the icon was handled here
+     * (the app's rotation must then be skipped).
      */
     public static boolean setExpanded(ImageView button, boolean expanded, int duration) {
         if (button == null || !(button.getDrawable() instanceof PageDrawable)) return false;
         button.clearAnimation();
         button.setRotation(0);
         ((PageDrawable) button.getDrawable()).setExpanded(expanded, duration > 0);
+        button.setContentDescription(str(expanded
+                ? "revanced_text_post_icon_content_description_open"
+                : "revanced_text_post_icon_content_description"));
         return true;
     }
 

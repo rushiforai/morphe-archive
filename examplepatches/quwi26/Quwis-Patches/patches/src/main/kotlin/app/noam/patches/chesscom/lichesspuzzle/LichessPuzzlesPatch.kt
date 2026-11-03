@@ -14,6 +14,7 @@ import app.noam.patches.chesscom.shared.markFeaturePatched
 import app.noam.patches.chesscom.shared.getterForLabel
 import app.noam.patches.chesscom.shared.returnString
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -387,9 +388,9 @@ val lichessPuzzlesPatch = bytecodePatch(
             )
         }
         when {
-            mutableClassDefByOrNull(HUB_STATE) != null ->
+            classDefByOrNull(HUB_STATE) != null ->
                 hookHubState(HUB_STATE, HUB_PATH, HUB_USER, arity = 12, pathIndex = 6, userIndex = 5)
-            mutableClassDefByOrNull(HUB_STATE_41023) != null ->
+            classDefByOrNull(HUB_STATE_41023) != null ->
                 hookHubState(HUB_STATE_41023, HUB_PATH_41023, HUB_USER_41023, arity = 13, pathIndex = 5, userIndex = 6)
             else -> throw PatchException("The puzzles hub state was not found for this version")
         }
@@ -458,23 +459,34 @@ val lichessPuzzlesPatch = bytecodePatch(
         // fresh account has it false, so the guest screen ends before the Lichess puzzles
         // arrive; treat it as started while a session is active.
         var guestStartedHooks = 0
+        // Find the checks on the immutable classes and make mutable only those that get a hook:
+        // making a class mutable rewrites it into a new DEX file, and this scan visits every class.
+        val guestStartedUsers = mutableListOf<Pair<String, Method>>()
         classDefForEach { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
+            classDef.methods.forEach { method ->
                 val implementation = method.implementation ?: return@forEach
-                val instructions = implementation.instructions.toList()
-                if (instructions.none { instruction ->
+                if (implementation.instructions.none { instruction ->
                         ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == "is_guest_mode_started"
                     }) return@forEach
-                instructions.indices.filter { index ->
-                    val instruction = instructions[index]
+                guestStartedUsers += classDef.type to method
+            }
+        }
+        guestStartedUsers.forEach { (type, user) ->
+            mutableClassDefBy(type).methods.first {
+                it.name == user.name && it.parameterTypes == user.parameterTypes &&
+                    it.returnType == user.returnType
+            }.apply {
+                val snapshot = implementation!!.instructions.toList()
+                snapshot.indices.filter { index ->
+                    val instruction = snapshot[index]
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     instruction.opcode == Opcode.INVOKE_STATIC &&
                         reference?.definingClass == "Lcom/chess/utils/android/preferences/f;" &&
                         reference.name == "a" && reference.returnType == "Z" &&
-                        instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
+                        snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
                 }.sortedDescending().forEach { index ->
-                    val register = (instructions[index + 1] as OneRegisterInstruction).registerA
-                    method.addInstructions(
+                    val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
+                    addInstructions(
                         index + 2,
                         """
                             invoke-static/range { v$register .. v$register }, $PUZZLES->guestStarted(Z)Z

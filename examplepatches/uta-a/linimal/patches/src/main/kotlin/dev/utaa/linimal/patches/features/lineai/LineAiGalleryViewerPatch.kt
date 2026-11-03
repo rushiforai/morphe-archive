@@ -18,7 +18,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import dev.utaa.linimal.patches.shared.Constants
@@ -34,10 +33,10 @@ import dev.utaa.linimal.patches.util.branchTargetAddress
 import dev.utaa.linimal.patches.util.instructionAddress
 
 private const val VIEW = "Landroid/view/View;"
-private const val GALLERY_BINDER = "Lhu7/e1;"
-private const val GALLERY_CLICK_CALLBACK = "Lhu7/u0;"
-private const val GALLERY_ACTION = "Lfu7/o\$a;"
-private const val LINE_AI_ENTRY_SOURCE = "Lrq1/a;"
+private const val GALLERY_BINDER = "Lhc8/s0;"
+private const val GALLERY_CLICK_CALLBACK = "Lhc8/m0;"
+private const val GALLERY_ACTION = "Lfc8/n\$a;"
+private const val LINE_AI_ENTRY_SOURCE = "Ljz1/a;"
 private const val LINE_AI_GALLERY_SOURCE_VALUE = "chatroom_image_viewer"
 private const val LINE_AI_GALLERY_HOOK =
     "Ldev/utaa/linimal/extension/features/lineai/LineAiGalleryViewerHooks;->adjustVisibility(Z)Z"
@@ -52,8 +51,8 @@ private val lineAiGalleryViewerActionFingerprint = Fingerprint(
     returnType = VOID,
     parameters = emptyList(),
     filters = listOf(
-        literal(0x7f0b0629), // chat_gallery_line_ai_edit_image_tooltip
         string("LINE_AI_EDIT_IMAGE"),
+        literal(0x7f0b05fa), // chat_gallery_line_ai_edit_image_tooltip
         fieldAccess(
             definingClass = GALLERY_ACTION,
             name = "LINE_AI_EDIT_IMAGE",
@@ -109,7 +108,7 @@ private val lineAiGalleryViewerBinderFingerprint = Fingerprint(
             returnType = BOOLEAN,
             opcode = Opcode.INVOKE_VIRTUAL,
         ),
-        literal(0x7f0b0628), // chat_gallery_line_ai_button
+        literal(0x7f0b05f9), // chat_gallery_line_ai_button
         methodCall(
             definingClass = VIEW,
             name = "setVisibility",
@@ -123,7 +122,7 @@ private val lineAiGalleryViewerBinderFingerprint = Fingerprint(
             type = GALLERY_ACTION,
             opcode = Opcode.SGET_OBJECT,
         ),
-        literal(0x7f1400ac), // viewer_ic_line_ai
+        literal(0x7f1400b4), // viewer_ic_line_ai
         newInstance(GALLERY_CLICK_CALLBACK),
     ),
 )
@@ -135,7 +134,7 @@ private val lineAiGalleryViewerRebindFingerprint = Fingerprint(
         newInstance(GALLERY_BINDER),
         string("updateLineAiHeaderButton(Z)V"),
         methodCall(
-            parameters = listOf("Landroidx/lifecycle/u0;", "Landroidx/lifecycle/g1;"),
+            parameters = listOf("Landroidx/lifecycle/u0;", "Landroidx/lifecycle/i1;"),
             returnType = VOID,
             opcode = Opcode.INVOKE_VIRTUAL,
         ),
@@ -158,7 +157,7 @@ val lineAiGalleryViewerPatch = bytecodePatch(
             PatchAvailability.UNAVAILABLE
         }
     }
-    dependsOn(lineAiMessageContextMenuPatch)
+    dependsOn(lineAiImageSideMenuPatch)
 
     execute {
         val actionMatches = lineAiGalleryViewerActionFingerprint.matchAllOrNull().orEmpty()
@@ -235,10 +234,9 @@ private fun lineAiGalleryViewerInjectionShape(match: Match): GalleryViewerInject
         ?.reference as? MethodReference
     val buttonResult = instructions.getOrNull(buttonIdIndex + 2) as? OneRegisterInstruction
     val buttonCast = instructions.getOrNull(buttonIdIndex + 3) as? OneRegisterInstruction
-    val zeroLiteral = instructions.getOrNull(setVisibilityIndex - 5) as? NarrowLiteralInstruction
-    val zeroRegister = instructions.getOrNull(setVisibilityIndex - 5) as? OneRegisterInstruction
     val visibilityBranch = instructions.getOrNull(setVisibilityIndex - 4) as? OneRegisterInstruction
-    val visibleMove = instructions.getOrNull(setVisibilityIndex - 3) as? TwoRegisterInstruction
+    val visibleLiteral = instructions.getOrNull(setVisibilityIndex - 3) as? NarrowLiteralInstruction
+    val visibleRegister = instructions.getOrNull(setVisibilityIndex - 3) as? OneRegisterInstruction
     val visibleGoto = instructions.getOrNull(setVisibilityIndex - 2) as? OffsetInstruction
     val goneLiteral = instructions.getOrNull(setVisibilityIndex - 1) as? NarrowLiteralInstruction
     val goneRegister = instructions.getOrNull(setVisibilityIndex - 1) as? OneRegisterInstruction
@@ -271,22 +269,20 @@ private fun lineAiGalleryViewerInjectionShape(match: Match): GalleryViewerInject
         buttonResult?.opcode != Opcode.MOVE_RESULT_OBJECT ||
         buttonCast?.opcode != Opcode.CHECK_CAST ||
         buttonCast.registerA != buttonResult.registerA ||
-        zeroRegister?.opcode != Opcode.CONST_4 ||
-        zeroLiteral?.narrowLiteral != 0 ||
         visibilityBranch?.opcode != Opcode.IF_EQZ ||
         visibilityBranch.registerA != result.registerA ||
         branchTargetAddress(instructions, setVisibilityIndex - 4) != goneAddress ||
-        visibleMove?.opcode != Opcode.MOVE ||
-        visibleMove.registerB != zeroRegister.registerA ||
+        visibleRegister?.opcode != Opcode.CONST_4 ||
+        visibleLiteral?.narrowLiteral != 0 ||
         visibleGoto?.opcode != Opcode.GOTO ||
         branchTargetAddress(instructions, setVisibilityIndex - 2) != setterAddress ||
         goneRegister?.opcode != Opcode.CONST_16 ||
         goneLiteral?.narrowLiteral != 8 ||
-        goneRegister.registerA != visibleMove.registerA ||
+        goneRegister.registerA != visibleRegister.registerA ||
         setVisibility?.opcode != Opcode.INVOKE_VIRTUAL ||
         setVisibility.registerCount != 2 ||
         setVisibility.registerC != buttonResult.registerA ||
-        setVisibility.registerD != visibleMove.registerA ||
+        setVisibility.registerD != visibleRegister.registerA ||
         setVisibilityReference?.definingClass != VIEW ||
         setVisibilityReference.name != "setVisibility" ||
         setVisibilityReference.parameterTypes != listOf("I") ||

@@ -136,6 +136,8 @@ final class HushfacebookPages {
                         L10n.t("Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the "
                                 + "change.")));
             }
+            // The tabs left on the bar, in the order you pick (#341). Also built once, so it waits too.
+            tabs.addPreference(TabOrderRow.row(page, context));
         }
         if (build.contains(PatchFamily.TAB_BADGES)) {
             subheading(tabs, L10n.t("Dots and counts"));
@@ -181,7 +183,7 @@ final class HushfacebookPages {
         subheading(appearance, L10n.t("Colors and theme"));
         if (build.contains(PatchFamily.ACCENT_COLOR)) {
             // Colours Facebook asks for as each screen builds, so a change shows fully after a restart.
-            appearance.addPreference(accentRow(context, build.contains(PatchFamily.MATERIAL_YOU_THEME)));
+            appearance.addPreference(accentRow(page, context, build.contains(PatchFamily.MATERIAL_YOU_THEME)));
         }
         if (build.contains(PatchFamily.MARK_COLORS)) {
             // Colours Facebook asks for as each screen builds, so a change shows fully after a restart.
@@ -225,6 +227,10 @@ final class HushfacebookPages {
             appearance.addPreference(toggle(context, Settings.TRANSLUCENT_BARS,
                     L10n.t("The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. "
                             + "On Android 12 and newer the feed behind them is blurred.")));
+            // Asked as each frame of the main screen draws, so a change shows right away (#344).
+            appearance.addPreference(toggle(context, Settings.ROUNDED_TAB_BAR,
+                    L10n.t("With the tab bar at the bottom, it gets round ends and sits a little smaller, just above "
+                            + "the bottom of the screen.")));
             // Asked as the main screen gets its focus back, so a change shows when these settings close.
             appearance.addPreference(toggle(context, Settings.HIDE_STATUS_BAR,
                     L10n.t("Takes the phone's status bar, with the time and battery, off Facebook's main screen, so "
@@ -267,6 +273,7 @@ final class HushfacebookPages {
         if (build.contains(PatchFamily.HEADER_TEXT)) {
             // Facebook builds the Home header once, so a change waits for a restart.
             appearance.addPreference(HushfacebookPreferenceFragment.headerTextRow(context));
+            appearance.addPreference(HushfacebookPreferenceFragment.logoEmojiRow(context));
             PictureRow picture = new PictureRow(page, context, HeaderPicturePreference.CHOOSE);
             picture.wayBack = new PictureRow(page, context, HeaderPicturePreference.REMOVE);
             // The Remove row goes in once, as Font file's way back does, so it keeps its place after a pick.

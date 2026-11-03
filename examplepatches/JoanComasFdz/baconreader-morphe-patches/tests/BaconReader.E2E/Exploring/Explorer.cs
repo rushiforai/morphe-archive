@@ -175,6 +175,10 @@ public sealed class Explorer : BaseE2E
             {
                 case "post": Reddit.HasAPost(command.Argument(1), command.Argument(0)); break;
                 case "post with text and image": Reddit.HasAPostWithTheTextAndAnImage(command.Argument(1), command.Argument(0), command.Argument(2)); break;
+                case "post with flair": Reddit.HasAPostWithTheFlair(command.Argument(1), command.Argument(0), command.Argument(2)); break;
+                case "post with silver": Reddit.HasAPostWithSilverAwards(command.Argument(1), command.Argument(0), int.Parse(command.Argument(2), CultureInfo.InvariantCulture)); break;
+                case "flairs": Reddit.TheSubredditLetsUsersChooseTheFlairs(command.Argument(0), [.. command.Arguments.Skip(1)]); break;
+                case "comment with silver": Reddit.ThePost(command.Argument(0)).HasACommentWithSilverAwards(command.Argument(1), int.Parse(command.Argument(2), CultureInfo.InvariantCulture)); break;
                 case "post with text": Reddit.HasAPostWithTheText(command.Argument(1), command.Argument(0), Lines(command.Argument(2))); break;
                 case "comment": Reddit.ThePost(command.Argument(0)).HasAComment(Lines(command.Argument(1))); break;
                 case "comment by": Reddit.ThePost(command.Argument(0)).HasACommentBy(Lines(command.Argument(2)), command.Argument(1)); break;
@@ -228,7 +232,9 @@ public sealed record ExplorerCommand(string Text, string Name, IReadOnlyList<str
 {
     private static readonly string[] RedditData =
     [
-        "post", "post with text", "post with text and image", "comment", "comment by", "comment with table link", "comment with spoiler link", "comments", "reply", "comment with image", "comment with gif", "comment with image link",
+        "post", "post with flair", "post with silver", "flairs", "post with text", "post with text and image", "comment",
+        "comment by", "comment with silver", "comment with table link", "comment with spoiler link", "comments", "reply",
+        "comment with image", "comment with gif", "comment with image link",
         "comment with video", "comment with video link", "subscribe", "message", "late comments", "fail posts",
         "refuse posts", "drop posts",
     ];

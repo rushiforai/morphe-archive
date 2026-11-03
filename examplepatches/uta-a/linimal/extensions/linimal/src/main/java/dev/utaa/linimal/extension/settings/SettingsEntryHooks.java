@@ -3,6 +3,8 @@ package dev.utaa.linimal.extension.settings;
 import android.content.Context;
 import android.content.Intent;
 
+import dev.utaa.linimal.extension.core.KotlinUnit;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +57,9 @@ public final class SettingsEntryHooks {
         Constructor<?> constructor = SettingsEntryFactory.findModelConstructor(original);
         Class<?>[] parameters = constructor.getParameterTypes();
         Class<?> function2 = parameters[3];
-        Class<?> function1 = parameters[8];
-        Object unit = SettingsEntryFactory.kotlinUnit(constructor.getDeclaringClass().getClassLoader());
-        Object tag = SettingsEntryFactory.createNeutralTag(original, parameters[10], unit);
+        Class<?> function1 = parameters[9];
+        Object unit = KotlinUnit.get(constructor.getDeclaringClass().getClassLoader());
+        Object tag = SettingsEntryFactory.createNeutralTag(original, parameters[11], unit);
 
         constructor.setAccessible(true);
         Object entry = constructor.newInstance(
@@ -69,6 +71,8 @@ public final class SettingsEntryHooks {
                 SettingsEntryFactory.constantProxy(function2, Boolean.FALSE),
                 null,
                 SettingsEntryFactory.constantProxy(function2, Boolean.FALSE),
+                // 状態バッジは LINE の既定と同じく表示しません。
+                SettingsEntryFactory.constantProxy(function2, null),
                 null,
                 // 下位画面は持たず、項目のタップだけで Linimal の設定画面を開きます。
                 SettingsEntryFactory.constantProxy(function1, null),

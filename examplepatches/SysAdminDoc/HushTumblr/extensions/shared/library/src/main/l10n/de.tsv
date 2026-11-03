@@ -461,3 +461,12 @@ Puts every feature switch back the way it started.	Setzt jeden Funktionsschalter
 Changed %1$d setting	%1$d Einstellung geändert
 Changed %1$d settings	%1$d Einstellungen geändert
 Couldn't update muted posts. Try again.	Stummgeschaltete Posts konnten nicht aktualisiert werden. Versuch es erneut.
+# context: the Share video links switch on the Posts page, and its summary
+Share video links	Videolinks teilen
+Long-press a video in a post to share or copy its link.	Halte ein Video in einem Beitrag gedrückt, um seinen Link zu teilen oder zu kopieren.
+# context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
+Share video link	Videolink teilen
+Copy video link	Videolink kopieren
+Video link	Videolink
+Video link copied	Videolink kopiert
+No app can share this link	Keine App kann diesen Link teilen

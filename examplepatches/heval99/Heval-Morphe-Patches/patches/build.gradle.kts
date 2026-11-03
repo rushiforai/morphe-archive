@@ -76,4 +76,9 @@ tasks.test {
     // The smoke tests load the full APK (up to ~390 MB, multidex) and parse every emitted
     // dex in memory.
     maxHeapSize = "4g"
+    // Fingerprints are top-level vals, so one instance is shared by every test in the JVM and
+    // the patcher caches its match on it. In one JVM a later test's app (different R8 names)
+    // then reuses the earlier app's cached class (Niagara/Sofascore failed on FotMob's Ljrg).
+    // Manager and the CLI run one session per process; give each test class its own JVM too.
+    forkEvery = 1
 }

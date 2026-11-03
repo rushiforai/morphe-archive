@@ -15,12 +15,10 @@ import java.util.List;
  * 生成に失敗した場合は例外を投げ、呼び出し側は元のリストをそのまま使います。</p>
  */
 final class SettingsEntryFactory {
-    private static final String[] UNIT_CLASS_NAME = { "kotlin", "Unit" };
-
     private SettingsEntryFactory() {
     }
 
-    /** モデルの constructor は 13 引数で、位置ごとの型が固定されています。 */
+    /** モデルの constructor は 14 引数で、位置ごとの型が固定されています。 */
     static Constructor<?> findModelConstructor(List<?> items) {
         for (Object item : items) {
             if (item == null) {
@@ -36,11 +34,11 @@ final class SettingsEntryFactory {
     }
 
     private static boolean matchesModelShape(Class<?>[] parameters) {
-        if (parameters.length != 13) {
+        if (parameters.length != 14) {
             return false;
         }
         Class<?> function2 = parameters[3];
-        Class<?> function1 = parameters[8];
+        Class<?> function1 = parameters[9];
         return parameters[0] == String.class
                 && parameters[1] == Integer.class
                 && parameters[2] == int.class
@@ -48,14 +46,15 @@ final class SettingsEntryFactory {
                 && parameters[4] == function2
                 && parameters[5] == Integer.class
                 && parameters[6] == function2
-                && parameters[7].isEnum()
+                && parameters[7] == function2
+                && parameters[8].isEnum()
                 && function1.isInterface()
                 && function1 != function2
-                && parameters[9] == function1
-                && !parameters[10].isInterface()
-                && !parameters[10].isPrimitive()
-                && parameters[11] == function2
-                && parameters[12] == boolean.class;
+                && parameters[10] == function1
+                && !parameters[11].isInterface()
+                && !parameters[11].isPrimitive()
+                && parameters[12] == function2
+                && parameters[13] == boolean.class;
     }
 
     /** 既に Linimal の項目が存在する場合は二重追加しません。 */
@@ -169,20 +168,6 @@ final class SettingsEntryFactory {
                 functionInterface.getClassLoader(),
                 new Class<?>[] { functionInterface },
                 new ConstantHandler(unit, action));
-    }
-
-    /**
-     * Kotlin の Unit singleton。取得できない場合は null を返し、呼び出し結果は破棄されます。
-     * クラス名を定数として書くと shrinker が Kotlin の同名クラスを extension へ取り込むため、
-     * 名前は実行時に組み立てます。
-     */
-    static Object kotlinUnit(ClassLoader classLoader) {
-        try {
-            String name = UNIT_CLASS_NAME[0] + '.' + UNIT_CLASS_NAME[1];
-            return Class.forName(name, false, classLoader).getField("INSTANCE").get(null);
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-            return null;
-        }
     }
 
     private static final class ConstantHandler implements InvocationHandler {

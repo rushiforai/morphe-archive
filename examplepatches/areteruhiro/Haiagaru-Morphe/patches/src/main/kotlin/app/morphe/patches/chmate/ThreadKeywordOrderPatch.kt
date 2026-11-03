@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 internal fun BytecodePatchContext.patchThreadKeywordOrder(version: String) {
     if (version != "0.8.10.242 dev") return
     val candidates = mutableListOf<ClassDef>()
-    classDefForEach { definition ->
+    boundClassForEach("ThreadKeywordOrderPatch:1") { definition ->
         if (definition.type.startsWith("Ljp/syoboi/a2chMate/ui/threadlist/ThreadListViewModel\$") &&
             definition.fields.map { it.name }.containsAll(listOf("I\$0", "I\$1", "L\$0", "label")) &&
             definition.methods.any { method -> method.name == "invokeSuspend" &&

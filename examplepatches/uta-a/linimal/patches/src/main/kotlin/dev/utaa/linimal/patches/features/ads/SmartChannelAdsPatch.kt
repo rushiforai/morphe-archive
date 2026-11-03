@@ -29,10 +29,10 @@ import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 
 private const val SMART_CHANNEL_LAYOUT =
     "Lcom/linecorp/line/admolin/smartch/v2/view/SmartChannelViewLayout;"
-private const val RENDERER = "Lpm2/a;"
+private const val RENDERER = "Ldz2/a;"
 private const val FLOW_CONTINUATION = "Lkotlin/coroutines/Continuation;"
-private const val UNIT = "Lkotlin/Unit;"
-private const val UNIT_INSTANCE = "INSTANCE"
+private const val UNIT = "Lvs8/i0;"
+private const val UNIT_INSTANCE = "a"
 private const val SMART_CHANNEL_HOOK =
     "Ldev/utaa/linimal/extension/features/SmartChannelHooks;->shouldSuppressRenderer(Ljava/lang/Object;)Z"
 private const val SMART_CHANNEL_REBIND_HOOK =
@@ -69,12 +69,12 @@ private val smartChannelUiStateFingerprint = Fingerprint(
             opcode = Opcode.INVOKE_INTERFACE,
         ),
         methodCall(
-            parameters = listOf("Lui5/a;", "Lfj5/a;", "Ljava/lang/String;", "L"),
+            parameters = listOf("Lsx5/a;", "Ldy5/a;", "Ljava/lang/String;", "L"),
             returnType = "V",
             opcode = Opcode.INVOKE_VIRTUAL,
         ),
         methodCall(
-            definingClass = "Lfj5/a;",
+            definingClass = "Ldy5/a;",
             name = "j",
             parameters = emptyList(),
             returnType = "V",
@@ -84,12 +84,12 @@ private val smartChannelUiStateFingerprint = Fingerprint(
 )
 
 /**
- * SmartChannelViewLayout の tag lookup → factory → addView → pm2/a bind sequence。
+ * SmartChannelViewLayout の tag lookup → factory → addView → renderer bind sequence。
  * presentation の組立だけを対象にし、ad request / response / billing / payment の経路には触れません。
  */
 private val smartChannelInitialBindFingerprint = Fingerprint(
     returnType = "V",
-    parameters = listOf("Lui5/a;", "Lfj5/a;", "Ljava/lang/String;", "L"),
+    parameters = listOf("Lsx5/a;", "Ldy5/a;", "Ljava/lang/String;", "L"),
     filters = listOf(
         fieldAccess(type = SMART_CHANNEL_LAYOUT, opcode = Opcode.IGET_OBJECT),
         methodCall(
@@ -115,12 +115,12 @@ private val smartChannelInitialBindFingerprint = Fingerprint(
         methodCall(
             definingClass = RENDERER,
             name = "l",
-            parameters = listOf("Lyj2/c;"),
+            parameters = listOf("Llw2/c;"),
             returnType = "V",
             opcode = Opcode.INVOKE_INTERFACE,
         ),
         methodCall(
-            definingClass = "Lfj5/a;",
+            definingClass = "Ldy5/a;",
             name = "j",
             parameters = emptyList(),
             returnType = "V",
@@ -129,7 +129,7 @@ private val smartChannelInitialBindFingerprint = Fingerprint(
     ),
 )
 
-/** orientation rebind callback: existing renderer lookup → pm2/a.l(model) → View.post. */
+/** orientation rebind callback: existing renderer lookup → renderer.l(model) → View.post. */
 private val smartChannelRebindFingerprint = Fingerprint(
     returnType = "Ljava/lang/Object;",
     parameters = emptyList(),
@@ -145,7 +145,7 @@ private val smartChannelRebindFingerprint = Fingerprint(
         methodCall(
             definingClass = RENDERER,
             name = "l",
-            parameters = listOf("Lyj2/c;"),
+            parameters = listOf("Llw2/c;"),
             returnType = "V",
             opcode = Opcode.INVOKE_INTERFACE,
         ),
@@ -332,7 +332,7 @@ private fun guardInitialBind(match: Match): Boolean {
     val scratchLiteral = instructions.getOrNull(findViewIndex + 2) as? NarrowLiteralInstruction
 
     // `move-result-object <tag view>` の直後は const/4 v2, 0。OFF はその const をそのまま通し、
-    // ON は final fj5/a.j() へ進めて request/lifecycle completion を残します。
+    // ON は final dy5/a.j() へ進めて request/lifecycle completion を残します。
     if (
         findView?.opcode != Opcode.INVOKE_VIRTUAL ||
         findViewReference?.definingClass != "Landroid/view/View;" ||
@@ -381,7 +381,7 @@ private fun guardRebind(match: Match): Boolean {
         bind.registerCount != 2 ||
         bindReference?.definingClass != RENDERER ||
         bindReference.name != "l" ||
-        bindReference.parameterTypes != listOf("Lyj2/c;") ||
+        bindReference.parameterTypes != listOf("Llw2/c;") ||
         rendererRegister == null ||
         rendererRegister !in 0..15 ||
         modelRegister == null ||

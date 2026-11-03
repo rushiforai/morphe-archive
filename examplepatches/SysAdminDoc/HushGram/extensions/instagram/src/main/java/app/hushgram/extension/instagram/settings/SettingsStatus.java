@@ -218,6 +218,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Speed button on stories patch. */
+    public static boolean storySpeed() {
+        return false;
+    }
+
     public static boolean repostButton() {
         return false;
     }
@@ -230,6 +235,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Phone layout on big screens patch. */
+    public static boolean phoneLayout() {
+        return false;
+    }
+
     public static boolean emojiStyle() {
         return false;
     }
@@ -239,6 +249,10 @@ public final class SettingsStatus {
     }
 
     public static boolean launchScreen() {
+        return false;
+    }
+
+    public static boolean headerText() {
         return false;
     }
 
@@ -398,7 +412,16 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Hide activity bubbles patch. */
+    public static boolean activityBubbles() {
+        return false;
+    }
+
     public static boolean hideCaptions() {
+        return false;
+    }
+
+    public static boolean feedAudioIcon() {
         return false;
     }
 
@@ -411,6 +434,10 @@ public final class SettingsStatus {
     }
 
     public static boolean followingFeed() {
+        return false;
+    }
+
+    public static boolean followingMix() {
         return false;
     }
 
@@ -549,6 +576,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Don't report Blend visits patch. */
+    public static boolean blendVisits() {
+        return false;
+    }
+
     /** Rewritten by the Allow screenshots patch. */
     public static boolean screenshotBlock() {
         return false;
@@ -654,6 +686,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Chat history tools patch. */
     public static boolean chatHistory() {
+        return false;
+    }
+
+    /** Rewritten by the Preview chats patch. */
+    public static boolean previewChats() {
         return false;
     }
 

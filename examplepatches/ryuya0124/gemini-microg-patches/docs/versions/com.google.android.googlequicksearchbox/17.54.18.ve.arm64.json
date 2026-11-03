@@ -13,6 +13,39 @@
     "MainActivity branches and appk.k single-instruction replacement verified"
   ],
   "hooks": {
+    "DEVICE_COMPLIANCE_FEATURE": {
+      "className": "Ldkwy;",
+      "methodName": "a",
+      "methodDescriptor": "(Lgtks;Lgtks;)V",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Checking for device compliance...",
+        "Feature is disabled!"
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Select existing feature-disabled path, including native component-reset recovery. Server integrity state unchanged."
+    },
+    "DEVICE_COMPLIANCE_REDIRECT": {
+      "className": "Ldkww;",
+      "methodName": "invoke",
+      "methodDescriptor": "()Ljava/lang/Object;",
+      "fieldName": null,
+      "fieldType": null,
+      "anchorStrings": [
+        "Redirecting to UncertifiedDeviceActivity."
+      ],
+      "methodSignatures": [],
+      "expectedMatches": 1,
+      "integers": {},
+      "values": {},
+      "enabled": true,
+      "description": "Skip only the local warning-launch branch; does not certify the device or change server integrity results."
+    },
     "WORK_PROFILE_BYPASS": {
       "className": "Laiwk;",
       "methodName": "f",

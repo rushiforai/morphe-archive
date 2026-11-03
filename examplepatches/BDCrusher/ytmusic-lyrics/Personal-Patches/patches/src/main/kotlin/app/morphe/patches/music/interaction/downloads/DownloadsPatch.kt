@@ -28,6 +28,9 @@ import app.morphe.patches.shared.misc.textcomponent.hookSpannableString
 import app.morphe.patches.shared.misc.textcomponent.textComponentPatch
 import app.morphe.util.cloneParameters
 import app.bdcrusher.ytmusic.playlists.installNativeDownloadContext
+import app.bdcrusher.ytmusic.playlists.installDownloadViewContext
+import app.bdcrusher.ytmusic.playlists.installDownloadsHost
+import app.bdcrusher.ytmusic.playlists.installDownloadRows
 
 private val OFFLINE_PLAYBACK_PERMISSIONS = listOf(
     "android.permission.WAKE_LOCK",
@@ -75,14 +78,6 @@ private val downloadsResourcePatch = resourcePatch {
             }
         }
 
-        if (!xml.contains(OFFLINE_PLAYBACK_SERVICE)) {
-            xml = xml.replace(
-                "</application>",
-                "<service android:name=\"$OFFLINE_PLAYBACK_SERVICE\" " +
-                    "android:exported=\"false\" android:foregroundServiceType=\"mediaPlayback\" />\n</application>"
-            )
-        }
-
         manifest.writeText(xml)
     }
 }
@@ -123,6 +118,7 @@ val downloadsPatch = bytecodePatch(
             nativeOffline.methods.none {m->m.implementation?.instructions?.any {i->((i as? ReferenceInstruction)?.reference as? MethodReference)?.name=="newSingularGeneratedExtension"}==true})
             throw PatchException("Downloads: native offline parameter contract changed")
         hookSpannableString(EXTENSION_CLASS)
+        hookSpannableString("Lapp/bdcrusher/ytmusic/playlists/DownloadText;",overrideSpan=true)
 
         CommandResolverFingerprint.method.cloneParameters().apply {
             // Add interface to get buffer.
@@ -160,4 +156,5 @@ val downloadsPatch = bytecodePatch(
             )
         }
     }
+    finalize { installDownloadViewContext();installDownloadsHost();installDownloadRows() }
 }

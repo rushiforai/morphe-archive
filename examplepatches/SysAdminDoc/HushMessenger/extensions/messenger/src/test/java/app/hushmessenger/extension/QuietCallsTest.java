@@ -304,11 +304,11 @@ public class QuietCallsTest {
         assertTrue(Settings.hookErrors.containsKey("quiet_calls"));
     }
 
-    @Test public void theSwitchSitsUnderConversationsStartsOffIsExperimentalAndStaysOutOfTheQuickSetups() {
+    @Test public void theSwitchSitsUnderCallsStartsOffIsExperimentalAndStaysOutOfTheQuickSetups() {
         assertTrue(Settings.installed.contains("quiet_calls"));
         String[] row = Arrays.stream(SettingsActivity.CONTROLS).filter(c -> c[0].equals("quiet_calls")).findFirst().orElseThrow();
         assertEquals("Quiet incoming calls", row[1]);
-        assertEquals("conversations", row[3]);
+        assertEquals("calls", row[3]);
         assertTrue(SettingsActivity.EXPERIMENTAL.contains("quiet_calls"));
         assertFalse(Settings.preferences.contains("quiet_calls"));
         assertFalse(Settings.wouldUse("quiet_calls"));

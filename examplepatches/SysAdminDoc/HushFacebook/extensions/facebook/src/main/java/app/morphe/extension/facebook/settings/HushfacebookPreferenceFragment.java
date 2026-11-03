@@ -41,11 +41,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import app.morphe.extension.facebook.coexist.FamilySignatureTrust;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -67,6 +69,8 @@ import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.misc.HeaderText;
+import app.morphe.extension.facebook.misc.IconDensity;
+import app.morphe.extension.facebook.misc.LogoEmoji;
 import app.morphe.extension.facebook.profile.LocalProfileCounts;
 import app.morphe.extension.facebook.stories.StoriesTrayCircles;
 import app.morphe.extension.facebook.misc.OpeningPause;
@@ -99,6 +103,7 @@ import app.morphe.extension.facebook.settings.ValueRows.PauseLengthRow;
 import app.morphe.extension.facebook.settings.ValueRows.WatchedKeepRow;
 import app.morphe.extension.facebook.settings.ValueRows.BurnInGuardRow;
 import app.morphe.extension.facebook.settings.ValueRows.BurnInWaitRow;
+import app.morphe.extension.facebook.settings.ValueRows.ReelDateStyleRow;
 import app.morphe.extension.facebook.settings.ValueRows.AccentRow;
 import app.morphe.extension.facebook.settings.ValueRows.BackgroundRow;
 import app.morphe.extension.facebook.settings.ValueRows.CountRow;
@@ -162,6 +167,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static final String SUPPORTED_LINKS = "action_supported_links";
     /** The key of the overview row explaining a missing re-signed build fix. */
     static final String MISSING_RESTORE_TRUST = "action_missing_restore_trust";
+    /** The key of the overview row saying which download has sharp icons for this screen (#365). */
+    static final String SOFT_ICONS = "action_soft_icons";
     /** The key of the row naming the default patches this build lacks. It stores nothing either. */
     static final String MISSING_DEFAULTS = "action_missing_default_patches";
     /** How many of the missing patches that row names before it counts the rest. */
@@ -352,6 +359,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         Preference startsOff = StartsOffNote.row(context, build);
         if (startsOff != null) screen.addPreference(startsOff);
         screen.addPreference(jumpRow(context));
+        screen.addPreference(FavoriteSwitchesScreen.row(this, context));
 
         // The sections in the order they come on the page, each in its category page's class.
         FeedPages.opening(this, screen, context, build);
@@ -379,6 +387,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         // The overview shows these under the card by key. Last in the model, they move no other row.
         Preference restore = missingRestoreTrustRow(context, build);
         if (restore != null) screen.addPreference(restore);
+        Preference soft = softIconsRow(context);
+        if (soft != null) screen.addPreference(soft);
         Preference lacking = missingDefaultsRow(context, build);
         if (lacking != null) screen.addPreference(lacking);
     }
@@ -607,6 +617,21 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 L10n.f("Patch again with %1$s selected. A patched Facebook needs it to open profiles, photos, posts and "
                         + "some of Facebook's Settings pages.", L10n.isolate(FamilyNames.RESTORE_TRUST)));
         row.setKey(MISSING_RESTORE_TRUST);
+        return row;
+    }
+
+    /**
+     * Facebook patched from a download without images for this screen draws its bitmap icons
+     * enlarged and soft (#365). Shown while that holds, on a phone the 64-bit download fits.
+     */
+    @Nullable
+    static Preference softIconsRow(Context context) {
+        if (!IconDensity.patchSharper(context)) return null;
+        Preference row = info(context, L10n.t("Icons look soft on this screen"),
+                L10n.t("The Facebook you patched has no images made for this screen, so some icons are enlarged. "
+                        + "Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has "
+                        + "images for every screen."));
+        row.setKey(SOFT_ICONS);
         return row;
     }
 
@@ -877,6 +902,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         for (TabBarChoices.Pair pair : TabBarChoices.Pair.values()) {
             if (getPreferenceScreen() != null) TabBarChoices.showSaved(findPreference(pair.rowKey), pair);
         }
+        if (getPreferenceScreen() != null) TabOrderRow.showSaved(findPreference(TabOrderRow.ROW));
         if (refreshWaysIn != null) refreshWaysIn.run();
     }
 
@@ -1854,6 +1880,37 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 + "stay faded.", burnInWaitLabel(wait));
     }
 
+    /** How a reel's post date reads (#357), right under the switch that shows it. */
+    static ReelDateStyleRow reelDateStyleRow(Context context) {
+        ReelDateStyleRow row = new ReelDateStyleRow(context);
+        row.setKey(Settings.REEL_POST_DATE_STYLE.key);
+        row.setTitle(L10n.t("Show the post date as"));
+        row.setDialogTitle(L10n.t("Show the post date as"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        ReelDateStyle[] choices = ReelDateStyle.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = reelDateStyleLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.REEL_POST_DATE_STYLE.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [style]. */
+    static String reelDateStyleLabel(ReelDateStyle style) {
+        return style == ReelDateStyle.DATE ? L10n.t("The date") : L10n.t("How long ago");
+    }
+
+    /** The row's summary: how a three-week-old reel reads with [style], in the app's language. */
+    static String reelDateStyleSummary(ReelDateStyle style) {
+        return L10n.f("Like \"%1$s\". A change shows from the next reel.",
+                style.example(System.currentTimeMillis(), L10n.locale(), TimeZone.getDefault()));
+    }
+
     /**
      * How large Facebook's text is. Like the comment order row, its values are the setting's own
      * names and its summary says what the choice does.
@@ -1939,7 +1996,12 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * are the setting's own names and its summary says what the choice does.
      */
     static AccentRow accentRow(Context context, boolean materialYou) {
+        return accentRow(null, context, materialYou);
+    }
+
+    static AccentRow accentRow(@Nullable HushfacebookPreferenceFragment page, Context context, boolean materialYou) {
         AccentRow row = new AccentRow(context, materialYou);
+        if (page != null) row.customEditor = () -> AccentCustomEditor.show(page, context);
         row.setKey(Settings.ACCENT_COLOR.key);
         row.setTitle(L10n.t("Accent color"));
         row.setDialogTitle(L10n.t("Accent color"));
@@ -1949,7 +2011,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         CharSequence[] entries = new CharSequence[choices.length];
         CharSequence[] values = new CharSequence[choices.length];
         for (int i = 0; i < choices.length; i++) {
-            entries[i] = accentLabel(choices[i], materialYou);
+            entries[i] = choices[i] == AccentColor.Preset.CUSTOM ? L10n.t("Custom color") : accentLabel(choices[i], materialYou);
             values[i] = choices[i].name();
         }
         row.setEntries(entries);
@@ -1977,6 +2039,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 return L10n.t("Indigo");
             case AMBER:
                 return L10n.t("Amber");
+            case CUSTOM: {
+                String saved = AccentColor.customStored(Settings.ACCENT_CUSTOM.savedValue());
+                return saved == null ? L10n.t("Custom color") : L10n.isolate(saved);
+            }
             default:
                 return materialYou ? L10n.t("Wallpaper accent") : L10n.t("Facebook blue");
         }
@@ -1987,6 +2053,11 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * stands in for the wallpaper's accent, and Facebook blue leaves the wallpaper's (#272).
      */
     static String accentSummary(AccentColor.Preset accent, boolean materialYou) {
+        String base = accentSummaryBase(accent, materialYou);
+        return accent == AccentColor.Preset.CUSTOM ? base + " " + L10n.t("Pick Custom color again to change it.") : base;
+    }
+
+    private static String accentSummaryBase(AccentColor.Preset accent, boolean materialYou) {
         if (materialYou) {
             if (accent == AccentColor.Preset.FACEBOOK) {
                 return L10n.t("Material You uses your wallpaper's accent. Pick a color to use it instead.");
@@ -2165,6 +2236,35 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
+     * The emoji after the Facebook logo (#360): one emoji, or a few characters, drawn right after the
+     * wordmark at the top of Home in its own colors. What's saved is what {@link LogoEmoji} shows.
+     */
+    static HeaderTextRow logoEmojiRow(Context context) {
+        HeaderTextRow row = new HeaderTextRow(context, HushfacebookPreferenceFragment::logoEmojiSummary);
+        row.setKey(Settings.LOGO_EMOJI.key);
+        String title = L10n.t("Emoji after the logo");
+        row.setTitle(title);
+        row.setDialogTitle(title);
+        row.setDialogMessage(L10n.t("An emoji drawn right after the Facebook logo at the top of Home, in its own "
+                + "colors. Leave it blank for none."));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        keepEditorInDialog(field, false);
+        field.setHint(new String(Character.toChars(0x1F383)));
+        row.setText(Settings.LOGO_EMOJI.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = LogoEmoji.clean(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the emoji as the header shows it in place of what was typed, as the header text row does.
+            ((HeaderTextRow) preference).setText(clean);
+            return false;
+        });
+        return row;
+    }
+
+    /**
      * Home header text (#230): your own words at the top of Home in place of Facebook's logo, read
      * as Facebook builds the header. What's saved is the text {@link HeaderText} shows: one line,
      * trimmed, at most {@link HeaderText#MAX_LENGTH} characters.
@@ -2278,6 +2378,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     /** What the Round picture size row says for [text], the digits typed there. */
     static String sizeSummary(String text) {
         return L10n.f("Round pictures are %1$s dp wide.", StoriesTrayCircles.diameterDp(text));
+    }
+
+    /** What the Emoji after the logo row says for [text], the emoji typed there. */
+    static String logoEmojiSummary(String text) {
+        String shown = LogoEmoji.clean(text);
+        if (shown.isEmpty()) return L10n.t("No emoji after the logo. Type one to show it there.");
+        return L10n.f("The top of Home shows %1$s after the logo. Restart Facebook to see the change.",
+                L10n.isolate(shown));
     }
 
     /** What the Home header text row says for [text], the words typed there. */
@@ -2470,6 +2578,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((BurnInGuardRow) listPreference).showSummary();
         } else if (listPreference instanceof BurnInWaitRow) {
             ((BurnInWaitRow) listPreference).showSummary();
+        } else if (listPreference instanceof ReelDateStyleRow) {
+            ((ReelDateStyleRow) listPreference).showSummary();
         } else if (listPreference instanceof BreakRow) {
             ((BreakRow) listPreference).showSummary();
         } else if (listPreference instanceof TextSizeRow) {

@@ -4,7 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.string
 
-// The app's analytics base class (kept). Firebase, Amplitude, Braze, Singular, Rudderstack, the
+// The app's analytics base class (kept). Firebase, Braze, Singular, Rudderstack, the
 // "sad retained" set-as-default tracker and two debug services all extend it, and the analytics
 // dispatcher fans every event out to them.
 internal const val ANALYTICS_SERVICE = "Lcom/eet/core/analytics/AnalyticsService;"
@@ -27,13 +27,6 @@ internal const val SINGULAR = "Lcom/singular/sdk/Singular;"
 internal val SINGULAR_INIT_OVERLOADS = setOf(
     listOf("Landroid/content/Context;", "Lcom/singular/sdk/SingularConfig;"),
     listOf("Landroid/content/Context;", "Ljava/lang/String;", "Ljava/lang/String;"),
-)
-
-internal object AmplitudeInitializeFingerprint : Fingerprint(
-    definingClass = "Lcom/eet/service/amplitude/analytics/AmplitudeAnalyticsService;",
-    name = "initializeAmplitude",
-    returnType = "V",
-    parameters = listOf(),
 )
 
 // RudderstackAnalyticsService(Application): reads the write key from resources and only builds

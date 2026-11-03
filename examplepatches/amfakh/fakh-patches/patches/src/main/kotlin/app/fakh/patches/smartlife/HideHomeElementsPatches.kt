@@ -31,11 +31,18 @@ private object AttachBaseContextFingerprint : Fingerprint(
 )
 
 /**
- * libthing_security reads the app's signing certificate and kills the process when it is not Tuya's, so every
- * patch here makes the app see the original certificate again through a PackageManager proxy.
+ * libthing_security reads the app's signing certificate and kills the process when it is not Tuya's, so this
+ * patch makes the app see the original certificate again through a PackageManager proxy.
  */
-val signatureSpoofPatch = bytecodePatch(description = "Presents the original signing certificate to the app.") {
+@Suppress("unused")
+val signatureSpoofPatch = bytecodePatch(
+    name = "Spoof signature",
+    description = "Lets the patched app start. A patched app is signed with a different key, which the app's " +
+        "integrity check rejects, so without this it closes a few seconds after it opens.",
+    default = true,
+) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
+    category("Feature")
     extendWith("extensions/extension.mpe")
 
     execute {
@@ -59,6 +66,13 @@ private object AiBarFactoryFingerprint : Fingerprint(
     definingClass = "Lcom/thingclips/smart/ai/aiassistant/AIAssistantEnableServiceImpl;",
     returnType = "Landroid/view/View;",
     custom = { method, _ -> method.instantiates("Lcom/thingclips/smart/ai/aiassistant/ui/view/AIHomeEntryView;") },
+)
+
+/** The same service's factory for the floating bar on device panels; null makes the host skip it. */
+private object PanelAiBarFactoryFingerprint : Fingerprint(
+    definingClass = "Lcom/thingclips/smart/ai/aiassistant/AIAssistantEnableServiceImpl;",
+    returnType = "Lcom/thingclips/smart/ai/assistant/view/AIBarView;",
+    custom = { method, _ -> method.instantiates("Lcom/thingclips/smart/ai/aiassistant/ui/view/InnerFloatAIBarLayout;") },
 )
 
 /** HomeAdvCardService.addUiCard: registers every card type the home list can show. */
@@ -100,7 +114,6 @@ val hideRewardsHubPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute {
         welfareEntryFingerprint.method.addInstructions(0, HIDE_CELL)
@@ -196,7 +209,7 @@ val hideMyOrdersPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch, customRowFilterPatch)
+    dependsOn(customRowFilterPatch)
 
     execute { hiddenRowIds += "tyko2ipbcpehi0hwtv" }
 }
@@ -209,7 +222,7 @@ val hideTuyaAiWebPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch, customRowFilterPatch)
+    dependsOn(customRowFilterPatch)
 
     execute { hiddenRowIds += "tyezgn3ay0hma8xah6" }
 }
@@ -222,7 +235,6 @@ val hidePlusButtonPatch = resourcePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute {
         document("res/layout/ai_plus_menu_view.xml").use { layout ->
@@ -243,7 +255,6 @@ val hideRecommendedForYouPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute {
         AddUiCardFingerprint.method.apply {
@@ -264,21 +275,22 @@ val hideRecommendedForYouPatch = bytecodePatch(
 @Suppress("unused")
 val hideAiAskBarPatch = bytecodePatch(
     name = "Hide AI ask bar",
-    description = "Removes the \"How can I help?\" Tuya AI bar above the bottom navigation.",
+    description = "Removes the \"How can I help?\" Tuya AI bar above the bottom navigation and at the bottom of device panels.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute {
-        AiBarFactoryFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return-object v0
-            """,
-        )
+        listOf(AiBarFactoryFingerprint, PanelAiBarFactoryFingerprint).forEach {
+            it.method.addInstructions(
+                0,
+                """
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+            )
+        }
     }
 }
 
@@ -293,7 +305,6 @@ val hideExploreTabPatch = rawResourcePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(signatureSpoofPatch)
 
     execute {
         val config = get("assets/tab_config.json")
@@ -331,7 +342,6 @@ val hideAdsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Privacy")
-    dependsOn(signatureSpoofPatch)
 
     execute {
         // Both return null, which their callers already handle (a pad device gets no ad slot at all).

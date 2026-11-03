@@ -46,8 +46,6 @@ Loading older messages.	Carregando mensagens mais antigas.
 Loading older messages. %1$d message so far.	Carregando mensagens mais antigas. %1$d mensagem até agora.
 Loading older messages. %1$d messages so far.	Carregando mensagens mais antigas. %1$d mensagens até agora.
 Lock these settings	Bloquear estas configurações
-Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Abra uma conversa, mantenha o nome dela no topo pressionado e escolha Exportar conversa. A conversa inteira é salva como arquivo de texto em Downloads, pasta HushGram, com uma linha por mensagem.
-Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Abra uma conversa, mantenha o nome dela no topo pressionado e escolha Ir para a primeira mensagem ou Ir para uma data. A conversa carrega as mensagens mais antigas sozinha, com uma contagem e um botão Cancelar.
 Mark a chat seen when you reply	Marcar a conversa como vista quando você responder
 No messages found to save.	Nenhuma mensagem para salvar.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Escolha uma espera de 1 a 72 horas. Com o bloqueio, nada muda aqui até você pedir para desbloquear e a espera terminar.
@@ -220,6 +218,12 @@ Download on stories	Baixar nos stories
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Adiciona Baixar ao menu do story de qualquer pessoa, foto ou vídeo, salvo na sua qualidade de download. Desativado ou pausado, o menu do próprio Instagram volta.
 Upload stories at full quality	Enviar stories em qualidade máxima
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	Os stories em vídeo que você posta são enviados em 1080p e com bitrate maior, como acontece com a opção Enviar na qualidade mais alta do próprio Instagram ativada. O Instagram ainda reduz os vídeos de stories para 720p nos servidores dele, então a diferença que aparece é pequena. Os stories com foto já são enviados maiores do que o Instagram guarda.
+# context: Stories settings under Upload stories at full quality: which uploads it covers (Stories only, or Stories, posts and reels), and the video bitrate; %1$s is a number of megabits a second (#37)
+Upload quality applies to	A qualidade de envio vale para
+Stories only	Só stories
+Stories, posts and reels	Stories, posts e Reels
+Video bitrate	Taxa de bits do vídeo
+%1$s Mbps	%1$s Mbps
 Download feed videos	Baixar vídeos do feed
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Adiciona Baixar ao menu de um post com vídeo no seu feed. Usa a qualidade abaixo. Desligado ou pausado, o menu do Instagram volta.
 Playback	Reprodução
@@ -1417,8 +1421,10 @@ Puts a border and Instagram's view once icon on a one-time photo or video in a c
 Fall back to Following	Mudar para Seguindo
 When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Quando Para você mostra a uma conta só posts sugeridos, página após página, o Início abre em Seguindo para essa conta. O feed que você escolher no topo do Início continua escolhido. Reinicie o Instagram para ver a mudança.
 Only suggestions in For you. Home will open on Following.	Só sugestões em Para você. Início vai abrir em Seguindo.
+Mix in Following	Misturar Seguindo
+For you shows a page of posts from accounts you follow after each page of its own, until you've seen them all. Pull down on Home to start both over. Restart Instagram to see the change.	Para você mostra uma página de posts de contas que você segue depois de cada página própria, até você ver todos. Puxe o Início para baixo para recomeçar os dois. Reinicie o Instagram para ver a mudança.
 Explore without personalization	Explorar sem personalização
-Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Onde o Instagram oferece (na UE), o Explorar abre sempre com a grade não personalizada e continua nela depois de dez minutos.
+Explore asks for the grid that isn't personalized every time it opens, and stays on it past ten minutes. Instagram only promises that grid in the EU.	O Explorar pede a grade não personalizada toda vez que abre e continua nela depois de dez minutos. O Instagram só garante essa grade na UE.
 Hide Explore's personalized menu	Ocultar o menu de personalização do Explorar
 Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Oculta o botão da barra superior que muda a personalização do Explorar, onde o Instagram o mostra (na UE).
 # context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
@@ -1539,12 +1545,16 @@ Couldn't read that picture.	Não foi possível ler a imagem.
 This launcher can't add it.	Este launcher não pode adicioná-lo.
 Glass in chats	Vidro nos chats
 Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Dá à barra superior de um chat um vidro fosco e coloca os botões de voltar, ligação e vídeo em círculos de vidro. Aparece na próxima vez que você abrir um chat. O desfoque exige Android 12 ou mais recente.
-# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Ocultar reels com poucas visualizações
-Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Deixa de fora, na aba Reels, os reels que menos pessoas viram do que o número abaixo. Reels de contas que você segue, reels enviados a você e reels sem contagem continuam aparecendo.
+Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Deixa de fora, na aba Reels, os reels com menos visualizações ou curtidas que os números abaixo. Reels de contas que você segue, reels enviados a você e reels sem contagem continuam aparecendo.
 Minimum views	Mínimo de visualizações
 Reels with fewer views than this are left out. Type a whole number.	Reels com menos visualizações que isso ficam de fora. Digite um número inteiro.
 Fewer than %1$s views	Menos de %1$s visualizações
+Minimum likes	Mínimo de curtidas
+Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Reels com menos curtidas que isso ficam de fora. Digite um número inteiro, ou 0 para não considerar curtidas.
+Fewer than %1$s likes	Menos de %1$s curtidas
+Likes aren't looked at	Curtidas não são consideradas
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	Prioridade dos stories
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Coloca as contas da sua lista primeiro na linha de stories no alto do Início enquanto tiverem um story que você ainda não viu, na ordem da lista. Depois que você assiste, vale de novo a posição do Instagram. Seu próprio story continua em primeiro.
@@ -1553,3 +1563,103 @@ Usernames, one on each line. The first line goes first. A leading @ and capital 
 No accounts yet	Nenhuma conta ainda
 %1$d account	%1$d conta
 %1$d accounts	%1$d contas
+Home header text	Texto no topo do Início
+Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Palavras suas no topo do Início, no lugar do logo do Instagram. Até %1$d caracteres. Deixe em branco para manter o logo.
+Instagram's logo stays at the top of Home.	O logo do Instagram continua no topo do Início.
+The top of Home says %1$s.	O topo do Início diz %1$s.
+Home header picture	Imagem no topo do Início
+Remove the header picture	Remover a imagem do topo
+The top of Home goes back to your header text, or to Instagram's logo.	O topo do Início volta a mostrar seu texto, ou o logo do Instagram.
+Pick a picture to show at the top of Home, in place of Instagram's logo or your text.	Escolha uma imagem para mostrar no topo do Início, no lugar do logo do Instagram ou do seu texto.
+The top of Home shows %1$s. Tap to pick another.	O topo do Início mostra %1$s. Toque para escolher outra.
+Header picture set.	Imagem do Início definida.
+Header picture removed.	Imagem do Início removida.
+That isn't a picture.	Isso não é uma imagem.
+That picture is over %1$d MB.	Essa imagem passa de %1$d MB.
+Couldn't save the picture.	Não foi possível salvar a imagem.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Abra uma conversa, toque no botão de relógio ao lado dos botões de chamada no topo, ou mantenha o nome da conversa pressionado, e escolha Ir para a primeira mensagem ou Ir para uma data. A conversa carrega as mensagens mais antigas sozinha, com uma contagem e um botão Cancelar.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Abra uma conversa, toque no botão de relógio ao lado dos botões de chamada no topo, ou mantenha o nome da conversa pressionado, e escolha Exportar conversa. A conversa inteira é salva como arquivo de texto em Downloads, pasta HushGram, com uma linha por mensagem.
+Instagram stopped loading older messages.	O Instagram parou de carregar mensagens antigas.
+Black settings page	Página de configurações preta
+Black rows and dialogs, HushGram's name at the top, and each category on one line.	Linhas e caixas de diálogo pretas, o nome do HushGram no topo e cada categoria em uma linha.
+Mark as read	Marcar como lida
+Nothing to mark as read	Nada para marcar como lida
+Mark as read button in chats	Botão Marcar como lida nas conversas
+A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	Uma marca de seleção aparece no topo da conversa enquanto a outra pessoa não sabe que você a viu. Toque nela e a pessoa verá Visto.
+Red story mentions	Menções de stories em vermelho
+Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Desenha o texto da etiqueta de menções em vermelho em vez de branco, para se destacar em stories claros.
+Only received reels	Somente reels recebidos
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Ao passar pelos reels de um chat, os que você enviou são pulados, então só passa pelos que a outra pessoa compartilhou. Funciona com Deslizar pelos reels de um chat ativado.
+Hide the audio icon on posts	Ocultar o ícone de áudio nas publicações
+Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Tira o ícone do alto-falante dos vídeos do seu feed. Tocar no vídeo continua ligando ou desligando o som. As publicações que já estão na tela mudam quando carregam de novo.
+Light when paused	Claro ao pausar
+Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Pause um reel e a proteção contra burn-in devolve os botões ao brilho total até você reproduzi-lo de novo ou deslizar. Depois a espera recomeça do zero.
+Grow the heart	Aumentar o coração
+Double tap the same post again within a second and a half and the heart pops up bigger, up to nearly twice its size. A pause and it starts small again.	Toque duas vezes na mesma publicação de novo em até um segundo e meio e o coração aparece maior, até quase o dobro do tamanho. Depois de uma pausa, ele volta a começar pequeno.
+Instagram in pink	Instagram em rosa
+# context: Stories settings: a speed button in a video story's header, cycling 1x, 1.5x and 2x (#469)
+Speed button on stories	Botão de velocidade nos stories
+Puts a speed button at the top of a video story, beside the three dots. Tap it for 1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you change it or restart Instagram. Ads play at normal speed.	Coloca um botão de velocidade no topo de um story em vídeo, ao lado dos três pontos. Toque nele para 1,5x, de novo para 2x e mais uma vez para 1x. Os próximos stories em vídeo mantêm a velocidade até você mudá-la ou reiniciar o Instagram. Anúncios tocam na velocidade normal.
+# context: TalkBack label of that button; %1$s is the speed shown on it, such as 1.5x
+Playback speed, %1$s	Velocidade de reprodução, %1$s
+Where the mention pill goes	Onde fica a etiqueta de menções
+Under the name, 1 mention	Abaixo do nome, 1 menção
+Top bar, @1 mention	Barra de cima, @1 menção
+Top bar, @1	Barra de cima, @1
+The pill sits under the story's name and reads like 1 mention. Its list opens over the story.	A etiqueta fica abaixo do nome do story e diz algo como 1 menção. A lista abre sobre o story.
+The pill sits in the top bar next to the menu and reads like @1 mention. Its list opens from the bottom of the screen.	A etiqueta fica na barra de cima ao lado do menu e diz algo como @1 menção. A lista abre da parte de baixo da tela.
+The pill sits in the top bar next to the menu and shows only the count, like @1. Its list opens from the bottom of the screen.	A etiqueta fica na barra de cima ao lado do menu e mostra só o número, como @1. A lista abre da parte de baixo da tela.
+Turn on See who a story mentions to use this choice.	Ative Ver quem um story menciona para usar esta opção.
+Story mentions	Menções do story
+Accounts mentioned in this story	Contas mencionadas neste story
+# context: Feed settings: picks how the carousel page-dots pill looks (#471)
+Pill look	Visual da pílula
+# context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
+Seek bar look	Visual da barra de busca
+# context: a look for the page-dots pill and the seek bars: opaque, as before
+Solid	Sólido
+# context: a look for the page-dots pill and the seek bars: partly transparent
+See-through	Transparente
+# context: a look for the page-dots pill and the seek bars: blurs what's under it
+Frosted glass	Vidro fosco
+A light pill with dark dots, as it's always been.	Uma pílula clara com pontos escuros, como sempre foi.
+A see-through dark pill with white dots, so more of the photo shows.	Uma pílula escura transparente com pontos brancos, para mostrar mais da foto.
+A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Uma pílula de vidro fosco que desfoca a foto embaixo. Antes do Android 12 ela fica transparente.
+Turn on Page dots on a pill to use this choice.	Ative Pontos de página em uma pílula para usar esta opção.
+Turn on Seek bar on feed videos or its button to use this choice.	Ative Barra de busca nos vídeos do feed ou o botão dela para usar esta opção.
+Turn on Seek bar on stories to use this choice.	Ative Barra de busca nos stories para usar esta opção.
+A white bar and handle, as they've always been.	Barra e marcador brancos, como sempre foram.
+A fainter bar and handle, so more of the video shows through.	Barra e marcador mais suaves, para mostrar mais do vídeo.
+A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	Uma barra branca sobre uma faixa de vidro fosco que desfoca o vídeo embaixo. Antes do Android 12 a faixa fica transparente.
+# context: Instagram's Blend, the shared reels feed in a chat, as Instagram names it in this language (Turkish Instagram: Derleme).
+Don't report Blend visits	Não avisar visitas ao Blend
+Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend and its reels open as usual.	Abrir um Blend não avisa a conversa dele que você o visitou. O Blend e os reels dele abrem como sempre.
+# context: the little round profile pictures in a corner of a feed post or reel showing that a friend liked, commented on or reshared it. Instagram's own setting for them comes from its server, not the app.
+Hide activity bubbles	Ocultar bolhas de atividade
+Takes the little round pictures off posts and reels that show a friend liked, commented on or reshared them. Posts already on screen change when they load again.	Tira as fotinhos redondas dos posts e reels que mostram que um amigo curtiu, comentou ou compartilhou de novo. Os posts que já estão na tela mudam quando carregam de novo.
+# context: a switch for foldable phones and tablets. Instagram normally moves its tab bar to a rail down the side on a wide screen; this keeps the narrow phone layout instead.
+Phone layout on big screens	Layout de celular em telas grandes
+On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	Em um dobrável ou tablet, o Instagram mantém o layout de celular na tela toda, com a barra de abas embaixo em vez de na lateral. Reinicie o Instagram para ver a mudança.
+# context: a switch on the Messages page. It adds a Preview row to the menu a long press on a chat in the inbox opens; Preview shows the chat's newest messages in a box without opening the chat, so no seen receipt goes out. "Seen" is Instagram's own read receipt label in a chat.
+Preview chats	Prévia de conversas
+Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too.	Mantenha uma conversa pressionada nas suas mensagens e toque em Prévia para ler as mensagens mais recentes sem abri-la, assim ninguém vê Visto. Você também pode responder por ali.
+# context: the row in a chat's long press menu and the title of the box it opens, which shows the chat's newest messages without opening the chat.
+Preview	Prévia
+# context: the hint in the reply field at the bottom of the chat preview box.
+Write a message	Escreva uma mensagem
+# context: shown in the chat preview box while its messages load.
+Loading	Carregando
+Nothing here yet	Nada aqui ainda
+# context: the chat preview box, and a short toast, when the chat's messages can't be read. Toasts stay short.
+Couldn't load this chat	Não foi possível carregar esta conversa
+# context: a short toast after a reply typed in the chat preview box went out.
+Sent	Enviada
+Couldn't send	Não foi possível enviar
+# context: what a message with no text shows as in the chat preview box, by what it holds.
+Photo or video	Foto ou vídeo
+GIF or sticker	GIF ou figurinha
+# context: a view once photo or video in the chat preview box shows only this label, never the photo or video. Use Instagram's own wording for view once.
+View once message	Mensagem de visualização única
+Attachment	Anexo
+# context: the button next to the reply field in the chat preview box.
+Send	Enviar

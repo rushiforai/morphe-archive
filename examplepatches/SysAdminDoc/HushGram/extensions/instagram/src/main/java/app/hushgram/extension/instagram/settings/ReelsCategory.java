@@ -7,6 +7,7 @@
 package app.hushgram.extension.instagram.settings;
 
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.blockedWordsRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minLikesRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minViewsRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.burnInGuardRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.burnInWaitRow;
@@ -68,9 +69,10 @@ final class ReelsCategory {
         }
         if (build.contains(PatchFamily.LOW_VIEW_REELS)) {
             reels.add(toggle(context, Settings.HIDE_LOW_VIEW_REELS, L10n.t("Hide reels with few views"),
-                    L10n.t("Leaves out reels in the Reels tab that fewer people have watched than the number below. "
-                            + "Reels from accounts you follow, reels sent to you and reels with no view count still play.")));
+                    L10n.t("Leaves out reels in the Reels tab with fewer views or likes than the numbers below. "
+                            + "Reels from accounts you follow, reels sent to you and reels with no count still play.")));
             reels.add(minViewsRow(context));
+            reels.add(minLikesRow(context));
         }
         if (build.contains(PatchFamily.REEL_DECLUTTER)) {
             reels.add(toggle(context, Settings.HIDE_REEL_FOLLOW_BUTTON, L10n.t("Hide the Follow button"),
@@ -118,6 +120,11 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.BURN_IN_STAY_DIM, L10n.t("Stay dim when I tap"),
                     L10n.t("Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, "
                             + "the next reel too. They still work. Leaving Reels brings them back.")));
+            if (build.contains(PatchFamily.REEL_TAP_AND_VOLUME)) {
+                reels.add(toggle(context, Settings.BURN_IN_LIGHT_WHEN_PAUSED, L10n.t("Light when paused"),
+                        L10n.t("Pause a reel and Burn-in guard brings the buttons back to full brightness until you play "
+                                + "it again or swipe on. The wait then starts over.")));
+            }
             reels.add(toggle(context, Settings.KEEP_REEL_CLEAR_MODE, L10n.t("Keep clear mode on"),
                     L10n.t("Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear "
                             + "mode yourself and the next reels show their buttons again.")));
@@ -164,6 +171,9 @@ final class ReelsCategory {
                     L10n.t("The heart that pops up when you double tap a post plays the animation you pick below. "
                             + "They're animations Instagram made for its Rings creators.")));
             reels.add(likeAnimationRow(context));
+            reels.add(toggle(context, Settings.GROW_LIKE_HEART, L10n.t("Grow the heart"),
+                    L10n.t("Double tap the same post again within a second and a half and the heart pops up bigger, "
+                            + "up to nearly twice its size. A pause and it starts small again.")));
         }
         if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
             reels.add(toggle(context, Settings.FULL_SCREEN_REELS, L10n.t("Full screen Reels"),

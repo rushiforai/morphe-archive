@@ -1,6 +1,7 @@
 /*
  * Ather Morphe patches.
- * Licensed under CC0 1.0 Universal.
+ * Copyright 2026 pixincreate.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 package app.morphe.patches.ather.misc.integrity

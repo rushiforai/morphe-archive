@@ -71,10 +71,7 @@ private fun MutableMethod.replaceBody(smali: String) {
 @Suppress("unused")
 val adblockAndUserscriptPatch = bytecodePatch(
     name = "AdBlocker turbo & userscript bundle",
-    description = "Syncs SHA-256-verified pre-compiled AdBlocker binary engines + per-list filter archives " +
-        "(28 default lists, ~1.22M active rules) automatically in the background with instant Hosts & filters " +
-        "hydration, accelerates on-device filter compilation via 64 KB write buffering + foreground thread " +
-        "scheduling, and optionally seeds and auto-updates the mobile-adapted Bypass All Shortlinks userscript.",
+    description = "Updates the built-in ad blocker automatically in seconds instead of minutes, and can add a shortlink bypass userscript.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ONEDM)
@@ -90,11 +87,7 @@ val adblockAndUserscriptPatch = bytecodePatch(
             "Stock 1DM" to MODE_STOCK,
         ),
         title = "AdBlocker engine mode",
-        description = "Cloud Pre-Built downloads SHA-256-verified pre-compiled binary filter engines and " +
-            "per-list archives from GitHub automatically in the background (zero on-device compilation lag " +
-            "and full Hosts & filters counts/sizes/dates), falling back automatically to Local Turbo if you " +
-            "customize filter lists. Local Turbo keeps all compilation on-device with 64 KB buffered I/O, " +
-            "foreground CPU scheduling, and 7-day auto-update.",
+        description = "Cloud downloads ready-made filters in seconds (recommended). Local Turbo builds them on your device, faster than stock. Stock leaves 1DM unchanged.",
         required = true,
     )
 
@@ -102,9 +95,7 @@ val adblockAndUserscriptPatch = bytecodePatch(
         key = "bundleBypassShortlinks",
         default = true,
         title = "Bundle Bypass All Shortlinks userscript",
-        description = "Seeds and auto-updates the mobile-adapted Bypass All Shortlinks Debloated " +
-            "userscript (.1dmus with offline-cached MonkeyConfig, explicit @connect hosts, and zero warnings). " +
-            "Preserves your enabled/disabled state and never re-installs if deleted.",
+        description = "Installs and auto-updates a mobile shortlink bypass userscript. Keeps your on/off choice, and never returns if you delete it.",
         required = true,
     )
 

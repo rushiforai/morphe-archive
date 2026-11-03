@@ -5,6 +5,7 @@ import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
 import com.android.tools.smali.dexlib2.Opcode
@@ -858,3 +859,16 @@ object UserscriptSingleUpdateCheckFingerprint : Fingerprint(
 
 // endregion
 
+
+/**
+ * Runs an optional 1DM refinement whose failure must never abort patching: layout drift in
+ * cosmetic refinements degrades to a logged warning while the core (ads-off, stable app)
+ * guarantees stay hard failures. Only wrap blocks that resolve/verify before mutating.
+ */
+internal fun onedmRefinement(name: String, block: () -> Unit) {
+    try {
+        block()
+    } catch (exception: PatchException) {
+        System.err.println("Warning: 1DM refinement skipped ($name): ${exception.message}")
+    }
+}

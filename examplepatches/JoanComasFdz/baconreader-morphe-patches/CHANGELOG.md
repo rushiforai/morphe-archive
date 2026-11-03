@@ -1,3 +1,41 @@
+## [1.5.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** open Reddit links next to a post's title, which Fix Reddit links made do nothing ([b53f710](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/b53f710ea25e027169896dbb8b7758d77139e116))
+
+## [1.5.1-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.0...v1.5.1-dev.1) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** open Reddit links next to a post's title, which Fix Reddit links made do nothing ([b53f710](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/b53f710ea25e027169896dbb8b7758d77139e116))
+
+## [1.5.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** add Fix Reddit links, which opens share links and other Reddit links in the app ([1907ee5](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/1907ee58b81469c8023955207988ad03a0014826))
+
+### ✨ New Features
+
+* describe Flair filter's button, with the flairs chosen ([a7a8d92](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/a7a8d92dcf1ae84b44d82d8d269bcf521a33579b))
+* describe Text post icon's button as "Hide post text" while the text is open ([afba312](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/afba3127fe5ebc6209cd87f0dbd582a250ffe391))
+* name the action bars' buttons in Remove awards ([f69fa35](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/f69fa3525a1039623a57d12515542ff36159e1af))
+
+## [1.5.0-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** add Fix Reddit links, which opens share links and other Reddit links in the app ([1907ee5](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/1907ee58b81469c8023955207988ad03a0014826))
+
+## [1.5.0-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-01)
+
+### ✨ New Features
+
+* describe Flair filter's button, with the flairs chosen ([a7a8d92](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/a7a8d92dcf1ae84b44d82d8d269bcf521a33579b))
+* describe Text post icon's button as "Hide post text" while the text is open ([afba312](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/afba3127fe5ebc6209cd87f0dbd582a250ffe391))
+* name the action bars' buttons in Remove awards ([f69fa35](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/f69fa3525a1039623a57d12515542ff36159e1af))
+
 ## [1.4.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-01)
 
 ### 🐛 Bug Fixes

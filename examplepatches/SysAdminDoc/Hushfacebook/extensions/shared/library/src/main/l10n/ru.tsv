@@ -119,6 +119,8 @@ A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the t
 See-through bars	Прозрачные панели
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
 The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. On Android 12 and newer the feed behind them is blurred.	Верхняя панель и панель вкладок становятся прозрачными, и при прокрутке сквозь них видна Лента. На Android 12 и новее содержимое Ленты за панелями размывается.
+Rounded tab bar	Скруглённая панель вкладок
+With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen.	Когда панель вкладок внизу, у неё появляются круглые края и она становится чуть меньше, прямо над нижним краем экрана.
 # context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
 Force dark mode	Принудительно включить темный режим
 # context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
@@ -315,6 +317,8 @@ Hide comment and reaction previews	Скрывать предварительны
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	Скрывает комментарий, который Facebook показывает под Reels, и аватары друзей, поставивших реакцию. Откройте комментарии, чтобы увидеть их все.
 Hide Threads cards between reels	Скрывать карточки Threads между Reels
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Скрывает карточку «Возможно, вам понравится в Threads» между Reels. По умолчанию выключено, поскольку функция еще не проверялась на реальном аккаунте.
+Only reels from accounts I follow	Только Reels от аккаунтов, на которые я подписан
+The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	На вкладке Reels остаются только ролики людей и Страниц, на которые вы подписаны, начиная со следующей порции, которую загрузит Facebook. Вкладка может заполняться дольше. По умолчанию выключено.
 Download quality	Качество скачивания
 Best	Наилучшее
 Smallest	Минимальный размер
@@ -393,7 +397,7 @@ Facebook opens on %1$s. If your tab bar doesn't have it, Facebook opens on Home.
 # context: summary of the tab list when Feeds is picked; off the tab bar, Feeds opens as its own page over Home
 Facebook opens on Feeds. If your tab bar doesn't have it, the Feeds page opens over Home.	Facebook открывается на вкладке «Ленты». Если этой вкладки нет на панели, страница «Ленты» откроется поверх «Главной».
 # context: a sentence in the settings import preview and its toast; %1$s is a tab name
-Facebook will open on %1$s.	Facebook будет открываться на вкладке «%1$s».
+With %1$s on, Facebook will open on %2$s.	Если включена настройка %1$s, Facebook будет открываться на вкладке «%2$s».
 # context: switch title under Opening Facebook; Following is Facebook's feed of the friends, Pages and groups you follow, and Home is the tab
 Following feed on Home	Лента «Подписки» на Главной
 # context: summary of that switch; the ranked feed is the one Facebook orders for you, and the Feeds tab has its own filters
@@ -873,7 +877,8 @@ With the switch above on, only a hold on the right third of a reel plays it at d
 # context: label of a switch under Hold a reel for 2x; a feed video is a video playing in Home's feed or in Watch, not a reel
 Hold a feed video for 2x	Удерживать видео в Ленте для скорости 2x
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
-Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	Если удерживать видео в Ленте или Watch, оно воспроизводится с двойной скоростью, пока вы не отпустите палец. Работает независимо от переключателей выше.
+Holding a video in the feed or in Watch plays it at double speed until you let go. Pull down before you let go to keep it at 2x, then tap the video to go back. It works without the switches above.	Если удерживать видео в Ленте или Watch, оно воспроизводится с двойной скоростью, пока вы не отпустите палец. Чтобы оставить скорость 2x, потяните вниз перед тем, как отпустить, а чтобы вернуть прежнюю, нажмите на видео. Работает независимо от переключателей выше.
+Locked at 2x. Tap the video to go back.	Скорость 2x закреплена. Нажмите на видео, чтобы вернуть прежнюю.
 Hide the pull down to lock hint	Скрывать подсказку о блокировке скорости свайпом вниз
 Hide the 2x popups	Скрывать всплывающие подсказки 2x
 Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	При удержании видео для скорости 2x подсказка не появляется совсем: ни «Скорость: 2x», ни «Отпустите, чтобы зафиксировать», ни «Зафиксирована скорость 2x». Удержание и фиксация по-прежнему работают.
@@ -1019,10 +1024,13 @@ The phone's language	Язык телефона
 Languages to leave alone	Языки без перевода
 None picked. Posts in every language can be translated.	Ничего не выбрано. Можно переводить публикации на любом языке.
 Left alone: %s	Без перевода: %s
-Posts in the feed show all of their text, so there's no See more to tap.	В Ленте публикации отображаются полностью, поэтому нажимать «Еще» не нужно.
+Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	В Ленте публикации отображаются полностью, поэтому нажимать «Еще» не нужно. Нажмите на текст публикации, чтобы снова свернуть его.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Посмотреть, кто поделился
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Добавляет пункт «Посмотреть, кто поделился» в меню публикации. Он открывает список пользователей Facebook, которые поделились ею.
+# context: switch title under News feed; a post's photos and videos shown one at a time in a row you swipe, instead of a grid
+Photo carousel	Карусель фото
+A post with several photos or videos shows them in a row you swipe through, one at a time, instead of a grid.	Публикация с несколькими фото или видео показывает их по одному в ряду, который можно пролистывать, а не сеткой.
 # context: message shown when tapping that row doesn't open the list
 Couldn't open the list of shares.	Не удалось открыть список репостов.
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
@@ -1186,6 +1194,10 @@ Tap anywhere on a reel's or video's progress bar to jump there, instead of dragg
 Show View profile on Marketplace sellers	Показывать кнопку «Посмотреть профиль» у продавцов Marketplace
 # context: summary of that switch
 Adds a View profile button to every seller's Marketplace page, opening their Facebook profile. Facebook only shows it to some accounts.	Добавляет кнопку «Посмотреть профиль» на страницу каждого продавца в Marketplace и открывает его профиль Facebook. Facebook показывает ее только некоторым аккаунтам.
+# context: switch title under Marketplace; a listing is one item for sale on Marketplace, and the gap is an empty band between the status bar and the listing's close and share buttons (#333)
+Remove the gap above Marketplace listings	Убрать отступ над объявлениями Marketplace
+# context: summary of that switch; Pixel is Google's phone, keep the name
+Takes out the empty band some phones show above a listing's top row, like Pixels on Android 17.	Убирает пустую полосу, которую некоторые телефоны показывают над верхней строкой объявления, например Pixel на Android 17.
 # context: the Save Facebook's notification sound row under Notifications and its toasts (#83)
 Save Facebook's notification sound	Сохранить звук уведомления Facebook
 Adds Facebook's chime to your phone's notification sounds, for categories set to None. Then pick it in Android's notification settings for Facebook, under Sound.	Добавляет мелодию Facebook в звуки уведомлений телефона для категорий, в которых выбран вариант «Нет». Затем выберите ее в настройках уведомлений Android для Facebook в разделе «Звук».
@@ -1789,7 +1801,7 @@ Takes away the line that says someone is typing a comment. Your own typing is a 
 Hide the search pill on reels	Скрывать поисковую подсказку в Reels
 Hides the search suggestion under a reel's caption, the magnifier with a question to look up, the one at the top of its comments and the search bar over reels you open from a profile.	Скрывает поисковую подсказку под подписью Reels (значок лупы с вопросом для поиска), такую же подсказку вверху комментариев и строку поиска поверх Reels, открытых из профиля.
 Hide the top right buttons on opened videos	Скрывать кнопки вверху справа у открытых видео
-Takes Search and the button next to it off the top of a video or reel you open. Back stays, and so does More at the bottom of the side buttons, where Download is.	Удаляет поиск и соседнюю кнопку из верхней части открытого видео или Reels. Кнопка «Назад» остается, как и кнопка «Еще» внизу боковой панели, где находится «Скачать».
+Takes Search and the button next to it off the top of a video or reel you open, and off the Reels tab. Back and Menu stay, and so does More at the bottom of the side buttons, where Download is.	Удаляет поиск и соседнюю кнопку из верхней части открытого видео или Reels, а также со вкладки Reels. Кнопки «Назад» и «Меню» остаются, как и кнопка «Еще» внизу боковой панели, где находится «Скачать».
 # context: switch title under Appearance; the button is Facebook's Messenger icon in the top bar of Home
 Hide the Messenger button	Скрывать кнопку Messenger
 # context: summary of that switch; the other top bar buttons move over to fill the space; Hushfacebook is the app's name
@@ -1974,7 +1986,9 @@ What you search for, and the pages and profiles you open from a search, aren't a
 # context: switch title under Search; on, the Date posted filter in post search asks for a from and to month instead of a list of years; Date posted is Facebook's own filter name in search results
 Search date range	Диапазон дат поиска
 # context: summary of that switch; Date posted is Facebook's own filter name in post search results, named here as Facebook shows it
-The Date posted filter in post search asks for a from and to month, in place of a list of years.	Фильтр «Дата публикации» при поиске публикаций позволяет выбрать начальный и конечный месяц вместо списка годов.
+The Date posted filter in post search asks for a from and to date, in place of a list of years.	Фильтр «Дата публикации» при поиске публикаций позволяет выбрать начальную и конечную дату вместо списка лет.
+From day	С числа
+To day	По число
 # context: switch title under Reels and Watch; the audio line is the scrolling line at the bottom of a reel naming its sound, like "Name · Original audio" or a song title
 Hide the audio line on reels	Скрывать строку аудио в Reels
 # context: summary of that switch; "Original audio" is Facebook's own label, so use the wording Facebook shows in this language
@@ -2204,14 +2218,18 @@ If your patched Facebook includes Badge and logo colors, the selected tab will b
 If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.	Если в вашей версии пропатченного Facebook есть настройка цветов значков и логотипа, выбранная вкладка будет цвета %1$s.
 Hide the emoji row on comments	Скрывать строку эмодзи в комментариях
 The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	Строка с эмодзи над полем комментария исчезает. Вы по-прежнему можете вводить эмодзи с клавиатуры.
+Hide the line over the comment box	Скрыть линию над полем комментария
+The thin line along the top of the comment box goes away.	Тонкая линия по верхнему краю поля комментария исчезает.
 Show Comment when comments are off	Показывать кнопку «Комментировать», если комментарии отключены
 Show the post date on reels	Показывать дату публикации в Reels
 Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	Показывает дату публикации Reels или видео, открытого в полноэкранном режиме, под именем автора. Изменение применяется начиная со следующего Reels.
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Оставляет кнопку «Комментировать» в Reels, где комментарии отключены, чтобы вы могли читать уже существующие комментарии. Изменение применяется начиная со следующего Reels.
 Select part of a post's text	Выбирать часть текста публикации
-Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	Долгое нажатие на текст публикации по-прежнему копирует его целиком, а также открывает текст в окне, где можно выделить и скопировать только нужную часть.
+Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Удержание текста публикации открывает его в окне, где можно выделить только нужную часть и скопировать её или скопировать всё. Само удержание ничего не копирует.
 Select text	Выбрать текст
 Done	Готово
+Copy all	Копировать всё
+Copied	Скопировано
 Oldest	Сначала старые
 Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	Комментарии ко всем публикациям открываются сначала с самых старых. В меню сортировки Facebook после этого показывается вариант «Все комментарии».
 Comments will open oldest first.	Комментарии будут открываться начиная с самых старых.
@@ -2459,3 +2477,58 @@ A profile's Reels tab lists its most viewed reels first instead of the newest. O
 Not in this build, so dark mode stays Facebook's dark gray. Morphe Manager doesn't pick it by default. Turn on Expert mode in Manager, choose the %1$s patch and patch again.	В этой сборке этого нет, поэтому в темном режиме сохраняется темно-серый цвет Facebook. Morphe Manager не выбирает этот патч по умолчанию. Включите режим Expert в Manager, выберите патч %1$s и выполните патчинг повторно.
 Cast button on reels	Кнопка трансляции в Reels
 Adds a cast button to reels, under Download. It hands the reel to a casting app you have, such as Web Video Caster, which sends it to your TV.	Добавляет кнопку трансляции в Reels под кнопкой «Скачать». Она передает Reels в установленное приложение для трансляции, например Web Video Caster, которое отправляет видео на телевизор.
+Tab order	Порядок вкладок
+Professional dashboard	Профессиональная панель
+Ad Center	Рекламный центр
+Create	Создать
+Explore	Интересное
+As Facebook has it. Tap to put the tabs in the order you want. Facebook opens on the first one. Restart Facebook after you change this.	Как в Facebook. Нажмите, чтобы расставить вкладки в нужном порядке. Facebook открывается на первой. Перезапустите Facebook после изменения.
+In this order: %1$s. Facebook opens on the first one. Restart Facebook after you change this.	В таком порядке: %1$s. Facebook открывается на первой. Перезапустите Facebook после изменения.
+Tap a tab to move it up	Нажмите на вкладку, чтобы поднять её выше
+Your tab bar will keep Facebook's order.	Панель вкладок сохранит порядок Facebook.
+Your tab bar will go in this order: %1$s.	Вкладки на панели пойдут в таком порядке: %1$s.
+Show only watched stories	Показывать только просмотренные Истории
+The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	В ленте Историй остаются только те, что вы уже посмотрели, чтобы можно было найти нужную. Выключите, чтобы видеть новые. Пока это включено, «Скрывать просмотренные Истории» не действует. Сработает, когда Facebook снова загрузит ленту.
+Show Posts in search	Показывать «Публикации» в поиске
+Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	Возвращает «Публикации» в ряд над результатами поиска, после Reels, чтобы видеть только публикации по вашему запросу.
+Restore feed sound after opened videos	Возвращать звук Ленты после открытых видео
+A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Открытое видео воспроизводится со звуком как обычно. После возврата в Ленту звук будет таким же, как до открытия видео, даже после долгого просмотра.
+Hide the Join button on posts	Скрывать кнопку «Вступить» в публикациях
+Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Скрывает кнопку «Вступить» рядом с названием группы в публикациях из групп, в которые вы не вступили, а также панель «Вступить в группу» под их видео. Изменение видно в публикациях, загруженных после него.
+Hide the Reels title	Скрывать заголовок Reels
+Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Убирает слово Reels в верхней части вкладки Reels. Кнопки рядом остаются.
+Videos in search results wait for a tap	Видео в результатах поиска ждут нажатия
+Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	Видео в результатах поиска не запускаются сами. Нажмите на видео, чтобы его включить. Работает при включенной и выключенной функции «Нажать для воспроизведения».
+Custom color	Свой цвет
+Preview	Просмотр
+Blue	Синий
+Type a six-digit color code, like #2ECC71.	Введите шестизначный код цвета, например #2ECC71.
+Pick Custom color again to change it.	Выберите Свой цвет ещё раз, чтобы изменить его.
+Switches that are on	Включённые переключатели
+Every switch you have on, in one list. Turn one off here and it's off everywhere.	Все включённые вами переключатели в одном списке. Выключите один здесь, и он выключится везде.
+No switches are on yet.	Пока ни один переключатель не включён.
+Emoji after the logo	Эмодзи после логотипа
+An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	Эмодзи сразу после логотипа Facebook вверху Главной, в собственных цветах. Оставьте поле пустым, если он не нужен.
+No emoji after the logo. Type one to show it there.	Эмодзи после логотипа нет. Введите его, чтобы он появился там.
+The top of Home shows %1$s after the logo. Restart Facebook to see the change.	Вверху Главной после логотипа отображается %1$s. Перезапустите Facebook, чтобы увидеть изменения.
+If your patched Facebook includes Accent color, the Custom choice will be %1$s.	Если в вашей версии пропатченного Facebook есть акцентный цвет, вариант «Свой» будет %1$s.
+If your patched Facebook includes Accent color, the Custom choice will keep Facebook's blue.	Если в вашей версии пропатченного Facebook есть акцентный цвет, вариант «Свой» сохранит синий цвет Facebook.
+If your patched Facebook includes Emoji after the logo, the top of Home will show %1$s after the logo.	Если в вашей версии пропатченного Facebook есть эмодзи после логотипа, вверху Главной после логотипа будет %1$s.
+The top of Home will show no emoji after the logo.	Вверху Главной после логотипа не будет эмодзи.
+Show the post date as	Показывать дату публикации как
+How long ago	Сколько времени назад
+The date	Дата
+# context: summary under Show the post date as; %1$s is an example, 3 weeks ago or Oct 12
+Like "%1$s". A change shows from the next reel.	Например, «%1$s». Изменение применяется начиная со следующего Reels.
+Reel post dates will show how long ago they were posted.	Для Reels будет показано, сколько времени назад они опубликованы.
+Reel post dates will show the day they were posted.	Для Reels будет показан день публикации.
+Hide pictures on the Blocked list	Скрывать фото в списке заблокированных
+People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Заблокированные вами люди показываются без фото профиля на странице блокировки в настройках Facebook. Если страница уже открыта, откройте её заново.
+Hide Up next on videos	Скрывать «Далее» в видео
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	Убирает полосу ДАЛЕЕ со следующим видео внизу видео, открытого из Ленты. Изменение действует со следующего видео, которое вы откроете.
+Icons look soft on this screen. Repatch with the 120-640dpi bundle.	Значки на этом экране выглядят размытыми. Повторите патчинг с пакетом 120-640dpi.
+Icons look soft on this screen	Значки на этом экране выглядят размытыми
+The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	В пропатченном вами Facebook нет изображений для этого экрана, поэтому некоторые значки увеличены. Пропатчите Facebook заново из пакета (arm64-v8a) (120-640dpi) с APKMirror, в котором есть изображения для любого экрана.
+Let each post come back once	Показывать каждую публикацию ещё раз
+A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Публикация, мимо которой вы прокрутили, появится ещё один раз, а если снова прокрутить мимо, она будет скрыта. Так после быстрой прокрутки теряется меньше публикаций.
+There's no Facebook link in what you shared.	В том, чем вы поделились, нет ссылки на Facebook.

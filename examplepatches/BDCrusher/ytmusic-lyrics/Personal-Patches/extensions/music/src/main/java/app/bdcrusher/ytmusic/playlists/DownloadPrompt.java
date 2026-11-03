@@ -1,62 +1,50 @@
 /* Copyright 2026 BDCrusher. GPL-3.0. */
 package app.bdcrusher.ytmusic.playlists;
-
-import android.app.*;
-import android.content.*;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
-import android.view.*;
-import android.widget.*;
-import java.util.*;
-import java.util.function.Consumer;
+import android.app.*;import android.content.*;import android.graphics.drawable.GradientDrawable;import android.view.*;import android.widget.*;
+import java.util.*;import java.util.concurrent.*;import java.util.function.Consumer;
 import app.morphe.extension.music.patches.downloads.LocalDownloadManager;
-import app.morphe.extension.shared.Utils;
-import app.morphe.extension.shared.theme.ThemeUtils;
+import app.morphe.extension.shared.Utils;import app.morphe.extension.shared.theme.ThemeUtils;
 
-/** A themed bottom sheet using platform controls, with honest audio-format size estimates. */
+/** YouTube-style sheet, actual stream choices and one confirmation for a batch. */
 public final class DownloadPrompt {
-    private static final Set<String> open=new HashSet<>();
+    private static final Set<String> open=new HashSet<>();private static final int BLUE=0xff3ea6ff;
     private DownloadPrompt(){}
     public static SharedPreferences preferences(Context c){return c.getSharedPreferences("bdcrusher_audio_downloads",Context.MODE_PRIVATE);}
     public static AudioQuality.Tier selected(Context c){return AudioQuality.Tier.parse(preferences(c).getString("quality","HIGH"));}
-    private static int dp(Context c,int n){return Math.round(n*c.getResources().getDisplayMetrics().density);}
-    public static void song(String id){
-        Activity a=Utils.getActivity();if(a==null||a.isFinishing()||a.isDestroyed()){Utils.showToastShort("Open YouTube Music to choose download quality");return;}
-        SharedPreferences prefs=preferences(a);if(prefs.getBoolean("remember",false)){LocalDownloadManager.enqueueBatch(id,selected(a));return;}
-        if(!open.add(id))return;
-        show(a,"Download audio",null,tier->LocalDownloadManager.enqueueBatch(id,tier),id);
-    }
-    public static void playlist(Activity a,String id,String title,Runnable start){
-        if(a==null||a.isFinishing()||a.isDestroyed())return;
-        if(preferences(a).getBoolean("remember",false)){start.run();return;}
-        if(!open.add("playlist:"+id))return;
-        show(a,"Download playlist",title,tier->start.run(),"playlist:"+id);
-    }
-    private static void show(Activity a,String title,String playlist,Consumer<AudioQuality.Tier> start,String key){
-        Dialog dialog=new Dialog(a);LinearLayout body=new LinearLayout(a);body.setOrientation(LinearLayout.VERTICAL);int pad=dp(a,24);body.setPadding(pad,dp(a,18),pad,pad);
-        int foreground=ThemeUtils.getAppForegroundColor();GradientDrawable background=new GradientDrawable();background.setColor(ThemeUtils.getAppBackgroundColor());background.setCornerRadii(new float[]{pad,pad,pad,pad,0,0,0,0});body.setBackground(background);
-        TextView heading=new TextView(a);heading.setText(title);heading.setTextSize(22);heading.setTextColor(foreground);body.addView(heading);
-        TextView detail=new TextView(a);detail.setText(playlist==null?"Opus audio · artwork saved alongside audio":"Opus audio · "+playlist+"\nSize is calculated from available formats as playlist entries resolve.");detail.setTextColor(foreground);detail.setPadding(0,dp(a,12),0,dp(a,12));body.addView(detail);
-        RadioGroup group=new RadioGroup(a);body.addView(group);Map<AudioQuality.Tier,RadioButton> choices=new EnumMap<>(AudioQuality.Tier.class);
-        AudioQuality.Tier initial=selected(a);
-        for(AudioQuality.Tier tier:AudioQuality.Tier.values()){RadioButton row=new RadioButton(a);row.setId(View.generateViewId());row.setText(tier.label+" · Opus"+(playlist==null?" — checking size…":""));row.setTextColor(foreground);row.setMinHeight(dp(a,56));choices.put(tier,row);group.addView(row);if(tier==initial)row.setChecked(true);}
-        CheckBox remember=new CheckBox(a);remember.setText("Remember my settings");remember.setTextColor(foreground);remember.setMinHeight(dp(a,56));body.addView(remember);
-        LinearLayout buttons=new LinearLayout(a);Button cancel=new Button(a),download=new Button(a);cancel.setText("Cancel");download.setText("Download");cancel.setAllCaps(false);download.setAllCaps(false);buttons.addView(cancel,new LinearLayout.LayoutParams(0,-2,1));buttons.addView(download,new LinearLayout.LayoutParams(0,-2,1));body.addView(buttons);
-        cancel.setOnClickListener(v->dialog.dismiss());download.setEnabled(false);
-        download.setOnClickListener(v->{AudioQuality.Tier tier=initial;for(var choice:choices.entrySet())if(choice.getValue().isChecked())tier=choice.getKey();preferences(a).edit().putString("quality",tier.name()).putBoolean("remember",remember.isChecked()).apply();dialog.dismiss();start.accept(tier);});
-        java.util.concurrent.atomic.AtomicReference<java.util.concurrent.Future<?>> pending=new java.util.concurrent.atomic.AtomicReference<>();
-        java.util.concurrent.atomic.AtomicBoolean closed=new java.util.concurrent.atomic.AtomicBoolean();
-        Runnable cleanup=()->{closed.set(true);open.remove(key);java.util.concurrent.Future<?> task=pending.getAndSet(null);if(task!=null)task.cancel(true);};
-        ScrollView scroll=new ScrollView(a);scroll.setFillViewport(false);scroll.addView(body);dialog.setContentView(scroll);dialog.setOnDismissListener(d->cleanup.run());
-        Window window=dialog.getWindow();if(window!=null){window.setBackgroundDrawableResource(android.R.color.transparent);window.setGravity(Gravity.BOTTOM);window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);window.setDimAmount(.45f);}
-        if(window!=null)window.getDecorView().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View view){}public void onViewDetachedFromWindow(View view){cleanup.run();view.removeOnAttachStateChangeListener(this);}});
-        body.setOnApplyWindowInsetsListener((view,insets)->{int left,right,bottom;if(android.os.Build.VERSION.SDK_INT>=30){android.graphics.Insets navigation=insets.getInsets(WindowInsets.Type.navigationBars());left=navigation.left;right=navigation.right;bottom=navigation.bottom;}else{left=insets.getStableInsetLeft();right=insets.getStableInsetRight();bottom=insets.getStableInsetBottom();}body.setPadding(pad+left,dp(a,18),pad+right,pad+bottom);return insets;});
-        dialog.show();app.bdcrusher.ytmusic.common.PersonalRuntime.dialog(dialog);if(window!=null)window.setLayout(-1,-2);body.requestApplyInsets();
-        if(playlist!=null)pending.set(PlaylistRuntime.preview(key.substring("playlist:".length()),result->{if(closed.get()||!dialog.isShowing())return;detail.setText(result.count()+" songs · Opus audio with artwork\nEstimated from playlist lengths and a returned Opus stream; actual sizes vary."+(result.unknown()>0?"\n"+result.unknown()+" lengths unavailable.":""));for(var entry:choices.entrySet()){var format=AudioQuality.select(result.sample(),entry.getKey());long rate=format==null?0:format.getAverageBitrate()>0?format.getAverageBitrate():format.getBitrate();long bytes=rate>0&&result.seconds()>0?rate*result.seconds()/8:-1;entry.getValue().setText(entry.getKey().label+" · Opus — "+(bytes>0?"~"+android.text.format.Formatter.formatShortFileSize(a,bytes)+(result.unknown()>0?"+":""):"size unavailable"));}download.setEnabled(result.count()>0);},message->{if(!closed.get()&&dialog.isShowing()){detail.setText(message);download.setEnabled(true);}}));
-        if(playlist==null)pending.set(Utils.submitOnBackgroundThread(()->{try{LocalDownloadManager.AudioOptions options=LocalDownloadManager.options(key);a.runOnUiThread(()->{
-            if(closed.get()||!dialog.isShowing())return;boolean available=false;
-            for(var entry:choices.entrySet()){var format=AudioQuality.select(options.formats(),entry.getKey());RadioButton row=entry.getValue();row.setEnabled(format!=null);long bytes=AudioQuality.estimate(format,options.seconds());row.setText(entry.getKey().label+" · Opus"+(format==null?" — unavailable":bytes>0?" — ~"+android.text.format.Formatter.formatShortFileSize(a,bytes):" — size unavailable"));available|=format!=null;}
-            download.setEnabled(available);if(!available)detail.setText("No downloadable Opus stream is currently available. No other codec will be substituted.");
-        });}catch(Exception error){a.runOnUiThread(()->{if(!closed.get()&&dialog.isShowing())detail.setText("Unable to check audio formats. Close and try again; no download started.");});}return null;}));
+    public static MediaSelection selection(Context c){SharedPreferences p=preferences(c);return new MediaSelection("VIDEO".equals(p.getString("kind","AUDIO"))?MediaSelection.Kind.VIDEO:MediaSelection.Kind.AUDIO,selected(c),p.getInt("videoHeight",1080));}
+    private static boolean remembered(Context c,MediaSelection s){return preferences(c).getBoolean(s.kind()==MediaSelection.Kind.AUDIO?"remember":"rememberVideo",false);}
+    public static void song(String id){Activity a=Utils.getActivity();if(a==null||a.isFinishing()||a.isDestroyed())return;MediaSelection s=selection(a);if(remembered(a,s)){LocalDownloadManager.enqueueMedia(id,s);return;}show(a,id,null,choice->LocalDownloadManager.enqueueMedia(id,choice));}
+    public static void playlist(Activity a,String id,String title,Runnable start){playlist(a,id,title,s->start.run());}
+    public static void playlist(Activity a,String id,String title,Consumer<MediaSelection> start){if(a==null||a.isFinishing()||a.isDestroyed())return;MediaSelection s=selection(a);if(remembered(a,s)){start.accept(s);return;}show(a,"playlist:"+id,title,start);}
+    private static void show(Activity a,String key,String title,Consumer<MediaSelection> start){if(!open.add(key))return;new Sheet(a,key,title,start).show();}
+    private static final class Sheet {
+        final Activity a;final String key,title;final Consumer<MediaSelection> start;final Dialog dialog;final LinearLayout root,rows;final TextView detail;final CheckBox remember;final Button audio,video,download;final List<RadioButton> radios=new ArrayList<>();
+        MediaSelection selected;List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> formats=List.of();int seconds,count=1,unknown,videoHeight;boolean closed;int generation;Future<?> pending;
+        Sheet(Activity a,String key,String title,Consumer<MediaSelection> start){this.a=a;this.key=key;this.title=title;this.start=start;selected=selection(a);videoHeight=selected.height();dialog=new Dialog(a);root=new LinearLayout(a);root.setOrientation(LinearLayout.VERTICAL);root.setPadding(dp(24),dp(12),dp(24),dp(20));root.setBackground(shape(ThemeUtils.getAppBackgroundColor(),20,0));
+            View handle=new View(a);handle.setBackground(shape(0xff666666,3,0));LinearLayout.LayoutParams hp=new LinearLayout.LayoutParams(dp(36),dp(4));hp.gravity=Gravity.CENTER_HORIZONTAL;hp.bottomMargin=dp(24);root.addView(handle,hp);
+            TextView heading=text("Download quality",24);root.addView(heading);LinearLayout modes=new LinearLayout(a);audio=new Button(a);video=new Button(a);audio.setText("Audio");video.setText("Video");for(Button b:new Button[]{audio,video}){b.setAllCaps(false);modes.addView(b,new LinearLayout.LayoutParams(0,dp(48),1));}LinearLayout.LayoutParams mp=new LinearLayout.LayoutParams(-1,-2);mp.topMargin=dp(16);root.addView(modes,mp);
+            detail=text(title==null?"Checking available formats…":title+" · checking playlist…",14);detail.setPadding(0,dp(12),0,dp(8));root.addView(detail);
+            ScrollView scroll=new ScrollView(a);rows=new LinearLayout(a);rows.setOrientation(LinearLayout.VERTICAL);scroll.setVerticalScrollBarEnabled(false);scroll.addView(rows);root.addView(scroll,new LinearLayout.LayoutParams(-1,Math.min(dp(240),Math.max(dp(96),a.getResources().getDisplayMetrics().heightPixels/3))));
+            divider();remember=new CheckBox(a);remember.setText("Remember my settings");remember.setTextColor(ThemeUtils.getAppForegroundColor());remember.setButtonTintList(android.content.res.ColorStateList.valueOf(BLUE));remember.setMinHeight(dp(64));root.addView(remember);divider();
+            LinearLayout actions=new LinearLayout(a);Button cancel=new Button(a);download=new Button(a);cancel.setText("Cancel");download.setText("Download");cancel.setAllCaps(false);download.setAllCaps(false);cancel.setTextColor(BLUE);download.setTextColor(0xff000000);cancel.setBackground(shape(ThemeUtils.getAppBackgroundColor(),24,0xff444444));download.setBackground(shape(BLUE,24,0));LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(48),1);lp.setMargins(dp(4),dp(18),dp(4),0);actions.addView(cancel,lp);actions.addView(download,new LinearLayout.LayoutParams(lp));root.addView(actions);
+            cancel.setOnClickListener(v->dialog.dismiss());audio.setOnClickListener(v->mode(MediaSelection.Kind.AUDIO));video.setOnClickListener(v->mode(MediaSelection.Kind.VIDEO));download.setEnabled(false);download.setOnClickListener(v->{MediaSelection choice=selected;preferences(a).edit().putString("kind",choice.kind().name()).putString("quality",choice.audio().name()).putInt("videoHeight",choice.kind()==MediaSelection.Kind.VIDEO?choice.height():preferences(a).getInt("videoHeight",1080)).putBoolean(choice.kind()==MediaSelection.Kind.AUDIO?"remember":"rememberVideo",remember.isChecked()).apply();dialog.dismiss();start.accept(choice);});
+            ScrollView sheet=new ScrollView(a);sheet.setVerticalScrollBarEnabled(false);sheet.setNestedScrollingEnabled(true);sheet.addView(root);dialog.setContentView(sheet);dialog.setOnDismissListener(d->close());root.setOnApplyWindowInsetsListener((view,insets)->{int l,r,b;if(android.os.Build.VERSION.SDK_INT>=30){var n=insets.getInsets(WindowInsets.Type.navigationBars());l=n.left;r=n.right;b=n.bottom;}else{l=insets.getStableInsetLeft();r=insets.getStableInsetRight();b=insets.getStableInsetBottom();}root.setPadding(dp(24)+l,dp(12),dp(24)+r,dp(20)+b);return insets;});root.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){close();v.removeOnAttachStateChangeListener(this);}});
+        }
+        int dp(int n){return Math.round(n*a.getResources().getDisplayMetrics().density);}TextView text(String s,int size){TextView t=new TextView(a);t.setText(s);t.setTextSize(size);t.setTextColor(ThemeUtils.getAppForegroundColor());return t;}
+        GradientDrawable shape(int color,int radius,int stroke){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));if(stroke!=0)d.setStroke(dp(1),stroke);return d;}
+        void divider(){View line=new View(a);line.setBackgroundColor(0xff292929);root.addView(line,new LinearLayout.LayoutParams(-1,dp(1)));}
+        void show(){Window w=dialog.getWindow();if(w!=null){w.setBackgroundDrawableResource(android.R.color.transparent);w.setGravity(Gravity.BOTTOM);w.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);w.setDimAmount(.45f);}dialog.show();app.bdcrusher.ytmusic.common.PersonalRuntime.dialog(dialog);if(w!=null)w.setLayout(-1,-2);root.requestApplyInsets();mode(selected.kind());}
+        void close(){if(closed)return;closed=true;generation++;open.remove(key);if(pending!=null)pending.cancel(true);}
+        void mode(MediaSelection.Kind kind){selected=new MediaSelection(kind,selected.audio(),videoHeight);remember.setChecked(preferences(a).getBoolean(kind==MediaSelection.Kind.AUDIO?"remember":"rememberVideo",false));audio.setSelected(kind==MediaSelection.Kind.AUDIO);video.setSelected(kind==MediaSelection.Kind.VIDEO);for(Button b:new Button[]{audio,video}){b.setTextColor(b.isSelected()?0xff000000:ThemeUtils.getAppForegroundColor());b.setBackground(shape(b.isSelected()?0xffeeeeee:0xff333333,24,0));}load();}
+        void load(){int token=++generation;if(pending!=null)pending.cancel(true);download.setEnabled(false);rows.removeAllViews();detail.setText("Checking formats and size…");boolean wantVideo=selected.kind()==MediaSelection.Kind.VIDEO;
+            if(key.startsWith("playlist:"))pending=PlaylistRuntime.preview(key.substring(9),wantVideo,result->{if(closed||token!=generation)return;formats=result.sample();seconds=(int)Math.min(Integer.MAX_VALUE,result.seconds());count=result.count();unknown=result.unknown();render();},message->{if(closed||token!=generation)return;detail.setText(message);});
+            else pending=Utils.submitOnBackgroundThread(()->{try{var options=LocalDownloadManager.mediaOptions(key,wantVideo);a.runOnUiThread(()->{if(closed||token!=generation)return;formats=options.formats();seconds=options.seconds();render();});}catch(Exception error){a.runOnUiThread(()->{if(!closed&&token==generation)detail.setText("Could not resolve formats. Close and try again.");});}return null;});
+        }
+        void render(){rows.removeAllViews();radios.clear();boolean batch=key.startsWith("playlist:");detail.setText(batch?count+" items · estimated from returned streams and durations"+(unknown>0?" · "+unknown+" unknown durations":"")+(selected.kind()==MediaSelection.Kind.VIDEO?"\nItems without video are saved as Audio only.":""):selected.kind()==MediaSelection.Kind.AUDIO?"Opus audio · cover artwork included":"Video + Opus audio · cover artwork included");
+            if(selected.kind()==MediaSelection.Kind.AUDIO){Set<Integer> shown=new HashSet<>();for(AudioQuality.Tier tier:AudioQuality.Tier.values()){var format=AudioQuality.select(formats,tier);if(format==null||!shown.add(format.getItag()))continue;MediaSelection choice=MediaSelection.audio(tier);add(tier.label+" · Opus"+(format.getBitrate()>0?" · "+Math.round(format.getBitrate()/1000f)+" kbps":""),choice,true,AudioQuality.select(formats,selected.audio()).getItag()==format.getItag());}}
+            else{List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> available=MediaSelection.videos(formats,DownloadCatalog::videoSupported);var best=selected.chooseVideo(formats,DownloadCatalog::videoSupported);if(best!=null)selected=new MediaSelection(selected.kind(),selected.audio(),MediaSelection.height(best));for(var f:available){int height=MediaSelection.height(f);add(height+"p",new MediaSelection(MediaSelection.Kind.VIDEO,selected.audio(),height),AudioQuality.select(formats,selected.audio())!=null,selected.height()==height);}if(available.isEmpty()){detail.setText(key.startsWith("playlist:")?"The preview item has no compatible video. Other items are checked individually; unavailable video saves as Audio only.":"No compatible video returned. This selection will save Audio only.");add("Audio only · Opus",selected,AudioQuality.select(formats,selected.audio())!=null,true);}}
+            download.setEnabled(count>0&&AudioQuality.select(formats,selected.audio())!=null);
+        }
+        void add(String label,MediaSelection choice,boolean available,boolean checked){LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);RadioButton radio=new RadioButton(a);radio.setChecked(checked);radio.setEnabled(available);radio.setButtonTintList(android.content.res.ColorStateList.valueOf(BLUE));radios.add(radio);row.addView(radio,new LinearLayout.LayoutParams(dp(44),dp(56)));TextView name=text(label,18);name.setEnabled(available);row.addView(name,new LinearLayout.LayoutParams(0,-2,1));long size=key.startsWith("playlist:")?choice.estimateBatch(formats,seconds,DownloadCatalog::videoSupported):choice.estimate(formats,seconds,DownloadCatalog::videoSupported);TextView bytes=text(size>0?"~"+android.text.format.Formatter.formatShortFileSize(a,size)+(unknown>0?"+":""):"Size unavailable",16);bytes.setAlpha(.65f);row.addView(bytes);Runnable select=()->{if(!available)return;selected=choice;if(choice.kind()==MediaSelection.Kind.VIDEO)videoHeight=choice.height();for(RadioButton r:radios)r.setChecked(r==radio);};row.setOnClickListener(v->select.run());radio.setOnClickListener(v->select.run());row.setContentDescription(label+", "+bytes.getText());row.setMinimumHeight(dp(58));rows.addView(row,new LinearLayout.LayoutParams(-1,-2));}
     }
 }

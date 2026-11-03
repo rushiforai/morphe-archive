@@ -123,13 +123,15 @@ val hidePremiumPatch = bytecodePatch(
             // v0-v15; smali silently drops such an access. Copy it into v0 first.
             val self = constructor.implementation!!.registerCount - constructor.parameterTypes.size - 1
             // The rows live in immutable lists, and the adapter also copies them into a combined
-            // ArrayList during construction. Replace each field with a mutable copy
-            // (the constructor may write its own final fields) and filter that.
+            // ArrayList during construction. Replace each field with a mutable copy (the
+            // constructor may write its own final fields) and filter that. The extension returns
+            // an ArrayList so the hook can write the adapter's ArrayList field as well as the
+            // List ones; a List result fails DEX verification there.
             val filter = listFields.joinToString("\n") { field ->
                 """
                     move-object/from16 v0, v$self
                     iget-object v1, v0, ${builder.first.type}->${field.name}:${field.type}
-                    invoke-static { v1 }, $PREMIUM->copyFilteredSettingsRows(Ljava/util/List;)Ljava/util/List;
+                    invoke-static { v1 }, $PREMIUM->copyFilteredSettingsRows(Ljava/util/List;)Ljava/util/ArrayList;
                     move-result-object v2
                     iput-object v2, v0, ${builder.first.type}->${field.name}:${field.type}
                 """

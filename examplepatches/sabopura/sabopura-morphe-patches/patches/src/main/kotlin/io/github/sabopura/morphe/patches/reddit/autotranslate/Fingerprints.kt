@@ -53,7 +53,42 @@ internal object PostTranslateCallbackFingerprint : Fingerprint(
     ),
 )
 
-/** Matches the state-aware comment callback while ignoring all obfuscated owners and names. */
+/**
+ * Matches a post component's own method that builds the translation event, which R8 outlined
+ * out of the callbacks in some releases (2026.40.0). The callbacks then only call this method.
+ */
+internal object PostTranslateEventFactoryFingerprint : Fingerprint(
+    returnType = POST_EVENT,
+    parameters = listOf(),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, type = POST_INDICATOR_STATE),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = POST_EVENT_SOURCE,
+            name = "INDICATOR",
+            type = POST_EVENT_SOURCE,
+        ),
+        methodCall(
+            definingClass = POST_EVENT,
+            name = "<init>",
+            returnType = "V",
+            parameters = listOf(
+                "Ljava/lang/String;",
+                "Ljava/lang/String;",
+                "Z",
+                "L",
+                POST_EVENT_SOURCE,
+            ),
+        ),
+    ),
+)
+
+/**
+ * Matches the state-aware comment callback while ignoring all obfuscated owners and names.
+ *
+ * The event constructors are not pinned: 2026.44.0 added the model position and a "keep the
+ * indicator" flag to them. The patch identifies the translate event by its `toString()`.
+ */
 internal object CommentTranslateCallbackFingerprint : Fingerprint(
     name = "invoke",
     returnType = "Ljava/lang/Object;",
@@ -66,10 +101,7 @@ internal object CommentTranslateCallbackFingerprint : Fingerprint(
             name = "INDICATOR",
             type = COMMENT_EVENT_SOURCE,
         ),
-        methodCall(
-            returnType = "V",
-            parameters = listOf("Ljava/lang/String;", COMMENT_EVENT_SOURCE),
-        ),
+        methodCall(name = "<init>", returnType = "V"),
     ),
 )
 
@@ -103,6 +135,32 @@ internal object PostDetailTranslationIndicatorFingerprint : Fingerprint(
     ),
 )
 
+/** The same composable from 2026.44.0, whose indicator call gained a boolean before the click lambda. */
+internal object PostDetailTranslationIndicatorWithFlagFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT, type = COMMENT_INDICATOR_STATE),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = POST_DETAIL_JOIN_BUTTON_STATE,
+            name = "GONE",
+            type = POST_DETAIL_JOIN_BUTTON_STATE,
+        ),
+        methodCall(
+            returnType = "V",
+            parameters = listOf(
+                COMMENT_INDICATOR_STATE,
+                "L",
+                "Z",
+                FUNCTION_0,
+                "L",
+                "I",
+                "I",
+            ),
+        ),
+    ),
+)
+
 /** Matches the accessibility callback that captures a comment id directly. */
 internal object AccessibilityCommentTranslateCallbackFingerprint : Fingerprint(
     name = "invoke",
@@ -120,10 +178,7 @@ internal object AccessibilityCommentTranslateCallbackFingerprint : Fingerprint(
             name = "INDICATOR",
             type = COMMENT_EVENT_SOURCE,
         ),
-        methodCall(
-            returnType = "V",
-            parameters = listOf("Ljava/lang/String;", COMMENT_EVENT_SOURCE),
-        ),
+        methodCall(name = "<init>", returnType = "V"),
     ),
 )
 

@@ -95,23 +95,23 @@ class SearchSuggestionsFixtureTest {
             // Search calls the row twice, each under its own note. The carousel's call is the one in
             // the lambda the keyed item draws; the other draws suggestions mixed into the trends list.
             assertEquals(where, 2, targets.calls.size)
-            assertTrue(where, targets.row.note.orEmpty().endsWith("($DISCOVERY_FILE:375)"))
+            assertTrue(where, targets.row.note.orEmpty().endsWith("($DISCOVERY_FILE:451)"))
             assertEquals(where, targets.lambda, targets.row.method.definingClass)
             val trends = targets.calls.single { it !== targets.row && it.method.definingClass != targets.lambda }
-            assertTrue(where, trends.note.orEmpty().endsWith("($DISCOVERY_FILE:432)"))
+            assertTrue(where, trends.note.orEmpty().endsWith("($DISCOVERY_FILE:511)"))
 
-            // Read off each 453 build apart from the patch: Search's list builder reads the
-            // suggestions list at 188, asks whether it's empty at 189, checks the answer at 191,
-            // builds the carousel from 192 on, constructs it at 209 with that list, adds it under
-            // its key at 213 and 214, and goes to 215 for an empty list. What the check compared,
+            // Read off each 454 build apart from the patch: Search's list builder reads the
+            // suggestions list at 243, asks whether it's empty at 244, checks the answer at 246,
+            // builds the carousel from 247 on, constructs it at 268 with that list, adds it under
+            // its key at 272 and 273, and goes to 274 for an empty list. What the check compared,
             // and the hook's register, are dead there.
             val stock = classes.original(targets.method)
-            assertEquals(where, 188, targets.read)
-            assertEquals(where, 191, targets.guard)
-            assertEquals(where, 192, targets.start)
-            assertEquals(where, 209, targets.init)
-            assertEquals(where, 213, targets.key)
-            assertEquals(where, 215, targets.away)
+            assertEquals(where, 243, targets.read)
+            assertEquals(where, 246, targets.guard)
+            assertEquals(where, 247, targets.start)
+            assertEquals(where, 268, targets.init)
+            assertEquals(where, 272, targets.key)
+            assertEquals(where, 274, targets.away)
             assertEquals(where, Opcode.IGET_OBJECT, stock[targets.read].opcode)
             assertEquals(where, targets.list, (stock[targets.read] as OneRegisterInstruction).registerA)
             assertEquals(where, "isEmpty", stock[targets.read + 1].getReference<MethodReference>()?.name)

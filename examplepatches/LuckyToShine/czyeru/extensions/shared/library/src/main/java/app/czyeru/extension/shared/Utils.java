@@ -242,8 +242,15 @@ public class Utils {
                 return t;
             });
 
-    public static void runOnBackgroundThread(Runnable task) {
-        backgroundThreadPool.execute(task);
+    /** False when the queue refused the task, so a caller can undo what it set up for it. */
+    public static boolean runOnBackgroundThread(Runnable task) {
+        try {
+            backgroundThreadPool.execute(task);
+            return true;
+        } catch (java.util.concurrent.RejectedExecutionException error) {
+            Logger.printException(() -> "Background task queue is full", error);
+            return false;
+        }
     }
 
     public static <T> Future<T> submitOnBackgroundThread(Callable<T> call) {
@@ -386,6 +393,18 @@ public class Utils {
         return activityRef.get();
     }
 
+    /** The main activity when it is still alive (code ported from Hushfeed asks for the visible one). */
+    public static Activity getVisibleActivity() {
+        Activity activity = activityRef.get();
+        return activity != null && !activity.isFinishing() && !activity.isDestroyed() ? activity : null;
+    }
+
+    /** A context that can show windows: the activity when there is one. */
+    public static Context getWindowContext() {
+        Activity activity = getActivity();
+        return activity != null ? activity : getContext();
+    }
+
     public static void setActivity(Activity mainActivity) {
         Logger.printInfo(() -> "Set activity: " + mainActivity);
         activityRef = new WeakReference<>(mainActivity);
@@ -428,6 +447,12 @@ public class Utils {
                 .getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Morphe", text);
         clipboard.setPrimaryClip(clip);
+    }
+
+    public static void setClipboard(Context clipboardContext, CharSequence label, CharSequence text) {
+        ClipboardManager clipboard = (ClipboardManager) clipboardContext
+                .getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(ClipData.newPlainText(label, text));
     }
 
     public static boolean isNotEmpty(@Nullable String str) {

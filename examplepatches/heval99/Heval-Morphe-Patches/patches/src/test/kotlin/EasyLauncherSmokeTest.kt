@@ -87,7 +87,7 @@ class EasyLauncherSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.10.28",
+            version = "1.10.29",
             patchNames = EASYLAUNCHER_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -169,11 +169,7 @@ class EasyLauncherSmokeTest {
             }
         }
 
-        // Amplitude never builds its client.
-        assertReturnsEarlyVoid(
-            klass("Lcom/eet/service/amplitude/analytics/AmplitudeAnalyticsService;").method("initializeAmplitude", emptyList()),
-            label = "AmplitudeAnalyticsService.initializeAmplitude()", diagnostics
-        )
+        // Amplitude was removed from the app in 1.10.29, so there is no client to initialise.
 
         // Rudderstack: the write key's length is overwritten with 0 before the "key empty" guard.
         val rudderInit = klass("Lcom/eet/service/rudderstack/analytics/RudderstackAnalyticsService;").methods.single {

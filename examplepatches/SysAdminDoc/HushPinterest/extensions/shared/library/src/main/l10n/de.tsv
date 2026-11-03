@@ -69,7 +69,6 @@ Couldn't reach GitHub. Try again later.	GitHub war nicht erreichbar. Versuche es
 GitHub is turning away checks from this network for now. Try again later.	GitHub weist Anfragen aus diesem Netz gerade ab. Versuche es später noch einmal.
 GitHub sent back something HushPinterest couldn't read. Try again later.	GitHub hat etwas geschickt, das HushPinterest nicht lesen konnte. Versuche es später noch einmal.
 Saving the settings file	Einstellungsdatei wird gespeichert
-Set when you patched	Beim Patchen festgelegt
 Settings couldn't open	Einstellungen ließen sich nicht öffnen
 Settings didn't fully refresh. Reopen them and try again.	Einstellungen nicht ganz aktualisiert. Öffne sie neu und versuch es erneut.
 Settings exported.	Einstellungen exportiert.
@@ -517,9 +516,37 @@ Hides the back arrow that floats over a pin you open. Your phone's back gesture 
 Hide lens button on pins	Lens-Schaltfläche auf Pins ausblenden
 Hide closeup buttons	Schaltflächen auf Pins ausblenden
 Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Blendet die Schaltfläche für die visuelle Suche in der Ecke eines geöffneten Pins aus. Bild suchen im Pin-Menü funktioniert weiterhin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
-# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label. The last line names this part of the patch in a build report.
+Hide like button on pins	Like-Schaltfläche auf Pins ausblenden
+Hides the heart under a pin you open, along with its count. The change shows on the next pin you open.	Blendet das Herz unter einem geöffneten Pin samt Zähler aus. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide comment button on pins	Kommentar-Schaltfläche auf Pins ausblenden
+Hides the comment button under a pin you open. The change shows on the next pin you open.	Blendet die Kommentar-Schaltfläche unter einem geöffneten Pin aus. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide share button on pins	Teilen-Schaltfläche auf Pins ausblenden
+Hides the share button under a pin you open. The change shows on the next pin you open.	Blendet die Teilen-Schaltfläche unter einem geöffneten Pin aus. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide more button on pins	Mehr-Schaltfläche auf Pins ausblenden
+Hides the three dots under a pin you open. Their menu, Download pin included, can't be opened from that page while this is on. The change shows on the next pin you open.	Blendet die drei Punkte unter einem geöffneten Pin aus. Ihr Menü, Pin herunterladen eingeschlossen, lässt sich auf dieser Seite dann nicht öffnen. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide Remix button on pins	Remix-Schaltfläche auf Pins ausblenden
+Hides the Remix button on a pin you open. The change shows on the next pin you open.	Blendet die Remix-Schaltfläche auf einem geöffneten Pin aus. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide Visit site button on pins	Schaltfläche Website besuchen auf Pins ausblenden
+Hides the Visit site button under a pin that links to a website. The change shows on the next pin you open.	Blendet die Schaltfläche Website besuchen unter einem Pin aus, der auf eine Website verweist. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide pin action buttons	Aktionsschaltflächen auf Pins ausblenden
+Hide Remix button	Remix-Schaltfläche ausblenden
+Hide Visit site button	Schaltfläche Website besuchen ausblenden
+# context: two more Hide closeup buttons rows on the Interface page for Pinterest's red Save button on a pin someone opens: a switch that draws it at 80 percent of its size, and a row that opens a box for a hex color to paint it. %1$s is a color code like #3366FF. The first line names this part of the patch in a build report.
+Save button size and color	Größe und Farbe der Merken-Schaltfläche
+Smaller Save button on pins	Kleinere Merken-Schaltfläche auf Pins
+Shrinks the red Save button on a pin you open to four fifths of its size, keeping its spot at the end of the row. The change shows on the next pin you open.	Verkleinert die rote Merken-Schaltfläche auf einem geöffneten Pin auf vier Fünftel ihrer Größe und lässt sie an ihrem Platz am Ende der Zeile. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Save button color	Farbe der Merken-Schaltfläche
+Paints the red Save button on a pin you open in a color you pick. It's Pinterest's red for now.	Färbt die rote Merken-Schaltfläche auf einem geöffneten Pin in einer Farbe deiner Wahl. Im Moment ist sie Pinterest-Rot.
+Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	Die Merken-Schaltfläche wird %1$s gefärbt. Zum Ändern tippen. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	Gib eine Hex-Farbe ein, etwa #3366FF, oder drei Ziffern, etwa #36F. Eine helle Farbe bekommt dunkle Schrift, damit die Schaltfläche lesbar bleibt.
+Couldn't open the Save button color. Try again.	Die Farbe der Merken-Schaltfläche ließ sich nicht öffnen. Versuche es noch einmal.
+That isn't a hex color, so nothing changed. Try one like #3366FF.	Das ist keine Hex-Farbe, deshalb hat sich nichts geändert. Versuche etwas wie #3366FF.
+Couldn't save the Save button color. Try again.	Die Farbe der Merken-Schaltfläche ließ sich nicht speichern. Versuche es noch einmal.
+The Save button is back to Pinterest's red on the next pin you open.	Die Merken-Schaltfläche ist beim nächsten Pin, den du öffnest, wieder Pinterest-Rot.
+The Save button turns %1$s on the next pin you open.	Die Merken-Schaltfläche wird beim nächsten Pin, den du öffnest, %1$s.
+# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Label „Bild suchen“ auf Pins ausblenden
-Keeps the lens button on a pin you open but leaves off the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Behält die Lens-Schaltfläche auf einem geöffneten Pin, lässt aber das Label „Bild suchen“ weg, das Pinterest bei deinen ersten Pins am Tag daran zeigt. Ein Tippen auf die Lens sucht weiterhin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Keeps the lens button on a pin you open but leaves off its glow and the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Behält die Lens-Schaltfläche auf einem geöffneten Pin, lässt aber ihr Leuchten und das Label „Bild suchen“ weg, das Pinterest bei deinen ersten Pins am Tag daran zeigt. Ein Tippen auf die Lens sucht weiterhin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
 Hide Search image label	Label „Bild suchen“ ausblenden
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 File left alone. If it's empty, delete it in your files app.	Datei unverändert gelassen. Ist sie leer, lösche sie in der Dateien-App.
@@ -616,6 +643,12 @@ none	keine
 %1$d word	%1$d Wort
 # context: the same for any other number
 %1$d words	%1$d Wörter
+# context: heading of the settings import preview when the file changes no switch but changes the Save button color (the hex color painted on the Save button of a pin someone opens)
+Your Save button color will change.	Die Farbe deiner Merken-Schaltfläche wird geändert.
+# context: the same heading when the file changes both the muted words list and the Save button color
+Your muted words and Save button color will change.	Deine stummgeschalteten Wörter und die Farbe der Merken-Schaltfläche werden geändert.
+# context: in the import preview line that reads like Save button color (Pinterest's red to #3366FF): no color is picked, so the button keeps Pinterest's own red
+Pinterest's red	Pinterest-Rot
 Pinterest's own AI setting	Pinterests eigene KI-Einstellung
 Pinterest can show you fewer AI pins among the ones it picks for you. It works alongside the switches above, and neither one catches every AI pin. Tap to open it.	Pinterest kann dir unter den Pins, die es für dich auswählt, weniger KI-Pins zeigen. Das wirkt zusammen mit den Schaltern oben, und keins von beiden erwischt jeden KI-Pin. Zum Öffnen tippen.
 Pinterest couldn't open that page.	Pinterest konnte diese Seite nicht öffnen.

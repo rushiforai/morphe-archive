@@ -121,4 +121,28 @@ public class ProblemReportTest {
         assertTrue(Character.isLowSurrogate(cut.charAt(cut.length() - 1)));
         assertEquals(ProblemReport.MAX_FACT, ProblemReport.clean("😀".repeat(100)).length());
     }
+
+    @Test public void theReportSaysWhichNotificationsCantPopUp() {
+        List<String[]> channels = List.of(
+            new String[] {"messenger_orca_050_messaging", "3"},
+            new String[] {"messenger_orca_100_calls", "4"},
+            new String[] {"messenger_orca_060_mentions", "4"},
+            new String[] {"messenger_orca_010_stories", "0"},
+            new String[] {"", "4"},
+            new String[] {"messenger_orca_050_messaging : 1000123 chat", "4"});
+        String line = ProblemReport.notificationsLine(true, "chat_heads", false, null, channels);
+        assertEquals("Notifications: on, chat bubbles chat_heads, draw over apps no, 2 channels can pop up, "
+            + "under high: 010_stories 0, 050_messaging 3, 2 not listed", line);
+
+        String body = ProblemReport.body(new ProblemReport.Facts("0.28.0", "585.0.0.53.94", 347015062L, "known", "Xiaomi",
+            "M2007J20CG", "12", 31, false, false, List.of(), "NOT_USED", "", line + "\nControls on: fake"));
+        assertTrue(body, body.contains("Phone: Xiaomi M2007J20CG, Android 12 (SDK 31)\n" + line + " Controls on: fake\nControls on: none\n"));
+
+        List<String[]> many = new ArrayList<>();
+        for (int i = 0; i < 20; i++) many.add(new String[] {"messenger_orca_" + (100 + i) + "_low", "2"});
+        String capped = ProblemReport.notificationsLine(false, "stock", null, true, many);
+        assertTrue(capped, capped.startsWith("Notifications: off, chat bubbles stock, full-screen yes, 0 channels can pop up, under high: 100_low 2"));
+        assertTrue(capped, capped.endsWith("111_low 2, and 8 more"));
+        assertFalse(ProblemReport.body(facts(List.of())).contains("Notifications:"));
+    }
 }

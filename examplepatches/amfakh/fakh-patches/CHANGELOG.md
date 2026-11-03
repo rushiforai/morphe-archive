@@ -1,3 +1,19 @@
+## [1.9.0](https://github.com/amfakh/fakh-patches/compare/v1.8.2...v1.9.0) (2026-11-03)
+
+### ✨ New Features
+
+* **Smart Life, Tuya Smart, BARDI:** add Spoof signature, on by default, so the signature fix that lets the patched app start shows up in the patch list ([7700c5f](https://github.com/amfakh/fakh-patches/commit/7700c5f705a5ec2afabcb16d7d473a41938cd0c1))
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** only offer the tested version 4.1.1264, instead of also allowing any other version as experimental ([2aa8178](https://github.com/amfakh/fakh-patches/commit/2aa817865a010d5589759459838e143327dbbd06))
+
+## [1.8.2](https://github.com/amfakh/fakh-patches/compare/v1.8.1...v1.8.2) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **Smart Life, Tuya Smart:** fix Hide AI ask bar leaving the AI bar at the bottom of device panels ([9d25230](https://github.com/amfakh/fakh-patches/commit/9d252302d8d38b5bb324bad23152d33abd13e09d))
+
 ## [1.8.1](https://github.com/amfakh/fakh-patches/compare/v1.8.0...v1.8.1) (2026-11-01)
 
 ### ✨ New Features

@@ -11,7 +11,7 @@ import dev.utaa.linimal.extension.config.LinimalConfig;
 /** Smart Channel の枠と renderer を presentation 層だけで止めます。 */
 public final class SmartChannelHooks {
     /** renderer の停止 callback。難読化名なので取得できなくても抑制の成否は左右しません。 */
-    private static final String RENDERER_STOP_METHOD = "m";
+    private static final String RENDERER_STOP_METHOD = "j";
 
     interface RendererCleanup {
         boolean cleanup(Object renderer) throws Throwable;

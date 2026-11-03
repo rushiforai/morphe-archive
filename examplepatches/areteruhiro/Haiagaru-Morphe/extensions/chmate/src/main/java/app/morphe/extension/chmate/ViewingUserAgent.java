@@ -15,6 +15,8 @@ public final class ViewingUserAgent {
     private static volatile String defaultAgent;
     private static final Set<Class<?>> warned = Collections.newSetFromMap(new ConcurrentHashMap<>());
     static void init(SharedPreferences prefs, String fallback) {
+        // Retire the experimental switch without changing the user's fixed template.
+        if(prefs.contains("randomUserAgentEveryFiveSeconds"))prefs.edit().remove("randomUserAgentEveryFiveSeconds").apply();
         String saved = prefs.getString("userAgent", null);
         String updated = BrowserUaTemplates.resolve(saved);
         if (saved != null && !saved.equals(updated)) prefs.edit().putString("userAgent", updated).apply();
@@ -23,6 +25,7 @@ public final class ViewingUserAgent {
     }
 
     static String selected(String url, String method) {
+        String session=ReadingAuth.agent(url,method);if(session!=null)return session;
         SharedPreferences prefs = preferences;
         if (prefs == null || !prefs.getBoolean(BrowserUaTemplates.ENABLED, false)
                 || !ViewingUserAgentRules.eligible(url, method)) return null;
@@ -44,7 +47,7 @@ public final class ViewingUserAgent {
         if (!(connection instanceof HttpURLConnection)
                 || !"User-Agent".equalsIgnoreCase(name)) return original;
         String value = selected(connection.getURL().toExternalForm(), ((HttpURLConnection) connection).getRequestMethod());
-        return value == null ? original : ViewingUserAgentRules.withNativeIdentity(original, value);
+        return value == null ? original : ReadingAuth.agent(connection.getURL().toExternalForm(),((HttpURLConnection)connection).getRequestMethod())!=null?value:ViewingUserAgentRules.withNativeIdentity(original, value);
     }
     /** Called immediately before native connect/read/write calls, after the method is selected. */
     public static void prepare(URLConnection connection) {
@@ -53,7 +56,7 @@ public final class ViewingUserAgent {
         String method = http.getRequestMethod();
         String agent = selected(http.getURL().toExternalForm(), method);
         if (agent == null) return;
-        try { http.setRequestProperty("User-Agent", ViewingUserAgentRules.withNativeIdentity(http.getRequestProperty("User-Agent"),agent)); }
+        try { http.setRequestProperty("User-Agent", ReadingAuth.agent(http.getURL().toExternalForm(),method)!=null?agent:ViewingUserAgentRules.withNativeIdentity(http.getRequestProperty("User-Agent"),agent)); }
         catch (IllegalStateException connected) { /* An earlier prepare/setter already had its opportunity. */ }
     }
     static String browserAgent(android.content.Context context){
@@ -65,7 +68,7 @@ public final class ViewingUserAgent {
 
     /** These are ChMate's own request classes, not similarly named advertising SDKs. */
     public static void prepareRequest(Object request) {
-        if (preferences == null || !preferences.getBoolean(BrowserUaTemplates.ENABLED, false)) return;
+        if (preferences == null) return;
         String urlName, methodName, headersName;
         switch (request.getClass().getName()) {
             case "o.r8lambda17vlhACr7B0IDgCdn1Q67LKhir8": urlName="f"; methodName="c"; headersName="a"; break;
@@ -84,7 +87,10 @@ public final class ViewingUserAgent {
             if (original == null) return;
             Class<?> headersType = original.getClass();
             String[] pairs = (String[]) field(headersType, "namesAndValues").get(original);
-            String[] changed = ViewingUserAgentRules.headers(pairs, agent);
+            boolean readingSession=ReadingAuth.agent(url.toString(),method)!=null;
+            String[] input=pairs;
+            if(readingSession){input=pairs.clone();for(int i=0;i<input.length;i+=2)if("User-Agent".equalsIgnoreCase(input[i]))input[i+1]=agent;}
+            String[] changed = ViewingUserAgentRules.headers(input, agent);
             if (changed == pairs) return;
             Constructor<?> constructor = headersType.getDeclaredConstructor(String[].class);
             constructor.setAccessible(true);

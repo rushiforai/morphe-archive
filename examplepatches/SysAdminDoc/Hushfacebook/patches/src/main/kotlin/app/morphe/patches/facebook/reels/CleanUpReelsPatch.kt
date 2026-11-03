@@ -71,12 +71,15 @@ private const val PATCH = "Clean up Reels"
  * they can still be read (#299, see ReelCommentButton.kt). A seventeenth, also off, leaves the Subscribe
  * pill some authors get in place of Follow out of a full-screen video's author row (#291, see
  * ReelSubscribeButton.kt). An eighteenth, also off, takes Search and the button beside it off the
- * top of a video or reel opened full screen (#311, see ViewerTopBar.kt). A nineteenth, Burn-in
+ * top of a video or reel opened full screen and of the Reels tab (#311, #346, see ViewerTopBar.kt). A nineteenth, Burn-in
  * guard, also off, fades the buttons, caption and bars around a video filling the screen once
  * they're left alone (#288). It has no hook here: the extension's BurnInGuard watches the activity
  * in front from SettingsEntry while this patch is in. A twentieth, also off, shows when a reel or
  * full-screen video was posted under its author, a line Facebook builds behind a server switch
- * that's off for most accounts (#296, see ReelPostDate.kt). With Debug
+ * that's off for most accounts (#296, see ReelPostDate.kt). A twenty-first, also off, keeps only
+ * reels from accounts you follow on the Reels tab, by the follow status the reel's Follow button
+ * reads (#349, see FollowedReels.kt). A twenty-second, also off, takes the UP NEXT bar with the next
+ * video off the bottom of a video opened from the feed (#367, see FeedUpNext.kt). With Debug
  * logging on, it also reports whether a reel that ends
  * is on the player the Reels auto-advance controller holds (see ReelBinding.kt), with no switch.
  *
@@ -93,7 +96,7 @@ val cleanUpReelsPatch = bytecodePatch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
         "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also open a video you tap in the feed on its own, with no reels after it, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, take the UP NEXT bar off the bottom of a video you open from the feed, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -104,8 +107,10 @@ val cleanUpReelsPatch = bytecodePatch(
         filterChips()
         // #314: and "Made with Edits" under the caption, which isn't one of the chips.
         hideEditsLabel()
-        // #200: the Reels tab draws the audio line in a row of its own, past the chip list.
-        hideReelsTabAudioLine()
+        // #200: the Reels tab draws the audio line in a row of its own, past the chip list. Looked up
+        // once: the hide's early return makes the row stop reading as one, and #357 dates it below.
+        val audioLine = reelsTabAudioLine()
+        audioLine.returnNullWhen(HIDE_AUDIO_LINE)
         hideFollowButtons()
         skipFooterQueries()
         hideThreadsCards()
@@ -129,7 +134,9 @@ val cleanUpReelsPatch = bytecodePatch(
         // #299: the Comment button on a reel whose comments are turned off.
         showReelCommentButton()
         // #296: the post date under a reel's author, behind a server switch.
-        showReelPostDate()
+        val storyType = showReelPostDate()
+        // #357: and in front of the song line, which takes that spot on most reels in the Reels tab.
+        dateReelsTabAudioLine(audioLine, storyType)
         // #291: the Subscribe pill beside a video's author, in the viewer's row and wherever the shared builder's lands.
         hideSubscribePill()
         // #311: Search and the button beside it at the top of the full-screen player, by the bar's id.
@@ -148,8 +155,16 @@ val cleanUpReelsPatch = bytecodePatch(
         keepFeedVideosAlone()
         // #222: the "This is taking a while" message a stalled video posts.
         hideSlowConnectionMessage()
+        // #367: the UP NEXT bar under a video opened from the feed, at its lookup and its getter.
+        hideUpNext()
         // #228: the clip each tile of the feed's Reels row plays, and where it stops.
         playFeedReelsWhole()
+        // #349: each page of reels, kept to authors the Follow button wouldn't offer to follow.
+        try {
+            keepFollowedReels()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so Only reels from accounts I follow leaves the Reels tab as it is.")
+        }
         enableStatus("reelDeclutter")
     }
 }
@@ -172,17 +187,18 @@ private fun BytecodePatchContext.filterChips() {
 }
 
 /**
- * The Reels tab's audio line row asks the extension first thing and answers null when it says so,
- * Facebook's own answer for a reel with no sound line. Refuses unless exactly one render fits.
+ * The Reels tab's audio line row, as Facebook ships it, which asks the extension first thing and
+ * answers null when it says so, Facebook's own answer for a reel with no sound line. Refuses unless
+ * exactly one render fits. Once hooked, its first answer is the hook's, so it's looked up only once.
  */
-private fun BytecodePatchContext.hideReelsTabAudioLine() {
+internal fun BytecodePatchContext.reelsTabAudioLine(): MutableMethod {
     val rows = classDefByStrings(SOUNDTRACK_CHIP, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
         .flatMap { classDef -> classDef.methods.filter(::isAudioLineRender).map { classDef.type to it } }
     val (owner, row) = rows.singleOrNull() ?: throw PatchException(
         "$PATCH: expected one render that picks $SOUNDTRACK_CHIP and answers null first, found ${rows.size}",
     )
-    mutableClassDefBy(owner).methods.first { it.sameSignatureAs(row) }.returnNullWhen(HIDE_AUDIO_LINE)
+    return mutableClassDefBy(owner).methods.first { it.sameSignatureAs(row) }
 }
 
 /** Asks [hook] first thing and answers null when it says so. v0 is free there, as in [answerWhen]. */

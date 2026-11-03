@@ -199,11 +199,72 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting FAVORITE_PLAYLIST_GRID = new BooleanSetting("favorite_playlist_grid", FALSE, true);
     public static final BooleanSetting FAVORITE_PLAYLIST_SEARCH = new BooleanSetting("favorite_playlist_search", FALSE, true);
     public static final BooleanSetting LIKED_VIDEOS_SEARCH = new BooleanSetting("liked_videos_search", FALSE, true);
+    public static final BooleanSetting LIKED_VIDEOS_SERVER_SEARCH = new BooleanSetting("liked_videos_server_search", TRUE, true);
     public static final BooleanSetting CHOOSE_COLLECTION_SEARCH = new BooleanSetting("choose_collection_search", FALSE, true);
     public static final BooleanSetting KEEP_COLLECTIONS_LOADED = new BooleanSetting("keep_collections_loaded", FALSE);
     public static final StringSetting COLLECTION_SORT = new StringSetting("collection_sort", "normal");
     public static final BooleanSetting COLLECTION_VIDEOS_SEARCH = new BooleanSetting("collection_videos_search", FALSE, true);
     public static final BooleanSetting INBOX_ACTIVITY_SEARCH = new BooleanSetting("inbox_activity_search", FALSE, true);
+    public static final BooleanSetting FAVORITES_RETRY = new BooleanSetting("favorites_retry", TRUE);
+    // Ported from Hushfeed.
+    public static final BooleanSetting KEEP_FAVORITES_TAB = new BooleanSetting("keep_favorites_tab", TRUE, true);
+    /** The collections popup from holding the bookmark, dark when TikTok is. */
+    public static final BooleanSetting DARK_QUICK_FAVORITES = new BooleanSetting("dark_quick_favorites", TRUE);
+    public static final BooleanSetting SHOW_EXACT_COUNTS = new BooleanSetting("show_exact_counts", FALSE);
+    public static final BooleanSetting EXPAND_ACTIVITY_LIST = new BooleanSetting("expand_activity_list", FALSE);
+    public static final BooleanSetting COPY_IDS = new BooleanSetting("copy_ids", TRUE);
+    public static final BooleanSetting BLOCK_AUTHOR_BUTTON = new BooleanSetting("block_author_button", FALSE, true);
+    public static final StringSetting BLOCK_AUTHOR_BUTTON_POSITION = new StringSetting("block_author_button_position", "");
+    public static final BooleanSetting NOT_INTERESTED_BUTTON = new BooleanSetting("not_interested_button", FALSE);
+    public static final StringSetting NOT_INTERESTED_BUTTON_POSITION = new StringSetting("not_interested_button_position", "");
+    /** Quietens the feed while a comment sheet is open. */
+    public static final BooleanSetting PAUSE_ON_COMMENTS = new BooleanSetting("pause_on_comments", FALSE, true);
+    /** Holds the feed on returning to the app until the reader taps. */
+    public static final BooleanSetting NO_RESUME_ON_FOREGROUND = new BooleanSetting("no_resume_on_foreground", FALSE, true);
+    /** Holds the first feed video of a launcher start until the reader taps. */
+    public static final BooleanSetting PAUSE_FIRST_VIDEO = new BooleanSetting("pause_first_video", FALSE, true);
+    /** Keeps a paused video paused. Reads the pre-pause callback, which arrived in Android 10. */
+    public static final BooleanSetting DOUBLE_TAP_SPLIT_ZONES = new BooleanSetting("double_tap_split_zones", FALSE);
+    public static final StringSetting DOUBLE_TAP_ACTION = new StringSetting("double_tap_action", "default",
+            false, Setting.parentNot(DOUBLE_TAP_SPLIT_ZONES));
+    public static final StringSetting DOUBLE_TAP_TOP_LEFT_ACTION = new StringSetting("double_tap_top_left_action",
+            "default", false, Setting.parent(DOUBLE_TAP_SPLIT_ZONES));
+    public static final StringSetting DOUBLE_TAP_TOP_RIGHT_ACTION = new StringSetting("double_tap_top_right_action",
+            "default", false, Setting.parent(DOUBLE_TAP_SPLIT_ZONES));
+    public static final StringSetting DOUBLE_TAP_BOTTOM_LEFT_ACTION = new StringSetting("double_tap_bottom_left_action",
+            "default", false, Setting.parent(DOUBLE_TAP_SPLIT_ZONES));
+    public static final StringSetting DOUBLE_TAP_BOTTOM_RIGHT_ACTION = new StringSetting("double_tap_bottom_right_action",
+            "default", false, Setting.parent(DOUBLE_TAP_SPLIT_ZONES));
+    // Comment tools.
+    public static final BooleanSetting COMMENT_KEYWORD_FILTER = new BooleanSetting("comment_keyword_filter", FALSE);
+    public static final StringSetting COMMENT_BLOCKED_KEYWORDS = new StringSetting("comment_blocked_keywords", "");
+    public static final StringSetting COMMENT_BLOCKED_USERS = new StringSetting("comment_blocked_users", "");
+    public static final BooleanSetting BLOCK_FROM_COMMENT = new BooleanSetting("block_from_comment", FALSE);
+    /** Adds Block this commenter to the menu a long press on a comment opens. */
+    public static final BooleanSetting BLOCK_FROM_COMMENT_MENU = new BooleanSetting("block_from_comment_menu", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_LIKE_COUNT = new BooleanSetting("hide_comment_like_count", FALSE, true);
+    public static final BooleanSetting HIDE_COMMENT_DISLIKE = new BooleanSetting("hide_comment_dislike", FALSE, true);
+    public static final BooleanSetting COMMENT_SEARCH = new BooleanSetting("comment_search", FALSE);
+    public static final BooleanSetting COMMENT_SEARCH_FOLDED = new BooleanSetting("comment_search_folded", FALSE);
+    public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
+    public static final BooleanSetting HIDE_SPAM_COMMENTS = new BooleanSetting("hide_spam_comments", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_REPLY_PREVIEWS = new BooleanSetting("hide_comment_reply_previews", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_SURVEYS = new BooleanSetting("hide_comment_surveys", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_BOX_BUTTONS = new BooleanSetting("hide_comment_box_buttons", FALSE);
+    public static final BooleanSetting SHOW_POLL_RESULTS = new BooleanSetting("show_poll_results", FALSE);
+    public static final BooleanSetting CAPTION_OPENS_COMMENTS = new BooleanSetting("caption_opens_comments", FALSE);
+    public static final BooleanSetting CAPTION_ABOVE_COMMENTS = new BooleanSetting("caption_above_comments", FALSE);
+    public static final BooleanSetting HIDE_COMMENT_SEARCH_SUGGESTIONS = new BooleanSetting("hide_comment_search_suggestions", FALSE, true);
+    public static final BooleanSetting COMPACT_COMMENT_HEADER = new BooleanSetting("compact_comment_header", FALSE, true);
+    public static final BooleanSetting LARGER_COMMENT_LIKE_TARGET = new BooleanSetting("larger_comment_like_target", FALSE, true);
+    /** Hushfeed's Hide comment eggs patch is not ported; its CommentTools hook stays unused. */
+    public static final BooleanSetting HIDE_COMMENT_EGGS = new BooleanSetting("hide_comment_eggs", FALSE);
+    public static final BooleanSetting KEEP_PAUSED_ON_RETURN = new BooleanSetting("keep_paused_on_return", FALSE,
+            () -> android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q);
+    /** Favorites waiting to be sent again. Internal state, not exported. */
+    public static final StringSetting FAVORITES_RETRY_QUEUE = new StringSetting("favorites_retry_queue", "", false, false);
 
     static {
         if (!DOWNLOAD_PATHS_MIGRATED.get()) {

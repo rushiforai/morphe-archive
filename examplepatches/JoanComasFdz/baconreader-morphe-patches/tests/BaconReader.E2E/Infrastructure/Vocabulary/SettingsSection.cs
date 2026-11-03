@@ -10,6 +10,10 @@ namespace BaconReader.E2E.Infrastructure.Vocabulary;
 public partial record SettingsSection
 {
     /// <summary>The last entry, which "Patches entry in settings" adds: it opens the patches' settings.</summary>
+    public partial record ListView;
+
+    public partial record DetailView;
+
     public partial record Patches;
 
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
@@ -19,11 +23,13 @@ public partial record SettingsSection
 /// <summary>What the app shows for each <see cref="SettingsSection"/>: the only place those strings live.</summary>
 public static class SettingsSectionShowing
 {
-    private static readonly SettingsSection[] Listed = [new SettingsSection.Patches()];
+    private static readonly SettingsSection[] Listed = [new SettingsSection.ListView(), new SettingsSection.DetailView(), new SettingsSection.Patches()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this SettingsSection value) =>
         value.Match(
+            listView => "List View",
+            detailView => "Detail View",
             patches => "Patches",
             unlisted => unlisted.Shown);
 

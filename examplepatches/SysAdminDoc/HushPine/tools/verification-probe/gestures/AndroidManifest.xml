@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="app.hushpine.verification.gestures">
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="36" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <queries><package android:name="com.ss.android.ttmd.video" /></queries>
+    <application android:hasCode="true" android:debuggable="true" android:label="HushPine gesture probe" />
+    <instrumentation android:name="app.hushpine.verification.gestures.GestureProbe"
+        android:targetPackage="app.hushpine.verification.gestures"
+        android:label="HushPine native gesture probe" />
+</manifest>

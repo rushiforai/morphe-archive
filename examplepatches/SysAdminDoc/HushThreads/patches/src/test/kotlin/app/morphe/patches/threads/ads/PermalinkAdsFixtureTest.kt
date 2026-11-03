@@ -42,19 +42,14 @@ import java.io.File
 class PermalinkAdsFixtureTest {
     private val feedAds = "$EXTENSION_PACKAGE/ads/FeedAds;"
     private val useCase = "Lcom/instagram/barcelona/permalink/adsusecase/PermalinkAdsUseCase;"
-    /** The result type each 453 build makes, by version code. */
+    /** The result type each 454 build makes, by version code. */
     private val adResults = mapOf(
-        "512308671" to "LX/4y1;",
-        "512308673" to "LX/4y1;",
-        "512308675" to "LX/4y1;",
-        "512308676" to "LX/05Br;",
-        "512308685" to "LX/04ZY;",
-        "512308686" to "LX/4Zv;",
-        "512308688" to "LX/4Zv;",
-        "512308695" to "LX/05Cv;",
-        "512308696" to "LX/4y1;",
-        "512308697" to "LX/05Br;",
-        "512308698" to "LX/4y1;",
+        "512408621" to "LX/4Zu;",
+        "512408622" to "LX/4Yv;",
+        "512408625" to "LX/4Zu;",
+        "512408635" to "LX/4ZY;",
+        "512408636" to "LX/4Zu;",
+        "512408648" to "LX/4Zu;",
     )
 
     @Test
@@ -68,7 +63,7 @@ class PermalinkAdsFixtureTest {
             val body = stock.single().instructions()
             val at = stock.single().permalinkAdResult()
 
-            // Read off each 453 build apart from the patch: the loop adds each ad it reads to v6, the
+            // Read off each 454 build apart from the patch: the loop adds each ad it reads to v6, the
             // size of what the server sent is read at 115 and 116, and the result is made at 117 and 118.
             val expectedResult = adResults.entries.single { build.name.contains("-${it.key}.") }.value
             assertEquals(where, 117, at.index)

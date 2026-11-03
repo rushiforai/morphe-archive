@@ -357,6 +357,9 @@ public final class ExternalBoardAuth {
         } catch(Exception ignored) { }
     }
     public static List<?> cookies(List<?> nativeCookies,Object url) {
+        return ReadingAuth.cookies(postingCookies(nativeCookies,url),url);
+    }
+    private static List<?> postingCookies(List<?> nativeCookies,Object url) {
         if(BoardCookies.active())return BoardCookies.load(nativeCookies,url);
         Context c=context;if(c==null || url==null) return nativeCookies;
         String address=url.toString(), origin=BoardAuthRules.origin(address);

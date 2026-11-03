@@ -60,6 +60,20 @@ public sealed class PostBuilder
     public PostBuilder WithGif() => WithImage(MediaAsset.Gif);
 
     /// <summary>
+    /// A gallery post of one JPEG, as Reddit sends one: its URL <c>https://www.reddit.com/gallery/&lt;id&gt;</c>, its
+    /// image in <c>media_metadata</c> and <c>gallery_data</c>.
+    /// </summary>
+    public PostBuilder AsGallery()
+    {
+        var uploaded = UploadedMedia.Upload(world, MediaAsset.Jpeg);
+        Post.Media[uploaded.Id] = uploaded;
+        Post.IsGallery = true;
+        LinkingTo("https://www.reddit.com/gallery/" + Post.Id);
+        Post.Thumbnail = world.MediaUrl(uploaded.Path);
+        return this;
+    }
+
+    /// <summary>
     /// A text post whose text is <paramref name="markdown"/> and then an image uploaded in it, as Reddit sends one: its
     /// preview's URL on a line of its own in its text, which its <c>selftext_html</c> makes a bare link, and an entry in
     /// its <c>media_metadata</c> (<see cref="CommentBuilder.WithImage"/>). A PNG unless <paramref name="image"/> says
@@ -104,6 +118,13 @@ public sealed class PostBuilder
     public PostBuilder WithFlair(string flair)
     {
         Post.Flair = flair;
+        return this;
+    }
+
+    /// <summary>Given Reddit's Silver <paramref name="count"/> times: an award, with its icon in the media store.</summary>
+    public PostBuilder WithSilver(int count)
+    {
+        Post.Awards.Add(Award.Silver(world, count));
         return this;
     }
 }
@@ -185,6 +206,13 @@ public sealed class CommentBuilder
     public CommentBuilder WithScore(int score)
     {
         Comment.Score = score;
+        return this;
+    }
+
+    /// <summary>Given Reddit's Silver <paramref name="count"/> times: an award, with its icon in the media store.</summary>
+    public CommentBuilder WithSilver(int count)
+    {
+        Comment.Awards.Add(Award.Silver(world, count));
         return this;
     }
 

@@ -46,21 +46,21 @@ class HomeFeaturedCollectionsPatchTest {
     fun `only the module renderer parameter order is accepted`() {
         assertTrue(
             isFeaturedCollectionsRendererSignature(
-                renderer(listOf("Lexample/home/ViewData;", "Ll72/f;", "Lh3/t;", "I")),
+                renderer(listOf("Lexample/home/ViewData;", "Lsg2/h;", "Lj3/r;", "I")),
             ),
         )
         // 投稿カード module のように view data の前に module id を取るものは対象外です。
         assertFalse(
             isFeaturedCollectionsRendererSignature(
-                renderer(listOf("Ljava/lang/String;", "Lexample/home/ViewData;", "Ll72/f;", "Lh3/t;", "I")),
+                renderer(listOf("Ljava/lang/String;", "Lexample/home/ViewData;", "Lsg2/h;", "Lj3/r;", "I")),
             ),
         )
         assertFalse(
-            isFeaturedCollectionsRendererSignature(renderer(listOf("Z", "Ll72/f;", "Lh3/t;", "I"))),
+            isFeaturedCollectionsRendererSignature(renderer(listOf("Z", "Lsg2/h;", "Lj3/r;", "I"))),
         )
         assertFalse(
             isFeaturedCollectionsRendererSignature(
-                renderer(listOf("Lexample/home/ViewData;", "Ll72/f;", "Lh3/t;")),
+                renderer(listOf("Lexample/home/ViewData;", "Lsg2/h;", "Lj3/r;")),
             ),
         )
     }
@@ -68,7 +68,7 @@ class HomeFeaturedCollectionsPatchTest {
     @Test
     fun `only grid state types built by the renderer are counted`() {
         val method = renderer(
-            parameters = listOf("Lexample/home/ViewData;", "Ll72/f;", "Lh3/t;", "I"),
+            parameters = listOf("Lexample/home/ViewData;", "Lsg2/h;", "Lj3/r;", "I"),
             instructions = listOf(
                 newInstance("Lexample/grid/GridState;"),
                 newInstance("Lexample/grid/CardState;"),
@@ -171,7 +171,7 @@ class HomeFeaturedCollectionsPatchTest {
         add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 4))
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }
-        add(composerCall("Y", emptyList(), "Lh3/p3;"))
+        add(composerCall("Z", emptyList(), "Lj3/p3;"))
     }
 
     private fun composerCall(
@@ -182,6 +182,6 @@ class HomeFeaturedCollectionsPatchTest {
         Opcode.INVOKE_VIRTUAL,
         1,
         6, 0, 0, 0, 0,
-        ImmutableMethodReference("Lh3/f1;", name, parameters, returnType),
+        ImmutableMethodReference("Lj3/d1;", name, parameters, returnType),
     )
 }

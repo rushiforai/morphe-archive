@@ -1,11 +1,17 @@
 package app.proxma.simosa;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
 import androidx.work.ExistingWorkPolicy;
+import androidx.work.ForegroundInfo;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
@@ -21,7 +27,12 @@ public final class DailyCheckinWorker extends Worker {
     private static final String TAG = "PROXMA_CLAIM";
     private static final String WORK_IMMEDIATE = "proxma_simosa_now";
     private static final String WORK_MIDNIGHT = "proxma_simosa_midnight";
+    private static final String TAG_FOLLOWUP = "proxma_simosa_followup";
+    private static final long FOLLOWUP_DELAY_MIN = 15;
     private static final int MAX_RETRIES = 6;
+    private static final String FGS_CHANNEL_ID = "proxma_fgs";
+    private static final int FGS_NOTIF_ID = 1004;
+    private static final Object RUN_LOCK = new Object();
 
     public DailyCheckinWorker(Context context, WorkerParameters parameters) {
         super(context, parameters);
@@ -29,19 +40,32 @@ public final class DailyCheckinWorker extends Worker {
 
     @Override
     public Result doWork() {
+        // A stopped app's retry and its fresh run start together when it is reopened. Claiming at the
+        // same time gets one refused by the server, so the second run waits and then finds the latch.
+        synchronized (RUN_LOCK) {
+            return runClaims();
+        }
+    }
+
+    private Result runClaims() {
         Context context = getApplicationContext();
+        Trace.init(context);
+        WorkerNotify.log("WORKER_START attempt=" + getRunAttemptCount());
+        goForeground(context);
+        AppAuth.primeLogin(context);
 
         // Both daily claims already done: only milestones can still be due (they have their own
         // per-level state). Notify only when that check did something, never for a bare no-op.
         boolean checkinLatched = AutoClaim.check(context, "checkin") != null;
         boolean ladderLatched = AutoClaim.check(context, "ladder") != null;
         if (checkinLatched && ladderLatched) {
-            Log.i(TAG, "WORKER_NOOP both latched");
+            WorkerNotify.log("WORKER_NOOP both latched");
             try {
                 BackgroundCheckin.doCheckIn(context);
             } catch (Throwable t) {
-                Log.w(TAG, "WORKER_MILESTONE_ERR " + t);
+                WorkerNotify.log("WORKER_MILESTONE_ERR " + t);
             }
+            scheduleFollowUpIfWanted(context);
             if (MilestoneClaim.hasNews()) {
                 WorkerNotify.notifyStatus(context, "Ladder: latched", "next ~00:05 PKT",
                     "Simosa daily check-in");
@@ -54,7 +78,7 @@ public final class DailyCheckinWorker extends Worker {
         try {
             settled = BackgroundCheckin.doCheckIn(context);
         } catch (Throwable t) {
-            Log.w(TAG, "WORKER_ERR " + t);
+            WorkerNotify.log("WORKER_ERR " + t);
             settled = false;
         }
 
@@ -62,16 +86,17 @@ public final class DailyCheckinWorker extends Worker {
         try {
             ladderSettled = LadderClaim.tryClaimLadder(context);
         } catch (Throwable t) {
-            Log.w(TAG, "LADDER_ERR " + t);
+            WorkerNotify.log("LADDER_ERR " + t);
         }
 
         if ((!settled || !ladderSettled) && getRunAttemptCount() < MAX_RETRIES) {
-            Log.i(TAG, "WORKER_RETRY attempt=" + getRunAttemptCount()
+            WorkerNotify.log("WORKER_RETRY attempt=" + getRunAttemptCount()
                 + " checkin=" + settled + " ladder=" + ladderSettled);
-            if (MilestoneClaim.hasNews()) {
-                WorkerNotify.notifyStatus(context, "Ladder: " + LadderClaim.getResult(), "retrying",
-                    "Simosa daily check-in");
-            }
+            // Always post on retry: ColorOS hides this app's logcat, so the notification is the
+            // only place a failed run's reason (Checkin:/Ladder: lines) can be read afterwards.
+            WorkerNotify.notifyStatus(context, "Ladder: " + LadderClaim.getResult(),
+                "retry " + (getRunAttemptCount() + 1) + "/" + MAX_RETRIES,
+                "Simosa daily check-in");
             return Result.retry();
         }
 
@@ -81,13 +106,50 @@ public final class DailyCheckinWorker extends Worker {
             "next ~00:05 PKT",
             "Simosa daily check-in");
 
+        scheduleFollowUpIfWanted(context);
+
         // Chain tomorrow's midnight run (REPLACE: this run is done, schedule fresh)
         scheduleMidnight(context, ExistingWorkPolicy.REPLACE);
         return Result.success();
     }
 
+    /**
+     * Run the claim inside a short dataSync foreground service. ColorOS stops a plain background
+     * job a few seconds in, so a multi-request run (check-in, ladder, milestone) is cut mid-flow
+     * and only finishes on a later retry. Starting from the background needs an exemption (the
+     * app's battery set to "Allow background activity"); a refused start throws here or inside
+     * WorkManager's SystemForegroundService, which catches it, and the run continues as before.
+     */
+    private void goForeground(Context context) {
+        try {
+            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm == null || Build.VERSION.SDK_INT < 29) {
+                return;
+            }
+            int icon = context.getApplicationInfo().icon;
+            if (icon == 0) {
+                return;
+            }
+            NotificationChannel channel = new NotificationChannel(FGS_CHANNEL_ID, "Background claims",
+                NotificationManager.IMPORTANCE_LOW);
+            channel.setDescription("Shown while the daily check-in runs");
+            nm.createNotificationChannel(channel);
+            Notification notification = new Notification.Builder(context, FGS_CHANNEL_ID)
+                .setSmallIcon(icon)
+                .setContentTitle("Claiming daily rewards\u2026")
+                .setOngoing(true)
+                .build();
+            setForegroundAsync(new ForegroundInfo(FGS_NOTIF_ID, notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)).get(10, TimeUnit.SECONDS);
+            WorkerNotify.log("WORKER_FGS started");
+        } catch (Throwable t) {
+            WorkerNotify.log("WORKER_FGS_REFUSED " + t);
+        }
+    }
+
     /** Called from the patched {@code MainActivity.onCreate}; safe to call on every launch. */
     public static void schedule(Context context) {
+        Trace.init(context);
         if (context == null) {
             return;
         }
@@ -112,9 +174,35 @@ public final class DailyCheckinWorker extends Worker {
             // KEEP = don't cancel a pending midnight if user opens app at 00:04
             scheduleMidnight(context, ExistingWorkPolicy.KEEP);
 
-            Log.i(TAG, "WORKER_SCHEDULED");
+            WorkerNotify.log("WORKER_SCHEDULED");
         } catch (Throwable t) {
-            Log.w(TAG, "WORKER_SCHEDULE_ERR " + t);
+            WorkerNotify.log("WORKER_SCHEDULE_ERR " + t);
+        }
+    }
+
+    /**
+     * One more run in a few minutes when the milestone level-up may not have reached
+     * {@code checkin/state} yet. Not unique work: a follow-up schedules the next while it is still
+     * running, and MilestoneClaim caps them per day.
+     */
+    private static void scheduleFollowUpIfWanted(Context context) {
+        try {
+            if (!MilestoneClaim.wantsFollowUp(context)) {
+                return;
+            }
+            Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+            OneTimeWorkRequest followUp = new OneTimeWorkRequest.Builder(DailyCheckinWorker.class)
+                .setConstraints(constraints)
+                .setInitialDelay(FOLLOWUP_DELAY_MIN, TimeUnit.MINUTES)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
+                .addTag(TAG_FOLLOWUP)
+                .build();
+            WorkManager.getInstance(context).enqueue(followUp);
+            WorkerNotify.log("WORKER_FOLLOWUP delay=" + FOLLOWUP_DELAY_MIN + "min");
+        } catch (Throwable t) {
+            WorkerNotify.log("WORKER_FOLLOWUP_ERR " + t);
         }
     }
 
@@ -130,9 +218,9 @@ public final class DailyCheckinWorker extends Worker {
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
                 .build();
             WorkManager.getInstance(context).enqueueUniqueWork(WORK_MIDNIGHT, policy, midnight);
-            Log.i(TAG, "WORKER_MIDNIGHT delay=" + (delayMs / 60000) + "min policy=" + policy);
+            WorkerNotify.log("WORKER_MIDNIGHT delay=" + (delayMs / 60000) + "min policy=" + policy);
         } catch (Throwable t) {
-            Log.w(TAG, "WORKER_MIDNIGHT_ERR " + t);
+            WorkerNotify.log("WORKER_MIDNIGHT_ERR " + t);
         }
     }
 

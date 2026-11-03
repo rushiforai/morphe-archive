@@ -35,6 +35,7 @@ import app.czyeru.extension.tiktok.settings.Settings;
 import app.czyeru.extension.tiktok.settings.SettingsStatus;
 import app.czyeru.extension.tiktok.settings.preference.categories.CommentsPreferenceCategory;
 import app.czyeru.extension.tiktok.settings.preference.categories.DebugPreferenceCategory;
+import app.czyeru.extension.tiktok.settings.preference.categories.HushfeedPreferenceCategory;
 import app.czyeru.extension.tiktok.settings.preference.categories.DownloadsPreferenceCategory;
 import app.czyeru.extension.tiktok.settings.preference.categories.EruditePreferenceCategory;
 import app.czyeru.extension.tiktok.settings.preference.categories.ExtensionPreferenceCategory;
@@ -61,6 +62,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         SHARE_SHEET("Share sheet", "Send to, share via app, and video actions."),
         BEHAVIOR("App behavior", "Sharing, playback, and gestures."),
         ERUDITE("Erudite Patches", "Collections, playlists and search."),
+        HUSHFEED("Hushfeed features", "Block buttons, gestures, comment tools and more."),
         DIAGNOSTICS("Diagnostics", "Logging, crash capture, and report export.");
 
         final String title;
@@ -328,17 +330,24 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 || SettingsStatus.keepCollectionsLoadedEnabled
                 || SettingsStatus.collectionSortEnabled
                 || SettingsStatus.collectionVideosSearchEnabled
-                || SettingsStatus.inboxActivitySearchEnabled) {
+                || SettingsStatus.inboxActivitySearchEnabled
+                || SettingsStatus.favoritesRetryEnabled) {
             addMenu(screen, Section.ERUDITE, SettingsMenuPreference.Icon.LAYOUT, countEnabled(
                     SettingsStatus.favoritePlaylistGridEnabled && Settings.FAVORITE_PLAYLIST_GRID.get(),
                     SettingsStatus.favoritePlaylistSearchEnabled && Settings.FAVORITE_PLAYLIST_SEARCH.get(),
                     SettingsStatus.likedVideosSearchEnabled && Settings.LIKED_VIDEOS_SEARCH.get(),
+                    SettingsStatus.likedVideosServerSearchEnabled && Settings.LIKED_VIDEOS_SERVER_SEARCH.get(),
                     SettingsStatus.chooseCollectionSearchEnabled && Settings.CHOOSE_COLLECTION_SEARCH.get(),
                     SettingsStatus.keepCollectionsLoadedEnabled && Settings.KEEP_COLLECTIONS_LOADED.get(),
                     SettingsStatus.collectionSortEnabled && !"normal".equals(Settings.COLLECTION_SORT.get()),
                     SettingsStatus.collectionVideosSearchEnabled && Settings.COLLECTION_VIDEOS_SEARCH.get(),
-                    SettingsStatus.inboxActivitySearchEnabled && Settings.INBOX_ACTIVITY_SEARCH.get()
+                    SettingsStatus.inboxActivitySearchEnabled && Settings.INBOX_ACTIVITY_SEARCH.get(),
+                    SettingsStatus.favoritesRetryEnabled && Settings.FAVORITES_RETRY.get()
             ));
+        }
+
+        if (HushfeedPreferenceCategory.anyIncluded()) {
+            addMenu(screen, Section.HUSHFEED, SettingsMenuPreference.Icon.LAYOUT, HushfeedPreferenceCategory.countOn());
         }
 
         if (FeatureGateLabRuntime.isInstalled()) {
@@ -416,6 +425,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 break;
             case ERUDITE:
                 category = new EruditePreferenceCategory(context, screen);
+                break;
+            case HUSHFEED:
+                category = new HushfeedPreferenceCategory(context, screen);
                 break;
             case BEHAVIOR:
             default:

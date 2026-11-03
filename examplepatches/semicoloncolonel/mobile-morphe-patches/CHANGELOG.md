@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.3...v1.0.4) (2026-11-02)
+
+
+### Features
+
+* add carrier, government, and Recreation.gov apps ([3bdb4b5](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/3bdb4b5b156e1fd3d2d5c8a2366f25a1cdf29bbd))
+
 ## [1.0.3](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.2...v1.0.3) (2026-11-02)
 
 

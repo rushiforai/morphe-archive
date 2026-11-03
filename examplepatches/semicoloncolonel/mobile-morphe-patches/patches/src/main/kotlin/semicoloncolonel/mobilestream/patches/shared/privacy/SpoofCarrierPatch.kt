@@ -34,6 +34,7 @@ import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
+import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Spoof carrier (OPT-IN, default OFF).
@@ -84,7 +85,7 @@ internal object CarrierNameFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
 )
 
-private fun String.smaliEscaped() = buildString {
+internal fun String.smaliEscaped() = buildString {
     this@smaliEscaped.forEach { c ->
         when (c) {
             '\\' -> append("\\\\")
@@ -102,7 +103,7 @@ val spoofCarrierPatch = bytecodePatch(
         "carrier will not work while this is on. Opt-in / experimental; test on-device.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, *SHOPPING_APPS)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *SHOPPING_APPS)
 
     extendWith("extensions/extension.mpe")
 

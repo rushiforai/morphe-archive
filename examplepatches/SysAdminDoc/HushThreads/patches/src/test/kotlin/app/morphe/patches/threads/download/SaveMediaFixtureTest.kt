@@ -152,15 +152,15 @@ class SaveMediaFixtureTest {
     }
 
     /**
-     * A post with no media of its own saves the post it shows, and these read it. Read off 512308675
+     * A post with no media of its own saves the post it shows, and these read it. Read off 512408636
      * by hand: the serializer's fields and the getters answering them. On every build the three
      * shared posts are three different getters of one interface, answering a post.
      */
     @Test
     fun `each declared build reads a post's linked and shared posts through their own getters`() {
         val readByHand = mapOf(
-            "linkedInlineMedia" to "C6x", "shareInfo" to "CkV",
-            "quotedAttachmentPost" to "CYd", "quotedPost" to "CYh", "repostedPost" to "Cca",
+            "linkedInlineMedia" to "C95", "shareInfo" to "CnN",
+            "quotedAttachmentPost" to "CbE", "quotedPost" to "CbI", "repostedPost" to "CfH",
         )
         for (build in Fixtures.declaredBuilds()) {
             val where = build.name
@@ -183,7 +183,7 @@ class SaveMediaFixtureTest {
                 assertEquals("$where: ${post.name} comes from the share info", share.returnType, post.definingClass)
                 assertEquals("$where: ${post.name} is a post", MEDIA, post.returnType)
             }
-            if ("512308675" in build.name) {
+            if ("512408636" in build.name) {
                 for ((name, getter) in readByHand) assertEquals("$where: $name", getter, call(name).name)
             }
         }
@@ -399,17 +399,12 @@ class SaveMediaFixtureTest {
 
         /** Read off each build by hand: the menu lambda, its post and controller, and how Copy link's click closes the menu. */
         val EXPECTED = mapOf(
-            "453.0.0.56.79-512308671" to Expected("LX/WA9;", "LX/WA9;->A0G:$MEDIA", "LX/WA9;->A0D:LX/76t;", "LX/76t;->A1A()V"),
-            "453.0.0.56.79-512308673" to Expected("LX/WA9;", "LX/WA9;->A0G:$MEDIA", "LX/WA9;->A0D:LX/76t;", "LX/76t;->A1A()V"),
-            "453.0.0.56.79-512308675" to Expected("LX/WA9;", "LX/WA9;->A0G:$MEDIA", "LX/WA9;->A0D:LX/76t;", "LX/76t;->A1A()V"),
-            "453.0.0.56.79-512308676" to Expected("LX/0WAM;", "LX/0WAM;->A0G:$MEDIA", "LX/0WAM;->A0D:LX/047s;", "LX/047s;->A1A()V"),
-            "453.0.0.56.79-512308685" to Expected("LX/0amk;", "LX/0amk;->A0G:$MEDIA", "LX/0amk;->A0D:LX/095U;", "LX/095U;->A19()V"),
-            "453.0.0.56.79-512308686" to Expected("LX/lmK;", "LX/lmK;->A0G:$MEDIA", "LX/lmK;->A0D:LX/BLa;", "LX/BLa;->A18()V"),
-            "453.0.0.56.79-512308688" to Expected("LX/lmK;", "LX/lmK;->A0G:$MEDIA", "LX/lmK;->A0D:LX/BLa;", "LX/BLa;->A18()V"),
-            "453.0.0.56.79-512308695" to Expected("LX/0XA6;", "LX/0XA6;->A0G:$MEDIA", "LX/0XA6;->A0D:LX/071n;", "LX/071n;->A1B()V"),
-            "453.0.0.56.79-512308696" to Expected("LX/WA8;", "LX/WA8;->A0G:$MEDIA", "LX/WA8;->A0D:LX/76s;", "LX/76s;->A1A()V"),
-            "453.0.0.56.79-512308697" to Expected("LX/0WAM;", "LX/0WAM;->A0G:$MEDIA", "LX/0WAM;->A0D:LX/047s;", "LX/047s;->A1A()V"),
-            "453.0.0.56.79-512308698" to Expected("LX/WA8;", "LX/WA8;->A0G:$MEDIA", "LX/WA8;->A0D:LX/76s;", "LX/76s;->A1A()V"),
+            "454.0.0.54.79-512408621" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
+            "454.0.0.54.79-512408622" to Expected("LX/Qyp;", "LX/Qyp;->A0G:$MEDIA", "LX/Qyp;->A0D:LX/69p;", "LX/69p;->A19()V"),
+            "454.0.0.54.79-512408625" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
+            "454.0.0.54.79-512408635" to Expected("LX/Rau;", "LX/Rau;->A0G:$MEDIA", "LX/Rau;->A0D:LX/6DB;", "LX/6DB;->A19()V"),
+            "454.0.0.54.79-512408636" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
+            "454.0.0.54.79-512408648" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
         )
     }
 }

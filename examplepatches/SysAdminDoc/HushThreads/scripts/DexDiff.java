@@ -1988,7 +1988,10 @@ public class DexDiff {
     private static final String ENDPOINT = "Lapp/morphe/extension/hushthreads/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String;";
     private static final String SIGNERS = "Lapp/morphe/extension/hushthreads/misc/ThreadsSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List;";
     private static final String OPEN_REFUSED_TILE = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V";
-    private static final String TILE_COMPOSER_EXTRA = "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER";
+    /** The share actions and the link the tiles for Instagram, Facebook and WhatsApp start their apps with. */
+    private static final List<String> SHARE_TILE_ACTIONS = List.of("com.instagram.share.ADD_TO_FEED",
+            "com.instagram.share.ADD_TO_REEL_THREAD", "com.facebook.reels.SHARE_TO_REEL", "https://wa.me/status");
+    private static final String MESSENGER = "com.facebook.orca";
     private static final String LOGGING_URL = "https://graph.facebook.com/logging_client_events";
     private static final String RETURN_REFRESH = "Lapp/morphe/extension/hushthreads/feed/ReturnRefresh;->";
     private static final String HOLD_HOT_START = RETURN_REFRESH + "holdHotStart()Z";
@@ -2331,9 +2334,11 @@ public class DexDiff {
     }
 
     private static Method featureMerge(Map<String, List<Method>> clean) {
+        // 454 added a Function0 ahead of the Function3, so the merge takes nine parameters.
         return featureTarget(clean, m -> m.getDefiningClass().equals(FEED)
-                && m.getReturnType().equals("Ljava/lang/Object;") && m.getParameterTypes().size() == 8
+                && m.getReturnType().equals("Ljava/lang/Object;") && m.getParameterTypes().size() == 9
                 && m.getParameterTypes().get(4).equals("Ljava/util/List;")
+                && m.getParameterTypes().get(6).equals("Lkotlin/jvm/functions/Function0;")
                 && instructions(m).stream().anyMatch(i -> reference(i).startsWith(FEED.substring(0, FEED.length() - 1)
                         + "$addAndSaveItemsFromFeedFetchSuccess$2$1;-><init>(")), "feed merge");
     }
@@ -4034,6 +4039,9 @@ public class DexDiff {
             requireFeature(!returns.isEmpty(), "PIGEON has no address returns");
             wraps.put(pigeon, returns);
         }
+        // A literal answer's hook goes in without labels: a branch onto its return carries some other
+        // answer (454's notifications provider jumps there with its database) and must skip the hook.
+        Map<Method, Map<Integer, FeatureBlock>> literals = new LinkedHashMap<>();
         if ((mask & 2) != 0) {
             int sites = 0;
             for (List<Method> definitions : clean.values()) for (Method m : definitions) {
@@ -4042,7 +4050,13 @@ public class DexDiff {
                         && reference(body.get(k - 1)).equals(LOGGING_URL)
                         && (body.get(k - 1).getOpcode() == Opcode.CONST_STRING || body.get(k - 1).getOpcode() == Opcode.CONST_STRING_JUMBO)
                         && ((OneRegisterInstruction) body.get(k - 1)).getRegisterA() == ((OneRegisterInstruction) body.get(k)).getRegisterA()) {
-                    wraps.computeIfAbsent(m, key -> new TreeMap<>()).put(k, ((OneRegisterInstruction) body.get(k)).getRegisterA());
+                    int register = ((OneRegisterInstruction) body.get(k)).getRegisterA();
+                    FeatureInsert hook = (now, at) -> {
+                        featureCall(now, at, ENDPOINT, register, register);
+                        return 2;
+                    };
+                    literals.computeIfAbsent(m, key -> new TreeMap<>()).put(k, hook);
+                    wraps.computeIfAbsent(m, key -> new TreeMap<>());
                     sites++;
                 }
             }
@@ -4063,8 +4077,9 @@ public class DexDiff {
         }
         Map<String, Integer> calls = new TreeMap<>();
         for (Map.Entry<Method, Map<Integer, Integer>> e : wraps.entrySet()) {
-            featureBody(e.getKey(), featureMethod(patched, featureSig(e.getKey())), 0, e.getValue(), ENDPOINT);
-            calls.put(featureSig(e.getKey()), e.getValue().size());
+            Map<Integer, FeatureBlock> inserted = literals.getOrDefault(e.getKey(), Map.of());
+            featureBody(e.getKey(), featureMethod(patched, featureSig(e.getKey())), 0, e.getValue(), ENDPOINT, null, inserted);
+            calls.put(featureSig(e.getKey()), e.getValue().size() + inserted.size());
         }
         featureHostCalls(patched, ENDPOINT, calls);
     }
@@ -4113,41 +4128,86 @@ public class DexDiff {
         featureShareTiles(clean, patched);
     }
 
-    private static boolean featureIsShareTiles(Method m) {
-        return m.getName().equals("invokeSuspend") && holds(m, "com.facebook.orca", TILE_COMPOSER_EXTRA);
+    /** A Kotlin lambda's body: invoke or invokeSuspend, taking and answering an Object. */
+    private static boolean featureIsLambdaBody(Method m) {
+        return (m.getName().equals("invoke") || m.getName().equals("invokeSuspend")) && m.getReturnType().equals("Ljava/lang/Object;")
+                && m.getParameterTypes().stream().map(CharSequence::toString).toList().equals(List.of("Ljava/lang/Object;"));
+    }
+
+    /** A launcher call: an instance method taking a context and an intent and answering whether it started anything. */
+    private static boolean featureIsTileLaunch(Instruction i) {
+        if (i.getOpcode() != Opcode.INVOKE_VIRTUAL) return false;
+        MethodReference called = (MethodReference) ((ReferenceInstruction) i).getReference();
+        return called.getReturnType().equals("Z")
+                && called.getParameterTypes().stream().map(CharSequence::toString).toList().equals(List.of("Landroid/content/Context;", "Landroid/content/Intent;"));
+    }
+
+    /** The share sheet's tiles: the lambdas that start the apps, and the launcher every one of them goes through. */
+    private record FeatureTiles(String launcher, List<Method> lambdas) {}
+
+    /**
+     * The share sheet's tiles, found the way the patch finds them. 453 kept them in one lambda; 454
+     * spreads them over three. The tiles for Instagram, Facebook and WhatsApp name their share actions
+     * and give the launcher, and Messenger's is the one lambda naming Messenger that hands that
+     * launcher an intent and drops the answer.
+     */
+    private static FeatureTiles featureShareTileLambdas(Map<String, List<Method>> clean) {
+        List<Method> named = new ArrayList<>();
+        for (List<Method> definitions : clean.values()) for (Method m : definitions) {
+            if (featureIsLambdaBody(m) && (holds(m, MESSENGER) || SHARE_TILE_ACTIONS.stream().anyMatch(a -> holds(m, a)))) named.add(m);
+        }
+        List<Method> apps = named.stream().filter(m -> SHARE_TILE_ACTIONS.stream().anyMatch(a -> holds(m, a))).toList();
+        for (String action : SHARE_TILE_ACTIONS) requireFeature(apps.stream().anyMatch(m -> holds(m, action)), "no share tile starts " + action);
+        List<String> launchers = apps.stream().flatMap(m -> instructions(m).stream()).filter(DexDiff::featureIsTileLaunch)
+                .map(DexDiff::reference).distinct().toList();
+        requireFeature(launchers.size() == 1, "the tiles for Instagram, Facebook and WhatsApp use " + launchers.size() + " launchers");
+        String launcher = launchers.get(0);
+        List<Method> messenger = named.stream().filter(m -> {
+            List<Instruction> body = instructions(m);
+            if (!holds(m, MESSENGER)) return false;
+            for (int k = 0; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.INVOKE_VIRTUAL && reference(body.get(k)).equals(launcher)
+                    && (k + 1 >= body.size() || body.get(k + 1).getOpcode() != Opcode.MOVE_RESULT)) return true;
+            return false;
+        }).toList();
+        requireFeature(messenger.size() == 1, messenger.size() + " lambdas look like Messenger's tile");
+        Map<String, Method> tiles = new LinkedHashMap<>();
+        for (Method m : apps) tiles.put(featureSig(m), m);
+        tiles.put(featureSig(messenger.get(0)), messenger.get(0));
+        return new FeatureTiles(launcher, new ArrayList<>(tiles.values()));
     }
 
     /**
-     * Share tiles on a re-signed build: each launch in the tiles' lambda hands the launcher's answer
-     * and the same context and intent to the extension, the answer in a register nothing reads after
-     * it, and nothing else in the lambda changes. Nothing else in Threads calls the extension.
+     * Share tiles on a re-signed build: each launch in each tile hands the launcher's answer and the
+     * same context and intent to the extension, the answer in a register nothing reads after it, and
+     * nothing else in the tile changes. Nothing else in Threads calls the extension.
      */
     private static void featureShareTiles(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
-        Method stock = featureTarget(clean, DexDiff::featureIsShareTiles, "share tile launches");
-        FeatureFlow flow = new FeatureFlow(stock);
-        List<Instruction> code = instructions(stock);
-        Map<Integer, FeatureBlock> hooks = new HashMap<>();
-        for (int k = 0; k < code.size(); k++) {
-            if (code.get(k).getOpcode() != Opcode.INVOKE_VIRTUAL) continue;
-            MethodReference called = (MethodReference) ((ReferenceInstruction) code.get(k)).getReference();
-            if (!called.getReturnType().equals("Z") || !called.getDefiningClass().startsWith("LX/")
-                    || !called.getParameterTypes().stream().map(CharSequence::toString).toList().equals(List.of("Landroid/content/Context;", "Landroid/content/Intent;"))) continue;
-            int[] launch = invokeRegisters(code.get(k));
-            int next = k + 1;
-            hooks.put(next, (body, at) -> {
-                requireFeature(at + 1 < body.size() && body.get(at).getOpcode() == Opcode.MOVE_RESULT,
-                        "the share tile launch before original instruction " + next + " drops its answer");
-                int answer = registerA(body.get(at));
-                requireFeature(isStaticInvoke(body.get(at + 1).getOpcode()) && reference(body.get(at + 1)).equals(OPEN_REFUSED_TILE)
-                        && Arrays.equals(invokeRegisters(body.get(at + 1)), new int[]{answer, launch[1], launch[2]}),
-                        "the share tile launch before original instruction " + next + " doesn't hand its answer, context and intent to " + OPEN_REFUSED_TILE);
-                requireFeature(flow.readsFrom(next, answer).isEmpty(), "the share tile hook clobbers v" + answer + ", which is read after it");
-                return 2;
-            });
+        FeatureTiles tiles = featureShareTileLambdas(clean);
+        Map<String, Integer> calls = new TreeMap<>();
+        for (Method stock : tiles.lambdas()) {
+            FeatureFlow flow = new FeatureFlow(stock);
+            List<Instruction> code = instructions(stock);
+            Map<Integer, FeatureBlock> hooks = new HashMap<>();
+            for (int k = 0; k < code.size(); k++) {
+                if (code.get(k).getOpcode() != Opcode.INVOKE_VIRTUAL || !reference(code.get(k)).equals(tiles.launcher())) continue;
+                int[] launch = invokeRegisters(code.get(k));
+                int next = k + 1;
+                hooks.put(next, (body, at) -> {
+                    requireFeature(at + 1 < body.size() && body.get(at).getOpcode() == Opcode.MOVE_RESULT,
+                            "the share tile launch before original instruction " + next + " drops its answer");
+                    int answer = registerA(body.get(at));
+                    requireFeature(isStaticInvoke(body.get(at + 1).getOpcode()) && reference(body.get(at + 1)).equals(OPEN_REFUSED_TILE)
+                            && Arrays.equals(invokeRegisters(body.get(at + 1)), new int[]{answer, launch[1], launch[2]}),
+                            "the share tile launch before original instruction " + next + " doesn't hand its answer, context and intent to " + OPEN_REFUSED_TILE);
+                    requireFeature(flow.readsFrom(next, answer).isEmpty(), "the share tile hook clobbers v" + answer + ", which is read after it");
+                    return 2;
+                });
+            }
+            requireFeature(!hooks.isEmpty(), featureSig(stock) + " has no share tile launch");
+            featureBody(stock, featureMethod(patched, featureSig(stock)), 0, Map.of(), OPEN_REFUSED_TILE, null, hooks);
+            calls.put(featureSig(stock), hooks.size());
         }
-        requireFeature(!hooks.isEmpty(), featureSig(stock) + " has no share tile launch");
-        featureBody(stock, featureMethod(patched, featureSig(stock)), 0, Map.of(), OPEN_REFUSED_TILE, null, hooks);
-        featureHostCalls(patched, OPEN_REFUSED_TILE, Map.of(featureSig(stock), hooks.size()));
+        featureHostCalls(patched, OPEN_REFUSED_TILE, calls);
     }
 
     /**
@@ -4221,7 +4281,8 @@ public class DexDiff {
         requireFeature(factoryFlow.parameterOnEveryPath(parser, invokeRegisters(made.get(parser))[0], browserParameter(factory, 5)), "browser factory parses the wrong URL parameter");
         List<Method> everything = clean.values().stream().flatMap(List::stream).toList();
         List<Method> callers = everything.stream().filter(m -> !callSites(instructions(m), target).isEmpty()).toList();
-        requireFeature(callers.size() == 5 && callers.stream().mapToInt(m -> callSites(instructions(m), target).size()).sum() == 5,
+        // 454 sends the lead form's link helper through the launcher, so four places call the factory.
+        requireFeature(callers.size() == 4 && callers.stream().mapToInt(m -> callSites(instructions(m), target).size()).sum() == 4,
                 "browser factory caller census changed");
         String launcherClass = launcher.getDefiningClass();
         Method helper = featureOne(callers.stream().filter(m -> m.getDefiningClass().equals(launcherClass)).toList(), "launcher's browser Intent helper");
@@ -4230,9 +4291,7 @@ public class DexDiff {
         Method media = featureOne(callers.stream().filter(m -> m.getName().equals("invokeSuspend") && m.getReturnType().equals("Ljava/lang/Object;")
                 && holds(m, "AD_DESTINATION_WEB")).toList(), "media ad browser");
         Method immersive = featureOne(callers.stream().filter(m -> holdsNote(m, BROWSER_IMMERSIVE_NOTE)).toList(), "immersive browser");
-        Method lead = featureOne(callers.stream().filter(m -> m.getName().equals("invoke") && m.getReturnType().equals("Ljava/lang/Object;")
-                && holds(m, "android.intent.action.VIEW")).toList(), "lead/policy browser");
-        requireFeature(new HashSet<>(callers).equals(new HashSet<>(List.of(helper, builder, media, immersive, lead))), "unexpected direct browser caller");
+        requireFeature(new HashSet<>(callers).equals(new HashSet<>(List.of(helper, builder, media, immersive))), "unexpected direct browser caller");
 
         // The web link an ad request gives the launcher, by the constructor argument the link field gets.
         Method request = featureTarget(clean, m -> holds(m, BROWSER_AD_NOTE), "ad web request");
@@ -4251,32 +4310,9 @@ public class DexDiff {
         String webField = reference(requested.get(webRead));
 
         List<BrowserSite> hooks = new ArrayList<>();
-        hooks.add(featureBrowserLead(lead, target));
         hooks.add(featureBrowserAd(everything, builder, target));
         hooks.add(featureBrowserMedia(media, target, webField));
         return new BrowserSites(hooks, List.of(factory, immersive, request, helper, builder));
-    }
-
-    /**
-     * The lead form and privacy policy helper, one case of a merged lambda: it reads the link from its
-     * own String field, an empty string standing in on the way there when the field is null.
-     */
-    private static BrowserSite featureBrowserLead(Method lead, String target) {
-        List<Instruction> body = instructions(lead);
-        FeatureFlow flow = new FeatureFlow(lead);
-        int at = featureOne(callSites(body, target), "lead/policy factory call");
-        int[] args = invokeRegisters(body.get(at));
-        Set<Integer> links = browserOrigins(flow, at, args[5], new HashSet<>());
-        java.util.function.IntPredicate own = n -> n >= 0 && body.get(n).getOpcode() == Opcode.IGET_OBJECT
-                && ((ReferenceInstruction) body.get(n)).getReference() instanceof FieldReference f
-                && f.getType().equals("Ljava/lang/String;") && f.getDefiningClass().equals(lead.getDefiningClass());
-        requireFeature(links.stream().anyMatch(own::test) && links.stream().allMatch(n -> own.test(n) || n >= 0
-                && (body.get(n).getOpcode() == Opcode.CONST_STRING || body.get(n).getOpcode() == Opcode.CONST_STRING_JUMBO)), "lead/policy URL or fallback changed");
-        int ending = java.util.stream.IntStream.range(at + 1, body.size()).filter(n -> (body.get(n).getOpcode() == Opcode.GOTO
-                || body.get(n).getOpcode() == Opcode.GOTO_16 || body.get(n).getOpcode() == Opcode.GOTO_32) && browserDestination(flow.layout, n) > n).findFirst().orElse(-1);
-        requireFeature(ending >= 0 && callSites(body, "Landroid/content/Context;->startActivity(Landroid/content/Intent;)V").stream().anyMatch(n -> n > at && n < ending),
-                "lead/policy browser has no successful ending");
-        return new BrowserSite(lead, at, browserDestination(flow.layout, ending), args[0], args[5], null);
     }
 
     /**
@@ -4301,8 +4337,8 @@ public class DexDiff {
     /**
      * The media viewer's swipe up on an ad, a coroutine reading its context and state from its own
      * fields. It opens the web link of a call to action past the check that its destination is the
-     * web, then sets its state from the flag the path made. An ad with no web link clears the flag and
-     * joins it there.
+     * web, then loads true with a const/4 right before its state setter. An ad with no web link jumps
+     * past the const to the setter, which then runs with the flag the viewer computed earlier.
      */
     private static BrowserSite featureBrowserMedia(Method media, String target, String webField) {
         List<Instruction> body = instructions(media);
@@ -4328,19 +4364,19 @@ public class DexDiff {
         requireFeature(context >= 0 && body.get(context).getOpcode() == Opcode.IGET_OBJECT
                 && ((FieldReference) ((ReferenceInstruction) body.get(context)).getReference()).getType().equals("Landroid/content/Context;")
                 && flow.parameterOnEveryPath(context, ((TwoRegisterInstruction) body.get(context)).getRegisterB(), self), "media browser uses the wrong Context");
-        int setter = featureOne(java.util.stream.IntStream.range(1, body.size() - 2).boxed().filter(n -> body.get(n - 1).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+        int setter = featureOne(java.util.stream.IntStream.range(1, body.size() - 2).boxed().filter(n -> body.get(n - 1).getOpcode() == Opcode.CONST_4
                 && body.get(n) instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference set
                 && set.getParameterTypes().equals(List.of(BROWSER_STATE, "Z"))
                 && body.get(n + 1).getOpcode() == Opcode.SGET_OBJECT && body.get(n + 2).getOpcode() == Opcode.RETURN_OBJECT).toList(), "media opened state completion");
         int done = setter - 1;
-        int saved = ((TwoRegisterInstruction) body.get(done)).getRegisterB();
-        int state = browserOrigin(flow, at, saved);
-        requireFeature(state >= 0 && state == browserOrigin(flow, done, saved)
+        int[] set = invokeRegisters(body.get(setter));
+        requireFeature(((WideLiteralInstruction) body.get(done)).getWideLiteral() == 1 && registerA(body.get(done)) == set[1], "media opened state completion doesn't set true");
+        int state = browserOrigin(flow, at, set[0]);
+        requireFeature(state >= 0 && state == browserOrigin(flow, done, set[0])
                 && body.get(state).getOpcode() == Opcode.IGET_OBJECT
                 && ((FieldReference) ((ReferenceInstruction) body.get(state)).getReference()).getType().equals(BROWSER_STATE)
                 && flow.parameterOnEveryPath(state, ((TwoRegisterInstruction) body.get(state)).getRegisterB(), self), "media completion state is not initialized before the handoff");
-        requireFeature(body.get(failed).getOpcode() == Opcode.CONST_4 && ((WideLiteralInstruction) body.get(failed)).getWideLiteral() == 0
-                && registerA(body.get(failed)) == invokeRegisters(body.get(setter))[1] && browserDestination(flow.layout, failed + 1) == done, "media no-open tail changed");
+        requireFeature(failed == setter, "media no-open tail changed");
         return new BrowserSite(media, at, done, args[0], args[5], null);
     }
 
@@ -4609,10 +4645,10 @@ public class DexDiff {
      */
     private record VideoSites(Method postVideo, Method effect, PlayFlag flag, List<Method> forwarders, Map<Method, Map<Integer, VideoCall>> calls, List<Method> viewers) {}
 
-    /** A direct or forwarded call's actual play and mask registers, with PostVideo's default. */
+    /** A direct or forwarded call's actual play and mask registers, with PostVideo's default; play is -1 behind a pinned flag. */
     private record VideoCall(int play, int mask, PlayDefault fallback) {}
 
-    /** PostVideo or a checked shortened overload and the parameters it passes through. */
+    /** PostVideo or a checked shortened overload and the parameters it passes through; play is -1 where it pins the flag to false. */
     private record VideoTarget(Method method, int play, PlayDefault fallback) {}
 
     /** PostVideo's play flag: the [parameter] it plays by, and the [test] of the register holding it. */
@@ -4628,8 +4664,11 @@ public class DexDiff {
      * landing on the hook. A call whose default mask, one constant, leaves the flag to PostVideo's
      * default, as the trend preview and the ad card do on 450, would have PostVideo ignore that
      * register, so it first gets the mask without the flag's bit and the default's value in the
-     * flag's register, and nothing may read either after the call. PostVideo, its playback effect
-     * and the full-screen viewer keep their stock bodies, so the viewer plays as it always has.
+     * flag's register, and nothing may read either after the call. Behind 454's forwarder, which
+     * pins the flag to false, a mask with the default's bit asks about the default's 1 and hands
+     * PostVideo the mask with or without that bit by the answer, and a mask without it stays as it
+     * is. PostVideo, its playback effect and the full-screen viewer keep their stock bodies, so the
+     * viewer plays as it always has.
      */
     private static void featureVideoAutoplay(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
         VideoSites sites = featureVideoSites(clean);
@@ -4653,6 +4692,15 @@ public class DexDiff {
                 requireFeature(origin != null && origin[0] >= 0 && featureConstant(body.get(origin[0])),
                         featureSig(caller) + " hands PostVideo a default mask in v" + mask + " at instruction " + k + " that isn't one constant");
                 long value = ((WideLiteralInstruction) body.get(origin[0])).getWideLiteral();
+                if (play < 0) {
+                    // Behind the pinned false, a mask without the default's bit already keeps the video still.
+                    if ((value & fallback.bit()) == 0) continue;
+                    List<Integer> reads = flow.readsAfter(k, mask);
+                    requireFeature(reads.isEmpty(), "the chosen mask's hook at instruction " + k + " writes v" + mask + ", which "
+                            + featureSig(caller) + " reads after PostVideo, at " + reads);
+                    defaulted.put(k, featureChosenMask(mask, value, value & ~fallback.bit()));
+                    continue;
+                }
                 if ((value & fallback.bit()) == 0) { asked.put(k, play); continue; }
                 for (int written : new int[]{mask, play}) {
                     List<Integer> reads = flow.readsAfter(k, written);
@@ -4662,7 +4710,7 @@ public class DexDiff {
                 defaulted.put(k, featureDefaultedFlag(mask, value & ~fallback.bit(), play, fallback.value()));
             }
             featureBody(caller, featureMethod(patched, featureSig(caller)), 0, asked, HOLD_VIDEO, null, defaulted);
-            calls.put(featureSig(caller), e.getValue().size());
+            if (asked.size() + defaulted.size() > 0) calls.put(featureSig(caller), asked.size() + defaulted.size());
         }
         featureHostCalls(patched, HOLD_VIDEO, calls);
         featureVideoPrefetch(clean, patched);
@@ -4765,6 +4813,34 @@ public class DexDiff {
         };
     }
 
+    /**
+     * A pinned forwarder's call's hook: the default's 1 in the mask's register, the question on it,
+     * then the mask [with] the default's bit when the answer is yes and [without] it when no.
+     */
+    private static FeatureBlock featureChosenMask(int register, long with, long without) {
+        return (body, at) -> {
+            requireFeature(at + 7 < body.size() && featureConstant(body.get(at)) && registerA(body.get(at)) == register
+                    && ((WideLiteralInstruction) body.get(at)).getWideLiteral() == 1,
+                    "missing or miswired default flag 1 in v" + register + " at instruction " + at);
+            featureCall(body, at + 1, HOLD_VIDEO, register, register);
+            Instruction test = body.get(at + 3), skip = body.get(at + 5);
+            requireFeature(test.getOpcode() == Opcode.IF_NEZ && registerA(test) == register
+                    && ((OffsetInstruction) test).getCodeOffset() == test.getCodeUnits() + body.get(at + 4).getCodeUnits() + skip.getCodeUnits(),
+                    "the chosen mask's test at instruction " + (at + 3) + " doesn't jump on v" + register + "'s answer to the mask with the default's bit");
+            requireFeature(skip.getOpcode().name.startsWith("goto")
+                    && ((OffsetInstruction) skip).getCodeOffset() == skip.getCodeUnits() + body.get(at + 6).getCodeUnits(),
+                    "the chosen mask's goto at instruction " + (at + 5) + " doesn't skip the mask with the default's bit");
+            long[] masks = {without, with};
+            for (int n = 0; n < 2; n++) {
+                Instruction chosen = body.get(at + 4 + 2 * n);
+                requireFeature(featureConstant(chosen) && registerA(chosen) == register && ((WideLiteralInstruction) chosen).getWideLiteral() == masks[n],
+                        "missing or miswired mask " + masks[n] + " in v" + register + " at instruction " + (at + 4 + 2 * n));
+            }
+            requireFeature(body.get(at + 7).getOpcode() == Opcode.NOP, "the chosen mask's hook doesn't end on its label's nop at instruction " + (at + 7));
+            return 8;
+        };
+    }
+
     /** Whether [i] loads an int constant. */
     private static boolean featureConstant(Instruction i) {
         Opcode opcode = i.getOpcode();
@@ -4797,7 +4873,7 @@ public class DexDiff {
                     VideoTarget target = targets.get(reference(body.get(k)));
                     if (target == null) continue;
                     int[] arguments = invokeRegisters(body.get(k));
-                    int play = arguments[featureVideoOffset(target.method(), target.play())];
+                    int play = target.play() < 0 ? -1 : arguments[featureVideoOffset(target.method(), target.play())];
                     int mask = target.fallback() == null ? -1 : arguments[featureVideoOffset(target.method(), target.fallback().mask())];
                     calls.computeIfAbsent(m, unused -> new TreeMap<>()).put(k, new VideoCall(play, mask, target.fallback()));
                     found++;
@@ -4814,7 +4890,10 @@ public class DexDiff {
         return new VideoSites(postVideo, effect, flag, forwarders, calls, viewers);
     }
 
-    /** 451's embeds call a shortened overload that only fills omitted arguments and forwards. */
+    /**
+     * 451's embeds call a shortened overload that only fills omitted arguments and forwards. 454's
+     * has no play flag of its own: it pins PostVideo's to false, and its target's play is -1.
+     */
     private static Map<String, VideoTarget> featureVideoTargets(Map<String, List<Method>> clean, Method postVideo, PlayFlag flag) {
         String post = featureSig(postVideo);
         PlayDefault fallback = featurePlayDefault(postVideo, flag);
@@ -4833,7 +4912,13 @@ public class DexDiff {
             requireFeature(call == body.size() - 2 && body.get(body.size() - 1).getOpcode() == Opcode.RETURN_VOID &&
                     body.subList(0, call).stream().allMatch(i -> copies.contains(i.getOpcode()) || featureConstant(i)),
                     featureSig(m) + " isn't a straight PostVideo forwarder");
-            int play = featureVideoForwarded(m, call, postVideo, flag.parameter(), "Z");
+            int[] flagged = new FeatureFlow(m).origin(call, invokeRegisters(body.get(call))[featureVideoOffset(postVideo, flag.parameter())]);
+            Long pinned = flagged != null && flagged[0] >= 0 && featureConstant(body.get(flagged[0]))
+                    ? ((WideLiteralInstruction) body.get(flagged[0])).getWideLiteral() : null;
+            // 454's overload pins the flag to false, which leaves playing to the default whenever the caller's mask has its bit.
+            requireFeature(pinned == null || (fallback != null && fallback.value() == 1 && pinned == 0),
+                    featureSig(m) + " pins PostVideo's play flag to " + pinned);
+            int play = pinned != null ? -1 : featureVideoForwarded(m, call, postVideo, flag.parameter(), "Z");
             PlayDefault passed = fallback == null ? null : new PlayDefault(featureVideoForwarded(m, call, postVideo, fallback.mask(), "I"), fallback.bit(), fallback.value());
             requireFeature(targets.put(featureSig(m), new VideoTarget(m, play, passed)) == null, "duplicate PostVideo forwarder " + featureSig(m));
         }
@@ -4874,10 +4959,24 @@ public class DexDiff {
                 "PostVideo's default for its play flag isn't behind a test of its default mask");
         int[] tests = flow.origin(write - 1, registerA(body.get(write - 1)));
         Instruction and = tests == null || tests[0] < 0 ? null : body.get(tests[0]);
-        requireFeature(and != null && (and.getOpcode() == Opcode.AND_INT_LIT16 || and.getOpcode() == Opcode.AND_INT_LIT8)
-                && Long.bitCount(((WideLiteralInstruction) and).getWideLiteral()) == 1,
-                "PostVideo's default for its play flag isn't behind one bit of its default mask");
-        int[] mask = flow.origin(tests[0], ((TwoRegisterInstruction) and).getRegisterB());
+        long bit = 0;
+        int masked = -1;
+        if (and != null && (and.getOpcode() == Opcode.AND_INT_LIT16 || and.getOpcode() == Opcode.AND_INT_LIT8)) {
+            bit = ((WideLiteralInstruction) and).getWideLiteral();
+            masked = ((TwoRegisterInstruction) and).getRegisterB();
+        } else if (and != null && and.getOpcode() == Opcode.AND_INT) {
+            // 454's bit, 0x8000, is too wide for and-int/lit16, so it's a constant in the and's other register.
+            ThreeRegisterInstruction three = (ThreeRegisterInstruction) and;
+            for (int[] pair : new int[][]{{three.getRegisterB(), three.getRegisterC()}, {three.getRegisterC(), three.getRegisterB()}}) {
+                int[] constant = flow.origin(tests[0], pair[0]);
+                if (constant == null || constant[0] < 0 || !featureConstant(body.get(constant[0]))) continue;
+                bit = ((WideLiteralInstruction) body.get(constant[0])).getWideLiteral();
+                masked = pair[1];
+                break;
+            }
+        }
+        requireFeature(Long.bitCount(bit) == 1, "PostVideo's default for its play flag isn't behind one bit of its default mask");
+        int[] mask = flow.origin(tests[0], masked);
         int parameter = -1;
         if (mask != null && mask[0] < 0) {
             int at = postVideo.getImplementation().getRegisterCount() - postVideo.getParameterTypes().stream().mapToInt(DexDiff::slots).sum();
@@ -4887,7 +4986,7 @@ public class DexDiff {
             }
         }
         requireFeature(parameter >= 0, "PostVideo's default mask isn't one of its int parameters");
-        return new PlayDefault(parameter, ((WideLiteralInstruction) and).getWideLiteral(), ((WideLiteralInstruction) body.get(write)).getWideLiteral());
+        return new PlayDefault(parameter, bit, ((WideLiteralInstruction) body.get(write)).getWideLiteral());
     }
 
     /**
@@ -6559,7 +6658,9 @@ public class DexDiff {
                 featureHostCalls(patched, OPEN_REFUSED_TILE, Map.of());
                 featurePreserveTargets(clean, patched, m -> !callSites(instructions(m), "Landroid/content/pm/SigningInfo;->getApkContentsSigners()[Landroid/content/pm/Signature;").isEmpty()
                         && !callSites(instructions(m), "Landroid/content/pm/SigningInfo;->getSigningCertificateHistory()[Landroid/content/pm/Signature;").isEmpty());
-                featurePreserveTargets(clean, patched, DexDiff::featureIsShareTiles);
+                Set<String> tiles = new HashSet<>();
+                for (Method tile : featureShareTileLambdas(clean).lambdas()) tiles.add(featureSig(tile));
+                featurePreserveTargets(clean, patched, m -> tiles.contains(featureSig(m)));
                 break;
             case "returnRefresh": featureOmittedReturnRefresh(clean, patched); break;
             case "disableVideoAutoplay": featureOmittedVideoAutoplay(clean, patched); break;

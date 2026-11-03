@@ -448,7 +448,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 || setting == Settings.LOCAL_HIDE_BUTTON
                 || setting == Settings.BLOCK_SOUND_BUTTON
                 || setting == Settings.NOT_INTERESTED_BUTTON
-                || setting == Settings.FEED_MUTE_BUTTON)) {
+                || setting == Settings.FEED_MUTE_BUTTON
+                || setting == Settings.DOWNLOAD_BUTTON)) {
             BlockAuthorOverlay.refresh();
         }
         if (!applySettingToPreference && setting == Settings.FEED_MUTED) {
@@ -471,7 +472,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             app.morphe.extension.tiktok.comment.CommenterDetails.onSettingChanged();
         }
         if (!applySettingToPreference && (setting == Settings.FEED_DESCRIPTION_TEXT_SIZE
-                || setting == Settings.FEED_AUTHOR_TEXT_SIZE || setting == BaseSettings.PAUSED)) {
+                || setting == Settings.FEED_AUTHOR_TEXT_SIZE || setting == Settings.FEED_TEXT_COLOR
+                || setting == Settings.FEED_TEXT_BACKDROP || setting == BaseSettings.PAUSED)) {
             app.morphe.extension.tiktok.feed.FeedTextSize.onSettingChanged();
         }
         if (!applySettingToPreference && setting == BaseSettings.PAUSED) {

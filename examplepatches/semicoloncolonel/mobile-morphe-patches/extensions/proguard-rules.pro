@@ -110,3 +110,8 @@
 -keep class semicoloncolonel.mobilestream.extension.shared.misc.ShoppingAdsFilter {
     public static *;
 }
+-keep class semicoloncolonel.mobilestream.extension.justwatch.SponsoredFilter { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.whitehouse.FeedFilter { *; }
+-keep class semicoloncolonel.mobilestream.extension.shared.privacy.ProxyRouter { *; }
+-keep class semicoloncolonel.mobilestream.extension.whitehouse.PromoHider { *; }
+-keep class semicoloncolonel.mobilestream.extension.recgov.HiddenDetails { public static *; }

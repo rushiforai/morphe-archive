@@ -253,20 +253,28 @@ class MessageLogTest {
         assertEquals(1, (code[10] as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerA)
         assertEquals("$SETTINGS->incomingMessageId(Ljava/lang/String;)V", reference(11, code))
         assertEquals(BODY_FIELD, reference(12, code))
-        assertEquals(stock, code.branchTarget(13))
+        // A message with no body, a photo say, still goes over, as a null string the log keeps as an attachment. The
+        // explicit null keeps the register String-typed where both paths meet.
+        assertEquals(Opcode.IF_EQZ, code[13].opcode)
+        assertEquals(16, code.branchTarget(13))
         assertEquals(SECRET_FIELD, reference(14, code))
-        assertEquals(THREAD_KEY_FIELD, reference(15, code))
-        assertEquals(Opcode.IF_EQZ, code[16].opcode)
+        assertEquals(Opcode.GOTO, code[15].opcode)
+        assertEquals(17, code.branchTarget(15))
+        assertEquals(Opcode.CONST_4, code[16].opcode)
+        assertEquals(1, (code[16] as OneRegisterInstruction).registerA)
+        assertEquals(THREAD_KEY_FIELD, reference(17, code))
+        assertEquals(Opcode.IF_EQZ, code[18].opcode)
         // Null thread skips toString and passes a null string, so the register stays String-typed on both paths.
-        assertEquals(20, code.branchTarget(16))
-        assertEquals("$THREAD_KEY_TYPE->toString()Ljava/lang/String;", reference(17, code))
-        assertEquals(Opcode.GOTO, code[19].opcode)
-        assertEquals(21, code.branchTarget(19))
-        assertEquals(Opcode.CONST_4, code[20].opcode)
-        assertEquals("$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V", reference(21, code))
-        // The only way out after the handover is a message with no text. Each sink has its own handover right before
-        // it, so a leftover id is replaced before any sink could take it.
-        assertEquals(listOf(13), (11..21).filter { code.branchTarget(it) == stock })
+        assertEquals(22, code.branchTarget(18))
+        assertEquals("$THREAD_KEY_TYPE->toString()Ljava/lang/String;", reference(19, code))
+        assertEquals(Opcode.GOTO, code[21].opcode)
+        assertEquals(23, code.branchTarget(21))
+        assertEquals(Opcode.CONST_4, code[22].opcode)
+        assertEquals("$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V", reference(23, code))
+        assertEquals(24, stock)
+        // Nothing leaves between the handover and the sink, and each sink has its own handover right before it, so a
+        // leftover id is replaced before any sink could take it.
+        assertEquals(emptyList<Int>(), (11..23).filter { code.branchTarget(it) == stock })
         assertEquals(before, code.drop(stock))
     }
 
@@ -290,10 +298,12 @@ class MessageLogTest {
         assertEquals(MESSAGE_ID_FIELD, reference(10, code))
         assertEquals("$SETTINGS->incomingMessageId(Ljava/lang/String;)V", reference(11, code))
         assertEquals(BODY_FIELD, reference(12, code))
-        assertEquals("$SETTINGS->autoReplyTo(Ljava/lang/String;Ljava/lang/String;)V", reference(21, code))
+        assertEquals("$SETTINGS->autoReplyTo(Ljava/lang/String;Ljava/lang/String;)V", reference(23, code))
         // Each skip in the auto reply block lands on the message log block, which still checks its own gate and hands
-        // its own id over. An unsend or a message whose text Messenger hid never gets an auto reply either.
-        for (skip in listOf(2, 4, 7, 9, 13)) assertEquals(block, code.branchTarget(skip))
+        // its own id over. An unsend or a message whose text Messenger hid never gets an auto reply either, and one
+        // with no text reaches the auto reply as null, which it passes by.
+        for (skip in listOf(2, 4, 7, 9)) assertEquals(block, code.branchTarget(skip))
+        assertEquals(16, code.branchTarget(13))
         assertEquals("$SETTINGS->incomingMessageId(Ljava/lang/String;)V", reference(block + 11, code))
         assertEquals("$SETTINGS->logReceivedMessages()Z", reference(block, code))
         assertEquals(before, code.drop(2 * block))

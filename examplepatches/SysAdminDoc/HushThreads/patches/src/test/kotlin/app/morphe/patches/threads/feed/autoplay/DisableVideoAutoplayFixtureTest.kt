@@ -42,12 +42,13 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Disable video autoplay on each declared build: PostVideo plays its video by its fourth boolean
- * on 450, 451 and 452, each feed post's call to PostVideo hands that flag to the extension first, and so do the
+ * Disable video autoplay on each declared build: PostVideo plays its video by its fourth boolean,
+ * each feed post's call to PostVideo hands that flag to the extension first, and so do the
  * Instagram post, trend preview and ad card calls. The two of those that leave the flag to
- * PostVideo's default get that default's bit cleared and ask about the default's 1 instead.
- * 451 and 452 send those embeds through a shortened forwarder. PostVideo, that forwarder, its playback
- * effect and the full-screen viewer are left as they were.
+ * PostVideo's default get that default's bit cleared and ask about the default's 1 instead. 454
+ * sends them through a shortened forwarder that pins the flag to false, so there the hook asks
+ * about the 1 and keeps the mask's bit only when the video may play. PostVideo, that forwarder, its
+ * playback effect and the full-screen viewer are left as they were.
  */
 class DisableVideoAutoplayFixtureTest {
     private val play = "$VIDEO_AUTOPLAY->play(Z)Z"
@@ -67,8 +68,8 @@ class DisableVideoAutoplayFixtureTest {
             val effectTypes = fixture.effect.parameterTypes.map { it.toString() }
             assertEquals(build.name, effectTypes.indexOf("Z"), fixture.effect.requirePlaybackEffect())
             val types = fixture.postVideo.parameterTypes.map { it.toString() }
-            // 450 dropped a boolean ahead of the play flag, so it's the fourth there.
-            assertEquals(build.name, types.indices.filter { types[it] == "Z" }[3], fixture.postVideo.playParameter(fixture.effect))
+            // 450 dropped a boolean ahead of the play flag, making it the fourth, and 454 adds one back, so it's the fifth.
+            assertEquals(build.name, types.indices.filter { types[it] == "Z" }[4], fixture.postVideo.playParameter(fixture.effect))
             assertTrue(build.name, fixture.sites.any { it.method.holdsNote(POST_SINGLE_MEDIA) })
             assertTrue(build.name, fixture.sites.any { it.method.holdsNote(POST_CAROUSEL) })
             // The viewer reaches PostVideo another way, and holds neither note.
@@ -81,7 +82,7 @@ class DisableVideoAutoplayFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
             val types = fixture.postVideo.parameterTypes.map { it.toString() }
-            // On 450 the default mask is PostVideo's last int, and the flag's default, a 1, sits behind its 0x4000 bit.
+            // The default mask is PostVideo's last int, and the flag's default, a 1, sits behind its PLAY_BIT.
             assertEquals(build.name, PlayDefault(types.lastIndexOf("I"), PLAY_BIT, 1), fixture.postVideo.playDefault(fixture.postVideo.playTest(fixture.effect)))
             for (note in EMBEDS) assertEquals("${build.name} $note", 1, fixture.embeds.count { it.method.holdsNote(note) })
             // Feed posts and the Instagram post hand PostVideo their own flag. The trend preview and the
@@ -126,23 +127,33 @@ class DisableVideoAutoplayFixtureTest {
     /**
      * Each of [sites] hands its play flag to the extension just before its call. A defaulted one
      * first gets its mask without the flag's bit and the default's 1 in the flag's register. A
-     * branch aimed at the call lands on the first of those, nothing reads them after the call, and
-     * nothing else in the method changes.
+     * pinned one asks about a 1 in its mask's register, then loads the mask with its bit when the
+     * answer is true and without it when false. A branch aimed at the call lands on the first of
+     * those, nothing reads them after the call, and nothing else in the method changes.
      */
     private fun assertAsksBefore(build: File, context: BytecodePatchContext, sites: List<Site>) {
         for ((method, inMethod) in sites.groupBy { it.method }) {
             val label = "${build.name} ${method.definingClass}"
             val before = method.body()
             val after = context.method(method)
-            // Two instructions go in front of a call, four in front of a defaulted one.
-            fun added(site: Site) = if (site.defaulted) 4 else 2
+            // Two instructions go in front of a call, four in front of a defaulted one, eight in front of a pinned one.
+            fun added(site: Site) = when {
+                site.pinned -> 8
+                site.defaulted -> 4
+                else -> 2
+            }
             // Where an instruction of the original lands once those are put in front of each call.
             fun moved(index: Int) = index + inMethod.filter { it.call < index }.sumOf(::added)
             assertEquals(label, before.size + inMethod.sumOf(::added), after.size)
             for (site in inMethod) {
                 assertEquals(label, emptyList<Int>(), method.readsAfter(site.call, site.register))
                 var at = moved(site.call)
-                if (site.defaulted) {
+                if (site.pinned) {
+                    assertEquals(label, Opcode.CONST_16, after[at].opcode)
+                    assertEquals(label, site.register, (after[at] as OneRegisterInstruction).registerA)
+                    assertEquals(label, 1, (after[at] as NarrowLiteralInstruction).narrowLiteral)
+                    at += 1
+                } else if (site.defaulted) {
                     assertEquals(label, emptyList<Int>(), method.readsAfter(site.call, site.maskRegister))
                     assertEquals(label, Opcode.CONST, after[at].opcode)
                     assertEquals(label, site.maskRegister, (after[at] as OneRegisterInstruction).registerA)
@@ -158,6 +169,20 @@ class DisableVideoAutoplayFixtureTest {
                 assertEquals(label, 1, hook.registerCount)
                 assertEquals(label, Opcode.MOVE_RESULT, after[at + 1].opcode)
                 assertEquals(label, site.register, (after[at + 1] as OneRegisterInstruction).registerA)
+                if (site.pinned) {
+                    // A true answer jumps to the mask with its bit, a false one loads it without and jumps past.
+                    assertEquals(label, Opcode.IF_NEZ, after[at + 2].opcode)
+                    assertEquals(label, site.register, (after[at + 2] as OneRegisterInstruction).registerA)
+                    assertTrue(label, after.aims(at + 2, at + 5))
+                    for ((load, mask) in listOf(at + 3 to (site.mask and PLAY_BIT.inv()), at + 5 to site.mask)) {
+                        assertEquals(label, Opcode.CONST, after[load].opcode)
+                        assertEquals(label, site.register, (after[load] as OneRegisterInstruction).registerA)
+                        assertEquals(label, mask, (after[load] as NarrowLiteralInstruction).narrowLiteral)
+                    }
+                    assertTrue(label, after.aims(at + 4, at + 6))
+                    assertEquals(label, Opcode.NOP, after[at + 6].opcode)
+                    at += 5
+                }
                 val call = after[at + 2]
                 assertEquals(label, before[site.call].reference(), call.reference())
                 assertEquals(label, site.register, call.argumentRegister(site.target.argumentOffset(site.parameter)))
@@ -303,7 +328,8 @@ class DisableVideoAutoplayFixtureTest {
             val call = original.indices.single { original[it].reference() == fixture.postVideo.reference() }
             val parameter = fixture.postVideo.playParameter(fixture.effect)
             val mask = fixture.postVideo.parameterTypes.map { it.toString() }.lastIndexOf("I")
-            for (argument in listOf(parameter, mask)) {
+            // A flag pinned to true would play whatever the caller's mask says, and a mask that isn't the caller's can't be chosen.
+            for ((argument, message) in listOf(parameter to "pins PostVideo's play flag to 1", mask to "doesn't forward PostVideo's I")) {
                 val register = original[call].argumentRegister(fixture.postVideo.argumentOffset(argument))!!
                 val write = (call - 1 downTo 0).first {
                     original[it].opcode.setsRegister() && (original[it] as? OneRegisterInstruction)?.registerA == register
@@ -311,7 +337,7 @@ class DisableVideoAutoplayFixtureTest {
                 val context = context(fixture)
                 context.mutableMethod(forwarder).replaceInstruction(write, "const/16 v$register, 0x1")
                 val error = assertThrows(build.name, PatchException::class.java) { disableVideoAutoplayPatch.execute(context) }
-                assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("doesn't forward PostVideo's"))
+                assertTrue(error.message.orEmpty(), error.message.orEmpty().contains(message))
                 assertEquals(build.name, 0, status(context))
                 for (site in fixture.sites + fixture.embeds) {
                     assertFalse(build.name, context.method(site.method).any { it.reference() == play })
@@ -326,11 +352,13 @@ class DisableVideoAutoplayFixtureTest {
             val fixture = fixture(build)
             val context = context(fixture)
             val method = context.mutableMethod(fixture.postVideo)
+            // 454's bit is too wide for and-int/lit16, so a const loads it for the and right after.
             val at = method.body().indices.single {
-                method.body()[it].opcode == Opcode.AND_INT_LIT16 && (method.body()[it] as NarrowLiteralInstruction).narrowLiteral == PLAY_BIT
+                method.body()[it].opcode == Opcode.CONST && (method.body()[it] as NarrowLiteralInstruction).narrowLiteral == PLAY_BIT &&
+                    method.body()[it + 1].opcode == Opcode.AND_INT
             }
-            val and = method.body()[at] as TwoRegisterInstruction
-            method.replaceInstruction(at, "and-int/lit16 v${and.registerA}, v${and.registerB}, ${PLAY_BIT or (PLAY_BIT shr 1)}")
+            val bit = method.body()[at] as OneRegisterInstruction
+            method.replaceInstruction(at, "const v${bit.registerA}, ${PLAY_BIT or (PLAY_BIT shr 1)}")
             val error = assertThrows(build.name, PatchException::class.java) { disableVideoAutoplayPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("isn't behind one bit"))
         }
@@ -451,10 +479,11 @@ class DisableVideoAutoplayFixtureTest {
 
     /**
      * A [call] to PostVideo in [method], passing its [parameter] in [register] and its default mask,
-     * the constant [mask], in [maskRegister].
+     * the constant [mask], in [maskRegister]. A [pinned] call goes through a forwarder that pins the
+     * play flag, so its [register] and [parameter] are the mask's.
      */
     private data class Site(val method: Method, val call: Int, val register: Int, val parameter: Int,
-        val maskRegister: Int, val mask: Int, val target: Method, val maskParameter: Int) {
+        val maskRegister: Int, val mask: Int, val target: Method, val maskParameter: Int, val pinned: Boolean = false) {
         /** Whether the caller leaves the play flag to PostVideo's default. */
         val defaulted get() = mask and PLAY_BIT != 0
     }
@@ -471,8 +500,8 @@ class DisableVideoAutoplayFixtureTest {
         val prefetch: Prefetch,
     )
 
-    /** A forwarder's parameter count, the parameter carrying PostVideo's play flag, and its mask, the last int. */
-    private data class Forwarder(val size: Int, val play: Int, val mask: Int)
+    /** A forwarder's parameter count, the parameter carrying PostVideo's play flag (null when it pins it), and its mask, the last int. */
+    private data class Forwarder(val size: Int, val play: Int?, val mask: Int)
 
     private fun fixture(build: File): Fixture = fixtures.getOrPut(build) {
         val notes = listOf(POST_VIDEO, PLAYBACK_EFFECT, MEDIA_VIEWER) + VIDEO_CALLERS
@@ -483,9 +512,9 @@ class DisableVideoAutoplayFixtureTest {
         val parameter = postVideo.playParameter(effect)
         // The default mask is PostVideo's last int on 450.
         val maskParameter = postVideo.parameterTypes.map { it.toString() }.lastIndexOf("I")
-        // Read independently: the shorter overload calls PostVideo once and returns. 453's has 17
-        // parameters, ending on four ints and three booleans, so the play flag is its second boolean
-        // (15) and the mask its last int (13).
+        // Read independently: the shorter overload calls PostVideo once and returns. 454's has 14
+        // parameters, ending on four ints and a boolean, so the mask is its last int (12). It has no
+        // play flag: PostVideo's is pinned to a 0 the overload loads itself.
         val shape = FORWARDERS.entries.singleOrNull { build.name.startsWith(it.key) }?.value
         val forwarders = methods.filter { method ->
             method.definingClass == postVideo.definingClass && method.reference() != postVideo.reference() &&
@@ -506,9 +535,16 @@ class DisableVideoAutoplayFixtureTest {
             val first = forwarder.implementation!!.registerCount - shape.size
             for ((into, from) in listOf(parameter to shape.play, maskParameter to shape.mask)) {
                 val argument = body[call].argumentRegister(postVideo.argumentOffset(into))!!
-                val copy = body.take(call).last { it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == argument }
-                assertEquals(build.name, Opcode.MOVE_FROM16, copy.opcode)
-                assertEquals(build.name, first + from, (copy as TwoRegisterInstruction).registerB)
+                val copy = (call - 1 downTo 0).first { body[it].opcode.setsRegister() && (body[it] as? OneRegisterInstruction)?.registerA == argument }
+                assertEquals(build.name, Opcode.MOVE_FROM16, body[copy].opcode)
+                val source = (body[copy] as TwoRegisterInstruction).registerB
+                if (from != null) {
+                    assertEquals(build.name, first + from, source)
+                } else {
+                    val pin = (copy - 1 downTo 0).first { body[it].opcode.setsRegister() && (body[it] as? OneRegisterInstruction)?.registerA == source }
+                    assertEquals(build.name, 0, (body[pin] as NarrowLiteralInstruction).narrowLiteral)
+                    assertTrue(build.name, source < first)
+                }
             }
         }
         fun calls(method: Method): List<Site> {
@@ -519,14 +555,15 @@ class DisableVideoAutoplayFixtureTest {
                     forwarder?.reference() -> forwarder ?: return@mapNotNull null
                     else -> return@mapNotNull null
                 }
-                val passedPlay = if (target == postVideo) parameter else shape!!.play
                 val passedMask = if (target == postVideo) maskParameter else shape!!.mask
+                // A forwarder that pins the flag takes only the mask.
+                val passedPlay = if (target == postVideo) parameter else shape!!.play ?: passedMask
                 val maskRegister = body[at].argumentRegister(target.argumentOffset(passedMask))!!
                 // On 450 every caller loads its mask as a constant, last written just before the call.
                 val write = (at - 1 downTo 0).first { body[it].opcode.setsRegister() && (body[it] as? OneRegisterInstruction)?.registerA == maskRegister }
                 val mask = (body[write] as NarrowLiteralInstruction).narrowLiteral
                 Site(method, at, body[at].argumentRegister(target.argumentOffset(passedPlay))!!,
-                    passedPlay, maskRegister, mask, target, passedMask)
+                    passedPlay, maskRegister, mask, target, passedMask, pinned = passedPlay == passedMask)
             }
         }
         val sites = methods.filter { it.holdsNote(POST_SINGLE_MEDIA) || it.holdsNote(POST_CAROUSEL) }.flatMap(::calls)
@@ -608,11 +645,11 @@ class DisableVideoAutoplayFixtureTest {
 
         /** The shortened PostVideo forwarder of each build that has one: its parameter count, play flag and mask. */
         val FORWARDERS = mapOf(
-            "threads-453." to Forwarder(size = 17, play = 15, mask = 13),
+            "threads-454." to Forwarder(size = 14, play = null, mask = 12),
         )
 
-        /** The bit of PostVideo's default mask that hands its play flag to the default, on 450. */
-        const val PLAY_BIT = 0x4000
+        /** The bit of PostVideo's default mask that hands its play flag to the default, on 454 (0x4000 from 450 to 453). */
+        const val PLAY_BIT = 0x8000
 
         /** One read of each build serves every test; each test patches its own copy. */
         val fixtures = PerBuild<Fixture>()

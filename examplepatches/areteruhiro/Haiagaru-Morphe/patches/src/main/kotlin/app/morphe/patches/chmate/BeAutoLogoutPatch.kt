@@ -21,8 +21,8 @@ internal fun BytecodePatchContext.patchBeAutoLogout(version: String) {
         val index=getter.implementation!!.instructions.indexOfFirst{it.opcode==Opcode.CONST_STRING}
         check(index>=0);getter.replaceInstruction(index,"const-string v0, \"$boardGetter\"")
     }
-    classDefForEach { cls ->
-        if(!cls.type.startsWith("Lo/") && !cls.type.startsWith("Ljp/syoboi/"))return@classDefForEach
+    boundClassForEach("BeAutoLogoutPatch:1") { cls ->
+        if(!cls.type.startsWith("Lo/") && !cls.type.startsWith("Ljp/syoboi/"))return@boundClassForEach
         cls.methods.forEach { method ->
             val instructions=method.implementation?.instructions?.toList() ?: return@forEach
             val refs=instructions.mapNotNull{(it as? ReferenceInstruction)?.reference}

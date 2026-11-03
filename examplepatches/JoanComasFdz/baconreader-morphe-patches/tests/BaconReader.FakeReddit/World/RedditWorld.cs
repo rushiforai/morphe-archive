@@ -25,6 +25,7 @@ public sealed class RedditWorld
     private readonly List<RecordedAction> actions = [];
     private readonly List<LoginSeen> logins = [];
     private readonly List<RequestTrouble> troubles = [];
+    private readonly Dictionary<string, string> shareLinks = new(StringComparer.Ordinal);
     private long nextId;
     private long nextOrder;
 
@@ -96,6 +97,7 @@ public sealed class RedditWorld
             actions.Clear();
             logins.Clear();
             troubles.Clear();
+            shareLinks.Clear();
             LoginPage = new LoginPageOptions();
             BlocksLoggedOut = true;
             BlocksMoreChildren = false;
@@ -229,6 +231,30 @@ public sealed class RedditWorld
     public static Func<string, string, bool> PostsOf(string subreddit) =>
         (method, path) => method == "GET" && Regex.IsMatch(
             path, $"^/r/{Regex.Escape(BareSubreddit(subreddit))}(/(best|hot|new|top|rising|controversial))?$", RegexOptions.IgnoreCase);
+
+    /// <summary>
+    /// Adds a share link that leads to <paramref name="target"/> (a path, <c>/r/e2e/comments/…</c>) and returns its path:
+    /// <c>/&lt;owner&gt;/s/&lt;code&gt;</c>, with <paramref name="owner"/> <c>r/&lt;subreddit&gt;</c> or
+    /// <c>u/&lt;user&gt;</c>, as Reddit's share button makes them.
+    /// </summary>
+    public string AddShareLink(string owner, string target)
+    {
+        lock (Sync)
+        {
+            var path = $"/{owner}/s/Share{NewId()}";
+            shareLinks[path] = target;
+            return path;
+        }
+    }
+
+    /// <summary>Where the share link at <paramref name="path"/> leads, or null when the world has no such link.</summary>
+    public string? ShareLinkTarget(string path)
+    {
+        lock (Sync)
+        {
+            return shareLinks.GetValueOrDefault(path);
+        }
+    }
 
     internal RequestTrouble? TroubleOf(string method, string path)
     {

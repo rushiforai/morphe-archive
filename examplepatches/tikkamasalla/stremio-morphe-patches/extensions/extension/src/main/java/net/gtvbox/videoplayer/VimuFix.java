@@ -28,13 +28,28 @@ public final class VimuFix {
 
     /** Replacement for ExoPlayer.prepare() in Vimu's player class (i.A1). */
     public static void prepare(Object owner, Object player) {
-        final B.D p = (B.D) player;
         try {
-            new Waiter(owner, p).run();
+            new Waiter(owner, (B.D) player).run();
         } catch (Throwable error) {
             Log.w(TAG, "prepare", error);
-            p.g();
+            prepareNow(player);
         }
+    }
+
+    /** Fail-soft prepare: the typed call first, a reflective g() when the player is not the expected type. */
+    private static void prepareNow(Object player) {
+        B.D typed;
+        try {
+            typed = (B.D) player;
+        } catch (ClassCastException cast) {
+            try {
+                player.getClass().getMethod("g").invoke(player);
+            } catch (Throwable error) {
+                Log.w(TAG, "prepare fallback", error);
+            }
+            return;
+        }
+        typed.g(); // as stock: a failing prepare propagates to Vimu
     }
 
     /**

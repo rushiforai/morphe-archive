@@ -25,11 +25,19 @@ public final class LikedVideosSearchPatch {
             }
 
             // TikTok finishes laying out the tab after onViewCreated. Post so this runs after it.
+            // Auto-load: while a query is typed, the next pages load on their own, so every liked
+            // video is searched without scrolling to the end first.
+            // V2 (when included and on) also asks the server for each query.
+            ListSearch.QueryListener serverSearch = LikedVideosServerSearch.isEnabled()
+                    ? LikedVideosServerSearch::onQuery
+                    : null;
             recyclerView.post(() -> ListSearch.installOverlay(
                     recyclerView,
                     root,
                     "Search liked videos",
-                    LikedVideosSearchPatch::matches
+                    LikedVideosSearchPatch::matches,
+                    true,
+                    serverSearch
             ));
         } catch (Throwable throwable) {
             Logger.printException(() -> "Liked videos search hook failed", throwable);

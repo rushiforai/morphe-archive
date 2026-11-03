@@ -91,9 +91,11 @@ internal fun Method.composeBarButton(): MethodReference? = implementation?.instr
 /**
  * Adds Arrows and Clear to a bar built from chess.com's own Compose buttons, after the last one it
  * draws. [show] is the extension's gate ("show" for games, "reviewsShow" for reviews).
+ * With [collapseClear] Clear is drawn only while drawing is on. [stateFactory], when given, is the
+ * Compose mutableStateOf call the bar binds its state to, so it redraws when drawing changes.
  */
 context(context: BytecodePatchContext)
-internal fun MutableMethod.addArrowsBarButtons(show: String) {
+internal fun MutableMethod.addArrowsBarButtons(show: String, collapseClear: Boolean = false, stateFactory: ArrowsStateFactory? = null) {
     val code = instructionList()
     val last = code.indexOfLast { instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
@@ -130,6 +132,20 @@ internal fun MutableMethod.addArrowsBarButtons(show: String) {
         const/16 $mask, 0x7c
         invoke-static/range { $row .. v${base + 11} }, $call
     """
+    val clearGate = if (!collapseClear) {
+        "invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->clearIcon()I\n$clear"
+    } else {
+        """
+        invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->reviewsDrawing()Z
+        move-result v0
+        if-eqz v0, :morphe_clear_hidden
+
+        invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->clearIcon()I
+        $clear
+        :morphe_clear_hidden
+        nop
+        """
+    }
     val after = code.getOrNull(last + 1)
     if (after == null) {
         addInstructions(
@@ -137,8 +153,7 @@ internal fun MutableMethod.addArrowsBarButtons(show: String) {
             """
                 invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->arrowsIcon()I
                 $arrows
-                invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->clearIcon()I
-                $clear
+                $clearGate
             """,
         )
         return
@@ -152,9 +167,96 @@ internal fun MutableMethod.addArrowsBarButtons(show: String) {
 
             invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->arrowsIcon()I
             $arrows
-            invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->clearIcon()I
-            $clear
+            $clearGate
         """,
         ExternalLabel("morphe_arrows_bar", after),
+    )
+    if (stateFactory != null) {
+        addArrowsState(stateFactory)
+    }
+}
+
+private const val PARCELABLE_STATE = "Landroidx/compose/runtime/ParcelableSnapshotMutableState;"
+
+/** How to create a Compose state: the call and how many arguments it takes. */
+internal data class ArrowsStateFactory(val call: String, val arguments: Int)
+
+/**
+ * The Compose runtime's mutableStateOf factory. It prefers the one-argument form the newer app
+ * keeps (value only, default policy); the older form takes the value, the policy, a defaults mask
+ * and a marker.
+ */
+context(context: BytecodePatchContext)
+internal fun mutableStateFactory(): ArrowsStateFactory? {
+    val simple = mutableListOf<String>()
+    val full = mutableListOf<String>()
+    context.classDefForEach { classDef ->
+        if (classDef.type.substringBeforeLast('/') != "Landroidx/compose/runtime") return@classDefForEach
+        classDef.methods.forEach { method ->
+            if (!java.lang.reflect.Modifier.isStatic(method.accessFlags)) return@forEach
+            val parameters = method.parameterTypes.map(CharSequence::toString)
+            val returnType = method.returnType
+            if (!returnType.startsWith("L")) return@forEach
+            val createsState = method.implementation?.instructions?.any { instruction ->
+                (instruction as? ReferenceInstruction)?.reference.let { reference ->
+                    reference is com.android.tools.smali.dexlib2.iface.reference.TypeReference &&
+                        reference.type == PARCELABLE_STATE
+                }
+            } == true
+            if (parameters.size == 1 && parameters[0] == "Ljava/lang/Object;" && createsState) {
+                simple += "${classDef.type}->${method.name}(Ljava/lang/Object;)$returnType"
+            }
+            if (parameters.size == 4 && parameters[0] == "Ljava/lang/Object;" &&
+                parameters[2] == "I" && parameters[3] == "Ljava/lang/Object;"
+            ) {
+                full += "${classDef.type}->${method.name}(${parameters.joinToString("")})$returnType"
+            }
+        }
+    }
+    val simpleCall = simple.minOrNull()
+    if (simpleCall != null) return ArrowsStateFactory(simpleCall, 1)
+    val fullCall = full.minOrNull() ?: return null
+    return ArrowsStateFactory(fullCall, 4)
+}
+
+/**
+ * Binds a Compose state of ours into this composable, once: the bars read it so they redraw when
+ * drawing turns on or off. [factory] is [mutableStateFactory]'s call.
+ */
+context(context: BytecodePatchContext)
+internal fun MutableMethod.addArrowsState(factory: ArrowsStateFactory) {
+    if (implementation!!.registerCount - parameterTypes.size < 5) {
+        throw PatchException("Too few registers for the arrows state in $name")
+    }
+    val create = if (factory.arguments == 1) {
+        """
+            const/4 v0, 0x0
+            invoke-static { v0 }, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+            move-result-object v0
+            invoke-static { v0 }, ${factory.call}
+        """
+    } else {
+        """
+            const/4 v0, 0x0
+            invoke-static { v0 }, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+            move-result-object v0
+            const/4 v1, 0x0
+            const/4 v2, 0x2
+            const/4 v3, 0x0
+            invoke-static { v0, v1, v2, v3 }, ${factory.call}
+        """
+    }
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->needsState()Z
+            move-result v0
+            if-eqz v0, :morphe_arrows_state
+            $create
+            move-result-object v0
+            invoke-static { v0 }, ${Constants.EXTENSION_PACKAGE}/arrows/ArrowsBar;->bind(Ljava/lang/Object;)V
+            :morphe_arrows_state
+            nop
+        """,
     )
 }

@@ -27,7 +27,7 @@ public final class SettingsEntryFactoryTest {
         Constructor<?> constructor = SettingsEntryFactory.findModelConstructor(
                 Collections.singletonList(item("line-main-settings.account")));
 
-        assertEquals(13, constructor.getParameterCount());
+        assertEquals(14, constructor.getParameterCount());
         assertEquals(Item.class, constructor.getDeclaringClass());
     }
 
@@ -136,6 +136,7 @@ public final class SettingsEntryFactoryTest {
                 SettingsEntryFactory.constantProxy(Function2.class, Boolean.FALSE),
                 null,
                 SettingsEntryFactory.constantProxy(Function2.class, Boolean.FALSE),
+                SettingsEntryFactory.constantProxy(Function2.class, null),
                 null,
                 SettingsEntryFactory.constantProxy(Function1.class, null),
                 SettingsEntryFactory.constantProxy(Function1.class, null),
@@ -165,7 +166,7 @@ public final class SettingsEntryFactoryTest {
 
     private static Item item(String key, Tag tag) {
         return new Item(key, null, 1, argumentsToNull(), argumentsToNull(), null, argumentsToNull(),
-                null, null, null, tag, argumentsToNull(), true);
+                argumentsToNull(), null, null, null, tag, argumentsToNull(), true);
     }
 
     private static Function2 argumentsToNull() {
@@ -226,6 +227,7 @@ public final class SettingsEntryFactoryTest {
                 Function2 badge,
                 Integer badgeResourceId,
                 Function2 secondaryBadge,
+                Function2 statusBadge,
                 Placement placement,
                 Function1 subScreen,
                 Function1 click,

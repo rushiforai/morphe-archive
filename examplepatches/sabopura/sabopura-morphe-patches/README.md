@@ -24,7 +24,7 @@
 
 ### YouTube
 
-- **Danmaku comments**：通常のコメント、ライブチャット、チャットのリプレイを、ニコニコ動画のように動画の上に流します。API キーは使いません。NG ワード、文字サイズ、速さなどは YouTube の設定画面から変えられます。
+- **Danmaku comments**：通常のコメント、ライブチャット、チャットのリプレイを、ニコニコ動画のように動画の上に流します。API キーは使いません。NG ワード、文字サイズ、速さなどは YouTube の設定画面から変えられます。Morphe 公式のパッチの「Niconico comments」をオンにしている間は、ライブチャットはそちらに任せ、二重に流しません。
 - **Ambient light**：動画の周りを映像の色で照らし、動画がそのまま画面に広がっているように見せます（PC 版の拡張機能「Ambient light for YouTube」と同じ考え方です）。動画の黒い帯も光で埋め、動画と下の欄の境目をなじませます。光を強くぼかす、背景に動画の映像そのものを映す、画面の下に行くほど暗くする、場面が変わったら光を広げる、といった見せ方も選べます。
 
 どちらも、プレーヤーの設定メニューにスイッチ付きの行が加わります。行をタップするとオン・オフ、長押しすると動画を見ながら文字サイズや明るさなどを変えられるシートが開きます（行に「長押しで詳しい設定」と表示されます）。
@@ -77,10 +77,10 @@
 
 | アプリ | パッケージ名 | 対応バージョン |
 | --- | --- | --- |
-| YouTube | `com.google.android.youtube` | 21.20.405, 21.42.241, 21.43.523 |
+| YouTube | `com.google.android.youtube` | 21.30.216, 21.43.523, 21.44.528 |
 | Twitch | `tv.twitch.android.app` | 30.7.2, 31.7.0, 31.8.0（Block ads は 31.7.0・31.8.0。30.7.2 は Android 12 以下の端末用） |
-| Reddit | `com.reddit.frontpage` | 2026.24.0, 2026.42.0, 2026.43.0 |
-| SmartNews | `jp.gocro.smartnews.android` | 26.10.20, 26.10.30（どちらも Google Play 版の APKM も可） |
+| Reddit | `com.reddit.frontpage` | 2026.40.0, 2026.44.0 |
+| SmartNews | `jp.gocro.smartnews.android` | 26.10.30, 26.10.41（どちらも Google Play 版の APKM も可） |
 | Pinterest | `com.pinterest` | 14.41.0, 14.42.0 |
 | pixiv | `jp.pxv.android` | 6.201.0, 6.202.1 |
 | Google News | `com.google.android.apps.magazines` | 5.168.0.982359681, 5.170.0.999208975 |

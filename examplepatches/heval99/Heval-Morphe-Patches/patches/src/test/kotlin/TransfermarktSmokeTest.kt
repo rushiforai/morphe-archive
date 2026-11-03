@@ -110,7 +110,7 @@ class TransfermarktSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "4.3.2",
+            version = "4.3.3",
             patchNames = setOf("Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

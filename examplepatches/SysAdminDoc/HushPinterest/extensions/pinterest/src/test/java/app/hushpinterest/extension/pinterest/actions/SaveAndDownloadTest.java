@@ -135,6 +135,32 @@ public class SaveAndDownloadTest {
         assertFalse("and nothing nags about it", told());
     }
 
+    /** A grid's pin object still reads as unsaved after its save, so downloading it twice saved it twice. */
+    @Test public void aPinWhoseObjectStillSaysUnsavedIsSavedOnlyOnce() throws Exception {
+        Settings.SAVE_DOWNLOADED_PINS.save(true);
+        assertEquals(1, download());
+        assertEquals(1, download());
+        assertEquals(List.of(PIN), host.saves);
+    }
+
+    @Test public void aPinSavedOnAnotherRouteIsNotSavedAgain() throws Exception {
+        Settings.SAVE_DOWNLOADED_PINS.save(true);
+        save();
+        assertEquals(1, download());
+        assertTrue(host.saves.isEmpty());
+    }
+
+    @Test public void saveIsNotRecordedWithDownloadPinsOffOrPaused() throws Exception {
+        Settings.DOWNLOAD_PINS.save(false);
+        save();
+        assertFalse(SavedRecord.has("123"));
+        Settings.DOWNLOAD_PINS.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        save();
+        PauseForTests.resume();
+        assertFalse(SavedRecord.has("123"));
+    }
+
     @Test public void withBothOnADownloadDownloadsOnceAndSavesOnce() throws Exception {
         Settings.SAVE_DOWNLOADED_PINS.save(true);
         Settings.DOWNLOAD_SAVED_PINS.save(true);

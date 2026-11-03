@@ -39,16 +39,28 @@ final class MessageLogExport {
 
     /** The words a file uses that aren't the messages' own. */
     static final class Labels {
-        final String unknownChat, unsent, noText;
+        final String unknownChat, unsent, noText, attachment;
 
         Labels(SettingsText text) {
-            this(text.get("message_log_unknown_thread"), text.get("message_log_unsent"), text.get("message_log_no_text"));
+            this(text.get("message_log_unknown_thread"), text.get("message_log_unsent"), text.get("message_log_no_text"),
+                text.get("message_log_attachment"));
         }
 
         Labels(String unknownChat, String unsent, String noText) {
+            this(unknownChat, unsent, noText, noText);
+        }
+
+        Labels(String unknownChat, String unsent, String noText, String attachment) {
             this.unknownChat = unknownChat;
             this.unsent = unsent;
             this.noText = noText;
+            this.attachment = attachment;
+        }
+
+        /** What a message reads as: its words, else what kind of message it was. */
+        String body(MessageLog.Entry entry) {
+            if (!entry.text.isEmpty()) return entry.text;
+            return entry.attachment ? attachment : noText;
         }
     }
 
@@ -72,10 +84,15 @@ final class MessageLogExport {
 
     /** Each chat under its name, most recent chat first, and its messages in the order they came. */
     static String text(List<MessageLog.Entry> newestFirst, Labels labels) {
+        return text(newestFirst, Collections.emptyMap(), labels);
+    }
+
+    /** {@link #text} with the names picked for chats in [names]. */
+    static String text(List<MessageLog.Entry> newestFirst, Map<String, String> names, Labels labels) {
         List<MessageLog.Entry> oldestFirst = new ArrayList<>(newestFirst);
         Collections.reverse(oldestFirst);
         StringBuilder out = new StringBuilder();
-        for (MessageLogSearch.Chat chat : MessageLogSearch.chats(newestFirst)) {
+        for (MessageLogSearch.Chat chat : MessageLogSearch.chats(newestFirst, names)) {
             if (out.length() > 0) out.append('\n');
             out.append("== ").append(chat.name.isEmpty() ? labels.unknownChat : chat.name).append(" ==\n\n");
             for (MessageLog.Entry entry : oldestFirst) {
@@ -83,7 +100,7 @@ final class MessageLogExport {
                 out.append(stamp(entry.time));
                 if (!entry.sender.isEmpty()) out.append("  ").append(entry.sender);
                 if (entry.unsent) out.append("  (").append(labels.unsent).append(')');
-                out.append('\n').append(entry.text.isEmpty() ? labels.noText : entry.text).append("\n\n");
+                out.append('\n').append(labels.body(entry)).append("\n\n");
             }
         }
         return out.toString();
@@ -91,15 +108,20 @@ final class MessageLogExport {
 
     /** A row per message, oldest first, the way a spreadsheet expects to sort from. */
     static String csv(List<MessageLog.Entry> newestFirst, Labels labels) {
+        return csv(newestFirst, Collections.emptyMap(), labels);
+    }
+
+    static String csv(List<MessageLog.Entry> newestFirst, Map<String, String> names, Labels labels) {
         Map<String, String> chats = new HashMap<>();
-        for (MessageLogSearch.Chat chat : MessageLogSearch.chats(newestFirst)) {
+        for (MessageLogSearch.Chat chat : MessageLogSearch.chats(newestFirst, names)) {
             chats.put(chat.thread, chat.name.isEmpty() ? labels.unknownChat : chat.name);
         }
         StringBuilder out = new StringBuilder(BYTE_ORDER_MARK).append("Date,Chat,Sender,Message,Unsent\r\n");
         for (int i = newestFirst.size() - 1; i >= 0; i--) {
             MessageLog.Entry entry = newestFirst.get(i);
             out.append(stamp(entry.time)).append(',').append(cell(chats.get(entry.thread))).append(',').append(cell(entry.sender)).append(',')
-                .append(cell(entry.text)).append(',').append(entry.unsent ? "yes" : "").append("\r\n");
+                .append(cell(entry.text.isEmpty() && entry.attachment ? labels.attachment : entry.text)).append(',')
+                .append(entry.unsent ? "yes" : "").append("\r\n");
         }
         return out.toString();
     }
@@ -114,11 +136,11 @@ final class MessageLogExport {
     }
 
     /** Reads the log and writes what the open view shows into the document the picker returned. Returns how many. */
-    static int save(Context context, Uri document, int format, String query, String thread, boolean unsentOnly, Labels labels) throws IOException {
+    static int save(Context context, Uri document, int format, String query, String thread, boolean unsentOnly, int kind, Labels labels) throws IOException {
         MessageLog.LoadResult log = MessageLog.loadResult();
         if (log.failed) throw new IOException("the log can't be read");
-        List<MessageLog.Entry> shown = new MessageLogSearch.Index(log.entries).find(query, thread, unsentOnly);
-        String content = format == CSV ? csv(shown, labels) : text(shown, labels);
+        List<MessageLog.Entry> shown = new MessageLogSearch.Index(log.entries, log.names).find(query, thread, unsentOnly, kind);
+        String content = format == CSV ? csv(shown, log.names, labels) : text(shown, log.names, labels);
         // The picker can hand back a file that already exists, and the old content must not show past the end of the new.
         try (OutputStream out = context.getContentResolver().openOutputStream(document, "wt")) {
             if (out == null) throw new IOException("no stream for the picked file");
@@ -128,10 +150,10 @@ final class MessageLogExport {
     }
 
     /** Adds what the log is about to remove to the month's file. */
-    static void saveExpiring(Context context, List<MessageLog.Entry> oldestFirst, long now) throws IOException {
+    static void saveExpiring(Context context, List<MessageLog.Entry> oldestFirst, Map<String, String> names, long now) throws IOException {
         List<MessageLog.Entry> newestFirst = new ArrayList<>(oldestFirst);
         Collections.reverse(newestFirst);
-        String content = text(newestFirst, new Labels(new SettingsText(context))) + "\n";
+        String content = text(newestFirst, names, new Labels(new SettingsText(context))) + "\n";
         shelf.add(context, monthlyName(now), mime(TEXT), content.getBytes(StandardCharsets.UTF_8));
     }
 

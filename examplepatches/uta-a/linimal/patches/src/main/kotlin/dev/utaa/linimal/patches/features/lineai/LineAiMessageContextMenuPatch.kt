@@ -32,11 +32,11 @@ import dev.utaa.linimal.patches.util.branchTargetAddress
 import dev.utaa.linimal.patches.util.instructionAddress
 
 private const val CONTEXT = "Landroid/content/Context;"
-private const val CONTEXT_MENU_ITEM = "Lj51/c;"
-private const val CONTEXT_MENU_MODEL = "Lne1/x0;"
-private const val CONTEXT_MENU_MAPPER = "Lne1/g;"
-private const val CONTEXT_MENU_CALLBACK = "Lne1/h0;"
-private const val LINE_AI_ENTRY_SOURCE = "Lrq1/a;"
+private const val CONTEXT_MENU_ITEM = "Lxc1/c;"
+private const val CONTEXT_MENU_MODEL = "Lfm1/d1;"
+private const val CONTEXT_MENU_MAPPER = "Lfm1/g;"
+private const val CONTEXT_MENU_CALLBACK = "Lfm1/k0;"
+private const val LINE_AI_ENTRY_SOURCE = "Ljz1/a;"
 private const val LINE_AI_CONTEXT_SOURCE_VALUE = "chatroom_context_menu"
 private const val LINE_AI_CONTEXT_HOOK =
     "Ldev/utaa/linimal/extension/features/lineai/LineAiMessageContextMenuHooks;->adjustAvailability(Z)Z"
@@ -52,8 +52,8 @@ private val lineAiMessageContextModelFingerprint = Fingerprint(
     parameters = emptyList(),
     filters = listOf(
         newInstance(CONTEXT_MENU_CALLBACK),
-        literal(0x7f08064a), // chat_ui_context_line_ai
-        literal(0x7f151848), // line_chat_button_lineai
+        literal(0x7f080640), // chat_ui_context_line_ai 相当（26.16.0 の public.xml では名前なし）
+        literal(0x7f1519dd), // line_chat_button_lineai
         fieldAccess(
             definingClass = CONTEXT_MENU_MODEL,
             name = "LINE_AI",
@@ -85,11 +85,24 @@ private val lineAiMessageContextMapperFingerprint = Fingerprint(
     ),
 )
 
-/** Callback attached to the resource-validated item must enter LINE AI from the context-menu source. */
+/** Callback attached to the resource-validated item delegates to a static bridge on the model class. */
 private val lineAiMessageContextCallbackFingerprint = Fingerprint(
     definingClass = CONTEXT_MENU_CALLBACK,
     returnType = OBJECT,
     parameters = listOf(OBJECT, OBJECT, OBJECT),
+    filters = listOf(
+        methodCall(
+            definingClass = CONTEXT_MENU_MODEL,
+            opcode = Opcode.INVOKE_STATIC,
+        ),
+    ),
+)
+
+/** The model's only context-menu handler must enter LINE AI from the context-menu source. */
+private val lineAiMessageContextHandlerFingerprint = Fingerprint(
+    definingClass = CONTEXT_MENU_MODEL,
+    returnType = "L",
+    parameters = listOf("L", "L", "L"),
     filters = listOf(
         fieldAccess(
             definingClass = LINE_AI_ENTRY_SOURCE,
@@ -118,12 +131,12 @@ private val lineAiContextEntrySourceFingerprint = Fingerprint(
 )
 
 /**
- * The unique long-press supplier: `LINE_AI` enum object, context-menu source check, then the three availability
- * predicates and a direct return of that enum object. The target class / method name is not an identifier condition.
+ * The unique long-press supplier: `LINE_AI` enum object, context-menu source availability check, then the type-set
+ * predicate and a direct return of that enum object. The target class / method name is not an identifier condition.
  */
 private val lineAiMessageContextSupplierFingerprint = Fingerprint(
     returnType = CONTEXT_MENU_ITEM,
-    parameters = listOf(CONTEXT, "Lv01/a;", "Lj51/a;", BOOLEAN),
+    parameters = listOf(CONTEXT, "L", "L", BOOLEAN),
     filters = listOf(
         fieldAccess(
             definingClass = CONTEXT_MENU_ITEM,
@@ -131,13 +144,16 @@ private val lineAiMessageContextSupplierFingerprint = Fingerprint(
             type = CONTEXT_MENU_ITEM,
             opcode = Opcode.SGET_OBJECT,
         ),
-        string(LINE_AI_CONTEXT_SOURCE_VALUE),
+        fieldAccess(
+            definingClass = LINE_AI_ENTRY_SOURCE,
+            name = "CONTEXT_MENU",
+            type = LINE_AI_ENTRY_SOURCE,
+            opcode = Opcode.SGET_OBJECT,
+        ),
         methodCall(
-            definingClass = "Ljava/util/List;",
-            name = "contains",
-            parameters = listOf(OBJECT),
+            parameters = listOf("L", BOOLEAN, LINE_AI_ENTRY_SOURCE),
             returnType = BOOLEAN,
-            opcode = Opcode.INVOKE_INTERFACE,
+            opcode = Opcode.INVOKE_VIRTUAL,
         ),
     ),
 )
@@ -164,6 +180,7 @@ val lineAiMessageContextMenuPatch = bytecodePatch(
         val modelMatches = lineAiMessageContextModelFingerprint.matchAllOrNull().orEmpty()
         val mapperMatches = lineAiMessageContextMapperFingerprint.matchAllOrNull().orEmpty()
         val callbackMatches = lineAiMessageContextCallbackFingerprint.matchAllOrNull().orEmpty()
+        val handlerMatches = lineAiMessageContextHandlerFingerprint.matchAllOrNull().orEmpty()
         val sourceMatches = lineAiContextEntrySourceFingerprint.matchAllOrNull().orEmpty()
         val supplierMatches = lineAiMessageContextSupplierFingerprint.matchAllOrNull().orEmpty()
 
@@ -171,11 +188,37 @@ val lineAiMessageContextMenuPatch = bytecodePatch(
             modelMatches.size to "LineAiLongPressContextModelNotUnique",
             mapperMatches.size to "LineAiLongPressContextMapperNotUnique",
             callbackMatches.size to "LineAiLongPressContextCallbackNotUnique",
+            handlerMatches.size to "LineAiLongPressContextHandlerNotUnique",
             sourceMatches.size to "LineAiLongPressContextEntrySourceNotUnique",
             supplierMatches.size to "LineAiLongPressContextSupplierNotUnique",
         ).firstOrNull { (count, _) -> count != 1 }
         if (invalidCount != null) {
             recordLineAiMessageContextMenuUnapplied(invalidCount.first, invalidCount.second)
+            return@execute
+        }
+
+        // callback -> static bridge -> context-menu handler の連結を、同じ model class 内で確認します。
+        val bridgeReference = (callbackMatches.single().instructionMatches[0].instruction as? ReferenceInstruction)
+            ?.reference as? MethodReference
+        val handlerName = handlerMatches.single().originalMethod.name
+        val bridgeMatches = if (bridgeReference == null) {
+            emptyList()
+        } else {
+            Fingerprint(
+                definingClass = CONTEXT_MENU_MODEL,
+                name = bridgeReference.name,
+                parameters = bridgeReference.parameterTypes.map { it.toString() },
+                filters = listOf(
+                    methodCall(
+                        definingClass = CONTEXT_MENU_MODEL,
+                        name = handlerName,
+                        opcode = Opcode.INVOKE_STATIC,
+                    ),
+                ),
+            ).matchAllOrNull().orEmpty()
+        }
+        if (bridgeMatches.size != 1) {
+            recordLineAiMessageContextMenuUnapplied(bridgeMatches.size, "LineAiLongPressContextCallbackBridgeNotUnique")
             return@execute
         }
 
@@ -222,59 +265,45 @@ private fun lineAiMessageContextSupplierInjectionShape(match: Match): MessageCon
     val instructions = implementation.instructions.toList()
     val lineAiFieldIndex = match.instructionMatches[0].index
     val entrySourceIndex = match.instructionMatches[1].index
-    val entryContainsIndex = match.instructionMatches[2].index
+    val availabilityIndex = match.instructionMatches[2].index
     val lineAiFieldInstruction = instructions.getOrNull(lineAiFieldIndex) as? OneRegisterInstruction
-    val lineAiField = (instructions.getOrNull(lineAiFieldIndex) as? ReferenceInstruction)
+    val availabilityResult = instructions.getOrNull(availabilityIndex + 1) as? OneRegisterInstruction
+    val availabilityBranch = instructions.getOrNull(availabilityIndex + 2) as? OneRegisterInstruction
+    val typeSetRead = (instructions.getOrNull(availabilityIndex + 3) as? ReferenceInstruction)
         ?.reference as? FieldReference
-    val entryContains = (instructions.getOrNull(entryContainsIndex) as? ReferenceInstruction)
+    val typeSetContains = (instructions.getOrNull(availabilityIndex + 4) as? ReferenceInstruction)
         ?.reference as? MethodReference
-    val entryResult = instructions.getOrNull(entryContainsIndex + 1) as? OneRegisterInstruction
-    val typeSetRead = (instructions.getOrNull(entryContainsIndex + 2) as? ReferenceInstruction)
-        ?.reference as? FieldReference
-    val typeSetContains = (instructions.getOrNull(entryContainsIndex + 3) as? ReferenceInstruction)
-        ?.reference as? MethodReference
-    val typeSetResult = instructions.getOrNull(entryContainsIndex + 4) as? OneRegisterInstruction
-    val firstAvailabilityBranch = instructions.getOrNull(entryContainsIndex + 5) as? OneRegisterInstruction
-    val sourceAvailabilityBranch = instructions.getOrNull(entryContainsIndex + 6) as? OneRegisterInstruction
-    val typeAvailabilityBranch = instructions.getOrNull(entryContainsIndex + 7) as? OneRegisterInstruction
-    val suppliedItemReturn = instructions.getOrNull(entryContainsIndex + 8) as? OneRegisterInstruction
-    val nullItem = instructions.getOrNull(entryContainsIndex + 9) as? OneRegisterInstruction
-    val nullItemLiteral = instructions.getOrNull(entryContainsIndex + 9) as? NarrowLiteralInstruction
-    val nullItemReturn = instructions.getOrNull(entryContainsIndex + 10) as? OneRegisterInstruction
-    val nullItemAddress = instructionAddress(instructions, entryContainsIndex + 9)
+    val typeSetResult = instructions.getOrNull(availabilityIndex + 5) as? OneRegisterInstruction
+    val typeBranch = instructions.getOrNull(availabilityIndex + 6) as? OneRegisterInstruction
+    val suppliedItemReturn = instructions.getOrNull(availabilityIndex + 7) as? OneRegisterInstruction
+    val nullItem = instructions.getOrNull(availabilityIndex + 8) as? OneRegisterInstruction
+    val nullItemLiteral = instructions.getOrNull(availabilityIndex + 8) as? NarrowLiteralInstruction
+    val nullItemReturn = instructions.getOrNull(availabilityIndex + 9) as? OneRegisterInstruction
+    val nullItemAddress = instructionAddress(instructions, availabilityIndex + 8)
 
     if (
-        instructions.getOrNull(lineAiFieldIndex)?.opcode != Opcode.SGET_OBJECT ||
-        lineAiField?.definingClass != CONTEXT_MENU_ITEM ||
-        lineAiField.name != "LINE_AI" ||
-        lineAiField.type != CONTEXT_MENU_ITEM ||
+        lineAiFieldInstruction?.opcode != Opcode.SGET_OBJECT ||
         lineAiFieldIndex >= entrySourceIndex ||
-        instructions.getOrNull(entrySourceIndex)?.opcode != Opcode.CONST_STRING ||
-        instructions.getOrNull(entryContainsIndex)?.opcode != Opcode.INVOKE_INTERFACE ||
-        entryContains?.definingClass != "Ljava/util/List;" ||
-        entryContains.name != "contains" ||
-        entryContains.parameterTypes != listOf(OBJECT) ||
-        entryContains.returnType != BOOLEAN ||
-        entryResult?.opcode != Opcode.MOVE_RESULT ||
-        instructions.getOrNull(entryContainsIndex + 2)?.opcode != Opcode.SGET_OBJECT ||
+        entrySourceIndex >= availabilityIndex ||
+        availabilityResult?.opcode != Opcode.MOVE_RESULT ||
+        availabilityResult.registerA !in 0..15 ||
+        availabilityResult.registerA == lineAiFieldInstruction.registerA ||
+        availabilityBranch?.opcode != Opcode.IF_EQZ ||
+        availabilityBranch.registerA != availabilityResult.registerA ||
+        instructions.getOrNull(availabilityIndex + 3)?.opcode != Opcode.SGET_OBJECT ||
         typeSetRead?.type != "Ljava/util/Set;" ||
-        instructions.getOrNull(entryContainsIndex + 3)?.opcode != Opcode.INVOKE_INTERFACE ||
+        instructions.getOrNull(availabilityIndex + 4)?.opcode != Opcode.INVOKE_INTERFACE ||
         typeSetContains?.definingClass != "Ljava/util/Set;" ||
         typeSetContains.name != "contains" ||
         typeSetContains.parameterTypes != listOf(OBJECT) ||
         typeSetContains.returnType != BOOLEAN ||
         typeSetResult?.opcode != Opcode.MOVE_RESULT ||
-        firstAvailabilityBranch?.opcode != Opcode.IF_EQZ ||
-        firstAvailabilityBranch.registerA !in 0..15 ||
-        sourceAvailabilityBranch?.opcode != Opcode.IF_EQZ ||
-        sourceAvailabilityBranch.registerA != entryResult.registerA ||
-        typeAvailabilityBranch?.opcode != Opcode.IF_EQZ ||
-        typeAvailabilityBranch.registerA != typeSetResult.registerA ||
-        branchTargetAddress(instructions, entryContainsIndex + 5) != nullItemAddress ||
-        branchTargetAddress(instructions, entryContainsIndex + 6) != nullItemAddress ||
-        branchTargetAddress(instructions, entryContainsIndex + 7) != nullItemAddress ||
+        typeBranch?.opcode != Opcode.IF_EQZ ||
+        typeBranch.registerA != typeSetResult.registerA ||
+        branchTargetAddress(instructions, availabilityIndex + 2) != nullItemAddress ||
+        branchTargetAddress(instructions, availabilityIndex + 6) != nullItemAddress ||
         suppliedItemReturn?.opcode != Opcode.RETURN_OBJECT ||
-        suppliedItemReturn.registerA != lineAiFieldInstruction?.registerA ||
+        suppliedItemReturn.registerA != lineAiFieldInstruction.registerA ||
         nullItem?.opcode != Opcode.CONST_4 ||
         nullItemLiteral?.narrowLiteral != 0 ||
         nullItemReturn?.opcode != Opcode.RETURN_OBJECT ||
@@ -284,8 +313,8 @@ private fun lineAiMessageContextSupplierInjectionShape(match: Match): MessageCon
     }
 
     return MessageContextSupplierInjectionShape(
-        availabilityBranchIndex = entryContainsIndex + 5,
-        availabilityRegister = firstAvailabilityBranch.registerA,
+        availabilityBranchIndex = availabilityIndex + 2,
+        availabilityRegister = availabilityResult.registerA,
     )
 }
 

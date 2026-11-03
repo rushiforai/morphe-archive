@@ -81,6 +81,8 @@ public final class DanmakuController {
     private static volatile int videoGeneration;
     private static volatile int imageGeneration;
     private static volatile long lastNudgeUptimeMs;
+    /** When YouTube last reported the playback position; a new video counts as a report. */
+    private static volatile long lastPlaybackReportUptimeMs;
     private static InnertubeCommentClient.Session fetchSession;
 
     private DanmakuController() {
@@ -102,6 +104,7 @@ public final class DanmakuController {
             videoLengthMs = FALLBACK_VIDEO_LENGTH_MS;
             clearCommentsLocked();
             resetTimeState();
+            lastPlaybackReportUptimeMs = SystemClock.uptimeMillis();
             startFetchSessionLocked(videoId, videoGeneration);
         }
         publishComments(Collections.emptyList());
@@ -171,6 +174,7 @@ public final class DanmakuController {
 
     public static void setVideoTime(long videoTimeMs) {
         long now = SystemClock.uptimeMillis();
+        lastPlaybackReportUptimeMs = now;
         boolean replaySeek;
         boolean resumed;
         synchronized (TIME_LOCK) {
@@ -212,6 +216,7 @@ public final class DanmakuController {
                 videoId,
                 DanmakuSettings.getMaxComments(),
                 DanmakuSettings.getStreamCommentMode(),
+                DanmakuSettings.isOfficialLiveChatShown(),
                 new FetchCallback(videoId, expectedGeneration)
         );
     }
@@ -419,6 +424,22 @@ public final class DanmakuController {
         }
         trimAroundPlayhead(streamComments, DanmakuSettings.getMaxComments(), now,
                 comment -> comment.explicitTimeMs);
+        pruneMergeTargetsLocked(now);
+    }
+
+    /**
+     * A merge target is only useful until its comment starts moving or is trimmed away.
+     * Dropping the rest keeps the index as small as the upcoming comments, even during a
+     * live stream that runs for hours.
+     */
+    private static void pruneMergeTargetsLocked(long nowMs) {
+        Iterator<Map.Entry<String, String>> iterator = mergeTargets.entrySet().iterator();
+        while (iterator.hasNext()) {
+            String id = iterator.next().getValue();
+            RawComment target = streamComments.get(id);
+            if (target == null) target = regularComments.get(id);
+            if (target == null || target.explicitTimeMs <= nowMs) iterator.remove();
+        }
     }
 
     /**
@@ -1641,17 +1662,23 @@ public final class DanmakuController {
             return getInterpolatedVideoTime();
         }
 
+        @Override public long millisSincePlaybackReport() {
+            return SystemClock.uptimeMillis() - lastPlaybackReportUptimeMs;
+        }
+
         @Override public void onFetchState(String state) {
             if (current() && Log.isLoggable(TAG, Log.DEBUG)) {
                 int regular;
                 int stream;
+                int merge;
                 synchronized (COMMENT_LOCK) {
                     regular = regularComments.size();
                     stream = streamComments.size();
+                    merge = mergeTargets.size();
                 }
                 Log.d(TAG, "Fetch state=" + state + " generation=" + generation
                         + " kind=" + videoKind + " regular=" + regular
-                        + " stream=" + stream);
+                        + " stream=" + stream + " merge=" + merge);
             }
         }
     }

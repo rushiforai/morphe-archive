@@ -17,10 +17,6 @@ object Constants {
             // Morphe recommends the newest supported version, so keep the newest tested one last.
             AppTarget(
                 version = "4.1.1264"
-            ),
-            AppTarget(
-                version = null,
-                isExperimental = true
             )
         )
     )

@@ -17,8 +17,17 @@ public sealed class Main(AndroidDriver driver, Action noteShown)
     /// <summary>The menu the toolbar's menu button opens: the account, then the app's screens.</summary>
     public LeftMenu LeftMenu { get; } = new(driver);
 
+    /// <summary>The bar over the posts: their sort and, on a subreddit, "Flair filter".</summary>
+    public FeedSortBar SortBar { get; } = new(driver);
+
     /// <summary>The feed's posts.</summary>
     public PostList Posts { get; } = new(driver);
+
+    /// <summary>
+    /// Taps Android's Back, which closes this main screen when a link opened it over another screen, and goes back to
+    /// that screen.
+    /// </summary>
+    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
 
     /// <summary>
     /// Whether the main screen shows its posts, the left menu closed, within 3 s: a screen closing with Back takes a

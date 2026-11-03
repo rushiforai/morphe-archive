@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
@@ -50,6 +51,7 @@ import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.BreakTimer;
 import app.morphe.extension.facebook.misc.HeaderText;
+import app.morphe.extension.facebook.misc.LogoEmoji;
 import app.morphe.extension.facebook.misc.OpeningPause;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
 import app.morphe.extension.facebook.misc.TextSize;
@@ -60,6 +62,7 @@ import app.morphe.extension.facebook.theme.AmoledLightBackground;
 import app.morphe.extension.facebook.theme.MarkColors;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
+import app.morphe.extension.facebook.navigation.TabOrder;
 import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -163,16 +166,19 @@ public final class SettingsBackup {
             Settings.HIDE_PAGE_POSTS,
             Settings.HIDE_POST_PROMPTS,
             Settings.HIDE_POST_FOLLOW_LINK,
+            Settings.HIDE_POST_JOIN_BUTTON,
             Settings.HIDE_POST_COUNTS,
             Settings.HIDE_POST_REACTIONS,
             Settings.HIDE_COMMENT_REACTIONS,
             Settings.HIDE_SEEN_POSTS,
+            Settings.SEEN_POSTS_COME_BACK_ONCE,
             Settings.HIDE_META_AI_QUESTIONS,
             Settings.KEEP_POST_DATES,
             Settings.SHOW_FULL_POST_TEXT,
             Settings.TRANSLATE_POST_LINK,
             Settings.TRANSLATE_POSTS_BY_THEMSELVES,
             Settings.SEE_WHO_SHARED,
+            Settings.PHOTO_CAROUSEL,
             Settings.TURN_OFF_AUTO_TRANSLATION,
             Settings.HIDE_FEEDS_HEADER,
             Settings.HIDE_SPONSORED_STORIES,
@@ -181,6 +187,7 @@ public final class SettingsBackup {
             Settings.HIDE_STORY_PROMPTS,
             Settings.HIDE_PAGE_STORIES,
             Settings.HIDE_SEEN_STORIES,
+            Settings.SHOW_ONLY_WATCHED_STORIES,
             Settings.BLOCK_STORY_AUTO_ADVANCE,
             Settings.LOOP_STORIES,
             Settings.VIEW_STORIES_ANONYMOUSLY,
@@ -207,6 +214,7 @@ public final class SettingsBackup {
             Settings.MARKETPLACE_FILTERS_BUTTON,
             Settings.MARKETPLACE_LISTING_DATE,
             Settings.SHOW_SELLER_VIEW_PROFILE,
+            Settings.REMOVE_LISTING_GAP,
             Settings.BLOCK_GAME_ADS,
             Settings.ANSWER_REWARDED_GAME_ADS,
             Settings.HIDE_AFFILIATE_LINKS,
@@ -216,11 +224,13 @@ public final class SettingsBackup {
             Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON,
             Settings.HIDE_REEL_SOCIAL_FOOTER,
             Settings.HIDE_REEL_THREADS_CARDS,
+            Settings.FOLLOWED_REELS_ONLY,
             Settings.REEL_CLEAN_MODE,
             Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO,
             Settings.HIDE_REEL_SEARCH_PILL,
             Settings.HIDE_VIEWER_TOP_BUTTONS,
+            Settings.HIDE_REELS_TAB_TITLE,
             Settings.BURN_IN_STAY_DIM,
             Settings.HIDE_REEL_COUNTS,
             Settings.HIDE_REEL_SAVE_BUTTON,
@@ -234,6 +244,7 @@ public final class SettingsBackup {
             Settings.REEL_SPEAKER_ABOVE_MENU,
             Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE,
+            Settings.HIDE_UP_NEXT,
             Settings.FEED_VIDEOS_ALONE,
             Settings.PLAY_FEED_REELS_WHOLE,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
@@ -273,6 +284,7 @@ public final class SettingsBackup {
             Settings.LIKE_ONLY,
             Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
             Settings.HIDE_COMMENT_EMOJI_ROW,
+            Settings.HIDE_COMMENT_BOX_LINE,
             Settings.OPEN_REPLY_THREADS,
             Settings.LOAD_WHOLE_REPLY_THREADS,
             Settings.HIDE_REPLIES_BUTTON,
@@ -294,6 +306,7 @@ public final class SettingsBackup {
             Settings.TAP_TO_PLAY,
             Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
             Settings.TAP_TO_PLAY_STORIES,
+            Settings.TAP_TO_PLAY_SEARCH,
             Settings.INLINE_FEED_VIDEO_CONTROLS,
             Settings.FEED_VIDEO_CAST_BUTTON,
             Settings.FEED_VIDEO_SEEK_BAR,
@@ -310,6 +323,7 @@ public final class SettingsBackup {
             Settings.SKIP_SILENT_PARTS,
             Settings.KEEP_FEED_VIDEOS_MUTED,
             Settings.MUTE_STORIES,
+            Settings.RESTORE_FEED_SOUND,
             Settings.KEEP_PROGRESS_BAR,
             Settings.KEEP_PROGRESS_BAR_TIME,
             Settings.KEEP_REEL_OVERLAY,
@@ -351,6 +365,7 @@ public final class SettingsBackup {
             Settings.CLOSE_WHEN_LEFT,
             Settings.OPENING_PAUSE,
             Settings.TAKE_BREAKS,
+            Settings.HIDE_BLOCKED_LIST_PICTURES,
             Settings.MARKETPLACE_ONLY,
             Settings.EVENTS_ONLY,
             Settings.MARKETPLACE_QUIET_NOTIFICATIONS,
@@ -385,6 +400,7 @@ public final class SettingsBackup {
             Settings.KEEP_TOP_BAR,
             Settings.PHONE_LAYOUT_ON_BIG_SCREENS,
             Settings.TRANSLUCENT_BARS,
+            Settings.ROUNDED_TAB_BAR,
             Settings.HIDE_STATUS_BAR,
             Settings.HIDE_MESSENGER_BUTTON,
             Settings.HIDE_MESSENGER_COUNT,
@@ -419,6 +435,7 @@ public final class SettingsBackup {
             Settings.HIDE_META_AI_IN_SEARCH,
             Settings.DONT_SAVE_SEARCH_HISTORY,
             Settings.SEARCH_DATE_RANGE,
+            Settings.SEARCH_POSTS_TAB,
             Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS,
             Settings.BLOCK_MEMORY_NOTIFICATIONS,
             Settings.BLOCK_BIRTHDAY_NOTIFICATIONS,
@@ -548,6 +565,19 @@ public final class SettingsBackup {
     static final StringSetting HEADER_TEXT = Settings.HEADER_TEXT;
 
     /**
+     * The emoji after the logo, held in a file as its row keeps it: blank, or text {@link LogoEmoji}
+     * leaves as it is. Text written any other way refuses the whole file.
+     */
+    static final StringSetting LOGO_EMOJI = Settings.LOGO_EMOJI;
+
+    /**
+     * The color the Accent color row's Custom choice uses, held in a file as its row keeps it: blank,
+     * or {@code #RRGGBB} in capitals that {@link AccentColor#customStored} takes. Anything else
+     * refuses the whole file.
+     */
+    static final StringSetting ACCENT_CUSTOM = Settings.ACCENT_CUSTOM;
+
+    /**
      * The order comment sheets ask for, held in a file as its {@link CommentOrder#fileValue}.
      * Anything else refuses the whole file, as a tab does.
      */
@@ -578,6 +608,12 @@ public final class SettingsBackup {
      */
     static final EnumSetting<BurnInMode> BURN_IN = Settings.BURN_IN_GUARD;
     static final EnumSetting<BurnInWait> BURN_IN_WAIT = Settings.BURN_IN_WAIT;
+
+    /**
+     * How a reel's post date reads (#357), held in a file as its {@link ReelDateStyle#fileValue}.
+     * Anything else refuses the whole file, as a reels order does.
+     */
+    static final EnumSetting<ReelDateStyle> DATE_STYLE = Settings.REEL_POST_DATE_STYLE;
 
     /**
      * The hours notification quiet hours start and end, each held in a file as its
@@ -662,11 +698,17 @@ public final class SettingsBackup {
      */
     static final StringSetting FEED_TYPES = Settings.HIDDEN_FEED_TYPES;
 
+    /**
+     * The tab bar's order, held in a file exactly as its row stores it: tab keys, commas between. An
+     * order {@link TabOrder#clean} would change refuses the whole file, as a Menu tiles list does.
+     */
+    static final StringSetting TAB_ORDER = Settings.TAB_ORDER;
+
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, REELS_ORDER, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, DATE_STYLE, REELS_ORDER, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
-                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, ACCENT, BADGE,
+                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI, BADGE,
                     LOGO, TAB));
 
     /** The longest name or value a file holds that isn't a word list, far past a package name. */
@@ -779,6 +821,7 @@ public final class SettingsBackup {
         private static final String SHARE_ITEMS_NAME = "hidden_share_items";
         private static final String MENU_TILES_NAME = "hidden_menu_tiles";
         private static final String FEED_TYPES_NAME = "hidden_feed_types";
+        private static final String TAB_ORDER_NAME = "tab_order";
         private static final String HOME_FEED_NAME = "home_feed";
         private static final String BACKGROUND_NAME = "amoled_background";
         private static final String LIGHT_BACKGROUND_NAME = "amoled_light_background";
@@ -786,9 +829,12 @@ public final class SettingsBackup {
         private static final String LOGO_NAME = "logo_color";
         private static final String TAB_NAME = "tab_color";
         private static final String HEADER_TEXT_NAME = "header_text";
+        private static final String LOGO_EMOJI_NAME = "logo_emoji";
+        private static final String ACCENT_CUSTOM_NAME = "accent_custom";
         private static final String REELS_ORDER_NAME = "reels_order";
         private static final String BURN_IN_NAME = "burn_in_guard";
         private static final String BURN_IN_WAIT_NAME = "burn_in_wait";
+        private static final String DATE_STYLE_NAME = "reel_post_date_style";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -888,6 +934,9 @@ public final class SettingsBackup {
         /** The clean list of feed types to hide the file holds, or null when it names none. Set once, as it's read. */
         @Nullable
         String feedTypes;
+        /** The clean tab order the file holds, or null when it names none. Set once, as it's read. */
+        @Nullable
+        String tabOrder;
         /** The feed the file says Home shows, or null when it names none. Set once, as it's read. */
         @Nullable
         FeedsSubtab homeFeed;
@@ -909,6 +958,12 @@ public final class SettingsBackup {
         /** The Home header text the file holds, the same way. */
         @Nullable
         String headerText;
+        /** The emoji after the logo the file holds, the same way. */
+        @Nullable
+        String logoEmoji;
+        /** The Custom accent color the file holds, the same way. */
+        @Nullable
+        String accentCustom;
         /** What the file says Sort loaded reels sorts by, or null when it names none. Set once, as it's read. */
         @Nullable
         ReelsOrder reelsOrder;
@@ -918,6 +973,9 @@ public final class SettingsBackup {
         /** The Dim after wait the file holds, the same way. */
         @Nullable
         BurnInWait burnInWait;
+        /** How the file says a reel's post date reads, the same way. */
+        @Nullable
+        ReelDateStyle dateStyle;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -1137,6 +1195,8 @@ public final class SettingsBackup {
             if (menuTilesChange != null) changes.put(MENU_TILES, menuTilesChange);
             String feedTypesChange = feedTypesChange();
             if (feedTypesChange != null) changes.put(FEED_TYPES, feedTypesChange);
+            String tabOrderChange = tabOrderChange();
+            if (tabOrderChange != null) changes.put(TAB_ORDER, tabOrderChange);
             if (seenKeep != null && seenKeep != SEEN_KEEP.savedValue()) changes.put(SEEN_KEEP, seenKeep);
             FeedsSubtab homeFeedChange = homeFeedChange();
             if (homeFeedChange != null) changes.put(HOME_FEED, homeFeedChange);
@@ -1152,12 +1212,18 @@ public final class SettingsBackup {
             if (tabChange != null) changes.put(TAB, tabChange);
             String headerTextChange = headerTextChange();
             if (headerTextChange != null) changes.put(HEADER_TEXT, headerTextChange);
+            String logoEmojiChange = logoEmojiChange();
+            if (logoEmojiChange != null) changes.put(LOGO_EMOJI, logoEmojiChange);
+            String accentCustomChange = accentCustomChange();
+            if (accentCustomChange != null) changes.put(ACCENT_CUSTOM, accentCustomChange);
             ReelsOrder reelsOrderChange = reelsOrderChange();
             if (reelsOrderChange != null) changes.put(REELS_ORDER, reelsOrderChange);
             BurnInMode burnInChange = burnInChange();
             if (burnInChange != null) changes.put(BURN_IN, burnInChange);
             BurnInWait burnInWaitChange = burnInWaitChange();
             if (burnInWaitChange != null) changes.put(BURN_IN_WAIT, burnInWaitChange);
+            ReelDateStyle dateStyleChange = dateStyleChange();
+            if (dateStyleChange != null) changes.put(DATE_STYLE, dateStyleChange);
             SendLink.Action actionChange = actionChange();
             if (actionChange != null) changes.put(ACTION, actionChange);
             String appChange = appChange();
@@ -1365,6 +1431,13 @@ public final class SettingsBackup {
             return feedTypes.equals(FeedTypeNames.clean(FEED_TYPES.savedValue())) ? null : feedTypes;
         }
 
+        /** The tab order this file sets, or null when it names none or the one already set. */
+        @Nullable
+        String tabOrderChange() {
+            if (tabOrder == null) return null;
+            return tabOrder.equals(TabOrder.clean(TAB_ORDER.savedValue())) ? null : tabOrder;
+        }
+
         /** The Background color this file sets, or null when it names none or the one already set. */
         @Nullable
         String backgroundChange() {
@@ -1407,6 +1480,20 @@ public final class SettingsBackup {
             return headerText.equals(HEADER_TEXT.savedValue()) ? null : headerText;
         }
 
+        /** The emoji after the logo this file sets, or null when it names none or the one already set. */
+        @Nullable
+        String logoEmojiChange() {
+            if (logoEmoji == null) return null;
+            return logoEmoji.equals(LOGO_EMOJI.savedValue()) ? null : logoEmoji;
+        }
+
+        /** The Custom accent color this file sets, or null when it names none or the one already set. */
+        @Nullable
+        String accentCustomChange() {
+            if (accentCustom == null) return null;
+            return accentCustom.equals(ACCENT_CUSTOM.savedValue()) ? null : accentCustom;
+        }
+
         /** The feed Home shows after this file, or null when it names none or the one already set. */
         @Nullable
         FeedsSubtab homeFeedChange() {
@@ -1429,6 +1516,12 @@ public final class SettingsBackup {
         @Nullable
         BurnInWait burnInWaitChange() {
             return burnInWait == null || burnInWait == BURN_IN_WAIT.savedValue() ? null : burnInWait;
+        }
+
+        /** How a reel's post date reads after this file, the same way. */
+        @Nullable
+        ReelDateStyle dateStyleChange() {
+            return dateStyle == null || dateStyle == DATE_STYLE.savedValue() ? null : dateStyle;
         }
 
         @Nullable
@@ -1477,6 +1570,7 @@ public final class SettingsBackup {
             if (shareItems != null) state.putString(SHARE_ITEMS_NAME, shareItems);
             if (menuTiles != null) state.putString(MENU_TILES_NAME, menuTiles);
             if (feedTypes != null) state.putString(FEED_TYPES_NAME, feedTypes);
+            if (tabOrder != null) state.putString(TAB_ORDER_NAME, tabOrder);
             if (homeFeed != null) state.putString(HOME_FEED_NAME, homeFeed.fileValue);
             if (background != null) state.putString(BACKGROUND_NAME, background);
             if (lightBackground != null) state.putString(LIGHT_BACKGROUND_NAME, lightBackground);
@@ -1484,9 +1578,12 @@ public final class SettingsBackup {
             if (logo != null) state.putString(LOGO_NAME, logo);
             if (tab != null) state.putString(TAB_NAME, tab);
             if (headerText != null) state.putString(HEADER_TEXT_NAME, headerText);
+            if (logoEmoji != null) state.putString(LOGO_EMOJI_NAME, logoEmoji);
+            if (accentCustom != null) state.putString(ACCENT_CUSTOM_NAME, accentCustom);
             if (reelsOrder != null) state.putString(REELS_ORDER_NAME, reelsOrder.fileValue);
             if (burnIn != null) state.putString(BURN_IN_NAME, burnIn.fileValue);
             if (burnInWait != null) state.putString(BURN_IN_WAIT_NAME, burnInWait.fileValue);
+            if (dateStyle != null) state.putString(DATE_STYLE_NAME, dateStyle.fileValue);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -1553,10 +1650,14 @@ public final class SettingsBackup {
             Object feedTypes = state.get(FEED_TYPES_NAME);
             read.feedTypes = feedTypes instanceof String && FeedTypeNames.isClean((String) feedTypes)
                     ? (String) feedTypes : null;
+            Object tabOrder = state.get(TAB_ORDER_NAME);
+            read.tabOrder = tabOrder instanceof String && TabOrder.isClean((String) tabOrder)
+                    ? (String) tabOrder : null;
             read.homeFeed = FeedsSubtab.fromFile(state.get(HOME_FEED_NAME));
             read.reelsOrder = ReelsOrder.fromFile(state.get(REELS_ORDER_NAME));
             read.burnIn = BurnInMode.fromFile(state.get(BURN_IN_NAME));
             read.burnInWait = BurnInWait.fromFile(state.get(BURN_IN_WAIT_NAME));
+            read.dateStyle = ReelDateStyle.fromFile(state.get(DATE_STYLE_NAME));
             Object background = state.get(BACKGROUND_NAME);
             read.background = isBackground(background) ? (String) background : null;
             Object lightBackground = state.get(LIGHT_BACKGROUND_NAME);
@@ -1570,6 +1671,11 @@ public final class SettingsBackup {
             Object headerText = state.get(HEADER_TEXT_NAME);
             read.headerText = HeaderText.isClean(headerText instanceof String ? (String) headerText : null)
                     ? (String) headerText : null;
+            Object logoEmoji = state.get(LOGO_EMOJI_NAME);
+            read.logoEmoji = LogoEmoji.isClean(logoEmoji instanceof String ? (String) logoEmoji : null)
+                    ? (String) logoEmoji : null;
+            Object accentCustom = state.get(ACCENT_CUSTOM_NAME);
+            read.accentCustom = isAccentCustom(accentCustom) ? (String) accentCustom : null;
             if (read.hidden != null && read.kept != null && !read.wordListsFit()) return null;
             return read;
         }
@@ -1624,6 +1730,7 @@ public final class SettingsBackup {
             switches.put(REELS_ORDER.key, of(REELS_ORDER).fileValue);
             switches.put(BURN_IN.key, of(BURN_IN).fileValue);
             switches.put(BURN_IN_WAIT.key, of(BURN_IN_WAIT).fileValue);
+            switches.put(DATE_STYLE.key, of(DATE_STYLE).fileValue);
             switches.put(QUIET_FROM.key, of(QUIET_FROM).fileValue());
             switches.put(QUIET_UNTIL.key, of(QUIET_UNTIL).fileValue());
             switches.put(LOCK_AFTER.key, of(LOCK_AFTER).fileValue);
@@ -1645,6 +1752,7 @@ public final class SettingsBackup {
             switches.put(SHARE_ITEMS.key, ShareSheetItems.clean(of(SHARE_ITEMS)));
             switches.put(MENU_TILES.key, MenuTiles.clean(of(MENU_TILES)));
             switches.put(FEED_TYPES.key, FeedTypeNames.clean(of(FEED_TYPES)));
+            switches.put(TAB_ORDER.key, TabOrder.clean(of(TAB_ORDER)));
             // The colour as the row keeps it, so a file never carries one an import would refuse.
             String background = AmoledBackground.stored(of(BACKGROUND));
             switches.put(BACKGROUND.key, background == null ? "" : background);
@@ -1657,6 +1765,9 @@ public final class SettingsBackup {
             String tab = MarkColors.stored(of(TAB));
             switches.put(TAB.key, tab == null ? "" : tab);
             switches.put(HEADER_TEXT.key, HeaderText.clean(of(HEADER_TEXT)));
+            switches.put(LOGO_EMOJI.key, LogoEmoji.clean(of(LOGO_EMOJI)));
+            String accentCustom = AccentColor.customStored(of(ACCENT_CUSTOM));
+            switches.put(ACCENT_CUSTOM.key, accentCustom == null ? "" : accentCustom);
             return new JSONObject()
                     .put(FORMAT_NAME, FORMAT)
                     .put(SCHEMA_NAME, SCHEMA)
@@ -1785,6 +1896,7 @@ public final class SettingsBackup {
         String shareItems = null;
         String menuTiles = null;
         String feedTypes = null;
+        String tabOrder = null;
         FeedsSubtab homeFeed = null;
         String background = null;
         String lightBackground = null;
@@ -1792,9 +1904,12 @@ public final class SettingsBackup {
         String logo = null;
         String tab = null;
         String headerText = null;
+        String logoEmoji = null;
+        String accentCustom = null;
         ReelsOrder reelsOrder = null;
         BurnInMode burnIn = null;
         BurnInWait burnInWait = null;
+        ReelDateStyle dateStyle = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -1892,6 +2007,20 @@ public final class SettingsBackup {
                 headerText = (String) value;
                 continue;
             }
+            if (LOGO_EMOJI.key.equals(name)) {
+                Object value = values.opt(name);
+                if (!(value instanceof String) || !LogoEmoji.isClean((String) value)) {
+                    throw new Rejected(Reason.VALUE, "Not an emoji after the logo: " + name);
+                }
+                logoEmoji = (String) value;
+                continue;
+            }
+            if (ACCENT_CUSTOM.key.equals(name)) {
+                Object value = values.opt(name);
+                if (!isAccentCustom(value)) throw new Rejected(Reason.VALUE, "Not a color code: " + name);
+                accentCustom = (String) value;
+                continue;
+            }
             if (ORDER.key.equals(name)) {
                 order = CommentOrder.fromFile(values.opt(name));
                 if (order == null) throw new Rejected(Reason.VALUE, "Not a comment order: " + name);
@@ -1922,6 +2051,11 @@ public final class SettingsBackup {
             if (BURN_IN_WAIT.key.equals(name)) {
                 burnInWait = BurnInWait.fromFile(values.opt(name));
                 if (burnInWait == null) throw new Rejected(Reason.VALUE, "Not a dim after wait: " + name);
+                continue;
+            }
+            if (DATE_STYLE.key.equals(name)) {
+                dateStyle = ReelDateStyle.fromFile(values.opt(name));
+                if (dateStyle == null) throw new Rejected(Reason.VALUE, "Not a post date style: " + name);
                 continue;
             }
             if (QUIET_FROM.key.equals(name) || QUIET_UNTIL.key.equals(name)) {
@@ -2038,6 +2172,14 @@ public final class SettingsBackup {
                 feedTypes = (String) value;
                 continue;
             }
+            if (TAB_ORDER.key.equals(name)) {
+                Object value = values.opt(name);
+                if (!(value instanceof String) || !TabOrder.isClean((String) value)) {
+                    throw new Rejected(Reason.VALUE, "Not one clean tab order: " + name);
+                }
+                tabOrder = (String) value;
+                continue;
+            }
             BooleanSetting setting = known.get(name);
             if (setting == null) {
                 // A name this build doesn't know, Pause and the debug settings included: left
@@ -2079,6 +2221,7 @@ public final class SettingsBackup {
         read.shareItems = shareItems;
         read.menuTiles = menuTiles;
         read.feedTypes = feedTypes;
+        read.tabOrder = tabOrder;
         read.homeFeed = homeFeed;
         read.background = background;
         read.lightBackground = lightBackground;
@@ -2086,9 +2229,12 @@ public final class SettingsBackup {
         read.logo = logo;
         read.tab = tab;
         read.headerText = headerText;
+        read.logoEmoji = logoEmoji;
+        read.accentCustom = accentCustom;
         read.reelsOrder = reelsOrder;
         read.burnIn = burnIn;
         read.burnInWait = burnInWait;
+        read.dateStyle = dateStyle;
         return read;
     }
 
@@ -2100,6 +2246,12 @@ public final class SettingsBackup {
     /** A Light background color as its row keeps it, which {@link AmoledLightBackground} takes. */
     static boolean isLightBackground(@Nullable Object value) {
         return value instanceof String && value.equals(AmoledLightBackground.stored((String) value));
+    }
+
+    /** The Custom accent color as its row keeps it: blank, or {@code #RRGGBB} in capitals. */
+    static boolean isAccentCustom(@Nullable Object value) {
+        return value instanceof String
+                && (((String) value).isEmpty() || value.equals(AccentColor.customStored((String) value)));
     }
 
     /** A Badge, Logo or Selected tab color as its row keeps it, which {@link MarkColors} takes. */

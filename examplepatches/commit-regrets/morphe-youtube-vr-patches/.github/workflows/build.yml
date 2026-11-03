@@ -108,10 +108,14 @@ jobs:
       - name: Build
         run: ./gradlew buildAndroid --no-daemon
 
-      # The JUnit suite rides on buildAndroid (it depends on :patches:test). This is the other
-      # headless check: the upstream-version decision table, against the saved storefront page.
-      - name: Test the upstream version checker
-        run: node scripts/tests/UpstreamCheckTest.mjs
+      # The JUnit suite rides on buildAndroid (it depends on :patches:test). These are the other
+      # headless checks: the upstream-version decision table (against the saved storefront page),
+      # and the Constants.kt reader/renderer that writes the "Supported app versions" section
+      # into every release's notes.
+      - name: Test the upstream version checker and the release-notes section
+        run: |
+          node scripts/tests/UpstreamCheckTest.mjs
+          node scripts/tests/SupportedVersionsNotesTest.mjs
 
       # The half of the audit that needs no stock APK: every extension member a patch template names
       # must exist in the bundle's extension dex. The rest of scripts/audit-patched-apk.ps1 needs the

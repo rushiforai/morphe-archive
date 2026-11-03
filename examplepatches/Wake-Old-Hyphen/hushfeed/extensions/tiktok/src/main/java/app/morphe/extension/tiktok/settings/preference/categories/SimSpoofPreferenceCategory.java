@@ -78,8 +78,9 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
         addPreference(new InputTextPreference(
                 context,
                 "Proxy user name",
-                "Optional. Only connections made by Android itself can sign in to a proxy, not "
-                        + "TikTok's own. Leave empty for a proxy without a password.",
+                "Optional. Leave empty for a proxy without a password. TikTok signs in through a "
+                        + "small relay on this phone, which other apps here could reach while "
+                        + "TikTok is open.",
                 Settings.NETWORK_PROXY_USER
         ).withNameKeyboard());
         addPreference(new InputTextPreference(
@@ -124,6 +125,13 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
                     "Also replaces the saved region and country code TikTok sends with every "
                             + "request. Signing in still sends your real region. Your IP "
                             + "address and your account's own rules still apply.", Settings.REGION_REQUEST_SPOOF));
+            addPreference(new InputTextPreference(
+                    context,
+                    "Time zone", "A zone name like Europe/Belgrade, used in place of the country's. "
+                            + "Daylight saving follows by itself. Empty means the country's own zone.",
+                    Settings.SIM_SPOOF_TIME_ZONE
+            ).withCheck(value -> value.trim().isEmpty() || RegionSpoof.validTimeZone(value)
+                    ? null : L10n.t("Enter a zone like Asia/Tokyo")).withNameKeyboard());
         }
         InputTextPreference countryIsoPreference = new InputTextPreference(
                 context,

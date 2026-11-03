@@ -115,6 +115,8 @@ A tablet or an unfolded phone gets the layout Facebook uses on a phone, so the t
 See-through bars	透明栏
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
 The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. On Android 12 and newer the feed behind them is blurred.	顶部栏和标签栏变为透明，滚动时动态消息会透过它们显示出来。在 Android 12 及更高版本上，它们后面的动态消息会模糊显示。
+Rounded tab bar	圆角标签栏
+With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen.	标签栏在底部时，两端变为圆形，尺寸略小，位于屏幕底边上方。
 # context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
 Force dark mode	强制深色模式
 # context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
@@ -309,6 +311,8 @@ Hide comment and reaction previews	隐藏评论和回应预览
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	Facebook 在 Reels 下方预览的评论，以及回应过的好友的气泡。打开评论可查看全部。
 Hide Threads cards between reels	隐藏 Reels 之间的 Threads 卡片
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	隐藏 Reels 之间的“你可能喜欢的 Threads”卡片。默认关闭，因为尚未在真实账号上试过。
+Only reels from accounts I follow	只看我关注的账号的 Reels
+The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Reels 标签页只显示你关注的人和公共主页的 Reels，从 Facebook 加载的下一批开始。标签页可能需要更久才能填满。默认关闭。
 Download quality	下载画质
 Best	最佳
 Smallest	最小
@@ -387,7 +391,7 @@ Facebook opens on %1$s. If your tab bar doesn't have it, Facebook opens on Home.
 # context: summary of the tab list when Feeds is picked; off the tab bar, Feeds opens as its own page over Home
 Facebook opens on Feeds. If your tab bar doesn't have it, the Feeds page opens over Home.	Facebook 会打开“动态”。如果你的标签栏中没有它，“动态”页面会在主页之上打开。
 # context: a sentence in the settings import preview and its toast; %1$s is a tab name
-Facebook will open on %1$s.	Facebook 将打开 %1$s。
+With %1$s on, Facebook will open on %2$s.	开启“%1$s”后，Facebook 将打开 %2$s。
 # context: switch title under Opening Facebook; Following is Facebook's feed of the friends, Pages and groups you follow, and Home is the tab
 Following feed on Home	主页显示关注动态
 # context: summary of that switch; the ranked feed is the one Facebook orders for you, and the Feeds tab has its own filters
@@ -848,7 +852,8 @@ With the switch above on, only a hold on the right third of a reel plays it at d
 # context: label of a switch under Hold a reel for 2x; a feed video is a video playing in Home's feed or in Watch, not a reel
 Hold a feed video for 2x	按住动态消息视频以 2 倍速播放
 # context: summary of that switch; Watch is Facebook's video tab, keep its name; the switches above are Hold a reel for 2x and Only on the right edge
-Holding a video in the feed or in Watch plays it at double speed until you let go. It works without the switches above.	按住动态消息或 Watch 中的视频会以两倍速播放，直到你松手。无需开启上面的开关。
+Holding a video in the feed or in Watch plays it at double speed until you let go. Pull down before you let go to keep it at 2x, then tap the video to go back. It works without the switches above.	按住动态消息或 Watch 中的视频会以两倍速播放，直到你松手。松手前向下拉可保持 2x，再点按视频即可恢复。无需开启上面的开关。
+Locked at 2x. Tap the video to go back.	已锁定 2x。点按视频即可恢复。
 Hide the pull down to lock hint	隐藏“下拉锁定”提示
 Hide the 2x popups	隐藏 2x 弹出提示
 Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	按住视频以 2x 播放时不显示任何提示，包括“速度：2x”、“松开以锁定”和“已锁定 2x 速度”。按住和锁定仍然可用。
@@ -990,10 +995,13 @@ The phone's language	手机语言
 Languages to leave alone	不翻译的语言
 None picked. Posts in every language can be translated.	未选择。任何语言的帖子都可以翻译。
 Left alone: %s	不翻译：%s
-Posts in the feed show all of their text, so there's no See more to tap.	动态中的帖子会显示全部文字，不用再点“展开”。
+Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	动态中的帖子会显示全部文字，不用再点“展开”。点按帖子的文字即可重新折叠。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看谁分享了
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在帖子菜单中添加“查看谁分享了”，打开 Facebook 上分享该帖子的用户列表。
+# context: switch title under News feed; a post's photos and videos shown one at a time in a row you swipe, instead of a grid
+Photo carousel	照片轮播
+A post with several photos or videos shows them in a row you swipe through, one at a time, instead of a grid.	包含多张照片或视频的帖子会以可滑动的横排逐张显示，而不是网格。
 # context: message shown when tapping that row doesn't open the list
 Couldn't open the list of shares.	无法打开分享列表。
 # context: switch title under News feed; the Feeds header is the row at the top of the Feeds tab with Feeds, the menu and search, and the filters under it, All, Favorites, Friends, Groups and Pages
@@ -1156,6 +1164,10 @@ Tap anywhere on a reel's or video's progress bar to jump there, instead of dragg
 Show View profile on Marketplace sellers	在 Marketplace 卖家上显示“查看个人主页”
 # context: summary of that switch
 Adds a View profile button to every seller's Marketplace page, opening their Facebook profile. Facebook only shows it to some accounts.	在每位卖家的 Marketplace 页面添加“查看个人主页”按钮，打开其 Facebook 个人主页。Facebook 只向部分账号显示它。
+# context: switch title under Marketplace; a listing is one item for sale on Marketplace, and the gap is an empty band between the status bar and the listing's close and share buttons (#333)
+Remove the gap above Marketplace listings	移除 Marketplace 商品上方的空白
+# context: summary of that switch; Pixel is Google's phone, keep the name
+Takes out the empty band some phones show above a listing's top row, like Pixels on Android 17.	去掉部分手机在商品顶部一行上方显示的空白条，例如 Android 17 上的 Pixel。
 # context: the Save Facebook's notification sound row under Notifications and its toasts (#83)
 Save Facebook's notification sound	保存 Facebook 的通知提示音
 Adds Facebook's chime to your phone's notification sounds, for categories set to None. Then pick it in Android's notification settings for Facebook, under Sound.	把 Facebook 的提示音添加到手机的通知提示音中，供设为“无”的类别使用。然后在 Android 中 Facebook 的通知设置里，于“提示音”下选择它。
@@ -1742,7 +1754,7 @@ Takes away the line that says someone is typing a comment. Your own typing is a 
 Hide the search pill on reels	隐藏 Reels 上的搜索胶囊
 Hides the search suggestion under a reel's caption, the magnifier with a question to look up, the one at the top of its comments and the search bar over reels you open from a profile.	隐藏 Reels 说明文字下方的搜索建议（即带问题的放大镜，用于查找相关内容）、评论顶部的那一个，以及从个人主页打开的 Reels 顶部的搜索栏。
 Hide the top right buttons on opened videos	隐藏已打开视频右上角的按钮
-Takes Search and the button next to it off the top of a video or reel you open. Back stays, and so does More at the bottom of the side buttons, where Download is.	去掉你打开的视频或 Reels 顶部的搜索和旁边的按钮。返回按钮保留，侧边按钮最下方放着下载的更多按钮也保留。
+Takes Search and the button next to it off the top of a video or reel you open, and off the Reels tab. Back and Menu stay, and so does More at the bottom of the side buttons, where Download is.	去掉你打开的视频或 Reels 顶部以及 Reels 标签页顶部的搜索和旁边的按钮。返回和菜单按钮保留，侧边按钮最下方放着下载的更多按钮也保留。
 # context: switch title under Appearance; the button is Facebook's Messenger icon in the top bar of Home
 Hide the Messenger button	隐藏 Messenger 按钮
 # context: summary of that switch; the other top bar buttons move over to fill the space; Hushfacebook is the app's name
@@ -1925,7 +1937,9 @@ What you search for, and the pages and profiles you open from a search, aren't a
 # context: switch title under Search; on, the Date posted filter in post search asks for a from and to month instead of a list of years; Date posted is Facebook's own filter name in search results
 Search date range	搜索日期范围
 # context: summary of that switch; Date posted is Facebook's own filter name in post search results, named here as Facebook shows it
-The Date posted filter in post search asks for a from and to month, in place of a list of years.	帖子搜索中的发布日期筛选会让你选择起止月份，而不是年份列表。
+The Date posted filter in post search asks for a from and to date, in place of a list of years.	帖子搜索中的发布日期筛选会让你选择起止日期，而不是年份列表。
+From day	起始日
+To day	结束日
 # context: switch title under Reels and Watch; the audio line is the scrolling line at the bottom of a reel naming its sound, like "Name · Original audio" or a song title
 Hide the audio line on reels	隐藏 Reels 上的音频行
 # context: summary of that switch; "Original audio" is Facebook's own label, so use the wording Facebook shows in this language
@@ -2155,14 +2169,18 @@ If your patched Facebook includes Badge and logo colors, the selected tab will b
 If your patched Facebook includes Badge and logo colors, the selected tab will be %1$s.	如果你修补的 Facebook 包含“徽章和标志颜色”，选中的标签页将为 %1$s。
 Hide the emoji row on comments	隐藏评论的表情符号栏
 The row of emoji over the comment box goes away. You can still type emoji from your keyboard.	评论框上方的表情符号栏不再显示。你仍然可以用键盘输入表情符号。
+Hide the line over the comment box	隐藏评论框上方的线条
+The thin line along the top of the comment box goes away.	评论框顶部的细线不再显示。
 Show Comment when comments are off	评论关闭时仍显示“评论”
 Show the post date on reels	在 Reels 上显示发布日期
 Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	在发布者的名字下方显示 Reel 或全屏打开的视频是什么时候发布的。从下一个 Reel 开始生效。
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	在关闭了评论的 Reels 上保留“评论”按钮，让你仍能阅读已有的评论。从下一个 Reel 开始生效。
 Select part of a post's text	选择帖子文字的一部分
-Holding a post's text still copies all of it, and also opens the text in a box where you can select just the part you want and copy that.	长按帖子文字仍会复制全部内容，同时会在一个框中打开这段文字，你可以只选择想要的部分再复制。
+Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	长按帖子文字会在一个框中打开，你可以只选择想要的部分并复制，或者全部复制。长按本身不会复制任何内容。
 Select text	选择文字
 Done	完成
+Copy all	全部复制
+Copied	已复制
 Oldest	最早
 Comments open oldest first, on every post. Facebook's sort menu then shows All comments.	每个帖子的评论都从最早的开始显示。Facebook 的排序菜单这时会显示“所有评论”。
 Comments will open oldest first.	评论将从最早的开始显示。
@@ -2400,3 +2418,58 @@ A profile's Reels tab lists its most viewed reels first instead of the newest. O
 Not in this build, so dark mode stays Facebook's dark gray. Morphe Manager doesn't pick it by default. Turn on Expert mode in Manager, choose the %1$s patch and patch again.	此版本中没有，所以深色模式仍是 Facebook 的深灰色。Morphe Manager 默认不选它。请在 Manager 中开启专家模式，选择 %1$s 修补项，然后重新修补。
 Cast button on reels	短视频上的投屏按钮
 Adds a cast button to reels, under Download. It hands the reel to a casting app you have, such as Web Video Caster, which sends it to your TV.	在短视频的“下载”按钮下方添加投屏按钮。它会把短视频交给你已安装的投屏应用（如 Web Video Caster），由它发送到电视。
+Tab order	标签顺序
+Professional dashboard	专业面板
+Ad Center	广告中心
+Create	创建
+Explore	探索
+As Facebook has it. Tap to put the tabs in the order you want. Facebook opens on the first one. Restart Facebook after you change this.	按 Facebook 的设置。点按即可把标签排成你想要的顺序。Facebook 会在第一个标签打开。更改后请重启 Facebook。
+In this order: %1$s. Facebook opens on the first one. Restart Facebook after you change this.	按此顺序：%1$s。Facebook 会在第一个标签打开。更改后请重启 Facebook。
+Tap a tab to move it up	点按一个标签把它上移
+Your tab bar will keep Facebook's order.	你的标签栏将保持 Facebook 的顺序。
+Your tab bar will go in this order: %1$s.	你的标签栏将按此顺序排列：%1$s。
+Show only watched stories	只显示看过的快拍
+The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	快拍栏只保留你已经看过的快拍，方便你再找到某一个。关闭后可看到新的快拍。开启时“隐藏已看过的快拍”暂不生效。在 Facebook 下次加载快拍栏时生效。
+Show Posts in search	在搜索中显示帖子
+Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	把“帖子”放回搜索结果上方的那一行，排在 Reels 之后，这样你可以只看与搜索内容相关的帖子。
+Restore feed sound after opened videos	打开视频后恢复动态的声音
+A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	你打开的视频照常带声音播放。回到动态后，声音会恢复到打开视频之前的状态，即使看了很久也一样。
+Hide the Join button on posts	隐藏帖子上的加入按钮
+Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	隐藏来自你未加入的小组的帖子中，小组名称旁边的加入按钮，以及这些小组视频下方的“加入小组”栏。更改会在之后加载的帖子上生效。
+Hide the Reels title	隐藏 Reels 标题
+Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	去掉 Reels 标签页顶部的 Reels 字样。旁边的按钮保留。
+Videos in search results wait for a tap	搜索结果中的视频等你点按
+Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	搜索结果中的视频不会自动播放。点按某个视频即可播放。无论“点按播放”开启还是关闭都有效。
+Custom color	自定义颜色
+Preview	预览
+Blue	蓝
+Type a six-digit color code, like #2ECC71.	请输入六位颜色代码，例如 #2ECC71。
+Pick Custom color again to change it.	再次选择“自定义颜色”即可更改。
+Switches that are on	已开启的开关
+Every switch you have on, in one list. Turn one off here and it's off everywhere.	你开启的所有开关，集中在一个列表里。在这里关掉一个，它在所有地方都会关闭。
+No switches are on yet.	还没有开启任何开关。
+Emoji after the logo	徽标后的表情符号
+An emoji drawn right after the Facebook logo at the top of Home, in its own colors. Leave it blank for none.	在主页顶部的 Facebook 徽标后面紧接着显示一个表情符号，保持它自己的颜色。留空则不显示。
+No emoji after the logo. Type one to show it there.	徽标后没有表情符号。输入一个即可显示在那里。
+The top of Home shows %1$s after the logo. Restart Facebook to see the change.	主页顶部在徽标后显示 %1$s。重启 Facebook 后可看到更改。
+If your patched Facebook includes Accent color, the Custom choice will be %1$s.	如果你修补的 Facebook 包含“强调色”，“自定义”选项将使用 %1$s。
+If your patched Facebook includes Accent color, the Custom choice will keep Facebook's blue.	如果你修补的 Facebook 包含“强调色”，“自定义”选项将保持 Facebook 的蓝色。
+If your patched Facebook includes Emoji after the logo, the top of Home will show %1$s after the logo.	如果你修补的 Facebook 包含“徽标后的表情符号”，主页顶部的徽标后将显示 %1$s。
+The top of Home will show no emoji after the logo.	主页顶部的徽标后将不显示表情符号。
+Show the post date as	发布日期显示为
+How long ago	多久以前
+The date	具体日期
+# context: summary under Show the post date as; %1$s is an example, 3 weeks ago or Oct 12
+Like "%1$s". A change shows from the next reel.	例如“%1$s”。更改会从下一个 Reels 开始显示。
+Reel post dates will show how long ago they were posted.	Reels 的发布日期将显示为多久以前发布。
+Reel post dates will show the day they were posted.	Reels 的发布日期将显示具体发布日期。
+Hide pictures on the Blocked list	隐藏屏蔽列表中的头像
+People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	你屏蔽的人在 Facebook 设置的屏蔽页面上不显示头像。如果该页面已打开，请重新打开。
+Hide Up next on videos	隐藏视频上的“接下来播放”
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	去掉从动态打开的视频底部显示下一个视频的“接下来播放”栏。更改从你打开的下一个视频起生效。
+Icons look soft on this screen. Repatch with the 120-640dpi bundle.	此屏幕上的图标显示模糊。请用 120-640dpi 安装包重新修补。
+Icons look soft on this screen	此屏幕上的图标显示模糊
+The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	你修补的 Facebook 没有适合此屏幕的图片，因此部分图标被放大了。请使用 APKMirror 上的 (arm64-v8a) (120-640dpi) 安装包重新修补 Facebook，它包含适合所有屏幕的图片。
+Let each post come back once	让每条帖子再出现一次
+A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	你滑过的帖子会再出现一次，再次滑过后才会隐藏。快速滑动后错过的帖子会更少。
+There's no Facebook link in what you shared.	你分享的内容中没有 Facebook 链接。

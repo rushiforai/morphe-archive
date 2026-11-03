@@ -85,7 +85,7 @@ private val manifestPatch = resourcePatch {
 @Suppress("unused")
 val googleMapsMicroGPatch = bytecodePatch(
     name = "Google Maps for MicroG-RE",
-    description = "Connects supported Google Maps builds to MicroG-RE 7.2.2 and avoids a crash when a location-settings dialog cannot open.",
+    description = "Connects supported Google Maps builds to MicroG-RE 7.3.0 and avoids a crash when a location-settings dialog cannot open.",
     default = true,
 ) {
     compatibleWith(compatibility)

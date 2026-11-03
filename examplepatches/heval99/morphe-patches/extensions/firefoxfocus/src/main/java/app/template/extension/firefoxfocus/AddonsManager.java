@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * The Extensions manager: the installed add-ons (name, version, state) with Open settings,
  * Enable/Disable, Check for update and Remove, plus one-tap installs of uBlock Origin,
- * Violentmonkey and Tampermonkey from addons.mozilla.org. Nothing is installed unless the user
+ * Violentmonkey, Tampermonkey and Dark Reader from addons.mozilla.org. Nothing is installed unless the user
  * taps Install.
  */
 final class AddonsManager {
@@ -46,6 +46,8 @@ final class AddonsManager {
             new Known("uBlock0@raymondhill.net", "uBlock Origin", "ublock-origin", "dashboard.html"),
             new Known("{aecec67f-0d10-4fa7-b7c7-609a2db280cf}", "Violentmonkey", "violentmonkey", "options/index.html"),
             new Known("firefox@tampermonkey.net", "Tampermonkey", "tampermonkey", null),
+            // No options_ui: every setting lives in the browser action popup, so open that.
+            new Known("addon@darkreader.org", "Dark Reader", "darkreader", "ui/popup/index.html"),
     };
 
     /** Ids of installs started here; their install prompt is allowed without a second dialog. */

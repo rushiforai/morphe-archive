@@ -32,6 +32,17 @@ internal fun MutableMethod.replaceBody(smali: String) {
 }
 
 /**
+ * Prepends [smali], which must end in a return, leaving the original code in place but unreachable.
+ *
+ * Use this instead of [replaceBody] for methods with `try` blocks or `synchronized` sections, because
+ * removing every instruction would leave those blocks with empty ranges. [smali] may only use registers
+ * the method already declares, and `invoke` forms need registers up to v15.
+ */
+internal fun MutableMethod.prependReturn(smali: String) {
+    addInstructions(0, smali)
+}
+
+/**
  * Replaces every `instance-of vX, vY, <type>` with `const/4 vX, 0x1`,
  * mirroring the `force_premium` transform used by the manual smali patch.
  *

@@ -18,6 +18,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -32,56 +33,71 @@ class ShareTilesFixtureTest {
     private val openRefused = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->" +
         "openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V"
 
-    /** Read off 512308675: Instagram feed, story and thread, WhatsApp's status, Facebook's story and the app tiles. */
+    /**
+     * Read off 512408636: Instagram's feed and reel thread, Facebook's reel, WhatsApp's status and
+     * the app tiles. The x86 and armeabi-v7a builds split them over different lambdas, five in all.
+     */
     private val launchesReadByHand = 5
 
     @Test
     fun `each declared build hands every tile launch's answer to the extension`() {
+        val markers = SHARE_TILE_ACTIONS + MESSENGER
         for (build in Fixtures.declaredBuilds()) {
-            ShareTileLaunchFingerprint.clearMatch()
-            val classes = FixtureDex.classesWhere(build, { SHARE_TILE_COMPOSER_EXTRA in it.stringSection }) { method ->
-                method.instructions().any { it.string() == SHARE_TILE_COMPOSER_EXTRA }
+            val classes = FixtureDex.classesWhere(build, { dex -> markers.any { it in dex.stringSection } }) { method ->
+                method.instructions().any { it.string() in markers }
             }
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
-            val method = with(context) { ShareTileLaunchFingerprint.method }
-            // A switch payload's alignment nop comes and goes when code ahead of it moves.
-            val stock = method.instructions().filterNot { it.opcode == Opcode.NOP }
-            val launches = stock.indices.filter { stock[it].isLaunch() }
-            assertEquals(build.name, launchesReadByHand, launches.size)
-            val composer = stock.indexOfFirst { it.string() == SHARE_TILE_COMPOSER_EXTRA }
-            assertTrue("${build.name}: Messenger's launch", launches.any { it > composer })
+            val tiles = with(context) { shareTiles() }
+            assertTrue("${build.name}: Messenger's tile", tiles.lambdas.any { lambda -> lambda.instructions().any { it.string() == MESSENGER } })
+            var launched = 0
+            for (lambda in tiles.lambdas) {
+                val method = with(context) { mutableTile(lambda) }
+                // A switch payload's alignment nop comes and goes when code ahead of it moves.
+                val stock = method.instructions().filterNot { it.opcode == Opcode.NOP }
+                val launches = stock.indices.filter { stock[it].isLaunch() }
+                assertTrue("${build.name}: ${lambda.definingClass} launches", launches.isNotEmpty())
+                launched += launches.size
 
-            method.openRefusedShareTiles()
+                method.openRefusedShareTiles(tiles.launcher)
 
-            val body = method.instructions().filterNot { it.opcode == Opcode.NOP }
-            assertEquals("${build.name}: nothing else moved", stock.size + launches.size * 2, body.size)
-            launches.forEachIndexed { done, stockAt ->
-                val at = stockAt + done * 2
-                val launch = body[at] as FiveRegisterInstruction
-                assertEquals("${build.name}: launch $done", Opcode.MOVE_RESULT, body[at + 1].opcode)
-                val answer = (body[at + 1] as OneRegisterInstruction).registerA
-                val call = body[at + 2]
-                assertEquals("${build.name}: launch $done", openRefused, (call as ReferenceInstruction).reference.toString())
-                call as FiveRegisterInstruction
-                assertEquals("${build.name}: the answer", answer, call.registerC)
-                assertEquals("${build.name}: the context", launch.registerD, call.registerD)
-                assertEquals("${build.name}: the intent", launch.registerE, call.registerE)
-                assertFalse("${build.name}: the answer took the context or intent", answer == launch.registerD || answer == launch.registerE)
-                assertEquals("${build.name}: the code after it", stock[stockAt + 1].kind(), body[at + 3].kind())
+                val body = method.instructions().filterNot { it.opcode == Opcode.NOP }
+                assertEquals("${build.name}: nothing else moved", stock.size + launches.size * 2, body.size)
+                launches.forEachIndexed { done, stockAt ->
+                    val at = stockAt + done * 2
+                    val launch = body[at] as FiveRegisterInstruction
+                    assertEquals("${build.name}: launch $done", Opcode.MOVE_RESULT, body[at + 1].opcode)
+                    val answer = (body[at + 1] as OneRegisterInstruction).registerA
+                    val call = body[at + 2]
+                    assertEquals("${build.name}: launch $done", openRefused, (call as ReferenceInstruction).reference.toString())
+                    call as FiveRegisterInstruction
+                    assertEquals("${build.name}: the answer", answer, call.registerC)
+                    assertEquals("${build.name}: the context", launch.registerD, call.registerD)
+                    assertEquals("${build.name}: the intent", launch.registerE, call.registerE)
+                    assertFalse("${build.name}: the answer took the context or intent", answer == launch.registerD || answer == launch.registerE)
+                    assertEquals("${build.name}: the code after it", stock[stockAt + 1].kind(), body[at + 3].kind())
+                }
             }
+            assertEquals(build.name, launchesReadByHand, launched)
         }
     }
 
     @Test
-    fun `a lambda with no launch past Messenger's intent stops the patch`() {
+    fun `an app with no share tiles stops the patch`() {
+        val context = PatchContexts.of(ExtensionDex.classes())
+        val refused = assertThrows(PatchException::class.java) { with(context) { shareTiles() } }
+        assertTrue(refused.message!!.contains("no share tile starts"))
+    }
+
+    @Test
+    fun `a lambda with no launch stops the patch`() {
         val none = tiles("const/4 v0, 0x0")
-        assertTrue(assertThrows(PatchException::class.java) { none.openRefusedShareTiles() }.message!!.contains("no launch"))
+        assertTrue(assertThrows(PatchException::class.java) { none.openRefusedShareTiles(LAUNCHER) }.message!!.contains("no launch"))
     }
 
     @Test
     fun `a launch that already reads its answer stops the patch`() {
         val reads = tiles("$LAUNCH\nmove-result v0")
-        assertTrue(assertThrows(PatchException::class.java) { reads.openRefusedShareTiles() }.message!!.contains("already reads"))
+        assertTrue(assertThrows(PatchException::class.java) { reads.openRefusedShareTiles(LAUNCHER) }.message!!.contains("already reads"))
     }
 
     @Test
@@ -104,20 +120,19 @@ class ShareTilesFixtureTest {
                     const/4 v0, 0x0
                     const/4 v1, 0x0
                     const/4 v2, 0x0
-                    const-string v0, "$SHARE_TILE_COMPOSER_EXTRA"
                     $LAUNCH
                     invoke-static { v0, v1, v2 }, Lfixture/Tiles;->read(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
                     return-void
                 """,
             )
         }
-        assertThrows(IllegalArgumentException::class.java) { noRoom.openRefusedShareTiles() }
+        assertThrows(IllegalArgumentException::class.java) { noRoom.openRefusedShareTiles(LAUNCHER) }
     }
 
     @Test
     fun `an ordinary lambda gets the call right after its launch`() {
         val tiles = tiles(LAUNCH)
-        tiles.openRefusedShareTiles()
+        tiles.openRefusedShareTiles(LAUNCHER)
         val body = tiles.instructions()
         val at = body.indexOfFirst { it.isLaunch() }
         assertEquals(Opcode.MOVE_RESULT, body[at + 1].opcode)
@@ -125,7 +140,7 @@ class ShareTilesFixtureTest {
         assertEquals(Opcode.RETURN_VOID, body[at + 3].opcode)
     }
 
-    /** A lambda with the composer extra named, then [launch], with the launcher in v0, the context in v1 and the intent in v2. */
+    /** A lambda running [launch], with the launcher in v0, the context in v1 and the intent in v2. */
     private fun tiles(launch: String): MutableMethod = MutableMethod(
         ImmutableMethod(
             "Lfixture/Tiles;",
@@ -141,7 +156,6 @@ class ShareTilesFixtureTest {
         addInstructions(
             0,
             """
-                const-string v0, "$SHARE_TILE_COMPOSER_EXTRA"
                 const/4 v0, 0x0
                 const/4 v1, 0x0
                 const/4 v2, 0x0
@@ -167,5 +181,8 @@ class ShareTilesFixtureTest {
 
     private companion object {
         const val LAUNCH = "invoke-virtual { v0, v1, v2 }, LX/Launcher;->A04(Landroid/content/Context;Landroid/content/Intent;)Z"
+        val LAUNCHER = ImmutableMethodReference(
+            "LX/Launcher;", "A04", listOf("Landroid/content/Context;", "Landroid/content/Intent;"), "Z",
+        )
     }
 }

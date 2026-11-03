@@ -23,6 +23,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// The Constants.kt reader is shared with the release-notes plugin (scripts/supported-versions.mjs
+// -- one parser, mirrored by SupportedVersionsPolicyTest), so the upstream decision and the
+// release notes can never disagree about what "supported" means.
+import {
+  parseSupportedVersions as parseSupportedVersionsFrom,
+  readSupportedVersionsFile,
+} from './supported-versions.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,19 +46,6 @@ const STORE_PAGE_URL = 'https://www.meta.com/en-gb/experiences/youtube/200231711
 // payload, which is where the released binary lives. Both measured 2026-10-15; if Meta ever stops
 // honouring it the script falls back to the channel answer and says so.
 const STORE_PAGE_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
-
-const CONSTANTS_FILE = path.join(
-  REPO_ROOT,
-  'patches',
-  'src',
-  'main',
-  'kotlin',
-  'app',
-  'ytvr',
-  'patches',
-  'shared',
-  'Constants.kt'
-);
 
 const ISSUE_BODY_FILE = path.join(REPO_ROOT, 'scripts', 'upstream-update-issue.md');
 
@@ -210,28 +204,7 @@ export function decide({ released, channel, supportedVersions }) {
 }
 
 function parseSupportedVersions() {
-  if (!fs.existsSync(CONSTANTS_FILE)) {
-    throw new Error(`Constants.kt not found at: ${CONSTANTS_FILE}`);
-  }
-
-  const content = fs.readFileSync(CONSTANTS_FILE, 'utf8');
-  // Matches AppTarget( ... version = "X.Y.Z" ... ) -- literal targets -- plus the
-  // SUPPORTED_APP_VERSION constant that the verified target references. The inline `//`
-  // before `version` in Constants.kt's commented-out example cannot be matched by `\s*`,
-  // so commented targets stay excluded.
-  const versionRegex = /AppTarget\s*\(\s*version\s*=\s*"([^"]+)"/g;
-  const constantRegex = /const\s+val\s+SUPPORTED_APP_VERSION\s*=\s*"([^"]+)"/;
-  const versions = [];
-  let match;
-  while ((match = versionRegex.exec(content)) !== null) {
-    versions.push(match[1]);
-  }
-  const constantMatch = content.match(constantRegex);
-  if (constantMatch && !versions.includes(constantMatch[1])) {
-    versions.push(constantMatch[1]);
-  }
-
-  return versions;
+  return parseSupportedVersionsFrom(readSupportedVersionsFile());
 }
 
 function setGithubOutput(key, value) {

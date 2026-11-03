@@ -13,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,6 +91,9 @@ public final class CarouselArrows {
 
     /** The pill's dots, the gap between them, its height, its padding at each end and its gap from the carousel's bottom edge, in dp. */
     static final float DOT = 6, DOT_GAP = 7, PILL_HEIGHT = 18, PILL_PAD = 8, PILL_MARGIN = 12;
+
+    /** The pill's gap above a feed seek bar along the bottom of a carousel's video, in dp (#471). */
+    static final float PILL_OVER_BAR = 4;
 
     /** The most dots a pill shows at once. A longer carousel's dots slide with its page, the end ones smaller. */
     static final int MAX_DOTS = 7;
@@ -443,6 +447,7 @@ public final class CarouselArrows {
         private WeakReference<View> faded = new WeakReference<>(null);
         private float fadedAlpha = 1f;
         private final Rect bounds = new Rect();
+        private final Rect barBounds = new Rect();
 
         Arrows(View pager, FrameLayout host) {
             this.host = new WeakReference<>(host);
@@ -514,6 +519,7 @@ public final class CarouselArrows {
             boolean dotted = pill != null && at >= 0 && at < count && count > 1;
             if (pill != null) {
                 show(pill, dotted);
+                pill.look(Settings.CAROUSEL_PILL_LOOK.get());
                 pill.showing(at, count);
             }
             fade(dotted ? dotsUnder(pager) : null);
@@ -528,9 +534,32 @@ public final class CarouselArrows {
                 place(next, bounds.right - inset - TOUCH * density, top);
             }
             if (pill != null) {
-                place(pill, bounds.centerX() - pill.getLayoutParams().width / 2f,
-                        bounds.bottom - (PILL_MARGIN + PILL_HEIGHT) * density);
+                float left = bounds.centerX() - pill.getLayoutParams().width / 2f;
+                float top = bounds.bottom - (PILL_MARGIN + PILL_HEIGHT) * density;
+                place(pill, left, Math.min(top, overBar(frame, pager, left, left + pill.getLayoutParams().width, density)));
+                pill.frost(SystemClock.uptimeMillis());
             }
+        }
+
+        /**
+         * Where the pill's top goes to sit above the feed seek bar on [pager]'s video, when that bar spans
+         * the pill from [left] to [right] (#471). The bar runs along the bottom of the video, where the
+         * pill sits, so it hid the bar's middle and its thumb. With no bar there, no limit.
+         */
+        private float overBar(FrameLayout frame, View pager, float left, float right, float density) {
+            View bar = FeedSeekBar.shownBar();
+            if (bar == null || !bar.isShown() || !within(bar, pager)) return Float.MAX_VALUE;
+            barBounds.set(0, 0, bar.getWidth(), bar.getHeight());
+            frame.offsetDescendantRectToMyCoords(bar, barBounds);
+            if (barBounds.right <= left || barBounds.left >= right) return Float.MAX_VALUE;
+            return barBounds.top - (PILL_OVER_BAR + PILL_HEIGHT) * density;
+        }
+
+        private static boolean within(View view, View ancestor) {
+            for (ViewParent parent = view.getParent(); parent != null; parent = parent.getParent()) {
+                if (parent == ancestor) return true;
+            }
+            return false;
         }
 
         /** Fades out [dots], Instagram's own under this carousel, and brings back the ones faded before if they're others. */
@@ -565,24 +594,74 @@ public final class CarouselArrows {
     }
 
     /**
-     * A carousel's page dots on a round, see-through pill: the page showing in Instagram's blue, the rest
-     * dark. Up to {@link #MAX_DOTS} show, so a longer carousel's dots slide along with its page, an end dot
-     * drawn smaller while more pages lie past it. The view is as wide as the widest pill and draws its pill
-     * centered, so a carousel that grows never lays the post out again.
+     * A carousel's page dots on a round pill: the page showing in Instagram's blue. Up to {@link #MAX_DOTS}
+     * show, so a longer carousel's dots slide along with its page, an end dot drawn smaller while more pages
+     * lie past it. The view is as wide as the widest pill and draws its pill centered, so a carousel that
+     * grows never lays the post out again.
+     *
+     * <p>Its look is Pill look's choice (#471): a light pill with dark dots, as it always was, a see-through
+     * dark one with white dots, or frosted glass ({@link FrostedBackdrop}) that blurs the page under it,
+     * recorded as each frame is about to draw ({@link #frost}).
      */
     static final class Pill extends View {
         static final int BLUE = 0xFF0095F6, DARK = 0xFF3C3C3C, BACK = 0xCCDCDCDC;
+        /** The see-through pill and its dots. A frosted pill with no blur to draw takes the same shade. */
+        static final int SEE_THROUGH_BACK = 0x4D000000, LIGHT_DOT = 0xB3FFFFFF;
+        /** Over the blur, a lighter shade, so white dots still read on a bright page, and a hairline edge. */
+        static final int FROST_TINT = 0x26000000, FROST_EDGE = 0x59FFFFFF;
 
         private final Paint back = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint dot = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF shape = new RectF();
+        private final FrostedBackdrop backdrop =
+                new FrostedBackdrop(FamilyNames.CAROUSEL_ARROWS, HOOK + " pill glass", "hushgram-carousel-pill-glass");
         int at = -1, count;
+        OverlayLook look = OverlayLook.SOLID;
 
         Pill(Context context) {
             super(context);
             back.setColor(BACK);
+            edge.setStyle(Paint.Style.STROKE);
+            edge.setColor(FROST_EDGE);
             // Only a picture of the page, so TalkBack passes over it.
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+        }
+
+        /** Takes on [wanted], unless it has it already. */
+        void look(OverlayLook wanted) {
+            if (wanted == null || wanted == look) return;
+            look = wanted;
+            if (wanted != OverlayLook.FROSTED) backdrop.release();
+            invalidate();
+        }
+
+        /**
+         * Records the glass under a frosted pill at [now], once it's placed for the frame about to draw. The pill
+         * draws again only when the glass comes or goes, since it draws the recording by reference.
+         */
+        void frost(long now) {
+            if (look != OverlayLook.FROSTED || getVisibility() != VISIBLE) return;
+            boolean before = backdrop.recorded();
+            backdrop.record(this, now);
+            if (backdrop.recorded() != before) invalidate();
+        }
+
+        /** The shade behind the dots with [look], [blurred] when the glass drew under it. */
+        static int back(OverlayLook look, boolean blurred) {
+            switch (look) {
+                case SEE_THROUGH:
+                    return SEE_THROUGH_BACK;
+                case FROSTED:
+                    return blurred ? FROST_TINT : SEE_THROUGH_BACK;
+                default:
+                    return BACK;
+            }
+        }
+
+        /** The colour of a dot for a page not showing, with [look]. */
+        static int otherDot(OverlayLook look) {
+            return look == OverlayLook.SOLID ? DARK : LIGHT_DOT;
         }
 
         /** The view's width, which holds the pill of {@link #MAX_DOTS} dots, in pixels. */
@@ -613,10 +692,20 @@ public final class CarouselArrows {
             float wide = shown * size + (shown - 1) * gap + 2 * pad, height = getHeight();
             float left = (getWidth() - wide) / 2f;
             shape.set(left, 0, left + wide, height);
-            canvas.drawRoundRect(shape, height / 2f, height / 2f, back);
+            float radius = height / 2f;
+            boolean blurred = look == OverlayLook.FROSTED && backdrop.draw(canvas, shape, radius);
+            back.setColor(back(look, blurred));
+            canvas.drawRoundRect(shape, radius, radius, back);
+            if (look == OverlayLook.FROSTED) {
+                float line = Math.max(1f, density / 2f);
+                edge.setStrokeWidth(line);
+                shape.inset(line / 2f, line / 2f);
+                canvas.drawRoundRect(shape, radius, radius, edge);
+            }
+            int other = otherDot(look);
             for (int i = 0; i < shown; i++) {
                 boolean more = (i == 0 && from > 0) || (i == shown - 1 && from + shown < count);
-                dot.setColor(from + i == at ? BLUE : DARK);
+                dot.setColor(from + i == at ? BLUE : other);
                 canvas.drawCircle(left + pad + i * (size + gap) + size / 2, height / 2f, size / 2 * (more ? 0.6f : 1f), dot);
             }
         }

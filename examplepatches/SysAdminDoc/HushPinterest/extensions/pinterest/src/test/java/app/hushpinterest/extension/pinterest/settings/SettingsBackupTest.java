@@ -95,6 +95,7 @@ import app.hushpinterest.extension.shared.settings.FailingStore;
 import app.hushpinterest.extension.shared.settings.HushPinterestPause;
 import app.hushpinterest.extension.shared.settings.PauseForTests;
 import app.hushpinterest.extension.shared.settings.Setting;
+import app.hushpinterest.extension.shared.settings.StringSetting;
 import app.hushpinterest.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
 import app.hushpinterest.extension.shared.settings.preference.SharedPrefCategory;
@@ -140,7 +141,7 @@ public class SettingsBackupTest {
     @Before
     public void startClean() {
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
-        for (MutedWordsSetting setting : SettingsBackup.TEXTS) setting.resetToDefault();
+        for (StringSetting setting : SettingsBackup.TEXTS) setting.resetToDefault();
         SettingsBackup.discardUndo();
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = null;
@@ -159,7 +160,7 @@ public class SettingsBackupTest {
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
-        for (MutedWordsSetting setting : SettingsBackup.TEXTS) setting.resetToDefault();
+        for (StringSetting setting : SettingsBackup.TEXTS) setting.resetToDefault();
         // The release check stays out of every file, so the list above doesn't reach it.
         Settings.CHECK_FOR_RELEASES.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
@@ -230,16 +231,16 @@ public class SettingsBackupTest {
         assertTrue("STAYS_OUT names a switch Settings no longer has", switches.containsAll(STAYS_OUT.keySet()));
         assertEquals("the list names a switch twice", SettingsBackup.ALLOWLIST.size(),
                 new HashSet<>(SettingsBackup.ALLOWLIST).size());
-        // A file carries true or false per switch and an array of strings per list in TEXTS, and
-        // nothing else. Muted words added the list format, so a setting that's neither still needs
-        // a format that can carry it before it can be decided on.
+        // A file carries true or false per switch, an array of strings for the muted words and a
+        // string for the Save button color, and nothing else. A setting in Settings that's neither
+        // a switch nor in TEXTS needs a format that can carry it before it can be decided on.
         List<String> notSwitches = new ArrayList<>();
         for (Setting<?> setting : declaredSettings(Settings.class)) {
             if (!(setting instanceof BooleanSetting) && !SettingsBackup.TEXTS.contains(setting)) notSwitches.add(setting.key);
         }
         assertEquals("a setting in Settings isn't a switch or a list, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
-        assertEquals(Collections.singletonList(Settings.MUTED_WORDS), SettingsBackup.TEXTS);
+        assertEquals(Arrays.asList(Settings.MUTED_WORDS, SaveButtonColorSetting.SAVE_BUTTON_COLOR), SettingsBackup.TEXTS);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_AI_PINS, Settings.HIDE_AI_SELF_DESCRIBED,
                         Settings.HIDE_SHOPPING, Settings.HIDE_VIDEO_PINS, Settings.HIDE_SAVED_PINS, Settings.KEEP_HOME_FEED, Settings.DISABLE_ANALYTICS, Settings.STRIP_LINK_TRACKING, Settings.PLAIN_PIN_LINKS,
                         Settings.HIDE_ADVERTISING_ID, Settings.DOWNLOAD_PINS, Settings.SAVE_IN_PINTEREST_FOLDER,
@@ -250,6 +251,9 @@ public class SettingsBackupTest {
                         Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
                         Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU,
                         Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
+                        Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
+                        Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
+                        Settings.SMALLER_SAVE_BUTTON,
                         Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH,
                         Settings.HIDE_PIN_MENU_PIN_BOOST, Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_TOPIC_SUGGESTIONS,
                         Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES,
@@ -278,6 +282,7 @@ public class SettingsBackupTest {
     public void aFileIsItsFormatItsVersionAndOneValuePerSwitch() throws Exception {
         Settings.HIDE_ADS.save(false);
         Settings.MUTED_WORDS.save("cake, Wedding dress");
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#36f");
         Settings.CHECK_FOR_RELEASES.save(true);
         BaseSettings.PAUSED.save(true);
         BaseSettings.DEBUG.save(true);
@@ -306,6 +311,7 @@ public class SettingsBackupTest {
         // The list too: paused it reads as empty, and the file still holds what was saved.
         assertEquals("", Settings.MUTED_WORDS.get());
         assertEquals("[\"cake\",\"Wedding dress\"]", switches.get(Settings.MUTED_WORDS.key).toString());
+        assertEquals("#3366FF", switches.get(SaveButtonColorSetting.SAVE_BUTTON_COLOR.key));
         for (Setting<?> setting : Setting.allLoadedSettings()) {
             if (SettingsBackup.ALLOWLIST.contains(setting) || SettingsBackup.TEXTS.contains(setting)) continue;
             assertFalse(setting.key + " is in the file", text.contains(setting.key));
@@ -1360,6 +1366,85 @@ public class SettingsBackupTest {
         Bundle wrongLists = read.toBundle();
         wrongLists.putString("lists", "cake");
         assertNull(SettingsBackup.Snapshot.fromBundle(wrongLists));
+    }
+
+    // ---- Save button color in a file ----------------------------------------------------------
+
+    /**
+     * The color goes out as its code and comes back on a clean install as one change, undone with
+     * the rest. Cleared, it goes out empty, and a file from before the color was carried leaves it
+     * alone.
+     */
+    @Test
+    public void theSaveButtonColorRoundTripsAndAnOlderFileLeavesItAlone() throws Exception {
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.CLOSEUP_SAVE_BUTTON);
+        SaveButtonColorSetting color = SaveButtonColorSetting.SAVE_BUTTON_COLOR;
+        color.save("#3366ff");
+        String written = SettingsBackup.create();
+        assertEquals("#3366FF", new JSONObject(written).getJSONObject("settings").get(color.key));
+        color.resetToDefault();
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(written);
+        assertEquals(0, snapshot.switchChanges());
+        assertEquals("Your Save button color will change.\n\nSave button color (Pinterest's red to #3366FF)",
+                SettingsBackupPreference.previewMessage(snapshot));
+        assertEquals(0, SettingsBackup.apply(snapshot));
+        assertEquals("#3366FF", color.savedValue());
+        assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+        assertEquals("", color.savedValue());
+
+        assertEquals("", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(color.key));
+        color.save("#112233");
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(Settings.HIDE_ADS, false)));
+        assertEquals("a file that doesn't name the color changed it", "#112233", color.savedValue());
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(color, "")));
+        assertEquals("an empty color in a file is Pinterest's red", "", color.savedValue());
+    }
+
+    @Test
+    public void aFilesColorIsCleanedTheWayTheDialogCleansWhatsTyped() throws Exception {
+        SettingsBackup.apply(SettingsBackup.parse(fileWith(SaveButtonColorSetting.SAVE_BUTTON_COLOR, " # 3a6 ")));
+        assertEquals("#33AA66", SaveButtonColorSetting.SAVE_BUTTON_COLOR.savedValue());
+    }
+
+    @Test
+    public void aColorTheDialogWouldTurnDownRefusesTheWholeFile() throws Exception {
+        for (Object wrong : new Object[]{"#XYZ", "red", "#12345", "#3366FF80", true, 3, JSONObject.NULL,
+                new JSONArray().put("#3366FF")}) {
+            assertEquals(String.valueOf(wrong), SettingsBackup.Reason.VALUE,
+                    reasonFor(fileWith(Settings.HIDE_ADS, false, SaveButtonColorSetting.SAVE_BUTTON_COLOR, wrong)));
+        }
+        assertEquals("", SaveButtonColorSetting.SAVE_BUTTON_COLOR.savedValue());
+        assertTrue(Settings.HIDE_ADS.savedValue());
+    }
+
+    @Test
+    public void thePreviewNamesTheWordsAndTheColorAndSaysWhenTheColorsPatchIsMissing() throws Exception {
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_MUTED_WORDS);
+        Settings.MUTED_WORDS.save("cake");
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#112233");
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(fileWith(Settings.MUTED_WORDS, new JSONArray(),
+                SaveButtonColorSetting.SAVE_BUTTON_COLOR, ""));
+        assertEquals("Your muted words and Save button color will change.\n\nMuted words (1 word to none)\n\n"
+                        + "Save button color (#112233 to Pinterest's red)\n"
+                        + "Your choice is saved, but this build doesn't include the patch for it.",
+                SettingsBackupPreference.previewMessage(snapshot));
+    }
+
+    @Test
+    public void aLaterColorEditExpiresUndoAndAWaitingColorSurvivesAsABundle() throws Exception {
+        SettingsBackup.Snapshot read = SettingsBackup.parse(fileWith(SaveButtonColorSetting.SAVE_BUTTON_COLOR, "#3366FF"));
+        SettingsBackup.Snapshot back = SettingsBackup.Snapshot.fromBundle(throughParcel(read.toBundle()));
+        assertNotNull(back);
+        assertEquals(Collections.singletonMap(SaveButtonColorSetting.SAVE_BUTTON_COLOR, "#3366FF"), back.texts);
+        Bundle wrongColor = read.toBundle();
+        wrongColor.getBundle("lists").putString(SaveButtonColorSetting.SAVE_BUTTON_COLOR.key, "#XYZ");
+        assertNull(SettingsBackup.Snapshot.fromBundle(wrongColor));
+
+        SettingsBackup.apply(read);
+        assertEquals(SettingsBackup.UndoState.AVAILABLE, SettingsBackup.undoState());
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#000000");
+        assertEquals(SettingsBackup.UndoResult.EXPIRED, SettingsBackup.undo());
+        assertEquals("#000000", SaveButtonColorSetting.SAVE_BUTTON_COLOR.savedValue());
     }
 
     private static Bundle throughParcel(Bundle bundle) {

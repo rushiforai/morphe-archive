@@ -1,3 +1,150 @@
+## [2.1.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.0.0...v2.1.0) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **365scores:** updated to version 14.9.8 ([27cb747](https://github.com/heval99/Heval-Morphe-Patches/commit/27cb747ff5fbb4627742ed6641249e0ef5fd4393))
+* **aquamail:** updated to version 2.8.1 ([0c4f1bf](https://github.com/heval99/Heval-Morphe-Patches/commit/0c4f1bf3607b6b84c9419d720474737d713ae6b8))
+* **besoccer:** updated to version 6.7.0 ([b7f97c0](https://github.com/heval99/Heval-Morphe-Patches/commit/b7f97c052d368f094cb0364e794aa5953abe736f))
+* **bleacherreport:** updated to version 11.13.0.39 ([4ee772c](https://github.com/heval99/Heval-Morphe-Patches/commit/4ee772c59f889a2573512af76067eb443149ae14))
+* **bluemail:** updated to version 2.2.418 ([c0466e8](https://github.com/heval99/Heval-Morphe-Patches/commit/c0466e816d23ffc43c5c6d2a9827938a7aa88566))
+* **brave:** updated to version 1.98.62 ([caddfd6](https://github.com/heval99/Heval-Morphe-Patches/commit/caddfd64c5ad89e2e90d058b8839d3be98976f38))
+* **crex:** updated to version 26.10.09 ([71fdb1d](https://github.com/heval99/Heval-Morphe-Patches/commit/71fdb1d385635f7282734d42bee43bf8dfa3d88a))
+* **easylauncher:** updated to version 1.10.29 ([4a9e440](https://github.com/heval99/Heval-Morphe-Patches/commit/4a9e44023553c152ee1e7ecb4f29739e3fec533a))
+* **easynotes:** updated to version 1.3.65.1019 ([08e253f](https://github.com/heval99/Heval-Morphe-Patches/commit/08e253f5779654654b45edef33dc2d06f3a7f3eb))
+* **expertplayer:** updated to version 11.4.0 ([e1f9090](https://github.com/heval99/Heval-Morphe-Patches/commit/e1f909071a69386c533c98ba695f6d5dd1274d50))
+* **fotmob:** correct the 240.17974 versionCode ([0bc1de4](https://github.com/heval99/Heval-Morphe-Patches/commit/0bc1de42066de10e55537e6337f0d558305b7322))
+* **fotmob:** updated to version 240.17974.20261023 ([2c525a3](https://github.com/heval99/Heval-Morphe-Patches/commit/2c525a3b0ea64e39047f84eeeb6671980d7cef94))
+* **hevy:** updated to version 3.2.4 ([b6bbfcb](https://github.com/heval99/Heval-Morphe-Patches/commit/b6bbfcbdc777474637dc3878d2008d8a10b3f46e))
+* **hyperion:** updated to version 2.2.14 ([a6ee2e5](https://github.com/heval99/Heval-Morphe-Patches/commit/a6ee2e5222424026a077cb1001627de665435b8a))
+* **livescore:** updated to version 10.4 ([8815de9](https://github.com/heval99/Heval-Morphe-Patches/commit/8815de9f63ae83d32ec095cc3b596c42d66c7960))
+* **moneycontrol:** updated to version 14.6.3.RC0 ([378cfb4](https://github.com/heval99/Heval-Morphe-Patches/commit/378cfb417b73fda5ef070287d63e3000520792e6))
+* **myfitnesspal:** updated to version 26.43.0 ([10739c5](https://github.com/heval99/Heval-Morphe-Patches/commit/10739c570e973cac7f4cb09a8fd20cf877a75e53))
+* **onecricket:** updated to version 26.10.01 ([06a6eb2](https://github.com/heval99/Heval-Morphe-Patches/commit/06a6eb22f6a6474385d2ba659825225131811d2e))
+* **rarecam:** updated to version 1.0.92 ([07ec9ae](https://github.com/heval99/Heval-Morphe-Patches/commit/07ec9ae76c3cd2d42c6c19955702e27305be0cc2))
+* **shazam:** updated to version 16.65.0-261022 ([76df8a5](https://github.com/heval99/Heval-Morphe-Patches/commit/76df8a5a76c3b738771c7bda738205dbb48348b0))
+* **sofascore:** updated to version 26.10.19 ([30d7fbc](https://github.com/heval99/Heval-Morphe-Patches/commit/30d7fbc6bf83e94cfb8d89b9f0ce2dfa6208a243))
+* **transfermarkt:** updated to version 4.3.3 ([e301b9f](https://github.com/heval99/Heval-Morphe-Patches/commit/e301b9fee5cdadd38d531dfd3309154be9abbcb7))
+* **truecaller:** guard the toggle override and button swap inserts ([2986696](https://github.com/heval99/Heval-Morphe-Patches/commit/2986696e636bdca368bc01f8881904e7ce86f580))
+* **wsj:** updated to version 15.12.0.42675 ([d79455d](https://github.com/heval99/Heval-Morphe-Patches/commit/d79455d1e1ac5b897e479b845a4c785dfa600220))
+* **ztnnotepad:** updated to version 5.4.4.19080 ([374daa5](https://github.com/heval99/Heval-Morphe-Patches/commit/374daa5487b07bb0019fde7aba915483cb7d1d58))
+
+### ✨ New Features
+
+* **bbcnews:** add Disable ads ([141a7e3](https://github.com/heval99/Heval-Morphe-Patches/commit/141a7e352be54799bfce62fc44d0b1a431428a7e))
+* **bold:** add Disable ads ([f67b7e8](https://github.com/heval99/Heval-Morphe-Patches/commit/f67b7e8a2ab128753ffe728014de75de43de1588))
+* **bookly:** add Enable Premium ([003bd73](https://github.com/heval99/Heval-Morphe-Patches/commit/003bd73a37807cbb4a8c663844e140095ae9c4ce))
+* **droidcam:** add Disable ads ([cac5896](https://github.com/heval99/Heval-Morphe-Patches/commit/cac5896b13d1d3e7181bb4a519e8321b057c3f42))
+* **drtv:** add DRTV with Disable telemetry, Auto skip intro and Allow free rotation ([90ebdc3](https://github.com/heval99/Heval-Morphe-Patches/commit/90ebdc32905328811ac37ed0675b27153f777d0f))
+* **firefoxfocus:** add Dark Reader to the Extensions manager ([9ff4e33](https://github.com/heval99/Heval-Morphe-Patches/commit/9ff4e334cb0a7f3907da41e4e2cce329aa78799a)), closes [#86](https://github.com/heval99/Heval-Morphe-Patches/issues/86)
+* **forzafootball:** add Enable Premium and Spoof signature ([ede1069](https://github.com/heval99/Heval-Morphe-Patches/commit/ede10698e2ae75449f9a36e8c54f9b122dcec766))
+* **forzafootball:** add Forza Football with Disable ads, Disable telemetry and Hide betting content ([dc4364c](https://github.com/heval99/Heval-Morphe-Patches/commit/dc4364c26e97506f90595eed49a385fea97898e4))
+* **fotmob:** add Use system font ([386ad92](https://github.com/heval99/Heval-Morphe-Patches/commit/386ad92a422ec244a711de6448dd6ec04a20a772))
+* **mango:** add Enable Premium and Disable license check ([4284a0e](https://github.com/heval99/Heval-Morphe-Patches/commit/4284a0e051d6ebcedc75e6ad2eaf2476e9ef5caf))
+* **minimalist:** add Enable Premium ([18a3502](https://github.com/heval99/Heval-Morphe-Patches/commit/18a35020267ad6d4b2d903f4faa4b73753932fd5))
+* **niagara:** add Disable telemetry ([1a73271](https://github.com/heval99/Heval-Morphe-Patches/commit/1a732717b073c9e6a28480213fd33a99e447b21a))
+* **niagara:** add Enable Premium ([e2232e2](https://github.com/heval99/Heval-Morphe-Patches/commit/e2232e298864aaf99b338a8b0cd575729d3106da))
+* **rarecam:** add Enable Premium and Disable license check ([da768d3](https://github.com/heval99/Heval-Morphe-Patches/commit/da768d32dd039049d358752f62073ebf230e5d3e))
+* **rtenews:** add Disable ads ([e61fbb1](https://github.com/heval99/Heval-Morphe-Patches/commit/e61fbb1f013e3d0e571426e07516b694b55c4da5))
+* **structured:** add Enable Premium and Disable license check ([43061f4](https://github.com/heval99/Heval-Morphe-Patches/commit/43061f4748a2f14e2520dcb633a2fc5e5fd3cb41))
+* **taskito:** add Enable Premium ([219ae80](https://github.com/heval99/Heval-Morphe-Patches/commit/219ae803e57398f9a7908fbbd049f111cdabca52))
+* **taskito:** add Hide Premium tab ([6ec0fdc](https://github.com/heval99/Heval-Morphe-Patches/commit/6ec0fdc182a1f3112c06636ca7b27b41e49373ac))
+* **timetune:** add Enable Premium ([b927dde](https://github.com/heval99/Heval-Morphe-Patches/commit/b927dde1262472c5da2f6cda777ee0c9a591db1d))
+* **truecaller:** add Disable call button haptics ([8843842](https://github.com/heval99/Heval-Morphe-Patches/commit/88438423400adff7f1da257776d091815dd9aad4))
+* **truecaller:** add Hide frequently called contacts and Hide important senders ([d75b3e2](https://github.com/heval99/Heval-Morphe-Patches/commit/d75b3e248fcfa4c54ba795570ccf7bbae441ed6e))
+* **truecaller:** add Swap call answer and decline buttons, updated to version 26.42.5 ([e5866d2](https://github.com/heval99/Heval-Morphe-Patches/commit/e5866d280b601b512205cb2a52ffb4bb23fd8681))
+* **upnote:** add Enable Premium ([96b44ec](https://github.com/heval99/Heval-Morphe-Patches/commit/96b44ec454894dbac74e419386cd2e89b7ebeeb2))
+* **viaplay:** add Viaplay with Disable telemetry and Skip ads ([f8b8b5c](https://github.com/heval99/Heval-Morphe-Patches/commit/f8b8b5cc1abc096e0556342996443cd129df37b8))
+* **wemuslim:** add Hide feed clutter ([7faa5f1](https://github.com/heval99/Heval-Morphe-Patches/commit/7faa5f1bbc729f478cb680e7f0d276b05404f095)), closes [#93](https://github.com/heval99/Heval-Morphe-Patches/issues/93)
+
+## [2.1.0-dev.6](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.1.0-dev.5...v2.1.0-dev.6) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* **fotmob:** correct the 240.17974 versionCode ([0bc1de4](https://github.com/heval99/Heval-Morphe-Patches/commit/0bc1de42066de10e55537e6337f0d558305b7322))
+* **truecaller:** guard the toggle override and button swap inserts ([2986696](https://github.com/heval99/Heval-Morphe-Patches/commit/2986696e636bdca368bc01f8881904e7ce86f580))
+
+### ✨ New Features
+
+* **fotmob:** add Use system font ([386ad92](https://github.com/heval99/Heval-Morphe-Patches/commit/386ad92a422ec244a711de6448dd6ec04a20a772))
+* **taskito:** add Hide Premium tab ([6ec0fdc](https://github.com/heval99/Heval-Morphe-Patches/commit/6ec0fdc182a1f3112c06636ca7b27b41e49373ac))
+* **truecaller:** add Disable call button haptics ([8843842](https://github.com/heval99/Heval-Morphe-Patches/commit/88438423400adff7f1da257776d091815dd9aad4))
+* **truecaller:** add Swap call answer and decline buttons, updated to version 26.42.5 ([e5866d2](https://github.com/heval99/Heval-Morphe-Patches/commit/e5866d280b601b512205cb2a52ffb4bb23fd8681))
+
+## [2.1.0-dev.5](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.1.0-dev.4...v2.1.0-dev.5) (2026-10-30)
+
+### 🐛 Bug Fixes
+
+* **aquamail:** updated to version 2.8.1 ([0c4f1bf](https://github.com/heval99/Heval-Morphe-Patches/commit/0c4f1bf3607b6b84c9419d720474737d713ae6b8))
+* **bluemail:** updated to version 2.2.418 ([c0466e8](https://github.com/heval99/Heval-Morphe-Patches/commit/c0466e816d23ffc43c5c6d2a9827938a7aa88566))
+* **easynotes:** updated to version 1.3.65.1019 ([08e253f](https://github.com/heval99/Heval-Morphe-Patches/commit/08e253f5779654654b45edef33dc2d06f3a7f3eb))
+* **hyperion:** updated to version 2.2.14 ([a6ee2e5](https://github.com/heval99/Heval-Morphe-Patches/commit/a6ee2e5222424026a077cb1001627de665435b8a))
+* **livescore:** updated to version 10.4 ([8815de9](https://github.com/heval99/Heval-Morphe-Patches/commit/8815de9f63ae83d32ec095cc3b596c42d66c7960))
+* **moneycontrol:** updated to version 14.6.3.RC0 ([378cfb4](https://github.com/heval99/Heval-Morphe-Patches/commit/378cfb417b73fda5ef070287d63e3000520792e6))
+* **onecricket:** updated to version 26.10.01 ([06a6eb2](https://github.com/heval99/Heval-Morphe-Patches/commit/06a6eb22f6a6474385d2ba659825225131811d2e))
+* **rarecam:** updated to version 1.0.92 ([07ec9ae](https://github.com/heval99/Heval-Morphe-Patches/commit/07ec9ae76c3cd2d42c6c19955702e27305be0cc2))
+* **ztnnotepad:** updated to version 5.4.4.19080 ([374daa5](https://github.com/heval99/Heval-Morphe-Patches/commit/374daa5487b07bb0019fde7aba915483cb7d1d58))
+
+## [2.1.0-dev.4](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.1.0-dev.3...v2.1.0-dev.4) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **besoccer:** updated to version 6.7.0 ([b7f97c0](https://github.com/heval99/Heval-Morphe-Patches/commit/b7f97c052d368f094cb0364e794aa5953abe736f))
+* **bleacherreport:** updated to version 11.13.0.39 ([4ee772c](https://github.com/heval99/Heval-Morphe-Patches/commit/4ee772c59f889a2573512af76067eb443149ae14))
+* **hevy:** updated to version 3.2.4 ([b6bbfcb](https://github.com/heval99/Heval-Morphe-Patches/commit/b6bbfcbdc777474637dc3878d2008d8a10b3f46e))
+
+### ✨ New Features
+
+* **bold:** add Disable ads ([f67b7e8](https://github.com/heval99/Heval-Morphe-Patches/commit/f67b7e8a2ab128753ffe728014de75de43de1588))
+
+## [2.1.0-dev.3](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.1.0-dev.2...v2.1.0-dev.3) (2026-10-29)
+
+### 🐛 Bug Fixes
+
+* **365scores:** updated to version 14.9.8 ([27cb747](https://github.com/heval99/Heval-Morphe-Patches/commit/27cb747ff5fbb4627742ed6641249e0ef5fd4393))
+* **brave:** updated to version 1.98.62 ([caddfd6](https://github.com/heval99/Heval-Morphe-Patches/commit/caddfd64c5ad89e2e90d058b8839d3be98976f38))
+* **crex:** updated to version 26.10.09 ([71fdb1d](https://github.com/heval99/Heval-Morphe-Patches/commit/71fdb1d385635f7282734d42bee43bf8dfa3d88a))
+* **easylauncher:** updated to version 1.10.29 ([4a9e440](https://github.com/heval99/Heval-Morphe-Patches/commit/4a9e44023553c152ee1e7ecb4f29739e3fec533a))
+* **expertplayer:** updated to version 11.4.0 ([e1f9090](https://github.com/heval99/Heval-Morphe-Patches/commit/e1f909071a69386c533c98ba695f6d5dd1274d50))
+* **fotmob:** updated to version 240.17974.20261023 ([2c525a3](https://github.com/heval99/Heval-Morphe-Patches/commit/2c525a3b0ea64e39047f84eeeb6671980d7cef94))
+* **myfitnesspal:** updated to version 26.43.0 ([10739c5](https://github.com/heval99/Heval-Morphe-Patches/commit/10739c570e973cac7f4cb09a8fd20cf877a75e53))
+* **shazam:** updated to version 16.65.0-261022 ([76df8a5](https://github.com/heval99/Heval-Morphe-Patches/commit/76df8a5a76c3b738771c7bda738205dbb48348b0))
+* **sofascore:** updated to version 26.10.19 ([30d7fbc](https://github.com/heval99/Heval-Morphe-Patches/commit/30d7fbc6bf83e94cfb8d89b9f0ce2dfa6208a243))
+* **transfermarkt:** updated to version 4.3.3 ([e301b9f](https://github.com/heval99/Heval-Morphe-Patches/commit/e301b9fee5cdadd38d531dfd3309154be9abbcb7))
+* **wsj:** updated to version 15.12.0.42675 ([d79455d](https://github.com/heval99/Heval-Morphe-Patches/commit/d79455d1e1ac5b897e479b845a4c785dfa600220))
+
+### ✨ New Features
+
+* **bbcnews:** add Disable ads ([141a7e3](https://github.com/heval99/Heval-Morphe-Patches/commit/141a7e352be54799bfce62fc44d0b1a431428a7e))
+* **drtv:** add DRTV with Disable telemetry, Auto skip intro and Allow free rotation ([90ebdc3](https://github.com/heval99/Heval-Morphe-Patches/commit/90ebdc32905328811ac37ed0675b27153f777d0f))
+* **taskito:** add Enable Premium ([219ae80](https://github.com/heval99/Heval-Morphe-Patches/commit/219ae803e57398f9a7908fbbd049f111cdabca52))
+* **timetune:** add Enable Premium ([b927dde](https://github.com/heval99/Heval-Morphe-Patches/commit/b927dde1262472c5da2f6cda777ee0c9a591db1d))
+* **viaplay:** add Viaplay with Disable telemetry and Skip ads ([f8b8b5c](https://github.com/heval99/Heval-Morphe-Patches/commit/f8b8b5cc1abc096e0556342996443cd129df37b8))
+
+## [2.1.0-dev.2](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.1.0-dev.1...v2.1.0-dev.2) (2026-10-28)
+
+### ✨ New Features
+
+* **bookly:** add Enable Premium ([003bd73](https://github.com/heval99/Heval-Morphe-Patches/commit/003bd73a37807cbb4a8c663844e140095ae9c4ce))
+* **droidcam:** add Disable ads ([cac5896](https://github.com/heval99/Heval-Morphe-Patches/commit/cac5896b13d1d3e7181bb4a519e8321b057c3f42))
+* **forzafootball:** add Enable Premium and Spoof signature ([ede1069](https://github.com/heval99/Heval-Morphe-Patches/commit/ede10698e2ae75449f9a36e8c54f9b122dcec766))
+* **forzafootball:** add Forza Football with Disable ads, Disable telemetry and Hide betting content ([dc4364c](https://github.com/heval99/Heval-Morphe-Patches/commit/dc4364c26e97506f90595eed49a385fea97898e4))
+* **mango:** add Enable Premium and Disable license check ([4284a0e](https://github.com/heval99/Heval-Morphe-Patches/commit/4284a0e051d6ebcedc75e6ad2eaf2476e9ef5caf))
+* **minimalist:** add Enable Premium ([18a3502](https://github.com/heval99/Heval-Morphe-Patches/commit/18a35020267ad6d4b2d903f4faa4b73753932fd5))
+* **niagara:** add Disable telemetry ([1a73271](https://github.com/heval99/Heval-Morphe-Patches/commit/1a732717b073c9e6a28480213fd33a99e447b21a))
+* **niagara:** add Enable Premium ([e2232e2](https://github.com/heval99/Heval-Morphe-Patches/commit/e2232e298864aaf99b338a8b0cd575729d3106da))
+* **rarecam:** add Enable Premium and Disable license check ([da768d3](https://github.com/heval99/Heval-Morphe-Patches/commit/da768d32dd039049d358752f62073ebf230e5d3e))
+* **rtenews:** add Disable ads ([e61fbb1](https://github.com/heval99/Heval-Morphe-Patches/commit/e61fbb1f013e3d0e571426e07516b694b55c4da5))
+* **structured:** add Enable Premium and Disable license check ([43061f4](https://github.com/heval99/Heval-Morphe-Patches/commit/43061f4748a2f14e2520dcb633a2fc5e5fd3cb41))
+* **upnote:** add Enable Premium ([96b44ec](https://github.com/heval99/Heval-Morphe-Patches/commit/96b44ec454894dbac74e419386cd2e89b7ebeeb2))
+* **wemuslim:** add Hide feed clutter ([7faa5f1](https://github.com/heval99/Heval-Morphe-Patches/commit/7faa5f1bbc729f478cb680e7f0d276b05404f095)), closes [#93](https://github.com/heval99/Heval-Morphe-Patches/issues/93)
+
+## [2.1.0-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v2.0.0...v2.1.0-dev.1) (2026-10-26)
+
+### ✨ New Features
+
+* **firefoxfocus:** add Dark Reader to the Extensions manager ([9ff4e33](https://github.com/heval99/Heval-Morphe-Patches/commit/9ff4e334cb0a7f3907da41e4e2cce329aa78799a)), closes [#86](https://github.com/heval99/Heval-Morphe-Patches/issues/86)
+* **truecaller:** add Hide frequently called contacts and Hide important senders ([d75b3e2](https://github.com/heval99/Heval-Morphe-Patches/commit/d75b3e248fcfa4c54ba795570ccf7bbae441ed6e))
+
 ## [2.0.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.19.0...v2.0.0) (2026-10-26)
 
 ### ⚠ BREAKING CHANGES

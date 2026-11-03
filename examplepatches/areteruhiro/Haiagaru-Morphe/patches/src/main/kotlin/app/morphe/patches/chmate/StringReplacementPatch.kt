@@ -21,8 +21,8 @@ internal fun BytecodePatchContext.patchStringReplacement() {
     }
     var methodsPatched = 0
     var sitesPatched = 0
-    classDefForEach { klass ->
-        if (!klass.type.startsWith("Lo/")) return@classDefForEach
+    boundClassForEach("StringReplacementPatch:1") { klass ->
+        if (!klass.type.startsWith("Lo/")) return@boundClassForEach
         klass.methods.forEach { method ->
             val instructions = method.implementation?.instructions ?: return@forEach
             // Response row rendering has a dedicated five-argument URL scanner.

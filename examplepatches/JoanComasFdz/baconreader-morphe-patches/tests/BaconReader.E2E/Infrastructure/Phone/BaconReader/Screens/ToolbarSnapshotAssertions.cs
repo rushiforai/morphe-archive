@@ -14,7 +14,8 @@ public static class ToolbarSnapshotAssertions
     {
         var shown = that.InstanceToAssert.Feed;
         Assert.True(
-            shown == feed,
+            // A subreddit's feed reads as unlisted (FeedShowing.ReadFeed): it compares by the text shown.
+            shown.ToShownText() == feed.ToShownText(),
             $"The toolbar shows the \"{shown.ToShownText()}\" feed, but \"{feed.ToShownText()}\" was expected.");
         return that;
     }

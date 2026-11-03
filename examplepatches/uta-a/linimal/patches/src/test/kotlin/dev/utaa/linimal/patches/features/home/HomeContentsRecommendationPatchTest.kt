@@ -17,7 +17,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val VIEW_HOLDER = "Lo42/d;"
-private const val CONTENT_MODEL = "Li42/c;"
+private const val CONTENT_MODEL = "Lkd2/c;"
 
 /**
  * recommendation binder の注入位置を固定します。抑制経路は `iput-object v0, ...` で cache を消して
@@ -145,7 +145,7 @@ class HomeContentsRecommendationPatchTest {
             2,
             1, 2, 0, 0, 0,
             ImmutableMethodReference(
-                "Lkotlin/jvm/internal/p;",
+                "Lkotlin/jvm/internal/n;",
                 "b",
                 listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
                 "Z",
@@ -158,13 +158,13 @@ class HomeContentsRecommendationPatchTest {
         // addr 000a
         ImmutableInstruction10x(Opcode.RETURN_VOID),
         // addr 000b: impression tracker
-        ImmutableInstruction22c(Opcode.IGET_OBJECT, 1, 0, field(VIEW_HOLDER, "d", "Ll72/r;")),
+        ImmutableInstruction22c(Opcode.IGET_OBJECT, 1, 0, field(VIEW_HOLDER, "d", "Lsg2/u;")),
         // addr 000d
         ImmutableInstruction35c(
             Opcode.INVOKE_VIRTUAL,
             1,
             1, 0, 0, 0, 0,
-            ImmutableMethodReference("Ll72/r;", "a", emptyList(), "V"),
+            ImmutableMethodReference("Lsg2/u;", "a", emptyList(), "V"),
         ),
         // addr 0010: 行を並べる LinearLayout
         ImmutableInstruction22c(

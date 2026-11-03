@@ -75,12 +75,16 @@ public final class Premium {
         groups.add(group);
     }
 
-    /** Settings: drops the "Upgrade" row free accounts get. */
+    /**
+     * A mutable copy of a settings row list with the Upgrade row filtered, or null for null. The
+     * return type is ArrayList because the 4.10.23 settings adapter keeps its combined rows in an
+     * ArrayList field: writing a plain List there fails the DEX verifier and opening Settings
+     * crashes. ArrayList is assignable to both that field and the List fields.
+     */
     @SuppressWarnings("rawtypes")
-    /** A mutable copy of a settings row list with the Upgrade row filtered, or null for null. */
-    public static List copyFilteredSettingsRows(List rows) {
+    public static ArrayList copyFilteredSettingsRows(List rows) {
         if (rows == null) return null;
-        List copy = new ArrayList(rows);
+        ArrayList copy = new ArrayList(rows);
         filterSettingsRows(copy);
         return copy;
     }

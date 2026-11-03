@@ -17,6 +17,39 @@ public sealed partial class Reddit(RedditWorld world)
     /// <summary>"Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt;": a text post, made now.</summary>
     public void HasAPost(string title, string subreddit) => world.AddPost(subreddit, title);
 
+    /// <summary>"Reddit has a gallery post "&lt;title&gt;" in r/&lt;subreddit&gt;": a gallery of one image, made now.</summary>
+    public void HasAGalleryPost(string title, string subreddit) => world.AddPost(subreddit, title, post => post.AsGallery());
+
+    /// <summary>
+    /// "Reddit has a post "&lt;title&gt;" on the test account's profile": a text post by the test account in its
+    /// profile's subreddit, <c>r/u_&lt;name&gt;</c>, as Reddit keeps a profile's posts.
+    /// </summary>
+    public void HasAPostOnTheTestAccountsProfile(string title) =>
+        world.AddPost("u_" + TestAccount.UserName, title, post => post.By(TestAccount.UserName));
+
+    /// <summary>
+    /// "Reddit has a link post "&lt;title&gt;" in r/&lt;subreddit&gt; linking to a share link of the post "&lt;target&gt;"":
+    /// a link post whose address is <c>https://www.reddit.com/r/&lt;sub&gt;/s/&lt;code&gt;</c>, that Reddit redirects to
+    /// that post.
+    /// </summary>
+    public void HasALinkPostLinkingToAShareLinkOfThePost(string title, string subreddit, string target)
+    {
+        var shared = PostTitled(target);
+        var link = world.AddShareLink("r/" + shared.Subreddit.Name, shared.Permalink);
+        world.AddPost(subreddit, title, post => post.LinkingTo("https://www.reddit.com" + link));
+    }
+
+    /// <summary>
+    /// The requests Reddit got for share links, oldest first: each link's path, the status it answered, and the title of
+    /// the post it leads to (null when it leads to none).
+    /// </summary>
+    public RedditShareLinkRequestsSnapshot ReadRequestsForShareLinks() =>
+        new([.. world.Requests
+            .Where(request => request.Method == "GET" && ShareLinkPath().IsMatch(request.Path))
+            .Select(request => new RedditShareLinkRequest(request.Path, request.Status, world.ShareLinkTarget(request.Path) is { } target
+                ? world.Posts.FirstOrDefault(post => target == post.Permalink || target == RedditPost.ProfilePermalink(post))?.Title
+                : null))]);
+
     /// <summary>
     /// "Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt; with the text "&lt;text&gt;" and an image": a text post
     /// whose text is <paramref name="text"/> and then an image uploaded in it.
@@ -37,6 +70,24 @@ public sealed partial class Reddit(RedditWorld world)
     /// </summary>
     public void HasAPostWithTheTextAndTheTable(string title, string subreddit, string text, string[][] rows) =>
         world.AddPost(subreddit, title, post => post.WithText($"{text}\n\n{RedditTable.ToMarkdown(rows)}"));
+
+    /// <summary>"Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt; with the flair "&lt;flair&gt;"": a text post with that flair.</summary>
+    public void HasAPostWithTheFlair(string title, string subreddit, string flair) =>
+        world.AddPost(subreddit, title, post => post.WithFlair(flair));
+
+    /// <summary>
+    /// "Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt; with &lt;count&gt; Silver awards": a text post given
+    /// Reddit's Silver that many times, which Reddit's API reported until 2023.
+    /// </summary>
+    public void HasAPostWithSilverAwards(string title, string subreddit, int count) =>
+        world.AddPost(subreddit, title, post => post.WithSilver(count));
+
+    /// <summary>
+    /// "r/&lt;subreddit&gt; lets users choose the flairs "&lt;first&gt;", "&lt;second&gt;"…": the flairs Reddit lists for
+    /// it, in that order. A subreddit without this line keeps its flairs private: Reddit refuses the list.
+    /// </summary>
+    public void TheSubredditLetsUsersChooseTheFlairs(string subreddit, params string[] flairs) =>
+        world.Subreddit(subreddit).LinkFlairs = [.. flairs];
 
     /// <summary>
     /// The requests Reddit got for the comments of the post "<paramref name="title"/>", oldest first: the <c>limit</c>
@@ -161,6 +212,10 @@ public sealed partial class Reddit(RedditWorld world)
         return status == expected ? code : throw new ArgumentException($"\"{status}\" isn't a status Reddit answers: \"{expected}\" is.", nameof(status));
     }
 
+    // "/r/e2e/s/Share123", "/u/e2e_user/s/Share123": a share link.
+    [GeneratedRegex("^/(r|u)/[^/]+/s/[^/]+$")]
+    private static partial Regex ShareLinkPath();
+
     // "/", "/.json", "/hot.json", "/r/e2e/new/": a feed, as the app asks for it.
     [GeneratedRegex("^/(r/[^/]+/?)?(best|hot|new|top|rising|controversial)?(\\.json)?/?$")]
     private static partial Regex FeedPath();
@@ -171,6 +226,9 @@ public sealed class RedditPost(RedditWorld world, Post post)
 {
     /// <summary>"… has a comment "&lt;text&gt;"": a comment that says only <paramref name="text"/>.</summary>
     public void HasAComment(string text) => world.AddComment(post, text);
+
+    /// <summary>"… has a comment "&lt;text&gt;" with &lt;count&gt; Silver awards": a comment given Reddit's Silver that many times.</summary>
+    public void HasACommentWithSilverAwards(string text, int count) => world.AddComment(post, text, comment => comment.WithSilver(count));
 
     /// <summary>"… has a comment "&lt;text&gt;" by u/&lt;author&gt;".</summary>
     public void HasACommentBy(string text, string author) => world.AddComment(post, text, comment => comment.By(author));
@@ -196,6 +254,77 @@ public sealed class RedditPost(RedditWorld world, Post post)
     // An image the fake serves, named after the link's text.
     private string ImageUrl(string link) =>
         world.AddMedia(RedditMediaRequestsSnapshot.ImageLinkedBy(link), MediaAsset.Jpeg.ContentType, MediaAsset.Jpeg.Bytes);
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" linking to a share link of the post "&lt;title&gt;"": a comment whose text is a link,
+    /// <c>https://www.reddit.com/r/&lt;sub&gt;/s/&lt;code&gt;</c>, that Reddit redirects to that post.
+    /// </summary>
+    public void HasACommentLinkingToAShareLinkOfThePost(string text, string title)
+    {
+        var target = Titled(title);
+        HasACommentLinkingTo(text, world.AddShareLink("r/" + target.Subreddit.Name, target.Permalink));
+    }
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" linking to a profile share link of the post "&lt;title&gt;"": a link
+    /// <c>https://www.reddit.com/u/&lt;author&gt;/s/&lt;code&gt;</c>, that Reddit redirects to that post on its author's
+    /// profile.
+    /// </summary>
+    public void HasACommentLinkingToAProfileShareLinkOfThePost(string text, string title)
+    {
+        var target = Titled(title);
+        HasACommentLinkingTo(text, world.AddShareLink("u/" + target.Author, ProfilePermalink(target)));
+    }
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" linking to a share link Reddit no longer knows in r/&lt;subreddit&gt;": a link
+    /// <c>https://www.reddit.com/r/&lt;subreddit&gt;/s/&lt;code&gt;</c> with a code Reddit has no link for.
+    /// </summary>
+    public void HasACommentLinkingToAShareLinkRedditNoLongerKnowsIn(string text, string subreddit) =>
+        HasACommentLinkingTo(text, $"/r/{subreddit}/s/Expired123");
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" linking to the post "&lt;title&gt;" without its subreddit": a link
+    /// <c>https://www.reddit.com/comments/&lt;id&gt;/&lt;slug&gt;/</c>.
+    /// </summary>
+    public void HasACommentLinkingToThePostWithoutItsSubreddit(string text, string title)
+    {
+        var target = Titled(title);
+        HasACommentLinkingTo(text, target.Permalink[("/r/" + target.Subreddit.Name).Length..]);
+    }
+
+    /// <summary>"… has a comment "&lt;text&gt;" linking to the gallery of "&lt;title&gt;"": a link <c>https://www.reddit.com/gallery/&lt;id&gt;</c>.</summary>
+    public void HasACommentLinkingToTheGalleryOf(string text, string title) =>
+        HasACommentLinkingTo(text, "/gallery/" + Titled(title).Id);
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" linking to the post "&lt;title&gt;" on the test account's profile": a link
+    /// <c>https://www.reddit.com/user/&lt;name&gt;/comments/&lt;id&gt;/&lt;slug&gt;/</c>, as a profile links its posts.
+    /// </summary>
+    public void HasACommentLinkingToThePostOnTheTestAccountsProfile(string text, string title)
+    {
+        var target = Titled(title);
+        if (target.Author != TestAccount.UserName)
+        {
+            throw new InvalidOperationException($"The post \"{title}\" isn't on the test account's profile: a Given line makes it there first.");
+        }
+
+        HasACommentLinkingTo(text, ProfilePermalink(target));
+    }
+
+    /// <summary>
+    /// A post's address on its author's profile, <c>/user/&lt;author&gt;/comments/&lt;id&gt;/&lt;slug&gt;/</c>: its
+    /// permalink with the author's profile in place of the subreddit.
+    /// </summary>
+    internal static string ProfilePermalink(Post target) =>
+        $"/user/{target.Author}{target.Permalink[("/r/" + target.Subreddit.Name).Length..]}";
+
+    // A comment that is only a link, its text "text", to the path on www.reddit.com, as Reddit's comments link Reddit.
+    private void HasACommentLinkingTo(string text, string path) => world.AddComment(post, $"[{text}](https://www.reddit.com{path})");
+
+    private Post Titled(string title) =>
+        world.Posts.SingleOrDefault(found => found.Title == title)
+            ?? throw new InvalidOperationException($"The scenario's Reddit has no post \"{title}\": a Given line makes it first.");
 
     /// <summary>"… has &lt;count&gt; comments, "Comment 1" to "Comment &lt;count&gt;"": that many comments, oldest first.</summary>
     public void HasComments(int count)
@@ -284,6 +413,12 @@ public sealed record RedditVotesSnapshot(ImmutableArray<RedditVote> Votes);
 
 /// <summary>The messages Reddit got marked as read, oldest first, by their subjects.</summary>
 public sealed record RedditReadMessagesSnapshot(ImmutableArray<string> Subjects);
+
+/// <summary>A request Reddit got for a share link: its path, the status it answered, and the title of the post it leads to, if any.</summary>
+public sealed record RedditShareLinkRequest(string Path, int Status, string? Post);
+
+/// <summary>The requests Reddit got for share links, oldest first.</summary>
+public sealed record RedditShareLinkRequestsSnapshot(ImmutableArray<RedditShareLinkRequest> Requests);
 
 /// <summary>The requests Reddit got for posts while logged in, oldest first.</summary>
 public sealed record RedditPostsRequestsSnapshot(ImmutableArray<RecordedRequest> Requests);

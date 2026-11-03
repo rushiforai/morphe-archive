@@ -12,6 +12,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.facebook.graphservice.tree.TreeJNI;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -25,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -76,12 +80,14 @@ public class ReelDeclutterTest {
         Settings.HIDE_REEL_SHARE_BUTTON.resetToDefault();
         Settings.SHOW_REEL_COMMENT_BUTTON.resetToDefault();
         Settings.SHOW_REEL_POST_DATE.resetToDefault();
+        Settings.REEL_POST_DATE_STYLE.resetToDefault();
         Settings.HIDE_VIDEO_SUBSCRIBE_BUTTON.resetToDefault();
         Settings.HIDE_REEL_SOUND_BUTTON.resetToDefault();
         Settings.REEL_SPEAKER_ABOVE_MENU.resetToDefault();
         ReelDeclutter.sideSpeaker(null);
         Settings.HIDE_REEL_AUDIO_LINE.resetToDefault();
         Settings.HIDE_SLOW_CONNECTION_MESSAGE.resetToDefault();
+        Settings.HIDE_UP_NEXT.resetToDefault();
         Settings.PLAY_FEED_REELS_WHOLE.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         FeedFilterCounters.clear();
@@ -287,6 +293,54 @@ public class ReelDeclutterTest {
     }
 
     /**
+     * The UP NEXT bar under a video opened from the feed (#367) gets its video until the switch is on:
+     * then the lookup is skipped and the videos are handed out empty. Both come back paused, before
+     * the settings are ready and once the switch is off again.
+     */
+    @Test
+    public void upNextGetsItsVideoUntilItsSwitchIsOn() {
+        assertFalse(Settings.HIDE_UP_NEXT.defaultValue);
+        assertFalse("the other Reels switches took the lookup", ReelDeclutter.skipUpNextFetch());
+        assertFalse("the other Reels switches took the videos", ReelDeclutter.hideUpNextVideos());
+        Settings.HIDE_UP_NEXT.save(true);
+        assertTrue(ReelDeclutter.skipUpNextFetch());
+        assertTrue(ReelDeclutter.hideUpNextVideos());
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("the lookup went while paused", ReelDeclutter.skipUpNextFetch());
+        assertFalse("the videos went while paused", ReelDeclutter.hideUpNextVideos());
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            assertFalse("the lookup went before the settings were ready", ReelDeclutter.skipUpNextFetch());
+            assertFalse("the videos went before the settings were ready", ReelDeclutter.hideUpNextVideos());
+        });
+        Settings.HIDE_UP_NEXT.save(false);
+        assertFalse("turning the switch off didn't bring the lookup back", ReelDeclutter.skipUpNextFetch());
+        assertFalse("turning the switch off didn't bring the videos back", ReelDeclutter.hideUpNextVideos());
+        assertEquals(ReelDeclutter.UP_NEXT_ROUTE + ": 10 lists, 10 items, 2 removed. Last reason: "
+                        + ReelDeclutter.UP_NEXT_VIDEOS + ". Removed: " + ReelDeclutter.UP_NEXT_FETCH + " 1, "
+                        + ReelDeclutter.UP_NEXT_VIDEOS + " 1. Kinds: " + ReelDeclutter.UP_NEXT_FETCH + " 5, "
+                        + ReelDeclutter.UP_NEXT_VIDEOS + " 5",
+                line(ReelDeclutter.UP_NEXT_ROUTE));
+    }
+
+    /** An Up next switch that can't be read keeps the lookup and its videos, and the report names the hook. */
+    @Test
+    public void anUpNextSwitchThatCantBeReadKeepsTheVideo() {
+        SettingReadsForTests.breakReads(Settings.HIDE_UP_NEXT);
+        try {
+            assertFalse(ReelDeclutter.skipUpNextFetch());
+            assertFalse(ReelDeclutter.hideUpNextVideos());
+        } finally {
+            SettingReadsForTests.mend(Settings.HIDE_UP_NEXT);
+        }
+        String missing = HookStatus.missing(FamilyNames.REEL_DECLUTTER).toString();
+        assertTrue(missing, missing.contains("a working '" + ReelDeclutter.UP_NEXT_FETCH + "' hook (it threw "
+                + NullPointerException.class.getName() + ")"));
+        assertTrue(missing, missing.contains("a working '" + ReelDeclutter.UP_NEXT_VIDEOS + "' hook (it threw "
+                + NullPointerException.class.getName() + ")"));
+    }
+
+    /**
      * A tile of the feed's Reels row (#228) keeps Facebook's clip and end until its switch is on, then
      * skips the clip and plays to the end, and both come back paused, before the settings are ready
      * and once the switch is off again. A check that already said no stays no either way.
@@ -383,6 +437,110 @@ public class ReelDeclutterTest {
         Settings.SHOW_REEL_POST_DATE.save(false);
         assertFalse("turning the switch off didn't take the date away", ReelDeclutter.showsPostDate(false));
         assertTrue(ReelDeclutter.showsPostDate(true));
+    }
+
+    private static final long NOW = 1793620800_000L; // 2026-11-02 12:00 UTC
+    private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+
+    /**
+     * A reel older than Facebook's server switches allow got no date at all (#357). With the switch
+     * on it now reads how long ago, and The date gives the day it was posted, with the year only for
+     * an earlier one. Facebook's own words stay with How long ago, and a time that can't be a post's
+     * keeps whatever Facebook had.
+     */
+    @Test
+    public void anOldReelGetsItsPostDateWorded() {
+        long threeWeeks = NOW / 1000 - 21L * 24 * 60 * 60;
+        assertEquals("3 weeks ago", ReelDeclutter.postDate(null, threeWeeks, NOW, ReelDateStyle.AGO, true, Locale.US, UTC));
+        assertNull("the switch off kept Facebook's blank", ReelDeclutter.postDate(null, threeWeeks, NOW, ReelDateStyle.AGO, false, Locale.US, UTC));
+        assertEquals("2d", ReelDeclutter.postDate("2d", threeWeeks, NOW, ReelDateStyle.AGO, true, Locale.US, UTC));
+        assertEquals("1 year ago", ReelDeclutter.postDate(null, 1760281200L, NOW, ReelDateStyle.AGO, true, Locale.US, UTC));
+
+        assertEquals("Oct 12", ReelDeclutter.postDate("2d", 1791817200L, NOW, ReelDateStyle.DATE, true, Locale.US, UTC));
+        assertEquals("Oct 12", ReelDeclutter.postDate(null, 1791817200L, NOW, ReelDateStyle.DATE, false, Locale.US, UTC));
+        assertEquals("Oct 12, 2025", ReelDeclutter.postDate(null, 1760281200L, NOW, ReelDateStyle.DATE, true, Locale.US, UTC));
+        assertEquals("the day in the phone's own time zone", "Oct 11",
+                ReelDeclutter.postDate(null, 1791770400L, NOW, ReelDateStyle.DATE, true, Locale.US, TimeZone.getTimeZone("America/New_York")));
+        assertEquals("12. Okt.", ReelDeclutter.postDate(null, 1791817200L, NOW, ReelDateStyle.DATE, true, Locale.GERMANY, UTC));
+
+        for (long impossible : new long[]{0, -5, NOW / 1000 + 3600}) {
+            assertNull(ReelDeclutter.postDate(null, impossible, NOW, ReelDateStyle.DATE, true, Locale.US, UTC));
+            assertEquals("2d", ReelDeclutter.postDate("2d", impossible, NOW, ReelDateStyle.AGO, true, Locale.US, UTC));
+        }
+        assertEquals("a clock a few seconds behind isn't the future", "Nov 2",
+                ReelDeclutter.postDate(null, NOW / 1000 + 30, NOW, ReelDateStyle.DATE, true, Locale.US, UTC));
+    }
+
+    /** The hook words the date from the saved list, counts it once, and hands Facebook's words back paused. */
+    @Test
+    public void thePostDateHookFollowsTheList() {
+        long threeWeeks = System.currentTimeMillis() / 1000 - 21L * 24 * 60 * 60;
+        assertEquals(ReelDateStyle.AGO, Settings.REEL_POST_DATE_STYLE.defaultValue);
+        assertFalse("asked as each reel's date is worded, so no restart", Settings.REEL_POST_DATE_STYLE.rebootApp);
+        assertNull("off by default, Facebook's blank stays", ReelDeclutter.postDateText(null, threeWeeks));
+        assertEquals("2d", ReelDeclutter.postDateText("2d", threeWeeks));
+        assertNull(line(ReelDeclutter.DATE_ROUTE));
+
+        Settings.SHOW_REEL_POST_DATE.save(true);
+        assertEquals("3 weeks ago", ReelDeclutter.postDateText(null, threeWeeks));
+        Settings.REEL_POST_DATE_STYLE.save(ReelDateStyle.DATE);
+        String day = ReelDeclutter.postDateText("2d", threeWeeks);
+        assertNotNull(day);
+        assertFalse(day, day.contains("ago") || day.equals("2d"));
+        assertTrue(line(ReelDeclutter.DATE_ROUTE), line(ReelDeclutter.DATE_ROUTE).contains(ReelDeclutter.DATE_WORDED));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertEquals("the date was reworded while paused", "2d", ReelDeclutter.postDateText("2d", threeWeeks));
+        assertNull(ReelDeclutter.postDateText(null, threeWeeks));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertEquals("reworded before the settings were ready", "2d", ReelDeclutter.postDateText("2d", threeWeeks)));
+        SettingReadsForTests.breakReads(Settings.SHOW_REEL_POST_DATE);
+        try {
+            assertEquals("a failing read reworded the date", "2d", ReelDeclutter.postDateText("2d", threeWeeks));
+        } finally {
+            SettingReadsForTests.mend(Settings.SHOW_REEL_POST_DATE);
+        }
+    }
+
+    /**
+     * On a reel with a song the Reels tab draws the song's line where the date would go (#357), so the
+     * date goes in front of it, worded the same way. A time that can't be a post's, a story that holds
+     * none or isn't a live tree, the switch off, a pause and unready settings all keep the song line.
+     */
+    @Test
+    public void theDateGoesInFrontOfTheSongLine() {
+        String song = "Some Band" + ReelDeclutter.DOT + "Original audio";
+        long threeWeeks = NOW / 1000 - 21L * 24 * 60 * 60;
+        assertEquals("3 weeks ago" + ReelDeclutter.DOT + song,
+                ReelDeclutter.audioLine(song, threeWeeks, NOW, ReelDateStyle.AGO, Locale.US, UTC));
+        assertEquals("Oct 12" + ReelDeclutter.DOT + song,
+                ReelDeclutter.audioLine(song, 1791817200L, NOW, ReelDateStyle.DATE, Locale.US, UTC));
+        for (ReelDateStyle style : ReelDateStyle.values()) {
+            assertSame(song, ReelDeclutter.audioLine(song, 0, NOW, style, Locale.US, UTC));
+            assertSame(song, ReelDeclutter.audioLine(song, NOW / 1000 + 3600, NOW, style, Locale.US, UTC));
+        }
+
+        long posted = System.currentTimeMillis() / 1000 - 21L * 24 * 60 * 60;
+        TreeJNI story = new TreeJNI().with("creation_time", posted);
+        assertSame("off by default, the song line stays", song, ReelDeclutter.audioLineText(song, story));
+        assertNull(line(ReelDeclutter.DATE_ROUTE));
+        Settings.SHOW_REEL_POST_DATE.save(true);
+        assertEquals("3 weeks ago" + ReelDeclutter.DOT + song, ReelDeclutter.audioLineText(song, story));
+        assertTrue(line(ReelDeclutter.DATE_ROUTE), line(ReelDeclutter.DATE_ROUTE).contains(ReelDeclutter.DATE_ON_SONG));
+        assertSame("a story with no time", song, ReelDeclutter.audioLineText(song, new TreeJNI()));
+        assertSame("a story that isn't a tree", song, ReelDeclutter.audioLineText(song, "story"));
+        assertSame("no story", song, ReelDeclutter.audioLineText(song, null));
+        TreeJNI released = new TreeJNI().with("creation_time", posted).releasedTree();
+        assertSame("a released story", song, ReelDeclutter.audioLineText(song, released));
+        assertFalse("the released story was read", released.readAfterRelease);
+        assertNull("no line stays no line", ReelDeclutter.audioLineText(null, story));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertSame("dated while paused", song, ReelDeclutter.audioLineText(song, story));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertSame("dated before the settings were ready", song, ReelDeclutter.audioLineText(song, story)));
     }
 
     /**

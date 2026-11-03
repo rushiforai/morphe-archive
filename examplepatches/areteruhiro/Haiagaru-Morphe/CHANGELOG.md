@@ -1,3 +1,247 @@
+# Haiagaru 1.20.2
+
+## 今回の修正
+
+- 5chの新着通知で本文を取得できない問題を修正しました。名前欄がHTMLタグで始まる正常なDATをエラーページと誤判定していたため、DATの項目構造で判定するように変更しました。名前欄が空の場合にも対応します。
+- 「Haiagaru設定」をChMate標準の設定一覧内で「セーフモード」の直前に配置しました。「追加機能・表示・通知などの設定」の説明文と、画面上部の独立した入口を削除しました。
+
+- 242の有料オプション同期（S2M）設定を開いた際、初期化中の0除算でクラッシュする問題を修正しました。コールバックに渡す通常の値0を直接使用し、標準の設定初期化を維持します。
+
+## 確認範囲と制約
+
+191／226／242の隔離エミュレータで本文付き通知・設定項目の配置と遷移を確認しています。実際の5ch DATでも修正後の本文解析を確認しました。242のS2M設定画面の起動と再表示を確認しています。利用者の指定により、今回変更していない本文表示・画像／GIF／動画の再検証は省略しています。
+
+通知本文はDATが取得できる場合に表示します。通信エラーなどの場合はスレ名と件数を通知します。Androidの省電力・通信・実行回数の制限で通知が遅れる場合があります。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* complete publication with requested public release wording ([dd2de5a](https://github.com/areteruhiro/Haiagaru-Morphe/commit/dd2de5a715786133876a992f4a58d151fd92dd0c))
+
+# Haiagaru 1.20.1
+
+## 今回の修正
+
+- 5chの新着通知で本文を取得できない問題を修正しました。名前欄がHTMLタグで始まる正常なDATをエラーページと誤判定していたため、DATの項目構造で判定するように変更しました。名前欄が空の場合にも対応します。
+- 「Haiagaru設定」をChMate標準の設定一覧内で「セーフモード」の直前に配置しました。「追加機能・表示・通知などの設定」の説明文と、画面上部の独立した入口を削除しました。
+
+- 242の有料オプション同期（S2M）設定を開いた際、初期化中の0除算でクラッシュする問題を修正しました。コールバックに渡す通常の値0を直接使用し、標準の設定初期化を維持します。
+
+## 確認範囲と制約
+
+191／226／242の隔離エミュレータで本文付き通知・設定項目の配置と遷移を確認しています。実際の5ch DATでも修正後の本文解析を確認しました。242のS2M設定画面の起動と再表示を確認しています。報告端末のPixel 10a／Android 17そのものでは未検証です。利用者の指定により、今回変更していない本文表示・画像／GIF／動画の再検証は省略しています。
+
+通知本文はDATが取得できる場合に表示します。通信エラーなどの場合はスレ名と件数を通知します。Androidの省電力・通信・実行回数の制限で通知が遅れる場合があります。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* release notification preview and native settings stability fixes ([df69825](https://github.com/areteruhiro/Haiagaru-Morphe/commit/df69825b05b1ab212f624892fb6813c3fbf81d70))
+* restore 5ch notification bodies and stabilize native settings entry and S2M startup [skip ci] ([60a18db](https://github.com/areteruhiro/Haiagaru-Morphe/commit/60a18db46ef492c8156119328a2dfc5c897e4b39))
+
+# Haiagaru 1.20.0
+
+## 今回の更新
+
+- 登録スレの新着通知にスレ名と新着レス本文を表示します。本文は新着があるときだけ取得し、最大3件を省略表示します。展開すると続きを確認できます。本文を取得できない場合も、スレ名と新着件数を通知します。通知アイコンはChMateのアプリアイコンを使います。
+- ChMate標準の設定画面の一番上に「Haiagaru設定」を組み込みました。重ねて表示していた浮動ボタンを廃止し、標準設定を覆わずに追加機能の設定へ移動できます。
+- 未取得の5chスレを開く前にDATを先行取得し、現役スレではそのデータを使わず再取得していた処理を修正しました。通常の最近の5chスレは先に画面を開き、取得したDATをそのまま読み込みます。過去ログへの代替取得と取得済みスレの更新は維持します。
+
+## 確認範囲と制約
+
+191／226／242の隔離エミュレータで今回変更した通知内容・アイコン、設定画面の入口と移動を確認しています。利用者の指定により、今回変更していない本文表示・画像／GIF／動画の再検証は省略しています。遷移前の余分なDAT取得は、制御した通信待ちで再現して修正しました。Samsung／Android 17実機での改善率は未計測です。
+
+通知間隔は1分〜7日、初期15分です。Androidの省電力・通信・バックグラウンド実行回数の制限で指定間隔より遅れる場合があります。接続実機では登録スレの通知と次回予約を確認しましたが、RARE分類と通信／実行枠制限による待機も確認しています。正確な毎分通知を保証するものではありません。本文プレビューはサーバーのDATが取得できる場合に表示し、通知をタップするとスレを開きます。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* avoid pre-navigation double downloads for new 5ch threads ([2fe4952](https://github.com/areteruhiro/Haiagaru-Morphe/commit/2fe49523720cee497cb4bdf11d97a0dbc435fef7))
+* ignore configured shared NG reporters without client errors ([c7f9549](https://github.com/areteruhiro/Haiagaru-Morphe/commit/c7f9549dcefea440aac0b68473c39a7366cc88b6))
+
+### ✨ New Features
+
+* enrich thread notifications and embed settings entry [skip ci] ([767e693](https://github.com/areteruhiro/Haiagaru-Morphe/commit/767e69374a960b33315a63f7805c84ade1482a94))
+
+# Haiagaru 1.19.0
+
+## 今回の更新
+
+- 登録スレの新着通知を追加しました。スレタイトル長押しの「このスレの新着通知」から登録・解除できます。確認間隔は1分〜7日で、日・時間・分を組み合わせて設定できます。初期値は15分です。アプリを閉じていても確認しますが、Androidの省電力制限などで指定間隔より遅れる場合があります。特に15分未満の実行頻度は保証されません。
+- エッヂの閲覧認証を追加・改善しました。スレタイトル長押しから認証ページを開けます。純正の「アクセスには確認が必要です」画面が空白になる経路を修正し、確認ページを表示してから閲覧用Cookieと同じブラウザUAを引き継ぎます。認証が未完了・読み込み失敗の場合は画面を閉じず、状態表示から再読み込みできます。
+- 242で絵文字をallに設定した際、スレ内検索の入力カーソルが先頭へ戻る問題を修正しました。入力中のEditableを置き換えないようにしました。
+- User-Agentは固定テンプレート方式に戻しました。テンプレート選択・カスタムUAを維持し、5秒ごとのランダム変更実験とその設定を削除しました。認証済みの閲覧通信ではCookieに対応するブラウザUAを使用します。ランダムUA実験は最終版に含みません。
+- パッチ対象を探す全クラス走査39か所を、191／226／242ごとの固定クラス名一覧へ置き換えました。対象クラスの構造検査と元命令の保持は継続し、想定外の対象ではパッチ時に停止します。DEXの読み込み・出力と同梱拡張の名前衝突を防ぐ処理は維持しています。
+- スレを開く際に繰り返していた広告クラスの確認をキャッシュし、不要なクラス探索を削減しました。
+
+## 確認範囲
+
+191／226／242の隔離エミュレータで、起動・スレ本文・画像／GIF・拡大時の操作・通知間隔の入力とJob予約・固定UA・認証Cookie連携を確認しました。固定一覧への置き換え前後で合計163,276クラスの定義を照合し、命令・レジスター・分岐・例外処理を含めて一致しています。
+
+Mi Note 10／Android 11の242では、VPN設定を変えずにCloudflare確認画面の表示、板一覧、スレ本文、新着レス取得を確認しました。191／226での実VPN認証は未確認です。書き込みの対応・検証は今回の対象に含みません。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### ✨ New Features
+
+* **chmate:** add five-second reading and posting UA rotation experiment [skip ci] ([febea2b](https://github.com/areteruhiro/Haiagaru-Morphe/commit/febea2bd5f30da851d0dc9b94f4c7e463bef0e74))
+* **chmate:** add flexible alerts and stabilize board authentication [skip ci] ([25d533f](https://github.com/areteruhiro/Haiagaru-Morphe/commit/25d533f362d30e10769143bd33e173a3e47d9523))
+
+### 🔧 Improvements
+
+* **chmate:** avoid repeated ad class lookups during thread startup [skip ci] ([f2b2b45](https://github.com/areteruhiro/Haiagaru-Morphe/commit/f2b2b458b7b83713f1ff863d6791371b9bd3fdcb))
+
 # Haiagaru 1.18.3
 
 ## 今回の更新

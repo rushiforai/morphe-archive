@@ -2,6 +2,7 @@
 package app.bdcrusher.ytmusic.playlists
 
 import app.morphe.patcher.patch.*
+import app.morphe.util.getReference
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -42,6 +43,12 @@ val localPlaybackPatch=bytecodePatch {
 
         CreateStreamingDataFingerprint.clearMatch();val descriptor=CreateStreamingDataFingerprint.method
         val proto=resolveProto(descriptor.parameterTypes.single().toString(),"native player response")
+        // Validate dimensions against the APK's actual Format schema before enabling video.
+        val streaming=classDefBy("Lcom/google/protos/youtube/api/innertube/StreamingDataOuterClass\$StreamingData;")
+        val formatTypes=streaming.methods.flatMap {m->m.implementation?.instructions?.mapNotNull {i->if(i.opcode==Opcode.CONST_CLASS)i.getReference<TypeReference>()?.type else null}.orEmpty()}.distinct().filter {it!=streaming.type}
+        val prefix=listOf(1,4100,0,2,4104,1,5,4104,2,6,4100,3,7,4100,5,8,4100,6)
+        val nativeFormats=formatTypes.filter {name->classDefBy(name).methods.any {m->m.implementation?.instructions?.any {i->i.getReference<StringReference>()?.string?.let {text->text.length>28&&text[0].code==1&&text.map {it.code}.drop(10).take(18)==prefix}==true}==true}}
+        if(nativeFormats.size!=1)throw PatchException("Downloads: native video dimensions/Format schema changed")
         val runtime=mutableClassDefBy(LOCAL)
         runtime.addBridge("bd_nativeResponse",listOf(proto.type),proto.type,4,AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,"""
             invoke-virtual { p0 }, ${proto.type}->toByteArray()[B
@@ -76,7 +83,7 @@ val localPlaybackPatch=bytecodePatch {
         val spoof=mutableClassDefBy("Lapp/morphe/extension/shared/spoof/SpoofVideoStreamsPatch;")
         val stream=spoof.methods.single {it.name=="getStreamingData"&&it.parameterTypes==listOf("Ljava/lang/String;")}
         stream.addInstructionsWithLabels(0,"""
-            invoke-static/range { p0 .. p0 }, $LOCAL->response(Ljava/lang/String;)[B
+            invoke-static/range { p0 .. p0 }, $LOCAL->streams(Ljava/lang/String;)[B
             move-result-object v0
             if-eqz v0, :network_stream
             return-object v0

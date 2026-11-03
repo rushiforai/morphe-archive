@@ -236,12 +236,14 @@ class UiFixtureTest {
             assertEquals("${build.name}: the glass hands over the color it was about to use", color, question.registerD)
             assertEquals("${build.name}: the answer lands where the wash reads its color", color,
                 (glass[asked + 1] as OneRegisterInstruction).registerA)
-            // The comments screen and the pin menu's sheet are each handed over by the method that builds them.
+            // The comments screen, the pin menu's sheet and its See more and See less cards are each
+            // handed over by the method that builds them.
             val builders = listOf(
                 "comments" to classes.flatMap { it.methods }.single { method ->
                     method.name == "onCreateView" && method.fields().any { it.name == COMMENTS_SCREEN_ID }
                 },
                 "pinMenu" to classes.single { it.type == PIN_MENU }.methods.single { it.name == "createModalView" },
+                "pinMenuCard" to classes.flatMap { it.methods }.single { method -> method.fields().any { it.name == PIN_MENU_CARD } },
             )
             for ((hook, was) in builders) {
                 val answer = was.instructions().indexOfFirst { it.opcode == Opcode.RETURN_OBJECT }
@@ -520,7 +522,8 @@ class UiFixtureTest {
                         .containsAll(listOf("HOME", "PROFILE", "CREATE", "NOTIFICATIONS"))) ||
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
                         method.fields().any { it.name in FILTERABLE_PIN_MENU_TITLES ||
-                            it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID } }
+                            it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID ||
+                            it.name == PIN_MENU_CARD } }
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
         }

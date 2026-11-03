@@ -83,9 +83,15 @@ public final class OnedmCloudSync {
     private static final String KEY_AB_ABCFP_LEN = "ab_abcfp_len";
     private static final String KEY_US_BYPASS_SHA256 = "us_bypass_sha256";
     private static final String KEY_US_BYPASS_SEEDED = "us_bypass_seeded";
+    private static final String KEY_LAST_MANIFEST_BUILT_MS = "last_manifest_built_ms";
+
+    /** 1DM build this extension was compiled for; manifests declaring any other build are ignored. */
+    private static final int EXPECTED_APP_VERSION_CODE = 30257;
+    private static final long MIN_SANE_TOTAL_FILTERS = 100_000L;
+    private static final long MAX_SANE_TOTAL_FILTERS = 5_000_000L;
 
     private static final int EXPECTED_ADBLOCK_FORMAT_VERSION = 20;
-    private static final long BACKGROUND_COOLDOWN_MS = 6L * 60L * 60L * 1000L; // 6 hours
+    private static final long BACKGROUND_COOLDOWN_MS = 24L * 60L * 60L * 1000L; // 24 hours (packs rebuild weekly)
     private static final long STARTUP_SETTLE_DELAY_MS = 1500L;
 
     private static final int CONNECT_TIMEOUT_MS = 15_000;
@@ -438,8 +444,17 @@ public final class OnedmCloudSync {
 
                 JSONObject state = readSyncStateLocked(filesDir);
                 JSONObject manifest = fetchManifestJson();
+                long manifestBuiltMs = manifest.optLong("builtAtEpochMs", 0L);
+                long lastAcceptedBuiltMs = state.optLong(KEY_LAST_MANIFEST_BUILT_MS, 0L);
+                if (manifestBuiltMs > 0L && lastAcceptedBuiltMs > 0L
+                    && manifestBuiltMs < lastAcceptedBuiltMs) {
+                    return null; // Older than the last accepted manifest: treat as up to date.
+                }
                 long now = System.currentTimeMillis();
                 state.put(KEY_LAST_CHECK_MS, now);
+                if (manifestBuiltMs > 0L) {
+                    state.put(KEY_LAST_MANIFEST_BUILT_MS, manifestBuiltMs);
+                }
                 writeSyncStateLocked(filesDir, state);
 
                 String remoteSha = normalizeSha256(manifest.optString("userscriptSha256", ""));
@@ -546,6 +561,16 @@ public final class OnedmCloudSync {
 
                 JSONObject manifest = fetchManifestJson();
                 state.put(KEY_LAST_CHECK_MS, now);
+                if (!isManifestSane(manifest, state, true)) {
+                    // Rollback / wrong-target / absurd manifest: keep the current local
+                    // state untouched and retry on the next cooldown.
+                    writeSyncStateLocked(filesDir, state);
+                    return;
+                }
+                long manifestBuiltMs = manifest.optLong("builtAtEpochMs", 0L);
+                if (manifestBuiltMs > 0L) {
+                    state.put(KEY_LAST_MANIFEST_BUILT_MS, manifestBuiltMs);
+                }
                 writeSyncStateLocked(filesDir, state);
 
                 if (wantCloudAb && !customFilters) {
@@ -560,6 +585,78 @@ public final class OnedmCloudSync {
             } finally {
                 closeLockQuietly(procLock, lockRaf);
             }
+        }
+    }
+
+    /**
+     * Cheap sanity rails applied to any fetched manifest before it can drive file swaps:
+     * correct target build (when declared), plausible total filter count, and no rollback
+     * to a build older than the last accepted one.
+     */
+    private static boolean isManifestSane(JSONObject manifest, JSONObject state, boolean checkRollback) {
+        try {
+            int appVc = manifest.optInt("appVersionCode", -1);
+            if (appVc > 0 && appVc != EXPECTED_APP_VERSION_CODE) {
+                Log.w(TAG, "Manifest targets appVersionCode=" + appVc + ", ignoring");
+                return false;
+            }
+            long total = manifest.optLong("totalActiveFilters", -1L);
+            if (total > 0L && (total < MIN_SANE_TOTAL_FILTERS || total > MAX_SANE_TOTAL_FILTERS)) {
+                Log.w(TAG, "Manifest totalActiveFilters out of sane band: " + total);
+                return false;
+            }
+            if (checkRollback) {
+                long built = manifest.optLong("builtAtEpochMs", 0L);
+                long last = state.optLong(KEY_LAST_MANIFEST_BUILT_MS, 0L);
+                if (built > 0L && last > 0L && built < last) {
+                    Log.w(TAG, "Manifest rollback rejected: built=" + built + " last=" + last);
+                    return false;
+                }
+            }
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static String binStateKey(String binName, String suffix) {
+        return "ab_bin_" + binName.replace('.', '_') + "_" + suffix;
+    }
+
+    /** Records length/mtime (+ SHA-256 when manifest provided one) per bin for drift detection. */
+    private static void recordBinStateLocked(JSONObject state, File filesDir, JSONObject binShaByName) {
+        try {
+            for (String binName : ADBLOCK_BIN_NAMES) {
+                File f = new File(filesDir, binName);
+                if (!f.isFile()) continue;
+                state.put(binStateKey(binName, "len"), f.length());
+                state.put(binStateKey(binName, "mtime"), f.lastModified());
+                String sha = binShaByName != null
+                    ? normalizeSha256(binShaByName.optString(binName, "")) : null;
+                if (sha != null) {
+                    state.put(binStateKey(binName, "sha256"), sha);
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static String sha256HexOfFile(File f) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            FileInputStream fis = new FileInputStream(f);
+            try {
+                byte[] buf = new byte[64 * 1024];
+                int n;
+                while ((n = fis.read(buf)) != -1) {
+                    md.update(buf, 0, n);
+                }
+            } finally {
+                fis.close();
+            }
+            return toHexLower(md.digest());
+        } catch (Throwable t) {
+            return null;
         }
     }
 
@@ -601,7 +698,7 @@ public final class OnedmCloudSync {
             File tmpZip = new File(filesDir, "onedm_adblock_pack.zip.tmp");
             try {
                 downloadAndVerifySha256(assetUrl, tmpZip, remoteSha, remoteSize, MAX_ADBLOCK_ZIP_BYTES);
-                extractAndSwapAdblockBinsAtomically(appCtx, filesDir, tmpZip);
+                extractAndSwapAdblockBinsAtomically(appCtx, filesDir, tmpZip, manifest.optJSONObject("adblockBinSha256"));
             } finally {
                 //noinspection ResultOfMethodCallIgnored
                 tmpZip.delete();
@@ -614,6 +711,7 @@ public final class OnedmCloudSync {
                 state.put(KEY_AB_UPDATED_MS, updatedAt);
                 state.put(KEY_AB_ABNFP_LEN, new File(filesDir, "abnfp.bin").length());
                 state.put(KEY_AB_ABCFP_LEN, new File(filesDir, "abcfp.bin").length());
+                recordBinStateLocked(state, filesDir, manifest.optJSONObject("adblockBinSha256"));
                 writeSyncStateLocked(filesDir, state);
 
                 markAutoUpdateDialogShownSafe(appCtx);
@@ -636,6 +734,32 @@ public final class OnedmCloudSync {
         if (savedSha.isEmpty()) {
             return false;
         }
+        // Per-bin records (current): length+mtime fast path; SHA-256 re-check only on drift.
+        boolean hasPerBinRecords = false;
+        for (String binName : ADBLOCK_BIN_NAMES) {
+            long expectedLen = state.optLong(binStateKey(binName, "len"), -1L);
+            if (expectedLen <= 0L) continue;
+            hasPerBinRecords = true;
+            File f = new File(filesDir, binName);
+            if (!f.isFile()) return false;
+            long expectedMtime = state.optLong(binStateKey(binName, "mtime"), -1L);
+            if (f.length() == expectedLen && f.lastModified() == expectedMtime) {
+                continue;
+            }
+            String recordedSha = state.optString(binStateKey(binName, "sha256"), "");
+            String actualSha = sha256HexOfFile(f);
+            if (actualSha == null || recordedSha.isEmpty() || !actualSha.equalsIgnoreCase(recordedSha)) {
+                return false;
+            }
+            // Same bytes under a new stamp (e.g. re-copied during folder migration): refresh.
+            try {
+                state.put(binStateKey(binName, "len"), f.length());
+                state.put(binStateKey(binName, "mtime"), f.lastModified());
+            } catch (Throwable ignored) {
+            }
+        }
+        if (hasPerBinRecords) return true;
+        // Legacy fallback for state written before per-bin records existed.
         long expectedAbnfp = state.optLong(KEY_AB_ABNFP_LEN, -1L);
         long expectedAbcfp = state.optLong(KEY_AB_ABCFP_LEN, -1L);
         if (expectedAbnfp <= 0L || expectedAbcfp <= 0L) {
@@ -691,7 +815,8 @@ public final class OnedmCloudSync {
     private static void extractAndSwapAdblockBinsAtomically(
         Context appCtx,
         File filesDir,
-        File verifiedZip
+        File verifiedZip,
+        JSONObject binShaByName
     ) throws Exception {
         Set<String> allowedBins = new HashSet<String>(Arrays.asList(ADBLOCK_BIN_NAMES));
         Set<String> extractedBins = new HashSet<String>();
@@ -711,6 +836,7 @@ public final class OnedmCloudSync {
                     String name = entry.getName();
                     if (allowedBins.contains(name)) {
                         File tmpBin = new File(filesDir, name + ".cloud.tmp");
+                        MessageDigest binDigest = MessageDigest.getInstance("SHA-256");
                         long total = 0L;
                         byte[] header = new byte[4];
                         int headerRead = 0;
@@ -729,6 +855,7 @@ public final class OnedmCloudSync {
                                     headerRead += copy;
                                 }
                                 bos.write(buf, 0, n);
+                                binDigest.update(buf, 0, n);
                             }
                             bos.flush();
                             try {
@@ -746,6 +873,12 @@ public final class OnedmCloudSync {
                             : -1;
                         if (magic != EXPECTED_ADBLOCK_FORMAT_VERSION) {
                             throw new IOException("Invalid binary magic " + magic + " in " + name);
+                        }
+                        String expectedBinSha = binShaByName != null
+                            ? normalizeSha256(binShaByName.optString(name, "")) : null;
+                        if (expectedBinSha != null
+                            && !toHexLower(binDigest.digest()).equalsIgnoreCase(expectedBinSha)) {
+                            throw new IOException("Bin SHA-256 mismatch in " + name);
                         }
                         extractedBins.add(name);
                     } else if ("sources_meta.json".equals(name)) {
@@ -1422,10 +1555,9 @@ public final class OnedmCloudSync {
     }
 
     private static HttpURLConnection openRedirectSafeConnection(String startUrl) throws IOException {
-        boolean allowLoopbackHttp = isLoopbackTestUrl(manifestUrl);
         URL current = new URL(startUrl);
         for (int hop = 0; hop <= MAX_REDIRECT_HOPS; hop++) {
-            validateScheme(current, allowLoopbackHttp);
+            validateScheme(current);
             HttpURLConnection conn = (HttpURLConnection) current.openConnection();
             conn.setInstanceFollowRedirects(false);
             conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
@@ -1453,19 +1585,10 @@ public final class OnedmCloudSync {
         throw new IOException("Exceeded max redirects (" + MAX_REDIRECT_HOPS + ")");
     }
 
-    private static void validateScheme(URL url, boolean allowLoopbackHttp) throws IOException {
-        String protocol = url.getProtocol();
-        if ("https".equalsIgnoreCase(protocol)) {
-            return;
+    private static void validateScheme(URL url) throws IOException {
+        if (!"https".equalsIgnoreCase(url.getProtocol())) {
+            throw new IOException("Refusing non-HTTPS URL: " + url.getProtocol() + "://" + url.getHost());
         }
-        if (allowLoopbackHttp && "http".equalsIgnoreCase(protocol) && "127.0.0.1".equals(url.getHost())) {
-            return;
-        }
-        throw new IOException("Refusing non-HTTPS URL: " + protocol + "://" + url.getHost());
-    }
-
-    private static boolean isLoopbackTestUrl(String url) {
-        return url != null && url.startsWith("http://127.0.0.1:");
     }
 
     private static String resolveSiblingAssetUrl(String sanitizedAssetName) throws Exception {
@@ -1615,8 +1738,4 @@ public final class OnedmCloudSync {
         }
     }
 
-    /** Test-only hook for loopback HTTP verification against 127.0.0.1. */
-    static void setManifestUrlForTest(String url) {
-        manifestUrl = (url == null || url.isEmpty()) ? DEFAULT_MANIFEST_URL : url;
-    }
 }

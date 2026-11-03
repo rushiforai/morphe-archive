@@ -1,6 +1,7 @@
 package app.morphe.extension.chmate;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -180,6 +181,27 @@ final class ArchivedThreadImporter {
     static boolean isTalkThreadUrl(String url) {
         ThreadInfo info = ThreadInfo.parse(url);
         return info != null && info.talk;
+    }
+
+    /** Called by ChMate's background downloader while its native DAT lock is held. */
+    static boolean loadInitial5chDat(Context context, String url, File destination) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()
+                || !ArchiveThreadLinks.is5chThread(url) || destination == null
+                || destination.getParentFile() == null
+                || (destination.isFile() && destination.length() > 0)) return false;
+        ThreadInfo info = ThreadInfo.parse(url);
+        if (info == null || info.talk || info.vip) return false;
+        try {
+            byte[] dat = fetchLiveDatIfAvailable(info);
+            if (dat == null) dat = fetchArchivedDat(context, info);
+            // Consume the successful first download. Returning true makes the
+            // native loader parse this DAT without another request or Activity.
+            publishDat(destination.getParentFile(), destination, info, dat, false);
+            return true;
+        } catch (Exception error) {
+            Log.w(LOG_TAG, "Initial DAT import unavailable; keeping native download", error);
+            return false;
+        }
     }
 
     /** Called by ChMate's background downloader while its native DAT lock is held. */
@@ -431,7 +453,7 @@ final class ArchivedThreadImporter {
         return convertTalkJson(info, body);
     }
 
-    private static byte[] fetchArchivedDat(Activity activity, ThreadInfo info) throws Exception {
+    private static byte[] fetchArchivedDat(Context activity, ThreadInfo info) throws Exception {
         // Never send an external board's identity to the default 5ch/mirror routes.
         if (info.vip) return validateDat(requestBytes(new ArchiveRoute(RouteFormat.DAT,
                 ArchiveRouteVariables.VIP_TEMPLATE).resolve(info)));

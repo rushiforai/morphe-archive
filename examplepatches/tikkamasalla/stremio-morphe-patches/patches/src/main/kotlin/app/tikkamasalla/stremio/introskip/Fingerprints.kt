@@ -1,6 +1,7 @@
 package app.tikkamasalla.stremio.introskip
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.PatchException
 
 /** Finds Media3 PlayerView.setPlayer(Player) without relying on obfuscated app code. */
 object PlayerViewSetPlayerFingerprint : Fingerprint(
@@ -57,5 +58,8 @@ fun playerAssignedIndex(method: app.morphe.patcher.util.proxy.mutableTypes.Mutab
             return index + 1
         }
     }
-    return 5
+    // Callers wrap this in catch (Exception) for builds without startStreamPlayback; the log line keeps a moved hook visible.
+    val message = "startStreamPlayback no longer stores PlayerFragment.player: the player hook moved in this Stremio build."
+    java.util.logging.Logger.getLogger("Fingerprints").severe(message)
+    throw PatchException(message)
 }

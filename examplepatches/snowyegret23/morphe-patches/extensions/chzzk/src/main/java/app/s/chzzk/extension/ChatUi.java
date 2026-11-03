@@ -101,7 +101,7 @@ public final class ChatUi {
     public static String nicknameText(String value) { return ChzzkSettings.enabled("hide_nickname") ? "" : value; }
     public static Object subscriptionBadge(Object value) { return ChzzkSettings.enabled("hide_subscription_badge") ? null : value; }
     public static Object donationBadge(Object value) { return ChzzkSettings.enabled("hide_donation_badge") ? null : value; }
-    public static List<?> activityBadges(List<?> value) { return ChzzkSettings.enabled("hide_activity_badge") ? null : value; }
+    public static List<?> activityBadges(List<?> value) { return ChzzkSettings.enabled("hide_activity_badge") ? java.util.Collections.emptyList() : value; }
     public static boolean verifiedBadge(boolean value) { return value && !ChzzkSettings.enabled("hide_verified_badge"); }
     public static Object verifiedMark(Object value) { return ChzzkSettings.enabled("hide_verified_badge") ? null : value; }
     public static Object channelBadges(Object value) { return ChzzkSettings.enabled("hide_channel_badge") ? null : value; }

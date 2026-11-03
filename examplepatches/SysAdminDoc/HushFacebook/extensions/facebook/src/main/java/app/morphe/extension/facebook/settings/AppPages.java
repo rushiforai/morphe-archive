@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import app.morphe.extension.facebook.chats.MessengerHandoff;
 import app.morphe.extension.facebook.menu.MenuTiles;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.ShareSheetItems;
@@ -43,6 +44,15 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 @SuppressWarnings("deprecation")
 final class AppPages {
     private AppPages() {
+    }
+
+    /**
+     * Whether this build carries Leave calls and chats to Messenger's hooks. A test that names the
+     * families in its build counts them in with the Messenger icon.
+     */
+    static boolean handoffInBuild() {
+        Set<PatchFamily> forced = PatchFamily.inBuildForTests;
+        return forced != null ? forced.contains(PatchFamily.MESSENGER_ICON) : MessengerHandoff.inBuild();
     }
 
     /** Chats: the Get Messenger card, the chat list clean-up, the Messenger icon and leaving calls to Messenger. */
@@ -70,6 +80,9 @@ final class AppPages {
                 chats.addPreference(toggle(context, Settings.OPEN_MESSENGER_APP,
                         L10n.t("Tapping the Messenger icon at the top of Facebook opens the Messenger app instead of Chats. Without "
                                 + "Messenger, Chats opens as before.")));
+            }
+            // A build whose handoff anchors weren't all found keeps the icon without this switch.
+            if (build.contains(PatchFamily.MESSENGER_ICON) && handoffInBuild()) {
                 // The restart refreshes Facebook's MQTT call capability; the local drops also read it live.
                 chats.addPreference(toggle(context, Settings.LEAVE_CALLS_AND_CHATS_TO_MESSENGER,
                         L10n.t("Facebook leaves calls and chat notifications to Messenger while Messenger is installed and "
@@ -213,7 +226,7 @@ final class AppPages {
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.META_AI_SEARCH) || build.contains(PatchFamily.SPONSORED_SEARCH)
                 || build.contains(PatchFamily.SUGGESTED_POSTS) || build.contains(PatchFamily.SEARCH_HISTORY)
-                || build.contains(PatchFamily.SEARCH_DATE_RANGE)) {
+                || build.contains(PatchFamily.SEARCH_DATE_RANGE) || build.contains(PatchFamily.SEARCH_POSTS_TAB)) {
             PreferenceCategory search = category(screen, L10n.t("Search"));
             if (build.contains(PatchFamily.META_AI_SEARCH)) {
                 search.addPreference(toggle(context, Settings.HIDE_META_AI_IN_SEARCH,
@@ -239,8 +252,13 @@ final class AppPages {
             }
             if (build.contains(PatchFamily.SEARCH_DATE_RANGE)) {
                 search.addPreference(toggle(context, Settings.SEARCH_DATE_RANGE,
-                        L10n.t("The Date posted filter in post search asks for a from and to month, in place of a list of "
+                        L10n.t("The Date posted filter in post search asks for a from and to date, in place of a list of "
                                 + "years.")));
+            }
+            if (build.contains(PatchFamily.SEARCH_POSTS_TAB)) {
+                search.addPreference(toggle(context, Settings.SEARCH_POSTS_TAB,
+                        L10n.t("Puts Posts back in the row over search results, after Reels, so you can see only posts "
+                                + "for what you searched.")));
             }
         }
     }
@@ -269,6 +287,12 @@ final class AppPages {
             marketplace.addPreference(toggle(context, Settings.SHOW_SELLER_VIEW_PROFILE,
                     L10n.t("Adds a View profile button to every seller's Marketplace page, opening their Facebook profile. "
                             + "Facebook only shows it to some accounts.")));
+        }
+        if (build.contains(PatchFamily.LISTING_GAP)) {
+            // Read each time a listing asks for its safe area, so a change shows on the next listing.
+            marketplace.addPreference(toggle(context, Settings.REMOVE_LISTING_GAP,
+                    L10n.t("Takes out the empty band some phones show above a listing's top row, like Pixels on "
+                            + "Android 17.")));
         }
         SwitchPreference free = toggle(context, Settings.FREE_STUFF_SHORTCUT, build.contains(PatchFamily.MENU_SETTINGS_ROW)
                 ? L10n.t("Adds Free stuff, Marketplace's free listings, to the menu you get by holding "
@@ -568,6 +592,10 @@ final class AppPages {
                 L10n.t("A few seconds after you leave Facebook, it closes all the way and leaves your recent apps, so it "
                         + "isn't running in the background. It waits for uploads and saves to finish first. Notifications "
                         + "may come late, or not until you open Facebook again.")));
+        // The settings entry's own too: it watches for the Blocking page from the application hook.
+        privacy.addPreference(toggle(context, Settings.HIDE_BLOCKED_LIST_PICTURES,
+                L10n.t("People you've blocked show without their profile pictures on the Blocking page in Facebook's "
+                        + "settings. Reopen the page if it's already open.")));
         if (build.contains(PatchFamily.ANALYTICS_UPLOADS)) {
             // XAnalytics resumes its uploader once, as Facebook starts.
             privacy.addPreference(toggle(context, Settings.HOLD_ANALYTICS_UPLOADS,

@@ -19,7 +19,7 @@ final class ViewingUserAgentRules {
             if (!("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
                     || uri.getHost() == null || uri.getUserInfo() != null) return false;
             String path = uri.getPath();
-            return path != null && (path.matches(".*/(?:subject\\.txt|SETTING\\.TXT|bbsmenu\\.(?:html|json))")
+            return path != null && (path.matches(".*/(?:subject(?:-metadent)?\\.txt|SETTING\\.TXT|bbsmenu\\.(?:html|json))")
                     || path.matches(".*/(?:dat|kako)/[^?#]*\\.dat(?:\\.gz)?")
                     || path.startsWith("/test/read.cgi/") || path.startsWith("/bbs/read.cgi/")
                     || path.startsWith("/bbs/rawmode.cgi/"));

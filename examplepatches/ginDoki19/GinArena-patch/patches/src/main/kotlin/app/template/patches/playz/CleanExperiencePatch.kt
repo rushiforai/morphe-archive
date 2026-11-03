@@ -19,9 +19,7 @@ private const val NATIVE_ACCESS_FLAG = 0x0100
 @Suppress("unused")
 val playzRemoveAdsAndPopupsPatch = bytecodePatch(
     name = "Remove ads, popups & restrictions",
-    description = "Replaces the native signature-locked decryption in pure Java so encrypted " +
-        "channel and event feeds keep loading after Morphe re-signs the APK, and removes " +
-        "start/player/support/external ads plus the automatic Telegram promo dialog.",
+    description = "Removes ads and promo popups, and keeps channels working after patching.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_PLAYZ_TV)

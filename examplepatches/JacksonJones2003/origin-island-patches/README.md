@@ -1,7 +1,7 @@
 # Origin Island Patches
 
-Patches for use with Morphe that make YouTube Music and YouTube work with the OriginOS music
-card, the player on the Origin Island and the lock screen of vivo and iQOO phones.
+Patches for use with Morphe that make YouTube Music, YouTube, LastWave and Apple Music work with the
+OriginOS music card, the player on the Origin Island and the lock screen of vivo and iQOO phones.
 
 > [!NOTE]
 > This project was made entirely by Claude, the AI model of Anthropic: the reverse engineering,
@@ -11,7 +11,7 @@ card, the player on the Origin Island and the lock screen of vivo and iQOO phone
 ## Disclaimer
 
 This is an unofficial hobby project. It is not affiliated with, endorsed by or supported by
-vivo, iQOO, Google, YouTube or the Morphe project, and all names and trademarks belong to
+vivo, iQOO, Google, YouTube, Apple or the Morphe project, and all names and trademarks belong to
 their owners.
 
 The patches change how another app behaves, which can be against the terms of service of that
@@ -21,7 +21,7 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.1](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.10.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.12.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -51,8 +51,23 @@ risk. See the [license](LICENSE) for details.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Lyrics in player](#lyrics-in-player) | Shows the line of the lyrics that is sung between the cover and the title in the player. Requires the Third-party lyrics patch. |  |
-| [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island like songs, switch between repeat and shuffle, show the playlist, the playlists of the library and the downloads, and show the lyrics of the Third-party lyrics patch. |  |
+| [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island like songs, switch between repeat and shuffle, show the playlist, the playlists of the library and the downloads, and show the lyrics of the Third-party lyrics patch. | • Package name |
 | [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
+
+</details>
+
+<details open>
+<summary>📦 Apple Music&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.0.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island show lyrics, like songs, switch between repeat and shuffle, and show the playlist and play from it. This does not get past any checks of the app, so the app may refuse to work once it is patched. |  |
 
 </details>
 
@@ -105,8 +120,10 @@ started, while YouTube Music loads the library.
 
 The card only lists the apps of a list of its own to pick from while nothing plays, and
 YouTube Music is not one of them. A second, patched copy of YouTube Music that is installed
-under the package of one that is, such as `com.luna.music`, can be picked there. For such a
-copy the patch does the following:
+under the package of one that is, such as `com.luna.music`, can be picked there. To make one,
+patch YouTube Music with the **Package name** option of the **Origin Island music card** patch
+set to Luna Music. It installs next to YouTube Music, and cannot be installed next to the real
+Luna Music. For such a copy the patch does the following:
 
 - the card opens the copy to have it play, and the copy then resumes what it last played
   and moves out of view again
@@ -279,6 +296,54 @@ The card draws the cover from the image in the metadata, but prefers the address
 can only read that address from files of the device. LastWave gives the cover by its address on the
 web, so the card is given the cover as an image without its address. The cover is loaded from its
 address, since the image LastWave gives the session may only stand in for it while it loads.
+
+## Origin Island music card (Apple Music)
+
+Makes the OriginOS music card work with Apple Music the way it does with the music apps vivo
+supports:
+
+- the cover, the song and the playback controls are shown
+- the heart button favorites the song, and is filled when the song is a favorite
+- the loop mode button switches between repeat all, repeat one and shuffle
+- the playlist shows the queue, and plays the song that is tapped
+- the favorites list shows your favorite songs, the songs you starred, newest first
+- the download list shows **All Downloads**, your downloaded playlists and your downloaded albums
+- synced lyrics are shown, looked up on [LRCLIB](https://lrclib.net), as Apple Music keeps its own
+  lyrics to itself. The title, artist, album and length of each song are sent there
+
+The patch does not get past any checks of Apple Music, and adds nothing but the above. This was
+tested with Apple Music 7.0.0 on one phone, and Apple can change how the app treats a patched copy
+at any time.
+
+### Using it
+
+The patched app is signed by you and not by Apple, so the Apple Music that was installed before
+has to be uninstalled first. **That removes your downloaded songs and settings from the phone**, and
+you have to sign in again. Your library and playlists are kept by your account.
+
+Apple Music on the phone comes as a split APK, so patch the full set of its parts. Restart the phone
+once after installing, since the card only looks for apps that support these features when it starts.
+
+Playing a song from the favorites or download list replaces the queue. The card only connects to the
+app once it plays or a control of the card is pressed, so the playlist button stays dimmed until then,
+also while Apple Music is closed. Pressing play on the card starts the music and connects it.
+
+The favorites list reads names of Apple Music 7.0.0 that are obfuscated, so it is expected to stop
+working with other versions, and then shows the playlist of favorites as one entry. The list stops at
+300 songs.
+
+### How it works
+
+The patch declares the action the card looks for on the media session service of Apple Music, answers
+the card when it connects, and adds to the metadata what the card may show and control. If a song is a
+favorite, and the repeat and shuffle modes, are only told by the icons of the custom actions of the
+session. Apple Music only takes those actions from Android Auto and its own notification, but takes a
+rating, which toggles the favorite, and the modes of the media library from any app.
+
+The download list comes from the tree Apple Music keeps for Android Auto, which it lets itself browse,
+and which it plays from the media ids. The tree has no list of favorites, so these are asked of the
+library the way Apple Music does for its own suggestions. Loading can take longer than the card waits,
+so the lists are loaded when the card connects and are kept.
 
 ## Comments under the video (YouTube)
 

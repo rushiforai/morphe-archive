@@ -110,7 +110,7 @@ final class ModuleItems {
 
     /** The fields that could say a pin is one the viewer saved or posted, for the same line. */
     private static final Pattern SAVED = Pattern.compile(
-            "^pinned_to_board$|^new_repin_id$|^is_repin$|^is_owned_by_viewer$");
+            "^pinned_to_board$|^pinned_to_profile$|^new_repin_id$|^is_repin$|^is_owned_by_viewer$");
 
     /**
      * [module]'s story type and each list it carries after filtering: its size, and for each model

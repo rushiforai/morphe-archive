@@ -8,8 +8,10 @@ package app.hushgram.extension.instagram.settings;
 
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.ambientSpeedRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.ambientSpreadRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.carouselPillLookRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.category;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.cornerSizeRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.feedSeekBarLookRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.onFlip;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
@@ -56,11 +58,13 @@ final class FeedCategory {
         boolean fullScreen = build.contains(PatchFamily.FULL_SCREEN_BARS);
         boolean feedFollow = build.contains(PatchFamily.FEED_FOLLOW);
         boolean hideCaptions = build.contains(PatchFamily.HIDE_CAPTIONS);
+        boolean feedAudioIcon = build.contains(PatchFamily.FEED_AUDIO_ICON);
         boolean homeTopBar = build.contains(PatchFamily.HOME_TOP_BAR);
+        boolean activityBubbles = build.contains(PatchFamily.ACTIVITY_BUBBLES);
         PreferenceCategory feed = suggestions || following || swipe || fullResolution || homeFeed || tabSwipe
                 || askLike || askRefresh || saveTray || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedSeekBar || longPressZoom
                 || roundedCorners || carouselArrows || ambientLight
-                || fullScreen || feedFollow || hideCaptions || homeTopBar
+                || fullScreen || feedFollow || hideCaptions || feedAudioIcon || homeTopBar || activityBubbles
                 ? category(screen, L10n.t("Feed"), SettingsIcons.FEED,
                         L10n.t("Choose what Home shows and how it behaves.")) : null;
         if (following) {
@@ -78,6 +82,12 @@ final class FeedCategory {
                         L10n.t("When For you brings an account only suggested posts, page after page, Home opens on "
                                 + "Following for that account. A feed you pick at the top of Home stays picked. Restart "
                                 + "Instagram to see the change.")));
+            }
+            if (PatchFamily.followingMixInBuild()) {
+                feed.addPreference(toggle(context, Settings.FOLLOWING_MIX, L10n.t("Mix in Following"),
+                        L10n.t("For you shows a page of posts from accounts you follow after each page of its own, "
+                                + "until you've seen them all. Pull down on Home to start both over. Restart Instagram "
+                                + "to see the change.")));
             }
         }
         if (suggestions) {
@@ -197,6 +207,7 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.FEED_SEEK_BUTTON, L10n.t("Seek bar button on feed videos"),
                     L10n.t("Adds a small button at the bottom left of a feed video that shows or hides its seek bar. "
                             + "It works with Seek bar on feed videos on or off.")));
+            feed.addPreference(feedSeekBarLookRow(context));
         }
         if (longPressZoom) {
             feed.addPreference(toggle(context, Settings.LONG_PRESS_TO_ZOOM, L10n.t("Long press a photo to zoom"),
@@ -230,6 +241,7 @@ final class FeedCategory {
             feed.addPreference(onFlip(toggle(context, Settings.CAROUSEL_DOTS_PILL, L10n.t("Page dots on a pill"),
                     L10n.t("Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, "
                             + "with the page you're on in blue.")), CarouselArrows::switchChanged));
+            feed.addPreference(carouselPillLookRow(context));
         }
         if (ambientLight) {
             feed.addPreference(onFlip(toggle(context, Settings.AMBIENT_LIGHT, L10n.t("Ambient light"),
@@ -249,6 +261,11 @@ final class FeedCategory {
                     L10n.t("Takes the Follow and Subscribe buttons off the top of posts in your feed. The name, time and menu stay.")),
                     FeedFollowButton::switchChanged));
         }
+        if (activityBubbles) {
+            feed.addPreference(toggle(context, Settings.HIDE_ACTIVITY_BUBBLES, L10n.t("Hide activity bubbles"),
+                    L10n.t("Takes the little round pictures off posts and reels that show a friend liked, commented on "
+                            + "or reshared them. Posts already on screen change when they load again.")));
+        }
         if (hideCaptions) {
             feed.addPreference(onFlip(toggle(context, Settings.HIDE_CAPTIONS, L10n.t("Hide captions"),
                     L10n.t("Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet "
@@ -261,6 +278,11 @@ final class FeedCategory {
                             + "instead of sliding them away.")));
             feed.addPreference(toggle(context, Settings.SEE_THROUGH_HOME_TOP_BAR, L10n.t("See-through top bar"),
                     L10n.t("Shows your feed blurred under Home's top bar, like frosted glass.")));
+        }
+        if (feedAudioIcon) {
+            feed.addPreference(toggle(context, Settings.HIDE_FEED_AUDIO_ICON, L10n.t("Hide the audio icon on posts"),
+                    L10n.t("Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on "
+                            + "or off. Posts already on screen change when they load again.")));
         }
     }
 }

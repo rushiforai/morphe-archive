@@ -8,6 +8,7 @@ package app.hushtumblr.extension.tumblr.ui;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -28,7 +29,7 @@ import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.PatchFamilyForTests;
 import app.hushtumblr.extension.tumblr.settings.Settings;
 
-/** When Hide hashtags and Hide the Follow button leave those parts off a post card, and when they don't. */
+/** When Hide hashtags and Hide the Follow button leave those parts off a post card or its reblog trail, and when they don't. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class PostPartsTest {
@@ -84,6 +85,24 @@ public class PostPartsTest {
         PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
         PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
         assertEquals("cats", PostParts.tvTags("cats"));
+    }
+
+    @Test
+    public void hideTheFollowButtonGivesTheReblogTrailsFollowNoEntry() {
+        Object entry = new Object();
+        assertSame("switched off, the entry is Tumblr's", entry, PostParts.trailFollow(entry));
+        Settings.HIDE_FOLLOW_BUTTON.save(true);
+        assertNull(PostParts.trailFollow(entry));
+        assertNull("nothing to hide", PostParts.trailFollow(null));
+
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("reblog trail follow button hidden 1"));
+
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.POST_TAGS));
+        assertSame("its hook isn't in this build", entry, PostParts.trailFollow(entry));
+        PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame(entry, PostParts.trailFollow(entry));
     }
 
     @Test

@@ -36,8 +36,12 @@ internal const val BLUR_VIEW = "Lcom/pinterest/gestalt/design/blur/GestaltBlurVi
 /** The id of the bar that holds the reply box. Every comments screen is built by the one method that looks it up. */
 internal const val COMMENTS_SCREEN_ID = "comment_bottom_bar"
 
+/** Pinterest's rounded card. A pin's menu shows See more and See less on it, and nothing else in 14.42.0 uses it. */
+internal const val PIN_MENU_CARD = "bento_card_background"
+
 internal const val COMMENTS_HOOK = "$AMOLED_BLACK->comments(Landroid/view/View;)V"
 internal const val PIN_MENU_HOOK = "$AMOLED_BLACK->pinMenu(Landroid/view/View;)V"
+internal const val PIN_MENU_CARD_HOOK = "$AMOLED_BLACK->pinMenuCard(Landroid/view/View;)V"
 
 /** Where a glass view washes its canvas: its draw method, the wash's index, and the registers holding the view and the color. */
 internal data class GlassWash(val draw: Method, val index: Int, val view: Int, val color: Int)
@@ -46,7 +50,9 @@ internal data class GlassWash(val draw: Method, val index: Int, val view: Int, v
  * The bar's gray is Pinterest's elevation color, which menus, popovers and floating buttons share,
  * so the theme is left alone and only the bar's own drawables are recolored as it draws. The
  * comments sheet and a pin's menu carry the same color, and each is handed to the extension by the
- * method that builds it. The three are found apart, so a build that lacks one keeps the others.
+ * method that builds it, as is each See more and See less card in that menu. The bar, the
+ * comments sheet and the menu are found apart, so a build that lacks one keeps the others. The
+ * menu's sheet and its cards go together, under one switch.
  */
 @Suppress("unused")
 val amoledBlackPatch = bytecodePatch(
@@ -75,7 +81,11 @@ val amoledBlackPatch = bytecodePatch(
                         enableCapability("blackComments")
                     }
                     else -> {
-                        handOver(pinMenuSheet(), surface, PIN_MENU_HOOK)
+                        // The sheet and its cards are one surface: both are found before either changes.
+                        val sheet = pinMenuSheet()
+                        val card = pinMenuCard()
+                        handOver(sheet, surface, PIN_MENU_HOOK)
+                        handOver(card, "pin menu card", PIN_MENU_CARD_HOOK)
                         enableCapability("blackPinMenu")
                     }
                 }
@@ -151,6 +161,22 @@ internal fun BytecodePatchContext.pinMenuSheet(): Method {
     val menu = classDefByOrNull(PIN_MENU) ?: throw PatchException("$PATCH: Pinterest's pin menu wasn't found")
     return menu.methods.filter { it.name == "createModalView" && it.implementation != null }
         .one("$PATCH: pin menu builder")
+}
+
+/**
+ * The method that builds each card a pin's menu shows See more and See less on: the one that gives
+ * a view Pinterest's rounded card and answers it. The menu adds the cards to its list itself, so
+ * the sheet's own hook never sees them. Nothing is changed here.
+ */
+internal fun BytecodePatchContext.pinMenuCard(): Method {
+    val builders = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        owner.methods.filterTo(builders) { method ->
+            method.implementation != null && method.fields().any { it.name == PIN_MENU_CARD && it.type == "I" }
+        }
+    }
+    return builders.one("$PATCH: pin menu card builder")
 }
 
 /**

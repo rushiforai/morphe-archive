@@ -394,6 +394,21 @@ Activity 内の assertion とスクリーンショットの両方で確認した
 - 実機の個別操作の下端と全体ボタン上端の間隔は26px。入力欄の座標は修正前後で不変。当該processのAndroidRuntime errorは0件。
 - 修正版APKはリポジトリ外の `/Users/uta_a/morphe/line-linimal.apk` に生成した。
 
+## 2026-11-02 LINE 26.16.0 移行の実機確認
+
+XIG07（Android SDK 36）へ `~/morphe/linimal.keystore` で署名した APK を上書き install した。データ消去なし。
+実アカウントのため、トークルーム内の確認は利用者が手で行った。
+
+| 確認項目 | 結果 |
+| --- | --- |
+| Patch Status | 全 64 件 OK |
+| ART verify、cold start、ログイン維持 | Pass。`FATAL EXCEPTION` と `VerifyError` は 0 件 |
+| Linimal 設定の表示 | 5 ページの全スイッチが操作可能 |
+| 下部タブ、ホーム上部、トーク一覧上部の抑制 | Pass（ホームは確認した範囲でのキーワード照合） |
+| 既読なし閲覧中のキーボード追従 | 利用者が修正を確認（`c6c21a1`） |
+
+既読なし閲覧と全体既読（相手側の既読を含む）、自動既読の停止中の送信とリアクション、通知、通話、deep link、入力欄の chip bar、LINE AI の各入口、＋ メニューは、利用者の手動確認で問題なしと報告を受けた（項目ごとの記録なし）。
+
 ## 実機成立性ゲート
 
 | ケース | 公式版リファレンス | Linimal統合APK | 結果 |
@@ -409,3 +424,15 @@ Activity 内の assertion とスクリーンショットの両方で確認した
 | native library load / restart / process death | Pass | Pending | cold launchはPass。main UI到達後のrestartとprocess deathは未確認 |
 
 `Pending` は未成立を意味し、成功扱いにしない。主要機能に失敗した場合は feature hook の実装へ進まない。
+
+## 個別既読の廃止（2026-11-03）
+
+LINE 26.16.0 の XIG07 で、既読なしで開いたトークの真ん中の行から「既読にする」を実行した。
+
+| 確認 | 結果 |
+| --- | --- |
+| `c1` の呼び出し | bridge 経由の1回のみ。トークを閉じた後の呼び出しなし |
+| 送信位置 | 押した行の位置。最新の受信位置より古い |
+| 相手側（公式 Web 版 LINE） | 全行に既読 |
+
+公式スマホ版を受信側にした確認は行っていない。この結果を受け、行ごとの操作は廃止した。

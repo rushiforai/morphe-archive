@@ -32,6 +32,7 @@ public final class FamilyNames {
     public static final String REVEAL_ALLOWED_MATURE_CONTENT = "Reveal allowed mature content";
     public static final String MUTE_ROOT_POSTS = "Mute posts locally";
     public static final String VISIBLE_ALT_TEXT = "Visible image descriptions";
+    public static final String SHARE_VIDEO_LINKS = "Share video links";
     public static final String SHOW_POST_TIMESTAMPS = "Show post timestamps";
     public static final String HIDE_ADS = "Hide ads";
     public static final String DISABLE_ANALYTICS = "Disable analytics";

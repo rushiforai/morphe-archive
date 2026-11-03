@@ -24,38 +24,28 @@ internal val bypassUpdateGateOption = booleanOption(
     key = "bypassUpdateGate",
     default = true,
     title = "Bypass update & force-update screen",
-    description = "Skips forced and optional update lockouts on Splash startup and Player exit, and " +
-        "removes the REQUEST_INSTALL_PACKAGES permission used by the in-app self-updater.",
+    description = "Skips forced update screens. With this on the app never updates itself — re-patch a newer stock version to update.",
 )
 
 internal val bypassEnvironmentChecksOption = booleanOption(
     key = "bypassEnvironmentChecks",
     default = false,
     title = "Bypass root & sniffer checks",
-    description = "Neutralizes RootBeer/su root lockouts, Frida/sniffer package checks, and " +
-        "proxy-certificate lockouts. Not needed on ordinary phones/TVs; MainActivity startup " +
-        "tamper crash-bombs are always neutralized separately.",
+    description = "Bypasses root and sniffer-app lockouts. Only turn this on if the app refuses to run on your device.",
 )
 
 internal val stripNativeAndTelemetryBloatOption = booleanOption(
     key = "stripNativeAndTelemetryBloat",
     default = false,
     title = "Strip native & telemetry bloat",
-    description = "Removes libnative-lib.so across all ABIs (plus libtoolChecker.so when the root " +
-        "bypass is enabled) plus Firebase Analytics, Crashlytics, Sessions, DataTransport, and " +
-        "AdServices manifest entries. Purely a size saving; the libraries are never loaded once " +
-        "their Java entry points are removed.",
+    description = "Deletes unused libraries and tracking components to save space. Not needed for ad removal.",
 )
 
 internal val disableWebActivityOption = booleanOption(
     key = "disableWebActivity",
     default = false,
     title = "Disable WebActivity (potential ad surface)",
-    description = "Stubs WebActivity.onCreate to immediately finish() the activity. SK Tech TV's " +
-        "WebActivity is a generic in-app WebView that could be repurposed for ad landing pages " +
-        "via remote app.txt config; disabling it ensures no remote-config-driven WebView ad can " +
-        "ever render. Off by default: WebActivity also opens legitimate in-app links, and the " +
-        "config sanitizer already blanks the ad sponsor URLs.",
+    description = "Closes the in-app web view so ads cannot open landing pages. Pages that legitimately use it, like score pages, will close too.",
 )
 
 

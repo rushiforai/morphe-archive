@@ -19,71 +19,38 @@ public final class ReadWithoutReceiptManualHooksTest {
     }
 
     @Test
-    public void selectedReadIsCumulativeButDoesNotConsumeLaterMessages() {
+    public void onlyOneReadRunsAtATimeAndFailureReleasesTheAction() {
         ReadWithoutReceiptManualHooks.State state = new ReadWithoutReceiptManualHooks.State();
-        state.observeBaseline(null);
-        assertFalse(state.begin(0L, false));
-        assertFalse(state.begin(-1L, false));
-        assertTrue(state.begin(42L, false));
-        assertFalse(state.begin(43L, false));
-        assertFalse(state.begin(0L, true));
-        state.finish(42L);
-        assertTrue(state.isRead(41L));
-        assertTrue(state.isRead(42L));
-        assertFalse(state.isRead(43L));
-        assertFalse(state.begin(41L, false));
-        assertTrue(state.begin(43L, false));
-    }
-
-    @Test
-    public void failureReleasesTheActionWithoutAdvancingItsReadPoint() {
-        ReadWithoutReceiptManualHooks.State state = new ReadWithoutReceiptManualHooks.State();
-        state.observeBaseline("");
-        assertTrue(state.begin(42L, false));
-        state.finish(0L);
-        assertFalse(state.isRead(42L));
+        assertTrue(state.begin());
+        assertTrue(state.isPending());
+        assertFalse(state.begin());
+        state.finish();
         assertFalse(state.isPending());
-        assertTrue(state.begin(42L, false));
-        state.finish(42L);
-        assertTrue(state.begin(0L, true));
-        state.finish(0L);
-        assertTrue(state.isRead(42L));
-        assertFalse(state.isRead(43L));
-        assertTrue(state.begin(0L, true));
-        state.finish(50L);
-        assertTrue(state.isRead(50L));
-        assertFalse(state.isRead(51L));
+        assertTrue(state.begin());
     }
 
     @Test
-    public void rotationRetainsManualProgressAndSuppressionButReentryDoesNot() {
+    public void rotationRetainsThePendingReadAndSuppressionButReentryDoesNot() {
         Object first = new Object();
         ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
         create(first, 0L);
         ReadWithoutReceiptHooks.Suppression session = ReadWithoutReceiptHooks.currentSuppression();
-        session.manualState.observeBaseline("40");
-        assertTrue(session.manualState.begin(42L, false));
-        session.manualState.finish(42L);
+        assertTrue(session.manualState.begin());
         ReadWithoutReceiptHooks.endActivity(first, true, true);
         Object restored = new Object();
         create(restored, session.token);
         ReadWithoutReceiptHooks.Suppression transferred = ReadWithoutReceiptHooks.currentSuppression();
         assertSame(session.manualState, transferred.manualState);
-        assertTrue(transferred.manualState.isRead(42L));
-        assertEquals(0, transferred.manualState.presentation(40L, false));
-        assertEquals(4, transferred.manualState.presentation(42L, true));
-        transferred.manualState.observeBaseline("999");
-        assertEquals(1, transferred.manualState.presentation(43L, true));
+        assertTrue(transferred.manualState.isPending());
         assertTrue(ReadWithoutReceiptHooks.shouldBlockGivenObserved("chat", 1L, transferred));
         ReadWithoutReceiptHooks.endActivity(restored, false, true);
         ReadWithoutReceiptHooks.markSuppressedAt("chat", 2L);
         create(new Object(), 0L);
-        assertFalse(ReadWithoutReceiptHooks.currentSuppression().manualState.isRead(42L));
-        assertEquals(-1, ReadWithoutReceiptHooks.currentSuppression().manualState.presentation(43L, true));
+        assertFalse(ReadWithoutReceiptHooks.currentSuppression().manualState.isPending());
     }
 
     @Test
-    public void manualPermissionIsLimitedToOneChatAndWorkerAndNeverEndsTheSession() throws Exception {
+    public void manualPermissionIsLimitedToOneChatAndWorker() throws Exception {
         ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
         create(new Object(), 0L);
         ReadWithoutReceiptHooks.Suppression session = ReadWithoutReceiptHooks.currentSuppression();
@@ -99,7 +66,7 @@ public final class ReadWithoutReceiptManualHooksTest {
                 throw new AssertionError(error);
             }
             assertFalse(escaped.get());
-        }), 42L, false);
+        }), 42L);
         assertFalse(ReadWithoutReceiptManualHooks.hasManualInvocation());
         assertSame(session, ReadWithoutReceiptHooks.currentSuppression());
         assertTrue(ReadWithoutReceiptHooks.shouldBlockGivenObserved("chat", 1L, session));
@@ -116,7 +83,7 @@ public final class ReadWithoutReceiptManualHooksTest {
                 create(new Object(), 0L);
                 assertTrue(ReadWithoutReceiptHooks.shouldBlockMarkAsRead("chat"));
                 throw new IllegalStateException("reader failed");
-            }), 42L, false);
+            }), 42L);
             fail("Reader failure must propagate to the worker's failure handler");
         } catch (InvocationTargetException expected) {
             assertTrue(expected.getCause() instanceof IllegalStateException);
@@ -124,47 +91,57 @@ public final class ReadWithoutReceiptManualHooksTest {
         assertFalse(ReadWithoutReceiptManualHooks.hasManualInvocation());
         assertEquals(0L, ReadWithoutReceiptManualHooks.invokeRead(old, new Executor(() -> {
             throw new AssertionError("stale action executed");
-        }), 42L, false));
+        }), 42L));
     }
 
     @Test
-    public void nativeReadPositionSeparatesHistoryFromUnreadAndMovesOnlyAfterManualCompletion() {
-        ReadWithoutReceiptManualHooks.State state = new ReadWithoutReceiptManualHooks.State();
-        assertEquals(-1, state.presentation(101L, true));
-        assertFalse(state.begin(101L, false));
-        state.observeBaseline("100");
-        assertEquals(0, state.presentation(90L, false));
-        assertEquals(0, state.presentation(100L, false));
-        assertEquals(3, state.presentation(101L, true));
-        assertEquals(1, state.presentation(102L, false));
-        assertTrue(state.isRead(100L));
-        assertFalse(state.isRead(101L));
-        assertFalse(state.begin(100L, false));
-        assertTrue(state.begin(101L, false));
-        state.finish(101L);
-        assertEquals(4, state.presentation(101L, true));
-        assertEquals(1, state.presentation(102L, true));
-        state.observeBaseline("200");
-        assertEquals(1, state.presentation(102L, false));
-        state.finish(99L);
-        assertEquals(4, state.presentation(101L, false));
+    public void markingTheWholeChatReturnsToNormalLineOnlyWhenItSucceeds() {
+        Object activity = new Object();
+        ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
+        create(activity, 0L);
+        ReadWithoutReceiptHooks.Suppression session = ReadWithoutReceiptHooks.currentSuppression();
+
+        assertFalse(ReadWithoutReceiptManualHooks.finishRead(session, 0L));
+        assertSame(session, ReadWithoutReceiptHooks.currentSuppression());
+
+        assertTrue(ReadWithoutReceiptManualHooks.finishRead(session, 42L));
+        assertEquals(null, ReadWithoutReceiptHooks.currentSuppression());
+        assertEquals(0L, ReadWithoutReceiptHooks.sessionTokenFor(activity));
     }
 
     @Test
-    public void missingReadUpMeansKnownNoReadButMalformedReadUpRemainsUnknown() {
-        ReadWithoutReceiptManualHooks.State missing = new ReadWithoutReceiptManualHooks.State();
-        missing.observeBaseline(null);
-        assertEquals(3, missing.presentation(1L, true));
-        ReadWithoutReceiptManualHooks.State empty = new ReadWithoutReceiptManualHooks.State();
-        empty.observeBaseline("");
-        assertEquals(1, empty.presentation(1L, false));
-        ReadWithoutReceiptManualHooks.State malformed = new ReadWithoutReceiptManualHooks.State();
-        malformed.observeBaseline("invalid");
-        assertEquals(-1, malformed.presentation(1L, true));
-        malformed.observeBaseline("-1");
-        assertEquals(-1, malformed.presentation(1L, true));
-        malformed.observeBaseline("100");
-        assertEquals(0, malformed.presentation(1L, true));
+    public void resultIsSentToTheOwnerAfterRotationEvenWhenTheSessionEnds() {
+        Object first = new Object();
+        ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
+        create(first, 0L);
+        ReadWithoutReceiptHooks.Suppression started = ReadWithoutReceiptHooks.currentSuppression();
+        ReadWithoutReceiptHooks.endActivityObserved(first, true, true, started);
+        Object second = new Object();
+        create(second, started.token);
+
+        ReadWithoutReceiptHooks.Suppression target = ReadWithoutReceiptManualHooks.resultTarget(started);
+        assertSame(second, target.owner.get());
+        assertTrue(ReadWithoutReceiptManualHooks.finishRead(started, 42L));
+        assertEquals(null, ReadWithoutReceiptHooks.currentSuppression());
+        assertSame(second, target.owner.get());
+        assertSame(started, ReadWithoutReceiptManualHooks.resultTarget(started));
+    }
+
+    @Test
+    public void blockedSendDuringSessionReplacementIsNotReportedAsSent() throws Exception {
+        ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
+        create(new Object(), 0L);
+        ReadWithoutReceiptHooks.Suppression old = ReadWithoutReceiptHooks.currentSuppression();
+
+        assertEquals(0L, ReadWithoutReceiptManualHooks.invokeRead(old, new Executor(() -> {
+            ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
+            create(new Object(), 0L);
+            assertTrue(ReadWithoutReceiptHooks.shouldBlockMarkAsRead("chat"));
+        }), 42L));
+
+        ReadWithoutReceiptHooks.Suppression current = ReadWithoutReceiptHooks.currentSuppression();
+        assertEquals(42L, ReadWithoutReceiptManualHooks.invokeRead(current, new Executor(() -> {
+        }), 42L));
     }
 
     public static final class Executor {
@@ -174,7 +151,7 @@ public final class ReadWithoutReceiptManualHooksTest {
             this.action = action;
         }
 
-        public long linimalMarkReadManually(long point, String chatId, boolean all) {
+        public long linimalMarkReadManually(long point, String chatId) {
             action.run();
             return point;
         }

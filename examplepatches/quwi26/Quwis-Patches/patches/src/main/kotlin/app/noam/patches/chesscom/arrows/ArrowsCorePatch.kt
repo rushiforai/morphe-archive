@@ -9,6 +9,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.chesscom.arcade.StandardAnimationsToStringFingerprint
 import app.noam.patches.chesscom.shared.Constants
+import app.noam.patches.chesscom.shared.returnString
+import app.noam.patches.chesscom.shared.toBinaryName
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -56,6 +58,9 @@ internal val arrowsCorePatch = bytecodePatch(
                 classDef.superclass == "Landroid/view/ViewGroup;" &&
                 classDef.methods.any { method -> method.name == "setPiecesGraphics" }
         }?.type ?: throw PatchException("The v2 piece layer was not found")
+        // 4.10.23 renamed the piece layer; the extension matches it by this name.
+        mutableClassDefBy(BOARD_VIEWS).methods.first { it.name == "v2PiecesType" }
+            .returnString(v2Pieces.toBinaryName())
         mutableClassDefBy(V2_BOARD).methods.apply {
             val constructors = filter {
                 it.name == "<init>" && it.implementation?.instructions?.any { instruction ->

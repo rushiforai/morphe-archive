@@ -432,6 +432,61 @@ public class HushPinterestPreferenceFragmentTest {
     }
 
     /**
+     * The row under the picture, Remix and Visit site each have a hand-over of their own, so a build
+     * missing one keeps the others' rows. Each row starts off, and they follow the label row in the
+     * order the pin shows them.
+     */
+    @Test
+    public void eachPinButtonRowShowsOnlyWhereItsHandOverWentIn() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        Map<PatchFamily.Capability, List<BooleanSetting>> rowsOf = new LinkedHashMap<>();
+        rowsOf.put(PatchFamily.Capability.CLOSEUP_ACTION_BAR, Arrays.asList(Settings.HIDE_CLOSEUP_LIKE,
+                Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE, Settings.HIDE_CLOSEUP_MORE));
+        rowsOf.put(PatchFamily.Capability.CLOSEUP_REMIX, Collections.singletonList(Settings.HIDE_CLOSEUP_REMIX));
+        rowsOf.put(PatchFamily.Capability.CLOSEUP_VISIT_SITE, Collections.singletonList(Settings.HIDE_CLOSEUP_VISIT_SITE));
+        rowsOf.put(PatchFamily.Capability.CLOSEUP_SAVE_BUTTON, Collections.singletonList(Settings.SMALLER_SAVE_BUTTON));
+        for (Map.Entry<PatchFamily.Capability, List<BooleanSetting>> missing : rowsOf.entrySet()) {
+            Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
+            withoutIt.remove(missing.getKey());
+            PatchFamily.capabilitiesForTests = withoutIt;
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushPinterestPreferenceFragment page = pageOf(controller);
+                for (Map.Entry<PatchFamily.Capability, List<BooleanSetting>> group : rowsOf.entrySet()) {
+                    for (BooleanSetting setting : group.getValue()) {
+                        if (group == missing) assertNull(setting.key, page.findPreference(setting.key));
+                        else assertNotNull(setting.key, page.findPreference(setting.key));
+                    }
+                }
+                assertNotNull(page.findPreference(Settings.HIDE_CLOSEUP_LENS.key));
+                boolean colorRow = missing.getKey() != PatchFamily.Capability.CLOSEUP_SAVE_BUTTON;
+                assertEquals(colorRow, page.findPreference("action_save_button_color") != null);
+            }
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushPinterestPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int at = indexOfKey(rows, Settings.HIDE_CLOSEUP_SEARCH_LABEL.key);
+            String[] titles = {"Hide like button on pins", "Hide comment button on pins", "Hide share button on pins",
+                    "Hide more button on pins", "Hide Remix button on pins", "Hide Visit site button on pins",
+                    "Smaller Save button on pins"};
+            BooleanSetting[] settings = {Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
+                    Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
+                    Settings.SMALLER_SAVE_BUTTON};
+            for (int i = 0; i < settings.length; i++) {
+                SwitchPreference row = (SwitchPreference) page.findPreference(settings[i].key);
+                assertNotNull(settings[i].key, row);
+                assertEquals(titles[i], String.valueOf(row.getTitle()));
+                assertFalse(titles[i] + " starts off", row.isChecked());
+                assertEquals(titles[i], at + 1 + i, indexOfKey(rows, settings[i].key));
+            }
+            assertEquals(at + 1 + settings.length, indexOfKey(rows, "action_save_button_color"));
+            assertEquals("Save button color", String.valueOf(page.findPreference("action_save_button_color").getTitle()));
+        }
+    }
+
+    /**
      * Copy image has its own switch under the download rows, starts off, and shows only where the
      * pin menu row went in.
      */

@@ -68,7 +68,6 @@ Couldn't reach GitHub. Try again later.	Não foi possível conectar-se ao GitHub
 GitHub is turning away checks from this network for now. Try again later.	O GitHub está recusando consultas desta rede por enquanto. Tente novamente mais tarde.
 GitHub sent back something HushPinterest couldn't read. Try again later.	O GitHub enviou algo que o HushPinterest não conseguiu ler. Tente de novo mais tarde.
 Saving the settings file	Salvando o arquivo de configurações
-Set when you patched	Definido ao aplicar os patches
 Settings couldn't open	Não foi possível abrir as configurações
 Settings didn't fully refresh. Reopen them and try again.	As configurações não atualizaram por completo. Reabra e tente de novo.
 Settings exported.	Configurações exportadas.
@@ -514,9 +513,37 @@ Hides the back arrow that floats over a pin you open. Your phone's back gesture 
 Hide lens button on pins	Ocultar botão Lens nos pins
 Hide closeup buttons	Ocultar botões nos pins
 Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Oculta o botão de pesquisa visual no canto de um pin que você abre. Pesquisar imagem no menu do pin continua funcionando. A mudança aparece no próximo pin que você abrir.
-# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label. The last line names this part of the patch in a build report.
+Hide like button on pins	Ocultar botão de curtir nos pins
+Hides the heart under a pin you open, along with its count. The change shows on the next pin you open.	Oculta o coração embaixo de um pin que você abre, junto com a contagem. A mudança aparece no próximo pin que você abrir.
+Hide comment button on pins	Ocultar botão de comentários nos pins
+Hides the comment button under a pin you open. The change shows on the next pin you open.	Oculta o botão de comentários embaixo de um pin que você abre. A mudança aparece no próximo pin que você abrir.
+Hide share button on pins	Ocultar botão de compartilhar nos pins
+Hides the share button under a pin you open. The change shows on the next pin you open.	Oculta o botão de compartilhar embaixo de um pin que você abre. A mudança aparece no próximo pin que você abrir.
+Hide more button on pins	Ocultar botão de mais opções nos pins
+Hides the three dots under a pin you open. Their menu, Download pin included, can't be opened from that page while this is on. The change shows on the next pin you open.	Oculta os três pontos embaixo de um pin que você abre. O menu deles, incluindo Baixar Pin, não abre nessa página enquanto isto estiver ligado. A mudança aparece no próximo pin que você abrir.
+Hide Remix button on pins	Ocultar botão Remix nos pins
+Hides the Remix button on a pin you open. The change shows on the next pin you open.	Oculta o botão Remix em um pin que você abre. A mudança aparece no próximo pin que você abrir.
+Hide Visit site button on pins	Ocultar botão Visitar site nos pins
+Hides the Visit site button under a pin that links to a website. The change shows on the next pin you open.	Oculta o botão Visitar site embaixo de um pin que leva a um site. A mudança aparece no próximo pin que você abrir.
+Hide pin action buttons	Ocultar botões de ação dos pins
+Hide Remix button	Ocultar botão Remix
+Hide Visit site button	Ocultar botão Visitar site
+# context: two more Hide closeup buttons rows on the Interface page for Pinterest's red Save button on a pin someone opens: a switch that draws it at 80 percent of its size, and a row that opens a box for a hex color to paint it. %1$s is a color code like #3366FF. The first line names this part of the patch in a build report.
+Save button size and color	Tamanho e cor do botão Salvar
+Smaller Save button on pins	Botão Salvar menor nos pins
+Shrinks the red Save button on a pin you open to four fifths of its size, keeping its spot at the end of the row. The change shows on the next pin you open.	Reduz o botão vermelho Salvar em um pin que você abre para quatro quintos do tamanho, no mesmo lugar no fim da linha. A mudança aparece no próximo pin que você abrir.
+Save button color	Cor do botão Salvar
+Paints the red Save button on a pin you open in a color you pick. It's Pinterest's red for now.	Pinta o botão vermelho Salvar em um pin que você abre com a cor que você escolher. Por enquanto é o vermelho do Pinterest.
+Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	O botão Salvar fica %1$s. Toque para mudar. A mudança aparece no próximo pin que você abrir.
+Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	Digite uma cor hex, como #3366FF, ou três dígitos, como #36F. Uma cor clara ganha texto escuro para o botão continuar legível.
+Couldn't open the Save button color. Try again.	Não foi possível abrir a cor do botão Salvar. Tente de novo.
+That isn't a hex color, so nothing changed. Try one like #3366FF.	Isso não é uma cor hex, então nada mudou. Tente uma como #3366FF.
+Couldn't save the Save button color. Try again.	Não foi possível salvar a cor do botão Salvar. Tente de novo.
+The Save button is back to Pinterest's red on the next pin you open.	O botão Salvar volta ao vermelho do Pinterest no próximo pin que você abrir.
+The Save button turns %1$s on the next pin you open.	O botão Salvar fica %1$s no próximo pin que você abrir.
+# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Ocultar o rótulo Pesquisar imagem nos pins
-Keeps the lens button on a pin you open but leaves off the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Mantém o botão Lens em um pin que você abre, mas tira o rótulo Pesquisar imagem que o Pinterest coloca nele nos seus primeiros pins do dia. Tocar no Lens continua pesquisando. A mudança aparece no próximo pin que você abrir.
+Keeps the lens button on a pin you open but leaves off its glow and the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Mantém o botão Lens em um pin que você abre, mas tira o brilho dele e o rótulo Pesquisar imagem que o Pinterest coloca nele nos seus primeiros pins do dia. Tocar no Lens continua pesquisando. A mudança aparece no próximo pin que você abrir.
 Hide Search image label	Ocultar o rótulo Pesquisar imagem
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 File left alone. If it's empty, delete it in your files app.	O arquivo ficou como estava. Se estiver vazio, apague-o no app de arquivos.
@@ -613,6 +640,12 @@ none	nenhuma
 %1$d word	%1$d palavra
 # context: the same for any other number
 %1$d words	%1$d palavras
+# context: heading of the settings import preview when the file changes no switch but changes the Save button color (the hex color painted on the Save button of a pin someone opens)
+Your Save button color will change.	A cor do seu botão Salvar será alterada.
+# context: the same heading when the file changes both the muted words list and the Save button color
+Your muted words and Save button color will change.	Suas palavras silenciadas e a cor do botão Salvar serão alteradas.
+# context: in the import preview line that reads like Save button color (Pinterest's red to #3366FF): no color is picked, so the button keeps Pinterest's own red
+Pinterest's red	vermelho do Pinterest
 Pinterest's own AI setting	A configuração de IA do Pinterest
 Pinterest can show you fewer AI pins among the ones it picks for you. It works alongside the switches above, and neither one catches every AI pin. Tap to open it.	O Pinterest pode mostrar menos pins de IA entre os que escolhe para você. Essa configuração funciona junto com as opções acima, e nenhuma das duas pega todos os pins de IA. Toque para abrir.
 Pinterest couldn't open that page.	O Pinterest não conseguiu abrir essa página.

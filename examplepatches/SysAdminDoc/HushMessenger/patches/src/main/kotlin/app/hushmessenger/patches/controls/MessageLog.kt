@@ -243,7 +243,9 @@ internal fun MutableMethod.validateMessageLog() {
  * At the constructor's start, before the super call, the hook reads the incoming message's id, text and thread from the
  * parameter object (never the one being built), and hands them to the extension off Messenger's own thread. Off, Pause
  * and safe mode read nothing: the extension's gate is checked first, so the text is never even loaded. An unsent
- * message is skipped, since its text is only Messenger's stand-in, and so is one whose text Messenger hid.
+ * message is skipped, since its text is only Messenger's stand-in, and so is one whose text Messenger hid. A message with
+ * no body, a photo say, goes over with null text: the log keeps it as an attachment and Auto reply passes it by. The
+ * explicit null keeps the register a String where both paths meet, which the verifier needs.
  *
  * The constructor has only two free registers, so the id goes over first, on its own, and the sink picks it up on the
  * same thread. Every path to a sink passes its own handover first, so a sink can't get an earlier message's id.
@@ -276,8 +278,12 @@ private fun MutableMethod.injectIncomingMessage(gate: String, sink: String) {
         iget-object v1, v0, ${contract.messageIdField}
         invoke-static {v1}, $SETTINGS->incomingMessageId(Ljava/lang/String;)V
         iget-object v1, v0, ${contract.bodyField}
-        if-eqz v1, :stock_behavior
+        if-eqz v1, :incoming_no_text
         iget-object v1, v1, ${contract.secretField}
+        goto :incoming_thread
+        :incoming_no_text
+        const/4 v1, 0x0
+        :incoming_thread
         iget-object v0, v0, ${contract.threadKeyField}
         if-eqz v0, :incoming_no_thread
         invoke-virtual {v0}, $THREAD_KEY_TYPE->toString()Ljava/lang/String;

@@ -25,6 +25,7 @@ updates:
       interval: weekly
     allow:
       - dependency-name: "gradle-wrapper"
+      - dependency-name: "com.google.code.gson:gson"
 
   - package-ecosystem: gradle
     labels: []

@@ -49,6 +49,7 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtumblr_reveal_allowed_mature_content", FALSE);
     public static final BooleanSetting MUTE_ROOT_POSTS = new BooleanSetting("hushtumblr_mute_root_posts", FALSE);
     public static final BooleanSetting SHOW_IMAGE_DESCRIPTIONS = new BooleanSetting("hushtumblr_show_image_descriptions", FALSE);
+    public static final BooleanSetting SHARE_VIDEO_LINKS = new BooleanSetting("hushtumblr_share_video_links", FALSE);
     public static final BooleanSetting SHOW_POST_TIMESTAMPS = new BooleanSetting("hushtumblr_show_post_timestamps", FALSE);
     public static final BooleanSetting WORDS_CURRENT_TEXT = new BooleanSetting("hushtumblr_words_current_text", TRUE);
     public static final BooleanSetting WORDS_REBLOG_TRAIL = new BooleanSetting("hushtumblr_words_reblog_trail", TRUE);

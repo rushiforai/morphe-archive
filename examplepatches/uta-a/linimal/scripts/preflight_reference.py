@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""厳密な LINE 26.11.0 arm64-v8a APKM reference input を検証します。
+"""厳密な LINE 26.16.0 arm64-v8a APKM reference input を検証します。
 
 このプログラムは意図的に Python の standard library だけを使用します。入力 APKM は変更しません。
 APK ファイルは TemporaryDirectory にのみ materialize し、Android SDK の apksigner が APK Signature
@@ -566,8 +566,8 @@ def preflight(apkm_path: Path, descriptor_path: Path, apksigner_path: str | None
 def default_paths() -> tuple[Path, Path]:
     root = Path(__file__).resolve().parents[1]
     return (
-        root / "line-apk" / "jp.naver.line.android_26.11.0-261100124_2arch_7dpi_b4f7cc253b4eab6903c1c27496682626_apkmirror.com.apkm",
-        root / "reference" / "line-26.11.0-arm64-v8a.json",
+        root / "line-apk" / "jp.naver.line.android_26.16.0-261600106_2arch_6dpi_27e24416bed2114af71681c9f1fc7b86_apkmirror.com.apkm",
+        root / "reference" / "line-26.16.0-arm64-v8a.json",
     )
 
 
@@ -583,7 +583,7 @@ def main(argv: list[str] | None = None) -> int:
     except PreflightError as error:
         print(f"preflight failed: {error}", file=sys.stderr)
         return 1
-    print("preflight passed: exact LINE 26.11.0 arm64-v8a APKM reference verified")
+    print("preflight passed: exact LINE 26.16.0 arm64-v8a APKM reference verified")
     return 0
 
 

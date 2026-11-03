@@ -1,0 +1,118 @@
+name: Validate 1DM patches
+
+# Manual (Actions tab -> "Validate 1DM patches" -> Run workflow).
+# Builds the bundle, then runs Morphe Desktop strict validation against stock
+# 1DM 20.0 (30257) in 3 configurations and re-checks the manifest component
+# census from docs/1dm-20-component-census.md. Run this on every 1DM version
+# bump and before promoting 1DM changes from dev to main.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Strict-validate 1DM patch set
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      ONEDM_BASE_APK_SHA256: 'b55935a4435da5d3623aa8c94384039d9f07128a58ba1a93f427a5a21924c3ab'
+      DEFAULT_APKM_URL: 'https://drive.usercontent.google.com/download?id=1Ig_ScXrsyx-Pp4b7i3QMF-oEW_2pvTuE&export=download&confirm=t'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Java 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Download stock 1DM 20.0 and verify hash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/validate
+          python3 - <<'PY'
+          import urllib.request, shutil
+          req = urllib.request.Request(
+              "https://drive.usercontent.google.com/download?id=1Ig_ScXrsyx-Pp4b7i3QMF-oEW_2pvTuE&export=download&confirm=t",
+              headers={"User-Agent": "Mozilla/5.0"})
+          with urllib.request.urlopen(req) as r, open("/tmp/validate/stock.apkm", "wb") as f:
+              shutil.copyfileobj(r, f)
+          PY
+          unzip -o -q /tmp/validate/stock.apkm base.apk -d /tmp/validate/
+          ACTUAL_SHA=$(sha256sum /tmp/validate/base.apk | awk '{print $1}')
+          if [ "$ACTUAL_SHA" != "$ONEDM_BASE_APK_SHA256" ]; then
+            echo "::error::base.apk SHA-256 mismatch: $ACTUAL_SHA"
+            exit 1
+          fi
+
+      - name: Download Morphe Desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release download --repo MorpheApp/morphe-desktop --pattern "*.jar" --dir /tmp/validate
+          ls -la /tmp/validate/*.jar
+
+      - name: Strict validation - 3 configurations
+        run: |
+          set -euo pipefail
+          export JAVA_TOOL_OPTIONS="-Xmx3g"
+          BUNDLE=$(ls patches/build/libs/patches-*.mpp | head -n 1)
+          DESKTOP=$(ls /tmp/validate/*.jar | head -n 1)
+          STOCK=/tmp/validate/stock.apkm
+
+          run_case() {
+            local name="$1"; shift
+            echo "::group::$name"
+            java -jar "$DESKTOP" patch --validate \
+              -r "/tmp/validate/$name-result.json" \
+              -p="$BUNDLE" "$@" \
+              -o "/tmp/validate/$name.apk" "$STOCK"
+            jq -e '.success == true' "/tmp/validate/$name-result.json" >/dev/null \
+              || { echo "::error::$name failed strict validation"; cat "/tmp/validate/$name-result.json"; exit 1; }
+            echo "$name: success"
+            echo "::endgroup::"
+          }
+
+          run_case run1-defaults
+          run_case run2-all \
+            -e="Remove ads and promotions" \
+            -e="Optimize cold start and battery" \
+            -e="AdBlocker turbo & userscript bundle" \
+            -e="Preset browser settings" \
+            -e="Browser setup prompts only once"
+          run_case run3-stock \
+            -e="AdBlocker turbo & userscript bundle" \
+            -O=adblockerMode=stock \
+            -O=bundleBypassShortlinks=false
+
+      - name: Check manifest component census
+        run: |
+          set -euo pipefail
+          pip install -q Androguard
+          python3 - <<'PY'
+          import logging
+          logging.disable(logging.CRITICAL)
+          from androguard.core.apk import APK
+          apk = APK("/tmp/validate/run1-defaults.apk")
+          root = apk.get_android_manifest_xml()
+          counts = {t: sum(1 for e in root.iter() if e.tag == t)
+                    for t in ("provider", "service", "receiver", "activity")}
+          print("patched census:", counts)
+          expected = {"provider": 4, "service": 15, "receiver": 6, "activity": 58}
+          if counts != expected:
+              raise SystemExit(
+                  f"::error::Census drift {counts} != {expected}. "
+                  "Review the diff and update docs/1dm-20-component-census.md "
+                  "(see 'How to use this file' there).")
+          print("census OK")
+          PY

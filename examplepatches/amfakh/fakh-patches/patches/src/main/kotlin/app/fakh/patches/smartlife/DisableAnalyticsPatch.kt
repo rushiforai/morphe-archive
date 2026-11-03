@@ -66,7 +66,7 @@ val disableAnalyticsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Privacy")
-    dependsOn(signatureSpoofPatch, firebaseManifestPatch)
+    dependsOn(firebaseManifestPatch)
 
     execute {
         // The app turns Firebase Analytics collection on after login; without this it would override the manifest.

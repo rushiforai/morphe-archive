@@ -927,7 +927,6 @@ Remove feed ads, creator commission posts, paid partnerships, and branded conten
 Hide the Share via row.	Share via sətrini gizlədin.
 Hide the actions row of the share sheet.	Paylaşma vərəqinin əməliyyatlar sətrini gizlədin.
 Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.	Gələnlərin yuxarısındakı böyüdücü şüşəni gizlədin. Lentdəki və şərhlərdəki axtarış dəyişmir.
-Hide the row of friends at the top of the share sheet.	Paylaşma vərəqinin yuxarısındakı dostlar sətrini gizlədin.
 Hide the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.	Alt nişanların üstündəki təklif olunan axtarış zolağını gizlədin və video təfərrüatları ilə yan idarəetmələrin onun yerindən istifadə etməsinə icazə verin. Yuxarıdakı axtarış düyməsi və şərhlər dəyişmir.
 Cuts the tracking bits out of links you share.	Paylaşdığınız linklərdən izləmə hissələrini çıxarır.
 Remove watermark	Su nişanını silin
@@ -1059,7 +1058,6 @@ Sound on	Səs açıq
 Sound	Səs
 Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.	Lent videolarını səssiz oxudun və telefonun səs səviyyəsinə toxunmayın. Bu açıq olduqda başqa tətbiqin musiqisi çalmağa davam edir. Birbaşa mesajlar, hekayələr və LIVE səsini saxlayır.
 Let other apps play until a video starts	Video başlayana qədər digər tətbiqlər çalmağa davam etsin
-Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound once a video starts playing.	TikTok-u və ya mesajlarınızı açmaq artıq başqa tətbiqdəki musiqini dayandırmır. TikTok səsi yalnız video oxunmağa başlayanda götürür.
 Show the mute button on videos	Videolarda səssiz düyməsini göstərin
 Add a button beside the block control that turns the feed's sound off and on.	Bloklama idarəetməsinin yanına lentin səsini söndürüb yandıran düymə əlavə edin.
 Show the block button on videos	Videolarda bloklama düyməsini göstərin
@@ -1215,7 +1213,6 @@ The smallest value is above the largest	Ən kiçik dəyər ən böyükdən yüks
 The sound couldn't be saved. Try again.	Səs saxlanıla bilmədi. Yenidən cəhd edin.
 The sticker couldn't be saved. Try again.	Stiker saxlanıla bilmədi. Yenidən cəhd edin.
 The story couldn't be saved. Try again.	Hekayə saxlanıla bilmədi. Yenidən cəhd edin.
-The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.	Hər şərhdəki bəyənməmə düyməsi bəyənməmək əvəzinə şərh yazanı bloklayır. Şərh solğunlaşır, geri qaytarma bannerı çıxır və ikinci toxunuş blokdan çıxarır.
 Couldn't save. Try again, or choose Automatic.	Saxlanmadı. Yenidən cəhd edin və ya Avtomatik seçin.
 There is no Lab change to undo.	Geri qaytarılacaq Lab dəyişikliyi yoxdur.
 There is no diagnostic data to clear	Təmizlənəcək diaqnostik məlumat yoxdur
@@ -1404,7 +1401,6 @@ Hide the unread badges on the bottom tabs	Alt nişanlardakı oxunmamış nişanl
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gələnlər və Profil daxil olmaqla hər alt nişandakı qırmızı say və nöqtələri, həmçinin Gələnlər üzərində yeni bəyənmələri, izləyiciləri, şərhləri və kimin LIVE-da olduğunu sayan balonu gizlədin. Gələnlərin özü yenə də nələrin gəldiyini göstərir.
 Speed while you hold the video	Videonu basıb saxlayarkən sürət
 Slide to change the hold speed	Saxlama sürətini sürüşdürərək dəyiş
-While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.	Videonu basıb saxlayarkən sürət menyusunun sürətləri arasında keçmək üçün sola və ya sağa sürüşdür, seçilən sürət balonda görünür. Növbəti basıb saxlama oradan başlayır. Barmağını çəkəndə normala qayıdır. Aşağı çəkib kilidləsən, seçdiyin sürət qalır.
 Hide mini dramas	Mini dramaları gizlədin
 Hide TikTok's short drama episodes and the cards that promote them.	TikTok-un qısa drama epizodlarını və onları təbliğ edən kartları gizlədin.
 Mini dramas	Mini dramalar
@@ -1812,12 +1808,10 @@ The proxy's address, like 192.168.1.20 or proxy.example.com.	Proksinin ünvanı,
 Proxy port	Proksi portu
 The port the proxy listens on, like 8080 or 1080.	Proksinin dinlədiyi port, məsələn 8080 və ya 1080.
 Proxy user name	Proksi istifadəçi adı
-Optional. Only connections made by Android itself can sign in to a proxy, not TikTok's own. Leave empty for a proxy without a password.	İstəyə bağlıdır. Proksiyə yalnız Android-in özünün etdiyi bağlantılar daxil ola bilər, TikTok-un öz bağlantıları yox. Parolsuz proksi üçün boş buraxın.
 Proxy password	Proksi parolu
 Optional, used with the user name. It isn't shown, logged or put in a backup.	İstəyə bağlı, istifadəçi adı ilə istifadə olunur. Göstərilmir, jurnala yazılmır və ehtiyat nüsxəyə düşmür.
 Enter a server name or IP address, without http:// or a port number	Server adı və ya IP ünvanı daxil edin, http:// və port nömrəsi olmadan
 A port is a whole number from 1 to 65535	Port 1 ilə 65535 arasında tam ədəddir
-TikTok can't send a password to proxy %1$s. Use another.	%1$s proksisinə parol göndərilmir. Başqa seçin.
 Proxy %1$s is down. Turn it off if TikTok won't load.	Proksi %1$s işləmir. TikTok açılmasa, söndürün.
 Word rules only, not every feed filter:	Yalnız söz qaydaları, lentdəki bütün filtrlər deyil:
 This list is too long to preview here. Saving still follows the usual limit.	Bu siyahı burada önbaxış üçün çox uzundur. Saxlayanda adi limit keçərli qalır.
@@ -2253,7 +2247,6 @@ Above moves the caption and the buttons up a little so the time fits over the ri
 Full-width progress bar	Tam enli irəliləyiş paneli
 Run the progress bar from one screen edge to the other, without the gap TikTok leaves at each end.	İrəliləyiş paneli TikTok-un hər iki ucda qoyduğu boşluq olmadan ekranın bir kənarından o birinə qədər uzanır.
 New device identity	Yeni cihaz kimliyi
-Wipe TikTok's data and give it a new Android ID and advertising ID on the next start, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.	TikTok-un məlumatlarını silir və növbəti açılışda ona yeni Android ID və reklam ID-si verir ki, tanımadığı telefon görsün. Hesabdan çıxış ediləcək və qaralamalarınız silinəcək. Hushfeed ayarları qalır.
 TikTok starts as a new phone after the restart. Tap again to cancel.	TikTok yenidən başladıqdan sonra yeni telefon kimi açılır. Ləğv etmək üçün yenidən toxunun.
 Couldn't set up a new device identity. Try again.	Yeni cihaz kimliyi qurmaq alınmadı. Yenidən cəhd edin.
 Saves at once	Eyni anda saxlamalar
@@ -2328,7 +2321,6 @@ Fold the search into a button	Axtarışı düyməyə yığ
 Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.	Qutunun yerinə şərhlərin yuxarı solunda axtarış düyməsi göstərir, beləliklə o yer şərhlərə qayıdır. Axtarmaq üçün ona toxunun, qutunu gizlətmək üçün yenidən toxunun. “Şərhlər daxilində axtarın” açıq olmalıdır.
 Put the comment search away	Şərh axtarışını gizlət
 Tap @names in bios	Bioqrafiyalarda @adlara toxun
-An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.	Profilin bioqrafiyasındakı @istifadəçi adına toxunanda həmin profil açılır. Bioqrafiyanın qalan hissəsi toxunanda yenə tərcümə olunur.
 autoplay auto play	avtomatik oynatma avtooynatma
 picture in picture PiP	şəkil içində şəkil PiP
 search suggestions	axtarış təklifləri
@@ -2386,3 +2378,66 @@ Recently used	Son istifadə olunanlar
 Make sticker	Stiker yarat
 TikTok refused the like: %1$s	TikTok bəyənməni rədd etdi: %1$s
 TikTok refused the like with code %1$s	TikTok bəyənməni %1$s kodu ilə rədd etdi
+Hide read receipts	Oxundu bildirişlərini gizlət
+Stops TikTok telling people you've read their messages. Your own unread badges still clear as usual.	TikTok-un insanlara mesajlarını oxuduğunu bildirməsinin qarşısını alır. Öz oxunmamış nişanların əvvəlki kimi silinir.
+Copy name	Adı kopyala
+Background play in the long-press menu	Uzun basma menyusunda fon oxutması
+Adds TikTok's own background play row to the long-press menu, so you pick it for one video and other videos stop as usual. Has no effect while Keep playing in the background is on. Restart TikTok to apply this.	TikTok-un öz fon oxutma sətrini uzun basma menyusuna əlavə edir, onu bir video üçün seçirsiniz, digər videolar isə adi qaydada dayanır. Fonda oxutmağa davam edin açıq olanda təsiri yoxdur. Tətbiq etmək üçün TikTok-u yenidən başladın.
+1, from Background play in the long-press menu	1, Uzun basma menyusunda fon oxutması seçimindən
+Background play in the long-press menu is on in Hushfeed's Playback settings, so TikTok gets 1 for this key and an override here has no effect until that switch is off.	Uzun basma menyusunda fon oxutması Hushfeed-in Oxutma ayarlarında açıqdır, ona görə TikTok bu açar üçün 1 alır və buradakı əvəzləmə həmin açar qapanana qədər təsirsizdir.
+Keep LIVEs from these creators	Bu yaradıcıların LIVE-larını saxla
+With Hide LIVE videos on, these creators' LIVEs stay when TikTok sends them. Separate handles or user IDs with commas.	LIVE videoları gizlədin açıq olanda bu yaradıcıların LIVE-ları TikTok göndərəndə qalır. İstifadəçi adlarını və ya ID-ləri vergüllə ayırın.
+Optional. Leave empty for a proxy without a password. TikTok signs in through a small relay on this phone, which other apps here could reach while TikTok is open.	İstəyə bağlıdır. Parolsuz proksi üçün boş buraxın. TikTok bu telefondakı kiçik bir ötürücü vasitəsilə daxil olur, TikTok açıq olanda buradakı digər tətbiqlər də ona çata bilər.
+Proxy %1$s needs a user name and password	%1$s proksisinə ad və parol lazımdır
+Proxy %1$s refused your user name or password	%1$s proksisi ad və ya parolu rədd etdi
+Save this video	Bu videonu saxlayın
+Show the save button on videos	Videolarda saxlama düyməsini göstərin
+Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	Bloklama idarəetməsinin yanına ekrandakı videonu bir toxunuşla saxlayan düymə əlavə edin. Onu istədiyiniz yerə sürükləyin.
+Couldn't save this one. Try again.	Saxlamaq alınmadı. Yenidən cəhd edin.
+Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	TikTok-u və ya mesajlarınızı açmaq artıq başqa tətbiqdəki musiqini dayandırmır. TikTok səsi video oxunarkən alır və videodan çıxanda geri qaytarır.
+While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to. On a locked video, letting go locks the new speed.	Videonu basıb saxlayarkən sürət menyusunun sürətləri arasında keçmək üçün sola və ya sağa sürüşdür, seçilən sürət balonda görünür. Növbəti basıb saxlama oradan başlayır. Barmağını çəkəndə normala qayıdır. Aşağı çəkib kilidləsən, seçdiyin sürət qalır. Kilidli videoda barmağını çəkəndə yeni sürət kilidlənir.
+Hide speed messages	Sürət mesajlarını gizlət
+Hides TikTok's message when you pick a speed from the menu, or lock or unlock one with a hold.	Menyudan sürət seçəndə və ya basılı saxlamaqla sürəti kilidləyəndə və ya kilidi açanda TikTok-un mesajını gizlədir.
+Hide the All button on Following	İzlənilənlər lentində Hamısı düyməsini gizlədin
+Hide the Create circle in story rows	Hekayə sıralarında Yarat dairəsini gizlədin
+Hide the All button at the end of the story row on the Following feed. The row and its stories stay.	İzlənilənlər lentində hekayə sırasının sonundakı Hamısı düyməsini gizlədir. Sıra və hekayələri qalır.
+Hide the Create circle at the start of the story row on the Following feed and in the Inbox. Your own Story still shows there once you post one.	İzlənilənlər lentində və Gələnlərdə hekayə sırasının əvvəlindəki Yarat dairəsini gizlədir. Hekayə paylaşanda öz hekayəniz yenə orada görünür.
+The thumbs down on each comment blocks the commenter instead of disliking. Their comments leave the list right away and an undo banner follows.	Hər şərhdəki bəyənməmə düyməsi bəyənməmək əvəzinə şərh yazanı bloklayır. Onun şərhləri dərhal siyahıdan çıxır, ardınca geri qaytarma bannerı görünür.
+Hide like counts on comments	Şərhlərdə bəyənmə sayını gizlədin
+Hide the number beside the heart on each comment. The heart still works.	Hər şərhdə ürəyin yanındakı rəqəmi gizlədir. Ürək işləməyə davam edir.
+Hide the thumbs down on comments	Şərhlərdə bəyənməmə düyməsini gizlədin
+Hide the thumbs down beside the heart on each comment. It stays while Thumbs down blocks the commenter is on.	Hər şərhdə ürəyin yanındakı bəyənməmə düyməsini gizlədir. Bəyənməmə şərh yazanı bloklayır açıq olduqda qalır.
+Hide the row of friends at the top of the share sheet and in the menu a long press on a comment opens.	Paylaşım panelinin yuxarısındakı və şərhə uzun basanda açılan menyudakı dost sırasını gizlədir.
+An @username in a profile's bio opens that profile when you tap it. A full name typed after an @ opens a search for that name. The rest of the bio still translates on a tap.	Profilin bioqrafiyasındakı @istifadəçi adına toxunanda həmin profil açılır. @ işarəsindən sonra yazılan tam ad həmin ad üçün axtarışı açır. Bioqrafiyanın qalan hissəsi toxunanda yenə tərcümə olunur.
+Hide the repost chip	Repost nişanını gizlət
+TikTok's color	TikTok-un rəngi
+White	Ağ
+Light gray	Açıq boz
+Gray	Boz
+Dark gray	Tünd boz
+Yellow	Sarı
+None	Yoxdur
+Video text color	Video mətninin rəngi
+Backdrop behind video text	Video mətninin arxa fonu
+Colors the description, the author's name and the post date on videos.	Videolardakı təsviri, müəllifin adını və paylaşım tarixini rəngləyir.
+Puts a band of color behind the description, the author's name and the post date, so they stay readable on bright videos.	Təsvirin, müəllifin adının və paylaşım tarixinin arxasına rəngli zolaq qoyur ki, parlaq videolarda oxunaqlı qalsınlar.
+Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it.	İrəliləyiş zolağının üstündə dostun videonu repost etdiyini göstərən və ya səndən onu repost etməyi istəyən kiçik zolağı silir.
+Time zone	Saat qurşağı
+A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone.	Ölkənin qurşağı əvəzinə işlədilən, Europe/Belgrade kimi qurşaq adı. Yay vaxtı özü tətbiq olunur. Boş qalsa, ölkənin öz qurşağı işlədilir.
+Enter a zone like Asia/Tokyo	Asia/Tokyo kimi qurşaq yazın
+Keep my own watch history	Öz baxış tarixçəmi saxla
+Lists the videos you watch on this phone, with who posted each one and its caption. It stays on your phone.	Bu telefonda baxdığınız videoları, onları kimin paylaşdığını və başlığını siyahıya alır. Siyahı telefonunuzda qalır.
+My watch history	Baxış tarixçəm
+Find and reopen the videos you've watched on this phone	Bu telefonda baxdığınız videoları tapın və yenidən açın
+Videos you watch show up here	Baxdığınız videolar burada görünür
+No videos match	Uyğun video yoxdur
+Watch history cleared	Baxış tarixçəsi təmizləndi
+Couldn't open that video. Try again.	Bu video açılmadı. Yenidən cəhd edin.
+Keep the next videos in full screen	Növbəti videoları tam ekranda saxlayın
+Full screen opens with just your video on most pages, so there's nothing to swipe to. This brings the videos after it along.	Çox səhifədə tam ekran yalnız sizin videonuzla açılır, ona görə sürüşdürəcək heç nə olmur. Bu, ondan sonrakı videoları da gətirir.
+Off until you tap it. Wipes TikTok's data once, on the next start, and gives it a new Android ID and advertising ID, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.	Toxunana qədər söndürülüb. Növbəti başlanğıcda TikTok-un məlumatlarını bir dəfə silir və ona yeni Android ID və reklam ID-si verir ki, tanımadığı telefon görsün. Hesabdan çıxacaqsınız və qaralamalarınızı itirəcəksiniz. Hushfeed ayarları qalır.
+In use: TikTok sees the identity you made here, and it stays the same on every start. Tap to make another one, which wipes TikTok's data again.	İstifadədədir: TikTok burada yaratdığınız kimliyi görür və o, hər başlanğıcda eyni qalır. Başqasını yaratmaq üçün toxunun, bu, TikTok-un məlumatlarını yenidən silir.
+Couldn't finish wiping TikTok's data. Tap to try again.	TikTok-un məlumatlarını silmək başa çatmadı. Yenidən cəhd etmək üçün toxunun.
+Use this phone's own IDs	Bu telefonun öz ID-lərini istifadə et
+Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	Növbəti başlanğıcda TikTok-un məlumatlarını bir dəfə silir və bu telefonun real Android ID və reklam ID-sinə qayıdır. Hesabdan çıxacaqsınız və qaralamalarınızı itirəcəksiniz.
+TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	Yenidən başladıqdan sonra TikTok bu telefonun ID-lərinə qayıdır. Ləğv etmək üçün yenidən toxunun.

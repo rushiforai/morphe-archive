@@ -17,10 +17,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 @Suppress("unused")
 val removeAdsAndBloatPatch = bytecodePatch(
     name = "Remove ads & bloat",
-    description = "Removes banner, folder, player, interstitial, rewarded, app-open, exit, and Me-page ads, " +
-        "removes the Home horizontal shortcut strip and online Zodiac App Themes, and disables Live TV, " +
-        "mxplay OTT streaming, MX Tube, Shorts, and Games while keeping Local Music, All-Files-Access setup, " +
-        "and 1-tap Classic Themes working offline and online.",
+    description = "Removes ads and online extras like Live TV, Tube, Shorts, and Games for a clean local player.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER_AD)

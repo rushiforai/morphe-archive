@@ -51,17 +51,18 @@ public final class PlaylistRuntime {
     public static void capture(PhoneClient value){client=value;}
     public static String url(String id){if(!PlaylistHeaderModel.validId(id))throw new IllegalArgumentException("Invalid playlist identity");return "https://music.youtube.com/playlist?list="+id;}
     /** Validated native download parameters can reach this without a rewritten header marker. */
-    public static void download(String id,String title){if(!PlaylistHeaderModel.validId(id))return;DownloadPrompt.playlist(Utils.getActivity(),id,title,()->start(id,title));}
+    public static void download(String id,String title){if(!PlaylistHeaderModel.validId(id))return;DownloadPrompt.playlist(Utils.getActivity(),id,title,choice->start(id,title,choice));}
     /** Retain original playlist/folder tracking for native external-download actions too. */
     public static void external(String id,String title){if(PlaylistHeaderModel.validId(id))startExternal(id,title);}
     public record Preview(int count,long seconds,int unknown,java.util.List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> sample){}
     /** Size preview enumerates authenticated pages without queuing media or changing playback. */
-    public static Future<?> preview(String playlist,java.util.function.Consumer<Preview> success,java.util.function.Consumer<String> failure){return BROWSE.submit(()->{
+    public static Future<?> preview(String playlist,java.util.function.Consumer<Preview> success,java.util.function.Consumer<String> failure){return preview(playlist,false,success,failure);}
+    public static Future<?> preview(String playlist,boolean video,java.util.function.Consumer<Preview> success,java.util.function.Consumer<String> failure){return BROWSE.submit(()->{
         Future<?> active=null;try{PhoneClient c=client;if(c==null)throw new IOException("Native playlist client is not ready");Set<String> tokens=new HashSet<>();String token="",sample="";int count=0,unknown=0;long seconds=0;
             do{if(Thread.currentThread().isInterrupted())throw new InterruptedException();active=token.isEmpty()?c.bd_playlistBrowse("VL"+playlist,BROWSE_CALLBACKS):c.bd_playlistContinue(token,BROWSE_CALLBACKS);Object value=active.get(45,TimeUnit.SECONDS);if(!(value instanceof PhoneResponse response))throw new IOException("Playlist response contract unavailable");PlaylistPage page=PlaylistPage.parse(response.bd_playlistBytes(),playlist,!token.isEmpty());
                 for(PlaylistPage.Entry entry:page.entries){count++;if(entry.seconds()>0)seconds+=entry.seconds();else unknown++;if(sample.isEmpty()&&!entry.videoId().isEmpty())sample=entry.videoId();}token=page.continuation;if(!token.isEmpty()&&!tokens.add(token))throw new IOException("Repeated continuation");if(count>100000||tokens.size()>5000)throw new IOException("Playlist limit");
             }while(!token.isEmpty());
-            java.util.List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> formats=sample.isEmpty()?List.of():LocalDownloadManager.options(sample).formats();Preview result=new Preview(count,seconds,unknown,formats);MAIN.post(()->success.accept(result));
+            java.util.List<app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format> formats=sample.isEmpty()?List.of():LocalDownloadManager.mediaOptions(sample,video).formats();Preview result=new Preview(count,seconds,unknown,formats);MAIN.post(()->success.accept(result));
         }catch(Exception unavailable){if(active!=null)active.cancel(true);if(!(unavailable instanceof InterruptedException))MAIN.post(()->failure.accept("Size preview unavailable; playlist has not been queued"));else Thread.currentThread().interrupt();}
     });}
     /** DEFAULT is left to the original native command. Other modes consume only our own marked action. */
@@ -81,14 +82,14 @@ public final class PlaylistRuntime {
             DownloadMode mode=Settings.DOWNLOAD_MODE.get();if(mode==DownloadMode.DEFAULT)return false;
             MAIN.post(()->{
                 if(mode==DownloadMode.EXTERNAL){startExternal(id,title);Activity a=Utils.getActivity();if(a!=null)ExternalDownloaderPreference.launchExternalDownloader(id,a,url(id));}
-                else{DownloadPrompt.playlist(Utils.getActivity(),id,title,()->start(id,title));}
+                else{DownloadPrompt.playlist(Utils.getActivity(),id,title,choice->start(id,title,choice));}
             });return true;
         }catch(Exception malformed){app.bdcrusher.ytmusic.common.FeatureDiagnostics.record("Playlist-route","Download command rejected: "+malformed.getClass().getSimpleName());return false;}
     }
     private static ProtoWire marked(ProtoWire value,int depth){if(value.one(PlaylistHeaderModel.MARKER)!=null)return value;if(depth>=4)return null;for(int n:new int[]{169495254,133724106}){ProtoWire.Field f=value.one(n);if(f!=null&&f.wire==2){ProtoWire result=marked(new ProtoWire(f.data),depth+1);if(result!=null)return result;}}return null;}
     public static boolean endpoint(byte[] bytes){try{return marked(new ProtoWire(bytes),0)!=null&&command(()->bytes);}catch(Exception ignored){return false;}}
     private static File directory(){return new File(Utils.getContext().getFilesDir(),"bdcrusher-offline-playlists");}
-    static File audio(String id){
+    public static File audio(String id){
         if(!id.matches("[A-Za-z0-9_-]{11}"))return null;
         File root=new File(Utils.getContext().getExternalFilesDir(Environment.DIRECTORY_MUSIC),"Morphe");
         for(String ext:new String[]{".webm",".m4a"}){File file=new File(root,id+ext);if(file.isFile()&&file.length()>0)return file;}return null;
@@ -111,28 +112,29 @@ public final class PlaylistRuntime {
         }
     }
     private static final class Batch {
-        final String id,title;final JSONArray entries,tokens;final JSONObject pages;String token="",status="Paused";boolean complete,running,external;volatile long epoch;
+        final String id,title;MediaSelection selection=MediaSelection.audio(AudioQuality.Tier.HIGH);final JSONArray entries,tokens;final JSONObject pages;String token="",status="Paused";boolean complete,running,external;volatile long epoch;
         Batch(String id,String title){this.id=id;this.title=title;entries=new JSONArray();tokens=new JSONArray();pages=new JSONObject();}
         Batch(JSONObject o)throws JSONException{
-            if(o.getInt("schema")!=1)throw new JSONException("schema");id=o.getString("id");title=o.getString("title");entries=o.getJSONArray("entries");tokens=o.optJSONArray("tokens")==null?new JSONArray():o.getJSONArray("tokens");
+            if(o.getInt("schema")!=1&&o.getInt("schema")!=2)throw new JSONException("schema");id=o.getString("id");title=o.getString("title");selection=new MediaSelection(o.optBoolean("video")?MediaSelection.Kind.VIDEO:MediaSelection.Kind.AUDIO,AudioQuality.Tier.parse(o.optString("audioQuality","HIGH")),o.optInt("videoHeight",1080));entries=o.getJSONArray("entries");tokens=o.optJSONArray("tokens")==null?new JSONArray():o.getJSONArray("tokens");
             pages=o.optJSONObject("pageOffsets")==null?new JSONObject():o.optJSONObject("pageOffsets");external=o.optBoolean("external");token=o.optString("continuation");complete=o.optBoolean("enumerated");status=o.optBoolean("running")?"Interrupted; resume available":o.optString("status","Paused");
             if(entries.length()>100000||tokens.length()>5000)throw new JSONException("size");
         }
-        JSONObject json()throws JSONException{return new JSONObject().put("schema",1).put("id",id).put("title",title).put("entries",entries).put("tokens",tokens).put("pageOffsets",pages).put("continuation",token).put("enumerated",complete).put("running",running).put("status",status).put("external",external);}
+        JSONObject json()throws JSONException{return new JSONObject().put("schema",2).put("video",selection.kind()==MediaSelection.Kind.VIDEO).put("audioQuality",selection.audio().name()).put("videoHeight",selection.height()).put("id",id).put("title",title).put("entries",entries).put("tokens",tokens).put("pageOffsets",pages).put("continuation",token).put("enumerated",complete).put("running",running).put("status",status).put("external",external);}
     }
     private static boolean save(Batch batch){
         AtomicFile atomic=new AtomicFile(new File(directory(),batch.id+".json"));FileOutputStream out=null;
         try{if(!directory().isDirectory()&&!directory().mkdirs())throw new IOException("directory");out=atomic.startWrite();out.write(batch.json().toString().getBytes(StandardCharsets.UTF_8));atomic.finishWrite(out);return true;}
         catch(Exception failure){if(out!=null)atomic.failWrite(out);batch.running=false;batch.status="Storage unavailable; progress has not been discarded";storageError=batch.status;return false;}
     }
-    public static void start(String id,String title){STATE.execute(()->{
+    public static void start(String id,String title){start(id,title,DownloadPrompt.selection(Utils.getContext()));}
+    public static void start(String id,String title,MediaSelection selection){STATE.execute(()->{
         load();Batch b=batches.get(id);if(b==null){b=new Batch(id,title);batches.put(id,b);TRACKED.add(id);}PlaylistBrowse.retain(id);b.external=false;
-        for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e!=null&&(e.optString("state").equals("external")||e.optString("state").equals("missing")))try{e.put("state",local(e.optString("id"))==null?"queued":"complete");}catch(JSONException ignored){}}
-        b.running=true;b.status="Preparing playlist";if(save(b))pump();publish();
+        for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e!=null&&!e.optString("state").equals("unavailable"))try{String recording=e.optString("id");e.put("state",DownloadCatalog.satisfies(recording,selection)?"complete":"queued").remove("reason");}catch(JSONException ignored){}}
+        b.selection=selection;b.running=true;b.status="Preparing playlist";if(save(b))pump();publish();
     });}
     private static void startExternal(String id,String title){STATE.execute(()->{load();Batch b=batches.get(id);if(b==null){b=new Batch(id,title);batches.put(id,b);TRACKED.add(id);}PlaylistBrowse.retain(id);b.external=true;b.running=true;b.status="Sent to external downloader; checking the selected folder";for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e!=null&&!e.optString("state").equals("unavailable"))try{e.put("state","external");}catch(JSONException ignored){}}if(save(b))pump();publish();refreshFiles(true);});}
     public static void refreshFiles(boolean force){if(!PersonalRuntime.installed(Utils.getContext(),"playlists"))return;STATE.execute(()->{load();Set<String> ids=new HashSet<>();for(Batch b:batches.values())for(int i=0;i<b.entries.length();i++){String id=b.entries.optJSONObject(i).optString("id");if(id.matches("[A-Za-z0-9_-]{11}"))ids.add(id);}ExternalFiles.refresh(Utils.getContext(),ids,force);});}
-    public static void filesChanged(){STATE.execute(()->{load();for(Batch b:batches.values())for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e==null||e.optString("state").equals("unavailable"))continue;Local file=local(e.optString("id"));try{if(file!=null){e.put("state","complete");prefetch(e,file);if(LocalPlayback.response(file.id)!=null)NativeMediaCache.prepare(b.id,file.id,i);}else if(e.optString("state").equals("complete"))e.put("state",b.external?"external":"missing");}catch(JSONException ignored){}}for(Batch b:batches.values())save(b);publish();});}
+    public static void filesChanged(){STATE.execute(()->{load();for(Batch b:batches.values())for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e==null||e.optString("state").equals("unavailable"))continue;Local file=local(e.optString("id"));try{if(file!=null&&(b.external||DownloadCatalog.satisfies(e.optString("id"),b.selection))){e.put("state","complete");prefetch(e,file);if(LocalPlayback.response(file.id)!=null)NativeMediaCache.prepare(b.id,file.id,i);}else if(e.optString("state").equals("complete"))e.put("state",b.external?"external":"missing");}catch(JSONException ignored){}}for(Batch b:batches.values())save(b);publish();});}
     public record Local(String id,String source,String title,String artist,String artwork,int duration){}
     public static Local local(String id){File f=audio(id);if(f!=null){var t=app.morphe.extension.music.patches.downloads.OfflineTrack.load(f);return new Local(id,f.getAbsolutePath(),t.displayTitle(),t.displayArtist(),artwork(id,t.artworkFile().isFile()?t.artworkFile().getAbsolutePath():""),t.durationSeconds());}ExternalFiles.Item item=ExternalFiles.get(id);return item==null||!ExternalFiles.granted(Utils.getContext())?null:new Local(id,item.uri(),item.title(),item.artist(),artwork(id,item.artwork()),item.duration());}
     private static String artwork(String id,String existing){if(!existing.isEmpty())return existing;File file=PlaylistArtwork.cover(id);return file==null?"":file.getAbsolutePath();}
@@ -144,7 +146,7 @@ public final class PlaylistRuntime {
     /** Called only from the page-cache worker, never from native UI callbacks. */
     static void awaitReady()throws Exception{STATE.submit(()->{load();publish();}).get(10,TimeUnit.SECONDS);}
     public static int pageOffset(String id,String token){if(token.isEmpty())return 0;for(JSONObject b:snapshot)if(id.equals(b.optString("id"))){JSONObject pages=b.optJSONObject("pageOffsets");return pages==null?-1:pages.optInt(token,-1);}return -1;}
-    public static String state(String id){if(local(id)!=null)return "complete";String state=states.getOrDefault(id,"");return state.equals("complete")?"missing":state;}
+    public static String state(String id){DownloadCatalog.Progress shared=DownloadCatalog.progress(id);if(shared!=null&&!shared.state().equals("complete"))return shared.state();if(local(id)!=null)return "complete";String state=states.getOrDefault(id,"");return state.equals("complete")?"missing":state;}
     private static void prefetch(JSONObject entry,Local local){if("pending".equals(entry.optString("lyrics"))||"saved".equals(entry.optString("lyrics"))&&app.bdcrusher.ytmusic.lyrics.LyricsPrefetch.saved(Utils.getContext(),local.id))return;try{entry.put("lyrics","pending");}catch(JSONException ignored){}app.bdcrusher.ytmusic.lyrics.LyricsPrefetch.enqueue(Utils.getContext(),local.id,local.title,local.artist,local.duration,(saved)->STATE.execute(()->{try{entry.put("lyrics",saved?"saved":"not cached");}catch(JSONException ignored){}for(Batch b:batches.values())save(b);publish();}));}
     public static void control(String id,String action){STATE.execute(()->{
         load();Batch b=batches.get(id);if(b==null)return;
@@ -163,13 +165,13 @@ public final class PlaylistRuntime {
             for(int i=0;!b.external&&i<b.entries.length()&&activeDownloads<2;i++){
                 JSONObject e=b.entries.optJSONObject(i);if(e==null||!e.optString("state").equals("queued"))continue;
                 String id=e.optString("id");Local saved=local(id);
-                try{if(saved!=null){e.put("state","complete");prefetch(e,saved);continue;}e.put("state","downloading");}catch(JSONException ignored){continue;}
+                try{if(saved!=null&&DownloadCatalog.satisfies(id,b.selection)){e.put("state","complete");prefetch(e,saved);continue;}e.put("state","downloading");}catch(JSONException ignored){continue;}
                 activeDownloads++;int index=i;
                 Completion callback=(videoId,file,failure)->STATE.execute(()->{
-                    activeDownloads--;try{JSONObject entry=b.entries.getJSONObject(index);entry.put("state",file!=null?"complete":"failed");if(file==null)entry.put("reason",failure);else{Local ready=local(id);if(ready!=null)prefetch(entry,ready);NativeMediaCache.prepare(b.id,id,index);}}catch(JSONException ignored){}
+                    activeDownloads--;try{JSONObject entry=b.entries.getJSONObject(index);entry.put("state",file==null?"failed":DownloadCatalog.satisfies(id,b.selection)?"complete":"queued");if(file!=null){var p=DownloadCatalog.progress(id);if(p!=null)entry.put("media",p.detail());}if(file==null)entry.put("reason",failure);else{Local ready=local(id);if(ready!=null)prefetch(entry,ready);NativeMediaCache.prepare(b.id,id,index);}}catch(JSONException ignored){}
                     save(b);pump();publish();
                 });
-                MAIN.post(()->enqueue(id,callback));
+                MAIN.post(()->enqueue(id,b.selection,callback));
             }
             boolean pending=false;int failures=0;
             for(int i=0;i<b.entries.length();i++){JSONObject e=b.entries.optJSONObject(i);if(e==null)continue;String state=e.optString("state");pending|=state.equals("queued")||state.equals("downloading");if(state.equals("failed")||state.equals("unavailable")||state.equals("missing")||state.equals("complete")&&local(e.optString("id"))==null)failures++;}
@@ -210,15 +212,16 @@ public final class PlaylistRuntime {
     }
     // Host future callbacks must not queue behind the worker waiting for that future.
     private static final Executor BROWSE_CALLBACKS=Runnable::run;
-    private static void enqueue(String id,Completion callback){
-        File saved=audio(id);if(saved!=null){callback.complete(id,saved,"");return;}
+    private static void enqueue(String id,MediaSelection selection,Completion callback){
+        File saved=audio(id);if(saved!=null&&DownloadCatalog.satisfies(id,selection)){callback.complete(id,saved,"");return;}
         synchronized(observers){observers.computeIfAbsent(id,k->new ArrayList<>()).add(callback);}
-        try{LocalDownloadManager.enqueueBatch(id,DownloadPrompt.selected(Utils.getContext()));}catch(Exception failure){finished(id);}
+        try{LocalDownloadManager.enqueueMedia(id,selection);}catch(Exception failure){finished(id);}
     }
     /** Injected immediately after the native downloader releases an active recording, on every outcome. */
     public static void finished(String id){
+        DownloadCatalog.Progress progress=DownloadCatalog.progress(id);if(progress!=null&&(progress.state().equals("queued")||progress.state().equals("downloading")))return;
         List<Completion> callbacks;synchronized(observers){callbacks=observers.remove(id);}if(callbacks==null)return;
-        File file=audio(id);for(Completion c:callbacks)c.complete(id,file,file==null?"Native downloader could not save this track":"");
+        File file=progress!=null&&progress.state().equals("failed")?null:audio(id);for(Completion c:callbacks)c.complete(id,file,file==null?"Download incomplete; completed media retained":"");
     }
     private static void publish(){
         List<JSONObject> list=new ArrayList<>();

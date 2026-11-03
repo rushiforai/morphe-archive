@@ -145,7 +145,7 @@ public class FeedScreenCoverageTest {
         // Buttons on videos: Hushfeed's own overlay, attached to whichever feed window is in
         // front, main or detail. It isn't drawn in a LIVE room.
         for (String button : new String[]{"block_author_button", "local_hide_button",
-                "block_sound_button", "not_interested_button", "feed_mute_button"}) {
+                "block_sound_button", "not_interested_button", "feed_mute_button", "download_button"}) {
             put(button, YES, YES, NONE);
         }
 
@@ -153,6 +153,8 @@ public class FeedScreenCoverageTest {
         // which both windows share.
         put("feed_description_text_size", YES, YES, NONE);
         put("feed_author_text_size", YES, YES, NONE);
+        put("feed_text_color", YES, YES, NONE);
+        put("feed_text_backdrop", YES, YES, NONE);
         put("always_show_publish_date", YES, YES, NONE);
         put("publish_date_exact_time", YES, YES, NONE);
         // Both only shape the exact time, so they reach where it does.
@@ -188,6 +190,11 @@ public class FeedScreenCoverageTest {
         put("hide_footnotes", YES, YES, NONE);
         // The Following tab's LIVE row is the main feed's; an opened video has none (#262).
         put("hide_following_live_row", YES, NONE, NONE);
+        // All and Create sit in the Following row (and the Inbox's, which is no video window).
+        put("hide_following_all_button", YES, NONE, NONE);
+        put("hide_story_create", YES, NONE, NONE);
+        // The chip is a cell component, and the feed and the detail pager build the same cell (#319).
+        put("hide_repost_chip", YES, YES, NONE);
         put("hide_visual_search", YES, YES, NONE);
         // The bar is an opened post's: the detail pager's videos and, on 47.1.4, a photo from
         // search in the main activity. The main feed has the tabs there.

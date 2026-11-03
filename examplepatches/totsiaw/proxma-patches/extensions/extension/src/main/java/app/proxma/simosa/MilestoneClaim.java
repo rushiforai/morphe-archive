@@ -50,8 +50,13 @@ public final class MilestoneClaim {
     private static final String PREFS = "proxma_simosa";
     private static final String KEY_LEGACY_PREFIX = "proxma_milestone_";
     private static final String KEY_DONE_PREFIX = "proxma_milestone_done_";
-    private static final String KEY_TRY_PREFIX = "proxma_milestone_try_";
+    // "try2": refusals counted by builds before the login fix were missing-login refusals, so they are
+    // ignored, and a level refused earlier today is claimed again on the first run of this build.
+    private static final String KEY_TRY_PREFIX = "proxma_milestone_try2_";
     private static final String KEY_DRY_PREFIX = "proxma_milestone_dry_";
+    private static final String KEY_OK_PREFIX = "proxma_milestone_ok_";
+    private static final String KEY_RECHECK_PREFIX = "proxma_milestone_recheck_";
+    private static final String KEY_FOLLOWUP_PREFIX = "proxma_milestone_followup_";
 
     private static final String STATE_URL = "https://api-prod-dailycheckin.simosa.app/checkin/state";
     private static final String LEVELS_URL = "https://api-prod-dailycheckin.simosa.app/levels";
@@ -65,20 +70,70 @@ public final class MilestoneClaim {
     private static final int TIMEOUT_MS = 15000;
     private static final int CLAIM_TIMEOUT_S = 45;
     private static final int MAX_ATTEMPTS = 3;
+    /** Follow-up runs per day while a level-up may still be landing on the server. */
+    private static final int MAX_FOLLOWUPS = 4;
 
     static String sResult = "n/a";
+    /** {@code progress.current_level} from this run's check-in response, or -1. */
+    private static int sCheckinLevel = -1;
+    private static boolean sFollowUp;
 
     private MilestoneClaim() {}
 
     public static String getResult() { return sResult; }
 
+    /**
+     * True when the worker should run again shortly. The server updates {@code checkin/state}
+     * progress some minutes after a check-in (2026-11-03: L3 "next L4 in 1d" a second after the
+     * day-40 check-in, L4 fifteen minutes later), so a level-up read right after our own
+     * check-in is missed until the next day, when the server no longer pays it.
+     */
+    public static boolean wantsFollowUp(Context context) {
+        if (!sFollowUp) return false;
+        String account = AccountScope.id(context);
+        if (account == null) return false;
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, 0);
+        String key = KEY_FOLLOWUP_PREFIX + account;
+        String[] stored = prefs.getString(key, "").split(":", 2);
+        String today = today();
+        int used = stored.length > 1 && today.equals(stored[0]) ? parseInt(stored[1]) : 0;
+        if (used >= MAX_FOLLOWUPS) {
+            log("MILESTONE_FOLLOWUP_CAP " + used);
+            return false;
+        }
+        prefs.edit().putString(key, today + ":" + (used + 1)).apply();
+        log("MILESTONE_FOLLOWUP " + (used + 1) + "/" + MAX_FOLLOWUPS);
+        return true;
+    }
+
+    /** The check-in response carries progress too; the app's own claim reads it from there. */
+    static void noteCheckin(String body) {
+        sCheckinLevel = -1;
+        try {
+            JSONObject data = new JSONObject(body).optJSONObject("data");
+            JSONObject progress = data != null ? data.optJSONObject("progress") : null;
+            if (progress != null) {
+                sCheckinLevel = progress.optInt("current_level", -1);
+                log("CHECKIN_PROGRESS streak=" + data.optInt("current_streak", -1)
+                    + " level=" + sCheckinLevel + " next=" + progress.optInt("next_level", -1)
+                    + " in=" + progress.optInt("days_to_next_level", -1)
+                    + " max=" + progress.optBoolean("is_max_level", false));
+            }
+        } catch (Throwable t) {
+            log("CHECKIN_PROGRESS_ERR " + t);
+        }
+    }
+
     public static void tryClaimMilestone(Context context, String bearer) {
         sResult = "n/a";
+        sFollowUp = false;
         try {
             tryClaimInner(context, bearer);
         } catch (Throwable t) {
             log("MILESTONE_ERR " + t);
             sResult = "error: " + t.getMessage();
+        } finally {
+            sCheckinLevel = -1;
         }
     }
 
@@ -115,9 +170,18 @@ public final class MilestoneClaim {
         int currentLevel = progress != null ? progress.optInt("current_level", 0) : 0;
         int nextLevel = progress != null ? progress.optInt("next_level", currentLevel + 1) : currentLevel + 1;
         int daysToNext = progress != null ? progress.optInt("days_to_next_level", -1) : -1;
+        boolean maxLevel = progress != null && progress.optBoolean("is_max_level", false);
+        log("MILESTONE_STATE streak=" + data.optInt("current_streak", -1) + " " + state(currentLevel, nextLevel, daysToNext));
+        if (sCheckinLevel > currentLevel) {
+            log("MILESTONE_STATE_STALE state=" + currentLevel + " checkin=" + sCheckinLevel);
+            currentLevel = sCheckinLevel;
+            nextLevel = currentLevel + 1;
+            daysToNext = -1;
+        }
 
         SharedPreferences prefs = context.getSharedPreferences(PREFS, 0);
         Set<Integer> done = loadDone(prefs, account, currentLevel);
+        recheckCurrentLevel(prefs, account, done, currentLevel);
 
         List<Integer> pending = new ArrayList<>();
         if (currentLevel > 0 && !done.contains(currentLevel)) {
@@ -130,6 +194,8 @@ public final class MilestoneClaim {
         }
 
         if (pending.isEmpty()) {
+            // A level-up due today may not show yet: look again in a few minutes.
+            sFollowUp = !maxLevel && daysToNext >= 0 && daysToNext <= 1;
             dryRunOncePerDay(context, prefs, account, bearer, currentLevel, nextLevel, daysToNext);
             return;
         }
@@ -162,11 +228,14 @@ public final class MilestoneClaim {
             log("MILESTONE_RESULT level=" + level + " " + outcome.kind + " " + outcome.detail);
             if (outcome.kind == Outcome.SUCCESS) {
                 markDone(prefs, account, done, level);
+                markOk(prefs, account, level);
                 summary.append("claimed L").append(level).append("; ");
             } else if (outcome.kind == Outcome.REJECTED) {
                 int attempts = attemptsSoFar + 1;
                 prefs.edit().putString(tryKey, attempts + ":" + today).apply();
-                if (attempts >= MAX_ATTEMPTS) {
+                // A recheck of an old level gets one try: a refusal there most likely means it was paid.
+                boolean recheck = prefs.getBoolean(KEY_RECHECK_PREFIX + account + "_" + level, false);
+                if (attempts >= MAX_ATTEMPTS || recheck) {
                     markDone(prefs, account, done, level);
                     summary.append("L").append(level).append(" gave up: ").append(outcome.detail).append("; ");
                 } else {
@@ -175,6 +244,7 @@ public final class MilestoneClaim {
                 }
             } else {
                 summary.append("L").append(level).append(" will retry: ").append(outcome.detail).append("; ");
+                sFollowUp = true;
                 break;
             }
         }
@@ -208,14 +278,14 @@ public final class MilestoneClaim {
         }
     }
 
-    private static Throwable unwrap(Throwable t) {
+    static Throwable unwrap(Throwable t) {
         while (t instanceof java.lang.reflect.InvocationTargetException && t.getCause() != null) {
             t = t.getCause();
         }
         return t;
     }
 
-    private static void close(Object client) {
+    static void close(Object client) {
         if (client instanceof java.io.Closeable) {
             try {
                 ((java.io.Closeable) client).close();
@@ -250,6 +320,48 @@ public final class MilestoneClaim {
         prefs.edit().putString(doneKey, join(done)).apply();
         log("MILESTONE_MIGRATE current=" + currentLevel + " legacy=" + legacy + " done=" + join(done));
         return done;
+    }
+
+    /**
+     * Builds before the login-key fix marked a level done after three refusals that were really a
+     * missing login, so the reward was never paid. Gives the current level one more claim, once,
+     * when there is no record of it succeeding. The server refuses a level that was already paid.
+     */
+    private static void recheckCurrentLevel(SharedPreferences prefs, String account, Set<Integer> done,
+                                            int currentLevel) {
+        if (currentLevel <= 0 || !done.contains(currentLevel)) {
+            return;
+        }
+        String recheckKey = KEY_RECHECK_PREFIX + account + "_" + currentLevel;
+        if (prefs.getBoolean(recheckKey, false) || levelsOf(prefs.getString(KEY_OK_PREFIX + account, ""))
+            .contains(currentLevel)) {
+            return;
+        }
+        done.remove(currentLevel);
+        prefs.edit()
+            .putBoolean(recheckKey, true)
+            .putString(KEY_DONE_PREFIX + account, join(done))
+            .remove(KEY_TRY_PREFIX + account + "_" + currentLevel)
+            .apply();
+        log("MILESTONE_RECHECK level=" + currentLevel);
+    }
+
+    private static void markOk(SharedPreferences prefs, String account, int level) {
+        Set<Integer> ok = levelsOf(prefs.getString(KEY_OK_PREFIX + account, ""));
+        ok.add(level);
+        prefs.edit().putString(KEY_OK_PREFIX + account, join(ok)).apply();
+    }
+
+    private static Set<Integer> levelsOf(String stored) {
+        Set<Integer> levels = new LinkedHashSet<>();
+        for (String part : stored.split(",")) {
+            try {
+                if (!part.trim().isEmpty()) levels.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException ignored) {
+                // skip a corrupt entry
+            }
+        }
+        return levels;
     }
 
     private static void markDone(SharedPreferences prefs, String account, Set<Integer> done, int level) {
@@ -339,7 +451,7 @@ public final class MilestoneClaim {
     }
 
     /** {@code clientOut[0]} receives the Ktor client so the caller can close it. */
-    private static Object claimRepo(Context context, Object[] clientOut) throws Exception {
+    static Object claimRepo(Context context, Object[] clientOut) throws Exception {
         Class<?> modules = Class.forName(REMOTE_MODULES);
         Object instance = modules.getField("INSTANCE").get(null);
         Object client = method(modules, "provideHttpClient", 0).invoke(instance);
@@ -363,7 +475,7 @@ public final class MilestoneClaim {
         return claim.invoke(repo, request, continuation);
     }
 
-    private static Method collectMethod(Object flow) throws NoSuchMethodException {
+    static Method collectMethod(Object flow) throws NoSuchMethodException {
         for (Method m : flow.getClass().getMethods()) {
             if ("collect".equals(m.getName()) && m.getParameterTypes().length == 2
                 && m.getParameterTypes()[0].isInterface()) {
@@ -376,6 +488,13 @@ public final class MilestoneClaim {
     private static Outcome claimViaApp(Context context, ClaimValues values) {
         Object[] client = new Object[1];
         try {
+            // Without the login in memory the request goes out with no msisdn or token and the server
+            // refuses it. Before the login-key fix every background claim failed this way, and three
+            // such refusals gave the level up for good. Not the server's answer, so not counted.
+            String missing = missingLogin(context, newClaimRequest(values));
+            if (missing != null) {
+                return new Outcome(Outcome.TRANSIENT, "no login in request (" + missing + ")");
+            }
             final Object unit = unit();
             final AtomicReference<Object> last = new AtomicReference<>(null);
             final AtomicReference<Throwable> failure = new AtomicReference<>(null);
@@ -432,7 +551,21 @@ public final class MilestoneClaim {
         }
     }
 
-    private static Throwable resultException(Object result) {
+    /** Which login fields the app's envelope leaves empty for this request, or null if none. */
+    private static String missingLogin(Context context, Object request) throws Exception {
+        Class.forName(API_RESOURCES_KT)
+            .getMethod("addRequest", Class.forName(
+                "com.jazz.jazzworld.data.network.genericapis.helper.AbstractBaseRequest"),
+                Context.class, String.class)
+            .invoke(null, request, context, String.valueOf(System.currentTimeMillis()));
+        Object headers = request.getClass().getMethod("getRequestHeaders").invoke(request);
+        String missing = "";
+        if (field(headers, "getMsisdn") == null || field(headers, "getMsisdn").isEmpty()) missing += "msisdn ";
+        if (field(headers, "getToken") == null || field(headers, "getToken").isEmpty()) missing += "token";
+        return missing.isEmpty() ? null : missing.trim();
+    }
+
+    static Throwable resultException(Object result) {
         if (result instanceof Throwable) return (Throwable) result;
         if (result != null) {
             for (java.lang.reflect.Field f : result.getClass().getDeclaredFields()) {
@@ -509,7 +642,9 @@ public final class MilestoneClaim {
                     "com.jazz.jazzworld.data.network.genericapis.helper.AbstractBaseRequest"),
                     Context.class, String.class)
                 .invoke(null, request, context, String.valueOf(System.currentTimeMillis()));
-            Object headers = envelope.getClass().getMethod("getRequestHeaders").invoke(envelope);
+            // addRequest sets the headers on the request and encrypts it into the envelope's body, so
+            // the envelope's own header field is always empty.
+            Object headers = request.getClass().getMethod("getRequestHeaders").invoke(request);
             String checks = "msisdn" + mark(field(headers, "getMsisdn"))
                 + " token" + mark(field(headers, "getToken"))
                 + " sig" + mark(field(envelope, "getRequestConfig"))
@@ -539,11 +674,11 @@ public final class MilestoneClaim {
 
     // --- Kotlin interop without a Kotlin dependency ---
 
-    private interface Callback {
+    interface Callback {
         void done(Object result);
     }
 
-    private static Object continuation(final Callback callback) throws Exception {
+    static Object continuation(final Callback callback) throws Exception {
         Class<?> type = Class.forName("kotlin.coroutines.Continuation");
         final Object context = Class.forName("kotlin.coroutines.EmptyCoroutineContext")
             .getField("INSTANCE").get(null);
@@ -563,11 +698,11 @@ public final class MilestoneClaim {
             });
     }
 
-    private static Object unit() throws Exception {
+    static Object unit() throws Exception {
         return Class.forName("kotlin.Unit").getField("INSTANCE").get(null);
     }
 
-    private static Object objectMethod(Object proxy, Method method, Object[] args, String label) {
+    static Object objectMethod(Object proxy, Method method, Object[] args, String label) {
         String name = method.getName();
         if ("toString".equals(name)) return label;
         if ("hashCode".equals(name)) return System.identityHashCode(proxy);
@@ -584,7 +719,7 @@ public final class MilestoneClaim {
         throw new NoSuchMethodException(owner.getName() + "." + name);
     }
 
-    private static String field(Object target, String getter) {
+    static String field(Object target, String getter) {
         if (target == null) return null;
         try {
             Object value = target.getClass().getMethod(getter).invoke(target);
@@ -666,5 +801,6 @@ public final class MilestoneClaim {
 
     private static void log(String msg) {
         Log.i(TAG, msg);
+        Trace.line(msg);
     }
 }

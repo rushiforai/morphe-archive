@@ -55,7 +55,7 @@ class WsjSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "15.11.0.42207",
+            version = "15.12.0.42675",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

@@ -29,7 +29,7 @@ class BlueMailSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "2.2.408",
+            version = "2.2.418",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -77,7 +77,7 @@ class BlueMailSmokeTest {
             assertReturnsEarlyVoid(mobileAds.method(name), label = "MobileAds.$name")
         }
 
-        // 3. Every concrete load overload returns immediately (counts as of 2.2.408).
+        // 3. Every concrete load overload returns immediately (counts as of 2.2.418).
         val expectedLoads = mapOf(
             "BaseAdView" to 1,
             "AdLoader" to 2,

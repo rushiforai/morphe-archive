@@ -21,6 +21,9 @@ public sealed class OverflowMenu(AndroidDriver driver)
             TimeSpan.FromSeconds(10),
             "The menu of \"More options\"");
 
+    /// <summary>Taps <paramref name="entry"/>.</summary>
+    public Task ClickAsync(OverflowMenuEntry entry) => OnScreen.PressAsync(driver, Locate.AppIdWithText("title", entry.ToShownText()));
+
     /// <summary>
     /// What the menu shows: its entries, top to bottom, and whether each is enabled. A greyed-out entry's row is disabled,
     /// though its title, inside it, still reads as enabled.

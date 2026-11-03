@@ -10,16 +10,11 @@ public final class MapsSettingsRows {
     }
 
     public static void attach(Object fragment, String schema) {
-        // Each row catches its own failures, so one row cannot hide the other.
-        if (vehicleRow()) BydVehicleSettings.attach(fragment, schema);
+        // Each row catches its own failures, so one row cannot hide another.
         if (pictureInPictureRow()) PictureInPicturePatch.attach(fragment, schema);
     }
 
     // Row switches: the owning patch rewrites the constant to true (enableSettingsRow).
-    private static boolean vehicleRow() {
-        return false;
-    }
-
     private static boolean pictureInPictureRow() {
         return false;
     }

@@ -67,8 +67,13 @@ fun main(args:Array<String>){
       }
       for(block in impl.tryBlocks)for(h in block.exceptionHandlers)targets.add(h.handlerCodeAddress)
       for((index,i) in code.withIndex())if(i.opcode==Opcode.RETURN_VOID){
-       val before=((code.getOrNull(index-1) as? ReferenceInstruction)?.reference as? MethodReference)
-       require(before?.definingClass==capture.definingClass&&before.name==capture.name&&addresses[index] !in targets){"Bypassable constructor capture $m"}
+       var prior=index-1
+       val tail=((code.getOrNull(prior) as? ReferenceInstruction)?.reference as? MethodReference)
+       // Downloads now registers the same native presenter after Lyrics capture.
+       // Permit only this exact call, and prove no branch/handler can enter after capture.
+       if(tail?.definingClass=="Lapp/bdcrusher/ytmusic/playlists/DownloadViewContext;"&&tail.name=="register"&&tail.parameterTypes==listOf("Ljava/lang/Object;"))prior--
+       val before=((code.getOrNull(prior) as? ReferenceInstruction)?.reference as? MethodReference)
+       require(before?.definingClass==capture.definingClass&&before.name==capture.name&&(prior+1..index).all {addresses[it] !in targets}){"Bypassable constructor capture $m"}
       }
      }
      for(i in code){val r=(i as? ReferenceInstruction)?.reference

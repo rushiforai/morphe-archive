@@ -8,6 +8,7 @@ agp = "9.1.0"
 guava = "33.6.0-jre"
 
 [libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
 morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 

@@ -10,9 +10,9 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal fun BytecodePatchContext.patchClipboardHistory(version: String) {
     var count = 0
-    classDefForEach { cls ->
+    boundClassForEach("ClipboardHistoryPatch:1") { cls ->
         if (cls.type == "Lapp/morphe/extension/chmate/ClipboardHistory;" ||
-            !(cls.type.startsWith("Lo/") || cls.type.startsWith("Ljp/") || cls.type.startsWith("Lapp/morphe/extension/chmate/"))) return@classDefForEach
+            !(cls.type.startsWith("Lo/") || cls.type.startsWith("Ljp/") || cls.type.startsWith("Lapp/morphe/extension/chmate/"))) return@boundClassForEach
         val mutableClass by lazy { mutableClassDefBy(cls) }
         cls.methods.forEach { method ->
             val calls = method.implementation?.instructions?.toList() ?: return@forEach

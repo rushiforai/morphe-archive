@@ -461,3 +461,12 @@ Puts every feature switch back the way it started.	Her özellik anahtarını ba�
 Changed %1$d setting	%1$d ayar değiştirildi
 Changed %1$d settings	%1$d ayar değiştirildi
 Couldn't update muted posts. Try again.	Susturulan gönderiler güncellenemedi. Tekrar dene.
+# context: the Share video links switch on the Posts page, and its summary
+Share video links	Video bağlantılarını paylaş
+Long-press a video in a post to share or copy its link.	Bağlantısını paylaşmak veya kopyalamak için gönderideki bir videoya uzun basın.
+# context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
+Share video link	Video bağlantısını paylaş
+Copy video link	Video bağlantısını kopyala
+Video link	Video bağlantısı
+Video link copied	Video bağlantısı kopyalandı
+No app can share this link	Bu bağlantıyı paylaşabilecek bir uygulama yok

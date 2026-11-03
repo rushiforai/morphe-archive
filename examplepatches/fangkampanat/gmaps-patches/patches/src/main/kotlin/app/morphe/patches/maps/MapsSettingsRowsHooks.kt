@@ -1,6 +1,7 @@
 package app.morphe.patches.maps
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -27,6 +28,13 @@ private fun settingsGuard(ok: Boolean, why: String, at: Any) {
 private fun Method.settingsCode() = implementation?.instructions?.toList()
     ?: throw PatchException("Missing Maps Settings row body: $this")
 private fun Method.settingsPublic() = AccessFlags.PUBLIC.isSet(accessFlags) && !AccessFlags.STATIC.isSet(accessFlags)
+private fun checkedSettingsInsert(method: MutableMethod, index: Int, smali: String, expected: List<Opcode>) {
+    val size = method.implementation!!.instructions.size
+    method.addInstructions(index, smali)
+    settingsGuard(method.implementation!!.instructions.size == size + expected.size &&
+        method.implementation!!.instructions.drop(index).take(expected.size).map { it.opcode } == expected,
+        "assembled insertion at $index", method)
+}
 
 /** Proof-only lookups must not normalize every method in an unrelated mutable class. */
 private fun BytecodePatchContext.readOnlySettingsHook(fingerprint: Fingerprint, label: String): Method {
@@ -92,7 +100,7 @@ internal class SettingsRowPlan(private val entries: List<SettingsRowEntry>) {
             // so even an original branch directly to that return executes the attachment once.
             // In particular, the working v0 alias may have become a Preference before this exit.
             entry.exits.sortedDescending().forEach { exit ->
-                checkedNativeInsert(entry.method, exit + 1, """
+                checkedSettingsInsert(entry.method, exit + 1, """
                     const-string v1, "${entry.schema}"
                     invoke-static { v0, v1 }, $SETTINGS_ROWS->attach(Ljava/lang/Object;Ljava/lang/String;)V
                     return-void

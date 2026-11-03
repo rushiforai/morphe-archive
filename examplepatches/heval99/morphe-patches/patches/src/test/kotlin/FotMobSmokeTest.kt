@@ -7,8 +7,10 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -21,6 +23,8 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.zip.ZipFile
+import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Element
 
 private const val PKG = "com.mobilefootie.wc2010"
 private const val STAFF_EMAIL = "norapps.as@"
@@ -41,6 +45,7 @@ private const val ODDS_GATE_LOG = "User has disabled odds in settings"
 private const val RATING_APP_MESSAGE = "Lcom/fotmob/android/feature/appmessage/model/RatingAppMessage;"
 private const val PLUS_PROMO_CONFIG = "Lcom/fotmob/android/feature/billing/model/PlusPromoConfig;"
 private const val PLUS_PROMO_KEY = "fotmobplus_promo"
+private const val TYPEFACE = "Landroid/graphics/Typeface;"
 
 class FotMobSmokeTest {
 
@@ -76,25 +81,29 @@ class FotMobSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "239.17834.20261016",
+            version = "240.17974.20261023",
             patchNames = setOf(
                 "Disable ads", "Disable telemetry", "Enable FotMob+", "GmsCore support", "Spoof signature",
                 "Hide betting content", "Disable rating prompts", "Disable FotMob+ promo popup",
+                "Use system font",
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val stock = originalClasses(apk)
 
         // The manager is R8-renamed every release, so find it the same way the patch does:
-        // the class whose staff check contains the unique email string.
+        // the class whose staff check contains the unique email string. 240 also has an unrelated
+        // method with the same address (ks4.b(Lir4;)Z), so require the patch's no-arg Boolean shape.
         val manager = classes.firstOrNull { cls ->
             cls.methods.any { method ->
-                method.implementation?.instructions?.any { it.referencesString(STAFF_EMAIL) } == true
+                method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                    method.implementation?.instructions?.any { it.referencesString(STAFF_EMAIL) } == true
             }
         } ?: error("subscription manager (staff email string) not found in emitted dexes")
 
         val staff = manager.methods.first { method ->
-            method.implementation?.instructions?.any { it.referencesString(STAFF_EMAIL) } == true
+            method.returnType == "Z" && method.parameterTypes.isEmpty() &&
+                method.implementation?.instructions?.any { it.referencesString(STAFF_EMAIL) } == true
         }
         assertForcedBoolean(staff, expected = false, label = "${manager.type}.${staff.name} (staff check)")
 
@@ -166,6 +175,93 @@ class FotMobSmokeTest {
         assertAdsDisabled(classes)
         assertTelemetryDisabled(classes, stock)
         assertBettingRatingAndPromoDisabled(classes)
+        assertSystemFont(classes)
+        assertSystemFontStyles()
+    }
+
+    // Use system font, bytecode: both targets found like the patch does (the "my" locale check
+    // storing a boolean of its own class; the static (Context, I, String, I)Typeface loader).
+    private fun assertSystemFont(classes: List<ClassDef>) {
+        val flagInits = classes.flatMap { cls ->
+            cls.methods.filter { m ->
+                m.name == "<clinit>" && m.instructions().any { it.referencesString("my") } &&
+                    m.instructions().any { it.methodRef()?.let { r -> r.definingClass == "Ljava/util/Locale;" && r.name == "getLanguage" } == true } &&
+                    m.instructions().any { it.opcode == Opcode.SPUT_BOOLEAN && it.fieldRef()?.definingClass == cls.type }
+            }
+        }
+        assertEquals(1, flagInits.size, "font flag initializers: ${flagInits.map { it.definingClass }}")
+        val init = flagInits.single()
+        val initLabel = "${init.definingClass}.<clinit> (font flag)"
+        val initInsns = init.instructions()
+        val myIndex = initInsns.indexOfFirst { it.referencesString("my") }
+        val store = (myIndex until initInsns.size).first { i ->
+            initInsns[i].opcode == Opcode.SPUT_BOOLEAN && initInsns[i].fieldRef()?.definingClass == init.definingClass
+        }
+        val forced = initInsns[store - 1]
+        assertTrue(
+            forced.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) && (forced as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                (forced as OneRegisterInstruction).registerA == (initInsns[store] as OneRegisterInstruction).registerA,
+            "$initLabel: the flag store is not preceded by a zero const on its register; got ${forced.opcode}"
+        )
+        // Both branches of the "my" check must run the forced zero: no jump may land on the store.
+        val addresses = initInsns.runningFold(0) { address, insn -> address + insn.codeUnits }
+        val targets = initInsns.indices.mapNotNull { i ->
+            (initInsns[i] as? OffsetInstruction)?.let { addresses[i] + it.codeOffset }
+        }.toSet()
+        assertTrue(addresses[store] !in targets, "$initLabel: a branch jumps straight to the flag store, past the forced zero")
+        assertTrue(addresses[store - 1] in targets, "$initLabel: no branch reaches the forced zero")
+
+        val loaders = classes.flatMap { it.methods }.filter { m ->
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == TYPEFACE &&
+                m.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "I", "Ljava/lang/String;", "I") &&
+                m.instructions().any { insn ->
+                    insn.methodRef()?.let { it.definingClass == TYPEFACE && it.name == "create" && it.parameterTypes.firstOrNull()?.toString() == TYPEFACE } == true
+                }
+        }
+        assertEquals(1, loaders.size, "Typeface loaders: ${loaders.map { "${it.definingClass}.${it.name}" }}")
+        val loader = loaders.single()
+        val loaderLabel = "${loader.definingClass}.${loader.name} (Typeface loader)"
+        val insns = loader.instructions()
+        val call = insns[0]
+        val callRef = call.methodRef()
+        val p2 = loader.implementation!!.registerCount - 4 + 2
+        assertTrue(
+            call.opcode == Opcode.INVOKE_STATIC_RANGE && callRef?.definingClass == TYPEFACE && callRef.name == "create" &&
+                callRef.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I") &&
+                (call as RegisterRangeInstruction).startRegister == p2 && call.registerCount == 2,
+            "$loaderLabel: does not start with Typeface.create(p2 family, p3 style); got ${call.opcode} $callRef"
+        )
+        assertTrue(
+            insns[1].opcode == Opcode.MOVE_RESULT_OBJECT && insns[2].opcode == Opcode.RETURN_OBJECT &&
+                (insns[1] as OneRegisterInstruction).registerA == (insns[2] as OneRegisterInstruction).registerA,
+            "$loaderLabel: the created Typeface is not returned at once; got ${insns.take(3).map { it.opcode }}"
+        )
+    }
+
+    // Use system font, resources: the decoded styles the patch wrote. The API 26+ theme's six font
+    // attributes now hold the system families of the base/Burmese themes, and the switch text
+    // appearance uses the system medium family.
+    private fun assertSystemFontStyles() {
+        fun styles(dir: String): Map<String, Map<String, String>> {
+            val file = workDir.walkTopDown().singleOrNull { it.name == "styles.xml" && it.parentFile.name == dir }
+                ?: error("no decoded $dir/styles.xml under $workDir")
+            val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+            val nodes = doc.getElementsByTagName("style")
+            return (0 until nodes.length).map { nodes.item(it) as Element }.associate { style ->
+                val items = style.getElementsByTagName("item")
+                style.getAttribute("name") to (0 until items.length).map { items.item(it) as Element }
+                    .associate { it.getAttribute("name") to it.textContent.trim() }
+            }
+        }
+        val theme = styles("values-v26")["Base.Theme.FotMob.V26"] ?: error("values-v26: Base.Theme.FotMob.V26 not found")
+        val expected = mapOf(
+            "font_regular" to "sans-serif", "font_medium" to "sans-serif-medium", "font_semi_bold" to "sans-serif-medium",
+            "font_extra_bold" to "sans-serif-black", "nativeAdBodyFont" to "sans-serif", "nativeAdTitleFont" to "sans-serif-medium",
+        )
+        assertEquals(expected, theme.filterKeys { it in expected }, "Base.Theme.FotMob.V26 font items")
+        val switch = styles("values")["TextAppearance.FotMob.Switch"] ?: error("values: TextAppearance.FotMob.Switch not found")
+        assertEquals("sans-serif-medium", switch["android:fontFamily"], "TextAppearance.FotMob.Switch android:fontFamily")
+        assertEquals("sans-serif-medium", switch["fontFamily"], "TextAppearance.FotMob.Switch fontFamily")
     }
 
     // Hide betting content, Disable rating prompts, Disable FotMob+ promo popup: each target is
@@ -421,4 +517,7 @@ class FotMobSmokeTest {
 
     private fun Instruction.methodRef(): MethodReference? =
         (this as? ReferenceInstruction)?.reference as? MethodReference
+
+    private fun Instruction.fieldRef(): FieldReference? =
+        (this as? ReferenceInstruction)?.reference as? FieldReference
 }

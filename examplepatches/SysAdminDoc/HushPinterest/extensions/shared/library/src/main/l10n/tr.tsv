@@ -69,7 +69,6 @@ Couldn't reach GitHub. Try again later.	GitHub'a ulaşılamadı. Daha sonra tekr
 GitHub is turning away checks from this network for now. Try again later.	GitHub şu an bu ağdan gelen sorguları geri çeviriyor. Daha sonra tekrar dene.
 GitHub sent back something HushPinterest couldn't read. Try again later.	GitHub, HushPinterest'in okuyamadığı bir yanıt gönderdi. Daha sonra tekrar dene.
 Saving the settings file	Ayar dosyası kaydediliyor
-Set when you patched	Yamaladığında ayarlananlar
 Settings couldn't open	Ayarlar açılamadı
 Settings didn't fully refresh. Reopen them and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden açıp tekrar dene.
 Settings exported.	Ayarlar dışa aktarıldı.
@@ -517,9 +516,37 @@ Hides the back arrow that floats over a pin you open. Your phone's back gesture 
 Hide lens button on pins	Pinlerde Lens düğmesini gizle
 Hide closeup buttons	Pinlerdeki düğmeleri gizle
 Hides the visual search button in the corner of a pin you open. Search image in the pin menu still works. The change shows on the next pin you open.	Açtığın bir pinin köşesindeki görsel arama düğmesini gizler. Pin menüsündeki Görüntü ara çalışmaya devam eder. Değişiklik açtığın bir sonraki pinde görünür.
-# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label. The last line names this part of the patch in a build report.
+Hide like button on pins	Pinlerde beğen düğmesini gizle
+Hides the heart under a pin you open, along with its count. The change shows on the next pin you open.	Açtığın bir pinin altındaki kalbi sayısıyla birlikte gizler. Değişiklik açtığın bir sonraki pinde görünür.
+Hide comment button on pins	Pinlerde yorum düğmesini gizle
+Hides the comment button under a pin you open. The change shows on the next pin you open.	Açtığın bir pinin altındaki yorum düğmesini gizler. Değişiklik açtığın bir sonraki pinde görünür.
+Hide share button on pins	Pinlerde paylaş düğmesini gizle
+Hides the share button under a pin you open. The change shows on the next pin you open.	Açtığın bir pinin altındaki paylaş düğmesini gizler. Değişiklik açtığın bir sonraki pinde görünür.
+Hide more button on pins	Pinlerde diğer düğmesini gizle
+Hides the three dots under a pin you open. Their menu, Download pin included, can't be opened from that page while this is on. The change shows on the next pin you open.	Açtığın bir pinin altındaki üç noktayı gizler. Bu açıkken menüsü, Pini indir de dahil, o sayfadan açılamaz. Değişiklik açtığın bir sonraki pinde görünür.
+Hide Remix button on pins	Pinlerde Remix düğmesini gizle
+Hides the Remix button on a pin you open. The change shows on the next pin you open.	Açtığın bir pindeki Remix düğmesini gizler. Değişiklik açtığın bir sonraki pinde görünür.
+Hide Visit site button on pins	Pinlerde Siteyi ziyaret et düğmesini gizle
+Hides the Visit site button under a pin that links to a website. The change shows on the next pin you open.	Bir web sitesine bağlanan pinin altındaki Siteyi ziyaret et düğmesini gizler. Değişiklik açtığın bir sonraki pinde görünür.
+Hide pin action buttons	Pin işlem düğmelerini gizle
+Hide Remix button	Remix düğmesini gizle
+Hide Visit site button	Siteyi ziyaret et düğmesini gizle
+# context: two more Hide closeup buttons rows on the Interface page for Pinterest's red Save button on a pin someone opens: a switch that draws it at 80 percent of its size, and a row that opens a box for a hex color to paint it. %1$s is a color code like #3366FF. The first line names this part of the patch in a build report.
+Save button size and color	Kaydet düğmesinin boyutu ve rengi
+Smaller Save button on pins	Pinlerde daha küçük Kaydet düğmesi
+Shrinks the red Save button on a pin you open to four fifths of its size, keeping its spot at the end of the row. The change shows on the next pin you open.	Açtığın bir pindeki kırmızı Kaydet düğmesini boyutunun beşte dördüne küçültür ve satırın sonundaki yerinde tutar. Değişiklik açtığın bir sonraki pinde görünür.
+Save button color	Kaydet düğmesinin rengi
+Paints the red Save button on a pin you open in a color you pick. It's Pinterest's red for now.	Açtığın bir pindeki kırmızı Kaydet düğmesini seçtiğin renge boyar. Şu an Pinterest'in kırmızısı.
+Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	Kaydet düğmesi %1$s rengine boyanıyor. Değiştirmek için dokun. Değişiklik açtığın bir sonraki pinde görünür.
+Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	#3366FF gibi bir hex renk ya da #36F gibi üç hane yaz. Açık bir renkte yazı koyu olur, böylece düğme okunur kalır.
+Couldn't open the Save button color. Try again.	Kaydet düğmesinin rengi açılamadı. Tekrar dene.
+That isn't a hex color, so nothing changed. Try one like #3366FF.	Bu bir hex renk değil, bu yüzden hiçbir şey değişmedi. #3366FF gibi bir renk dene.
+Couldn't save the Save button color. Try again.	Kaydet düğmesinin rengi kaydedilemedi. Tekrar dene.
+The Save button is back to Pinterest's red on the next pin you open.	Kaydet düğmesi açtığın bir sonraki pinde Pinterest'in kırmızısına döner.
+The Save button turns %1$s on the next pin you open.	Kaydet düğmesi açtığın bir sonraki pinde %1$s olur.
+# context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Pinlerde Görüntü ara etiketini gizle
-Keeps the lens button on a pin you open but leaves off the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Açtığın bir pinde Lens düğmesini tutar ama Pinterest'in her gün ilk pinlerinde ona eklediği Görüntü ara etiketini göstermez. Lens'e dokunmak yine arama yapar. Değişiklik açtığın bir sonraki pinde görünür.
+Keeps the lens button on a pin you open but leaves off its glow and the Search image label Pinterest adds to it on your first pins each day. Tapping the lens still searches. The change shows on the next pin you open.	Açtığın bir pinde Lens düğmesini tutar ama parıltısını ve Pinterest'in her gün ilk pinlerinde ona eklediği Görüntü ara etiketini göstermez. Lens'e dokunmak yine arama yapar. Değişiklik açtığın bir sonraki pinde görünür.
 Hide Search image label	Görüntü ara etiketini gizle
 # context: Save list, after a list wasn't written, when the app holding the picked file won't say how big it is, so the file might be one the user picked to write over
 File left alone. If it's empty, delete it in your files app.	Dosyaya dokunulmadı. Boşsa dosyalar uygulamandan sil.
@@ -616,6 +643,12 @@ none	yok
 %1$d word	%1$d kelime
 # context: the same for any other number
 %1$d words	%1$d kelime
+# context: heading of the settings import preview when the file changes no switch but changes the Save button color (the hex color painted on the Save button of a pin someone opens)
+Your Save button color will change.	Kaydet düğmesinin rengi değişecek.
+# context: the same heading when the file changes both the muted words list and the Save button color
+Your muted words and Save button color will change.	Sessize aldığın kelimeler ve Kaydet düğmesinin rengi değişecek.
+# context: in the import preview line that reads like Save button color (Pinterest's red to #3366FF): no color is picked, so the button keeps Pinterest's own red
+Pinterest's red	Pinterest'in kırmızısı
 Pinterest's own AI setting	Pinterest'in kendi yapay zeka ayarı
 Pinterest can show you fewer AI pins among the ones it picks for you. It works alongside the switches above, and neither one catches every AI pin. Tap to open it.	Pinterest, senin için seçtiği pinler arasında daha az yapay zeka pini gösterebilir. Yukarıdaki anahtarlarla birlikte çalışır ve ikisi de her yapay zeka pinini yakalamaz. Açmak için dokun.
 Pinterest couldn't open that page.	Pinterest bu sayfayı açamadı.

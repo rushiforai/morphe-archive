@@ -17,8 +17,8 @@ private const val PATCH_NAME = "Add-on support"
 @Suppress("unused")
 val addonSupportPatch = bytecodePatch(
     name = PATCH_NAME,
-    description = "Adds an Extensions menu to install and manage uBlock Origin, Violentmonkey and " +
-        "Tampermonkey, and shows their popups. Add-ons run in private mode, like every Focus tab; " +
+    description = "Adds an Extensions menu to install and manage uBlock Origin, Violentmonkey, " +
+        "Tampermonkey and Dark Reader, and shows their popups. Add-ons run in private mode, like every Focus tab; " +
         "their data survives Erase. Installed add-ons are checked for updates from addons.mozilla.org " +
         "at most once a day.",
 ) {

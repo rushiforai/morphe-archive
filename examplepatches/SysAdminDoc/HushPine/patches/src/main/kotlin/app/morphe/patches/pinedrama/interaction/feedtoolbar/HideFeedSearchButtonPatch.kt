@@ -1,0 +1,88 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
+package app.morphe.patches.pinedrama.interaction.feedtoolbar
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
+import app.morphe.util.addInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinedrama.misc.settings.configurableBytecodePatch as bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.pinedrama.misc.extension.sharedExtensionPatch
+import app.morphe.patches.pinedrama.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.patches.pinedrama.misc.settings.settingsPatch
+
+private const val HOME_PAGE_UI_FRAME_SERVICE_DESCRIPTOR =
+    "Lcom/ss/android/ugc/aweme/homepage/api/ui/HomePageUIFrameService;"
+
+private object InflatesSearchIconFingerprint : Fingerprint(
+    parameters = listOf("Landroid/content/Context;"),
+    returnType = "Landroid/view/View;",
+    filters = listOf(
+        methodCall(
+            definingClass = HOME_PAGE_UI_FRAME_SERVICE_DESCRIPTOR,
+            name = "getInflatedSearchIcon",
+            returnType = "Landroid/view/View;",
+        ),
+    ),
+)
+
+private fun BytecodePatchContext.resolveSearchEnabledBoundary(): MutableMethod {
+    val controllerSuperclasses = mutableSetOf<String>()
+    for (match in InflatesSearchIconFingerprint.matchAll()) {
+        val classDef = match.originalClassDef
+        val hasVisibilityProtocol = classDef.methods.any { method ->
+            method.parameterTypes == listOf("I") && method.returnType == "V"
+        }
+        if (hasVisibilityProtocol) {
+            classDef.superclass?.let(controllerSuperclasses::add)
+        }
+    }
+
+    if (controllerSuperclasses.size != 1) {
+        throw PatchException(
+            "Hide feed search button: expected one shared search protocol base, " +
+                "found ${controllerSuperclasses.size}.",
+        )
+    }
+
+    val superclass = controllerSuperclasses.single()
+    val matches = mutableClassDefBy(superclass).methods.filter { method ->
+        method.name == "enabled" && method.parameterTypes.isEmpty() && method.returnType == "Z"
+    }
+    if (matches.size != 1) {
+        throw PatchException(
+            "Hide feed search button: expected one search enabled boundary, found ${matches.size}.",
+        )
+    }
+    return matches.single()
+}
+
+@Suppress("unused")
+val hideFeedSearchButtonPatch = bytecodePatch(
+    name = "Hide feed search button",
+    description = "Removes the search button from the top right of the feed, for a cleaner " +
+        "screen. Starts off. Turn it on in HushPine settings > Feed screen.",
+    default = true,
+) {
+    category("Feed")
+    dependsOn(settingsPatch, sharedExtensionPatch)
+    compatibleWith(*AppCompatibilities.pineDrama())
+
+    execute {
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, " +
+                "Lapp/morphe/extension/pinedrama/settings/SettingsStatus;->enableHideFeedSearchButton()V",
+        )
+        resolveSearchEnabledBoundary().overrideToolbarButtonEnabled(
+            "hideFeedSearchButtonEnabled",
+        )
+    }
+}

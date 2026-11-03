@@ -1,0 +1,1 @@
+ar,de,en,es,et,fi,fr,hi,hu,id,in,it,ja,ko,ms,nl,pl,pt,ru,sv,th,tr,uk,vi,zh

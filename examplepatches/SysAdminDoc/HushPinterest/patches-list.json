@@ -477,7 +477,7 @@
     },
     {
       "name": "Hide closeup buttons",
-      "description": "Lets you hide the back arrow and the visual search (lens) button that float over a pin you open, each with its own switch, so they stop covering the picture. A third switch keeps the lens but drops the Search image label Pinterest puts on it for your first pins each day. Your phone's back gesture still leaves the pin, and Search image in the pin menu still works. All three start off. Turn them on in HushPinterest settings > Interface.",
+      "description": "Lets you hide the buttons on a pin you open, each with its own switch. That covers the back arrow and the visual search (lens) button that float over the picture, the like, comment, share and more buttons under it, the Remix button and the Visit site button. Another switch keeps the lens but drops its glow and the Search image label Pinterest puts on it for your first pins each day. Two more rows draw the red Save button smaller or paint it a color you pick. Your phone's back gesture still leaves the pin, and Search image in the pin menu still works. They all start off. Turn them on in HushPinterest settings > Interface.",
       "category": "Interface",
       "use": true,
       "dependencies": [

@@ -177,6 +177,7 @@ final class EmojiFontFallback {
 
     private static void applyToTextView(TextView view) {
         if ("off".equals(renderMode)) return;
+        if(view instanceof android.widget.EditText){applyToEditor((android.widget.EditText)view);return;}
         CharSequence source = view.getText();
         if (source == null || source.length() == 0 || !containsEmojiCandidate(source)) return;
         CharSequence repaired = restoreExternalEmojiPlaceholders(source);
@@ -193,6 +194,29 @@ final class EmojiFontFallback {
                 ? repaired
                 : applyToText(repaired, view.getPaint(), fallback);
         if (result != source) view.setText(result, TextView.BufferType.SPANNABLE);
+    }
+
+    private static final int EDITOR_STATE=0x48691e01;
+    private static final class EditorState {
+        final android.text.Editable source;final String text,mode;final Typeface font;final int spans;
+        EditorState(android.text.Editable source,String text,Typeface font,int spans){this.source=source;this.text=text;this.font=font;this.spans=spans;mode=renderMode;}
+    }
+    private static void applyToEditor(android.widget.EditText view){
+        android.text.Editable source=view.getText();if(source==null)return;
+        EmojiTypefaceSpan[] old=source.getSpans(0,source.length(),EmojiTypefaceSpan.class);
+        if(!containsEmojiCandidate(source)){for(EmojiTypefaceSpan span:old)source.removeSpan(span);view.setTag(EDITOR_STATE,null);return;}
+        Typeface font=getTypeface(view.getContext());if(font==null)return;
+        String text=source.toString();
+        Object raw=view.getTag(EDITOR_STATE);
+        if(raw instanceof EditorState){EditorState state=(EditorState)raw;if(state.source==source&&state.text.equals(text)&&state.font==font&&state.mode.equals(renderMode)&&state.spans==old.length)return;}
+        // Only our metric spans change. Do not replace the Editable, selection,
+        // composing spans, undo state, or the user's text (including placeholders).
+        for(EmojiTypefaceSpan span:old)source.removeSpan(span);
+        CharSequence projected=containsEmojiCandidate(source)?applyToText(source,view.getPaint(),font):source;
+        int count=0;
+        if(projected!=source&&projected instanceof android.text.Spanned){android.text.Spanned styled=(android.text.Spanned)projected;
+            for(EmojiTypefaceSpan span:styled.getSpans(0,styled.length(),EmojiTypefaceSpan.class)){source.setSpan(span,styled.getSpanStart(span),styled.getSpanEnd(span),styled.getSpanFlags(span));count++;}}
+        view.setTag(EDITOR_STATE,new EditorState(source,text,font,count));
     }
 
     private static CharSequence applyToText(

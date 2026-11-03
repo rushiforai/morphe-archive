@@ -1,11 +1,15 @@
 package app.morphe.patches.google.common
 
+import app.morphe.patches.google.common.versions.google177011
+import app.morphe.patches.google.common.versions.gemini10995038376
 import app.morphe.patcher.PackageMetadata
 import app.morphe.patches.google.common.versions.google175418
 import app.morphe.patches.google.common.versions.gemini10958859967
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 enum class HookId(val displayName: String) {
+    DEVICE_COMPLIANCE_FEATURE("microGローカル機能無効化の停止"),
+    DEVICE_COMPLIANCE_REDIRECT("microG認定画面への転送抑止"),
     WORK_PROFILE_BYPASS("Work Profile 制限バイパス"),
     WORK_PROFILE_ELIGIBILITY("Work Profile 利用資格"),
     MICROG_RUNTIME_PERMISSIONS("microG 初回権限要求"),
@@ -58,7 +62,7 @@ data class AppVersionProfile(
 
 object VersionHookRegistry {
     // Add a new version file and register it here. Never widen a verified version to .*.
-    val profiles: List<AppVersionProfile> = listOf(google175418, gemini10958859967)
+    val profiles: List<AppVersionProfile> = listOf(google175418, google177011, gemini10958859967, gemini10995038376)
 
     init {
         check(profiles.map { it.packageName to it.versionName }.distinct().size == profiles.size)

@@ -60,6 +60,7 @@ Apps whose premium cannot be unlocked with Morphe patches, documented so the att
 | 📱&nbsp;App | 🔢&nbsp;Version | 💊&nbsp;Failed patch | 📅&nbsp;Last attempt | 📜&nbsp;Description |
 |----------|----------------|----------------|----------------|----------------|
 | BitePal (`com.pookies.food.ai`) | 2.34.0 | Unlock Premium | 2026-10-15 | Premium is verified server-side (own `billing.v1.BillingService` backend + Play purchase validation) with the gating logic compiled into Dart native code, out of reach of DEX patches. Forcing BillingClient getters and faking `queryPurchasesAsync` had no effect: banner and locks remained. Google login also breaks on patched builds due to signature mismatch. |
+| Amaze Go! (`com.oakever.arrows`) | 1.37.0 | Remove ads | 2026-11-02 | Ships a native packer (Ano/ACE: `libanort.so` + `libu8t.so`, encrypted `global-metadata.dat`). It pins the original signing certificate and kills the process (SIGBUS/SIGSEGV) during Unity startup on any re-signed build. Verified with a patched and an unpatched re-signed APK, and with the pinned hash replaced; all crash. Java signature/install-source spoofs cannot bypass the native check. |
 
 ### 🛠️ Building locally
 

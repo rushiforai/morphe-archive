@@ -1,0 +1,836 @@
+{
+  "build.gradle.kts": {
+    "mtime": 1791854443.9540992,
+    "seen": 1793678912.6008186,
+    "ast_hash": "6d08052bd62e2a8f291c1dbb333c0535",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/cinevi/CustomLoadingVideoPatch.kt": {
+    "mtime": 1791854443.9548893,
+    "seen": 1793678912.600827,
+    "ast_hash": "f19090e555ce215ce1b9b7864d942d64",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/cinevi/DisableAdsPatch.kt": {
+    "mtime": 1791854443.9549606,
+    "seen": 1793678912.6008308,
+    "ast_hash": "ebb5ee426dbbaadbd4e74e83541f8c6e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/cinevi/Fingerprints.kt": {
+    "mtime": 1791854443.9549606,
+    "seen": 1793678912.6008332,
+    "ast_hash": "f13a81ac1ace879857e42c2e379e746b",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/cinevi/LoadingFingerprints.kt": {
+    "mtime": 1791854443.9549606,
+    "seen": 1793678912.6008353,
+    "ast_hash": "b5aa27ee2c10368b3807b48e212e2751",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/cinevi/PurpleThemePatch.kt": {
+    "mtime": 1792948467.8343208,
+    "seen": 1793678912.6008375,
+    "ast_hash": "b892e70125a416d3f918d308f3213a00",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/cinevi/VideoFormat.kt": {
+    "mtime": 1791854443.9549606,
+    "seen": 1793678912.6008394,
+    "ast_hash": "7f494d656c850c36c8bdd480a3524a26",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/irisgallery/Fingerprints.kt": {
+    "mtime": 1791854443.9549606,
+    "seen": 1793678912.6008413,
+    "ast_hash": "0b5918d23fd3463eb6f13f76652ee66a",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/irisgallery/SecureFolderPatch.kt": {
+    "mtime": 1791854443.9551442,
+    "seen": 1793678912.600843,
+    "ast_hash": "f25ba978bc1b2efdbb5bea759ac37b49",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/shared/Constants.kt": {
+    "mtime": 1792362572.0036435,
+    "seen": 1793678912.6008449,
+    "ast_hash": "a4aff5c5f7c805bb40056a502bf5f673",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/shared/compat/AppCompatibilities.kt": {
+    "mtime": 1793677232.0206084,
+    "seen": 1793678912.6008468,
+    "ast_hash": "5391671c9af3aad31beaca28ebfce006",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/shared/misc/extension/Fingerprints.kt": {
+    "mtime": 1791854443.9553368,
+    "seen": 1793678912.600849,
+    "ast_hash": "d75384a8765cbb549d1ccf12b4492d79",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/shared/misc/extension/SharedExtensionPatch.kt": {
+    "mtime": 1791854443.955426,
+    "seen": 1793678912.6008506,
+    "ast_hash": "0bbd307d1b2e1cd93e0cfbc45868df34",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/simpletimetracker/CustomIconsPatch.kt": {
+    "mtime": 1791854443.955426,
+    "seen": 1793678912.6008525,
+    "ast_hash": "0bcbc4c608ab83ca450932563ec88bfd",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/simpletimetracker/Fingerprints.kt": {
+    "mtime": 1791854443.9555488,
+    "seen": 1793678912.6008542,
+    "ast_hash": "1a8893c7975c6e514e0441a5c0e96ba6",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/stickerly/AmoledColors.kt": {
+    "mtime": 1792362572.0036435,
+    "seen": 1793678912.600856,
+    "ast_hash": "d9f4b3facec5ca5b7439dcb5f20aa66e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/stickerly/AmoledConverter.kt": {
+    "mtime": 1792362572.0036435,
+    "seen": 1793678912.600858,
+    "ast_hash": "116c2ecc7045ca54dce8f82d73788925",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/stickerly/AmoledThemePatch.kt": {
+    "mtime": 1792362572.0036435,
+    "seen": 1793678912.6008596,
+    "ast_hash": "7e47a7506c7d929bc476ec1453d623a0",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/captchapopup/HideCaptchaPopupsPatch.kt": {
+    "mtime": 1792724110.865865,
+    "seen": 1793678912.6008615,
+    "ast_hash": "46d8f833257c569f94c36ffa044997ce",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/feedfilter/FeedFilterPatch.kt": {
+    "mtime": 1792724110.8661358,
+    "seen": 1793678912.6008632,
+    "ast_hash": "b59c11070c2a1fd21ae12b3d9ea03b38",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/feedfilter/FeedObservationProbePatch.kt": {
+    "mtime": 1792724110.8662474,
+    "seen": 1793678912.6008654,
+    "ast_hash": "3afdbbe1b315f4bd6eb93d4b44aa38f1",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/feedfilter/Fingerprints.kt": {
+    "mtime": 1793677232.0217342,
+    "seen": 1793678912.600867,
+    "ast_hash": "3b3e2d9db8223c2dd4d8fb74e9d9ffc2",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/antirecording/AntiRecordingPatch.kt": {
+    "mtime": 1792724110.8665342,
+    "seen": 1793678912.6008692,
+    "ast_hash": "c608b398ecd3ba40d98aedfd974daaf3",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/antirecording/Fingerprints.kt": {
+    "mtime": 1791854443.9562154,
+    "seen": 1793678912.6008708,
+    "ast_hash": "97a71a05014ef0af894f2c4440f91928",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/autoscroll/Fingerprints.kt": {
+    "mtime": 1792724110.8665342,
+    "seen": 1793678912.600873,
+    "ast_hash": "db386433b97ede2d3d5bb7a05172bda7",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/autoscroll/ForceShowAutoScrollPatch.kt": {
+    "mtime": 1792724110.8665342,
+    "seen": 1793678912.6008747,
+    "ast_hash": "fd82fbb6747bb69539648694d3280aa6",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/blockauthor/BlockAuthorPatch.kt": {
+    "mtime": 1793676309.5110064,
+    "seen": 1793678912.6008766,
+    "ast_hash": "d827ad6f9fa50c1b0a6fa60e58b1bf88",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/blockauthor/Fingerprints.kt": {
+    "mtime": 1793676309.5117705,
+    "seen": 1793678912.6008785,
+    "ast_hash": "1b8b3db782fc3d5fb02e2e1a89790aea",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/blockauthor/NativeFocusBridge.kt": {
+    "mtime": 1793676309.5117705,
+    "seen": 1793678912.6008804,
+    "ast_hash": "3c5262f716d0b1087b980ca2889c9cc2",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/blockauthor/NativePlaybackBridge.kt": {
+    "mtime": 1793676309.5117705,
+    "seen": 1793678912.6008823,
+    "ast_hash": "6ce14fc4b24a3e79637e7ec4f0c204cb",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/cleardisplay/Fingerprints.kt": {
+    "mtime": 1792724110.8665342,
+    "seen": 1793678912.6008842,
+    "ast_hash": "4aa040e8431a3600fd8c17413746397d",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/cleardisplay/RememberClearDisplayPatch.kt": {
+    "mtime": 1792724110.8665342,
+    "seen": 1793678912.600886,
+    "ast_hash": "1ee0f09a9d093b78ba774d4987af633f",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/copyids/CopyIdsPatch.kt": {
+    "mtime": 1793678266.9024935,
+    "seen": 1793678912.6008878,
+    "ast_hash": "b649ab17abfd4d4aafd07af4516c23ff",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/downloads/DownloadsPatch.kt": {
+    "mtime": 1792724110.8665342,
+    "seen": 1793678912.6008897,
+    "ast_hash": "fca5bedb7f260a2740761da28d7e69f4",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/downloads/Fingerprints.kt": {
+    "mtime": 1793677232.0214515,
+    "seen": 1793678912.6008916,
+    "ast_hash": "130a971cb9edd1fa47bc1413963a184c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/exactcounts/ExactCountsPatch.kt": {
+    "mtime": 1793678256.209075,
+    "seen": 1793678912.6008935,
+    "ast_hash": "3c5de6515ae65017d2143cf208f13b3f",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/favorites/KeepFavoritesTabPatch.kt": {
+    "mtime": 1793678256.202692,
+    "seen": 1793678912.6008952,
+    "ast_hash": "6f9b55b03475e1727e3df52e0acb313c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/feedbookmark/HideFeedSaveButtonPatch.kt": {
+    "mtime": 1792724110.8673952,
+    "seen": 1793678912.600897,
+    "ast_hash": "54cbfd029f5526d17e80403a6ded31f3",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/feedfollowbutton/HideFeedFollowButtonPatch.kt": {
+    "mtime": 1792724110.8673952,
+    "seen": 1793678912.600899,
+    "ast_hash": "3c68a211eddfed7eee5a6149e4d89cbd",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/feedtoolbar/FeedToolbarHooks.kt": {
+    "mtime": 1791854443.9565141,
+    "seen": 1793678912.600901,
+    "ast_hash": "52be30a24bb6c036a761c544558e36dd",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/feedtoolbar/HideFeedLiveButtonPatch.kt": {
+    "mtime": 1792724110.8673952,
+    "seen": 1793678912.6009026,
+    "ast_hash": "088ef01c19820f5c6c9af73ca86d05fb",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/feedtoolbar/HideFeedSearchButtonPatch.kt": {
+    "mtime": 1792724110.8693447,
+    "seen": 1793678912.6009045,
+    "ast_hash": "a2ffc1a256df6be713a47789ccfbdfad",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/gesture/DoubleTapPatch.kt": {
+    "mtime": 1793676309.5120063,
+    "seen": 1793678912.6009066,
+    "ast_hash": "0c258223283d70a0dceb159cca99bad9",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/looping/Fingerprints.kt": {
+    "mtime": 1791854443.9567065,
+    "seen": 1793678912.6009095,
+    "ast_hash": "bcc0158cc1d1c6c127fdd84c4a291e94",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/looping/StopVideoLoopingPatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009114,
+    "ast_hash": "24eb51d2ffe20c10aede9a2d32329b01",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/notinterested/NotInterestedPatch.kt": {
+    "mtime": 1793678256.2151444,
+    "seen": 1793678912.6009135,
+    "ast_hash": "cfc803588cb2ef4c9b8bcdf82861ce24",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/offlinevideos/CustomOfflineVideosLimitPatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009152,
+    "ast_hash": "8481a44ec5b58b861daed53646a2995e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/offlinevideos/Fingerprints.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.600917,
+    "ast_hash": "b978094d25d23529ba9e73d1a897b666",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/publishdate/AlwaysShowPublishDatePatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009188,
+    "ast_hash": "f2ee4815e4a84c1f538f0629f0435180",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/publishdate/Fingerprints.kt": {
+    "mtime": 1791854443.9570055,
+    "seen": 1793678912.6009207,
+    "ast_hash": "0f8accb1607246c3521c20b1421c6823",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/quickactions/DisableLongPressQuickSharePatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009223,
+    "ast_hash": "280a5c9d5d720db38e4b03297f9aaf84",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/quickactions/DisableLongPressRepostPatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009245,
+    "ast_hash": "7590acc543b1d0782865406a6de7bd64",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/quickactions/Fingerprints.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009262,
+    "ast_hash": "66b47cd33cf6ba462d50b30ef8cd7a7b",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/quickactions/HideQuickCommentReactionsPatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.600928,
+    "ast_hash": "2ed73031b8dc1cbbfeb60a6626d64967",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/resume/Fingerprints.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.60093,
+    "ast_hash": "858802861cb29222a02496aad535ba85",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/resume/ResumeVideoAfterScrollPatch.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.600932,
+    "ast_hash": "4a2cd46d64ca5396374b35bf8fd1d0a0",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/searchfeatures/Fingerprints.kt": {
+    "mtime": 1791854443.9572465,
+    "seen": 1793678912.6009336,
+    "ast_hash": "298884bb8469ca8c6c0cb4f7394b680a",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/searchfeatures/SearchFeaturePatches.kt": {
+    "mtime": 1792724110.869395,
+    "seen": 1793678912.6009357,
+    "ast_hash": "918f42d90d8e7a83baaa42091a74dffc",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/seekbar/Fingerprints.kt": {
+    "mtime": 1791854443.9573221,
+    "seen": 1793678912.6009374,
+    "ast_hash": "8ed4c8a141e98da4620bbb34fb82db41",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/seekbar/ShowSeekbarPatch.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.6009393,
+    "ast_hash": "6c2047a4360403d0974eab16e020578e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/sharesheet/ShareHooks.kt": {
+    "mtime": 1793676309.5120063,
+    "seen": 1793678912.6009417,
+    "ast_hash": "122d78a52cbdf93c5fd9c567f57fc454",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/speed/Fingerprints.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.6009433,
+    "ast_hash": "7d06b41f446acc7ac3d67cad362b9b1c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/speed/LongPressSpeedLockPatch.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.6009452,
+    "ast_hash": "8044610d1a7dcb56614c27efe18d1d07",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/interaction/speed/PlaybackSpeedPatch.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.600947,
+    "ast_hash": "69fe98af5b4ee75f5b590ada8626d117",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/absettings/AppAbIntBoundary.kt": {
+    "mtime": 1793676309.5120063,
+    "seen": 1793678912.600949,
+    "ast_hash": "b95ae1cea6c38fc69635980cd5599847",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/comment/CopyCommentsWithoutUsernamePatch.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.6009507,
+    "ast_hash": "f9e1506d7cca9af69cb24392811207f3",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commentsort/CommentSortControlsPatch.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.6009526,
+    "ast_hash": "9938c107582e2d2b5647cb342ca3d3c6",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commentsort/Fingerprints.kt": {
+    "mtime": 1792724110.8703952,
+    "seen": 1793678912.6009545,
+    "ast_hash": "4c0c7505102c622d0f887f9e196ca2b2",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/CaptionComments.kt": {
+    "mtime": 1793676309.5120063,
+    "seen": 1793678912.6009567,
+    "ast_hash": "f56815067c96f189dc439058aada3ac3",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/CommentBoxButtons.kt": {
+    "mtime": 1793676309.512984,
+    "seen": 1793678912.6009583,
+    "ast_hash": "1d6d7eeffb14dd4c48ea71f90e9bbbc6",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/CommentMenuBlockHooks.kt": {
+    "mtime": 1793676309.512984,
+    "seen": 1793678912.6009603,
+    "ast_hash": "c718d3b35dc6c8c5f869ab363bad9e98",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/CommentSurvey.kt": {
+    "mtime": 1793676309.512984,
+    "seen": 1793678912.6009624,
+    "ast_hash": "3782f7f9b8faf3ecac0154875b7a9f13",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/CommentToolsPatch.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.600964,
+    "ast_hash": "5f4f58280b00701e844ec8dc01f6ad92",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/CompactCommentHeader.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.6009662,
+    "ast_hash": "b8499c32612e3da779d95fa73168c7a1",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/commenttools/PollResults.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.600968,
+    "ast_hash": "12520d5539a13f0d424fc30899e85a44",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/extension/SharedExtensionPatch.kt": {
+    "mtime": 1791854443.957743,
+    "seen": 1793678912.6009698,
+    "ast_hash": "252d7353ff4511c44656e18031f4dcb8",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/externalbrowser/Fingerprints.kt": {
+    "mtime": 1791854443.957743,
+    "seen": 1793678912.6009717,
+    "ast_hash": "5efab14b28b71d64c2c378829a177233",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/externalbrowser/OpenExternalLinksPatch.kt": {
+    "mtime": 1792724110.871395,
+    "seen": 1793678912.6009736,
+    "ast_hash": "2ec79193891a6ff3343438a617702091",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/favorites/FavoritesRetryPatch.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.6009755,
+    "ast_hash": "c8024ae2a44b741909b54f813eaa0541",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/featuregatelab/FeatureGateLabPatch.kt": {
+    "mtime": 1792724110.871395,
+    "seen": 1793678912.6009774,
+    "ast_hash": "233f7243e512a7cfe263ad5a40182328",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/foldable/Fingerprints.kt": {
+    "mtime": 1792724110.871395,
+    "seen": 1793678912.6009796,
+    "ast_hash": "905fcb585b05f85b008cec45e5a69120",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/foldable/ForceFoldableSplitViewPatch.kt": {
+    "mtime": 1792724110.871395,
+    "seen": 1793678912.6009812,
+    "ast_hash": "81c7d5660a4ccbc592314d5b79c20882",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/follow/FollowDiagnosticsPatch.kt": {
+    "mtime": 1793677232.0208848,
+    "seen": 1793678912.6009834,
+    "ast_hash": "93f7bd54f3d8ca75f83dfb7f27a24ff7",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/inbox/ExpandActivityListFingerprints.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.600985,
+    "ast_hash": "cfacc6fa54586dfa6b0d91e2f0052d04",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/inbox/ExpandActivityListPatch.kt": {
+    "mtime": 1793678256.205824,
+    "seen": 1793678912.6009872,
+    "ast_hash": "e27b250b2ba4fd2a0375d0244f2eef9b",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/inbox/Fingerprints.kt": {
+    "mtime": 1793665938.3960316,
+    "seen": 1793678912.6009889,
+    "ast_hash": "853a606cfa84dabe2d906d6e3c9fec0c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/inbox/InboxActivitySearchPatch.kt": {
+    "mtime": 1793665938.3961039,
+    "seen": 1793678912.6009917,
+    "ast_hash": "fbeaf647efc5fc0c150f5a62d486149f",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/likes/Fingerprints.kt": {
+    "mtime": 1793668919.7666016,
+    "seen": 1793678912.6009936,
+    "ast_hash": "4b9e18f1e544a58a990124da042920ed",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/likes/LikedVideosSearchPatch.kt": {
+    "mtime": 1793668040.3674393,
+    "seen": 1793678912.6009955,
+    "ast_hash": "b8ff54efab10a906ffcae498b9bb8bc2",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/likes/LikedVideosServerSearchPatch.kt": {
+    "mtime": 1793668919.7686017,
+    "seen": 1793678912.6009974,
+    "ast_hash": "1e8599532e7361942e49e73eac82d99f",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/login/disablerequirement/DisableLoginRequirementPatch.kt": {
+    "mtime": 1792724110.871395,
+    "seen": 1793678912.600999,
+    "ast_hash": "efd06224549fa2c9a75a578be9f334f1",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/login/disablerequirement/Fingerprints.kt": {
+    "mtime": 1791854443.9582174,
+    "seen": 1793678912.601001,
+    "ast_hash": "e77e4fa920afb2c7d2fbd268db525bbd",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/login/fixgoogle/Fingerprints.kt": {
+    "mtime": 1791854443.9582174,
+    "seen": 1793678912.6010027,
+    "ast_hash": "a2a99ca9399135b1fe07c5f72d0fc9b9",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/login/fixgoogle/FixGoogleLoginPatch.kt": {
+    "mtime": 1792724110.872395,
+    "seen": 1793678912.6010046,
+    "ast_hash": "504e2ae8e57af5074ab8e71fba9587a1",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/navigation/FeedTabNavigationPatch.kt": {
+    "mtime": 1792724110.872395,
+    "seen": 1793678912.6010063,
+    "ast_hash": "d82dd69dea4df2fda27e904393e5aba5",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/navigation/Fingerprints.kt": {
+    "mtime": 1792724110.872395,
+    "seen": 1793678912.6010084,
+    "ast_hash": "02a2a6a625bc27abfb1065c1e0cfe4c0",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/playlists/ChooseCollectionSearchPatch.kt": {
+    "mtime": 1792724110.872395,
+    "seen": 1793678912.60101,
+    "ast_hash": "943c757e7ac133456232dfdcee86f671",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/playlists/CollectionListPatch.kt": {
+    "mtime": 1792724110.872395,
+    "seen": 1793678912.601012,
+    "ast_hash": "8f44b5b7ce51e1c493db332c80aaf0f6",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/playlists/CollectionVideosSearchPatch.kt": {
+    "mtime": 1792724110.872395,
+    "seen": 1793678912.6010137,
+    "ast_hash": "57203b9ed4c50c047bcfaf11a5c58a15",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/playlists/FavoritePlaylistsPatch.kt": {
+    "mtime": 1793668040.3676777,
+    "seen": 1793678912.6010156,
+    "ast_hash": "12eb7f58ee5b15d526242e2f3fb4cbe9",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/playlists/Fingerprints.kt": {
+    "mtime": 1792724110.873395,
+    "seen": 1793678912.6010177,
+    "ast_hash": "0830f526e671bc01bccc78d6e15d099b",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/settings/EnableOpenDebugPatch.kt": {
+    "mtime": 1792724110.873395,
+    "seen": 1793678912.6010194,
+    "ast_hash": "c1ffffe0bc0d23e4f0c58a0c2ece36ce",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/settings/Fingerprints.kt": {
+    "mtime": 1791854443.9585683,
+    "seen": 1793678912.6010213,
+    "ast_hash": "5e54111f549cd436f6b0a529ff9e0a16",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/settings/LegacySettingsEntryPatch.kt": {
+    "mtime": 1791854443.9585683,
+    "seen": 1793678912.6010232,
+    "ast_hash": "f42752ec88da7b779b398d7d7f2ee140",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/settings/SettingsPatch.kt": {
+    "mtime": 1793677232.0211654,
+    "seen": 1793678912.601025,
+    "ast_hash": "ed38bd64044b779db8907a5d2929e928",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/share/Fingerprints.kt": {
+    "mtime": 1791854443.9585683,
+    "seen": 1793678912.6010268,
+    "ast_hash": "94bb41f8e0fcfd0fb788e2ee333687df",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/share/SanitizeShareUrlsPatch.kt": {
+    "mtime": 1792724110.873395,
+    "seen": 1793678912.601029,
+    "ast_hash": "9a7ad031ac3a99db1a55f0493b3e41d1",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/sharesheet/Fingerprints.kt": {
+    "mtime": 1792724110.873395,
+    "seen": 1793678912.6010306,
+    "ast_hash": "7fe00ab265e1f7d9e3b02054f05b7856",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/sharesheet/ShareSheetPatch.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.6010325,
+    "ast_hash": "11aa56f7c227ea9b6bd1982e9813b273",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/spoof/sim/SpoofSimPatch.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.6010344,
+    "ast_hash": "c6b697de208a406c22a8169878f3bd6e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/suggestedaccounts/Fingerprints.kt": {
+    "mtime": 1791854443.9589083,
+    "seen": 1793678912.6010363,
+    "ast_hash": "5b280938a31c810311b174e4da64e83e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/suggestedaccounts/HideSuggestedAccountsPatch.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.601038,
+    "ast_hash": "cdcece105f0e659f84fcd0e912c63fad",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/translation/CommentTranslationPatch.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.6010401,
+    "ast_hash": "4383d48b03d7443911070df54b80b09c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/translation/Fingerprints.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.601042,
+    "ast_hash": "2ef374fd4ae05e56552a35db43ba8d65",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/misc/voicecomments/EnableVoiceCommentsPatch.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.6010437,
+    "ast_hash": "04dee1410ba7cc952d533f297c527bfa",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/promobanners/HideFloatingPromotionsPatch.kt": {
+    "mtime": 1792724110.8743951,
+    "seen": 1793678912.60105,
+    "ast_hash": "afc2cdb578fd6eb5f95694e39dcb9e08",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/shared/Fingerprints.kt": {
+    "mtime": 1792724110.875395,
+    "seen": 1793678912.6010518,
+    "ast_hash": "ae8e11a6c4bd4db0e29430d90a7d84c3",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/shared/LambdaDispatch.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.601054,
+    "ast_hash": "9ec880351759f3c30ae99874bf828f15",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/shared/LazyAbGate.kt": {
+    "mtime": 1792724110.875395,
+    "seen": 1793678912.6010559,
+    "ast_hash": "0fc31f58e44a96f6da251298af37626c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/tiktok/shared/Registers.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.6010575,
+    "ast_hash": "98b13a59385ae8ee30d49a0a2d95234c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/AllowScreenshotsPatch.kt": {
+    "mtime": 1792362572.0049486,
+    "seen": 1793678912.6010594,
+    "ast_hash": "0e562b9cc1f1bac7a9ffe9d72fddd84d",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/Fingerprints.kt": {
+    "mtime": 1792362572.0052066,
+    "seen": 1793678912.601061,
+    "ast_hash": "82302d0867edbfe9a9386d73ea9c0e7e",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/HermesBundle.kt": {
+    "mtime": 1792724110.8323958,
+    "seen": 1793678912.601063,
+    "ast_hash": "bc1016352da2e0fcd6fc9555412049f7",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/HideSurveyPopupsPatch.kt": {
+    "mtime": 1792362572.005341,
+    "seen": 1793678912.601065,
+    "ast_hash": "f7675860e5f8732dbe76bdeefb540ce8",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/KeepSessionPatch.kt": {
+    "mtime": 1792724110.8323958,
+    "seen": 1793678912.6010668,
+    "ast_hash": "d15258eafa46db4afa0aebe9d817816d",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/UvmAmoledThemePatch.kt": {
+    "mtime": 1792362572.005341,
+    "seen": 1793678912.6010687,
+    "ast_hash": "4c16e24ad7a2dcd93a581e8d1c148e8b",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/UvmBundlePatcher.kt": {
+    "mtime": 1792362572.005341,
+    "seen": 1793678912.6010706,
+    "ast_hash": "97ebd6a8f6cce149453ab319b923efad",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/UvmColors.kt": {
+    "mtime": 1792362572.005341,
+    "seen": 1793678912.6010723,
+    "ast_hash": "cbc902988bebf96568cd7557c26d5e03",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/UvmMessagePopupPatcher.kt": {
+    "mtime": 1792362572.005341,
+    "seen": 1793678912.6010742,
+    "ast_hash": "262db6504541cf9bb717de78db2a51df",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/uvm/UvmSessionPatcher.kt": {
+    "mtime": 1792724110.8343956,
+    "seen": 1793678912.6010761,
+    "ast_hash": "4bd19fad982d262f27431fe48bbd1e40",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/util/BytecodeUtils.kt": {
+    "mtime": 1791854443.9591815,
+    "seen": 1793678912.601078,
+    "ast_hash": "3658f74c2f9b43f32b4014e0ca61e7d4",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/util/FreeRegisterProvider.kt": {
+    "mtime": 1791854443.959429,
+    "seen": 1793678912.6010797,
+    "ast_hash": "97b0a0e84af924b6175858fb683c077f",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/util/PatchContracts.kt": {
+    "mtime": 1793676309.5130062,
+    "seen": 1793678912.6010816,
+    "ast_hash": "b07ae10629e4354a651e984554632f79",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/util/PatchListGenerator.kt": {
+    "mtime": 1791854443.959429,
+    "seen": 1793678912.6010838,
+    "ast_hash": "75ee87ca3bb335f417cd69f755049d45",
+    "semantic_hash": ""
+  },
+  "stub/build.gradle.kts": {
+    "mtime": 1791854443.959429,
+    "seen": 1793678912.6010854,
+    "ast_hash": "a93ca28c530aed6f13a72613332e5599",
+    "semantic_hash": ""
+  },
+  "stub/src/main/java/android/os/Build.java": {
+    "mtime": 1791854443.959667,
+    "seen": 1793678912.6010873,
+    "ast_hash": "295d4117d0b14926267f3f824258766d",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/simpletimetracker/CustomVectorLoader.java.txt": {
+    "mtime": 1791854443.9555488,
+    "seen": 1793678912.601089,
+    "ast_hash": "a862b02b5e8ab2c8c92a95c2f717dd23",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/simpletimetracker/IconView.java.txt": {
+    "mtime": 1791854443.9555488,
+    "seen": 1793678912.601091,
+    "ast_hash": "a727bc5bc2b807d503a13dbf6a04df8c",
+    "semantic_hash": ""
+  },
+  "src/main/kotlin/app/czyeru/patches/simpletimetracker/InjectIcons.java.txt": {
+    "mtime": 1791854443.9555488,
+    "seen": 1793678912.6010926,
+    "ast_hash": "33eceebba5cce9779d7d6564834cc797",
+    "semantic_hash": ""
+  }
+}

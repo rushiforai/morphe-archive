@@ -85,7 +85,8 @@ class HideAdsFixtureTest {
 
             val patched = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
             val head = patched.instructions()
-            val page = patched.implementation!!.registerCount - 9 + 5
+            // `this` and one register per parameter, none of them wide; the page is p5.
+            val page = patched.implementation!!.registerCount - (merge.parameterTypes.size + 1) + 5
             val filter = head[0]
             assertEquals("$where: the merge starts with the filter", Opcode.INVOKE_STATIC_RANGE, filter.opcode)
             assertEquals("$feedAds->filter(Ljava/util/List;)Ljava/util/List;", filter.referenceText())
@@ -220,8 +221,8 @@ class HideAdsFixtureTest {
     }
 
     private fun Method.isFeedMerge(): Boolean =
-        returnType == "Ljava/lang/Object;" && parameterTypes.size == 8 &&
-            parameterTypes[4] == "Ljava/util/List;" && parameterTypes[6] == "Lkotlin/jvm/functions/Function3;" &&
+        returnType == "Ljava/lang/Object;" && parameterTypes.size == 9 &&
+            parameterTypes[4] == "Ljava/util/List;" && parameterTypes[7] == "Lkotlin/jvm/functions/Function3;" &&
             instructions().any {
                 it.calls(FEED_CACHE.removeSuffix(";") + "\$addAndSaveItemsFromFeedFetchSuccess\$2\$1;", "<init>")
             }

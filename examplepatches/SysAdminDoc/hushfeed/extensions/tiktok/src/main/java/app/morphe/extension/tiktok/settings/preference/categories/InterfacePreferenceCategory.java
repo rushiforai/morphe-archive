@@ -67,6 +67,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.blockAuthorEnabled
                 || SettingsStatus.notInterestedEnabled
                 || SettingsStatus.feedMuteEnabled
+                || SettingsStatus.advancedDownloadsEnabled
                 || SettingsStatus.automaticClearDisplayEnabled
                 || SettingsStatus.doubleTapEnabled
                 || SettingsStatus.swipeLeftEnabled
@@ -205,7 +206,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
      */
     private void addButtonsOnVideos(Context context) {
         boolean any = SettingsStatus.blockAuthorEnabled || SettingsStatus.notInterestedEnabled
-                || SettingsStatus.feedMuteEnabled;
+                || SettingsStatus.feedMuteEnabled || SettingsStatus.advancedDownloadsEnabled;
         if (!any) return;
         addPreference(new SectionHeadingPreference(context, "Buttons on videos"));
         if (SettingsStatus.blockAuthorEnabled) {
@@ -243,6 +244,11 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Add a button beside the block control that turns the feed's sound off and on.",
                     Settings.FEED_MUTE_BUTTON));
         }
+        if (SettingsStatus.advancedDownloadsEnabled) {
+            addPreference(new TogglePreference(context, "Show the save button on videos",
+                    "Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.",
+                    Settings.DOWNLOAD_BUTTON));
+        }
     }
 
     private void addVideoInfo(Context context) {
@@ -270,6 +276,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             };
             authorSize.zeroMeans("TikTok's size");
             addPreference(authorSize);
+            addPreference(new ChoicePreference(context, "Video text color", Settings.FEED_TEXT_COLOR,
+                    new String[]{"TikTok's color", "White", "Light gray", "Gray", "Black", "Yellow"},
+                    new String[]{"off", "white", "light_gray", "gray", "black", "yellow"})
+                    .withNote("Colors the description, the author's name and the post date on videos."));
+            addPreference(new ChoicePreference(context, "Backdrop behind video text", Settings.FEED_TEXT_BACKDROP,
+                    new String[]{"None", "Black", "Dark gray", "Gray", "White"},
+                    new String[]{"off", "black", "dark_gray", "gray", "white"})
+                    .withNote("Puts a band of color behind the description, the author's name and the post date, so they stay readable on bright videos."));
         }
         if (SettingsStatus.alwaysShowPublishDateEnabled) {
             addPreference(new TogglePreference(
@@ -476,6 +490,28 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                         "Hide the LIVE row on Following",
                         "Hide the row of LIVE and story circles across the top of the Following feed, and the pill that counts them. For You is left as it is.",
                         Settings.HIDE_FOLLOWING_LIVE_ROW
+                ));
+            }
+            if (SettingsStatus.storyRowButtonsEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the All button on Following",
+                        "Hide the All button at the end of the story row on the Following feed. The row and its stories stay.",
+                        Settings.HIDE_FOLLOWING_ALL_BUTTON
+                ));
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the Create circle in story rows",
+                        "Hide the Create circle at the start of the story row on the Following feed and in the Inbox. Your own Story still shows there once you post one.",
+                        Settings.HIDE_STORY_CREATE
+                ));
+            }
+            if (SettingsStatus.repostChipEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the repost chip",
+                        "Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it.",
+                        Settings.HIDE_REPOST_CHIP
                 ));
             }
             addPreference(new TogglePreference(

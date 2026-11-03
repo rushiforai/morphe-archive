@@ -44,7 +44,10 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  *
  * <p>The comments sheet and a pin's menu carry the same gray, each behind its own switch. They are
  * painted as Pinterest finishes building them and again after their layout passes, on the views
- * that hold the fill and nothing else, so their text, icons and dividers stay as they are. The
+ * that hold the fill and nothing else, so their text, icons and dividers stay as they are. A pin's
+ * menu also shows See more and See less on rounded cards of their own, built before the sheet holds
+ * them, so each card is painted as it's built and follows the pin menu's switch. Where Pinterest's
+ * theme makes their gray see-through, they still turn black. The
  * strip behind the gesture handle draws over a sheet's last rows, so it is black while a black
  * sheet is open and gets its page's color back when the sheet leaves. The window's own navigation
  * bar band, drawn over the strip, goes with it. Pinterest colors both again whenever it likes, so
@@ -140,9 +143,12 @@ public final class AmoledBlack {
     /**
      * Called with the comments screen as Pinterest finishes building it. The sheet that slides up,
      * the bar that holds the reply box and the comment floating over the list each carry the gray.
+     * So does the reactions header across the top of the list, which Pinterest shows while the
+     * comments load and hides once they're in, in a gray of its own (#222226 on a video pin, #12).
      */
     public static void comments(View sheet) {
-        built(sheet, Settings.BLACK_COMMENTS, true, "comments", "comments_feed", "comment_bottom_bar", "floating_comment_view");
+        built(sheet, Settings.BLACK_COMMENTS, true, "comments",
+                "comments_feed", "comment_bottom_bar", "floating_comment_view", "comment_reaction_header");
     }
 
     /**
@@ -151,6 +157,32 @@ public final class AmoledBlack {
      */
     public static void pinMenu(View sheet) {
         built(sheet, Settings.BLACK_PIN_MENU, false, "pin menu", "modal_header", "modal_container");
+    }
+
+    /** Off or Pause gives a card its gray back while the menu is still open, on the card's next layout pass. */
+    private static final View.OnLayoutChangeListener REPAINT_CARD =
+            (card, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                try {
+                    paintFill(card, Utils.settingsReady() && Settings.BLACK_PIN_MENU.get() && night(card), true);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.AMOLED_BLACK, "pin menu card layout", failure);
+                }
+            };
+
+    /**
+     * Called with each card a pin's menu shows See more or See less on, as Pinterest builds it. The
+     * card is a rounded shape in Pinterest's secondary gray under a ripple. Seen on 14.42.0 (#21),
+     * where some of Pinterest's themes make that gray see-through, so the sheet's own color shows
+     * through it as a lighter gray. A see-through card turns black too.
+     */
+    public static void pinMenuCard(View card) {
+        try {
+            if (card == null) return;
+            card.addOnLayoutChangeListener(REPAINT_CARD);
+            paintFill(card, UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_PIN_MENU) && night(card), true);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "pin menu card", failure);
+        }
     }
 
     /** Pinterest's ids are read by name each time a sheet is built, which is once per time it opens. */
@@ -176,10 +208,7 @@ public final class AmoledBlack {
     private static void paintSheet(View sheet, Sheet known, boolean black) {
         for (int id : known.fills) {
             View fill = id == 0 ? null : sheet.findViewById(id);
-            if (fill == null) continue;
-            Drawable background = fill.getBackground();
-            if (background instanceof LayerDrawable) paint((LayerDrawable) background, black);
-            else paint(fill, black);
+            if (fill != null) paintFill(fill, black, false);
         }
         if (known.topBand) band(sheet, known, black);
         View root = sheet.getRootView();
@@ -323,15 +352,25 @@ public final class AmoledBlack {
     }
 
     /**
+     * A view that holds a sheet's gray, whether as its own fill or as a layer of one. A ripple is a
+     * layer list too. [washes] also takes a layer's see-through gray, as [paint] does for a shape.
+     */
+    private static void paintFill(View fill, boolean black, boolean washes) {
+        Drawable background = fill.getBackground();
+        if (background instanceof LayerDrawable) paint((LayerDrawable) background, black, washes);
+        else paint(fill, black);
+    }
+
+    /**
      * A sheet's rounded card is a solid shape layered over a clear one. Layers loaded from one
      * resource share their shapes until the whole drawable is mutated, and Pinterest's other
      * sheets load the same one.
      */
-    private static void paint(LayerDrawable layers, boolean black) {
+    private static void paint(LayerDrawable layers, boolean black, boolean washes) {
         if (black) layers.mutate();
         for (int index = 0; index < layers.getNumberOfLayers(); index++) {
             Drawable layer = layers.getDrawable(index);
-            if (layer instanceof GradientDrawable) paint((GradientDrawable) layer, black);
+            if (layer instanceof GradientDrawable) paint((GradientDrawable) layer, black, washes);
         }
     }
 

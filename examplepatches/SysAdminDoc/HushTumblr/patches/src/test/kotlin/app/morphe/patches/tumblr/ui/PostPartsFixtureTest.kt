@@ -22,6 +22,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -30,7 +32,8 @@ import org.junit.experimental.categories.Category
  * The tag drawer and the header's Follow button check in each declared build, and the question put
  * in front of each one's first instruction. On true the drawer gets an empty tag text and tag list
  * and the check answers yes; on false Tumblr's own code runs unchanged. Each patch then turns its
- * switch and its target on.
+ * switch and its target on. The reblog trail's Follow button gets its entry back from the extension,
+ * which hands it none while the switch is on.
  */
 @Category(FixtureTests::class)
 class PostPartsFixtureTest {
@@ -84,8 +87,7 @@ class PostPartsFixtureTest {
     @Test
     fun `each declared build answers the header's Follow button check first thing when asked to`() {
         for (build in Fixtures.declaredBuilds()) {
-            val classes = FixtureDex.classesWhere(build, { true }) { it.definingClass == POST_CARD_HEADER }
-            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            val context = PatchContexts.of(ExtensionDex.classes() + followClasses(build))
             val check = context.resolveFollowButtonCheck()
             val identity = "${check.definingClass}->${check.name}"
             val before = check.instructionList().map { it.opcode }
@@ -106,6 +108,47 @@ class PostPartsFixtureTest {
             assertSwitchedOn(context, build.name, "hideFollowButton", "followButton")
         }
     }
+
+    @Test
+    fun `each declared build hands the reblog trail's Follow button its entry through the extension`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = PatchContexts.of(ExtensionDex.classes() + followClasses(build))
+            val site = context.resolveTrailFollow()
+            val shower = site.method
+            val identity = "${shower.definingClass}->${shower.name}"
+            assertEquals("$identity: it's handed the reblog header", true,
+                shower.parameterTypes.any { it.toString() == REBLOG_HEADER })
+            val entry = shower.parameterRegisterNumber(site.parameter)
+            val before = shower.instructionList().map { it.opcode }
+
+            hideFollowButtonPatch.execute(context)
+
+            val body = context.mutableClassDefBy(shower.definingClass).methods
+                .single { it.name == shower.name && it.parameterTypes == shower.parameterTypes }
+                .instructionList()
+            assertEquals("$identity: three instructions added", before.size + 3, body.size)
+            assertEquals(identity, Opcode.INVOKE_STATIC, body[0].opcode)
+            assertEquals("$identity: the extension is handed the entry", TRAIL_FOLLOW_HOOK, body[0].methodRef()?.let {
+                "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" })
+            assertEquals(identity, listOf(entry), body[0].namedRegisters())
+            assertEquals("$identity: its answer is the entry", Opcode.MOVE_RESULT_OBJECT, body[1].opcode)
+            assertEquals(identity, entry, (body[1] as OneRegisterInstruction).registerA)
+            assertEquals("$identity: and keeps the entry's type", Opcode.CHECK_CAST, body[2].opcode)
+            assertEquals(identity, entry, (body[2] as OneRegisterInstruction).registerA)
+            assertEquals(identity, site.type, body[2].typeRef())
+            assertEquals("$identity: what follows is Tumblr's own code", before, body.drop(3).map { it.opcode })
+        }
+    }
+
+    /** The post card header, the reblog trail's header, and every class with a method handed one. */
+    private fun followClasses(build: java.io.File) = FixtureDex.classesWhere(build, { true }) { method ->
+        method.definingClass == POST_CARD_HEADER || method.definingClass == REBLOG_HEADER ||
+            method.parameterTypes.any { it.toString() == REBLOG_HEADER }
+    }
+
+    /** The type a check-cast or new-instance names. */
+    private fun Instruction.typeRef(): String? =
+        ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
 
     /** The first three instructions ask [hook] and test its answer. */
     private fun assertAsks(identity: String, hook: String, body: List<Instruction>) {

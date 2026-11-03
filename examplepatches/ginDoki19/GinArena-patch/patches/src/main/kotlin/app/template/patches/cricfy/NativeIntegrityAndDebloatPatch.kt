@@ -45,8 +45,7 @@ internal val stripNativeBloatOption = booleanOption(
     key = "stripNativeBloat",
     default = false,
     title = "Strip proxy & ad native libraries",
-    description = "Removes ~7.7 MB of unused CashRaven residential-proxy (libcr_android.so, libjnidispatch.so), " +
-        "Unity Coherence (libunitycoherencenative.so), legacy MIPS/armeabi folders, and WebView ad-viewer assets.",
+    description = "Deletes unused proxy/ad libraries to save about 7.7 MB. Not needed for ad removal.",
 )
 
 /**

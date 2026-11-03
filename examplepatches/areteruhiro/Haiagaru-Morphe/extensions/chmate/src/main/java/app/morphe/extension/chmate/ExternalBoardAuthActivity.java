@@ -20,6 +20,7 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
     private WebView web;
     private String board;
     private boolean captchaDialog;
+    private boolean reading;
     private boolean postingCompleted;
     private long navigation;
     private TextView location;
@@ -38,6 +39,7 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
         setTheme(captchaDialog?android.R.style.Theme_Material_Light_Dialog_NoActionBar
                 :android.R.style.Theme_Material_Light_NoActionBar);
         super.onCreate(state);
+        reading=getIntent().getBooleanExtra("reading",false)&&ReadingAuth.eligible(getIntent().getStringExtra("board"));
         final String auth;
         try {
             board=BoardAuthRules.validate(getIntent().getStringExtra("board"));
@@ -68,8 +70,10 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
         LinearLayout actions=new LinearLayout(this);root.addView(actions);
         Button complete=new Button(this);complete.setText(challenge==null?"認証を反映して戻る":"書き込みへ戻る");actions.addView(complete,new LinearLayout.LayoutParams(0,-2,1));
         complete.setOnClickListener(v->completeAuth());
+        if(reading){TextView note=new TextView(this);note.setText("VPNを切り替えずにサイト上で閲覧認証を完了してください。戻ると閲覧用Cookieと同じUser-Agentを使います。サイトの制限でChMateから取得できない場合は、この画面で閲覧できます。");root.addView(note);}
         Button reload=new Button(this);reload.setText(challenge==null?"再読込":"再表示");actions.addView(reload,new LinearLayout.LayoutParams(0,-2,1));
         reload.setOnClickListener(v->reloadPage());
+        if(reading){Button unlink=new Button(this);unlink.setText("閲覧認証の連携を解除");root.addView(unlink);unlink.setOnClickListener(v->{ReadingAuth.clear(this);finish();});}
         LinearLayout details=new LinearLayout(this);details.setOrientation(LinearLayout.VERTICAL);
         details.setVisibility(android.view.View.GONE);
         if(challenge!=null&&!captchaDialog){
@@ -83,7 +87,7 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
             root.addView(allowSend);
         }
         web=new WebView(this);WebSettings settings=web.getSettings();
-        String browserAgent=ViewingUserAgent.browserAgent(this);
+        String browserAgent=reading?WebSettings.getDefaultUserAgent(this):ViewingUserAgent.browserAgent(this);
         if(browserAgent!=null)settings.setUserAgentString(browserAgent);
         if(challenge!=null)settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setJavaScriptEnabled(true);settings.setDomStorageEnabled(true);
@@ -197,7 +201,8 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
             attributes.dimAmount=.35f;getWindow().setAttributes(attributes);
             getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         }
-        if(challenge!=null)ExternalBoardAuth.prepareWebSession(this,board,auth,this::renderChallenge);
+        if(reading){if(state==null||web.restoreState(state)==null)web.loadUrl(auth);}
+        else if(challenge!=null)ExternalBoardAuth.prepareWebSession(this,board,auth,this::renderChallenge);
         else if(state==null || web.restoreState(state)==null)
             ExternalBoardAuth.prepareWebSession(this,board,auth,()->web.loadUrl(auth));
     }
@@ -218,6 +223,12 @@ public final class ExternalBoardAuthActivity extends HaiagaruComposeActivity {
     }
     private void completeAuth(){
         CookieManager.getInstance().flush();
+        if(reading){
+            if(!ReadingAuth.hasClearance(board)){setStatus("閲覧認証のCookieをまだ取得できていません。認証を完了するか、この画面で閲覧してください。");return;}
+            ReadingAuth.complete(this,web.getSettings().getUserAgentString());
+            android.widget.Toast.makeText(this,"閲覧認証を反映しました。スレを再読み込みしてください。",android.widget.Toast.LENGTH_LONG).show();
+            finish();return;
+        }
         try{if(board!=null&&web!=null)BoardCookies.importAuth(board,web.getUrl()==null?board:web.getUrl());}
         catch(RuntimeException failed){setStatus("認証Cookieを保存できませんでした。もう一度お試しください。");return;}
         ExternalBoardAuth.prefs(this).edit().putBoolean("enabled:"+BoardAuthRules.origin(board),true).apply();

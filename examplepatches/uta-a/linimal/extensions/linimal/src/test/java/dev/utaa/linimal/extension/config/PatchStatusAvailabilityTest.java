@@ -58,8 +58,7 @@ public final class PatchStatusAvailabilityTest {
                 + patch("linimal.patch.read-without-receipt-local-read-block",
                         featureId, "OK", 1, 1) + ","
                 + patch("linimal.patch.read-without-receipt-send", featureId, "OK", 1, 1) + ","
-                + patch("linimal.patch.read-without-receipt-manual-read", featureId, "OK", 1, 1) + ","
-                + patch("linimal.patch.read-without-receipt-message-controls", featureId, "OK", 1, 1);
+                + patch("linimal.patch.read-without-receipt-manual-read", featureId, "OK", 1, 1);
 
         assertFalse(PatchStatusAvailability.of(read(
                 "{\"schemaVersion\":1,\"patches\":[" + existing + "]}"))
@@ -72,7 +71,7 @@ public final class PatchStatusAvailabilityTest {
     }
 
     @Test
-    public void unreadSuppressionRequiresManualBridgeAndMessageControls() {
+    public void unreadSuppressionRequiresManualBridge() {
         String featureId = LinimalFeature.READ_WITHOUT_RECEIPT.getFeatureId();
         String[] patchIds = {
                 "linimal.patch.read-without-receipt-menu-label-resource",
@@ -81,8 +80,7 @@ public final class PatchStatusAvailabilityTest {
                 "linimal.patch.read-without-receipt-local-read-block",
                 "linimal.patch.read-without-receipt-session",
                 "linimal.patch.read-without-receipt-send",
-                "linimal.patch.read-without-receipt-manual-read",
-                "linimal.patch.read-without-receipt-message-controls"
+                "linimal.patch.read-without-receipt-manual-read"
         };
         assertTrue(featureAvailability(featureId, patchIds, -1, false).isAvailable(featureId));
         for (int index = 6; index < patchIds.length; index++) {
@@ -100,8 +98,7 @@ public final class PatchStatusAvailabilityTest {
                 "linimal.patch.notification-read-without-receipt-local-read-block",
                 "linimal.patch.notification-read-without-receipt-session",
                 "linimal.patch.notification-read-without-receipt-send",
-                "linimal.patch.notification-read-without-receipt-manual-read",
-                "linimal.patch.notification-read-without-receipt-message-controls"
+                "linimal.patch.notification-read-without-receipt-manual-read"
         };
         // メニューや navigation の patch を含めず、通知入口と実際の既読経路だけで利用可能です。
         assertTrue(notificationAvailability(patchIds, -1, false).isAvailable(featureId));

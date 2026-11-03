@@ -45,57 +45,33 @@ private const val FACTORY_NOTE = "BrowserLiteIntent.OPEN_WITH_URL"
 private const val FACTORY_MODULE_NOTE = "TrackingInfo.ARG_MODULE_NAME"
 private const val AD_NOTE = "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB"
 private const val IMMERSIVE_NOTE = "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen (ImmersiveBrowserScreen.kt:97)"
+// What the lead form logs when its link fails to open, in the method that hands the link on.
+private const val LEAD_NOTE = "LeadGen LeadFormLinkLauncher: link launch failed"
 /** What the stock builds this test reads name the parts it needs, per version code. */
 private data class BuildNames(
     val web: String,
     val parser: String,
 )
 
+private val arm64Names = BuildNames(
+    web = "LX/13x;->A0H:LX/13x;",
+    parser = "LX/139;->A04(Ljava/lang/String;)Landroid/net/Uri;",
+)
+
+// The three arm64-v8a densities and x86_64 share their names; x86 and armeabi-v7a each have their own.
 private val builds = mapOf(
-    "512308671" to BuildNames(
-        web = "LX/1t8;->A0G:LX/1t8;",
-        parser = "LX/14R;->A04(Ljava/lang/String;)Landroid/net/Uri;",
+    "512408621" to arm64Names,
+    "512408622" to BuildNames(
+        web = "LX/14f;->A0H:LX/14f;",
+        parser = "LX/137;->A04(Ljava/lang/String;)Landroid/net/Uri;",
     ),
-    "512308673" to BuildNames(
-        web = "LX/1t8;->A0G:LX/1t8;",
-        parser = "LX/14R;->A04(Ljava/lang/String;)Landroid/net/Uri;",
+    "512408625" to arm64Names,
+    "512408635" to BuildNames(
+        web = "LX/14h;->A0H:LX/14h;",
+        parser = "LX/135;->A04(Ljava/lang/String;)Landroid/net/Uri;",
     ),
-    "512308675" to BuildNames(
-        web = "LX/1t8;->A0G:LX/1t8;",
-        parser = "LX/14R;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308676" to BuildNames(
-        web = "LX/01rU;->A0G:LX/01rU;",
-        parser = "LX/0135;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308685" to BuildNames(
-        web = "LX/01q4;->A0G:LX/01q4;",
-        parser = "LX/013w;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308686" to BuildNames(
-        web = "LX/1t0;->A0G:LX/1t0;",
-        parser = "LX/148;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308688" to BuildNames(
-        web = "LX/1t0;->A0G:LX/1t0;",
-        parser = "LX/148;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308695" to BuildNames(
-        web = "LX/01s7;->A0G:LX/01s7;",
-        parser = "LX/012X;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308696" to BuildNames(
-        web = "LX/1t8;->A0G:LX/1t8;",
-        parser = "LX/14R;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308697" to BuildNames(
-        web = "LX/01rU;->A0G:LX/01rU;",
-        parser = "LX/0135;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
-    "512308698" to BuildNames(
-        web = "LX/1t8;->A0G:LX/1t8;",
-        parser = "LX/14R;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
+    "512408636" to arm64Names,
+    "512408648" to arm64Names,
 )
 
 private fun buildNames(build: File): BuildNames =
@@ -114,7 +90,6 @@ internal class BrowserFixture(
     val launcherHelper: Method,
 ) {
     val immersive get() = callers.single { it.note(IMMERSIVE_NOTE) }
-    val lead get() = direct.single { it.name == "invoke" && it.returnType == "Ljava/lang/Object;" }
     val ad get() = direct.single { !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Landroid/content/Intent;" }
     val media get() = direct.single { it.name == "invokeSuspend" }
     private val direct get() = callers.filterNot { it === launcherHelper || it.note(IMMERSIVE_NOTE) }
@@ -142,31 +117,36 @@ internal fun browserFixture(build: File): BrowserFixture {
 }
 
 /**
- * Open links in browser on the three places that make Threads' browser Intent without the
- * launcher: the lead form and privacy policy helper, the ad browser and the media viewer's swipe
- * up. Each asks the extension once and, when the link went out, skips only its own browser work.
+ * Open links in browser on the two places that make Threads' browser Intent without the launcher:
+ * the ad browser and the media viewer's swipe up. Each asks the extension once and, when the link
+ * went out, skips only its own browser work. The lead form's links go through the launcher.
  */
 class DirectBrowserCallersFixtureTest {
     @Test
-    fun `each declared build makes the browser Intent in five places and the lead form helper has its callers`() {
+    fun `each declared build makes the browser Intent in four places and the lead form opens links through the launcher`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = browserFixture(build)
             val reference = fixture.factory.toString()
-            assertEquals(build.name, 5, fixture.callers.size)
-            assertEquals(5, fixture.callers.sumOf { m -> m.code().count { it.ref() == reference } })
-            assertEquals(6, setOf(fixture.launcher, fixture.launcherHelper, fixture.immersive, fixture.lead, fixture.ad, fixture.media).size)
+            assertEquals(build.name, 4, fixture.callers.size)
+            assertEquals(4, fixture.callers.sumOf { m -> m.code().count { it.ref() == reference } })
+            assertEquals(5, setOf(fixture.launcher, fixture.launcherHelper, fixture.immersive, fixture.ad, fixture.media).size)
 
-            // The lead form helper serves the lead form's privacy policy and disclaimer links from one
-            // lambda. The arm64 build also calls it once from a lambda merged with unrelated ones.
-            val lead = fixture.lead.toString()
-            assertTrue("${build.name}: lead form helper calls", FixtureDex.methodsWhere(build, { dex ->
-                dex.methodSection.any { it.toString() == lead }
-            }) { m -> m.code().any { it.ref() == lead } }.isNotEmpty())
+            // 451 through 453 built the browser Intent in a lead form helper of its own. 454 hands the
+            // privacy policy and disclaimer links to a lambda that builds the launcher and runs it.
+            val handOff = FixtureDex.classesWhere(build, { LEAD_NOTE in it.stringSection }) { it.note(LEAD_NOTE) }
+                .flatMap { it.methods }.single { it.note(LEAD_NOTE) }
+            val lambdas = handOff.code().filter { it.opcode == Opcode.NEW_INSTANCE }.map { it.ref() }.toSet()
+            val launcher = fixture.launcher.toString()
+            assertTrue("${build.name}: the lead form's link runs the launcher", FixtureDex.classes(build, lambdas).values
+                .flatMap { it.methods }.any { m ->
+                    m.code().any { it.opcode == Opcode.NEW_INSTANCE && it.ref() == fixture.launcher.definingClass } &&
+                        m.code().any { it.ref() == launcher }
+                })
         }
     }
 
     @Test
-    fun `each declared build hooks the launcher and the three direct sites once`() {
+    fun `each declared build hooks the launcher and the two direct sites once`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = browserFixture(build)
             val reference = fixture.factory.toString()
@@ -176,7 +156,7 @@ class DirectBrowserCallersFixtureTest {
 
             fun after(stock: Method) = context.mutable(stock).code()
 
-            // 453's launcher keeps its context and link in fields and reads them through `this`.
+            // The launcher keeps its context and link in fields and reads them through `this`.
             val launcherStock = fixture.launcher.code()
             val launcher = after(fixture.launcher)
             assertEquals("${build.name}: launcher added", launcherStock.size + 7, launcher.size)
@@ -198,28 +178,26 @@ class DirectBrowserCallersFixtureTest {
             assertEquals("Ljava/lang/String;", (linkRead as ReferenceInstruction).reference.let { (it as FieldReference).type.toString() })
             assertEquals("${build.name}: launcher stock", launcherStock.map { it.key() }, launcher.drop(7).map { it.key() })
 
-            // The lead form helper and the media viewer keep their browser call; the hook goes in front of it.
-            for ((label, stock) in listOf("lead" to fixture.lead, "media" to fixture.media)) {
-                val code = after(stock)
-                val factoryAt = code.indexOfFirst { it.ref() == reference }
-                val at = factoryAt - 6
-                assertTrue("$label: hook", at >= 0)
-                assertEquals("$label: added", stock.code().size + 6, code.size)
-                assertEquals(
-                    "$label: hook shape",
-                    listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC,
-                        Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.GOTO_16),
-                    code.subList(at, at + 6).map { it.opcode },
-                )
-                assertEquals(OPEN_LINK, code[at + 2].ref())
-                assertEquals("$label: stays", at + 6, code.destination(at + 4))
-                val args = stock.code()[at].args()
-                val copied = code.subList(at, at + 2).map { it as TwoRegisterInstruction }
-                assertEquals("$label: link", args[5], copied[0].registerB)
-                assertEquals("$label: context", args[0], copied[1].registerB)
-                assertEquals("$label: stock", stock.code().map { it.key() },
-                    (code.take(at) + code.drop(at + 6)).map { it.key() })
-            }
+            // The media viewer keeps its browser call; the hook goes in front of it.
+            val media = fixture.media
+            val mediaCode = after(media)
+            val at = mediaCode.indexOfFirst { it.ref() == reference } - 6
+            assertTrue("${build.name}: media hook", at >= 0)
+            assertEquals("${build.name}: media added", media.code().size + 6, mediaCode.size)
+            assertEquals(
+                "${build.name}: media hook shape",
+                listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC,
+                    Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.GOTO_16),
+                mediaCode.subList(at, at + 6).map { it.opcode },
+            )
+            assertEquals(OPEN_LINK, mediaCode[at + 2].ref())
+            assertEquals("${build.name}: media stays", at + 6, mediaCode.destination(at + 4))
+            val args = media.code()[at].args()
+            val copied = mediaCode.subList(at, at + 2).map { it as TwoRegisterInstruction }
+            assertEquals("${build.name}: media link", args[5], copied[0].registerB)
+            assertEquals("${build.name}: media context", args[0], copied[1].registerB)
+            assertEquals("${build.name}: media stock", media.code().map { it.key() },
+                (mediaCode.take(at) + mediaCode.drop(at + 6)).map { it.key() })
 
             // The ad browser builds its Intent in IJr.A00 but opens it from IJr.A02, which keeps the
             // link in a field. The hook goes at the opener's start and answers true when it sent it.
@@ -248,7 +226,7 @@ class DirectBrowserCallersFixtureTest {
                     actual.code().map { it.key() to (it as? OffsetInstruction)?.codeOffset })
             }
             val hosts = fixture.classes.flatMap { context.mutableClassDefBy(it.type).methods.toList() }
-            assertEquals("${build.name}: the launcher and the three", 4, hosts.sumOf { m -> m.code().count { it.ref() == OPEN_LINK } })
+            assertEquals("${build.name}: the launcher and the two", 3, hosts.sumOf { m -> m.code().count { it.ref() == OPEN_LINK } })
         }
     }
 
@@ -263,19 +241,17 @@ class DirectBrowserCallersFixtureTest {
             val cases = linkedMapOf(
                 "factory URL" to "parses something other than its link",
                 "ad URL" to "the ad browser's browser gets a link other than one of its own String fields",
-                "lead URL" to "the lead form helper's browser gets a link other than one of its own String fields",
                 "duplicate" to "makes Threads' browser Intent 2 time(s), not 1",
-                "media false" to "the media viewer's ending for an ad with no web link no longer sets its state to false",
+                "media false" to "the media viewer's ending for an ad with no web link no longer reaches its state setter",
                 "media context" to "the media viewer's browser gets a context other than the one it captured",
                 "media half" to "a browser value with half a long written over it",
-                "unknown caller" to "Threads' browser Intent has 6 callers, not five",
+                "unknown caller" to "Threads' browser Intent has 5 callers, not four",
             )
             for ((fault, expected) in cases) {
                 val context = PatchContexts.of(ExtensionDex.classes() + fixture.classes)
                 BrowserLauncherFingerprint.clearMatch()
                 val target = when (fault) {
                     "factory URL" -> fixture.factory
-                    "lead URL" -> fixture.lead
                     "unknown caller" -> fixture.request
                     "media false", "media context", "media half" -> fixture.media
                     else -> fixture.ad
@@ -296,23 +272,19 @@ class DirectBrowserCallersFixtureTest {
                         val read = body[load] as TwoRegisterInstruction
                         method.replaceInstruction(load, "const-string v${read.registerA}, \"https://example.org/\"")
                     }
-                    "lead URL" -> body.indices.filter { n ->
-                        val field = (body[n] as? ReferenceInstruction)?.reference as? FieldReference
-                        n < call && body[n].opcode == Opcode.IGET_OBJECT &&
-                            field?.type == "Ljava/lang/String;" && field.definingClass == target.definingClass
-                    }.forEach { n ->
-                        method.replaceInstruction(n, "const-string v${(body[n] as OneRegisterInstruction).registerA}, \"https://example.org/\"")
-                    }
                     "duplicate" -> {
                         val args = body[call].args()
                         method.addInstructions(call, "invoke-static/range { v${args.first()} .. v${args.last()} }, $reference")
                     }
                     "media false" -> {
+                        // The no-web branch skips the state setter and returns.
                         val guard = body.indices.single {
                             it > 0 && body[it].opcode == Opcode.IF_NE && body[it - 1].ref() == names.web
                         }
-                        val failed = body.destination(guard)
-                        method.replaceInstruction(failed, "const/4 v${(body[failed] as OneRegisterInstruction).registerA}, 0x1")
+                        val test = body[guard] as TwoRegisterInstruction
+                        val past = method.getInstruction(body.destination(guard) + 1)
+                        method.removeInstruction(guard)
+                        method.addInstructionsWithLabels(guard, "if-ne v${test.registerA}, v${test.registerB}, :past", ExternalLabel("past", past))
                     }
                     "media context" -> {
                         val contextRegister = body[call].args()[0]
@@ -325,7 +297,7 @@ class DirectBrowserCallersFixtureTest {
                 val error = assertThrows("${build.name}: $fault", PatchException::class.java) { openLinksExternallyPatch.execute(context) }
                     .message.orEmpty()
                 assertTrue("$fault: $error", error.contains(expected))
-                for (hooked in listOf(fixture.launcher, fixture.lead, fixture.ad, fixture.media)) {
+                for (hooked in listOf(fixture.launcher, fixture.ad, fixture.media)) {
                     assertTrue("$fault: nothing changed before the refusal", context.mutable(hooked).code().none { it.ref() == OPEN_LINK })
                 }
             }

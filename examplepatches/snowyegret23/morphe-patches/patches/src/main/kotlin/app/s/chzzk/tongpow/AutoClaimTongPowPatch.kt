@@ -10,7 +10,7 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.returnEarly
 import app.s.chzzk.common.utils.smaliReference
-import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK
+import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK_MOBILE
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -24,7 +24,7 @@ val autoClaimTongPowPatch = bytecodePatch(
     name = "Auto claim TongPow",
     description = "Claims watch-time TongPow through the app's claim button handler. Can be disabled in Morphe settings.",
 ) {
-    compatibleWith(COMPATIBILITY_CHZZK)
+    compatibleWith(COMPATIBILITY_CHZZK_MOBILE)
     dependsOn(chatCustomizationPatch)
 
     execute {

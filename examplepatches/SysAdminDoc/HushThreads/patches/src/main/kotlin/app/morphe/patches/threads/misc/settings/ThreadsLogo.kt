@@ -322,12 +322,14 @@ private fun appendedElement(method: Method, modifier: String): String? {
  * Function1 and two flags whose (receiver) method hands the receiver to that Function1, with one
  * flag stored on and the other off. That's Compose's clearing element: the node's flags say
  * whether it merges what's inside it and whether it clears it, and the merging element takes its
- * merge flag from its caller.
+ * merge flag from its caller. The place is one of the element's methods or its branch of a
+ * superclass method ([branchFor]).
  */
 private fun BytecodePatchContext.clearsSemantics(element: String, receiver: String): Boolean {
     val owner = classDefByOrNull(element) ?: return false
-    val built = owner.methods.flatMap { method ->
-        method.body().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { made ->
+    val inherited = owner.superclass?.let { classDefByOrNull(it) }?.methods?.mapNotNull { it.body().branchFor(element) }.orEmpty()
+    val built = (owner.methods.map { it.body() } + inherited).flatMap { create ->
+        create.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { made ->
             val node = classDefByOrNull(made.getReference<TypeReference>()!!.type) ?: return@mapNotNull null
             val fields = node.instanceFields.toList()
             val flags = fields.filter { it.type == "Z" }
@@ -340,12 +342,24 @@ private fun BytecodePatchContext.clearsSemantics(element: String, receiver: Stri
                         invoke.definingClass == FUNCTION1 && invoke.name == "invoke" } == true &&
                         it.registers().getOrNull(1) == apply.implementation!!.registerCount - 1 }
             }
-            if (applies) Triple(method, node.type, flags.map { it.name }) else null
+            if (applies) Triple(create, node.type, flags.map { it.name }) else null
         }
     }
     val (create, node, flags) = built.singleOrNull() ?: return false
-    val stored = flags.map { flag -> literalStored(create.body(), node, flag) }
+    val stored = flags.map { flag -> literalStored(create, node, flag) }
     return stored.sortedBy { it ?: -1 } == listOf(0, 1)
+}
+
+/**
+ * The branch of [this] body that casts its receiver to [element], up to that branch's return, or
+ * null. 454 (2026-11-02) builds the nodes of clearAndSetSemantics' element and several others in
+ * one method of their shared superclass, one instance-of branch per element.
+ */
+private fun List<Instruction>.branchFor(element: String): List<Instruction>? {
+    val cast = indexOfFirst { it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == element }
+    if (cast < 0) return null
+    val end = (cast until size).firstOrNull { this[it].opcode == Opcode.RETURN_OBJECT } ?: return null
+    return subList(cast, end + 1)
 }
 
 /** The literal [body] stores into [owner]'s boolean [field], when it stores one exactly once, or null. */

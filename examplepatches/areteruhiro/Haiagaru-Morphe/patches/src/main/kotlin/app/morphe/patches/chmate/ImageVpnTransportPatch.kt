@@ -13,8 +13,8 @@ internal val imageVpnTransportPatch = bytecodePatch {
     dependsOn(haiagaruPatch)
     execute {
         var count = 0
-        classDefForEach { definition ->
-            if (definition.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+        boundClassForEach("ImageVpnTransportPatch:1") { definition ->
+            if (definition.type.startsWith("Lapp/morphe/extension/")) return@boundClassForEach
             definition.methods.forEach methodLoop@ { method ->
                 val code = method.implementation?.instructions?.toList() ?: return@methodLoop
                 val literals = code.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }

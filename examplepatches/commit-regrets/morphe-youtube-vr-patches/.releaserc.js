@@ -34,6 +34,11 @@ export default {
         config: './.github/scripts/changelog-preset.mjs',
       },
     ],
+    // Appends the "Supported app versions" section (from Constants.kt) to the notes. Everything
+    // downstream of generateNotes -- the GitHub release body, CHANGELOG.md, the version-bump
+    // commit message, and patches-bundle.json's description, which Morphe Desktop's "Patch notes"
+    // viewer renders -- carries the concatenated text.
+    './.github/scripts/supported-versions-notes.mjs',
     [
       '@MorpheApp/changelog',
       {

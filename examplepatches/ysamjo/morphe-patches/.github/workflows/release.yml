@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Test channel playback settings
+        run: npm test
+
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
@@ -60,4 +63,12 @@ jobs:
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+        run: ./gradlew clean :patches:buildAndroid --no-daemon
+
+      - name: Preserve verified patch bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-morphe-patches-${{ github.sha }}
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 14

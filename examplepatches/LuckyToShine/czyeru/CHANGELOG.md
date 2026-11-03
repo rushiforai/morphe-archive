@@ -1,3 +1,27 @@
+## [1.9.4](https://github.com/LuckyToShine/czyeru/compare/v1.9.3...v1.9.4) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **graphify:** add code graphs of patches and repo ([c3e9652](https://github.com/LuckyToShine/czyeru/commit/c3e96523f3fd7a692eda4c5cfc073cc63eff5a23))
+
+## [1.9.3](https://github.com/LuckyToShine/czyeru/compare/v1.9.2...v1.9.3) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **tiktok:** support TikTok 47.6.3 ([85874c0](https://github.com/LuckyToShine/czyeru/commit/85874c057580e1d5bb8ed21a5889367ae40dea8b))
+
+## [1.9.2](https://github.com/LuckyToShine/czyeru/compare/v1.9.1...v1.9.2) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **tiktok:** port Hushfeed feed, comment and gesture patches ([110f6ae](https://github.com/LuckyToShine/czyeru/commit/110f6ae58edcaf2e55a9fe2577f5c811084b6b04))
+
+## [1.9.1](https://github.com/LuckyToShine/czyeru/compare/v1.9.0...v1.9.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **tiktok:** repair inbox activity search, speed up list search ([b95cb93](https://github.com/LuckyToShine/czyeru/commit/b95cb93dcbb05449cb6b175abbe2f5e4bd87a58f))
+
 ## [1.9.0](https://github.com/LuckyToShine/czyeru/compare/v1.8.1...v1.9.0) (2026-10-29)
 
 ### ✨ New Features

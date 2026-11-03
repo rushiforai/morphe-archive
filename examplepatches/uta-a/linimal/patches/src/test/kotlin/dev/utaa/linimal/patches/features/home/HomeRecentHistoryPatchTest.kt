@@ -43,40 +43,40 @@ class HomeRecentHistoryPatchTest {
     fun `only the recent history card renderer parameter order is accepted`() {
         assertTrue(
             isRecentHistoryCardRendererSignature(
-                renderer(listOf(RECENT_HISTORY_CARD, "Ljava/util/List;", "I", "I", "Lh3/t;", "I")),
+                renderer(listOf(RECENT_HISTORY_CARD, "Ljava/util/List;", "I", "I", "Lj3/r;", "I")),
                 RECENT_HISTORY_CARD,
             ),
         )
         // 引数が増減しても、先頭の内容型と末尾の composer・changed の位置だけを見ます。
         assertTrue(
             isRecentHistoryCardRendererSignature(
-                renderer(listOf(RECENT_HISTORY_CARD, "Lh3/t;", "I")),
+                renderer(listOf(RECENT_HISTORY_CARD, "Lj3/r;", "I")),
                 RECENT_HISTORY_CARD,
             ),
         )
         // 隣に並ぶ「サービス」card は別の内容型を取るため、対象外です。
         assertFalse(
             isRecentHistoryCardRendererSignature(
-                renderer(listOf(FIXED_SERVICE_CARD, "Ljava/util/List;", "Lh3/t;", "I")),
+                renderer(listOf(FIXED_SERVICE_CARD, "Ljava/util/List;", "Lj3/r;", "I")),
                 RECENT_HISTORY_CARD,
             ),
         )
         // 内容型を第 1 引数に取らないものは、card 本体の renderer ではありません。
         assertFalse(
             isRecentHistoryCardRendererSignature(
-                renderer(listOf("Ljava/lang/String;", RECENT_HISTORY_CARD, "Lh3/t;", "I")),
+                renderer(listOf("Ljava/lang/String;", RECENT_HISTORY_CARD, "Lj3/r;", "I")),
                 RECENT_HISTORY_CARD,
             ),
         )
         assertFalse(
             isRecentHistoryCardRendererSignature(
-                renderer(listOf(RECENT_HISTORY_CARD, "Lh3/t;")),
+                renderer(listOf(RECENT_HISTORY_CARD, "Lj3/r;")),
                 RECENT_HISTORY_CARD,
             ),
         )
         assertFalse(
             isRecentHistoryCardRendererSignature(
-                renderer(listOf(RECENT_HISTORY_CARD, "I", "Lh3/t;")),
+                renderer(listOf(RECENT_HISTORY_CARD, "I", "Lj3/r;")),
                 RECENT_HISTORY_CARD,
             ),
         )
@@ -92,6 +92,8 @@ class HomeRecentHistoryPatchTest {
     @Test
     fun `the card content marker distinguishes recent history from the neighbouring service card`() {
         assertEquals("RecentlyUsedService(id=", RECENTLY_USED_SERVICE_MARKER)
+        // GlobalHome の別 model を外すため、Home26 の model だけが持つ field 名も固定します。
+        assertEquals(", config=", RECENTLY_USED_SERVICE_CONFIG_MARKER)
     }
 
     @Test
@@ -165,7 +167,7 @@ class HomeRecentHistoryPatchTest {
         add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 4))
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }
-        add(composerCall("Y", emptyList(), "Lh3/p3;"))
+        add(composerCall("Z", emptyList(), "Lj3/p3;"))
     }
 
     private fun composerCall(
@@ -176,7 +178,7 @@ class HomeRecentHistoryPatchTest {
         Opcode.INVOKE_VIRTUAL,
         1,
         6, 0, 0, 0, 0,
-        ImmutableMethodReference("Lh3/f1;", name, parameters, returnType),
+        ImmutableMethodReference("Lj3/d1;", name, parameters, returnType),
     )
 
     private companion object {

@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -37,6 +38,7 @@ import dev.utaa.linimal.patches.util.STRING
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.exceptionHandlerAddresses
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
+import dev.utaa.linimal.patches.util.registerSurvivesBetween
 
 
 private const val EXTENSION_PACKAGE = "Ldev/utaa/linimal/extension/features/readwithoutreceipt"
@@ -71,38 +73,34 @@ private const val LABEL_REGISTER_COUNT = 28
 /** 行描画メソッドの register 数。v0〜v6 を range 呼び出しに使い、v7 を chatId に充てます。 */
 private const val RENDER_REGISTER_COUNT = 11
 
-/** メニュー本体の命令列で確定している index。[composeMenuShape] がすべて検証します。 */
-private const val COMPOSER_CAST_INDEX = 2
-private const val SHOULD_EXECUTE_INDEX = 15
-private const val SHOULD_EXECUTE_BRANCH_INDEX = 17
-private const val ITEM_READ_INDEX = 19
-private const val ITEM_INSTANCE_OF_INDEX = 20
-private const val DISMISS_READ_INDEX = 21
-private const val ROW_INSERTION_INDEX = 22
-
-/** 行 composable は 4 回呼ばれます（非表示 / 通知 / ピン留め / 削除）。 */
-private const val ROW_COMPOSABLE_CALL_COUNT = 4
-
 /** Compose の `Text` は 25 個の register を並べた range 呼び出しです。 */
 private const val TEXT_REGISTER_COUNT = 25
+
+/** 長押しメニューのトーク項目 model。toString の文字列は難読化されません。 */
+private val chatItemModelFingerprint = Fingerprint(
+    name = "toString",
+    returnType = STRING,
+    parameters = emptyList(),
+    strings = listOf("ChatItem(chatId=", ", chatType=", ", isNotificationOn="),
+)
 
 /**
  * トーク一覧の長押しメニューの本体を探す fingerprint。
  *
- * <p>難読化名には一切依存しません。Compose の lambda は `invoke(Object, Object, Object)Object` へ
- * erase されるため、その形をした全メソッドのうち、(1) 行 composable
- * `(Function0, Modifier, Function2, Function2, Composer, int, int)V` を 4 回呼び、
- * (2) 同一の型へ 4 回 `instance-of` / `check-cast` するもの、という条件で絞ります。
- * 実 APK の全 DEX を走査して、この条件を満たすメソッドは 1 件だけであることを確認済みです。</p>
+ * <p>難読化名には一切依存しません。Compose の lambda は `(Object, Object, Object)Object` へ erase される
+ * ため、その形をしたメソッドのうち、トーク項目 model への `instance-of` の分岐内で、行一覧を描く composable
+ * `(項目, Function1, Composer, int)V` を 1 回だけ呼ぶものに絞ります。実 APK の全 DEX で 1 件です。
+ * 26.16.0 では行が固定 4 行ではなく、この composable の中で一覧から描かれます。</p>
  */
-private val composeMenuFingerprint = Fingerprint(
+private fun composeMenuFingerprint(itemType: String) = Fingerprint(
     returnType = OBJECT,
     parameters = listOf(OBJECT, OBJECT, OBJECT),
-    custom = { method, _ -> looksLikeComposeMenu(method) },
+    custom = { method, _ -> looksLikeComposeMenu(method, itemType) },
 )
 
 /** メニュー本体から取り出した、注入に必要な参照一式。すべて実際の命令から導出します。 */
 internal data class ComposeMenuShape(
+    val insertionIndex: Int,
     val composerType: String,
     val itemType: String,
     val dismissRegister: Int,
@@ -127,13 +125,13 @@ internal data class LabelDonorShape(
  * トーク一覧の長押しメニューの先頭へ「既読をつけずに読む」の行を追加します。
  *
  * <h2>なぜ Compose を直接描くのか</h2>
- * <p>LINE 26.11.0 の長押しメニューは Jetpack Compose のダイアログです。View も RecyclerView も
+ * <p>LINE の長押しメニューは Jetpack Compose のダイアログです。View も RecyclerView も
  * 介さないため、「メニュー項目のリストへ要素を足す」という従来の方法は使えません。旧実装が対象に
  * していた AlertDialog 経路は APK 内に残っていますが実行されない死んだコードでした。</p>
  *
- * <p>そこで、LINE 自身の 4 行とまったく同じ手順で 5 行目を描きます。行 composable・
- * `rememberComposableLambda`・`startReplaceGroup` / `endReplaceGroup` の参照はすべてメニュー本体の
- * 命令列から取り出すため、難読化名を patch へ書き込みません。</p>
+ * <p>そこで、LINE 自身の各行とまったく同じ手順でもう 1 行を描きます。行 composable・
+ * `rememberComposableLambda`・`startReplaceGroup` / `endReplaceGroup` の参照はすべてメニュー本体と
+ * 行一覧の composable の命令列から取り出すため、難読化名を patch へ書き込みません。</p>
  *
  * <h2>注入するもの</h2>
  * <ol>
@@ -144,8 +142,8 @@ internal data class LabelDonorShape(
  *   <li>extension の {@code ReadWithoutReceiptMenuRow} へ、行を 1 つ描く static メソッドを
  *   追加します。設定 OFF や対象トーク不明のときも、LINE 自身の各行と同じく別 key の空 group を
  *   発行するため、Compose の slot 構造は常に一定です。</li>
- *   <li>メニュー本体の先頭（`shouldExecute` を通過した直後、LINE の 1 行目より前）へ、その
- *   static メソッドの呼び出しを 1 命令だけ挿入します。</li>
+ *   <li>メニュー本体の、トーク項目の分岐内で行一覧の composable を呼ぶ直前（LINE の 1 行目より前）へ、
+ *   その static メソッドの呼び出しを 1 命令だけ挿入します。</li>
  * </ol>
  *
  * <p>どの段でも導出に失敗した場合は何も注入せず、Patch Status を記録して終了します。</p>
@@ -165,8 +163,10 @@ val readWithoutReceiptComposeMenuPatch = bytecodePatch(
     dependsOn(readWithoutReceiptMenuLabelResourcePatch)
 
     execute {
-        val matches = composeMenuFingerprint.matchAllOrNull().orEmpty()
-        if (matches.size != 1) {
+        val items = chatItemModelFingerprint.matchAllOrNull().orEmpty()
+        val itemType = items.singleOrNull()?.originalClassDef?.type
+        val matches = itemType?.let { composeMenuFingerprint(it).matchAllOrNull().orEmpty() }.orEmpty()
+        if (itemType == null || matches.size != 1) {
             recordFeatureStatus(
                 listOf(PatchId.READ_WITHOUT_RECEIPT_COMPOSE_MENU_ROW),
                 expectedTargetCount = 1,
@@ -177,7 +177,14 @@ val readWithoutReceiptComposeMenuPatch = bytecodePatch(
         }
 
         val match = matches.single()
-        val shape = composeMenuShape(match.originalMethod)
+        val shape = composeMenuShape(match.originalMethod, itemType) { reference ->
+            classDefByOrNull(reference.definingClass)?.methods?.singleOrNull { candidate ->
+                candidate.name == reference.name &&
+                    candidate.returnType == reference.returnType &&
+                    candidate.parameterTypes.map(CharSequence::toString) ==
+                    reference.parameterTypes.map(CharSequence::toString)
+            }
+        }
         if (shape == null) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.READ_WITHOUT_RECEIPT_COMPOSE_MENU_ROW),
@@ -236,7 +243,7 @@ val readWithoutReceiptComposeMenuPatch = bytecodePatch(
         addRenderMethod(rowClass, shape, chatIdField)
 
         match.method.addInstructionsWithLabels(
-            ROW_INSERTION_INDEX,
+            shape.insertionIndex,
             "invoke-static { v${shape.dismissRegister}, v${shape.itemRegister}, " +
                 "v${shape.composerRegister} }, $ROW_TYPE->$RENDER_METHOD_NAME" +
                 "($OBJECT$OBJECT${shape.composerType})$VOID",
@@ -440,93 +447,115 @@ private fun MutableClass.addMethod(method: MutableMethod) {
     }
 }
 
-/**
- * 行 composable を 4 回呼び、かつ同一の型へ 4 回以上 `instance-of` / `check-cast` するメソッドかどうか。
- * fingerprint の絞り込みにだけ使うため、ここでは register や index を検証しません。
- */
-internal fun looksLikeComposeMenu(method: Method): Boolean {
-    val instructions = method.implementation?.instructions?.toList() ?: return false
-    val composerType = composerCastType(instructions) ?: return false
+/** メニュー本体の Composer の型と register。`shouldExecute` `(I, Z)Z` の receiver から求めます。 */
+private data class MenuComposer(val type: String, val register: Int, val castIndex: Int, val shouldExecute: MethodReference)
 
-    val rowCalls = instructions.count { isRowComposableCall(it, composerType) }
-    if (rowCalls != ROW_COMPOSABLE_CALL_COUNT) {
+private fun menuComposer(instructions: List<Instruction>): MenuComposer? {
+    val index = instructions.indexOfFirst { instruction ->
+        instruction.opcode == Opcode.INVOKE_INTERFACE && methodReference(instruction)?.let { reference ->
+            reference.parameterTypes.map(CharSequence::toString) == listOf(INT, BOOLEAN) &&
+                reference.returnType == BOOLEAN
+        } == true
+    }
+    if (index < 0) {
+        return null
+    }
+    val shouldExecute = methodReference(instructions[index]) ?: return null
+    val register = (instructions[index] as? FiveRegisterInstruction)?.registerC ?: return null
+    val castIndex = (0 until index).firstOrNull { candidate ->
+        instructions[candidate].opcode == Opcode.CHECK_CAST &&
+            typeReference(instructions[candidate]) == shouldExecute.definingClass &&
+            (instructions[candidate] as OneRegisterInstruction).registerA == register
+    } ?: return null
+    return MenuComposer(shouldExecute.definingClass, register, castIndex, shouldExecute)
+}
+
+private fun itemInstanceOfIndex(instructions: List<Instruction>, itemType: String): Int =
+    instructions.indexOfFirst { it.opcode == Opcode.INSTANCE_OF && typeReference(it) == itemType }
+
+/**
+ * トーク項目の分岐内で行一覧の composable を呼ぶ位置。`(項目, Function1, Composer, int)V` を、
+ * メニュー本体の Composer を第 3 引数にして呼ぶものが 1 つだけのときに返します。
+ */
+private fun rowListCallIndex(instructions: List<Instruction>, composer: MenuComposer, itemIndex: Int): Int? =
+    (itemIndex + 1 until instructions.size).filter { index ->
+        val instruction = instructions[index]
+        val reference = methodReference(instruction)
+        instruction.opcode == Opcode.INVOKE_STATIC && reference != null && reference.returnType == VOID &&
+            reference.parameterTypes.map(CharSequence::toString).let { parameters ->
+                parameters.size == 4 && parameters[2] == composer.type && parameters[3] == INT
+            } &&
+            (instruction as? FiveRegisterInstruction)?.registerE == composer.register
+    }.singleOrNull()
+
+/** fingerprint の絞り込みにだけ使うため、ここでは register の生存や分岐先を検証しません。 */
+internal fun looksLikeComposeMenu(method: Method, itemType: String): Boolean {
+    val instructions = method.implementation?.instructions?.toList() ?: return false
+    val itemIndex = itemInstanceOfIndex(instructions, itemType)
+    if (itemIndex < 0) {
         return false
     }
-
-    val castCounts = instructions
-        .filter { it.opcode == Opcode.INSTANCE_OF || it.opcode == Opcode.CHECK_CAST }
-        .mapNotNull { typeReference(it) }
-        .groupingBy { it }
-        .eachCount()
-    return castCounts.any { (_, count) -> count >= ROW_COMPOSABLE_CALL_COUNT }
+    val composer = menuComposer(instructions) ?: return false
+    return rowListCallIndex(instructions, composer, itemIndex) != null
 }
 
 /**
- * メニュー本体の命令列を検証し、注入に必要な参照と register を取り出します。
+ * メニュー本体と行一覧の composable を検証し、注入に必要な参照と register を取り出します。
  * 実測どおりの並びでなければ null を返し、patch は何も注入しません。
  */
-internal fun composeMenuShape(method: Method): ComposeMenuShape? {
+internal fun composeMenuShape(
+    method: Method,
+    itemType: String,
+    resolveRowList: (MethodReference) -> Method?,
+): ComposeMenuShape? {
     val implementation = method.implementation ?: return null
     val instructions = implementation.instructions.toList()
-    if (instructions.size <= ROW_INSERTION_INDEX) {
+    val itemIndex = itemInstanceOfIndex(instructions, itemType)
+    if (itemIndex < 0) {
         return null
     }
+    val composer = menuComposer(instructions) ?: return null
+    val insertionIndex = rowListCallIndex(instructions, composer, itemIndex) ?: return null
+    val itemRegister = (instructions[itemIndex] as TwoRegisterInstruction).registerB
 
-    val composerType = composerCastType(instructions) ?: return null
-    val composerRegister = (instructions[COMPOSER_CAST_INDEX] as OneRegisterInstruction).registerA
+    val rowListReference = methodReference(instructions[insertionIndex]) ?: return null
+    val rowListInstructions = resolveRowList(rowListReference)?.implementation?.instructions?.toList() ?: return null
+    val rowCalls = rowListInstructions.filter { isRowComposableCall(it, composer.type) }
+    val rowComposable = rowCalls.mapNotNull { methodReference(it) }.distinct().singleOrNull() ?: return null
+    val function0Type = rowComposable.parameterTypes[0].toString()
 
-    val shouldExecute = methodReference(instructions[SHOULD_EXECUTE_INDEX])
-    if (
-        instructions[SHOULD_EXECUTE_INDEX].opcode != Opcode.INVOKE_INTERFACE ||
-        shouldExecute == null ||
-        shouldExecute.definingClass != composerType ||
-        shouldExecute.parameterTypes.map(CharSequence::toString) != listOf(INT, BOOLEAN) ||
-        shouldExecute.returnType != BOOLEAN ||
-        instructions[SHOULD_EXECUTE_BRANCH_INDEX].opcode != Opcode.IF_EQZ ||
-        instructions[ITEM_READ_INDEX].opcode != Opcode.IGET_OBJECT ||
-        instructions[ITEM_INSTANCE_OF_INDEX].opcode != Opcode.INSTANCE_OF ||
-        instructions[DISMISS_READ_INDEX].opcode != Opcode.IGET_OBJECT
-    ) {
-        return null
+    // 閉じる動作の lambda は、挿入位置より前に読む唯一の Function0 field です。
+    val dismissReads = (0 until insertionIndex).filter { index ->
+        instructions[index].opcode == Opcode.IGET_OBJECT && fieldReference(instructions[index])?.type == function0Type
     }
-
-    val itemRegister = (instructions[ITEM_READ_INDEX] as OneRegisterInstruction).registerA
-    val instanceOf = instructions[ITEM_INSTANCE_OF_INDEX] as TwoRegisterInstruction
-    if (instanceOf.registerB != itemRegister) {
-        return null
-    }
-    val itemType = typeReference(instructions[ITEM_INSTANCE_OF_INDEX]) ?: return null
-    val dismissRegister = (instructions[DISMISS_READ_INDEX] as OneRegisterInstruction).registerA
+    val dismissIndex = dismissReads.singleOrNull() ?: return null
+    val dismissRegister = (instructions[dismissIndex] as OneRegisterInstruction).registerA
 
     // 行の呼び出しは 35c 形式の invoke-static なので、引数の register は 4bit（v0〜v15）しか取れません。
-    // item / dismiss は 22c の iget-object 由来で構造上 4bit ですが、composer は 21c の check-cast 由来で
-    // v16 以降もあり得るため、3 つとも同じ条件で確認します。
-    if (composerRegister !in 0..15 || itemRegister !in 0..15 || dismissRegister !in 0..15) {
+    if (composer.register !in 0..15 || itemRegister !in 0..15 || dismissRegister !in 0..15) {
+        return null
+    }
+    if (
+        !registerSurvivesBetween(instructions, composer.register, composer.castIndex, insertionIndex) ||
+        !registerSurvivesBetween(instructions, itemRegister, itemIndex, insertionIndex) ||
+        !registerSurvivesBetween(instructions, dismissRegister, dismissIndex, insertionIndex)
+    ) {
         return null
     }
 
     // 行は composition のたびに必ず 1 回描く必要があります。dexlib2 は注入位置へ新しい location を
     // 挿入し、既存 location は Label を保持したまま後ろへずれるため、注入位置が既存の分岐先や
     // 例外 handler の先頭と一致すると、その経路だけが行を飛び越して slot 構造がずれます。
-    if (isDivertedInjectionIndex(instructions, ROW_INSERTION_INDEX, exceptionHandlerAddresses(implementation))) {
+    if (isDivertedInjectionIndex(instructions, insertionIndex, exceptionHandlerAddresses(implementation))) {
         return null
     }
 
-    val rowCallIndices = instructions.indices.filter { isRowComposableCall(instructions[it], composerType) }
-    if (rowCallIndices.size != ROW_COMPOSABLE_CALL_COUNT) {
-        return null
-    }
-    val rowComposable = methodReference(instructions[rowCallIndices.first()]) ?: return null
-    if (rowCallIndices.any { methodReference(instructions[it]) != rowComposable }) {
-        return null
-    }
-
-    val rememberLambda = instructions
+    val rememberLambda = rowListInstructions
         .mapNotNull { instruction ->
             if (instruction.opcode != Opcode.INVOKE_STATIC) return@mapNotNull null
             val reference = methodReference(instruction) ?: return@mapNotNull null
             val parameters = reference.parameterTypes.map(CharSequence::toString)
-            if (parameters.size == 3 && parameters[0] == INT && parameters[2] == composerType &&
+            if (parameters.size == 3 && parameters[0] == INT && parameters[2] == composer.type &&
                 reference.returnType != VOID
             ) {
                 reference
@@ -537,37 +566,36 @@ internal fun composeMenuShape(method: Method): ComposeMenuShape? {
         .distinct()
         .singleOrNull() ?: return null
 
-    val startReplaceGroup = composerCalls(instructions, composerType, listOf(INT))
+    val startReplaceGroup = composerCalls(instructions, composer.type, listOf(INT))
         .distinct()
         .singleOrNull() ?: return null
 
-    // 行 composable の直後に呼ばれる引数なしの composer メソッドが endReplaceGroup です。
+    // 行一覧の直後に呼ばれる引数なしの composer メソッドが endReplaceGroup です。
     // 同じ形の skipToGroupEnd と取り違えないよう、呼び出し位置で区別します。
-    val endReplaceGroup = rowCallIndices
-        .mapNotNull { methodReference(instructions.getOrNull(it + 1)) }
-        .filter { it.definingClass == composerType && it.parameterTypes.isEmpty() && it.returnType == VOID }
-        .distinct()
-        .singleOrNull() ?: return null
+    val endReplaceGroup = methodReference(instructions.getOrNull(insertionIndex + 1))
+        ?.takeIf { it.definingClass == composer.type && it.parameterTypes.isEmpty() && it.returnType == VOID }
+        ?: return null
 
-    val skipToGroupEnd = composerCalls(instructions, composerType, emptyList())
+    val skipToGroupEnd = composerCalls(instructions, composer.type, emptyList())
         .distinct()
         .filter { it != endReplaceGroup }
         .singleOrNull() ?: return null
 
-    val labelDonorType = labelDonorType(instructions, rememberLambda) ?: return null
+    val labelDonorType = labelDonorType(rowListInstructions, rememberLambda) ?: return null
 
     return ComposeMenuShape(
-        composerType = composerType,
+        insertionIndex = insertionIndex,
+        composerType = composer.type,
         itemType = itemType,
         dismissRegister = dismissRegister,
         itemRegister = itemRegister,
-        composerRegister = composerRegister,
+        composerRegister = composer.register,
         rowComposable = rowComposable,
         rememberLambda = rememberLambda,
         startReplaceGroup = startReplaceGroup,
         endReplaceGroup = endReplaceGroup,
         skipToGroupEnd = skipToGroupEnd,
-        shouldExecute = shouldExecute,
+        shouldExecute = composer.shouldExecute,
         labelDonorType = labelDonorType,
     )
 }
@@ -624,15 +652,6 @@ internal fun labelDonorShape(methods: List<Method>): LabelDonorShape? {
 /** トーク項目の型が持つ、ただ 1 つの String instance field。これがトーク ID です。 */
 internal fun chatIdField(itemClass: com.android.tools.smali.dexlib2.iface.ClassDef?): FieldReference? =
     itemClass?.instanceFields?.singleOrNull { it.type == STRING }
-
-/** 命令 2 の `check-cast` が示す Composer の型。 */
-private fun composerCastType(instructions: List<Instruction>): String? {
-    val instruction = instructions.getOrNull(COMPOSER_CAST_INDEX) ?: return null
-    if (instruction.opcode != Opcode.CHECK_CAST) {
-        return null
-    }
-    return typeReference(instruction)
-}
 
 /**
  * 行 composable の呼び出しかどうか。引数は

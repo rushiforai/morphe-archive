@@ -34,11 +34,13 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.LAST_ACTIVE)
                 || build.contains(PatchFamily.MESSAGES_LOCK)
                 || build.contains(PatchFamily.SCREENSHOT_REPORTS)
+                || build.contains(PatchFamily.BLEND_VISITS)
                 || build.contains(PatchFamily.SCREENSHOT_BLOCK)
                 || build.contains(PatchFamily.KEEP_IN_CHAT)
                 || build.contains(PatchFamily.VIEW_ONCE_MARK)
                 || build.contains(PatchFamily.CHAT_REELS)
                 || build.contains(PatchFamily.CHAT_HISTORY)
+                || build.contains(PatchFamily.PREVIEW_CHATS)
                 || build.contains(PatchFamily.ASK_BEFORE_CALL)
                 || build.contains(PatchFamily.MESSAGE_BOX)
                 || build.contains(PatchFamily.PLUS_MENU)
@@ -85,6 +87,15 @@ final class MessagesCategory {
                         L10n.t("Mark a chat seen when you reply"),
                         L10n.t("Sending a message in a chat lets the other person see that you've read what they "
                                 + "sent before it. Chats you don't answer stay unseen to them.")));
+                messages.addPreference(toggle(context, Settings.MARK_READ_IN_CHAT,
+                        L10n.t("Mark as read button in chats"),
+                        L10n.t("A check mark shows at the top of a chat while it hasn't told the other person you've "
+                                + "seen it. Tap it and they see Seen.")));
+            }
+            if (build.contains(PatchFamily.PREVIEW_CHATS)) {
+                messages.addPreference(toggle(context, Settings.PREVIEW_CHATS, L10n.t("Preview chats"),
+                        L10n.t("Long press a chat in your messages and tap Preview to read its newest messages without "
+                                + "opening it, so nobody sees Seen. You can reply from there too.")));
             }
             if (build.contains(PatchFamily.TYPING)) {
                 messages.addPreference(toggle(context, Settings.HIDE_TYPING, L10n.t("Hide that you're typing"),
@@ -113,6 +124,11 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.HIDE_SCREENSHOTS, L10n.t("Don't report screenshots"),
                         L10n.t("Instagram doesn't notice when you take a screenshot, so whoever sent you a disappearing photo or video isn't told. Your screenshots save as usual.")));
             }
+            if (build.contains(PatchFamily.BLEND_VISITS)) {
+                messages.addPreference(toggle(context, Settings.HIDE_BLEND_VISITS, L10n.t("Don't report Blend visits"),
+                        L10n.t("Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend "
+                                + "and its reels open as usual.")));
+            }
             if (build.contains(PatchFamily.SCREENSHOT_BLOCK)) {
                 messages.addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS, L10n.t("Allow screenshots"),
                         L10n.t("Screenshots and screen recordings work wherever Instagram blocks them, like disappearing photos and videos. Turn on Don't report screenshots too if the sender shouldn't hear about it.")));
@@ -134,14 +150,19 @@ final class MessagesCategory {
                 messages.addPreference(toggle(context, Settings.STOP_AFTER_CHAT_REELS, L10n.t("Stop after the chat's reels"),
                         L10n.t("Reels you opened from a chat end after the last one shared in that chat, with no "
                                 + "suggested reels after it. Works with Swipe through a chat's reels on.")));
+                messages.addPreference(toggle(context, Settings.ONLY_RECEIVED_CHAT_REELS, L10n.t("Only received reels"),
+                        L10n.t("Swiping through a chat's reels skips the ones you sent there, so it only goes through "
+                                + "the reels the other person shared. Works with Swipe through a chat's reels on.")));
             }
             if (build.contains(PatchFamily.CHAT_HISTORY)) {
                 messages.addPreference(toggle(context, Settings.JUMP_IN_CHAT, L10n.t("Jump to the first message or a date"),
-                        L10n.t("Open a chat, long press its name at the top and pick Jump to the first message or Jump "
-                                + "to a date. The chat loads its older messages on its own, with a count and a Cancel button.")));
+                        L10n.t("Open a chat, tap the clock button next to the call buttons at the top, or long press "
+                                + "the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its "
+                                + "older messages on its own, with a count and a Cancel button.")));
                 messages.addPreference(toggle(context, Settings.EXPORT_CHAT, L10n.t("Export a chat as text"),
-                        L10n.t("Open a chat, long press its name at the top and pick Export chat. The whole chat is saved "
-                                + "as a text file in Downloads, HushGram folder, one line per message.")));
+                        L10n.t("Open a chat, tap the clock button next to the call buttons at the top, or long press "
+                                + "the chat's name, and pick Export chat. The whole chat is saved as a text file in "
+                                + "Downloads, HushGram folder, one line per message.")));
             }
             if (build.contains(PatchFamily.ASK_BEFORE_CALL)) {
                 messages.addPreference(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before a call"),

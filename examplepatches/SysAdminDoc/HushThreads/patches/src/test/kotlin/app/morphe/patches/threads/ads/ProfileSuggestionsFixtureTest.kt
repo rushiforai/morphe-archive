@@ -77,18 +77,14 @@ internal object ProfileSuggestionsFixture {
  * changes.
  */
 class ProfileSuggestionsFixtureTest {
-    private val carouselOffsets = mapOf(
-        "512308671" to intArrayOf(557, 558, 1026),
-        "512308673" to intArrayOf(557, 558, 1026),
-        "512308675" to intArrayOf(557, 558, 1026),
-        "512308676" to intArrayOf(555, 556, 1024),
-        "512308685" to intArrayOf(556, 557, 1025),
-        "512308686" to intArrayOf(556, 557, 1025),
-        "512308688" to intArrayOf(556, 557, 1025),
-        "512308695" to intArrayOf(554, 555, 1021),
-        "512308696" to intArrayOf(557, 558, 1026),
-        "512308697" to intArrayOf(555, 556, 1024),
-        "512308698" to intArrayOf(557, 558, 1026),
+    /** The carousel's read, its check and the check's landing, then the view model's check, by version code. */
+    private val buildOffsets = mapOf(
+        "512408621" to intArrayOf(558, 559, 1027, 266),
+        "512408622" to intArrayOf(560, 561, 1028, 267),
+        "512408625" to intArrayOf(558, 559, 1027, 266),
+        "512408635" to intArrayOf(557, 558, 1025, 266),
+        "512408636" to intArrayOf(558, 559, 1027, 266),
+        "512408648" to intArrayOf(558, 559, 1027, 266),
     )
 
     @Test
@@ -105,16 +101,18 @@ class ProfileSuggestionsFixtureTest {
             val context = context(build)
             val targets = context.profileSuggestionTargets()
 
-            // One call under each profile file's note, both to the same overload of the row. Merged
-            // lambdas that also hold profile code call the row for Search and Activity, and those
-            // calls keep the notes right above them.
+            // One call under each profile file's note, both to the same overload of the row. A merged
+            // lambda that also holds profile code calls the row for Activity, and that call keeps the
+            // note right above it. Through 453 another one called it for Search too.
             assertTrue(where, targets.screen.note.orEmpty().contains("($PROFILE_SCREEN_FILE:"))
             assertTrue(where, targets.infoRows.note.orEmpty().contains("($PROFILE_INFO_ROWS_FILE:"))
             assertEquals(where, targets.screen.callee.toString(), targets.infoRows.callee.toString())
-            assertTrue(where, targets.calls.any { it.note.orEmpty().endsWith("(DiscoveryContent.kt:375)") })
-            assertTrue(where, targets.calls.any { it.note.orEmpty().endsWith("(ActivityFeedContent.kt:945)") })
+            assertEquals(
+                where, listOf("ActivityFeedContent.kt:966", "ProfileInfoRows.kt:466", "ProfileScreen.kt:1616"),
+                targets.calls.map { it.note.orEmpty().substringAfterLast('(').removeSuffix(")") }.sorted(),
+            )
 
-            // Read off each 452 build apart from the patch: the profile screen reads the profile's
+            // Read off each 454 build apart from the patch: the profile screen reads the profile's
             // carousel list at the read below, the only read of that field outside its own class,
             // checks it just after, and builds the carousel from the landing below.
             val carousel = targets.carousel
@@ -122,7 +120,7 @@ class ProfileSuggestionsFixtureTest {
             val landing = screenStock.jumpTarget(carousel.guard)
             val row = targets.headerRow
             val rowStock = classes.original(row.method)
-            val offsets = carouselOffsets.entries.single { where.contains("-${it.key}.") }.value
+            val offsets = buildOffsets.entries.single { where.contains("-${it.key}.") }.value
             assertEquals(where, offsets[0], carousel.read)
             assertEquals(where, offsets[1], carousel.guard)
             assertEquals(where, Opcode.IGET_OBJECT, screenStock[carousel.read].opcode)
@@ -132,9 +130,10 @@ class ProfileSuggestionsFixtureTest {
             assertEquals(where, offsets[2], landing)
             assertTrue(where, screenStock[landing + 2].isNewInstanceOf(targets.screen.method.definingClass))
 
-            // The view model checks for Threads' suggestions at 213, makes the row from 214 on, and
-            // goes to 225 without them. What the check compared, and the hook's register, are dead there.
-            val rowAt = if (where.contains("-512308697.") || where.contains("-512308676.")) 266 else 268
+            // The view model checks for Threads' suggestions at 266 (267 on 622), makes the row from the
+            // next instruction on, and goes 12 past the check without them. What the check compared,
+            // and the hook's register, are dead there.
+            val rowAt = offsets[3]
             assertEquals(where, rowAt, row.guard)
             assertEquals(where, rowAt + 1, row.start)
             assertEquals(where, rowAt + 12, row.away)

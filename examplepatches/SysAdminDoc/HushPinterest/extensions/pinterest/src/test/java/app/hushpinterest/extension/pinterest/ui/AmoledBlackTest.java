@@ -23,6 +23,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -55,6 +56,12 @@ public class AmoledBlackTest {
     private static final int ELEVATION = 0xFF33332E;
     /** A pin page's own dark gray, which the strip behind the gesture handle takes there. */
     private static final int PAGE = 0xFF18181B;
+    /** Pinterest's sema_color_background_secondary at night, the See more and See less cards' gray. */
+    private static final int SECONDARY = 0xFF494943;
+    /** The same color at night in 14.42.0's deniminkhc theme, a 40% gray the sheet shows through. */
+    private static final int SEE_THROUGH_SECONDARY = 0x66A1A1AF;
+    /** The reactions header's gray on a video pin's comments in 14.42.0. */
+    private static final int REACTIONS = 0xFF222226;
     /** navigation_bar_background's id in 14.39.0. A sheet's fills use 1 to 3. */
     private static final int STRIP = 0x7f0a0dae;
 
@@ -308,6 +315,54 @@ public class AmoledBlackTest {
         assertEquals(ELEVATION, ((ColorDrawable) list.getBackground()).getColor());
     }
 
+    /**
+     * Seen on Pinterest 14.42.0 (#21): a pin's menu shows See more and See less on rounded cards its
+     * builder makes apart from the sheet, so the sheet's own fills never reached them.
+     */
+    @Test public void aPinMenusSeeMoreCardTurnsBlackAndOffOrLightModeKeepsItsGray() {
+        Settings.BLACK_PIN_MENU.save(true);
+        LinearLayout card = seeMoreCard(true);
+        Drawable.ConstantState loaded = card.getBackground().getConstantState();
+        AmoledBlack.pinMenuCard(card);
+        assertEquals(Color.BLACK, rippleColor(card.getBackground()));
+        assertEquals("a card built from the same resource keeps its own gray", SECONDARY, rippleColor(loaded.newDrawable()));
+        Settings.BLACK_PIN_MENU.save(false);
+        card.layout(0, 0, 160, 96);
+        assertEquals("a layout pass with the switch off gives the gray back", SECONDARY, rippleColor(card.getBackground()));
+        Settings.BLACK_PIN_MENU.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        LinearLayout paused = seeMoreCard(true);
+        AmoledBlack.pinMenuCard(paused);
+        assertEquals("Pause keeps the gray", SECONDARY, rippleColor(paused.getBackground()));
+        PauseForTests.resume();
+        LinearLayout light = seeMoreCard(false);
+        AmoledBlack.pinMenuCard(light);
+        assertEquals("light mode is left alone", SECONDARY, rippleColor(light.getBackground()));
+        Settings.BLACK_COMMENTS.save(true);
+        Settings.BLACK_PIN_MENU.save(false);
+        LinearLayout other = seeMoreCard(true);
+        AmoledBlack.pinMenuCard(other);
+        assertEquals("the comments switch leaves the cards alone", SECONDARY, rippleColor(other.getBackground()));
+    }
+
+    /**
+     * Seen on Pinterest 14.42.0 on a phone (#21): the cards came out #3a3a41 over the black sheet,
+     * since the theme there gives them a see-through gray that only an opaque fill check passed over.
+     */
+    @Test public void aSeeMoreCardsSeeThroughGrayTurnsBlackAndOffGivesItBack() {
+        Settings.BLACK_PIN_MENU.save(true);
+        LinearLayout card = seeMoreCard(true, SEE_THROUGH_SECONDARY);
+        AmoledBlack.pinMenuCard(card);
+        assertEquals(Color.BLACK, rippleColor(card.getBackground()));
+        Settings.BLACK_PIN_MENU.save(false);
+        card.layout(0, 0, 160, 96);
+        assertEquals(SEE_THROUGH_SECONDARY, rippleColor(card.getBackground()));
+        Settings.BLACK_PIN_MENU.save(true);
+        LinearLayout clear = seeMoreCard(true, Color.TRANSPARENT);
+        AmoledBlack.pinMenuCard(clear);
+        assertEquals("a card with no fill at all stays clear", Color.TRANSPARENT, rippleColor(clear.getBackground()));
+    }
+
     @Test public void theCommentsScreenTurnsBlackAndAFillPinterestSwapsInLaterFollowsOnTheNextLayout() {
         Settings.BLACK_COMMENTS.save(true);
         FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view");
@@ -331,6 +386,27 @@ public class AmoledBlackTest {
         assertEquals("Pause gives the gray back on the next layout", ELEVATION, fullHeight.getColor().getDefaultColor());
         assertEquals(ELEVATION, replyBar.getColor().getDefaultColor());
         assertEquals(ELEVATION, ((ColorDrawable) floating.getBackground()).getColor());
+    }
+
+    /**
+     * Seen on Pinterest 14.42.0 on a phone (#12): opening a video pin's comments showed a gray band
+     * across the top of the black list for about half a second. Pinterest shows the reactions header
+     * there in its own gray while the comments load, then hides it.
+     */
+    @Test public void theReactionsHeaderShownWhileTheCommentsLoadTurnsBlackAndOffGivesItsGrayBack() {
+        Settings.BLACK_COMMENTS.save(true);
+        FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view", "comment_reaction_header");
+        View reactions = fill(screen, 4, new ColorDrawable(REACTIONS));
+        AmoledBlack.comments(screen);
+        assertEquals(Color.BLACK, ((ColorDrawable) reactions.getBackground()).getColor());
+        Settings.BLACK_COMMENTS.save(false);
+        screen.layout(0, 0, 320, 480);
+        assertEquals(REACTIONS, ((ColorDrawable) reactions.getBackground()).getColor());
+        Settings.BLACK_PIN_MENU.save(true);
+        FrameLayout menu = sheet(true, "modal_header", "modal_container", "unused", "comment_reaction_header");
+        View inMenu = fill(menu, 4, new ColorDrawable(REACTIONS));
+        AmoledBlack.pinMenu(menu);
+        assertEquals("a pin's menu doesn't paint the header", REACTIONS, ((ColorDrawable) inMenu.getBackground()).getColor());
     }
 
     @Test public void eachSheetFollowsItsOwnSwitchAndLightModeIsLeftAlone() {
@@ -594,6 +670,24 @@ public class AmoledBlackTest {
 
     private static int cardColor(Drawable card) {
         return ((GradientDrawable) ((LayerDrawable) card).getDrawable(1)).getColor().getDefaultColor();
+    }
+
+    /** A See more card the way 14.42.0's bento_card_background builds it: a rounded shape in the secondary gray under a ripple. */
+    private static LinearLayout seeMoreCard(boolean night) {
+        return seeMoreCard(night, SECONDARY);
+    }
+
+    private static LinearLayout seeMoreCard(boolean night, int fill) {
+        LinearLayout card = new LinearLayout(sheet(night).getContext());
+        GradientDrawable shape = new GradientDrawable();
+        shape.setCornerRadius(16f);
+        shape.setColor(fill);
+        card.setBackground(new RippleDrawable(ColorStateList.valueOf(0x33FFFFFF), shape, null));
+        return card;
+    }
+
+    private static int rippleColor(Drawable ripple) {
+        return ((GradientDrawable) ((LayerDrawable) ripple).getDrawable(0)).getColor().getDefaultColor();
     }
 
     /** A bar like Pinterest's, holding a plain tab row with the gray rounded shape. */

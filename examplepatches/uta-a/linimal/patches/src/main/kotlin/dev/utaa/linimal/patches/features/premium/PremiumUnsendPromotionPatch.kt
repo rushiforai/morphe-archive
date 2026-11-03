@@ -65,7 +65,7 @@ val premiumUnsendPromotionPatch = bytecodePatch(
     dependsOn(settingsEntryPatch)
 
     execute {
-        val matches = unsendPromotionShowFingerprint.matchAllOrNull().orEmpty()
+        val matches = runCatching { unsendPromotionShowFingerprint.matchAllOrNull() }.getOrNull().orEmpty()
         if (matches.size != 1) {
             // 任意機能のため、対象が一意でない場合は変更せず状態だけを記録します。
             recordUnappliedStatus(matches.size, "PremiumUnsendTargetNotUnique")

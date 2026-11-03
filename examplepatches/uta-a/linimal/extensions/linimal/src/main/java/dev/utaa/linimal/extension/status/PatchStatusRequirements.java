@@ -38,7 +38,7 @@ final class PatchStatusRequirements {
         requirements.put("linimal.agent-i-chat-list-search",
                 ids("linimal.patch.agent-i-chat-list-search"));
         requirements.put("linimal.line-ai-message-context-menu",
-                ids("linimal.patch.line-ai-message-context-menu"));
+                ids("linimal.patch.line-ai-message-context-menu", "linimal.patch.line-ai-image-side-menu"));
         requirements.put("linimal.line-ai-gallery-viewer", ids("linimal.patch.line-ai-gallery-viewer"));
         requirements.put("linimal.voom", ids("linimal.patch.main-tab-voom"));
         requirements.put("linimal.shopping", ids("linimal.patch.main-tab-shopping"));
@@ -69,7 +69,11 @@ final class PatchStatusRequirements {
                 "linimal.patch.read-receipts-main-chat-pending-queue-clear",
                 "linimal.patch.read-receipts-main-chat-manual-caller",
                 "linimal.patch.read-receipts-main-chat-supplier-registration",
-                "linimal.patch.read-receipts-main-chat-supplier-preparation"));
+                "linimal.patch.read-receipts-main-chat-supplier-preparation",
+                "linimal.patch.read-receipts-main-chat-mark-all-as-read",
+                "linimal.patch.read-receipts-main-chat-context-menu-read",
+                "linimal.patch.read-receipts-main-chat-chat-subtab-read",
+                "linimal.patch.read-receipts-main-chat-notification-read"));
         requirements.put("linimal.read-without-receipt", ids(
                 "linimal.patch.read-without-receipt-menu-label-resource",
                 "linimal.patch.read-without-receipt-compose-menu-row",
@@ -77,16 +81,14 @@ final class PatchStatusRequirements {
                 "linimal.patch.read-without-receipt-local-read-block",
                 "linimal.patch.read-without-receipt-session",
                 "linimal.patch.read-without-receipt-send",
-                "linimal.patch.read-without-receipt-manual-read",
-                "linimal.patch.read-without-receipt-message-controls"));
+                "linimal.patch.read-without-receipt-manual-read"));
         requirements.put("linimal.chat.notification-read-without-receipt", ids(
                 "linimal.patch.notification-read-without-receipt-entry",
                 "linimal.patch.notification-read-without-receipt-mark-as-read-block",
                 "linimal.patch.notification-read-without-receipt-local-read-block",
                 "linimal.patch.notification-read-without-receipt-session",
                 "linimal.patch.notification-read-without-receipt-send",
-                "linimal.patch.notification-read-without-receipt-manual-read",
-                "linimal.patch.notification-read-without-receipt-message-controls"));
+                "linimal.patch.notification-read-without-receipt-manual-read"));
         requirements.put("linimal.chat-list-header-ai-friends",
                 ids("linimal.patch.chat-list-header-ai-friends"));
         requirements.put("linimal.chat-list-header-calendar",

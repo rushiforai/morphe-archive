@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.SaveTo;
@@ -70,6 +71,7 @@ import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.theme.MarkColors.Mark;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
+import app.morphe.extension.facebook.navigation.TabOrder;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -407,16 +409,20 @@ public class SettingsBackupPreference extends Preference {
             if (snapshot.shareItemsChange() != null) parts.add(shareItemsSentence(snapshot.shareItemsChange()));
             if (snapshot.menuTilesChange() != null) parts.add(menuTilesSentence(snapshot.menuTilesChange()));
             if (snapshot.feedTypesChange() != null) parts.add(feedTypesSentence(snapshot.feedTypesChange()));
+            if (snapshot.tabOrderChange() != null) parts.add(tabOrderSentence(snapshot.tabOrderChange()));
             if (snapshot.homeFeedChange() != null) parts.add(homeFeedSentence(snapshot.homeFeedChange()));
             if (snapshot.reelsOrderChange() != null) parts.add(reelsOrderSentence(snapshot.reelsOrderChange()));
             if (snapshot.burnInChange() != null) parts.add(burnInSentence(snapshot.burnInChange()));
             if (snapshot.burnInWaitChange() != null) parts.add(burnInWaitSentence(snapshot.burnInWaitChange()));
+            if (snapshot.dateStyleChange() != null) parts.add(dateStyleSentence(snapshot.dateStyleChange()));
             if (snapshot.backgroundChange() != null) parts.add(backgroundSentence(snapshot.backgroundChange()));
             if (snapshot.lightBackgroundChange() != null) parts.add(lightBackgroundSentence(snapshot.lightBackgroundChange()));
             if (snapshot.badgeChange() != null) parts.add(markColorSentence(Mark.BADGE, snapshot.badgeChange()));
             if (snapshot.logoChange() != null) parts.add(markColorSentence(Mark.LOGO, snapshot.logoChange()));
             if (snapshot.tabChange() != null) parts.add(markColorSentence(Mark.TAB, snapshot.tabChange()));
             if (snapshot.headerTextChange() != null) parts.add(headerTextSentence(snapshot.headerTextChange()));
+            if (snapshot.logoEmojiChange() != null) parts.add(logoEmojiSentence(snapshot.logoEmojiChange()));
+            if (snapshot.accentCustomChange() != null) parts.add(accentCustomSentence(snapshot.accentCustomChange()));
             if (snapshot.seenKeep != null && snapshot.changes().containsKey(SettingsBackup.SEEN_KEEP)) {
                 parts.add(L10n.f("Posts you've seen will stay hidden for %1$s.",
                         HushfacebookPreferenceFragment.seenKeepLabel(snapshot.seenKeep)));
@@ -565,9 +571,14 @@ public class SettingsBackupPreference extends Preference {
         return L10n.f("Saved photos will be named %1$s.", L10n.isolate(template));
     }
 
-    /** The sentence that says which tab Facebook opens on after an import. */
+    /**
+     * The sentence that says which tab Facebook opens on after an import. The tab only counts while
+     * its switch is on, which is off unless it's changed, so the sentence names the switch too.
+     */
     static String startTabSentence(StartTab tab) {
-        return L10n.f("Facebook will open on %1$s.", HushfacebookPreferenceFragment.tabLabel(tab));
+        return L10n.f("With %1$s on, Facebook will open on %2$s.",
+                L10n.isolate(SwitchLabels.title(Settings.OPEN_ON_CHOSEN_TAB)),
+                HushfacebookPreferenceFragment.tabLabel(tab));
     }
 
     /** The sentence that says which filter the Feeds tab opens on after an import. */
@@ -597,6 +608,12 @@ public class SettingsBackupPreference extends Preference {
     static String burnInWaitSentence(BurnInWait wait) {
         if (wait == BurnInWait.AT_ONCE) return L10n.t("Burn-in guard will dim the Reels screen as soon as you stop touching it.");
         return L10n.f("Burn-in guard will dim the Reels screen after %1$d seconds without a touch.", (int) (wait.millis / 1000));
+    }
+
+    /** The sentence that says how a reel's post date reads after an import (#357). */
+    static String dateStyleSentence(ReelDateStyle style) {
+        if (style == ReelDateStyle.DATE) return L10n.t("Reel post dates will show the day they were posted.");
+        return L10n.t("Reel post dates will show how long ago they were posted.");
     }
 
     /** The sentence that says in what order comments open after an import. */
@@ -707,6 +724,22 @@ public class SettingsBackupPreference extends Preference {
                 L10n.isolate(text));
     }
 
+    /** The sentence that says what follows the logo at the top of Home after an import, [emoji] blank or the text. */
+    static String logoEmojiSentence(String emoji) {
+        if (emoji.isEmpty()) return L10n.t("The top of Home will show no emoji after the logo.");
+        return L10n.f("If your patched Facebook includes Emoji after the logo, the top of Home will show %1$s after the logo.",
+                L10n.isolate(emoji));
+    }
+
+    /** The sentence that says which color the Accent color row's Custom choice will use after an import, [code] blank or a code. */
+    static String accentCustomSentence(String code) {
+        if (code.isEmpty()) {
+            return L10n.t("If your patched Facebook includes Accent color, the Custom choice will keep Facebook's blue.");
+        }
+        return L10n.f("If your patched Facebook includes Accent color, the Custom choice will be %1$s.",
+                L10n.isolate(code));
+    }
+
     /** The sentence that says how large Facebook's text will be after an import. */
     static String textSizeSentence(TextSize.Scale scale) {
         if (scale == TextSize.Scale.P100) {
@@ -805,6 +838,15 @@ public class SettingsBackupPreference extends Preference {
         if (types == 0) return L10n.t("Your list of feed types to hide will be empty.");
         return L10n.quantity(types, "Your list of feed types to hide will hold %1$d type.",
                 "Your list of feed types to hide will hold %1$d types.", types);
+    }
+
+    /** The sentence that says the order the tab bar will have after an import. */
+    static String tabOrderSentence(String order) {
+        List<TabOrder.Tab> tabs = TabOrder.parse(order);
+        if (tabs.isEmpty()) return L10n.t("Your tab bar will keep Facebook's order.");
+        List<String> names = new ArrayList<>();
+        for (TabOrder.Tab tab : tabs) names.add(TabOrderRow.label(tab));
+        return L10n.f("Your tab bar will go in this order: %1$s.", L10n.join(names));
     }
 
     /** A sentence for each setting that isn't a switch an import changes, with no word list among them. */
@@ -1020,16 +1062,20 @@ public class SettingsBackupPreference extends Preference {
                     + (snapshot.shareItemsChange() == null ? "" : " " + shareItemsSentence(snapshot.shareItemsChange()))
                     + (snapshot.menuTilesChange() == null ? "" : " " + menuTilesSentence(snapshot.menuTilesChange()))
                     + (snapshot.feedTypesChange() == null ? "" : " " + feedTypesSentence(snapshot.feedTypesChange()))
+                    + (snapshot.tabOrderChange() == null ? "" : " " + tabOrderSentence(snapshot.tabOrderChange()))
                     + (snapshot.homeFeedChange() == null ? "" : " " + homeFeedSentence(snapshot.homeFeedChange()))
                     + (snapshot.reelsOrderChange() == null ? "" : " " + reelsOrderSentence(snapshot.reelsOrderChange()))
                     + (snapshot.burnInChange() == null ? "" : " " + burnInSentence(snapshot.burnInChange()))
                     + (snapshot.burnInWaitChange() == null ? "" : " " + burnInWaitSentence(snapshot.burnInWaitChange()))
+                    + (snapshot.dateStyleChange() == null ? "" : " " + dateStyleSentence(snapshot.dateStyleChange()))
                     + (snapshot.backgroundChange() == null ? "" : " " + backgroundSentence(snapshot.backgroundChange()))
                     + (snapshot.lightBackgroundChange() == null ? "" : " " + lightBackgroundSentence(snapshot.lightBackgroundChange()))
                     + (snapshot.badgeChange() == null ? "" : " " + markColorSentence(Mark.BADGE, snapshot.badgeChange()))
                     + (snapshot.logoChange() == null ? "" : " " + markColorSentence(Mark.LOGO, snapshot.logoChange()))
                     + (snapshot.tabChange() == null ? "" : " " + markColorSentence(Mark.TAB, snapshot.tabChange()))
                     + (snapshot.headerTextChange() == null ? "" : " " + headerTextSentence(snapshot.headerTextChange()))
+                    + (snapshot.logoEmojiChange() == null ? "" : " " + logoEmojiSentence(snapshot.logoEmojiChange()))
+                    + (snapshot.accentCustomChange() == null ? "" : " " + accentCustomSentence(snapshot.accentCustomChange()))
                     + (snapshot.pauseLength == null || !snapshot.changes().containsKey(SettingsBackup.PAUSE_LENGTH) ? ""
                             : " " + pauseLengthSentence(snapshot.pauseLength))
                     + (snapshot.breakAfter == null || !snapshot.changes().containsKey(SettingsBackup.BREAK_AFTER) ? ""

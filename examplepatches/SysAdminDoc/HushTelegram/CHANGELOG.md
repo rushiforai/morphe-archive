@@ -2,6 +2,10 @@
 
 Every HushTelegram release, newest first.
 
+## Unreleased
+
+* **Telegram:** Moved telegram.org's build to Telegram 13.1.1 (version code 72379). Every patch carried over without a change.
+
 ## 0.0.23 (2026-10-31)
 
 The fourteenth release, still 67 patches for Telegram 13.1.1 from Google Play and 13.1.0 from telegram.org. It's on the same Morphe patcher 2.1.0 as the last one, so Morphe Manager 2.3.0 still works. Most of it came from your reports again. Calls can be recorded to your phone now, and view-once and timed photos can stay in the chat after you open them. Ghost mode also hides typing and your online status if you want it to.

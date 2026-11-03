@@ -30,9 +30,9 @@ import dev.utaa.linimal.patches.util.BOXED_BOOLEAN
 import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.boxedBooleanReturnGateShape
 
-private const val PREMIUM_SETTINGS_ITEM_LAYOUT = 0x7f0e0570 // line_user_settings_premium_item
-private const val LYP_PREMIUM_TITLE = 0x7f151df5 // line_settings_category_lyppfornonsubscriber
-private const val LINE_PREMIUM_TITLE = 0x7f151df4 // line_settings_category_linepfornonsubscriber
+private const val PREMIUM_SETTINGS_ITEM_LAYOUT = 0x7f0e0546 // line_user_settings_premium_item
+private const val LYP_PREMIUM_TITLE = 0x7f151fd3 // line_settings_category_lyppfornonsubscriber
+private const val LINE_PREMIUM_TITLE = 0x7f151fd2 // line_settings_category_linepfornonsubscriber
 private const val PREMIUM_SETTINGS_ROW_HOOK =
     "Ldev/utaa/linimal/extension/features/PremiumSettingsRowHooks;->adjustVisibility(Z)Z"
 private const val BOOLEAN_UNBOX = "$BOXED_BOOLEAN->booleanValue()$BOOLEAN"
@@ -45,11 +45,11 @@ private val premiumItemConstructorParameters = listOf(
     "Ljava/lang/Integer;",
     "I",
     "I",
-    "Lvb8/p;",
-    "Lvb8/l;",
-    "Lpx4/t0\$b;",
-    "Lvb8/p;",
-    "Lvb8/p;",
+    "Lnt8/p;",
+    "Lnt8/l;",
+    "Lec5/g1\$b;",
+    "Lnt8/p;",
+    "Lnt8/p;",
 )
 
 /**
@@ -102,7 +102,7 @@ private fun premiumSettingsVisibilityPredicateFingerprint(predicateType: String)
 )
 
 /**
- * LYP Premium / LINE Premium の地域 variant を、対応する `m0` construction の title resource と
+ * LYP Premium / LINE Premium の地域 variant を、対応する item construction の title resource と
  * 最終 visibility predicate 引数から解決します。両方を解決できない場合は一切注入しません。
  */
 val premiumSettingsRowPatch = bytecodePatch(
@@ -278,7 +278,7 @@ private fun resolvePremiumSettingsVariants(
     }
 }
 
-/** Reads the final `m0` constructor argument back to its local lambda allocation. */
+/** Reads the final item constructor argument back to its local lambda allocation. */
 private fun finalVisibilityPredicateType(
     instructions: List<Instruction>,
     itemStart: Int,

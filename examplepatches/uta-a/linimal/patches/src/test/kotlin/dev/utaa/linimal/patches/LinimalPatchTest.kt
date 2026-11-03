@@ -25,6 +25,7 @@ import dev.utaa.linimal.patches.features.home.homeRecentHistoryPatch
 import dev.utaa.linimal.patches.features.home.homeTrendingPatch
 import dev.utaa.linimal.patches.features.lineai.lineAiEntryPatch
 import dev.utaa.linimal.patches.features.lineai.lineAiGalleryViewerPatch
+import dev.utaa.linimal.patches.features.lineai.lineAiImageSideMenuPatch
 import dev.utaa.linimal.patches.features.lineai.lineAiMessageContextMenuPatch
 import dev.utaa.linimal.patches.features.navigation.mainTabsPatch
 import dev.utaa.linimal.patches.features.premium.premiumSettingsRowPatch
@@ -32,6 +33,7 @@ import dev.utaa.linimal.patches.features.googleauth.googleAuthMicrogManifestPatc
 import dev.utaa.linimal.patches.features.googleauth.googleAuthTokenRoutingPatch
 import dev.utaa.linimal.patches.features.push.fisCertificateHeaderPatch
 import dev.utaa.linimal.patches.features.premium.premiumUnsendPromotionPatch
+import dev.utaa.linimal.patches.features.readreceipts.readReceiptExplicitMarkAsReadPatch
 import dev.utaa.linimal.patches.features.readreceipts.readReceiptManualCallerPatch
 import dev.utaa.linimal.patches.features.readreceipts.readReceiptOutboundGatePatch
 import dev.utaa.linimal.patches.features.readreceipts.readReceiptSupplierPreparationPatch
@@ -43,7 +45,6 @@ import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptMe
 import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptSessionPatch
 import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptSendPatch
 import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptManualReadPatch
-import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptMessageControlsPatch
 import dev.utaa.linimal.patches.features.readwithoutreceipt.notificationReadWithoutReceiptEntryPatch
 import dev.utaa.linimal.patches.settings.linimalSettingsResourcePatch
 import dev.utaa.linimal.patches.settings.settingsEntryPatch
@@ -88,8 +89,7 @@ class LinimalPatchTest {
         assertEquals(setOf(patchStatusResourcePatch), googleAuthMicrogManifestPatch.dependencies)
         assertEquals(setOf(chatListHeaderButtonsPatch), fisCertificateHeaderPatch.dependencies)
         assertEquals(setOf(notificationReadWithoutReceiptEntryPatch), chatListHeaderButtonsPatch.dependencies)
-        assertEquals(setOf(readWithoutReceiptMessageControlsPatch), notificationReadWithoutReceiptEntryPatch.dependencies)
-        assertEquals(setOf(readWithoutReceiptManualReadPatch), readWithoutReceiptMessageControlsPatch.dependencies)
+        assertEquals(setOf(readWithoutReceiptManualReadPatch), notificationReadWithoutReceiptEntryPatch.dependencies)
         assertEquals(setOf(readWithoutReceiptSendPatch), readWithoutReceiptManualReadPatch.dependencies)
         assertEquals(setOf(readWithoutReceiptSessionPatch), readWithoutReceiptSendPatch.dependencies)
         assertEquals(setOf(readWithoutReceiptLocalReadBlockPatch), readWithoutReceiptSessionPatch.dependencies)
@@ -106,13 +106,15 @@ class LinimalPatchTest {
         assertEquals(setOf(homeFeedPostCardsPatch), premiumSettingsRowPatch.dependencies)
         assertEquals(setOf(agentIChatListSearchPatch), homeFeedPostCardsPatch.dependencies)
         assertEquals(setOf(lineAiGalleryViewerPatch), agentIChatListSearchPatch.dependencies)
-        assertEquals(setOf(lineAiMessageContextMenuPatch), lineAiGalleryViewerPatch.dependencies)
+        assertEquals(setOf(lineAiImageSideMenuPatch), lineAiGalleryViewerPatch.dependencies)
+        assertEquals(setOf(lineAiMessageContextMenuPatch), lineAiImageSideMenuPatch.dependencies)
         assertEquals(setOf(agentIChatComposerPatch), lineAiMessageContextMenuPatch.dependencies)
         assertEquals(setOf(agentISettingsPatch), agentIChatComposerPatch.dependencies)
         assertEquals(setOf(agentIWalletHeaderPatch), agentISettingsPatch.dependencies)
         assertEquals(setOf(agentIHomeHeaderPatch), agentIWalletHeaderPatch.dependencies)
         assertEquals(setOf(homeTopAdPatch), agentIHomeHeaderPatch.dependencies)
-        assertEquals(setOf(readReceiptSupplierPreparationPatch), homeTopAdPatch.dependencies)
+        assertEquals(setOf(readReceiptExplicitMarkAsReadPatch), homeTopAdPatch.dependencies)
+        assertEquals(setOf(readReceiptSupplierPreparationPatch), readReceiptExplicitMarkAsReadPatch.dependencies)
         assertEquals(setOf(readReceiptSupplierRegistrationPatch), readReceiptSupplierPreparationPatch.dependencies)
         assertEquals(setOf(readReceiptManualCallerPatch), readReceiptSupplierRegistrationPatch.dependencies)
         assertEquals(setOf(readReceiptOutboundGatePatch), readReceiptManualCallerPatch.dependencies)

@@ -5,7 +5,9 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.stylus.patches.bitwarden.shared.Constants.COMPATIBILITY_BITWARDEN
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import java.io.File
 
@@ -91,6 +93,17 @@ private fun normalizeFontFeatureSettings(raw: String?): String? {
 
 private fun escapeSmaliString(value: String): String =
     value.replace("\\", "\\\\").replace("\"", "\\\"")
+
+/**
+ * Number of parameter registers of [method], including the implicit this
+ * register of a non-static method, with long and double parameters counting
+ * twice.
+ */
+private fun parameterRegisterCount(method: MutableMethod): Int {
+    val parameters = method.parameterTypes.sumOf { type -> if (type == "J" || type == "D") 2 else 1 }
+    val thisRegisters = if ((method.accessFlags and AccessFlags.STATIC.value) != 0) 0 else 1
+    return parameters + thisRegisters
+}
 
 private val customFontFileOption = stringOption(
     key = "customFontFile",
@@ -212,13 +225,37 @@ val customFontBitwardenPatch = bytecodePatch(
         // The constructor copies the base SpanStyle onto the single TextPaint
         // used by Compose text. Apply the setting at the end so it wins over
         // that SpanStyle, which may carry its own fontFeatureSettings value.
+        //
+        // The snippet is assembled inside a stand-in method that keeps this
+        // method's register count but has no parameters of its own, so p0 there
+        // is not this. Address this through its real register instead, and keep
+        // the scratch values low because iget-object and the invoke register
+        // list only encode the low registers.
+        val thisRegister = implementation.registerCount - parameterRegisterCount(target.method)
+        if (thisRegister < 0) {
+            throw PatchException(
+                "Could not locate the this register of the Compose paragraph constructor."
+            )
+        }
+
+        val instructionCountBefore = implementation.instructions.count()
+
         target.method.addInstructions(
             returnIndex,
             """
-                iget-object p1, p0, ${target.paintField.definingClass}->${target.paintField.name}:${target.paintField.type}
-                const-string p2, "${escapeSmaliString(featureSettings)}"
-                invoke-virtual { p1, p2 }, Landroid/graphics/Paint;->setFontFeatureSettings(Ljava/lang/String;)V
+                move-object/from16 v0, v$thisRegister
+                iget-object v0, v0, ${target.paintField.definingClass}->${target.paintField.name}:${target.paintField.type}
+                const-string v1, "${escapeSmaliString(featureSettings)}"
+                invoke-virtual { v0, v1 }, Landroid/graphics/Paint;->setFontFeatureSettings(Ljava/lang/String;)V
             """.trimIndent(),
         )
+
+        // A snippet the assembler rejects is reported to standard output and
+        // dropped without failing the patch, which leaves a partly written
+        // method behind and the patched app crashes on start, so make sure the
+        // whole snippet made it into the method.
+        if (implementation.instructions.count() - instructionCountBefore != 4) {
+            throw PatchException("The font feature settings injection did not assemble.")
+        }
     }
 }

@@ -160,6 +160,7 @@ public class CarouselArrowsTest {
         PauseForTests.resume();
         Settings.CAROUSEL_ARROWS.resetToDefault();
         Settings.CAROUSEL_DOTS_PILL.resetToDefault();
+        Settings.CAROUSEL_PILL_LOOK.resetToDefault();
         HookStatus.clear();
     }
 
@@ -178,8 +179,11 @@ public class CarouselArrowsTest {
     @After
     public void restore() {
         CarouselArrows.resetForTests();
+        FeedSeekBar.resetForTests();
+        Settings.FEED_SEEK_BAR.resetToDefault();
         Settings.CAROUSEL_ARROWS.resetToDefault();
         Settings.CAROUSEL_DOTS_PILL.resetToDefault();
+        Settings.CAROUSEL_PILL_LOOK.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -584,6 +588,41 @@ public class CarouselArrowsTest {
         assertFalse("nor on the next frame", frame());
     }
 
+    /** #471: a feed seek bar along the bottom of a carousel's video goes where the pill sat, so the pill moves above it. */
+    @Test
+    public void thePillGoesAboveTheFeedSeekBarOnTheCarouselsVideo() {
+        FrameLayout photo = (FrameLayout) ((ViewGroup) ((ViewGroup) pager.getChildAt(0)).getChildAt(0)).getChildAt(0);
+        View cover = new View(activity);
+        photo.addView(cover, new FrameLayout.LayoutParams(WIDTH, HEIGHT));
+        Object player = new Object();
+        FeedSeekBar.playerForTests(new FeedSeekBar.Player() {
+            @Override public View view(Object of) { return of == player ? cover : null; }
+            @Override public boolean seekTo(Object of, int positionMs) { return true; }
+            @Override public boolean pause(Object of) { return true; }
+            @Override public boolean play(Object of) { return true; }
+        });
+        Settings.FEED_SEEK_BAR.save(true);
+        FeedSeekBar.progress(player, 1000, 5000);
+        pillOn();
+        settle();
+
+        View bar = FeedSeekBar.shownBar();
+        assertNotNull(bar);
+        assertTrue("the bar sits in the carousel's photo frame", bar.getParent() == photo);
+        float d = density();
+        float barTop = HEADER + HEIGHT - Math.round(FeedSeekBar.HEIGHT_DP * d);
+        assertEquals(barTop - (CarouselArrows.PILL_OVER_BAR + CarouselArrows.PILL_HEIGHT) * d,
+                pill().getTop() + pill().getTranslationY(), 1f);
+        assertTrue("the pill clears the bar", pill().getTop() + pill().getTranslationY() + pill().getHeight() <= barTop);
+
+        Settings.FEED_SEEK_BAR.save(false);
+        FeedSeekBar.progress(player, 2000, 5000);
+        settle();
+        assertNull("the bar hides with its switch", FeedSeekBar.shownBar());
+        assertEquals(Math.round(HEADER + HEIGHT - (CarouselArrows.PILL_MARGIN + CarouselArrows.PILL_HEIGHT) * d),
+                pill().getTop() + pill().getTranslationY(), 1f);
+    }
+
     @Test
     public void thePillFollowsTheCarouselsPage() {
         pillOn();
@@ -596,6 +635,42 @@ public class CarouselArrowsTest {
         assertFalse(frame());
         assertEquals(1, pill().at);
         assertFalse(frame());
+    }
+
+    /** #471: Pill look's choice reaches the pill on the next frame, and a frosted pill still shows the page. */
+    @Test
+    public void thePillTakesPillLook() {
+        pillOn();
+        settle();
+        assertEquals("solid to start, as the pill always was", OverlayLook.SOLID, pill().look);
+
+        Settings.CAROUSEL_PILL_LOOK.save(OverlayLook.SEE_THROUGH);
+        assertFalse(frame());
+        assertEquals(OverlayLook.SEE_THROUGH, pill().look);
+
+        Settings.CAROUSEL_PILL_LOOK.save(OverlayLook.FROSTED);
+        assertFalse("the glass holds no frame back", frame());
+        assertEquals(OverlayLook.FROSTED, pill().look);
+        pager.at = 1;
+        assertFalse(frame());
+        assertTrue(shows(pill()));
+        assertEquals(1, pill().at);
+
+        Settings.CAROUSEL_PILL_LOOK.save(OverlayLook.SOLID);
+        assertFalse(frame());
+        assertEquals(OverlayLook.SOLID, pill().look);
+    }
+
+    @Test
+    public void eachPillLookHasItsShadeAndDots() {
+        assertEquals(CarouselArrows.Pill.BACK, CarouselArrows.Pill.back(OverlayLook.SOLID, false));
+        assertEquals(CarouselArrows.Pill.SEE_THROUGH_BACK, CarouselArrows.Pill.back(OverlayLook.SEE_THROUGH, false));
+        assertEquals(CarouselArrows.Pill.FROST_TINT, CarouselArrows.Pill.back(OverlayLook.FROSTED, true));
+        assertEquals("a frosted pill with no blur to draw is see-through",
+                CarouselArrows.Pill.SEE_THROUGH_BACK, CarouselArrows.Pill.back(OverlayLook.FROSTED, false));
+        assertEquals(CarouselArrows.Pill.DARK, CarouselArrows.Pill.otherDot(OverlayLook.SOLID));
+        assertEquals(CarouselArrows.Pill.LIGHT_DOT, CarouselArrows.Pill.otherDot(OverlayLook.SEE_THROUGH));
+        assertEquals(CarouselArrows.Pill.LIGHT_DOT, CarouselArrows.Pill.otherDot(OverlayLook.FROSTED));
     }
 
     @Test

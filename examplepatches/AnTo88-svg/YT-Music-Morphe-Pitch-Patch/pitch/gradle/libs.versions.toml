@@ -1,0 +1,8 @@
+[versions]
+morphe-patcher = "2.0.0"
+smali = "4220ae75f7"
+
+[libraries]
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

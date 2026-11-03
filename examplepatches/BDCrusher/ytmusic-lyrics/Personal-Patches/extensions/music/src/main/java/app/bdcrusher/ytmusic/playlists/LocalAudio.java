@@ -21,7 +21,9 @@ public final class LocalAudio {
             catch(IOException failure){input.close();throw failure;}
         }
     }
-    static Source source(String id){
+    static Source source(String id){return source(id,false);}
+    static Source source(String id,boolean video){
+        if(video){File file=DownloadCatalog.video(id);if(file==null)return null;return new Source(file,"",file.length(),file.getName().endsWith("webm")?"video/webm":"video/mp4");}
         File own=PlaylistRuntime.audio(id);if(own!=null)return new Source(own,"",own.length(),own.getName().endsWith(".webm")?"audio/webm":"audio/mp4");
         ExternalFiles.Item item=ExternalFiles.get(id);if(item==null||item.nativeResponse()==null||!ExternalFiles.granted(Utils.getContext()))return null;
         try{var response=app.morphe.extension.shared.innertube.PlayerResponseOuterClass.PlayerResponse.parseFrom(item.nativeResponse());String mime=response.getStreamingData().getAdaptiveFormats(0).getMimeType().split(";",2)[0];return new Source(null,item.uri(),item.bytes(),mime);}catch(Exception invalid){return null;}

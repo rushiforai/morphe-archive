@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 JoanComasFdz
 // SPDX-License-Identifier: GPL-3.0-only
 
+using System.Text.RegularExpressions;
 using BaconReader.FakeReddit.Json;
 using BaconReader.FakeReddit.World;
 using Microsoft.AspNetCore.Builder;
@@ -13,7 +14,7 @@ namespace BaconReader.FakeReddit.Endpoints;
 /// paged by <c>after</c>, <c>before</c> and <c>limit</c>, <c>top</c> and <c>controversial</c> by <c>t</c>; a post's
 /// comments; a subreddit's about; the default subreddits, Reddit's and BaconReader's server's.
 /// </summary>
-internal static class Listings
+internal static partial class Listings
 {
     private const string Sorts = "regex(^(best|hot|new|top|rising|controversial)$)";
 
@@ -26,6 +27,12 @@ internal static class Listings
         app.MapGet("/r/{subreddit}", (HttpContext context, string subreddit) => Feed(context, world, things, subreddit, "best"));
         app.MapGet($"/r/{{subreddit}}/{{sort:{Sorts}}}", (HttpContext context, string subreddit, string sort) =>
             Feed(context, world, things, subreddit, sort));
+
+        app.MapGet("/r/{subreddit}/search", (HttpContext context, string subreddit) => Search(context, world, things, subreddit));
+
+        // BaconReader asks for a subreddit's flairs as api/link_flair?r=<sub>; Reddit's own path is r/<sub>/api/link_flair.
+        app.MapGet("/api/link_flair", (HttpContext context) => LinkFlairs(context, world, context.Request.Query["r"].ToString()));
+        app.MapGet("/r/{subreddit}/api/link_flair", (HttpContext context, string subreddit) => LinkFlairs(context, world, subreddit));
 
         app.MapGet("/comments/{id}/{**rest}", (HttpContext context, string id, string? rest) =>
             CommentsOf(context, world, things, id, rest));
@@ -95,6 +102,63 @@ internal static class Listings
             return Answers.Json(Page(sorted, query, post => post.FullName, post => things.Link(post, viewer)));
         }
     }
+
+    // A search in a subreddit (restrict_sr): its posts with one of the flairs a query of flair_name:"<flair>" terms names,
+    // joined by OR, or, for any other query, those whose title holds each of its words.
+    private static IResult Search(HttpContext context, RedditWorld world, Things things, string subreddit)
+    {
+        lock (world.Sync)
+        {
+            var viewer = Caller.Read(context, world, out var refused);
+            if (refused is not null)
+            {
+                return refused;
+            }
+
+            if (world.FindSubreddit(subreddit) is not { } found)
+            {
+                return Answers.Error(StatusCodes.Status404NotFound, "Not Found");
+            }
+
+            var query = context.Request.Query;
+            var q = query["q"].ToString();
+            var flairs = FlairName().Matches(q).Select(match => match.Groups[1].Value).ToList();
+            var words = q.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var matching = world.PostsUnlocked
+                .Where(post => post.Subreddit == found)
+                .Where(post => viewer is null || !post.HiddenBy.Contains(viewer.Name))
+                .Where(post => flairs.Count > 0
+                    ? flairs.Contains(post.Flair ?? "", StringComparer.OrdinalIgnoreCase)
+                    : words.All(word => post.Title.Contains(word, StringComparison.OrdinalIgnoreCase)));
+            var sorted = Sort(matching, query["sort"].ToString().ToLowerInvariant(), pinStickied: false).ToList();
+            return Answers.Json(Page(sorted, query, post => post.FullName, post => things.Link(post, viewer)));
+        }
+    }
+
+    // A subreddit's post flairs; Reddit refuses the list of a subreddit whose flairs aren't public.
+    private static IResult LinkFlairs(HttpContext context, RedditWorld world, string subreddit)
+    {
+        lock (world.Sync)
+        {
+            Caller.Read(context, world, out var refused);
+            if (refused is not null)
+            {
+                return refused;
+            }
+
+            if (world.FindSubreddit(subreddit) is not { } found)
+            {
+                return Answers.Error(StatusCodes.Status404NotFound, "Not Found");
+            }
+
+            return found.LinkFlairs is { } flairs
+                ? Answers.Json(Things.LinkFlairs(flairs))
+                : Answers.Error(StatusCodes.Status403Forbidden, "Forbidden");
+        }
+    }
+
+    [GeneratedRegex("flair_name:\"([^\"]*)\"", RegexOptions.IgnoreCase)]
+    private static partial Regex FlairName();
 
     // The posts a feed shows: null when it names a subreddit the world doesn't have, as Reddit answers 404.
     private static IEnumerable<Post>? PostsOf(RedditWorld world, string? subreddit, Account? viewer)

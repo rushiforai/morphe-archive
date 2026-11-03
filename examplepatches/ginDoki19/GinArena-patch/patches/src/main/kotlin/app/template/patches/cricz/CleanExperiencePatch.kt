@@ -28,10 +28,7 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringRefere
 @Suppress("unused")
 val removeAdsTelemetryAndRestrictionsPatch = bytecodePatch(
     name = "Remove ads, telemetry & restrictions",
-    description = "Replaces native signature-locked config decryption in pure Java, removes all " +
-        "banner/popunder/timer ads and the local NanoHTTPD ad server, suppresses the startup Telegram " +
-        "popup and player watermarks, strips Firebase telemetry and push notifications, and bypasses " +
-        "update lockouts. Optional root/sniffer bypass and native/telemetry stripping are off by default.",
+    description = "Removes ads, promo popups, and tracking, and keeps channels working after patching.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRICZ_TV)

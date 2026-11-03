@@ -108,8 +108,7 @@ public final class Haiagaru {
     private static final long CELLULAR_NETWORK_LEASE_MILLIS = 120_000L;
     private static final Handler CELLULAR_NETWORK_LEASE_HANDLER =
             new Handler(Looper.getMainLooper());
-    private static final Map<Activity, PopupWindow> SETTINGS_BUTTON_POPUPS =
-            new WeakHashMap<>();
+
     private static final int EDDI_ARCHIVE_TOOLBAR_ID = 0x7e000001;
     private static final int MARK_ALL_READ_TOOLBAR_ID = 0x7e000003;
     private static final int DIRECT_COPY_TOOLBAR_ID = 0x7e000004;
@@ -120,7 +119,6 @@ public final class Haiagaru {
             "legacyTalkSessionRepairLastUpdateV2";
     private static final java.util.Map<Object, Integer> LEGACY_TALK_TRANSPORTS =
             java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
-    private static final String BUTTON_TAG = "haiagaru.settings.button";
     private static final String DEFAULT_COOKIE_CLASS =
             "com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor";
     private static final String DEFAULT_MONAKEY_FILE = "2chapi";
@@ -469,6 +467,7 @@ public final class Haiagaru {
             }
         }
         EmojiFontFallback.register(application);
+        ThreadWatch.schedule(application);
         HaiagaruMegaSync.maybeBackupOnStartup(application);
     }
 
@@ -504,6 +503,7 @@ public final class Haiagaru {
                     || "0.8.10.242 dev".equals(version)) {
                 result = addToolbarChoice(result, 0x7e000009, "haiagaru_hissi_droid_plus");
                 result = addToolbarChoice(result, ToolbarIcons.AUTO_NG_EXCLUSIONS, "haiagaru_auto_ng_exclusions");
+                result = addToolbarChoice(result, ThreadWatch.ACTION, "haiagaru_thread_watch");
             }
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version) || "0.8.10.242 dev".equals(version))
                 result = addToolbarChoice(result, DIRECT_COPY_TOOLBAR_ID, "haiagaru_direct_copy");
@@ -642,6 +642,7 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if(itemId==ThreadWatch.ACTION){ThreadWatch.show(fragment);return true;}
         if (itemId == ToolbarIcons.AUTO_NG_EXCLUSIONS) {
             RedIdAutoNg.showExclusions(toolbarActivity(fragment));
             return true;
@@ -922,6 +923,11 @@ public final class Haiagaru {
     /** Applies the bundled emoji fallback while preserving the original text. */
     public static CharSequence processEmojiText(CharSequence source) {
         return EmojiFontFallback.processText(source);
+    }
+
+    public static CharSequence processEmojiTextForView(Object view,CharSequence source){
+        if(view instanceof android.widget.EditText)return source;
+        return processEmojiText(source);
     }
 
     /** Leaves the editor/history intact and adapts only the outgoing post copy. */
@@ -1602,7 +1608,14 @@ public final class Haiagaru {
      * remain available through the archived-thread search preset.
      */
     public static boolean loadLiveTalkDat(String url, File destination) throws IOException {
-        return ArchivedThreadImporter.loadLiveTalkDat(url, destination);
+        if (ArchivedThreadImporter.isTalkThreadUrl(url))
+            return ArchivedThreadImporter.loadLiveTalkDat(url, destination);
+        // This existing bridge runs on the native DAT worker, after the thread
+        // view exists and while ChMate owns its DAT lock. Do not preflight live
+        // 5ch threads from the navigation hook and then download them again.
+        return isChtoioEnabled() && applicationContext != null
+                && isAutomaticDatEnabled(applicationContext)
+                && ArchivedThreadImporter.loadInitial5chDat(applicationContext, url, destination);
     }
 
     /**
@@ -2474,7 +2487,7 @@ public final class Haiagaru {
             intent.removeExtra("haiagaru.archive.retry");
         }
         boolean shouldImport = talkThread
-                || (isAutomaticDatEnabled(activity) && (vipThread || ArchiveThreadLinks.is5chThread(original) || isArchivedThreadUrl(original)));
+                || (isAutomaticDatEnabled(activity) && (vipThread || isArchivedThreadUrl(original)));
         if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
             Log.i(LOG_TAG, "Handling thread through the local DAT cache: " + original);
@@ -2516,7 +2529,7 @@ public final class Haiagaru {
         String rewritten = talkThread || vipThread ? original : rewriteLegacyThreadUrl(original);
         boolean archiveRetry = bundle.getBoolean("haiagaru.archive.retry", false);
         boolean shouldImport = talkThread
-                || (isAutomaticDatEnabled(activity) && (vipThread || ArchiveThreadLinks.is5chThread(original) || isArchivedThreadUrl(original)));
+                || (isAutomaticDatEnabled(activity) && (vipThread || isArchivedThreadUrl(original)));
         if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
             Log.i(LOG_TAG, "Handling tablet thread through the local DAT cache: " + original);
@@ -3408,66 +3421,9 @@ public final class Haiagaru {
     public static void onSettingsResume(Activity activity) {
         if (activity == null) return;
         applicationContext = activity.getApplicationContext();
-        PopupWindow existing = SETTINGS_BUTTON_POPUPS.get(activity);
-        if (existing != null && existing.isShowing()) return;
-
-        View decorView = activity.getWindow().getDecorView();
-        if (decorView == null) return;
-
-        Button button = new Button(activity);
-        button.setTag(BUTTON_TAG);
-        button.setText("Haiagaru");
-        button.setAllCaps(false);
-        button.setOnClickListener(view -> view.post(() -> showSettingsDialog(activity)));
-
-        PopupWindow popup = new PopupWindow(
-                button,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                false
-        );
-        popup.setTouchable(true);
-        popup.setOutsideTouchable(false);
-        popup.setClippingEnabled(false);
-        popup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        if (Build.VERSION.SDK_INT >= 21) {
-            popup.setElevation(dp(activity, 16));
-        }
-        SETTINGS_BUTTON_POPUPS.put(activity, popup);
-
-        decorView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-            @Override
-            public void onViewAttachedToWindow(View view) {
-            }
-
-            @Override
-            public void onViewDetachedFromWindow(View view) {
-                PopupWindow stored = SETTINGS_BUTTON_POPUPS.remove(activity);
-                if (stored != null && stored.isShowing()) stored.dismiss();
-            }
-        });
-        decorView.post(() -> {
-            if (activity.isFinishing()
-                    || (Build.VERSION.SDK_INT >= 17 && activity.isDestroyed())) {
-                SETTINGS_BUTTON_POPUPS.remove(activity);
-                return;
-            }
-            if (popup.isShowing()) return;
-            try {
-                popup.showAtLocation(
-                        decorView,
-                        Gravity.TOP | Gravity.END,
-                        dp(activity, 10),
-                        statusBarHeight(activity) + dp(activity, 5)
-                );
-            } catch (Throwable error) {
-                SETTINGS_BUTTON_POPUPS.remove(activity);
-                Log.w(LOG_TAG, "Unable to show Haiagaru settings popup button", error);
-            }
-        });
     }
 
-    private static void showSettingsDialog(Activity activity) {
+    static void showSettingsDialog(Activity activity) {
         if (NativeToolTabs.open(activity, "settings")) return;
         activity.startActivity(NativeToolTabs.settingsIntent(activity));
     }
@@ -5214,6 +5170,10 @@ public final class Haiagaru {
         String savedClass = preferences == null
                 ? defaultAdClass()
                 : configuredAdClass(preferences);
+        return hideRememberedAdViews(view, savedClass);
+    }
+
+    private static boolean hideRememberedAdViews(View view, String savedClass) {
         boolean hidden = false;
         if (savedClass != null && savedClass.equals(view.getClass().getName())) {
             hideAdView(view);
@@ -5223,7 +5183,7 @@ public final class Haiagaru {
 
         ViewGroup group = (ViewGroup) view;
         for (int i = 0; i < group.getChildCount(); i++) {
-            hidden |= hideRememberedAdViews(group.getChildAt(i));
+            hidden |= hideRememberedAdViews(group.getChildAt(i), savedClass);
         }
         return hidden;
     }
@@ -5283,6 +5243,17 @@ public final class Haiagaru {
     }
 
     private static String defaultAdClass() {
+        return DefaultAdClass.VALUE;
+    }
+
+    // The built-in classes belong to the installed APK, whose class loader does
+    // not change within this process. A failed lookup is expensive too: 191
+    // otherwise constructs three ClassNotFoundExceptions for every visited View.
+    private static final class DefaultAdClass {
+        static final String VALUE = resolveDefaultAdClass();
+    }
+
+    private static String resolveDefaultAdClass() {
         if (classExists(AD_CLASS_243)) return AD_CLASS_243;
         if (classExists(AD_CLASS_242)) return AD_CLASS_242;
         if (classExists(AD_CLASS_241)) return AD_CLASS_241;

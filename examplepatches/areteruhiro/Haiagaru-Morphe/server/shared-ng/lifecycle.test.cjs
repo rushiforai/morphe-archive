@@ -90,3 +90,32 @@ const manifest=JSON.parse(cache.get('reviewed-feed-v9'));
 cache.delete('reviewed-part:'+manifest.hash+':0');check(context.ngReviewedCacheGet_()===null,'evicted chunk invalidates snapshot');
 context.ngReviewedCachePut_(large);cache.set('reviewed-part:'+manifest.hash+':0','broken');check(context.ngReviewedCacheGet_()===null,'corrupt chunk invalidates snapshot');
 console.log('PASS '+checks+' including large-feed cache checks');
+
+// Private reporter exclusion: ACK without storage, retain history, invalidate cached votes.
+const ignoredDevice='b'.repeat(64),otherDevice='c'.repeat(64);
+const ignoredReporter=context.ngHash_(properties.get('REPORTER_PEPPER')+':'+ignoredDevice);
+const blockedCondition=condition('keyword','除外報告者テスト条件');
+check(personal(ignoredDevice,[blockedCondition]).accepted===1,'baseline ignored reporter history');
+check(feed().rules.some(r=>r.value===blockedCondition.value),'baseline cached feed includes history');
+const historyBefore=JSON.stringify(all());
+properties.set('IGNORED_REPORTERS',ignoredReporter);
+check(!feed().rules.some(r=>r.value===blockedCondition.value),'configuration bypasses old cached feed');
+check(JSON.stringify(all())===historyBefore,'ignored history preserved');
+const storageBefore=JSON.stringify(Array.from(sheets.values()).map(s=>s.rows));
+for(const action of ['upsert','delete']){
+ const report={...blockedCondition,operationId:crypto.randomBytes(32).toString('hex'),action};
+ const response=personal(ignoredDevice,[report]);
+ check(response.ok&&response.accepted===1&&response.ack[0]===report.operationId,'ignored '+action+' acknowledged');
+ check(JSON.stringify(Array.from(sheets.values()).map(s=>s.rows))===storageBefore,'ignored '+action+' never stored');
+}
+check(personal(otherDevice,[{...blockedCondition,operationId:crypto.randomBytes(32).toString('hex')}]).accepted===1,'other reporter accepted');
+context.reviewPersonalNg();
+check(feed().rules.find(r=>r.value===blockedCondition.value).votes===1,'other reporter vote preserved');
+check(context.auditReviewedSharedNg().ok,'audit agrees with ignored votes');
+const legacyBefore=JSON.stringify(Array.from(sheets.values()).map(s=>s.rows));
+const legacy=post(ignoredDevice,[{board:'5ch/android',kind:'id',value:'LegacyFixture',period:'2026-11-03'}]);
+check(legacy.ok&&legacy.accepted===1,'ignored legacy returns success');
+check(JSON.stringify(Array.from(sheets.values()).map(s=>s.rows))===legacyBefore,'ignored legacy never stored');
+properties.delete('IGNORED_REPORTERS');
+check(JSON.parse(context.exportReviewedSharedNg()).rules.find(r=>r.value===blockedCondition.value).votes===2,'removing exclusion restores retained history');
+console.log('PASS '+checks+' including ignored-reporter checks');

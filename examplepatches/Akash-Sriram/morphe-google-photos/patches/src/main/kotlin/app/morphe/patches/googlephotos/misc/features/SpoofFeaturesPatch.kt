@@ -7,27 +7,37 @@ package app.morphe.patches.googlephotos.misc.features
 
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.all.misc.transformation.transformInstructionsPatch
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.shared.misc.mapping.ResourceType
+import app.morphe.patches.shared.misc.mapping.getResourceId
+import app.morphe.patches.shared.misc.mapping.resourceMappingPatch
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 
-// Pixel XL (marlin) system property overrides.
-// These cover native C/C++ paths that read SystemProperties directly,
-// bypassing the Java Build.* fields that baseSpoofBuildInfoPatch already overrides.
+// Features cleanly hooked to resolve dynamically via DeviceSpoofHelper for unlimited backup tier.
+private val BAKED_FEATURES_TO_ENABLE = setOf(
+    "com.google.android.apps.photos.NEXUS_PRELOAD",
+    "com.google.android.apps.photos.nexus_preload",
+    "com.google.android.feature.PIXEL_2020_EXPERIENCE",
+)
+
+// Pixel XL system property overrides for native C/C++ checks.
 private val SYSTEM_PROPERTY_OVERRIDES = mapOf(
     "ro.product.model"                    to "Pixel XL",
     "ro.product.model_for_attestation"    to "Pixel XL",
@@ -38,12 +48,6 @@ private val SYSTEM_PROPERTY_OVERRIDES = mapOf(
     "ro.product.brand"                    to "google",
     "ro.product.manufacturer"             to "Google",
     "ro.build.fingerprint"                to "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys",
-)
-
-// The two flags cleanly baked directly into the DEX for unlimited original quality backup.
-private val BAKED_FEATURES_TO_ENABLE = setOf(
-    "com.google.android.apps.photos.NEXUS_PRELOAD",
-    "com.google.android.apps.photos.nexus_preload",
 )
 
 @Suppress("unused")
@@ -57,6 +61,7 @@ val spoofFeaturesPatch = bytecodePatch(
     dependsOn(
         spoofBuildInfoPatch,
         app.morphe.patches.googlephotos.misc.extension.sharedExtensionPatch,
+        resourceMappingPatch,
         transformInstructionsPatch(
             filterMap = filterMap@{ classDef, _, instruction, instructionIndex ->
                 if (classDef.type.startsWith("Lapp/morphe/extension/")) return@filterMap null
@@ -93,32 +98,129 @@ val spoofFeaturesPatch = bytecodePatch(
     )
 
     execute {
-        getAllClassesWithStrings().forEach { classDef ->
+        val idOq = getResourceId(ResourceType.STRING, "photos_backup_settings_quality_oq_desc") ?: 0x7f140719L
+        val idSaver = getResourceId(ResourceType.STRING, "photos_devicesetup_basicstoragepolicy_impl_high_quality_photo_resolution") ?: 0x7f140b58L
+        val idExpress = getResourceId(ResourceType.STRING, "photos_devicesetup_basicstoragepolicy_impl_basic_quality_photo_resolution") ?: 0x7f140b54L
+
+        classDefForEach { classDef ->
+            if (classDef.type.startsWith("Lapp/morphe/")) return@classDefForEach
             val mutableClass by lazy { mutableClassDefBy(classDef) }
 
             classDef.methods.forEach classLoop@{ method ->
                 val implementation = method.implementation ?: return@classLoop
                 val mutableMethod by lazy { mutableClass.findMutableMethodOf(method) }
 
-                var didPatchFeatureFlag = false
-                implementation.instructions.forEachIndexed { index, instruction ->
-                    val string = ((instruction as? Instruction21c)?.reference as? StringReference)?.string
-                        ?: return@forEachIndexed
-
-                    if (string !in BAKED_FEATURES_TO_ENABLE) return@forEachIndexed
-
-                    mutableMethod.replaceInstruction(
-                        index,
-                        BuilderInstruction21c(
-                            Opcode.CONST_STRING,
-                            (instruction as OneRegisterInstruction).registerA,
-                            ImmutableStringReference("android.hardware.wifi"),
-                        ),
-                    )
-                    didPatchFeatureFlag = true
+                // 1. Hook Backup Quality row visibility in Google Photos settings (e.g. Lukm.<init>)
+                if (method.name == "<init>" &&
+                    method.parameterTypes.size == 7 &&
+                    method.parameterTypes[0] == "Z" &&
+                    method.parameterTypes[1] == "Z" &&
+                    method.parameterTypes[2] == "Z" &&
+                    method.returnType == "V"
+                ) {
+                    val iputIndex = implementation.instructions.indexOfFirst { it.opcode == Opcode.IPUT_BOOLEAN }
+                    if (iputIndex != -1) {
+                        val iputInstr = implementation.instructions.elementAt(iputIndex) as OneRegisterInstruction
+                        val reg = iputInstr.registerA
+                        mutableMethod.addInstructions(
+                            iputIndex,
+                            """
+                                invoke-static { v$reg }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->shouldShowQualitySelector(Z)Z
+                                move-result v$reg
+                            """.trimIndent(),
+                        )
+                    }
                 }
 
-                // Also patch SystemProperties.get() callsites in any method that contains them.
+                val instructionList = implementation.instructions.toList()
+
+                // 2. Hook Backup Quality option cards (device indicators & option disablement)
+                val qualityOptionCalls = mutableListOf<Triple<Int, Int, Int>>() // invokeIndex, qualityType, descReg
+                var currentQualityType: Int? = null
+                var lastQualityIndex = -100
+
+                for (index in instructionList.indices) {
+                    val instr = instructionList[index]
+                    val literal = (instr as? WideLiteralInstruction)?.wideLiteral
+                    if (literal != null) {
+                        when (literal) {
+                            idOq -> { currentQualityType = 0; lastQualityIndex = index }
+                            idSaver -> { currentQualityType = 1; lastQualityIndex = index }
+                            idExpress -> { currentQualityType = 2; lastQualityIndex = index }
+                        }
+                    }
+
+                    if (currentQualityType != null && (index - lastQualityIndex) in 1..25) {
+                        if (instr.opcode == Opcode.INVOKE_STATIC || instr.opcode == Opcode.INVOKE_STATIC_RANGE) {
+                            val methodRef = (instr as? ReferenceInstruction)?.reference as? MethodReference
+                            if (methodRef != null &&
+                                methodRef.parameterTypes.size == 6 &&
+                                methodRef.parameterTypes[0] == "Ljava/lang/String;" &&
+                                methodRef.parameterTypes[1] == "Z" &&
+                                methodRef.parameterTypes[3] == "Ljava/util/List;" &&
+                                methodRef.parameterTypes[5] == "I" &&
+                                methodRef.returnType == "V"
+                            ) {
+                                val descReg = when (instr) {
+                                    is Instruction35c -> instr.registerF
+                                    is Instruction3rc -> instr.startRegister + 3
+                                    else -> null
+                                }
+                                if (descReg != null) {
+                                    qualityOptionCalls.add(Triple(index, currentQualityType, descReg))
+                                    currentQualityType = null
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (qualityOptionCalls.isNotEmpty()) {
+                    for ((invokeIndex, qType, descReg) in qualityOptionCalls.reversed()) {
+                        val nextInstruction = mutableMethod.getInstruction(invokeIndex + 1)
+                        mutableMethod.addInstructionsWithLabels(
+                            invokeIndex,
+                            """
+                                move-object/from16 v1, v$descReg
+                                const/4 v0, $qType
+                                invoke-static { v0, v1 }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->getEnhancedQualityDescriptions(ILjava/util/List;)Ljava/util/List;
+                                move-result-object v1
+                                move-object/from16 v$descReg, v1
+                                invoke-static { v0 }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->isQualityOptionEnabled(I)Z
+                                move-result v0
+                                if-eqz v0, :skip_opt_$invokeIndex
+                            """.trimIndent(),
+                            ExternalLabel("skip_opt_$invokeIndex", nextInstruction),
+                        )
+                    }
+                }
+
+                // 3. String features & reupload dialog suppression
+                for (index in instructionList.indices.reversed()) {
+                    val instruction = instructionList[index]
+                    val string = ((instruction as? Instruction21c)?.reference as? StringReference)?.string
+                        ?: continue
+
+                    if (string in BAKED_FEATURES_TO_ENABLE) {
+                        val reg = (instruction as OneRegisterInstruction).registerA
+                        mutableMethod.addInstructions(
+                            index + 1,
+                            "invoke-static { v$reg }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->resolveSystemFeature(Ljava/lang/String;)Ljava/lang/String;\n" +
+                            "move-result-object v$reg",
+                        )
+                    }
+
+                    // Suppress "Upgrade existing backups?" popup when switching backup quality
+                    if (string == "ConfirmReuploadDialogFragment") {
+                        val nextIndex = index + 1
+                        val nextInstr = instructionList.getOrNull(nextIndex)
+                        if (nextInstr != null && (nextInstr.opcode == Opcode.INVOKE_VIRTUAL || nextInstr.opcode == Opcode.INVOKE_VIRTUAL_RANGE)) {
+                            mutableMethod.replaceInstruction(nextIndex, "nop")
+                        }
+                    }
+                }
+
+                // 4. SystemProperties.get() callsites
                 val hasSystemPropCall = implementation.instructions.any { instr ->
                     val ref = (instr as? ReferenceInstruction)?.reference as? MethodReference
                     ref != null && ref.isSystemPropertiesStringGetter()
@@ -131,7 +233,6 @@ val spoofFeaturesPatch = bytecodePatch(
     }
 }
 
-private fun String.escapeSmali() = replace("\\", "\\\\").replace("\"", "\\\"")
 
 private fun MethodReference.isSystemPropertiesStringGetter(): Boolean =
     definingClass == "Landroid/os/SystemProperties;" &&
@@ -166,19 +267,22 @@ private fun MutableMethod.patchSystemPropertyReads(overrides: Map<String, String
     if (overrides.isEmpty()) return
 
     val instructionList = instructions.toList()
-    instructionList.forEachIndexed { index, instruction ->
+    for (index in instructionList.indices.reversed()) {
+        val instruction = instructionList[index]
         val methodReference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-            ?: return@forEachIndexed
-        if (!methodReference.isSystemPropertiesStringGetter()) return@forEachIndexed
+            ?: continue
+        if (!methodReference.isSystemPropertiesStringGetter()) continue
 
-        val keyRegister = (instruction as? ReferenceInstruction)?.firstInvokeRegister() ?: return@forEachIndexed
-        val key = instructionList.constStringValueBefore(index, keyRegister) ?: return@forEachIndexed
-        val replacement = overrides[key] ?: return@forEachIndexed
+        val keyRegister = (instruction as? ReferenceInstruction)?.firstInvokeRegister() ?: continue
+        val key = instructionList.constStringValueBefore(index, keyRegister) ?: continue
+        if (key !in overrides) continue
         val moveResult = instructionList.getOrNull(index + 1)
-        if (moveResult?.opcode != Opcode.MOVE_RESULT_OBJECT) return@forEachIndexed
+        if (moveResult?.opcode != Opcode.MOVE_RESULT_OBJECT) continue
 
-        val resultRegister = (moveResult as? OneRegisterInstruction)?.registerA ?: return@forEachIndexed
-        replaceInstruction(index, "nop")
-        replaceInstruction(index + 1, "const-string v$resultRegister, \"${replacement.escapeSmali()}\"")
+        // Dynamically resolve system property through DeviceSpoofHelper so it respects Auto / Pixel XL / Pixel 5 / Stock
+        replaceInstruction(
+            index,
+            "invoke-static { v$keyRegister }, Lapp/morphe/extension/shared/patches/DeviceSpoofHelper;->getSystemProperty(Ljava/lang/String;)Ljava/lang/String;",
+        )
     }
 }

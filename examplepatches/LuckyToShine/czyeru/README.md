@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;60 patches total
+> **[v1.9.4](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;70 patches total
 <details open>
 <summary>📦 Conexión Lince UVM&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -50,20 +50,23 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;50 patches</summary>
+<summary>📦 TikTok&nbsp;&nbsp;•&nbsp;&nbsp;60 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 47.4.3 | 47.2.41 |
-| :---: | :---: |
+| 47.6.3 | 47.4.3 | 47.2.41 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Always show publish date](#always-show-publish-date) | Always shows the publish date in video author information. Thanks to lyyako for the original implementation. |  |
+| [Block author button](#block-author-button) | Adds a button on videos to block the creator in one tap, with undo. Also adds the pause switches (comments, returning to the app, first video, keep paused). Starts off. Turn it on in Erudite settings > Hushfeed features. |  |
 | [Collection picker search](#collection-picker-search) | Adds an option to show a search bar on the sheet where you pick the collection for a saved video, so you do not have to scroll through every collection. |  |
 | [Collection videos search](#collection-videos-search) | Adds an option to show a search bar inside a collection that filters loaded videos by description or creator. |  |
 | [Comment sort controls](#comment-sort-controls) | Exposes TikTok's native full comment-sort sheet, including its hot, time, media, and creator modes, instead of relying on rollout gates. |  |
+| [Comment tools](#comment-tools) | Hides comments with words you pick or from accounts you pick, and adds a search box for a video's comments. It can also make links tappable and show poll results before you vote. Starts off. Turn it on in Erudite settings > Hushfeed features. |  |
+| [Copy bio and IDs](#copy-bio-and-ids) | Lets you long-press a bio to copy it and adds share sheet buttons that copy a display name, username, user ID or video ID. On a profile card inside a LIVE room, long-press the bio or the name to copy it, long-press the username for the user ID, or tap the copy mark by the username. On by default. Turn it off in Erudite settings > Hushfeed features. |  |
 | [Copy comments without username](#copy-comments-without-username) | Copies only the comment text without including the creator's username. |  |
 | [Custom offline videos limit](#custom-offline-videos-limit) | Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. |  |
 | [Diagnostic tools](#diagnostic-tools) | Adds diagnostic logging, crash capture, reports, and an optional rolling feed debugger. |  |
@@ -71,12 +74,15 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Disable long-press quick share](#disable-long-press-quick-share) | Keeps long-pressing Share from opening TikTok's quick-share interaction. |  |
 | [Disable long-press repost](#disable-long-press-repost) | Keeps holding Like from opening TikTok's repost action. |  |
 | [Disable screen capture detection](#disable-screen-capture-detection) | Disables capture detection and secure-window screenshot protection, including Circle to Search blocking. |  |
+| [Double-tap controls](#double-tap-controls) | Lets a double tap on a video do nothing, like or unlike it, open its comments, copy the video or sound link, find the sound on YouTube Music or open search, instead of only liking it. Each corner of the video can get its own action too. Starts off. Pick an action in Erudite settings > Hushfeed features. |  |
 | [Downloads](#downloads) | Adds watermark-free downloads, video quality selection, comment sticker saving, configurable folders, and filename templates. |  |
 | [Enable Live search](#enable-live-search) | Shows TikTok's search entry in the Live drawer where supported. |  |
 | [Enable non-personalized search](#enable-non-personalized-search) | Uses TikTok's non-personalized search mode instead of its saved account choice. |  |
 | [Enable voice comments](#enable-voice-comments) | Enables TikTok's native voice-comment recording and publishing entry points. |  |
+| [Expand activity list](#expand-activity-list) | Shows the whole Activity and New followers lists in the Inbox, so you don't have to tap View all. Starts off. Turn it on in Erudite settings > Hushfeed features. |  |
 | [Favorite playlists grid](#favorite-playlists-grid) | Adds an option to show favorite playlists in a 3-column 8pt grid with square covers and the title and video count below. |  |
-| [Favorite playlists search](#favorite-playlists-search) | Adds an option to show a search bar on the favorite playlists page that filters loaded playlists by name. |  |
+| [Favorite playlists search V1](#favorite-playlists-search-v1) | Adds an option to show a search bar on the favorite playlists page that instantly filters your playlists by name, loading the remaining pages in the background while you search. |  |
+| [Favorites rate limit retry](#favorites-rate-limit-retry) | Adds an option to queue favorites TikTok refuses with "You're adding to Favorites too fast" and save them automatically once TikTok allows it, also after the app is restarted. |  |
 | [Feature Gate Lab](#feature-gate-lab) | Adds a menu for viewing and overriding supported TikTok feature flags and configuration values. |  |
 | [Feed filter](#feed-filter) | Hides feed ads, TikTok Shop items, livestreams, stories, photo posts, and videos outside configured view or like ranges. |  |
 | [Feed tab navigation](#feed-tab-navigation) | Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. |  |
@@ -96,15 +102,19 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Hold-and-slide 2x lock](#hold-and-slide-2x-lock) | Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. |  |
 | [Inbox activity search](#inbox-activity-search) | Adds an option to show a search bar on the Activity notifications and New followers pages to filter by user, comment, or notification text. |  |
 | [Keep collections loaded](#keep-collections-loaded) | Adds an option to remember every collection you have loaded, so the collections page and the save sheet show them all right away instead of loading them page by page again. |  |
-| [Liked videos search](#liked-videos-search) | Adds an option to show a search bar on the liked videos page that filters loaded videos by description or creator. |  |
+| [Keep the Favorites tab](#keep-the-favorites-tab) | Keeps the Favorites tab and your saved videos on your profile when TikTok tries out a version of the app that hides them, and makes the collections popup you get by holding the Favorites button dark when TikTok is. Both are on by default. Turn them off in Erudite settings > Hushfeed features. |  |
+| [Liked videos search V1](#liked-videos-search-v1) | Adds an option to show a search bar on the liked videos page that instantly filters your liked videos by description or creator, loading the remaining pages in the background while you search. |  |
+| [Liked videos search V2](#liked-videos-search-v2) | Liked videos search V1 plus an experimental server search: each query also asks TikTok's server for matching liked videos, so videos that have not loaded yet show up right away. Falls back to V1 when the server does not return your liked videos. |  |
+| [Not interested button](#not-interested-button) | Adds a button on videos that tells TikTok you're not interested in one tap, so it can show you fewer like it. Starts off. Turn it on in Erudite settings > Hushfeed features. |  |
 | [Open external links directly](#open-external-links-directly) | Opens profile and story website links in the system browser instead of TikTok's in-app browser. Thanks to lyyako for the original implementation. |  |
 | [Playback speed](#playback-speed) | Enables playback-speed controls for all videos and remembers the selected speed between videos. |  |
 | [Region spoof](#region-spoof) | Adds in-app controls for changing the region TikTok reads. |  |
 | [Remember clear display](#remember-clear-display) | Remembers TikTok's clear-display state between videos. |  |
 | [Resume videos after scrolling](#resume-videos-after-scrolling) | Continues supported videos from where playback stopped when returning after a scroll. |  |
 | [Sanitize sharing links](#sanitize-sharing-links) | Removes tracking parameters from TikTok links before they are shared. |  |
-| [Settings](#settings) | Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 47.4.3 and 47.2.41. |  |
+| [Settings](#settings) | Adds the Crazy Erudite Patches settings menu to TikTok. Supports TikTok 47.6.3, 47.4.3 and 47.2.41. |  |
 | [Share sheet modification](#share-sheet-modification) | Adds toggles and allow-lists for the video share sheet's "Send to", "Share via app", and "Video Actions" sections. |  |
+| [Show exact counts](#show-exact-counts) | Shows likes, comments and other counts as full numbers, like 1,234,567 instead of 1.2M. Starts off. Turn it on in Erudite settings > Hushfeed features. |  |
 | [Show seekbar](#show-seekbar) | Shows TikTok's native video seekbar where it would normally be hidden. |  |
 | [Show seekbar thumbnail](#show-seekbar-thumbnail) | Shows TikTok's video preview thumbnail while dragging the seekbar. |  |
 | [Sort collections](#sort-collections) | Adds an option to sort collections by recent activity (normal), by video count (most first) or by reverse video count (fewest first). |  |

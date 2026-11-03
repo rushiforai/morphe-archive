@@ -21,10 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
     name = "Remove ads, proxy & restrictions",
-    description = "Removes CashRaven background bandwidth sharing, all ads and sponsor/unlock gates, " +
-        "external browser redirects, the startup Telegram join dialog, promo marquee banners, " +
-        "forced-update lockouts, and promo push notifications. Optional clone/sniffer-check " +
-        "bypass and native-library stripping are off by default.",
+    description = "Stops background bandwidth sharing and removes ads, sponsor popups, and forced updates.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRICFY_TV)
@@ -49,8 +46,7 @@ val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
         key = "blockPromoPushNotifications",
         default = true,
         title = "Block promotional push notifications",
-        description = "Suppresses promotional/browser-redirect FCM notifications and skips the startup " +
-            "notification permission prompt while preserving silent RemoteConfig API updates.",
+        description = "Blocks promotional push notifications and skips the notification permission prompt.",
     )
 
     val bypassEnvironmentChecks by booleanOption(

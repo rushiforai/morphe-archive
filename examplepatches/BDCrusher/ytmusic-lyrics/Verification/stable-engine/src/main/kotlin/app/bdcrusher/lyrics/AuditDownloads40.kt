@@ -44,7 +44,7 @@ fun main(args:Array<String>){
   val spoof=all.getValue("Lapp/morphe/extension/shared/spoof/SpoofVideoStreamsPatch;")
   for(name in listOf("getStreamingData","getPlayerConfig")){
    val refs=spoof.methods.single {it.name==name&&it.parameterTypes==listOf("Ljava/lang/String;")}.refs()
-   val own=refs.indexOfFirst {it.definingClass=="${OWN}LocalPlayback;"&&it.name=="response"}
+   val own=refs.indexOfFirst {it.definingClass=="${OWN}LocalPlayback;"&&it.name==(if(name=="getStreamingData")"streams"else "response")}
    val network=refs.indexOfFirst {it.definingClass.endsWith("/StreamingDataRequest;")&&it.name=="getRequestForVideoId"}
    require(own>=0&&(network<0||own<network)){"Saved native stream/config guard missing: $name"}
   }

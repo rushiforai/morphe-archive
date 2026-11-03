@@ -25,7 +25,7 @@ are retried after 30 seconds.
 Material You also ships extension code: the scrolling song and station titles and the redesigned
 player views. They only draw what the app already has on screen and make no network calls.
 
-## What the app ships with, in plain terms
+## What the app ships with
 
 The consent dialog on first launch says the app collects "Wi-Fi SSID/BSSID, precise location and
 Bluetooth scan records" and shares them "with third parties for the purposes of market research,
@@ -34,7 +34,7 @@ behind the free app, and it is spread across three groups of SDKs.
 
 ### Data collection SDKs (location and network data brokers)
 
-These run quietly in the background, often in their own process, and keep running after you
+These run in the background, often in their own process, and keep running after you
 close the app. Several of them restart themselves when the phone boots. What they collect is
 worth money because it shows where people are, which networks they use and how good the signal
 is there. Mobile carriers, city planners, retailers and advertisers buy that data.
@@ -53,9 +53,9 @@ is there. Mobile carriers, city planners, retailers and advertisers buy that dat
 | **LowLagLabs** | Network signal measurement | Collects signal data in the background, with boot, alarm and scheduled-job receivers. |
 | **GeoTruth** | Location data | Collects and verifies location data. |
 
-**How the patch stops them:** the app already has its own off switches for these SDKs. Two are
-lists of phone manufacturers on which the developer chose not to run tracking, and two are remote
-config flags the developer can flip from their server. The patch forces every switch to "off", so
+The app already has its own off switches for these SDKs. Two are lists of phone manufacturers on
+which the developer chose not to run tracking, and two are remote config flags the developer can
+flip from their server. **Disable data collection SDKs** forces every switch to "off", so
 the app itself calls each SDK's own stop or disable function: `WeplanSdk.disable()`,
 `Wavebrook.stop()`, Speedchecker's component disabling and the LowLagLabs and GeoTruth stop paths.
 
@@ -86,8 +86,8 @@ Turbine (DT Exchange / Fyber), Meta Audience Network, Magnite and CloudX.
 On top of those there is **AppHarbr**, an ad quality service that inspects the ads being shown
 and reports on them.
 
-**How Premium unlock stops them:** the ad manager's setup step, which initializes every network,
-is skipped, and so is the AppHarbr start. Ten of these SDKs also start themselves from a content
+**Premium unlock** skips the ad manager's setup step, which initializes every network, and the
+AppHarbr start. Ten of these SDKs also start themselves from a content
 provider before the app's own code runs; the patch disables those providers in the manifest, and
 removes Unity's entry from `androidx.startup`. This only works together with the unlock itself:
 premium hides every ad slot, so nothing in the UI looks for these SDKs afterwards.

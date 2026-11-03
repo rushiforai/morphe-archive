@@ -38,6 +38,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -277,7 +278,8 @@ public class DexDiff {
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 1), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
-            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1), Map.entry("postedDate", 1),
+            Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1),
+            Map.entry("closeupRemix", 2), Map.entry("closeupActionBar", 2), Map.entry("closeupVisitSite", 2), Map.entry("closeupSaveButton", 1), Map.entry("postedDate", 1),
             Map.entry("longPressChoices", 1));
 
     /**
@@ -328,9 +330,9 @@ public class DexDiff {
                 String[] columns = line.split("\\|", -1);
                 boolean family = columns[0].equals("family");
                 int mutationValues = columns.length - 3;
-                boolean validMutation = family || (!columns[2].equals("guard")
-                        ? MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues
-                        : mutationValues >= 2 && mutationValues % 2 == 0);
+                boolean validMutation = family || (columns[2].equals("guard") ? mutationValues >= 2 && mutationValues % 2 == 0
+                        : columns[2].equals("builtView") ? mutationValues >= 3 && mutationValues % 3 == 0
+                        : MUTATION_COLUMNS.getOrDefault(columns[2], -1) == mutationValues);
                 // A family's capability column may be empty: a manifest-only patch changes no bytecode.
                 if ((family && columns.length != 4) || (!family && columns.length < 4)
                         || Arrays.stream(columns).limit(family ? 3 : columns.length).anyMatch(String::isBlank)
@@ -2744,36 +2746,51 @@ public class DexDiff {
          * The method answers a view through a single return-object, and the hook sits right in front
          * of that return with the answered register, as the only way into it.
          */
+        /**
+         * Each hook, builder name ("*" for any) and anchor triple is one view handed over by the method
+         * that builds it. The triples of one rule are one surface: the patch finds every builder before
+         * it changes any, so a missing one leaves the whole surface, and its capability, off.
+         */
         void builtView(Contract c) {
-            String hook = c.strings.get(0), name = c.strings.get(1), anchor = c.strings.get(2);
-            List<Method> builders = new ArrayList<>();
-            for (Method m : clean.methods.values()) {
-                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null || !m.getName().equals(name)) continue;
-                if (anchor.startsWith("L") ? m.getDefiningClass().equals(anchor)
-                        : instructions(m).stream().anyMatch(i -> readsId(i, anchor))) builders.add(m);
+            List<List<Method>> found = new ArrayList<>();
+            for (int t = 0; t < c.strings.size(); t += 3) {
+                String name = c.strings.get(t + 1), anchor = c.strings.get(t + 2);
+                List<Method> builders = new ArrayList<>();
+                for (Method m : clean.methods.values()) {
+                    if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null
+                            || !(name.equals("*") || m.getName().equals(name))) continue;
+                    if (anchor.startsWith("L") ? m.getDefiningClass().equals(anchor)
+                            : instructions(m).stream().anyMatch(i -> readsId(i, anchor))) builders.add(m);
+                }
+                // No builder at all is a surface this build doesn't have: the patch warns, keeps its
+                // others and leaves the capability off. Two builders are a build to look at.
+                if (builders.isEmpty()) { capability(c.callee, false); return; }
+                found.add(builders);
             }
-            // No builder at all is a surface this build doesn't have: the patch warns, keeps its
-            // others and leaves the capability off. Two builders are a build to look at.
-            if (builders.isEmpty()) { capability(c.callee, false); return; }
-            Method builder = unique(builders, "builder of the view for " + hook);
-            boolean shaped = false;
-            if (builder != null) {
-                String type = builder.getReturnType();
-                shaped = instructions(builder).stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() == 1
-                        && (type.equals("Landroid/view/View;") || frameworkView(type));
-                if (!shaped) fail(builder + " doesn't answer a view through a single return");
-            }
-            Method m = shaped ? actual(builder) : null;
-            List<Integer> sites = calls(m, hook, 1);
-            boolean handed = false;
-            if (m != null && sites.size() == 1) {
-                List<Instruction> body = instructions(m);
-                int at = sites.get(0);
-                handed = at + 1 < body.size() && body.get(at + 1).getOpcode() == Opcode.RETURN_OBJECT
-                        && body.stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() == 1
-                        && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at + 1)))) && onlyFrom(m, at + 1, at);
-                if (!handed) fail(hook + " doesn't take the view " + m + " answers, right in front of its only return");
-                else remove(m, at, at + 1);
+            boolean handed = true;
+            for (int t = 0; t < found.size(); t++) {
+                String hook = c.strings.get(t * 3);
+                Method builder = unique(found.get(t), "builder of the view for " + hook);
+                boolean shaped = false;
+                if (builder != null) {
+                    String type = builder.getReturnType();
+                    shaped = instructions(builder).stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() == 1
+                            && (type.startsWith("Landroid/view/") || type.startsWith("Landroid/widget/") || frameworkView(type));
+                    if (!shaped) fail(builder + " doesn't answer a view through a single return");
+                }
+                Method m = shaped ? actual(builder) : null;
+                List<Integer> sites = calls(m, hook, 1);
+                boolean one = false;
+                if (m != null && sites.size() == 1) {
+                    List<Instruction> body = instructions(m);
+                    int at = sites.get(0);
+                    one = at + 1 < body.size() && body.get(at + 1).getOpcode() == Opcode.RETURN_OBJECT
+                            && body.stream().filter(i -> i.getOpcode() == Opcode.RETURN_OBJECT).count() == 1
+                            && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at + 1)))) && onlyFrom(m, at + 1, at);
+                    if (!one) fail(hook + " doesn't take the view " + m + " answers, right in front of its only return");
+                    else remove(m, at, at + 1);
+                }
+                handed &= one;
             }
             capability(c.callee, handed);
         }
@@ -5164,9 +5181,11 @@ public class DexDiff {
             capability(c.callee, folded);
         }
 
-        static final String CLOSEUP_BACK_ID = "closeup_back_button", CLOSEUP_LENS_ID = "flashlight_search_button";
+        static final String CLOSEUP_BACK_ID = "closeup_back_button", CLOSEUP_LENS_ID = "flashlight_search_button",
+                CLOSEUP_CAROUSEL_LENS_ID = "carousel_flashlight_button";
         static final String FIND_VIEW = "Landroid/view/View;->findViewById(I)Landroid/view/View;";
         static final String GET_CLASS = "Ljava/lang/Object;->getClass()Ljava/lang/Class;";
+        static final Set<Opcode> MOVE_OBJECTS = Set.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16);
 
         /** Where a closeup button is handed over: in front of clean instruction [at] of [method], with [register]. */
         record ButtonSite(Method method, int at, int register, String view, boolean found, String hook) {}
@@ -5175,8 +5194,9 @@ public class DexDiff {
          * The closeup's back arrow and visual search (lens) buttons. Every clean method reading the R
          * field named for a button's id hands the button over where the patch finds it. Found: the id,
          * findViewById with it and move-result-object, then the hook with that register, reached only
-         * from the move-result, and the check-cast after it, past a getClass null check, names the
-         * button's class. Built: a method answering one of the APK's own framework views through a
+         * from the move-result, and the check-cast after it, past a getClass null check, on the button
+         * or a move-object copy of it, names the button's class. The picture carousel's lens is found
+         * the same way when the build has one. Built: a method answering one of the APK's own framework views through a
          * single return-object, with the hook on the answered register as the only way into the
          * return. Constructed: see constructedButtons. Each button class then gains, or starts its own, setVisibility with the visibility
          * hook taking the view and the request and answering into the request.
@@ -5187,6 +5207,7 @@ public class DexDiff {
             boolean back = buttonSites(CLOSEUP_BACK_ID, backHook, sites), lens = buttonSites(CLOSEUP_LENS_ID, lensHook, sites);
             if (!back) fail("nothing finds the closeup's back arrow");
             if (!lens) fail("nothing builds the closeup's visual search button");
+            buttonSites(CLOSEUP_CAROUSEL_LENS_ID, lensHook, sites);
             Map<Method, List<ButtonSite>> byMethod = new LinkedHashMap<>();
             for (ButtonSite site : sites) byMethod.computeIfAbsent(site.method(), k -> new ArrayList<>()).add(site);
             boolean handed = back && lens;
@@ -5211,41 +5232,288 @@ public class DexDiff {
                     else remove(m, at, at + 1);
                 }
             }
-            boolean held = !sites.isEmpty();
             Set<String> views = new TreeSet<>();
             for (ButtonSite site : sites) views.add(site.view());
-            for (String type : views) {
-                ClassDef cd = clean.classes.get(type);
-                if (cd == null || !frameworkView(type) || !canOverride(type, "setVisibility", "(I)V")) {
-                    fail("the button class " + type + " isn't a view whose setVisibility can be overridden"); held = false; continue;
-                }
-                Method m = actual(type + "->setVisibility(I)V");
-                List<Integer> calls = calls(m, visibilityHook, 1);
-                if (m == null || calls.size() != 1) { held = false; continue; }
-                List<Instruction> body = instructions(m);
-                boolean prefix = calls.get(0) == 0 && body.size() > 2
-                        && arguments(body.get(0)).equals(List.of(parameter(m, -1), parameter(m, 0)))
-                        && isMoveResult(body.get(1).getOpcode()) && firstRegister(body.get(1)) == parameter(m, 0);
-                if (!prefix) { fail(visibilityHook + " does not pass the button and its request, in place, first in " + m); held = false; continue; }
-                remove(m, 0, 2);
-                inherited(cd, m, "setVisibility", "(I)V");
-            }
+            boolean held = !sites.isEmpty() && holdsVisibility(views, visibilityHook);
             capability(c.callee, handed && held);
         }
 
-        static final String SEARCH_LABEL_FLAG = ", isVisualActionAnimated=", SEARCH_IMAGE_TEXT = "search_image";
+        /** Each closeup button class already checked, and whether it held, so a class several switches share is checked once. */
+        final Map<String, Boolean> heldViews = new HashMap<>();
 
         /**
-         * The lens's Search image label. In the one clean class that reads the lens id, search_image and
-         * the closeup state's label flag (see searchLabelFlag), every read of the flag gains the hook on
-         * the read's register, answered back into it, reached only from the read and followed by the
-         * original next instruction. A build without that state or builder has no label switch, and its
-         * flag stays off.
+         * Each of [types] gains, or starts its own, setVisibility with the visibility hook taking the
+         * view and the request and answering into the request.
+         */
+        boolean holdsVisibility(Collection<String> types, String hook) {
+            boolean held = true;
+            for (String type : types) {
+                if (!heldViews.containsKey(type)) heldViews.put(type, holdsVisibility(type, hook));
+                held &= heldViews.get(type);
+            }
+            return held;
+        }
+
+        boolean holdsVisibility(String type, String hook) {
+            ClassDef cd = clean.classes.get(type);
+            if (cd == null || !frameworkView(type) || !canOverride(type, "setVisibility", "(I)V")) {
+                fail("the button class " + type + " isn't a view whose setVisibility can be overridden"); return false;
+            }
+            Method m = actual(type + "->setVisibility(I)V");
+            List<Integer> calls = calls(m, hook, 1);
+            if (m == null || calls.size() != 1) return false;
+            List<Instruction> body = instructions(m);
+            boolean prefix = calls.get(0) == 0 && body.size() > 2
+                    && arguments(body.get(0)).equals(List.of(parameter(m, -1), parameter(m, 0)))
+                    && isMoveResult(body.get(1).getOpcode()) && firstRegister(body.get(1)) == parameter(m, 0);
+            if (!prefix) { fail(hook + " does not pass the button and its request, in place, first in " + m); return false; }
+            remove(m, 0, 2);
+            inherited(cd, m, "setVisibility", "(I)V");
+            return true;
+        }
+
+        static final String CLOSEUP_REMIX_ID = "collages_remix_closeup_button", CLOSEUP_COMMENTS_ID = "action_module_comments_icon",
+                CLOSEUP_VISIT_SITE_ID = "clickthrough_button", BUTTON_GROUP = "/GestaltButtonGroup;";
+
+        /**
+         * The Remix button, made by a call (see madeButtons). Right after the call's move-result-object
+         * comes the hook with that register, reached only from it, then the clean next instruction.
+         * Its class holds its visibility like the other buttons. A build that makes no Remix button, or
+         * branches into the spot after it, has no Remix switch.
+         */
+        void closeupRemix(Contract c) {
+            String hook = c.strings.get(0), visibilityHook = c.strings.get(1);
+            List<ButtonSite> sites = madeButtons(CLOSEUP_REMIX_ID, hook);
+            sites.removeIf(site -> !onlyFrom(site.method(), site.at(), site.at() - 1));
+            Map<Method, List<ButtonSite>> byMethod = new LinkedHashMap<>();
+            for (ButtonSite site : sites) byMethod.computeIfAbsent(site.method(), k -> new ArrayList<>()).add(site);
+            boolean placed = !sites.isEmpty();
+            for (Map.Entry<Method, List<ButtonSite>> entry : byMethod.entrySet()) {
+                Method old = entry.getKey(), m = actual(old);
+                calls(m, hook, entry.getValue().size());
+                if (m == null) { placed = false; continue; }
+                List<Instruction> was = instructions(old), body = instructions(m);
+                for (ButtonSite site : entry.getValue()) {
+                    // The same call in the built method, wherever other switches' hooks moved it.
+                    int at = sameCall(was, site.at() - 2, body);
+                    boolean ok = at >= 0 && at + 3 < body.size() && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                            && firstRegister(body.get(at + 1)) == site.register()
+                            && hook.equals(String.valueOf(reference(body.get(at + 2)))) && arguments(body.get(at + 2)).equals(List.of(site.register()))
+                            && body.get(at + 3).getOpcode() == was.get(site.at()).getOpcode()
+                            && onlyFrom(m, at + 2, at + 1) && onlyFrom(m, at + 3, at + 2);
+                    if (!ok) { fail(hook + " doesn't hand over the button made at instruction " + (site.at() - 2) + " of " + m); placed = false; }
+                    else remove(m, at + 2, at + 3);
+                }
+            }
+            Set<String> views = new TreeSet<>();
+            for (ButtonSite site : sites) views.add(site.view());
+            capability(c.callee, placed && holdsVisibility(views, visibilityHook));
+        }
+
+        /**
+         * Every place [id]'s button is made by a call: a clean method other than a constructor, passed
+         * the id while its register still holds it, answering one of the APK's own framework views into
+         * the move-result-object right after. The hook goes in after that.
+         */
+        List<ButtonSite> madeButtons(String id, String hook) {
+            List<ButtonSite> sites = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                List<Instruction> body = instructions(m);
+                for (int k = 0; k < body.size(); k++) {
+                    if (!readsId(body.get(k), id)) continue;
+                    int register = firstRegister(body.get(k));
+                    for (int j = k + 1; j < body.size() - 1; j++) {
+                        Instruction call = body.get(j);
+                        if ((call instanceof FiveRegisterInstruction || call instanceof RegisterRangeInstruction)
+                                && reference(call) instanceof MethodReference target && !target.getName().equals("<init>")
+                                && callRegisters(call).contains(register)) {
+                            String type = target.getReturnType();
+                            if (body.get(j + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && clean.classes.containsKey(type) && frameworkView(type)) {
+                                sites.add(new ButtonSite(m, j + 2, firstRegister(body.get(j + 1)), type, true, hook));
+                                break;
+                            }
+                        }
+                        if (writes(call, register)) break;
+                    }
+                }
+            }
+            return sites;
+        }
+
+        /** Where [body] has the call clean [was] has at [at]: the same call with the same registers, counted in order. */
+        static int sameCall(List<Instruction> was, int at, List<Instruction> body) {
+            String key = callKey(was.get(at));
+            if (key == null) return -1;
+            int ordinal = 0;
+            for (int k = 0; k < at; k++) if (key.equals(callKey(was.get(k)))) ordinal++;
+            for (int k = 0; k < body.size(); k++)
+                if (key.equals(callKey(body.get(k))) && ordinal-- == 0) return k;
+            return -1;
+        }
+
+        /** An invoke's opcode, target and registers, null for anything else. */
+        static String callKey(Instruction i) {
+            if (!(i instanceof FiveRegisterInstruction || i instanceof RegisterRangeInstruction) || !(reference(i) instanceof MethodReference)) return null;
+            return i.getOpcode() + " " + reference(i) + " " + callRegisters(i);
+        }
+
+        /**
+         * Rows handed over whole from their constructors. The row under a pin's picture is an APK
+         * framework view whose constructor builds the comment button, an APK view whose own
+         * constructor reads the comment id and calls setId. For [visit], every APK framework view whose
+         * constructor builds a GestaltButtonGroup and a class reading the Visit site id. A row whose
+         * constructors have no parentCall is left alone. Right after each row constructor's parent
+         * call comes the hook with this, once, reached only from that call. The views the action row's
+         * constructors build, or each Visit site row itself, hold their visibility like the buttons,
+         * and a row group with a view that can't is left alone.
+         */
+        void closeupRows(Contract c, boolean visit) {
+            String hook = c.strings.get(0), visibilityHook = c.strings.get(1);
+            Set<String> marks = new HashSet<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                for (Method m : cd.getMethods()) {
+                    List<Instruction> body = instructions(m);
+                    boolean mark = visit ? body.stream().anyMatch(i -> readsId(i, CLOSEUP_VISIT_SITE_ID))
+                            : m.getName().equals("<init>") && body.stream().anyMatch(i -> readsId(i, CLOSEUP_COMMENTS_ID))
+                                    && body.stream().anyMatch(i -> reference(i) instanceof MethodReference r && r.getName().equals("setId")
+                                            && r.getParameterTypes().size() == 1 && r.getParameterTypes().get(0).toString().equals("I"));
+                    if (mark) marks.add(cd.getType());
+                }
+            }
+            if (!visit) marks.removeIf(type -> !frameworkView(type));
+            Map<String, List<Method>> rows = new TreeMap<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN) || !frameworkView(cd.getType())) continue;
+                for (Method m : cd.getMethods()) {
+                    if (!m.getName().equals("<init>")) continue;
+                    List<String> built = newTypes(m);
+                    if (built.stream().anyMatch(marks::contains) && (!visit || built.stream().anyMatch(t -> t.endsWith(BUTTON_GROUP))))
+                        rows.computeIfAbsent(cd.getType(), k -> new ArrayList<>()).add(m);
+                }
+            }
+            rows.values().removeIf(constructors -> !constructors.stream().allMatch(m -> parentCall(m) >= 0));
+            Set<String> views = new TreeSet<>();
+            if (visit) views.addAll(rows.keySet());
+            else for (List<Method> constructors : rows.values()) for (Method m : constructors)
+                for (String type : newTypes(m)) if (clean.classes.containsKey(type) && frameworkView(type)) views.add(type);
+            if (!views.stream().allMatch(type -> heldViews.containsKey(type) || canOverride(type, "setVisibility", "(I)V"))) {
+                rows.clear();
+                views.clear();
+            }
+            boolean placed = !rows.isEmpty();
+            for (List<Method> constructors : rows.values()) for (Method old : constructors) {
+                Method m = actual(old);
+                List<Integer> sites = calls(m, hook, 1);
+                if (m == null) { placed = false; continue; }
+                Instruction parent = instructions(old).get(parentCall(old));
+                int at = sites.size() == 1 ? sites.get(0) : -1;
+                boolean ok = at > 0 && parentCall(m) == at - 1
+                        && String.valueOf(reference(instructions(m).get(at - 1))).equals(String.valueOf(reference(parent)))
+                        && arguments(instructions(m).get(at)).equals(List.of(parameter(m, -1))) && onlyFrom(m, at, at - 1);
+                if (!ok) { fail(hook + " doesn't hand over the row right after its parent's constructor in " + m); placed = false; }
+                else remove(m, at, at + 1);
+            }
+            capability(c.callee, placed && holdsVisibility(views, visibilityHook));
+        }
+
+        static final String GESTALT_BUTTON = "Lcom/pinterest/gestalt/button/view/GestaltButton;",
+                COMPOUND_PADDING = "Landroid/widget/TextView;->setCompoundDrawablePadding(I)V";
+
+        /**
+         * The Save button's size and color. GestaltButton's one instance method taking two of the same
+         * style object and returning nothing calls setCompoundDrawablePadding on its this register
+         * exactly once, with nothing writing that register before it, no backward branch and no try
+         * block. Right after the padding comes the hook with that register, and the instruction that
+         * followed the padding is reached only from the hook, so the branch that skips the padding
+         * lands on the hook too.
+         */
+        void closeupSaveButton(Contract c) {
+            String hook = c.strings.get(0);
+            ClassDef button = clean.classes.get(GESTALT_BUTTON);
+            List<Method> styles = new ArrayList<>();
+            Map<Method, Integer> padAt = new HashMap<>();
+            if (button != null) for (Method m : button.getMethods()) {
+                List<? extends CharSequence> params = m.getParameterTypes();
+                if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null || !m.getReturnType().equals("V")
+                        || params.size() != 2 || !params.get(0).toString().equals(params.get(1).toString()) || params.get(0).length() == 1) continue;
+                int self = parameter(m, -1);
+                List<Instruction> body = instructions(m);
+                List<Integer> pads = new ArrayList<>();
+                for (int k = 0; k < body.size(); k++) if (COMPOUND_PADDING.equals(String.valueOf(reference(body.get(k))))
+                        && callRegisters(body.get(k)).get(0) == self) pads.add(k);
+                if (pads.size() != 1) continue;
+                boolean kept = m.getImplementation().getTryBlocks().isEmpty();
+                for (int k = 0; kept && k < pads.get(0); k++) kept = !writes(body.get(k), self);
+                for (Instruction i : body) kept &= !branchesBack(i);
+                if (kept) { styles.add(m); padAt.put(m, pads.get(0)); }
+            }
+            Method style = unique(styles, "the GestaltButton style method that pads its icon on itself");
+            Method m = actual(style);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (style != null && m != null && sites.size() == 1) {
+                List<Instruction> body = instructions(m), was = instructions(style);
+                int at = sites.get(0), self = parameter(style, -1);
+                placed = at == padAt.get(style) + 1 && at + 1 < body.size() && COMPOUND_PADDING.equals(String.valueOf(reference(body.get(at - 1))))
+                        && callRegisters(body.get(at - 1)).get(0) == self && arguments(body.get(at)).equals(List.of(self))
+                        && body.get(at + 1).getOpcode() == was.get(at).getOpcode() && onlyFrom(m, at + 1, at);
+                if (!placed) fail(hook + " doesn't hand over the button right after " + style + " pads its icon");
+                else remove(m, at, at + 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        static boolean branchesBack(Instruction i) {
+            if (i instanceof SwitchPayload payload) return payload.getSwitchElements().stream().anyMatch(e -> e.getOffset() < 0);
+            return i instanceof OffsetInstruction branch && branch.getCodeOffset() < 0;
+        }
+
+        static List<String> newTypes(Method m) {
+            List<String> types = new ArrayList<>();
+            for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.NEW_INSTANCE) types.add(String.valueOf(reference(i)));
+            return types;
+        }
+
+        /**
+         * Where the constructor calls its parent's constructor (or another of its own) on its this
+         * register, or -1 when it doesn't or something else goes in that register first. D8 may reuse
+         * the register once this is dead, so a row is handed over right after that call.
+         */
+        int parentCall(Method m) {
+            if (m.getImplementation() == null) return -1;
+            int self = parameter(m, -1);
+            ClassDef owner = clean.classes.get(m.getDefiningClass());
+            String parent = owner == null ? null : owner.getSuperclass();
+            List<Instruction> body = instructions(m);
+            for (int at = 0; at < body.size(); at++) {
+                Instruction i = body.get(at);
+                if ((i.getOpcode() == Opcode.INVOKE_DIRECT || i.getOpcode() == Opcode.INVOKE_DIRECT_RANGE) && reference(i) instanceof MethodReference r
+                        && r.getName().equals("<init>") && (r.getDefiningClass().equals(parent) || r.getDefiningClass().equals(m.getDefiningClass()))
+                        && !callRegisters(i).isEmpty() && callRegisters(i).get(0) == self) return at;
+                if (writes(i, self)) return -1;
+            }
+            return -1;
+        }
+
+        static final String SEARCH_LABEL_FLAG = ", isVisualActionAnimated=", SEARCH_GLOW_FLAG = "isGlowAnimationEnabled=",
+                SEARCH_IMAGE_TEXT = "search_image";
+
+        /**
+         * The lens's Search image label and glow. In the one clean class that reads the lens id,
+         * search_image and the closeup state's label flag (see stateFlag), every read of the label or
+         * glow flag gains the hook on the read's register, answered back into it, reached only from the
+         * read and followed by the original next instruction. A build without that state, its glow flag,
+         * a glow read in the builder or a single builder has no label switch, and its flag stays off.
          */
         void closeupSearchLabel(Contract c) {
-            String hook = c.strings.get(0), flag = searchLabelFlag();
+            String hook = c.strings.get(0);
+            Method state = closeupState();
+            String flag = state == null ? null : stateFlag(state, SEARCH_LABEL_FLAG, false, ""),
+                    glow = flag == null ? null : stateFlag(state, SEARCH_GLOW_FLAG, true, flag);
             List<ClassDef> builders = new ArrayList<>();
-            if (flag != null) for (ClassDef cd : clean.classes.values()) {
+            if (glow != null) for (ClassDef cd : clean.classes.values()) {
                 if (cd.getType().startsWith(OWN)) continue;
                 boolean lens = false, text = false, flagged = false;
                 for (Method m : cd.getMethods()) for (Instruction i : instructions(m)) {
@@ -5256,10 +5524,15 @@ public class DexDiff {
                 if (lens && text && flagged) builders.add(cd);
             }
             boolean labeled = builders.size() == 1;
+            if (labeled) {
+                boolean glows = false;
+                for (Method m : builders.get(0).getMethods()) for (Instruction i : instructions(m)) glows |= readsFlag(i, glow);
+                labeled = glows;
+            }
             if (labeled) for (Method old : builders.get(0).getMethods()) {
                 List<Instruction> was = instructions(old);
                 List<Integer> reads = new ArrayList<>();
-                for (int k = 0; k < was.size(); k++) if (readsFlag(was.get(k), flag)) reads.add(k);
+                for (int k = 0; k < was.size(); k++) if (readsFlag(was.get(k), flag) || readsFlag(was.get(k), glow)) reads.add(k);
                 if (reads.isEmpty()) continue;
                 Method m = actual(old);
                 calls(m, hook, reads.size());
@@ -5267,8 +5540,8 @@ public class DexDiff {
                 List<Instruction> body = instructions(m);
                 // The n-th read in the built method, wherever another switch's hooks moved it.
                 List<Integer> built = new ArrayList<>();
-                for (int k = 0; k < body.size(); k++) if (readsFlag(body.get(k), flag)) built.add(k);
-                if (built.size() != reads.size()) { fail(m + " reads the label flag " + built.size() + " times, not " + reads.size()); labeled = false; continue; }
+                for (int k = 0; k < body.size(); k++) if (readsFlag(body.get(k), flag) || readsFlag(body.get(k), glow)) built.add(k);
+                if (built.size() != reads.size()) { fail(m + " reads the label and glow flags " + built.size() + " times, not " + reads.size()); labeled = false; continue; }
                 for (int n = 0; n < reads.size(); n++) {
                     int read = reads.get(n), at = built.get(n), register = ((TwoRegisterInstruction) was.get(read)).getRegisterA();
                     boolean placed = at + 3 < body.size() && read + 1 < was.size()
@@ -5277,28 +5550,34 @@ public class DexDiff {
                             && isMoveResult(body.get(at + 2).getOpcode()) && firstRegister(body.get(at + 2)) == register
                             && body.get(at + 3).getOpcode() == was.get(read + 1).getOpcode()
                             && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
-                    if (!placed) { fail(hook + " doesn't answer the label flag read at instruction " + read + " of " + m); labeled = false; }
+                    if (!placed) { fail(hook + " doesn't answer the label or glow flag read at instruction " + read + " of " + m); labeled = false; }
                     else remove(m, at + 1, at + 3);
                 }
             }
             capability(c.callee, labeled);
         }
 
-        /**
-         * The boolean the closeup state's toString reads first after naming isVisualActionAnimated, as
-         * a field descriptor, or null when no single state names it or the read isn't the state's own.
-         */
-        String searchLabelFlag() {
+        /** The closeup state's toString, the single one naming isVisualActionAnimated, or null. */
+        Method closeupState() {
             List<Method> described = new ArrayList<>();
             for (Method m : clean.holding(SEARCH_LABEL_FLAG)) if (m.getName().equals("toString") && m.getParameterTypes().isEmpty()) described.add(m);
-            if (described.size() != 1) return null;
-            Method state = described.get(0);
+            return described.size() == 1 ? described.get(0) : null;
+        }
+
+        /**
+         * The first boolean other than [not] that [state] reads after the first string equal to [name]
+         * (ending in it, with [suffix]), as a field descriptor, or null when there's no such string or
+         * the read isn't the state's own.
+         */
+        String stateFlag(Method state, String name, boolean suffix, String not) {
             List<Instruction> body = instructions(state);
             int named = -1;
             for (int k = 0; k < body.size() && named < 0; k++)
-                if (reference(body.get(k)) instanceof StringReference s && s.getString().equals(SEARCH_LABEL_FLAG)) named = k;
+                if (reference(body.get(k)) instanceof StringReference s && (suffix ? s.getString().endsWith(name) : s.getString().equals(name))) named = k;
+            if (named < 0) return null;
             for (int k = named + 1; k < body.size(); k++) if (body.get(k).getOpcode() == Opcode.IGET_BOOLEAN) {
                 FieldReference f = (FieldReference) reference(body.get(k));
+                if (f.toString().equals(not)) continue;
                 return f.getDefiningClass().equals(state.getDefiningClass()) && f.getType().equals("Z") ? f.toString() : null;
             }
             return null;
@@ -5446,7 +5725,10 @@ public class DexDiff {
             int button = firstRegister(body.get(read + 2)), next = read + 3;
             if (next < body.size() && body.get(next) instanceof FiveRegisterInstruction check && check.getOpcode() == Opcode.INVOKE_VIRTUAL
                     && check.getRegisterCount() == 1 && check.getRegisterC() == button && GET_CLASS.equals(String.valueOf(reference(check)))) next++;
-            if (next >= body.size() || body.get(next).getOpcode() != Opcode.CHECK_CAST || firstRegister(body.get(next)) != button) {
+            int copy = button;
+            if (next < body.size() && MOVE_OBJECTS.contains(body.get(next).getOpcode())
+                    && ((TwoRegisterInstruction) body.get(next)).getRegisterB() == button) copy = firstRegister(body.get(next++));
+            if (next >= body.size() || body.get(next).getOpcode() != Opcode.CHECK_CAST || firstRegister(body.get(next)) != copy) {
                 fail(m + " finds the button without casting it to its class");
                 return null;
             }
@@ -6401,6 +6683,10 @@ public class DexDiff {
                     case "recentSearchHeading": recentSearchHeading(c); break;
                     case "closeupButtons": closeupButtons(c); break;
                     case "closeupSearchLabel": closeupSearchLabel(c); break;
+                    case "closeupRemix": closeupRemix(c); break;
+                    case "closeupActionBar": closeupRows(c, false); break;
+                    case "closeupVisitSite": closeupRows(c, true); break;
+                    case "closeupSaveButton": closeupSaveButton(c); break;
                     case "postedDate": postedDate(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;

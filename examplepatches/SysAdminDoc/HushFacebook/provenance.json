@@ -164,6 +164,15 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/LogoEmoji.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook (#360): draws one emoji after the Facebook logo or the Home header text at the top of Home, in its own colors."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/StoryPhoto.java"
       ],
       "origin": "original",
@@ -247,6 +256,25 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Start on x86 devices, which adds Facebook's MprotectCode start-up task and its later half to the list of start-up tasks Facebook's own cold start experiments skip, on an x86 device running Facebook's arm code translated, found in Facebook 577 and 580 through the log line that names that list."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/IconDensity.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 585 (#365): compares the density Facebook's fb_launch_logo bitmap resolves to with the screen's, and on a 64-bit phone whose install lacks images for its screen says once per install, and under the settings status card, which download has them."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/OpenInFacebook.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/openinfacebook/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 585 (#111): an Open in Facebook share target declared in the manifest that takes the first Facebook link out of shared text and hands it to Facebook's own link handler, so a link Messenger keeps in its browser can be opened in Facebook."
     },
     {
       "paths": [
@@ -714,6 +742,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/SuggestedGroupsCard.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Suggested for you groups card on the Groups tab, whose feed never passes the edge filter Home's copy goes through. In Facebook 585 every copy of the card is laid out by GroupsYouShouldJoinComponent, the one layout holding the Kotlin message of its cast to GroupsYouShouldJoinFeedUnit, and that layout already returns null when it has nothing to show. The patch asks the extension first thing there and returns that same null while the switch is on."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/FindFriendsCard.kt"
       ],
       "origin": "original",
@@ -747,6 +784,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the numbers on a post's Like, Comment and Share buttons. In Facebook 583 one static builder turns a button's count into its text, answering an empty text for a missing or zero count, and the Share button plugin (a kept class name) calls it. The patch finds the builder through that plugin by its shape and holds it to the empty answer and its plural lookup, then has it ask the extension first thing. While the switch is on the builder answers its own empty text, so each button shows its word."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postprompts/PostJoinButton.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Join button in the header of a post from a group you haven't joined. One instance method appends it to the header and carries a trace string naming the group header title menu helper. The patch finds that method by the string and its shape (returns void, five parameters, one a SpannableStringBuilder) and has it ask the extension first thing, returning before it adds the button while the switch is on."
     },
     {
       "paths": [
@@ -901,6 +947,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: a See who shared row in a post's menu. In Facebook 584 the list of people who shared a post opens through one public static (Context, GraphQLStory, String) method holding the message Activity is required to launch reshares list, and only share count rows behind a server test call it. The patch finds that launcher by its shape and message, writes the call to it into the extension's openList stub, and adds the row through the same post menu hook Download any video uses, so the list and what it shows are Facebook's."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/carousel/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a photo carousel for posts with several photos or videos. In Facebook 585 one static (int) method names each album layout's class, MultiMediaAttachmentHScrollPlugin among them, and a static (props, int) boolean of the same class switches on the layout to say whether it applies. The patch finds the name table by that class name, reads the swipeable row's case from the table and the switch, and hands the answer of the row's feed check to the extension before Facebook tests it. It also puts a call at the start of the check that hands the extension the layout's name, so the three layouts a poster picks answer no while the switch is on."
     },
     {
       "paths": [
@@ -1241,6 +1296,15 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/BlockedListPictures.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Hide pictures on the Blocked list. When Facebook's React Native Blocking page comes to the front, found by its route in the intent, each layout pass hides the square images of 32 dp or more, which are the blocked people's pictures, and leaves the 24 dp plus beside Add to blocked list. It runs from the settings entry's activity callbacks rather than a patch."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/TextSize.java"
       ],
       "origin": "original",
@@ -1446,6 +1510,16 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/ListingGap.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/navigation/listinggap/RemoveListingGapPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 585 on an Android 17 emulator, for issue #333: a Marketplace listing is a React Native page whose header pads its top by the safe area Facebook's SafeArea module reports, the whole window's insets, while Android 17 already places the page below the status bar. Before the module's static Insets-to-map method runs, in safeAreaInsets and in the listener it sets on the decor view, the insets and the decor go to the extension, which keeps only the part of each side that overlaps the React Native root view. Until the root is placed, the room inside the native frame the page fills (its padding, and the margins of a container still waiting for its first layout) stands in for it. No Facebook code was copied."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ScreenTransitions.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/Fingerprints.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/FragmentSlides.kt",
@@ -1519,6 +1593,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Hide tab badges, the per-tab version of the shortcut-bar dot controls Meta gives the web. It shares the tab bar's one count hook with Hide the Reels tab dot, the jewel controller's static count for each TabTag, which now sits in a hook patch both depend on, and answers 0 for each tab whose switch is on, known by the class Facebook keeps for it. For the app icon, Facebook 577, 580 and 581 write their own launcher count through one writer per launcher family, each naming itself with a kept *LauncherBadgesInterface literal and all sharing one (FbUserSession, int) -> TriState interface found from the generic writer. The extension goes first in every writer and swaps the count for 0 while the switch is on."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/RoundedTabBar.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #344: Rounded tab bar. No patch of its own: the tab bar patch's lifecycle watcher gives each main screen a pre-draw listener that finds the bar the way See-through bars does, clips it to a round-ended outline around its row of tabs and scales it to 90% about a point that keeps the pill a few dp above the row's bottom. Off, paused or with the bar at the top it puts back the bar's own outline, clip, scale and pivot. See-through bars keeps its frost inside the pill with the same corners."
     },
     {
       "paths": [

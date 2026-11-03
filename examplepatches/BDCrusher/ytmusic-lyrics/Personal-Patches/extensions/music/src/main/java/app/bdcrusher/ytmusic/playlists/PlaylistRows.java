@@ -23,17 +23,17 @@ public final class PlaylistRows {
     public static byte[] capture(Owner owner,Object context,Object model,int nativeMode,byte[] bytes){
         rows.removeIf(row->row.owner.get()==null);Row current=null;for(Row row:rows)if(row.owner.get()==owner){current=row;break;}
         if(current!=null&&current.replaying)return PlaylistPageModel.rowStatus(bytes);
-        String video="";try{ProtoWire watch=new ProtoWire(new ProtoWire(new ProtoWire(bytes).child(5)).child(48687757));String playlist=new String(watch.child(2),StandardCharsets.US_ASCII);if(PlaylistHeaderModel.validId(playlist))video=new String(watch.child(1),StandardCharsets.US_ASCII);}catch(IllegalArgumentException ignored){}
+        String video="";try{ProtoWire watch=new ProtoWire(new ProtoWire(new ProtoWire(bytes).child(5)).child(48687757));video=new String(watch.child(1),StandardCharsets.US_ASCII);}catch(IllegalArgumentException ignored){}
         if(bytes.length>256*1024||!video.matches("[A-Za-z0-9_-]{11}")){if(current!=null)rows.remove(current);return bytes;}
         if(current==null){current=new Row(owner);if(rows.size()>=128)rows.remove(0);rows.add(current);}
-        current.context=new WeakReference<>(context);current.model=model;current.mode=nativeMode;current.video=video;current.state=PlaylistRuntime.state(video);return PlaylistPageModel.rowStatus(bytes);
+        current.context=new WeakReference<>(context);current.model=model;current.mode=nativeMode;current.video=video;current.state=DownloadCatalog.label(video);return PlaylistPageModel.rowStatus(bytes);
     }
     public static void changed(){if(queued)return;queued=true;MAIN.postDelayed(PlaylistRows::refresh,500);}
     private static void refresh(){
         queued=false;rows.removeIf(row->row.owner.get()==null);
         for(Row row:List.copyOf(rows)){
             Owner owner=row.owner.get();Object context=row.context.get();if(owner==null||context==null||row.replaying)continue;
-            String state=PlaylistRuntime.state(row.video);if(state.equals(row.state))continue;
+            String state=DownloadCatalog.label(row.video);if(state.equals(row.state))continue;
             View view=owner.bd_playlistRowView();if(view==null||!view.isAttachedToWindow()||!view.isShown())continue;
             row.replaying=true;try{owner.bd_playlistRow(context,row.model,row.mode);row.state=state;}catch(Exception failure){FeatureDiagnostics.record("Playlist-row","Native status rebind failed: "+failure.getClass().getSimpleName());}finally{row.replaying=false;}
         }

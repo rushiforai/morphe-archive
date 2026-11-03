@@ -512,6 +512,9 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             patchToggle(posts, context, build, PatchFamily.VISIBLE_ALT_TEXT, Settings.SHOW_IMAGE_DESCRIPTIONS,
                     L10n.t("Visible image descriptions"),
                     L10n.t("Shows author-provided image descriptions below images."), SettingsIcons.ABOUT);
+            patchToggle(posts, context, build, PatchFamily.SHARE_VIDEO_LINKS, Settings.SHARE_VIDEO_LINKS,
+                    L10n.t("Share video links"),
+                    L10n.t("Long-press a video in a post to share or copy its link."), SettingsIcons.LINKS);
             patchToggle(posts, context, build, PatchFamily.REVEAL_ALLOWED_MATURE_CONTENT,
                     Settings.REVEAL_ALLOWED_MATURE_CONTENT, L10n.t("Reveal allowed mature content"),
                     L10n.t("Removes the tap-to-reveal blur only when Tumblr confirms this account may view the content."),

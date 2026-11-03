@@ -8,7 +8,9 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -69,8 +71,7 @@ val autoTranslatePatch = bytecodePatch(
             match.originalMethod.implementation?.instructions?.toList()
                 ?: throw PatchException("Matched Reddit callback has no implementation")
 
-        fun selectorAt(match: Match, anchorIndex: Int): Int {
-            val callbackInstructions = instructions(match)
+        fun selectorIn(callbackInstructions: List<Instruction>, owner: String, anchorIndex: Int): Int {
             val addresses = IntArray(callbackInstructions.size)
             var address = 0
             callbackInstructions.forEachIndexed { index, instruction ->
@@ -83,7 +84,7 @@ val autoTranslatePatch = bytecodePatch(
             }
             if (switchIndex < 0) {
                 throw PatchException(
-                    "Cannot derive the selector for ${match.originalClassDef.type}: no switch",
+                    "Cannot derive the selector for $owner: no switch",
                 )
             }
 
@@ -93,7 +94,7 @@ val autoTranslatePatch = bytecodePatch(
             val payloadIndex = addresses.indexOf(payloadAddress)
             val payload = callbackInstructions.getOrNull(payloadIndex) as? SwitchPayload
                 ?: throw PatchException(
-                    "Cannot derive the selector for ${match.originalClassDef.type}: no payload",
+                    "Cannot derive the selector for $owner: no payload",
                 )
 
             val anchorAddress = addresses[anchorIndex]
@@ -111,9 +112,12 @@ val autoTranslatePatch = bytecodePatch(
             // in 2026.28.0 to an explicit case=0 in 2026.30.0).
             return containingBranch?.first
                 ?: throw PatchException(
-                    "Cannot map the translation branch for ${match.originalClassDef.type}",
+                    "Cannot map the translation branch for $owner",
                 )
         }
+
+        fun selectorAt(match: Match, anchorIndex: Int): Int =
+            selectorIn(instructions(match), match.originalClassDef.type, anchorIndex)
 
         fun fieldReference(instruction: Instruction): FieldReference? =
             ((instruction as? ReferenceInstruction)?.reference as? FieldReference)
@@ -140,13 +144,17 @@ val autoTranslatePatch = bytecodePatch(
             return Triple(idReference, containerReference, stateReference)
         }
 
-        val postMatches = PostTranslateCallbackFingerprint.matchAllOrNull().orEmpty()
         var patchedPostConstructors = 0
-        postMatches.forEach { match ->
-            val (idReference, containerReference, stateReference) = postAnchors(match)
-            val capturedType = containerReference?.definingClass ?: stateReference.definingClass
-            val selector = selectorAt(match, match.instructionMatches.first().index)
-            val constructors = match.classDef.methods.filter { constructor ->
+        fun hookPostConstructors(
+            methods: Iterable<MutableMethod>,
+            owner: String,
+            capturedType: String,
+            idReference: FieldReference,
+            containerReference: FieldReference?,
+            stateReference: FieldReference,
+            selector: Int,
+        ) {
+            val constructors = methods.filter { constructor ->
                 val parameterTypes = constructor.parameterTypes.map(CharSequence::toString)
                 constructor.name == "<init>" &&
                     parameterTypes.size == 3 &&
@@ -154,9 +162,7 @@ val autoTranslatePatch = bytecodePatch(
                     capturedType in parameterTypes
             }
             if (constructors.isEmpty()) {
-                throw PatchException(
-                    "Cannot find a post callback constructor for ${match.originalClassDef.type}",
-                )
+                throw PatchException("Cannot find a post callback constructor for $owner")
             }
 
             constructors.forEach { constructor ->
@@ -199,9 +205,77 @@ val autoTranslatePatch = bytecodePatch(
                 )
                 patchedPostConstructors++
             }
-            logger.info(
-                "Matched post callback ${match.originalClassDef.type} with selector $selector",
+            logger.info("Matched post callback $owner with selector $selector")
+        }
+
+        val postMatches = PostTranslateCallbackFingerprint.matchAllOrNull().orEmpty()
+        postMatches.forEach { match ->
+            val (idReference, containerReference, stateReference) = postAnchors(match)
+            hookPostConstructors(
+                match.classDef.methods,
+                match.originalClassDef.type,
+                containerReference?.definingClass ?: stateReference.definingClass,
+                idReference,
+                containerReference,
+                stateReference,
+                selectorAt(match, match.instructionMatches.first().index),
             )
+        }
+
+        // 2026.40.0: the post component builds the event in its own method, and the callbacks
+        // capture the component and call that method. The component holds the post element
+        // (id and indicator state), so hook the callbacks' constructors the same way.
+        val postFactoryMatches = PostTranslateEventFactoryFingerprint.matchAllOrNull().orEmpty()
+        var postFactoryCallbacks = 0
+        postFactoryMatches.forEach { match ->
+            val factory = match.originalMethod
+            val owner = match.originalClassDef.type
+            val stateMatch = match.instructionMatches.first()
+            val stateReference = fieldReference(stateMatch.instruction)
+                ?: throw PatchException("Post state anchor is not a field reference")
+            val priorFields = instructions(match)
+                .subList(maxOf(0, stateMatch.index - 8), stateMatch.index)
+                .mapNotNull(::fieldReference)
+            val containerReference = priorFields.firstOrNull {
+                it.type == stateReference.definingClass && it.definingClass == owner
+            } ?: throw PatchException("Cannot derive the post element field of $owner")
+            val idReference = priorFields.firstOrNull {
+                it.definingClass == stateReference.definingClass && it.type == STRING
+            } ?: throw PatchException("Cannot derive the post id field for $owner")
+
+            val callers = mutableListOf<Pair<ClassDef, Int>>()
+            classDefForEach { classDef ->
+                if (classDef.fields.none { it.type == owner }) return@classDefForEach
+                val invoke = classDef.methods.firstOrNull {
+                    it.name == "invoke" && it.parameterTypes.isEmpty() &&
+                        it.returnType == "Ljava/lang/Object;"
+                } ?: return@classDefForEach
+                val callbackInstructions = invoke.implementation?.instructions?.toList()
+                    ?: return@classDefForEach
+                val callIndex = callbackInstructions.indexOfFirst { instruction ->
+                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    reference != null && reference.definingClass == owner &&
+                        reference.name == factory.name && reference.parameterTypes.isEmpty() &&
+                        reference.returnType == POST_EVENT
+                }
+                if (callIndex < 0) return@classDefForEach
+                callers += classDef to selectorIn(callbackInstructions, classDef.type, callIndex)
+            }
+            if (callers.isEmpty()) {
+                throw PatchException("No post callback calls the translation event method of $owner")
+            }
+            callers.forEach { (classDef, selector) ->
+                hookPostConstructors(
+                    mutableClassDefBy(classDef).methods,
+                    classDef.type,
+                    owner,
+                    idReference,
+                    containerReference,
+                    stateReference,
+                    selector,
+                )
+                postFactoryCallbacks++
+            }
         }
 
         val commentMatches = CommentTranslateCallbackFingerprint.matchAllOrNull().orEmpty()
@@ -308,8 +382,8 @@ val autoTranslatePatch = bytecodePatch(
                             ?.takeIf {
                                 instruction.opcode == Opcode.INVOKE_DIRECT &&
                                     it.name == "<init>" &&
-                                    it.parameterTypes.map(CharSequence::toString) ==
-                                    listOf(STRING, COMMENT_EVENT_SOURCE)
+                                    it.parameterTypes.map(CharSequence::toString)
+                                        .containsAll(listOf(STRING, COMMENT_EVENT_SOURCE))
                             }
                     }
                 eventConstructor != null && isTranslateEvent(eventConstructor.definingClass)
@@ -379,7 +453,8 @@ val autoTranslatePatch = bytecodePatch(
         // nor its id. Hook the composable instead: note the metadata model when its indicator
         // state is read, then hand the composed click lambda and state to the extension.
         val postDetailMatches =
-            PostDetailTranslationIndicatorFingerprint.matchAllOrNull().orEmpty()
+            PostDetailTranslationIndicatorFingerprint.matchAllOrNull().orEmpty() +
+                PostDetailTranslationIndicatorWithFlagFingerprint.matchAllOrNull().orEmpty()
         var patchedPostDetailMethods = 0
         postDetailMatches.forEach { match ->
             val stateMatch = match.instructionMatches.first()
@@ -396,8 +471,13 @@ val autoTranslatePatch = bytecodePatch(
                 ?.takeIf { it.registerA != it.registerB }
                 ?.registerB
             val arguments = invokeArgumentRegisters(indicatorMatch.instruction)
-            val stateRegister = arguments.getOrNull(0)
-            val callbackRegister = arguments.getOrNull(2)
+            // Every parameter of the indicator call is one register wide, so the arguments line
+            // up with the parameter types (2026.44.0 added a boolean before the click lambda).
+            val indicatorParameters =
+                ((indicatorMatch.instruction as? ReferenceInstruction)?.reference as? MethodReference)
+                    ?.parameterTypes?.map(CharSequence::toString).orEmpty()
+            val stateRegister = arguments.getOrNull(indicatorParameters.indexOf(COMMENT_INDICATOR_STATE))
+            val callbackRegister = arguments.getOrNull(indicatorParameters.indexOf(FUNCTION_0))
             if (!hasPostIdAnchor || metadataRegister == null || stateRegister == null ||
                 callbackRegister == null || stateRegister > 15 || callbackRegister > 15
             ) {
@@ -423,10 +503,16 @@ val autoTranslatePatch = bytecodePatch(
             logger.info("Matched post-detail indicator ${match.originalClassDef.type}")
         }
 
-        val criticalMatches = postMatches.size + commentMatches.size + accessibilityMatches.size
-        if (criticalMatches == 0) {
+        // Each path must be hooked somewhere; a release that moves one of them must fail here
+        // instead of shipping a patch that silently translates only part of the app.
+        val unpatched = listOfNotNull(
+            "post".takeIf { patchedPostConstructors == 0 },
+            "comment".takeIf { patchedCommentConstructors == 0 },
+            "post detail".takeIf { patchedPostDetailMethods == 0 },
+        )
+        if (unpatched.isNotEmpty()) {
             throw PatchException(
-                "No Reddit auto-translation callback anchors matched; refusing a no-op patch",
+                "No Reddit auto-translation anchor matched for: ${unpatched.joinToString()}",
             )
         }
 
@@ -449,7 +535,8 @@ val autoTranslatePatch = bytecodePatch(
 
         logger.info(
             "Patched Reddit auto-translation anchors: " +
-                "post=${postMatches.size}/constructors=$patchedPostConstructors, " +
+                "post=${postMatches.size}+factory=${postFactoryMatches.size}/" +
+                "callbacks=$postFactoryCallbacks/constructors=$patchedPostConstructors, " +
                 "comment=${commentMatches.size}/constructors=$patchedCommentConstructors, " +
                 "accessibility=${accessibilityMatches.size}/" +
                 "constructors=$patchedAccessibilityConstructors, " +

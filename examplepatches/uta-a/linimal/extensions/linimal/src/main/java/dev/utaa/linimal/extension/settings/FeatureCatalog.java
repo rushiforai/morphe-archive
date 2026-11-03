@@ -126,7 +126,7 @@ public final class FeatureCatalog {
             new Entry(LinimalFeature.LINE_AI_MESSAGE_CONTEXT_MENU, SettingsPage.AGENT_I,
                     SettingsSection.AGENT_I_CHAT,
                     "メッセージ長押しメニューの LINE AI を表示しない",
-                    "メッセージの長押しメニューにある画像編集用の LINE AI を表示しません。"),
+                    "メッセージの長押しメニューにある画像編集用の LINE AI と、画像メッセージ横の LINE AI ボタンを表示しません。"),
             new Entry(LinimalFeature.LINE_AI_GALLERY_VIEWER, SettingsPage.AGENT_I,
                     SettingsSection.AGENT_I_CHAT,
                     "写真・動画表示画面の LINE AI を表示しない",

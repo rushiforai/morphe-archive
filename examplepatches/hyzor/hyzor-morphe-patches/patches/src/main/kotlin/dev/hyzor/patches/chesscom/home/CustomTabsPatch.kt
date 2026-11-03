@@ -72,7 +72,8 @@ val customTabsPatch = bytecodePatch(
                     """,
                 )
             }
-            // The bar composable prepends Play and Puzzles itself; drop Puzzles when it is off.
+            // The bar composable prepends Play and Puzzles itself and appends More after this
+            // call; finalTabs puts the saved order back and drops the tabs that are off.
             val homeScreen = "Lcom/chess/home/ui/HomeScreen;"
             // The methods are found on the immutable classes, and only the classes that get a hook are
             // made mutable: making one mutable rewrites that class into a new DEX file, so doing it to

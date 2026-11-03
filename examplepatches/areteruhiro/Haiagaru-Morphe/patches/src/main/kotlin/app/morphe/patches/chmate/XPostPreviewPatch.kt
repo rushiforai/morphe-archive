@@ -17,8 +17,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 internal fun BytecodePatchContext.patchXPostPreviewBindings() {
     patchXPostPreviewTouch()
     var count = 0
-    classDefForEach { definition ->
-        if (!definition.type.startsWith("Lo/") && !definition.type.startsWith("Ljp/syoboi/")) return@classDefForEach
+    boundClassForEach("XPostPreviewPatch:1") { definition ->
+        if (!definition.type.startsWith("Lo/") && !definition.type.startsWith("Ljp/syoboi/")) return@boundClassForEach
         for (method in definition.methods) {
             val sites = method.implementation?.instructions?.mapIndexedNotNull { index, instruction ->
                 val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
@@ -47,7 +47,7 @@ internal fun BytecodePatchContext.patchXPostPreviewBindings() {
 /** A URLSpan appended after native URL parsing is not part of ChMate's link table. */
 internal fun BytecodePatchContext.patchXPostPreviewTouch() {
     val classes = mutableMapOf<String, ClassDef>()
-    classDefForEach { classes[it.type] = it }
+    boundClassForEach("XPostPreviewPatch:2") { classes[it.type] = it }
     fun native(type: String) = type.startsWith("Lo/") || type.startsWith("Ljp/syoboi/")
     fun textView(type: String?): Boolean {
         if (type == null) return false

@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -144,10 +145,39 @@ public final class FlyoutBridge {
                             AccessibilityNodeInfo.ACTION_LONG_CLICK, feature.settingsTitle()));
                 }
             });
-            container.addView(row, Math.min(index++, container.getChildCount()));
+            ContentHeightFrame entry = new ContentHeightFrame(context);
+            entry.setTag(row.getTag());
+            entry.setLayoutParams(row.getLayoutParams());
+            entry.addView(row, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            container.addView(entry, Math.min(index++, container.getChildCount()));
         }
         moveListTopGap(container, first, index);
         return true;
+    }
+
+    /**
+     * Measures a row as tall as its content at the menu's width. The popup menu on large screens
+     * sizes itself from a first pass with only a maximum width; YouTube's ConstraintLayout row
+     * then gives its text no width at all, wraps it character by character and turns several
+     * times too tall, which also leaves the popup that much taller. That pass therefore takes
+     * the height from the widest layout the menu allows and reports the row's own natural width,
+     * so the popup keeps the width its own items give it.
+     */
+    private static final class ContentHeightFrame extends FrameLayout {
+        ContentHeightFrame(Context context) {
+            super(context);
+        }
+
+        @Override protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            int anyHeight = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            super.onMeasure(widthMeasureSpec, anyHeight);
+            if (MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.AT_MOST) return;
+            int naturalWidth = getMeasuredWidth();
+            super.onMeasure(MeasureSpec.makeMeasureSpec(
+                    MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.EXACTLY), anyHeight);
+            setMeasuredDimension(naturalWidth, getMeasuredHeight());
+        }
     }
 
     /**
@@ -236,28 +266,38 @@ public final class FlyoutBridge {
     /**
      * The main player menu. Its "More" page also lists loop and sleep timer, but the rows belong
      * on the first page only: in Japanese that page never matched, so the rows showed up once in
-     * Japanese and twice in English.
+     * Japanese and twice in English. YouTube's own translations of "Quality", "Playback speed"
+     * and "Captions" recognise the page in every other language.
      */
     private static boolean looksLikePlayerSettings(View root) {
         Set<String> labels = new HashSet<>();
         collectText(root, labels);
+        Context context = root.getContext();
+        String quality = localizedLabel(context, "quality_title");
+        String speed = localizedLabel(context, "playback_rate_title");
         if (!containsLabel(labels, "quality") && !containsLabel(labels, "画質")
                 && !containsLabel(labels, "playback speed")
-                && !containsLabel(labels, "再生速度")) return false;
-        int matches = 0;
-        String[] expected = {
+                && !containsLabel(labels, "再生速度")
+                && !containsLabel(labels, quality) && !containsLabel(labels, speed)) return false;
+        Set<String> expected = new HashSet<>(Arrays.asList(
                 "quality", "playback speed", "captions", "additional settings", "loop video",
                 "stable volume", "sleep timer", "lock screen",
                 "画質", "再生速度", "字幕", "その他の設定", "ループ再生", "音量の安定化",
-                "スリープタイマー", "画面のロック"
-        };
+                "スリープタイマー", "画面のロック",
+                quality, speed, localizedLabel(context, "overflow_captions")));
+        int matches = 0;
         for (String item : expected) {
             if (containsLabel(labels, item)) matches++;
         }
         return matches >= 2;
     }
 
+    private static String localizedLabel(Context context, String name) {
+        return clean(Views.string(context, name, ""));
+    }
+
     private static boolean containsLabel(Set<String> labels, String item) {
+        if (item.isEmpty()) return false;
         for (String label : labels) {
             if (label.equals(item) || label.startsWith(item + " ")) return true;
         }

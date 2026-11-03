@@ -165,7 +165,7 @@ class SofascoreSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.10.12",
+            version = "26.10.19",
             patchNames = SOFASCORE_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

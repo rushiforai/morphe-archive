@@ -140,6 +140,14 @@ local.properties
 AGENTS.md
 CLAUDE.md
 .opencode/
+.codex/
+
+# Local fingerprint probe (tools.FingerprintProbe, used by the .claude agents; skipped in normal runs)
+patches/src/test/kotlin/tools/
+
+# Python caches from the release-check tests and local tools
+__pycache__/
+.pytest_cache/
 
 # Scratch analysis output (see AGENTS.md cleanup rule)
 /jadx*/
@@ -167,6 +175,10 @@ docs/MORPHE_ECOSYSTEM_RESEARCH.local.md
 
 # Morphe-ecosystem recommendations backlog (never commit)
 docs/MORPHE_ECOSYSTEM_RECOMMENDATIONS.local.md
+
+# Engineering audit reports and their raw results (describe the local setup; never commit)
+docs/audits/
+audit-*-results.xml
 
 # Release checksum file, generated during the semantic-release publish step
 SHA256SUMS.txt

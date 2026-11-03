@@ -48,7 +48,7 @@ val gmsCoreSupportPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
     category("Feature")
-    dependsOn(signatureSpoofPatch, gmsCoreSupportResourcePatch(SIGNATURES))
+    dependsOn(gmsCoreSupportResourcePatch(SIGNATURES))
 
     execute {
         redirectToGmsCore()

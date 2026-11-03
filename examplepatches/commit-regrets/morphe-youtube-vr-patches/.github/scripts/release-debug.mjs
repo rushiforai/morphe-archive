@@ -83,3 +83,19 @@ try {
   console.log(e.stack);
   process.exitCode = 1;
 }
+
+// The supported-versions plugin renders from the checkout's Constants.kt, not from a commit, so
+// a broken module path or parser would otherwise surface only mid-release. Same deal: resolve
+// and render it here, where failing is cheap.
+try {
+  // The plugin is an ESM default export ({ generateNotes }), the shape semantic-release itself
+  // unwraps when it loads plugins -- mirror that unwrap here.
+  const pluginModule = await import('./supported-versions-notes.mjs');
+  const supportedVersionsNotes = (pluginModule.default ?? pluginModule).generateNotes;
+  const section = await supportedVersionsNotes({}, {});
+  console.log('supported-versions section: RENDER OK, as rendered:\n' + section);
+} catch (e) {
+  console.log('supported-versions section: RENDER FAILED:');
+  console.log(e.stack);
+  process.exitCode = 1;
+}

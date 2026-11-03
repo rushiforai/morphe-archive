@@ -149,6 +149,7 @@ public final class SettingsBackup {
             Settings.HIDE_FILTERED_POSTS,
             Settings.SHOW_POST_TIMESTAMPS,
             Settings.SHOW_IMAGE_DESCRIPTIONS,
+            Settings.SHARE_VIDEO_LINKS,
             Settings.MUTE_ROOT_POSTS,
             Settings.REVEAL_ALLOWED_MATURE_CONTENT,
             Settings.SHOW_MUTUAL_MARKERS,

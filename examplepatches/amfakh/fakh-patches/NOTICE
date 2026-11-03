@@ -1,3 +1,33 @@
+fakh-patches NOTICE
+
+https://github.com/amfakh/fakh-patches
+
+===================
+
+fakh-patches is licensed under the GNU General Public License v3.0, with the
+additional terms below under GPLv3 Section 7. These terms apply to the code
+written for fakh-patches. Code taken from other projects stays under that
+project's terms, listed in the sections that follow.
+
+GPLv3 Section 7b: Preservation of Author Attribution
+
+All derivative works (source code and binaries) that include code from
+fakh-patches must include this NOTICE text and provide it to the software user,
+crediting fakh-patches with a link to https://github.com/amfakh/fakh-patches.
+
+Portions of this software are provided "AS IS" by the fakh-patches project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
 Morphe NOTICE
 =============
 
@@ -19,6 +49,44 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+GmsCore support
+===============
+
+The shared GmsCore support patch (app.fakh.patches.shared.gms) is based on
+Morphe's GmsCore support patch from Morphe Patches, licensed under GPLv3 with
+the following additional terms:
+
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches
+
+=============
+
+GPLv3 Section 7b: Preservation of User Notices
+
+All derivative works (source code and binaries) must include this
+NOTICE text and provide it to the software user.
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
 
 
 LinkedIn patches

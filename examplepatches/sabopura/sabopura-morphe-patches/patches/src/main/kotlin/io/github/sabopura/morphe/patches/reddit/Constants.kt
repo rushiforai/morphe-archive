@@ -17,22 +17,16 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "2026.24.0",
-                versionCode = 2624051,
-                minSdk = 29,
-                description = "Official Morphe patches' stable target; patched and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds), with the same ten translation hooks as 2026.42.0 in the output DEX.",
+                version = "2026.40.0",
+                versionCode = 2640091,
+                minSdk = 32,
+                description = "Official Morphe patches' stable target; patched and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds). Its post callbacks build the translation event in a separate method; the output DEX has six post, two comment, one accessibility comment and two post detail translation hooks.",
             ),
             AppTarget(
-                version = "2026.42.0",
-                versionCode = 2642001,
+                version = "2026.44.0",
+                versionCode = 2644031,
                 minSdk = 32,
-                description = "Patched and launched logged out on the dedicated Android API 36 emulator; the sign-in screen blocks public feeds.",
-            ),
-            AppTarget(
-                version = "2026.43.0",
-                versionCode = 2643041,
-                minSdk = 32,
-                description = "Patched and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds), with the same ten translation hooks as 2026.42.0 in the output DEX.",
+                description = "Official Morphe patches' newest target and the newest store version; patched and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds), with the same ten translation call sites as 2026.43.0 in the output DEX after the comment and post detail anchors were adapted to the new event constructors.",
             ),
         ),
     )

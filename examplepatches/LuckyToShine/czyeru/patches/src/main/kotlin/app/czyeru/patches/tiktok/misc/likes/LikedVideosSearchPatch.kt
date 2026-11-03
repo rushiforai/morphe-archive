@@ -25,9 +25,10 @@ private const val RECYCLER_VIEW_DESCRIPTOR = "Landroidx/recyclerview/widget/Recy
 
 @Suppress("unused")
 val likedVideosSearchPatch = bytecodePatch(
-    name = "Liked videos search",
+    name = "Liked videos search V1",
     description = "Adds an option to show a search bar on the liked videos page " +
-        "that filters loaded videos by description or creator.",
+        "that instantly filters your liked videos by description or creator, " +
+        "loading the remaining pages in the background while you search.",
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)

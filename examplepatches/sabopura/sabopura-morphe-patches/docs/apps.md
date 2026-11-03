@@ -28,13 +28,13 @@ Weather config resolves the getter's return type against the stable
 `AdsInWeatherConfig$Companion` and its public, typed `default()` factory.
 The 26.9.11 repair preserves the disabled default from 26.8.50. Emulator smoke
 tests require populated article lists before and after scrolling. 26.10.10,
-26.10.20 and 26.10.30 applied without changes: the public feed showed no sponsored or ad markers before or after
+26.10.20, 26.10.30 and 26.10.41 applied without changes: the public feed showed no sponsored or ad markers before or after
 scrolling on the API 36 emulator, with no fatal errors in the process log.
 
 SmartNews ships two signed builds of the same version. The universal APK (version
 codes `100xxxx`, Uptodown) is signed with `40f82012…bf5c700`; the Google Play split
 build (version codes `1xxx`, APKMirror APKM with a Google Play source stamp) is signed
-with `867abbf0…6d744883`. Their dex files differ. For 26.10.10, 26.10.20 and 26.10.30 both builds were patched
+with `867abbf0…6d744883`. Their dex files differ. For 26.10.10, 26.10.20, 26.10.30 and 26.10.41 both builds were patched
 without `--force` and checked on the API 36 emulator (the Play build is ARM64-only, so on
 an x86_64 image with ARM translation): the unpatched Play builds showed `Ad ·` feed
 items (for 26.10.30 the unpatched universal APK, `Ad · DirectMax`), the patched builds showed none, and the process logs had no fatal errors. Other
@@ -87,7 +87,7 @@ page started, the bridge attached and the mission list loaded; after reading thr
 restarting the app, 26.10.20 (universal and Play) claimed the reading reward (1 point) in the
 background, with no fatal errors. On 26.10.30 (universal and Play) the background page started
 and its script ran on the emulator; the server refused the test device (`CLIENT_CONDITION_DISABLED`),
-so no reward was claimed there. In the background mode the
+so no reward was claimed there. 26.10.41 (universal and Play) behaved the same way. In the background mode the
 Japanese edition, staying on Home, drew an article lottery (won) and claimed a 2-point
 reading reward within about 1.5 seconds of the page starting, with nothing shown on screen
 except the toast; leaving the app mid-run removed the page without errors. In the Japanese edition, signed
@@ -202,6 +202,18 @@ call sites as 2026.42.0 (four post, two comment, one accessibility comment, two 
 the extension's own queue). `2026.43.0[2643041]` applied without changes and passed the same checks,
 with the same ten call sites.
 
+`2026.44.0[2644031]` changed the comment translation events: the translate event now takes the
+model position first and the "show original" event gained a boolean, and the post-detail
+indicator call gained a boolean before its click lambda. The comment and accessibility
+fingerprints therefore no longer pin the event constructor; the translate event is still told
+apart by its `OnClickTranslateEvent(` `toString()`, and the post-detail hook takes the state and
+lambda registers from the call's parameter types. `2026.40.0[2640091]`, the official Morphe
+patches' stable target, builds the post translation event in a method of the post component
+that two of its callbacks call; the patch finds those callbacks through that method. Both passed
+a logged-out launch on the API 36 emulator; the patched DEX has the same ten call sites as
+2026.43.0 for 2026.44.0, and twelve for 2026.40.0 (six post). The patch now fails when the
+post, comment or post-detail path matches nothing, instead of only when all paths miss.
+
 Reddit fingerprints use stable translation state/event descriptors. Obfuscated
 callback classes, model classes, field names, and synthetic-lambda selector
 numbers are derived from each target APK at patch time. Missing UI variants are
@@ -293,14 +305,29 @@ text scale or fullscreen-only display, and reset to defaults. Comments keep movi
 miniplayer and picture-in-picture, with the text scaled to the player. Appearance and filter changes are applied instantly from the comments that
 were already received; only a change of comment source triggers a new background fetch.
 
+Live chat is polled only while YouTube reports playback: after 30 seconds without a report
+(paused, closed, or the app in the background) polling waits, and when playback resumes only the
+latest messages are shown, like at the start of a stream. A comment list that is read to its end
+without a single comment is retried twice and then left alone, so a video with comments turned
+off stops fetching in every app language. The player menu rows are found through YouTube's own
+translations of "Quality", "Playback speed" and "Captions", so they appear in every app language.
+
+Morphe's official patches include "Niconico comments", which shows live chat and chat replays.
+While it is turned on (and its player button shows comments), Danmaku leaves live chat to it and
+neither fetches nor draws the chat a second time; with "Live chat and timestamped comments" it
+still adds the timestamped regular comments. Regular videos are unaffected.
+
 Rendering records each comment once into a hardware display list (RenderNode) and only moves
 it per frame, draws only the comments currently on screen, and stops its frame loop while the
 video is paused or buffering and between sparse comments.
 
 Verification: for every added YouTube version a public replay is opened on the API 36
 emulator and the danmaku overlay must attach, fetch comments and draw them. 21.40.165,
-21.40.166, 21.41.526, 21.41.529, 21.42.243, 21.43.523, and the official Morphe targets 21.20.405 and
-21.42.241 passed this check, the last three also with the watch page tinted by ambient light. The emulator build needs a test-only startup shim that is applied
+21.40.166, 21.41.526, 21.41.529, 21.42.243, 21.43.523, 21.44.528, and the official Morphe targets
+21.20.405, 21.30.216 and 21.42.241 passed this check (21.20.405 and 21.42.241 are no longer
+supported), 21.30.216, 21.43.523 and 21.44.528 also with the watch page tinted by ambient light.
+The check starts from cleared app data, because a danmaku switch left off by an earlier run hides
+the patch, and it skips pre-roll ads and waits until comments are drawn. The emulator build needs a test-only startup shim that is applied
 after patching and never enters the MPP. On the emulator, YouTube's stream protection rejects the
 re-signed build after roughly 20 to 60 seconds of playback (`ump.spsrejectfailure` in the QoE ping,
 then "There was a problem with playback"); an unpatched re-signed 21.41.526 stopped the same way, so

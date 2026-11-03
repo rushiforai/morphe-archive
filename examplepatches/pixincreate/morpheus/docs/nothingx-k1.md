@@ -87,4 +87,5 @@ This was confirmed on a real device.
 
 The patch was written first as a ReVanced patch by Pa1NarK (pixincreate) in commit [421cb289](https://github.com/ReVanced/revanced-patches/commit/421cb2899ef5c0f100fb8007bae8b89137d0e41c), "feat(Nothing X): Add `Show K1 token(s)` patch (#6490)", 2026-01-22, co-authored by oSumAtrIX. <!-- keywatch:ignore -->
 This repository carries the Morphe port of it.
-The same patch is published here under CC0 1.0 Universal, like the rest of this repository.
+The Nothing X patch retains its pre-existing CC0 1.0 Universal notices.
+Upstream licensing could not be verified because repository access is blocked.

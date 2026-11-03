@@ -35,7 +35,7 @@ final class MkvChapters {
             ID_SCALE = 0x2AD7B1, ID_DURATION = 0x4489, ID_CHAPTERS = 0x1043A770, ID_CLUSTER = 0x1F43B675,
             ID_EDITION = 0x45B9, ID_ED_HIDDEN = 0x45BD, ID_ED_DEFAULT = 0x45DB, ID_ATOM = 0xB6,
             ID_TSTART = 0x91, ID_TEND = 0x92, ID_HIDDEN = 0x98, ID_ENABLED = 0x4598, ID_SEGUID = 0x6E67,
-            ID_DISPLAY = 0x80, ID_STRING = 0x85;
+            ID_DISPLAY = 0x80, ID_STRING = 0x85, ID_LANG = 0x437C, ID_LANG_IETF = 0x437D;
     private static final int HEAD = 256 * 1024;
 
     private final String url;
@@ -52,14 +52,14 @@ final class MkvChapters {
         this.log = log;
     }
 
-    /** Never throws; an empty list means no usable chapters. */
+    /** Null on I/O failure (retryable); an empty list means the file cleanly has no chapters. */
     static List<Chapter> read(String url, Log log) {
         MkvChapters reader = new MkvChapters(url, log);
         try {
             reader.run();
         } catch (Throwable error) {
             log.log("Chapters: error " + error);
-            reader.chapters.clear();
+            return null;
         }
         return reader.chapters;
     }
@@ -224,7 +224,14 @@ final class MkvChapters {
         for (int i = 0; i < best.size(); i++) {
             Chapter chapter = best.get(i);
             if (chapter.end <= chapter.start) {
-                chapter.end = i + 1 < best.size() ? best.get(i + 1).start : duration;
+                double next = duration;
+                for (int j = i + 1; j < best.size(); j++) {
+                    if (best.get(j).start > chapter.start) {
+                        next = best.get(j).start;
+                        break;
+                    }
+                }
+                chapter.end = next;
             }
         }
         chapters.addAll(best);
@@ -239,15 +246,17 @@ final class MkvChapters {
             if (size > from + len - body) return;
             if (id == ID_ED_HIDDEN) flags[0] = readUInt(b, body, (int) size) != 0;
             if (id == ID_ED_DEFAULT) flags[1] = readUInt(b, body, (int) size) != 0;
-            if (id == ID_ATOM) parseAtom(b, body, (int) size, out);
+            if (id == ID_ATOM) parseAtom(b, body, (int) size, out, 0);
             p = body + (int) size;
         }
     }
 
-    private void parseAtom(byte[] b, int from, int len, List<Chapter> out) {
+    /** Nested ChapterAtoms (a child "OP" under a parent) are read too, flattened with their own times. */
+    private void parseAtom(byte[] b, int from, int len, List<Chapter> out, int depth) {
         double start = -1, end = -1;
         boolean hidden = false, enabled = true, external = false;
-        String name = "";
+        String name = "", preferred = "";
+        List<int[]> children = new ArrayList<>();
         for (int p = from; p < from + len; ) {
             int id = readId(b, p), il = idLen(b[p]), sl = sizeLen(b[p + il]);
             long size = readSize(b, p + il);
@@ -259,22 +268,43 @@ final class MkvChapters {
             else if (id == ID_HIDDEN) hidden = readUInt(b, body, (int) size) != 0;
             else if (id == ID_ENABLED) enabled = readUInt(b, body, (int) size) != 0;
             else if (id == ID_SEGUID) external = size > 0;
-            else if (id == ID_DISPLAY && name.length() == 0) {
+            else if (id == ID_ATOM) children.add(new int[]{body, (int) size});
+            else if (id == ID_DISPLAY) {
+                String shown = "", lang = "eng", ietf = null; // ChapLanguage defaults to "eng"
                 for (int q = body; q < body + size; ) {
                     int cid = readId(b, q), cil = idLen(b[q]), csl = sizeLen(b[q + cil]);
                     long cs = readSize(b, q + cil);
                     if (cil == 0 || csl == 0 || cs < 0 || cs > body + size - q - cil - csl) break;
                     if (cid == ID_STRING) {
-                        name = new String(b, q + cil + csl, (int) cs, java.nio.charset.StandardCharsets.UTF_8)
+                        shown = new String(b, q + cil + csl, (int) cs, java.nio.charset.StandardCharsets.UTF_8)
                                 .replace("\u0000", "").trim();
+                    } else if (cid == ID_LANG) {
+                        lang = new String(b, q + cil + csl, (int) cs, java.nio.charset.StandardCharsets.US_ASCII);
+                    } else if (cid == ID_LANG_IETF) {
+                        ietf = new String(b, q + cil + csl, (int) cs, java.nio.charset.StandardCharsets.US_ASCII);
                     }
                     q += cil + csl + (int) cs;
+                }
+                // The first non-empty display is the fallback; an English or undefined one wins.
+                if (shown.length() > 0) {
+                    if (name.length() == 0) name = shown;
+                    if (preferred.length() == 0 && englishOrUndefined(ietf != null ? ietf : lang)) preferred = shown;
                 }
             }
             p = body + (int) size;
         }
+        if (preferred.length() > 0) name = preferred;
         // Atoms pointing into another file (ordered chapters) are not on this file's timeline.
         if (start >= 0 && !hidden && enabled && !external) out.add(new Chapter(start, end, name));
+        // A hidden or disabled parent switches off its whole subtree; the nesting depth is capped.
+        if (hidden || !enabled || depth >= 8) return;
+        for (int[] child : children) parseAtom(b, child[0], child[1], out, depth + 1);
+    }
+
+    /** Language of a ChapterDisplay (ISO 639-2 or BCP 47): English, undefined or empty. */
+    static boolean englishOrUndefined(String lang) {
+        String l = lang == null ? "" : lang.replace("\u0000", "").trim().toLowerCase(java.util.Locale.ROOT);
+        return l.isEmpty() || l.equals("eng") || l.equals("en") || l.startsWith("en-") || l.equals("und");
     }
 
     // ----------------------------------------------------------------- EBML

@@ -99,6 +99,7 @@ public class CompatReport {
 
     // Material You theme finds its targets by shape when it patches (MaterialYouPatch.kt), so no profile records them
     static final String DARK_SCHEME = "Lcom/facebook/mig/scheme/schemes/DarkColorScheme;";
+    static final String LIGHT_SCHEME = "Lcom/facebook/mig/scheme/schemes/LightColorScheme;";
     static final String FDS_COLORS = "Lcom/facebook/fds/core/theme/component/FDSColors;";
     static final Set<Integer> DARK_SURFACES = Set.of(0xFF080809, 0xFF1C1C1D, 0xFF252728, 0xFF333334, 0xFF323339);
     static final Set<String> COLOR_CALLS = Set.of(
@@ -216,19 +217,23 @@ public class CompatReport {
         PATCHES.put("Stop live connection logging", List.of("mqtt_telemetry"));
         PATCHES.put("Stop nearby scans", List.of("nearby_scans", "wifi_identity"));
         PATCHES.put("Stop app list and device ID sharing", List.of("phone_id_sync"));
-        PATCHES.put("Keep a message log", List.of("message_log", "unsent_recall", "unsent_clear"));
+        PATCHES.put("Keep a message log", List.of("message_log", "unsent_recall", "unsent_clear", "message_log_button", "message_log_click"));
         PATCHES.put("Auto reply", List.of("auto_reply"));
         PATCHES.put("Quiet incoming calls", List.of("quiet_call_ring", "quiet_call_notification"));
         PATCHES.put("Android Auto messages", List.of("car_messages"));
         PATCHES.put("Search saved messages", List.of("local_chat_search"));
+        PATCHES.put("Jump to the first message or a date", List.of("chat_jump"));
         PATCHES.put("Record calls", List.of("call_recording"));
         PATCHES.put("Hide call buttons", List.of("hide_call_bar"));
+        PATCHES.put("Ask before a call", List.of("hide_call_bar"));
         PATCHES.put("Allow screenshots", List.of("allow_screenshot", "screenshot_viewers"));
         PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "reply_read"));
         PATCHES.put("Mark as read button", List.of("mark_read_bar", "mark_read_click"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent", "unsent_recall", "unsent_clear"));
         PATCHES.put("Unlock app icons", List.of("app_icons"));
+        PATCHES.put("Unlock app themes", List.of("app_themes", "app_theme_pick"));
         PATCHES.put("Square profile pictures", List.of("avatar_shape", "story_ring"));
+        PATCHES.put("Your own home header", List.of("home_header"));
         PATCHES.put("Use your own font", List.of("font_layout", "font_repository", "font_roboto", "font_by_name", "font_input"));
         PATCHES.put("View stories anonymously", List.of("anonymous_stories"));
         PATCHES.put("Save any story", List.of("save_stories"));
@@ -6563,6 +6568,51 @@ public class CompatReport {
         return List.of(holders.get(0), starts.get(0), stops.get(0), playouts.get(0), records.get(0));
     }
 
+    static final String HEADER_DRAWABLE = "Landroid/graphics/drawable/Drawable;";
+    static final String HEADER_SCALE = "Landroid/widget/ImageView$ScaleType;";
+
+    /** The memoed Drawable cast in the chat list wordmark's render, or -1: invoke-static (scope, Function0, Object[]) Object, move-result, check-cast. */
+    static int homeHeaderCast(Method method) {
+        if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || params(method).size() != 1) return -1;
+        var code = instructions(method);
+        var refs = new HashSet<String>();
+        boolean colors = false, image = false;
+        for (var i : code) {
+            String ref = ref(i);
+            if (ref == null) continue;
+            refs.add(ref);
+            if (i.getOpcode() == Opcode.INVOKE_INTERFACE && ref.startsWith("Lcom/facebook/mig/scheme/interfaces/MigColorScheme;->")) colors = true;
+            if (i.getOpcode() == Opcode.INVOKE_STATIC && ((ReferenceInstruction) i).getReference() instanceof MethodReference call) {
+                var types = new ArrayList<String>();
+                for (var t : call.getParameterTypes()) types.add(t.toString());
+                if (types.size() == 4 && HEADER_DRAWABLE.equals(types.get(0)) && HEADER_SCALE.equals(types.get(1)) && "Z".equals(types.get(3))) image = true;
+            }
+        }
+        if (!refs.contains(HEADER_SCALE + "->FIT_START:" + HEADER_SCALE) || !refs.contains(HEADER_SCALE + "->FIT_END:" + HEADER_SCALE) || !colors || !image) return -1;
+        int found = -1;
+        for (int at = 2; at < code.size(); at++) {
+            var cast = code.get(at);
+            if (cast.getOpcode() != Opcode.CHECK_CAST || !HEADER_DRAWABLE.equals(ref(cast))) continue;
+            var moved = code.get(at - 1);
+            var memo = code.get(at - 2);
+            if (moved.getOpcode() != Opcode.MOVE_RESULT_OBJECT || register(moved) != register(cast) || memo.getOpcode() != Opcode.INVOKE_STATIC
+                || !(((ReferenceInstruction) memo).getReference() instanceof MethodReference call) || !"Ljava/lang/Object;".equals(call.getReturnType())) continue;
+            var types = new ArrayList<String>();
+            for (var t : call.getParameterTypes()) types.add(t.toString());
+            if (types.size() != 3 || !"Lkotlin/jvm/functions/Function0;".equals(types.get(1)) || !"[Ljava/lang/Object;".equals(types.get(2))) continue;
+            if (found >= 0) return -1;
+            found = at;
+        }
+        return found < 0 || mediaTargets(method).contains(found + 1) ? -1 : found;
+    }
+
+    /** home_header: the chat list wordmark's render, the only method with its shape. Mirrors HomeHeader.kt. */
+    static List<Method> homeHeader(List<ClassDef> classes) {
+        var renders = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (homeHeaderCast(method) >= 0) renders.add(method);
+        return renders.size() == 1 ? List.of(renders.get(0)) : List.of();
+    }
+
     static final String PHONE_ID_PROVIDER = ".provider.phoneid";
     static final String GET_PHONE_ID = "com.facebook.GET_PHONE_ID";
     static final String INSTALLED_PACKAGES = "Landroid/content/pm/PackageManager;->getInstalledPackages(I)Ljava/util/List;";
@@ -7074,6 +7124,299 @@ public class CompatReport {
         return false;
     }
 
+    /** MessageLogButton.kt's COMPOSE_BUTTON_NAME and COMPOSER_BUTTON_ID. */
+    static final String COMPOSE_BUTTON_NAME = "messaging.inbox.tab.core.tabtoolbarbutton.composerbutton.composertoolbarbutton.ComposeButtonTabButtonImplementation";
+    static final String COMPOSER_BUTTON_ID = "ComposerButton";
+    /** MessageLogButton.kt's BAR_STRINGS: only the Chats tab bar's builder names all four. */
+    static final List<String> LOG_BAR_STRINGS = List.of("messaging.navigation.home.tabs.tabtoolbarbutton.TabToolbarButtonInterfaceSpec",
+        "getTabToolbarButtonModel", COMPOSE_BUTTON_NAME, COMPOSER_BUTTON_ID);
+
+    /**
+     * message_log_button and message_log_click: the Chats tab bar's button list builder (the one no-argument instance
+     * List method naming the new message button's plugin and id) and the same class's tap handler. Taken only when the
+     * new message button's block resolves to bar fields, an icon factory, a label and one constructor whose every
+     * argument is a known slot, the button keeps its id in a public field, Messenger's CLOCK icon is a public enum value,
+     * the classes the generated button names are public, and the return seam holds. Returns bar, click. Mirrors
+     * MessageLogButton.kt.
+     */
+    static List<Method> messageLogButton(List<ClassDef> classes) {
+        var byType = new HashMap<String, ClassDef>();
+        for (var c : classes) byType.put(c.getType(), c);
+        Method bar = null;
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            if (!"Ljava/util/List;".equals(m.getReturnType()) || !m.getParameterTypes().isEmpty() || AccessFlags.STATIC.isSet(m.getAccessFlags()) ||
+                m.getImplementation() == null || !literals(m).containsAll(LOG_BAR_STRINGS)) continue;
+            if (bar != null) return List.of();
+            bar = m;
+        }
+        if (bar == null) return List.of();
+        var barClass = byType.get(bar.getDefiningClass());
+        if (barClass == null) return List.of();
+        Method click = null;
+        for (var m : barClass.getMethods()) {
+            if (!params(m).equals(List.of("Landroid/view/View;", "Ljava/lang/String;", "Ljava/lang/String;", "I")) || !"V".equals(m.getReturnType()) ||
+                AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null || !literals(m).contains(COMPOSER_BUTTON_ID)) continue;
+            if (click != null) return List.of();
+            click = m;
+        }
+        // The tap hook writes v0 ahead of the stock body; the receiver and the four parameters take five words.
+        if (click == null || click.getImplementation().getRegisterCount() - 5 < 1) return List.of();
+        var c = instructions(bar);
+        int name = -1;
+        for (int i = 0; i < c.size(); i++) if (c.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s && COMPOSE_BUTTON_NAME.equals(s.getString())) {
+            if (name >= 0) return List.of();
+            name = i;
+        }
+        if (name < 0) return List.of();
+        int add = -1;
+        for (int i = name; i < c.size() && add < 0; i++) if (COLLECTION_ADD.equals(ref(c.get(i)))) add = i;
+        if (add < 0) return List.of();
+        if (logBarField(barClass, c, name, add, "Landroid/content/Context;") == null || logBarField(barClass, c, name, add, FB_SESSION_TYPE) == null) return List.of();
+        int factoryAt = -1, labelAt = -1, initAt = -1;
+        MethodReference factory = null;
+        for (int i = name; i <= add; i++) {
+            if (c.get(i).getOpcode() != Opcode.INVOKE_STATIC || !(c.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference m)) continue;
+            var ps = refParams(m);
+            if (ps.size() != 3 || !"Landroid/content/Context;".equals(ps.get(0)) || !FB_SESSION_TYPE.equals(ps.get(1)) || !m.getReturnType().startsWith("L")) continue;
+            if (factoryAt >= 0) return List.of();
+            factoryAt = i;
+            factory = m;
+        }
+        if (factory == null || c.get(factoryAt + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return List.of();
+        String iconType = refParams(factory).get(2);
+        for (int i = name; i <= add; i++) if (c.get(i).getOpcode() == Opcode.INVOKE_VIRTUAL && "Landroid/content/Context;->getString(I)Ljava/lang/String;".equals(ref(c.get(i)))) {
+            if (labelAt >= 0) return List.of();
+            labelAt = i;
+        }
+        if (labelAt < 0 || c.get(labelAt + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT) return List.of();
+        MethodReference init = null;
+        for (int i = name; i <= add; i++) {
+            if ((c.get(i).getOpcode() != Opcode.INVOKE_DIRECT && c.get(i).getOpcode() != Opcode.INVOKE_DIRECT_RANGE) ||
+                !(c.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference m) || !"<init>".equals(m.getName()) ||
+                !refParams(m).contains(factory.getReturnType())) continue;
+            if (initAt >= 0) return List.of();
+            initAt = i;
+            init = m;
+        }
+        if (init == null) return List.of();
+        var ps = refParams(init);
+        var args = callArgs(c.get(initAt));
+        // The stub passes them all in one range below v16.
+        if (ps.size() > 10 || ps.contains("J") || ps.contains("D") || args.size() != ps.size() + 1 || callArgs(c.get(add)).size() < 2 ||
+            !callArgs(c.get(add)).get(1).equals(args.get(0))) return List.of();
+        int icons = 0, labels = 0, idSlot = -1, ids = 0;
+        for (int k = 0; k < ps.size(); k++) {
+            int register = args.get(k + 1);
+            String type = ps.get(k);
+            var defs = definitionsAt(bar, initAt, register);
+            if (defs == null) return List.of();
+            int def = defs.size() == 1 ? defs.iterator().next() : -1;
+            if (def >= 0 && def == factoryAt + 1 && type.equals(factory.getReturnType())) icons++;
+            else if (def >= 0 && def == labelAt + 1 && "Ljava/lang/String;".equals(type)) labels++;
+            else if (def >= 0 && "Ljava/lang/String;".equals(type) && c.get(def) instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s &&
+                COMPOSER_BUTTON_ID.equals(s.getString())) { ids++; idSlot = k; }
+            else {
+                Integer zero = narrowConstantAt(bar, c, initAt, register, 4);
+                if (zero == null || zero != 0 || !("Z".equals(type) || type.startsWith("L"))) return List.of();
+            }
+        }
+        if (icons != 1 || labels != 1 || ids != 1) return List.of();
+        var buttonClass = byType.get(init.getDefiningClass());
+        if (buttonClass == null) return List.of();
+        Method ctor = null;
+        for (var m : buttonClass.getMethods()) if (hookId(m).equals(init.toString())) ctor = m;
+        if (ctor == null || ctor.getImplementation() == null || !AccessFlags.PUBLIC.isSet(ctor.getAccessFlags())) return List.of();
+        // The id parameter goes into one public String field, which the extension reads back to place the button.
+        int idParam = ctor.getImplementation().getRegisterCount() - (ps.size() + 1) + 1 + idSlot;
+        var idFields = new LinkedHashSet<String>();
+        FieldReference idField = null;
+        for (var i : instructions(ctor))
+            if (i.getOpcode() == Opcode.IPUT_OBJECT && ((TwoRegisterInstruction) i).getRegisterA() == idParam && i instanceof ReferenceInstruction ri &&
+                ri.getReference() instanceof FieldReference f && init.getDefiningClass().equals(f.getDefiningClass()) && "Ljava/lang/String;".equals(f.getType())) {
+                idFields.add(f.toString());
+                idField = f;
+            }
+        if (idFields.size() != 1) return List.of();
+        boolean idPublic = false;
+        for (var f : buttonClass.getFields())
+            if (f.getName().equals(idField.getName()) && "Ljava/lang/String;".equals(f.getType()) && AccessFlags.PUBLIC.isSet(f.getAccessFlags()) &&
+                !AccessFlags.STATIC.isSet(f.getAccessFlags())) idPublic = true;
+        if (!idPublic) return List.of();
+        // Messenger's clock icon, by its enum name.
+        var iconClass = byType.get(iconType);
+        if (iconClass == null) return List.of();
+        var clocks = new LinkedHashSet<String>();
+        FieldReference clock = null;
+        for (var m : iconClass.getMethods()) if ("<clinit>".equals(m.getName())) {
+            var ic = instructions(m);
+            for (int k = 0; k < ic.size(); k++) {
+                if (!(ic.get(k) instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s && "CLOCK".equals(s.getString()))) continue;
+                for (int j = k + 1; j < Math.min(ic.size(), k + 8); j++) {
+                    if (ic.get(j).getOpcode() == Opcode.SPUT_OBJECT && ic.get(j) instanceof ReferenceInstruction put && put.getReference() instanceof FieldReference f &&
+                        iconType.equals(f.getType()) && iconType.equals(f.getDefiningClass())) { clocks.add(f.toString()); clock = f; break; }
+                }
+            }
+        }
+        if (clocks.size() != 1) return List.of();
+        boolean clockPublic = false;
+        for (var f : iconClass.getFields())
+            if (f.getName().equals(clock.getName()) && iconType.equals(f.getType()) && AccessFlags.STATIC.isSet(f.getAccessFlags()) && AccessFlags.PUBLIC.isSet(f.getAccessFlags())) clockPublic = true;
+        if (!clockPublic) return List.of();
+        // Every class and member the generated button names is public, since it lives in the extension's package.
+        var factoryClass = byType.get(factory.getDefiningClass());
+        var session = byType.get(FB_SESSION_TYPE);
+        if (factoryClass == null || session == null) return List.of();
+        Method factoryMethod = null;
+        for (var m : factoryClass.getMethods()) if (hookId(m).equals(factory.toString())) factoryMethod = m;
+        if (factoryMethod == null || !AccessFlags.PUBLIC.isSet(factoryMethod.getAccessFlags()) || !AccessFlags.STATIC.isSet(factoryMethod.getAccessFlags())) return List.of();
+        for (var cls : List.of(buttonClass, factoryClass, iconClass, session)) if (!AccessFlags.PUBLIC.isSet(cls.getAccessFlags())) return List.of();
+        int list = logBarSite(bar);
+        if (list < 0 || list != callArgs(c.get(add)).get(0)) return List.of();
+        return List.of(bar, click);
+    }
+
+    /** The one instance field of this type the block reads on the bar itself, or null. */
+    static String logBarField(ClassDef barClass, List<Instruction> c, int from, int to, String type) {
+        var found = new LinkedHashSet<String>();
+        FieldReference field = null;
+        for (int i = from; i <= to; i++)
+            if (c.get(i).getOpcode() == Opcode.IGET_OBJECT && c.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof FieldReference f &&
+                barClass.getType().equals(f.getDefiningClass()) && type.equals(f.getType())) { found.add(f.toString()); field = f; }
+        if (found.size() != 1) return null;
+        for (var f : barClass.getFields())
+            if (f.getName().equals(field.getName()) && type.equals(f.getType()) && !AccessFlags.STATIC.isSet(f.getAccessFlags())) return found.iterator().next();
+        return null;
+    }
+
+    /**
+     * The bar's return seam: its one return hands back an ArrayList the method made, nothing lands on the return, no try
+     * covers it or ends on it, the receiver is never written and two low locals other than the list are free. The
+     * list's register, or -1. Mirrors messageLogBarSite in MessageLogButton.kt.
+     */
+    static int logBarSite(Method bar) {
+        var code = instructions(bar);
+        int site = -1;
+        for (int i = 0; i < code.size(); i++) if (code.get(i).getOpcode() == Opcode.RETURN_OBJECT) {
+            if (site >= 0) return -1;
+            site = i;
+        }
+        if (site < 0) return -1;
+        int list = register(code.get(site));
+        if (list > 15) return -1;
+        var edges = edges(bar);
+        if (edges == null) return -1;
+        for (var e : edges) if (e[1] == site) return -1;
+        int at = 0;
+        for (int i = 0; i < site; i++) at += code.get(i).getCodeUnits();
+        for (var block : bar.getImplementation().getTryBlocks())
+            if (block.getStartCodeAddress() < at && block.getStartCodeAddress() + block.getCodeUnitCount() >= at) return -1;
+        int self = bar.getImplementation().getRegisterCount() - 1;
+        for (var i : code) if (writesRegister(i, self)) return -1;
+        var defs = definitionsAt(bar, site, list);
+        if (defs == null || defs.size() != 1) return -1;
+        int made = defs.iterator().next();
+        if (made < 0 || code.get(made).getOpcode() != Opcode.NEW_INSTANCE || !"Ljava/util/ArrayList;".equals(ref(code.get(made)))) return -1;
+        int scratch = 0;
+        for (int r = 0; r < Math.min(16, self); r++) if (r != list) scratch++;
+        return scratch >= 2 ? list : -1;
+    }
+
+    /** AppThemes.kt's THEME_PICKER_SURFACE and INSTANT_FEEDBACK. */
+    static final String THEME_PICKER_SURFACE = "msgr_theme_picker";
+    static final String INSTANT_FEEDBACK = "Lcom/facebook/fds/instantfeedback/FDSInstantFeedback;";
+
+    /**
+     * app_theme_pick: the Theme setting's tap case, the one invoke(Object) lambda naming the picker's logging surface and
+     * making an FDSInstantFeedback toast. Taken only when its toast seam holds and the picker it writes the pick into has
+     * one no-argument instance method, not private, that asks the theme check. Mirrors resolveAppThemePick in AppThemes.kt.
+     */
+    static List<Method> appThemePick(List<ClassDef> classes) {
+        var byType = new HashMap<String, ClassDef>();
+        for (var c : classes) byType.put(c.getType(), c);
+        Method tap = null;
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            if (!isAppThemeTap(m)) continue;
+            if (tap != null) return List.of();
+            tap = m;
+        }
+        if (tap == null) return List.of();
+        String pickField = appThemePickSite(tap);
+        if (pickField == null) return List.of();
+        var picker = byType.get(pickField.substring(0, pickField.indexOf("->")));
+        if (picker == null) return List.of();
+        int redraws = 0;
+        for (var m : picker.getMethods()) {
+            if (!m.getParameterTypes().isEmpty() || !"V".equals(m.getReturnType()) || "<init>".equals(m.getName()) ||
+                AccessFlags.STATIC.isSet(m.getAccessFlags()) || AccessFlags.PRIVATE.isSet(m.getAccessFlags())) continue;
+            boolean asks = false;
+            for (var i : instructions(m))
+                if (i.getOpcode() == Opcode.INVOKE_STATIC && i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference call &&
+                    "Z".equals(call.getReturnType()) && refParams(call).equals(List.of(FB_SESSION_TYPE)) && asksAppThemeGate(byType, call)) asks = true;
+            if (asks) redraws++;
+        }
+        return redraws == 1 ? List.of(tap) : List.of();
+    }
+
+    static boolean isAppThemeTap(Method m) {
+        if (!"invoke".equals(m.getName()) || !"Ljava/lang/Object;".equals(m.getReturnType()) || !params(m).equals(List.of("Ljava/lang/Object;")) ||
+            !literals(m).contains(THEME_PICKER_SURFACE)) return false;
+        for (var i : instructions(m)) if (i.getOpcode() == Opcode.NEW_INSTANCE && INSTANT_FEEDBACK.equals(ref(i))) return true;
+        return false;
+    }
+
+    /** Whether the call lands on the one static benefit check for paid themes, as the app_themes discovery reads it. */
+    static boolean asksAppThemeGate(Map<String, ClassDef> byType, MethodReference call) {
+        var owner = byType.get(call.getDefiningClass());
+        if (owner == null) return false;
+        for (var m : owner.getMethods())
+            if (hookId(m).equals(call.toString())) return AccessFlags.STATIC.isSet(m.getAccessFlags()) && "Z".equals(m.getReturnType()) &&
+                params(m).equals(List.of(FB_SESSION_TYPE)) && literals(m).contains("CUSTOM_APP_THEME");
+        return false;
+    }
+
+    /**
+     * The tap case's toast seam: one show call on the toast's controller, followed by a jump nothing else lands on, that
+     * no try covers or ends on, whose landing writes the toast's register first. The pick is the last String put before
+     * the toast, into an object whose low register is kept until the toast and whose field the case read earlier. The
+     * pick field, or null. Mirrors appThemePickSite in AppThemes.kt.
+     */
+    static String appThemePickSite(Method tap) {
+        var code = instructions(tap);
+        int show = -1;
+        for (int i = 0; i + 1 < code.size(); i++) {
+            if (code.get(i).getOpcode() != Opcode.IGET_OBJECT || !(code.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof FieldReference read) ||
+                !INSTANT_FEEDBACK.equals(read.getDefiningClass())) continue;
+            var call = code.get(i + 1);
+            if (call.getOpcode() != Opcode.INVOKE_VIRTUAL || !(call instanceof ReferenceInstruction rc && rc.getReference() instanceof MethodReference shown) ||
+                !read.getType().equals(shown.getDefiningClass()) || !"V".equals(shown.getReturnType()) || !shown.getParameterTypes().isEmpty() ||
+                ((FiveRegisterInstruction) call).getRegisterC() != ((TwoRegisterInstruction) code.get(i)).getRegisterA()) continue;
+            if (show >= 0) return null;
+            show = i + 1;
+        }
+        if (show < 0 || show + 1 >= code.size()) return null;
+        int scratch = ((FiveRegisterInstruction) code.get(show)).getRegisterC();
+        var jump = code.get(show + 1);
+        if (!EnumSet.of(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32).contains(jump.getOpcode()) || mediaTargets(tap).contains(show + 1)) return null;
+        int at = 0;
+        for (int i = 0; i <= show; i++) at += code.get(i).getCodeUnits();
+        int landing = -1, offset = 0;
+        for (int i = 0; i < code.size(); i++) { if (offset == at + ((OffsetInstruction) jump).getCodeOffset()) landing = i; offset += code.get(i).getCodeUnits(); }
+        if (landing < 0 || code.get(landing).getOpcode() != Opcode.SGET_OBJECT || !writesRegister(code.get(landing), scratch)) return null;
+        for (var block : tap.getImplementation().getTryBlocks())
+            if (block.getStartCodeAddress() < at && block.getStartCodeAddress() + block.getCodeUnitCount() >= at) return null;
+        int pick = -1;
+        for (int i = show - 1; i >= 0 && pick < 0; i--)
+            if (code.get(i).getOpcode() == Opcode.IPUT_OBJECT && code.get(i) instanceof ReferenceInstruction ri && ri.getReference() instanceof FieldReference f &&
+                "Ljava/lang/String;".equals(f.getType())) pick = i;
+        if (pick < 0) return null;
+        int fragment = ((TwoRegisterInstruction) code.get(pick)).getRegisterB();
+        String pickField = ref(code.get(pick));
+        if (fragment > 15) return null;
+        for (int i = pick + 1; i < show; i++) if (writesRegister(code.get(i), fragment)) return null;
+        for (int i = 0; i < pick; i++) if (code.get(i).getOpcode() == Opcode.IGET_OBJECT && pickField.equals(ref(code.get(i)))) return pickField;
+        return null;
+    }
+
     /**
      * The newer bar's factory, static or (585) an instance method whose receiver comes before the parameters. Its one
      * call to the details builder reaches exactly one return, of the list an ImmutableList builder just built, directly
@@ -7260,6 +7603,7 @@ public class CompatReport {
         found.get("car_messages").addAll(carMessages(classes));
         found.get("local_chat_search").addAll(localChatSearch(classes));
         found.get("call_recording").addAll(callRecording(classes));
+        found.get("home_header").addAll(homeHeader(classes));
         var markRead = markReadButton(classes);
         if (!markRead.isEmpty()) {
             found.get("mark_read_bar").add(markRead.get(0));
@@ -7270,6 +7614,12 @@ public class CompatReport {
         }
         found.get("text_style").addAll(textStyleField(classes));
         found.get("message_log").addAll(messageLogHooks(classes));
+        var logButton = messageLogButton(classes);
+        if (!logButton.isEmpty()) {
+            found.get("message_log_button").add(logButton.get(0));
+            found.get("message_log_click").add(logButton.get(1));
+        }
+        found.get("app_theme_pick").addAll(appThemePick(classes));
         found.get("auto_reply").addAll(messageLogHooks(classes));
         found.get("unsent_recall").addAll(unsentRecall(classes));
         found.get("unsent_clear").addAll(unsentClear(classes));
@@ -7461,6 +7811,12 @@ public class CompatReport {
                     paramTypes.equals(isStatic ? List.of(BUBBLE_SESSION) : List.of("Landroid/content/Context;", BUBBLE_SESSION)) &&
                     strings.contains("CUSTOM_APP_ICON")) {
                     found.get("app_icons").add(method);
+                }
+
+                // app_themes: the one static benefit check on the session for paid themes; the generic lookup takes a String
+                if (isStatic && "Z".equals(method.getReturnType()) && paramTypes.equals(List.of(BUBBLE_SESSION)) &&
+                    strings.contains("CUSTOM_APP_THEME")) {
+                    found.get("app_themes").add(method);
                 }
 
                 // facebook, and facebook_profile for a gate that builds only the chat details Profile button
@@ -7671,6 +8027,13 @@ public class CompatReport {
                     if ("M4TabNavigationFragment".equals(original)) found.get("chat_inbox").add(method);
                 }
 
+                // chat_jump: the chat fragment's own onViewCreated, where the chat first has a view. Mirrors ChatJump.kt.
+                if ("MsysThreadViewFragment".equals(original) && !isStatic && "onViewCreated".equals(method.getName()) &&
+                    "V".equals(method.getReturnType()) && paramTypes.equals(List.of("Landroid/view/View;", "Landroid/os/Bundle;")) &&
+                    method.getImplementation() != null) {
+                    found.get("chat_jump").add(method);
+                }
+
                 // chat_legacy: the chat fragment on Messenger's older route, which loads its own animation
                 if ("ThreadViewFragment".equals(original) &&
                     (cls.getType() + "->onCreateAnimation(IZI)" + ANIMATION).equals(hookId(method))) {
@@ -7832,7 +8195,7 @@ public class CompatReport {
      * check of its own. The control tests' zero-local check (MirroredFinders.kt) fails when this set and the patches part.
      */
     static final Set<String> NEEDS_A_LOCAL = Set.of("ad_events", "ai_commands", "ai_fab", "ai_mention_rows", "ai_menu", "ai_search",
-        "ai_search_chip", "allow_screenshot", "analytics_uploads", "app_icons", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
+        "ai_search_chip", "allow_screenshot", "analytics_uploads", "app_icons", "app_themes", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
         "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_notes", "growth_story_card", "instants_button", "keep_unsent",
         "mqtt_telemetry", "nearby_scans", "original_photo", "people_story", "phone_id_sync", "people_tab", "recent_media", "stories", "system_camera",
         "tab_badges", "typing", "unsent_indicator", "unsent_recall");
@@ -8618,19 +8981,20 @@ public class CompatReport {
     }
 
     /**
-     * What MaterialYouPatch.kt finds by shape when it patches: one DarkColorScheme token resolver, one dark mode
+     * What MaterialYouPatch.kt finds by shape when it patches: one DarkColorScheme and one LightColorScheme token resolver, one dark mode
      * check called by FDSColors' (Context, ?, ?)I resolvers, FDSColors' int returns, and the constants and calls
      * routes 3 and 4 rewrite. The patch quietly skips its FDS half when it can't find it, so this is where a build
      * that resolves only part of it fails. Found targets go in targets.
      */
     static List<String> materialYouProblems(List<ClassDef> classes, List<String> targets) {
         var problems = new ArrayList<String>();
-        ClassDef scheme = null, fds = null;
+        ClassDef scheme = null, lightScheme = null, fds = null;
         var fdsShapes = new ArrayList<ClassDef>();
         int surfaces = 0, colorCalls = 0;
         var editableClasses = new TreeSet<String>();
         for (ClassDef cls : classes) {
             if (cls.getType().equals(DARK_SCHEME)) scheme = cls;
+            if (cls.getType().equals(LIGHT_SCHEME)) lightScheme = cls;
             if (cls.getType().equals(FDS_COLORS)) fds = cls;
             if (isFdsColorsShape(cls)) fdsShapes.add(cls);
             for (Method m : cls.getMethods()) {
@@ -8658,6 +9022,18 @@ public class CompatReport {
             if (resolver != null) {
                 hookBeforeReturn(resolver, problems, targets);
                 editableClasses.add(scheme.getType());
+            }
+        }
+        // The patch skips light mode's accent (#132) on a build without the light scheme, so this is where that shows.
+        if (lightScheme == null) {
+            problems.add("no " + LIGHT_SCHEME);
+        } else {
+            var resolvers = new ArrayList<Method>();
+            for (Method m : lightScheme.getMethods()) if (isTokenColorMethod(m)) resolvers.add(m);
+            Method resolver = onlyOne(resolvers, "LightColorScheme token resolver", problems);
+            if (resolver != null) {
+                hookBeforeReturn(resolver, problems, targets);
+                editableClasses.add(lightScheme.getType());
             }
         }
         // 584 dropped FDSColors' name (LX/9TH;), so the patch falls back to its shape

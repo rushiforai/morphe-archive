@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voidhack_library_title">Library tools</string>
+    <string name="voidhack_library_export_all">Export library and playlists</string>
+    <string name="voidhack_library_export_playlists">Export playlists</string>
+    <string name="voidhack_library_import_backup">Import backup</string>
+    <string name="voidhack_library_download_all">Download entire library</string>
+    <string name="voidhack_library_cancel">Cancel</string>
+    <string name="voidhack_library_close">Close</string>
+    <string name="voidhack_library_import">Import</string>
+    <string name="voidhack_library_download">Download</string>
+    <string name="voidhack_library_stop">Stop</string>
+    <string name="voidhack_library_stopping">Stopping…</string>
+    <string name="voidhack_library_reading_library">Reading library and playlists…</string>
+    <string name="voidhack_library_writing_backup">Writing backup…</string>
+    <string name="voidhack_library_reading_backup">Reading backup…</string>
+    <string name="voidhack_library_importing">Importing backup…</string>
+    <string name="voidhack_library_checking_downloads">Checking library downloads…</string>
+    <string name="voidhack_library_requesting_downloads">Requesting downloads…</string>
+    <string name="voidhack_library_stop_export">Stopping may leave an incomplete backup file.</string>
+    <string name="voidhack_library_stop_import">Stopping keeps songs and playlists already added.</string>
+    <string name="voidhack_library_stop_download">Stopping keeps download requests already sent.</string>
+    <string name="voidhack_library_stopped">Stopped</string>
+    <string name="voidhack_library_stopped_read">The operation was stopped.</string>
+    <string name="voidhack_library_export_finished">Backup exported</string>
+    <string name="voidhack_library_import_result">Import result</string>
+    <string name="voidhack_library_download_result">Download requests</string>
+    <string name="voidhack_library_count_pair">%1$s\n%2$s</string>
+    <string name="voidhack_library_import_preview">%1$s\n\nMissing songs and new playlists will be added; matching playlists will be skipped. Your existing music will be kept.</string>
+    <string name="voidhack_library_download_preview">%1$s\n\nDownload available songs allowed by Content Restrictions? Apple Music download settings apply.</string>
+    <string name="voidhack_library_download_empty">All available songs are already downloaded or queued.</string>
+    <string name="voidhack_library_download_progress">Download requests: %1$d / %2$d</string>
+    <string name="voidhack_library_download_summary">%1$s\n\nCheck Downloading in your library for progress. Apple Music account, connection and storage settings apply.</string>
+    <string name="voidhack_library_download_stopped">Requests already sent are kept.</string>
+    <string name="voidhack_library_restore_summary">%1$s\n%2$s\n%3$s\n%4$s\n%5$s\n\nApple Music handles syncing. Songs without a catalog ID must already be in your library; playlists with missing local songs are skipped to preserve their contents.</string>
+    <string name="voidhack_library_failed_title">Couldn’t complete the operation</string>
+    <string name="voidhack_library_operation_failed">Apple Music couldn’t complete this operation. Try again after checking your connection and library sync.</string>
+    <string name="voidhack_library_restarted">The app restarted. Choose Export again to create a backup.</string>
+    <string name="voidhack_library_open_destination">Couldn’t open the destination file. Choose another location and try again.</string>
+    <string name="voidhack_library_open_backup">Couldn’t open the backup file. Choose the file again and check its access permissions.</string>
+    <string name="voidhack_library_file_read_failed">Couldn’t read the backup file. Check that the file is accessible and try again.</string>
+    <string name="voidhack_library_file_write_failed">Couldn’t save the backup file. Check the destination and available storage, then export again.</string>
+    <string name="voidhack_library_backup_too_large">The backup exceeds 32 MiB. Export playlists separately or choose a smaller backup.</string>
+    <string name="voidhack_library_backup_unsupported">This file isn’t a supported Apple Music backup. Choose a backup created with Library tools.</string>
+    <string name="voidhack_library_backup_invalid">The backup file is damaged or has invalid data. Choose another backup.</string>
+    <string name="voidhack_library_backup_encode">Couldn’t create the backup. Read the library again and retry the export.</string>
+    <string name="voidhack_library_sync_required">Open your Apple Music library and wait for syncing to finish, then try again.</string>
+    <string name="voidhack_library_subscription_required">Sign in to Apple Music with an active subscription, then try again.</string>
+    <string name="voidhack_library_download_connection">Connect to Wi-Fi or allow cellular downloads in Apple Music settings, then try again.</string>
+    <string name="voidhack_library_download_moving">Wait for Apple Music to finish moving downloaded music, then try again.</string>
+    <string name="voidhack_library_download_data_saver">Connect to Wi-Fi or turn off Data Saver in Apple Music settings, then try again.</string>
+    <string name="voidhack_library_library_changed">The library changed while being read. Wait for syncing to finish and try again.</string>
+    <string name="voidhack_library_playlist_mismatch">Apple Music saved a playlist with different contents. Check your library before importing again.</string>
+    <string name="voidhack_library_playlist_unresolved">Apple Music couldn’t find a playlist song. The playlist was not saved.</string>
+    <string name="voidhack_library_native_error">Apple Music returned error %1$d. Changes already applied are kept; check your library before retrying.</string>
+    <plurals name="voidhack_library_songs"><item quantity="one">%d library song</item><item quantity="other">%d library songs</item></plurals>
+    <plurals name="voidhack_library_playlists"><item quantity="one">%d playlist</item><item quantity="other">%d playlists</item></plurals>
+    <plurals name="voidhack_library_download_songs"><item quantity="one">%d song</item><item quantity="other">%d songs</item></plurals>
+    <plurals name="voidhack_library_requested"><item quantity="one">%d download requested</item><item quantity="other">%d downloads requested</item></plurals>
+    <plurals name="voidhack_library_added"><item quantity="one">%d library addition requested</item><item quantity="other">%d library additions requested</item></plurals>
+    <plurals name="voidhack_library_created"><item quantity="one">%d playlist created</item><item quantity="other">%d playlists created</item></plurals>
+    <plurals name="voidhack_library_existing"><item quantity="one">%d matching playlist skipped</item><item quantity="other">%d matching playlists skipped</item></plurals>
+    <plurals name="voidhack_library_unresolved_tracks"><item quantity="one">%d unresolved track skipped</item><item quantity="other">%d unresolved tracks skipped</item></plurals>
+    <plurals name="voidhack_library_unresolved_playlists"><item quantity="one">%d playlist with missing tracks skipped</item><item quantity="other">%d playlists with missing tracks skipped</item></plurals>
+</resources>

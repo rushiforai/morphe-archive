@@ -73,4 +73,35 @@ public class MessageLogSearchTest {
     @Test public void aChatNobodyNamedStaysEmpty() {
         assertEquals("", MessageLogSearch.chats(List.of(new MessageLog.Entry(1000, "t", "hello"))).get(0).name);
     }
+
+    @Test public void directMessagesAndGroupChatsSplitByTheChatsKind() {
+        MessageLog.Entry direct = new MessageLog.Entry(3000, "ONE_TO_ONE:3:4", "hi", "Ana", "", "mid.3", false);
+        MessageLog.Entry encrypted = new MessageLog.Entry(2000, "ADVANCED_CRYPTO_ONE_TO_ONE:9", "hey", "Bo", "", "mid.2", false);
+        MessageLog.Entry group = new MessageLog.Entry(1000, "GROUP:7", "hello all", "Ben", "Trip Crew", "mid.1", false);
+        MessageLog.Entry unknown = new MessageLog.Entry(500, "", "lost", "", "", "mid.0", false);
+        MessageLogSearch.Index index = new MessageLogSearch.Index(List.of(direct, encrypted, group, unknown));
+        assertEquals(List.of(direct, encrypted), index.find("", null, false, MessageLogSearch.DIRECT));
+        assertEquals(List.of(group), index.find("", null, false, MessageLogSearch.GROUPS));
+        // A message with no chat key isn't either kind, but every chat still shows it.
+        assertEquals(List.of(direct, encrypted, group, unknown), index.find("", null, false, MessageLogSearch.ALL));
+    }
+
+    @Test public void aPickedNameShowsForTheChatAndFindsItsMessages() {
+        MessageLog.Entry nameless = new MessageLog.Entry(2000, "GROUP:7", "see you there", "", "", "mid.2", false);
+        MessageLog.Entry named = new MessageLog.Entry(1000, "t1", "lunch?", "Ana", "", "mid.1", false);
+        java.util.Map<String, String> names = java.util.Map.of("GROUP:7", "Climbing Crew");
+        assertEquals("Climbing Crew", MessageLogSearch.chats(List.of(nameless, named), names).get(0).name);
+        assertEquals("Ana", MessageLogSearch.chats(List.of(nameless, named), names).get(1).name);
+
+        MessageLogSearch.Index index = new MessageLogSearch.Index(List.of(nameless, named), names);
+        assertEquals(List.of(nameless), index.find("climbing there", null, false));
+        assertEquals("Climbing Crew", index.chatName("GROUP:7"));
+        assertEquals("Ana", index.chatName("t1"));
+        // A rename on the log's screen takes effect in the open index, and an empty one takes the name away.
+        index.rename("t1", "Ana from work");
+        assertEquals(List.of(named), index.find("work", null, false));
+        index.rename("GROUP:7", "");
+        assertEquals("", index.chatName("GROUP:7"));
+        assertTrue(index.find("climbing", null, false).isEmpty());
+    }
 }

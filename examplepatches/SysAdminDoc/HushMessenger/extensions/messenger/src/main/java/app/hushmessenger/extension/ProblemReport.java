@@ -17,7 +17,8 @@ import java.util.regex.Pattern;
  *
  * <p>It carries only what a report needs: version names, the Messenger build it was patched from (which Spoof package
  * version hides from Android's version code), the phone's maker and model, Android's version, whether
- * changes are paused or in safe mode, the English titles of the controls that are on, and for a crash in the last three
+ * changes are paused or in safe mode, whether notifications can pop up (switches, permissions and channel ids with their
+ * importance), the English titles of the controls that are on, and for a crash in the last three
  * days the exception's class names and top code frames (never its message). No account, serial number, package name,
  * file path or log line goes in. The text is for the maintainer, so it stays English whatever the
  * phone's language. The whole address is held to MAX_LENGTH characters: the list of controls is shortened first,
@@ -31,6 +32,13 @@ final class ProblemReport {
     static final int MAX_FACT = 120;
     static final String WHAT_HAPPENED = "What happened:";
     static final String WHAT_EXPECTED = "What I expected:";
+    /** The notifications line is longer than one fact, since it names each channel that can't pop up. */
+    static final int MAX_NOTIFICATIONS = 400;
+    /** Channels named below high, at most. The rest are counted. */
+    static final int MAX_LOWERED = 12;
+    /** Every Messenger channel id starts with this, so the report leaves it off. */
+    static final String CHANNEL_PREFIX = "messenger_orca_";
+    private static final Pattern CHANNEL_ID = Pattern.compile("[A-Za-z0-9_.-]{1,48}");
 
     private ProblemReport() { }
 
@@ -58,6 +66,7 @@ final class ProblemReport {
         final List<String> controlsOn;
         final String galleryOutcome;
         final String lastCrash;
+        final String notifications;
 
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn) {
@@ -75,6 +84,13 @@ final class ProblemReport {
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
                 String galleryOutcome, String lastCrash) {
+            this(hushVersion, messengerVersion, messengerCode, patchedFrom, manufacturer, model, androidRelease, sdk,
+                paused, safeMode, controlsOn, galleryOutcome, lastCrash, "");
+        }
+
+        Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
+                String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
+                String galleryOutcome, String lastCrash, String notifications) {
             this.hushVersion = clean(hushVersion);
             this.messengerVersion = clean(messengerVersion);
             this.messengerCode = messengerCode;
@@ -92,7 +108,49 @@ final class ProblemReport {
             this.galleryOutcome = galleryCategory(galleryOutcome);
             // Class names and code frames only, as LastCrash saved them. Cleaned again so nothing else can ride along.
             this.lastCrash = LastCrash.clean(lastCrash);
+            this.notifications = clean(notifications, MAX_NOTIFICATIONS);
         }
+    }
+
+    /**
+     * "Notifications: on, chat bubbles stock, draw over apps no, full-screen yes, 14 channels can pop up, under high:
+     * 050_messaging 3". Whether Messenger's notifications can pop up at all (#126): Android's switch for the app, the
+     * bubble choice, the two permissions a chat head and a ringing call need, and each channel below high by its id and
+     * importance, since one below high never pops up. [overlay] and [fullScreen] are null on an Android without them.
+     * [channels] holds {id, importance} pairs. Ids only: an id that isn't a plain word, such as a conversation's own
+     * channel that names its chat, is left out and counted.
+     */
+    static String notificationsLine(boolean allowed, String bubbles, Boolean overlay, Boolean fullScreen, List<String[]> channels) {
+        StringBuilder line = new StringBuilder("Notifications: ").append(allowed ? "on" : "off")
+            .append(", chat bubbles ").append(bubbles == null ? "unknown" : bubbles);
+        if (overlay != null) line.append(", draw over apps ").append(overlay ? "yes" : "no");
+        if (fullScreen != null) line.append(", full-screen ").append(fullScreen ? "yes" : "no");
+        int high = 0, other = 0;
+        List<String> lowered = new ArrayList<>();
+        for (String[] channel : channels == null ? Collections.<String[]>emptyList() : channels) {
+            String id = channel[0] == null ? "" : channel[0];
+            if (id.startsWith(CHANNEL_PREFIX)) id = id.substring(CHANNEL_PREFIX.length());
+            int importance;
+            try {
+                importance = Integer.parseInt(channel[1]);
+            } catch (NumberFormatException odd) {
+                importance = -1;
+            }
+            if (!CHANNEL_ID.matcher(id).matches() || importance < 0) other++;
+            else if (importance >= 4) high++;
+            else lowered.add(id + " " + importance);
+        }
+        Collections.sort(lowered);
+        line.append(", ").append(high).append(high == 1 ? " channel" : " channels").append(" can pop up");
+        if (lowered.isEmpty()) line.append(", none under high");
+        else {
+            line.append(", under high: ");
+            int kept = Math.min(lowered.size(), MAX_LOWERED);
+            for (int i = 0; i < kept; i++) line.append(i > 0 ? ", " : "").append(lowered.get(i));
+            if (lowered.size() > kept) line.append(", and ").append(lowered.size() - kept).append(" more");
+        }
+        if (other > 0) line.append(", ").append(other).append(" not listed");
+        return line.toString();
     }
 
     private static String galleryCategory(String value) {
@@ -138,6 +196,7 @@ final class ProblemReport {
             .append("Versions: ").append(versionsLine(facts)).append('\n')
             .append("Patched from: ").append(orUnknown(facts.patchedFrom)).append('\n')
             .append("Phone: ").append(phoneLine(facts)).append('\n');
+        if (facts.notifications.startsWith("Notifications: ")) body.append(facts.notifications).append('\n');
         if (facts.safeMode) body.append("Safe mode: on\n");
         if (facts.paused) body.append("Pause all changes: on\n");
         if (!"NOT_USED".equals(facts.galleryOutcome)) body.append("Gallery result: ").append(facts.galleryOutcome).append('\n');
@@ -153,8 +212,9 @@ final class ProblemReport {
             if (url.length() <= MAX_LENGTH) return url;
         }
         // Not reached in practice: five free-text facts of 120 characters, nine each once encoded, come to 5,400, and the
-        // patched-from line is a short ASCII line patchedFrom built. A crash line adds at most 1,200 more, and only when
-        // every free-text fact is at its longest does this run. Kept so odd facts can't push the questions out.
+        // patched-from line is a short ASCII line patchedFrom built. A crash line adds at most 1,200 more and the
+        // notifications line, plain ASCII, about 600 encoded, and only when every free-text fact is at its longest does
+        // this run. Kept so odd facts can't push the questions out.
         return url(WHAT_HAPPENED + "\n\n\n" + WHAT_EXPECTED + "\n\n");
     }
 
@@ -174,12 +234,14 @@ final class ProblemReport {
     private static String orUnknown(String value) { return value.isEmpty() ? "unknown" : value; }
 
     /** One line with no control characters, so a title or model name can't add lines of its own, and no longer than MAX_FACT. */
-    static String clean(String value) {
+    static String clean(String value) { return clean(value, MAX_FACT); }
+
+    static String clean(String value, int max) {
         if (value == null) return "";
         String line = value.replaceAll("[\\p{Cc}\\p{Cf}]+", " ").replaceAll("\\s+", " ").trim();
-        if (line.length() <= MAX_FACT) return line;
+        if (line.length() <= max) return line;
         // Never split a surrogate pair, which would leave half an emoji to encode.
-        int end = Character.isHighSurrogate(line.charAt(MAX_FACT - 1)) ? MAX_FACT - 1 : MAX_FACT;
+        int end = Character.isHighSurrogate(line.charAt(max - 1)) ? max - 1 : max;
         return line.substring(0, end);
     }
 }

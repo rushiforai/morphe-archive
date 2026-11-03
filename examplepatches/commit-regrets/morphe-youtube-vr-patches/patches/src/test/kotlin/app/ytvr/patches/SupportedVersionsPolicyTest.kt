@@ -9,8 +9,9 @@ import java.io.File
  * The supported-version policy, enforced mechanically rather than remembered: at most two normal
  * `AppTarget`s (the latest two), each with a `// Kept: <reason>` comment directly above it, and
  * `SUPPORTED_APP_VERSION` pointing at the newest of them. The test reads `Constants.kt` the same
- * way `scripts/check-upstream-version.mjs` does, so a change that would blind that parser also
- * fails here.
+ * way the shared JS reader `scripts/supported-versions.mjs` does -- the parser behind both
+ * `scripts/check-upstream-version.mjs` and the release-notes plugin -- so a change that would
+ * blind that parser also fails here.
  *
  * The pruning rule exists because the two name-pinned fingerprints (the ad-slot accessors and the
  * seek-bar ids) grow one branch per supported version; an unbounded list makes them unbounded too,
@@ -67,7 +68,11 @@ class SupportedVersionsPolicyTest {
         return result
     }
 
-    private fun isExperimental(body: String) = body.contains("isExperimental")
+    // The assignment, in the header only (before `description`): a description string can
+    // legitimately contain assignment-shaped text, and a bare word anywhere must not classify a
+    // normal target (and then exclude it from the two-target count) as experimental. The JS
+    // reader (scripts/supported-versions.mjs) applies the same rule to the same span.
+    private fun isExperimental(body: String) = body.substringBefore("description").contains(Regex("isExperimental\\s*=\\s*true"))
 
     private fun versionOf(body: String): String {
         val match = Regex("version\\s*=\\s*\"([^\"]+)\"").find(body)

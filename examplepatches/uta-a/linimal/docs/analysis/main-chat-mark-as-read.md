@@ -246,61 +246,33 @@ pause/destroy では view を取り除き、同じ token の復帰や構成変�
 
 ## 既読なし閲覧中の手動既読操作（2026-10-22）
 
-### メッセージとの対応
+### 個別既読の廃止（2026-11-03）
 
-対象 APK の共通 holder `Lwi1/r;` の `H0(I, Lk61/c;, Ld91/b;, Ls61/h;, I,
-Lm16/m;, Ljv1/b;, I)V` は、形式別の balloon bind より前に共通の表示情報を処理する。
-`ContentView(Landroidx/compose/runtime/Composer;I)V` と引数・access flag の形で同定する。
-短い `ContentView` も同じ fingerprint に含めると文字列の部分一致が重なって不一致になるため、
-長い署名の文字列だけを使う。
+行ごとの「既読にする」と、それに伴う境界線・部分既読後のバッジ調整は廃止した。実装は git 履歴（`e00d3f2` 以前）にある。
 
-`h.b()` が返す model は `ChatMessageCommonViewData(chatId=` などの `toString` 文字列で同定する。
-constructor の27 fieldの保存順と先頭の型列を検証し、chatId、serverMessageId、
-isNormalMessage、isUnsentMessage、isOtherUserMessage、isMyMessage を導く。
-参照 APK では `Ls61/c;` の a、c、g、k、m、n に対応する。
-localMessageId（b）は既読位置に使わない。
-生成 bridge は holder・全引数を range invoke で受け取り、元のレジスタを変更せず値を取り出す。
-再 bind 時には旧ボタンを先に除去し、例外は共通 bind へ伝播させない。
+`sendChatChecked` の引数は次の4つだけで（`ts8/bo.java`）、既読範囲を指定できるのは `lastMessageId` の1つのみ。
 
-`chat_ui_row.xml` は FrameLayout の最初の子が縦 LinearLayout で、
-その中に公式の SwipeableConstraintLayout がある。個別操作は縦コンテナ末尾の FrameLayout に追加し、
-balloon、clicktarget、swipe、公式の時刻コンテナの listener や構造を変更しない。
-受信・通常・送信取消でない・正の server ID・初期既読位置より後、という条件を満たす行だけを表示する。
-クリック時にも chatId、所有 Activity、token、bind 世代を再検証する。
+| ID | 名前 | 型 | 値 |
+| --- | --- | --- | --- |
+| 1 | `seq` | i32 | 要求番号 |
+| 2 | `chatMid` | string | トーク ID |
+| 3 | `lastMessageId` | string | 既読にする位置の server ID |
+| 4 | `sessionId` | byte | 常に 0 |
 
-### 初期既読位置と境界
+XIG07 の計測版で `LegacyTalkServiceClientImpl.c1` を記録した結果は次のとおり。
 
-adapter `Lxi1/b;` の `i()String` は、入室時の `ChatData.read_up` を保持する String field の getter。
-未読判定 `h(J)Z` が参照する同じ field と getter の形を検証し、runtime に渡す。
-送信抑制で観測した最大位置は未読の末尾であり、初期既読位置には使わない。
-初回の有効な非負の値を凍結し、不正な文字列は位置不明として個別操作・境界を非表示にする。
-未設定の read_up は0として扱う。
+- 押した行の位置（最新より古い）だけを、bridge 経由で1回送信し、RPC は成功した
+- 閉じた後を含め、他の呼び出し元から `c1` は呼ばれなかった
+- それでも、相手の公式 Web 版 LINE では全行に既読が付いた
 
-model の constructor 第22引数の unread checker と、adapter の `h(J)Z` が使う
-一意な public・非 static の `Long` field を検証して最初の未読位置を得る。
-`h(J)Z` 自体には表示タイミングの条件もあるため、その戻り値を境界の有無に転用しない。
-初期状態では最初の未読行の前、手動操作後は完了位置の行の後ろにだけ
-「ここまで既読」を中央に置いた水平線を付ける。
-構成変更でも初期位置と手動進捗を引き継ぐ。
-
-### A案の個別操作
-
-参照 APK の `chat_ui_row_layout_receive_horizontal_metadata.xml` は
-縦 LinearLayout の末尾に `chat_ui_row_timestamp`（`0x7f0b08a6`）を持つ。
-「既読にする」は11spの下線付き文字リンクにし、時刻の画面座標に左端を揃えて下側に配置する。
-右端を超える場合は追加したコンテナ内に収める。時刻がない行や非表示の間は操作も表示しない。
-文字色・文字の影は公式の時刻から取り、恒常的な背景・個別の水平線・影付きボタンは付けない。
-操作領域は最低48dp四方を保ち、処理中は無効化する。
-表示文言は短縮しても、アクセシビリティ上の説明と処理は「このメッセージまで既読にする」のまま。
+Android 公式の受信処理（`uq8/z1`、`sp8/b`）は `NOTIFIED_READ_MESSAGE` の param3 を位置として保存するため、
+プロトコル上は途中の位置を表現できる。ただし、Web 版の表示とサーバーのどちらが全行にしているかは切り分けておらず、
+公式スマホ版を受信側にした実機確認もしていない。クライアントから変更できる項目が他にないため廃止した。
 
 ### 既読処理とセッション
 
 `readWithoutReceiptManualReadPatch` は既存 outbound と同じ executor に
-`linimalMarkReadManually(J, String, Z)J` を生成する。
-個別操作は指定した正の server ID で `d(point, chatId, false)` を呼ぶ。
-これは指定位置以前の累積既読であり、後のメッセージだけを既読にする操作ではない。
-`Y` と一覧更新 Runnable は実行せず、既存の `Q0` と RPC・再送保存を使う。
-個別操作による正確な残り未読件数の再計算は行わない。
+`linimalMarkReadManually(J, String)J` を生成する。
 
 全体操作は公式の `(String)J` getter と保存済みの位置の大きい方を使い、
 `d(point, chatId, true)` でトークの未読件数も解除する。
@@ -338,3 +310,94 @@ pause・抑制終了時には挿入した本文内の案内を親から取り除
 それぞれ expected target count は2。対象不一致や不安全な形の場合は注入せず、
 既読なし feature 全体を利用不可にする。設定キー・schema・既存値は変更しない。
 
+## LINE 26.16.0 での変更点
+
+DEX（全 14 個）を判定関数で直接走査し、下記の一意性と形状を確認した。実機は未確認。
+
+### 既読送信の経路
+
+- `Lqg3/e;->d(J, String, Z)V` が既読処理の唯一の入口で、命令列と register は 26.11.0 と同型。
+  `TalkServiceClient` の `(I, String, String)V`（`c1`）を呼ぶのはこのメソッドだけ。
+- `sendChatChecked` の引数書き出しは `LegacyTalkServiceClientImpl$e` のみ（`toString` を除く）。
+
+### 手動既読の executor が共用になった
+
+`Li91/a;`（26.11.0 の `MainChatMarkAsReadExecutor` 相当）は metadata が消え、呼び出し元が増えた。
+
+| 呼び出し元 | 契機 |
+| --- | --- |
+| `Lns1/d;`（`UnreadMarkViewController$bindMarkAsReadButton$1$1`） | 公式の「既読にする」ボタン |
+| `Ltq8/l1;`（`SendMessageReadPointUpdaterImpl`。`tq8/v1` が `Always` で呼ぶ） | メッセージ送信 |
+| `Lce8/a;` / `Lmc8/c;` | リアクション送信 |
+| `message/list/edit/a`（`MessageDeleteActionHandler` 周辺） | メッセージ削除 |
+
+executor へ印を付けると、送信・リアクション・削除も「手動」扱いになり、自動既読を停止していても
+相手へ既読が届く。そのため `readReceiptManualCallerPatch` は executor ではなくボタンの coroutine の
+executor 呼び出しだけを囲む。26.11.0 と同じく明示的なボタン操作だけが手動で、他は gate で止まる。
+
+26.16.0 には公式の手動既読設定（`ManualReadReceiptSettingsCategory`、Premium）も追加された。
+公式の説明では返信・リアクション・「既読にする」で既読が付く。Linimal の設定とは独立している。
+
+### 長押しメニュー
+
+固定 4 行ではなく、`Lb71/e;->k`（トーク項目の分岐）が行一覧の composable `La71/f;->a` を呼び、
+その中で一覧から行を描く。行は `a` を呼ぶ直前へ 1 行だけ差し込み、行 composable とラベルの複製元は
+`a` の中から取り出す。同じ `a` を使うトークプレビューには行を足さない。
+
+### 送信の観測
+
+投入 API は `Ltq8/z0;->d(Ltq8/m1;Lqf1/k;Z)V` の 3 引数に変わった。`Lqf1/d;` の 13 箇所すべてが
+投入直後に `return-void` する形で、受理数は 13 のまま。`ChatMessageCommonViewData` の field 数は 29。
+
+
+## 明示操作とロック画面系の未読クリア（26.16.0）
+
+送信メソッドは `Lqg3/e;->d(JLString;Z)V`。`sendChatChecked` の Java 側の呼び出し元はここだけで、
+呼び出し元は `e.c`（一括）、`Lqg3/c;->run`（`e.e` の supplier）、`e$d.run`（`e.b` と再送）の 3 つ。
+
+| 経路 | 入口（DebugMetadata など） | 停止中の扱い |
+| --- | --- | --- |
+| すべて既読（タブ + メニュー） | `ChatTabViewModel$markAllAsReadForNormalChat$2` → `e.c` | 送る |
+| すべて既読（More） | `ChatListHeaderViewModel$markAllAsReadForNormalChat$2` → `e.c` | 送る |
+| 長押し「既読にする」 | `ChatListContextMenuDialogModel$markAsReadMainChat$1` → `e.e` | 送る |
+| チャットサブタブの行アクションとメニュー | `ChatSubTabActionRequestProcessor$markMainChatAsRead$2`（`w42/i`）→ `e.e` | 送る |
+| 通知「既読」 | `LineAccessServiceForNotification.onStartCommand` の `MARK_AS_READ_ACTION` → `e.e` | 送る |
+| 既読ボタン | `UnreadMarkViewController$bindMarkAsReadButton$1$1` → executor → `e.e` | 送る（既存） |
+| 開いているトーク | `ld8/s0` → `e.b` | 止める |
+| 再送 | 起動時 `io8/l0` とネットワーク復帰 → `e$c` → `e$d` | 止める |
+| 送信後、リアクション、削除 | `tq8/l1`、`ce8/a`、`mc8/c` など → `i91/a` → `e.e` | 止める |
+| 通知の返信成功、検索、Google Assistant | `LineAccessServiceForNotification$b.g`、`g55/x`、`us0/h$a.g` → `e.e` | 止める |
+| talk operation の処理 | `uq8/y3.f`（`SEND_MESSAGE`）→ `e.e` | 止める |
+| メッセージリクエスト | `d42/j` → `d42/d.u7`、`w42/j`、`z42/m` → `e.e` | 止める |
+
+`d42/d.u7` は `markAsReadMessageRequests` が呼ぶメッセージリクエスト一括既読で、起点は長押しメニューの
+`f22.s` なので操作自体は明示的。ただしメッセージリクエストは許可の対象外としている。
+
+`w42/i` を作るのは `w42/z$f` の `z61/v1$e` 分岐だけで、`v1$e` の生成元は次の 2 つだけである。
+
+- `b71/z0.invoke`: `b71/c1` の行アクション。`u2.f.READ` を記録する。
+- `y61/a.d`: `pi1/c$e` の変換。`a71/i` のメニュー項目を `a71/f` が描画し、その選択結果か、
+  `extra_preview_menu_callback` で返るプレビューの選択結果（`u42/j`）から届く。
+
+どちらもユーザー操作が起点で、自動経路から届く形跡は無い。
+
+### 許可の受け渡し
+
+- `e.e` の入口は、factory の呼び出しを `beginManualInvocation` と `clearManualInvocation` で囲む。
+  `w42/i` は try の handler が `CancellationException` と `Exception` だけなので、それ以外の Throwable 用の
+  handler を足す。
+  印は supplier の登録で消費され、worker の `prepareSupplier` が chatId 単位の一回限りの許可へ変換する。
+- `e.c` は同じ thread で `d` を順に呼ぶ。`d` の直前で対象トークだけ `prepareExplicitRead` し、直後と
+  例外 handler で `clearPreparedSupplier` する。呼び出し元が上の 2 coroutine だけと確認できない版では注入しない。
+- 既読なし閲覧中のトークは `d` の先頭で return するので gate が許可を消費しない。直後の破棄が次のトークへの
+  漏れを防ぐ。local block と RPC block は変えていないので、すべて既読でもそのトークだけ未読が残る。
+- 送信に失敗すると公式どおり FAILED queue へ入るが、再送の `d` は自動扱いなので停止中は送らず queue を消す。
+
+### 送信メソッドを通らない未読クリア
+
+`Lqg3/e$a;->f` は `e.b` の read point が 0 以下の分岐だけが使い、`e0` と chat-list Runnable を実行する。
+read point の前進と RPC は無い。`readWithoutReceiptLocalReadBlockPatch` が check-cast の直後へ
+`shouldBlockMarkAsRead` を注入し、既読なし閲覧中のトークだけ本体を飛ばして元の戻り値を返す。自動既読の停止では
+`d` の `e0` と揃えて未読を消す。read point が 0 以下のイベントが実際に届くかは未確認。
+
+いずれも静的解析と JVM テストの結論で、実機の相手側既読は未確認。

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 概要
 
-Linimal は公式 LINE Android クライアント向けの Morphe パッチバンドル（GPL-3.0）。対象は LINE 26.11.0 (versionCode 261100124) arm64-v8a の APKM のみ。すべての機能は Morphe のパッチ選択ではなく、LINE 設定画面の一番下に追加される Linimal 設定で runtime に切り替える。設定 OFF のときは公式 LINE の挙動を維持する。
+Linimal は公式 LINE Android クライアント向けの Morphe パッチバンドル（GPL-3.0）。対象は LINE 26.16.0 (versionCode 261600106) arm64-v8a の APKM のみ。すべての機能は Morphe のパッチ選択ではなく、LINE 設定画面の一番下に追加される Linimal 設定で runtime に切り替える。設定 OFF のときは公式 LINE の挙動を維持する。
 
 ドキュメント、コメント、コミットメッセージは日本語。
 

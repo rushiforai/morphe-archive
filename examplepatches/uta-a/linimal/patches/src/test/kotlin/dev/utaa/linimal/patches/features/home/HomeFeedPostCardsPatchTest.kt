@@ -1,7 +1,10 @@
 package dev.utaa.linimal.patches.features.home
 
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
@@ -11,41 +14,44 @@ import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class HomeFeedPostCardsPatchTest {
     @Test
-    fun `metadata continuation resolves only its direct enclosing renderer owner`() {
-        assertEquals(
-            "Lexample/home/PostModule;",
-            homeFeedPostRendererOwner(setOf("Lexample/home/PostModule\$1;")),
-        )
-        // 入れ子が深い continuation でも、最外殻ではなく直接の enclosing type だけを owner にします。
-        assertEquals(
-            "Lexample/home/PostModule\$Stateful;",
-            homeFeedPostRendererOwner(setOf("Lexample/home/PostModule\$Stateful\$1;")),
-        )
-    }
-
-    @Test
-    fun `missing ambiguous or malformed continuation leaves the target unresolved`() {
-        assertNull(homeFeedPostRendererOwner(emptySet()))
-        assertNull(
-            homeFeedPostRendererOwner(
-                setOf("Lexample/home/First\$1;", "Lexample/home/Second\$1;"),
+    fun `only the five argument renderer taking the module payload is accepted`() {
+        val payload = "Lexample/home/Post;"
+        assertTrue(
+            isModuleRendererSignature(
+                signatureMethod("Ljava/lang/String;", payload, "Lsg2/h;", "Lj3/r;", "I"),
+                payload,
             ),
         )
-        assertNull(homeFeedPostRendererOwner(setOf("Lexample/home/PostModule")))
+        // 同じ形の別 module は view data の型が違うため対象にしません。
+        assertFalse(
+            isModuleRendererSignature(
+                signatureMethod("Ljava/lang/String;", "Lexample/home/Other;", "Lsg2/h;", "Lj3/r;", "I"),
+                payload,
+            ),
+        )
+        assertFalse(isModuleRendererSignature(signatureMethod(payload, "Lsg2/h;", "Lj3/r;", "I"), payload))
+        assertFalse(
+            isModuleRendererSignature(
+                signatureMethod("Ljava/lang/String;", payload, "Lexample/home/Other;", "Lj3/r;", "I"),
+                payload,
+            ),
+        )
     }
 
     @Test
-    fun `every post module controller must resolve before anything is injected`() {
+    fun `every post module must resolve before anything is injected`() {
         assertEquals(3, HOME_FEED_POST_CARDS_TARGET_COUNT)
     }
 
     @Test
     fun `no resolved module reports target not found and a partial one reports partial`() {
-        val notFound = homeFeedPostCardsUnappliedRecord(0, "HomeFeedPostModuleContinuationNotUnique")
+        val notFound = homeFeedPostCardsUnappliedRecord(0, "HomeFeedPostPayloadTypeNotUnique")
         assertEquals(PatchId.HOME_FEED_POST_CARDS, notFound.patchId)
         assertEquals(PatchStatus.TARGET_NOT_FOUND, notFound.status)
         assertEquals(HOME_FEED_POST_CARDS_TARGET_COUNT, notFound.expectedTargetCount)
@@ -94,6 +100,17 @@ class HomeFeedPostCardsPatchTest {
         assertNull(homeFeedPostModuleGateShape(instructions, hasTryBlocks = false))
     }
 
+    private fun signatureMethod(vararg parameters: String): Method = ImmutableMethod(
+        "Lexample/home/PostModule;",
+        "a",
+        parameters.map { ImmutableMethodParameter(it, null, null) },
+        "V",
+        0,
+        null,
+        null,
+        null,
+    )
+
     private fun renderer(
         shouldExecuteRegister: Int,
         skipToGroupEndCount: Int = 1,
@@ -103,7 +120,7 @@ class HomeFeedPostCardsPatchTest {
         add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 4))
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }
-        add(composerCall("Y", emptyList(), "Lh3/p3;"))
+        add(composerCall("Z", emptyList(), "Lj3/p3;"))
     }
 
     private fun composerCall(
@@ -114,6 +131,6 @@ class HomeFeedPostCardsPatchTest {
         Opcode.INVOKE_VIRTUAL,
         1,
         6, 0, 0, 0, 0,
-        ImmutableMethodReference("Lh3/f1;", name, parameters, returnType),
+        ImmutableMethodReference("Lj3/d1;", name, parameters, returnType),
     )
 }

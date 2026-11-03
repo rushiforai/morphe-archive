@@ -104,7 +104,7 @@ public class BadDexFixture {
     private static final String SETTINGS_ENTRY = "Lapp/morphe/extension/hushthreads/settings/SettingsEntry;";
     private static final String LOGO_HEADER = "Lfixture/LogoHeader;";
     private static final String LOGO = "Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;";
-    private static final String LOGO_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2820)";
+    private static final String LOGO_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:2845)";
     private static final ImmutableMethodReference LOGO_CLICKABLE = method("LX/2hQ;", "A01", "LX/9hm;",
             "LX/01C;", "LX/0tZ;", "LX/9hm;", "LX/1gN;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;", "Z");
     private static final ImmutableMethodReference LOGO_STAND_IN = method(LOGO, "clickable", OBJECT,
@@ -1819,6 +1819,98 @@ public class BadDexFixture {
         return block;
     }
 
+    /** 454's default bit, too wide for and-int/lit16. */
+    private static final int PINNED_DEFAULT = 0x8000;
+    /** 454's overload: no play flag of its own, it pins PostVideo's to false and forwards the mask. */
+    private static final ImmutableMethodReference PINNED_VIDEO = method(FEATURE_VIDEO, "pinned", "V", OBJECT, "I", "I", "Z");
+
+    /**
+     * Disable video autoplay on 454's shape: PostVideo and-s its default mask with a constant 0x8000,
+     * and an overload pins its play flag to false and forwards the rest. The single post and the
+     * carousel still call PostVideo with their own flag. The trend preview and the ad card call the
+     * overload with the bit set, the Instagram post with it clear, and the viewer with it set, each
+     * behind a branch aimed at its call. When [hooked], the trend preview and the ad card ask about
+     * the default's 1 in their mask's v3, the branch landing on the question, and hand the overload
+     * the mask with the bit on yes and without it on no. Faults: the trend preview's hook missing, the ad
+     * card's masks swapped, the ad card asking about its mask with no choice after, the Instagram
+     * post hooked though its clear bit already keeps it still, the trend preview's branch landing
+     * past its hook, the ad card's yes jump landing on the nop past the mask with the bit, the viewer
+     * hooked, an overload pinning the flag to true, and an ad card that reads its mask again after
+     * the call.
+     */
+    private static List<ClassDef> videoAutoplayPinnedBuild(boolean patched, Set<String> selected, String fault) {
+        List<ClassDef> classes = new ArrayList<>(featureBuild(patched, selected, 0, ""));
+        classes.removeIf(c -> c.getType().equals(FEATURE_VIDEO) || c.getType().equals(FEATURE_POSTS));
+        boolean hooked = patched && selected.contains("disableVideoAutoplay");
+        List<ClassDef> direct = videoAutoplayClasses(hooked, "");
+        List<Method> video = new ArrayList<>();
+        direct.get(0).getMethods().forEach(m -> { if (!m.getName().equals("post")) video.add(m); });
+        // PostVideo as before, but the bit loaded into v2 and and-ed with the mask in v5.
+        video.add(define(FEATURE_VIDEO, "post", "V", true, body(11, string(0, "com.instagram.barcelona.feed.post.video.PostVideo (PostVideo.kt:84)"),
+                new ImmutableInstruction12x(Opcode.MOVE, 1, 9), new ImmutableInstruction31i(Opcode.CONST, 2, PINNED_DEFAULT),
+                new ImmutableInstruction23x(Opcode.AND_INT, 2, 5, 2), ifEqz(2, 3),
+                new ImmutableInstruction11n(Opcode.CONST_4, 1, 1), ifEqz(1, 4), new ImmutableInstruction11n(Opcode.CONST_4, 2, 1),
+                new ImmutableInstruction10t(Opcode.GOTO, 2), new ImmutableInstruction11n(Opcode.CONST_4, 2, 0),
+                invoke(PLAYBACK_EFFECT, 3, 4, 2, 10), op(Opcode.RETURN_VOID)), OBJECT, "I", "I", "Z", "Z", "Z", "Z", "Z"));
+        // pinned(composer, changed, defaults, boolean): PostVideo's arguments in v0..v7, its flag in v6 copied from the 0 in v4.
+        video.add(define(FEATURE_VIDEO, "pinned", "V", true, body(12, new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 0, 8),
+                new ImmutableInstruction12x(Opcode.MOVE, 1, 9), new ImmutableInstruction12x(Opcode.MOVE, 2, 10),
+                new ImmutableInstruction12x(Opcode.MOVE, 3, 11), new ImmutableInstruction11n(Opcode.CONST_4, 4, fault.equals("pinned-true") ? 1 : 0),
+                new ImmutableInstruction12x(Opcode.MOVE, 5, 4), new ImmutableInstruction12x(Opcode.MOVE, 6, 4), new ImmutableInstruction12x(Opcode.MOVE, 7, 4),
+                new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, 8, POST_VIDEO), op(Opcode.RETURN_VOID)), OBJECT, "I", "I", "Z"));
+        classes.add(featureClass(FEATURE_VIDEO, OBJECT, List.of(), video.toArray(new Method[0])));
+        List<Method> callers = new ArrayList<>();
+        direct.get(1).getMethods().forEach(m -> { if (m.getName().equals("single") || m.getName().equals("carousel")) callers.add(m); });
+        callers.add(pinnedVideoCaller("inline", "com.instagram.barcelona.igmedia.InlineIgVideo (InlineIgVideo.kt:41)", 0x20,
+                hooked && fault.equals("pinned-unbit") ? chosenMask(PINNED_DEFAULT | 0x20, 0x20, 6) : List.of(), false, false));
+        callers.add(pinnedVideoCaller("trend", "com.instagram.barcelona.common.ui.mediahighlights.AutoplayingMediaHighlightVideo (TrendMediaHighlightsPreview.kt:235)",
+                PINNED_DEFAULT | 0x20, hooked && !fault.equals("pinned-missing") ? chosenMask(PINNED_DEFAULT | 0x20, 0x20, 6) : List.of(),
+                fault.equals("pinned-bypass"), false));
+        List<Instruction> ad = !hooked ? List.of() : switch (fault) {
+            case "pinned-swapped" -> chosenMask(0x40, PINNED_DEFAULT | 0x40, 6);
+            case "pinned-asked" -> chosenMask(PINNED_DEFAULT | 0x40, 0x40, 6).subList(0, 3);
+            case "pinned-jump" -> chosenMask(PINNED_DEFAULT | 0x40, 0x40, 9);
+            default -> chosenMask(PINNED_DEFAULT | 0x40, 0x40, 6);
+        };
+        callers.add(pinnedVideoCaller("ad", "com.instagram.barcelona.sponsored.ui.AdCard (AdCard.kt:145)", PINNED_DEFAULT | 0x40, ad,
+                false, fault.equals("pinned-live")));
+        callers.add(pinnedVideoCaller("viewer", "com.instagram.barcelona.feed.mediaviewer.ui.MediaViewerVideo (MediaViewerVideo.kt:90)", PINNED_DEFAULT | 0x80,
+                hooked && fault.equals("pinned-viewer") ? chosenMask(PINNED_DEFAULT | 0x80, 0x80, 6) : List.of(), false, false));
+        classes.add(featureClass(FEATURE_POSTS, OBJECT, List.of(), callers.toArray(new Method[0])));
+        return classes;
+    }
+
+    /**
+     * A composable holding [note] that calls the pinned overload with [mask] in v3 and the rest in
+     * v1, v2 and v4, [question] just before the call. An if-nez on its own boolean in front lands on
+     * the question, or past it onto the call when [bypass]. [readsMask] reads v3 again after the call.
+     */
+    private static Method pinnedVideoCaller(String name, String note, int mask, List<Instruction> question, boolean bypass, boolean readsMask) {
+        List<Instruction> body = new ArrayList<>(List.of(string(0, note), new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 1, 6),
+                new ImmutableInstruction11n(Opcode.CONST_4, 2, 0), new ImmutableInstruction31i(Opcode.CONST, 3, mask),
+                new ImmutableInstruction11n(Opcode.CONST_4, 4, 1),
+                // Past its own two units and the 0's one, onto the question when there is one.
+                new ImmutableInstruction21t(Opcode.IF_NEZ, 7, 3 + (bypass ? codeUnits(question) : 0)), new ImmutableInstruction11n(Opcode.CONST_4, 4, 0)));
+        body.addAll(question);
+        body.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 1, 4, PINNED_VIDEO));
+        if (readsMask) body.add(new ImmutableInstruction12x(Opcode.MOVE, 0, 3));
+        body.add(op(Opcode.RETURN_VOID));
+        return define(FEATURE_POSTS, name, "V", true, body(8, body.toArray(new Instruction[0])), OBJECT, "Z");
+    }
+
+    /**
+     * The pinned overload's hook on the mask in v3: the default's 1 asked about, then the if-nez
+     * [jump]ing on the answer, 6 units onto [with], past [without] and the goto that skips [with]
+     * for the nop the call follows.
+     */
+    private static List<Instruction> chosenMask(int with, int without, int jump) {
+        List<Instruction> block = new ArrayList<>(List.of(new ImmutableInstruction21s(Opcode.CONST_16, 3, 1)));
+        block.addAll(asked(3));
+        block.addAll(List.of(new ImmutableInstruction21t(Opcode.IF_NEZ, 3, jump), new ImmutableInstruction31i(Opcode.CONST, 3, without),
+                new ImmutableInstruction10t(Opcode.GOTO, 4), new ImmutableInstruction31i(Opcode.CONST, 3, with), op(Opcode.NOP)));
+        return block;
+    }
+
     /** The extension asked about v[register], its answer back in it. */
     private static List<Instruction> asked(int register) {
         return List.of(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, register, 1, HOLD_VIDEO), op(Opcode.MOVE_RESULT, register));
@@ -2285,9 +2377,9 @@ public class BadDexFixture {
     private static final ImmutableMethodReference BROWSER_SHOW = method("Lfixture/BrowserView;", "show", "V", BROWSER_INTENT);
 
     /**
-     * Threads 453's browser: the launcher asks first, the factory makes the Intent, and five places
+     * Threads 454's browser: the launcher asks first, the factory makes the Intent, and four places
      * call the factory. The launcher's own helper and the immersive screen, already routed, stay as
-     * shipped, while the lead form, the ad and the media viewer each take a hook of their own.
+     * shipped, while the ad and the media viewer each take a hook of their own.
      */
     private static void directBrowserClasses(List<ClassDef> classes, boolean enabled, String fault) {
         for (int n = 0; n < classes.size(); n++) if (classes.get(n).getType().equals(FEATURE_MEDIA)) {
@@ -2318,7 +2410,6 @@ public class BadDexFixture {
                         new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 2, 5, method(BROWSER_LAUNCHER, "<init>", "V", CONTEXT, OBJECT, BROWSER_TEXT, BROWSER_TEXT)),
                         virtual(method(BROWSER_LAUNCHER, "launch", "V"), 2), op(Opcode.RETURN_VOID)), FEATURE_MEDIA, OBJECT)));
         classes.add(browserLauncher(enabled, fault));
-        classes.add(browserLead(enabled, fault));
         classes.add(browserAd(enabled, fault));
         classes.add(browserMedia(enabled, fault));
         classes.add(browserImmersive(enabled, fault));
@@ -2367,39 +2458,6 @@ public class BadDexFixture {
                 define(owner, "helper", BROWSER_INTENT, true, body(11, helper.toArray(new Instruction[0])), owner));
     }
 
-    /** The lead form and privacy policy helper, an empty link standing in for a null one, leaving past its goto. */
-    private static ClassDef browserLead(boolean enabled, String fault) {
-        String owner = "Lfixture/BrowserLead;";
-        BrowserCode code = new BrowserCode();
-        code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 12, 13));
-        code.add(objectField(Opcode.IGET_OBJECT, 2, 12, owner, "context", CONTEXT));
-        code.add(objectField(Opcode.IGET_OBJECT, 7, 12, owner, "link", BROWSER_TEXT));
-        int present = code.branch(new ImmutableInstruction21t(Opcode.IF_NEZ, 7, 1));
-        code.add(string(7, ""));
-        code.to(present, code.size());
-        code.add(string(1, "android.intent.action.VIEW"));
-        browserNulls(code.code, 2, 2, 7);
-        // lead-parameter takes v13, this, which nothing reads past the start, so only the locals bound
-        // sees it. lead-live takes v3, an argument of the factory's range and nothing else, so only the
-        // hook-site check does.
-        int[] hook = !enabled || fault.equals("browser-direct-lead-missing") ? null : code.hook(2, fault.equals("browser-direct-lead-url") ? 8 : 7, 0,
-                fault.equals("browser-direct-lead-parameter") ? 13 : fault.equals("browser-direct-lead-live") ? 3 : 1);
-        code.add(browserFactoryCall(2));
-        code.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
-        code.add(virtual(method(CONTEXT, "startActivity", "V", BROWSER_INTENT), 2, 0));
-        int opened = code.jump();
-        int done = code.size();
-        code.to(opened, done);
-        code.add(staticField(Opcode.SGET_OBJECT, 0, "Lfixture/Unit;", "INSTANCE", "Lfixture/Unit;"));
-        code.add(op(Opcode.RETURN_OBJECT, 0));
-        if (hook != null) {
-            code.to(hook[1], hook[0] + 6);
-            code.to(hook[2], fault.equals("browser-direct-lead-double-open") ? hook[0] + 6 : done);
-        }
-        return featureClass(owner, OBJECT, List.of(featureField(owner, "context", CONTEXT), featureField(owner, "link", BROWSER_TEXT)),
-                define(owner, "invoke", OBJECT, false, body(14, code.finish())));
-    }
-
     /** The ad: a builder making the Intent from the ad's own link, and the opener whose first act the hook is. */
     private static ClassDef browserAd(boolean enabled, String fault) {
         String owner = "Lfixture/BrowserAd;";
@@ -2410,15 +2468,18 @@ public class BadDexFixture {
         BrowserCode code = new BrowserCode();
         int declined = -1, success = -1;
         if (enabled && !fault.equals("browser-direct-ad-missing")) {
+            // ad-parameter answers in v6, the Context argument, which the stock code never reads, so
+            // only the locals bound sees it.
+            int reply = fault.equals("browser-direct-ad-parameter") ? 6 : 0;
             code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, 4));
             code.add(objectField(Opcode.IGET_OBJECT, 1, 1, owner, fault.equals("browser-direct-ad-url") ? "other" : "link", BROWSER_TEXT));
-            code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, fault.equals("browser-direct-ad-context") ? 6 : 5));
-            code.add(invoke(LINK_OPENER, 0, 1));
-            code.add(op(Opcode.MOVE_RESULT, 0));
-            declined = code.branch(ifEqz(0, 1));
-            code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, fault.equals("browser-direct-ad-return") ? 0 : 1));
+            code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, reply, fault.equals("browser-direct-ad-context") ? 6 : 5));
+            code.add(invoke(LINK_OPENER, reply, 1));
+            code.add(op(Opcode.MOVE_RESULT, reply));
+            declined = code.branch(ifEqz(reply, 1));
+            code.add(new ImmutableInstruction11n(Opcode.CONST_4, reply, fault.equals("browser-direct-ad-return") ? 0 : 1));
             if (fault.equals("browser-direct-ad-double-open")) success = code.jump();
-            else code.add(op(Opcode.RETURN, 0));
+            else code.add(op(Opcode.RETURN, reply));
         }
         int stock = code.size();
         code.add(virtual(build, 4, 5));
@@ -2436,8 +2497,9 @@ public class BadDexFixture {
     }
 
     /**
-     * The media viewer's swipe up: its ending, setting its state from the path's flag, comes ahead of
-     * the call as it does on 453, and an ad with no web link clears the flag and goes there too.
+     * The media viewer's swipe up: its ending comes ahead of the call as it does on 454, loading true
+     * right before the state setter, and an ad with no web link jumps past that const to the setter,
+     * which then takes the flag the viewer worked out first.
      */
     private static ClassDef browserMedia(boolean enabled, String fault) {
         String owner = "Lfixture/BrowserMedia;";
@@ -2452,8 +2514,9 @@ public class BadDexFixture {
         code.add(op(Opcode.MOVE_RESULT, 15));
         int enter = code.jump();
         int done = code.size();
-        code.add(new ImmutableInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, 14));
-        code.add(invoke(method("Lfixture/State;", "set", "V", BROWSER_STATE, "Z"), 1, 15));
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 15, 1));
+        int setter = code.size();
+        code.add(invoke(method("Lfixture/State;", "set", "V", BROWSER_STATE, "Z"), 14, 15));
         // completion-live's stock ending answers what v2 holds there, the factory's answer on the way
         // from the call: v2 is written past the hook site and live where the hook's success goes.
         code.add(staticField(Opcode.SGET_OBJECT, completionLive ? 0 : 2, "Lfixture/Unit;", "INSTANCE", "Lfixture/Unit;"));
@@ -2482,14 +2545,11 @@ public class BadDexFixture {
         code.add(op(Opcode.MOVE_RESULT_OBJECT, 2));
         code.add(invoke(BROWSER_SHOW, 2));
         code.to(code.jump(), done);
-        int failed = code.size();
-        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 15, 0));
-        code.to(code.jump(), done);
-        code.to(guard, failed);
-        code.to(noUrl, failed);
+        code.to(guard, setter);
+        code.to(noUrl, setter);
         if (hook != null) {
             code.to(hook[1], fault.equals("browser-direct-media-bypass") ? done : hook[0] + 6);
-            code.to(hook[2], fault.equals("browser-direct-media-double-open") ? factoryAt : fault.equals("browser-direct-media-false") ? failed
+            code.to(hook[2], fault.equals("browser-direct-media-double-open") ? factoryAt : fault.equals("browser-direct-media-false") ? setter
                     : fault.equals("browser-direct-media-uninitialized") ? factoryAt + 2 : done);
         }
         return featureClass(owner, OBJECT, List.of(featureField(owner, "context", CONTEXT), featureField(owner, "opened", BROWSER_STATE), featureField(owner, "post", FEATURE_MEDIA)),
@@ -2831,22 +2891,39 @@ public class BadDexFixture {
             new SaveBridgeShape("repostedPost", OBJECT, SHARE_INFO, Opcode.INVOKE_INTERFACE, method(SHARE_INFO, "reposted", FEATURE_MEDIA)),
             new SaveBridgeShape("quotedPost", OBJECT, SHARE_INFO, Opcode.INVOKE_INTERFACE, method(SHARE_INFO, "quoted", FEATURE_MEDIA)));
 
-    private static final String TILE_HOST = "Lfixture/ShareTileLaunch;";
     private static final ImmutableMethodReference TILE_LAUNCH = method("LX/Launcher;", "A04", "Z", "Landroid/content/Context;", "Landroid/content/Intent;");
     private static final ImmutableMethodReference OPEN_REFUSED_TILE = method("Lapp/morphe/extension/hushthreads/coexist/ShareTiles;", "openRefused", "V",
             "Z", "Landroid/content/Context;", "Landroid/content/Intent;");
+    private static final String TILE_COMPOSER_EXTRA = "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER";
 
     /**
-     * Threads' share tiles, shaped like 453's: one lambda that launches the intent it built. Hooked,
-     * the launch's answer goes to the extension with the context and intent. Faults: no hook, the
-     * arguments swapped, another register passed as the answer, and an answer in a register read after.
+     * Threads' share tiles, shaped like 454's: Instagram's feed tile in one lambda, the reel, Facebook
+     * and WhatsApp tiles in a second, and Messenger's in a third, every one launching through one
+     * launcher. A fourth lambda names Messenger and its composer extra but launches nothing, the way
+     * 454's does, and stays as it is. Hooked, each launch's answer goes to the extension with the
+     * context and intent. Faults, on Messenger's tile: no hook, the arguments swapped, another register
+     * passed as the answer, and an answer in a register read after. tile-feed-missing leaves the feed
+     * tile alone instead.
      */
-    private static ClassDef shareTileClass(boolean hooked, String fault) {
-        List<Instruction> code = new ArrayList<>(List.of(string(0, "com.facebook.orca"), string(0, "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER"),
-                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
-                new ImmutableInstruction11n(Opcode.CONST_4, 2, 0), new ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
-                virtual(TILE_LAUNCH, 0, 1, 2)));
-        if (hooked && !fault.equals("tile-missing")) {
+    private static List<ClassDef> shareTileClasses(boolean hooked, String fault) {
+        return List.of(
+                tileLambda("Lfixture/ShareTileFeed;", "invokeSuspend", List.of("com.instagram.share.ADD_TO_FEED"), 1,
+                        hooked && !fault.equals("tile-feed-missing"), ""),
+                tileLambda("Lfixture/ShareTileApps;", "invokeSuspend", List.of("com.instagram.share.ADD_TO_REEL_THREAD",
+                        "com.facebook.reels.SHARE_TO_REEL", "https://wa.me/status"), 2, hooked, ""),
+                tileLambda("Lfixture/ShareTileMessenger;", "invoke", List.of("com.facebook.orca", TILE_COMPOSER_EXTRA), 1,
+                        hooked && !fault.equals("tile-missing"), fault),
+                tileLambda("Lfixture/ShareTileComposer;", "invokeSuspend", List.of("com.facebook.orca", TILE_COMPOSER_EXTRA), 0, false, ""));
+    }
+
+    private static ClassDef tileLambda(String owner, String name, List<String> strings, int launches, boolean hooked, String fault) {
+        List<Instruction> code = new ArrayList<>();
+        for (String text : strings) code.add(string(0, text));
+        for (int n = 0; n < launches; n++) {
+            code.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                    new ImmutableInstruction11n(Opcode.CONST_4, 2, 0), new ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
+                    virtual(TILE_LAUNCH, 0, 1, 2)));
+            if (!hooked) continue;
             int answer = fault.equals("tile-live") ? 3 : 0;
             code.add(op(Opcode.MOVE_RESULT, answer));
             code.add(fault.equals("tile-swapped") ? invoke(OPEN_REFUSED_TILE, answer, 2, 1)
@@ -2856,7 +2933,7 @@ public class BadDexFixture {
         // The stock code reads v3 after the launch and rewrites v0 first, so only v3 stays live. The
         // read is a plain move, which an int in v3 still passes, so that fault fails the contract alone.
         code.addAll(List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction12x(Opcode.MOVE, 2, 3), op(Opcode.RETURN_OBJECT, 0)));
-        return featureClass(TILE_HOST, OBJECT, List.of(), define(TILE_HOST, "invokeSuspend", OBJECT, false, body(6, code.toArray(new Instruction[0])), OBJECT));
+        return featureClass(owner, OBJECT, List.of(), define(owner, name, OBJECT, false, body(6, code.toArray(new Instruction[0])), OBJECT));
     }
 
     /** A data class's plain getter for its own field. */
@@ -3182,8 +3259,8 @@ public class BadDexFixture {
         merge.add(direct(method(FEATURE_LAMBDA, "<init>", "V"), 0));
         merge.add(op(Opcode.RETURN_OBJECT, 0));
         classes.add(featureClass(FEATURE_CACHE, OBJECT, List.of(), define(FEATURE_CACHE, "merge", OBJECT, false,
-                body(10, merge.toArray(new Instruction[0])), SHORTCUT_LIST, "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;",
-                SHORTCUT_LIST, OBJECT, "Lkotlin/jvm/functions/Function3;", "Z")));
+                body(11, merge.toArray(new Instruction[0])), SHORTCUT_LIST, "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;",
+                SHORTCUT_LIST, OBJECT, "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;", "Z")));
         classes.add(featureClass(FEATURE_LAMBDA, OBJECT, List.of(), define(FEATURE_LAMBDA, "<init>", "V", false,
                 body(1, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)))));
         // An opened post's ads: the fetcher builds its one result from the list the hook hands back.
@@ -3335,15 +3412,19 @@ public class BadDexFixture {
         pigeon.add(op(Opcode.RETURN_OBJECT, 0));
         classes.add(featureClass("Lfixture/Pigeon;", OBJECT, List.of(), define("Lfixture/Pigeon;", "address", "Ljava/lang/String;", true,
                 body(4, pigeon.toArray(new Instruction[0])), "Ljava/lang/String;", "Z")));
-        List<Instruction> defaults = new ArrayList<>(List.of(string(0, "https://graph.facebook.com/logging_client_events")));
+        // 454's provider jumps onto the literal's return with some other answer, which skips the hook.
+        List<Instruction> defaults = new ArrayList<>(List.of(ifEqz(1, 0), new ImmutableInstruction12x(Opcode.MOVE_OBJECT, 0, 1),
+                new ImmutableInstruction10t(Opcode.GOTO, 0), string(0, "https://graph.facebook.com/logging_client_events")));
         if (fault.equals("default-coverage-missing")) defaults.add(op(Opcode.NOP));
         if (analytics && (mask & 2) != 0 && !fault.equals("default-missing") && !fault.equals("default-coverage-missing")) {
             defaults.add(invoke(ANALYTICS_ENDPOINT, 0));
             defaults.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
         }
         defaults.add(op(Opcode.RETURN_OBJECT, 0));
+        featureBranch(defaults, 0, 3, Opcode.IF_EQZ, 1, 0);
+        featureBranch(defaults, 2, fault.equals("default-joined") ? 4 : defaults.size() - 1, Opcode.GOTO, 0, 0);
         classes.add(featureClass("Lfixture/DefaultAddress;", OBJECT, List.of(), define("Lfixture/DefaultAddress;", "get", "Ljava/lang/String;", true,
-                body(1, defaults.toArray(new Instruction[0])))));
+                body(2, defaults.toArray(new Instruction[0])), "Ljava/lang/String;")));
         List<Instruction> mqtt = new ArrayList<>(List.of(direct(method(OBJECT, "<init>", "V"), 2),
                 string(0, "analytics_endpoint"), string(1, "https://graph.facebook.com/logging_client_events"),
                 virtual(method("Lorg/json/JSONObject;", "optString", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;"), 3, 0, 1),
@@ -3387,7 +3468,7 @@ public class BadDexFixture {
                 define(SIGNER_HOST, "read", SIGNER_RESULT, false, body(signerSelf + 1, signers.toArray(new Instruction[0])))));
         classes.add(featureClass(SIGNER_RESULT, OBJECT, List.of(), define(SIGNER_RESULT, "<init>", "V", false,
                 body(4, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)), SHORTCUT_LIST, "Z", "Z")));
-        classes.add(shareTileClass(trust, fault));
+        classes.addAll(shareTileClasses(trust, fault));
         classes.addAll(returnRefreshClasses(patched && selected.contains("returnRefresh"), fault));
         classes.addAll(videoAutoplayClasses(patched && selected.contains("disableVideoAutoplay"), fault));
         classes.addAll(prefetchClasses(patched && selected.contains("disableVideoAutoplay"), patched ? fault : ""));
@@ -3654,11 +3735,11 @@ public class BadDexFixture {
                 "resume-post-link-bypass", "quick-remember-missing", "quick-remember-post", "quick-recall-key", "quick-post-link-bypass",
                 "browser-missing", "browser-register", "browser-bypass", "browser-clobber",
                 "pigeon-missing", "pigeon-replaced", "pigeon-bypass",
-                "default-missing", "mqtt-missing", "trust-missing", "trust-replaced", "trust-fallback",
-                "tile-missing", "tile-swapped", "tile-answer", "tile-live", "status-missing", "status-false")) {
+                "default-missing", "default-joined", "mqtt-missing", "trust-missing", "trust-replaced", "trust-fallback",
+                "tile-missing", "tile-feed-missing", "tile-swapped", "tile-answer", "tile-live", "status-missing", "status-false")) {
             dexes.put("features-bad-" + fault, featureBuild(true, allFeatures, 7, fault));
         }
-        for (String fault : List.of("lead-missing", "lead-url", "lead-double-open", "lead-parameter", "lead-live", "ad-missing", "ad-url", "ad-context", "ad-double-open", "ad-return", "ad-bypass",
+        for (String fault : List.of("ad-missing", "ad-url", "ad-context", "ad-parameter", "ad-double-open", "ad-return", "ad-bypass",
                 "media-missing", "media-url", "media-context", "media-double-open", "media-false", "media-uninitialized", "media-live", "media-bypass", "factory-hook", "immersive-hook")) {
             dexes.put("features-bad-browser-direct-" + fault, featureBuild(true, Set.of("openLinksExternally"), 0, "browser-direct-" + fault));
         }
@@ -3723,6 +3804,17 @@ public class BadDexFixture {
             dexes.put("features-bad-" + fault, videoAutoplayForwardBuild(true, Set.of("disableVideoAutoplay"), fault));
         }
         dexes.put("features-autoplay-live-clean", featureBuild(false, Set.of(), 0, "autoplay-ad-live"));
+        // And 454's overload that pins the play flag to false.
+        dexes.put("features-autoplay-pinned-clean", videoAutoplayPinnedBuild(false, Set.of(), ""));
+        dexes.put("features-autoplay-pinned-good", videoAutoplayPinnedBuild(true, Set.of("disableVideoAutoplay"), ""));
+        dexes.put("features-autoplay-pinned-omitted", videoAutoplayPinnedBuild(true, Set.of(), ""));
+        for (String fault : List.of("pinned-missing", "pinned-swapped", "pinned-asked", "pinned-unbit", "pinned-bypass", "pinned-jump", "pinned-viewer")) {
+            dexes.put("features-bad-" + fault, videoAutoplayPinnedBuild(true, Set.of("disableVideoAutoplay"), fault));
+        }
+        for (String fault : List.of("pinned-true", "pinned-live")) {
+            dexes.put("features-autoplay-" + fault + "-clean", videoAutoplayPinnedBuild(false, Set.of(), fault));
+            dexes.put("features-bad-" + fault, videoAutoplayPinnedBuild(true, Set.of("disableVideoAutoplay"), fault));
+        }
         // And Pure black dark mode.
         for (String fault : List.of("pure-black-load-missing", "pure-black-load-register", "pure-black-background-missing",
                 "pure-black-background-register", "pure-black-light")) {

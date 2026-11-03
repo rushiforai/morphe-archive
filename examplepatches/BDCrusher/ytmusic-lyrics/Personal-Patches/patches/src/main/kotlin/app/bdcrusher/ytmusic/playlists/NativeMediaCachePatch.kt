@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patches.music.interaction.jam.*
 import app.morphe.util.addFreeRegisters
+import app.morphe.util.cloneParameters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -82,8 +83,9 @@ internal fun BytecodePatchContext.installNativeMediaCache(playerProtoType:String
     """)
     val sender=transport.methods.singleOrNull {it.isNextSender()}?:throw PatchException("Downloads: native next sender missing or ambiguous")
     val casts=sender.implementation!!.instructions.mapNotNull {((it as? ReferenceInstruction)?.reference as? TypeReference)?.type}.toSet()
-    val transportCtor=transport.methods.singleOrNull {it.name=="<init>"&&it.parameterTypes.count {type->type in casts}>=3}
+    val originalTransportCtor=transport.methods.singleOrNull {it.name=="<init>"&&it.parameterTypes.count {type->type in casts}>=3}
         ?:throw PatchException("Downloads: authenticated metadata transport constructor missing or ambiguous")
+    val transportCtor=originalTransportCtor.cloneParameters()
     for(index in transportCtor.implementation!!.instructions.withIndex().filter {it.value.opcode==Opcode.RETURN_VOID}.map {it.index}.reversed())transportCtor.addInstructions(index,"invoke-static/range { p0 .. p0 }, $CACHE->initialized($CLIENT)V")
     cache.addBridge("decode",listOf("[B"),"Ljava/lang/Object;",4,AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,"""
         ${nextProto.decode("p0","v0")}

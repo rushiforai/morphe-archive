@@ -30,7 +30,7 @@ private val sendIntentSupertypes = setOf(
 private val logger = Logger.getLogger("app.morphe.patches.maps.GmsResolutionPatch")
 
 /**
- * MicroG-RE 7.2.1 and 7.2.2 answer a location-settings check with a PendingIntent whose action the
+ * MicroG-RE 7.2.1 to 7.3.0 answer a location-settings check with a PendingIntent whose action the
  * provider does not declare. Starting it throws ActivityNotFoundException, while Maps expects only
  * SendIntentException (issue #15). Route both Activity launch points through the extension, which
  * reports the missing activity as SendIntentException. Resolutions that start keep the original call.

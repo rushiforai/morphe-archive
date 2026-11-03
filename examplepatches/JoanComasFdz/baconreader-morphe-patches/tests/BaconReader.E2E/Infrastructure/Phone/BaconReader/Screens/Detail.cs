@@ -11,13 +11,21 @@ using OpenQA.Selenium.Interactions;
 
 namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
 
-/// <summary>The screen a post opens on (DetailActivity): the post, then its comments.</summary>
+/// <summary>
+/// The screen a post opens on (DetailActivity): the post, then its comments, and the post's action bar at the bottom,
+/// whose ⋮ opens the post's menu.
+/// </summary>
 public sealed class Detail(AndroidDriver driver)
 {
+    private static readonly By Header = Locate.AppId("headerContent");
+    private static readonly By AwardIcons = Locate.AppId("award_layout");
+    private static readonly By MenuButton = Locate.AppId("more_button");
     private static readonly By Loading = Locate.Text("Loading...");
     private static readonly By Upvote = Locate.AppId("upvote_left");
     private static readonly By Downvote = Locate.AppId("downvote_left");
     private static readonly By CommentHeader = Locate.AppId("commentSubText");
+    private static readonly By PostTitle = Locate.AppId("title");
+    private static readonly By PostSubtext = Locate.AppId("subtext");
 
     /// <summary>A text post's text, under its title.</summary>
     public PostText PostText { get; } = new(driver);
@@ -31,6 +39,20 @@ public sealed class Detail(AndroidDriver driver)
     /// <summary>The find bar "Search comments" opens over the sort bar.</summary>
     public CommentSearchBar CommentSearch { get; } = new(driver);
 
+    /// <summary>Waits until the post shows over its comments: its title, author and score.</summary>
+    public Task WaitUntilShownAsync() =>
+        Waiting.UntilShownAsync(driver, Header, TimeSpan.FromSeconds(10), "The post over its comments");
+
+    /// <summary>What the post shows over its comments: its title, and how many award icons.</summary>
+    public Task<DetailPostSnapshot> ReadPostAsync() =>
+        OnScreen.ReadAsync(driver, () => new DetailPostSnapshot(
+            driver.FindElement(PostTitle).Text,
+            driver.FindElements(Header).SelectMany(header => header.FindElements(AwardIcons))
+                .Sum(icons => icons.FindElements(By.ClassName("android.widget.ImageView")).Count)));
+
+    /// <summary>Taps the ⋮ of the post's action bar at the bottom, which opens the post's menu.</summary>
+    public Task ClickMenuButtonAsync() => OnScreen.PressAsync(driver, MenuButton);
+
     /// <summary>
     /// Taps the up arrow of the bar at the bottom while the comments still load ("Loading..."), which upvotes the post,
     /// or takes its upvote back. Fails when the comments loaded before the tap: the vote wasn't made while they load.
@@ -42,6 +64,37 @@ public sealed class Detail(AndroidDriver driver)
     /// post. Fails when the comments loaded before the tap.
     /// </summary>
     public Task DownvoteWhileTheCommentsLoadAsync() => VoteWhileTheCommentsLoadAsync(Downvote, "downvote");
+
+    /// <summary>Waits until the screen shows the post "<paramref name="title"/>": a link opens it a moment after the tap.</summary>
+    public Task WaitUntilPostShownAsync(string title) =>
+        Waiting.UntilShownAsync(driver, Locate.AppIdWithText("title", title), TimeSpan.FromSeconds(30), $"The post \"{title}\"");
+
+    /// <summary>
+    /// Taps the link "<paramref name="link"/>" on the first line of the post's header, after its author ("by e2e_poster
+    /// www.reddit.com"): a link post's site, which opens what the post links to. A link inside a text has no view of its
+    /// own, so the tap lands on its middle character, at about 0.45 of a line's height a character.
+    /// </summary>
+    public Task ClickHeaderLinkAsync(string link) =>
+        OnScreen.TouchAsync(driver, () => driver.FindElement(Header).FindElement(PostSubtext), subtext =>
+        {
+            var lines = subtext.Text.Split('\n');
+            var start = lines[0].IndexOf(link, StringComparison.Ordinal);
+            if (start < 0)
+            {
+                throw new InvalidOperationException($"The post's header shows \"{lines[0]}\" on its first line, but the link \"{link}\" was expected there.");
+            }
+
+            var bounds = new Rectangle(subtext.Location, subtext.Size);
+            var lineHeight = bounds.Height / lines.Length;
+            driver.ExecuteScript("mobile: clickGesture", new Dictionary<string, object>
+            {
+                ["x"] = bounds.Left + (int)((start + (link.Length / 2.0)) * lineHeight * 0.45),
+                ["y"] = bounds.Top + (lineHeight / 2),
+            });
+        });
+
+    /// <summary>Taps Android's Back, which closes the post and goes back to where it was opened from.</summary>
+    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
 
     private async Task VoteWhileTheCommentsLoadAsync(By arrow, string vote)
     {
@@ -134,6 +187,11 @@ public sealed class Comments(AndroidDriver driver)
     private static readonly By Duration = Locate.AppId("exo_duration");
     private static readonly By HiddenComments = Locate.AppId("hiddenComments");
 
+    // A comment's header, its award icons and its text; a swipe flips it to its action bar.
+    private static readonly By Content = Locate.AppId("contentContainer");
+    private static readonly By AwardIcons = Locate.AppId("award_layout");
+    private static readonly By ActionBarMoreOptions = Locate.Description("More options");
+
     // A "load more comments" row, whose id the main screen's lists use too.
     private static readonly By LoadMore = Locate.AppId("text");
     private static readonly By Loading = Locate.Text("Loading...");
@@ -192,7 +250,7 @@ public sealed class Comments(AndroidDriver driver)
             TimeSpan.FromSeconds(30),
             $"A GIF, an image or a video under the comment \"{text}\" loading");
 
-    /// <summary>What the comment "<paramref name="text"/>" shows: its text, and its GIFs, images and videos.</summary>
+    /// <summary>What the comment "<paramref name="text"/>" shows: its text, its GIFs, images and videos, and its award icons.</summary>
     public Task<CommentSnapshot> ReadAsync(string text) =>
         OnScreen.ReadAsync(driver, () =>
         {
@@ -201,8 +259,44 @@ public sealed class Comments(AndroidDriver driver)
                 comment.FindElements(Text).FirstOrDefault()?.Text.Trim() ?? "",
                 Media.Gifs(comment).Count,
                 Media.Images(comment.FindElements(Media.Image)).Count,
-                Media.Videos(comment).Count);
+                Media.Videos(comment).Count)
+            {
+                Awards = driver.FindElements(Content)
+                    .Where(content => content.FindElements(Text).Any(shown => shown.Text.Trim() == text))
+                    .SelectMany(content => content.FindElements(AwardIcons))
+                    .Sum(icons => icons.FindElements(By.ClassName("android.widget.ImageView")).Count),
+            };
         });
+
+    /// <summary>
+    /// Swipes the comment "<paramref name="text"/>" to the left, from three quarters of its width to near its left
+    /// edge: it turns into its action bar.
+    /// </summary>
+    public Task SwipeToActionBarAsync(string text) =>
+        OnScreen.TouchAsync(driver, () => FindCommentOrFail(text), comment =>
+        {
+            var bounds = Bounds(comment);
+            var y = bounds.Top + (bounds.Height / 2);
+            var finger = new PointerInputDevice(PointerKind.Touch, "finger");
+            var swipe = new ActionSequence(finger, 0);
+            swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, bounds.Left + (bounds.Width * 3 / 4), y, TimeSpan.Zero));
+            swipe.AddAction(finger.CreatePointerDown(MouseButton.Touch));
+            swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, bounds.Left + (bounds.Width / 8), y, TimeSpan.FromMilliseconds(300)));
+            swipe.AddAction(finger.CreatePointerUp(MouseButton.Touch));
+            driver.PerformActions([swipe]);
+        });
+
+    /// <summary>Waits until a comment shows its action bar: its "More options".</summary>
+    public Task WaitUntilActionBarShownAsync() =>
+        Waiting.UntilAsync(() => ActionBarMoreOptionsOrNull() is not null, TimeSpan.FromSeconds(10), "The action bar of a comment");
+
+    /// <summary>Taps "More options" in the action bar a comment shows, which opens the comment's menu.</summary>
+    public Task ClickActionBarMoreOptionsAsync() =>
+        OnScreen.PressAsync(driver, () => ActionBarMoreOptionsOrNull() ?? throw new InvalidOperationException("No comment shows its action bar."));
+
+    // The "More options" of a comment's action bar: inside the list of comments.
+    private IWebElement? ActionBarMoreOptionsOrNull() =>
+        driver.FindElements(List).SelectMany(list => list.FindElements(ActionBarMoreOptions)).FirstOrDefault(button => button.Displayed);
 
     /// <summary>
     /// Where the comment "<paramref name="text"/>" and its image are on the screen, in pixels, and the
@@ -404,6 +498,9 @@ public sealed class Comments(AndroidDriver driver)
         OnScreen.PressAsync(driver, () => Tables.FindCell(TextOf(text), link)
             ?? throw new InvalidOperationException($"The table of the comment \"{text}\" has no cell \"{link}\"."));
 
+    /// <summary>Taps the link "<paramref name="link"/>", a comment whose whole text is that link, at its start.</summary>
+    public Task ClickLinkAsync(string link) => ClickTextAsync(link);
+
     /// <summary>Taps the text of the comment "<paramref name="text"/>", at its start: a spoiler there shows, or hides.</summary>
     public Task ClickTextAsync(string text) =>
         OnScreen.TouchAsync(driver, () => TextOf(text), body =>
@@ -537,7 +634,14 @@ public sealed record CommentReadingSnapshot(string Text, string ReadAs);
 public sealed record CollapsedCommentSnapshot(string Text, string? Hidden);
 
 /// <summary>What a comment shows: its text, and the GIFs, images and videos under it.</summary>
-public sealed record CommentSnapshot(string Text, int Gifs, int Images, int Videos);
+public sealed record CommentSnapshot(string Text, int Gifs, int Images, int Videos)
+{
+    /// <summary>How many award icons it shows, by its author's name.</summary>
+    public int Awards { get; init; }
+}
+
+/// <summary>What the post shows over its comments: its title, and how many award icons.</summary>
+public sealed record DetailPostSnapshot(string Title, int Awards);
 
 /// <summary>
 /// Where a comment and its image (null without one) are on the screen, in pixels, and how many pixels a dp is: Android

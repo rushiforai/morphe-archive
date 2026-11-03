@@ -23,6 +23,8 @@ public final class SaveAndDownloadForTests {
 
     /** Whether a queued download of [pin] would save it. Nothing reaches a real save. */
     public static boolean savesADownload(Object pin) {
+        // This asks what a new pin would do, and an earlier probe's save stays in the record.
+        RuntimeEnvironment.getApplication().getSharedPreferences(SavedRecord.STORE, Context.MODE_PRIVATE).edit().clear().commit();
         SaveAndDownload.Host host = SaveAndDownload.hostForTests;
         Object saver = SaveAndDownload.latest;
         AtomicBoolean asked = new AtomicBoolean();

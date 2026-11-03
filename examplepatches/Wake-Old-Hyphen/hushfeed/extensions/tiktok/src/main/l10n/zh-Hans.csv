@@ -810,7 +810,6 @@ Hide the quick emoji row and automatic sticker suggestions that appear while you
 Hide the restriction notice on your own profile on this phone. TikTok's restrictions and appeals still apply.,在此手机上隐藏你自己的个人资料中的限制通知。 TikTok 的限制和上诉仍然适用.
 Hide the rewards shortcut,隐藏奖励快捷方式
 Hide the right column,隐藏右列
-Hide the row of friends at the top of the share sheet.,隐藏共享表顶部的好友行.
 Hide the save button in the right column. Ticking Save in the list above hides it too.,隐藏右栏中的保存按钮。在上面的列表中勾选“保存”也会将其隐藏.
 Hide the save button on the feed,隐藏信息流上的保存按钮
 "Hide the search bar at the top of videos you open from search, a profile or your watch history. The Back button stays.",隐藏通过搜索、个人资料或观看历史记录打开的视频顶部的搜索栏。返回按钮保留.
@@ -1201,7 +1200,6 @@ Opens github.com in your browser,在浏览器中打开 github.com
 Operator code,操作员代码
 Operator name,操作员名称
 "Optional, used with the user name. It isn't shown, logged or put in a backup.",可选，与用户名一起使用。它不会被显示、记录或放入备份中.
-"Optional. Only connections made by Android itself can sign in to a proxy, not TikTok's own. Leave empty for a proxy without a password.",可选。只有 Android 本身建立的连接才能登录到代理，而 TikTok 自己的连接则不能。对于没有密码的代理，留空.
 "MP3 (.mp3), plays anywhere",MP3 (.mp3)，随处可播放
 "Opus (.ogg), a smaller file",Opus (.ogg)，较小的文件
 Opus didn't work. Saving TikTok's own file.,Opus 无法使用，将保存 TikTok 的原文件.
@@ -1258,7 +1256,6 @@ Play SDR instead of HDR,播放 SDR 而不是 HDR
 Play Store,Play 商店
 "Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.",播放没有声音的信息流视频，不要管手机的音量。另一个应用程序中的音乐在打开时会继续播放。私信、故事和 LIVE 保持其声音.
 Let other apps play until a video starts,在视频开始播放前不打断其他应用
-Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound once a video starts playing.,打开 TikTok 或你的消息时，不再暂停其他应用的音乐。只有视频开始播放时，TikTok 才会占用声音.
 Play sounds TikTok pulled,播放声音 TikTok 拉动
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,播放视频 TikTok 上的音频，该视频被静音，因为它们的声音因版权原因或在你所在的地区而被拉取。 TikTok 可能仍然会说声音不可用.
 Playback,回放
@@ -1705,7 +1702,6 @@ Speed menu choices,速度菜单选项
 "Speed up this video, double tap again to undo",加快该视频的速度，再次双击即可撤消
 Speed while you hold the video,按住视频时速度
 Slide to change the hold speed,滑动更改按住时的速度
-"While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to.",按住视频时向左或向右滑动，可在速度菜单的各个速度之间切换，气泡会显示当前速度。下次按住时从这个速度开始。松手后恢复正常。下拉锁定会保留你滑到的速度.
 Spin the music disc,旋转音乐光盘
 Split comment minimum width,分割评论最小宽度
 Start each new video at your default. A manual choice lasts until the video changes.,以默认值开始每个新视频。手动选择将持续到视频发生变化为止.
@@ -1908,7 +1904,6 @@ Storage almost full. Recording saved to %1$s,存储空间快满了，录制已�
 "The port the proxy listens on, like 8080 or 1080.",代理侦听的端口，例如 8080 或 1080.
 The presets couldn't load. Open the Lab again.,无法加载预设。再次打开实验室.
 The profile picture couldn't be saved. Try again.,无法保存个人资料图片。再试一次.
-TikTok can't send a password to proxy %1$s. Use another.,TikTok 无法向代理 %1$s 发送密码，请换一个.
 "The proxy's address, like 192.168.1.20 or proxy.example.com.",代理的地址，例如 192.168.1.20 或 proxy.example.com.
 The quality choice is still open,品质选择依然开放
 Couldn't read an interrupted change. Check your settings.,无法读取中断的更改。请检查你的设置.
@@ -1927,7 +1922,6 @@ The sound couldn't be saved. Try again.,声音无法保存。再试一次.
 The sticker couldn't be saved. Try again.,无法保存贴纸。再试一次.
 The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.,贴纸建议横幅停止在聊天中显示。你自己的贴纸仍在贴纸选择器中.
 The story couldn't be saved. Try again.,故事无法保存。再试一次.
-"The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.",对每条评论的“大拇指朝下”会阻止评论者，而不是不喜欢。评论变暗，随后出现撤消横幅，然后再点按即可解锁.
 The time of day the message goes out.,消息发出的时间.
 Couldn't make the video. Try again.,无法制作视频，请重试.
 "Couldn't save. Try again, or choose Automatic.",无法保存，请重试，或选择“自动”.
@@ -2300,7 +2294,6 @@ Fold the search into a button,将搜索收起为按钮
 "Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.",在评论左上角显示一个搜索按钮来代替搜索框，把这块空间还给评论。点按它即可搜索，再点按一次即可收起搜索框。必须打开“在评论中搜索”.
 Put the comment search away,收起评论搜索
 Tap @names in bios,点按简介中的 @用户名
-An @username in a profile's bio opens that profile when you tap it. The rest of the bio still translates on a tap.,点按主页简介中的 @用户名即可打开该用户的主页。点按简介的其他部分仍会翻译.
 autoplay auto play,自动播放
 picture in picture PiP,画中画 PiP
 search suggestions,搜索建议
@@ -2355,3 +2348,58 @@ Recently used,最近使用
 Make sticker,制作贴纸
 TikTok refused the like: %1$s,TikTok 拒绝了点赞：%1$s
 TikTok refused the like with code %1$s,TikTok 拒绝了点赞，代码 %1$s
+Hide read receipts,隐藏已读回执
+Stops TikTok telling people you've read their messages. Your own unread badges still clear as usual.,阻止 TikTok 告诉对方你已读了他们的消息。你自己的未读标记仍会照常清除.
+Copy name,复制昵称
+Background play in the long-press menu,长按菜单中的后台播放
+"Adds TikTok's own background play row to the long-press menu, so you pick it for one video and other videos stop as usual. Has no effect while Keep playing in the background is on. Restart TikTok to apply this.",把 TikTok 自带的后台播放选项加到长按菜单，你可以只为某个视频开启，其他视频照常停止。继续在后台播放开启时此项无效。重启 TikTok 后生效.
+"1, from Background play in the long-press menu",1，来自长按菜单中的后台播放
+"Background play in the long-press menu is on in Hushfeed's Playback settings, so TikTok gets 1 for this key and an override here has no effect until that switch is off.",在 Hushfeed 的播放设置中，“长按菜单中的后台播放”处于打开状态，因此 TikTok 该键的值为 1，并且在该开关关闭之前，此处的覆盖不会产生任何效果.
+Keep LIVEs from these creators,保留这些创作者的直播
+"With Hide LIVE videos on, these creators' LIVEs stay when TikTok sends them. Separate handles or user IDs with commas.",开启“隐藏 LIVE 视频”时，TikTok 推送的这些创作者的直播会保留。用逗号分隔用户名或用户 ID.
+"Optional. Leave empty for a proxy without a password. TikTok signs in through a small relay on this phone, which other apps here could reach while TikTok is open.",可选。代理没有密码时请留空。TikTok 通过此手机上的一个小型中继登录，TikTok 打开期间，此手机上的其他应用也可以访问该中继.
+Proxy %1$s needs a user name and password,代理 %1$s 需要用户名和密码
+Proxy %1$s refused your user name or password,代理 %1$s 拒绝了你的用户名或密码
+Save this video,保存此视频
+Show the save button on videos,在视频上显示保存按钮
+Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.,在块控件旁边添加一个按钮，点一下即可保存屏幕上的视频。可以把它拖到任意位置.
+Couldn't save this one. Try again.,无法保存。再试一次.
+Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.,打开 TikTok 或你的消息时，不再暂停其他应用的音乐。TikTok 只在视频播放时占用声音，离开视频后就会交还.
+"While you hold a video, slide left or right to step through the speed menu's speeds, and a bubble shows the one you're on. Your next hold starts there. Letting go goes back to normal. A pull-down lock keeps the speed you slid to. On a locked video, letting go locks the new speed.",按住视频时向左或向右滑动，可在速度菜单的各个速度之间切换，气泡会显示当前速度。下次按住时从这个速度开始。松手后恢复正常。下拉锁定会保留你滑到的速度。在已锁定的视频上，松手会锁定新的速度.
+Hide speed messages,隐藏速度提示
+"Hides TikTok's message when you pick a speed from the menu, or lock or unlock one with a hold.",在你从菜单选择速度，或通过长按锁定或解锁速度时，隐藏 TikTok 的提示.
+Hide the All button on Following,隐藏“正在关注”的“全部”按钮
+Hide the Create circle in story rows,隐藏故事行中的“创建”圆圈
+Hide the All button at the end of the story row on the Following feed. The row and its stories stay.,隐藏“正在关注”故事行末尾的“全部”按钮。这一行和其中的故事都会保留.
+Hide the Create circle at the start of the story row on the Following feed and in the Inbox. Your own Story still shows there once you post one.,隐藏“正在关注”和收件箱故事行开头的“创建”圆圈。你发布故事后，自己的故事仍会显示在那里.
+The thumbs down on each comment blocks the commenter instead of disliking. Their comments leave the list right away and an undo banner follows.,每条评论上的大拇指朝下会屏蔽评论者，而不是点踩。他们的评论立即离开列表，随后出现撤消横幅.
+Hide like counts on comments,隐藏评论的点赞数
+Hide the number beside the heart on each comment. The heart still works.,隐藏每条评论爱心旁的数字。爱心仍可使用.
+Hide the thumbs down on comments,隐藏评论的大拇指朝下
+Hide the thumbs down beside the heart on each comment. It stays while Thumbs down blocks the commenter is on.,隐藏每条评论爱心旁的大拇指朝下。开启“大拇指朝下屏蔽评论者”时它会保留.
+Hide the row of friends at the top of the share sheet and in the menu a long press on a comment opens.,隐藏分享面板顶部以及长按评论打开的菜单中的好友行.
+An @username in a profile's bio opens that profile when you tap it. A full name typed after an @ opens a search for that name. The rest of the bio still translates on a tap.,点按主页简介中的 @用户名即可打开该用户的主页。@ 后面的完整姓名会打开对该姓名的搜索。点按简介的其他部分仍会翻译.
+Hide the repost chip,隐藏转发标签
+TikTok's color,TikTok 的颜色
+White,白色
+Light gray,浅灰色
+Gray,灰色
+Dark gray,深灰色
+Yellow,黄色
+None,无
+Video text color,视频文字颜色
+Backdrop behind video text,视频文字背景
+"Colors the description, the author's name and the post date on videos.",为视频上的描述、作者姓名和发布日期着色.
+"Puts a band of color behind the description, the author's name and the post date, so they stay readable on bright videos.","在描述、作者姓名和发布日期后面放一条色带,让它们在明亮的视频上依然清晰可读."
+"Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it.",移除进度条上方显示好友转发了该视频或提示你转发的小条.
+Time zone,时区
+"A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone.",类似 Europe/Belgrade 的时区名称，用来代替该国家的时区。夏令时会自动跟随。留空表示使用该国家自己的时区.
+Enter a zone like Asia/Tokyo,请输入类似 Asia/Tokyo 的时区
+Keep my own watch history,保留我自己的观看历史
+"Lists the videos you watch on this phone, with who posted each one and its caption. It stays on your phone.",列出你在这部手机上看过的视频，以及发布者和说明。列表只保存在你的手机上.
+My watch history,我的观看历史
+Find and reopen the videos you've watched on this phone,查找并重新打开你在这部手机上看过的视频
+Videos you watch show up here,你看过的视频会显示在这里
+No videos match,没有匹配的视频
+Watch history cleared,观看历史已清除
+Couldn't open that video. Try again.,无法打开该视频。请重试.

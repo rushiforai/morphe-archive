@@ -91,7 +91,7 @@ public final class PictureInPicturePatch {
                 if (method.getName().equals(d[9]) && args != null && args.length == 1 && preference.isInstance(args[0])) {
                     Activity current = owner.get();
                     if (current != null) {
-                        // Follow the clicked row's theme, as the Vehicle and battery dialog does.
+                        // Follow the clicked row's theme.
                         Context selected = current;
                         try {
                             Object value = preference.getField(d[3]).get(args[0]);
@@ -175,7 +175,7 @@ public final class PictureInPicturePatch {
         return button;
     }
 
-    /** Same theme choice as BydVehicleSettings: the Maps row's day/night theme on a platform dialog theme. */
+    /** The Maps row's day/night theme on a platform dialog theme. */
     private static Context dialogContext(Activity owner, Context mapsContext) {
         Boolean dark = themedDark(mapsContext);
         if (dark == null && mapsContext != owner) dark = themedDark(owner);

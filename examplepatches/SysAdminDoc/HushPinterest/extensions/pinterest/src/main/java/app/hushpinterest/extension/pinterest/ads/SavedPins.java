@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import app.hushpinterest.extension.pinterest.actions.SavedRecord;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
@@ -25,8 +26,12 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  * <p>Home never says a pin is saved on its own. Its request doesn't ask for {@code pinned_to_board},
  * and {@code is_repin} only says someone saved it from somewhere. So {@link #homeFields} adds that
  * field to the list the request is about to send, while something here needs it, and {@link #homePage}
- * takes out what comes back saved, along with pins you own. Save pins you download reads the same field
- * to tell a pin that's already saved from a new one.
+ * takes out what comes back saved, along with pins you own and pins in {@link SavedRecord}. Save pins
+ * you download reads the same field to tell a pin that's already saved from a new one.
+ *
+ * <p>Never add {@code pinned_to_profile} to that list, even though the pin model has it: Home comes up
+ * empty with "Oops, something went wrong!" when its request names it. A quick save only sets that field,
+ * so {@link SavedRecord} is what knows about those pins.
  */
 public final class SavedPins {
     private SavedPins() {}
@@ -34,6 +39,7 @@ public final class SavedPins {
     /** The family token a saved pin is taken out under, counted apart in Filter feed's report. */
     static final String SAVED = "saved pin";
     static final String PINNED_TO_BOARD = "pinned_to_board";
+    static final String PINNED_TO_PROFILE = "pinned_to_profile";
     static final String OWNED = "is_owned_by_viewer";
 
     /** How a request's field list opens the pin's own fields: {@code pin.{id,title},board.{id}}. */
@@ -53,9 +59,9 @@ public final class SavedPins {
     }
 
     /**
-     * Called with the field list Home's request is about to send. Hands back the same list with
-     * {@code pinned_to_board} added while Hide pins you've already saved or Save pins you download is
-     * on, and the same list untouched otherwise. Never throws.
+     * Called with the field list Home's request is about to send. Hands back the same list with the
+     * saved field added while Hide pins you've already saved or Save pins you download is on, and the
+     * same list untouched otherwise. Never throws.
      */
     public static String homeFields(String fields) {
         try {
@@ -111,11 +117,14 @@ public final class SavedPins {
         }
     }
 
-    /** True when [item] is a pin that's on one of your boards, or one you own. */
+    /** True when [item] is a pin that's on one of your boards or your profile, or one you own. */
     static boolean isSaved(Object item) {
         if (item == null) return false;
         Map<String, Field> fields = ModelFields.of(item.getClass());
         if (!PinWords.isPin(fields)) return false;
-        return ModelFields.read(fields, item, PINNED_TO_BOARD) != null || ModelFields.isTrue(fields, item, OWNED);
+        if (ModelFields.read(fields, item, PINNED_TO_BOARD) != null || ModelFields.isTrue(fields, item, PINNED_TO_PROFILE)
+                || ModelFields.isTrue(fields, item, OWNED)) return true;
+        Object id = ModelFields.read(fields, item, "id");
+        return id instanceof String && SavedRecord.has((String) id);
     }
 }

@@ -1,3 +1,10 @@
+## [1.17.7](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.6...v1.17.7) (2026-11-02)
+
+### ✨ New Features
+
+* **Google Photos - Settings:** add static Pixel XL and Pixel 5 device profile override options ([ee4a12c](https://github.com/Akash-Sriram/morphe-google-photos/commit/ee4a12ceefafd65a2a0c1c47e92744642eb0f2d9))
+* **Google Photos - Spoof:** add dynamic Auto-Sync profile switching matching backup quality ([10364c6](https://github.com/Akash-Sriram/morphe-google-photos/commit/10364c6f404d2a743f4581ab38bf2fe6fc0aa49d))
+
 ## [1.17.6](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.5...v1.17.6) (2026-11-01)
 
 ### 🐛 Bug Fixes

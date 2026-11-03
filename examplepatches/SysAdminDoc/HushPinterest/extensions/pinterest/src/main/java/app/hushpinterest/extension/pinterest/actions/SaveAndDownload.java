@@ -68,8 +68,9 @@ public final class SaveAndDownload {
     public static void saving(Object pin) {
         HookStatus.invoked(FamilyNames.DOWNLOAD_PINS);
         try {
-            if (ownSave || !PinDownloads.active() || !PatchFamily.Capability.SAVE_AND_DOWNLOAD.installed()
-                    || !Settings.DOWNLOAD_SAVED_PINS.get()) return;
+            if (!PinDownloads.active() || !PatchFamily.Capability.SAVE_AND_DOWNLOAD.installed()) return;
+            SavedRecord.add(PinMedia.id(pin));
+            if (ownSave || !Settings.DOWNLOAD_SAVED_PINS.get()) return;
             if (PinDownloads.start(pin, Utils.getContext(), null)) HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "saved pin downloaded");
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "download saved pin", failure);
@@ -119,6 +120,7 @@ public final class SaveAndDownload {
     }
 
     private static boolean saved(Object pin) {
+        if (SavedRecord.has(PinMedia.id(pin))) return true;
         Host host = hostForTests;
         return host != null ? host.saved(pin) : alreadySaved(pin);
     }

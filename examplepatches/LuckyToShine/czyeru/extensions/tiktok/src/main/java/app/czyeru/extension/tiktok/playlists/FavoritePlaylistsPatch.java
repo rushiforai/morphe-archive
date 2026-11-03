@@ -24,12 +24,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.czyeru.extension.shared.Logger;
+import app.czyeru.extension.tiktok.search.ListSearch;
 import app.czyeru.extension.tiktok.settings.Settings;
 
 /**
@@ -298,6 +301,8 @@ public final class FavoritePlaylistsPatch {
         int shownSize;
         String query = "";
         boolean reapplyPosted;
+        /** Source size when the last page was requested, so each page is requested once. */
+        int loadRequestedSize = -1;
     }
 
     private static void installSearchBar(View recyclerView) {
@@ -436,8 +441,9 @@ public final class FavoritePlaylistsPatch {
             state.full = current;
         } else if (current != null && state.full != null && current.size() != state.shownSize) {
             // TikTok appended items to the list we set. Keep them in the source list.
+            Set fullItems = new HashSet(state.full);
             for (Object item : current) {
-                if (!state.full.contains(item)) {
+                if (fullItems.add(item)) {
                     state.full.add(item);
                 }
             }
@@ -460,12 +466,29 @@ public final class FavoritePlaylistsPatch {
         }
         state.shown = next;
         state.shownSize = next == null ? 0 : next.size();
+
+        if (state.query.isEmpty()) {
+            state.loadRequestedSize = -1;
+        } else if (state.full != null && state.full.size() != state.loadRequestedSize) {
+            // Auto-load: a new page arrived (or the search just started), so ask for the next one.
+            // TikTok's listener only loads when the collections state says there are more.
+            state.loadRequestedSize = state.full.size();
+            ListSearch.requestNextPage(adapter);
+        }
     }
 
-    private static boolean nameMatches(Object item, String query) {
+    private static final ListSearch.TextCache playlistNames = new ListSearch.TextCache();
+
+    private static final ListSearch.TextReader PLAYLIST_NAME = item -> {
         Object detail = getCollectionDetail(item);
         Object name = detail == null ? null : readField(detail, "name");
-        return name instanceof String && ((String) name).toLowerCase(Locale.ROOT).contains(query);
+        return new String[]{name instanceof String ? ((String) name).toLowerCase(Locale.ROOT) : null};
+    };
+
+    /** The lower-case name is read once per playlist, so a keystroke only runs String.contains. */
+    private static boolean nameMatches(Object item, String query) {
+        String name = playlistNames.get(item, PLAYLIST_NAME)[0];
+        return name != null && name.contains(query);
     }
 
     // endregion

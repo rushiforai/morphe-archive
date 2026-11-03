@@ -1,0 +1,1083 @@
+package app.morphe.extension.pinedrama.cleardisplay;
+
+import static org.junit.Assert.*;
+import android.os.Looper;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.pinedrama.settings.Settings;
+import app.morphe.extension.pinedrama.settings.SettingsStatus;
+import app.morphe.extension.pinedrama.settings.preference.categories.InterfacePreferenceCategory;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.After;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
+
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 28)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+public class AutomaticClearDisplayTest {
+    @After public void tearDown() {
+        SettingsStatus.automaticClearDisplayEnabled = false;
+        // The live state is static and outlived every test: one asserted "not cleared" first
+        // and passed only because JUnit ran it before the ones that clear.
+        RememberClearDisplayPatch.resetForTests();
+    }
+    public static class Event {
+        public boolean LIZ;
+        public int LIZIZ;
+        Event(boolean clear, int type) { LIZ = clear; LIZIZ = type; }
+    }
+    @Before public void setup() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        RememberClearDisplayPatch.resetForTests();
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(false);
+        RememberClearDisplayPatch.firstFrame("reset", () -> true, value -> true);
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(1000);
+    }
+    /**
+     * The daily hold's panel says messages, profiles and search still work, and clear display
+     * takes away the tabs that lead there. So a hold going up gives the controls back, and while
+     * it runs neither the automatic path nor a remembered clear display clears again. The choice
+     * stays saved for the videos after the hold.
+     */
+    @Test public void theDailyHoldBringsTheControlsBackAndNothingClearsUnderIt() {
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(app.morphe.extension.pinedrama.wellbeing.SessionBudget.class, "awaitWritesForTests");
+        try {
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("before", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+            assertTrue("the fixture never cleared", RememberClearDisplayPatch.isClearDisplayNow());
+
+            lockTheDay();
+            RememberClearDisplayPatch.leaveForHold();
+            assertFalse("the hold left the controls hidden", RememberClearDisplayPatch.isClearDisplayNow());
+
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("held", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2000));
+            assertEquals("the automatic path cleared under the hold", List.of(false), events);
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            Settings.CLEAR_DISPLAY.save(true);
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("remembered", () -> true, events::add);
+            assertEquals("a remembered clear display cleared under the hold", List.of(), events);
+
+            unlockTheDay();
+            RememberClearDisplayPatch.firstFrame("after", () -> true, events::add);
+            assertEquals("the remembered choice didn't come back after the hold", List.of(true), events);
+        } finally {
+            unlockTheDay();
+        }
+    }
+
+    private static void lockTheDay() {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        app.morphe.extension.pinedrama.wellbeing.SessionBudget.noteVideo("clear-display-held");
+        assertTrue("the fixture's hold never started", app.morphe.extension.pinedrama.wellbeing.SessionBudget.claimNotice());
+        assertTrue(app.morphe.extension.pinedrama.wellbeing.SessionBudget.isLocked());
+    }
+
+    private static void unlockTheDay() {
+        Class<?> budget = app.morphe.extension.pinedrama.wellbeing.SessionBudget.class;
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "awaitWritesForTests");
+        Settings.SESSION_BUDGET_STATE.save("");
+        Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "resetForTests");
+    }
+
+    @Test public void theAutomaticPathReportsClearDisplayEvenThoughItNeverWritesTheSetting() {
+        // rememberClearDisplayEvent is the only writer of the setting, and it returns early
+        // for anything posted from here, so the setting stays false through the whole
+        // automatic path. Anything that needs to know whether the controls are hidden has
+        // to ask for the live state instead.
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("auto", () -> true, events::add);
+        assertFalse("the controls are still up during the delay", RememberClearDisplayPatch.isClearDisplayNow());
+
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertEquals(List.of(false, true), events);
+        assertTrue("the controls are hidden now", RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse("and the setting still says nothing", Settings.CLEAR_DISPLAY.get());
+
+        // This is what the tab strip hide reads, which is why it cannot read the setting.
+        assertNotEquals(RememberClearDisplayPatch.isClearDisplayNow(), Settings.CLEAR_DISPLAY.get());
+    }
+
+    /**
+     * #136: Double tap or Long press set to Clear display posts TikTok's own event unmarked, so it
+     * lands as the reader's change: remembered for the next video, the automatic path done with
+     * this one, and a second gesture brings the controls back. Nothing taking it says so.
+     */
+    @Test public void aGestureTogglesClearDisplayAsTheReadersOwnChange() {
+        List<Boolean> posted = new ArrayList<>();
+        RememberClearDisplayPatch.readerPost = clear -> {
+            posted.add(clear);
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(clear, 0));
+        };
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("gesture", () -> true, events::add);
+        assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+        assertEquals(List.of(true), posted);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue("the reader's clear display wasn't remembered", Settings.CLEAR_DISPLAY.get());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals("the automatic path ran again on a video the reader cleared", List.of(false), events);
+
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        events.clear();
+        RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+        assertEquals("the next video didn't follow the remembered choice", List.of(true), events);
+
+        assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+        assertEquals(List.of(true, false), posted);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(Settings.CLEAR_DISPLAY.get());
+
+        RememberClearDisplayPatch.readerPost = clear -> { };
+        assertFalse("a change nothing took was reported as made", RememberClearDisplayPatch.toggleFromGesture());
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+    }
+
+    /** #232: with Keep Clear display across videos off, a clear made by hand lasts for its video. */
+    @Test public void withKeepOffAClearByHandEndsWithItsVideo() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.save(false);
+        try {
+            RememberClearDisplayPatch.readerPost = clear ->
+                    RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(clear, 0));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("cleared", () -> true, events::add);
+            assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            assertFalse("a clear that isn't kept was saved for later", Settings.CLEAR_DISPLAY.get());
+
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            assertEquals("the next video kept the clear", List.of(false), events);
+            assertFalse("the live state still says cleared", RememberClearDisplayPatch.isClearDisplayNow());
+
+            // A clear saved before the switch went off doesn't come back while it's off.
+            Settings.CLEAR_DISPLAY.save(true);
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("older", () -> true, events::add);
+            assertEquals(List.of(), events);
+        } finally {
+            Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.resetToDefault();
+        }
+    }
+
+    /** #232: with Keep off, the bars come back as the swipe starts, and a panel closing over the video leaves its clear. */
+    @Test public void withKeepOffTheSwipeEndsAClearByHand() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.save(false);
+        try {
+            RememberClearDisplayPatch.readerPost = clear ->
+                    RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(clear, 0));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("cleared", () -> true, events::add);
+            assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+
+            // Focus back on the same video, as PineDrama's long press panel closes, keeps it.
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("cleared", () -> true, events::add);
+            assertEquals("closing the panel undid its own Clear display", List.of(), events);
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+            // The pager settling on a video without telling its listeners isn't a new one.
+            RememberClearDisplayPatch.onFeedPageSelected(null, 1, false);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+            // The pager picking the next video as the swipe lets go.
+            RememberClearDisplayPatch.onFeedPageSelected(null, 1, true);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse("the bars waited for the next video's first frame", RememberClearDisplayPatch.isClearDisplayNow());
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            assertEquals("the next video was told to leave a clear it never had", List.of(), events);
+
+            // Kept, the clear carries over the swipe as before.
+            Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.save(true);
+            assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+            RememberClearDisplayPatch.onFeedPageSelected(null, 2, true);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("a kept clear ended with the swipe", RememberClearDisplayPatch.isClearDisplayNow());
+            assertTrue("the swipe's exit overwrote the kept choice", Settings.CLEAR_DISPLAY.get());
+        } finally {
+            Settings.REMEMBER_CLEAR_DISPLAY_ON_SCROLL.resetToDefault();
+            Settings.CLEAR_DISPLAY.resetToDefault();
+        }
+    }
+
+    /** #136: like every other clear, a gesture doesn't take the tabs the daily hold needs. */
+    @Test public void aGestureDoesNotClearUnderTheDailyHold() {
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(app.morphe.extension.pinedrama.wellbeing.SessionBudget.class, "awaitWritesForTests");
+        List<Boolean> posted = new ArrayList<>();
+        RememberClearDisplayPatch.readerPost = clear -> {
+            posted.add(clear);
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(clear, 0));
+        };
+        try {
+            lockTheDay();
+            assertFalse(RememberClearDisplayPatch.toggleFromGesture());
+            assertEquals("a gesture cleared under the hold", List.of(), posted);
+        } finally {
+            unlockTheDay();
+        }
+        assertTrue(RememberClearDisplayPatch.toggleFromGesture());
+        assertEquals(List.of(true), posted);
+    }
+
+    @Test public void aTapThatLeavesClearDisplayIsReportedToo() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("auto", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        // PineDrama posts its own event when the user taps to bring the controls back.
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+    }
+
+    @Test public void waitsAndDoesNotRearmRepeatedFirstFrame() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(999));
+        assertEquals(List.of(false), events);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1));
+        assertEquals(List.of(false, true), events);
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals(List.of(false, true), events);
+        assertFalse("an automatic clear was stored as the reader's own choice", Settings.CLEAR_DISPLAY.get());
+    }
+    @Test public void newVideoAndManualRestoreCancelPendingWork() {
+        List<Boolean> old = new ArrayList<>(), next = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, old::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));
+        RememberClearDisplayPatch.firstFrame("two", () -> true, next::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500));
+        assertEquals(List.of(false), old);
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0));
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals(List.of(false), next);
+        RememberClearDisplayPatch.firstFrame("two", () -> true, next::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals(List.of(false), next);
+        RememberClearDisplayPatch.firstFrame("three", () -> true, next::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertEquals(List.of(false, false, true), next);
+    }
+    @Test public void disabledOrStalePlaybackDoesNotHideAndManualMemorySurvives() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> false, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertEquals(List.of(false, false), events);
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(true, 0));
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 3));
+        assertTrue("the reader's clear display wasn't remembered", Settings.CLEAR_DISPLAY.get());
+        assertTrue("an ignored event type took the live state away", RememberClearDisplayPatch.isClearDisplayNow());
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        assertEquals(List.of(false, false, true), events);
+    }
+    /**
+     * The switch-off branch ran only for items with an id, so an item with no id left the
+     * controls hidden and the tab strip hide kept PineDrama's top bar away there. It gives the
+     * controls back to any item now; clearing still needs an id.
+     */
+    @Test public void switchingTheAutomaticPathOffGivesTheControlsBackOnAnItemWithNoId() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue("the fixture never cleared", RememberClearDisplayPatch.isClearDisplayNow());
+
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        events.clear();
+        RememberClearDisplayPatch.firstFrame(null, () -> true, events::add);
+        assertEquals("an item with no id kept the controls hidden", List.of(false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        // A remembered clear display still needs an id to clear.
+        Settings.CLEAR_DISPLAY.save(true);
+        events.clear();
+        RememberClearDisplayPatch.firstFrame("", () -> true, events::add);
+        assertEquals("an item with no id was cleared", List.of(), events);
+    }
+
+    /**
+     * And with nothing switched off. A remembered clear display is posted per video with an id,
+     * and PineDrama gives the controls back on a new item by itself, so an item with no id after a
+     * cleared one showed PineDrama's controls while the live state still said hidden, and the tab
+     * strip hide kept the top bar away there (refutation review of b172f2c5).
+     */
+    @Test public void aRememberedClearDisplayGivesTheControlsBackOnAnItemWithNoId() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame(null, () -> true, events::add);
+        assertEquals("an item with no id kept the remembered clear state", List.of(true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        assertEquals("the next video lost the remembered choice", List.of(true, false, true), events);
+    }
+
+    /**
+     * A clear mode the user set through PineDrama's own bar is theirs: an item with no id must not
+     * undo it (refutation review of b5183ca7). Only the clears this patch makes are undone there.
+     */
+    @Test public void tikToksOwnClearModeStaysAcrossAnItemWithNoId() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(true, 0));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame(null, () -> true, events::add);
+        assertEquals("an item with no id undid PineDrama's own clear mode", List.of(), events);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+    }
+
+    @Test public void theAutomaticPathGivesTheControlsBackOnAnItemWithNoId() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame("", () -> true, events::add);
+        assertEquals("an item with no id kept the automatic clear state", List.of(false, true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals("an item with no id was cleared", List.of(false, true, false), events);
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertEquals(List.of(false, true, false, false, true), events);
+    }
+
+    /**
+     * Switched off while it had the controls hidden: PineDrama shows them on the next video by
+     * itself (S22, 2026-09-23), and the live state has to say so, or the tab strip hide keeps
+     * PineDrama's top strip away with the feature off. Once shown, later videos ask nothing more.
+     */
+    /**
+     * With no delay the next video is cleared as soon as it starts, but PineDrama's clear mode
+     * belongs to one video, so between the swipe and that clear the incoming one would show its
+     * controls (#84). The cleared state carries across the swipe until something asks for the
+     * controls back.
+     */
+    @Test public void withNoDelayTheClearCarriesAcrossTheSwipe() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue("the automatic clear isn't carried", RememberClearDisplayPatch.isCarryingClear());
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        assertEquals(List.of(false, true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue("the swipe dropped the carried clear", RememberClearDisplayPatch.isCarryingClear());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(false, true, false, true), events);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+        // Restore display, or any change PineDrama makes itself, ends it.
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+        assertFalse("a manual restore kept the controls away", RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse("the restore didn't stick", RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        // The next video is cleared again, as before, and carries again.
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * A video opened from search after the controls were brought back on the feed (which a
+     * search starts with, since Clear display hides the search button) showed them for about half
+     * a second, until its player's first progress report started its clear (S22 2026-10-12, #84).
+     * A newly opened page carries the clear from its first draw, the way a cold start does.
+     */
+    @Test public void aNewlyOpenedPageCarriesTheClearAfterARestoreOnTheFeed() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("feed", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+
+        RememberClearDisplayPatch.onPageOpened(null);
+        assertTrue("the result's controls show until its clear lands", RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("result", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * Back on the video whose controls were brought back, with a page's start window still open
+     * because that page never played anything: the window's focus coming back runs the video's
+     * first frame again, and the controls stay up.
+     */
+    @Test public void aStartWindowEndsBackOnTheRestoredVideo() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+
+        RememberClearDisplayPatch.onPageOpened(null);
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse("the restore was undone", RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse("the controls stayed away", RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * Backing out of a page before its clear landed gives the controls of the video behind it
+     * back at once, not after the page's limit, and only that page leaving does (review of
+     * 1fe6863a9).
+     */
+    @Test public void aPageLeftBeforeItsClearLandsEndsItsWindow() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("feed", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+        try (var page = Robolectric.buildActivity(android.app.Activity.class).setup();
+             var other = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            RememberClearDisplayPatch.onPageOpened(page.get());
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.onPageLeft(other.get());
+            assertTrue("another screen pausing ended the page's window", RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.onPageLeft(page.get());
+            assertFalse("the feed's restored controls stayed hidden", RememberClearDisplayPatch.isCarryingClear());
+        }
+    }
+
+    /** A page whose post never plays (a photo post reports nothing) gets its controls back soon. */
+    @Test public void aPageThatNeverPlaysGetsItsControlsBackAfterItsLimit() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        RememberClearDisplayPatch.onPageOpened(null);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS - 100));
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100));
+        assertFalse("the page's controls stayed away", RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * Backing out of a cleared video page posts no exit, so the live state still says cleared as
+     * the next page opens, and PineDrama's top bar showed over its first frames (Favorites, S22
+     * 2026-10-27, #84). The new page counts as uncleared until a clear lands on it, it goes, or
+     * its limit passes.
+     */
+    @Test public void aPageOpenedAfterAClearedOneIsUnclearedUntilItsOwnClearLands() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("liked", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(RememberClearDisplayPatch.isPageUncleared());
+
+        try (var page = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            RememberClearDisplayPatch.onPageOpened(page.get());
+            assertTrue("the last page's clear stood in for this one's",
+                    RememberClearDisplayPatch.isPageUncleared());
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.firstFrame("favorite", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            assertFalse("its own clear landed", RememberClearDisplayPatch.isPageUncleared());
+
+            RememberClearDisplayPatch.onPageOpened(page.get());
+            RememberClearDisplayPatch.onPageLeft(page.get());
+            assertFalse("the page went", RememberClearDisplayPatch.isPageUncleared());
+        }
+        RememberClearDisplayPatch.onPageOpened(null);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(RememberClearDisplayPatch.PAGE_LIMIT_MS));
+        assertFalse("a page that never clears keeps its top bar after the limit",
+                RememberClearDisplayPatch.isPageUncleared());
+    }
+
+    /** With a delay the controls show first anyway, so a new page carries nothing. */
+    @Test public void aPageOpenedWithADelayCarriesNothing() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        RememberClearDisplayPatch.onPageOpened(null);
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * A remembered Clear display lands on each video as it starts, so it carries the way the
+     * automatic path does: a video opened from Favorites showed its controls for about a second
+     * until its clear landed (#84).
+     */
+    @Test public void aRememberedClearCarriesUntilItsTurnedOff() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        try {
+            RememberClearDisplayPatch.firstFrame("one", () -> true, value -> true);
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            assertTrue("the remembered clear isn't carried", RememberClearDisplayPatch.isCarryingClear());
+
+            // A clear PineDrama didn't take carries nothing.
+            RememberClearDisplayPatch.firstFrame("two", () -> true, value -> false);
+            assertFalse(RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.firstFrame("three", () -> true, value -> true);
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+            // Restore display saves the choice off, and nothing carries from there.
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+            assertFalse(Settings.CLEAR_DISPLAY.get());
+            assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        } finally {
+            Settings.CLEAR_DISPLAY.resetToDefault();
+        }
+    }
+
+    /**
+     * Before the first video of a cold start, a choice that clears each video as it starts keeps
+     * the tabs and the buttons away already. They showed under PineDrama's spinner and on the first
+     * video for about a second (#84). A feed that never loads gets them back.
+     */
+    @Test public void aColdStartCarriesTheSavedClearUntilTheFirstVideo() {
+        SettingsStatus.automaticClearDisplayEnabled = true;
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        try {
+            RememberClearDisplayPatch.resetForTests();
+            assertTrue("a cold start showed the controls", RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.firstFrame("first", () -> true, value -> true);
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+            // A first video PineDrama wouldn't clear ends it.
+            RememberClearDisplayPatch.resetForTests();
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.firstFrame("refused", () -> true, value -> false);
+            assertFalse(RememberClearDisplayPatch.isCarryingClear());
+
+            // So does a LIVE preview or an ad, which PineDrama never clears.
+            RememberClearDisplayPatch.resetForTests();
+            RememberClearDisplayPatch.firstFrame(null, () -> true, value -> true);
+            assertFalse(RememberClearDisplayPatch.isCarryingClear());
+
+            // A feed that never loads gets its tabs back.
+            RememberClearDisplayPatch.resetForTests();
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+            Shadows.shadowOf(Looper.getMainLooper())
+                    .idleFor(Duration.ofMillis(RememberClearDisplayPatch.START_LIMIT_MS));
+            assertFalse("a feed that never loaded kept its tabs away", RememberClearDisplayPatch.isCarryingClear());
+
+            // Nothing is carried without a choice that clears each video as it starts.
+            Settings.CLEAR_DISPLAY.save(false);
+            RememberClearDisplayPatch.resetForTests();
+            assertFalse(RememberClearDisplayPatch.isCarryingClear());
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+            Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(1000);
+            assertFalse("carried at the start with a delay chosen", RememberClearDisplayPatch.isCarryingClear());
+            Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+            assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+            // And a bundle without the automatic patch never carries at the start.
+            SettingsStatus.automaticClearDisplayEnabled = false;
+            RememberClearDisplayPatch.resetForTests();
+            assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        } finally {
+            Settings.CLEAR_DISPLAY.resetToDefault();
+        }
+    }
+
+    @Test public void theCarriedClearNeedsNoDelayTheSwitchAndNoHold() {
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(app.morphe.extension.pinedrama.wellbeing.SessionBudget.class, "awaitWritesForTests");
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+        // A delay means the reader wants a look at the controls first.
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(1000);
+        assertFalse("carried with a delay chosen", RememberClearDisplayPatch.isCarryingClear());
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+        // Switched off, the next video shows its controls and nothing carries.
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        assertFalse("carried with the switch off", RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+        assertFalse("switching off didn't end the carry", RememberClearDisplayPatch.isCarryingClear());
+
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        try {
+            lockTheDay();
+            assertFalse("carried under the daily hold", RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.leaveForHold();
+            unlockTheDay();
+            assertFalse("the hold didn't end the carry", RememberClearDisplayPatch.isCarryingClear());
+        } finally {
+            unlockTheDay();
+        }
+    }
+
+    @Test public void switchingTheAutomaticPathOffShowsTheControlsOnTheNextVideo() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        assertEquals(List.of(false, true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        assertEquals(List.of(false, true, false), events);
+    }
+
+    /**
+     * A clear display the user chose is theirs, even where it isn't remembered: while HushPine
+     * is paused PineDrama's own clear mode is not saved, and switching nothing on or off must not
+     * bring the controls back over it.
+     */
+    @Test public void aClearDisplayTheUserChoseIsLeftAloneWhilePaused() {
+        List<Boolean> events = new ArrayList<>();
+        // The automatic path hides the controls and the user brings them back with PineDrama's X,
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0));
+        app.morphe.extension.shared.settings.PausedProcess.set(true);
+        try {
+            // then, paused, hides them with PineDrama's own mode, which a paused process doesn't save.
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(true, 0));
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            assertEquals("nothing asked of PineDrama on the next video", List.of(false, true), events);
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+        }
+    }
+
+    @Test public void disablingAndReenablingBeforeTheDeadlineCancelsTheTimer() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals(List.of(false), events);
+    }
+    @Test public void leavingAndReturningBeforeTheDeadlineRearmsTheCurrentItem() {
+        try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(owner.get().getWindow().getDecorView());
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+            owner.windowFocusChanged(false);
+            owner.windowFocusChanged(true);
+            RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals(List.of(false, true), events);
+        }
+    }
+    @Test public void aCancelledCallbackCannotApplyDuringTheNewAttemptsDelay() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+        Runnable cancelled = org.robolectric.util.ReflectionHelpers.getStaticField(
+                RememberClearDisplayPatch.class, "pending");
+        RememberClearDisplayPatch.cancel();
+        RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+        cancelled.run();
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(999));
+        assertEquals("the stale attempt cleared before the new delay", List.of(false), events);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1));
+        assertEquals(List.of(false, true), events);
+    }
+    @Test public void aReplacementWindowCanClearTheSameItemAgain() {
+        try (var old = Robolectric.buildActivity(android.app.Activity.class).setup().visible();
+             var replacement = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.observeWindow(old.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.observeWindow(replacement.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            assertEquals(List.of(false, true, false), events);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            assertEquals(List.of(false, true, false, true), events);
+        }
+    }
+    @Test public void focusReturnPreservesAManualExitButANewViewerRearmsTheSameItem() {
+        try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup().visible();
+             var replacement = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(owner.get().getWindow().getDecorView());
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0));
+            owner.windowFocusChanged(false);
+            owner.windowFocusChanged(true);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals("focus return re-applied a clear the user exited", List.of(false), events);
+            RememberClearDisplayPatch.observeWindow(replacement.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals("a new viewer kept the earlier viewer's manual exit",
+                    List.of(false, false, true), events);
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            assertEquals(List.of(false, false, true, false, true), events);
+        }
+    }
+
+    @Test public void aDetachedViewerCannotKeepItsManualExitOnAReopenedVideo() {
+        List<Boolean> events = new ArrayList<>();
+        try (var page = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(page.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0));
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+            page.pause().stop().destroy();
+        }
+        try (var reopened = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(reopened.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            assertEquals("the old viewer's manual exit survived reopening",
+                    List.of(false, true, false, true), events);
+        }
+    }
+    /**
+     * On a video opened from search or a profile, PineDrama spends the first back press on leaving
+     * clear mode: BACK_BUTTON (12) from the page's back handling, OTHER_EXIT (6) from the
+     * clear-mode panel's Back key handler. That's the way out, not a choice to see the controls:
+     * counted as one, opening the same video again never cleared it (#84, seen on the emulator
+     * with the Back key), and a remembered clear was saved off.
+     */
+    @Test public void tikToksOwnExitsDontStickToTheVideoOrOverwriteTheChoice() {
+        for (int exit : new int[]{12, 6}) {
+            try (var page = Robolectric.buildActivity(android.app.Activity.class).setup().visible();
+                 var again = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+                List<Boolean> events = new ArrayList<>();
+                RememberClearDisplayPatch.observeWindow(page.get().getWindow().getDecorView());
+                RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+                RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, exit));
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertFalse("type " + exit + ": the state didn't follow PineDrama",
+                        RememberClearDisplayPatch.isClearDisplayNow());
+                RememberClearDisplayPatch.observeWindow(again.get().getWindow().getDecorView());
+                RememberClearDisplayPatch.firstFrame("same", () -> true, events::add);
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+                assertEquals("type " + exit + ": the video opened again stayed uncleared",
+                        List.of(false, true, false, true), events);
+            }
+        }
+
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        try {
+            for (int kind : new int[]{1, 6, 11, 12}) {
+                RememberClearDisplayPatch.firstFrame("kind" + kind, () -> true, value -> true);
+                RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, kind));
+                assertTrue("type " + kind + " saved the remembered clear off", Settings.CLEAR_DISPLAY.get());
+                assertFalse(RememberClearDisplayPatch.isCarryingClear());
+            }
+            // A tap that leaves clear mode is the reader's.
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+            assertFalse(Settings.CLEAR_DISPLAY.get());
+        } finally {
+            Settings.CLEAR_DISPLAY.resetToDefault();
+        }
+    }
+    @Test public void focusReturnCanClearTheFirstItemAfterItsInitialAttemptHadNoFocus() {
+        try (var owner = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            RememberClearDisplayPatch.observeWindow(owner.get().getWindow().getDecorView());
+            owner.windowFocusChanged(false);
+            var focused = new java.util.concurrent.atomic.AtomicBoolean(false);
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("first", focused::get, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals(List.of(false), events);
+
+            focused.set(true);
+            owner.windowFocusChanged(true);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(999));
+            assertEquals("focus return must retain the chosen delay", List.of(false), events);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1));
+            assertEquals("the first item remained permanently ineligible", List.of(false, true), events);
+        }
+    }
+    @Test public void aFailedClearDispatchCanRetryOnTheSameItem() {
+        List<Boolean> events = new ArrayList<>();
+        var fail = new java.util.concurrent.atomic.AtomicBoolean(true);
+        RememberClearDisplayPatch.ClearEvent receiver = value -> {
+            if (value && fail.getAndSet(false)) throw new IllegalStateException("receiver unavailable");
+            return events.add(value);
+        };
+        RememberClearDisplayPatch.firstFrame("first", () -> true, receiver);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertFalse("a failed dispatch was recorded as clear", RememberClearDisplayPatch.isClearDisplayNow());
+        RememberClearDisplayPatch.firstFrame("first", () -> true, receiver);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertEquals(List.of(false, true), events);
+    }
+    @Test public void aQueuedManualEventFromTheOldItemCannotCancelTheNextItem() throws Exception {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("old", () -> true, events::add);
+        Thread delivery = new Thread(() ->
+                RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0)));
+        delivery.start();
+        delivery.join();
+        RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertEquals("old event delivery cancelled the next item's timer", List.of(false, false, true), events);
+    }
+
+    /** Stands in for PineDrama's PlayerController: the clear path reads its page from this field. */
+    static final class Player {
+        final Object activity;
+        Player(Object activity) { this.activity = activity; }
+    }
+
+    private static Object watchedWindow() {
+        return ((java.lang.ref.WeakReference<?>) org.robolectric.util.ReflectionHelpers.getStaticField(
+                RememberClearDisplayPatch.class, "window")).get();
+    }
+
+    /**
+     * A video opened from search's grid is handed to the detail page already playing, so that
+     * page's player reports progress but never a first frame, and nothing started the automatic
+     * clear there (#84, emulator 2026-10-11). Its first progress stands in for the first frame.
+     */
+    @Test public void progressFromAPlayerThatNeverShowedAFirstFrameStandsInForIt() {
+        try (var page = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            Player player = new Player(page.get());
+            RememberClearDisplayPatch.onPlaybackProgress(player, "search");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertSame("the page's window is watched as after a first frame",
+                    page.get().getWindow().getDecorView(), watchedWindow());
+            assertSame(player, ((java.lang.ref.WeakReference<?>) org.robolectric.util.ReflectionHelpers
+                    .getStaticField(RememberClearDisplayPatch.class, "currentController")).get());
+        }
+    }
+
+    @Test public void aPlayerThatShowedAFirstFrameIsNotStoodInForAgain() {
+        try (var page = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            Player player = new Player(page.get());
+            RememberClearDisplayPatch.onFirstFrame(player);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            // Another player is current now, as in the feed after a swipe to the next video.
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(new Object()));
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "window", new java.lang.ref.WeakReference<>(null));
+            RememberClearDisplayPatch.onPlaybackProgress(player, "feed");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNull("the old video's progress started it over", watchedWindow());
+        }
+    }
+
+    @Test public void rejectedNativeEntryRetriesOnMatchingProgressWithoutRepeatingTheChosenDelay() {
+        Object controller = new Object();
+        org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                "currentController", new java.lang.ref.WeakReference<>(controller));
+        var ready = new java.util.concurrent.atomic.AtomicBoolean();
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("first", () -> true, value -> {
+            events.add(value);
+            Event ownEvent = new Event(value, 0);
+            RememberClearDisplayPatch.beginNativeDispatch(ownEvent, value);
+            RememberClearDisplayPatch.rememberClearDisplayEvent(ownEvent);
+            return !value || ready.get();
+        });
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertFalse("posting without applying claimed success", RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(org.robolectric.util.ReflectionHelpers.getStaticField(RememberClearDisplayPatch.class, "applied"));
+        ready.set(true);
+        RememberClearDisplayPatch.onPlaybackProgress(new Object(), "first");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "other");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(false, true), events);
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("retry must coalesce and retain the elapsed deadline", List.of(false, true, true), events);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(3, events.size());
+    }
+
+    @Test public void canceledOrManualOrDisabledEntryNeverRetriesFromQueuedProgress() {
+        for (int stop = 0; stop < 4; stop++) {
+            RememberClearDisplayPatch.resetForTests();
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+            Object controller = new Object();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("first", () -> true, value -> {
+                events.add(value);
+                return !value;
+            });
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+            if (stop == 0) RememberClearDisplayPatch.cancel();
+            else if (stop == 1) RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+            else if (stop == 2) Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            else app.morphe.extension.shared.settings.PausedProcess.set(true);
+            try {
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+                assertEquals("withdrawn request retried: " + stop, List.of(false, true), events);
+            } finally { app.morphe.extension.shared.settings.PausedProcess.set(false); }
+        }
+    }
+
+    public static final class NativeItem {
+        public String getAid() { return "same"; }
+    }
+    public static final class NativeCell {
+        NativeItem item = new NativeItem();
+        public NativeItem getAweme() { return item; }
+    }
+
+    @Test public void onlyTheDispatchedEventAndCurrentCellCanAcknowledgeNativeCompletion() {
+        try (var current = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            current.windowFocusChanged(true);
+            RememberClearDisplayPatch.observeWindow(current.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, value -> true);
+            Object event = new Object();
+            NativeCell cell = new NativeCell();
+            Object controller = new Object();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentModel", new java.lang.ref.WeakReference<>(cell.item));
+            RememberClearDisplayPatch.beginNativeDispatch(event, true);
+            RememberClearDisplayPatch.beforeNativeApply(new Object(), cell, controller);
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertFalse(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.beforeNativeApply(event, cell, new Object());
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertFalse("same model on another controller acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+            NativeCell sameId = new NativeCell();
+            RememberClearDisplayPatch.beforeNativeApply(event, sameId, controller);
+            RememberClearDisplayPatch.onNativeApplied(sameId, true);
+            assertFalse("same ID on another model acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.beforeNativeApply(event, cell, controller);
+            assertFalse("the early native return acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.onNativeApplied(new NativeCell(), true);
+            RememberClearDisplayPatch.onNativeApplied(cell, false);
+            assertFalse(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertTrue(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.beforeNativeApply(event, new NativeCell(), new Object());
+            RememberClearDisplayPatch.beforeNativeApply(new Object(), cell, controller);
+            assertTrue("another subscriber discarded the current cell's completion",
+                    RememberClearDisplayPatch.finishNativeDispatch());
+            NativeCell replacement = new NativeCell();
+            replacement.item = cell.item;
+            RememberClearDisplayPatch.beforeNativeApply(event, replacement, controller);
+            assertFalse("replacement cell reused the previous cell's completion",
+                    RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.onNativeApplied(replacement, true);
+            assertTrue(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.cancel();
+            assertFalse("a canceled generation acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+        }
+    }
+
+    @Test public void nativeCompletionCannotAcknowledgeAReplacedOwnerOrItemOrLostEligibility() {
+        for (int stale = 0; stale < 5; stale++) {
+            RememberClearDisplayPatch.resetForTests();
+            var eligible = new java.util.concurrent.atomic.AtomicBoolean(true);
+            RememberClearDisplayPatch.firstFrame("same", eligible::get, value -> true);
+            Object controller = new Object();
+            NativeCell cell = new NativeCell();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentModel", new java.lang.ref.WeakReference<>(cell.item));
+            Object event = new Object();
+            RememberClearDisplayPatch.beginNativeDispatch(event, true);
+            RememberClearDisplayPatch.beforeNativeApply(event, cell, controller);
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertTrue(RememberClearDisplayPatch.finishNativeDispatch());
+            if (stale == 0) org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(new Object()));
+            else if (stale == 1) org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentModel", new java.lang.ref.WeakReference<>(new NativeItem()));
+            else if (stale == 2) eligible.set(false);
+            else if (stale == 3) cell.item = new NativeItem();
+            else org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class, "activeId", "other");
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertFalse("stale native completion was accepted: " + stale, RememberClearDisplayPatch.finishNativeDispatch());
+        }
+    }
+
+    @Test public void aForeignManualExitDuringDispatchCancelsTheAutomaticRequest() {
+        for (boolean accepted : new boolean[] {false, true}) {
+            RememberClearDisplayPatch.resetForTests();
+            Object controller = new Object();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("same", () -> true, value -> {
+                events.add(value);
+                RememberClearDisplayPatch.beginNativeDispatch(new Event(value, 0), value);
+                if (value) RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+                return accepted;
+            });
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.onPlaybackProgress(controller, "same");
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals(List.of(false, true), events);
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+            assertFalse(Settings.CLEAR_DISPLAY.get());
+        }
+    }
+    private static List<String> feedScreenTitles(android.preference.PreferenceActivity activity) {
+        var screen = activity.getPreferenceManager().createPreferenceScreen(activity);
+        var category = new InterfacePreferenceCategory(activity, screen);
+        List<String> titles = new ArrayList<>();
+        for (int i = 0; i < category.getPreferenceCount(); i++) {
+            titles.add(String.valueOf(category.getPreference(i).getTitle()));
+        }
+        return titles;
+    }
+}

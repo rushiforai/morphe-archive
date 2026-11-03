@@ -73,20 +73,20 @@ class ArchiveMemberValidationTest(unittest.TestCase):
 
 class DescriptorContractTest(unittest.TestCase):
     def test_descriptor_records_complete_arm64_contract(self) -> None:
-        descriptor = json.loads((ROOT / "reference" / "line-26.11.0-arm64-v8a.json").read_text())
-        self.assertEqual(descriptor["apkm"]["sha256"], "be1147ccd3a20c61ac1e9bed93ce918fcc1cb0c5966af3ca4d504ea9da6bf2e6")
+        descriptor = json.loads((ROOT / "reference" / "line-26.16.0-arm64-v8a.json").read_text())
+        self.assertEqual(descriptor["apkm"]["sha256"], "4a82c3173a935c52dbe96b8768b73a2dda7284b860f37e4982d72b5672dbf1af")
         self.assertEqual(descriptor["package"], {
             "name": "jp.naver.line.android",
-            "versionName": "26.11.0",
-            "versionCode": 261100124,
+            "versionName": "26.16.0",
+            "versionCode": 261600106,
             "minSdk": 32,
             "targetSdk": 36,
         })
-        self.assertEqual(descriptor["apkContents"]["base"]["dexCount"], 13)
-        self.assertEqual(descriptor["apkContents"]["arm64V8a"]["nativeLibraryCount"], 77)
+        self.assertEqual(descriptor["apkContents"]["base"]["dexCount"], 14)
+        self.assertEqual(descriptor["apkContents"]["arm64V8a"]["nativeLibraryCount"], 73)
         self.assertEqual(descriptor["requiredSplits"]["baseRequiredSplitTypes"], ["base__abi", "base__density"])
-        self.assertEqual(len(descriptor["splits"]), 10)
-        self.assertEqual(len(descriptor["requiredSplits"]["density"]), 7)
+        self.assertEqual(len(descriptor["splits"]), 9)
+        self.assertEqual(len(descriptor["requiredSplits"]["density"]), 6)
 
     def test_parses_signing_lineage_from_apksigner_output(self) -> None:
         output = "\n".join((

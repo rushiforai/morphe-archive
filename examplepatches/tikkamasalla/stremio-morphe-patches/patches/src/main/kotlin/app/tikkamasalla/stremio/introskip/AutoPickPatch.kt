@@ -42,13 +42,44 @@ val autoPickPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        try {
+        // Leanback stream list (1.6.12 and 1.10.x): hook its observer. Where that class is gone (Compose
+        // list: TV 1.12.x, phone 2.x) the core model path below is used instead; never both.
+        val legacyList = try {
             StreamsObserverFingerprint.method.addInstructions(
                 0,
                 "invoke-static {p0}, $AUTOPICK->onStreams(Ljava/lang/Object;)V",
             )
+            true
         } catch (_: Exception) {
-            // Stream list keeps working manually on this build.
+            false
+        }
+        if (!legacyList) {
+            try {
+                // Streams page opened/closed, player started/ended: Core.dispatch(Action, Field).
+                CoreDispatchFingerprint.method.addInstructions(
+                    0,
+                    "invoke-static {p1, p2}, $AUTOPICK->onCoreDispatch(Ljava/lang/Object;Ljava/lang/Object;)V",
+                )
+                // The streams of every addon: the decoded MetaDetails model.
+                hookReturnObject(
+                    MetaDetailsModelFingerprint.method,
+                    "$AUTOPICK->onMetaDetails(Ljava/lang/Object;)V",
+                    replace = false,
+                )
+            } catch (_: Exception) {
+                java.util.logging.Logger.getLogger("AutoPickPatch").warning("Core hooks not found: auto-pick is off, the stream list stays")
+            }
+            // Activity for the launch and the Back/key watcher (TV and phone class; one exists per build).
+            listOf(MainActivityOnCreateFingerprint, PhoneMainActivityOnCreateFingerprint).forEach { fingerprint ->
+                try {
+                    fingerprint.method.addInstructions(
+                        0,
+                        "invoke-static {p0}, $AUTOPICK->onMainActivity(Ljava/lang/Object;)V",
+                    )
+                } catch (_: Exception) {
+                    // The other build's activity class.
+                }
+            }
         }
         try {
             // Long-press on an episode tile opens its stream list.
@@ -60,17 +91,7 @@ val autoPickPatch = bytecodePatch(
             // Long-press stays off; the Always show stream list setting still works.
         }
         try {
-            AutoPrefsFingerprint.method.apply {
-                val returns = implementation!!.instructions.withIndex()
-                    .filter { it.value.opcode == Opcode.RETURN_VOID }
-                    .map { it.index }
-                returns.reversed().forEach { index ->
-                    addInstructions(
-                        index,
-                        "invoke-static {p0}, $AUTO_SETTINGS->add(Landroidx/preference/PreferenceFragmentCompat;)V",
-                    )
-                }
-            }
+            hookReturnVoidWithThis(AutoPrefsFingerprint.method, "$AUTO_SETTINGS->add(Landroidx/preference/PreferenceFragmentCompat;)V")
         } catch (_: Exception) {
             // Settings screen moved; auto-pick still works with its default.
         }

@@ -30,9 +30,15 @@ world.LoginPage.ShowCookieBanner = true;
 - `Subreddit(name)` makes a subreddit on first use, a default one (the Front Page of an account without
   subscriptions shows its posts) unless `IsDefault` is set to false.
 - `PostBuilder`: `By`, `WithText`, `WithTextAndImage`, `LinkingTo`, `WithImage`, `WithGif`, `WithScore`, `PostedAgo`,
-  `Nsfw`, `Stickied`, `WithFlair`. `CommentBuilder`: `By`, `WithGif`, `WithImage`, `WithVideo`, `LinkingToAnImage`,
-  `LinkingToAVideo`, `WithScore`; each media one is a paragraph of its own after the comment's text. Each fills in
-  everything Reddit sends for it, with media the fake serves:
+  `Nsfw`, `Stickied`, `WithFlair`, `WithSilver`, `AsGallery`. `CommentBuilder`: `By`, `WithGif`, `WithImage`, `WithVideo`,
+  `LinkingToAnImage`, `LinkingToAVideo`, `WithScore`, `WithSilver`; each media one is a paragraph of its own after the
+  comment's text. Each fills in everything Reddit sends for it, with media the fake serves:
+  - a flair is the post's `link_flair_text`, a `link_flair_css_class` made of its words, and one text part in its
+    `link_flair_richtext`;
+  - a gallery (`AsGallery`) is one JPEG: `is_gallery`, the URL `https://www.reddit.com/gallery/<id>`, the image in
+    `media_metadata` and `gallery_data`;
+  - Silver is an entry of `all_awardings` with its icon in the media store, counted in `total_awards_received`,
+    `gildings` (`gid_1`) and `gilded`: awards as Reddit's API sent them until 2023;
   - a GIF uploaded in a comment is `![gif](<id>)` in its body, an entry in its `media_metadata`, a link to the GIF
     around a preview in its `body_html`, and the GIF itself at `<baseUrl>/_media/i.redd.it/<id>.gif`;
   - an image uploaded in a comment or a post's text (`WithTextAndImage`) is its preview's URL on a line of its own in
@@ -46,6 +52,11 @@ world.LoginPage.ShowCookieBanner = true;
     one rendition, `DASH_240.mp4`, next to it;
   - a link to an image or a video is a bare link to a file at `<baseUrl>/_media/example.com/<id>e2elink.jpg` (or
     `.mp4`).
+- `Subreddit(name).LinkFlairs`: the flairs `api/link_flair` lists for it; null (the default) keeps them private, and
+  Reddit refuses the list with 403 Forbidden.
+- `AddShareLink(owner, target)` makes a share link, `/<owner>/s/<code>` (`owner` is `r/<sub>` or `u/<user>`), that
+  leads to the path `target`, and returns its path. A post on a user's profile is a post in `u_<name>`, as Reddit keeps
+  it.
 - `AddMessage(account, subject, body)` sends the account an unread private message: the newest of its inbox.
 - `AddTrouble(new RequestTrouble(matches, delay, status, explanation, drops))` makes the requests it matches
   (`RedditWorld.CommentsOf(post)`, `RedditWorld.PostsOf(subreddit)`) misbehave until the world is reset: after `delay`,
@@ -68,6 +79,9 @@ without is logged out, and Reddit's API refuses it with `HTTP 403 Blocked`, as R
 |---|---|
 | `GET /`, `/{sort}`, `/r/{sub}`, `/r/{sub}/{sort}` (`best`, `hot`, `new`, `top`, `rising`, `controversial`); `r/all`, `r/popular`, `r/a+b` | a `Listing` of `t3`, paged by `after`, `before` and `limit`; `top` and `controversial` by `t`. The Front Page is the account's subscriptions, or the default subreddits; a subreddit's hot feed starts with its stickied posts; an unknown subreddit is a 404 |
 | `GET /comments/{id}`, `/r/{sub}/comments/{id}/{slug}[/{comment}]` | `[Listing(t3), Listing(t1 tree in replies)]`, by `sort`; a comment's id shows its thread |
+| `GET /r/{sub}/search` | a search in the subreddit, as BaconReader sends a feed with a query (`restrict_sr=on`): for `flair_name:"A" OR flair_name:"B"`, its posts with one of those flairs ("Flair filter"); for other words, its posts whose title holds each; in `sort` |
+| `GET /api/link_flair?r={sub}`, `/r/{sub}/api/link_flair` | the post flairs the subreddit lets users choose (`text`, `text_editable`, `id`, `css_class`…), or 403 Forbidden when it keeps them private |
+| `GET /r/{sub}/s/{code}`, `/u/{user}/s/{code}` | a share link, logged out too: 301 to `https://www.reddit.com<target>` with Reddit's share query (`share_id`, `utm_source=share`…); a subreddit's code the world doesn't know is a 307 to `https://www.reddit.com/r/{sub}/`, as Reddit answers one; a user's is a 404 |
 | `GET /r/{sub}/about`, `/r/{sub}/stylesheet` | `t5`; an empty stylesheet |
 | `GET /reddits/mine`, `/subreddits/mine/{where}`, `/reddits/popular`, `/reddits/default` (and `/subreddits/…`) | `t5` listings |
 | `GET /_onelouder/explore-api/def_subs` | the default subreddits, as BaconReader's own server sent them: `app.top_level_categories[0].subreddits[]` with `name` and `display_name` |

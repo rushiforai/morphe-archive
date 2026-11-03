@@ -21,7 +21,7 @@ import dev.utaa.linimal.patches.status.recordUnappliedFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 
 private const val RESOURCES = "Landroid/content/res/Resources;"
-private const val CHAT_MENU_ENUM = "Lfg1/a\$b;"
+private const val CHAT_MENU_ENUM = "Lsn1/c\$b;"
 private const val CHAT_MENU_HOOK =
     "Ldev/utaa/linimal/extension/features/ChatMenuHooks;->shouldHide(Ljava/lang/Object;)Z"
 
@@ -33,11 +33,11 @@ private val chatMenuPatchIds = listOf(
 
 /** それぞれの concrete item class を resource literal と enum anchor から先に特定します。 */
 private val calendarItemClassFingerprint =
-    chatMenuItemClassFingerprint(0x7f151798) // line_calendar_plusmenu_calendar
+    chatMenuItemClassFingerprint(0x7f15192d) // line_calendar_plusmenu_calendar
 private val giftItemClassFingerprint =
-    chatMenuItemClassFingerprint(0x7f150cce) // chathistory_attach_dialog_label_giftshop
+    chatMenuItemClassFingerprint(0x7f150df5) // chathistory_attach_dialog_label_giftshop
 private val payItemClassFingerprint =
-    chatMenuItemClassFingerprint(0x7f150cd8) // chathistory_attach_dialog_label_select_linepay
+    chatMenuItemClassFingerprint(0x7f150dff) // chathistory_attach_dialog_label_select_linepay
 
 private fun chatMenuItemClassFingerprint(labelResource: Int) = Fingerprint(
     returnType = "Ljava/lang/String;",
@@ -48,12 +48,12 @@ private fun chatMenuItemClassFingerprint(labelResource: Int) = Fingerprint(
 private val calendarConstructorFingerprint = chatMenuItemConstructorFingerprint(
     calendarItemClassFingerprint,
     "CALENDAR",
-    0x7f080643, // chat_ui_context_calendar
+    0x7f080638, // chat_ui_context_calendar
 )
 private val giftConstructorFingerprint = chatMenuItemConstructorFingerprint(
     giftItemClassFingerprint,
     "GIFT",
-    0x7f08070c, // chat_ui_plus_gift
+    0x7f080707, // chat_ui_plus_gift
 )
 private val payConstructorFingerprint = chatMenuItemConstructorFingerprint(
     payItemClassFingerprint,
@@ -81,7 +81,7 @@ private fun chatMenuItemConstructorFingerprint(
             literal(iconResource).also(::add)
         }
         methodCall(
-            parameters = listOf("Ln/c;", "I", "L", CHAT_MENU_ENUM, "L", "Z", "L", "I"),
+            parameters = listOf("Ln/c;", "I", "L", CHAT_MENU_ENUM, "L", "L", "Z", "L", "I"),
             returnType = "V",
             opcode = Opcode.INVOKE_DIRECT_RANGE,
         ).also(::add)
@@ -112,9 +112,9 @@ val chatPlusMenuPatch = bytecodePatch(
     dependsOn(mainTabsPatch)
 
     execute {
-        val calendarConstructors = calendarConstructorFingerprint.matchAllOrNull().orEmpty()
-        val giftConstructors = giftConstructorFingerprint.matchAllOrNull().orEmpty()
-        val payConstructors = payConstructorFingerprint.matchAllOrNull().orEmpty()
+        val calendarConstructors = runCatching { calendarConstructorFingerprint.matchAllOrNull() }.getOrNull().orEmpty()
+        val giftConstructors = runCatching { giftConstructorFingerprint.matchAllOrNull() }.getOrNull().orEmpty()
+        val payConstructors = runCatching { payConstructorFingerprint.matchAllOrNull() }.getOrNull().orEmpty()
         if (
             calendarConstructors.size != 1 ||
             giftConstructors.size != 1 ||
@@ -166,7 +166,7 @@ val chatPlusMenuPatch = bytecodePatch(
         val predicateFingerprint = Fingerprint(
             definingClass = commonSuperclass,
             returnType = "Z",
-            parameters = listOf("Lgi1/b;", "Lfg1/a;", "Lhg1/a\$a;"),
+            parameters = listOf("Lup1/b;", "Lsn1/c;", "Lun1/a\$a;"),
             filters = listOf(
                 methodCall(
                     definingClass = "Ljava/lang/Object;",

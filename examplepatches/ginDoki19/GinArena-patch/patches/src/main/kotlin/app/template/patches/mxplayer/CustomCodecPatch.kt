@@ -104,9 +104,7 @@ private val customCodecResourcePatch = rawResourcePatch {
 @Suppress("unused")
 val customCodecPatch = bytecodePatch(
     name = "Custom codec",
-    description = "Bundles an MX Player v3.1.0 custom codec (aio-v3.1.0_r1.zip, architecture ZIP, " +
-        "or libffmpeg.mx.so*) directly into the app for out-of-the-box E-AC-3, TrueHD, MLP, DTS, " +
-        "and AC-3 software audio decoding.",
+    description = "Bundles a custom codec so AC-3, E-AC-3, DTS, and TrueHD audio play out of the box.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_MX_PLAYER_AD)

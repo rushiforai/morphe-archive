@@ -280,14 +280,14 @@ private fun BytecodePatchContext.replaceShortLinks(link: FieldReference) {
                 (written == media || instruction.opcode.setsWideRegister() && written == media - 1)
             ) throw PatchException("$PATCH: $where writes v$media, the post, between its link read at $read and the store")
         }
-        if (media > 15 || value > 15) throw PatchException("$PATCH: $where keeps the post or the link above v15")
-        Triple(after, value, method.freeLocalsAt(PATCH, after, 2))
+        if (media > 15) throw PatchException("$PATCH: $where keeps the post above v15")
+        Triple(after, value, method.freeLocalsAt(PATCH, after, if (value > 15) 3 else 2))
     }
 
     // Later sites first, so the earlier indices still point where they did.
     for ((after, value, scratch) in sites.sortedByDescending { it.first }) {
-        val (postCode, name) = scratch
-        method.addInstructionsWithLabels(after, postLinkHook(value, media, postCode, name))
+        val link = scratch.getOrElse(2) { value }
+        method.addInstructionsWithLabels(after, throughLowLink(value, link, postLinkHook(link, media, scratch[0], scratch[1])))
     }
 
     val hooked = replaceShortLinksInHolders(types, getters)
@@ -325,19 +325,17 @@ private fun BytecodePatchContext.replaceShortLinksInHolders(types: Set<String>, 
             val self = method.localRegisterCount()
             val sites = reads.map { read ->
                 val value = (body[read + 1] as OneRegisterInstruction).registerA
-                if (value > 15) throw PatchException("$PATCH: $type->${method.name} keeps the link above v15")
-                Pair(read + 2, value) to method.freeLocalsAt(PATCH, read + 2, 3)
+                Pair(read + 2, value) to method.freeLocalsAt(PATCH, read + 2, if (value > 15) 4 else 3)
             }
             for ((site, scratch) in sites.sortedByDescending { it.first.first }) {
                 val (after, value) = site
                 val (media, postCode, name) = scratch
-                method.addInstructionsWithLabels(
-                    after,
-                    """
-                        move-object/from16 v$media, v$self
-                        iget-object v$media, v$media, $type->${post.name}:$MEDIA
-                    """ + postLinkHook(value, media, postCode, name),
-                )
+                val link = scratch.getOrElse(3) { value }
+                val hook = """
+                    move-object/from16 v$media, v$self
+                    iget-object v$media, v$media, $type->${post.name}:$MEDIA
+                """ + postLinkHook(link, media, postCode, name)
+                method.addInstructionsWithLabels(after, throughLowLink(value, link, hook))
             }
             hooked += method.key()
         }
@@ -487,15 +485,16 @@ private fun BytecodePatchContext.recallAfter(
     for (read in reads) {
         val after = read + 2
         val value = (body[read + 1] as OneRegisterInstruction).registerA
-        if (value > 15) throw PatchException("$PATCH: $where keeps the link above v15")
-        val free = method.freeLocalsAt(PATCH, after, 3).let { if (key in it) method.freeLocalsAt(PATCH, after, 4) - key else it }
+        val needed = if (value > 15) 4 else 3
+        val free = method.freeLocalsAt(PATCH, after, needed).let { if (key in it) method.freeLocalsAt(PATCH, after, needed + 1) - key else it }
         val (post, postCode, name) = free
+        val link = free.getOrElse(3) { value }
         val hook = """
             ${if (key > 15) "invoke-static/range { v$key .. v$key }" else "invoke-static { v$key }"}, $REMEMBERED_POST
             move-result-object v$post
             check-cast v$post, $MEDIA
-        """ + postLinkHook(value, post, postCode, name)
-        edits += after to { method.addInstructionsWithLabels(after, hook) }
+        """ + postLinkHook(link, post, postCode, name)
+        edits += after to { method.addInstructionsWithLabels(after, throughLowLink(value, link, hook)) }
     }
 }
 
@@ -613,6 +612,14 @@ private fun Method.isCoroutineBody(): Boolean = name == "invokeSuspend" && !Acce
     parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;") && returnType == "Ljava/lang/Object;"
 
 private fun Method.key(): String = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+/**
+ * [hook], run on the link in [link]. The hook's call takes 4-bit registers, so a link read into
+ * [value] above v15 is copied down into [link], a free local below it, first and back up after.
+ * 454's x86 and armeabi-v7a builds read Share to Instagram's link into v16.
+ */
+private fun throughLowLink(value: Int, link: Int, hook: String): String =
+    if (link == value) hook else "move-object/from16 v$link, v$value\n$hook\nmove-object/from16 v$value, v$link"
 
 /**
  * Null code and name, the post's code and its author's username when there is a post and an

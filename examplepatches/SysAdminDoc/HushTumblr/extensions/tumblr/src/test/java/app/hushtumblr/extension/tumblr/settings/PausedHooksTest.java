@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.os.Looper;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -97,6 +98,7 @@ import app.hushtumblr.extension.tumblr.ui.OptionalNudges;
 import app.hushtumblr.extension.tumblr.ui.AppFontForTests;
 import app.hushtumblr.extension.tumblr.ui.PostLines;
 import app.hushtumblr.extension.tumblr.ui.StoreButtons;
+import app.hushtumblr.extension.tumblr.ui.VideoLinks;
 import app.hushtumblr.extension.tumblr.ui.HushImageContainer;
 import app.hushtumblr.extension.tumblr.ui.HushImageDescription;
 import app.hushtumblr.extension.shared.SettingsContextRule;
@@ -281,6 +283,8 @@ public class PausedHooksTest {
         probes.put(Settings.SHOW_POST_TIMESTAMPS, Collections.singletonList(() -> PostTimestamps.show(false)));
         Context context = Utils.getContext();
         probes.put(Settings.SHOW_IMAGE_DESCRIPTIONS, Arrays.asList(() -> caption(context, false), () -> caption(context, true)));
+        // A long press on a video's controls opens the link menu instead of reaching Tumblr's listener.
+        probes.put(Settings.SHARE_VIDEO_LINKS, Collections.singletonList(() -> videoLinkMenu(context)));
         probes.put(Settings.MUTE_ROOT_POSTS, Collections.singletonList(() -> mutedRoot(context)));
         probes.put(Settings.REVEAL_ALLOWED_MATURE_CONTENT, Collections.singletonList(PausedHooksTest::matureCover));
         probes.put(Settings.SHOW_MUTUAL_MARKERS, Collections.singletonList(() -> mutualMarker(context)));
@@ -314,6 +318,14 @@ public class PausedHooksTest {
         HushImageDescription description = () -> "A red balloon over a lake";
         if (gallery) AltTextCaptions.gallery(holder, description); else AltTextCaptions.photo(holder, description);
         return parent.getChildCount() == 2;
+    }
+
+    private static boolean videoLinkMenu(Context context) {
+        FrameLayout container = new FrameLayout(context);
+        View controls = new View(context);
+        container.addView(controls);
+        VideoLinks.bind(container, "https://va.media.tumblr.com/tumblr_probe.mp4");
+        return VideoLinks.press(pressed -> false).onLongClick(controls);
     }
 
     private static boolean mutedRoot(Context context) {

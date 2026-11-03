@@ -14,7 +14,7 @@ private const val FORMAT = "Lcom/naver/prismplayer/media3/common/audio/AudioProc
 private const val SINK = "Lcom/naver/prismplayer/media3/exoplayer/audio/DefaultAudioSink;"
 
 internal fun BytecodePatchContext.addAudioHooks() {
-    val renamed = packageMetadata.versionName == "3.16.0"
+    val renamed = packageMetadata.versionName in setOf("3.16.0", "1.3.0")
     val expected = if (renamed) setOf(
         "a()Z", "b()Z", "c()Ljava/nio/ByteBuffer;", "e($FORMAT)$FORMAT", "f(Ljava/nio/ByteBuffer;)V",
         "flush()V", "g(Lcom/naver/prismplayer/media3/common/audio/AudioProcessor${'$'}StreamMetadata;)V",

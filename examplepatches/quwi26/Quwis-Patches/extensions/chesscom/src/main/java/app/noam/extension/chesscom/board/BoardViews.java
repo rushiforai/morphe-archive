@@ -18,6 +18,17 @@ public final class BoardViews {
     /** The newer board some screens use, and its piece view (its child). */
     public static final String V2_BOARD = "com.chess.chessboard.v2.ChessBoardView";
     public static final String V2_PIECES = "com.chess.chessboard.v2.PiecesView";
+    /** The older board's piece layer. */
+    public static final String PIECE_VIEW = "com.chess.chessboard.view.viewlayers.PieceView";
+
+    /** The v2 board's piece layer in this app version; the patch sets it (4.10.23 renames it). */
+    public static String v2PiecesType() {
+        return V2_PIECES;
+    }
+
+    public static boolean isV2Pieces(View view) {
+        return view != null && v2PiecesType().equals(view.getClass().getName());
+    }
 
     private static Method hostGetter;
     /** The newer board keeps its orientation behind an obfuscated getter: its setter reports it here. */
@@ -33,7 +44,7 @@ public final class BoardViews {
     }
 
     public static Object host(ViewGroup pieceView) {
-        if (V2_PIECES.equals(pieceView.getClass().getName())) return pieceView.getParent();
+        if (isV2Pieces(pieceView)) return pieceView.getParent();
         try {
             if (hostGetter == null) {
                 for (Method method : pieceView.getClass().getMethods()) {

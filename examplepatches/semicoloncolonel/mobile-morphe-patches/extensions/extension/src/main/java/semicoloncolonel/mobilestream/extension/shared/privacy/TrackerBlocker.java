@@ -121,6 +121,11 @@ public final class TrackerBlocker {
             "prf.hn", // Partnerize purchase attribution
             // DealSeek (1.64.0)
             "analytics.us.tiktok.com", "analytics.tiktok.com", // TikTok Business SDK events
+            // JustWatch (26.43.10)
+            "sp.justwatch.com", "t.justwatch.com", // JustWatch's own Snowplow event collectors
+            "singular.net", // Singular attribution
+            // NPS (2.15.0)
+            "events.mapbox.com", // Mapbox map usage events
             // Google Analytics / Firebase Analytics upload
             "app-measurement.com", "google-analytics.com",
             // Google Ads conversion tracking (not ad serving)

@@ -25,7 +25,7 @@ import dev.utaa.linimal.patches.util.exceptionHandlerAddresses
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 import dev.utaa.linimal.patches.util.registerSurvivesBetween
 
-private const val CONTENT_MODEL = "Li42/c;"
+private const val CONTENT_MODEL = "Lkd2/c;"
 private const val RECOMMENDATION_HOOK =
     "Ldev/utaa/linimal/extension/features/HomeRecommendationHooks;->shouldSuppress()Z"
 
@@ -39,12 +39,12 @@ private val recommendationViewHolderClassFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf(
         "Landroid/widget/LinearLayout;",
-        "Lcom/bumptech/glide/n;",
+        "Lcom/bumptech/glide/o;",
         "Landroidx/lifecycle/u0;",
-        "Lb18/f;",
+        "Lti8/f;",
     ),
     filters = listOf(
-        literal(0x7f0b11e6), // home_tab_contents_recommendation_placement
+        literal(0x7f0b11ad), // home_tab_contents_recommendation_placement
         methodCall(
             definingClass = "Landroid/view/View;",
             name = "findViewById",
@@ -54,7 +54,7 @@ private val recommendationViewHolderClassFingerprint = Fingerprint(
         ),
         fieldAccess(definingClass = "this", type = "Landroid/widget/LinearLayout;", opcode = Opcode.IPUT_OBJECT),
     ),
-    custom = { _, classDef -> classDef.superclass == "Ll72/u;" },
+    custom = { _, classDef -> classDef.superclass == "Lsg2/x;" },
 )
 
 /**
@@ -64,18 +64,18 @@ private val recommendationViewHolderClassFingerprint = Fingerprint(
 private val recommendationBindFingerprint = Fingerprint(
     classFingerprint = recommendationViewHolderClassFingerprint,
     returnType = "V",
-    parameters = listOf("Ll72/j;"),
+    parameters = listOf("Lsg2/l;"),
     filters = listOf(
         fieldAccess(definingClass = "this", type = CONTENT_MODEL, opcode = Opcode.IGET_OBJECT),
         methodCall(
-            definingClass = "Lkotlin/jvm/internal/p;",
+            definingClass = "Lkotlin/jvm/internal/n;",
             name = "b",
             parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
             returnType = "Z",
             opcode = Opcode.INVOKE_STATIC,
         ),
         methodCall(
-            definingClass = "Ll72/r;",
+            definingClass = "Lsg2/u;",
             parameters = emptyList(),
             returnType = "V",
             opcode = Opcode.INVOKE_VIRTUAL,
@@ -106,7 +106,7 @@ val homeContentsRecommendationPatch = bytecodePatch(
     dependsOn(lineAiEntryPatch)
 
     execute {
-        val matches = recommendationBindFingerprint.matchAllOrNull().orEmpty()
+        val matches = runCatching { recommendationBindFingerprint.matchAllOrNull() }.getOrNull().orEmpty()
         if (matches.size != 1) {
             recordFeatureStatus(
                 listOf(PatchId.HOME_CONTENTS_RECOMMENDATION),
@@ -164,7 +164,7 @@ val homeContentsRecommendationPatch = bytecodePatch(
             homeRecommendationInjectionIndex(
                 instructions = originalInstructions,
                 cleanupIndex = cleanupIndex,
-                // fingerprint が引数を `Ll72/j;` 1 つに固定しているため、wide を考えず
+                // fingerprint が引数を `Lsg2/l;` 1 つに固定しているため、wide を考えず
                 // 「registers - 引数 - this」で p0 の register 番号が求まります。
                 thisParameterRegister = it.registerCount - method.parameterTypes.size - 1,
                 hasTryBlocks = it.tryBlocks.isNotEmpty(),

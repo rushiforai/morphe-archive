@@ -50,15 +50,17 @@ public class MessageLogTest {
         MessageLog.vault = softwareVault;
         logFile().delete();
         damagedFile().delete();
+        deleteNamesAndPictures();
         Settings.preferences.edit().putBoolean("message_log", true).commit();
     }
 
     @After public void tidy() {
         MessageLogExport.shelf = shelf;
         MessageLog.retryLater = retryLater;
-        MessageLog.vault = null;
         logFile().delete();
         damagedFile().delete();
+        deleteNamesAndPictures();
+        MessageLog.vault = null;
     }
 
     private File logFile() {
@@ -275,9 +277,9 @@ public class MessageLogTest {
         assertEquals(4, MessageLog.entries().size());
     }
 
-    /** The recent record keeps at most 2 * MAX_ENTRIES keys and drops the oldest first. */
+    /** The recent record keeps at most 2 * MAX_QUEUED keys and drops the oldest first. */
     @Test public void theRecentRecordDropsItsOldestCapturesPastItsBound() {
-        int bound = 2 * MessageLog.MAX_ENTRIES;
+        int bound = 2 * MessageLog.MAX_QUEUED;
         // A capture with an id holds two keys. With the rest of the record full, its second copy still pairs...
         assertFalse(MessageLog.repeated("t", "mid.old", "x", 1_000));
         for (int i = 0; i < bound - 2; i++) assertFalse(MessageLog.repeated("t", null, "filler " + i, 1_000));
@@ -961,11 +963,11 @@ public class MessageLogTest {
         assertTrue(MessageLog.queue("first", "t"));
         // Already scheduled: the next ones ride the same write.
         assertFalse(MessageLog.queue("second", "t"));
-        for (int i = 0; i < MessageLog.MAX_ENTRIES; i++) MessageLog.queue("burst " + i, "t");
+        for (int i = 0; i < MessageLog.MAX_QUEUED; i++) MessageLog.queue("burst " + i, "t");
         MessageLog.drain();
         List<MessageLog.Entry> entries = MessageLog.entries();
-        assertEquals(MessageLog.MAX_ENTRIES, entries.size());
-        assertEquals("burst " + (MessageLog.MAX_ENTRIES - 1), entries.get(0).text);
+        assertEquals(MessageLog.MAX_QUEUED, entries.size());
+        assertEquals("burst " + (MessageLog.MAX_QUEUED - 1), entries.get(0).text);
         assertNotEquals("first", entries.get(entries.size() - 1).text);
     }
 
@@ -995,6 +997,133 @@ public class MessageLogTest {
         long deadline = System.currentTimeMillis() + 10_000;
         while (MessageLog.entries().size() < 2 && System.currentTimeMillis() < deadline) Thread.sleep(20);
         assertEquals("during the write", MessageLog.entries().get(0).text);
+    }
+
+    @Test public void aPhotoIsLoggedWithWhatItsNotificationLineSaysAndItsPictureSealed() throws Exception {
+        Context context = Settings.appContext;
+        byte[] picture = {(byte) 0xFF, (byte) 0xD8, 'p', 'h', 'o', 't', 'o', (byte) 0xFF, (byte) 0xD9};
+        android.net.Uri preview = android.net.Uri.parse("content://app.hushmessenger.test/preview/9");
+        org.robolectric.Shadows.shadowOf(context.getContentResolver()).registerInputStreamSupplier(preview,
+            () -> new java.io.ByteArrayInputStream(picture));
+        android.app.NotificationManager manager = context.getSystemService(android.app.NotificationManager.class);
+        android.app.Person ana = new android.app.Person.Builder().setName("Ana").build();
+        android.app.Notification.MessagingStyle.Message photo = new android.app.Notification.MessagingStyle.Message("Ana sent a photo.", 2, ana)
+            .setData("image/jpeg", preview);
+        photo.getExtras().putString("msgId", "mid.9");
+        android.app.Notification.MessagingStyle style = new android.app.Notification.MessagingStyle(new android.app.Person.Builder().setName("Me").build())
+            .setConversationTitle("Climbing").setGroupConversation(true)
+            .addMessage(photo).addMessage("nice", 3, new android.app.Person.Builder().setName("Bo").build());
+        manager.notify("GROUP:77", 1, new android.app.Notification.Builder(context, "chats")
+            .setSmallIcon(android.R.drawable.sym_def_app_icon).setStyle(style).build());
+        try {
+            // A message with no words of its own reaches the log as null.
+            MessageLog.storeNow(null, "GROUP:77", "mid.9");
+            MessageLog.Entry entry = MessageLog.entries().get(0);
+            assertTrue(entry.attachment);
+            assertEquals("Ana sent a photo.", entry.text);
+            // Its own line names who sent it, never the newest line's sender.
+            assertEquals("Ana", entry.sender);
+            assertEquals("Climbing", entry.chat);
+            assertArrayEquals(picture, MessageLogMedia.open(context, entry.media));
+            byte[] onDisk = Files.readAllBytes(MessageLogMedia.file(context, entry.media).toPath());
+            assertFalse("the picture is sealed with the log's key", new String(onDisk, java.nio.charset.StandardCharsets.ISO_8859_1).contains("photo"));
+
+            // One whose line is gone still goes in, as an attachment with no picture.
+            MessageLog.storeNow(null, "GROUP:77", "mid.10");
+            MessageLog.Entry bare = MessageLog.entries().get(0);
+            assertTrue(bare.attachment);
+            assertEquals("", bare.text);
+            assertEquals("", bare.media);
+            assertTrue("the first one read back as a photo too", MessageLog.entries().get(1).attachment);
+
+            // Clear takes the picture with it, and Undo brings it back under the log's new key.
+            MessageLog.Cleared cleared = MessageLog.clearForUndo();
+            assertTrue(cleared.cleared);
+            assertFalse(MessageLogMedia.file(context, entry.media).exists());
+            assertTrue(MessageLog.restore(cleared));
+            MessageLog.Entry back = MessageLog.entries().get(1);
+            assertEquals(entry.media, back.media);
+            assertArrayEquals(picture, MessageLogMedia.open(context, back.media));
+        } finally {
+            manager.cancelAll();
+        }
+    }
+
+    @Test public void aPictureGoesWhenItsMessageLeavesTheLog() throws Exception {
+        Context context = Settings.appContext;
+        File dir = new File(context.getFilesDir(), MessageLogMedia.DIR);
+        assertTrue(dir.mkdirs() || dir.isDirectory());
+        String kept = MessageLog.digest("t\u0000mid.1"), dropped = MessageLog.digest("t\u0000mid.2");
+        MessageLog.sealInto(dir, kept, new byte[] {1});
+        MessageLog.sealInto(dir, dropped, new byte[] {2});
+        // A file the log didn't name goes too.
+        assertTrue(new File(dir, "stray").createNewFile());
+        MessageLogMedia.tidy(context, List.of(new MessageLog.Entry(1000, "t", "", "", "", "mid.1", false, true, kept)));
+        assertTrue(MessageLogMedia.file(context, kept).exists());
+        assertFalse(MessageLogMedia.file(context, dropped).exists());
+        assertFalse(new File(dir, "stray").exists());
+        MessageLogMedia.tidy(context, List.of());
+        assertFalse("no picture left, no folder left", dir.exists());
+        // A name that isn't a digest never reaches outside the folder.
+        assertNull(MessageLogMedia.file(context, "../" + MessageLog.FILE));
+    }
+
+    @Test public void aChatsPickedNameIsSealedAndComesBackWithUndo() throws Exception {
+        MessageLog.storeNow("hi", "GROUP:7");
+        assertEquals("one line, trimmed", "Climbing crew", MessageLog.cleanName("  Climbing\tcrew \n"));
+        assertTrue(MessageLog.rename("GROUP:7", "  Climbing\tcrew \n"));
+        assertTrue(MessageLog.rename("GROUP:8", "Family"));
+        assertEquals(java.util.Map.of("GROUP:7", "Climbing crew", "GROUP:8", "Family"), MessageLog.loadResult().names);
+        File names = new File(Settings.appContext.getFilesDir(), MessageLog.NAMES);
+        assertFalse(new String(Files.readAllBytes(names.toPath()), java.nio.charset.StandardCharsets.ISO_8859_1).contains("Family"));
+        // An empty name takes it away.
+        assertTrue(MessageLog.rename("GROUP:8", " "));
+        assertEquals(java.util.Map.of("GROUP:7", "Climbing crew"), MessageLog.loadResult().names);
+
+        MessageLog.Cleared cleared = MessageLog.clearForUndo();
+        assertFalse(names.exists());
+        assertEquals(java.util.Map.of("GROUP:7", "Climbing crew"), cleared.names);
+        // A name picked after the clear is the one that stays.
+        assertTrue(MessageLog.rename("GROUP:7", "Climbing"));
+        assertTrue(MessageLog.rename("GROUP:9", "Work"));
+        assertTrue(MessageLog.restore(cleared));
+        assertEquals(java.util.Map.of("GROUP:7", "Climbing", "GROUP:9", "Work"), MessageLog.loadResult().names);
+    }
+
+    @Test public void aShorterKeepTimeWaitsOutItsGraceAndUntilClearedKeepsEverything() {
+        long now = 1_800_000_000_000L;
+        long day = MessageLog.DAY_MS;
+        assertEquals(30, MessageLog.keepDays());
+        assertEquals(30 * day, MessageLog.keepMs(now));
+        MessageLog.keepFor(90, now);
+        assertEquals(90, MessageLog.keepDays());
+        assertEquals(90 * day, MessageLog.keepMs(now));
+
+        // Back to 30 days: what was kept for 90 stays through the grace, then goes.
+        MessageLog.keepFor(30, now + 60_000);
+        assertEquals(30, MessageLog.keepDays());
+        List<MessageLog.Entry> entries = new ArrayList<>(List.of(new MessageLog.Entry(now - 60 * day, "t", "old", "", "", "mid.1")));
+        assertFalse(MessageLog.prune(entries, now + 60_000 + MessageLog.KEEP_GRACE_MS - 1));
+        assertEquals(1, entries.size());
+        assertTrue(MessageLog.prune(entries, now + 60_000 + MessageLog.KEEP_GRACE_MS));
+        assertTrue(entries.isEmpty());
+        // A clock moved back can't stretch the grace.
+        assertEquals(30 * day, MessageLog.keepMs(now));
+
+        // Until cleared keeps a message of any age, and nothing else counts as a choice.
+        MessageLog.keepFor(0, now);
+        entries.add(new MessageLog.Entry(now - 400 * day, "t", "older", "", "", "mid.2"));
+        assertFalse(MessageLog.prune(entries, now + 2 * MessageLog.KEEP_GRACE_MS));
+        assertEquals(1, entries.size());
+        assertEquals(0, MessageLog.keepMs(now + 2 * MessageLog.KEEP_GRACE_MS));
+        assertEquals(30, MessageLog.keepDays(7));
+        MessageLog.keepFor(7, now);
+        assertEquals(30, MessageLog.keepDays());
+    }
+
+    private void deleteNamesAndPictures() {
+        new File(Settings.appContext.getFilesDir(), MessageLog.NAMES).delete();
+        MessageLogMedia.deleteAll(Settings.appContext);
     }
 
     private File damagedFile() {

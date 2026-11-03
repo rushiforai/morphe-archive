@@ -219,7 +219,7 @@ internal fun Method.isAttachmentCheck() = AccessFlags.STATIC.isSet(accessFlags) 
 private fun Instruction.ownName() = (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
     ((this as ReferenceInstruction).reference as StringReference).string == ORIGINAL
 
-private fun Instruction.registers(): List<Int> = when (this) {
+internal fun Instruction.registers(): List<Int> = when (this) {
     is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
     is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
     else -> emptyList()
@@ -325,7 +325,7 @@ internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
     }
 }
 
-private fun Method.register(index: Int, what: String): Int {
+internal fun Method.register(index: Int, what: String): Int {
     val register = (implementation!!.instructions.elementAt(index) as OneRegisterInstruction).registerA
     if (register > 255) fail("${hookId()} keeps $what in v$register")
     return register
@@ -534,6 +534,14 @@ val cloneInstallPatch = bytecodePatch(
         required = true,
     ) { isCloneLabel(it) }
 
+    val facebookPackage by stringOption(
+        key = "cloneFacebookPackage",
+        default = FACEBOOK_PACKAGE,
+        title = "Facebook package to open",
+        description = "Which Facebook app Messenger opens profiles and other links in. Leave com.facebook.katana for the regular app, or use a Facebook clone's ID, like com.facebook.katana.morphe. Sign-in and account sharing keep using the regular app.",
+        required = true,
+    ) { isFacebookPackage(it) }
+
     execute {
         val target = packageName?.takeIf(::isClonePackage) ?: fail("$packageName can't be used as a package name")
         val label = appLabel?.takeIf(::isCloneLabel) ?: fail("\"$appLabel\" can't be used as an app name")
@@ -554,6 +562,16 @@ val cloneInstallPatch = bytecodePatch(
         if (dedup.isEmpty()) fail("Messenger no longer names its push dedup provider")
         applyCloneSites(methods.getValue(checks.single { it.endsWith("-><init>()V") }), methods.getValue(checks.single { it.endsWith(ATTACHMENT_CHECK) }),
             target, calls.map { methods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }, pools, dedup)
+        val facebook = facebookPackage?.takeIf(::isFacebookPackage) ?: fail("$facebookPackage can't be used as the Facebook app's name")
+        if (facebook != FACEBOOK_PACKAGE) {
+            if (facebook == target) fail("the Messenger clone and the Facebook app can't share the name $facebook")
+            val handOffs = findFacebookHandOffs(classes).map { site ->
+                val id = site.substringBefore('@')
+                mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id } to site.substringAfter('@').toInt()
+            }
+            if (handOffs.isEmpty()) fail("Messenger no longer opens the Facebook app by its name")
+            applyFacebookHandOffs(handOffs, facebook)
+        }
         requestClone(target, label)
     }
 }

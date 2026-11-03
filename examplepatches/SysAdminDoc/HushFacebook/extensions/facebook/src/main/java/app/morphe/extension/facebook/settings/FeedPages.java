@@ -264,6 +264,9 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_POST_FOLLOW_LINK,
                         L10n.t("Hides the \"Follow\" link next to the name on posts from Pages and people you don't follow. "
                                 + "Tapping the name still opens the profile. A change shows on the posts drawn after it.")));
+                feed.addPreference(toggle(context, Settings.HIDE_POST_JOIN_BUTTON,
+                        L10n.t("Hides the Join button next to the group's name on posts from groups you haven't joined, "
+                                + "and the Join group bar under their videos. A change shows on the posts drawn after it.")));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_COUNTS,
                         L10n.t("Takes the numbers off the Like, Comment and Share buttons under posts, so each shows "
                                 + "just its word. The buttons stay where they are. A change shows on the posts drawn after it.")));
@@ -300,7 +303,8 @@ final class FeedPages {
             }
             if (build.contains(PatchFamily.FULL_POST_TEXT)) {
                 feed.addPreference(toggle(context, Settings.SHOW_FULL_POST_TEXT,
-                        L10n.t("Posts in the feed show all of their text, so there's no See more to tap.")));
+                        L10n.t("Posts in the feed show all of their text, so there's no See more to tap. "
+                                + "Tap a post's text to fold it back.")));
             }
             if (build.contains(PatchFamily.TRANSLATE_POSTS)) {
                 feed.addPreference(toggle(context, Settings.TRANSLATE_POST_LINK,
@@ -315,12 +319,18 @@ final class FeedPages {
             if (build.contains(PatchFamily.REEL_GESTURES)) {
                 // Read on each long press, so a change shows on the next one.
                 feed.addPreference(toggle(context, Settings.SELECT_POST_TEXT,
-                        L10n.t("Holding a post's text still copies all of it, and also opens the text in a box where you "
-                                + "can select just the part you want and copy that.")));
+                        L10n.t("Holding a post's text opens it in a box where you can select just the part you want "
+                                + "and copy that, or copy all of it. The hold itself copies nothing.")));
             }
             if (build.contains(PatchFamily.WHO_SHARED)) {
                 feed.addPreference(toggle(context, Settings.SEE_WHO_SHARED,
                         L10n.t("Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.")));
+            }
+            if (build.contains(PatchFamily.PHOTO_CAROUSEL)) {
+                // Asked as each post is drawn, so a change shows on the posts drawn after it.
+                feed.addPreference(toggle(context, Settings.PHOTO_CAROUSEL,
+                        L10n.t("A post with several photos or videos shows them in a row you swipe through, one at a "
+                                + "time, instead of a grid.")));
             }
             if (build.contains(PatchFamily.AUTO_TRANSLATION)) {
                 // Each post and reel reads the answer as it's drawn, so a change shows on the next ones.
@@ -540,14 +550,20 @@ final class FeedPages {
     }
 
     /**
-     * Hide posts you've already seen, with how long they stay hidden and a row that forgets them.
-     * The keep time is greyed out while the switch is off, Forget seen posts never is, and turning
-     * the switch off forgets the list.
+     * Hide posts you've already seen, with the switch that lets each post back once, how long they
+     * stay hidden and a row that forgets them. The two under the switch are greyed out while it's
+     * off, Forget seen posts never is, and turning the switch off forgets the list.
      */
     private static void seenPosts(PreferenceCategory feed, Context context) {
         SwitchPreference seen = toggle(context, Settings.HIDE_SEEN_POSTS,
                 L10n.t("Posts you've scrolled past stay out of the feed when it loads again. The list stays on this phone. "
                         + "Turning this off empties it."));
+        // #186: a post only flicked past isn't lost for good. It shows once more, and the next
+        // scroll past it hides it.
+        SwitchPreference onceMore = toggle(context, Settings.SEEN_POSTS_COME_BACK_ONCE,
+                L10n.t("A post you scrolled past shows up one more time, and scrolling past it again hides it. "
+                        + "Fewer posts go missing after a quick scroll."))
+                .needs(Settings.HIDE_SEEN_POSTS);
         Preference keep = seenKeepRow(context);
         Row forget = new Row(context);
         forget.setTitle(L10n.t("Forget seen posts"));
@@ -561,15 +577,18 @@ final class FeedPages {
         });
         // The keep time follows the switch and is greyed out until it's on. Forget seen posts
         // works either way, so a list is never out of reach.
+        onceMore.setEnabled(Settings.HIDE_SEEN_POSTS.savedValue());
         keep.setEnabled(Settings.HIDE_SEEN_POSTS.savedValue());
         seen.setOnPreferenceChangeListener((preference, value) -> {
             boolean now = Boolean.TRUE.equals(value);
+            onceMore.setEnabled(now);
             keep.setEnabled(now);
             // Off forgets the list. The file goes on a background thread.
             if (!now) SeenPosts.clear();
             return true;
         });
         feed.addPreference(seen);
+        feed.addPreference(onceMore);
         feed.addPreference(keep);
         feed.addPreference(forget);
     }
@@ -604,6 +623,11 @@ final class FeedPages {
                                 + "Facebook next loads the tray.")));
                 stories.addPreference(toggle(context, Settings.HIDE_SEEN_STORIES,
                         L10n.t("Stories you've already watched leave the Stories tray until there's a new one. Applies when "
+                                + "Facebook next loads the tray.")));
+                // The other way round, so the tray flips between the two with one switch (#340).
+                stories.addPreference(toggle(context, Settings.SHOW_ONLY_WATCHED_STORIES,
+                        L10n.t("The Stories tray keeps only the stories you've already watched, so you can find one again. "
+                                + "Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when "
                                 + "Facebook next loads the tray.")));
             }
             if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
@@ -703,6 +727,8 @@ final class FeedPages {
                     L10n.t("The comment box loses its GIF and sticker buttons. Typing, photos and posting work as before.")));
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_EMOJI_ROW,
                     L10n.t("The row of emoji over the comment box goes away. You can still type emoji from your keyboard.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_BOX_LINE,
+                    L10n.t("The thin line along the top of the comment box goes away.")));
             comments.addPreference(toggle(context, Settings.HIDE_VIDEO_COMMENT_COMPOSER,
                     L10n.t("The Add a comment box under a full-screen video goes away. Comment boxes on posts stay.")));
             comments.addPreference(toggle(context, Settings.OPEN_REPLY_THREADS,

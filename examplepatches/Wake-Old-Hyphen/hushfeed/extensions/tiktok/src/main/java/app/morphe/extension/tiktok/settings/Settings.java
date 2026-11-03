@@ -333,6 +333,12 @@ public class Settings extends BaseSettings {
     /** Keep playing in the background (#52). TikTok reads its gate once a process, so a restart applies it. */
     public static final BooleanSetting BACKGROUND_PLAY = new BooleanSetting("background_play", FALSE, true);
     /**
+     * TikTok's own long-press row for background play, which turns it on for one video (#302). It
+     * sets the same gate, so a restart applies it too.
+     */
+    public static final BooleanSetting BACKGROUND_PLAY_MENU = new BooleanSetting(
+            "background_play_menu", FALSE, true, Setting.parentNot(BACKGROUND_PLAY));
+    /**
      * Replay in the background (#99): a video that ends while TikTok plays in the background
      * starts again instead of waiting on the notification's Play. Read at each end, so no restart.
      */
@@ -390,6 +396,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting MARK_KEPT_UNSENT_MESSAGES =
             new BooleanSetting("mark_kept_unsent_messages", TRUE);
     /**
+     * Stops TikTok telling people you have read their messages: the request that marks a chat as read is not
+     * sent. Off by default. See HideReadReceipts.
+     */
+    public static final BooleanSetting HIDE_READ_RECEIPTS =
+            new BooleanSetting("hide_read_receipts", FALSE);
+    /**
      * Dispatches one message per selected chat a day at {@link #AUTO_STREAK_MINUTE},
      * so a streak with them keeps going on a day nobody opens the app. Off by default. See
      * AutoStreak.
@@ -425,6 +437,8 @@ public class Settings extends BaseSettings {
             new FeedRuleStringSetting("blocked_creators", true);
     public static final StringSetting LOCAL_HIDDEN_CREATORS =
             new FeedRuleStringSetting("local_hidden_creators", true);
+    public static final StringSetting LIVE_KEPT_CREATORS =
+            new FeedRuleStringSetting("live_kept_creators", true);
     public static final StringSetting CREATOR_FILTER_EXCEPTIONS =
             new FeedRuleStringSetting("creator_filter_exceptions", true);
     public static final StringSetting REGION_ONLY_FROM = new StringSetting("region_only_from", "", true);
@@ -755,6 +769,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting HOLD_SPEED = new StringSetting("hold_speed", "2");
     /** Sliding sideways during the hold changes its speed, with a bubble that shows it (#248). */
     public static final BooleanSetting HOLD_SPEED_SLIDE = new BooleanSetting("hold_speed_slide", FALSE);
+    /** Leaves out TikTok's message when a speed is picked from the menu or locked with a hold (#248). */
+    public static final BooleanSetting HIDE_SPEED_TOASTS = new BooleanSetting("hide_speed_toasts", FALSE);
     public static final BooleanSetting AUTO_ADVANCE = new BooleanSetting("auto_advance", FALSE, true);
     public static final IntegerSetting AUTO_ADVANCE_LIMIT = new IntegerSetting(
             "auto_advance_limit", 0, false, Setting.parent(AUTO_ADVANCE)).withRange(0, 1000);
@@ -922,6 +938,8 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_MUTED = new BooleanSetting("feed_muted", FALSE, false, false);
     public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", FALSE);
+    /** A save button on the video itself, so a save doesn't start with a long press or the share sheet (#299). */
+    public static final BooleanSetting DOWNLOAD_BUTTON = new BooleanSetting("download_button", FALSE);
     /** TikTok's audio focus waits for a video to play, so opening the app or a chat leaves other apps' music alone (#283). */
     public static final BooleanSetting FOCUS_WAITS_FOR_VIDEO = new BooleanSetting("focus_waits_for_video", FALSE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
@@ -930,6 +948,10 @@ public class Settings extends BaseSettings {
             new IntegerSetting("feed_description_text_size", 0).withRange(0, 48);
     public static final IntegerSetting FEED_AUTHOR_TEXT_SIZE =
             new IntegerSetting("feed_author_text_size", 0).withRange(0, 48);
+    /** The description, creator name and post date: off, or one of the colors in FeedTextStyle. */
+    public static final StringSetting FEED_TEXT_COLOR = new StringSetting("feed_text_color", "off");
+    /** The band behind that same text: off, or one of the colors in FeedTextStyle. */
+    public static final StringSetting FEED_TEXT_BACKDROP = new StringSetting("feed_text_backdrop", "off");
     public static final BooleanSetting HIDE_FEED_MUSIC = new BooleanSetting("hide_feed_music", FALSE);
     public static final BooleanSetting HIDE_FEED_ACTION_BAR = new BooleanSetting("hide_feed_action_bar", FALSE);
     public static final BooleanSetting HIDE_FEED_SURVEYS = new BooleanSetting("hide_feed_surveys", FALSE);
@@ -937,6 +959,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FOOTNOTES = new BooleanSetting("hide_footnotes", FALSE);
     /** The LIVE and stories row across the top of the Following tab and its count pill (#262). */
     public static final BooleanSetting HIDE_FOLLOWING_LIVE_ROW = new BooleanSetting("hide_following_live_row", FALSE);
+    /** The All button at the end of the Following tab's story row, which opens the following list (#308). */
+    public static final BooleanSetting HIDE_FOLLOWING_ALL_BUTTON = new BooleanSetting("hide_following_all_button", FALSE, true);
+    /** The Create circle at the start of the Following and Inbox story rows, while the viewer has no Story up (#309). */
+    public static final BooleanSetting HIDE_STORY_CREATE = new BooleanSetting("hide_story_create", FALSE, true);
+    /** The chip above the progress bar saying someone you follow reposted the video (#319). */
+    public static final BooleanSetting HIDE_REPOST_CHIP = new BooleanSetting("hide_repost_chip", FALSE, true);
     /** The Add comment bar under a video opened from a profile, a hashtag or a sound, and the strip kept for it (#50). */
     public static final BooleanSetting HIDE_DETAIL_COMMENT_BAR = new BooleanSetting("hide_detail_comment_bar", FALSE);
     /** The progress bar, close button and pause/speed pill TikTok draws while Clear display is on (#97). */
@@ -1094,6 +1122,8 @@ public class Settings extends BaseSettings {
             new StringSetting("not_interested_button_position", "");
     public static final StringSetting FEED_MUTE_BUTTON_POSITION =
             new StringSetting("feed_mute_button_position", "");
+    public static final StringSetting DOWNLOAD_BUTTON_POSITION =
+            new StringSetting("download_button_position", "");
     public static final BooleanSetting HIDE_INBOX_STORIES = new BooleanSetting("hide_inbox_stories", FALSE);
     public static final BooleanSetting HIDE_INBOX_NEW_FOLLOWERS = new BooleanSetting("hide_inbox_new_followers", FALSE);
     public static final BooleanSetting HIDE_INBOX_ACTIVITY = new BooleanSetting("hide_inbox_activity", FALSE);
@@ -1155,6 +1185,8 @@ public class Settings extends BaseSettings {
      */
     public static final IntegerSetting SEEN_VIDEO_MARK_PERCENT =
             new IntegerSetting("seen_video_mark_percent", 0).withRange(0, 90);
+    /** A list of the videos watched, with who posted them and their captions, on the phone (#172). */
+    public static final BooleanSetting LOCAL_WATCH_HISTORY = new BooleanSetting("local_watch_history", FALSE);
     public static final BooleanSetting HIDE_PLAYLIST_BAR = new BooleanSetting("hide_playlist_bar", FALSE, true);
     public static final BooleanSetting HIDE_EVENT_BADGE = new BooleanSetting("hide_event_badge", FALSE, true);
     public static final BooleanSetting HIDE_INSERTED_CARDS = new BooleanSetting("hide_inserted_cards", FALSE, true);
@@ -1315,6 +1347,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BLOCK_FROM_COMMENT = new BooleanSetting("block_from_comment", FALSE);
     /** Adds Block this commenter to the menu a long press on a comment opens (#169). */
     public static final BooleanSetting BLOCK_FROM_COMMENT_MENU = new BooleanSetting("block_from_comment_menu", FALSE);
+    /** Takes the number beside the heart off each comment (#317). A row isn't handed it back until a restart. */
+    public static final BooleanSetting HIDE_COMMENT_LIKE_COUNT = new BooleanSetting("hide_comment_like_count", FALSE, true);
+    /** Takes the thumbs down off each comment (#314), unless Block from comment has taken it over. */
+    public static final BooleanSetting HIDE_COMMENT_DISLIKE = new BooleanSetting("hide_comment_dislike", FALSE, true);
     public static final BooleanSetting COMMENT_SEARCH = new BooleanSetting("comment_search", FALSE);
     /** Adds Export CSV and Export JSON under the comment search box. */
     public static final BooleanSetting COMMENT_EXPORT = new BooleanSetting("comment_export", FALSE);
@@ -1414,6 +1450,20 @@ public class Settings extends BaseSettings {
             new BooleanSetting("enable_live_search", FALSE, true);
     public static final BooleanSetting SIM_SPOOF = new BooleanSetting("simspoof", FALSE, true);
     public static final StringSetting SIM_SPOOF_ISO = new StringSetting("simspoof_iso", "us");
+    // The same two switches as the store row, and the row names the one to turn on the same way.
+    public static final StringSetting SIM_SPOOF_TIME_ZONE = new StringSetting(
+            "simspoof_time_zone",
+            "",
+            new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return SIM_SPOOF.savedValue() && REGION_SPOOF.savedValue();
+                }
+
+                @Override public java.util.List<Setting<?>> getParentSettings() {
+                    return java.util.Collections.singletonList(REGION_SPOOF.savedValue() ? SIM_SPOOF : REGION_SPOOF);
+                }
+            }
+    );
     public static final StringSetting SIMSPOOF_MCCMNC = new StringSetting("simspoof_mccmnc", "310260");
     public static final StringSetting SIMSPOOF_OP_NAME = new StringSetting("simspoof_op_name", "T-Mobile");
     // Read by the region patch's request hooks as each For You request is built, so no restart.
@@ -1454,7 +1504,7 @@ public class Settings extends BaseSettings {
                 BOTTOM_NAVIGATION_OBSERVED_TABS, DOWNLOAD_PATH, DOWNLOAD_PATHS_MIGRATED,
                 REMEMBERED_SPEED, SESSION_BUDGET_STATE, BLOCK_AUTHOR_BUTTON_POSITION,
                 LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
-                FEED_MUTE_BUTTON_POSITION, COMMENT_TRANSLATE_BUTTON_TURNED_ON,
+                FEED_MUTE_BUTTON_POSITION, DOWNLOAD_BUTTON_POSITION, COMMENT_TRANSLATE_BUTTON_TURNED_ON,
                 SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
                 // The budget's day is worked out from this hour. Paused, the budget counts
                 // nothing and holds nothing, but its record still has to name the right day.

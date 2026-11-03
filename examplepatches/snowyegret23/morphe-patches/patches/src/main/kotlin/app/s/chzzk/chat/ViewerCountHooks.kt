@@ -73,7 +73,8 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     """)
 
     // The live item can be cached; the status in this collector is refreshed every 30 seconds.
-    val collector = mutableClassDefBy("${COMMUNITY}app/ui/overlayplayerend/live/streaming/StreamingLiveEndViewModel${'$'}loadDataIntervalPer30Sec${'$'}8;")
+    val app = if (packageMetadata.versionName == "1.3.0") "tv" else "app"
+    val collector = mutableClassDefBy("${COMMUNITY}$app/ui/overlayplayerend/live/streaming/StreamingLiveEndViewModel${'$'}loadDataIntervalPer30Sec${'$'}8;")
         .methods.single { it.name == "invokeSuspend" }
     val casts = collector.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.CHECK_CAST }
     val statusCast = casts.single { it.value.getReference<TypeReference>()?.type == statusType }
@@ -90,7 +91,11 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     val playableType = "${COMMUNITY}data/core/entity/player/StreamingLivePlayableData;"
     val view = mutableClassDefBy(viewType)
     val modelGetter = view.methods.single { it.name == "getViewModel" && it.returnType == modelType }
-    val playableField = if (packageMetadata.versionName == "3.16.0") "k0" else "o0"
+    val playableField = when (packageMetadata.versionName) {
+        "1.3.0" -> "j0"
+        "3.16.0" -> "k0"
+        else -> "o0"
+    }
     val playable = classDefBy(modelType).fields.single { it.name == playableField && it.type == "Landroidx/lifecycle/MutableLiveData;" }
     check(classDefBy(playableType).methods.any { it.name == "getChannelId" && it.returnType == "Ljava/lang/String;" })
     bridge("currentChannel", 3, """

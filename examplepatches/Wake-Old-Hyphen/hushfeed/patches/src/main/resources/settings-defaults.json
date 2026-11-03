@@ -1,6 +1,8 @@
 {
   "patches": {
     "Advanced downloads": [
+      "download_button",
+      "download_button_position",
       "download_video_quality",
       "download_ask_quality",
       "download_original_photos",
@@ -118,6 +120,8 @@
       "comment_blocked_users",
       "block_from_comment",
       "block_from_comment_menu",
+      "hide_comment_like_count",
+      "hide_comment_dislike",
       "comment_search",
       "comment_export",
       "comment_search_folded",
@@ -215,6 +219,7 @@
       "blocked_creators",
       "local_hidden_creators",
       "creator_filter_exceptions",
+      "live_kept_creators",
       "region_only_from",
       "caption_languages",
       "region_never_from",
@@ -295,7 +300,9 @@
     ],
     "Feed text sizes": [
       "feed_description_text_size",
-      "feed_author_text_size"
+      "feed_author_text_size",
+      "feed_text_color",
+      "feed_text_backdrop"
     ],
     "Fit the video to the screen": [
       "fit_video_to_screen",
@@ -315,7 +322,8 @@
     "Hide already seen videos": [
       "hide_seen_videos",
       "seen_video_retention_days",
-      "seen_video_mark_percent"
+      "seen_video_mark_percent",
+      "local_watch_history"
     ],
     "Hide comment popup ads": [
       "hide_comment_eggs"
@@ -375,6 +383,9 @@
       "hide_profile_thoughts",
       "enable_thoughts"
     ],
+    "Hide read receipts": [
+      "hide_read_receipts"
+    ],
     "Hide search suggestions": [
       "hide_search_rewards",
       "hide_search_suggestions"
@@ -396,6 +407,9 @@
       "hide_feed_surveys",
       "hide_footnotes",
       "hide_following_live_row",
+      "hide_following_all_button",
+      "hide_story_create",
+      "hide_repost_chip",
       "hide_detail_comment_bar",
       "hide_clear_display_controls",
       "keep_clear_display_seek_bar",
@@ -454,6 +468,7 @@
     ],
     "Keep playing in the background": [
       "background_play",
+      "background_play_menu",
       "background_replay"
     ],
     "Keep pulled sounds": [
@@ -559,6 +574,7 @@
       "custom_speeds",
       "hold_speed",
       "hold_speed_slide",
+      "hide_speed_toasts",
       "remembered_speed_v2"
     ],
     "Prefer H.264 playback": [
@@ -573,6 +589,7 @@
       "region_request_spoof",
       "simspoof",
       "simspoof_iso",
+      "simspoof_time_zone",
       "simspoof_mccmnc",
       "simspoof_op_name",
       "simspoof_feed_real"
@@ -863,6 +880,12 @@
     "background_play": {
       "field": "BACKGROUND_PLAY",
       "key": "background_play",
+      "type": "boolean",
+      "default": false
+    },
+    "background_play_menu": {
+      "field": "BACKGROUND_PLAY_MENU",
+      "key": "background_play_menu",
       "type": "boolean",
       "default": false
     },
@@ -1646,6 +1669,18 @@
       "type": "string",
       "default": ""
     },
+    "download_button": {
+      "field": "DOWNLOAD_BUTTON",
+      "key": "download_button",
+      "type": "boolean",
+      "default": false
+    },
+    "download_button_position": {
+      "field": "DOWNLOAD_BUTTON_POSITION",
+      "key": "download_button_position",
+      "type": "string",
+      "default": ""
+    },
     "feed_mute_button": {
       "field": "FEED_MUTE_BUTTON",
       "key": "feed_mute_button",
@@ -1681,6 +1716,18 @@
       "key": "feed_navigation_tabs",
       "type": "string",
       "default": "HOT,EXPLORE,FOLLOWING,MALL,NEARBY,FRIENDS,LIVE,POPULAR,STEM,SERIES"
+    },
+    "feed_text_backdrop": {
+      "field": "FEED_TEXT_BACKDROP",
+      "key": "feed_text_backdrop",
+      "type": "string",
+      "default": "off"
+    },
+    "feed_text_color": {
+      "field": "FEED_TEXT_COLOR",
+      "key": "feed_text_color",
+      "type": "string",
+      "default": "off"
     },
     "fill_video_to_screen": {
       "field": "FILL_VIDEO_TO_SCREEN",
@@ -1894,9 +1941,21 @@
       "type": "boolean",
       "default": false
     },
+    "hide_comment_dislike": {
+      "field": "HIDE_COMMENT_DISLIKE",
+      "key": "hide_comment_dislike",
+      "type": "boolean",
+      "default": false
+    },
     "hide_comment_eggs": {
       "field": "HIDE_COMMENT_EGGS",
       "key": "hide_comment_eggs",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_comment_like_count": {
+      "field": "HIDE_COMMENT_LIKE_COUNT",
+      "key": "hide_comment_like_count",
       "type": "boolean",
       "default": false
     },
@@ -2017,6 +2076,12 @@
     "hide_follower_notifications": {
       "field": "HIDE_FOLLOWER_NOTIFICATIONS",
       "key": "hide_follower_notifications",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_following_all_button": {
+      "field": "HIDE_FOLLOWING_ALL_BUTTON",
+      "key": "hide_following_all_button",
       "type": "boolean",
       "default": false
     },
@@ -2332,6 +2397,18 @@
       "type": "boolean",
       "default": false
     },
+    "hide_read_receipts": {
+      "field": "HIDE_READ_RECEIPTS",
+      "key": "hide_read_receipts",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_repost_chip": {
+      "field": "HIDE_REPOST_CHIP",
+      "key": "hide_repost_chip",
+      "type": "boolean",
+      "default": false
+    },
     "hide_root": {
       "field": "HIDE_ROOT",
       "key": "hide_root",
@@ -2416,6 +2493,12 @@
       "type": "boolean",
       "default": false
     },
+    "hide_speed_toasts": {
+      "field": "HIDE_SPEED_TOASTS",
+      "key": "hide_speed_toasts",
+      "type": "boolean",
+      "default": false
+    },
     "hide_status_bar": {
       "field": "HIDE_STATUS_BAR",
       "key": "hide_status_bar",
@@ -2431,6 +2514,12 @@
     "hide_story": {
       "field": "HIDE_STORY",
       "key": "hide_story",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_story_create": {
+      "field": "HIDE_STORY_CREATE",
+      "key": "hide_story_create",
       "type": "boolean",
       "default": false
     },
@@ -2682,6 +2771,12 @@
       "type": "boolean",
       "default": false
     },
+    "live_kept_creators": {
+      "field": "LIVE_KEPT_CREATORS",
+      "key": "live_kept_creators",
+      "type": "string",
+      "default": ""
+    },
     "live_min_max_followers": {
       "field": "LIVE_MIN_MAX_FOLLOWERS",
       "key": "live_min_max_followers",
@@ -2745,6 +2840,12 @@
     "local_profile_verified_badge": {
       "field": "LOCAL_PROFILE_VERIFIED_BADGE",
       "key": "local_profile_verified_badge",
+      "type": "boolean",
+      "default": false
+    },
+    "local_watch_history": {
+      "field": "LOCAL_WATCH_HISTORY",
+      "key": "local_watch_history",
       "type": "boolean",
       "default": false
     },
@@ -3597,6 +3698,12 @@
       "key": "simspoof_op_name",
       "type": "string",
       "default": "T-Mobile"
+    },
+    "simspoof_time_zone": {
+      "field": "SIM_SPOOF_TIME_ZONE",
+      "key": "simspoof_time_zone",
+      "type": "string",
+      "default": ""
     },
     "skip_first_launch_setup": {
       "field": "SKIP_FIRST_LAUNCH_SETUP",

@@ -7,10 +7,12 @@ package app.hushgram.extension.instagram.direct;
 import android.content.Context;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.instagram.settings.SettingsStatus;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
 import app.hushgram.extension.shared.Utils;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
+import java.lang.ref.WeakReference;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,9 @@ import java.util.function.Supplier;
  * ({@link ReadMarks}), so it still goes out when Instagram sends it after a restart or once it's
  * back online. Every other receipt stays held, a newer message in the same chat included.
  *
+ * <p>Inside a chat, a check mark in its header ({@link MarkReadButton}) shows while a receipt of that
+ * chat is held, and {@link #markOpenChatRead} lets the newest one through the same way.
+ *
  * <p>The hooks fail open: with the switch off, HushGram paused, the settings not read yet or
  * anything thrown, Instagram sends the receipt, records the chat seen and builds its menu as usual. Deciding whether a
  * held receipt was marked read fails closed: a receipt whose chat, message or account can't be
@@ -67,6 +72,7 @@ public final class ThreadSeen {
     static final String UNREAD = "chat kept unread";
     static final String READ = "chat kept read";
     static final String REPLY = "chat marked seen by a reply";
+    static final String OPEN_CHAT = "chat marked read from its header";
 
     /** Instagram's chats, through the bodies the patch writes in {@link InstagramChats}. Tests stand in their own. */
     interface Chats {
@@ -251,6 +257,11 @@ public final class ThreadSeen {
 
     static boolean hold(Object receipt, Object session, BooleanSupplier on, BooleanSupplier here,
                         BooleanSupplier replies, Chats chats, LongSupplier clock) {
+        return hold(receipt, session, on, here, replies, ThreadSeen::showsButton, chats, clock);
+    }
+
+    static boolean hold(Object receipt, Object session, BooleanSupplier on, BooleanSupplier here,
+                        BooleanSupplier replies, BooleanSupplier button, Chats chats, LongSupplier clock) {
         try {
             HookStatus.invoked(FamilyNames.THREAD_SEEN);
             boolean hold = on.getAsBoolean();
@@ -259,7 +270,7 @@ public final class ThreadSeen {
                 return false;
             }
             if (hold) keepRead(receipt, session, here, chats, clock);
-            if (hold) remember(receipt, session, replies, chats);
+            if (hold) remember(receipt, session, replies, button, chats, clock);
             if (hold && !logged) {
                 logged = true;
                 Logger.printDebug(() -> "Messages: held back a seen receipt");
@@ -295,50 +306,147 @@ public final class ThreadSeen {
             if (isEmpty(account) || isEmpty(thread)) return;
             id = account + "\n" + thread;
             synchronized (LOCK) {
-                held = PENDING.remove(id);
+                held = PENDING.get(id);
+                if (held == null || !held.reply) return;
+                PENDING.remove(id);
             }
-            if (held == null) return;
-            ReadMarks marks = marks();
-            if (marks == null) {
-                restore(id, held);
-                return;
-            }
-            long now = clock.getAsLong();
-            boolean fresh = !marks.allows(account, thread, held.message, now);
-            marks.allow(account, thread, held.message, now);
-            try {
-                chats.sendSeen(session, thread, held.message, held.sender);
-            } catch (Throwable t) {
-                if (fresh) marks.revoke(account, thread, held.message, now);
-                restore(id, held);
-                throw t;
-            }
-            try {
-                chats.clearUnread(session, held.key);
-            } catch (Throwable t) {
-                HookStatus.threw(FamilyNames.THREAD_SEEN, REPLY, t);
-            }
+            if (!letGo(id, held, session, chats, clock, REPLY)) return;
             Logger.printDebug(() -> "Messages: a reply marked its chat seen");
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.THREAD_SEEN, REPLY, t);
         }
     }
 
-    /** Keeps what a reply needs to let [receipt] go: its message, who sent it and the chat's key. */
-    private static void remember(Object receipt, Object session, BooleanSupplier replies, Chats chats) {
+    /**
+     * Whether a receipt of the chat on screen is held: the one of [thread] on [account], or with the
+     * chat's id unknown, the newest held at or after [since], when the chat came to the front. A null
+     * [account] matches any account. Never throws.
+     */
+    static boolean hasHeld(String account, String thread, long since) {
         try {
-            if (!replies.getAsBoolean()) return;
+            synchronized (LOCK) {
+                return find(account, thread, since) != null;
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.THREAD_SEEN, OPEN_CHAT, t);
+            return false;
+        }
+    }
+
+    /**
+     * Called when the check mark in a chat's header is tapped, with the chat on screen picked as
+     * {@link #hasHeld} picks it. Lets that chat's newest held receipt go through Instagram's own sender
+     * and takes the chat's unread mark off, as Mark as read does. Says what happened in a toast. True
+     * when the receipt went. Never throws.
+     */
+    static boolean markOpenChatRead(String account, String thread, long since) {
+        return markOpenChatRead(account, thread, since, INSTAGRAM, CLOCK);
+    }
+
+    static boolean markOpenChatRead(String account, String thread, long since, Chats chats, LongSupplier clock) {
+        try {
+            HookStatus.invoked(FamilyNames.THREAD_SEEN);
+            String id;
+            Pending held;
+            synchronized (LOCK) {
+                id = find(account, thread, since);
+                held = id == null ? null : PENDING.remove(id);
+            }
+            if (held == null) {
+                Logger.printDebug(() -> "Messages: the chat on screen has no held receipt to mark read");
+                toast(() -> L10n.t("Nothing to mark as read"));
+                return false;
+            }
+            Object session = held.session.get();
+            if (session == null) {
+                restore(id, held);
+                toast(() -> L10n.t("Couldn't mark as read"));
+                return false;
+            }
+            if (!letGo(id, held, session, chats, clock, OPEN_CHAT)) {
+                toast(() -> L10n.t("Couldn't mark as read"));
+                return false;
+            }
+            Logger.printDebug(() -> "Messages: the chat on screen was marked read from its header");
+            toast(() -> L10n.t("Marked as read"));
+            return true;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.THREAD_SEEN, OPEN_CHAT, t);
+            toast(() -> L10n.t("Couldn't mark as read"));
+            return false;
+        }
+    }
+
+    /** The key of the held receipt {@link #hasHeld} means, or null. Called holding {@link #LOCK}. */
+    private static String find(String account, String thread, long since) {
+        String found = null;
+        for (Map.Entry<String, Pending> entry : PENDING.entrySet()) {
+            Pending held = entry.getValue();
+            boolean mine = isEmpty(thread) ? held.at >= since
+                    : thread.equals(held.thread) && (isEmpty(account) || account.equals(held.account));
+            // Kept in the order they were held, so the last that matches is the newest.
+            if (mine) found = entry.getKey();
+        }
+        return found;
+    }
+
+    /**
+     * Marks [held]'s message read and queues its receipt through Instagram's own sender, then takes its
+     * chat's unread mark off. Puts it back to be let go later when there are no marks or the send
+     * fails. True when the receipt went.
+     */
+    private static boolean letGo(String id, Pending held, Object session, Chats chats, LongSupplier clock, String step) {
+        ReadMarks marks = marks();
+        if (marks == null) {
+            restore(id, held);
+            return false;
+        }
+        long now = clock.getAsLong();
+        boolean fresh = !marks.allows(held.account, held.thread, held.message, now);
+        marks.allow(held.account, held.thread, held.message, now);
+        try {
+            chats.sendSeen(session, held.thread, held.message, held.sender);
+        } catch (Throwable t) {
+            if (fresh) marks.revoke(held.account, held.thread, held.message, now);
+            restore(id, held);
+            throw t;
+        }
+        try {
+            chats.clearUnread(session, held.key);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.THREAD_SEEN, step, t);
+        }
+        MarkReadButton.held();
+        return true;
+    }
+
+    /**
+     * Keeps what a reply or the header's check mark needs to let [receipt] go: its message, who sent it,
+     * the chat's key and the account's session. Kept only while one of them is on, and a reply only
+     * lets go what was kept while its own switch was on.
+     */
+    private static void remember(Object receipt, Object session, BooleanSupplier replies, BooleanSupplier button,
+                                 Chats chats, LongSupplier clock) {
+        boolean reply = false;
+        try {
+            reply = replies.getAsBoolean();
+            if (!reply && !button.getAsBoolean()) return;
             String account = chats.accountId(session);
             Object key = chats.receiptKey(receipt);
             String thread = chats.threadId(key);
             String message = chats.receiptMessage(receipt);
             String sender = chats.receiptSender(receipt);
             if (isEmpty(account) || isEmpty(thread) || isEmpty(message) || isEmpty(sender)) return;
+            String id = account + "\n" + thread;
             synchronized (LOCK) {
-                PENDING.put(account + "\n" + thread, new Pending(message, sender, key));
+                // Taken out first, so the chat moves to the end, where the newest held receipt goes.
+                PENDING.remove(id);
+                PENDING.put(id, new Pending(account, thread, message, sender, key, session, reply, clock.getAsLong()));
             }
+            MarkReadButton.held();
         } catch (Throwable t) {
-            HookStatus.threw(FamilyNames.THREAD_SEEN, REPLY, t);
+            // Kept for the check mark alone, a chat that can't be read is the check mark's to report.
+            HookStatus.threw(FamilyNames.THREAD_SEEN, reply ? REPLY : OPEN_CHAT, t);
         }
     }
 
@@ -348,21 +456,43 @@ public final class ThreadSeen {
         }
     }
 
-    /** A held receipt's message, its sender and the chat's key, kept until a reply lets it go. */
+    /** Forgets the receipt held for [thread] on [account], once its chat was marked read another way. */
+    private static void dropHeld(String account, String thread) {
+        if (isEmpty(account) || isEmpty(thread)) return;
+        synchronized (LOCK) {
+            PENDING.remove(account + "\n" + thread);
+        }
+        MarkReadButton.held();
+    }
+
+    /** A held receipt's chat, message, sender and key, and the account it's on, kept until something lets it go. */
     private static final class Pending {
+        final String account;
+        final String thread;
         final String message;
         final String sender;
         final Object key;
+        final WeakReference<Object> session;
+        /** Kept while Mark a chat seen when you reply was on. */
+        final boolean reply;
+        /** When it was held, by {@link #CLOCK}. */
+        final long at;
 
-        Pending(String message, String sender, Object key) {
+        Pending(String account, String thread, String message, String sender, Object key, Object session,
+                boolean reply, long at) {
+            this.account = account;
+            this.thread = thread;
             this.message = message;
             this.sender = sender;
             this.key = key;
+            this.session = new WeakReference<>(session);
+            this.reply = reply;
+            this.at = at;
         }
     }
 
-    /** The newest held receipt of each chat, by account and thread, least recently held dropped past 32. */
-    private static final Map<String, Pending> PENDING = new LinkedHashMap<String, Pending>(16, 0.75f, true) {
+    /** The newest held receipt of each chat, by account and thread, the oldest held dropped past 32. */
+    private static final Map<String, Pending> PENDING = new LinkedHashMap<String, Pending>(16, 0.75f, false) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<String, Pending> eldest) {
             return size() > 32;
@@ -401,24 +531,71 @@ public final class ThreadSeen {
 
     static boolean markRead(Object chosen, Object markAsRead, Object session, Object thread, Object key,
                             BooleanSupplier on, Chats chats, LongSupplier clock) {
-        ReadMarks waiting = null;
-        String account = null;
-        String id = null;
         String message = null;
-        long now = 0;
+        String sender = null;
         try {
             HookStatus.invoked(FamilyNames.THREAD_SEEN);
             if (chosen == null || chosen != markAsRead || !on.getAsBoolean()) return false;
+            Object last = chats.lastMessage(thread);
+            if (last != null) {
+                message = chats.messageId(last);
+                sender = chats.senderId(last);
+            }
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.THREAD_SEEN, MARK, t);
+            toast(() -> L10n.t("Couldn't mark as read"));
+            return false;
+        }
+        // A failure lets Instagram's own code for the row run.
+        return markChat(session, key, message, sender, chats, clock) != MARK_FAILED;
+    }
+
+    /**
+     * Whether a chat's preview can mark it read here: the patch is in and the receipts are held.
+     * With them let through, Instagram marks a chat read the moment it's opened, and the bridges
+     * the mark goes through are only written alongside the hold.
+     */
+    public static boolean canMarkRead() {
+        try {
+            return SettingsStatus.threadSeen() && switchedOn();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.THREAD_SEEN, MARK, t);
+            return false;
+        }
+    }
+
+    /**
+     * Marks a chat read from its preview, up to [message] from [sender], the newest message the
+     * preview shows, the way the long press menu's Mark as read does. True when the receipt went
+     * out. Never throws.
+     */
+    public static boolean markReadNow(Object session, Object key, String message, String sender) {
+        if (!canMarkRead()) return false;
+        return markChat(session, key, message, sender, INSTAGRAM, CLOCK) == MARK_SENT;
+    }
+
+    /** What {@link #markChat} did: sent the receipt, found nothing to mark, or failed. */
+    static final int MARK_SENT = 0;
+    static final int MARK_NOTHING = 1;
+    static final int MARK_FAILED = 2;
+
+    /**
+     * Lets the receipt for [message] from [sender] through the hold, sends it and clears the chat's
+     * unread mark.
+     */
+    static int markChat(Object session, Object key, String message, String sender, Chats chats, LongSupplier clock) {
+        ReadMarks waiting = null;
+        String account = null;
+        String id = null;
+        long now = 0;
+        try {
             account = chats.accountId(session);
             id = chats.threadId(key);
-            Object last = chats.lastMessage(thread);
-            message = last == null ? null : chats.messageId(last);
-            String sender = last == null ? null : chats.senderId(last);
             ReadMarks marks = marks();
             if (isEmpty(account) || isEmpty(id) || isEmpty(message) || isEmpty(sender) || marks == null) {
                 Logger.printDebug(() -> "Messages: a chat marked read has no message to mark");
                 toast(() -> L10n.t("Couldn't mark as read"));
-                return true;
+                return MARK_NOTHING;
             }
             now = clock.getAsLong();
             boolean fresh = !marks.allows(account, id, message, now);
@@ -426,13 +603,14 @@ public final class ThreadSeen {
             if (fresh) waiting = marks;
             chats.sendSeen(session, id, message, sender);
             waiting = null;
+            dropHeld(account, id);
             try {
                 chats.clearUnread(session, key);
             } catch (Throwable t) {
                 HookStatus.threw(FamilyNames.THREAD_SEEN, MARK, t);
             }
             toast(() -> L10n.t("Marked as read"));
-            return true;
+            return MARK_SENT;
         } catch (Throwable t) {
             if (waiting != null) {
                 try {
@@ -443,7 +621,7 @@ public final class ThreadSeen {
             }
             HookStatus.threw(FamilyNames.THREAD_SEEN, MARK, t);
             toast(() -> L10n.t("Couldn't mark as read"));
-            return false;
+            return MARK_FAILED;
         }
     }
 
@@ -471,6 +649,7 @@ public final class ThreadSeen {
                 return;
             }
             marks.allow(account, thread, message, clock.getAsLong());
+            dropHeld(account, thread);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.THREAD_SEEN, TOGETHER, t);
         }
@@ -743,6 +922,11 @@ public final class ThreadSeen {
     /** The switch on and Mark a chat seen when you reply on: a sent message lets its chat's held receipt go. */
     static boolean marksOnReply() {
         return switchedOn() && Settings.MARK_SEEN_ON_REPLY.get();
+    }
+
+    /** The switch on and Mark as read in a chat's header on: the check mark shows while a receipt is held. */
+    static boolean showsButton() {
+        return switchedOn() && Settings.MARK_READ_IN_CHAT.get();
     }
 
     /** The switch on and Keep chats unread here off: an opened chat stays read here instead. */

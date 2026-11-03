@@ -55,7 +55,13 @@ private const val CLEVERTAP_FEATURE_KEY = "featureCleverTap"
 private const val CRASHLYTICS_COLLECTION_KEY = "firebase_crashlytics_collection_enabled"
 private const val CONTACT_TYPE = "Lcom/truecaller/enterpriseinfo/api/model/ContactType;"
 private const val CALL_LOG_FILTER_TYPE = "Lcom/truecaller/calllog/api/FilterType;"
-private const val MOBILE_NUMBERS_SELECTION = "data_type = ? AND data_phonebook_id NOT NULL AND data8 = ?"
+private const val CALL_UI_HAPTIC = "Lcom/truecaller/callui/presentation/ui/CallUIHaptic;"
+private const val SWIPE_DRAGGING_STATE = "Lcom/truecaller/callui/presentation/ui/components/CallUISwipeButtonDraggingState;"
+private val BLOCK_END_OPCODES = setOf(
+    Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW,
+    Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32, Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH,
+)
+private const val MOBILE_NUMBERS_SELECTION ="data_type = ? AND data_phonebook_id NOT NULL AND data8 = ?"
 
 class TruecallerSmokeTest {
 
@@ -96,7 +102,7 @@ class TruecallerSmokeTest {
     }
 
     @Test
-    fun `Truecaller patches unlock premium, remove ads, telemetry, contact upload, update prompts, auto-launch, nags, promotions and optional UI, show caller numbers in the call log, hide its filters, and route GMS to MicroG RE`() {
+    fun `Truecaller patches unlock premium, remove ads, telemetry, contact upload, update prompts, auto-launch, nags, promotions and optional UI, show caller numbers in the call log, hide its filters, frequent contacts and important senders, and route GMS to MicroG RE`() {
         val root = repoRoot()
         val apk = File(root, "apks/truecaller/base.apk")
 
@@ -115,7 +121,7 @@ class TruecallerSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.41.5",
+            version = "26.42.5",
             patchNames = setOf(
                 "Enable Premium",
                 "Disable ads",
@@ -139,6 +145,10 @@ class TruecallerSmokeTest {
                 "Hide after-call screen for contacts",
                 "Show caller number in call log",
                 "Hide call log filters",
+                "Hide frequently called contacts",
+                "Hide important senders",
+                "Swap call answer and decline buttons",
+                "Disable call button haptics",
                 "GmsCore support",
                 "Spoof signature",
             ),
@@ -162,6 +172,9 @@ class TruecallerSmokeTest {
         assertDisableContactUpload(classes)
         assertShowCallerNumber(classes, byType, apk)
         assertHideCallLogFilters(classes, byType)
+        assertHideListItems(classes)
+        assertSwapCallButtons(classes)
+        assertDisableCallButtonHaptics(classes, byType)
         // onGetCredential tests isAvailableOnDevice(int) in this build, so the routing applies.
         assertGmsCoreSupport(classes, workDir, PKG, TRUECALLER_INIT, SIGNATURE_SHA1, expectCredentialRouting = true)
         assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
@@ -720,17 +733,19 @@ class TruecallerSmokeTest {
     }
 
     private fun assertToggleOverrides(classes: List<ClassDef>) {
-        // The SharedPreferences toggle resolver starts with one "key.equals(p1) -> return value"
-        // block per override, each falling through to the next and finally to the stock code.
-        // Hide family button and Restore classic call log add one each, Disable ads five (incl. the
-        // Offer Hub), Hide business media the seven verified business campaign toggles, Disable
-        // contact upload the Call Assistant number sync and the contact editor name suggestion,
-        // Disable auto-launch one, Disable nags nine, Hide promotions four and Hide after-call
+        // Every toggle resolver isEnabled(key, FeatureState) (three in 26.42.5: the SharedPreferences
+        // store, the Firebase experiments and a default-only one) starts with one
+        // "key.equals(p1) -> return value" block per override, each falling through to the next and
+        // finally to the stock code. Hide family button and Restore classic call log add one each,
+        // Disable ads five (incl. the Offer Hub), Hide business media the seven verified business
+        // campaign toggles, Disable contact upload the Call Assistant number sync and the contact
+        // editor name suggestion, Disable auto-launch one, Disable nags nine, Hide promotions four
+        // plus the Firebase experiment "DisableWVMNotifications_65487" (on), and Hide after-call
         // screen for contacts two.
-        val (cls, resolver) = classes.singleMethod("feature toggle resolver") { _, m ->
-            m.returnType == "Z" && m.params() == listOf("Ljava/lang/String;", FEATURE_STATE) &&
-                m.instructions().any { it.call()?.definingClass == "Landroid/content/SharedPreferences;" && it.call()?.name == "getBoolean" }
+        val resolvers = classes.methodsWhere { _, m ->
+            m.returnType == "Z" && m.params() == listOf("Ljava/lang/String;", FEATURE_STATE) && m.implementation != null
         }
+        check(resolvers.size >= 2) { "expected the toggle resolvers, found ${resolvers.map { (c, m) -> "${c.type}.${m.name}" }}" }
         val expected = mapOf(
             "featureFamilyProtect" to 0,
             "featureCallLogRevamp" to 0,
@@ -764,34 +779,18 @@ class TruecallerSmokeTest {
             "featureRedeemPromo" to 0,
             "featureShowACSAllIncoming" to 0,
             "featureShowACSAllOutgoing" to 0,
+            "DisableWVMNotifications_65487" to 1,
         )
-        assertOverrideBlocks(cls, resolver, expected)
-        assertResolverReads(classes, cls, resolver, expected.keys)
-
-        // Hide promotions: the Firebase experiment resolver (same signature, asks an interface
-        // (String, Z)Z store, no SharedPreferences) answers true for the Who-viewed-me
-        // notification switch; it is still read there.
-        val (firebaseClass, firebase) = classes.singleMethod("Firebase toggle resolver") { _, m ->
-            m.returnType == "Z" && m.params() == listOf("Ljava/lang/String;", FEATURE_STATE) && m.implementation != null &&
-                m.instructions().any {
-                    it.opcode == Opcode.INVOKE_INTERFACE && it.call()?.returnType == "Z" &&
-                        it.call()?.parameterTypes?.map(CharSequence::toString) == listOf("Ljava/lang/String;", "Z")
-                } &&
-                m.instructions().none {
-                    it.call()?.definingClass == "Landroid/content/SharedPreferences;" ||
-                        ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Landroid/content/SharedPreferences;"
-                }
-        }
-        val firebaseExpected = mapOf("DisableWVMNotifications_65487" to 1)
-        assertOverrideBlocks(firebaseClass, firebase, firebaseExpected)
-        assertResolverReads(classes, firebaseClass, firebase, firebaseExpected.keys)
+        for ((cls, resolver) in resolvers) assertOverrideBlocks(cls, resolver, expected)
+        // The Firebase experiment and the SharedPreferences toggles are each read through some resolver.
+        assertResolverReads(classes, resolvers, expected.keys)
     }
 
-    /** Some method other than the resolver loads each key and later calls the resolver with it. */
-    private fun assertResolverReads(classes: List<ClassDef>, cls: ClassDef, resolver: Method, keys: Set<String>) {
-        val label = "${cls.type}.${resolver.name}(String, FeatureState)"
+    /** Some method other than a resolver loads each key and later calls one of the [resolvers] with it. */
+    private fun assertResolverReads(classes: List<ClassDef>, resolvers: List<Pair<ClassDef, Method>>, keys: Set<String>) {
+        val targets = resolvers.map { (cls, m) -> cls.type to m.name }.toSet()
         fun Instruction.isResolverCall() = call()?.let {
-            it.definingClass == cls.type && it.name == resolver.name && it.returnType == "Z" &&
+            (it.definingClass to it.name) in targets && it.returnType == "Z" &&
                 it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", FEATURE_STATE)
         } == true
         val callers = classes.methodsWhere { _, m -> m.implementation != null && m.instructions().any { it.isResolverCall() } }
@@ -800,37 +799,202 @@ class TruecallerSmokeTest {
                 val insns = m.instructions()
                 val load = insns.indexOfFirst { it.stringOrNull() == key }
                 load >= 0 && insns.drop(load + 1).any { it.isResolverCall() }
-            }) { "no method passes $key to $label" }
+            }) { "no method passes $key to a toggle resolver" }
         }
     }
 
     /**
-     * The [resolver] starts with exactly one "key.equals(p1) -> return value" block per entry of
-     * [expected], each falling through to the next and finally to the stock code.
+     * The [resolver] starts with "key.equals(p1) -> return value" blocks, each falling through to
+     * the next and finally to the stock code; they are parsed until the pattern stops and must be
+     * exactly [expected].
      */
     private fun assertOverrideBlocks(cls: ClassDef, resolver: Method, expected: Map<String, Int>) {
         val label = "${cls.type}.${resolver.name}(String, FeatureState)"
         val insns = resolver.instructions()
         val keyRegister = resolver.implementation!!.registerCount - 2 // this + key + state
         val overrides = mutableMapOf<String, Int>()
-        for (block in expected.keys.indices) {
-            val start = block * 6
-            val key = insns.getOrNull(start)?.stringOrNull() ?: error("$label: override block $block has no key")
+        var start = 0
+        while (insns.getOrNull(start)?.opcode == Opcode.CONST_STRING && insns.getOrNull(start + 1)?.call()?.name == "equals") {
+            val key = insns[start].stringOrNull()!!
             val equals = insns[start + 1]
             check(equals.opcode == Opcode.INVOKE_VIRTUAL && equals.call()?.definingClass == "Ljava/lang/String;" &&
-                equals.call()?.name == "equals" && (equals as FiveRegisterInstruction).registerD == keyRegister
+                (equals as FiveRegisterInstruction).registerD == keyRegister
             ) { "$label: $key is not compared with p1" }
             check(insns[start + 2].opcode == Opcode.MOVE_RESULT && insns[start + 3].opcode == Opcode.IF_EQZ) { "$label: $key has no branch" }
             check(insns.branchTarget(start + 3) == start + 6) { "$label: a non-matching $key does not fall through" }
             val value = insns[start + 4]
             check(value.opcode == Opcode.CONST_4 && insns[start + 5].opcode == Opcode.RETURN) { "$label: $key does not return a constant" }
-            overrides[key] = (value as NarrowLiteralInstruction).narrowLiteral
+            check(overrides.put(key, (value as NarrowLiteralInstruction).narrowLiteral) == null) { "$label overrides $key twice" }
+            start += 6
         }
         check(overrides == expected) { "$label overrides $overrides, expected $expected" }
-        // Nothing past the override blocks is another override: the stock code follows.
-        val next = insns.getOrNull(expected.size * 6)
-        check(next?.opcode != Opcode.CONST_STRING || insns.getOrNull(expected.size * 6 + 1)?.call()?.name != "equals") {
-            "$label has more than ${expected.size} override blocks"
+    }
+
+    private fun assertSwapCallButtons(classes: List<ClassDef>) {
+        // The incoming call buttons composable loads the decline and then the answer test tag; the
+        // offset(x, y) modifier call right before each now has its x negated by a neg-float on the
+        // same register, so decline moves to the right and answer to the left.
+        val (cls, buttons) = classes.singleMethod("incoming call buttons composable") { _, m ->
+            m.returnType == "V" && AccessFlags.STATIC.isSet(m.accessFlags) && m.implementation != null &&
+                m.strings().containsAll(listOf("rejectCallButton", "answerCallButton"))
+        }
+        val label = "${cls.type}.${buttons.name}"
+        val insns = buttons.instructions()
+        val modifier = buttons.params().first()
+        for (tag in listOf("rejectCallButton", "answerCallButton")) {
+            val tagIndex = insns.indexOfFirst { it.opcode == Opcode.CONST_STRING && it.stringOrNull() == tag }
+            check(tagIndex >= 0) { "$label does not load $tag" }
+            val offset = (tagIndex - 1 downTo 0).first { index ->
+                insns[index].opcode == Opcode.INVOKE_STATIC && insns[index].call()?.returnType == modifier &&
+                    insns[index].call()?.parameterTypes?.map(CharSequence::toString) == listOf("F", "F", "I", modifier)
+            }
+            val x = (insns[offset] as FiveRegisterInstruction).registerC
+            val negate = insns[offset - 1]
+            check(negate.opcode == Opcode.NEG_FLOAT && (negate as TwoRegisterInstruction).registerA == x && negate.registerB == x) {
+                "$label: the $tag offset x (v$x) is not negated; got ${negate.opcode}"
+            }
+        }
+    }
+
+    /** Indices that a branch, a switch case or an exception handler jumps to. */
+    private fun List<Instruction>.jumpTargets(method: Method): Set<Int> {
+        val addresses = runningFold(0) { offset, instruction -> offset + instruction.codeUnits }
+        val targets = mutableSetOf<Int>()
+        forEachIndexed { index, instruction ->
+            if (instruction is OffsetInstruction) {
+                val target = addresses.indexOf(addresses[index] + instruction.codeOffset)
+                val payload = getOrNull(target)
+                if (payload is SwitchPayload) {
+                    payload.switchElements.forEach { targets += addresses.indexOf(addresses[index] + it.offset) }
+                } else {
+                    targets += target
+                }
+            }
+        }
+        method.implementation?.tryBlocks?.forEach { block ->
+            block.exceptionHandlers.forEach { targets += addresses.indexOf(it.handlerCodeAddress) }
+        }
+        return targets
+    }
+
+    private fun Instruction.isCallUiHaptic() = opcode == Opcode.SGET_OBJECT && field()?.definingClass == CALL_UI_HAPTIC
+
+    /** True when the haptic event built from the CallUIHaptic read at [haptic] is still dispatched. */
+    private fun List<Instruction>.hapticDispatched(haptic: Int, label: String): Boolean {
+        val create = this[haptic - 1]
+        val init = this[haptic + 1]
+        check(create.opcode == Opcode.NEW_INSTANCE && init.opcode == Opcode.INVOKE_DIRECT &&
+            init.call()?.params() == listOf(CALL_UI_HAPTIC)
+        ) { "$label: the CallUIHaptic at $haptic is not passed to a new haptic event" }
+        val event = (create as OneRegisterInstruction).registerA
+        val next = getOrNull(haptic + 2)
+        return (next?.opcode == Opcode.INVOKE_VIRTUAL || next?.opcode == Opcode.INVOKE_INTERFACE) &&
+            next.call()?.returnType == "V" && (next as FiveRegisterInstruction).registerCount == 2 && next.registerD == event
+    }
+
+    private fun MethodReference.params() = parameterTypes.map(CharSequence::toString)
+
+    /**
+     * The R8-merged lambda behind the function reference [handler] the incoming call screen builds,
+     * and the instruction range of its switch case (switch target to first return or throw).
+     */
+    private fun swipeHandlerCase(classes: List<ClassDef>, byType: Map<String, ClassDef>, handler: String): Triple<String, Method, IntRange> {
+        val (cls, composable) = classes.singleMethod("incoming call screen with the swipe handlers") { _, m ->
+            m.strings().containsAll(listOf("onCallUiSwipeButtonDraggingStateChanged", "onDraggingProgressChanged"))
+        }
+        val insns = composable.instructions()
+        val name = insns.indexOfFirst { it.opcode == Opcode.CONST_STRING && it.stringOrNull() == handler }
+        val constructor = (name + 1 until insns.size).first { insns[it].call()?.name == "<init>" }
+        val call = insns[constructor].call()!!
+        check(call.params() == listOf("I", "Ljava/lang/Object;", "Ljava/lang/Class;", "Ljava/lang/String;", "Ljava/lang/String;", "I", "B")) {
+            "${cls.type}.${composable.name}: $handler goes to $call"
+        }
+        val range = insns[constructor] as RegisterRangeInstruction
+        val caseRegister = range.startRegister + range.registerCount - 1
+        val case = (constructor - 1 downTo 0).map { insns[it] }
+            .first { it is OneRegisterInstruction && it.registerA == caseRegister && it.opcode.setsRegister() }
+            .let { (it as NarrowLiteralInstruction).narrowLiteral }
+
+        val lambda = byType.getValue(call.definingClass)
+        val invoke = lambda.methods.single { it.name == "invoke" && it.implementation != null }
+        val body = invoke.instructions()
+        val addresses = body.runningFold(0) { offset, instruction -> offset + instruction.codeUnits }
+        val selector = body.indexOfFirst { it.opcode == Opcode.IGET_BYTE && it.field()?.definingClass == lambda.type }
+        val switch = (selector + 1 until body.size).first { body[it].opcode == Opcode.PACKED_SWITCH || body[it].opcode == Opcode.SPARSE_SWITCH }
+        check((body[switch] as OneRegisterInstruction).registerA == (body[selector] as TwoRegisterInstruction).registerA) {
+            "${lambda.type}.invoke does not switch on its case field"
+        }
+        val payload = body[addresses.indexOf(addresses[switch] + (body[switch] as OffsetInstruction).codeOffset)] as SwitchPayload
+        val start = payload.switchElements.firstOrNull { it.key == case }
+            ?.let { addresses.indexOf(addresses[switch] + it.offset) } ?: (switch + 1)
+        val end = (start until body.size).first { body[it].opcode in setOf(Opcode.RETURN_OBJECT, Opcode.RETURN_VOID, Opcode.THROW) }
+        return Triple("${lambda.type}.invoke case $case ($handler)", invoke, start..end)
+    }
+
+    private fun assertDisableCallButtonHaptics(classes: List<ClassDef>, byType: Map<String, ClassDef>) {
+        // 1. Every handler that reports an ACCEPT or REJECT call UI action (full screen, details
+        // view, PiP) still builds its CONFIRM / REJECT haptic event but no longer dispatches it.
+        // Handlers reporting HANGUP keep dispatching the same REJECT haptic.
+        val analytics = "Lcom/truecaller/callui/api/internal/analytics/model/"
+        val enums = listOf("CallUIActions", "CallUIDetailsViewAction", "CallUIPipActions").map { "$analytics$it;" }
+        val answerDecline = enums.flatMap { listOf((it to "ACCEPT") to "CONFIRM", (it to "REJECT") to "REJECT") }.toMap()
+        val hangUp = enums.map { it to "HANGUP" }.toSet()
+        val dropped = mutableSetOf<Pair<String, String>>()
+        val kept = mutableSetOf<Pair<String, String>>()
+        for (cls in classes) for (method in cls.methods) {
+            val insns = method.instructions()
+            val actions = insns.indices.filter { index ->
+                insns[index].opcode == Opcode.SGET_OBJECT &&
+                    insns[index].field()?.let { (it.definingClass to it.name) in answerDecline || (it.definingClass to it.name) in hangUp } == true
+            }
+            if (actions.isEmpty()) continue
+            val targets = insns.jumpTargets(method)
+            for (index in actions) {
+                // The haptic read on the straight-line path into the action, as the patch finds it.
+                val haptic = (index - 1 downTo 0).firstOrNull { i ->
+                    insns[i].isCallUiHaptic() || insns[i].opcode in BLOCK_END_OPCODES || i in targets
+                }?.takeIf { insns[it].isCallUiHaptic() } ?: continue
+                val field = insns[index].field()!!
+                val action = field.definingClass to field.name
+                val label = "${cls.type}.${method.name} (${field.name})"
+                if (action in answerDecline) {
+                    check(insns[haptic].field()?.name == answerDecline.getValue(action)) { "$label plays ${insns[haptic].field()?.name}" }
+                    check(!insns.hapticDispatched(haptic, label)) { "$label still dispatches its haptic" }
+                    dropped += action
+                } else {
+                    check(insns.hapticDispatched(haptic, label)) { "$label (hang-up) lost its haptic" }
+                    kept += action
+                }
+            }
+        }
+        check(dropped == answerDecline.keys) { "answer/decline haptics dropped for $dropped, expected ${answerDecline.keys}" }
+        check(kept.isNotEmpty()) { "no hang-up haptic dispatch found to check" }
+
+        // 2. The dragging state case: the CLICK event behind "state != IDLE" is built but not dispatched.
+        run {
+            val (label, invoke, block) = swipeHandlerCase(classes, byType, "onCallUiSwipeButtonDraggingStateChanged")
+            val insns = invoke.instructions()
+            val idle = block.first { insns[it].opcode == Opcode.SGET_OBJECT && insns[it].field()?.definingClass == SWIPE_DRAGGING_STATE && insns[it].field()?.name == "IDLE" }
+            check(insns[idle + 1].opcode == Opcode.IF_EQ || insns[idle + 1].opcode == Opcode.IF_NE) { "$label does not compare IDLE" }
+            val haptic = (idle + 2..block.last).first { insns[it].isCallUiHaptic() }
+            check(insns[haptic].field()?.name == "CLICK") { "$label plays ${insns[haptic].field()?.name}" }
+            check(!insns.hapticDispatched(haptic, label)) { "$label still dispatches the drag start CLICK" }
+        }
+
+        // 3. The dragging progress case: the progress is zeroed right before the 0.1f compare, so the
+        // looping vibration never starts.
+        run {
+            val (label, invoke, block) = swipeHandlerCase(classes, byType, "onDraggingProgressChanged")
+            val insns = invoke.instructions()
+            val threshold = block.first { insns[it].opcode == Opcode.CONST && (insns[it] as NarrowLiteralInstruction).narrowLiteral == 0.1f.toRawBits() }
+            val zero = insns[threshold + 1]
+            val compare = insns[threshold + 2]
+            check(compare.opcode == Opcode.CMPG_FLOAT || compare.opcode == Opcode.CMPL_FLOAT) { "$label: no float compare after 0.1f; got ${compare.opcode}" }
+            val thresholdRegister = (insns[threshold] as OneRegisterInstruction).registerA
+            val progress = (compare as ThreeRegisterInstruction).let { if (it.registerC == thresholdRegister) it.registerB else it.registerC }
+            check((zero.opcode == Opcode.CONST_4 || zero.opcode == Opcode.CONST_16) &&
+                (zero as OneRegisterInstruction).registerA == progress && (zero as NarrowLiteralInstruction).narrowLiteral == 0
+            ) { "$label: the progress (v$progress) is not zeroed before the compare; got ${zero.opcode}" }
         }
     }
 
@@ -1030,6 +1194,44 @@ class TruecallerSmokeTest {
             val calls = init.methods.filter { it.name == name }.flatMap { m -> m.instructions().mapNotNull { it.setterCall() } }
             check(calls.isNotEmpty() && calls.all { it.definingClass == setterRef.definingClass && it.name == setterRef.name }) {
                 "TruecallerInit.$name selects filters through ${calls.map { "${it.definingClass}->${it.name}" }.distinct()}, not $label"
+            }
+        }
+    }
+
+    private fun assertHideListItems(classes: List<ClassDef>) {
+        // "Hide frequently called contacts" and "Hide important senders": in each list builder
+        // (invoke(Object)Object loading the item key), the key goes to a static void item helper,
+        // and the nearest branch before it that jumps past that call is now dead code behind a goto
+        // to the same target, so the item is never added.
+        for ((key, guardOpcode) in listOf("frequent_contacts_id" to Opcode.IF_EQZ, "important-senders-header" to Opcode.IF_LT)) {
+            val (cls, builder) = classes.singleMethod("$key list builder") { _, m ->
+                m.name == "invoke" && m.returnType == "Ljava/lang/Object;" && m.params() == listOf("Ljava/lang/Object;") && key in m.strings()
+            }
+            val label = "${cls.type}.${builder.name} ($key)"
+            val insns = builder.instructions()
+            val keyIndex = insns.indexOfFirst { it.stringOrNull() == key }
+            val keyRegister = (insns[keyIndex] as OneRegisterInstruction).registerA
+            val addCall = (keyIndex + 1 until insns.size).first { insns[it].arguments()?.contains(keyRegister) == true }
+            check(insns[addCall].opcode == Opcode.INVOKE_STATIC && insns[addCall].call()?.returnType == "V") {
+                "$label does not pass the key to a static void item helper; got ${insns[addCall].opcode} ${insns[addCall].call()}"
+            }
+            val guard = (keyIndex - 1 downTo 0).firstOrNull {
+                insns[it].opcode in setOf(Opcode.IF_EQZ, Opcode.IF_LT) && insns.branchTarget(it) > addCall
+            } ?: error("$label has no guard that skips the item")
+            check(insns[guard].opcode == guardOpcode) { "$label is guarded by ${insns[guard].opcode}, expected $guardOpcode" }
+            val skip = insns[guard - 1]
+            check(skip.opcode in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) && insns.branchTarget(guard - 1) == insns.branchTarget(guard)) {
+                "$label does not jump to the guard's target right before the guard; got ${skip.opcode}"
+            }
+            if (guardOpcode == Opcode.IF_LT) {
+                // The guard compares importantSenders.size() (List.size, then move-result into its first register).
+                val sizeRegister = (insns[guard] as TwoRegisterInstruction).registerA
+                val result = (guard - 2 downTo 0).first {
+                    insns[it].opcode.setsRegister() && (insns[it] as? OneRegisterInstruction)?.registerA == sizeRegister
+                }
+                check(insns[result].opcode == Opcode.MOVE_RESULT && insns[result - 1].call()?.let {
+                    it.definingClass == "Ljava/util/List;" && it.name == "size"
+                } == true) { "$label: the guard does not compare a List.size() result" }
             }
         }
     }

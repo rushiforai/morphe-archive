@@ -63,6 +63,12 @@ public sealed class Subreddit
 
     public int Subscribers { get; set; } = 1000;
 
+    /// <summary>
+    /// The post flairs it lets users choose, which <c>api/link_flair</c> lists; null when its flairs aren't public, and
+    /// Reddit refuses that list with 403 Forbidden.
+    /// </summary>
+    public List<string>? LinkFlairs { get; set; }
+
     public string FullName => "t5_" + Id;
 }
 
@@ -107,6 +113,9 @@ public sealed class Post
     /// <summary>The media a text post's text shows (<c>![img](id)</c>), by id: Reddit's <c>media_metadata</c>.</summary>
     public Dictionary<string, UploadedMedia> Media { get; } = [];
 
+    /// <summary>A gallery post: its <see cref="Media"/> are the gallery's images, in order (<c>gallery_data</c>).</summary>
+    public bool IsGallery { get; set; }
+
     public int Score { get; set; } = 1;
 
     public bool IsNsfw { get; set; }
@@ -116,6 +125,9 @@ public sealed class Post
     public bool IsLocked { get; set; }
 
     public string? Flair { get; set; }
+
+    /// <summary>The awards it was given: Reddit's <c>all_awardings</c>.</summary>
+    public List<Award> Awards { get; } = [];
 
     /// <summary>The top-level comments, oldest first; each holds its replies.</summary>
     public List<Comment> Comments { get; } = [];
@@ -178,6 +190,9 @@ public sealed class Comment
 
     /// <summary>The media the body shows (<c>![gif](id)</c>), by id: Reddit's <c>media_metadata</c>.</summary>
     public Dictionary<string, UploadedMedia> Media { get; } = [];
+
+    /// <summary>The awards it was given: Reddit's <c>all_awardings</c>.</summary>
+    public List<Award> Awards { get; } = [];
 
     public List<Comment> Replies { get; } = [];
 
@@ -252,6 +267,22 @@ public sealed record UploadedMedia(string Id, string ContentType, string Path, i
         var path = $"{host}/{id}.{asset.Extension}";
         world.AddMedia(path, asset.ContentType, asset.Bytes);
         return new UploadedMedia(id, asset.ContentType, path, asset.Width, asset.Height);
+    }
+}
+
+/// <summary>
+/// An award given to a post or a comment, <paramref name="Count"/> times: one entry of its <c>all_awardings</c>, with
+/// its icon in the media store at <paramref name="IconPath"/>. A gilding (Silver, Gold, Platinum: <c>gid_1</c> to
+/// <c>gid_3</c>) counts in its <c>gildings</c> too.
+/// </summary>
+public sealed record Award(string Id, string Name, int Count, string IconPath)
+{
+    /// <summary>Reddit's Silver, the first gilding.</summary>
+    internal static Award Silver(RedditWorld world, int count)
+    {
+        var path = $"i.redd.it/award_images/{world.NewId()}e2eaward_silver.png";
+        world.AddMedia(path, MediaAsset.Png.ContentType, MediaAsset.Png.Bytes);
+        return new Award("gid_1", "Silver", count, path);
     }
 }
 

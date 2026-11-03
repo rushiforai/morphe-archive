@@ -23,7 +23,13 @@ internal sealed class Things(RedditWorld world)
             Title = post.Title,
             SubredditNamePrefixed = "r/" + post.Subreddit.Name,
             Hidden = viewer is not null && post.HiddenBy.Contains(viewer.Name),
-            LinkFlairCssClass = post.Flair is null ? null : "",
+            LinkFlairCssClass = post.Flair is null ? null : FlairCssClass(post.Flair),
+            LinkFlairRichtext = post.Flair is null ? [] : [new FlairRichtext("text", post.Flair)],
+            LinkFlairType = post.Flair is null ? "text" : "richtext",
+            AllAwardings = Awardings(post.Awards),
+            TotalAwardsReceived = post.Awards.Sum(award => award.Count),
+            Gildings = Gildings(post.Awards),
+            Gilded = post.Awards.Where(IsGilding).Sum(award => award.Count),
             Name = post.FullName,
             Ups = post.Score + vote,
             ThumbnailWidth = post.Thumbnail is null ? null : 140,
@@ -54,6 +60,10 @@ internal sealed class Things(RedditWorld world)
             SubredditSubscribers = post.Subreddit.Subscribers,
             CreatedUtc = created,
             IsRedditMediaDomain = url.Contains("/_media/", StringComparison.Ordinal),
+            IsGallery = post.IsGallery,
+            GalleryData = post.IsGallery
+                ? new GalleryData([.. post.Media.Values.Select((media, index) => new GalleryItem(media.Id, index + 1))])
+                : null,
             MediaMetadata = MediaMetadataOf(post.Media),
         });
     }
@@ -94,6 +104,10 @@ internal sealed class Things(RedditWorld world)
             Depth = comment.Depth,
             Ups = comment.Score + vote,
             MediaMetadata = MediaMetadataOf(comment.Media),
+            AllAwardings = Awardings(comment.Awards),
+            TotalAwardsReceived = comment.Awards.Sum(award => award.Count),
+            Gildings = Gildings(comment.Awards),
+            Gilded = comment.Awards.Where(IsGilding).Sum(award => award.Count),
         });
     }
 
@@ -186,6 +200,30 @@ internal sealed class Things(RedditWorld world)
             CreatedUtc = created,
         });
     }
+
+    /// <summary>A subreddit's post flairs, as <c>api/link_flair</c> lists them.</summary>
+    public static LinkFlairData[] LinkFlairs(IEnumerable<string> flairs) =>
+        [.. flairs.Select((flair, index) => new LinkFlairData(flair, false, $"e2eflair{index}", FlairCssClass(flair)))];
+
+    // Reddit's CSS class of a flair is the moderators' choice; its words in lower case, joined by "-", will do.
+    private static string FlairCssClass(string flair) =>
+        string.Join('-', flair.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+    private object[] Awardings(IEnumerable<Award> awards) =>
+        [.. awards.Select(award => new AwardingData
+        {
+            Id = award.Id,
+            Name = award.Name,
+            Description = $"Shows the {award.Name} Award.",
+            Count = award.Count,
+            IconUrl = world.MediaUrl(award.IconPath),
+            StaticIconUrl = world.MediaUrl(award.IconPath),
+        })];
+
+    private static Dictionary<string, object> Gildings(IEnumerable<Award> awards) =>
+        awards.Where(IsGilding).ToDictionary(award => award.Id, award => (object)award.Count);
+
+    private static bool IsGilding(Award award) => award.Id.StartsWith("gid_", StringComparison.Ordinal);
 
     private Dictionary<string, MediaMetadata>? MediaMetadataOf(Dictionary<string, UploadedMedia> media) =>
         media.Count == 0 ? null : media.Values.ToDictionary(found => found.Id, Metadata);

@@ -46,8 +46,6 @@ Loading older messages.	Memuat pesan lama.
 Loading older messages. %1$d message so far.	Memuat pesan lama. Sejauh ini %1$d pesan.
 Loading older messages. %1$d messages so far.	Memuat pesan lama. Sejauh ini %1$d pesan.
 Lock these settings	Kunci pengaturan ini
-Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Buka obrolan, tekan lama namanya di bagian atas lalu pilih Ekspor obrolan. Seluruh obrolan disimpan sebagai berkas teks di Download, folder HushGram, satu baris per pesan.
-Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Buka obrolan, tekan lama namanya di bagian atas lalu pilih Lompat ke pesan pertama atau Lompat ke tanggal. Obrolan memuat pesan lamanya sendiri, dengan hitungan dan tombol Batal.
 Mark a chat seen when you reply	Tandai obrolan sudah dilihat saat kamu membalas
 No messages found to save.	Tidak ada pesan untuk disimpan.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Pilih waktu tunggu 1 sampai 72 jam. Saat terkunci, tidak ada yang berubah di sini sampai kamu meminta buka kunci dan waktu tunggunya selesai.
@@ -220,6 +218,12 @@ Download on stories	Unduh di cerita
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu cerita siapa pun, foto atau video, disimpan dengan kualitas unduhan Anda. Saat nonaktif atau dijeda, menu asli Instagram kembali.
 Upload stories at full quality	Unggah cerita dengan kualitas penuh
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	Cerita video yang Anda posting dikirim dalam 1080p dengan bitrate lebih tinggi, seperti saat setelan Unggah dengan kualitas tertinggi milik Instagram aktif. Instagram tetap mengecilkan video cerita menjadi 720p di servernya, jadi perbedaan yang terlihat kecil. Cerita foto sudah diunggah lebih besar daripada yang disimpan Instagram.
+# context: Stories settings under Upload stories at full quality: which uploads it covers (Stories only, or Stories, posts and reels), and the video bitrate; %1$s is a number of megabits a second (#37)
+Upload quality applies to	Kualitas unggahan berlaku untuk
+Stories only	Hanya cerita
+Stories, posts and reels	Cerita, postingan, dan Reels
+Video bitrate	Bitrate video
+%1$s Mbps	%1$s Mbps
 Download feed videos	Unduh video feed
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Menambahkan Unduh ke menu postingan berisi video di feed kamu. Memakai kualitas di bawah. Saat nonaktif atau dijeda, menu Instagram sendiri kembali.
 Playback	Pemutaran
@@ -1417,8 +1421,10 @@ Puts a border and Instagram's view once icon on a one-time photo or video in a c
 Fall back to Following	Beralih ke Mengikuti
 When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Jika Untuk Anda hanya menampilkan postingan yang disarankan ke sebuah akun, halaman demi halaman, Beranda dibuka di Mengikuti untuk akun itu. Feed yang kamu pilih di bagian atas Beranda tetap terpilih. Mulai ulang Instagram untuk melihat perubahannya.
 Only suggestions in For you. Home will open on Following.	Hanya saran di Untuk Anda. Beranda dibuka di Mengikuti.
+Mix in Following	Campurkan Mengikuti
+For you shows a page of posts from accounts you follow after each page of its own, until you've seen them all. Pull down on Home to start both over. Restart Instagram to see the change.	Untuk Anda menampilkan satu halaman postingan dari akun yang kamu ikuti setelah setiap halamannya sendiri, sampai kamu melihat semuanya. Tarik ke bawah di Beranda untuk memulai keduanya dari awal. Mulai ulang Instagram untuk melihat perubahannya.
 Explore without personalization	Jelajahi tanpa personalisasi
-Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Jika Instagram menawarkannya (di UE), Jelajahi selalu dibuka dengan kisi yang tidak dipersonalisasi, dan tetap begitu setelah sepuluh menit.
+Explore asks for the grid that isn't personalized every time it opens, and stays on it past ten minutes. Instagram only promises that grid in the EU.	Jelajahi meminta kisi yang tidak dipersonalisasi setiap kali dibuka, dan tetap begitu setelah sepuluh menit. Instagram hanya menjanjikan kisi itu di UE.
 Hide Explore's personalized menu	Sembunyikan menu personalisasi Jelajahi
 Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Menyembunyikan tombol di bilah atas yang mengubah personalisasi Jelajahi, jika Instagram menampilkannya (di UE).
 # context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
@@ -1539,12 +1545,16 @@ Couldn't read that picture.	Gambar itu tidak bisa dibaca.
 This launcher can't add it.	Launcher ini tidak bisa menambahkannya.
 Glass in chats	Kaca di chat
 Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Memberi bilah atas chat efek kaca buram dan menaruh tombol kembali, panggilan, dan video di atas lingkaran kaca. Tampil saat Anda membuka chat berikutnya. Efek blur butuh Android 12 atau lebih baru.
-# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Sembunyikan reel dengan sedikit tayangan
-Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Menyembunyikan reel di tab Reels yang ditonton lebih sedikit orang daripada angka di bawah. Reel dari akun yang kamu ikuti, reel yang dikirim kepadamu, dan reel tanpa jumlah tayangan tetap diputar.
+Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Menyembunyikan reel di tab Reels yang tayangan atau sukanya lebih sedikit daripada angka di bawah. Reel dari akun yang kamu ikuti, reel yang dikirim kepadamu, dan reel tanpa jumlah tetap diputar.
 Minimum views	Tayangan minimum
 Reels with fewer views than this are left out. Type a whole number.	Reel dengan tayangan lebih sedikit dari ini disembunyikan. Ketik bilangan bulat.
 Fewer than %1$s views	Kurang dari %1$s tayangan
+Minimum likes	Suka minimum
+Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Reel dengan suka lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar suka tidak dihitung.
+Fewer than %1$s likes	Kurang dari %1$s suka
+Likes aren't looked at	Suka tidak dihitung
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	Prioritas cerita
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Menaruh akun di daftarmu paling depan di baris cerita di bagian atas Beranda selama mereka punya cerita yang belum kamu tonton, sesuai urutan daftar. Setelah kamu menontonnya, penempatan bawaan Instagram berlaku lagi. Ceritamu sendiri tetap di depan.
@@ -1553,3 +1563,103 @@ Usernames, one on each line. The first line goes first. A leading @ and capital 
 No accounts yet	Belum ada akun
 %1$d account	%1$d akun
 %1$d accounts	%1$d akun
+Home header text	Teks di atas Beranda
+Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Kata-katamu sendiri di bagian atas Beranda, sebagai pengganti logo Instagram. Hingga %1$d karakter. Biarkan kosong untuk tetap memakai logo.
+Instagram's logo stays at the top of Home.	Logo Instagram tetap di bagian atas Beranda.
+The top of Home says %1$s.	Bagian atas Beranda bertuliskan %1$s.
+Home header picture	Gambar di atas Beranda
+Remove the header picture	Hapus gambar di atas
+The top of Home goes back to your header text, or to Instagram's logo.	Bagian atas Beranda kembali ke teksmu, atau ke logo Instagram.
+Pick a picture to show at the top of Home, in place of Instagram's logo or your text.	Pilih gambar untuk ditampilkan di bagian atas Beranda, sebagai pengganti logo Instagram atau teksmu.
+The top of Home shows %1$s. Tap to pick another.	Bagian atas Beranda menampilkan %1$s. Ketuk untuk memilih yang lain.
+Header picture set.	Gambar Beranda dipasang.
+Header picture removed.	Gambar Beranda dihapus.
+That isn't a picture.	Itu bukan gambar.
+That picture is over %1$d MB.	Gambar itu lebih dari %1$d MB.
+Couldn't save the picture.	Gambar tidak bisa disimpan.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Buka obrolan, ketuk tombol jam di samping tombol panggilan di bagian atas, atau tekan lama nama obrolan, lalu pilih Lompat ke pesan pertama atau Lompat ke tanggal. Obrolan memuat pesan lamanya sendiri, dengan hitungan dan tombol Batal.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Buka obrolan, ketuk tombol jam di samping tombol panggilan di bagian atas, atau tekan lama nama obrolan, lalu pilih Ekspor obrolan. Seluruh obrolan disimpan sebagai berkas teks di Download, folder HushGram, satu baris per pesan.
+Instagram stopped loading older messages.	Instagram berhenti memuat pesan lama.
+Black settings page	Halaman pengaturan hitam
+Black rows and dialogs, HushGram's name at the top, and each category on one line.	Baris dan dialog hitam, nama HushGram di atas, dan setiap kategori dalam satu baris.
+Mark as read	Tandai sudah dibaca
+Nothing to mark as read	Tidak ada yang perlu ditandai
+Mark as read button in chats	Tombol Tandai sudah dibaca di chat
+A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	Tanda centang muncul di bagian atas chat selama orang lain belum diberi tahu bahwa Anda sudah melihatnya. Ketuk tanda itu dan mereka akan melihat Dilihat.
+Red story mentions	Sebutan story warna merah
+Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Menampilkan teks label sebutan dengan warna merah, bukan putih, agar menonjol di story yang terang.
+Only received reels	Hanya reel yang diterima
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Saat menggeser reel dalam obrolan, reel yang Anda kirim di sana dilewati, jadi hanya reel yang dibagikan lawan bicara yang dilalui. Berfungsi jika Geser reel dalam obrolan aktif.
+Hide the audio icon on posts	Sembunyikan ikon audio di postingan
+Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Menghapus ikon speaker dari video di feed Anda. Mengetuk video tetap menyalakan atau mematikan suara. Postingan yang sudah ada di layar berubah saat dimuat ulang.
+Light when paused	Terang saat dijeda
+Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Jeda sebuah reel dan Pelindung burn-in mengembalikan tombol ke kecerahan penuh sampai Anda memutarnya lagi atau menggeser. Lalu waktu tunggu dimulai dari awal.
+Grow the heart	Perbesar hati
+Double tap the same post again within a second and a half and the heart pops up bigger, up to nearly twice its size. A pause and it starts small again.	Ketuk dua kali postingan yang sama lagi dalam satu setengah detik dan hati muncul lebih besar, hingga hampir dua kali ukurannya. Setelah jeda, ukurannya mulai kecil lagi.
+Instagram in pink	Instagram merah muda
+# context: Stories settings: a speed button in a video story's header, cycling 1x, 1.5x and 2x (#469)
+Speed button on stories	Tombol kecepatan di cerita
+Puts a speed button at the top of a video story, beside the three dots. Tap it for 1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you change it or restart Instagram. Ads play at normal speed.	Menaruh tombol kecepatan di bagian atas cerita video, di samping tiga titik. Ketuk untuk 1,5x, ketuk lagi untuk 2x, dan sekali lagi untuk 1x. Cerita video berikutnya tetap memakai kecepatan itu sampai kamu mengubahnya atau memulai ulang Instagram. Iklan diputar dengan kecepatan normal.
+# context: TalkBack label of that button; %1$s is the speed shown on it, such as 1.5x
+Playback speed, %1$s	Kecepatan pemutaran, %1$s
+Where the mention pill goes	Letak label sebutan
+Under the name, 1 mention	Di bawah nama, 1 sebutan
+Top bar, @1 mention	Bilah atas, @1 sebutan
+Top bar, @1	Bilah atas, @1
+The pill sits under the story's name and reads like 1 mention. Its list opens over the story.	Label ada di bawah nama story dan tertulis seperti 1 sebutan. Daftarnya terbuka di atas story.
+The pill sits in the top bar next to the menu and reads like @1 mention. Its list opens from the bottom of the screen.	Label ada di bilah atas di samping menu dan tertulis seperti @1 sebutan. Daftarnya terbuka dari bagian bawah layar.
+The pill sits in the top bar next to the menu and shows only the count, like @1. Its list opens from the bottom of the screen.	Label ada di bilah atas di samping menu dan hanya menunjukkan jumlahnya, seperti @1. Daftarnya terbuka dari bagian bawah layar.
+Turn on See who a story mentions to use this choice.	Aktifkan Lihat siapa yang disebut cerita untuk menggunakan pilihan ini.
+Story mentions	Sebutan story
+Accounts mentioned in this story	Akun yang disebut di cerita ini
+# context: Feed settings: picks how the carousel page-dots pill looks (#471)
+Pill look	Tampilan pil
+# context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
+Seek bar look	Tampilan bilah geser
+# context: a look for the page-dots pill and the seek bars: opaque, as before
+Solid	Padat
+# context: a look for the page-dots pill and the seek bars: partly transparent
+See-through	Tembus pandang
+# context: a look for the page-dots pill and the seek bars: blurs what's under it
+Frosted glass	Kaca buram
+A light pill with dark dots, as it's always been.	Pil terang dengan titik gelap, seperti biasanya.
+A see-through dark pill with white dots, so more of the photo shows.	Pil gelap tembus pandang dengan titik putih, agar foto lebih terlihat.
+A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Pil kaca buram yang mengaburkan foto di bawahnya. Sebelum Android 12, pil ini tembus pandang.
+Turn on Page dots on a pill to use this choice.	Aktifkan Titik halaman di pil untuk menggunakan pilihan ini.
+Turn on Seek bar on feed videos or its button to use this choice.	Aktifkan Bilah geser di video feed atau tombolnya untuk menggunakan pilihan ini.
+Turn on Seek bar on stories to use this choice.	Aktifkan Bilah geser di cerita untuk menggunakan pilihan ini.
+A white bar and handle, as they've always been.	Bilah dan pegangan putih, seperti biasanya.
+A fainter bar and handle, so more of the video shows through.	Bilah dan pegangan yang lebih samar, agar video lebih terlihat.
+A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	Bilah putih di atas jalur kaca buram yang mengaburkan video di bawahnya. Sebelum Android 12, jalur ini tembus pandang.
+# context: Instagram's Blend, the shared reels feed in a chat, as Instagram names it in this language (Turkish Instagram: Derleme).
+Don't report Blend visits	Jangan laporkan kunjungan Blend
+Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend and its reels open as usual.	Membuka Blend tidak memberi tahu chat tempatnya berada bahwa kamu mengunjunginya. Blend dan reel-nya terbuka seperti biasa.
+# context: the little round profile pictures in a corner of a feed post or reel showing that a friend liked, commented on or reshared it. Instagram's own setting for them comes from its server, not the app.
+Hide activity bubbles	Sembunyikan gelembung aktivitas
+Takes the little round pictures off posts and reels that show a friend liked, commented on or reshared them. Posts already on screen change when they load again.	Menghapus gambar bulat kecil di postingan dan reel yang menunjukkan teman menyukai, mengomentari, atau membagikan ulang postingan itu. Postingan yang sudah tampil berubah saat dimuat ulang.
+# context: a switch for foldable phones and tablets. Instagram normally moves its tab bar to a rail down the side on a wide screen; this keeps the narrow phone layout instead.
+Phone layout on big screens	Tata letak ponsel di layar besar
+On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	Di ponsel lipat atau tablet, Instagram tetap memakai tata letak ponselnya di seluruh layar, dengan bilah tab di bawah, bukan di samping. Mulai ulang Instagram untuk melihat perubahannya.
+# context: a switch on the Messages page. It adds a Preview row to the menu a long press on a chat in the inbox opens; Preview shows the chat's newest messages in a box without opening the chat, so no seen receipt goes out. "Seen" is Instagram's own read receipt label in a chat.
+Preview chats	Pratinjau chat
+Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too.	Tekan lama chat di pesan Anda lalu ketuk Pratinjau untuk membaca pesan terbarunya tanpa membukanya, jadi tidak ada yang melihat Dilihat. Anda juga bisa membalas dari sana.
+# context: the row in a chat's long press menu and the title of the box it opens, which shows the chat's newest messages without opening the chat.
+Preview	Pratinjau
+# context: the hint in the reply field at the bottom of the chat preview box.
+Write a message	Tulis pesan
+# context: shown in the chat preview box while its messages load.
+Loading	Memuat
+Nothing here yet	Belum ada apa-apa
+# context: the chat preview box, and a short toast, when the chat's messages can't be read. Toasts stay short.
+Couldn't load this chat	Tidak bisa memuat chat ini
+# context: a short toast after a reply typed in the chat preview box went out.
+Sent	Terkirim
+Couldn't send	Tidak bisa mengirim
+# context: what a message with no text shows as in the chat preview box, by what it holds.
+Photo or video	Foto atau video
+GIF or sticker	GIF atau stiker
+# context: a view once photo or video in the chat preview box shows only this label, never the photo or video. Use Instagram's own wording for view once.
+View once message	Pesan sekali lihat
+Attachment	Lampiran
+# context: the button next to the reply field in the chat preview box.
+Send	Kirim

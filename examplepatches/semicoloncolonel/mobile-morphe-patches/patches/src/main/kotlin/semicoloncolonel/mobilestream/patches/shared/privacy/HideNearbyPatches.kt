@@ -2,6 +2,7 @@ package semicoloncolonel.mobilestream.patches.shared.privacy
 
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -37,7 +38,7 @@ private const val HIDER = "Lsemicoloncolonel/mobilestream/extension/shared/priva
 private const val SPOOFER = "Lsemicoloncolonel/mobilestream/extension/shared/privacy/NetworkStateSpoofer;"
 private const val EXTENSION_PACKAGE = "Lsemicoloncolonel/mobilestream/extension/"
 
-private class CallRewrite(
+internal class CallRewrite(
     val definingClass: String,
     val name: String,
     val parameterTypes: List<String>,
@@ -64,7 +65,7 @@ private const val LE_SCANNER = "Landroid/bluetooth/le/BluetoothLeScanner;"
 private const val ADAPTER = "Landroid/bluetooth/BluetoothAdapter;"
 private const val TELEPHONY = "Landroid/telephony/TelephonyManager;"
 
-private val WIFI_REWRITES = listOf(
+internal val WIFI_REWRITES = listOf(
     CallRewrite(WIFI_MANAGER, "getScanResults", listOf(), "Ljava/util/List;"),
     CallRewrite(WIFI_MANAGER, "startScan", listOf(), "Z"),
     CallRewrite(WIFI_MANAGER, "getConfiguredNetworks", listOf(), "Ljava/util/List;"),
@@ -77,7 +78,7 @@ private val WIFI_REWRITES = listOf(
     CallRewrite(SPOOFER, "getExtraInfo", listOf("Landroid/net/NetworkInfo;"), "Ljava/lang/String;", isStatic = true),
 )
 
-private val BLUETOOTH_REWRITES = listOf(
+internal val BLUETOOTH_REWRITES = listOf(
     CallRewrite(LE_SCANNER, "startScan", listOf("Landroid/bluetooth/le/ScanCallback;"), "V"),
     CallRewrite(
         LE_SCANNER, "startScan",
@@ -115,7 +116,7 @@ private fun Instruction.callRewrite(rewrites: List<CallRewrite>): CallRewrite? {
     return rewrites.firstOrNull { it.matches(reference, static) }
 }
 
-private fun BytecodePatchContext.rewriteCalls(rewrites: List<CallRewrite>) {
+internal fun BytecodePatchContext.rewriteCalls(rewrites: List<CallRewrite>) {
     // Collect first, mutate after: mutableClassDefBy swaps the class map
     // entry, which must not happen mid-iteration.
     val targets = mutableListOf<String>()
@@ -178,7 +179,7 @@ val hideWifiNetworksPatch = bytecodePatch(
 // may refer to it by name.
 private const val BEACON_STARTUP_RECEIVER = "org.altbeacon.beacon.startup.StartupBroadcastReceiver"
 
-private val beaconWakeupPatch = resourcePatch {
+internal val beaconWakeupPatch = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val receivers = document.getElementsByTagName("receiver")
@@ -241,16 +242,18 @@ val blockBackgroundLocationPatch = resourcePatch(
 ) {
     compatibleWith(*SHOPPING_APPS)
 
-    execute {
-        document("AndroidManifest.xml").use { document ->
-            val manifest = document.getElementsByTagName("manifest").item(0) as Element
-            listOf("uses-permission", "uses-permission-sdk-23").forEach { tag ->
-                val permissions = document.getElementsByTagName(tag)
-                (0 until permissions.length)
-                    .map { permissions.item(it) as Element }
-                    .filter { it.getAttribute("android:name") == BACKGROUND_LOCATION }
-                    .forEach { manifest.removeChild(it) }
-            }
+    execute { removeBackgroundLocation() }
+}
+
+internal fun ResourcePatchContext.removeBackgroundLocation() {
+    document("AndroidManifest.xml").use { document ->
+        val manifest = document.getElementsByTagName("manifest").item(0) as Element
+        listOf("uses-permission", "uses-permission-sdk-23").forEach { tag ->
+            val permissions = document.getElementsByTagName(tag)
+            (0 until permissions.length)
+                .map { permissions.item(it) as Element }
+                .filter { it.getAttribute("android:name") == BACKGROUND_LOCATION }
+                .forEach { manifest.removeChild(it) }
         }
     }
 }

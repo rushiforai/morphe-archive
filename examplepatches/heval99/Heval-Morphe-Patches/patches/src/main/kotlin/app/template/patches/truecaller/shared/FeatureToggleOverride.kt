@@ -6,87 +6,60 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.string
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.template.patches.shared.addInstructionsWithLabelsChecked
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.AccessFlags
 
 private const val FEATURE_STATE = "Lcom/truecaller/featuretoggles/FeatureState;"
-private const val SHARED_PREFERENCES = "Landroid/content/SharedPreferences;"
 
-// The central feature-toggle resolver isEnabled(key, default state) (edo.a in 26.39.6), called
-// from over 500 classes. Two twin resolvers share the signature but read a different store or
-// only the default; this one reads the toggle SharedPreferences.
+// Every feature-toggle resolver isEnabled(key, default state). 26.42.5 has three with this
+// signature: the SharedPreferences store (doo.a, ~1040 call sites), the Firebase Remote Config
+// experiments such as "DisableWVMNotifications_65487" (f5k.a, ~100) and a default-only one (rpq.a,
+// 9). 26.42.5 added the same local override read (SharedPreferences contains + getBoolean) to all
+// three, so the store each one reads no longer tells them apart; every override goes into every
+// resolver instead, and a key only reaches the one it is read through.
 internal object FeatureToggleResolverFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("Ljava/lang/String;", FEATURE_STATE),
-    filters = listOf(
-        methodCall(definingClass = "Landroid/content/SharedPreferences;", name = "getBoolean"),
-    ),
+    custom = { method, _ -> method.implementation != null && !AccessFlags.STATIC.isSet(method.accessFlags) },
 )
 
-// The twin resolver for the Firebase Remote Config experiment toggles (keys like
-// "DisableWVMNotifications_65487"; h4k.a in 26.41.5): it switches on the default state and asks
-// the remote config store through an interface getBoolean(key, default) (String, Z)Z. Unlike the
-// resolver above it never touches SharedPreferences, and the third twin (default state only)
-// makes no (String, Z)Z call.
-internal object FirebaseFeatureToggleResolverFingerprint : Fingerprint(
-    returnType = "Z",
-    parameters = listOf("Ljava/lang/String;", FEATURE_STATE),
-    filters = listOf(
-        methodCall(opcode = Opcode.INVOKE_INTERFACE, parameters = listOf("Ljava/lang/String;", "Z"), returnType = "Z"),
-    ),
-    custom = { method, _ ->
-        method.implementation?.instructions?.none { instruction ->
-            when (val reference = (instruction as? ReferenceInstruction)?.reference) {
-                is MethodReference -> reference.definingClass == SHARED_PREFERENCES
-                is TypeReference -> reference.type == SHARED_PREFERENCES
-                else -> false
-            }
-        } == true
-    },
-)
+/** Every concrete feature-toggle resolver; fails when there is none. */
+private fun BytecodePatchContext.featureToggleResolvers(): List<MutableMethod> =
+    FeatureToggleResolverFingerprint.matchAllOrNull().orEmpty().map { it.method }.ifEmpty {
+        throw PatchException("No feature toggle resolver (String, FeatureState)Z found")
+    }
 
 /**
- * Throws unless some method still passes the toggle [key] to the [resolver], so an override of a
- * renamed or removed toggle fails the patch instead of silently changing nothing.
+ * Throws unless some method still passes the toggle [key] to a toggle resolver, so an override of
+ * a renamed or removed toggle fails the patch instead of silently changing nothing.
  */
-internal fun BytecodePatchContext.requireFeatureToggleRead(
-    key: String,
-    resolver: Fingerprint = FeatureToggleResolverFingerprint,
-) {
-    val method = resolver.originalMethod
+internal fun BytecodePatchContext.requireFeatureToggleRead(key: String) {
     val reads = Fingerprint(
         filters = listOf(
             string(key),
-            methodCall(
-                definingClass = method.definingClass,
-                name = method.name,
-                parameters = listOf("Ljava/lang/String;", FEATURE_STATE),
-                returnType = "Z",
-            ),
+            methodCall(parameters = listOf("Ljava/lang/String;", FEATURE_STATE), returnType = "Z"),
         ),
     ).matchAllOrNull().orEmpty()
     if (reads.isEmpty()) {
-        throw PatchException("No method passes the feature toggle \"$key\" to ${method.definingClass}->${method.name}")
+        throw PatchException("No method passes the feature toggle \"$key\" to a feature toggle resolver")
     }
 }
 
 /**
- * Makes the feature-toggle [resolver] return [value] for the toggle [key], whatever the server or
- * the default state says. Each call adds a self-contained check at the start of the resolver, so
- * patches that override different keys work together in any order.
+ * Makes every feature-toggle resolver return [value] for the toggle [key], whatever the server,
+ * the local override or the default state says. Each call adds a self-contained check at the start
+ * of each resolver, so patches that override different keys work together in any order.
  */
-internal fun BytecodePatchContext.overrideFeatureToggle(
-    key: String,
-    value: Boolean,
-    resolver: Fingerprint = FeatureToggleResolverFingerprint,
-) {
-    resolver.method.apply {
-        // p1 is the key (compared null-safely); v0 is a local both resolvers write before reading.
-        addInstructionsWithLabelsChecked(
+internal fun BytecodePatchContext.overrideFeatureToggle(key: String, value: Boolean) {
+    for (resolver in featureToggleResolvers()) {
+        // v0 must be a local, not this/key/state (a thin wrapper without locals would be clobbered).
+        if (resolver.implementation!!.registerCount <= 3) {
+            throw PatchException("Feature toggle resolver $resolver has no local register for the override")
+        }
+        // p1 is the key (compared null-safely); v0 is a local every resolver writes before reading.
+        resolver.addInstructionsWithLabelsChecked(
             0,
             """
                 const-string v0, "$key"
@@ -96,19 +69,15 @@ internal fun BytecodePatchContext.overrideFeatureToggle(
                 const/4 v0, ${if (value) "0x1" else "0x0"}
                 return v0
             """,
-            ExternalLabel("resolve_toggle", getInstruction(0)),
+            ExternalLabel("resolve_toggle", resolver.getInstruction(0)),
         )
     }
 }
 
 /** [requireFeatureToggleRead] then [overrideFeatureToggle] for each of [keys]. */
-internal fun BytecodePatchContext.overrideReadFeatureToggles(
-    keys: List<String>,
-    value: Boolean,
-    resolver: Fingerprint = FeatureToggleResolverFingerprint,
-) {
+internal fun BytecodePatchContext.overrideReadFeatureToggles(keys: List<String>, value: Boolean) {
     for (key in keys) {
-        requireFeatureToggleRead(key, resolver)
-        overrideFeatureToggle(key, value, resolver)
+        requireFeatureToggleRead(key)
+        overrideFeatureToggle(key, value)
     }
 }

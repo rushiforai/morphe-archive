@@ -90,9 +90,8 @@ val disableTelemetryPatch = bytecodePatch(
         }
         if (logEvents < 3) throw PatchException("Only $logEvents concrete logEvent methods found")
 
-        // 2. Amplitude: the client is never built (its field stays null, which every caller
-        // already handles).
-        AmplitudeInitializeFingerprint.method.returnEarly()
+        // 2. Amplitude: dropped from the app in 1.10.29 (no com.amplitude classes and no
+        // AmplitudeAnalyticsService left), so there is nothing to initialise.
 
         // 3. Rudderstack: the constructor skips client setup when the write key is empty. Make
         // the key's length read as 0 so that existing guard takes over.

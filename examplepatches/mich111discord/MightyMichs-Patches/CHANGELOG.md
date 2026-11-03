@@ -1,3 +1,23 @@
+## [1.13.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.12.0...v1.13.0) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* fiexed change app name patch ([5a0c2e5](https://github.com/mich111discord/MightyMichs-Patches/commit/5a0c2e5417af442bcceaae7b279d6b3361e287cd))
+* fixed CallFilter patch ([1083a0e](https://github.com/mich111discord/MightyMichs-Patches/commit/1083a0e6fb7c2a4daff80d6061970333c0695b42))
+* fixed Change package name patch and added new options ([cca5315](https://github.com/mich111discord/MightyMichs-Patches/commit/cca53152ca2d41e4ef092e0bd3752a01bc070e50))
+* fixed InShot patch ([7b43724](https://github.com/mich111discord/MightyMichs-Patches/commit/7b43724500b9a6f76cf1ba1bd4e9f4c01cb6bee8))
+* fixed inshot unlock premium ([baba1fc](https://github.com/mich111discord/MightyMichs-Patches/commit/baba1fc7a8d323bcd17941dbee1641347180f3b9))
+* fixed pou patch ([3c588a1](https://github.com/mich111discord/MightyMichs-Patches/commit/3c588a19c4f9356b726a48c3980f2fcac752fe78))
+
+### ✨ New Features
+
+* add Bypass in-app purchase for offline Play Billing gate(universal) ([14f7384](https://github.com/mich111discord/MightyMichs-Patches/commit/14f73841ed915026a5f3d539b42de66deeafbf02))
+* Added Adobe Photoshop unlock premium patch ([cd6d4fe](https://github.com/mich111discord/MightyMichs-Patches/commit/cd6d4fe57a474ce0292a4dc5e2cfe619345bc937))
+* added mix explorer Disable signature verification and more! ([e356dc9](https://github.com/mich111discord/MightyMichs-Patches/commit/e356dc910a120c4ba6288ae1ccde4d50ad45ad70))
+* added sideme Unlimited energy ([a9edf53](https://github.com/mich111discord/MightyMichs-Patches/commit/a9edf53861fbe0a8ec86b99f4496d6ff81cfc6ce))
+* added sideme unlock premium ([43028fd](https://github.com/mich111discord/MightyMichs-Patches/commit/43028fdb187fbfe7f28dee7bffbd1ad082162d86))
+* added video engine killing ([b2d99f5](https://github.com/mich111discord/MightyMichs-Patches/commit/b2d99f5e295e446d20bea0ccd1b98e56ae3235f5))
+
 ## [1.12.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.11.1...v1.12.0) (2026-10-25)
 
 ### 🐛 Bug Fixes

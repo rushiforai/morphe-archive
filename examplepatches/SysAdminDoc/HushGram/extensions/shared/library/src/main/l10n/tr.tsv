@@ -46,8 +46,6 @@ Loading older messages.	Eski mesajlar yükleniyor.
 Loading older messages. %1$d message so far.	Eski mesajlar yükleniyor. Şimdilik %1$d mesaj.
 Loading older messages. %1$d messages so far.	Eski mesajlar yükleniyor. Şimdilik %1$d mesaj.
 Lock these settings	Bu ayarları kilitle
-Open a chat, long press its name at the top and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Bir sohbet aç, üstteki adına uzun bas ve Sohbeti dışa aktar seçeneğini seç. Sohbetin tamamı İndirilenler içindeki HushGram klasörüne metin dosyası olarak kaydedilir, her mesaj bir satırdır.
-Open a chat, long press its name at the top and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Bir sohbet aç, üstteki adına uzun bas ve İlk mesaja atla veya Bir tarihe atla seçeneğini seç. Sohbet eski mesajlarını kendisi yükler, bir sayaç ve İptal düğmesi gösterir.
 Mark a chat seen when you reply	Yanıt verdiğinde sohbeti görüldü olarak işaretle
 No messages found to save.	Kaydedilecek mesaj yok.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	1 ile 72 saat arasında bir bekleme seç. Kilitliyken, kilidi açmayı isteyip bekleme bitene kadar burada hiçbir şey değişmez.
@@ -220,6 +218,12 @@ Download on stories	Hikayelerde indir
 Adds Download to the menu of anyone's story, photo or video, saved at your download quality. Off or paused, Instagram's own menu returns.	Herkesin hikayesinin menüsüne İndir ekler, fotoğraf ya da video, indirme kalitende kaydedilir. Kapalıyken veya duraklatıldığında Instagram'ın kendi menüsü geri gelir.
 Upload stories at full quality	Hikayeleri tam kalitede yükle
 Video stories you post are sent at 1080p and a higher bitrate, as with Instagram's own Upload at highest quality setting on. Instagram still shrinks story videos to 720p on its servers, so the difference viewers see is small. Photo stories already go up larger than Instagram keeps.	Paylaştığın video hikayeler 1080p ve daha yüksek bit hızıyla gönderilir, Instagram'ın kendi En yüksek kalitede yükle ayarı açıkken olduğu gibi. Instagram hikaye videolarını sunucularında yine de 720p'ye küçültür, bu yüzden görünen fark küçüktür. Fotoğraf hikayeler zaten Instagram'ın sakladığından daha büyük yüklenir.
+# context: Stories settings under Upload stories at full quality: which uploads it covers (Stories only, or Stories, posts and reels), and the video bitrate; %1$s is a number of megabits a second (#37)
+Upload quality applies to	Yükleme kalitesinin geçerli olduğu yerler
+Stories only	Yalnızca hikayeler
+Stories, posts and reels	Hikayeler, gönderiler ve Reels
+Video bitrate	Video bit hızı
+%1$s Mbps	%1$s Mbps
 Download feed videos	Akıştaki videoları indir
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Akışındaki videolu bir gönderinin menüsüne İndir ekler. Aşağıdaki kaliteyi kullanır. Kapalıyken veya duraklatıldığında Instagram'ın kendi menüsü geri gelir.
 Playback	Oynatma
@@ -306,8 +310,8 @@ Hide the Muse card	Muse kartını gizle
 Removes the Meet Muse card, with its Try Muse button, from Home and your profile. Your other cards stay.	Meet Muse kartını ve Try Muse düğmesini Ana Sayfa'dan ve profilinden kaldırır. Diğer kartların kalır.
 Hide the Muse button on your profile	Profilinde Muse düğmesini gizle
 Removes the Muse button from the top bar of your profile. Your username and the menu stay.	Muse düğmesini profilinin üst çubuğundan kaldırır. Kullanıcı adın ve menü kalır.
-Hide Blend on reels	Reels'te Blend'i gizle
-Removes the Blend invite button from reels. Everything else on a reel stays.	Blend davet düğmesini Reels'ten kaldırır. Reels'in geri kalanı olduğu gibi kalır.
+Hide Blend on reels	Reels'te Derleme'yi gizle
+Removes the Blend invite button from reels. Everything else on a reel stays.	Derleme davet düğmesini Reels'ten kaldırır. Reels'in geri kalanı olduğu gibi kalır.
 Explore	Keşfet
 Hide the Explore grid	Keşfet ızgarasını gizle
 Hides the grid of posts and reels under the Search tab's bar. Search, recent searches and results stay.	Arama sekmesindeki çubuğun altındaki gönderi ve reels ızgarasını gizler. Arama, son aramalar ve sonuçlar kalır.
@@ -1417,8 +1421,10 @@ Puts a border and Instagram's view once icon on a one-time photo or video in a c
 Fall back to Following	Takip edilenler'e geç
 When For you brings an account only suggested posts, page after page, Home opens on Following for that account. A feed you pick at the top of Home stays picked. Restart Instagram to see the change.	Senin için bir hesaba sayfa sayfa yalnızca önerilen gönderiler getirirse, Ana Sayfa o hesap için Takip edilenler'de açılır. Ana Sayfa'nın üstünde seçtiğin akış seçili kalır. Değişikliği görmek için Instagram'ı yeniden başlat.
 Only suggestions in For you. Home will open on Following.	Senin için'de sadece öneri var. Takip edilenler açılacak.
+Mix in Following	Takip edilenleri karıştır
+For you shows a page of posts from accounts you follow after each page of its own, until you've seen them all. Pull down on Home to start both over. Restart Instagram to see the change.	Senin için, kendi her sayfasından sonra takip ettiğin hesapların gönderilerinden bir sayfa gösterir, hepsini görene kadar. İkisini de baştan başlatmak için Ana Sayfa'yı aşağı çek. Değişikliği görmek için Instagram'ı yeniden başlat.
 Explore without personalization	Kişiselleştirme olmadan Keşfet
-Where Instagram offers it (in the EU), Explore opens with the grid that isn't personalized every time, and stays on it past ten minutes.	Instagram'ın sunduğu yerlerde (AB'de), Keşfet her seferinde kişiselleştirilmemiş ızgarayla açılır ve on dakika sonra da öyle kalır.
+Explore asks for the grid that isn't personalized every time it opens, and stays on it past ten minutes. Instagram only promises that grid in the EU.	Keşfet her açıldığında kişiselleştirilmemiş ızgarayı ister ve on dakika sonra da öyle kalır. Instagram bu ızgarayı yalnızca AB'de garanti eder.
 Hide Explore's personalized menu	Keşfet'in kişiselleştirme menüsünü gizle
 Hides the top bar button that switches Explore's personalization, where Instagram shows it (in the EU).	Instagram'ın gösterdiği yerlerde (AB'de), Keşfet'in kişiselleştirmesini değiştiren üst çubuk düğmesini gizler.
 # context: Feed settings: the Carousel arrows switch and the two arrow buttons' TalkBack labels (#417)
@@ -1539,12 +1545,16 @@ Couldn't read that picture.	Bu resim okunamadı.
 This launcher can't add it.	Bu başlatıcı ekleyemiyor.
 Glass in chats	Sohbetlerde cam
 Gives a chat's top bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Bir sohbetin üst çubuğuna buzlu cam efekti verir ve geri, arama ve video düğmelerini yuvarlak cam dairelere koyar. Sohbeti bir sonraki açışında görünür. Bulanıklık için Android 12 veya daha yenisi gerekir.
-# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary; %1$s is a number with thousands separators (#444)
+# context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Az izlenen reelleri gizle
-Leaves out reels in the Reels tab that fewer people have watched than the number below. Reels from accounts you follow, reels sent to you and reels with no view count still play.	Reels sekmesinde, aşağıdaki sayıdan az kişinin izlediği reelleri çıkarır. Takip ettiğin hesapların reelleri, sana gönderilen reeller ve izlenme sayısı olmayan reeller oynamaya devam eder.
+Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Reels sekmesinde izlenmesi veya beğenisi aşağıdaki sayılardan az olan reelleri çıkarır. Takip ettiğin hesapların reelleri, sana gönderilen reeller ve sayısı olmayan reeller oynamaya devam eder.
 Minimum views	En az izlenme
 Reels with fewer views than this are left out. Type a whole number.	Bundan az izlenen reeller çıkarılır. Tam sayı yaz.
 Fewer than %1$s views	%1$s izlenmeden az
+Minimum likes	En az beğeni
+Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Bundan az beğenisi olan reeller çıkarılır. Tam sayı yaz ya da beğenilere bakılmasın diye 0 yaz.
+Fewer than %1$s likes	%1$s beğeniden az
+Likes aren't looked at	Beğenilere bakılmıyor
 # context: Stories switch Stories priority, its summary, the Priority accounts row, its dialog message and the row's summaries (none, one account, several accounts) (#451)
 Stories priority	Hikaye önceliği
 Puts the accounts on your list first in the stories row at the top of Home while they have a story you haven't watched, in the order of the list. Once you've watched it, Instagram's own placement applies again. Your own story stays first.	Listendeki hesapları, henüz izlemediğin bir hikayeleri olduğu sürece Ana Sayfa'nın üstündeki hikaye satırında listenin sırasıyla en öne koyar. İzledikten sonra Instagram'ın kendi yerleşimi yeniden geçerli olur. Kendi hikayen ilk sırada kalır.
@@ -1553,3 +1563,103 @@ Usernames, one on each line. The first line goes first. A leading @ and capital 
 No accounts yet	Henüz hesap yok
 %1$d account	%1$d hesap
 %1$d accounts	%1$d hesap
+Home header text	Ana Sayfa üst yazısı
+Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Ana Sayfa'nın üstünde Instagram logosu yerine kendi sözlerin. En fazla %1$d karakter. Logoyu tutmak için boş bırak.
+Instagram's logo stays at the top of Home.	Ana Sayfa'nın üstünde Instagram logosu kalır.
+The top of Home says %1$s.	Ana Sayfa'nın üstünde %1$s yazıyor.
+Home header picture	Ana Sayfa üst resmi
+Remove the header picture	Üst resmi kaldır
+The top of Home goes back to your header text, or to Instagram's logo.	Ana Sayfa'nın üstü yazına ya da Instagram logosuna döner.
+Pick a picture to show at the top of Home, in place of Instagram's logo or your text.	Ana Sayfa'nın üstünde Instagram logosu ya da yazın yerine gösterilecek bir resim seç.
+The top of Home shows %1$s. Tap to pick another.	Ana Sayfa'nın üstünde %1$s görünüyor. Başka birini seçmek için dokun.
+Header picture set.	Üst resim ayarlandı.
+Header picture removed.	Üst resim kaldırıldı.
+That isn't a picture.	Bu bir resim değil.
+That picture is over %1$d MB.	Bu resim %1$d MB'tan büyük.
+Couldn't save the picture.	Resim kaydedilemedi.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Bir sohbet aç, üstte arama düğmelerinin yanındaki saat düğmesine dokun ya da sohbetin adına uzun bas, sonra İlk mesaja atla veya Bir tarihe atla seçeneğini seç. Sohbet eski mesajlarını kendisi yükler, bir sayaç ve İptal düğmesi gösterir.
+Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message.	Bir sohbet aç, üstte arama düğmelerinin yanındaki saat düğmesine dokun ya da sohbetin adına uzun bas, sonra Sohbeti dışa aktar seçeneğini seç. Sohbetin tamamı İndirilenler içindeki HushGram klasörüne metin dosyası olarak kaydedilir, her mesaj bir satırdır.
+Instagram stopped loading older messages.	Instagram eski mesajları yüklemeyi bıraktı.
+Black settings page	Siyah ayarlar sayfası
+Black rows and dialogs, HushGram's name at the top, and each category on one line.	Siyah satırlar ve pencereler, üstte HushGram adı ve her kategori tek satırda.
+Mark as read	Okundu olarak işaretle
+Nothing to mark as read	Okundu yapılacak bir şey yok
+Mark as read button in chats	Sohbetlerde Okundu olarak işaretle düğmesi
+A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	Karşı taraf sohbeti gördüğünü bilmediği sürece sohbetin üstünde bir onay işareti görünür. Ona dokunursan Görüldü'yü görür.
+Red story mentions	Kırmızı hikaye bahsetmeleri
+Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Bahsetme etiketinin yazısını beyaz yerine kırmızı çizer, böylece parlak hikayelerde öne çıkar.
+Only received reels	Yalnızca alınan reels
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Bir sohbetin reels'lerinde gezinirken orada gönderdiklerin atlanır, yalnızca karşı tarafın paylaştıkları gösterilir. Sohbetin reels'lerinde kaydır açıkken çalışır.
+Hide the audio icon on posts	Gönderilerdeki ses simgesini gizle
+Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Akışındaki videolardan hoparlör simgesini kaldırır. Videoya dokunmak sesi yine açıp kapatır. Ekranda zaten olan gönderiler yeniden yüklendiğinde değişir.
+Light when paused	Duraklatınca aydınlık
+Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Bir reel'i duraklatın, Ekran yanığı koruması tuşları siz tekrar oynatana veya kaydırana kadar tam parlaklığa getirsin. Sonra bekleme baştan başlar.
+Grow the heart	Kalbi büyüt
+Double tap the same post again within a second and a half and the heart pops up bigger, up to nearly twice its size. A pause and it starts small again.	Aynı gönderiye bir buçuk saniye içinde tekrar çift dokunursanız kalp daha büyük çıkar, boyutunun neredeyse iki katına kadar. Ara verirseniz yine küçük başlar.
+Instagram in pink	Pembe Instagram
+# context: Stories settings: a speed button in a video story's header, cycling 1x, 1.5x and 2x (#469)
+Speed button on stories	Hikayelerde hız düğmesi
+Puts a speed button at the top of a video story, beside the three dots. Tap it for 1.5x, again for 2x and once more for 1x. Later video stories keep the speed until you change it or restart Instagram. Ads play at normal speed.	Bir video hikayesinin üstüne, üç noktanın yanına bir hız düğmesi koyar. 1,5x için dokun, 2x için tekrar dokun, 1x için bir kez daha dokun. Sonraki video hikayeleri, sen değiştirene veya Instagram'ı yeniden başlatana kadar bu hızı korur. Reklamlar normal hızda oynatılır.
+# context: TalkBack label of that button; %1$s is the speed shown on it, such as 1.5x
+Playback speed, %1$s	Oynatma hızı, %1$s
+Where the mention pill goes	Bahsetme etiketinin yeri
+Under the name, 1 mention	Adın altında, 1 bahsetme
+Top bar, @1 mention	Üst çubuk, @1 bahsetme
+Top bar, @1	Üst çubuk, @1
+The pill sits under the story's name and reads like 1 mention. Its list opens over the story.	Etiket hikâyenin adının altında durur ve 1 bahsetme gibi yazar. Listesi hikâyenin üzerinde açılır.
+The pill sits in the top bar next to the menu and reads like @1 mention. Its list opens from the bottom of the screen.	Etiket üst çubukta menünün yanında durur ve @1 bahsetme gibi yazar. Listesi ekranın altından açılır.
+The pill sits in the top bar next to the menu and shows only the count, like @1. Its list opens from the bottom of the screen.	Etiket üst çubukta menünün yanında durur ve yalnızca sayıyı gösterir, @1 gibi. Listesi ekranın altından açılır.
+Turn on See who a story mentions to use this choice.	Bu seçimi kullanmak için Bir hikâyede kimlerden bahsedildiğini gör seçeneğini açın.
+Story mentions	Hikâye bahsetmeleri
+Accounts mentioned in this story	Bu hikâyede bahsedilen hesaplar
+# context: Feed settings: picks how the carousel page-dots pill looks (#471)
+Pill look	Hap görünümü
+# context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
+Seek bar look	Arama çubuğu görünümü
+# context: a look for the page-dots pill and the seek bars: opaque, as before
+Solid	Opak
+# context: a look for the page-dots pill and the seek bars: partly transparent
+See-through	Saydam
+# context: a look for the page-dots pill and the seek bars: blurs what's under it
+Frosted glass	Buzlu cam
+A light pill with dark dots, as it's always been.	Her zamanki gibi koyu noktalı açık renkli bir hap.
+A see-through dark pill with white dots, so more of the photo shows.	Fotoğrafın daha fazlası görünsün diye beyaz noktalı, saydam koyu bir hap.
+A frosted glass pill that blurs the photo under it. Before Android 12 it's see-through instead.	Altındaki fotoğrafı bulanıklaştıran buzlu camdan bir hap. Android 12 öncesinde bunun yerine saydam olur.
+Turn on Page dots on a pill to use this choice.	Bu seçimi kullanmak için Hap üzerinde sayfa noktaları seçeneğini açın.
+Turn on Seek bar on feed videos or its button to use this choice.	Bu seçimi kullanmak için Akış videolarında arama çubuğu seçeneğini veya düğmesini açın.
+Turn on Seek bar on stories to use this choice.	Bu seçimi kullanmak için Hikayelerde arama çubuğu seçeneğini açın.
+A white bar and handle, as they've always been.	Her zamanki gibi beyaz bir çubuk ve tutamaç.
+A fainter bar and handle, so more of the video shows through.	Videonun daha fazlası görünsün diye daha soluk bir çubuk ve tutamaç.
+A white bar on a strip of frosted glass that blurs the video under it. Before Android 12 the strip is see-through instead.	Altındaki videoyu bulanıklaştıran buzlu cam bir şerit üzerinde beyaz bir çubuk. Android 12 öncesinde şerit bunun yerine saydam olur.
+# context: Instagram's Blend, the shared reels feed in a chat, as Instagram names it in this language (Turkish Instagram: Derleme).
+Don't report Blend visits	Derleme ziyaretlerini bildirme
+Opening a Blend doesn't tell the chat it belongs to that you visited it. The Blend and its reels open as usual.	Bir Derleme'yi açman, ait olduğu sohbete onu ziyaret ettiğini bildirmez. Derleme ve Reels videoları her zamanki gibi açılır.
+# context: the little round profile pictures in a corner of a feed post or reel showing that a friend liked, commented on or reshared it. Instagram's own setting for them comes from its server, not the app.
+Hide activity bubbles	Etkinlik balonlarını gizle
+Takes the little round pictures off posts and reels that show a friend liked, commented on or reshared them. Posts already on screen change when they load again.	Bir arkadaşının beğendiğini, yorum yaptığını veya yeniden paylaştığını gösteren küçük yuvarlak resimleri gönderilerden ve Reels videolarından kaldırır. Ekrandaki gönderiler yeniden yüklendiğinde değişir.
+# context: a switch for foldable phones and tablets. Instagram normally moves its tab bar to a rail down the side on a wide screen; this keeps the narrow phone layout instead.
+Phone layout on big screens	Büyük ekranlarda telefon düzeni
+On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	Katlanabilir telefonda veya tablette Instagram tüm ekranda telefon düzenini korur, sekme çubuğu yanda değil altta durur. Değişikliği görmek için Instagram'ı yeniden başlat.
+# context: a switch on the Messages page. It adds a Preview row to the menu a long press on a chat in the inbox opens; Preview shows the chat's newest messages in a box without opening the chat, so no seen receipt goes out. "Seen" is Instagram's own read receipt label in a chat.
+Preview chats	Sohbet önizleme
+Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too.	Mesajlarında bir sohbete uzun bas ve Önizle'ye dokun, sohbeti açmadan en yeni mesajlarını oku. Böylece kimse Görüldü'yü görmez. Oradan yanıt da verebilirsin.
+# context: the row in a chat's long press menu and the title of the box it opens, which shows the chat's newest messages without opening the chat.
+Preview	Önizle
+# context: the hint in the reply field at the bottom of the chat preview box.
+Write a message	Bir mesaj yaz
+# context: shown in the chat preview box while its messages load.
+Loading	Yükleniyor
+Nothing here yet	Burada henüz bir şey yok
+# context: the chat preview box, and a short toast, when the chat's messages can't be read. Toasts stay short.
+Couldn't load this chat	Bu sohbet yüklenemedi
+# context: a short toast after a reply typed in the chat preview box went out.
+Sent	Gönderildi
+Couldn't send	Gönderilemedi
+# context: what a message with no text shows as in the chat preview box, by what it holds.
+Photo or video	Fotoğraf veya video
+GIF or sticker	GIF veya çıkartma
+# context: a view once photo or video in the chat preview box shows only this label, never the photo or video. Use Instagram's own wording for view once.
+View once message	Tek seferlik görüntülenen mesaj
+Attachment	Ek
+# context: the button next to the reply field in the chat preview box.
+Send	Gönder

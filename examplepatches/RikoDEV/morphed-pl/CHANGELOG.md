@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/RikoDEV/morphed-pl/compare/v1.2.2...v1.3.0) (2026-11-02)
+
+### ✨ New Features
+
+* add home screen dark mode and telemetry blocking ([777084d](https://github.com/RikoDEV/morphed-pl/commit/777084dd60110773a021b4370ac65d912973cd4b))
+
 ## [1.2.1](https://github.com/RikoDEV/morphed-pl/compare/v1.2.0...v1.2.1) (2026-10-08)
 
 ### 🐛 Bug Fixes

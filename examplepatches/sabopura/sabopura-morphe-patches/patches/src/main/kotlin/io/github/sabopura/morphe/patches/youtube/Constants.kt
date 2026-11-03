@@ -18,17 +18,17 @@ internal object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "21.20.405",
-                minSdk = 28,
+                version = "21.30.216",
+                minSdk = 29,
                 description = "Official Morphe patches' stable target; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
-                version = "21.42.241",
+                version = "21.43.523",
                 minSdk = 29,
-                description = "Official Morphe patches' newest target; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
+                description = "Applied without changes; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),
             AppTarget(
-                version = "21.43.523",
+                version = "21.44.528",
                 minSdk = 29,
                 description = "Applied without changes; danmaku fetched and drawn in sync with playback and the see-through watch page shown on the dedicated Android API 36 emulator.",
             ),

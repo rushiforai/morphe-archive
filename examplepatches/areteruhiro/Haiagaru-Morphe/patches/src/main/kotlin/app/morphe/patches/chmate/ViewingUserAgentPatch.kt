@@ -48,8 +48,8 @@ internal fun BytecodePatchContext.patchViewingUserAgent(version: String) {
         }
     }
     var connections = 0
-    classDefForEach { cls ->
-        if (cls.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+    boundClassForEach("ViewingUserAgentPatch:1") { cls ->
+        if (cls.type.startsWith("Lapp/morphe/extension/")) return@boundClassForEach
         val mutable by lazy { mutableClassDefBy(cls) }
         cls.methods.forEach { method ->
             val code = method.implementation?.instructions?.toList() ?: return@forEach

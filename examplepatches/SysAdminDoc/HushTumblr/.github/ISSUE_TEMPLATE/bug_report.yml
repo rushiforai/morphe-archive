@@ -111,6 +111,7 @@ body:
         - Remove ad tracking permissions
         - Reorder the bottom bar
         - Reveal allowed mature content
+        - Share video links
         - Show mutual markers
         - Show post timestamps
         - Skip review prompts

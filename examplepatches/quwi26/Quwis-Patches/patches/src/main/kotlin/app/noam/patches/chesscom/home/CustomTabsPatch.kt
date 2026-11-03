@@ -10,6 +10,7 @@ import app.noam.patches.chesscom.misc.settings.settingsPatch
 import app.noam.patches.chesscom.shared.Constants
 import app.noam.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -73,27 +74,38 @@ val customTabsPatch = bytecodePatch(
             }
             // The bar composable prepends Play and Puzzles itself; drop Puzzles when it is off.
             val homeScreen = "Lcom/chess/home/ui/HomeScreen;"
-            var tabListHooks = 0
+            // Find the builders on the immutable classes and make mutable only those that get a
+            // hook: making a class mutable rewrites it into a new DEX file, and this scan visits
+            // every class in the app.
+            val barBuilders = mutableListOf<Pair<String, Method>>()
             classDefForEach { classDef ->
-                mutableClassDefBy(classDef).methods.forEach { method ->
+                classDef.methods.forEach { method ->
                     val implementation = method.implementation ?: return@forEach
-                    val instructions = implementation.instructions.toList()
-                    val touchesScreens = instructions.any { instruction ->
+                    val touchesScreens = implementation.instructions.any { instruction ->
                         ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == homeScreen
                     }
-                    if (!touchesScreens) return@forEach
-                    val inserts = instructions.indices.filter { index ->
-                        val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                    if (touchesScreens) barBuilders += classDef.type to method
+                }
+            }
+            var tabListHooks = 0
+            barBuilders.forEach { (type, builder) ->
+                mutableClassDefBy(type).methods.first {
+                    it.name == builder.name && it.parameterTypes == builder.parameterTypes &&
+                        it.returnType == builder.returnType
+                }.apply {
+                    val snapshot = instructions.toList()
+                    val inserts = snapshot.indices.filter { index ->
+                        val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
                         reference?.definingClass == "Lcom/google/android/vl0;" && reference.name == "q0" &&
-                            instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+                            snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
                     }
                     inserts.sortedDescending().forEach { index ->
-                        val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                        val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
                         if (reference?.returnType !in setOf("Ljava/util/ArrayList;", "Ljava/util/List;")) {
                             throw PatchException("The bottom bar list builder does not return a list")
                         }
-                        val register = (instructions[index + 1] as OneRegisterInstruction).registerA
-                        method.addInstructions(
+                        val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
+                        addInstructions(
                             index + 2,
                             """
                                 invoke-static/range { v$register .. v$register }, $HOME_TABS->finalTabs(Ljava/util/List;)Ljava/util/List;

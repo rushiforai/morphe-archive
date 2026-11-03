@@ -1,3 +1,9 @@
+## [1.4.7](https://github.com/snowyegret23/morphe-patches/compare/v1.4.6...v1.4.7) (2026-11-02)
+
+### ✨ New Features
+
+* add experimental CHZZK Android TV customization ([f3ee87c](https://github.com/snowyegret23/morphe-patches/commit/f3ee87cc2784e9660b2197007f14e1a0a289fbfd))
+
 ## [1.4.6](https://github.com/snowyegret23/morphe-patches/compare/v1.4.5...v1.4.6) (2026-10-29)
 
 ### 🐛 Bug Fixes

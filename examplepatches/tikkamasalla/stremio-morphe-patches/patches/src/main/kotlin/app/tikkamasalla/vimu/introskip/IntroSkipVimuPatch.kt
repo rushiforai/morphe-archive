@@ -10,6 +10,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val INTRO_SKIP = "Lnet/gtvbox/videoplayer/IntroSkip;"
 private const val VIMU_FIX = "Lnet/gtvbox/videoplayer/VimuFix;"
@@ -30,7 +31,7 @@ val introSkipVimuPatch = bytecodePatch(
 ) {
     compatibleWith(Constants.VIMU_COMPATIBILITY)
     extendWith("extensions/extension.mpe")
-    dependsOn(vimuNativePatch, vimuSettingsPatch)
+    dependsOn(vimuNativePatch, vimuSettingsPatch, vimuResignCheckPatch)
 
     execute {
         // Start the skip after super.onResume, stop it after super.onPause.
@@ -121,8 +122,14 @@ val introSkipVimuPatch = bytecodePatch(
                         (it.referenceString()?.contains("CountDownTimer") == true)
                 },
             )
-            val field = (implementation!!.instructions[clear] as ReferenceInstruction)
-                .reference.toString()
+            val clearInstruction = implementation!!.instructions[clear]
+            val field = (clearInstruction as ReferenceInstruction).reference.toString()
+            // The hook reuses v0 (the stock null for the clear) and p0 (this); anything else would
+            // clobber a live register, so a moved layout fails loudly instead.
+            val clearRegs = clearInstruction as TwoRegisterInstruction
+            if (clearRegs.registerA != 0 || clearRegs.registerB != implementation!!.registerCount - 1) {
+                throw PatchException("Vimu seek timer clear uses other registers in this build.")
+            }
             addInstructionsWithLabels(
                 clear,
                 """
@@ -130,7 +137,7 @@ val introSkipVimuPatch = bytecodePatch(
                 if-eqz v0, :vimufix_cancelled
                 invoke-virtual {v0}, Landroid/os/CountDownTimer;->cancel()V
                 :vimufix_cancelled
-                nop
+                const/4 v0, 0x0
                 """.trimIndent(),
             )
         }

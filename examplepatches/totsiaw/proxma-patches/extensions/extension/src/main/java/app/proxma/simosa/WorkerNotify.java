@@ -84,5 +84,6 @@ public final class WorkerNotify {
 
     public static void log(String msg) {
         Log.i(TAG, msg);
+        Trace.line(msg);
     }
 }

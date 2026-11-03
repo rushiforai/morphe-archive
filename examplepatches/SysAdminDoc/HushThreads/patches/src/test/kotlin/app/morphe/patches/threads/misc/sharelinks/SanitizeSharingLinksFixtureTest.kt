@@ -94,11 +94,12 @@ class SanitizeSharingLinksFixtureTest {
 
             val mutable = context.mutableClassDefBy(PERMALINK_REPOSITORY).methods.single { it.isPostLinkFetch() }
             val patched = mutable.instructions()
-            assertEquals("$where: twelve instructions after each read", stock.size + 24, patched.size)
+            assertEquals("$where: twelve instructions after each read", stock.size + 24 + stock.lowLinkCopies(fetch.reads), patched.size)
             assertEquals("$where: no new registers", fetch.method.implementation!!.registerCount, mutable.implementation!!.registerCount)
             for ((n, read) in fetch.reads.withIndex()) {
-                val at = read + 2 + 12 * n
-                val link = fetch.link(read)
+                val at = read + 2 + 12 * n + stock.copiesBefore(fetch.reads, n)
+                val high = fetch.link(read)
+                val link = lowLink(where, patched, at, 12, high)
                 val block = patched.subList(at, at + 12)
                 assertEquals(
                     "$where: hook shape after read $read",
@@ -110,9 +111,10 @@ class SanitizeSharingLinksFixtureTest {
                 val code = (block[0] as OneRegisterInstruction).registerA
                 val name = (block[1] as OneRegisterInstruction).registerA
                 assertTrue("$where: two scratch registers apart from the link and the post",
-                    setOf(code, name, link, fetch.post).size == 4)
+                    setOf(code, name, link, high, fetch.post).size == if (link == high) 4 else 5)
                 val live = RegisterLiveness.of(fetch.method).liveInto(read + 2)
-                assertTrue("$where: nothing reads v$code or v$name after read $read", code !in live && name !in live)
+                assertTrue("$where: nothing reads v$code or v$name after read $read",
+                    listOfNotNull(code, name, link.takeIf { it != high }).none { it in live })
 
                 fun call(index: Int) = block[index] as FiveRegisterInstruction
                 assertEquals("$where: a post without a value skips to the call", at + 10, patched.target(at + 2))
@@ -131,7 +133,8 @@ class SanitizeSharingLinksFixtureTest {
                 assertEquals(POST_LINK, block[10].method().toString())
                 assertEquals(listOf(link, name, code), call(10).let { listOf(it.registerC, it.registerD, it.registerE) })
                 assertEquals("$where: the post's own link replaces the read one", link, (block[11] as OneRegisterInstruction).registerA)
-                assertEquals("$where: then the fetch goes on as it did", stock[read + 2].opcode, patched[at + 12].opcode)
+                assertEquals("$where: then the fetch goes on as it did", stock[read + 2].opcode,
+                    patched[at + 12 + if (link == high) 0 else 1].opcode)
             }
             assertEquals("$where: one parser call, two fetch calls", 2, patched.count { it.method()?.toString() == POST_LINK })
         }
@@ -207,10 +210,12 @@ class SanitizeSharingLinksFixtureTest {
                     val self = stock.implementation!!.registerCount - 1 -
                         stock.parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
                     val reads = stock.reads()
-                    assertEquals("$where $type: fourteen instructions after each read", stock.instructions().size + 14 * reads.size, patched.size)
+                    val body = stock.instructions()
+                    assertEquals("$where $type: fourteen instructions after each read", body.size + 14 * reads.size + body.lowLinkCopies(reads), patched.size)
                     for ((n, read) in reads.withIndex()) {
-                        val at = read + 2 + 14 * n
-                        val link = (stock.instructions()[read + 1] as OneRegisterInstruction).registerA
+                        val at = read + 2 + 14 * n + body.copiesBefore(reads, n)
+                        val high = body.linkAt(read)
+                        val link = lowLink("$where $type", patched, at, 14, high)
                         val block = patched.subList(at, at + 14)
                         assertEquals("$where $type: hook shape after read $read",
                             listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.CONST_4, Opcode.CONST_4, Opcode.IF_EQZ,
@@ -224,9 +229,11 @@ class SanitizeSharingLinksFixtureTest {
                             listOf(load.registerA, load.registerB, block[1].field().toString()))
                         val code = (block[2] as OneRegisterInstruction).registerA
                         val name = (block[3] as OneRegisterInstruction).registerA
-                        assertTrue("$where $type: three scratch registers apart from the link", setOf(media, code, name, link).size == 4)
+                        assertTrue("$where $type: three scratch registers apart from the link",
+                            setOf(media, code, name, link, high).size == if (link == high) 4 else 5)
                         val live = RegisterLiveness.of(stock).liveInto(read + 2)
-                        assertTrue("$where $type: nothing reads the scratch registers after read $read", listOf(media, code, name).none { it in live })
+                        assertTrue("$where $type: nothing reads the scratch registers after read $read",
+                            listOfNotNull(media, code, name, link.takeIf { it != high }).none { it in live })
                         assertEquals("$where $type: a missing post skips to the call", at + 12, patched.target(at + 4))
                         assertEquals(media, (block[5] as FiveRegisterInstruction).registerC)
                         assertEquals(media, (block[7] as FiveRegisterInstruction).registerC)
@@ -273,12 +280,13 @@ class SanitizeSharingLinksFixtureTest {
                 val patched = context.mutableClassDefBy(stock.definingClass).methods
                     .single { it.name == stock.name && it.parameterTypes == stock.parameterTypes }.instructions()
                 val stockReads = reads(stock)
-                assertEquals("$name: one call before the fetch, fifteen after each read", body.counted() + 1 + 15 * stockReads.size, patched.counted())
+                assertEquals("$name: one call before the fetch, fifteen after each read",
+                    body.counted() + 1 + 15 * stockReads.size + body.lowLinkCopies(stockReads), patched.counted())
                 assertEquals("$name: the post goes in just before the fetch", REMEMBER_POST, patched[call].method().toString())
                 assertEquals(listOf(coroutine, arguments[2]), (patched[call] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
                 assertEquals("$name: then the fetch as it was", body[call].method().toString(), patched[call + 1].method().toString())
                 for ((n, read) in stockReads.withIndex()) {
-                    val at = read + 2 + (if (read > call) 1 else 0) + 15 * n
+                    val at = read + 2 + (if (read > call) 1 else 0) + 15 * n + body.copiesBefore(stockReads, n)
                     assertRecall("$name read $read", stock, read, patched, at, coroutine)
                 }
             }
@@ -313,12 +321,13 @@ class SanitizeSharingLinksFixtureTest {
             sanitizeSharingLinksPatch.execute(context)
 
             val patched = context.mutableClassDefBy(stock.definingClass).methods.single { it.name == stock.name }.instructions()
-            assertEquals("$where: one call after the cast, fifteen after each read", body.counted() + 1 + 15 * stockReads.size, patched.counted())
+            assertEquals("$where: one call after the cast, fifteen after each read",
+                body.counted() + 1 + 15 * stockReads.size + body.lowLinkCopies(stockReads), patched.counted())
             assertEquals("$where: the post goes in right after its cast", REMEMBER_POST, patched[cast + 1].method().toString())
             assertEquals(listOf(self, post), (patched[cast + 1] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
             for ((n, read) in stockReads.withIndex()) {
                 // Through this, as 452 reuses the alias between the cast and the read.
-                assertRecall("$where read $read", stock, read, patched, read + 3 + 15 * n, owner)
+                assertRecall("$where read $read", stock, read, patched, read + 3 + 15 * n + body.copiesBefore(stockReads, n), owner)
             }
         }
         assertTrue("a declared build has quick sends", seen > 0)
@@ -434,7 +443,8 @@ class SanitizeSharingLinksFixtureTest {
      * back, cast to a post, then the fetch's hook runs with it, in registers [stock] doesn't read there.
      */
     private fun assertRecall(where: String, stock: Method, read: Int, patched: List<Instruction>, at: Int, key: Int) {
-        val link = (stock.instructions()[read + 1] as OneRegisterInstruction).registerA
+        val high = stock.instructions().linkAt(read)
+        val link = lowLink(where, patched, at, 15, high)
         val block = patched.subList(at, at + 15)
         // A key above v15, as this is in a coroutine body, is named by the range form.
         val recall = if (key > 15) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC
@@ -453,9 +463,11 @@ class SanitizeSharingLinksFixtureTest {
         assertEquals("$where: cast to a post", listOf(post, MEDIA), listOf((block[2] as OneRegisterInstruction).registerA, block[2].type()))
         val code = (block[3] as OneRegisterInstruction).registerA
         val name = (block[4] as OneRegisterInstruction).registerA
-        assertTrue("$where: three scratch registers apart from the link and the key", setOf(post, code, name, link, key).size == 5)
+        assertTrue("$where: three scratch registers apart from the link and the key",
+            setOf(post, code, name, link, high, key).size == if (link == high) 5 else 6)
         val live = RegisterLiveness.of(stock).liveInto(read + 2)
-        assertTrue("$where: nothing reads the scratch registers after the read", listOf(post, code, name).none { it in live })
+        assertTrue("$where: nothing reads the scratch registers after the read",
+            listOfNotNull(post, code, name, link.takeIf { it != high }).none { it in live })
         assertEquals("$where: a missing post skips to the call", at + 13, patched.target(at + 5))
         assertEquals(post, (block[5] as OneRegisterInstruction).registerA)
         assertEquals(post, (block[6] as FiveRegisterInstruction).registerC)
@@ -464,8 +476,35 @@ class SanitizeSharingLinksFixtureTest {
         assertEquals(POST_LINK, block[13].method().toString())
         assertEquals(listOf(link, name, code), (block[13] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD, it.registerE) })
         assertEquals("$where: the post's own link replaces the read one", link, (block[14] as OneRegisterInstruction).registerA)
-        assertEquals("$where: then the method goes on as it did", stock.instructions()[read + 2].opcode, patched[at + 15].opcode)
+        assertEquals("$where: then the method goes on as it did", stock.instructions()[read + 2].opcode,
+            patched[at + 15 + if (link == high) 0 else 1].opcode)
     }
+
+    /**
+     * The register a hook of [size] instructions at [at] in [patched] hands the extension the link
+     * in: [link] itself, or for a link above v15 the low local it is copied into right before the
+     * hook and back out of right after.
+     */
+    private fun lowLink(where: String, patched: List<Instruction>, at: Int, size: Int, link: Int): Int {
+        if (link <= 15) return link
+        val down = patched[at - 1] as TwoRegisterInstruction
+        val up = patched[at + size] as TwoRegisterInstruction
+        assertEquals("$where: v$link comes down", listOf(Opcode.MOVE_OBJECT_FROM16, link), listOf(patched[at - 1].opcode, down.registerB))
+        assertTrue("$where: into a low local", down.registerA <= 15)
+        assertEquals("$where: and goes back up", listOf(Opcode.MOVE_OBJECT_FROM16, link, down.registerA),
+            listOf(patched[at + size].opcode, up.registerA, up.registerB))
+        return down.registerA
+    }
+
+    /** The register the read at [read] keeps the link in. */
+    private fun List<Instruction>.linkAt(read: Int) = (this[read + 1] as OneRegisterInstruction).registerA
+
+    /** Copies of links above v15 the hooks after [reads] add: two each. */
+    private fun List<Instruction>.lowLinkCopies(reads: List<Int>) = 2 * reads.count { linkAt(it) > 15 }
+
+    /** Copies ahead of the hook after the [n]th of [reads]: two per earlier high link and one for its own. */
+    private fun List<Instruction>.copiesBefore(reads: List<Int>, n: Int) =
+        lowLinkCopies(reads.take(n)) + if (linkAt(reads[n]) > 15) 1 else 0
 
     /** The reads of the answer's link getter in a method, by the getter the share sheet's fetch reads. */
     private fun linkReader(classes: List<ClassDef>): (Method) -> List<Int> {

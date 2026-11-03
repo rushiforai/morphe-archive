@@ -61,6 +61,7 @@ public final class FamilyNames {
     public static final String STORY_RING = "Story ring size";
     public static final String STORY_PROGRESS_BAR = "Thicker story progress bar";
     public static final String STORY_SEEK_BAR = "Seek bar on stories";
+    public static final String STORY_SPEED = "Speed button on stories";
     public static final String FEED_REELS = "Hide Reels in the feed";
     public static final String FEED_SUGGESTIONS = "Hide suggested posts";
     public static final String HOME_FEED = "Hide the home feed";
@@ -82,6 +83,7 @@ public final class FamilyNames {
     public static final String REPOST_BUTTON = "Hide the Repost button";
     public static final String HIDE_SHARE_BUTTON = "Hide the Share button";
     public static final String BOTTOM_SPACE = "Remove the empty space at the bottom";
+    public static final String PHONE_LAYOUT = "Phone layout on big screens";
     public static final String GLASS_TAB_BAR = "Glass tab bar";
     public static final String FULL_SCREEN_BARS = "Full screen Reels and Home";
     public static final String SAVED_ON_PROFILE = "Saved on your profile";
@@ -90,6 +92,7 @@ public final class FamilyNames {
     public static final String EMOJI_STYLE = "Emoji style";
     public static final String ACCENT_COLOR = "Accent color";
     public static final String LAUNCH_SCREEN = "HushGram launch screen";
+    public static final String HEADER_TEXT = "Home header text";
     public static final String APP_ICON = "Pick the app icon";
     public static final String SETTINGS_ROWS = "Hide rows in Instagram's settings";
     public static final String FONT = "Font";
@@ -112,7 +115,9 @@ public final class FamilyNames {
     public static final String COMMENT_EMOJI_ROW = "Hide the comment emoji row";
     public static final String COMMENT_KEYBOARD = "Open comments without the keyboard";
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
+    public static final String ACTIVITY_BUBBLES = "Hide activity bubbles";
     public static final String HIDE_CAPTIONS = "Hide captions";
+    public static final String FEED_AUDIO_ICON = "Hide the audio icon on posts";
     public static final String HOME_TOP_BAR = "Keep Home's top bar";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String KEEP_REELS_TOP_BAR = "Keep the Reels top bar";
@@ -149,11 +154,13 @@ public final class FamilyNames {
     private FamilyNames() {
     }
     public static final String SCREENSHOT_REPORTS = "Don't report screenshots";
+    public static final String BLEND_VISITS = "Don't report Blend visits";
     public static final String SCREENSHOT_BLOCK = "Allow screenshots";
     public static final String KEEP_IN_CHAT = "Keep in chat";
     public static final String VIEW_ONCE_MARK = "Mark one-time photos and videos";
     public static final String CHAT_REELS = "Swipe through a chat's reels";
     public static final String CHAT_HISTORY = "Chat history tools";
+    public static final String PREVIEW_CHATS = "Preview chats";
     public static final String ASK_BEFORE_CALL = "Ask before a call";
     public static final String MESSAGE_BOX = "Message box buttons";
     public static final String PLUS_MENU = "Chat plus menu";

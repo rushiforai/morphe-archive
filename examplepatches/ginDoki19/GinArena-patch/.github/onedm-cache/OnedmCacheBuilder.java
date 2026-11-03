@@ -23,7 +23,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -78,10 +80,12 @@ public final class OnedmCacheBuilder {
     private static final class AdblockBuild {
         final File zipFile;
         final int totalActiveFilters;
+        final Map<String, String> binSha256;
 
-        AdblockBuild(File zipFile, int totalActiveFilters) {
+        AdblockBuild(File zipFile, int totalActiveFilters, Map<String, String> binSha256) {
             this.zipFile = zipFile;
             this.totalActiveFilters = totalActiveFilters;
+            this.binSha256 = binSha256;
         }
     }
 
@@ -163,6 +167,7 @@ public final class OnedmCacheBuilder {
             + "  \"adblockAsset\": \"" + adblockPack.getName() + "\",\n"
             + "  \"adblockSha256\": \"" + adblockSha + "\",\n"
             + "  \"adblockSize\": " + adblockPack.length() + ",\n"
+            + "  \"adblockBinSha256\": {\"abnfp.bin\": \"" + adblockBuild.binSha256.get("abnfp.bin") + "\", \"abnhp.bin\": \"" + adblockBuild.binSha256.get("abnhp.bin") + "\", \"abcfp.bin\": \"" + adblockBuild.binSha256.get("abcfp.bin") + "\"},\n"
             + "  \"userscriptAsset\": \"" + usBuild.gzFile.getName() + "\",\n"
             + "  \"userscriptVersion\": \"" + escapeJson(usBuild.version) + "\",\n"
             + "  \"userscriptSha256\": \"" + usSha + "\",\n"
@@ -380,6 +385,12 @@ public final class OnedmCacheBuilder {
             elapsedMs / 1000.0, totalActiveFilters, nfp.length(), nhp.length(), cfp.length()
         );
 
+        // Per-bin SHA-256 for the manifest so clients can re-verify extracted bins.
+        Map<String, String> binSha256 = new LinkedHashMap<>();
+        binSha256.put("abnfp.bin", sha256Hex(Files.readAllBytes(nfp.toPath())));
+        binSha256.put("abnhp.bin", sha256Hex(Files.readAllBytes(nhp.toPath())));
+        binSha256.put("abcfp.bin", sha256Hex(Files.readAllBytes(cfp.toPath())));
+
         File zipOut = new File(outDir, "onedm-v20-adblock-pack.zip");
         try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipOut))) {
             zos.setLevel(Deflater.BEST_COMPRESSION);
@@ -420,7 +431,7 @@ public final class OnedmCacheBuilder {
                 zos.closeEntry();
             }
         }
-        return new AdblockBuild(zipOut, totalActiveFilters);
+        return new AdblockBuild(zipOut, totalActiveFilters, binSha256);
     }
 
     private static final class UserscriptBuild {

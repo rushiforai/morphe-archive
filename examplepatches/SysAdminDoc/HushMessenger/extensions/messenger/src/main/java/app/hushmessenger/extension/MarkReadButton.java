@@ -79,6 +79,7 @@ public final class MarkReadButton {
      */
     public static void add(List<Object> buttons, Object socket) {
         CallButtons.blank(buttons);
+        CallConfirm.guard(buttons);
         try {
             if (buttons != null && shown()) place(buttons, build(socket));
         } catch (Throwable error) {
@@ -92,6 +93,7 @@ public final class MarkReadButton {
      */
     public static List<Object> addTo(List<Object> buttons, Object session, Object thread, Object mig) {
         buttons = CallButtons.without(buttons);
+        CallConfirm.guard(buttons);
         try {
             if (buttons == null || !shown()) return buttons;
             Object button = button(session, thread, mig);
@@ -165,7 +167,7 @@ public final class MarkReadButton {
         return false;
     }
 
-    private static boolean hasTag(Object button, String tag) throws IllegalAccessException {
+    static boolean hasTag(Object button, String tag) throws IllegalAccessException {
         for (Class<?> type = button.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
             for (Field field : type.getDeclaredFields()) {
                 if (Modifier.isStatic(field.getModifiers()) || field.getType() != String.class) continue;

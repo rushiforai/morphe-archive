@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
+import app.hushpinterest.extension.pinterest.actions.SavedRecordForTests;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.PatchFamilyForTests;
@@ -64,6 +65,7 @@ public class SavedPinsTest {
         @Json("is_repin") Boolean repin;
         @Json("is_owned_by_viewer") Boolean owned;
         @Json("pinned_to_board") Board board;
+        @Json("pinned_to_profile") Boolean profile;
 
         Pin(String id) {
             this.id = id;
@@ -126,6 +128,14 @@ public class SavedPinsTest {
         assertEquals("board.{id},pin.{pinned_to_board,id},user.{id}", SavedPins.askingSaved("board.{id},pin.{id},user.{id}"));
     }
 
+    /** Home comes up empty with "Oops, something went wrong!" when its request names this one. */
+    @Test
+    public void homeIsNeverAskedForTheProfileField() {
+        assertFalse(SavedPins.askingSaved("pin.{id,title},board.{id}").contains(SavedPins.PINNED_TO_PROFILE));
+        Settings.HIDE_SAVED_PINS.save(true);
+        assertFalse(SavedPins.homeFields("pin.{id}").contains(SavedPins.PINNED_TO_PROFILE));
+    }
+
     /** A set with no pin fields of its own isn't touched, nor is a word that only ends in "pin". */
     @Test
     public void aListWithoutThePinsOwnFieldsStaysAsItWas() {
@@ -186,6 +196,28 @@ public class SavedPinsTest {
         SavedPins.prune(page);
         assertEquals(Arrays.asList(fresh, repinned, intro), page);
         assertTrue(report(), report().contains(FamilyNames.FILTER_FEED) && report().contains("saved pin removed 2"));
+    }
+
+    /** Pinterest's default save goes to your profile with no board, so that field alone would miss it. */
+    @Test
+    public void aPinOnYourProfileLeavesAndOneThatSaysItIsntStays() {
+        Pin onProfile = new Pin("onProfile");
+        onProfile.profile = true;
+        Pin notOnProfile = new Pin("notOnProfile");
+        notOnProfile.profile = false;
+        List<Object> page = new ArrayList<>(Arrays.asList(onProfile, notOnProfile));
+        SavedPins.prune(page);
+        assertEquals(Arrays.asList(notOnProfile), page);
+    }
+
+    /** A pin saved here that Home sends back with nothing set, as a response that leaves the fields out would. */
+    @Test
+    public void aPinInTheLocalRecordLeaves() {
+        SavedRecordForTests.add("recorded");
+        Pin recorded = new Pin("recorded");
+        List<Object> page = new ArrayList<>(Arrays.asList(fresh, recorded));
+        SavedPins.prune(page);
+        assertEquals(Arrays.asList(fresh), page);
     }
 
     @Test

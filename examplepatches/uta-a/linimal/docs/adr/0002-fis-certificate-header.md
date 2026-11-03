@@ -2,7 +2,7 @@
 
 - 状態: 採用
 - 日付: 2026-09-21
-- 関連: [ADR 0001](0001-reference-and-signing-policy.md) 決定 4、[互換性](../compatibility/line-26.11.0-arm64-v8a.md)
+- 関連: [ADR 0001](0001-reference-and-signing-policy.md) 決定 4、[互換性](../compatibility/line-26.16.0-arm64-v8a.md)
 
 ## 背景
 

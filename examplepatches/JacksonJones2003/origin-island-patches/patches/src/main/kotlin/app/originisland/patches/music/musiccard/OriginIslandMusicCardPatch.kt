@@ -4,9 +4,11 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.originisland.patches.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.originisland.patches.shared.mediasession.MediaBrowserServiceGetCurrentBrowserInfoFingerprint
@@ -44,7 +46,46 @@ private const val MUSIC_BROWSER_SERVICE =
  */
 private const val MUSIC_CARD_SERVICE_ACTION = "com.vivo.musicwidgetmix.support.service"
 
+private const val KEEP_PACKAGE = "Keep"
+
+/**
+ * A package of the list of apps the card offers to pick from while nothing plays.
+ */
+private const val LUNA_MUSIC_PACKAGE = "com.luna.music"
+
+private lateinit var packageNameOption: Option<String>
+
 private val musicCardServiceResourcePatch = resourcePatch {
+    // Last, so that it is not undone by a patch that expects the package of the app.
+    finalize {
+        val packageName = packageNameOption.value!!
+        if (packageName == KEEP_PACKAGE) return@finalize
+
+        document("AndroidManifest.xml").use { document ->
+            val manifest = document.documentElement
+            val oldPackageName = manifest.getAttribute("package")
+            fun renamed(name: String) =
+                if (name.startsWith("$oldPackageName.")) name.replaceFirst(oldPackageName, packageName) else name
+
+            manifest.setAttribute("package", packageName)
+
+            // Two apps cannot declare the same providers or permissions.
+            val providers = document.getElementsByTagName("provider")
+            (0 until providers.length).map { providers.item(it) as Element }.forEach { provider ->
+                provider.setAttribute(
+                    "android:authorities",
+                    provider.getAttribute("android:authorities").split(';').joinToString(";", transform = ::renamed)
+                )
+            }
+            listOf("permission", "uses-permission").forEach { tag ->
+                val permissions = document.getElementsByTagName(tag)
+                (0 until permissions.length).map { permissions.item(it) as Element }.forEach { permission ->
+                    permission.setAttribute("android:name", renamed(permission.getAttribute("android:name")))
+                }
+            }
+        }
+    }
+
     execute {
         document("AndroidManifest.xml").use { document ->
             val services = document.getElementsByTagName("service")
@@ -90,6 +131,20 @@ val originIslandMusicCardPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE_MUSIC)
+
+    packageNameOption = stringOption(
+        key = "packageName",
+        default = KEEP_PACKAGE,
+        values = mapOf(
+            "Keep the package of YouTube Music" to KEEP_PACKAGE,
+            "Luna Music, to be offered by the card while nothing plays" to LUNA_MUSIC_PACKAGE
+        ),
+        title = "Package name",
+        description = "The package to install this copy of YouTube Music under.",
+        required = true
+    ) {
+        it == KEEP_PACKAGE || it!!.matches(Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$"))
+    }
 
     dependsOn(musicCardServiceResourcePatch)
 

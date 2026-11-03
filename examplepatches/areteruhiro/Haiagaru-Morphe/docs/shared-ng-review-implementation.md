@@ -105,3 +105,15 @@ GAS実配備: reviewPersonalNg/exportReviewedSharedNgの実行完了、毎時rev
 - 20,000文字ごとの分割キャッシュでGASの100KB制限を回避。manifestは全片保存後に書き、欠損・破損時は再集計。審査変更でmanifestを無効化。
 - host: moderation53、lifecycle74、personal148、service40・legacy41、edge19成功。Java rules96、index10003、regex17成功。
 - Androidの通常ビルドは仮想メモリ不足で中断（Kotlin JVM起動失敗、再試行のR8中にホスト側OutOfMemory）。ビルド成功・端末確認・アプリ公開とは扱わない。必死viewer=falseの未完検証とフィルターパネル高さ調整、全機能版間確認は別途継続。
+
+## 2026-11-03 reporter除外・GAS v14反映
+
+- IGNORED_REPORTERS（スクリプト プロパティ、64桁reporterを改行/カンマ区切り）を追加。識別子自体はGitへ記載しない。
+- v2の有効なupsert/deleteには成功とoperation ACKを返し、lock/シートアクセス前に終了。v1も有効な対象報告には成功応答し新規保存しない。
+- 既存の受信履歴は保持し、対象reporterの票を直接/任意GitHub配信と読み取り専用監査から除外。他reporterの同一条件は残す。配信cacheは除外設定別のキーへ分離。
+- lifecycle88/personal148/service41/moderation53チェック成功（計330）。再送ACK・取消ACK・シート非書込・他reporterの票・既存履歴保持・設定解除・cache分離を合成データで検証。
+- 公開GASのCode/PersonalInbox/Publishを編集して保存後再取得。改行正規化した全文の長さ/FNV32はローカルと一致（13507/88fd4165、14134/1d05c8、11968/d6d4eb51）。
+- 既存WebアプリURLを維持し、GASバージョン14へ2026-11-03 11:25 JST更新完了。IGNORED_REPORTERSの保存値が利用者指定値と一致することをUIから確認。アプリパッチ更新・導入・Releaseなし。
+- 公開GET action=reviewedはok=true/revision113/rules1704、private metadataなし。公開POSTによる実reporterのなりすまし試験は行っていない。
+- editorでの追加export実行は他処理のlock保持により15秒でtimeout。公開GET成功と別の検証であり、追加export/auditの実行成功とは扱わない。
+- 今後の除外リスト変更はGASプロパティのみ。アプリ更新もGAS再デプロイも不要。GASコード変更時は既存deploymentの新バージョン公開が必要。

@@ -25,10 +25,10 @@ import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 private const val STRING = "Ljava/lang/String;"
 internal const val MANUAL_READ = "linimalMarkReadManually"
 
-/** 既存 executor の検索と既読処理だけを公開し、通信・SQL・送信時 bridge は変更しません。 */
+/** 公式 executor へ「すべて既読にする」の入口を追加します。通信と既存メソッドの本文は変更しません。 */
 val readWithoutReceiptManualReadPatch = bytecodePatch(
     name = "既読なし閲覧中の手動既読入口",
-    description = "選択したメッセージと現在のトーク全体を、公式の既読処理へ渡す入口を追加します。",
+    description = "現在のトーク全体を、公式の既読処理へ渡す入口を追加します。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
     availability { _, architecture ->
@@ -55,7 +55,6 @@ val readWithoutReceiptManualReadPatch = bytecodePatch(
             recordUnappliedFeatureStatus(ids, 2, actual, "ManualReadGetterNotUnique")
             return@execute
         }
-        val getter = getters.single().originalMethod
         if (!AccessFlags.PUBLIC.isSet(outbound.originalMethod.accessFlags) ||
             AccessFlags.STATIC.isSet(outbound.originalMethod.accessFlags) ||
             outbound.originalClassDef.methods.any { it.name == MANUAL_READ }) {
@@ -63,7 +62,7 @@ val readWithoutReceiptManualReadPatch = bytecodePatch(
             return@execute
         }
         // 全条件を確認してから変更します。実行時の許可は worker と session token に限定されます。
-        val bridge = manualReadBridge(outbound.originalMethod, getter)
+        val bridge = manualReadBridge(outbound.originalMethod, getters.single().originalMethod)
         outbound.classDef.methods.add(bridge)
         outbound.classDef.virtualMethods.add(bridge)
         recordFeatureStatus(ids, 2, 2, "ManualReadBridgeInjected")
@@ -88,16 +87,18 @@ internal fun isManualReadPointGetter(method: Method): Boolean {
         instructions.count { it.opcode == Opcode.RETURN_WIDE } == 2
 }
 
-/** v0:v1 は検索結果、v2 は比較用。parameter は v3..v7 に置き、元のメソッドの register は変更しません。 */
+/**
+ * 公式 getter と観測済みの位置の大きい方を、未読解除付きで公式 d へ渡します。
+ * v0:v1 は検索結果、v2 は比較と未読解除の flag。parameter は v3..v6 に置き、元の register は変更しません。
+ */
 internal fun manualReadBridge(outbound: Method, getter: Method): MutableMethod {
-    val implementation = MutableMethodImplementation(8)
+    val implementation = MutableMethodImplementation(7)
     implementation.addInstruction(BuilderInstruction11x(Opcode.RETURN_WIDE, 0))
     val method = MutableMethod(ImmutableMethod(outbound.definingClass, MANUAL_READ,
-        listOf("J", STRING, "Z").map { ImmutableMethodParameter(it, null, null) }, "J",
+        listOf("J", STRING).map { ImmutableMethodParameter(it, null, null) }, "J",
         AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, implementation))
     method.addInstructions(0, """
         if-eqz p3, :none
-        if-eqz p4, :selected
         invoke-virtual {p0, p3}, $getter
         move-result-wide v0
         cmp-long v2, v0, p1
@@ -107,7 +108,8 @@ internal fun manualReadBridge(outbound: Method, getter: Method): MutableMethod {
         const-wide/16 v0, 0x0
         cmp-long v2, p1, v0
         if-lez v2, :none
-        invoke-virtual/range {p0 .. p4}, $outbound
+        const/4 v2, 0x1
+        invoke-virtual {p0, p1, p2, p3, v2}, $outbound
         return-wide p1
         :none
         const-wide/16 v0, 0x0

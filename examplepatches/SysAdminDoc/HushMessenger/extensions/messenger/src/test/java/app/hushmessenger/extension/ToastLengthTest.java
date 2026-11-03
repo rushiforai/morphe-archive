@@ -30,7 +30,8 @@ public class ToastLengthTest {
         "camera_permission", "gallery_missing", "gallery_failed", "restart_save_failed", "restart_unavailable",
         "text_style_read_only", "text_style_bold_none", "text_style_italic_none", "mark_read_done", "mark_read_nothing",
         "settings_open_failed", "settings_open_instead", "message_log_restored", "message_log_restore_failed",
-        "import_same", "save_voice_menu_failed",
+        "import_same", "save_voice_menu_failed", "home_header_saved", "home_header_removed", "home_header_remove_failed",
+        "home_header_not_picture", "home_header_unreadable", "home_header_not_saved", "home_header_busy", "home_header_timeout",
     };
 
     @Test public void everyToastFitsOnTwoLines() {
@@ -39,6 +40,7 @@ public class ToastLengthTest {
         for (String key : PLAIN) check(cut, key, words.get(key));
         check(cut, "quick_setups_hidden", words.get("quick_setups_hidden", words.format("quick_setups_home"), words.format("choices")));
         check(cut, "font_file_too_large", words.get("font_file_too_large", FontFile.MAX_MEGABYTES));
+        check(cut, "home_header_too_large", words.get("home_header_too_large", HomeHeaderPicture.MAX_MEGABYTES));
         check(cut, "auto_reply_saved", words.get("auto_reply_saved", 12));
         check(cut, "call_recording_saved", words.get("call_recording_saved", "Recordings/" + CallRecording.FOLDER));
         check(cut, "save_voice_menu_saved", words.get("save_voice_menu_saved", "Recordings/" + VoiceMessages.FOLDER));

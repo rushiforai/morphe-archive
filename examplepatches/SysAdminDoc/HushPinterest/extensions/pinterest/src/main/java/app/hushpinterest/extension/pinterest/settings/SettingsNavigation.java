@@ -133,7 +133,6 @@ final class SettingsNavigation extends BaseAdapter {
         section("Notifications", L10n.t("Notifications"), null, SettingsIcons.BELL, false);
         section("Pinterest's own settings", L10n.t("Pinterest's own settings"), null, SettingsIcons.SETTINGS, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
-        section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);
         section("Pause, backup and diagnostics", L10n.t("Pause, backup and diagnostics"), null, SettingsIcons.TOOLS, false);
         section("About", L10n.t("About"), null, SettingsIcons.ABOUT, false);
         browse = new HushPinterestPreferenceFragment.Heading(context);

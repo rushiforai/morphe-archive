@@ -347,6 +347,18 @@ the commits since the last tag justify one (`.releaserc.js` also allows pre-rele
 docs-only pushes) and cancels superseded runs, so a burst of pushes costs one build. That check is the
 gate before merging, and it shows on the pull request because the PR's head commit is the one it built.
 
+**Every release's notes end with a generated "📱 Supported app versions" section.** The
+`generateNotes` plugin `.github/scripts/supported-versions-notes.mjs` reads the `AppTarget`s out of
+`Constants.kt` (via the shared reader `scripts/supported-versions.mjs`, which
+`scripts/check-upstream-version.mjs` also imports -- one JS parser, mirrored by
+`SupportedVersionsPolicyTest`) and renders "This release patches **YouTube VR 1.90.05** and
+**1.89.09** (Meta Quest)…". Because semantic-release concatenates `generateNotes` output, the
+section lands in the GitHub release body, `CHANGELOG.md`, the release commit message, and
+`patches-bundle.json`'s description -- which is what Morphe Desktop's "Patch notes" viewer shows.
+The per-release *change* ("support X added, Y dropped") still comes from the commit bullet; the
+section states the *state*. `release-debug.mjs` renders the section before every release, so a
+broken plugin or a blinded parser fails there instead of mid-release.
+
 **Why the release does not use `cycjimmy/semantic-release-action`.** `release.yml` invokes
 `npx semantic-release` from this repository's own `node_modules`, and that is load-bearing. The action
 ran `npm ci --only=prod` inside its own directory and required `semantic-release` from there, so it

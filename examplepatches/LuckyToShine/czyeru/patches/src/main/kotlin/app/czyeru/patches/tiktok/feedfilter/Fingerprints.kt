@@ -200,7 +200,8 @@ internal object FollowFeedFingerprint : Fingerprint(
     returnType = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
     strings = listOf("feed"),
     custom = { method, _ ->
-        method.parameterTypes.size == 2 && method.implementation?.instructions?.any {
+        // Two parameters through 47.4.3; 47.6.3 calls a Kotlin default-arguments form with five.
+        method.parameterTypes.size >= 2 && method.implementation?.instructions?.any {
             it.getReference<MethodReference>()?.let { reference ->
                 reference.definingClass == "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;" &&
                     reference.name == "getItems"

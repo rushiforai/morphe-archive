@@ -25,10 +25,10 @@ import dev.utaa.linimal.patches.util.INT
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
-private const val DEBUG_METADATA = "Llb8/e;"
-private const val COMPOSER = "Lh3/t;"
-private const val COMPOSER_IMPL = "Lh3/f1;"
-private const val END_RESTART_GROUP_RESULT = "Lh3/p3;"
+private const val DEBUG_METADATA = "Ldt8/f;"
+private const val COMPOSER = "Lj3/r;"
+private const val COMPOSER_IMPL = "Lj3/d1;"
+private const val END_RESTART_GROUP_RESULT = "Lj3/p3;"
 private const val HOME_FEED_LOADING_INDICATOR_HOOK =
     "Ldev/utaa/linimal/extension/features/HomeFeedLoadingIndicatorHooks;->shouldSuppress()Z"
 
@@ -45,7 +45,7 @@ private const val GCS_PAGE_UI_CLASS_PREFIX = "com.linecorp.line.gcs.page.ui."
  */
 private const val LDS_SPINNER_ANGLES_MARKER = "LdsSpinnerAngles(arcStartAngleDegrees="
 
-private const val MODIFIER = "Ly3/j;"
+private const val MODIFIER = "Lb4/j;"
 
 /** spinner composable の引数の数。`(size, Modifier, Boolean, Composer, $$changed, $$default)`。 */
 private const val LDS_SPINNER_PARAMETER_COUNT = 6
@@ -97,11 +97,11 @@ internal fun isLdsSpinnerSignature(method: Method): Boolean {
  * <p>次に、ホームのフィードを描く GCS ページの UI package を DebugMetadata の元 class 名
  * （`com.linecorp.line.gcs.page.ui.`）から求め、**その package から呼ばれていて**、かつ
  * `(Modifier, Composer, int)` を取り spinner を呼ぶ composable を 1 件だけ選びます。
- * spinner を呼ぶ同じ形の composable は APK 全体に 9 件ありますが、GCS ページから呼ばれるのは
+ * spinner を呼ぶ同じ形の composable は APK 全体に 11 件ありますが、GCS ページから呼ばれるのは
  * この 1 件だけです。</p>
  *
  * <h2>抑制の方法</h2>
- * <p>LINE 自身の skip 経路（`shouldExecute` が false のときに通る `l()` + `Y()`）へ合流させる
+ * <p>LINE 自身の skip 経路（`shouldExecute` が false のときに通る `l()` + `Z()`）へ合流させる
  * だけで、新しい制御フローを作りません。設定が OFF のときは元の値へ戻します。</p>
  */
 val homeFeedLoadingIndicatorPatch = bytecodePatch(
@@ -332,7 +332,7 @@ internal fun homeFeedLoadingIndicatorGateShape(
     if (composerCallIndices(instructions, "l", VOID).size != 1) {
         return null
     }
-    if (composerCallIndices(instructions, "Y", END_RESTART_GROUP_RESULT).size != 1) {
+    if (composerCallIndices(instructions, "Z", END_RESTART_GROUP_RESULT).size != 1) {
         return null
     }
 

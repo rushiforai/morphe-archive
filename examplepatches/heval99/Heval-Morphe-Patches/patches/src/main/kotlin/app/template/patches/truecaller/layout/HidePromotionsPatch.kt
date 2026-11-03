@@ -2,7 +2,6 @@ package app.template.patches.truecaller.layout
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
-import app.template.patches.truecaller.shared.FirebaseFeatureToggleResolverFingerprint
 import app.template.patches.truecaller.shared.overrideReadFeatureToggles
 
 @Suppress("unused")
@@ -30,13 +29,10 @@ val hidePromotionsPatch = bytecodePatch(
             false,
         )
 
-        // 2. The Firebase experiment "DisableWVMNotifications_65487" reads as on, so the
-        // Who-viewed-me notification check returns false before it schedules anything. The key's
-        // experiment suffix can change with an update; the read check then fails the patch.
-        overrideReadFeatureToggles(
-            listOf("DisableWVMNotifications_65487"),
-            true,
-            FirebaseFeatureToggleResolverFingerprint,
-        )
+        // 2. The Firebase experiment "DisableWVMNotifications_65487" (read through the Firebase
+        // resolver) reads as on, so the Who-viewed-me notification check returns false before it
+        // schedules anything. The key's experiment suffix can change with an update; the read
+        // check then fails the patch.
+        overrideReadFeatureToggles(listOf("DisableWVMNotifications_65487"), true)
     }
 }

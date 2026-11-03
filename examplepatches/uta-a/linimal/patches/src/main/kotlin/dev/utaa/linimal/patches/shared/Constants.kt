@@ -13,7 +13,7 @@ object Constants {
      * reference APKM の公式署名証明書の SHA-1。区切りなしの大文字 16 進で、Firebase Installations が
      * `X-Android-Cert` に載せる形式と同じです。
      *
-     * v3 lineage の root（SDK 24–32 の signer、`reference/line-26.11.0-arm64-v8a.json` の
+     * v3 lineage の root（SDK 24–32 の signer、`reference/line-26.16.0-arm64-v8a.json` の
      * `signature.lineage[0].certificateSha256`）と同じ証明書から、APKM に対する
      * `apksigner verify --print-certs` の SHA-1 digest を写します。公開鍵の識別子であり秘密情報ではありません。
      * 空のあいだは push 通知の復旧 patch が LINE を書き換えず、機能は利用不可として記録されます。
@@ -26,8 +26,8 @@ object Constants {
         apkFileType = ApkFileType.APKM_REQUIRED,
         targets = listOf(
             AppTarget(
-                version = "26.11.0",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 261100124),
+                version = "26.16.0",
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 261600106),
             ),
         ),
     )

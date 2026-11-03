@@ -1,14 +1,13 @@
 package dev.utaa.linimal.patches.features.readreceipts
 
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
 import com.android.tools.smali.dexlib2.iface.ExceptionHandler
-import com.android.tools.smali.dexlib2.iface.MethodImplementation
 import com.android.tools.smali.dexlib2.iface.TryBlock
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.ImmutableTryBlock
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
@@ -18,18 +17,15 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
-import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22t
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
-import dev.utaa.linimal.patches.util.fallsThrough
 import dev.utaa.linimal.patches.util.instructionWritesRegister
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 import dev.utaa.linimal.patches.util.registerSurvivesBetween
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -154,79 +150,85 @@ class MainChatReadReceiptPatchTest {
         )
     }
 
-    // --- manual caller (Lv11/a;->a(Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;) ---
+    // --- 手動既読ボタンの coroutine (invokeSuspend) ---
 
     @Test
-    fun `generic handler cleanup is injected after the handler head`() {
-        val instructions = manualCallerInstructions()
+    fun `the button coroutine locates the single executor call and its chat id`() {
+        val shape = checkNotNull(manualButtonShape(buttonMethod()))
 
-        // handler 先頭 (addr 0007 / const/4 v3, 0) へ注入すると例外経路が飛び越します。
-        assertTrue(isDivertedInjectionIndex(instructions, GENERIC_HANDLER_INDEX, MANUAL_CALLER_HANDLER_ADDRESSES))
-        // さらに直前は return-object なので fall-through も無く、cleanup は一度も実行されません。
-        assertFalse(fallsThrough(instructions[GENERIC_HANDLER_INDEX - 1]))
-
-        assertEquals(GENERIC_HANDLER_INDEX + 1, exceptionHandlerCleanupIndex(instructions, GENERIC_HANDLER_INDEX))
+        assertEquals(1, shape.executorCallIndex)
+        assertEquals(3, shape.cleanupIndex)
+        // v5 は executor interface、v1 が chatId、v4 が continuation です。
+        assertEquals(1, shape.chatIdRegister)
+        assertEquals("a", shape.executorCall.name)
     }
 
     @Test
-    fun `cancellation handler cleanup stays right after move-exception`() {
-        val instructions = manualCallerInstructions()
-
-        assertEquals(
-            CANCELLATION_HANDLER_INDEX + 1,
-            exceptionHandlerCleanupIndex(instructions, CANCELLATION_HANDLER_INDEX),
+    fun `a button coroutine with an existing try block is rejected`() {
+        // 既存の handler に重ねると例外時の解除順序を保証できません。
+        val tryBlock: List<TryBlock<out ExceptionHandler>> = listOf(
+            ImmutableTryBlock(0, 3, listOf(ImmutableExceptionHandler(null, 3))),
         )
+
+        assertNull(manualButtonShape(buttonMethod(tryBlocks = tryBlock)))
     }
 
     @Test
-    fun `handler cleanup is rejected when the handler head cannot fall through`() {
-        val instructions = manualCallerInstructions()
+    fun `a button coroutine calling the executor twice is rejected`() {
+        val call = buttonInstructions()[1]
 
-        // return-object / throw の直後へ置いた cleanup は実行されません。
-        assertNull(exceptionHandlerCleanupIndex(instructions, GENERIC_HANDLER_INDEX - 1))
-        assertNull(exceptionHandlerCleanupIndex(instructions, instructions.lastIndex))
+        assertNull(manualButtonShape(buttonMethod(instructions = buttonInstructions() + call)))
     }
 
     @Test
-    fun `injecting at the handler head is skipped by the exception path`() {
-        // dexlib2 の実挙動での再現。handler ラベルは既存 location に残るため、handler 先頭へ
-        // 注入した命令は例外経路から到達できません。
-        val implementation = MutableMethodImplementation(manualCallerImplementation())
-        implementation.addInstruction(GENERIC_HANDLER_INDEX, BuilderInstruction10x(Opcode.NOP))
+    fun `a button coroutine whose cleanup site is a branch target is rejected`() {
+        // 分岐が cleanup の注入位置そのものへ来る経路があると、その経路は解除を通りません。
+        // 先頭の if-eqz は 2 code unit なので、注入位置は addr 0006 です。
+        val branch = ImmutableInstruction21t(Opcode.IF_EQZ, 0, 6)
+        val instructions = listOf(branch) + buttonInstructions().drop(1)
 
-        val entryIndex = genericHandlerEntryIndex(implementation)
-
-        assertEquals(Opcode.NOP, implementation.instructions[GENERIC_HANDLER_INDEX].opcode)
-        assertNotEquals(GENERIC_HANDLER_INDEX, entryIndex)
-        assertEquals(Opcode.CONST_4, implementation.instructions[entryIndex].opcode)
+        assertTrue(isDivertedInjectionIndex(instructions, 3))
+        assertNull(manualButtonShape(buttonMethod(instructions = instructions)))
     }
 
-    @Test
-    fun `injecting after the handler head is reached by the exception path`() {
-        val implementation = MutableMethodImplementation(manualCallerImplementation())
-        implementation.addInstruction(GENERIC_HANDLER_INDEX + 1, BuilderInstruction10x(Opcode.NOP))
+    private fun buttonInstructions(): List<Instruction> = listOf(
+        // addr 0000
+        ImmutableInstruction11x(Opcode.MONITOR_ENTER, 3),
+        // addr 0001: executor 呼び出し
+        ImmutableInstruction35c(
+            Opcode.INVOKE_INTERFACE,
+            3,
+            5,
+            1,
+            4,
+            0,
+            0,
+            ImmutableMethodReference(
+                "Lexecutor;",
+                "a",
+                listOf("Ljava/lang/String;", "Lcontinuation;"),
+                "Ljava/lang/Object;",
+            ),
+        ),
+        // addr 0004
+        ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4),
+        // addr 0005: cleanup の注入位置
+        ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4),
+    )
 
-        val entryIndex = genericHandlerEntryIndex(implementation)
-
-        assertEquals(GENERIC_HANDLER_INDEX, entryIndex)
-        assertEquals(Opcode.CONST_4, implementation.instructions[entryIndex].opcode)
-        assertEquals(Opcode.NOP, implementation.instructions[entryIndex + 1].opcode)
-    }
-
-    private fun genericHandlerEntryIndex(implementation: MutableMethodImplementation): Int {
-        val handlerAddress = implementation.tryBlocks
-            .flatMap { block -> block.exceptionHandlers }
-            .first { handler -> handler.exceptionType == null }
-            .handlerCodeAddress
-        var address = 0
-        implementation.instructions.forEachIndexed { index, instruction ->
-            if (address == handlerAddress) {
-                return index
-            }
-            address += instruction.codeUnits
-        }
-        error("handler address $handlerAddress not found")
-    }
+    private fun buttonMethod(
+        instructions: List<Instruction> = buttonInstructions(),
+        tryBlocks: List<TryBlock<out ExceptionHandler>> = emptyList(),
+    ) = ImmutableMethod(
+        "Lbutton;",
+        "invokeSuspend",
+        listOf(ImmutableMethodParameter("Ljava/lang/Object;", null, null)),
+        "Ljava/lang/Object;",
+        0,
+        null,
+        null,
+        ImmutableMethodImplementation(6, instructions, tryBlocks, emptyList()),
+    )
 
     /**
      * `Lq33/e;->d` の先頭。index 0 の if-eqz が local update と chat-list Runnable を飛び越し、
@@ -284,65 +286,6 @@ class MainChatReadReceiptPatchTest {
     ) + trailing
 
     /**
-     * `Lv11/a;->a` の末尾。`<any>` handler は addr 0007 の const/4 で始まり、その直前は
-     * return-object なので fall-through がありません。
-     */
-    private fun manualCallerInstructions(): List<Instruction> = listOf(
-        // addr 0000
-        ImmutableInstruction35c(
-            Opcode.INVOKE_STATIC,
-            2,
-            4,
-            0,
-            0,
-            0,
-            0,
-            ImmutableMethodReference("Lff8/l;", "a", listOf("Lap7/b;", "Llb8/c;"), "Ljava/lang/Object;"),
-        ),
-        // addr 0003
-        ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4),
-        // addr 0004
-        ImmutableInstruction22t(Opcode.IF_NE, 4, 1, 4),
-        // addr 0006
-        ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1),
-        // addr 0007: <any> handler の先頭
-        ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
-        // addr 0008: 正常完了の分岐先
-        ImmutableInstruction35c(
-            Opcode.INVOKE_STATIC,
-            1,
-            3,
-            0,
-            0,
-            0,
-            0,
-            ImmutableMethodReference("Ljava/lang/Boolean;", "valueOf", listOf("Z"), "Ljava/lang/Boolean;"),
-        ),
-        // addr 000b
-        ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 4),
-        // addr 000c
-        ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4),
-        // addr 000d: CancellationException handler の先頭
-        ImmutableInstruction11x(Opcode.MOVE_EXCEPTION, 4),
-        // addr 000e
-        ImmutableInstruction11x(Opcode.THROW, 4),
-    )
-
-    private fun manualCallerImplementation(): MethodImplementation {
-        val tryBlocks: List<TryBlock<out ExceptionHandler>> = listOf(
-            ImmutableTryBlock(
-                0,
-                4,
-                listOf(
-                    ImmutableExceptionHandler("Ljava/util/concurrent/CancellationException;", 0x0d),
-                    ImmutableExceptionHandler(null, 0x07),
-                ),
-            ),
-        )
-        return ImmutableMethodImplementation(7, manualCallerInstructions(), tryBlocks, emptyList())
-    }
-
-    /**
      * `Lq33/c;->run()V`（registers 6 / ins 1）の命令列。v5 が p0、命令 1 で chatId に潰されます。
      * v3 と v4 は命令 4 の const-wide/16 が pair として使います。
      *
@@ -387,12 +330,6 @@ class MainChatReadReceiptPatchTest {
 
     private fun field(definingClass: String, name: String, type: String) =
         ImmutableFieldReference(definingClass, name, type)
-
-    private companion object {
-        const val GENERIC_HANDLER_INDEX = 4
-        const val CANCELLATION_HANDLER_INDEX = 8
-        val MANUAL_CALLER_HANDLER_ADDRESSES = setOf(0x07, 0x0d)
-    }
 
     /**
      * prefix の書き込みと読み出しの間に wide 命令が挟まると、scratch が pair の上位半分として

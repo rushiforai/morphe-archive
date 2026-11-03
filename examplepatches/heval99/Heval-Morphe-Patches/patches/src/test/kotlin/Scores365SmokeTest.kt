@@ -1,7 +1,10 @@
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -9,10 +12,14 @@ import java.io.File
 
 private const val PKG = "com.scores365"
 private const val ENTITLEMENT_STATE = "Lcom/scores365/billingClient/entitlement/EntitlementState;"
-private const val BASE_ACTIVITY = "Lcom/scores365/Design/Activities/BaseActivity;"
-private const val BASE_ACTION_BAR_ACTIVITY = "Lcom/scores365/Design/Activities/BaseActionBarActivity;"
+private const val GATE_ACTIVITY = "Lcom/scores365/gameCenter/GameCenterBaseActivity;"
 private const val SPLASH = "Lcom/scores365/ui/Splash;"
 private const val SIGNATURE_SHA1 = "47f994bd2eac89f4aeea0aa1d95cb3ba3ec3f1a1"
+
+private const val ADS_REMOVED = "isUserAdsRemoved="
+private const val FORCE_SHOW_ADS = "forceShowAds"
+private const val PURCHASE_FLAG = "IsUserRemovedAdsPackageBuying"
+private val UPDATE_EXTRAS = setOf("ForceUpdateDialog", "NewVersionPopup")
 
 class Scores365SmokeTest {
 
@@ -32,7 +39,7 @@ class Scores365SmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "14.9.7",
+            version = "14.9.8",
             patchNames = setOf(
                 "Disable ads", "Enable Premium", "Disable update prompts", "GmsCore support", "Spoof signature",
             ),
@@ -40,32 +47,28 @@ class Scores365SmokeTest {
         )
         val byType = classes.associateBy { it.type }
 
-        assertDisableAds(classes, byType)
+        assertDisableAds(classes)
         assertEnablePremium(byType)
-        assertDisableUpdatePrompts(byType)
+        assertDisableUpdatePrompts(classes)
         assertGmsCoreSupport(classes, workDir, PKG, SPLASH, SIGNATURE_SHA1)
         assertSpoofSignature(classes, PKG, SIGNATURE_SHA1)
     }
 
-    private fun assertDisableAds(classes: List<ClassDef>, byType: Map<String, ClassDef>) {
-        val mobileAds = byType["Lcom/google/android/gms/ads/MobileAds;"]
-            ?: error("MobileAds not found in emitted dexes")
-        assertReturnsEarlyVoid(
-            mobileAds.method("initialize", listOf("Landroid/content/Context;")),
-            label = "MobileAds.initialize(Context)",
-        )
-        assertReturnsEarlyVoid(
-            mobileAds.method(
-                "initialize",
-                listOf(
-                    "Landroid/content/Context;",
-                    "Lcom/google/android/gms/ads/initialization/OnInitializationCompleteListener;",
-                ),
-            ),
-            label = "MobileAds.initialize(Context, Listener)",
-        )
-        // Rule 9: no MobileAds static can throw for lack of init.
-        assertMobileAdsStaticsNeutralised(mobileAds)
+    /** The 14.9.8 ad stack is app-layer: the entitlement gates, plus every activity's own gate. */
+    private fun assertDisableAds(classes: List<ClassDef>) {
+        val owner = classes.firstOrNull { cls -> cls.methods.any { it.isEntitlementGate() } }
+            ?: error("no class with a ()Z gate logging \"$ADS_REMOVED\"")
+        val removed = owner.methods.singleOrNull { it.isEntitlementGate() }
+            ?: error("expected exactly one \"$ADS_REMOVED\" gate in ${owner.type}")
+        assertForcedBoolean(removed, expected = true, label = "${owner.type}.${removed.name}()")
+
+        val sibling = owner.methods.singleOrNull { method ->
+            method !== removed &&
+                method.returnType == "Z" && method.parameterTypes.isEmpty() && method.implementation != null &&
+                !method.strings().contains(ADS_REMOVED) &&
+                method.strings().containsAll(listOf(FORCE_SHOW_ADS, PURCHASE_FLAG))
+        } ?: error("no sibling gate reading $FORCE_SHOW_ADS + $PURCHASE_FLAG in ${owner.type}")
+        assertForcedBoolean(sibling, expected = true, label = "${owner.type}.${sibling.name}()")
 
         // Every concrete app ad gate returns false, including the readable base activities.
         val gates = classes.flatMap { cls ->
@@ -74,14 +77,7 @@ class Scores365SmokeTest {
                     it.returnType == "Z" && it.parameterTypes.isEmpty() && it.implementation != null
             }.map { cls to it }
         }
-        for (type in listOf(
-            BASE_ACTION_BAR_ACTIVITY,
-            "Lcom/scores365/Design/Activities/BottomNavigationActivity;",
-            "Lcom/scores365/gameCenter/GameCenterBaseActivity;",
-            "Lcom/scores365/ui/WebViewActivity;",
-        )) {
-            check(gates.any { (cls, _) -> cls.type == type }) { "no app ad gate patched in $type" }
-        }
+        check(gates.any { (cls, _) -> cls.type == GATE_ACTIVITY }) { "no app ad gate patched in $GATE_ACTIVITY" }
         for ((cls, method) in gates) {
             assertForcedBoolean(method, expected = false, label = "${cls.type}.${method.name}()")
         }
@@ -123,14 +119,26 @@ class Scores365SmokeTest {
         check("morphe_disabled_iabc_fnrts" in strings) { "RemoveAdsBasicActivity.onCreate is missing the renamed key" }
     }
 
-    private fun assertDisableUpdatePrompts(byType: Map<String, ClassDef>) {
-        for (type in listOf(BASE_ACTIVITY, BASE_ACTION_BAR_ACTIVITY)) {
-            val onCreate = (byType[type] ?: error("$type not found")).method("onCreate", listOf("Landroid/os/Bundle;"))
+    private fun assertDisableUpdatePrompts(classes: List<ClassDef>) {
+        val readers = classes.flatMap { cls -> cls.methods.filter { it.isUpdateReader() }.map { cls to it } }
+        check(readers.size == 2) { "expected 2 onCreate update readers, found ${readers.map { it.first.type }}" }
+        for ((cls, onCreate) in readers) {
             val strings = onCreate.instructions().mapNotNull { it.stringOrNull() }
-            for (key in listOf("ForceUpdateDialog", "NewVersionPopup")) {
-                check(key !in strings) { "$type.onCreate still reads the \"$key\" extra" }
-                check("morphe_disabled_$key" in strings) { "$type.onCreate is missing the renamed \"$key\" key" }
+            for (key in UPDATE_EXTRAS) {
+                check(key !in strings) { "${cls.type}.onCreate still reads the \"$key\" extra" }
+                check("morphe_disabled_$key" in strings) { "${cls.type}.onCreate is missing the renamed \"$key\" key" }
             }
         }
     }
+
+    private fun Method.strings(): List<String> = instructions().mapNotNull { it.stringOrNull() }
+
+    private fun Method.isEntitlementGate(): Boolean =
+        returnType == "Z" && parameterTypes.isEmpty() && implementation != null &&
+            strings().contains(ADS_REMOVED)
+
+    private fun Method.isUpdateReader(): Boolean =
+        name == "onCreate" && returnType == "V" && parameterTypes == listOf("Landroid/os/Bundle;") &&
+            implementation != null &&
+            strings().containsAll(UPDATE_EXTRAS.map { "morphe_disabled_$it" })
 }

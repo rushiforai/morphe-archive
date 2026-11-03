@@ -119,7 +119,7 @@ public final class ReadWithoutReceiptSendHooks {
         AsyncTask.THREAD_POOL_EXECUTOR.execute(() -> {
             try {
                 if (!ReadWithoutReceiptHooks.shouldBlockMarkAsRead(chatId)
-                        || !ReadWithoutReceiptHooks.endSuppressionForSentMessage(chatId, session)) {
+                        || !ReadWithoutReceiptHooks.endConfirmedSuppression(chatId, session)) {
                     return;
                 }
                 attempt.markRead.invoke(attempt.executor, attempt.readPoint, chatId);

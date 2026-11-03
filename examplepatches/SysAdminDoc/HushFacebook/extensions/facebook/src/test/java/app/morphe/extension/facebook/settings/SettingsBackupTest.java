@@ -221,6 +221,7 @@ public class SettingsBackupTest {
         Settings.REELS_ORDER.resetToDefault();
         Settings.BURN_IN_GUARD.resetToDefault();
         Settings.BURN_IN_WAIT.resetToDefault();
+        Settings.REEL_POST_DATE_STYLE.resetToDefault();
         Settings.RECENTLY_WATCHED_KEEP.resetToDefault();
         Settings.QUIET_HOURS_FROM.resetToDefault();
         Settings.QUIET_HOURS_UNTIL.resetToDefault();
@@ -247,6 +248,8 @@ public class SettingsBackupTest {
         Settings.LOGO_COLOR.resetToDefault();
         Settings.TAB_COLOR.resetToDefault();
         Settings.HEADER_TEXT.resetToDefault();
+        Settings.ACCENT_CUSTOM.resetToDefault();
+        Settings.LOGO_EMOJI.resetToDefault();
         Settings.SEEN_MENU_TILES.resetToDefault();
         Settings.SEEN_SHARE_ITEMS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
@@ -291,13 +294,13 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDDEN_FEED_TYPES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.BURN_IN_GUARD, Settings.BURN_IN_WAIT, Settings.REELS_ORDER, Settings.RECENTLY_WATCHED_KEEP, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.HIDDEN_FEED_TYPES, Settings.HIDE_POSTS_OVER_REACTIONS, Settings.BURN_IN_GUARD, Settings.BURN_IN_WAIT, Settings.REEL_POST_DATE_STYLE, Settings.REELS_ORDER, Settings.RECENTLY_WATCHED_KEEP, Settings.HIDDEN_SHARE_ITEMS, Settings.HIDDEN_MENU_TILES, Settings.HOME_FEED, Settings.TAB_ORDER, Settings.AMOLED_BACKGROUND, Settings.AMOLED_LIGHT_BACKGROUND, Settings.HEADER_TEXT, Settings.SEEN_POSTS_KEEP, Settings.SAVE_TO,
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
                 Settings.REELS_PLAYBACK_QUALITY, Settings.STORIES_PLAYBACK_QUALITY, Settings.QUIET_HOURS_FROM,
                 Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.OPENING_PAUSE_LENGTH, Settings.BREAK_AFTER,
-                Settings.BREAK_LENGTH, Settings.TEXT_SIZE, Settings.ACCENT_COLOR, Settings.BADGE_COLOR, Settings.LOGO_COLOR, Settings.TAB_COLOR), SettingsBackup.VALUES);
+                Settings.BREAK_LENGTH, Settings.TEXT_SIZE, Settings.ACCENT_COLOR, Settings.ACCENT_CUSTOM, Settings.LOGO_EMOJI, Settings.BADGE_COLOR, Settings.LOGO_COLOR, Settings.TAB_COLOR), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_TO, SettingsBackup.TO);
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
@@ -312,6 +315,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.START_TAB, SettingsBackup.START);
         assertEquals(Settings.FEEDS_SUBTAB, SettingsBackup.SUBTAB);
         assertEquals(Settings.HOME_FEED, SettingsBackup.HOME_FEED);
+        assertEquals(Settings.TAB_ORDER, SettingsBackup.TAB_ORDER);
         assertEquals(Settings.AMOLED_BACKGROUND, SettingsBackup.BACKGROUND);
         assertEquals(Settings.AMOLED_LIGHT_BACKGROUND, SettingsBackup.LIGHT_BACKGROUND);
         assertEquals(Settings.COMMENT_ORDER, SettingsBackup.ORDER);
@@ -321,6 +325,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.REELS_ORDER, SettingsBackup.REELS_ORDER);
         assertEquals(Settings.BURN_IN_GUARD, SettingsBackup.BURN_IN);
         assertEquals(Settings.BURN_IN_WAIT, SettingsBackup.BURN_IN_WAIT);
+        assertEquals(Settings.REEL_POST_DATE_STYLE, SettingsBackup.DATE_STYLE);
         assertEquals(Settings.QUIET_HOURS_FROM, SettingsBackup.QUIET_FROM);
         assertEquals(Settings.QUIET_HOURS_UNTIL, SettingsBackup.QUIET_UNTIL);
         assertEquals(Settings.TEXT_SIZE, SettingsBackup.TEXT_SIZE);
@@ -1348,6 +1353,129 @@ public class SettingsBackupTest {
     }
 
     /**
+     * The color the Accent color row's Custom choice uses (#355) goes out and comes back as its row
+     * keeps it, so a phone that gets the file shows that color and not Facebook's blue. A code
+     * written any other way refuses the whole file, as a Badge color does.
+     */
+    @Test
+    public void theCustomAccentColorRoundTripsAsItsRowKeepsIt() throws Exception {
+        Settings.ACCENT_COLOR.save(AccentColor.Preset.CUSTOM);
+        Settings.ACCENT_CUSTOM.save(" 12ab9f ");
+        String file = SettingsBackup.create();
+        assertEquals("#12AB9F", new JSONObject(file).getJSONObject("settings").get(SettingsBackup.ACCENT_CUSTOM.key));
+        Settings.ACCENT_COLOR.resetToDefault();
+        Settings.ACCENT_CUSTOM.resetToDefault();
+
+        // A fresh install takes the choice and its color together.
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("#12AB9F", snapshot.accentCustomChange());
+        assertEquals(2, SettingsBackup.apply(snapshot));
+        assertEquals(AccentColor.Preset.CUSTOM, Settings.ACCENT_COLOR.savedValue());
+        assertEquals("#12AB9F", Settings.ACCENT_CUSTOM.savedValue());
+        assertEquals(Integer.valueOf(0xFF12AB9F), AccentColor.customColour());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals(0, SettingsBackup.parse(file).changes().size());
+        assertEquals("If your patched Facebook includes Accent color, the Custom choice will be #12AB9F.",
+                SettingsBackupPreference.accentCustomSentence(snapshot.accentCustom)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
+        assertEquals("If your patched Facebook includes Accent color, the Custom choice will keep Facebook's blue.",
+                SettingsBackupPreference.accentCustomSentence(""));
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"#12ab9f", "12AB9F", "#8012AB9F", "teal", "#12AB9", 5, true, JSONObject.NULL}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.ACCENT_CUSTOM.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the custom accent " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject blank = new JSONObject(file);
+        blank.getJSONObject("settings").put(SettingsBackup.ACCENT_CUSTOM.key, "");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(blank.toString())));
+        assertEquals("", Settings.ACCENT_CUSTOM.savedValue());
+
+        Settings.ACCENT_CUSTOM.save("#112233");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.ACCENT_CUSTOM.key);
+        SettingsBackup.apply(SettingsBackup.parse(older.toString()));
+        assertEquals("#112233", Settings.ACCENT_CUSTOM.savedValue());
+
+        // Saved some other way, it goes out as the row would keep it, or blank when it isn't a color.
+        Settings.ACCENT_CUSTOM.save("not a color");
+        assertEquals("", new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.ACCENT_CUSTOM.key));
+
+        Bundle state = snapshot.toBundle();
+        assertEquals("#12AB9F", SettingsBackup.Snapshot.fromBundle(state).accentCustom);
+        state.putString("accent_custom", "#12ab9f");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).accentCustom);
+    }
+
+    /**
+     * The emoji after the logo (#360) goes out and comes back as its row keeps it, and text written
+     * any other way refuses the whole file, as the Home header text does.
+     */
+    @Test
+    public void theEmojiAfterTheLogoRoundTripsAsItsRowKeepsIt() throws Exception {
+        String party = new String(Character.toChars(0x1F389));
+        Settings.LOGO_EMOJI.save(party);
+        String file = SettingsBackup.create();
+        assertEquals(party, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.LOGO_EMOJI.key));
+        Settings.LOGO_EMOJI.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(party, snapshot.logoEmojiChange());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals(party, Settings.LOGO_EMOJI.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals(0, SettingsBackup.parse(file).changes().size());
+        assertEquals("If your patched Facebook includes Emoji after the logo, the top of Home will show " + party
+                        + " after the logo.",
+                SettingsBackupPreference.logoEmojiSentence(snapshot.logoEmoji)
+                        .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), ""));
+        assertEquals("The top of Home will show no emoji after the logo.", SettingsBackupPreference.logoEmojiSentence(""));
+
+        // Text saved some other way goes out as the header shows it.
+        Settings.LOGO_EMOJI.save("  " + party + " ");
+        assertEquals(party, new JSONObject(SettingsBackup.create()).getJSONObject("settings").get(SettingsBackup.LOGO_EMOJI.key));
+        Settings.LOGO_EMOJI.save(party);
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{" " + party, party + " ", party + " " + party, "tab" + (char) 9 + "here",
+                "123456789", 5, true, JSONObject.NULL}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.LOGO_EMOJI.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the emoji " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject blank = new JSONObject(file);
+        blank.getJSONObject("settings").put(SettingsBackup.LOGO_EMOJI.key, "");
+        assertEquals(1, SettingsBackup.apply(SettingsBackup.parse(blank.toString())));
+        assertEquals("", Settings.LOGO_EMOJI.savedValue());
+
+        Settings.LOGO_EMOJI.save("*");
+        JSONObject older = new JSONObject(file);
+        older.getJSONObject("settings").remove(SettingsBackup.LOGO_EMOJI.key);
+        SettingsBackup.apply(SettingsBackup.parse(older.toString()));
+        assertEquals("*", Settings.LOGO_EMOJI.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals(party, SettingsBackup.Snapshot.fromBundle(state).logoEmoji);
+        state.putString("logo_emoji", " " + party);
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).logoEmoji);
+    }
+
+    /**
      * The share sheet items to hide go out and come back as their row stores them, a type this
      * build doesn't name included, so a newer Facebook's survive the trip. A file can clear the
      * list, an older file leaves it alone, the types Facebook offered on this phone stay on it, and
@@ -2134,6 +2262,63 @@ public class SettingsBackupTest {
     }
 
     /**
+     * The tab order goes out as the row keeps it and comes back only as one the row would save, and
+     * the preview names the tabs in order. A file from before it was carried leaves it alone (#341).
+     */
+    @Test
+    public void theTabOrderRoundTripsAndComesBackOnlyClean() throws Exception {
+        for (String order : new String[]{"friends,home,menu", "marketplace", ""}) {
+            Settings.TAB_ORDER.save(order);
+            String file = SettingsBackup.create();
+            assertEquals(order, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.TAB_ORDER.key));
+            Settings.TAB_ORDER.save("video,home");
+
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+            assertEquals(order, snapshot.tabOrder);
+            assertEquals(order, snapshot.tabOrderChange());
+            assertEquals(Collections.singletonMap(SettingsBackup.TAB_ORDER, order), snapshot.changes());
+            assertEquals(1, SettingsBackup.apply(snapshot));
+            assertEquals(order, Settings.TAB_ORDER.savedValue());
+            assertEquals("a file read back is the file", file, SettingsBackup.create());
+            assertEquals("the same order again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        }
+
+        Settings.TAB_ORDER.save("friends,home");
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"Friends,home", "friends,,home", "friends,home,friends", "friends, home",
+                "reels", "home,", 3, true, JSONObject.NULL, new JSONObject(), new org.json.JSONArray()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.TAB_ORDER.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the tab order " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.tabOrder);
+        assertNull(older.tabOrderChange());
+        SettingsBackup.apply(older);
+        assertEquals("friends,home", Settings.TAB_ORDER.savedValue());
+
+        // A preview kept across a rebuild keeps its order, and only a clean one comes back.
+        Bundle state = SettingsBackup.parse(file).toBundle();
+        assertEquals("friends,home", SettingsBackup.Snapshot.fromBundle(state).tabOrder);
+        state.putString("tab_order", "home,home");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).tabOrder);
+
+        assertEquals(L10n.f("Your tab bar will go in this order: %1$s.",
+                        L10n.join(Arrays.asList(L10n.t("Friends"), L10n.t("Home")))),
+                SettingsBackupPreference.tabOrderSentence("friends,home"));
+        assertEquals(L10n.t("Your tab bar will keep Facebook's order."), SettingsBackupPreference.tabOrderSentence(""));
+        Settings.TAB_ORDER.resetToDefault();
+    }
+
+    /**
      * What Sort loaded reels sorts by goes out as its file value and comes back only as one this
      * build offers, and the preview says what it does. A file from before it was carried leaves it
      * alone (#134).
@@ -2255,7 +2440,8 @@ public class SettingsBackupTest {
             HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
             AlertDialog preview = shownPreview();
-            String start = "Facebook will open on Notifications.";
+            String start = "With " + L10n.isolate(SwitchLabels.title(Settings.OPEN_ON_CHOSEN_TAB))
+                    + " on, Facebook will open on Notifications.";
             String order = "Comments will open with Newest picked in their sort menu.";
             assertEquals("1 switch will change.\n\n" + start + "\n\n" + order,
                     String.valueOf(shadowOf(preview).getMessage()));
@@ -3305,7 +3491,9 @@ public class SettingsBackupTest {
             HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
             AlertDialog preview = shownPreview();
-            String start = "Facebook will open on Notifications.";
+            // The tab only counts while its switch is on, and that switch starts off.
+            String start = "With " + L10n.isolate(SwitchLabels.title(Settings.OPEN_ON_CHOSEN_TAB))
+                    + " on, Facebook will open on Notifications.";
             String quality = "Videos will save at " + app.morphe.extension.shared.L10n.isolate("720p")
                     + " or the closest quality below it. A video with nothing that low will save at the closest "
                     + "quality above.";
@@ -3320,7 +3508,8 @@ public class SettingsBackupTest {
                     HushfacebookPreferenceFragment.startTabSummary(StartTab.NOTIFICATIONS),
                     String.valueOf(page.findPreference(Settings.START_TAB.key).getSummary()));
         }
-        assertEquals("Settings imported. Facebook will open on Home.",
+        assertEquals("Settings imported. With " + L10n.isolate(SwitchLabels.title(Settings.OPEN_ON_CHOSEN_TAB))
+                        + " on, Facebook will open on Home.",
                 SettingsBackupPreference.importedMessage(0, null, null, null, StartTab.HOME));
     }
 
@@ -3601,6 +3790,39 @@ public class SettingsBackupTest {
                     ((SwitchPreference) page.findPreference(Settings.HIDE_SPONSORED_POSTS.key)).isChecked());
             assertNull(page.pendingImport);
             assertFalse(AbstractPreferenceFragment.settingImportInProgress);
+        }
+    }
+
+    /**
+     * An import redoes which rows are available once at its end. Doing it for each imported switch,
+     * twice, walked the whole page about 120 times for a 58-switch file and Android called
+     * Facebook frozen.
+     */
+    @Test
+    public void importRefreshesThePageOnceInsteadOfOncePerSwitch() throws Exception {
+        String file = fileWith(Settings.DOWNLOAD_REELS, false,
+                Settings.HIDE_SPONSORED_POSTS, false, Settings.HIDE_SPONSORED_STORIES, false);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            Preference button = page.findPreference(Settings.SHOW_REEL_DOWNLOAD_BUTTON.key);
+            assertNotNull(button);
+            assertTrue(button.isEnabled());
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            AtomicInteger refreshes = new AtomicInteger();
+            Runnable waysIn = page.refreshWaysIn;
+            page.refreshWaysIn = () -> {
+                refreshes.incrementAndGet();
+                if (waysIn != null) waysIn.run();
+            };
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. 3 switches changed.", ShadowToast.getTextOfLatestToast());
+            // Availability, the values and the switches once each at the end, whatever the count.
+            // Per switch it added two more for every switch.
+            assertTrue(refreshes.get() + " page refreshes for 3 switches", refreshes.get() >= 1 && refreshes.get() <= 3);
+            assertFalse("the reel button row stayed available with Download Reels off", button.isEnabled());
         }
     }
 
