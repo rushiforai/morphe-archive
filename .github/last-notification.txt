@@ -1,6 +1,8 @@
-# Repos reported by the last notification (5)
-MegaTheLEGEND/Facebook-Marketplace
-MohuttTT/yahoo-transit-patches
-VexingVertigo/spicetify-sandbox
-v1rtu0s/morphe-patches
-xboyrex/rex-ig-lite
+# Repos reported by the last notification (7)
+AltF4G0x/consumer-clarity
+FinzoYFunzo/kyt-patches
+Nich87/nich87-patches
+SysAdminDoc/HushPine
+mmenzyns/morphe-patches
+srinath1848/nobrokerhood-patches
+zerobun0/zerobun-morphe-patches
