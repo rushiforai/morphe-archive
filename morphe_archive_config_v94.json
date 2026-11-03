@@ -1827,14 +1827,6 @@
                 "updatedAt": 1790220032355
             },
             {
-                "name": "Pixel-Camera",
-                "source": "https://raw.githubusercontent.com/Akshayykadam/Pixel-Camera/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 249,
-                "createdAt": 1790220032653,
-                "updatedAt": 1790220032653
-            },
-            {
                 "name": "Morphi-Patcho",
                 "source": "https://raw.githubusercontent.com/akzzy/Morphi-Patcho/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3156,14 +3148,6 @@
             },
             {
                 "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/Dreaming-Codes/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 442,
-                "createdAt": 1792642450276,
-                "updatedAt": 1792642450276
-            },
-            {
-                "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/HagiaHaya/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
                 "sortOrder": 443,
@@ -3473,14 +3457,6 @@
                 "sortOrder": 486,
                 "createdAt": 1793420911690,
                 "updatedAt": 1793420911690
-            },
-            {
-                "name": "trax_patches",
-                "source": "https://raw.githubusercontent.com/bastlam/trax_patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 487,
-                "createdAt": 1793420913760,
-                "updatedAt": 1793420913760
             },
             {
                 "name": "morphe-patches-instaprime",
@@ -3923,14 +3899,6 @@
                 "updatedAt": 1793508072992
             },
             {
-                "name": "nl-morphe-patches",
-                "source": "https://raw.githubusercontent.com/johninnl/nl-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 543,
-                "createdAt": 1793508080045,
-                "updatedAt": 1793508080045
-            },
-            {
                 "name": "Gboard-patches",
                 "source": "https://raw.githubusercontent.com/junksidetm/Gboard-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4025,6 +3993,70 @@
                 "sortOrder": 555,
                 "createdAt": 1793593479213,
                 "updatedAt": 1793593479213
+            },
+            {
+                "name": "consumer-clarity",
+                "source": "https://raw.githubusercontent.com/AltF4G0x/consumer-clarity/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 556,
+                "createdAt": 1793685206492,
+                "updatedAt": 1793685206492
+            },
+            {
+                "name": "YT-Music-Morphe-Pitch-Patch",
+                "source": "https://raw.githubusercontent.com/AnTo88-svg/YT-Music-Morphe-Pitch-Patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 557,
+                "createdAt": 1793685207986,
+                "updatedAt": 1793685207986
+            },
+            {
+                "name": "kyt-patches",
+                "source": "https://raw.githubusercontent.com/FinzoYFunzo/kyt-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 558,
+                "createdAt": 1793685212371,
+                "updatedAt": 1793685212371
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/mmenzyns/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 559,
+                "createdAt": 1793685220746,
+                "updatedAt": 1793685220746
+            },
+            {
+                "name": "nich87-patches",
+                "source": "https://raw.githubusercontent.com/Nich87/nich87-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 560,
+                "createdAt": 1793685221816,
+                "updatedAt": 1793685221816
+            },
+            {
+                "name": "nobrokerhood-patches",
+                "source": "https://raw.githubusercontent.com/srinath1848/nobrokerhood-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 561,
+                "createdAt": 1793685224131,
+                "updatedAt": 1793685224131
+            },
+            {
+                "name": "HushPine",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/HushPine/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 562,
+                "createdAt": 1793685224559,
+                "updatedAt": 1793685224559
+            },
+            {
+                "name": "zerobun-morphe-patches",
+                "source": "https://raw.githubusercontent.com/zerobun0/zerobun-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 563,
+                "createdAt": 1793685228313,
+                "updatedAt": 1793685228313
             }
         ]
     }
