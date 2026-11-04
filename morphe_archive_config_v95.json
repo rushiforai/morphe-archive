@@ -923,14 +923,6 @@
                 "updatedAt": 1785897755333
             },
             {
-                "name": "morphe-patches-template",
-                "source": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 120,
-                "createdAt": 1785897755724,
-                "updatedAt": 1785897755724
-            },
-            {
                 "name": "niconico-yt-morphe-patches",
                 "source": "https://raw.githubusercontent.com/david419kr/niconico-yt-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2707,14 +2699,6 @@
                 "updatedAt": 1791780218260
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/tachibana-shin/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 377,
-                "createdAt": 1791780218768,
-                "updatedAt": 1791780218768
-            },
-            {
                 "name": "plex-morphe-patches",
                 "source": "https://raw.githubusercontent.com/UnkyBadTouch/plex-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4057,6 +4041,38 @@
                 "sortOrder": 563,
                 "createdAt": 1793685228313,
                 "updatedAt": 1793685228313
+            },
+            {
+                "name": "beeper-morphe-patch",
+                "source": "https://raw.githubusercontent.com/CharlesAttend/beeper-morphe-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 564,
+                "createdAt": 1793770494884,
+                "updatedAt": 1793770494884
+            },
+            {
+                "name": "Wordfeud-Word-Finder",
+                "source": "https://raw.githubusercontent.com/Jeroenimo02/Wordfeud-Word-Finder/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 565,
+                "createdAt": 1793770502428,
+                "updatedAt": 1793770502428
+            },
+            {
+                "name": "loki-patches",
+                "source": "https://raw.githubusercontent.com/lokesh-sparrow/loki-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 566,
+                "createdAt": 1793770506122,
+                "updatedAt": 1793770506122
+            },
+            {
+                "name": "proxy-patches",
+                "source": "https://raw.githubusercontent.com/TahmidSummy/proxy-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 567,
+                "createdAt": 1793770511270,
+                "updatedAt": 1793770511270
             }
         ]
     }

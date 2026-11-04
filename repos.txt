@@ -116,6 +116,7 @@ catsmoker/anime-witcher-patches
 cesbar/zpatches
 cfels/vibe-patches
 ch3thanhs/stylus
+CharlesAttend/beeper-morphe-patch
 chicco-carone/morphe-patches-chicco
 chikuwadon/nicoid-re-patches
 chirag127/morphe-patches
@@ -271,6 +272,7 @@ jaredcat/morphe-patches
 jasonwu1994/Gboard-patches
 JCapretta/chessable-patches
 Jeff-tek/jeff-patches
+Jeroenimo02/Wordfeud-Word-Finder
 jibon-k/notes-morphe-patches
 jjjusf16-sys/3jPatch_Morphe
 jkennethcarino/adobo
@@ -327,6 +329,7 @@ liongalahad/nuviotv-patches
 liongalahad/stremio-androidTV-morphe-patches
 LOCKhart07/morphe-patches
 logm1lo/logm1lo-patches
+lokesh-sparrow/loki-patches
 loody227/masajid-patches
 lootdev78/morphe-patches-sc
 lootdev78/psylos-morphe-patches
@@ -498,8 +501,8 @@ sushruth/imgur-patches
 Sylonin/xposed-newx-patches
 SysAdminDoc/HushFacebook
 SysAdminDoc/Hushfacebook
-SysAdminDoc/HushFeed
 SysAdminDoc/hushfeed
+SysAdminDoc/HushFeed
 SysAdminDoc/HushGram
 SysAdminDoc/HushMessenger
 SysAdminDoc/HushPine
@@ -509,6 +512,7 @@ SysAdminDoc/HushThreads
 SysAdminDoc/HushTumblr
 tachibana-shin/morphe-patches
 tadikwa/google-clock-morphe-patches
+TahmidSummy/proxy-patches
 testiwy268/morphe-patches
 the-nelsonator/custom-morphe-patches
 theabhishekbhujang/morphe-patches
