@@ -1,8 +1,5 @@
-# Repos reported by the last notification (7)
-AltF4G0x/consumer-clarity
-FinzoYFunzo/kyt-patches
-Nich87/nich87-patches
-SysAdminDoc/HushPine
-mmenzyns/morphe-patches
-srinath1848/nobrokerhood-patches
-zerobun0/zerobun-morphe-patches
+# Repos reported by the last notification (4)
+CharlesAttend/beeper-morphe-patch
+Jeroenimo02/Wordfeud-Word-Finder
+TahmidSummy/proxy-patches
+lokesh-sparrow/loki-patches
