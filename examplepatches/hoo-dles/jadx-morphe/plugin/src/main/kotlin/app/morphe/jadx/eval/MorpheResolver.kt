@@ -2,7 +2,6 @@ package app.morphe.jadx.eval
 
 import app.morphe.jadx.Log
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.Match
 import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.patch.bytecodePatch
@@ -13,6 +12,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.UUID
+
+/**
+ * Snapshot of a fingerprint match.
+ *
+ * Patcher [app.morphe.patcher.Match] objects look up the matched class and method from the
+ * patch context on every access, so they cannot be used after the patcher is closed.
+ */
+data class FingerprintMatch(
+    val definingClass: String,
+    val methodShortId: String,
+    val firstInstructionIndex: Int?,
+    // Only set if more than one instruction filter matched.
+    val lastInstructionIndex: Int?,
+)
 
 object MorpheResolver {
     private lateinit var sourceApk: File
@@ -32,14 +45,24 @@ object MorpheResolver {
         }
     }
 
-    fun matches(fingerprint: Fingerprint): List<Match> {
-        var matches: List<Match> = emptyList()
+    fun matches(fingerprint: Fingerprint): List<FingerprintMatch> {
+        var matches: List<FingerprintMatch> = emptyList()
         val tempPatch = bytecodePatch(
             name = "Temporary patch for searching fingerprint"
         ) {
             execute {
-                matches = fingerprint.matchAllOrNull().orEmpty()
-                if (matches.isNotEmpty()) Log.info { "Fingerprint matched ${matches.size} methods:${matches.joinToString { "\n\t${it.method.definingClass}->${it.method.getShortId()}" }}" }
+                // Copy match data while the patch context is still open.
+                matches = fingerprint.matchAllOrNull().orEmpty().map { match ->
+                    val method = match.originalMethod
+                    val instructionMatches = match.instructionMatchesOrNull
+                    FingerprintMatch(
+                        method.definingClass,
+                        method.getShortId(),
+                        instructionMatches?.firstOrNull()?.index,
+                        instructionMatches?.takeIf { it.size > 1 }?.last()?.index,
+                    )
+                }
+                if (matches.isNotEmpty()) Log.info { "Fingerprint matched ${matches.size} methods:${matches.joinToString { "\n\t${it.definingClass}->${it.methodShortId}" }}" }
                 else Log.warn { "Fingerprint did not match any methods" }
             }
         }
@@ -48,9 +71,7 @@ object MorpheResolver {
         val patcher = Patcher(
             PatcherConfig(
                 this.sourceApk,
-                this.temp,
-                null,
-                this.temp.absolutePath,
+                this.temp
             ),
         )
 

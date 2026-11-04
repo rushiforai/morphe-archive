@@ -26,6 +26,12 @@ public final class LinimalConfig {
     /** 設定画面が patch status を読み直さずに済むよう、初期化時の読み取り結果を保持します。 */
     private final PatchStatusReadResult patchStatusResult;
     private volatile ConfigSnapshot snapshot;
+    /**
+     * 再起動が必要な機能について、このプロセスで hook が最初に返した値。設定画面が config を作り直しても、
+     * 保存の失敗や patch status の読み直しが起きても、表示中の画面の構造を途中で変えないよう、次の起動まで使い続けます。
+     */
+    private static volatile java.util.Map<LinimalFeature, Boolean> processValues =
+            new java.util.concurrent.ConcurrentHashMap<>();
     private volatile LinimalConfigHealth health;
 
     private LinimalConfig(
@@ -294,7 +300,17 @@ public final class LinimalConfig {
      * 任意の feature を扱うのは設定画面だけに限ります。
      */
     public boolean isSuppressionEnabled(LinimalFeature feature) {
-        return feature != null && isEnabled(feature);
+        // 設定画面は保存値を表示します。再起動が必要な機能では hook の値と異なることがあります。
+        return feature != null && availability.isAvailable(feature.getFeatureId()) && snapshot.isEnabled(feature);
+    }
+
+    /** 保存値が、このプロセスの hook が使っている値と異なり、反映に再起動が必要かどうか。 */
+    public boolean isRestartPending(LinimalFeature feature) {
+        if (feature == null || !feature.requiresRestart()) {
+            return false;
+        }
+        Boolean used = processValues.get(feature);
+        return used != null && used != currentValue(feature);
     }
 
     public void setSuppressionEnabled(LinimalFeature feature, boolean enabled) {
@@ -313,7 +329,17 @@ public final class LinimalConfig {
     /** patch status の裏取りを含めて検証するための test 境界です。 */
     static LinimalConfig fromStoreForTesting(
             LinimalConfigStore store, FeatureAvailability availability) {
+        // test ごとに新しいプロセスとして扱い、前の test が固定した値を持ち込みません。
+        processValues = new java.util.concurrent.ConcurrentHashMap<>();
         LinimalConfig config = new LinimalConfig(store, availability, null);
+        config.reload();
+        return config;
+    }
+
+    /** 同じ保存先で新しいプロセスを起動したときの config を作る test 境界です。起動時の値を読み直します。 */
+    LinimalConfig restartForTesting() {
+        processValues = new java.util.concurrent.ConcurrentHashMap<>();
+        LinimalConfig config = new LinimalConfig(store, availability, patchStatusResult);
         config.reload();
         return config;
     }
@@ -324,6 +350,24 @@ public final class LinimalConfig {
 
     /** patch が完全に適用されていない機能は、保存値によらず LINE の元の動作を返します。 */
     private boolean isEnabled(LinimalFeature feature) {
+        if (!feature.requiresRestart()) {
+            return currentValue(feature);
+        }
+        Boolean used = processValues.get(feature);
+        if (used != null) {
+            return used;
+        }
+        boolean value = currentValue(feature);
+        // 初期化前（保存先がない config）の値は固定しません。初期化後は、読み込みに失敗した値も固定し、
+        // 表示中の画面を途中で変えません。
+        if (store == null) {
+            return value;
+        }
+        Boolean previous = processValues.putIfAbsent(feature, value);
+        return previous != null ? previous : value;
+    }
+
+    private boolean currentValue(LinimalFeature feature) {
         return availability.isAvailable(feature.getFeatureId()) && snapshot.isEnabled(feature);
     }
 

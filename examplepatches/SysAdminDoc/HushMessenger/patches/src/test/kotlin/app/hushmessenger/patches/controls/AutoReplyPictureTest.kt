@@ -63,7 +63,7 @@ internal fun autoReplyMessagesStub(flags: Int = STATIC, body: String = NULL_BODY
 internal fun autoReplySendStub(flags: Int = STATIC, body: String = NULL_BODY) = fixtureMethod(AUTO_REPLY_SEND_MESSAGE, body, 2, flags)
 internal fun autoReplyPicturesStub(flags: Int = STATIC, body: String = "const/4 v0, 0x0\nreturn v0") = fixtureMethod(AUTO_REPLY_PICTURES, body, 1, flags)
 
-/** The notification Reply action's service handing the reply to its send, as 584 does: account, helper, text, trigger, flag. */
+/** The notification Reply action's service handing the reply to its send, as 586 does: account, helper, text, trigger, flag. */
 private fun serviceBody(trigger: String = "const-string v7, \"direct_reply_intent\"", flag: String = "const/4 v8, 0x1") = """
     invoke-static {}, $SESSION_GET
     move-result-object v4
@@ -190,9 +190,9 @@ class AutoReplyPictureTest {
         assertEquals(recipe, resolveAutoReplyPictureRecipe(pictureClasses()))
     }
 
-    /** 584.1's armv7 build keeps the reply handler on the service's abstract parent, its only subclass being the service. */
-    @Test fun aHandlerOnTheServicesParentGivesTheSameRecipeButOneOnAnUnrelatedClassDoesNot() {
-        assertEquals(recipe, resolveAutoReplyPictureRecipe(pictureClasses(handlerOn = "LX/GAt;")))
+    /** The reply handler has to be the service's own; one on its abstract parent or on an unrelated class isn't read. */
+    @Test fun aHandlerAnywhereButTheServiceItselfLeavesThePictureOut() {
+        assertNull(resolveAutoReplyPictureRecipe(pictureClasses(handlerOn = "LX/GAt;")))
         assertNull(resolveAutoReplyPictureRecipe(pictureClasses(handlerOn = UNRELATED_HANDLER)))
     }
 

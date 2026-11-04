@@ -1,0 +1,2 @@
+# Woorden die aan de lijst toegevoegd worden (een per regel). Een # begint commentaar.
+# Wordt toegepast door tools/wordlists/build.py.

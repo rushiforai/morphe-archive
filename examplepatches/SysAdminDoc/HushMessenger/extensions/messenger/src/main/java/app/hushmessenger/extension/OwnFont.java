@@ -280,6 +280,8 @@ final class OwnFont {
                 File adjusted = FontFile.adjusted(file, scale, shift);
                 Typeface sized = adjusted == null ? null : build(adjusted);
                 if (sized != null) return new Picked(adjusted, sized);
+                android.util.Log.w("HushMessenger", "custom_font: the sized copy " + (adjusted == null ? "wasn't made" : "didn't load")
+                    + ", so the font is drawn at its own size");
             } else if (file.isFile()) {
                 FontFile.dropAdjusted(file.getParentFile(), null);
             }

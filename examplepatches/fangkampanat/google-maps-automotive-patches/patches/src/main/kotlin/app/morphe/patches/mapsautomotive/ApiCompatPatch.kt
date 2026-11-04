@@ -14,6 +14,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
@@ -38,7 +39,8 @@ import java.util.logging.Logger
 // member it wraps, never by its obfuscated name, and its one call or field read is redirected to
 // ApiCompat, which uses the member on API 30+ and an Android 10 fallback below. Members with
 // API 30-only types are fixed at their call sites (end of this file), as are android.car's
-// Car.createCar calls (DiLink 3 is not Android Automotive OS).
+// Car.createCar calls (DiLink 3 is not Android Automotive OS) and Maps' exit as the system user
+// on Android Automotive builds that run apps as user 0 (DiLink 5).
 
 private const val API_COMPAT_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/ApiCompat;"
 private const val OUTLINE_CLASS_MARKER = "\$\$ExternalSyntheticApiModelOutline"
@@ -814,4 +816,80 @@ private fun MutableClass.addCreateCarBridge(car: MethodReference): MethodReferen
         },
     )
     return ImmutableMethodReference(API_COMPAT_CLASS, "createCar", parameters, CAR_CLASS)
+}
+
+// Maps' Application onCreate (EmbeddedBaseGoogleMapsApplication) disables the receivers of its main
+// process and calls System.exit(0) when that process runs as user 0 on a device with the automotive
+// feature: Android Automotive runs apps in a user of their own and keeps user 0 for the system. DiLink
+// runs every app as user 0, and DiLink 5 on the Sealion 7 (Android 11) declares the feature, so Maps
+// exited at each start and Android started it again (issue #3). DiLink 3 lacks the feature and never
+// gets there. The feature check in front of the exit goes to ApiCompat.exitsAsSystemUser, which answers
+// false, so the receivers stay enabled and Maps starts as it does on DiLink 3.
+private const val SYSTEM_USER_MESSAGE = "Receivers must only be disabled for the system user."
+private const val AAE_MESSAGE = "Receivers must only be disabled on AAE devices."
+private const val SYSTEM_EXIT = "Ljava/lang/System;->exit(I)V"
+private const val DISABLE_COMPONENT =
+    "Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V"
+private const val HAS_SYSTEM_FEATURE = "Landroid/content/pm/PackageManager;->hasSystemFeature(Ljava/lang/String;)Z"
+private const val AUTOMOTIVE_FEATURE_NAME = "android.hardware.type.automotive"
+private val exitsAsSystemUserReference =
+    ImmutableMethodReference(API_COMPAT_CLASS, "exitsAsSystemUser", listOf("Landroid/content/Context;"), "Z")
+
+internal fun BytecodePatchContext.skipSystemUserExit() {
+    val method = findHierarchyHook(APPLICATION_CLASS, "Maps application onCreate") {
+        it.name == "onCreate" && it.returnType == "V" && it.parameterTypes.isEmpty()
+    }
+    val code = method.implementation!!.instructions
+    fun indicesOf(predicate: (Instruction) -> Boolean) = code.indices.filter { predicate(code[it]) }
+    val systemUser = indicesOf { stringReferenceOf(it)?.string == SYSTEM_USER_MESSAGE }
+    val aae = indicesOf { stringReferenceOf(it)?.string == AAE_MESSAGE }
+    val disables = indicesOf { memberKey(it) == DISABLE_COMPONENT }
+    val exits = indicesOf { memberKey(it) == SYSTEM_EXIT }
+    if (systemUser.size != 1 || aae.size != 1 || disables.size != 1 || exits.size != 1 ||
+        systemUser[0] > aae[0] || aae[0] > disables[0] || disables[0] > exits[0]
+    ) {
+        throw PatchException(
+            "Unexpected system-user exit in $method: messages at $systemUser and $aae, " +
+                "setComponentEnabledSetting at $disables, System.exit at $exits",
+        )
+    }
+    // Maps calls the feature check twice: as the exit's condition, before the first message, and for
+    // the second message, between the two.
+    val checks = indicesOf { instruction ->
+        instruction.opcode in staticInvokeOpcodes &&
+            ((instruction as ReferenceInstruction).reference as? MethodReference)?.let(::isAutomotiveFeatureCheck) == true
+    }
+    if (checks.size != 2 || checks[0] > systemUser[0] || checks[1] !in systemUser[0]..aae[0]) {
+        throw PatchException("Unexpected automotive feature checks in $method at $checks")
+    }
+    // The condition's result decides at once whether the exit block runs.
+    val condition = checks[0]
+    val result = code.getOrNull(condition + 1)
+    val branch = code.getOrNull(condition + 2)
+    if (result !is OneRegisterInstruction || result.opcode != Opcode.MOVE_RESULT ||
+        branch !is BuilderOffsetInstruction || branch.opcode != Opcode.IF_EQZ ||
+        (branch as OneRegisterInstruction).registerA != result.registerA || branch.target.location.index <= exits[0]
+    ) {
+        throw PatchException("Unexpected system-user exit condition in $method at $condition")
+    }
+    requireApiCompatMethods(listOf(exitsAsSystemUserReference))
+    method.replaceInstruction(condition, staticCall(code[condition], exitsAsSystemUserReference))
+    apiCompatLogger.info("System-user exit in $method: the feature check at $condition goes to ApiCompat.exitsAsSystemUser")
+}
+
+// A static Maps method (Context)Z that reads the automotive feature and nothing else of PackageManager.
+private fun BytecodePatchContext.isAutomotiveFeatureCheck(reference: MethodReference): Boolean {
+    if (!isMapsCode(reference.definingClass) || reference.returnType != "Z" ||
+        reference.parameterTypes.map { it.toString() } != listOf("Landroid/content/Context;")
+    ) {
+        return false
+    }
+    val callee = classDefByOrNull(reference.definingClass)?.methods?.singleOrNull {
+        it.name == reference.name && it.returnType == reference.returnType && it.parameterTypes == reference.parameterTypes
+    } ?: return false
+    val instructions = callee.implementation?.instructions?.toList() ?: return false
+    return AccessFlags.STATIC.isSet(callee.accessFlags) &&
+        instructions.count { stringReferenceOf(it)?.string == AUTOMOTIVE_FEATURE_NAME } == 1 &&
+        instructions.count { memberKey(it)?.startsWith("Landroid/content/pm/PackageManager;->") == true } == 1 &&
+        instructions.count { memberKey(it) == HAS_SYSTEM_FEATURE } == 1
 }

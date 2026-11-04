@@ -31,6 +31,31 @@ internal static class Accounts
         app.MapGet("/reddits/mine", (HttpContext context) => Subscriptions(context, world, things));
         app.MapGet("/subreddits/mine/{where}", (HttpContext context) => Subscriptions(context, world, things));
 
+        // The avatars of up to 100 users by their fullnames, as the new Reddit website asks for them: only the users
+        // the world gave an avatar (GiveAvatar) are in the answer.
+        app.MapGet("/api/user_data_by_account_ids", (HttpContext context, string? ids) =>
+        {
+            lock (world.Sync)
+            {
+                Caller.Read(context, world, out var refused);
+                if (refused is not null)
+                {
+                    return refused;
+                }
+
+                var users = new Dictionary<string, object>();
+                foreach (var id in (ids ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (world.AvatarOf(id) is { } avatar)
+                    {
+                        users[id] = new { name = avatar.User, created_utc = 1_500_000_000.0, link_karma = 1, comment_karma = 1, profile_img = world.MediaUrl(avatar.Path), profile_color = "", profile_over_18 = false };
+                    }
+                }
+
+                return Answers.Json(users);
+            }
+        });
+
         app.MapGet("/user/{name}/about", (HttpContext context, string name) =>
         {
             lock (world.Sync)
@@ -61,13 +86,15 @@ internal static class Accounts
             return Answers.Json(Listings.Page(subscribed, context.Request.Query, subreddit => subreddit.FullName, subreddit => things.Subreddit(subreddit, account)));
         });
 
-    // The messages of an inbox tab: inbox and messages hold every private message, unread the unread ones; the fake
-    // sends none of the others (sent, comments, selfreply, mentions, moderator).
+    // The entries of an inbox tab: inbox holds them all, unread the unread ones, messages the private messages and
+    // comments the comment replies; the fake sends none of the others (sent, selfreply, mentions, moderator).
     private static List<Message> Inbox(Account account, string where) =>
         where.ToLowerInvariant() switch
         {
-            "inbox" or "messages" => [.. account.Inbox],
+            "inbox" => [.. account.Inbox],
             "unread" => [.. account.Inbox.Where(message => message.IsNew)],
+            "messages" => [.. account.Inbox.Where(message => message.Reply is null)],
+            "comments" => [.. account.Inbox.Where(message => message.Reply is not null)],
             _ => [],
         };
 

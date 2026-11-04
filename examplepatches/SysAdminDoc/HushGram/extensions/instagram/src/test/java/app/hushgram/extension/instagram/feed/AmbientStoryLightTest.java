@@ -7,6 +7,7 @@ package app.hushgram.extension.instagram.feed;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -19,6 +20,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.view.Gravity;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -146,6 +148,15 @@ public class AmbientStoryLightTest {
         return drawn;
     }
 
+    /** [view]'s glow drawn alone, the size of [view]. */
+    private static Bitmap drawn(View view) {
+        Drawable background = view.getBackground();
+        assertTrue(String.valueOf(background), background instanceof AmbientLight.Glow);
+        Bitmap drawn = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+        background.draw(new Canvas(drawn));
+        return drawn;
+    }
+
     private static String hex(int color) {
         return Integer.toHexString(color);
     }
@@ -218,6 +229,71 @@ public class AmbientStoryLightTest {
         assertEquals(0, Color.alpha(glowOnly().getPixel(WIDTH / 2, 2)));
     }
 
+    /**
+     * Instagram's story viewer stops at the status bar and the gesture bar, and the black under them
+     * stayed black (#487). The view round it that spans the window lights those bands too, in the
+     * picture's edge colors, and never over the stage, which draws its own part.
+     */
+    @Test
+    public void aStoryBetweenTheSystemBarsGlowsUnderThemToo() {
+        // Instagram's story viewer draws from the window's top edge, with no action bar over it.
+        if (activity.getActionBar() != null) activity.getActionBar().hide();
+        laidOut();
+        View window = activity.getWindow().getDecorView();
+        int width = window.getWidth(), height = window.getHeight();
+        int[] rootAt = new int[2];
+        root.getLocationInWindow(rootAt);
+        assertEquals("the test's root spans the window from " + rootAt[1], height, root.getHeight());
+        int statusBar = height / 25, gestureBar = height / 20;
+        int stage = height - statusBar - gestureBar;
+        root.removeView(frame);
+        frame.removeView(photo);
+        frame.addView(photo, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        FrameLayout main = new FrameLayout(activity);
+        main.addView(frame, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        FrameLayout.LayoutParams between = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+        between.topMargin = statusBar;
+        between.bottomMargin = gestureBar;
+        root.addView(main, between);
+        photo.setImageDrawable(picture(width, stage));
+        laidOut();
+
+        storiesOn();
+
+        assertEquals(1, AmbientLight.litForTests());
+        assertTrue("the picture fills its stage, which has no bands of its own", AmbientLight.litRectForTests(photo).isEmpty());
+        assertEquals(new Rect(0, statusBar, width, statusBar + stage), AmbientLight.hostLitForTests(photo));
+        advance(AmbientSpeed.MEDIUM.fadeMillis);
+        Bitmap bands = drawn(root);
+        int statusBand = bands.getPixel(width / 2, statusBar / 2);
+        assertTrue("under the status bar, the picture's top: " + hex(statusBand),
+                Color.alpha(statusBand) > 20 && Color.blue(statusBand) > 60 && Color.red(statusBand) < 30);
+        int gestureBand = bands.getPixel(width / 2, height - gestureBar / 2);
+        assertTrue("under the gesture bar, its bottom: " + hex(gestureBand),
+                Color.alpha(gestureBand) > 20 && Color.red(gestureBand) > 60 && Color.blue(gestureBand) < 30);
+        assertEquals("nothing over the stage", 0, Color.alpha(bands.getPixel(width / 2, height / 2)));
+        assertEquals("nor just inside its edge", 0, Color.alpha(bands.getPixel(width / 2, statusBar + 2)));
+
+        Settings.AMBIENT_LIGHT_STORIES.save(false);
+        AmbientLight.switchChanged(activity);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertNull("the root has its own background back", root.getBackground());
+        assertNull(frame.getBackground());
+        assertEquals(0, AmbientLight.litForTests());
+    }
+
+    @Test
+    public void aStoryThatSpansTheWindowLeavesWhatHoldsItAlone() {
+        photo.setImageDrawable(picture(90, 160));
+        laidOut();
+
+        storiesOn();
+
+        assertEquals(1, AmbientLight.litForTests());
+        assertTrue(AmbientLight.hostLitForTests(photo).isEmpty());
+        assertNull(root.getBackground());
+    }
+
     @Test
     public void theGlowFollowsTheNextPhotoAndTheNextVideo() {
         photo.setImageDrawable(picture(90, 160));
@@ -248,6 +324,36 @@ public class AmbientStoryLightTest {
         assertEquals("one light, the video's", 1, AmbientLight.litForTests());
         assertEquals(new Rect(0, 120, WIDTH, 520), AmbientLight.litRectForTests(video));
         assertNull(AmbientLight.litRectForTests(photo));
+    }
+
+    @Test
+    public void aVideoStoryOnASurfaceViewGlowsFromItsOwnPicture() {
+        // #492: Instagram can still play a story's video on a SurfaceView, with its poster photo left
+        // in the frame. The video wins, and its copy is asked of the video's own view.
+        photo.setImageDrawable(picture(90, 160));
+        SurfaceView video = new SurfaceView(activity);
+        frame.addView(video, new FrameLayout.LayoutParams(WIDTH, 400, Gravity.CENTER));
+        View[] asked = new View[1];
+        AmbientLight.samplerForTests((owner, source, inWindow, into, done) -> {
+            asked[0] = source;
+            int[] pixels = new int[into.getWidth() * into.getHeight()];
+            for (int i = 0; i < pixels.length; i++) pixels[i] = i < pixels.length / 2 ? top : bottom;
+            into.setPixels(pixels, 0, into.getWidth(), 0, 0, into.getWidth(), into.getHeight());
+            done.accept(true);
+        });
+        laidOut();
+
+        storiesOn();
+        advance(AmbientSpeed.MEDIUM.fadeMillis);
+
+        assertEquals("one light, the video's", 1, AmbientLight.litForTests());
+        assertEquals(new Rect(0, 120, WIDTH, 520), AmbientLight.litRectForTests(video));
+        assertNull(AmbientLight.litRectForTests(photo));
+        assertSame(video, asked[0]);
+        int above = glowOnly().getPixel(WIDTH / 2, 120 - 8);
+        assertTrue("the band above shows the video's top: " + hex(above), Color.blue(above) > 60 && Color.red(above) < 30);
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(AmbientLight.COUNT_SURFACE_STORIES + " 1"));
     }
 
     @Test

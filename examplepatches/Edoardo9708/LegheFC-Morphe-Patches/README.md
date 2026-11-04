@@ -10,6 +10,7 @@ Repository unico di patch indipendenti per piu applicazioni Android, compatibile
 
 | App | Pacchetto Android | Versione analizzata | Patch |
 | --- | --- | --- | --- |
+| **Musicolet** | `in.krosbits.musicolet` | 6.14.1 build540 ARM64 | Sync folder playlists: collega una nuova playlist a una cartella |
 | **Leghe FC** | `it.quadronica.leghe` | 13.2.1 (445) | Avvio e nome **3 campo**, percentuali, formazione suggerita e comparatore |
 | **Minigore 2** | `net.mountainsheep.minigore2zombies` | 1.28 (28) | Guadagno monete configurabile da ×1 a ×1000, compatibilità Android 17 e fix interfaccia |
 | **Twilight** | `com.urbandroid.lux` | 14.32 (APKM) | Test sperimentale su `TrialFilter.isTrial()` e Logcat |
@@ -21,6 +22,8 @@ Repository unico di patch indipendenti per piu applicazioni Android, compatibile
 | **Yahoo Finance** | `com.yahoo.mobile.client.android.finance` | 26.21.2 (1360038759) | Remove Ads A2, GOLD diagnostico A3, accesso Google microG A5, diagnostica analisi A7 |
 
 ### Stato dei test
+
+- **Musicolet:** collegamento playlist a cartella provato dall'utente sul telefono. La scelta di una nuova cartella dalla schermata di modifica resta una sola anteprima; la patch e facoltativa. [Dettagli](lab/musicolet/README.md).
 
 - **Leghe FC:** le tre patch esistenti rimangono invariate; la patch per la formazione suggerita usa ancora dati dimostrativi. I nomi delle patch non garantiscono lo sblocco completo delle funzionalita.
 - **Twilight:** patch importata dal ramo `dev` del [repository originario](https://github.com/Edoardo9708/Twilight-Morphe-Patches). Il codice imposta a `false` il valore di ritorno di `isTrial()` (`const/4 v0, 0x0`) e registra il test in Logcat. Non e stato verificato il comportamento complessivo dell'app.
@@ -50,7 +53,7 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 ## Elenco automatico delle patch pubblicate
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+> **[v1.10.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
 <summary>📦 DNS Changer&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -171,6 +174,21 @@ Il codice delle diverse app e separato per package sotto `patches/src/main/kotli
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Ski Safari – Unlock All Items](#ski-safari-unlock-all-items) | Experimental: invokes ShopItemHelper.UnlockAllItems once through UnityPlayer's verified game-thread queue after the profile is ready. Includes local APK startup compatibility; native VM callbacks and save persistence require device verification. |  |
+
+</details>
+
+<details open>
+<summary>📦 Musicolet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.14.1 build540 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Sync folder playlists](#sync-folder-playlists) | Create folder-linked playlists and add indexed tracks after scans. Existing-playlist folder selection is preview-only. |  |
 
 </details>
 

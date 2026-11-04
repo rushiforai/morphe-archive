@@ -27,6 +27,8 @@ public final class ReadingPosition {
     static final String ENABLED = "readingPositionRecovery";
     private static final WeakHashMap<Object, Session> SESSIONS = new WeakHashMap<>();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final java.util.concurrent.ExecutorService WRITER = java.util.concurrent.Executors.newSingleThreadExecutor();
+    private static final android.util.LruCache<String, JSONObject> RECENT = new android.util.LruCache<>(128);
     private static final String PROCESS=java.util.UUID.randomUUID().toString();
     private static final java.util.Map<String, int[]> LAYOUT_ANCHORS = new java.util.HashMap<>();
     private static long layoutDeadline;
@@ -147,6 +149,9 @@ public final class ReadingPosition {
         final long installed;
         final String version;
         long nextInspection;
+        long lastScroll;
+        Object itemAdapter;
+        Method itemAccessor, childPosition;
         final Runnable delayedSave = this::save;
         String inspectedKey, written;
         boolean closed, restoring;
@@ -166,17 +171,23 @@ public final class ReadingPosition {
             if (closed || owner == null || !list.isShown()) return null;
             Object adapter = call(list, "getAdapter", new Class<?>[0]);
             if (adapter == null) return null;
-            Method item = list instanceof ListView ? adapter.getClass().getMethod("getItem", int.class)
-                    : FilterPosition.findItem(adapter);
-            item.setAccessible(true);
+            if (itemAdapter != adapter) {
+                itemAccessor = list instanceof ListView ? adapter.getClass().getMethod("getItem", int.class)
+                        : FilterPosition.findItem(adapter);
+                itemAccessor.setAccessible(true); itemAdapter = adapter;
+            }
+            if (!(list instanceof ListView) && childPosition == null) {
+                childPosition = list.getClass().getMethod("getChildAdapterPosition", View.class);
+                childPosition.setAccessible(true);
+            }
             ViewGroup children = (ViewGroup) list;
             for (int i = 0; i < children.getChildCount(); i++) {
                 View child = children.getChildAt(i);
                 if (child.getBottom() <= list.getPaddingTop()) continue;
                 int index = list instanceof ListView ? ((ListView) list).getPositionForView(child)
-                        : (Integer) call(list, "getChildAdapterPosition", new Class<?>[]{View.class}, child);
+                        : (Integer) childPosition.invoke(list, child);
                 if (index < 0) continue;
-                Object post = response(item.invoke(adapter, index));
+                Object post = response(itemAccessor.invoke(adapter, index));
                 int no = number(post);
                 if (no < 1) continue;
                 Object board=NativeThreadContext.board(owner,version);
@@ -215,8 +226,13 @@ public final class ReadingPosition {
             // fragments also receive callbacks while adjacent pages animate.
             // Never perform reflective anchor discovery on every 120 Hz frame.
             long now = android.os.SystemClock.uptimeMillis();
+            if (!list.isShown()) return true;
+            // A settled session only checks for a changed thread once per second;
+            // do not inspect retained tablet panes during an active scroll.
+            boolean settled = inspectedKey != null && coldPreview == null && now > layoutDeadline;
+            if (settled && now - lastScroll < 200) return true;
             if (now < nextInspection) return true;
-            nextInspection = now + 250;
+            nextInspection = now + (settled ? 1000 : 250);
             try {
                 Anchor current = anchor();
                 if(current==null)return true;
@@ -242,10 +258,14 @@ public final class ReadingPosition {
                     return true;
                 }
                 // Inspect once per actual thread, before saving the initial response-1 frame.
-                AtomicFile storage = new AtomicFile(file(current.key));
-                JSONObject saved = null;
-                try { saved = new JSONObject(new String(storage.readFully(), StandardCharsets.UTF_8)); }
-                catch (java.io.FileNotFoundException ignored) { }
+                JSONObject saved = RECENT.get(current.key);
+                if (saved == null) {
+                    AtomicFile storage = new AtomicFile(file(current.key));
+                    try {
+                        saved = new JSONObject(new String(storage.readFully(), StandardCharsets.UTF_8));
+                        RECENT.put(current.key, saved);
+                    } catch (java.io.FileNotFoundException ignored) { }
+                }
                 boolean previews=Haiagaru.xPostPreviewEnabled()||Haiagaru.siteCardsEnabled();
                 if(saved!=null&&previews&&!current.explicit&&saved.optInt("number")>1
                         &&current.key.equals(saved.optString("thread"))
@@ -284,7 +304,8 @@ public final class ReadingPosition {
         }
 
         @Override public void onScrollChanged() {
-            if (closed || restoring || coldPreview!=null) return;
+            if (closed || restoring || coldPreview!=null || !list.isShown()) return;
+            lastScroll = android.os.SystemClock.uptimeMillis();
             MAIN.removeCallbacks(delayedSave);
             MAIN.postDelayed(delayedSave, 400);
         }
@@ -298,12 +319,22 @@ public final class ReadingPosition {
                 String signature = current.key + ":" + current.number + ":" + current.offset;
                 if (signature.equals(written)) return;
                 JSONObject data = new JSONObject().put("thread", current.key).put("number", current.number)
-                        .put("offset", current.offset).put("installed", installed).put("process",PROCESS);
-                AtomicFile storage = new AtomicFile(file(current.key));
-                FileOutputStream output = storage.startWrite();
-                try { output.write(data.toString().getBytes(StandardCharsets.UTF_8)); storage.finishWrite(output); }
-                catch (Exception error) { storage.failWrite(output); throw error; }
+                        .put("offset", current.offset).put("installed", installed).put("process", PROCESS);
+                RECENT.put(current.key, data);
                 written = signature;
+                // AtomicFile.finishWrite includes a sync. Keep it off the UI thread,
+                // with one ordered writer so the latest anchor is always written last.
+                WRITER.execute(() -> {
+                    try {
+                        AtomicFile storage = new AtomicFile(file(current.key));
+                        FileOutputStream output = storage.startWrite();
+                        try { output.write(data.toString().getBytes(StandardCharsets.UTF_8)); storage.finishWrite(output); }
+                        catch (Exception error) { storage.failWrite(output); throw error; }
+                    } catch (Exception error) {
+                        MAIN.post(() -> { if (signature.equals(written)) written = null; });
+                        Log.w("HaiagaruPosition", "Cannot persist reading position", error);
+                    }
+                });
             } catch (Exception error) { Log.w("HaiagaruPosition", "Cannot persist reading position", error); }
         }
 

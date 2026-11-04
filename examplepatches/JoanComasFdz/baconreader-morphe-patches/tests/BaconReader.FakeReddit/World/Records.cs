@@ -46,4 +46,5 @@ public sealed class LoginPageOptions
 /// BaconReader's Reddit requests have no timeout: a delay alone never fails one.
 /// </summary>
 /// <param name="Matches">Which requests: their method and their path, without <c>.json</c> and a trailing slash.</param>
-public sealed record RequestTrouble(Func<string, string, bool> Matches, TimeSpan Delay, int? Status = null, string? Explanation = null, bool Drops = false);
+/// <param name="Times">How many of them it hits, the first ones; null, every one.</param>
+public sealed record RequestTrouble(Func<string, string, bool> Matches, TimeSpan Delay, int? Status = null, string? Explanation = null, bool Drops = false, int? Times = null);

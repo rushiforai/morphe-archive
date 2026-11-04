@@ -808,8 +808,9 @@ public class Settings extends BaseSettings {
      * The UP NEXT bar under a video opened from the feed, naming the video Facebook lines up after
      * it, gets no video to show: the lookup returns before it queries and what was found is handed
      * out empty ({@link app.morphe.extension.facebook.reels.ReelDeclutter#skipUpNextFetch} and
-     * {@link app.morphe.extension.facebook.reels.ReelDeclutter#hideUpNextVideos}, #367). Off by
-     * default.
+     * {@link app.morphe.extension.facebook.reels.ReelDeclutter#hideUpNextVideos}, #367), and the
+     * player keeps no empty room for it under the seek bar ({@link
+     * app.morphe.extension.facebook.reels.ReelDeclutter#skipUpNextRoom}, #375). Off by default.
      */
     public static final BooleanSetting HIDE_UP_NEXT =
             new BooleanSetting("hushfacebook_hide_up_next", FALSE);
@@ -2563,9 +2564,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_keep_post_dates", TRUE);
 
     /**
-     * Posts in the feed show their whole text instead of Facebook's cut with See more
-     * ({@link app.morphe.extension.facebook.feed.FullPostText}). A change shows on the posts drawn
-     * after it.
+     * Posts in the feed and reel captions show their whole text instead of Facebook's cut with See more
+     * ({@link app.morphe.extension.facebook.feed.FullPostText}). A change shows on the posts and reels
+     * drawn after it.
      */
     public static final BooleanSetting SHOW_FULL_POST_TEXT =
             new BooleanSetting("hushfacebook_show_full_post_text", FALSE);
@@ -2611,9 +2612,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_photo_carousel", FALSE);
 
     /**
-     * Posts and reel captions keep the language they were written in, with Facebook's See
+     * Posts, comments and reel captions keep the language they were written in, with Facebook's See
      * translation link under them ({@link app.morphe.extension.facebook.feed.AutoTranslation}). A
-     * change shows on the posts and reels drawn after it.
+     * change shows on the posts, comments and reels drawn after it.
      */
     public static final BooleanSetting TURN_OFF_AUTO_TRANSLATION =
             new BooleanSetting("hushfacebook_turn_off_auto_translation", FALSE);

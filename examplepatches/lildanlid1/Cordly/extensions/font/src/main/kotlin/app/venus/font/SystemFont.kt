@@ -14,7 +14,7 @@ import java.util.regex.Pattern
  * sans-serif or monospace font, or a font file you imported, keeping each weight and italic. Every Discord text, React Native or
  * native chat, asks ReactFontManager.getTypeface(String, TypefaceStyle, AssetManager) first.
  *
- * Read from the saved Cordly setting before Discord draws anything, so every screen is measured and
+ * Read from the saved Conduit setting before Discord draws anything, so every screen is measured and
  * drawn with one font. Only Java/Android APIs: the host's Kotlin helpers are obfuscated.
  */
 object SystemFont {
@@ -127,7 +127,7 @@ object SystemFont {
     }
 
     /**
-     * Copies a font Cordly picked (a private copy in Discord's cache, from Android's file picker) into Discord's
+     * Copies a font Conduit picked (a private copy in Discord's cache, from Android's file picker) into Discord's
      * files, after checking Android can draw it. Off the bridge thread: a font can be tens of megabytes.
      * The request is {"path", "name"}; only files inside Discord's own cache are accepted.
      */
@@ -165,7 +165,7 @@ object SystemFont {
             } finally {
                 try { source?.delete() } catch (_: Throwable) { }
             }
-        }, "Cordly-Font-Import")
+        }, "Conduit-Font-Import")
         worker.isDaemon = true
         worker.start()
     }
@@ -230,7 +230,7 @@ object SystemFont {
 
     /**
      * Whether the saved settings turn this on. Runs on Discord's main thread before the first screen:
-     * Cordly writes them with JSON.stringify, so a file without `"systemFont":true` (the switch off, the
+     * Conduit writes them with JSON.stringify, so a file without `"systemFont":true` (the switch off, the
      * common case) needs no JSON parsing. Anything else is parsed exactly as before.
      */
     private fun savedOn(file: File): Boolean {

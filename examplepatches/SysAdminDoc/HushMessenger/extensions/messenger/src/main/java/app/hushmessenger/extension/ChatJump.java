@@ -261,14 +261,21 @@ public final class ChatJump {
             Toast.makeText(chat.getContext(), new SettingsText(chat.getContext()).get("chat_jump_no_list"), Toast.LENGTH_SHORT).show();
             return;
         }
-        running = new Jump(chat, new Loader(new ListSource(list), day));
-        running.start();
+        Jump jump = new Jump(chat, new Loader(new ListSource(list), day));
+        running = jump;
+        try {
+            jump.start();
+        } catch (RuntimeException | Error error) {
+            // A bar that never showed would stay running, holding the chat and its screen until the next jump.
+            jump.stop(Outcome.LOST);
+            throw error;
+        }
     }
 
     /** Asks where to go, then for the day when it's a date. */
     private static void choose(Context context, Target target) {
         SettingsText text = new SettingsText(context);
-        new AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        new AlertDialog.Builder(context, MaterialYouTheme.chatDialogTheme())
             .setTitle(text.get("chat_jump_title"))
             .setItems(new CharSequence[]{text.get("chat_jump_first"), text.get("chat_jump_date")}, (dialog, which) -> {
                 try {
@@ -283,7 +290,7 @@ public final class ChatJump {
 
     private static void pickDay(Context context, Target target) {
         Calendar today = Calendar.getInstance();
-        DatePickerDialog picker = new DatePickerDialog(context, android.R.style.Theme_DeviceDefault_Dialog_Alert,
+        DatePickerDialog picker = new DatePickerDialog(context, MaterialYouTheme.chatDialogTheme(),
             (view, year, month, day) -> {
                 try {
                     target.jump(midnight(year, month, day));
@@ -495,8 +502,8 @@ public final class ChatJump {
 
     /**
      * The views drawn on top of [view] in each of its parents. A parent draws its children by Z, then in order, so a
-     * sibling counts when it's raised higher or level and later. 585 adds the reminder card ahead of the list's frame and
-     * lifts it with elevation.
+     * sibling counts when it's raised higher or level and later. A card added ahead of the list's frame, such as the
+     * reminder card, can be lifted over it with elevation.
      */
     private static List<View> above(View view) {
         List<View> above = new ArrayList<>();
@@ -755,17 +762,22 @@ public final class ChatJump {
             if (!(found instanceof FrameLayout)) return;
             content = (ViewGroup) found;
             Context context = chat.getContext();
-            SettingsUi ui = new SettingsUi(context, Settings.preferences.getBoolean("light", false));
+            SettingsUi ui = new SettingsUi(context, MaterialYouTheme.chatIsLight());
             bar = ui.row();
-            bar.setBackgroundColor(ui.background);
+            // A line along its top, like a sheet's buttons, so the bar reads apart from the messages under it.
+            bar.setBackground(ui.topEdge(ui.background));
             bar.setGravity(Gravity.CENTER_VERTICAL);
-            bar.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), ui.dp(8));
+            bar.setPadding(ui.dp(16), ui.dp(9), ui.dp(16), ui.dp(8));
+            // A tap beside Cancel stops here instead of opening the chat box the bar covers.
+            bar.setOnTouchListener((view, event) -> true);
             status = ui.text("", 15, ui.text, false);
             bar.addView(status, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
             cancel = ui.button(new SettingsText(context).get("chat_jump_cancel"));
             cancel.setOnClickListener(tapped -> jump.stop(Outcome.CANCELLED));
             bar.addView(cancel);
             update();
+            // TalkBack says the count once as the bar comes up, without reading out every page it loads.
+            bar.setAccessibilityPaneTitle(status.getText());
             content.addView(bar, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
             content.getViewTreeObserver().addOnGlobalLayoutListener(this);

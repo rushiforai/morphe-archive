@@ -8,8 +8,8 @@ import java.util.zip.ZipFile
 internal const val OPTIONAL_ASSET_GUIDE = "https://github.com/areteruhiro/Haiagaru-Morphe/blob/dev/docs/optional-assets.md"
 internal const val OPTIONAL_ASSET_EMOJI_URL = "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/patches/src/main/resources/chmate/emoji/NotoColorEmoji.ttf"
 internal const val OPTIONAL_ASSET_IMAGE_NG_URL = "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/optional-assets/haiagaru-image-ng.zip"
-internal const val OPTIONAL_ASSET_VPN_URL = "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/vpn/image-stack/prebuilt/image-stack.aar"
-internal const val OPTIONAL_ASSET_VPN_ZIP_URL = "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.12.0-dev.4/haiagaru-image-vpn-v2.zip"
+internal const val OPTIONAL_ASSET_VPN_URL = "https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/vpn/image-stack/prebuilt/image-stack.aar"
+internal const val OPTIONAL_ASSET_VPN_ZIP_URL = "https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest/download/haiagaru-image-vpn-v2.zip"
 
 /** Read named entries without extracting archive paths onto disk. Verify before modifying the APK. */
 internal fun optionalLibraries(path: String, names: Map<String, String>, library: String): Map<String, ByteArray> {

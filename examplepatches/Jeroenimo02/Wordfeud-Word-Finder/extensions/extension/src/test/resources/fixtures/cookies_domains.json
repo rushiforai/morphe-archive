@@ -1,0 +1,1 @@
+{"example.com":{"/":{"sessionid":"sessionid=WRONGDOMAIN; Expires=Tue, 03 Nov 2099 13:14:36 GMT; Max-Age=172800; Domain=.example.com; Path=/; HttpOnly; SameSite=Lax;_crt=4097222076"}},"wordfeud.com":{"/":{"sessionid":"sessionid=TESTSESSION; Expires=Tue, 03 Nov 2099 13:14:36 GMT; Max-Age=172800; Domain=.wordfeud.com; Path=/; HttpOnly; SameSite=Lax;_crt=4097222076"}}}

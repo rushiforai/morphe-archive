@@ -22,7 +22,7 @@ internal object ShouldShowSplashVideoFingerprint : Fingerprint(
 @Suppress("unused")
 val skipSplashVideoPatch = bytecodePatch(
     name = "Skip lion intro",
-    description = "Opens the MGM+ phone app after the MGM+ logo, without the lion intro video.",
+    description = "Opens the app after the MGM+ logo, without the lion intro video.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

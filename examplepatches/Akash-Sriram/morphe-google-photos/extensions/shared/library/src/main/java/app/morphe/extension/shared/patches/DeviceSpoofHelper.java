@@ -18,6 +18,7 @@ public final class DeviceSpoofHelper {
     public static final String PROFILE_AUTO = "auto";
     public static final String PROFILE_PIXEL_XL = "pixel-xl";
     public static final String PROFILE_PIXEL_5 = "pixel-5";
+    public static final String PROFILE_ORIGINAL = "original";
 
     private static final String FINGERPRINT_PIXEL_XL =
             "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys";
@@ -32,11 +33,16 @@ public final class DeviceSpoofHelper {
     private static final String ORIGINAL_BRAND = Build.BRAND;
 
     private static volatile String cachedSettingProfile = null;
-    private static final String defaultSettingProfile = PROFILE_AUTO;
+    public static final String DEFAULT_SETTING_PROFILE = PROFILE_AUTO;
+
+    public static String getDefaultProfile() {
+        return PROFILE_AUTO;
+    }
 
     // Strong reference to prevent GC of the listener
     private static SharedPreferences.OnSharedPreferenceChangeListener backupPrefsListener = null;
     private static int lastStoragePolicy = -1;
+    private static volatile boolean sBuildSpoofApplied = false;
 
     static {
         try {
@@ -50,7 +56,7 @@ public final class DeviceSpoofHelper {
         if (context != null) {
             try {
                 SharedPreferences prefs = context.getSharedPreferences("morphe_settings", Context.MODE_PRIVATE);
-                cachedSettingProfile = prefs.getString(PREF_KEY_PROFILE, defaultSettingProfile);
+                cachedSettingProfile = prefs.getString(PREF_KEY_PROFILE, getDefaultProfile());
             } catch (Throwable ignored) {}
             syncPolicyForProfile(context, getSelectedProfile());
             registerBackupPrefsListener(context);
@@ -70,6 +76,7 @@ public final class DeviceSpoofHelper {
                     if (newPolicy != -1 && newPolicy != lastStoragePolicy) {
                         Logger.printInfo(() -> "Detected Photos backup storage policy change: " + lastStoragePolicy + " -> " + newPolicy);
                         lastStoragePolicy = newPolicy;
+                        sBuildSpoofApplied = false;
                         applyBuildSpoof();
                         if (PROFILE_AUTO.equalsIgnoreCase(getSelectedProfile())) {
                             new Handler(Looper.getMainLooper()).post(() -> {
@@ -99,16 +106,21 @@ public final class DeviceSpoofHelper {
             Context ctx = Utils.getContextOrNull();
             if (ctx != null) {
                 SharedPreferences prefs = ctx.getSharedPreferences("morphe_settings", Context.MODE_PRIVATE);
-                cachedSettingProfile = prefs.getString(PREF_KEY_PROFILE, defaultSettingProfile);
+                cachedSettingProfile = prefs.getString(PREF_KEY_PROFILE, getDefaultProfile());
                 registerBackupPrefsListener(ctx);
                 return cachedSettingProfile;
             }
         } catch (Throwable ignored) {}
-        return defaultSettingProfile;
+        return getDefaultProfile();
+    }
+
+    public static boolean isOriginalDevice() {
+        return PROFILE_ORIGINAL.equalsIgnoreCase(getSelectedProfile());
     }
 
     /**
      * Resolves the effective device profile:
+     * - If user selected PROFILE_ORIGINAL, returns PROFILE_ORIGINAL.
      * - If user selected PROFILE_PIXEL_XL / PROFILE_PIXEL_5 explicitly, returns it.
      * - If user selected PROFILE_AUTO (default):
      *   Reads "photos.backup.backup_prefs" -> "backup_prefs_storage_policy":
@@ -117,6 +129,7 @@ public final class DeviceSpoofHelper {
      */
     public static String getEffectiveProfile() {
         String selected = getSelectedProfile();
+        if (PROFILE_ORIGINAL.equalsIgnoreCase(selected)) return PROFILE_ORIGINAL;
         if (PROFILE_PIXEL_XL.equalsIgnoreCase(selected)) return PROFILE_PIXEL_XL;
         if (PROFILE_PIXEL_5.equalsIgnoreCase(selected)) return PROFILE_PIXEL_5;
 
@@ -135,11 +148,11 @@ public final class DeviceSpoofHelper {
     }
 
     public static boolean isStorageSaver() {
-        return PROFILE_PIXEL_5.equalsIgnoreCase(getEffectiveProfile());
+        return !isOriginalDevice() && PROFILE_PIXEL_5.equalsIgnoreCase(getEffectiveProfile());
     }
 
     public static boolean isPixelXl() {
-        return PROFILE_PIXEL_XL.equalsIgnoreCase(getEffectiveProfile());
+        return !isOriginalDevice() && PROFILE_PIXEL_XL.equalsIgnoreCase(getEffectiveProfile());
     }
 
     public static void setProfile(Context context, String profile) {
@@ -157,7 +170,21 @@ public final class DeviceSpoofHelper {
     }
 
     public static void syncPolicyForProfile(Context context, String profile) {
-        if (context == null || PROFILE_AUTO.equalsIgnoreCase(profile)) return;
+        if (context == null) return;
+        if (PROFILE_ORIGINAL.equalsIgnoreCase(profile)) {
+            // Do not alter or constrain storage policy when using Original Device.
+            return;
+        }
+        if (PROFILE_AUTO.equalsIgnoreCase(profile)) {
+            try {
+                SharedPreferences backupPrefs = context.getSharedPreferences("photos.backup.backup_prefs", Context.MODE_PRIVATE);
+                if (!backupPrefs.contains("backup_prefs_storage_policy")) {
+                    backupPrefs.edit().putInt("backup_prefs_storage_policy", 0).commit();
+                    Logger.printInfo(() -> "syncPolicyForProfile: initialized default storage policy to 0 (Pixel XL)");
+                }
+            } catch (Throwable ignored) {}
+            return;
+        }
         if (PROFILE_PIXEL_5.equalsIgnoreCase(profile)) {
             ensureStoragePolicy(context, 1);
         } else if (PROFILE_PIXEL_XL.equalsIgnoreCase(profile)) {
@@ -181,6 +208,9 @@ public final class DeviceSpoofHelper {
 
     public static String getProfileDisplayName() {
         String selected = getSelectedProfile();
+        if (PROFILE_ORIGINAL.equalsIgnoreCase(selected)) {
+            return "Original Device (Disabled)";
+        }
         String effective = getEffectiveProfile();
         String effectiveDesc = PROFILE_PIXEL_5.equalsIgnoreCase(effective)
                 ? "Storage Saver • Pixel 5"
@@ -194,6 +224,9 @@ public final class DeviceSpoofHelper {
 
     public static String getProfileChipName() {
         String selected = getSelectedProfile();
+        if (PROFILE_ORIGINAL.equalsIgnoreCase(selected)) {
+            return "Original Device";
+        }
         if (PROFILE_AUTO.equalsIgnoreCase(selected)) {
             return "Auto (" + (isStorageSaver() ? "Storage Saver" : "Original Quality") + ")";
         }
@@ -201,34 +234,62 @@ public final class DeviceSpoofHelper {
     }
 
     public static String getModel() {
+        if (isOriginalDevice()) return ORIGINAL_MODEL;
         if (isStorageSaver()) return "Pixel 5";
         return "Pixel XL";
     }
 
     public static String getDevice() {
+        if (isOriginalDevice()) return ORIGINAL_DEVICE;
         if (isStorageSaver()) return "redfin";
         return "marlin";
     }
 
     public static String getProduct() {
+        if (isOriginalDevice()) return ORIGINAL_PRODUCT;
         if (isStorageSaver()) return "redfin";
         return "marlin";
     }
 
     public static String getFingerprint() {
+        if (isOriginalDevice()) return ORIGINAL_FINGERPRINT;
         if (isStorageSaver()) return FINGERPRINT_PIXEL_5;
         return FINGERPRINT_PIXEL_XL;
     }
 
     public static String getManufacturer() {
+        if (isOriginalDevice()) return ORIGINAL_MANUFACTURER;
         return "Google";
     }
 
     public static String getBrand() {
+        if (isOriginalDevice()) return ORIGINAL_BRAND;
         return "google";
     }
 
+    /**
+     * Attempts to mutate Build fields via reflection as a secondary/legacy mechanism.
+     *
+     * NOTE: On Android 12+ (API 31+), mutating {@code static final} fields via reflection
+     * throws {@link IllegalAccessException} which is silently swallowed here. The primary
+     * identity-spoofing mechanism is now the smali SGET→invoke-static replacement baked
+     * into the APK by BaseSpoofBuildInfoPatch (Pass 2), which routes every Build.MODEL /
+     * Build.DEVICE / Build.FINGERPRINT / Build.MANUFACTURER / Build.BRAND / Build.PRODUCT
+     * read through the corresponding DeviceSpoofHelper getter — no reflection involved.
+     *
+     * This method is retained for completeness but should be considered a no-op on
+     * Android 12+ devices. Do not rely on it for correctness (see issue #63).
+     */
     public static void applyBuildSpoof() {
+        if (Build.VERSION.SDK_INT >= 31) {
+            // On Android 12+ (API 31+), mutating static final fields via reflection is
+            // prohibited by ART and throws IllegalAccessException. Identity spoofing is
+            // handled entirely by BaseSpoofBuildInfoPatch bytecode replacement.
+            return;
+        }
+        if (sBuildSpoofApplied) {
+            return;
+        }
         try {
             setBuildField("MODEL", getModel());
             setBuildField("DEVICE", getDevice());
@@ -236,8 +297,9 @@ public final class DeviceSpoofHelper {
             setBuildField("FINGERPRINT", getFingerprint());
             setBuildField("MANUFACTURER", getManufacturer());
             setBuildField("BRAND", getBrand());
+            sBuildSpoofApplied = true;
         } catch (Throwable t) {
-            Logger.printException(() -> "Error in applyBuildSpoof", t);
+            Logger.printDebug(() -> "Error in applyBuildSpoof (no-op on Android 12+): " + t.getMessage());
         }
     }
 
@@ -248,11 +310,15 @@ public final class DeviceSpoofHelper {
             field.setAccessible(true);
             field.set(null, value);
         } catch (Throwable t) {
-            Logger.printException(() -> "Failed to spoof Build." + fieldName, t);
+            Logger.printDebug(() -> "Reflection spoof on Build." + fieldName + " unavailable: " + t.getMessage());
         }
     }
 
+
     public static String resolveSystemFeature(String feature) {
+        if (isOriginalDevice()) {
+            return feature;
+        }
         if ("com.google.android.apps.photos.NEXUS_PRELOAD".equals(feature)
                 || "com.google.android.apps.photos.nexus_preload".equals(feature)) {
             // Pixel XL: returns wifi (true) to enable unmetered Original Quality.
@@ -267,12 +333,16 @@ public final class DeviceSpoofHelper {
 
     /**
      * Determines whether the Backup Quality row should be visible in Google Photos settings.
+     * - Original Device Mode: returns true (always visible).
      * - Auto-Sync Mode: ALWAYS returns true so user can toggle between Original and Storage Saver.
      * - Pixel XL Mode: returns false (matches authentic Pixel 1 unmetered original only behavior).
      * - Pixel 5 Mode: returns true.
      */
     public static boolean shouldShowQualitySelector(boolean originalVisibility) {
         String selected = getSelectedProfile();
+        if (PROFILE_ORIGINAL.equalsIgnoreCase(selected)) {
+            return true;
+        }
         if (PROFILE_AUTO.equalsIgnoreCase(selected)) {
             return true;
         }
@@ -290,7 +360,7 @@ public final class DeviceSpoofHelper {
      * qualityType: 0 = Original Quality, 1 = Storage Saver, 2 = Express
      */
     public static java.util.List<String> getEnhancedQualityDescriptions(int qualityType, java.util.List<String> originalDescriptions) {
-        if (!PROFILE_AUTO.equalsIgnoreCase(getSelectedProfile()) || originalDescriptions == null) {
+        if (isOriginalDevice() || !PROFILE_AUTO.equalsIgnoreCase(getSelectedProfile()) || originalDescriptions == null) {
             return originalDescriptions;
         }
         java.util.List<String> list = new java.util.ArrayList<>(originalDescriptions);
@@ -308,6 +378,16 @@ public final class DeviceSpoofHelper {
      */
     public static boolean isQualityOptionEnabled(int qualityType) {
         String selected = getSelectedProfile();
+        if (PROFILE_ORIGINAL.equalsIgnoreCase(selected)) {
+            // Original Device: all 3 options (Original Quality 0, Storage Saver 1, Express 2) are active
+            return true;
+        }
+        if (PROFILE_PIXEL_XL.equalsIgnoreCase(selected)) {
+            // Forced Pixel XL: only Original Quality (0) is active; Storage Saver (1) and Express (2) are locked.
+            // This prevents users from selecting Storage Saver while spoofing Pixel XL, which would cause
+            // the server to apply quota (non-Pixel-5 devices are not exempt for Storage Saver tier).
+            return qualityType == 0;
+        }
         if (PROFILE_PIXEL_5.equalsIgnoreCase(selected)) {
             // Forced Pixel 5: only Storage Saver (1) is active; Original (0) and Express (2) are disabled
             return qualityType == 1;
@@ -324,6 +404,9 @@ public final class DeviceSpoofHelper {
     }
 
     public static String getSystemProperty(String key, String originalValue) {
+        if (isOriginalDevice()) {
+            return originalValue;
+        }
         boolean storageSaver = isStorageSaver();
         switch (key) {
             case "ro.product.model":

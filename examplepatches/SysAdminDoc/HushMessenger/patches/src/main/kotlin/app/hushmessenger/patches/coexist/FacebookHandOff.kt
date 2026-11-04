@@ -74,7 +74,14 @@ private fun Method.handOffLoads(): List<Int> {
     return code.indices.filter { code[it].loadsFacebook() }.filter { load ->
         val register = (code[load] as OneRegisterInstruction).registerA
         if (register > 255) return@filter false
-        val readers = runCatching { readersOf(load, register) }.getOrNull() ?: return@filter false
+        // A method the analysis can't follow stops the patch by name. Skipping it would lose a hand-off without a word.
+        val readers = try {
+            readersOf(load, register)
+        } catch (failure: PatchException) {
+            throw failure
+        } catch (failure: RuntimeException) {
+            throw PatchException("$CLONE_PATCH_NAME: can't follow the Facebook app's name through ${hookId()}. Start with an unmodified supported APK.", failure)
+        }
         readers.isNotEmpty() && readers.all { code[it].isHandOff(register) }
     }
 }

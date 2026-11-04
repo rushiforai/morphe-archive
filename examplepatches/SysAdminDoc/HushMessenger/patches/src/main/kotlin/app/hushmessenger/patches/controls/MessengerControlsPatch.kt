@@ -185,6 +185,8 @@ internal fun MutableMethod.validateHook(hook: String) {
         WIFI_IDENTITY -> validateWifiIdentity()
         PHONE_ID_SYNC -> validatePhoneIdSync()
         STORY_HOLD -> validateStoryHold()
+        CHAT_PREVIEW -> validateChatPreview()
+        BLOCKED_LIST_PICTURES -> validateBlockedListPictures()
         SHARE_STORY -> validateShareStory()
         AVATAR_SHAPE -> validateAvatarShape()
         STORY_RING -> validateStoryRing()
@@ -291,6 +293,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             WIFI_IDENTITY -> method.injectWifiIdentity()
             PHONE_ID_SYNC -> method.injectPhoneIdSync()
             STORY_HOLD -> method.injectStoryHold()
+            CHAT_PREVIEW -> method.injectChatPreview()
+            BLOCKED_LIST_PICTURES -> method.injectBlockedListPictures()
             SHARE_STORY -> method.injectShareStory()
             AVATAR_SHAPE -> method.injectAvatarShape()
             STORY_RING -> method.injectStoryRing()
@@ -445,7 +449,9 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 val stub = host.methods.singleOrNull { it.hookId() == SEARCH_ICON_STUB }
                     ?: throw PatchException("Messenger controls: the inbox search bar's extension stub is missing")
                 // Built before the first edit, so a changed stub or check stops the patch with Messenger untouched.
-                val built = searchIconReader(stub, searchIconCheck(discoveredControls.getValue(INBOX_SEARCH_BAR)) { classDefByOrNull(it) })
+                val readers = discoveredControls.getValue(INBOX_SEARCH_BAR)
+                val check = searchIconCheck(readers) { classDefByOrNull(it) }
+                val built = searchIconReader(stub, check)
                 injectControl(key, methods)
                 // MutableMethod.implementation has no setter. Keep both method indexes in sync when replacing it.
                 host.methods.remove(stub)
@@ -517,6 +523,9 @@ val keepSearchBarPatch = controlPatch("inbox_search_bar", "Keep the search bar",
     "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger after changing it. If Messenger never gave you the icon, nothing changes.", "Inbox")
 @Suppress("unused")
 val hideMarkReadPatch = controlPatch("mark_read_action", "Hide Mark as read", "Hides Mark as read in the menu you get when you press and hold a chat in your chat list, so you can't mark a chat read by accident. Mark as unread stays.", "Inbox")
+@Suppress("unused")
+val previewChatsPatch = controlPatch("chat_preview", "Preview chats on long press",
+    "Pressing and holding a chat opens Messenger's own preview of it, with the chat's menu underneath, so you can peek at a chat without opening it.", "Inbox")
 @Suppress("unused")
 val pinMoreChatsPatch = controlPatch("pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "Inbox", PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST)
 @Suppress("unused")
@@ -657,6 +666,9 @@ val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receip
 val markReadButtonPatch = controlPatch("mark_read_button", "Mark as read button", "Puts Messenger's Mark as read icon in a chat's top bar while Hide read receipts is on. Opening the chat still sends nothing, and a tap on the icon sends Seen and marks the chat read. When the bar is full it takes the place of the chat details button (tapping the chat's name opens the same page), or of another button that isn't for calls when a chat doesn't have one, so the call buttons stay put.", "Privacy", MARK_READ_BAR, MARK_READ_CLICK)
 @Suppress("unused")
 val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them, in chats where it works. In end-to-end encrypted chats the message stays in its notification instead, since the chat itself can't keep it. Group chats aren't tested.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent", UNSENT_RECALL, UNSENT_CLEAR)
+@Suppress("unused")
+val blockedListPicturesPatch = controlPatch("blocked_list_pictures", "Hide pictures on the Blocked list",
+    "Hides people's profile pictures on the list of people you've blocked, under Privacy and safety. Their names and Unblock stay.", "Privacy")
 @Suppress("unused")
 val unlockAppIconsPatch = controlPatch("app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger still decides whether that setting shows for your account.", "Theme")
 @Suppress("unused")

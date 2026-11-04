@@ -85,6 +85,11 @@ public final class GameReview {
         return Features.computerReviewPatched() && Features.isEnabled(Features.COMPUTER_REVIEW);
     }
 
+    /** The Find the computer on the network patch, applied and switched on. */
+    public static boolean networkScan() {
+        return Features.networkScanPatched() && Features.isEnabled(Features.NETWORK_SCAN);
+    }
+
     /** The Great and Brilliant moves analysis patch, applied and switched on. */
     public static boolean marksMoves() {
         return Features.greatMovesPatched() && Features.isEnabled(Features.GREAT_MOVES);

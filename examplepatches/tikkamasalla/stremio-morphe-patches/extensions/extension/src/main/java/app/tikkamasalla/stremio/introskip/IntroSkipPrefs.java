@@ -24,6 +24,11 @@ public final class IntroSkipPrefs {
     public static final String KEY_SHOWLIST = "autopick_showlist";
     /** Prepare the next episode (streams + skip data) while the current one plays. */
     public static final String KEY_PREPARE_NEXT = "prepare_next";
+    /** Work out missing skip times in the background (one-ahead detector); default off. */
+    public static final String KEY_ONEAHEAD = "oneahead_enabled";
+    /** Borrow chapters from other releases; default off until its test is finished. */
+    public static final String KEY_BORROW = "borrow_enabled";
+    public static final boolean BORROW_DEFAULT = false;
     /** Playback diary on/off; read by PlaybackDiary itself under the same literal key. */
     public static final String KEY_DIARY = "playback_diary";
 
@@ -198,6 +203,24 @@ public final class IntroSkipPrefs {
             return prefs(context).getBoolean(KEY_SHOWLIST, false);
         } catch (Throwable ignored) {
             return false;
+        }
+    }
+
+    /** One-ahead background detection; off means no thread, no stream query, no file read. */
+    public static boolean isOneAheadEnabled(Context context) {
+        try {
+            return prefs(context).getBoolean(KEY_ONEAHEAD, false);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /** Borrow chapters from another release of the same episode; off means no borrow read. */
+    public static boolean isBorrowEnabled(Context context) {
+        try {
+            return prefs(context).getBoolean(KEY_BORROW, BORROW_DEFAULT);
+        } catch (Throwable ignored) {
+            return BORROW_DEFAULT;
         }
     }
 

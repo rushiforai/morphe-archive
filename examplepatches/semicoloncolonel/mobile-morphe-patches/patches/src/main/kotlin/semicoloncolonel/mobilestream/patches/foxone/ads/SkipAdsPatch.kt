@@ -14,9 +14,8 @@ import semicoloncolonel.mobilestream.patches.foxone.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Suppresses ads in the Fox One phone app: IMA ad events and DAI streams for " +
-        "on-demand video, and Yospace ad events and seek limits for live TV. " +
-        "Experimental; test on-device.",
+    description = "Suppresses ads: IMA ad events and DAI streams for on-demand video, and Yospace ad " +
+        "events and seek limits for live TV. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

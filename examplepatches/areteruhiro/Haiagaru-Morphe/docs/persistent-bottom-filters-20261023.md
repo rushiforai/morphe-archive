@@ -29,7 +29,7 @@
 
 ## 候補導入
 
-絶対ルート: C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/ 。対象はすべてemulator-5554。同一証明書を照合しinstall-r成功、データ消去・アンインストールなし。
+絶対ルート: <workspace>/ 。対象はすべてemulator-5554。同一証明書を照合しinstall-r成功、データ消去・アンインストールなし。
 
 - 191: Haiagaru 検証 191、0.8.10.191 dev、jp.co.airfront.android.a2chMate.haiagaru.settingsfix191。build/persistent-bottom-filter191.apk SHA256=31735A80E85D6866572DAD7756380448D9F8A42CFE3C3F7CAE25C9DA685FA194。
 - 242: Haiagaru 検証 242、0.8.10.242 dev、jp.co.airfront.android.a2chMate.haiagaru.resumefix242。統合前build/persistent-bottom-filter242.apk SHA256=FF77043D22E8F6B714088BD7C7642C64FC17BD237D466F7A7ACEDD59FB0D34DB。

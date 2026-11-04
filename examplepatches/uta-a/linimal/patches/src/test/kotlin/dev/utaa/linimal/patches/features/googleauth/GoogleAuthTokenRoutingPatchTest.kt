@@ -77,7 +77,9 @@ class GoogleAuthTokenRoutingPatchTest {
     }
 
     @Test
-    fun `both patches belong to the Google Drive backup feature`() {
+    fun `all MicroG-RE patches belong to the Google Drive backup feature`() {
+        assertEquals(FeatureId.GOOGLE_DRIVE_BACKUP, PatchId.GOOGLE_AUTH_SIGN_IN_ROUTING.featureId)
+        assertEquals(FeatureId.GOOGLE_DRIVE_BACKUP, PatchId.GOOGLE_AUTH_ACCOUNT_PICKER_ROUTING.featureId)
         assertEquals(FeatureId.GOOGLE_DRIVE_BACKUP, PatchId.GOOGLE_AUTH_MICROG_MANIFEST.featureId)
         assertEquals(FeatureId.GOOGLE_DRIVE_BACKUP, PatchId.GOOGLE_AUTH_TOKEN_ROUTING.featureId)
         assertEquals("linimal.google-drive-backup", FeatureId.GOOGLE_DRIVE_BACKUP.value)

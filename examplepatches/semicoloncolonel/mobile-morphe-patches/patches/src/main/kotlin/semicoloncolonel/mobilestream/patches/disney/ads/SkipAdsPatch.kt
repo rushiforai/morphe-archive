@@ -15,7 +15,7 @@ import semicoloncolonel.mobilestream.patches.disney.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes pre-roll, mid-roll and pause ads in the Disney+ phone app.",
+    description = "Removes pre-roll, mid-roll and pause ads.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

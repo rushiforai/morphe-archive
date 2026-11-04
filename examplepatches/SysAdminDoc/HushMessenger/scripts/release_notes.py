@@ -190,9 +190,11 @@ def build_notes(root: Path, version: str, walk: Path) -> str:
         blocks.append(spoken([f"#{number}" for number in reports]) + ".")
     blocks.append(f"Full history is in the [changelog]({REPO_URL}/blob/main/CHANGELOG.md).")
     blocks.append("### How to update")
+    # With one build on file there's nothing to choose between, and 586's one build isn't nodpi.
+    get_it = (f"Any build on [APKMirror's {target} page]({page}) works, and a `nodpi` one keeps the icons sharp."
+              if builds > 1 else f"Get it from [APKMirror's {target} page]({page}).")
     blocks.append("\n".join([
-        f"1. Update Messenger to {target} first. Any build on [APKMirror's {target} page]({page}) works, "
-        "and a `nodpi` one keeps the icons sharp.",
+        f"1. Update Messenger to {target} first. {get_it}",
         f"2. In Morphe Manager ({manager} or newer), open **Sources** and refresh HushMessenger. "
         f"The card should say **{read_patch_count(root, version)} patches**.",
         "3. Patch Messenger again and install it over your current one. Your settings carry over.",

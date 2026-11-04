@@ -88,11 +88,7 @@ class HomeHeaderTest {
         assertEquals(listOf(SYNTHETIC_HOME_HEADER), found(homeHeaderFixture()))
         validateControls(mirroredControls(homeHeaderFixture()), setOf(HOME_HEADER))
         assertEquals(setOf(SYNTHETIC_HOME_HEADER), SYNTHETIC_PROFILE.hooks.getValue(HOME_HEADER))
-        val arm64 = setOf("LX/2a9;->render(LX/2ED;)LX/1IG;")
-        assertEquals(arm64, BASE_PROFILE.hooks.getValue(HOME_HEADER))
-        assertEquals(arm64, PROFILE_347014996.hooks.getValue(HOME_HEADER))
-        assertEquals(setOf("LX/2be;->render(LX/2Fc;)LX/1J8;"), PROFILE_347014974.hooks.getValue(HOME_HEADER))
-        assertEquals(setOf("LX/2aZ;->render(LX/2Ed;)LX/1Ig;"), PROFILE_347014990.hooks.getValue(HOME_HEADER))
+        assertEquals(setOf("LX/2PQ;->render(LX/2Ca;)LX/1Gk;"), BASE_PROFILE.hooks.getValue(HOME_HEADER))
     }
 
     @Test fun lookalikesAreNotTheWordmark() {

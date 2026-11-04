@@ -14,6 +14,7 @@ public sealed class Toolbar(AndroidDriver driver)
 {
     private static readonly OpenQA.Selenium.By Title = Locate.AppId("toolbarTitle");
     private static readonly OpenQA.Selenium.By MoreOptionsButton = Locate.Description("More options");
+    private static readonly OpenQA.Selenium.By RefreshButton = Locate.Description("Refresh");
 
     /// <summary>The list of feeds the feed's name opens.</summary>
     public FeedList FeedList { get; } = new(driver);
@@ -38,6 +39,9 @@ public sealed class Toolbar(AndroidDriver driver)
 
     /// <summary>Taps "More options", which opens its menu.</summary>
     public Task ClickMoreOptionsAsync() => OnScreen.PressAsync(driver, MoreOptionsButton);
+
+    /// <summary>Taps "Refresh", which loads the feed's posts again.</summary>
+    public Task ClickRefreshAsync() => OnScreen.PressAsync(driver, RefreshButton);
 
     /// <summary>Waits until the toolbar names <paramref name="feed"/>.</summary>
     public Task WaitUntilFeedShownAsync(Feed feed) =>

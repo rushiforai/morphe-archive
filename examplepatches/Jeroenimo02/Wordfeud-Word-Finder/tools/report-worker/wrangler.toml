@@ -1,0 +1,19 @@
+# Cloudflare Worker that forwards word reports from the patch to GitHub. See README.md in this folder.
+name = "wordfeud-word-report"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+GITHUB_REPOSITORY = "Jeroenimo02/Wordfeud-Word-Finder"
+
+# At most 10 reports per minute per IP address (Workers rate limiting binding). Remove this block if wrangler
+# refuses it; the worker then runs without a rate limit.
+[[ratelimits]]
+name = "REPORT_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+# The token is a secret, never put it here:  npx wrangler secret put GITHUB_TOKEN

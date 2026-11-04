@@ -46,12 +46,14 @@ import java.util.logging.Logger
 // API 30 outline redirection (ApiCompatPatch.kt).
 // Own app label, Google TTS warm-up (ported from the phone patch).
 // Remaining API 30 call sites (CloseGuard, NumberFormatter percent, InstallSourceInfo) and
-// Car.createCar without android.car. UI density chosen in Maps' Settings instead of a patch option.
+// Car.createCar without android.car. No exit as the system user where an Android Automotive build
+// runs apps as user 0 (DiLink 5). UI density chosen in Maps' Settings instead of a patch option.
 // Cronet telemetry off (its logger uses the API 30 StatsEvent).
 // Report a problem (ReportPatch in the extension): a Settings row and its own screen outside Maps,
 // with safe mode and the feature switches (SafeMode), and a launcher icon of its own.
 // Separate patches that depend on this one: BYD battery (BydBatteryPatch.kt), Send to car
-// (SendToCarPatch.kt) and the BYD location flicker fix (LocationLockoutPatch.kt).
+// (SendToCarPatch.kt), the BYD location flicker fix (LocationLockoutPatch.kt) and the BYD navigation
+// volume (BydNavigationVolumePatch.kt).
 
 internal const val ORIGINAL_PACKAGE_NAME = "com.google.android.apps.maps"
 internal const val PATCHED_PACKAGE_NAME = "app.morphe.android.apps.maps.automotive"
@@ -181,6 +183,7 @@ val automotiveMicroGPatch = bytecodePatch(
         replacePercentFormatChains()
         guardInsetsAnimationCallbackSetter()
         guardCarCreation()
+        skipSystemUserExit()
         applyUiDensity()
     }
 
@@ -280,11 +283,14 @@ private fun addReportActivity(document: Document, manifest: Element) {
             setAttribute("android:roundIcon", "@mipmap/$REPORT_ICON")
         },
     )
-    // An alias must follow its target activity.
+    // An alias must follow its target activity. Off until Maps Car's first start turns it on
+    // (ReportPatch.setLauncherEntry): DiLink 5's launcher shows one entry per app and keeps the one
+    // it read at install, so there it stays off.
     application.appendChild(
         document.createElement("activity-alias").apply {
             setAttribute("android:name", REPORT_LAUNCHER)
             setAttribute("android:targetActivity", REPORT_ACTIVITY)
+            setAttribute("android:enabled", "false")
             setAttribute("android:exported", "true")
             setAttribute("android:label", REPORT_LABEL)
             setAttribute("android:icon", "@mipmap/$REPORT_ICON")
@@ -309,7 +315,7 @@ private fun addReportActivity(document: Document, manifest: Element) {
     if (launchers != 1) throw PatchException("Expected one launcher entry for $REPORT_ACTIVITY, found $launchers")
     logger.info(
         "Added $REPORT_ACTIVITY in $REPORT_PROCESS and the launcher entry \"$REPORT_LABEL\" with @mipmap/$REPORT_ICON " +
-            "(launchMode $launchMode)",
+            "(launchMode $launchMode; the entry is off until the first start)",
     )
 }
 
@@ -536,6 +542,15 @@ private val manifestRouteReplacements = mapOf(
 private fun String.rewriteManifestRoute() =
     manifestRouteReplacements[this] ?: this
 
+// MicroG-RE, and the two apps of the report's setup list (ReportBuilder.OTHER_PACKAGES) that Maps does
+// not declare itself, so that Android 11+ shows them to this app: phone Patched Maps and the prior-art
+// AAOS build.
+private val queryPackages = listOf(
+    GMS_CORE_PACKAGE_NAME,
+    "app.morphe.android.apps.maps",
+    "com.google.android.apps.maps.automotive",
+)
+
 private fun ensureQueryPackage(document: Document, manifest: Element) {
     val queries = manifest.directChildren("queries").firstOrNull()
         ?: document.createElement("queries").also { queriesNode ->
@@ -547,14 +562,16 @@ private fun ensureQueryPackage(document: Document, manifest: Element) {
             }
         }
 
-    val exists = queries.directChildren("package").any {
-        it.getAttribute("android:name") == GMS_CORE_PACKAGE_NAME
-    }
+    queryPackages.forEach { name ->
+        val exists = queries.directChildren("package").any {
+            it.getAttribute("android:name") == name
+        }
 
-    if (!exists) {
-        val packageNode = document.createElement("package")
-        packageNode.setAttribute("android:name", GMS_CORE_PACKAGE_NAME)
-        queries.appendChild(packageNode)
+        if (!exists) {
+            val packageNode = document.createElement("package")
+            packageNode.setAttribute("android:name", name)
+            queries.appendChild(packageNode)
+        }
     }
 }
 
@@ -770,7 +787,7 @@ private fun Instruction.methodReferenceOrNull() = getReference<MethodReference>(
 
 // Fingerprint.methodOrNull returns the first match. Scan individual methods so
 // duplicated strings or method shapes cannot silently select a different hook.
-private fun BytecodePatchContext.uniqueMapsHook(
+internal fun BytecodePatchContext.uniqueMapsHook(
     fingerprint: Fingerprint,
     label: String,
     required: Boolean = true,

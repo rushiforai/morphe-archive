@@ -5,13 +5,17 @@ import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
+import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Looper;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import java.util.Map;
@@ -206,7 +210,7 @@ public class NativeBubbleModeTest {
                 View root = layout(screen.get().getWindow().getDecorView());
                 ((EditText) root.findViewWithTag("find_control")).setText("bubble");
                 layout(root);
-                for (String tag : new String[] {"bubble_stock", "bubble_chat_heads", "bubble_native", "bubble_notifications", "bubble_conversations"}) {
+                for (String tag : new String[] {"bubble_stock", "bubble_chat_heads", "bubble_native", "bubble_battery", "bubble_notifications", "bubble_conversations"}) {
                     View target = root.findViewWithTag(tag);
                     if (target == null) continue;
                     target.requestRectangleOnScreen(new Rect(0, 0, target.getWidth(), target.getHeight()), true);
@@ -259,6 +263,91 @@ public class NativeBubbleModeTest {
                 assertEquals(before, Settings.preferences.getAll());
             }
         }
+    }
+
+    @Test public void batteryLinkAsksForUnrestrictedThenOpensAppInfoAndShowsTheChoice() {
+        var app = RuntimeEnvironment.getApplication();
+        String ask = android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS;
+        String info = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+        Shadows.shadowOf(app).grantPermissions(android.Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        var power = Shadows.shadowOf(app.getSystemService(android.os.PowerManager.class));
+        power.setIgnoringBatteryOptimizations(app.getPackageName(), false);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            TextView link = screen.get().getWindow().getDecorView().findViewWithTag("bubble_battery");
+            assertEquals("Allow unrestricted battery use", link.getText().toString());
+            Map<String, ?> before = Settings.preferences.getAll();
+            link.performClick();
+            assertNull(Shadows.shadowOf(screen.get()).getNextStartedActivity());
+            assertTrue(ShadowToast.getTextOfLatestToast().contains("then Battery"));
+            var manager = Shadows.shadowOf(screen.get().getPackageManager());
+            for (String action : new String[] {ask, info}) {
+                ResolveInfo route = new ResolveInfo();
+                route.activityInfo = new ActivityInfo();
+                route.activityInfo.name = action;
+                route.activityInfo.packageName = "com.android.settings";
+                manager.addResolveInfoForIntent(new Intent(action, android.net.Uri.parse("package:" + app.getPackageName())), java.util.List.of(route));
+            }
+            link.performClick();
+            Intent started = Shadows.shadowOf(screen.get()).getNextStartedActivity();
+            assertEquals(ask, started.getAction());
+            assertEquals("package:" + app.getPackageName(), started.getDataString());
+            assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK, started.getFlags());
+            // Android's prompt was answered with Allow.
+            power.setIgnoringBatteryOptimizations(app.getPackageName(), true);
+            screen.pause().resume();
+            assertEquals("Battery use: Unrestricted", link.getText().toString());
+            link.performClick();
+            assertEquals(info, Shadows.shadowOf(screen.get()).getNextStartedActivity().getAction());
+            assertEquals(before, Settings.preferences.getAll());
+        }
+    }
+
+    @Test @Config(sdk = {30, 36}) public void comingBackFromAndroidsBatteryScreenKeepsTheSpotAndShowsTheChoice() {
+        RuntimeEnvironment.setQualifiers("w320dp-h600dp-mdpi");
+        RuntimeEnvironment.setFontScale(2f);
+        var app = RuntimeEnvironment.getApplication();
+        var power = Shadows.shadowOf(app.getSystemService(android.os.PowerManager.class));
+        power.setIgnoringBatteryOptimizations(app.getPackageName(), false);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = layout(screen.get().getWindow().getDecorView());
+            View content = ((ViewGroup) root.findViewById(android.R.id.content)).getChildAt(0);
+            content.dispatchApplyWindowInsets(bars(24));
+            EditText search = root.findViewWithTag("find_control");
+            search.setText("bubbles");
+            assertTrue(search.requestFocus());
+            layout(root);
+            TextView battery = root.findViewWithTag("bubble_battery");
+            battery.requestRectangleOnScreen(new Rect(0, 0, battery.getWidth(), battery.getHeight()), true);
+            layout(root);
+            ScrollView controls = (ScrollView) ((ViewGroup) root.findViewWithTag("controls_page")).getChildAt(0);
+            int spot = controls.getScrollY();
+            assertFalse("The search is scrolled away", search.getGlobalVisibleRect(new Rect()));
+            // Android's battery screen covers settings, and coming back re-applies the bar insets.
+            screen.pause().stop();
+            content.dispatchApplyWindowInsets(bars(0));
+            layout(root);
+            power.setIgnoringBatteryOptimizations(app.getPackageName(), true);
+            screen.restart().start().resume();
+            content.dispatchApplyWindowInsets(bars(24));
+            layout(root);
+            assertEquals(spot, controls.getScrollY());
+            assertEquals("Battery use: Unrestricted", battery.getText().toString());
+        }
+    }
+
+    @Test public void aSearchStillOnScreenKeepsItsFocusBehindAnotherScreen() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = layout(screen.get().getWindow().getDecorView());
+            EditText search = root.findViewWithTag("find_control");
+            assertTrue(search.requestFocus());
+            layout(root);
+            screen.pause().resume();
+            assertTrue(search.hasFocus());
+        }
+    }
+
+    private static WindowInsets bars(int size) {
+        return new WindowInsets.Builder().setSystemWindowInsets(Insets.of(0, size, 0, size)).build();
     }
 
     private static void importChoices(View root, String raw) {

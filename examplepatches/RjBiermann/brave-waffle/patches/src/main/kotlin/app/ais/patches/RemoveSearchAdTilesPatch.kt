@@ -26,7 +26,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * v0/v1 itself, so nothing else changes.
  */
 object SearchAdTileFingerprint : Fingerprint(
-    definingClass = "Lte4;",
+    definingClass = "Ljs4;",
     name = "c",
     parameters = listOf("Ljava/lang/Object;")
 )
@@ -46,7 +46,7 @@ val removeSearchAdTilesPatch = bytecodePatch(
             val ref = (instr as? ReferenceInstruction)?.reference as? MethodReference
             ref?.definingClass == "Landroid/util/Log;" && ref.name == "d"
         }
-        check(logIdx >= 0) { "te4.c: videoList Log.d not found" }
+        check(logIdx >= 0) { "js4.c: videoList Log.d not found" }
         // Insert right after the Log.d call: v0 (toString result) and v1
         // ("videoList" const) are both dead here; the original code below
         // re-fetches them, so the whole block is self-contained.
@@ -105,7 +105,7 @@ val removeSearchAdTilesPatch = bytecodePatch(
 }
 
 object BnSubmitFingerprint : Fingerprint(
-    definingClass = "Lbn;",
+    definingClass = "Lpq;",
     name = "h",
-    parameters = listOf("Ljava/util/List;", "Lwp1;")
+    parameters = listOf("Ljava/util/List;", "Lxw1;")
 )

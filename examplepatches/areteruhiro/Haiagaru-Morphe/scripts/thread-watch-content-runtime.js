@@ -4,11 +4,12 @@ function check(ok,label){if(!ok)throw Error(label);checks++;}
 rpc.exports={test(){return run(()=>{
  app=Java.use('android.app.ActivityThread').currentApplication();if(!/^jp\.co\.airfront\.android\.a2chMate\.haiagaru\.bindings(191|226|242)$/.test(String(app.getPackageName())))throw Error('isolated bindings only');
  W=Java.use('app.morphe.extension.chmate.ThreadWatch');pref=app.getSharedPreferences('haiagaru_thread_watch',0);if(!pref.getAll().isEmpty())throw Error('preserve existing registrations');
+ const nativePrefs=Java.use('android.preference.PreferenceManager').getDefaultSharedPreferences(app),hadNative=nativePrefs.contains('notifyReply'),savedNative=nativePrefs.getBoolean('notifyReply',true);nativePrefs.edit().putBoolean('notifyReply',false).commit();
  nm=Java.cast(app.getSystemService('notification'),Java.use('android.app.NotificationManager'));const Atomic=Java.use('java.util.concurrent.atomic.AtomicBoolean'),Json=Java.use('org.json.JSONObject');
  function stored(){return Json.$new(pref.getString(url,'{}')).getInt('count');}
  function notes(){return nm.getActiveNotifications().filter(n=>String(n.getTag())===url);}
  W.fetch.implementation=function(address,cancel){const u=String(address);reads.push(u);if(u.endsWith('subject.txt'))return '1793113633.dat<>Thread &amp; title (part 2) ('+count+')\n1793113634.dat<>Second (20)\n';if(datFail)throw Java.use('java.io.IOException').$new('controlled unavailable');let dat='';for(let n=1;n<=count;n++)dat+='<b>name</b><><>date<>body '+n+' &amp; <b>bold</b><br>next line<>title\n';return dat;};
- const end=()=>{pref.edit().remove(url).remove(url2).commit();for(const u of [url,url2])nm.cancel.overload('java.lang.String','int').call(nm,u,0x48690031);W.fetch.implementation=null;};
+ const end=()=>{if(hadNative)nativePrefs.edit().putBoolean('notifyReply',savedNative).commit();else nativePrefs.edit().remove('notifyReply').commit();pref.edit().remove(url).remove(url2).commit();for(const u of [url,url2])nm.cancel.overload('java.lang.String','int').call(nm,u,0x48690031);W.fetch.implementation=null;};
  try{
   pref.edit().putString(url,'{"count":-1,"token":"content-one"}').putString(url2,'{"count":-1,"token":"content-two"}').commit();
   W.check(app,Atomic.$new(false));check(reads.length===1,'baseline only subject');check(stored()===10&&notes().length===0,'initial baseline silent');

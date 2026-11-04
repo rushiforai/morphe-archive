@@ -25,8 +25,8 @@ internal object PrepareAdPlanGetAdPlanFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Gives every MGM+ playback Amazon's own empty ad plan in the phone app, so no " +
-        "ad break is scheduled. The stream request is not changed. Experimental; test on-device.",
+    description = "Gives every MGM+ playback Amazon's own empty ad plan, so no ad break is scheduled. " +
+        "The stream request is not changed. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

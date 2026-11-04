@@ -28,6 +28,7 @@ public final class Features {
     public static final String PREMIUM_UNLOCK = "premium_unlock";
     public static final String GAME_REVIEW = "game_review";
     public static final String COMPUTER_REVIEW = "computer_review";
+    public static final String NETWORK_SCAN = "network_scan";
     public static final String GREAT_MOVES = "great_moves";
 
     public static final String PAGE_HOME = "home";
@@ -141,6 +142,12 @@ public final class Features {
                 + "thread count, a connection test and a benchmark. It needs Unlimited Game Review, "
                 + "from this bundle: two Unlimited Game Review patches cannot be applied to one app.",
             PAGE_GAME_REVIEW, Features::computerReviewPatched),
+        new Feature(NETWORK_SCAN, "Games", "glyph_device_computer_versus", "Find the computer on the network",
+            "In the computer review settings, Find on the network sweeps this Wi-Fi and fills in the "
+                + "address sf-bridge answers on. Addresses that worked are kept, and a review finds the "
+                + "computer by itself when the set address no longer answers. It needs Game Review on "
+                + "your computer, from this bundle.",
+            PAGE_GAME_REVIEW, Features::networkScanPatched),
         new Feature(GREAT_MOVES, "Games", "glyph_element_star_hollow", "Great and Brilliant moves analysis",
             "In a review by Local Stockfish or Stockfish on your computer, also marks chess.com's Great "
                 + "(!) and Brilliant (!!): the engine's own best move when it was the only one keeping "
@@ -189,6 +196,7 @@ public final class Features {
     public static boolean premiumUnlockPatched() { return false; }
     public static boolean gameReviewPatched() { return false; }
     public static boolean computerReviewPatched() { return false; }
+    public static boolean networkScanPatched() { return false; }
     public static boolean greatMovesPatched() { return false; }
     public static boolean crashPatched() { return false; }
 

@@ -61,9 +61,9 @@ private val consentDefaultsPatch = resourcePatch {
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Firebase Analytics, which records what you read, watch, and search " +
-        "for, and stops the app from reading your advertising ID. Push notifications and " +
-        "polls are left alone. Opt-in; test on-device.",
+    description = "Stops Firebase Analytics, which records what you read, watch, and search for, and " +
+        "stops the app from reading your advertising ID. Push notifications and polls are " +
+        "left alone.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

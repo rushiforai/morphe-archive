@@ -88,48 +88,22 @@ internal val expectedGuardOwners = mapOf(
     ),
 )
 
-/** The six permission loads in 585.0.0.53.94's arm64 builds. Generated from 347015062's record. */
-internal val expectedDexSites347015062 = mapOf(
-    "LX/0iw;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
-    "LX/0zv;->A03()V@25" to APP_COMMUNICATION,
-    "LX/1f9;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f9;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
-    "LX/2Hb;->A01(Landroid/content/Intent;LX/2Hb;)V@24" to APP_COMMUNICATION_FORMAT,
-    "LX/32z;->A04(Ljava/lang/Object;ILX/5dq;I)Ljava/lang/Object;@809" to APP_COMMUNICATION_FORMAT,
+/** The six permission loads in 586.0.0.55.92's arm64 build. Generated from 347215348's record. */
+internal val expectedDexSites347215348 = mapOf(
+    "LX/0if;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/105;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1YX;->A09(Lcom/facebook/auth/usersession/FbUserSession;LX/1YX;Ljava/lang/String;Ljava/lang/String;)V@35" to APP_COMMUNICATION,
+    "LX/2FU;->A01(Landroid/content/Intent;LX/2FU;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/33U;->A02(ILX/5fq;Ljava/lang/Object;)Ljava/lang/Object;@881" to APP_COMMUNICATION_FORMAT,
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@580" to APP_COMMUNICATION_FORMAT,
 )
 
-/** The six permission loads in 585.0.0.53.94's armv7 build. Generated from 347014974's record. */
-internal val expectedDexSites347014974 = mapOf(
-    "LX/0if;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
-    "LX/13i;->A03()V@25" to APP_COMMUNICATION,
-    "LX/1gL;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1gL;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
-    "LX/2J5;->A01(Landroid/content/Intent;LX/2J5;)V@24" to APP_COMMUNICATION_FORMAT,
-    "LX/34e;->A05(Ljava/lang/Object;ILX/5gb;I)Ljava/lang/Object;@800" to APP_COMMUNICATION_FORMAT,
-    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0f(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@621" to APP_COMMUNICATION_FORMAT,
-)
-
-/** The six permission loads in 585.0.0.53.94's other armv7 build. Generated from 347014990's record. */
-internal val expectedDexSites347014990 = mapOf(
-    "LX/0if;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
-    "LX/12Z;->A03()V@25" to APP_COMMUNICATION,
-    "LX/1fZ;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1fZ;Ljava/lang/String;Ljava/lang/String;)V@38" to APP_COMMUNICATION,
-    "LX/2I1;->A01(Landroid/content/Intent;LX/2I1;)V@24" to APP_COMMUNICATION_FORMAT,
-    "LX/33P;->A05(Ljava/lang/Object;ILX/5dE;I)Ljava/lang/Object;@768" to APP_COMMUNICATION_FORMAT,
-    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0f(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@610" to APP_COMMUNICATION_FORMAT,
-)
-
 /** The loads an unknown build is checked against. */
-internal val expectedDexSites = expectedDexSites347015062
+internal val expectedDexSites = expectedDexSites347215348
 
 /** Each supported build's permission loads, by version code, as scripts/profiles records them. */
 internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
-    347014974 to expectedDexSites347014974,
-    347014990 to expectedDexSites347014990,
-    347014996 to expectedDexSites347015062,
-    347015062 to expectedDexSites347015062,
-    347015064 to expectedDexSites347015062,
-    347015065 to expectedDexSites347015062,
-    347015067 to expectedDexSites347015062,
+    347215348 to expectedDexSites347215348,
 )
 
 internal fun expectedDexSitesFor(
@@ -245,16 +219,22 @@ private fun Method.hasSharedName(): Boolean =
 private fun Method.siteId(index: Int): String =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType@$index"
 
+/** Checks the loads against the tested build, and each site's register in [registers] too, before any site is renamed. */
 internal fun validateDexSites(
     sites: List<Pair<String, String>>,
     expected: Map<String, String> = expectedDexSites,
     versions: Map<String, List<Int>> = MessengerTarget.VERSIONS,
+    registers: Map<String, Int> = emptyMap(),
 ) {
     if (sites.size != expected.size) {
         throw unsupportedApk("expected ${expected.size} permission loads, found ${sites.size}", versions)
     }
     if (sites.toMap() != expected) {
         throw unsupportedApk("permission instruction sites differ from the tested build", versions)
+    }
+    // const-string/jumbo only reaches v0 to v255.
+    registers.entries.firstOrNull { it.value > 255 }?.let { (site, register) ->
+        throw unsupportedApk("$site uses v$register for a permission", versions)
     }
 }
 
@@ -263,9 +243,6 @@ private fun MutableMethod.renameSharedNames(): Int {
         .mapNotNull { (index, instruction) -> instruction.sharedName()?.let { index to it } }
     for ((index, oldName) in sites.asReversed()) {
         val register = getInstruction<OneRegisterInstruction>(index).registerA
-        if (register > 255) {
-            throw unsupportedApk("$definingClass->$name uses v$register for a permission")
-        }
         replaceInstruction(index, "const-string/jumbo v$register, \"${renamed(oldName)}\"")
     }
     return sites.size
@@ -277,12 +254,16 @@ private fun BytecodePatchContext.checkedPermissionMethods(): List<MutableMethod>
     val methods = classes.flatMap { type ->
         mutableClassDefBy(type).methods.filter { it.hasSharedName() }
     }
+    val registers = mutableMapOf<String, Int>()
     val sites = methods.flatMap { method ->
         method.implementation?.instructions?.withIndex()?.mapNotNull { (index, instruction) ->
-            instruction.sharedName()?.let { method.siteId(index) to it }
+            instruction.sharedName()?.let {
+                registers[method.siteId(index)] = (instruction as OneRegisterInstruction).registerA
+                method.siteId(index) to it
+            }
         } ?: emptyList()
     }
-    validateDexSites(sites, expectedDexSitesFor(packageMetadata.versionCode))
+    validateDexSites(sites, expectedDexSitesFor(packageMetadata.versionCode), registers = registers)
     return methods
 }
 

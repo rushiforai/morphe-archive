@@ -216,6 +216,10 @@ A scenario never repeats any of that.
 - A Gherkin's "must not be there" line has its own assertion: `HasNoAwards()`, `IsGreyedOut(…)`.
 - **Layout** assertions work on a `ReadLayoutAsync()` snapshot, from the bounds of its views, never from a
   screenshot: `HasNoOverlap()`, `FitsInsideTheScreen()`.
+- **The one screenshot check:** whether a patch drew something where no view of its own is
+  (docs/given-when-then-test-rules.md, section 1). The page object locates the spot from the screen's tree and asks
+  `Screenshots.Differs` whether it differs from the plain background at its corner; the snapshot says only that
+  (`AvatarSpotSnapshot.Drawn`), never a colour: `ShowsAFaintDisc()`, `ShowsNothing()`.
 - They return the `AssertingThat<T>` for chaining, use xunit's `Assert` inside, and their message says what the user
   sees against what was expected: "The toolbar shows the "Popular" feed, but "Front Page" was expected."
 - Read and assert on separate lines.

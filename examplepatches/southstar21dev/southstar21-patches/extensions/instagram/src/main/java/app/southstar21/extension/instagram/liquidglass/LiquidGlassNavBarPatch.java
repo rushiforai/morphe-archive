@@ -10,8 +10,10 @@ import java.util.WeakHashMap;
 
 import app.southstar21.extension.instagram.InstagramHooks;
 import app.southstar21.extension.instagram.settings.BooleanSetting;
+import app.southstar21.extension.instagram.settings.Icons;
 import app.southstar21.extension.instagram.settings.IntSetting;
 import app.southstar21.extension.instagram.settings.PatchSettings;
+import app.southstar21.extension.instagram.settings.SettingsGroup;
 
 /**
  * Liquid Glass patch: entry point and settings.
@@ -28,6 +30,12 @@ public final class LiquidGlassNavBarPatch {
     static final IntSetting REFRACTION = new IntSetting("liquid_glass_refraction",
             "Refraction strength", "How strongly the glass edge bends what's behind it.", true,
             0, 100, "%", LiquidGlassNavBarPatch::refractionPercent);
+    static final IntSetting EDGE_COLORS = new IntSetting("liquid_glass_edge_colors",
+            "Edge colors", "Red and blue fringing at the edge of the selection droplet, like real glass.", false,
+            0, 100, "%", () -> 50);
+    static final BooleanSetting GLASSY_PILL = new BooleanSetting("liquid_glass_glassy_pill",
+            "3D selection pill", "The selected tab's pill gets a glass body with a highlight, rim and shadow.", false,
+            false);
     static final BooleanSetting EXTEND_CONTENT = new BooleanSetting("liquid_glass_extend_content",
             "Content behind bar", "Feeds scroll under the bar so there's something to see through the glass.", true,
             LiquidGlassNavBarPatch::extendContentBehindBar);
@@ -40,7 +48,11 @@ public final class LiquidGlassNavBarPatch {
             "Liquid Glass",
             "iOS 26 style glass tab bar. Defaults come from the patch options in Morphe Manager.",
             LiquidGlassNavBarPatch::isIncluded,
-            BLUR_RADIUS, REFRACTION, EXTEND_CONTENT, SHRINK_ON_SCROLL, HAPTICS);
+            new SettingsGroup("Glass", "Refraction needs Android 13+, blur needs Android 12+.",
+                    BLUR_RADIUS, REFRACTION),
+            new SettingsGroup("Selection", "Edge colors need Android 13+.", GLASSY_PILL, EDGE_COLORS),
+            new SettingsGroup("Behavior", EXTEND_CONTENT, SHRINK_ON_SCROLL, HAPTICS))
+            .icon(Icons.Glyph.GLASS, 0xFF5E5CE6);
 
     /** The patch makes this return true, so the menu only shows patches that were applied. */
     public static boolean isIncluded() {

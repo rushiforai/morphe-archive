@@ -453,7 +453,7 @@ Couldn't open your photos. Try again.,Couldn't open your photos. Try again.
 Couldn't put back the diagnostic data. Try again.,Couldn't put back the diagnostic data. Try again.
 Couldn't put the saved videos back. Try again.,Couldn't put the saved videos back. Try again.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.
-Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.,Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.
+Couldn't read TikTok's current values. Refresh values from the menu to try again.,Couldn't read TikTok's current values. Refresh values from the menu to try again.
 Couldn't read a field value. Check and try again.,Couldn't read a field value. Check and try again.
 Couldn't read an interrupted change. Check your settings.,Couldn't read an interrupted change. Check your settings.
 Couldn't read that file. Choose it again.,Couldn't read that file. Choose it again.
@@ -786,6 +786,7 @@ Hide playlist videos,Hide playlist videos
 Hide profile shortcuts,Hide profile shortcuts
 Hide profile shortcuts by name,Hide profile shortcuts by name
 Hide profile views,Hide profile views
+Hide profile visits,Hide profile visits
 Hide promotional music,Hide promotional music
 Hide read receipts,Hide read receipts
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.,Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.
@@ -806,6 +807,7 @@ Hide sticker suggestions,Hide sticker suggestions
 Hide stories,Hide stories
 Hide stories from the feed.,Hide stories from the feed.
 Hide stories tray,Hide stories tray
+Hide story views,Hide story views
 Hide subscriber-only videos,Hide subscriber-only videos
 Hide suggested accounts,Hide suggested accounts
 Hide suggested replies,Hide suggested replies
@@ -900,6 +902,7 @@ Hide the track name beside the caption.,Hide the track name beside the caption.
 Hide the unread badges on the bottom tabs,Hide the unread badges on the bottom tabs
 "Hide the whole column on the right, from the avatar down to the music disc.","Hide the whole column on the right, from the avatar down to the music disc."
 Hide this creator on this phone,Hide this creator on this phone
+Hide typing,Hide typing
 Hide unpersonalized For You videos,Hide unpersonalized For You videos
 Hide unverified content notices,Hide unverified content notices
 Hide verified accounts,Hide verified accounts
@@ -936,7 +939,7 @@ Home,Home
 Home tab name,Home tab name
 Hook status,Hook status
 How far each edge press moves the video.,How far each edge press moves the video.
-How long each photo stays on screen in a video made from a photo post.,How long each photo stays on screen in a video made from a photo post.
+How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.,How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.
 How many saves run at the same time. The others wait in line and start as each one ends.,How many saves run at the same time. The others wait in line and start as each one ends.
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.,How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.,How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.
@@ -1282,7 +1285,7 @@ Offer clear screen in every LIVE room,Offer clear screen in every LIVE room
 Offline videos,Offline videos
 Offline videos limit,Offline videos limit
 Oldest first,Oldest first
-"On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.","On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video."
+"On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.","On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too."
 On mobile data,On mobile data
 On or off,On or off
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay."
@@ -1370,6 +1373,7 @@ Pause Hushfeed,Pause Hushfeed
 Pause the video while comments are open,Pause the video while comments are open
 Paused,Paused
 Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.,Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.
+People you chat with won't see that you're typing. Needs Ghost mode on.,People you chat with won't see that you're typing. Needs Ghost mode on.
 "People, shortcuts and sending controls","People, shortcuts and sending controls"
 Performance,Performance
 Phone's click,Phone's click
@@ -1481,6 +1485,7 @@ Record LIVEs you watch,Record LIVEs you watch
 Record a screen's layout,Record a screen's layout
 Record this LIVE from now,Record this LIVE from now
 Recorded gate reads (%1$d),Recorded gate reads (%1$d)
+Recording files deleted,Recording files deleted
 Recording files need recovery,Recording files need recovery
 Recording stopped early. Saved to %1$s,Recording stopped early. Saved to %1$s
 Recording this LIVE from now,Recording this LIVE from now
@@ -1752,6 +1757,7 @@ Show a LIVE under the status bar,Show a LIVE under the status bar
 Show a progress bar while a video saves.,Show a progress bar while a video saves.
 Show a verified badge on your own profile on this phone. Other people see your real status.,Show a verified badge on your own profile on this phone. Other people see your real status.
 Show a video preview thumbnail while dragging the progress bar.,Show a video preview thumbnail while dragging the progress bar.
+Show all settings as a list,Show all settings as a list
 Show chosen counts on your own profile on this phone. Other people see the real counts.,Show chosen counts on your own profile on this phone. Other people see the real counts.
 Show commenters' handles,Show commenters' handles
 "Show counts as full numbers, like 1,234,567 instead of 1.2M.","Show counts as full numbers, like 1,234,567 instead of 1.2M."
@@ -1779,6 +1785,7 @@ Show only videos with this many views.,Show only videos with this many views.
 Show original,Show original
 Show poll results before voting,Show poll results before voting
 Show search in LIVE,Show search in LIVE
+Show settings by category,Show settings by category
 Show the Not interested button,Show the Not interested button
 Show the block button on videos,Show the block button on videos
 Show the block sound button,Show the block sound button
@@ -1900,6 +1907,7 @@ Stop a long press on Share from opening TikTok's quick share action.,Stop a long
 Stop analytics and tracking,Stop analytics and tracking
 Stop and save the feed capture,Stop and save the feed capture
 Stop feature gate recording,Stop feature gate recording
+Stop loading,Stop loading
 Stop on-device AI profiling,Stop on-device AI profiling
 Stop recording this LIVE,Stop recording this LIVE
 Stop search results playing on their own,Stop search results playing on their own
@@ -2379,6 +2387,8 @@ YTDLnis download type,YTDLnis download type
 Yellow,Yellow
 Yes,Yes
 You can pick up to %1$s at a time,You can pick up to %1$s at a time
+You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.,You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.
+You stay off the viewer list of stories you watch. Needs Ghost mode on.,You stay off the viewer list of stories you watch. Needs Ghost mode on.
 YouTube Music didn't open. Open it yourself to search.,YouTube Music didn't open. Open it yourself to search.
 YouTube Music isn't installed,YouTube Music isn't installed
 Your Long press choice runs only on the left and right thirds of the video. A press in the middle still opens TikTok's own menu. It needs a Long press choice other than TikTok default.,Your Long press choice runs only on the left and right thirds of the video. A press in the middle still opens TikTok's own menu. It needs a Long press choice other than TikTok default.

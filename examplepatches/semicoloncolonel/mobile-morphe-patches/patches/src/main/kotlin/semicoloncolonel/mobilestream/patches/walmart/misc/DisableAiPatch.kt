@@ -27,10 +27,10 @@ private const val CONFIG_PACKAGE = "Lglass/platform/config/"
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off Sparky, Walmart's AI shopping assistant, and the AI features on " +
-        "item and search pages, such as AI compare and AI suggestions. May affect: customer " +
-        "care chat, which Walmart routes through Sparky, falls back to the regular help " +
-        "pages. Opt-in / experimental; test on-device.",
+    description = "Turns off Sparky, Walmart's AI shopping assistant, and the AI features on item and " +
+        "search pages, such as AI compare and AI suggestions. May affect: customer care chat, " +
+        "which Walmart routes through Sparky, falls back to the regular help pages. " +
+        "Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

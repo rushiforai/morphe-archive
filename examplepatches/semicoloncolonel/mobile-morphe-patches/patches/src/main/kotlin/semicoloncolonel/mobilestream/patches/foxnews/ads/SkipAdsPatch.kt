@@ -41,8 +41,8 @@ internal object ShouldLoadImaStreamFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the banner, feed, sponsored, and full-screen ads in the Fox News " +
-        "phone app, and plays videos without inserted ad breaks. Experimental; test on-device.",
+    description = "Removes the banner, feed, sponsored, and full-screen ads, and plays videos without " +
+        "inserted ad breaks. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

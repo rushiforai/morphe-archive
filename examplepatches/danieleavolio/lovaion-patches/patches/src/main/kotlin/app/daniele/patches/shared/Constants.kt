@@ -69,6 +69,28 @@ object Constants {
     )
 
     /**
+     * Photon Camera (com.hinnka.mycamera). The premium flow and the PairIP
+     * entry point are matched structurally on top of exact instruction checks,
+     * so only the analyzed release is targeted.
+     */
+    val COMPATIBILITY_PHOTON = Compatibility(
+        name = "Photon Camera", // App name as it appears in the Android launcher.
+        packageName = "com.hinnka.mycamera",
+        // Photon Camera is distributed as an XAPK (base APK + abi/locale/density splits).
+        apkFileType = ApkFileType.XAPK,
+        // Icon color in Morphe Manager (0xRRGGBB) - the orange of the app icon.
+        appIconColor = 0xF4692D,
+        // SHA-256 of the signing certificate (apksigner verify --print-certs).
+        signatures = setOf(
+            "5a57ca9587732cd25e0185145fee709a3a729ed7b3bba127c1b7a70e34196535",
+        ),
+        targets = listOf(
+            // Exact release the patches were developed against.
+            AppTarget(version = "1.28.3.1"),
+        ),
+    )
+
+    /**
      * GuitarTuna (com.ovelin.guitartuna). The subscription gates are native
      * entry points matched by exact bytes, so only the analyzed release is
      * targeted.

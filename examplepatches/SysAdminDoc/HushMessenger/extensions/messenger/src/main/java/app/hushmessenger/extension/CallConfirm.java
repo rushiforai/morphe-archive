@@ -84,7 +84,7 @@ final class CallConfirm {
     private static void showQuestion(View view, boolean video, Runnable call) {
         Context context = view.getContext();
         SettingsText text = new SettingsText(context);
-        new AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+        new AlertDialog.Builder(context, MaterialYouTheme.chatDialogTheme())
             .setMessage(text.get(video ? "call_confirm_video" : "call_confirm_audio"))
             .setPositiveButton(text.get("call_confirm_call"), (dialog, which) -> call.run())
             .setNegativeButton(text.get("call_confirm_cancel"), null)

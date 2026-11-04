@@ -19,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val EMOJI_DRAWER = "emoji_drawer"
 
-/** Meta's server flag for the redesigned emoji drawer as 585 numbers it. Meta renumbers it with each release. */
-internal const val EMOJI_DRAWER_FLAG = 36320528377659062L
+/** Meta's server flag for the redesigned emoji drawer as 586 numbers it (585 read 36320528377659062). Meta renumbers it with each release. */
+internal const val EMOJI_DRAWER_FLAG = 36320416708509435L
 
 /** The drawer renderer throws this when the redesign can't draw. It's what ties the flag to the emoji drawer. */
 internal const val EMOJI_DRAWER_ANCHOR = "Cannot render redesigned drawer with search icon "
@@ -47,7 +47,7 @@ internal fun connectEmojiDrawer(readers: List<Method>, anchors: List<Method>): L
 }
 
 /**
- * 585's renderer asks a static ()Z getter instead of reading the flag. The getter has to be the read alone: the config
+ * 586's renderer asks a static ()Z getter instead of reading the flag. The getter has to be the read alone: the config
  * object from a no-argument static call, the one flag read, and its answer returned as is.
  */
 internal fun Method.isEmojiDrawerGetter(): Boolean {

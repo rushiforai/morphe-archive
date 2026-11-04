@@ -150,7 +150,7 @@ internal static class Actions
     {
         foreach (var id in (form.GetValueOrDefault("id") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
-            if (id.StartsWith("t4_", StringComparison.OrdinalIgnoreCase) && world.FindMessage(id[3..]) is { } message)
+            if (world.FindInboxEntry(id) is { } message)
             {
                 message.IsNew = false;
             }
@@ -193,7 +193,13 @@ internal static class Actions
     private static IResult Comment(RedditWorld world, Things things, Account account, ImmutableDictionary<string, string> form)
     {
         var text = form.GetValueOrDefault("text") ?? "";
-        Comment? made = Thing(world, form.GetValueOrDefault("thing_id")) switch
+        var replied = Thing(world, form.GetValueOrDefault("thing_id"));
+        if (replied is Message message)
+        {
+            return Answers.Json(CommentAnswer(things.Message(world.ReplyToMessage(message, account, text))));
+        }
+
+        Comment? made = replied switch
         {
             Post post => world.AddComment(post, text, comment => comment.By(account.Name)),
             Comment parent => world.AddReply(parent, text, comment => comment.By(account.Name)),
@@ -243,6 +249,7 @@ internal static class Actions
         {
             ['t', '3', '_', .. var id] => world.FindPost(id),
             ['t', '1', '_', .. var id] => world.FindComment(id),
+            ['t', '4', '_', .. var id] => world.FindMessage(id),
             _ => null,
         };
 

@@ -13,7 +13,7 @@ Focused Android fixes, ready for Morphe.
 <a href="https://morphe.software/add-source?github=pengusto/penguin-patches"><img src="docs/assets/add-to-morphe.svg" alt="Add to Morphe →" width="242" height="52"></a>
 
 <!-- PATCHES_SUMMARY_START -->
-**23 patches · 14 apps · [v1.6.3](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.3)**
+**23 patches · 14 apps · [v1.6.4](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.4)**
 <!-- PATCHES_SUMMARY_END -->
 
 [Before & after](#patch-previews) · [Supported apps](#generated-patch-catalogue) · [Setup & signing](#patch-an-app) · [Latest release](https://github.com/pengusto/penguin-patches/releases/latest)
@@ -278,7 +278,7 @@ Use your own authorized Reddit OAuth client and reach the existing login flow wi
 <summary><strong>Readable Calendar descriptions</strong> · Before / after</summary>
 <br>
 
-**Fossify Calendar 1.12.0** · [Setup & patch details](docs/CALENDAR.md)
+**Fossify Calendar 1.12.0 and 1.12.1** · [Setup & patch details](docs/CALENDAR.md)
 
 Read an HTML event description as text while retaining an explicit Edit HTML source action.
 
@@ -289,7 +289,9 @@ Read an HTML event description as text while retaining an explicit Edit HTML sou
 | **Previous Morphe patch: raw table tags** | **Revised patch: Morning Workshop, with source editing** |
 | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/before-editor.png" width="300" alt="Before: Previous Morphe patch: raw table tags"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/after-editor.png" width="300" alt="After: Revised patch: Morning Workshop, with source editing"> |
 
-[Capture provenance & checks](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review) · [Back to patch index](#patch-previews)
+[Editor capture provenance](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review)
+
+[Widget and notification comparisons](docs/CALENDAR.md#widget-and-notification-comparisons) · [Back to patch index](#patch-previews)
 
 </details>
 
@@ -627,7 +629,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 <details>
 <summary><strong>All 14 apps and supported versions</strong></summary>
 
-> **[v1.6.3](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
+> **[v1.6.4](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details>
 <summary>📦 Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -792,12 +794,12 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 
 **🎯 Supported versions:**
 
-| 1.12.0 |
-| :---: |
+| 1.12.0 | 1.12.1 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| <a id="readable-calendar-descriptions"></a>[Readable Calendar descriptions](docs/CALENDAR.md)<br>[Before / after](#preview-readable-calendar-descriptions) | Readable day/agenda summaries and native Outlook/Exchange HTML preview with explicit source editing; preserves the original editor text. |  |
+| <a id="readable-calendar-descriptions"></a>[Readable Calendar descriptions](docs/CALENDAR.md)<br>[Before / after](#preview-readable-calendar-descriptions) | Readable event descriptions in the editor, lists, widget and reminders; preserves the original editor text. |  |
 | <a id="separate-all-day-reminder-defaults"></a>[Separate all-day reminder defaults](docs/CALENDAR_REMINDERS.md)<br>[Before / after](#preview-separate-all-day-reminder-defaults) | Choose three separate default reminders for new all-day events in Calendar settings. Keeps timed-event defaults, existing events and the use-last-reminders setting. |  |
 
 </details>

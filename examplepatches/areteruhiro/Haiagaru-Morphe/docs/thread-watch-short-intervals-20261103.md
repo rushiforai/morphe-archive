@@ -23,6 +23,6 @@ Foreground service、exact alarm、常駐通知の追加はない。ネイティ
 - 実レンダリングされたUIで日・時間・分の3入力と1/0/0の表示を確認。`build/watch-units-final-ui.xml` / `.png`。Composeのvirtual EditTextをnative View走査で取得できない最初のハーネス失敗は、元のbound model参照とCompose反映待ちへ修正し再実施。旧失敗を成功に含めない。
 - 検証用登録・Job・通知は終了時に解除、間隔は元へ復元。対象PID3503のcrash bufferに新規fatalなし。投稿・共有NG送信なし。
 
-現在の `codex/random-user-agent-5s` ブランチ上で作業したため、生成MPPには既存のランダムUA実験（初期OFF）が含まれる。実験コードや設定値は今回変更していない。公式Release/feed/GAS更新なし。
+現在の `作業ブランチ（random-user-agent-5s）` ブランチ上で作業したため、生成MPPには既存のランダムUA実験（初期OFF）が含まれる。実験コードや設定値は今回変更していない。公式Release/feed/GAS更新なし。
 
 後続の利用者指定でランダムUA実験を削除し、固定テンプレートへ戻した。固定クラス一覧版MPP（`class-bindings-fixed3.mpp`）で191/226/242の通知Job各33・日時間分UI各18項目を再確認済み。前記の「実験を含む」は中間候補の記録であり、最終公開候補には含まれない。242のUI検証ではComposeへの反映待ちを150msから600msへ延ばしたハーネスで成功を確認。OSの省電力による実行遅延の制約は同じ。

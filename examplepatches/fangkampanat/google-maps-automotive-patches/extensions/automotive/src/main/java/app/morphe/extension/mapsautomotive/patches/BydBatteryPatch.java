@@ -56,7 +56,8 @@ import app.morphe.extension.shared.Utils;
  * <li>Maps' demo EV vehicle reports a BEV with Type 2 and CCS2 connectors ({@link #connectorTypes});</li>
  * <li>the listener uses this app's authority and needs no car permission ({@link #energyAuthority},
  * {@link #energyPermission}); Maps accepts the in-app provider ({@link #resolveProvider});</li>
- * <li>a worker reads the battery from the BYD SDK every 10 s and Maps reads the encoded model
+ * <li>a worker reads the battery every 10 s, from the BYD SDK on DiLink 3 or, on DiLink 5, which has
+ * none, from the TS car adapter ({@link TsEnergyReader}), and Maps reads the encoded model
  * ({@link #openEnergyModel}). A reading is fresh for 30 s; then the model is withdrawn.</li>
  * </ul>
  * The model is built from one of BYD DiCarServer's energy-model files as DiCarServer
@@ -151,7 +152,7 @@ public final class BydBatteryPatch {
     private static String authority;
     private static Uri modelUri;
     private static Handler worker;
-    private static BydEnergyReader reader;
+    private static BydBatterySource reader;
     private static String readerStatus;
     private static long lastRevision = -1;
     private static int lastLoggedSoc = -1, failures;
@@ -171,7 +172,9 @@ public final class BydBatteryPatch {
         try {
             if (active || base == null || !SafeMode.on(base, SafeMode.BYD_BATTERY) || !isEnabled(base) || !isByd()) return;
             if (!base.getPackageName().equals(Application.getProcessName())) return;
-            Class.forName(BYD_SDK_CLASS);
+            // DiLink 3: the BYD SDK. DiLink 5 has none: the TS car adapter. Neither: not started.
+            boolean sdk = hasBydSdk();
+            if (!sdk) Class.forName(TsEnergyReader.ADAPTER_CLASS);
             context = base;
             loadKg = storedLoad(base);
             restoreSocStep(base);
@@ -179,14 +182,14 @@ public final class BydBatteryPatch {
             modelUri = new Uri.Builder().scheme("content").authority(authority).path(MODEL_PATH).build();
             BydVehicleModel.initialize(base, NOMINAL_WH, ROLLING_N, LINEAR_N, DRAG_N);
             BydSpeedBands.initialize(base);
-            reader = new BydEnergyReader();
+            reader = sdk ? new BydEnergyReader() : new TsEnergyReader();
             HandlerThread thread = new HandlerThread(TAG, Process.THREAD_PRIORITY_BACKGROUND);
             thread.start();
             worker = new Handler(thread.getLooper());
             active = true;
             // The BYD SDK needs the application context, which exists once the Application is created.
             worker.postDelayed(BydBatteryPatch::poll, START_DELAY_MS);
-            ReportLog.i(TAG, "BYD battery on: " + modelUri);
+            ReportLog.i(TAG, "BYD battery on" + (sdk ? "" : " (TS car adapter)") + ": " + modelUri);
         } catch (Throwable error) {
             active = false;
             ReportLog.w(TAG, "BYD battery not started", error);
@@ -248,11 +251,11 @@ public final class BydBatteryPatch {
         try {
             if (!reader.ready()) {
                 String status = reader.init(context);
-                if (!status.equals(readerStatus)) ReportLog.i(TAG, "BYD SDK " + status);
+                if (!status.equals(readerStatus)) ReportLog.i(TAG, (reader instanceof BydEnergyReader ? "BYD SDK " : "") + status);
                 readerStatus = status;
             }
-            // After the reader, which usually creates the instrument device; one attempt per process.
-            if (outsideTemperature == null && reader.ready()) {
+            // After the reader, which usually creates the instrument device; one attempt per process. DiLink 3 only.
+            if (outsideTemperature == null && reader instanceof BydEnergyReader && reader.ready()) {
                 outsideTemperature = new BydOutsideTemperature();
                 ReportLog.i(TAG, "outside temperature " + outsideTemperature.init(context));
             }
@@ -260,6 +263,8 @@ public final class BydBatteryPatch {
             if (sample == null) {
                 BydVehicleModel.unavailable("sdk_unavailable");
                 BydSpeedBands.unavailable();
+                // The TS adapter's raw values reach the report even when no reading passes.
+                if (reader instanceof TsEnergyReader) ReportBuilder.saveSnapshot(context, false);
             } else {
                 publish(sample);
                 failures = 0;
@@ -320,7 +325,8 @@ public final class BydBatteryPatch {
         sampleOutsideC = outsideC;
         lastSampleAt = SystemClock.elapsedRealtime();
         lastSoc = sample.soc;
-        ReportBuilder.saveSnapshot(context, false);
+        // The first reading at once: the start's first snapshot, taken before it, would hold the report for 60 s.
+        ReportBuilder.saveSnapshot(context, resumed);
         // A new read also restarts the model's age that Maps sends with each request.
         notifyModelChanged();
         String source = file == null ? "source=fallback;" + model.describe()
@@ -1279,9 +1285,23 @@ public final class BydBatteryPatch {
         return value != null && value.regionMatches(true, 0, "BYD", 0, 3);
     }
 
-    /** A BYD with the BYD SDK that is not the tested Dolphin: the battery is off by default there. */
+    /** A BYD with the BYD SDK or the TS car adapter that is not the tested Dolphin: the battery is off by default there. */
     private static boolean untestedByd(Context context) {
-        return isByd() && hasBydSdk() && !testedModel(context);
+        return isByd() && (hasBydSdk() || hasTsAdapter()) && !testedModel(context);
+    }
+
+    private static boolean hasTsAdapter() {
+        try {
+            Class.forName(TsEnergyReader.ADAPTER_CLASS);
+            return true;
+        } catch (Throwable error) {
+            return false;
+        }
+    }
+
+    /** DiLink 5 as on the Sealion 7: a BYD with the TS car adapter and without the BYD SDK. */
+    static boolean tsAdapterCar() {
+        return isByd() && !hasBydSdk() && hasTsAdapter();
     }
 
     private static boolean testedModel(Context context) {
@@ -1387,6 +1407,7 @@ public final class BydBatteryPatch {
         return new JSONObject()
                 .put("is_byd", true)
                 .put("sdk_present", hasBydSdk())
+                .put("ts_adapter_present", hasTsAdapter())
                 .put("model_id", id == MODEL_UNKNOWN ? JSONObject.NULL : id)
                 .put("model_id_source", bydModelSource)
                 .put("tested_model", id == DOLPHIN_MODEL_ID)
@@ -1406,6 +1427,8 @@ public final class BydBatteryPatch {
         boolean on = active, sampled = on && sampledAt != 0;
         BydVehicleEnergyFile file = on ? energyFile : null;
         boolean dolphin = file != null && sendsDolphinPower(file);
+        BydBatterySource source = on ? reader : null;
+        JSONObject tsRaw = source instanceof TsEnergyReader ? ((TsEnergyReader) source).reportRaw() : null;
         int outsideC = sampleOutsideC;
         double learned = Double.NaN;
         if (on) {
@@ -1419,6 +1442,8 @@ public final class BydBatteryPatch {
                 .put("enabled", isEnabled(context))
                 .put("enabled_source", stored ? "stored" : "default")
                 .put("active", on)
+                .put("source", source == null ? JSONObject.NULL : source instanceof TsEnergyReader ? "ts_car_adapter" : "byd_sdk")
+                .put("ts_raw", tsRaw != null ? tsRaw : JSONObject.NULL)
                 .put("soc", sampled ? sampleSoc : JSONObject.NULL)
                 .put("energy_wh", sampled ? sampleEnergyWh : JSONObject.NULL)
                 .put("capacity_wh", sampled ? sampleCapacityWh : JSONObject.NULL)

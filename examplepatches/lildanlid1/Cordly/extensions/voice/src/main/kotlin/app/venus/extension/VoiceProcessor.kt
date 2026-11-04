@@ -31,7 +31,7 @@ object VoiceProcessor {
     private val jobId = Pattern.compile("[A-Za-z0-9_-]{1,80}")
     private val jobs = ConcurrentHashMap<String, AtomicBoolean>()
     private val worker = ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(4),
-        { task -> Thread(task, "Cordly-Audio").apply { isDaemon = true } }, ThreadPoolExecutor.AbortPolicy())
+        { task -> Thread(task, "Conduit-Audio").apply { isDaemon = true } }, ThreadPoolExecutor.AbortPolicy())
         .apply { allowCoreThreadTimeOut(true) }
 
     @JvmStatic

@@ -1,3 +1,9 @@
+## [1.4.8](https://github.com/snowyegret23/morphe-patches/compare/v1.4.7...v1.4.8) (2026-11-03)
+
+### ✨ New Features
+
+* add local follows, alerts, filters and playback diagnostics ([1180bcf](https://github.com/snowyegret23/morphe-patches/commit/1180bcfb4583966e66e906fbf24fffa44dfe41a1))
+
 ## [1.4.7](https://github.com/snowyegret23/morphe-patches/compare/v1.4.6...v1.4.7) (2026-11-02)
 
 ### ✨ New Features

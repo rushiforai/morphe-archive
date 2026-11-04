@@ -417,6 +417,8 @@ Opening someone's profile takes you on to their posts as a scrolling list of ful
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Các thẻ người và nhà sáng tạo để theo dõi mà Instagram chèn giữa các reel. Mọi reel vẫn phát.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Bỏ các reel có nhãn Hợp tác trả phí và reel Instagram đánh dấu là được quảng bá. Quảng cáo có công tắc riêng.
 Turn on Start Home on Following to use this choice.	Hãy bật Mở trang chủ ở Đang theo dõi để dùng lựa chọn này.
+# context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
+Turn on %1$s to use this slider.	Hãy bật %1$s để dùng thanh trượt này.
 Turn on Story ring size to use this choice.	Hãy bật Kích thước vòng tin để dùng lựa chọn này.
 Turn on Default playback quality to use this choice.	Hãy bật Chất lượng phát mặc định để dùng lựa chọn này.
 Updating remembered positions...	Đang cập nhật vị trí đã nhớ...
@@ -502,7 +504,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	Thanh tua giống video trong Direct
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	Cho reel thanh tua của video trong cuộc trò chuyện, một đường mảnh màu xám chuyển trắng khi phát, với núm tròn trắng lớn. Thời gian hiện ở phía trên. Kéo để tua. Khi Thanh tua lớn hơn cũng bật thì kiểu này được ưu tiên. Thanh cũng được giữ trên reel ngắn.
 Blur the bars around a reel	Làm mờ các thanh quanh reel
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	Reel không lấp đầy màn hình sẽ hiện bản mờ của chính nó ở trên và dưới thay vì thanh đen, còn dải dưới thanh tab và dải sau đồng hồ cũng hiện reel mờ. Hãy mở lại Reels sau khi thay đổi.
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Reel không lấp đầy màn hình sẽ hiện bản mờ của chính nó ở trên và dưới thay vì thanh đen, còn dải dưới thanh tab và dải sau đồng hồ cũng hiện reel mờ. Bản mờ chỉ hiện ở chỗ reel chừa trống, như khi bật Hiện toàn bộ reel. Hãy mở lại Reels sau khi thay đổi.
 Settings entry	Lối vào cài đặt
 Open settings with a tab long press	Mở cài đặt bằng cách nhấn giữ một tab
 Choose a tab	Chọn một tab
@@ -767,7 +769,7 @@ Bio copied	Đã sao chép tiểu sử
 Copy bio	Sao chép tiểu sử
 Copy username and bio	Sao chép tên người dùng và tiểu sử
 Profile extras button	Nút tiện ích trang cá nhân
-Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	Đặt một nút cạnh ba chấm trên trang cá nhân để mở các thao tác trang cá nhân của HushGram. Các hàng trong menu ba chấm vẫn giữ.
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. Needs Save profile picture, View profile picture or Copy username and bio on. The rows in the three-dot menu stay too.	Đặt một nút cạnh ba chấm trên trang cá nhân để mở các thao tác trang cá nhân của HushGram. Cần bật Lưu ảnh đại diện, Xem ảnh đại diện hoặc Sao chép tên người dùng và tiểu sử. Các hàng trong menu ba chấm vẫn giữ.
 HushGram profile actions	Thao tác trang cá nhân của HushGram
 Nothing to do for this profile	Không có gì để làm với trang cá nhân này
 Couldn't copy the bio	Không sao chép được tiểu sử
@@ -928,6 +930,10 @@ The tab bar keeps Instagram's order.	Thanh tab giữ thứ tự của Instagram.
 Tabs go in this order: %1$s. Restart Instagram to see the change.	Các tab theo thứ tự này: %1$s. Hãy khởi động lại Instagram để thấy thay đổi.
 Show and reorder tabs	Hiện và sắp xếp lại tab
 Drag to move %1$s	Kéo để di chuyển %1$s
+Move up	Chuyển lên
+Move down	Chuyển xuống
+# context: Show and reorder tabs: what a screen reader is told after Move up or Move down on a row's handle; %1$s is the tab, %2$d its new place and %3$d how many tabs the list holds (#207)
+%1$s is now %2$d of %3$d	%1$s hiện ở vị trí %2$d trên %3$d
 Reset	Đặt lại
 Create	Tạo
 Start tab	Tab bắt đầu
@@ -948,6 +954,9 @@ Start stories with sound	Bắt đầu tin có tiếng
 Stories open with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count, so on silent or with the volume down, stories stay quiet.	Tin mở với âm thanh bật, giống như nhấn loa của Instagram. Chuông và âm lượng điện thoại vẫn có tác dụng, nên ở chế độ im lặng hoặc khi hạ âm lượng, tin vẫn không có tiếng.
 Stop swipe up to reply	Ngừng vuốt lên để trả lời
 A swipe up on someone's story no longer opens the reply box and its reactions. Tap Send message to reply.	Vuốt lên trên tin của ai đó không còn mở ô trả lời và các cảm xúc. Hãy nhấn Gửi tin nhắn để trả lời.
+# context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
+Hide the reply box on stories	Ẩn ô trả lời trên tin
+Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	Bỏ ô Gửi tin nhắn ở cuối tin của người khác. Nút thích và chia sẻ bên cạnh vẫn ở nguyên chỗ cũ.
 Queued. It starts once the post before it is saved.	Đã xếp hàng. Bắt đầu khi bài viết trước đó lưu xong.
 Not saved: %1$d posts are already waiting	Chưa lưu: đã có %1$d bài viết đang chờ
 Show all settings as a list	Hiện mọi cài đặt dạng danh sách
@@ -1041,6 +1050,9 @@ Keep clear mode on	Giữ chế độ xem sạch luôn bật
 Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear mode yourself and the next reels show their buttons again.	Bật chế độ xem sạch của Instagram trên một reel thì các reel kế tiếp cũng mở ở chế độ đó. Tự thoát chế độ xem sạch thì các reel kế tiếp hiện lại nút.
 Start every reel in clear mode	Bắt đầu mọi reel ở chế độ xem sạch
 Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	Reel mở ở chế độ xem sạch từ reel đầu tiên, không cần nhấn. Tự thoát thì các reel kế tiếp hiện lại nút. Instagram chặn ảnh chụp màn hình ở chế độ xem sạch trừ khi Cho phép chụp màn hình đang bật.
+# context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
+Don't vibrate in clear mode	Không rung ở chế độ xem sạch
+Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Tắt rung ngắn mà Instagram phát khi một reel mở ở chế độ xem sạch. Khi bật Giữ chế độ xem sạch luôn bật, việc này xảy ra mỗi lần vuốt.
 Unlock with	Mở khóa bằng
 Phone lock	Khóa điện thoại
 HushGram PIN	PIN HushGram
@@ -1206,9 +1218,9 @@ Share to	Chia sẻ lên
 Copy link	Sao chép liên kết
 QR code	Mã QR
 WhatsApp status	Trạng thái WhatsApp
-Reply to author	Trả lời tác giả
+Reply to author (posts and reels)	Trả lời tác giả (bài viết và reel)
 Watch on TV	Xem trên TV
-Download profile card	Tải thẻ trang cá nhân
+Download profile card (on profiles)	Tải thẻ trang cá nhân (trên trang cá nhân)
 Add to channel	Thêm vào kênh
 WhatsApp	WhatsApp
 SMS	SMS
@@ -1481,6 +1493,8 @@ No accounts yet	Chưa có tài khoản nào
 %1$d account	%1$d tài khoản
 %1$d accounts	%1$d tài khoản
 Home header text	Chữ ở đầu trang chủ
+# context: placeholder in the empty Home header text field, where the person types their own words for the top of Home
+Your words	Chữ của bạn
 Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Chữ của riêng bạn ở đầu trang chủ, thay cho logo Instagram. Tối đa %1$d ký tự. Để trống để giữ logo.
 Instagram's logo stays at the top of Home.	Logo Instagram vẫn ở đầu trang chủ.
 The top of Home says %1$s.	Đầu trang chủ ghi %1$s.
@@ -1507,6 +1521,10 @@ Red story mentions	Lượt nhắc tin màu đỏ
 Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Vẽ chữ của nhãn lượt nhắc bằng màu đỏ thay vì trắng, để nổi bật trên tin sáng màu.
 Only received reels	Chỉ reel đã nhận
 Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Khi vuốt qua các reel của một cuộc trò chuyện, những reel bạn đã gửi ở đó sẽ bị bỏ qua, chỉ đi qua các reel người kia chia sẻ. Hoạt động khi bật Vuốt qua các reel của cuộc trò chuyện.
+# context: Messages settings (#489), and the banner over a reel opened from a chat when the other person wrote after it; a tap goes back to the chat
+Messages after a reel	Tin nhắn sau một reel
+While you swipe through a chat's reels, a banner says when the other person sent a message after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe through a chat's reels on.	Khi bạn vuốt qua các reel của một cuộc trò chuyện, một biểu ngữ cho biết người kia đã gửi tin nhắn sau reel đang xem. Nhấn vào đó để quay lại cuộc trò chuyện tại tin nhắn ấy. Hoạt động khi bật Vuốt qua các reel của cuộc trò chuyện.
+New message after this reel	Tin nhắn mới sau reel này
 Hide the audio icon on posts	Ẩn biểu tượng âm thanh trên bài viết
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Gỡ biểu tượng loa khỏi các video trong bảng tin của bạn. Chạm vào video vẫn bật hoặc tắt âm thanh như cũ. Các bài viết đã có trên màn hình sẽ thay đổi khi được tải lại.
 Light when paused	Sáng khi tạm dừng
@@ -1580,3 +1598,55 @@ View once message	Tin nhắn xem một lần
 Attachment	Tệp đính kèm
 # context: the button next to the reply field in the chat preview box.
 Send	Gửi
+Dim stories too	Làm mờ cả tin
+Burn-in guard also fades the top and bottom of a story while you watch without touching, the eye button too. Any tap brings them back.	Chống ám màn hình cũng làm mờ phần trên và dưới của tin khi bạn xem mà không chạm, kể cả nút con mắt. Chạm bất kỳ đâu để hiện lại.
+# context: Reels settings: a switch for a speed icon beside each reel that opens a list of speeds, after Copy text button on reels (#480). Keep the reel speed is HushGram's switch of that name
+Speed button on reels	Nút tốc độ trên reel
+Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Đặt một biểu tượng tốc độ bên cạnh reel. Chạm vào để chọn tốc độ từ 0,5x đến 3x. Khi bật Giữ tốc độ reel, các reel tiếp theo cũng phát ở tốc độ đó.
+# context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
+Full screen button on reels	Nút toàn màn hình trên reel
+Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Đặt một biểu tượng Toàn màn hình bên cạnh reel, nên một lần chạm làm giống Toàn màn hình trong menu của nó. Bắt đầu mọi reel ở chế độ xem sạch sẽ mở mọi reel theo cách đó.
+# context: TalkBack label of the speed icon beside a reel (#480)
+Playback speed	Tốc độ phát
+# context: TalkBack label of the Full screen icon beside a reel, Instagram's own term (#480)
+Full screen	Toàn màn hình
+# context: toast when a speed picked from that icon's list couldn't be set (#480)
+Speed didn't change	Không đổi được tốc độ
+# context: toast when a tap on the Full screen icon couldn't open the reel full screen (#480)
+Full screen didn't open	Không mở được toàn màn hình
+# context: Stories switch that lays a story over the whole screen on tall phones (#436)
+Stories fill the screen	Tin lấp đầy màn hình
+# context: that switch's summary (#436)
+On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	Trên màn hình dài, tin phủ kín toàn màn hình với thanh trả lời nằm trên, như trên điện thoại ngắn hơn, thay vì một thẻ bo góc phía trên thanh.
+# context: a button in the select-text window that copies the whole text (#492)
+Copy all	Sao chép tất cả
+# context: toast after Copy all in the select-text window (#492)
+Copied	Đã sao chép
+# context: title of the window showing one comment (#492)
+Comment	Bình luận
+# context: toast when the select-text window fails (#492)
+Couldn't open the text	Không mở được văn bản
+# context: menu row that opens text for selecting (#492)
+Select text	Chọn văn bản
+# context: settings switch title (#492)
+Select text to copy	Chọn văn bản để sao chép
+# context: that switch summary (#492)
+Adds Select text to a selected comment's menu, a post's details and a profile's menu. It opens the text in a window where you can select part of it and copy it. Links work there.	Thêm Chọn văn bản vào menu bình luận, chi tiết bài viết và menu hồ sơ. Văn bản mở trong một cửa sổ để bạn chọn một phần và sao chép. Liên kết vẫn bấm được.
+# context: notification channel name (#492)
+Unfollow alerts	Thông báo bỏ theo dõi
+# context: that channel description (#492)
+Who stopped following you, after you open your Followers list	Ai đã bỏ theo dõi bạn, sau khi bạn mở danh sách người theo dõi
+# context: unfollow notification title, one person (#492)
+1 person stopped following you	1 người đã bỏ theo dõi bạn
+# context: unfollow notification title, several people (#492)
+%1$d people stopped following you	%1$d người đã bỏ theo dõi bạn
+# context: names then a count of the rest (#492)
+%1$s and %2$d more	%1$s và %2$d người nữa
+# context: settings switch title (#492)
+Notify me of unfollowers	Báo cho tôi khi có người bỏ theo dõi
+# context: that switch summary (#492)
+After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	Sau khi bạn cuộn danh sách người theo dõi của mình đến cuối, hiện thông báo cho biết ai đã rời đi kể từ lần trước. Không yêu cầu thêm gì từ Instagram.
+# context: settings switch title and button label, the row Instagram calls About this account (#492)
+About this account	Giới thiệu về tài khoản này
+About this account button	Nút Giới thiệu về tài khoản này
+Puts an (i) next to the three dots on a profile that opens Instagram's About this account for that account. Instagram took its own away.	Đặt một (i) cạnh ba chấm trên hồ sơ để mở Giới thiệu về tài khoản này của Instagram cho tài khoản đó. Instagram đã bỏ nút của chính nó.

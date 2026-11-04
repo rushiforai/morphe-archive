@@ -48,6 +48,7 @@ public final class HomeHeader {
     /** The picture read last, with the file's time and size when it was read. */
     private static Bitmap picture;
     private static long pictureModified = -1, pictureLength = -1;
+    private static final java.util.concurrent.atomic.AtomicBoolean WARMING = new java.util.concurrent.atomic.AtomicBoolean();
 
     private HomeHeader() { }
 
@@ -118,15 +119,8 @@ public final class HomeHeader {
     private static Bitmap load(File copy) {
         long modified = copy.lastModified(), length = copy.length();
         if (picture != null && modified == pictureModified && length == pictureLength) return picture;
-        // The bytes are read and the file closed first, so removing the picture never waits on a decoder's open handle.
-        Bitmap read;
-        try {
-            byte[] bytes = java.nio.file.Files.readAllBytes(copy.toPath());
-            read = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        } catch (java.io.IOException | RuntimeException unreadable) {
-            read = null;
-        }
-        if (read == null || read.getWidth() <= 0 || read.getHeight() <= 0) {
+        Bitmap read = decode(copy);
+        if (read == null) {
             android.util.Log.w("HushMessenger", "The home header picture won't decode, so the words or wordmark stay");
             return null;
         }
@@ -134,6 +128,51 @@ public final class HomeHeader {
         pictureModified = modified;
         pictureLength = length;
         return read;
+    }
+
+    /** The picture in [copy], or null. The bytes are read and the file closed first, so removing it never waits on a decoder. */
+    private static Bitmap decode(File copy) {
+        try {
+            byte[] bytes = java.nio.file.Files.readAllBytes(copy.toPath());
+            Bitmap read = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            return read == null || read.getWidth() <= 0 || read.getHeight() <= 0 ? null : read;
+        } catch (java.io.IOException | RuntimeException unreadable) {
+            return null;
+        }
+    }
+
+    /**
+     * Decodes the saved picture on a worker, so the chat list's first header doesn't wait on it. HostScreens starts it
+     * once CrashGuard has run. A picture that won't decode is left for the render, which says so and keeps the words.
+     */
+    static void warmUp() {
+        if (!WARMING.compareAndSet(false, true)) return;
+        Thread worker = new Thread(() -> {
+            try {
+                warm();
+            } catch (RuntimeException | OutOfMemoryError | LinkageError error) {
+                android.util.Log.w("HushMessenger", "home_header: couldn't read the picture ahead of time: " + error.getClass().getSimpleName());
+            }
+        }, "HushMessengerHeader");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    /** The warm-up's read, only while the switch is in effect. A pick or a remove while it reads wins. */
+    static void warm() {
+        Context context = Settings.appContext;
+        if (context == null || !Settings.wouldUse(KEY)) return;
+        File copy = file(context);
+        long modified = copy.lastModified(), length = copy.length();
+        if (!copy.isFile()) return;
+        Bitmap read = decode(copy);
+        if (read == null) return;
+        synchronized (marks) {
+            if (picture != null || copy.lastModified() != modified || copy.length() != length) return;
+            picture = read;
+            pictureModified = modified;
+            pictureLength = length;
+        }
     }
 
     /** The copy changed or went. Marks made from it go too, so the next render reads the file again. */

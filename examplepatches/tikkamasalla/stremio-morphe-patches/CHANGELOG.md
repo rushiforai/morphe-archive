@@ -1,3 +1,15 @@
+## [1.8.0](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.7.1...v1.8.0) (2026-11-03)
+
+### New Features
+
+* work out missing skip times for the next episode ([02f4eac](https://github.com/tikkamasalla/stremio-morphe-patches/commit/02f4eac668ff853dbd6fa3fcca577ad0a6f67bcb))
+
+## [1.8.0-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.7.1...v1.8.0-dev.1) (2026-11-03)
+
+### New Features
+
+* work out missing skip times for the next episode ([02f4eac](https://github.com/tikkamasalla/stremio-morphe-patches/commit/02f4eac668ff853dbd6fa3fcca577ad0a6f67bcb))
+
 ## [1.7.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-03)
 
 ### 🐛 Bug Fixes

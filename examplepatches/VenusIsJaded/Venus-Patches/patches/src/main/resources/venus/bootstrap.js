@@ -33,7 +33,7 @@
     if (features.gestures) selectModules([8254, 9738, 13762, 12935, 1392, 11114]);
     if (features.validUser) selectModules([584, 1392]);
     if (features.youBarSettings) targetModules[17538] = 1;
-    if (features.splitMessages) selectModules([1087, 1392, 2068, 7445, 9561]);
+    if (features.splitMessages) selectModules([1087, 1392, 2068, 7445, 9561, 9995, 13811]);
     if (features.translate) selectModules([584, 1392, 5532, 8013, 9978, 10692]);
     if (features.userNotif) selectModules([584, 1392, 2068, 2090, 2119, 2128, 4855, 5207, 7254, 10002, 14713, 14748]);
     if (features.accountSwitcher) selectModules([584, 1392, 2049, 6194, 6900, 13073, 13074, 13075, 13076, 13078, 17076, 17520, 17538]);
@@ -54,7 +54,7 @@
     if (features.noConfirmPin) selectModules([5400, 1128]);
     if (features.listenAlong) targetModules[14082] = 1;
     if (features.clickableMentions) selectModules([1392, 2068, 2119, 12337]);
-    if (features.expandBar) selectModules([584, 1392, 12337, 12338, 12887, 12818]);
+    if (features.expandBar) selectModules([584, 1392, 2068, 2119, 12337, 12338, 12887, 12818]);
     if (features.silentLeave) selectModules([2068, 7290]);
     if (features.silentEdit || features.silentDelete) selectModules([584, 1392, 5532, 7445]);
     if (features.localEdit) selectModules([584, 1392, 5532, 8013, 9978]);
@@ -77,7 +77,7 @@
     if (features.experiments) selectModules([584, 1392, 1403]);
     if (features.hideAnything) selectModules([14015, 15735, 15736, 9419, 10331, 16133, 16225, 12892, 12897, 12901, 12908, 12909, 13780, 14204, 15590, 17157, 15046, 8805, 9052, 10858, 12942, 14988, 14994, 14925, 14998, 11678, 11679, 14197, 10939, 7158, 14182, 14101, 17156, 17263, 13151, 12000, 10838, 17949, 16773, 17265, 17881, 17869, 11164, 9978, 13759, 12696, 10650, 13769, 8494, 9873]);
     if (features.voiceOptions) { targetModules[584] = 1; targetModules[11372] = 1; targetModules[6145] = 1; }
-    const revision = "1.21.0";
+    const revision = "1.21.1";
     // The Discord build these patches are pinned to (DiscordPatches.kt compatibleWith); shown on the About page.
     const DISCORD_VERSION = "351.11";
     // Module 120 owns setUpDefaltReactNativeEnvironment in this exact asset.
@@ -604,6 +604,13 @@
             settings.platformSpoofDevice = value; dirty.add(key); save(); notify(key);
             if (features.platformSpoof && !backup.restoring && status.storage !== "loading" && status.storage !== "waiting") later(platformSpoofAsk, 0);
             return true;
+        }
+        // Keep media playing's skip length is a number: without its own branch it fell through to the switches below and
+        // was saved as true, so no pill showed as chosen and a restart went back to 10 s (#145).
+        if (key === "backgroundMediaSkip") {
+            if (![5, 10, 15, 30].includes(value)) return false;
+            if (settings.backgroundMediaSkip === value && status.storage !== "loading" && status.storage !== "waiting") return true;
+            settings.backgroundMediaSkip = value; dirty.add(key); save(); notify(key); return true;
         }
         if (key === "badgesCycleMinutes") {
             const mins = badgeCycleMinutes(value);
@@ -2313,7 +2320,12 @@
         }, 1500, false);
     }
     // The Read all pill's label as laid out, and the numbers that decide it (a blank pill at density 2.75).
+    // Shares the row and pill layouts' cap: the server bar is a recycled list, so the label is laid out again on every
+    // scroll past it and every redraw, and with Debug logging on by default this used to add a line each time until it
+    // pushed everything else out of the log.
     function readAllLayoutLog(event) {
+        if (!settings.debugLog || readAllTrace.layouts >= 40) return;
+        readAllTrace.layouts++;
         try {
             const box = event && event.nativeEvent && event.nativeEvent.layout, label = tr("Read all");
             dlog("I", "readAll", "label \"" + label + "\" at " + readAllTextSize(label).fontSize + " sp laid out " + (box ? box.width.toFixed(2) + " x " + box.height.toFixed(2) + " dp" : "?") +
@@ -3625,6 +3637,12 @@
             timestamp:message.timestamp && typeof message.timestamp.toISOString === "function" ? message.timestamp.toISOString() : message.timestamp,
             type:message.type || 0,flags:message.flags || 0,attachments:message.attachments || [],embeds:message.embeds || [],
             mentions:message.mentions || [],mention_roles:message.mentionRoles || [],referenced_message:null};
+        // Stickers too (#145): without them a kept sticker message came back empty after a restart. MessageRecord reads
+        // sticker_items ({id, name, format_type}) back, and stickers for the full objects it may already have.
+        const items = message.stickerItems || message.sticker_items;
+        if (Array.isArray(items) && items.length) raw.sticker_items = items.filter(Boolean).map(item =>
+            ({id:item.id, name:item.name, format_type:item.format_type != null ? item.format_type : item.formatType}));
+        if (Array.isArray(message.stickers) && message.stickers.length) raw.stickers = message.stickers;
         return JSON.parse(JSON.stringify(raw));
     }
     // A new color or brightness for kept messages reaches chat at once: Discord redraws a row when its message
@@ -4720,8 +4738,14 @@
         if (!candidates.length && typeof api.guildReads.getMutableUnreadGuilds==="function") try { add(api.guildReads.getMutableUnreadGuilds()); } catch (_) {}
         const eventType=api.readTypes && api.readTypes.GUILD_EVENT != null ? api.readTypes.GUILD_EVENT : 1;
         const checkEvent=api.reads && typeof api.reads.hasUnread==="function";
+        // GuildReadStateStore (6362) recountGuild never puts a muted server in its unread set, so hasUnread(id) is
+        // false for it even while its channels are unread. Discord's own Mark as read (GuildActionSheetActions 14925,
+        // GuildUnreadAction) asks getGuildHasUnreadIgnoreMuted instead; Read all skipped muted servers, which stayed
+        // unread inside. It walks the server's channels, so it only runs for servers the cheap checks call read.
+        const ignoreMuted=typeof api.guildReads.getGuildHasUnreadIgnoreMuted==="function";
+        const mutedUnread=id => { try { return !!api.guildReads.getGuildHasUnreadIgnoreMuted(id); } catch (_) { return false; } };
         return candidates.filter(id => api.guildReads.hasUnread(id) || api.guildReads.getMentionCount(id) > 0 ||
-            (checkEvent && api.reads.hasUnread(id, eventType)));
+            (checkEvent && api.reads.hasUnread(id, eventType)) || (ignoreMuted && mutedUnread(id)));
     }
     function unreadDmIds(api) {
         const candidates=[], seen=new Set();
@@ -7357,7 +7381,9 @@
             el(RN.Pressable || RN.View,{onPress:disabled ? undefined : onPress,accessibilityRole:"button",accessibilityLabel:tr(buttonText),disabled:!!disabled,
                 style:{paddingHorizontal:16,height:40,borderRadius:20,justifyContent:"center",backgroundColor:"#5865f2",opacity:disabled ? 0.5 : 1}},
                 el(RN.Text,{style:{color:"#ffffff",fontWeight:"600"}},tr(buttonText)));
-        return el(RN.View,{key,style:{flexDirection:"row",alignItems:"flex-end",gap:8}},el(RN.View,{style:{flex:1}},input),button);
+        // With a label above the field the button lines up with the field's bottom edge; without one it's centered on the
+        // field. Bottom-aligned, it sat low next to Discord's field, which keeps room under its box (#145, Preview servers).
+        return el(RN.View,{key,style:{flexDirection:"row",alignItems:inputProps && inputProps.label ? "flex-end" : "center",gap:8}},el(RN.View,{style:{flex:1}},input),button);
     }
     function hexInt(hex) { const m=/^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim()); return m ? parseInt(m[1],16) : null; }
     function intHex(n) { return typeof n==="number" && isFinite(n) ? "#"+(n & 0xffffff).toString(16).padStart(6,"0") : null; }
@@ -10804,6 +10830,16 @@
     // Rows with a switch or a picture at the end keep their X clear of it.
     const HIDE_TRAIL = {right:76};
     const HIDE_ARROW = {right:44};
+    // Icon-only buttons packed side by side at the top of a screen (a channel's details, a DM's header): the outline hugs the
+    // button and the X sits just inside its corner, so it is never cut off by the screen's top edge or drawn over the next button.
+    const HIDE_COMPACT = {cover:Object.assign({}, HIDE_MARK.cover, {top:0, left:0, right:0, bottom:0, borderRadius:12}),
+        badge:Object.assign({}, HIDE_MARK.badge, {top:-2, right:-2, width:20, height:20, borderRadius:10})};
+    // Text tabs packed edge to edge (a channel's Members, Media, Pins, Links and Files): the outline stays inside the tab so
+    // neighbours never overlap, and the X sits centered on its top edge, above the label instead of over its last letters.
+    const HIDE_TAB = {cover:Object.assign({}, HIDE_MARK.cover, {top:0, left:1, right:1, bottom:0, borderRadius:10}),
+        badge:Object.assign({}, HIDE_MARK.badge, {top:-9, right:undefined, left:"50%", marginLeft:-9, width:18, height:18, borderRadius:9, borderWidth:1.5})};
+    const HIDE_COMPACT_SPOTS = {"details.search":1, "details.mute":1, "details.settings":1, "details.more":1,
+        "dm.call":1, "dm.video":1, "dm.search":1, "dm.options":1};
     function HideMark(props) {
         const base = props.base, key = props.spot;
         // Only once it's laid out with a size: a button that draws nothing (a tag someone doesn't have) gets no floating X.
@@ -10824,10 +10860,11 @@
             if (next !== shown) setShown(next);
         };
         const badge = props.inset ? (props.trail ? [HIDE_INSET.badge, HIDE_TRAIL] : props.arrow ? [HIDE_INSET.badge, HIDE_ARROW] : HIDE_INSET.badge) :
-            props.head ? HIDE_HEAD.badge : HIDE_MARK.badge;
+            props.head ? HIDE_HEAD.badge : props.compact ? HIDE_COMPACT.badge : HIDE_MARK.badge;
+        const cover = props.inset ? HIDE_INSET.cover : props.head ? HIDE_HEAD.cover : props.compact ? HIDE_COMPACT.cover : HIDE_MARK.cover;
         return el(RN.View, {style:layout ? [{position:"relative"}, layout] : {position:"relative"}, collapsable:false, onLayout},
             own ? React.cloneElement(base, {onLayout:undefined}) : base,
-            shown ? el(RN.View, {pointerEvents:"none", style:props.inset ? HIDE_INSET.cover : props.head ? HIDE_HEAD.cover : HIDE_MARK.cover,
+            shown ? el(RN.View, {pointerEvents:"none", style:cover,
                 importantForAccessibility:"no-hide-descendants", accessibilityElementsHidden:true}) : null,
             shown ? el(HideBadge, {spot:key, before:props.before, style:badge}) : null);
     }
@@ -10839,7 +10876,8 @@
     function hideMarkFor(node, key) {
         // A message menu row is a row too; one with a chevron (Create Reminder, Apps) keeps its X clear of it.
         const row = HIDE_ROW_SPOTS[key] || (key !== "message.reactions" && key.indexOf("message.") === 0 ? (node && node.props && node.props.arrow ? 3 : 1) : 0);
-        return el(HideMark, {key:node && node.key != null ? node.key : key, spot:key, base:node, inset:!!row, trail:row === 2, arrow:row === 3});
+        return el(HideMark, {key:node && node.key != null ? node.key : key, spot:key, base:node, inset:!!row, trail:row === 2, arrow:row === 3,
+            compact:!row && !!HIDE_COMPACT_SPOTS[key]});
     }
     // Discord's Settings list (SettingsList 15733) reads its rows through toSettingListItems (15736) and redraws when its
     // blocklist (SettingBlocklistStore 15601) changes, so removed rows are left out there and a fresh blocklist redraws it.
@@ -11104,11 +11142,11 @@
     menuItemMark.call1 = (orig, self, props) => menuItemMarked(orig.call(self, props), props);
     menuItemMark.call2 = (orig, self, props, ref) => menuItemMarked(orig.call(self, props, ref), props);
     // A tab measures where it sits for the line under the selected one, so its mark is drawn inside it instead of around it.
-    function markInside(rendered, key) {
+    function markInside(rendered, key, look) {
         if (!rendered || !rendered.props) return rendered;
-        const kids = rendered.props.children;
-        const cover = el(RN.View, {key:"hide-cover", pointerEvents:"none", style:HIDE_MARK.cover, importantForAccessibility:"no-hide-descendants", accessibilityElementsHidden:true});
-        const badge = el(HideBadge, {key:"hide-x", spot:key, style:HIDE_MARK.badge});
+        const kids = rendered.props.children, mark = look || HIDE_MARK;
+        const cover = el(RN.View, {key:"hide-cover", pointerEvents:"none", style:mark.cover, importantForAccessibility:"no-hide-descendants", accessibilityElementsHidden:true});
+        const badge = el(HideBadge, {key:"hide-x", spot:key, style:mark.badge});
         const children = typeof kids === "function" ? function () { return [kids.apply(this, arguments), cover, badge]; } : [kids, cover, badge];
         return React.cloneElement(rendered, {style:[rendered.props.style, {position:"relative", overflow:"visible"}], children});
     }
@@ -11145,7 +11183,7 @@
         if (!rendered || !props || !props.state || !Array.isArray(props.state.items) || !hideEditing()) return rendered;
         const item = props.state.items[props.index];
         const key = !item ? null : profileTabItems(props.state.items) ? PROFILE_TABS[item.id] : "page" in item && "count" in item ? SEARCH_TAB_SPOTS[item.id] : null;
-        return key ? markInside(rendered, key) : rendered;
+        return key ? markInside(rendered, key, key.indexOf("details.") === 0 ? HIDE_TAB : null) : rendered;
     }
     function segmentedItemMark(orig, self, args) { return segmentedItemMarked(orig.apply(self, args), args[0]); }
     segmentedItemMark.call1 = (orig, self, props) => segmentedItemMarked(orig.call(self, props), props);
@@ -11610,8 +11648,17 @@
             if (!mode || typeof out.listActionRenderer !== "function") return out;
             if (mode === "gone") return Object.assign({}, out, {listActionRenderer:() => null, listActionHeight:() => 0});
             const render = out.listActionRenderer;
-            return Object.assign({}, out, {listActionRenderer:function () { const row = render.apply(this, arguments); return row ? hideMarkedRow(row, "details.newGroup") : row; }});
+            return Object.assign({}, out, {listActionRenderer:function () { return newGroupMarked(render.apply(this, arguments)); }});
         }, [out, mode]);
+    }
+    // Discord draws New Group inside a wrapper whose paddingTop is the gap above the member list, so the mark goes on the row
+    // inside it: around the wrapper it reached far above the row. Its X stays clear of the row's chevron.
+    function newGroupMarked(row) {
+        if (!row || !row.props) return row;
+        const child = row.props.children;
+        const mark = node => el(HideMark, {key:node.key != null ? node.key : "details.newGroup", spot:"details.newGroup", base:node, inset:true, arrow:true});
+        if (child && typeof child === "object" && !Array.isArray(child) && child.props) return React.cloneElement(row, {children:mark(child)});
+        return mark(row);
     }
     // With the voice message button removed, the send button acts as it does where voice messages aren't allowed.
     function withoutVoiceButton(props) {
@@ -13617,16 +13664,73 @@
         } catch (_) {}
         return user.premiumType === 2 ? realLimits.premium : realLimits.normal;
     }
-    // Splits at the last line break, else the last space, else anywhere. A code block cut in two is closed at
-    // the end of one part and opened again, with its language, at the start of the next.
-    const FENCE = /```([^\s`]{0,20})/g;
+    // Splits at the last line break, else the last space, else anywhere. Formatting cut in two is closed at the end of one
+    // part and opened again at the start of the next: a code block (with its language), inline code, a spoiler, and a
+    // ">>> " quote, which runs to the end of the message. An unclosed spoiler used to show its text in the clear, with
+    // literal || marks, and every part after the first lost the quote.
+    const SPLIT_MARKS = /```([^\s`]{0,20})|`|\|\|/g;
+    const SPLIT_QUOTE = /(?:^|\n)>>> /;
     // Discord's SILENT_RE (7367): "@silent" at the very start, followed by whitespace or the end.
     const SPLIT_SILENT = /^@silent(?:\s|$)/;
+    // What is still open at the end of a piece: a code block (with its language and where it opened), inline code, a
+    // spoiler. Inside a code block only ``` counts and inside inline code only `, like Discord's parser.
+    function splitMarks(piece) {
+        const state = {fence:false, language:"", opened:-1, inline:false, spoiler:false};
+        if (piece.indexOf("`") < 0 && piece.indexOf("||") < 0) return state;
+        let match;
+        SPLIT_MARKS.lastIndex = 0;
+        while ((match = SPLIT_MARKS.exec(piece))) {
+            const mark = match[0];
+            if (state.fence) { if (mark.length >= 3) state.fence = false; continue; }
+            if (state.inline) { if (mark === "`") state.inline = false; continue; }
+            if (mark === "||") state.spoiler = !state.spoiler;
+            else if (mark.length >= 3) { state.fence = true; state.language = match[1]; state.opened = match.index; }
+            else state.inline = true;
+        }
+        return state;
+    }
+    // Things a cut must not land inside: a mention, channel, role, slash command, timestamp or custom emoji (<...>), a masked
+    // link ([text](url)) and a plain link. One cut in two showed as raw text in both parts (half an emoji was ":123…>tail").
+    const SPLIT_TOKENS = /<a?:\w+:\d+>|<(?:@[!&]?|#)\d+>|<\/[^<>\n]+:\d+>|<t:-?\d+(?::[tTdDfFR])?>|<id:\w+>|\[[^\]\n]*\]\([^)\s]*\)|https?:\/\/[^\s<]+/g;
+    // Moves a cut back so it lands between whole characters and outside every token above. Joined emoji (ZWJ families,
+    // skin tones, flags' variation selectors) used to be cut into pieces that showed as two or three separate emoji.
+    function splitRegional(low) { return low >= 0xDDE6 && low <= 0xDDFF; }
+    function splitSafeCut(text, start, cut) {
+        const windowFrom = Math.max(start, cut - 2048);
+        if (text.indexOf("<", windowFrom) >= 0 || text.indexOf("[", windowFrom) >= 0 || text.indexOf("://", windowFrom) >= 0) {
+            SPLIT_TOKENS.lastIndex = windowFrom;
+            let match;
+            while ((match = SPLIT_TOKENS.exec(text)) && match.index < cut) {
+                const end = match.index + match[0].length;
+                // Only when the token fits on its own: a link longer than a whole part still has to be cut somewhere.
+                if (end > cut && match.index > start) { cut = match.index; break; }
+            }
+        }
+        for (let steps = 0; steps < 64 && cut - 1 > start; steps++) {
+            const next = text.charCodeAt(cut), prev = text.charCodeAt(cut - 1), after = text.charCodeAt(cut + 1);
+            // Skin tones (U+1F3FB-1F3FF), tag characters of subdivision flags (U+E0020-E007F) and combining accents
+            // belong to the character before them.
+            const joined = next === 0xD83C && after >= 0xDFFB && after <= 0xDFFF || next === 0xDB40 && after >= 0xDC20 && after <= 0xDC7F ||
+                next >= 0x0300 && next <= 0x036F;
+            if (next >= 0xDC00 && next <= 0xDFFF || next === 0x200D || prev === 0x200D || next === 0xFE0F || next === 0x20E3 || joined) cut--;
+            else break;
+        }
+        // A country flag is two regional indicators (U+1F1E6-1F1FF): cutting after an odd number of them splits a flag.
+        if (text.charCodeAt(cut) === 0xD83C && splitRegional(text.charCodeAt(cut + 1))) {
+            let count = 0;
+            for (let at = cut - 2; at >= start && text.charCodeAt(at) === 0xD83C && splitRegional(text.charCodeAt(at + 1)); at -= 2) count++;
+            if (count % 2 && cut - 2 > start) cut -= 2;
+        }
+        return cut;
+    }
     function splitContent(text, limit) {
         const chunks = [];
+        const quoteMatch = SPLIT_QUOTE.exec(text);
+        const quoteFrom = quoteMatch ? quoteMatch.index + (quoteMatch[0].charCodeAt(0) === 10 ? 1 : 0) : -1;
         let start = 0, prefix = "";
         while (prefix.length + (text.length - start) > limit) {
-            const budget = limit - prefix.length - 4;
+            // Room for what a part may need to close: "\n```" or "`", then "||".
+            const budget = limit - prefix.length - 6;
             if (budget < 16) return null;
             const searchEnd = start + budget;
             let cut = text.lastIndexOf("\n", searchEnd);
@@ -13635,27 +13739,25 @@
                 if (space > cut) cut = space;
             }
             if (cut <= start) cut = searchEnd;
-            const code = text.charCodeAt(cut - 1);
-            if (code >= 0xD800 && code <= 0xDBFF && cut - 1 > start) cut--;
+            cut = splitSafeCut(text, start, cut);
             const from = start;
             let piece = prefix + text.slice(start, cut);
             start = cut;
             if (text[start] === "\n" || text[start] === " ") start++;
-            let open = false, language = "", opened = -1;
-            if (piece.indexOf("```") >= 0) {
-                let match;
-                FENCE.lastIndex = 0;
-                while ((match = FENCE.exec(piece))) { open = !open; if (open) { language = match[1]; opened = match.index; } }
-            }
+            let marks = splitMarks(piece);
             // A code block that opens right where the part ends would be an empty box here and start for real in the next
             // part: move the whole block to the next part instead.
-            if (open && opened > prefix.length && !piece.slice(opened + 3 + language.length).trim()) {
-                start = from + opened - prefix.length;
-                piece = piece.slice(0, opened);
-                open = false;
+            if (marks.fence && marks.opened > prefix.length && !piece.slice(marks.opened + 3 + marks.language.length).trim()) {
+                start = from + marks.opened - prefix.length;
+                piece = piece.slice(0, marks.opened);
+                marks = splitMarks(piece);
             }
             if (piece.charCodeAt(piece.length - 1) === 13) piece = piece.slice(0, -1); // the \r of a \r\n line break
-            if (open) { piece += "\n```"; prefix = "```" + language + "\n"; } else prefix = "";
+            // A spoiler or inline code that would close straight away has nothing left in this part: leave it to the next.
+            if (marks.fence) piece += "\n```"; else if (marks.inline) piece += "`";
+            if (marks.spoiler) piece += "||";
+            prefix = (quoteFrom >= 0 && quoteFrom < start ? ">>> " : "") + (marks.spoiler ? "||" : "") +
+                (marks.fence ? "```" + marks.language + "\n" : marks.inline ? "`" : "");
             if (piece.trim()) chunks.push(piece);
         }
         const last = prefix + (start ? text.slice(start) : text);
@@ -13732,6 +13834,47 @@
         chain.then(() => { if (sent < chunks.length && stillOn()) splitUnsent(chunks.slice(sent)); }, () => {});
         return result;
     }
+    // Picking a sticker sends it with whatever is typed in the box (handleSelectSticker, 12848): it passes Discord's length
+    // check (chatInputValidateContentLength asks getMaxMessageLength, unlimited while this is on), then sendStickers(channelId,
+    // stickerIds, {content, tts}, options) goes straight to _sendMessage, never through sendMessage. Typed text over the limit
+    // went out as one message and the server refused both the sticker and the text. The sticker now goes with the first part
+    // (it keeps the reply); the other parts follow one at a time, as written, like the rest of a long message.
+    function splitStickers(orig, self, args) {
+        const message = args[2];
+        const content = typeof message === "string" ? message : message && typeof message.content === "string" ? message.content : "";
+        if (content.length <= 2000 || !enabled("splitMessages")) return orig.apply(self, args);
+        const limit = messageLimit();
+        if (content.length <= limit) return orig.apply(self, args);
+        const chunks = splitContent(content, limit);
+        if (!chunks || chunks.length < 2) return orig.apply(self, args);
+        const first = Array.from(args);
+        first[2] = typeof message === "string" ? chunks[0] : Object.assign({}, message, {content:chunks[0]});
+        const result = orig.apply(self, first);
+        const channelId = args[0], options = args[3];
+        const followOptions = splitFollowUpOptions(options);
+        if (SPLIT_SILENT.test(content)) followOptions.flags = (Number(followOptions.flags) || 0) | 4096;
+        const generation = split.generation, author = currentUser(), authorId = author && author.id;
+        const stillOn = () => { const user = currentUser(); return enabled("splitMessages") && split.generation === generation && !!user && user.id === authorId; };
+        const gap = splitGapMs(channelId);
+        // Each part already fits and carries its reopened formatting, so it goes out as written: joining the parts and
+        // splitting again would open a code block, quote or spoiler twice.
+        const base = {tts:!!(message && typeof message === "object" && message.tts), invalidEmojis:[], validNonShortcutEmojis:[]};
+        let sent = 0;
+        let chain = Promise.resolve(result).then(res => { if (res && res.hasErr) return false; sent++; return true; }, () => false);
+        for (let i = 1; i < chunks.length; i++) {
+            const part = chunks[i];
+            chain = chain.then(ok => {
+                if (!ok || !stillOn()) return false;
+                return new Promise(resolve => later(resolve, gap)).then(() => {
+                    const send = msgActions && msgActions.sendMessage;
+                    if (!stillOn() || typeof send !== "function") return false;
+                    return send.call(msgActions, channelId, Object.assign({content:part}, base), true, Object.assign({}, followOptions));
+                }).then(res => { if (res && res.hasErr) return false; sent++; return true; }, () => false);
+            });
+        }
+        chain.then(() => { if (sent < chunks.length && stillOn()) splitUnsent(chunks.slice(sent)); }, () => {});
+        return result;
+    }
     // An edit replaces one message, so it can't be split. The message box allows any length while this is on, and Discord
     // ends editing as soon as it saves (handleSaveEditing, 11665), so an edit over the limit was refused and its text lost.
     // Now it isn't sent: you're told why and can copy it.
@@ -13795,6 +13938,30 @@
             return maxLengthResult(orig.call(self));
         };
         return hookExport(exports, "default", useBig);
+    }
+    // The forum post composer (ForumComposer 9995) and the scheduled message editor (ScheduledMessageEditContentModal 13811)
+    // also ask useMessageMaxLength, but neither sends through sendMessage: a forum post goes out with the thread
+    // (POST /channels/:id/threads) and a scheduled edit replaces one message, so neither can be sent in parts. Given the
+    // unlimited length they skipped Discord's "too long" check and the server refused the post or edit. They import
+    // useMessageMaxLength through this facade instead, which answers with the real limit. decorateDefine picks the two
+    // modules by ID itself: it runs before the core is loaded, so it can't read a table declared here.
+    let splitRealFacade = null, splitRealSource = null;
+    function splitRealLength(value) { return value >= SPLIT_UNLIMITED ? messageLimit() : value; }
+    function splitRealImport(importer) {
+        if (typeof importer !== "function") return importer;
+        return function () {
+            const result = importer.apply(this, arguments);
+            if (arguments[0] !== 9561 || !result || typeof result !== "object") return result;
+            if (splitRealSource !== result) {
+                splitRealSource = result;
+                // Read at call time: the hooks on 9561 are only added once Discord's environment is ready.
+                splitRealFacade = Object.create(result, {
+                    default:{enumerable:true, value:function () { return splitRealLength(result.default.apply(this, arguments)); }},
+                    getMaxMessageLength:{enumerable:true, value:function () { return splitRealLength(result.getMaxMessageLength.apply(this, arguments)); }}
+                });
+            }
+            return splitRealFacade;
+        };
     }
     // Constants (1087): DraftStore (7239) and useMessageMaxLength (9561) both read MAX_MESSAGE_LENGTH and
     // MAX_MESSAGE_LENGTH_PREMIUM once at module evaluation time during startup (before venus-patches.json finishes
@@ -19355,27 +19522,43 @@
     //    Photos keep every pixel while quality 88 or better fits, then shrink a little at a time; sound is re-saved as AAC at the best
     //    bitrate that fits.
     //  - Video: Discord's own transcoder does the work and Venus only picks its numbers (VideoUploadUtils 8046): the bitrate that
-    //    fills the limit for this length, and, only when that is too few bits per pixel for a clean picture, a smaller size. A result
-    //    that still comes out over the limit is made again with a lower bitrate.
-    const COMPRESS_PREFIX = "venus-compress-v1:", COMPRESS_FILL = {image:0.93, audio:0.93, video:0.9};
+    //    fills the limit for this length, and, only when that is too few bits per pixel for a clean picture, a smaller size. Both
+    //    come from the source video, not from Discord's quality tier: calculateOptimalBitrate is min(max(floor, source), tier) and
+    //    the free tiers stop at 0.8-2.25 Mbps and 360-720p, so taking the smaller of Discord's and Venus's numbers sent a long
+    //    video at ~3 MB when 20 MB was allowed. A result over the limit is made again lower; one far under it, again higher.
+    const COMPRESS_PREFIX = "venus-compress-v1:", COMPRESS_FILL = {image:0.95, audio:0.96, video:0.94};
     const COMPRESS_KEYS = {image:"compressUploadsPhotos", video:"compressUploadsVideos", audio:"compressUploadsAudio"};
     const COMPRESS_MAX = {image:268435456, audio:1073741824, video:4294967296};
-    const COMPRESS_BPP = 0.03, COMPRESS_HEIGHTS = [1080, 720, 540, 480, 360, 270, 240];
-    const compressInstrumented = new WeakSet(), videoSeen = new WeakMap(), compressVideoState = {shrink:1};
+    // Phone H.264 encoders (MediaCodec, what Discord's transcoder uses) need noticeably more bits than x264 for the same picture.
+    const COMPRESS_BPP = 0.05, COMPRESS_HEIGHTS = [1080, 720, 540, 480, 360, 270, 240], COMPRESS_MAX_BITRATE = 20000000;
+    const compressInstrumented = new WeakSet(), videoSeen = new WeakMap(), compressVideoState = {shrink:1, capped:false};
     let videoChain = Promise.resolve();
     const imageName = /\.(jpe?g|png|webp|heic|heif|bmp)$/i, videoName = /\.(mp4|m4v|mov|mkv|webm|3gp|3gpp)$/i;
     function compressEven(n) { return Math.max(2, Math.round(n / 2) * 2); }
     // The video's bitrate and size for a limit, or null when it can't be made to fit (too long for a watchable picture).
     // Bits go to the picture first: keep the size while there are at least COMPRESS_BPP bits per pixel per frame (measured with x264 and SSIM:
     // below about 0.02 a smaller picture scores as well or better, above 0.035 the full size is clearly better), otherwise take the biggest standard height that gets there.
+    // The frame rate Discord's transcoder will encode at (convertVideo): the source's on Android 15+, else at most its default.
+    function compressFps(meta) {
+        const source = meta && meta.frameRate > 0 ? meta.frameRate : 30;
+        let api = 0;
+        try { api = Number(RN && RN.Platform && RN.Platform.Version) || 0; } catch (_) {}
+        if (api > 34) return Math.min(120, source);
+        const config = inspectedExport(8046, "DEFAULT_VIDEO_ENCODING_CONFIG"), most = config && config.frameRate > 0 ? config.frameRate : 30;
+        return Math.min(most, source);
+    }
     function compressVideoPlan(meta, limit, width, height) {
         const seconds = meta && meta.durationMs > 0 ? meta.durationMs / 1000 : 0;
         if (!(seconds > 0.5) || !(width > 0) || !(height > 0) || !(limit > 0)) return null;
-        const bits = limit * COMPRESS_FILL.video * 8, audio = Math.min(128000, Math.max(24000, bits / seconds * 0.1));
+        // Room for the sound Discord keeps (AAC, usually ~128 kbps), never more than a quarter of the file.
+        const bits = limit * COMPRESS_FILL.video * 8, audio = Math.min(132000, Math.max(24000, bits / seconds * 0.25));
         const video = Math.floor(bits / seconds - audio);
         if (!(video >= 100000)) return null;
-        const fps = Math.min(30, meta.frameRate > 0 ? meta.frameRate : 30), bpp = video / (fps * width * height);
+        // Never past 1080p: a phone's encoder may refuse more, and nothing bigger is worth its bits at this size.
         let w = width, h = height;
+        const start = Math.min(w, h);
+        if (start > COMPRESS_HEIGHTS[0]) { const f = COMPRESS_HEIGHTS[0] / start; w = compressEven(w * f); h = compressEven(h * f); }
+        const bpp = video / (compressFps(meta) * w * h);
         if (bpp < COMPRESS_BPP) {
             const short = Math.min(w, h), reach = short * Math.sqrt(bpp / COMPRESS_BPP);
             let target = COMPRESS_HEIGHTS[COMPRESS_HEIGHTS.length - 1];
@@ -19425,14 +19608,17 @@
     }
     function compressSkipCheck(orig, self, args) {
         const meta = args[1], size = args[2], limit = args[3];
-        if (enabled("compressUploadsVideos") && meta && typeof meta === "object" && typeof size === "number" && typeof limit === "number" && size > limit)
+        if (enabled("compressUploads") && enabled("compressUploadsVideos") && meta && typeof meta === "object" && typeof size === "number" &&
+            typeof limit === "number" && size > limit)
             videoSeen.set(meta, {limit, plan:null});
         return orig.apply(self, args);
     }
+    // Planned from the source's own size; Discord's answer (already cut to its quality tier) is only the fallback.
     function compressDimensions(orig, self, args) {
         const out = orig.apply(self, args), meta = args[0], seen = meta && typeof meta === "object" ? videoSeen.get(meta) : null;
         if (!seen || !out || !(out.width > 0) || !(out.height > 0)) return out;
-        seen.plan = compressVideoPlan(meta, seen.limit, out.width, out.height);
+        const sourceSized = meta.width > 0 && meta.height > 0;
+        seen.plan = compressVideoPlan(meta, seen.limit, sourceSized ? meta.width : out.width, sourceSized ? meta.height : out.height);
         return seen.plan ? {width:seen.plan.width, height:seen.plan.height} : out;
     }
     function compressBitrate(orig, self, args) {
@@ -19440,8 +19626,11 @@
         if (!seen) return out;
         const plan = seen.plan || compressVideoPlan(meta, seen.limit, meta.width, meta.height);
         if (!plan) return out;
-        const bitrate = Math.floor(plan.bitrate * compressVideoState.shrink);
-        return typeof out === "number" && out < bitrate ? out : bitrate;
+        // More than the source had only adds size, not quality.
+        const wanted = Math.min(COMPRESS_MAX_BITRATE, Math.floor(plan.bitrate * compressVideoState.shrink));
+        const source = meta.bitRate > 0 ? meta.bitRate : Infinity;
+        compressVideoState.capped = source <= wanted;
+        return Math.max(100000, Math.floor(Math.min(wanted, source)));
     }
     function hookCompressVideo(exports) {
         return hookExport(hookExport(hookExport(exports, "canSkipVideoTranscode", compressSkipCheck), "calculateTargetDimensions", compressDimensions),
@@ -19496,27 +19685,36 @@
             });
         });
     }
-    // Video: made by Discord's transcoder with Venus's numbers (compressBitrate); made again, lower, when the first one overshoots.
+    // Video: made by Discord's transcoder with Venus's numbers (compressBitrate). Encoders miss their bitrate, so the result is
+    // checked: over the limit, it is made again lower; under 60% of the aim (with room left in the source), again higher, and
+    // that second try is only kept when it still fits. At most two encodes.
+    function compressRestore(upload, from) { Object.keys(from).forEach(key => { try { upload[key] = from[key]; } catch (_) {} }); }
     function compressVideo(orig, upload, args, job, limit) {
+        const aim = limit * COMPRESS_FILL.video;
         const go = () => compressSizeOf(compressUri(upload)).then(first => {
             if (first > limit) compressToast(tr("Making it smaller to fit\u2026"));
-            const turn = (shrink, tries) => {
-                const before = Object.assign({}, upload);
-                compressVideoState.shrink = shrink;
+            const encode = shrink => {
+                compressVideoState.shrink = shrink; compressVideoState.capped = false;
                 return Promise.resolve(orig.apply(upload, args)).then(result => {
+                    const capped = compressVideoState.capped;
                     compressVideoState.shrink = 1;
-                    return compressSizeOf(compressUri(upload)).then(size => {
-                        if (!(size > limit) || tries >= 1 || compressCancelled(upload, job)) { compressDoneToast(first, size); return result; }
-                        const kept = Object.assign({}, upload);
-                        Object.keys(before).forEach(key => { try { upload[key] = before[key]; } catch (_) {} });
-                        return turn(Math.max(0.4, shrink * limit * COMPRESS_FILL.video / size), tries + 1).catch(() => {
-                            Object.keys(kept).forEach(key => { try { upload[key] = kept[key]; } catch (_) {} });
-                            return result;
-                        });
-                    });
+                    return compressSizeOf(compressUri(upload)).then(size => ({result, size, capped}));
                 }, error => { compressVideoState.shrink = 1; throw error; });
             };
-            return turn(1, 0);
+            const before = Object.assign({}, upload);
+            return encode(1).then(one => {
+                const over = one.size > limit, under = one.size < aim * 0.6 && !one.capped;
+                if (!(one.size > 0) || !(over || under) || compressCancelled(upload, job)) { compressDoneToast(first, one.size); return one.result; }
+                const kept = Object.assign({}, upload);
+                compressRestore(upload, before);
+                const shrink = over ? Math.max(0.3, aim * 0.97 / one.size) : Math.min(1.8, aim * 0.95 / one.size);
+                return encode(shrink).then(two => {
+                    // A higher try that no longer fits, or a lower one that came out bigger, gives way to the first.
+                    if (!over && !(two.size <= limit) || over && !(two.size < one.size)) { compressRestore(upload, kept); compressDoneToast(first, one.size); return one.result; }
+                    compressDoneToast(first, two.size);
+                    return two.result;
+                }, () => { compressRestore(upload, kept); compressDoneToast(first, one.size); return one.result; });
+            });
         });
         const next = videoChain.then(go, go);
         videoChain = next.then(() => undefined, () => undefined);
@@ -19537,6 +19735,8 @@
         });
         const promise = (kind === "video" ? compressVideo(orig, upload, args, job, limit) :
             Promise.resolve(orig.apply(upload, args)).then(result => compressNative(upload, job, limit).then(() => result, () => result))).then(done);
+        // A failed attempt is forgotten, so Discord's Retry prepares the file again instead of getting the same failure back.
+        promise.catch(() => { if (compressJobs.get(upload) === job) compressJobs.delete(upload); });
         job.promise = promise;
         compressJobs.set(upload, job);
         return promise;
@@ -19624,7 +19824,7 @@
     // messages get the same native tag Discord draws for BOT and Venus draws for staff: "Timed out · 2h 14m", with the
     // exact end time for screen readers. Rows aren't drawn again on their own, so while a tag shows, the open chat is
     // redrawn once a minute: the tag counts down, and goes away when the timeout ends.
-    const timeoutTag = {members:null, shown:new Map(), timer:undefined};
+    const timeoutTag = {members:null, shown:new Map(), timer:undefined, due:0};
     function timeoutUntil(guildId, userId) {
         const members = timeoutTag.members || (timeoutTag.members = inspectedExport(2128, "default"));
         let member = null;
@@ -19632,8 +19832,10 @@
         const raw = member && member.communicationDisabledUntil, until = raw ? Date.parse(raw) : NaN;
         return Number.isFinite(until) && until > Date.now() ? until : 0;
     }
-    // 45m, 3h 20m, 2d 5h: the two biggest units, rounded up so it never says 0m while the timeout is still on.
+    // 45m, 3h 20m, 2d 5h: the two biggest units, rounded up so it never says 0m while the timeout is still on. The last
+    // minute counts down in seconds: in minutes a 1 minute timeout said 1m the whole time (#145).
     function timeoutLeft(ms) {
+        if (ms <= 60000) return tr("{n} s", {n:Math.max(1, Math.ceil(ms / 1000))});
         const minutes = Math.max(1, Math.ceil(ms / 60000)), days = Math.floor(minutes / 1440), hours = Math.floor(minutes % 1440 / 60), mins = minutes % 60;
         if (days) return hours ? tr("{d}d {h}h", {d:days, h:hours}) : tr("{n}d", {n:days});
         if (hours) return mins ? tr("{h}h {m}m", {h:hours, m:mins}) : tr("{n}h", {n:hours});
@@ -19659,17 +19861,25 @@
         copy.tagTextColor = text;
         copy.tagBackgroundColor = tint;
         const channelId = String(message.channelId || source && (source.channel_id || source.channelId) || ""), id = String(message.id || source && source.id || "");
-        if (channelId && id) timeoutTagSeen(channelId, id);
+        if (channelId && id) timeoutTagSeen(channelId, id, until);
         return copy;
     }
-    function timeoutTagSeen(channelId, id) {
+    // The chat is drawn again right when the soonest tag's text changes: the next whole minute (rounded up, so 2m turns 1m
+    // as the time left drops to 60 s), or the next second in the last minute. A fixed minute from when the tag first
+    // showed could lag behind by almost a minute.
+    function timeoutTagSeen(channelId, id, until) {
         let ids = timeoutTag.shown.get(channelId);
         if (!ids) { if (timeoutTag.shown.size > 20) timeoutTag.shown.clear(); timeoutTag.shown.set(channelId, ids = new Set()); }
         if (ids.size < 200) ids.add(id);
-        if (timeoutTag.timer === undefined) timeoutTag.timer = later(timeoutTagTick, 60000, false);
+        const left = Math.max(0, (until || 0) - Date.now()), step = left <= 60000 ? 1000 : 60000;
+        const due = Date.now() + Math.max(250, left % step || step) + 30;
+        if (timeoutTag.timer !== undefined && timeoutTag.due <= due) return;
+        if (timeoutTag.timer !== undefined && typeof global.clearTimeout === "function") global.clearTimeout(timeoutTag.timer);
+        timeoutTag.due = due;
+        timeoutTag.timer = later(timeoutTagTick, due - Date.now(), false);
     }
     function timeoutTagTick() {
-        timeoutTag.timer = undefined;
+        timeoutTag.timer = undefined; timeoutTag.due = 0;
         if (!enabled("timeoutDuration") || !timeoutTag.shown.size) return;
         const selected = inspectedExport(2119, "default");
         let channelId = null;
@@ -19938,18 +20148,46 @@
         useLanguage();
         const Button = inspectedExport(5479, "Button");
         return el(RN.View, {style:{paddingHorizontal:16, paddingTop:12, paddingBottom:8}},
-            Button ? el(Button, {text:tr("Add to a server"), variant:"secondary", size:"md", grow:true, icon:venusIcon(11657, "ImagePlusIcon"), onPress:() => cloneOpen(item)}) : null);
+            // No icon: Discord's Button only draws an asset source or an element there, so a component left an empty slot
+            // that pushed the text off center.
+            Button ? el(Button, {text:tr("Add to a server"), variant:"secondary", size:"md", grow:true, onPress:() => cloneOpen(item)}) : null);
     }
     function cloneButton(item) { return el(CloneButton, {key:"venus-clone", item}); }
-    function cloneIntoSheet(tree, item) {
+    function cloneIntoSheet(tree, item, inner) {
         if (!tree || !item || !React) return tree;
         let added = false;
-        return cloneTree(tree, (node, nodeProps) => {
+        const next = cloneTree(tree, (node, nodeProps) => {
             if (added || nodeProps.startExpanded === undefined) return nodeProps;
             added = true;
             const kids = Array.isArray(nodeProps.children) ? nodeProps.children : [nodeProps.children];
             return Object.assign({}, nodeProps, {children:kids.concat([cloneButton(item)])});
         }, 0, () => added);
+        return added || inner ? next : cloneIntoInner(tree, item);
+    }
+    // MessageEmojiActionSheet doesn't draw the sheet itself: it returns MessageCustomEmojiActionSheet (or the standard
+    // one), a component of its own, so the sheet wasn't in its tree and custom emojis never got the button (#145; the
+    // sticker sheet draws its own, which is why stickers had it). That inner component is swapped for one that draws it
+    // and then adds the button to what it drew. One stable wrapper per component, so React keeps its state.
+    const cloneInnerTypes = new WeakMap();
+    function cloneIntoInner(tree, item) {
+        const type = tree && typeof tree === "object" && !Array.isArray(tree) ? tree.type : null;
+        const memo = type && typeof type === "object" && typeof type.type === "function" ? type : null, render = memo ? memo.type : type;
+        if (typeof render !== "function" || render.prototype && render.prototype.isReactComponent) return tree;
+        let wrapped = cloneInnerTypes.get(render);
+        if (!wrapped) {
+            wrapped = function VenusCloneSheet(props) {
+                const inner = Object.assign({}, props), next = inner.venusCloneItem;
+                delete inner.venusCloneItem;
+                const out = render(inner);
+                // Discord's BottomSheet is itself a function component, so what the inner sheet drew is always searched (the
+                // first version skipped any element whose type was a function, which is every sheet, and the button never
+                // showed). inner=true stops it from wrapping a second level.
+                return next && out && typeof out === "object" ? cloneIntoSheet(out, next, true) : out;
+            };
+            if (render.displayName || render.name) wrapped.displayName = render.displayName || render.name;
+            cloneInnerTypes.set(render, wrapped);
+        }
+        return React.createElement(wrapped, Object.assign({}, tree.props, {key:tree.key, ref:tree.ref || undefined, venusCloneItem:item}));
     }
     function cloneEmojiSheet(orig, self, args) {
         const tree = orig.apply(self, args), props = args[0], node = props && props.emojiNode;
@@ -20059,6 +20297,20 @@
             } catch (_) {}
         }, 0);
     }
+    // joinGuild's promise settles when the HTTP call returns, but the server itself arrives a moment later over the
+    // gateway (GUILD_CREATE). Opening it before then landed on an empty screen, so this waits (up to 6 s) until Discord
+    // has the server or lists it as one you're previewing. The original plugin waited a fixed 100 ms.
+    function guildLurkReady(id) {
+        return new Promise(resolve => {
+            const start = Date.now();
+            const check = () => {
+                if (guildLurkGuild(id) || guildLurkIsLurking(id)) { resolve(true); return; }
+                if (Date.now() - start > 6000) { resolve(false); return; }
+                later(check, 150);
+            };
+            check();
+        });
+    }
     function guildLurkRemember(id) { setSetting("guildLurkIds", [id].concat(guildLurkList().filter(other => other !== id)).join(",")); }
     function guildLurkForget(id) { haptic("SELECTION"); animateLayout(); setSetting("guildLurkIds", guildLurkList().filter(other => other !== id).join(",")); }
     function guildLurkOpen(target) {
@@ -20069,7 +20321,7 @@
             if (!id) { reviewToast(ui, "That invite doesn't work", info); return false; }
             // Already a member, or already previewing it: just open it.
             if (guildLurkGuild(id) || guildLurkIsLurking(id)) { guildLurkRemember(id); guildLurkGo(id); return true; }
-            return guildLurkJoin(id).then(done => { if (done) guildLurkGo(id); return done; });
+            return guildLurkJoin(id).then(done => done ? guildLurkReady(id).then(() => { guildLurkGo(id); return true; }) : false);
         }).catch(() => { reviewToast(ui, "This server doesn't allow previews", info); return false; });
     }
     // Joins as a lurker (Discord's own joinGuild with lurker:true), remembers the server, and says so when Discord refuses.
@@ -20101,15 +20353,17 @@
         const press = () => {
             if (busy) return;
             setBusy(true);
-            guildLurkJoin(props.guildId).then(done => {
+            guildLurkJoin(props.guildId).then(done => done ? guildLurkReady(props.guildId).then(() => true) : false).then(done => {
                 setBusy(false);
                 if (!done) return;
                 try { if (typeof props.onClose === "function") props.onClose(); } catch (_) {}
                 guildLurkGo(props.guildId);
             });
         };
+        // Text only, like Accept and No Thanks next to it. An icon component here isn't drawn (Discord's Button takes an asset
+        // source or an element), but its empty slot pushed "Preview" about 20 dp right of center (#145).
         return el(Button, {variant:"secondary", size:props.size || "lg", text:tr("Preview"), accessibilityLabel:tr("Preview servers without joining"),
-            icon:venusIcon(6929, "EyeIcon"), onPress:press, loading:busy, disabled:busy});
+            onPress:press, loading:busy, disabled:busy});
     }
     function invitePreviewDetails(orig, self, args) {
         const result = orig.apply(self, args), props = args[0];
@@ -20470,14 +20724,19 @@
         return settingsBody(ui, groups);
     }
     // Pause invites: the server icon's hold menu gets Pause invites (or Resume invites) for anyone who can manage the server.
-    // Discord's own switch lives in the server's Safety settings; this is PUT /guilds/:id/incident-actions, the same call.
-    const PAUSE_INVITES_SHEET = "VenusPauseInvites";
+    // Discord's own Safety menu only pauses for up to 24 hours (PUT /guilds/:id/incident-actions). This pauses with no end,
+    // like Equicord's pauseInvitesForever: INVITES_DISABLED in the server's features, which stays until someone resumes.
     function pauseInvitesGuild(id) { return serverCall(serverStore(2090), "getGuild", id) || null; }
+    function pauseInvitesFeatures(guild) {
+        const feat = guild && guild.features;
+        if (!feat) return [];
+        if (Array.isArray(feat)) return feat.slice();
+        try { return Array.from(feat); } catch (_) { return []; }
+    }
+    function pauseInvitesStamp(value) { return value instanceof Date ? value.getTime() : typeof value === "string" ? Date.parse(value) || 0 : 0; }
     function pauseInvitesPaused(guild) {
-        const feat = guild && guild.features, until = guild && guild.incidentsData && guild.incidentsData.invitesDisabledUntil;
-        const flagged = !!feat && (typeof feat.has === "function" ? feat.has("INVITES_DISABLED") : Array.isArray(feat) && feat.indexOf("INVITES_DISABLED") >= 0);
-        const stamp = until instanceof Date ? until.getTime() : typeof until === "string" ? Date.parse(until) : 0;
-        return flagged || stamp > Date.now();
+        const until = guild && guild.incidentsData && guild.incidentsData.invitesDisabledUntil;
+        return pauseInvitesFeatures(guild).indexOf("INVITES_DISABLED") >= 0 || pauseInvitesStamp(until) > Date.now();
     }
     function pauseInvitesAllowed(guild) {
         const P = inspectedExport(1087, "Permissions") || inspectedExport(1098, "Permissions"), perms = permissions || inspectedExport(4845, "default");
@@ -20490,23 +20749,24 @@
         if (!guild || !pauseInvitesAllowed(guild)) return items;
         const paused = pauseInvitesPaused(guild);
         return items.concat([{IconComponent:paused ? venusIcon(12093, "UndoIcon") : venusIcon(8676, "PauseIcon"), label:tr(paused ? "Resume invites" : "Pause invites"),
-            action:() => { if (paused) pauseInvitesSet(guildId, 0); else pauseInvitesAsk(guildId); }}]);
+            action:() => pauseInvitesSet(guildId, !paused)}]);
     }
-    function pauseInvitesAsk(guildId) {
-        const ui = reviewUI();
-        if (typeof ui.simpleSheet !== "function") { pauseInvitesSet(guildId, 24); return; }
-        const Clock = venusIcon(5150, "ClockIcon");
-        const options = [1, 6, 24].map(hours => ({label:pl(hours, "{n} hour", "{n} hours"), IconComponent:Clock, onPress:() => { hideReviewSheet(ui, PAUSE_INVITES_SHEET); pauseInvitesSet(guildId, hours); }}));
-        try { ui.simpleSheet({key:PAUSE_INVITES_SHEET, header:{title:tr("Pause invites for"), onClose:() => hideReviewSheet(ui, PAUSE_INVITES_SHEET)}, options}); } catch (_) {}
-    }
-    // hours 0 resumes. The server also holds a pause on DMs: it's sent back as it is, so this never changes it.
-    function pauseInvitesSet(guildId, hours) {
-        const guild = pauseInvitesGuild(guildId), data = guild && guild.incidentsData, dms = data && data.dmsDisabledUntil;
-        const dmsStamp = dms instanceof Date ? dms.getTime() : typeof dms === "string" ? Date.parse(dms) : 0;
-        const body = {invites_disabled_until:hours ? new Date(Date.now() + hours * 3600000).toISOString() : null,
-            dms_disabled_until:dmsStamp > Date.now() ? new Date(dmsStamp).toISOString() : null};
-        httpCall("put", {url:"/guilds/" + guildId + "/incident-actions", body}).then(() => {
-            haptic("IMPACT_LIGHT"); reviewToast(reviewUI(), hours ? "Invites paused" : "Invites resumed", venusIcon(6473, "CheckmarkLargeIcon"));
+    // Pausing adds INVITES_DISABLED. Resuming removes it and also ends a timed pause from Discord's own menu, so one tap
+    // always opens invites again. A pause on DMs is sent back as it is, so this never changes it.
+    function pauseInvitesSet(guildId, pause) {
+        const guild = pauseInvitesGuild(guildId);
+        if (!guild) return;
+        const features = pauseInvitesFeatures(guild).filter(f => f !== "INVITES_DISABLED");
+        if (pause) features.push("INVITES_DISABLED");
+        const calls = [httpCall("patch", {url:"/guilds/" + guildId, body:{features}})];
+        const data = guild.incidentsData, timed = pauseInvitesStamp(data && data.invitesDisabledUntil) > Date.now();
+        if (!pause && timed) {
+            const dms = pauseInvitesStamp(data && data.dmsDisabledUntil);
+            calls.push(httpCall("put", {url:"/guilds/" + guildId + "/incident-actions",
+                body:{invites_disabled_until:null, dms_disabled_until:dms > Date.now() ? new Date(dms).toISOString() : null}}));
+        }
+        Promise.all(calls).then(() => {
+            haptic("IMPACT_LIGHT"); reviewToast(reviewUI(), pause ? "Invites paused" : "Invites resumed", venusIcon(6473, "CheckmarkLargeIcon"));
         }, () => reviewToast(reviewUI(), "Couldn't change invites. Check that you can manage this server.", venusIcon(7838, "WarningIcon")));
     }
     // Fast delete channels: channel settings stops asking, and a channel's hold menu gets a Delete channel row.
@@ -20672,6 +20932,9 @@
         const Button = inspectedExport(5479, "Button"), Press = RN.Pressable || RN.View, Group = ui.TableRowGroup || RN.View, Switch = ui.TableSwitchRow;
         const showContent = snap.content !== null && tab === "content", text = showContent ? snap.content : snap.json;
         const shown = text.length > RAW_SHOWN ? text.slice(0, RAW_SHOWN) : text, wrap = !!settings.viewRawWrap;
+        // The sheet scrolls through react-native-gesture-handler, which takes every pan from React Native's own ScrollView,
+        // so with wrapping off the lines couldn't be scrolled sideways (#145). Gesture handler's ScrollView takes part.
+        const SideScroll = inspectedExport(6727, "LegacyScrollView") || RN.ScrollView;
         const copy = () => { if (showContent) serverCopy(snap.content, "Raw content copied"); else serverCopy(snap.json, "Raw data copied"); };
         const copyLabel = showContent ? tr("Copy raw content") : tr("Copy raw data"), empty = showContent && !snap.content;
         const Icon = venusIcon(snap.kind.icon[0], snap.kind.icon[1]);
@@ -20682,7 +20945,8 @@
                 serverText(snap.kind.label + " \u00b7 " + snap.id, "text-sm/medium", "text-muted", {color:"#949ba4", fontSize:13}, {selectable:true})));
         const code = empty ? el(RN.Text, {style:[s.empty, {padding:14}]}, tr("This message has no text.")) :
             wrap ? el(RN.View, {style:s.pad}, el(RN.Text, {selectable:true, style:s.code}, shown)) :
-            el(RN.ScrollView, {horizontal:true, nestedScrollEnabled:true, showsHorizontalScrollIndicator:false}, el(RN.View, {style:s.pad}, el(RN.Text, {selectable:true, style:s.code}, shown)));
+            el(SideScroll, {horizontal:true, nestedScrollEnabled:true, showsHorizontalScrollIndicator:true, contentContainerStyle:{flexGrow:1}},
+                el(RN.View, {style:s.pad}, el(RN.Text, {selectable:true, style:s.code}, shown)));
         const copyButton = Button ? el(Button, {key:"copy", text:copyLabel, size:"lg", variant:"primary", grow:true, disabled:empty, onPress:copy}) :
             el(Press, {key:"copy", onPress:empty ? undefined : copy, accessibilityRole:"button", accessibilityLabel:copyLabel,
                 style:{padding:14, borderRadius:24, alignItems:"center", backgroundColor:"#5865f2", opacity:empty ? 0.5 : 1}},
@@ -21168,6 +21432,16 @@
     const expandBar = {expanded:false, multiline:false, pill:false, content:0, shared:null, worklets:null, live:null, subscribed:false};
     // Room kept free above the open bar (the status bar and the channel header), plus a little air under the header.
     const EXPAND_BAR_RESERVE = 128;
+    // Threads and forum posts draw a second bar under the channel name (the post's title, Follow and the parent channel),
+    // which covered the top of the open bar and its collapse button (#145), so they keep that much more room free.
+    const EXPAND_BAR_THREAD_EXTRA = 64;
+    function expandBarReserve() {
+        const id = selectedChannelId();
+        let channel = null;
+        try { channel = id && channelStore && typeof channelStore.getChannel === "function" ? channelStore.getChannel(String(id)) : null; } catch (_) {}
+        const type = channel && channel.type;
+        return EXPAND_BAR_RESERVE + (type === 10 || type === 11 || type === 12 ? EXPAND_BAR_THREAD_EXTRA : 0);
+    }
     const expandBarHandlers = new WeakMap();
     const EXPAND_BAR_DARK = {button:{position:"absolute", top:4, right:6, width:32, height:32, borderRadius:16, alignItems:"center", justifyContent:"center"},
         pressed:{backgroundColor:"#4e50584d"}, icon:{color:"#b5bac1"}};
@@ -21267,7 +21541,7 @@
         const content = expandBar.content > 0 ? expandBar.content : min;
         try {
             let top = 0, timing = null, options = {duration:200};
-            if (w) { top = w.cap(expandBar.expanded ? EXPAND_BAR_RESERVE : 0); timing = w.withTiming; options = {duration:w.duration, easing:w.easing}; }
+            if (w) { top = w.cap(expandBar.expanded ? expandBarReserve() : 0); timing = w.withTiming; options = {duration:w.duration, easing:w.easing}; }
             if (!(top > 0)) {
                 // The height worklets aren't in place: use the window's height instead.
                 const win = RN && RN.Dimensions ? RN.Dimensions.get("window").height : 800;
@@ -21283,7 +21557,7 @@
         next = !!next;
         if (expandBar.expanded === next) return;
         expandBar.expanded = next;
-        if (expandBar.shared) try { expandBar.shared.set(next ? EXPAND_BAR_RESERVE : 0); } catch (_) {}
+        if (expandBar.shared) try { expandBar.shared.set(next ? expandBarReserve() : 0); } catch (_) {}
         expandBarApply();
         notify("expandBar");
     }
@@ -21389,7 +21663,12 @@
         if (expandBar.subscribed || !flux || typeof flux.subscribe !== "function") return;
         expandBar.subscribed = true;
         try {
-            flux.subscribe("CHANNEL_SELECT", () => { if (expandBar.expanded && settings.expandBarChats) expandBarSet(false); });
+            flux.subscribe("CHANNEL_SELECT", () => {
+                if (!expandBar.expanded) return;
+                if (settings.expandBarChats) { expandBarSet(false); return; }
+                // Still open in the next chat: its header may be taller or shorter (a thread), so the room above follows.
+                later(() => { if (!expandBar.expanded) return; if (expandBar.shared) try { expandBar.shared.set(expandBarReserve()); } catch (_) {} expandBarApply(); }, 0);
+            });
             // Only a message you send from this phone (Discord adds it to the chat before the server confirms it).
             flux.subscribe("MESSAGE_CREATE", event => { if (expandBar.expanded && settings.expandBarSending && event && event.optimistic === true) expandBarSet(false); });
             // Saving (or leaving) an edit puts your draft back in the bar, so it closes then too.
@@ -22772,6 +23051,8 @@
                 if (splitLater) {
                     actions = hookExport(actions, "sendMessage", splitSend);
                     actions = hookExport(actions, "editMessage", splitEdit);
+                    // Outside Nitro links' sendStickers, so the sticker's own part is cut to fit before its links are added.
+                    actions = hookExport(actions, "sendStickers", splitStickers);
                 }
                 // Under the other edit hooks: it only ever sees the final text.
                 if (features.silentEdit) actions = hookExport(actions, "editMessage", silentEdit);
@@ -22940,6 +23221,12 @@
                     factoryArgs[1] = listImport(factoryArgs[1], id);
                     factoryArgs[2] = listImport(factoryArgs[2], id);
                     factoryArgs[3] = listImport(factoryArgs[3], id);
+                    result = factory.apply(this, factoryArgs);
+                } else if (features.splitMessages && (id === 9995 || id === 13811)) {
+                    const factoryArgs = Array.from(arguments);
+                    factoryArgs[1] = splitRealImport(factoryArgs[1]);
+                    factoryArgs[2] = splitRealImport(factoryArgs[2]);
+                    factoryArgs[3] = splitRealImport(factoryArgs[3]);
                     result = factory.apply(this, factoryArgs);
                 } else {
                     result = factory.apply(this, arguments);

@@ -22,8 +22,24 @@ internal object AirshipInAppFeedFingerprint : Fingerprint(
     custom = { _, classDef -> classDef.interfaces.contains("Lkotlin/jvm/functions/Function2;") },
 )
 
+// Older Airship builds (The Washington Post 7.18.1) process the feed in a
+// plain method instead: the remote-data observer that schedules each in-app
+// campaign and returns whether anything changed. Returning FALSE, its own
+// answer for "nothing new", schedules nothing.
+internal object AirshipInAppRemoteDataFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Boolean;",
+    strings = listOf("com.urbanairship.iaa.REMOTE_DATA_INFO", "frequency_constraints"),
+)
+
 internal fun BytecodePatchContext.disableAirshipInAppMessages() {
-    AirshipInAppFeedFingerprint.method.apply {
+    val feed = AirshipInAppFeedFingerprint.methodOrNull
+    if (feed == null) {
+        AirshipInAppRemoteDataFingerprint.method.returnEarly(
+            "sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\nreturn-object v0",
+        )
+        return
+    }
+    feed.apply {
         val index = implementation!!.instructions.indexOfFirst {
             it.opcode == Opcode.CONST_STRING &&
                 ((it as ReferenceInstruction).reference as StringReference).string == FEED

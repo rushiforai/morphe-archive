@@ -1,3 +1,47 @@
+# [1.9.21](https://github.com/quwi26/Quwis-Patches/compare/v1.9.20...v1.9.21) (2026-11-03)
+
+### Features
+
+* **Find the computer on the network:** a patch of its own, next to Game Review on your computer. It adds a "Find on the network" row to the bridge settings that sweeps the phone's own Wi-Fi on the bridge's port and fills in the address sf-bridge answers on, so the address is never read off ipconfig and does not go stale when the router hands out a different one. Only a host that greets the way sf-bridge does is offered; mobile data and VPN interfaces are skipped, and when several bridges answer they are listed with their core counts to choose from
+* **Saved addresses:** an address a review connected through is kept, newest first, and a review tries the set address and then the saved ones, so the computer is found again after the router moves it. The settings list them, with a note that an address the network hands out by lease is not worth keeping
+* **Find the computer automatically:** a switch, on by default, that lets a review sweep the Wi-Fi once when neither the set address nor a saved one answers, and search where it found the bridge
+
+### Documentation
+
+* **sf-bridge:** the firewall command now allows the port on public networks too (`profile=any remoteip=localsubnet`). Windows ignores a private-only rule on a café, office or co-working network, and the phone then cannot connect at all
+
+# [1.9.20](https://github.com/quwi26/Quwis-Patches/compare/v1.9.19...v1.9.20) (2026-11-03)
+
+### Bug Fixes
+
+* **Customize Home screen:** on 4.10.18 the older Home prints its tiles as `QuickGameTile`, `PuzzleTile`, `DailyPuzzleTile`, `VsBotTile`, `VsCoachTile` and `NextLessonTile`, which the tile filter did not recognise, so hiding Play Online, Puzzles, Daily Puzzle, Play Bots, Play Coach or Lessons did nothing there. They now answer to the same switches as on 4.10.23. Hiding every middle bottom-bar tab and the Puzzles tile from 1.9.18 is unchanged
+
+# [1.9.19](https://github.com/quwi26/Quwis-Patches/compare/v1.9.18...v1.9.19) (2026-11-03)
+
+### Bug Fixes
+
+* **Stockfish analysis:** the 80 MB Stockfish download was cached in the system's temp folder, which cleaners, updates and Android's own cache handling empty, so every re-patch downloaded it again. The cache now lives in the user's home folder on a computer and in the patcher's app data on a phone. A copy left in temp is moved there once, and an existing copy is checked against its SHA-256 before it is reused
+
+# [1.9.18](https://github.com/quwi26/Quwis-Patches/compare/v1.9.17...v1.9.18) (2026-11-03)
+
+### Bug Fixes
+
+* **Customize bottom bar:** Puzzles no longer stays pinned right after Play: every tab between Home and More, Puzzles included, follows the saved order. Turning every middle tab off now leaves just Home and More instead of bringing the app's defaults back
+* **Customize Home screen:** on 4.10.23 hiding and reordering the tiles was silently ignored, because the section was rebuilt through a constructor that version no longer has. It is now rebuilt through the app's own copy helper, so the tiles change again. The redesign's Recommended Match row reuses the Challenges section, so "Suggested opponents" and "Challenges" are now told apart by the section title and keep working independently
+* **Quwi's Patches settings:** Home changes now show the restart bar, since the Home content is cached until the app restarts, instead of claiming they appear when you go back
+
+# [1.9.17](https://github.com/quwi26/Quwis-Patches/compare/v1.9.16...v1.9.17) (2026-11-03)
+
+### Bug Fixes
+
+* **Game Review:** on 4.10.23 a castling move was handed to the app as king-takes-rook (`e1h1`), which the app's replayer no longer accepts, so the review crashed with a bare `NullPointerException`. Moves are now named by the app's own converter, and castling is normalised when that converter is absent. A game whose moves still cannot be read now stops with the review's error screen instead of crashing
+
+# [1.9.16](https://github.com/quwi26/Quwis-Patches/compare/v1.9.15...v1.9.16) (2026-11-03)
+
+### Bug Fixes
+
+* **Notification prompt:** on some EMUI devices the system returns its own wrapper around the adaptive launcher icon. The app dropped it and asked Compose to read the `<adaptive-icon>` XML, which Compose cannot do, and the notification prompt crashed. The prompt now keeps the drawable the system returned and converts it to a bitmap as before
+
 # [1.9.15](https://github.com/quwi26/Quwis-Patches/compare/v1.9.14...v1.9.15) (2026-11-03)
 
 ### Bug Fixes

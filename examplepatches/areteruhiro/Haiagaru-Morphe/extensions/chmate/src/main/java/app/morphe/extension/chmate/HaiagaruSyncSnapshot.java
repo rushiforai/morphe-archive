@@ -51,7 +51,8 @@ final class HaiagaruSyncSnapshot {
     private static final String HAIAGARU_PREFS =
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String[] EXTRA_SETTINGS = {"haiagaru_thread_commands", "haiagaru_replace_str",
-            "haiagaru.programmable-ng", "haiagaru_eddi_search", "haiagaru_upload_history",LocalAutoBackup.PREFS};
+            "haiagaru.programmable-ng", "haiagaru_eddi_search", "haiagaru_upload_history",LocalAutoBackup.PREFS,
+            BackupOptionSettings.LOCAL,BackupOptionSettings.MEGA};
 
     private HaiagaruSyncSnapshot() {}
 
@@ -93,6 +94,10 @@ final class HaiagaruSyncSnapshot {
                 }
             }
             result.append("設定: 追加 ").append(added).append("項目、更新 ").append(changed).append("項目\n");
+            JSONObject notifications=remote.optJSONObject(ThreadWatchBackup.KEY);
+            if(notifications!=null)result.append("スレ新着通知: ")
+                    .append(notifications.getJSONArray("threads").length()).append("件、確認間隔 ")
+                    .append(ThreadWatch.intervalLabel(notifications.getInt("intervalMinutes"))).append('\n');
         }
         if ((categories & NG) != 0) result.append("NG設定: 重複を除いて追加\n");
         if ((categories & POST_HISTORY) != 0) result.append("書き込み履歴: ")
@@ -140,6 +145,7 @@ final class HaiagaruSyncSnapshot {
         }
         if ((categories & SETTINGS) != 0) {
             snapshot.put("settings", captureSettings(context));
+            snapshot.put(ThreadWatchBackup.KEY, ThreadWatchBackup.capture(context));
         }
         if (!streamed && (categories & POST_HISTORY) != 0) {
             snapshot.put("postDataList", readOptional(
@@ -177,6 +183,9 @@ final class HaiagaruSyncSnapshot {
         if ((categories & SETTINGS) != 0 && snapshot.optJSONObject("settings") == null) {
             throw new IOException("設定データがありません");
         }
+        if ((categories & SETTINGS) != 0 && snapshot.has(ThreadWatchBackup.KEY)) {
+            ThreadWatchBackup.validate(snapshot.optJSONObject(ThreadWatchBackup.KEY));
+        }
         if ((categories & COOKIES) != 0 && snapshot.optJSONObject("cookies") == null) {
             throw new IOException("Cookieデータがありません");
         }
@@ -208,6 +217,7 @@ final class HaiagaruSyncSnapshot {
         if ((selected & SETTINGS) != 0) {
             restoreSettings(context, snapshot.optJSONObject("settings"),
                     snapshot.optString("sourcePackage", ""));
+            BackupOptionSettings.restoreLegacySelection(context,snapshot,false);
         }
         if ((selected & NG) != 0) restoreProgrammableNg(context, snapshot, false);
         if ((selected & POST_HISTORY) != 0 && !snapshot.isNull("postDataList")) {
@@ -218,6 +228,7 @@ final class HaiagaruSyncSnapshot {
             writeAtomic(kakikomiFile(context), decodeFile(snapshot.getString("kakikomi")));
         }
         if ((selected & COOKIES) != 0) restoreCookies(context, snapshot.getJSONObject("cookies"), false);
+        if ((selected & SETTINGS) != 0) ThreadWatchBackup.restore(context,snapshot.optJSONObject(ThreadWatchBackup.KEY),false);
     }
 
     /**
@@ -233,6 +244,7 @@ final class HaiagaruSyncSnapshot {
         if ((selected & NG) != 0) restoreNg(context, snapshot.optJSONObject("ng"));
         if ((selected & SETTINGS) != 0) mergeMissingSettings(context,
                 snapshot.optJSONObject("settings"), snapshot.optString("sourcePackage", ""));
+        if ((selected & SETTINGS) != 0) BackupOptionSettings.restoreLegacySelection(context,snapshot,true);
         if ((selected & NG) != 0) restoreProgrammableNg(context, snapshot, true);
         if ((selected & POST_HISTORY) != 0 && !snapshot.isNull("postDataList")) {
             mergeJsonArrayFile(context.getFileStreamPath("postDataList.json"),
@@ -242,6 +254,7 @@ final class HaiagaruSyncSnapshot {
             mergeTextFile(kakikomiFile(context), decodeFile(snapshot.getString("kakikomi")));
         }
         if ((selected & COOKIES) != 0) restoreCookies(context, snapshot.getJSONObject("cookies"), true);
+        if ((selected & SETTINGS) != 0) ThreadWatchBackup.restore(context,snapshot.optJSONObject(ThreadWatchBackup.KEY),true);
     }
 
     private static boolean cookieStoreName(String name) {
@@ -465,6 +478,7 @@ final class HaiagaruSyncSnapshot {
                     name, Context.MODE_PRIVATE).getAll().entrySet()) {
                 if (!safePreferenceKey(entry.getKey())) continue;
                 if(name.equals(LocalAutoBackup.PREFS)&&!LocalAutoBackup.backupSetting(entry.getKey()))continue;
+                if(BackupOptionSettings.store(name)&&!BackupOptionSettings.key(name,entry.getKey()))continue;
                 JSONObject typed = encodePreference(entry.getValue());
                 if (typed != null) values.put(entry.getKey(), typed);
             }
@@ -487,8 +501,19 @@ final class HaiagaruSyncSnapshot {
             if(name.equals(LocalAutoBackup.PREFS)){
                 restoreLocalAutoBackup(context,values,false);continue;
             }
-            SharedPreferences.Editor editor = context.getSharedPreferences(
-                    targetName, Context.MODE_PRIVATE).edit();
+            if(BackupOptionSettings.store(name)){BackupOptionSettings.restore(context,name,values,false);continue;}
+            SharedPreferences target = context.getSharedPreferences(targetName, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = target.edit();
+            if (HAIAGARU_PREFS.equals(name)) {
+                // A full UI-settings restore must also reset options absent from
+                // older snapshots. Otherwise restoring B then A keeps B's extra
+                // features enabled permanently, even after restarting ChMate.
+                // Preserve the device's first-open prompt and excluded secrets.
+                for (String key : target.getAll().keySet()) {
+                    if (safePreferenceKey(key) && !values.has(key)
+                            && !MinimalSetup.PROMPT.equals(key)) editor.remove(key);
+                }
+            }
             for (Iterator<String> keys = values.keys(); keys.hasNext();) {
                 String key = keys.next();
                 if (!safePreferenceKey(key)) continue;
@@ -535,6 +560,7 @@ final class HaiagaruSyncSnapshot {
             if(name.equals(LocalAutoBackup.PREFS)){
                 restoreLocalAutoBackup(context,values,true);continue;
             }
+            if(BackupOptionSettings.store(name)){BackupOptionSettings.restore(context,name,values,true);continue;}
             SharedPreferences preferences = context.getSharedPreferences(
                     targetName, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = preferences.edit();
@@ -638,9 +664,28 @@ final class HaiagaruSyncSnapshot {
                     ||key.equals("categories")&&(number<0||(number&~ALL)!=0))throw new IOException("自動バックアップ設定の値が不正です");
             editor.putInt(key,number);
         }
-        // A backup file cannot grant access to a destination or consent to start
-        // sending new backups there. Keep this installation's folder, enablement,
-        // successful-run timestamps and owned-file list; never import ownership.
+        if(values.has("enabled")&&(!missingOnly||!prefs.contains("enabled"))){
+            JSONObject value=values.getJSONObject("enabled");
+            if(!"boolean".equals(value.optString("type")))throw new IOException("自動バックアップの有効状態が不正です");
+            editor.putBoolean("enabled",value.getBoolean("value"));
+        }
+        if(values.has("tree")&&(!missingOnly||!prefs.contains("tree"))){
+            JSONObject value=values.getJSONObject("tree");
+            if(!"string".equals(value.optString("type")))throw new IOException("保存先フォルダの形式が不正です");
+            String tree=value.getString("value");
+            if(!tree.isEmpty()){
+                android.net.Uri uri=android.net.Uri.parse(tree);
+                if(tree.length()>8192||!"content".equals(uri.getScheme())
+                        ||!android.provider.DocumentsContract.isTreeUri(uri))throw new IOException("保存先フォルダが不正です");
+            }
+            String current=prefs.getString("tree","");
+            // A valid destination selected on this installation takes priority.
+            if(!LocalAutoBackup.folderGranted(context,current)&&!current.equals(tree))
+                editor.putString("tree",tree).remove("files").remove("last").remove("status");
+        }
+        // URI permissions cannot survive uninstall. Preserve the requested ON
+        // state, but LocalAutoBackup gates writes until the folder is reselected.
+        // Never import retention ownership or successful-run timestamps.
         if(!editor.commit())throw new IOException("自動バックアップ設定の復元に失敗しました");
     }
 

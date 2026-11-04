@@ -1,5 +1,41 @@
 # Calendar #381 acceptance
 
+## HTML editor, widget and notification acceptance
+
+`description_acceptance.py` accepts an official 1.12.0 or 1.12.1 APK and the
+corresponding locally patched unsigned APK. It verifies original checksum,
+signer, package/version, disposable AVD identity and the existing fixture's
+test certificate. It installs same-key copies, compares native original and
+patched widget RemoteViews, posted notifications, explicit source-editing and
+database save/readback, then restores the APK that was present at startup.
+Synthetic events and notification channels remain in the disposable fixture.
+It does not wipe data, uninstall apps or use a personal account/device.
+
+```sh
+python3 tests/calendar/description_acceptance.py \
+  --original /absolute/path/to/original.apk --patched /absolute/path/to/patched-unsigned.apk \
+  --sdk /absolute/path/to/android-sdk --java-home /absolute/path/to/jdk21 \
+  --keystore /absolute/path/to/disposable-test.jks --key-alias test \
+  --serial emulator-5580 --avd-name penguin \
+  --artifacts .scratch/calendar-html/new-acceptance-run --disposable-emulator
+```
+
+Use a fresh artifacts path for each run. The runner expects the disposable
+test-key password `android`, a booted API 35 ranchu emulator with foreground
+user 0 and Calendar already installed with that key. Baseline and patched
+results are recorded separately. See [scope and limits](../../docs/CALENDAR.md).
+
+## Release bundle validation
+
+`validate_bundle.py` is run by the release workflow on the bundle built for
+publication. It verifies the pinned official APKs and Morphe Desktop, applies
+both Calendar patches together to 1.12.0 and the HTML patch to 1.12.1, checks
+the resulting package/version and patch reports, and verifies that reapplying
+the HTML patch fails. Reports and generated APKs stay outside the merge diff.
+Run `python3 tests/calendar/validate_bundle.py --help` for required paths.
+
+## All-day reminder acceptance
+
 The **Separate all-day reminder defaults** patch targets the original
 official Fossify Calendar **1.12.0** APK only. See
 [provenance, behavior and limits](../../docs/CALENDAR_REMINDERS.md).

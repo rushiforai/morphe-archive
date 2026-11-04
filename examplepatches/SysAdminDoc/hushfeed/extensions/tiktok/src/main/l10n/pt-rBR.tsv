@@ -139,7 +139,7 @@ Comma separated names exactly as the row under a profile's bio shows them, such 
 Couldn't add the older seen videos. Try again.	Não foi possível adicionar os vídeos vistos anteriores. Tente de novo.
 Couldn't copy. Use Save build details instead.	Falha ao copiar. Use “Salvar detalhes da compilação”.
 Couldn't copy the report. Use Save report instead.	Relatório não copiado. Use “Salvar relatório”.
-Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.	Não foi possível ler os valores atuais do TikTok (%1$s). Atualize os valores pelo menu para tentar de novo.
+Couldn't read TikTok's current values. Refresh values from the menu to try again.	Não foi possível ler os valores atuais do TikTok. Atualize os valores pelo menu para tentar de novo.
 Couldn't restart TikTok. Close it and open it again.	Não foi possível reiniciar o TikTok. Feche e abra de novo.
 Couldn't undo that. Try again.	Não foi possível desfazer. Tente de novo.
 Count a video as seen after	Contar um vídeo como visto depois de
@@ -1684,9 +1684,7 @@ TikTok is locked	O TikTok está bloqueado
 Unlock	Desbloquear
 TikTok can't lock without a phone screen lock	Não dá para bloquear o TikTok sem bloqueio de tela
 Save photo posts as a video	Salvar publicações de fotos como vídeo
-On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.	Em uma publicação com uma foto, Baixar vídeo cria um MP4 com o som da publicação e sem logo do TikTok nem cartão final. Em uma publicação com várias fotos, Baixar pergunta se você quer os originais ou um só vídeo.
 Seconds per photo	Segundos por foto
-How long each photo stays on screen in a video made from a photo post.	Quanto tempo cada foto fica na tela em um vídeo feito a partir de uma publicação de fotos.
 Save photos or a video?	Salvar fotos ou um vídeo?
 Save photos	Salvar fotos
 Save as video	Salvar como vídeo
@@ -2441,3 +2439,15 @@ Couldn't finish wiping TikTok's data. Tap to try again.	Não deu para terminar d
 Use this phone's own IDs	Usar os IDs deste celular
 Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	Apaga os dados do TikTok uma vez, na próxima abertura, e volta ao ID do Android e ao ID de publicidade reais deste celular. Você sai da conta e perde os rascunhos.
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	O TikTok volta aos IDs deste celular depois de reiniciar. Toque de novo para cancelar.
+On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.	Em uma publicação com uma foto, Baixar vídeo cria um MP4 com o som da publicação e sem logo do TikTok nem cartão final. Em uma publicação com várias fotos, Baixar pergunta se você quer os originais ou um só vídeo. Um story de foto também é salvo como vídeo.
+How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.	Quanto tempo cada foto fica na tela em um vídeo feito a partir de uma publicação de fotos. O vídeo de um story dura o mesmo que o story.
+Stop loading	Parar de carregar
+Recording files deleted	Arquivos de gravação excluídos
+Hide story views	Ocultar as visualizações de stories
+You stay off the viewer list of stories you watch. Needs Ghost mode on.	Você não aparece na lista de quem viu os stories que você assiste. Precisa do modo fantasma ligado.
+Hide profile visits	Ocultar as visitas a perfis
+You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.	Você não aparece na lista de visualizações do perfil das pessoas cujo perfil você abre. Precisa do modo fantasma ligado.
+Hide typing	Ocultar quando você está digitando
+People you chat with won't see that you're typing. Needs Ghost mode on.	As pessoas com quem você conversa não verão que você está digitando. Precisa do modo fantasma ligado.
+Show all settings as a list	Mostrar todas as configurações em lista
+Show settings by category	Mostrar configurações por categoria

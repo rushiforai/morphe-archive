@@ -125,6 +125,9 @@ final class ReelsCategory {
                         L10n.t("Pause a reel and Burn-in guard brings the buttons back to full brightness until you play "
                                 + "it again or swipe on. The wait then starts over.")));
             }
+            reels.add(toggle(context, Settings.BURN_IN_STORIES, L10n.t("Dim stories too"),
+                    L10n.t("Burn-in guard also fades the top and bottom of a story while you watch without "
+                            + "touching, the eye button too. Any tap brings them back.")));
             reels.add(toggle(context, Settings.KEEP_REEL_CLEAR_MODE, L10n.t("Keep clear mode on"),
                     L10n.t("Turn on Instagram's clear mode on a reel and the next reels open in it too. Leave clear "
                             + "mode yourself and the next reels show their buttons again.")));
@@ -132,6 +135,9 @@ final class ReelsCategory {
                     L10n.t("Reels open in clear mode from the first one, with no tap. Leave it yourself and the next "
                             + "reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow "
                             + "screenshots is on.")));
+            reels.add(toggle(context, Settings.QUIET_REEL_CLEAR_MODE, L10n.t("Don't vibrate in clear mode"),
+                    L10n.t("Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode "
+                            + "on, that's every swipe.")));
         }
         if (build.contains(PatchFamily.KEEP_REELS_TOP_BAR)) {
             reels.add(toggle(context, Settings.KEEP_REELS_TOP_BAR, L10n.t("Keep the Reels top bar"),
@@ -224,7 +230,7 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.BLUR_REEL_BARS, L10n.t("Blur the bars around a reel"),
                     L10n.t("A reel that doesn't fill the screen shows a blurred copy of itself above and below it "
                             + "instead of black bars, and the strip under the tab bar and the band behind the clock show the reel "
-                            + "blurred too. "
+                            + "blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. "
                             + "Open Reels again after a change.")));
         }
         if (build.contains(PatchFamily.REEL_AUTO_SCROLL)) {
@@ -277,6 +283,16 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.TEXT_BUTTON_ON_REELS, L10n.t("Copy text button on reels"),
                     L10n.t("Puts a Lens icon beside a reel. Tap it and Google Lens opens on what's showing, so you "
                             + "can select and copy its text.")));
+            if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
+                reels.add(toggle(context, Settings.SPEED_BUTTON_ON_REELS, L10n.t("Speed button on reels"),
+                        L10n.t("Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep "
+                                + "the reel speed on, the next reels play at it too.")));
+            }
+            if (build.contains(PatchFamily.REEL_DECLUTTER)) {
+                reels.add(toggle(context, Settings.FULL_SCREEN_BUTTON_ON_REELS, L10n.t("Full screen button on reels"),
+                        L10n.t("Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu "
+                                + "does. Start every reel in clear mode opens every reel that way.")));
+            }
         }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"), SettingsIcons.REELS,

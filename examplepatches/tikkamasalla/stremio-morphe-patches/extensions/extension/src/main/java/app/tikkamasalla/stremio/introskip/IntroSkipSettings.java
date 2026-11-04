@@ -50,6 +50,10 @@ public final class IntroSkipSettings {
     public static final String S_SHOWLIST = "Never auto-pick, always show every stream";
     public static final String T_PREPARE = "Prepare next episode";
     public static final String S_PREPARE = "Near the end, find the next episode's stream and skip times so Next starts at once";
+    public static final String T_ONEAHEAD = "Work out missing skip times";
+    public static final String S_ONEAHEAD = "Works out missing skip times from upcoming episodes in the background and uses them like any other source";
+    public static final String T_BORROW = "Borrow chapters from other releases";
+    public static final String S_BORROW = "Copies intro and credits marks from another release of the same episode when the audio lines up";
 
     private IntroSkipSettings() {
     }
@@ -115,6 +119,10 @@ public final class IntroSkipSettings {
                 IntroSkipPrefs.isShowListEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_PREPARE_NEXT, T_PREPARE, S_PREPARE,
                 IntroSkipPrefs.isPrepareNextEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_ONEAHEAD, T_ONEAHEAD, S_ONEAHEAD,
+                IntroSkipPrefs.isOneAheadEnabled(context));
+        addSwitch(section, context, IntroSkipPrefs.KEY_BORROW, T_BORROW, S_BORROW,
+                IntroSkipPrefs.isBorrowEnabled(context));
         addSwitch(section, context, IntroSkipPrefs.KEY_DIARY, T_DIARY, S_DIARY,
                 IntroSkipPrefs.isDiaryEnabled(context));
         addForgetPlayer(section, context);

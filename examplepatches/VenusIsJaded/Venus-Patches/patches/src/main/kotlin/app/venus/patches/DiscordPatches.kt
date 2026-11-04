@@ -371,7 +371,7 @@ val fastDeleteChannels = bundledPlugin("fastDeleteChannels", "Fast delete channe
 
 @Suppress("unused")
 val pauseInvites = bundledPlugin("pauseInvites", "Pause invites",
-    "Hold a server's icon to pause or resume its invites for a while, to stop a raid. Needs Manage Server.")
+    "Hold a server's icon to pause its invites until you resume them, to stop a raid. Needs Manage Server.")
 
 @Suppress("unused")
 val platformSpoof = bundledPlugin("platformSpoof", "Platform spoof",

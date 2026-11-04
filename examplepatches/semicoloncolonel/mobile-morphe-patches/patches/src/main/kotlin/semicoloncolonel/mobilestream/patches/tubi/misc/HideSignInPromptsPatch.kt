@@ -26,8 +26,8 @@ internal object SaveProgressPromptFingerprint : Fingerprint(
 @Suppress("unused")
 val hideSignInPromptsPatch = bytecodePatch(
     name = "Hide sign-in prompts",
-    description = "Stops the Tubi phone app from asking you to sign in to save your progress " +
-        "when you pause or leave a title. You can still sign in from the account screen.",
+    description = "Stops the app from asking you to sign in to save your progress when you pause or " +
+        "leave a title. You can still sign in from the account screen.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

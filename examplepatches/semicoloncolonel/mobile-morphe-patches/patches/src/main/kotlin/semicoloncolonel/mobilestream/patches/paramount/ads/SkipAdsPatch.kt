@@ -40,9 +40,9 @@ internal object AviaNetworkInterceptorFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes on-demand pre-roll and mid-roll ads and pause ads in the Paramount+ " +
-        "phone app. Live sports commercial breaks are replaced with Paramount's own " +
-        "\"Commercial in Progress\" card, because live ads cannot be skipped past.",
+    description = "Removes on-demand pre-roll and mid-roll ads and pause ads. Live sports commercial " +
+        "breaks are replaced with Paramount's own \"Commercial in Progress\" card, because " +
+        "live ads cannot be skipped past.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -38,8 +38,8 @@ internal object MediaTailorAdServiceMethodFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Turns off the Peacock player's server-side ad insertion (MediaTailor SSAI) in " +
-        "the phone app, using the Sky player SDK's own switches. Experimental; test on-device.",
+    description = "Turns off the Peacock player's server-side ad insertion (MediaTailor SSAI), using " +
+        "the Sky player SDK's own switches. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -82,8 +82,7 @@ public final class LocalChatSearch {
         }
 
         private static LinearLayout bar(Context context) {
-            boolean light = Settings.preferences.getBoolean("light", false);
-            SettingsUi ui = new SettingsUi(context, light);
+            SettingsUi ui = new SettingsUi(context, MaterialYouTheme.chatIsLight());
             LinearLayout bar = ui.column();
             bar.setBackgroundColor(ui.background);
             bar.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), ui.dp(8));

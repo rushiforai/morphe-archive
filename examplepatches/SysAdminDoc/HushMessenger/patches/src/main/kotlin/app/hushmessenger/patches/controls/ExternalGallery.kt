@@ -153,7 +153,7 @@ private fun ClassDef.galleryImplements(iface: String, byType: Map<String, ClassD
  * The one class whose objects run [start] as [launcher] declares it, or none. Messenger 583's launcher was abstract, with
  * one final subclass that ran this start and another that brought its own, and the hook calls the start virtually, so it
  * only handed its bundle to the first kind. 584's two subclasses both inherit the start, so the launcher itself is the class.
- * 585 is back to 583's shape.
+ * 586 has 583's shape again.
  */
 private fun List<ClassDef>.galleryTarget(launcher: ClassDef, start: Method, byType: Map<String, ClassDef>): ClassDef? {
     val signature = start.parameterTypes.map { it.toString() }
@@ -208,7 +208,7 @@ internal fun Method.isGalleryHandler(): Boolean {
  *     ...
  *     invoke-static {..., vEvent, vProvider}, <editor>(..., EditGalleryItemEvent, <Provider>)V
  *
- * Code between the two may branch, as the plugin's does on a cached value, but only the read leads in. 585 reads the
+ * Code between the two may branch, as the plugin's does on a cached value, but only the read leads in. 586 reads the
  * field into another register and `move-object`s it into the call's range, so up to four plain moves are followed.
  *
  * and in the editor, on its last parameter:
@@ -229,7 +229,7 @@ private fun Method.galleryProvider(iface: String, start: Method, byType: Map<Str
     val providerType = edit.parameterTypes.lastOrNull()?.toString() ?: return null
     val provider = code[e].galleryArguments().lastOrNull() ?: return null
     var load = (e - 1 downTo 0).firstOrNull { code[it].galleryWrites(provider) } ?: return null
-    // 585 reads the field into another register and moves it into the call's range, so plain moves are followed.
+    // 586 reads the field into another register and moves it into the call's range, so plain moves are followed.
     repeat(4) {
         val move = code[load].takeIf { it.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) }
             as? TwoRegisterInstruction ?: return@repeat

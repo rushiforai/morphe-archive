@@ -7,8 +7,8 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-/** Every supported 585 build as a failure names them, in VERSIONS order. */
-internal val CODES_585 = MessengerTarget.VERSIONS.getValue("585.0.0.53.94").joinToString(" or ")
+/** Every supported 586 build as a failure names them, in VERSIONS order. */
+internal val CODES_586 = MessengerTarget.VERSIONS.getValue("586.0.0.55.92").joinToString(" or ")
 
 /** The supported sites with every load one instruction later, standing in for another build's. */
 private val otherSites = expectedDexSites.mapKeys { (site, _) ->
@@ -17,8 +17,8 @@ private val otherSites = expectedDexSites.mapKeys { (site, _) ->
 
 class DexSiteContractTest {
     private fun assertActionable(failure: PatchException) {
-        assertContains(failure.message.orEmpty(), "Use an unmodified Messenger 585.0.0.53.94 APK")
-        assertContains(failure.message.orEmpty(), "version code $CODES_585)")
+        assertContains(failure.message.orEmpty(), "Use an unmodified Messenger 586.0.0.55.92 APK")
+        assertContains(failure.message.orEmpty(), "version code $CODES_586)")
     }
 
     @Test
@@ -29,16 +29,16 @@ class DexSiteContractTest {
     @Test
     fun eachBuildAcceptsOnlyItsOwnInstructionSites() {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), expectedDexSitesByBuild.keys)
-        validateDexSites(expectedDexSites347015062.toList(), expectedDexSitesFor("347015062"))
-        val sites = expectedDexSitesByBuild + (347015063 to otherSites)
-        validateDexSites(otherSites.toList(), expectedDexSitesFor("347015063", sites))
-        assertFailsWith<PatchException> { validateDexSites(otherSites.toList(), expectedDexSitesFor("347015062", sites)) }
-        assertFailsWith<PatchException> { validateDexSites(expectedDexSites.toList(), expectedDexSitesFor("347015063", sites)) }
+        validateDexSites(expectedDexSites347215348.toList(), expectedDexSitesFor("347215348"))
+        val sites = expectedDexSitesByBuild + (347215349 to otherSites)
+        validateDexSites(otherSites.toList(), expectedDexSitesFor("347215349", sites))
+        assertFailsWith<PatchException> { validateDexSites(otherSites.toList(), expectedDexSitesFor("347215348", sites)) }
+        assertFailsWith<PatchException> { validateDexSites(expectedDexSites.toList(), expectedDexSitesFor("347215349", sites)) }
     }
 
     @Test
     fun aSecondVersionNameUsesItsOwnBuildsSitesAndIsNamedInFailures() {
-        val versions = MessengerTarget.VERSIONS + ("586.0.0.1.91" to listOf(348000001))
+        val versions = MessengerTarget.VERSIONS + ("587.0.0.1.91" to listOf(348000001))
         val sites = expectedDexSitesByBuild + (348000001 to otherSites)
         validateVersionCode("348000001", versions)
         assertFailsWith<PatchException> { validateVersionCode("348000001") }
@@ -47,7 +47,19 @@ class DexSiteContractTest {
             validateDexSites(expectedDexSites.toList(), expectedDexSitesFor("348000001", sites), versions)
         }
         assertContains(failure.message.orEmpty(),
-            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 586.0.0.1.91 APK (version code 348000001).")
+            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 587.0.0.1.91 APK (version code 348000001).")
+    }
+
+    @Test
+    fun rejectsALoadAboveV255BeforeAnySiteIsRenamed() {
+        val sites = expectedDexSites.toList()
+        validateDexSites(sites, registers = sites.associate { it.first to 255 })
+        val wide = sites.last().first
+        val failure = assertFailsWith<PatchException> {
+            validateDexSites(sites, registers = sites.associate { it.first to 0 } + (wide to 256))
+        }
+        assertContains(failure.message.orEmpty(), "$wide uses v256 for a permission")
+        assertActionable(failure)
     }
 
     @Test

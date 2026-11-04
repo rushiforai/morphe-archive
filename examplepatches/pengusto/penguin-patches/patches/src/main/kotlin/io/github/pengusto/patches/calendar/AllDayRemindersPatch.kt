@@ -36,8 +36,11 @@ val allDayRemindersPatch = bytecodePatch(
             eventActivity to "95f13f1ab3e117f6a546608dbf67811d1dec313a631a0f48e6cb7f30703abbff",
             settingsActivity to "a5f774d78b3c85484471cb1f73653ef68283366b95e816b067874339bcb871f7",
         ).forEach { (type, hash) ->
-            // The independently selectable HTML patch only changes EventActivity.onResume.
-            check(classDefBy(type).codeDigest { type != eventActivity || it.name != "onResume" } == hash) {
+            // The HTML patch changes onResume and the description save call. Accept
+            // either exact class body so these independently selectable patches compose.
+            val actual = classDefBy(type).codeDigest { type != eventActivity || it.name != "onResume" }
+            val withHtml = "a9647ba111b11078d7c8056597d676cb200ece35760af4908a4ad3861ed7a1d1"
+            check(actual == hash || type == eventActivity && actual == withHtml) {
                 "Unsupported or already patched Calendar bytecode: $type. Use the original official 1.12.0 APK."
             }
         }

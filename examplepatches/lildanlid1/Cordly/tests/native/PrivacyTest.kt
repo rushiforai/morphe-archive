@@ -21,7 +21,7 @@ private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 fun main(args: Array<String>) {
     val groups = listOf(HbcPrivacy.analytics, HbcPrivacy.telemetry, HbcPrivacy.crash)
     val natives = NativePrivacy.crash + NativePrivacy.telemetry + NativePrivacy.attribution + NativePrivacy.advertising
-    check(natives.size == 137 && natives.distinct().size == natives.size)
+    check(natives.size == 139 && natives.distinct().size == natives.size)
     check(groups.flatten().size == 102 && groups.flatten().map { it.offset }.distinct().size == 102)
     check(HbcPrivacy.resolvedPromise.last() == 6.toByte())
     // Cross-check every opcode constant against scripts/hbc/ops.txt (Hermes 250829098 BytecodeList.def)
@@ -334,7 +334,7 @@ fun main(args: Array<String>) {
         check(code.take(size).filterIsInstance<FiveRegisterInstruction>().all { ins ->
             listOf(ins.registerC, ins.registerD, ins.registerE).take(ins.registerCount).all { it == 0 || it >= parameters } }) { "$name bridge reads a clobbered local" }
         checkBranches(bridge, "$name bridge")
-        // A second Venus guard in the same method is refused at patch time instead of shipping broken branches.
+        // A second Conduit guard in the same method is refused at patch time instead of shipping broken branches.
         val refused = try { voiceBridge(bridge); false } catch (_: app.morphe.patcher.patch.PatchException) { true }
         check(refused) { "A second guard in $name was accepted" }
     }
@@ -356,6 +356,29 @@ fun main(args: Array<String>) {
             listOf(ins.registerC, ins.registerD, ins.registerE).take(ins.registerCount).all { it == 0 || it >= parameters } }) { "readAsset bridge reads a clobbered local" }
         checkBranches(bridge, "readAsset bridge")
         check(try { languageBridge(bridge); false } catch (_: app.morphe.patcher.patch.PatchException) { true }) { "A second guard in readAsset was accepted" }
+    }
+    // The Compress big files bridge owns removeFile(storageDir, path, promise): the request is p1, the Promise p3. Discord's own JS
+    // calls removeFile with a plain path, which falls through to the original.
+    run {
+        val original = methods.single { it.definingClass == FILE_MODULE && it.name == "removeFile" && it.returnType == "V" &&
+            it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;", "Ljava/lang/String;", PROMISE) }
+        val bridge = MutableMethod(original)
+        compressBridge(bridge)
+        val code = bridge.implementation!!.instructions.toList()
+        check(bridge.implementation!!.registerCount == original.implementation!!.registerCount) { "removeFile bridge changed the register count" }
+        check(code.size == original.implementation!!.instructions.count() + COMPRESS_BRIDGE_SIZE) { "removeFile bridge is ${code.size - original.implementation!!.instructions.count()} instructions" }
+        check(code.drop(COMPRESS_BRIDGE_SIZE).map { it.opcode } == original.implementation!!.instructions.map { it.opcode }) { "Discord's own removeFile changed" }
+        check(code[COMPRESS_BRIDGE_SIZE - 2].opcode == Opcode.RETURN_VOID && code[COMPRESS_BRIDGE_SIZE - 1].opcode == Opcode.NOP)
+        check(((code[0] as ReferenceInstruction).reference as StringReference).string == "venus-compress-v1:")
+        val parameters = bridge.implementation!!.registerCount - 4
+        for (instruction in code.take(COMPRESS_BRIDGE_SIZE)) if (instruction is OneRegisterInstruction) check(instruction.registerA in 0..1) { "removeFile bridge writes outside v0-v1" }
+        check(code.take(COMPRESS_BRIDGE_SIZE).filterIsInstance<FiveRegisterInstruction>().all { ins ->
+            listOf(ins.registerC, ins.registerD, ins.registerE).take(ins.registerCount).all { it == 0 || it >= parameters } }) { "removeFile bridge reads a clobbered local" }
+        val dispatch = code.take(COMPRESS_BRIDGE_SIZE).filterIsInstance<FiveRegisterInstruction>().single { ins ->
+            ((ins as ReferenceInstruction).reference as MethodReference).definingClass == MEDIA_COMPRESSOR }
+        check(dispatch.registerC == parameters + 1 && dispatch.registerD == parameters + 3) { "removeFile bridge passes the wrong request or Promise" }
+        checkBranches(bridge, "removeFile bridge")
+        check(try { compressBridge(bridge); false } catch (_: app.morphe.patcher.patch.PatchException) { true }) { "A second guard in removeFile was accepted" }
     }
     // The Material You bridge owns getFileHash(uri, algorithm, double, promise): URI p1, Promise p5. Discord's JS never calls it.
     run {
@@ -462,7 +485,7 @@ fun main(args: Array<String>) {
         // Every hands-free call Discord's audio code makes is covered, so none still reaches Android directly.
         val all = methods.filter { it.definingClass.startsWith("Lcom/discord/audio/") }.flatMap { m -> (m.implementation?.instructions ?: emptyList()).mapNotNull {
             ((it as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { r -> r.definingClass == AUDIO_MANAGER && r.name in handsfreeNames }?.let { m } } }
-        check(all.size == HANDSFREE_SITES.sumOf { it.calls }) { "Discord makes ${all.size} hands-free calls; Venus covers ${HANDSFREE_SITES.sumOf { it.calls }}" }
+        check(all.size == HANDSFREE_SITES.sumOf { it.calls }) { "Discord makes ${all.size} hands-free calls; Conduit covers ${HANDSFREE_SITES.sumOf { it.calls }}" }
         val created = MutableMethod(appCreate)
         readHandsfreeContext(created)
         val code = created.implementation!!.instructions.toList()
@@ -611,7 +634,7 @@ fun main(args: Array<String>) {
             check(calls.single().definingClass == "Ljava/lang/Throwable;" && calls.single().name == "toString")
         } else check(calls.isEmpty())
     }
-    println("PASS: 102 pinned HBC targets (none sharing a body with another function), all 7 HBC selection combinations, valid footers, unchanged unrelated bytes, rejection of changed inputs, 137 exact native ABIs and assembled register-safe early-return/Promise/callback guards, native result shapes, 64 dependency selections, cached-bundle pinning, corrupt-header/footer rejection combined prelude compatibility the Quest Completer desktop User-Agent guard, the Force system font guards, the passkey error hint and one branch-safe guard per FileModule bridge (getSize, fileExists, readAsset); no APK patched")
+    println("PASS: 102 pinned HBC targets (none sharing a body with another function), all 7 HBC selection combinations, valid footers, unchanged unrelated bytes, rejection of changed inputs, 139 exact native ABIs and assembled register-safe early-return/Promise/callback guards, native result shapes, 64 dependency selections, cached-bundle pinning, corrupt-header/footer rejection combined prelude compatibility the Quest Completer desktop User-Agent guard, the Force system font guards, the passkey error hint and one branch-safe guard per FileModule bridge (getSize, fileExists, readAsset); no APK patched")
 }
 
 

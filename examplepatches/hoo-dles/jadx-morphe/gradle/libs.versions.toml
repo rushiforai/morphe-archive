@@ -1,10 +1,10 @@
 [versions]
-kotlin = "2.3.10"
+kotlin = "2.4.21"
 kotlinx = "1.10.2"
 kotlinx-serialization = "1.8.1"
 shadow = "9.0.2"
 
-kotlin-logging-jvm = "7.0.5"
+kotlin-logging-jvm = "8.0.4"
 slf4j = "2.0.17"
 logback = "1.5.18"
 
@@ -14,8 +14,8 @@ flatlaf-extras = "3.7"
 rsyntaxtextarea = "3.6.1"
 autocomplete = "3.3.3"
 
-morphe-patcher = "1.14.0"
-smali = "d856bad65f"
+morphe-patcher = "2.1.0"
+smali = "ac700e1942"
 xpp3 = "1.1.4c"
 
 junit = "5.12.2"

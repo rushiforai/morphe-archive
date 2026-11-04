@@ -12,7 +12,6 @@ import android.text.InputType;
 import android.text.format.DateUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -79,6 +78,8 @@ public final class ChatPreview {
         String id(Object message);
 
         String sender(Object message);
+
+        String account(Object session);
     }
 
     static final Access PATCHED = new Access() {
@@ -125,6 +126,11 @@ public final class ChatPreview {
         @Override
         public String sender(Object message) {
             return PreviewMessages.sender(message);
+        }
+
+        @Override
+        public String account(Object session) {
+            return InstagramChats.accountId(session);
         }
     };
 
@@ -241,17 +247,54 @@ public final class ChatPreview {
     static List<Line> read(Object session, Object key, Access access) {
         List<Object> all = access.messages(session, key);
         if (all == null) return null;
-        List<Line> lines = new ArrayList<>();
+        List<Object> messages = new ArrayList<>();
         for (Object message : new ArrayList<>(all)) {
             if (message == null || !access.isMessage(message)) continue;
             String kind = access.kind(message);
             if (kind != null && kind.toUpperCase(Locale.ROOT).contains("ACTION_LOG")) continue;
-            lines.add(new Line(describe(access.text(message), kind), micros(access.time(message)),
-                    access.mine(message), message));
+            messages.add(message);
+        }
+        String you = you(session, messages, access);
+        List<Line> lines = new ArrayList<>();
+        for (Object message : messages) {
+            boolean mine = access.mine(message) || (you != null && you.equals(sender(message, access)));
+            lines.add(new Line(describe(access.text(message), access.kind(message)), micros(access.time(message)),
+                    mine, message));
         }
         Collections.sort(lines, Comparator.comparingLong(line -> line.micros));
         if (lines.size() <= SHOWN) return lines;
         return new ArrayList<>(lines.subList(lines.size() - SHOWN, lines.size()));
+    }
+
+    /**
+     * The signed-in account's id: the session's own, or when this build couldn't read it, the sender
+     * of a message Instagram marked as the account's. Instagram sets that mark on messages the server
+     * sent back, not on one just sent from this phone, so the id is what tells a fresh reply is yours.
+     */
+    static String you(Object session, List<Object> messages, Access access) {
+        try {
+            String id = access.account(session);
+            if (id != null && !id.isEmpty()) return id;
+        } catch (Throwable t) {
+            // Logged, then a marked message still says who the account is.
+            HookStatus.threw(FamilyNames.PREVIEW_CHATS, LOAD, t);
+        }
+        for (Object message : messages) {
+            if (!access.mine(message)) continue;
+            String id = sender(message, access);
+            if (id != null && !id.isEmpty()) return id;
+        }
+        return null;
+    }
+
+    /** The message's sender id, or null when it can't be read. */
+    private static String sender(Object message, Access access) {
+        try {
+            return access.sender(message);
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.PREVIEW_CHATS, LOAD, t);
+            return null;
+        }
     }
 
     /**
@@ -326,7 +369,7 @@ public final class ChatPreview {
         list.addView(status);
 
         int most = (int) (activity.getResources().getDisplayMetrics().heightPixels * 0.5f);
-        ScrollView scroll = new Capped(activity, most);
+        Capped scroll = new Capped(activity, most);
         scroll.addView(list);
 
         EditText field = new EditText(activity);
@@ -351,8 +394,9 @@ public final class ChatPreview {
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(activity, 20), gap, dp(activity, 20), 0);
+        // Weighted, so when the keyboard shortens the box the chat gives up the room, not the reply field.
         root.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         LinearLayout.LayoutParams composerAt = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         composerAt.topMargin = gap;
@@ -395,7 +439,7 @@ public final class ChatPreview {
     }
 
     /** Reads the chat off the main thread and fills the box with it, if the box is still up. */
-    private static void load(AlertDialog box, LinearLayout list, TextView status, ScrollView scroll,
+    private static void load(AlertDialog box, LinearLayout list, TextView status, Capped scroll,
                              Object session, Object key, List<List<Line>> shown) {
         Utils.runOnBackgroundThread(() -> {
             List<Line> lines;
@@ -410,7 +454,7 @@ public final class ChatPreview {
                 if (!box.isShowing()) return;
                 if (read != null) shown.set(0, read);
                 fill(list, status, read);
-                scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN));
+                scroll.showEnd();
             });
         });
     }
@@ -438,7 +482,7 @@ public final class ChatPreview {
             bubble.setTextIsSelectable(true);
             GradientDrawable surface = new GradientDrawable();
             surface.setColor(line.mine ? colors.accent : colors.card);
-            surface.setCornerRadius(dp(context, 16));
+            surface.setCornerRadius(dp(context, 12));
             bubble.setBackground(surface);
             bubble.setPadding(dp(context, 12), dp(context, 8), dp(context, 12), dp(context, 8));
             bubble.setMaxWidth((int) (context.getResources().getDisplayMetrics().widthPixels * 0.6f));
@@ -471,13 +515,40 @@ public final class ChatPreview {
         return (int) (value * context.getResources().getDisplayMetrics().density + 0.5f);
     }
 
-    /** A scroll view no taller than [most], so the reply box stays on screen under a long chat. */
+    /**
+     * A scroll view no taller than [most], so the reply box stays on screen under a long chat. It shows
+     * the newest message without fullScroll, which hands focus to the last bubble and takes it from the
+     * reply field, so typing went nowhere.
+     */
     static final class Capped extends ScrollView {
         private final int most;
+        private boolean toEnd;
 
         Capped(Context context, int most) {
             super(context);
             this.most = most;
+        }
+
+        /** Scrolls to the newest message on the next layout and leaves focus where it is. */
+        void showEnd() {
+            toEnd = true;
+            requestLayout();
+        }
+
+        @Override
+        protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+            // The keyboard shortened the box: keep the newest message just above the reply field.
+            if (h < oldh) toEnd = true;
+            super.onSizeChanged(w, h, oldw, oldh);
+        }
+
+        @Override
+        protected void onLayout(boolean changed, int l, int t, int r, int b) {
+            super.onLayout(changed, l, t, r, b);
+            if (toEnd && getChildCount() > 0) {
+                toEnd = false;
+                scrollTo(0, getChildAt(0).getHeight());
+            }
         }
 
         @Override

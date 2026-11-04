@@ -60,6 +60,7 @@ val chatCustomizationPatch = bytecodePatch(
     dependsOn(nativeKeyboxPatch)
     extendWith("extensions/chzzk.mpe")
     dependsOn(playerResources)
+    dependsOn(localFeaturesResources)
 
     execute {
         if (packageMetadata.versionName == "1.3.0") {
@@ -71,6 +72,11 @@ val chatCustomizationPatch = bytecodePatch(
         addPlayerHooks()
         addAudioHooks()
         addViewerCountHooks()
+        addLocalFeaturesHooks()
+        addFollowingNetworkHooks()
+        addPlayerDiagnosticsHooks()
+        addAccountFollowingHooks()
+        addFollowingEntryHooks()
         val stateFactory = classDefBy("Landroidx/compose/runtime/SnapshotStateKt;").methods.single {
             it.returnType == "Landroidx/compose/runtime/MutableState;" &&
                 it.parameterTypeNames == listOf("Ljava/lang/Object;")

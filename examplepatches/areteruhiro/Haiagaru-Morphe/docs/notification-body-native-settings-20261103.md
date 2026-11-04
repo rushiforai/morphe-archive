@@ -28,3 +28,6 @@ Pixel 10a / Android17 / 242 devの提供ログは`S2MSettingActivity.onCreate(:3
 
 
 最終242: 通知17/設定UI18/内容保持8/S2M画面3回起動成功、最終実APK hash一致。Fridaの通信hook背景試験はART native SIGSEGVで中断し成功扱いせず、フック無しの実通信へ検証を変更。実5ch Jobで前回件数0のfixtureから117件取得→本文付き通知→次回予約成功、新規fatalなし。テスト登録と通知を除去、確認間隔初期15分へ。実際の新着117投稿を観測した試験ではない。build/notification-real5ch-uninstrumented-result.json、s2m242-final-runtime.json。Frida試験の追加コマンドは自動承認レビューでblocked by policy（具体理由なし）となり未実行、代わりにフック無し試験を完了。Pixel 10a/Android17実機未検証。
+
+
+公式[1.20.2](https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.20.2)へ収録済み。既存Semantic Release/Build CI成功、配布MPP digest/CRC/本文解析DEX/新設定入口/S2M値0修正/READMEを確認。公開説明は利用者指定の一文を削除。準備段階で中止した1.20.1はRelease未作成。公開MPP SHA256 `a676f8f38b33b22171386265361ecbf2202a97d512966b25b470b2e8737864e0`。feed本体は全branch1.20.2、短縮main stable URLだけCDNキャッシュの旧表示を観測、詳細integration-statusとbuild/official1202-public/verification.json。

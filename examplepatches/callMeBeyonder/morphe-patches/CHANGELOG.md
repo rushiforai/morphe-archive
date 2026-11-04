@@ -1,3 +1,15 @@
+## [1.5.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **healthifyme:** disable Facebook automatic app events ([0ffa80b](https://github.com/callMeBeyonder/morphe-patches/commit/0ffa80bf4f7d0f2ef92d3b8dd379a21882d1e09e))
+
+## [1.5.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-04)
+
+### ✨ New Features
+
+* **healthifyme:** support 31.5 with premium unlocks and analytics removal ([24598a2](https://github.com/callMeBeyonder/morphe-patches/commit/24598a234e609fe424e73afb0f77254b8e8a8025))
+
 ## [1.4.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-02)
 
 ### ✨ New Features

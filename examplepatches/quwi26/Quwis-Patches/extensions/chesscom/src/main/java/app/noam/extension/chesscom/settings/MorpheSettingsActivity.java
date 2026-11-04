@@ -53,6 +53,7 @@ import app.noam.extension.chesscom.home.HomeTabs;
 import app.noam.extension.chesscom.lichesspuzzle.LichessPuzzles;
 import app.noam.extension.chesscom.stockfish.Analysis;
 import app.noam.extension.chesscom.stockfish.BridgeBenchmark;
+import app.noam.extension.chesscom.stockfish.BridgeDiscovery;
 import app.noam.extension.chesscom.stockfish.BridgeSettings;
 import app.noam.extension.chesscom.stockfish.NetEngine;
 import app.noam.extension.chesscom.theme.Accent;
@@ -306,7 +307,10 @@ public final class MorpheSettingsActivity extends Activity {
             int index = i;
             if (i > 0) tiles.addView(divider(16));
             tiles.addView(reorderRow(HomeLayout.tileTitle(id), !hidden.contains(id),
-                checked -> HomeLayout.setTileHidden(id, !checked),
+                checked -> {
+                    HomeLayout.setTileHidden(id, !checked);
+                    restartNeeded();
+                },
                 index > 0 ? () -> moveTile(order, index, -1) : null,
                 index < order.size() - 1 ? () -> moveTile(order, index, 1) : null));
         }
@@ -318,9 +322,12 @@ public final class MorpheSettingsActivity extends Activity {
             String id = HomeLayout.SECTIONS[i];
             if (i > 0) sections.addView(divider(16));
             sections.addView(switchRow(HomeLayout.SECTION_TITLES[i], null, !hiddenSections.contains(id),
-                checked -> HomeLayout.setSectionHidden(id, !checked)));
+                checked -> {
+                    HomeLayout.setSectionHidden(id, !checked);
+                    restartNeeded();
+                }));
         }
-        list.addView(caption("Changes show when you go back to the Home screen. chess.com's own "
+        list.addView(caption("Restart the app to apply your changes. chess.com's own "
             + "Home settings (streak, Chess TV, recommendations) stay in its Settings."));
     }
 
@@ -329,7 +336,7 @@ public final class MorpheSettingsActivity extends Activity {
         String id = moved.remove(index);
         moved.add(index + delta, id);
         HomeLayout.setTileOrder(moved);
-        render();
+        restartNeeded();
     }
 
     private void renderTabs() {
@@ -617,7 +624,19 @@ public final class MorpheSettingsActivity extends Activity {
         LinearLayout rows = card();
         list.addView(rows, cardParams());
         rows.addView(actionRow("Computer address",
-            host.isEmpty() ? "Not set" : host + ":" + BridgeSettings.port(), this::askComputerAddress));
+            host.isEmpty() ? "Not set" : BridgeSettings.address(), this::askComputerAddress));
+        if (GameReview.networkScan()) {
+            rows.addView(divider(16));
+            rows.addView(actionRow("Find on the network",
+                "Sweeps this Wi-Fi on port " + BridgeSettings.port() + " and fills in what answers.",
+                this::findComputerBridge));
+            rows.addView(divider(16));
+            rows.addView(actionRow("Saved addresses", savedAddressesText(), this::showSavedAddresses));
+            rows.addView(divider(16));
+            rows.addView(switchRow("Find the computer automatically",
+                "When no address answers, a review sweeps the Wi-Fi once and searches where it found it.",
+                BridgeSettings.autoScan(), BridgeSettings::setAutoScan));
+        }
         rows.addView(divider(16));
         rows.addView(actionRow("Token",
             token.isEmpty() ? "Not set" : "…" + token.substring(Math.max(0, token.length() - 4)),
@@ -652,6 +671,46 @@ public final class MorpheSettingsActivity extends Activity {
             + "Wi-Fi; the address is your computer's, and the token is the one sf-bridge prints when it starts "
             + "(token.txt next to it). Auto gives Stockfish every core the computer has — sf-bridge says how "
             + "many — and 32 MB of hash for each of them."));
+        if (GameReview.networkScan()) {
+            list.addView(caption("An address is worth keeping only if your network keeps it: a router that hands "
+                + "addresses out by lease can give the computer's to another device tomorrow. That is what "
+                + "Find on the network is for, and why a review can look around by itself."));
+        }
+    }
+
+    /** "2 addresses", or the note that nothing has worked yet. */
+    private static String savedAddressesText() {
+        int count = BridgeSettings.saved().size();
+        if (count == 0) return "None yet: an address is kept after a review connects through it.";
+        return count == 1 ? "1 address" : count + " addresses";
+    }
+
+    /** The addresses that worked, to pick one from or to throw away. */
+    private void showSavedAddresses() {
+        final List<String> saved = BridgeSettings.saved();
+        if (saved.isEmpty()) {
+            new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("Saved addresses")
+                .setMessage("An address is saved here after a review connected through it, so the computer is "
+                    + "found again when the router hands it a different one. Only save an address your network "
+                    + "keeps: one it hands out by lease can belong to another device tomorrow.")
+                .setPositiveButton("OK", null)
+                .show();
+            return;
+        }
+        final String[] addresses = saved.toArray(new String[0]);
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("Saved addresses")
+            .setItems(addresses, (dialog, which) -> {
+                BridgeSettings.use(addresses[which]);
+                render();
+                Toast.makeText(this, "Address set to " + addresses[which], Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton("Forget all", (dialog, which) -> {
+                BridgeSettings.forgetAll();
+                render();
+            })
+            .show();
     }
 
     private void askComputerAddress() {
@@ -681,6 +740,60 @@ public final class MorpheSettingsActivity extends Activity {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+
+    /**
+     * Sweeps the phone's own subnet for sf-bridge on a worker thread, then fills in what answered, so
+     * the address never has to be read off ipconfig and does not go stale when the router changes it.
+     */
+    private void findComputerBridge() {
+        final int port = BridgeSettings.port();
+        Toast.makeText(this, "Looking for sf-bridge on this network…", Toast.LENGTH_SHORT).show();
+        new Thread(() -> {
+            BridgeDiscovery.Result result;
+            try {
+                result = BridgeDiscovery.find(port);
+            } catch (RuntimeException e) {
+                result = BridgeDiscovery.Result.NONE;
+            }
+            final BridgeDiscovery.Result found = result;
+            runOnUiThread(() -> showFoundBridges(found, port));
+        }, "MorpheBridgeDiscovery").start();
+    }
+
+    private void showFoundBridges(BridgeDiscovery.Result result, int port) {
+        if (result.devices.isEmpty()) {
+            new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                .setTitle("No sf-bridge found")
+                .setMessage("Nothing answered on port " + port + " in the " + result.scanned
+                    + " addresses of this network.\n\nThis phone and your computer have to be on the same "
+                    + "Wi-Fi. Guest and office networks often keep devices from reaching each other at all, "
+                    + "and Windows blocks the bridge on a network it calls public until the sf-bridge rule "
+                    + "is allowed there too.")
+                .setPositiveButton("OK", null)
+                .show();
+            return;
+        }
+        if (result.devices.size() == 1) {
+            useBridge(result.devices.get(0));
+            return;
+        }
+        final String[] labels = new String[result.devices.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = result.devices.get(i).label();
+        new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle("sf-bridge on this network")
+            .setItems(labels, (dialog, which) -> useBridge(result.devices.get(which)))
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+
+    private void useBridge(BridgeDiscovery.Device device) {
+        BridgeSettings.setPort(device.port);
+        BridgeSettings.setHost(device.host);
+        BridgeSettings.remember(device.host, device.port);
+        render();
+        Toast.makeText(this, "Address set to " + device.host + ":" + device.port,
+            Toast.LENGTH_SHORT).show();
     }
 
     /** Asks the computer from a worker thread: a sleeping computer would otherwise freeze this screen. */

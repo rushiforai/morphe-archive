@@ -36,6 +36,8 @@ public final class MaterialYouTheme {
 
     /** Whether Messenger's dark mode is on, as it last answered. Defaults to true (dark) until Messenger answers. */
     private static final AtomicBoolean DARK = new AtomicBoolean(true);
+    /** Whether Messenger has answered at all. Only the Material You patch hooks its dark mode controller. */
+    private static volatile boolean answered;
 
     /**
      * Called with each answer Messenger's dark mode controller gives, right before it returns it.
@@ -44,6 +46,7 @@ public final class MaterialYouTheme {
      * @return {@code dark}, for the controller to return
      */
     public static boolean darkModeAnswer(boolean dark) {
+        answered = true;
         if (DARK.get() != dark && DARK.getAndSet(dark) != dark) {
             publish();
         }
@@ -53,6 +56,22 @@ public final class MaterialYouTheme {
     /** Whether Messenger's dark mode is on, as it last answered. */
     public static boolean isDarkMode() {
         return DARK.get();
+    }
+
+    /**
+     * Whether a bar Hush puts inside a chat should be light: Messenger's own theme once it has answered, and Hush's
+     * Light theme switch before that or without the Material You patch.
+     */
+    static boolean chatIsLight() {
+        return answered ? !DARK.get() : Settings.preferences.getBoolean("light", false);
+    }
+
+    /**
+     * The theme for a question Hush asks over a chat, light or dark with the chat like its bars. One UI's DeviceDefault
+     * alert stays dark in a light chat and draws its title dark on that dark sheet.
+     */
+    static int chatDialogTheme() {
+        return chatIsLight() ? android.R.style.Theme_Material_Light_Dialog_Alert : android.R.style.Theme_Material_Dialog_Alert;
     }
 
     // --- Dark surfaces ---

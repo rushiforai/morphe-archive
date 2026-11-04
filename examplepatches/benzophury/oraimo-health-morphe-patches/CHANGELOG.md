@@ -1,3 +1,9 @@
+## [1.11.0](https://github.com/benzophury/oraimo-health-morphe-patches/compare/v1.10.0...v1.11.0) (2026-11-03)
+
+### ✨ New Features
+
+* support v2.0.7 with instant launch and stripped 32-bit libs ([f0c48b0](https://github.com/benzophury/oraimo-health-morphe-patches/commit/f0c48b0d36f9cf5f145beb0564e9ead2060227d4))
+
 ## [1.10.0](https://github.com/benzophury/oraimo-health-morphe-patches/compare/v1.9.0...v1.10.0) (2026-10-04)
 
 ### ✨ New Features

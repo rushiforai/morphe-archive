@@ -43,10 +43,10 @@ final class CrashGuard {
     static StagedInput stagedInput = FileInputStream::new;
 
     static void onProcessStart(Context context) {
-        if (context == null || !STARTED.compareAndSet(false, true)) return;
-        startElapsed = SystemClock.elapsedRealtime();
+        // Preferences first, so a call made before they load doesn't use up the one start.
         SharedPreferences prefs = Settings.preferences;
-        if (prefs == null) return;
+        if (context == null || prefs == null || !STARTED.compareAndSet(false, true)) return;
+        startElapsed = SystemClock.elapsedRealtime();
         try {
             safeModeActive = prefs.getBoolean("safe_mode", false);
             filesDir = context.getFilesDir();

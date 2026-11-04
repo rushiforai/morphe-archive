@@ -200,7 +200,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
         for (method in cls.methods) {
             fun add(key: String) { found.getValue(key).add(method) }
-            if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
+            if ((cls.type == EPHEMERAL_VIEWER && (method.name == EPHEMERAL_DIALOG || method.name == "onResume")) ||
                 (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
                 try {
                     method.screenshotViewerSites()
@@ -291,8 +291,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             if (messageIsUnsentGetterName.isNotEmpty() && method.name == messageIsUnsentGetterName &&
                 method.returnType == "Z" && method.parameterTypes == listOf("I") &&
                 cls.isRowWrapper() && cls.hasMessageIdGetter()) add("delta_unsent")
-            if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) &&
-                method.parameterTypes == listOf(cls.type) &&
+            // The gates are private instance methods with no parameter.
+            if (method.returnType == "Z" && method.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags) &&
                 strings.any { "SearchAiagentImplementationsKillSwitch" in it }) add("ai_search")
             if (method.returnType == "Landroid/graphics/Typeface;" && method.parameterTypes.isEmpty() &&
                 !AccessFlags.STATIC.isSet(method.accessFlags) &&
@@ -406,6 +406,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
     found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
     found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
+    found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
+    found.getValue(BLOCKED_LIST_PICTURES).addAll(findBlockedListPictures(classes))
     found.getValue(SHARE_STORY).addAll(findShareStory(classes))
     found.getValue(AVATAR_SHAPE).addAll(findAvatarShape(classes))
     found.getValue(STORY_RING).addAll(findStoryRing(classes))
@@ -840,8 +842,8 @@ internal fun ClassDef.isRowWrapper(): Boolean =
 internal fun ClassDef.hasMessageIdGetter(): Boolean = messageIdGetterName.isNotEmpty() &&
     methods.any { it.name == messageIdGetterName && it.returnType == "Ljava/lang/String;" && it.parameterTypes == listOf("I") }
 
-/** The Notifications tab's server flag ID as 585 numbers it. Meta renumbers it with each release. */
-private const val PEOPLE_SERVER_FLAG = 72344162845931861L
+/** The Notifications tab's server flag ID as 586 numbers it. Meta renumbers it with each release. */
+private const val PEOPLE_SERVER_FLAG = 72344145666062935L
 
 /**
  * Where the Notifications tab loads its server flag: the method's only constant with that value, at 17, after the
@@ -863,8 +865,8 @@ private fun Method.isPeopleSectionShape() = parameterTypes.map(CharSequence::toS
 /**
  * The Notifications tab reads its stock "section hidden" preference into v0 and branches on it. A hidden
  * section is still shown when a server flag (v0, three instructions after its constant) is on; both branches
- * land on the final false return. The false value is a local loaded at 9: v3 of the eight-register body every 585
- * build compiles, or v5 of the ten-register one older builds had. The body logs a skipped impression under a monitor after the
+ * land on the final false return. The false value is a local loaded at 9: v3 of the eight-register body 586
+ * compiles, or v5 of the ten-register one older builds had. The body logs a skipped impression under a monitor after the
  * server branch.
  */
 internal fun MutableMethod.validatePeopleSection() {
@@ -1100,7 +1102,7 @@ internal fun MutableMethod.injectMenuDrawerAdd() {
 private const val IMMUTABLE_LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
 
 /**
- * 585 fills the keyboard's tab list inline and returns it: a local ArrayList of tab items goes into a fresh
+ * The composer fills the keyboard's tab list inline and returns it: a local ArrayList of tab items goes into a fresh
  * ImmutableList.Builder through one addAll that is built on the very next instruction:
  *
  *     invoke-static {}, ImmutableList;->builder()
@@ -1637,9 +1639,8 @@ internal class StorySave(
     val fragmentType: String,
     val menuType: String,
     val controller: String,
-    /** Card controllers the item is offered for, in builds that list them; empty where [canSave] answers instead. */
+    /** Card controllers the item is offered for. */
     val saveable: List<String>,
-    val canSave: String?,
     val id: Long,
     val label: Long,
     val labelOf: String,
@@ -1670,8 +1671,8 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     fun answer(check: Int) = (check - 1 downTo 0).firstOrNull { op(it) !in RESOURCE_CONSTS && op(it) != Opcode.CONST_STRING } ?: -1
 
     // "Is this your story?" and a second flag both branch to your own story's items; what follows them is for anyone else's.
-    // 585's arm64 builds ask their fragment manager the same way later in this onClick, so only the question asked right
-    // after the menu is built counts.
+    // Only the question asked right after the menu is built counts, since a build may ask its fragment manager the same way
+    // later in this onClick.
     val own = code.indices.filter { i ->
         if (op(i) != Opcode.IF_NEZ || op(i + 1) != Opcode.IGET_BOOLEAN || op(i + 2) != Opcode.IF_NEZ || reg(i + 2) != reg(i + 1) ||
             branch(i) < 0 || branch(i) != branch(i + 2)) return@filter false
@@ -1707,32 +1708,19 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     }
     val card = reg(entry + 3)
     val saveable = mutableListOf<String>()
-    var canSave: String? = null
     var add = entry + 4
-    if (op(add) == Opcode.INSTANCE_OF) {
-        // 585's 347014990 lists the card types: a match jumps to the item, the last miss skips it.
-        while (op(add) == Opcode.INSTANCE_OF) {
-            val test = code[add] as TwoRegisterInstruction
-            if (test.registerB != card || reg(add + 1) != test.registerA) fail("Save item's card test no longer matches the tested build")
-            saveable += ((code[add] as ReferenceInstruction).reference as TypeReference).type
-            add += 2
-            if (op(add - 1) == Opcode.IF_EQZ && branch(add - 1) == skip) break
-            if (op(add - 1) != Opcode.IF_NEZ) fail("Save item's card test no longer matches the tested build")
-        }
-        if (op(add - 1) != Opcode.IF_EQZ || (entry + 5 until add - 1 step 2).any { branch(it) != add }) {
-            fail("Save item's card test no longer matches the tested build")
-        }
-    } else {
-        // The other 585 builds moved that list into a method on the card's controller and ask it.
-        val test = call(add)
-        if (op(add) != Opcode.INVOKE_VIRTUAL || test == null || test.definingClass != controller.returnType ||
-            test.returnType != "Z" || test.parameterTypes.isNotEmpty() || args(add) != listOf(card) ||
-            op(add + 1) != Opcode.MOVE_RESULT || op(add + 2) != Opcode.IF_EQZ || reg(add + 2) != reg(add + 1) ||
-            branch(add + 2) != skip) {
-            fail("Save item's card test no longer matches the tested build")
-        }
-        canSave = test.toString()
-        add += 3
+    if (op(add) != Opcode.INSTANCE_OF) fail("Save item's card test no longer matches the tested build")
+    // The card types are listed: a match jumps to the item, the last miss skips it.
+    while (op(add) == Opcode.INSTANCE_OF) {
+        val test = code[add] as TwoRegisterInstruction
+        if (test.registerB != card || reg(add + 1) != test.registerA) fail("Save item's card test no longer matches the tested build")
+        saveable += ((code[add] as ReferenceInstruction).reference as TypeReference).type
+        add += 2
+        if (op(add - 1) == Opcode.IF_EQZ && branch(add - 1) == skip) break
+        if (op(add - 1) != Opcode.IF_NEZ) fail("Save item's card test no longer matches the tested build")
+    }
+    if (op(add - 1) != Opcode.IF_EQZ || (entry + 5 until add - 1 step 2).any { branch(it) != add }) {
+        fail("Save item's card test no longer matches the tested build")
     }
     val id = literal(add)
     val label = literal(add + 1)
@@ -1756,7 +1744,7 @@ internal fun MutableMethod.validateStorySave(): StorySave {
     }
     val handler = handlers.singleOrNull() ?: fail("no longer sends its clicks to one handler")
     return StorySave(
-        others, fragment, menu, fragmentType, menuType, controller.toString(), saveable, canSave, id, label,
+        others, fragment, menu, fragmentType, menuType, controller.toString(), saveable, id, label,
         labelOf.toString(), icon.toString(), addItem.toString(), ((code[handler] as ReferenceInstruction).reference as TypeReference).type,
     )
 }
@@ -1780,10 +1768,9 @@ internal fun ClassDef.validateStoryMenuHandler(save: StorySave) {
 
 /** Offers Save on someone else's story the way the menu offers it on yours, while the switch is on. */
 internal fun storySaveHelper(definingClass: String, save: StorySave): MutableMethod {
-    val test = save.canSave?.let { "invoke-virtual {v0}, $it\nmove-result v1\nif-eqz v1, :done" }
-        ?: save.saveable.mapIndexed { i, type ->
-            "instance-of v1, v0, $type\n" + if (i == save.saveable.lastIndex) "if-eqz v1, :done" else "if-nez v1, :add"
-        }.joinToString("\n")
+    val test = save.saveable.mapIndexed { i, type ->
+        "instance-of v1, v0, $type\n" + if (i == save.saveable.lastIndex) "if-eqz v1, :done" else "if-nez v1, :add"
+    }.joinToString("\n")
     val parameters = listOf(save.fragmentType, save.menuType).map { ImmutableMethodParameter(it, null, null) }
     return MutableMethod(ImmutableMethod(definingClass, STORY_SAVE_HELPER, parameters, "V",
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, ImmutableMethodImplementation(6, emptyList(), null, null)))

@@ -75,10 +75,11 @@ server: auth ok
 Patch your app with **Unlimited Game Review** and **Game Review on your computer** from this bundle, then in the app:
 **More → Quwi's Patches → Game Review → Stockfish on your computer**, and fill in
 
-- **Computer address** — `192.168.1.10:7892` (the computer's address on the same Wi-Fi);
-- **Token** — the one sf-bridge prints when it starts (`token.txt` next to it);
-- **Computer Stockfish depth** — its own budget, apart from the phone's;
-- **Computer Stockfish threads** — Auto uses every core the computer reports, with 32 MB of hash each.
+- **Computer address** - `192.168.1.10:7892` (the computer's address on the same Wi-Fi), or press **Find on the network** and let the app fill it in;
+- **Token** - the one sf-bridge prints when it starts (`token.txt` next to it);
+- **Find on the network** - from the patch of the same name: sweeps this Wi-Fi on the bridge's port and fills the address in, so it never has to be read off ipconfig; addresses that worked are kept and tried first next time;
+- **Computer Stockfish depth** - its own budget, apart from the phone's;
+- **Computer Stockfish threads** - Auto uses every core the computer reports, with 32 MB of hash each.
 
 Press **Test the connection**; it should answer “The computer answered: its Stockfish is ready.”
 **Benchmark your computer** then runs 100k, 300k, 1M and 5M nodes on one position each, over one engine,

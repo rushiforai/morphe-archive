@@ -101,3 +101,22 @@ object AppMenuInfoFingerprint : Fingerprint(
     }
 )
 
+object AlzaApplicationOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcz/alza/eshop/app/AlzaEshopApplication;",
+    name = "onCreate",
+    parameters = emptyList(),
+    returnType = "V"
+)
+
+object ShareCommandShareFingerprint : Fingerprint(
+    definingClass = "Lcz/alza/base/utils/navigation/command/ShareCommand\$Companion;",
+    name = "share",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Lcz/alza/base/utils/resource/model/data/StringResource;",
+        "Landroid/content/Context;"
+    ),
+    returnType = "V"
+)
+

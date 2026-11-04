@@ -23,10 +23,10 @@
 
 2026-10-24 JST、emulator-5554、ChMate0.8.10.242 dev、Haiagaru 検証 242、package `jp.co.airfront.android.a2chMate.haiagaru.resumefix242`。
 
-絶対root `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current`。
+絶対root `<workspace>`。
 
-- 初回APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/eddi-pages-filter-gesture242.apk` SHA256 `05ED9ED9EBDA00150BF39966BEDB9E7E234ECF1AD58F5875F4E59F48BAD9B9E1`、MPP同root `build/eddi-pages-filter-gesture.mpp` SHA256 `276134BAA5E09D3F0B9AA8129CF996B49877DDDA7E330AD6D630B432806320A9`。
-- 継承対応APK `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/eddi-pages-filter-gesture-fixed242.apk` SHA256 `E94560AFF0F64D4F25F533454D9FF8FDEAB1D8E59EBD6879A68A8BCA83C6B388`、MPP同root `build/eddi-pages-filter-gesture-fixed.mpp` SHA256 `A63CEFB67707F4A158BC990F58D21F99537116F413390435B60E72E48FB5D87A`。
+- 初回APK `<workspace>/build/eddi-pages-filter-gesture242.apk` SHA256 `05ED9ED9EBDA00150BF39966BEDB9E7E234ECF1AD58F5875F4E59F48BAD9B9E1`、MPP同root `build/eddi-pages-filter-gesture.mpp` SHA256 `276134BAA5E09D3F0B9AA8129CF996B49877DDDA7E330AD6D630B432806320A9`。
+- 継承対応APK `<workspace>/build/eddi-pages-filter-gesture-fixed242.apk` SHA256 `E94560AFF0F64D4F25F533454D9FF8FDEAB1D8E59EBD6879A68A8BCA83C6B388`、MPP同root `build/eddi-pages-filter-gesture-fixed.mpp` SHA256 `A63CEFB67707F4A158BC990F58D21F99537116F413390435B60E72E48FB5D87A`。
 - どちらもInstallVerifiedApkで既存署名照合install-r Success・データ保持。鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias Morphe、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
-- 最後の実一覧7項目は、並行作業により同packageが `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/cached-wacchoi-toggle242.apk` へ更新された後のPID4362で成功した。端末base.apk SHA256 `EA5405EE6DFBE8A616EC72BCCC90F14ABE1A3F78F89A72EC14756D2DDE4A85D0` とそのローカルAPKの一致を確認。上記E945候補での成功と取り違えない。この別候補のMPP/導入責任は並行作業側の台帳を参照。
+- 最後の実一覧7項目は、並行作業により同packageが `<workspace>/build/cached-wacchoi-toggle242.apk` へ更新された後のPID4362で成功した。端末base.apk SHA256 `EA5405EE6DFBE8A616EC72BCCC90F14ABE1A3F78F89A72EC14756D2DDE4A85D0` とそのローカルAPKの一致を確認。上記E945候補での成功と取り違えない。この別候補のMPP/導入責任は並行作業側の台帳を参照。
 - 最終照合時にintegration-status先頭の5554予約記載を初めて確認したため、以後この作業からの端末操作は停止。予約の解除/別チャットへの送信はしていない。実機の変更なし。

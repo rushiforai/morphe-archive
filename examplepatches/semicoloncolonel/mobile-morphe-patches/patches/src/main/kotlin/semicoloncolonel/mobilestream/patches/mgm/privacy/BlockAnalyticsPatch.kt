@@ -19,9 +19,8 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking in the MGM+ phone app: Braze, Kochava, Segment, " +
-        "Nielsen and Firebase. Blocking happens on the device, inside the app. Sign-in and " +
-        "playback are left alone. Opt-in / experimental; test on-device.",
+    description = "Stops analytics and tracking: Braze, Kochava, Segment, Nielsen and Firebase. Sign-in " +
+        "and playback are left alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

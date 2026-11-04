@@ -40,6 +40,7 @@ final class LiquidGlassLens extends View {
             "uniform float bezel;\n" +
             "uniform float strength;\n" +
             "uniform float dark;\n" +
+            "uniform float dispersion;\n" +
 
             "float sdRoundRect(float2 p, float2 b, float r) {\n" +
             "  float2 q = abs(p) - b + r;\n" +
@@ -62,12 +63,14 @@ final class LiquidGlassLens extends View {
             "  float bend = 1.0 - sqrt(max(1.0 - t * t, 0.0));\n" +
             // Bend the rim outwards like a thick convex droplet (mag scales the middle, 1 = none).
             "  float2 src = center + p / mag + n * bend * strength;\n" +
-            "  float2 fringe = n * bend * strength * 0.08;\n" +
+            // Red and blue split apart towards the rim, like the dispersion of thick glass.
+            "  float2 fringe = n * bend * dispersion;\n" +
 
             "  half4 col;\n" +
-            "  col.r = content.eval(src + fringe).r;\n" +
+            // Two taps per channel so a wide split reads as a smooth fringe, not a double image.
+            "  col.r = 0.5 * (content.eval(src + fringe).r + content.eval(src + fringe * 0.5).r);\n" +
             "  col.g = content.eval(src).g;\n" +
-            "  col.b = content.eval(src - fringe).b;\n" +
+            "  col.b = 0.5 * (content.eval(src - fringe).b + content.eval(src - fringe * 0.5).b);\n" +
             "  col.a = 1.0;\n" +
 
             "  col.rgb = mix(col.rgb, half3(mix(1.0, 0.85, dark)), mix(0.32, 0.16, dark));\n" +
@@ -192,6 +195,9 @@ final class LiquidGlassLens extends View {
         tracking = false;
         dragging = false;
         press.target = 0f;
+        // Glide back from under the finger rather than jumping once at rest. If the tap
+        // selects another tab, sync() retargets there.
+        if (lastSelected != null) x.target = centerOf(lastSelected);
         startAnimating();
     }
 
@@ -259,6 +265,12 @@ final class LiquidGlassLens extends View {
         if (getAlpha() != bar.getAlpha()) setAlpha(bar.getAlpha());
 
         View selected = selectedTab();
+        // While Instagram switches tabs there can be a frame with none selected. Keep the lens
+        // where it is instead of hiding it and then snapping it onto the new tab.
+        if (selected == null && lastSelected != null && lastSelected.getParent() == bar
+                && lastSelected.getVisibility() != GONE) {
+            selected = lastSelected;
+        }
         if (selected != lastSelected && lastSelected != null) expand();
         applyMinimize(selected);
         if (selected != lastSelected) {
@@ -271,9 +283,18 @@ final class LiquidGlassLens extends View {
             }
             lastSelected = selected;
             startAnimating();
-        } else if (selected != null && !tracking && (!isAnimating() || !minimize.isAtRest())) {
+        } else if (selected != null && !tracking) {
+            // Follow the tab when the bar moves under it (layout, shrinking while scrolling).
+            // A settled lens stays locked to the tab; one still gliding is only retargeted, so
+            // it never jumps mid-animation.
             float c = centerOf(selected);
-            if (Math.abs(x.value - c) > 0.5f) x.snap(c);
+            boolean settled = Math.abs(x.value - x.target) < 2 * density;
+            if (settled) {
+                if (Math.abs(x.value - c) > 0.5f) x.snap(c);
+            } else if (Math.abs(x.target - c) > 0.5f) {
+                x.target = c;
+                startAnimating();
+            }
         }
         invalidate();
     }
@@ -302,12 +323,19 @@ final class LiquidGlassLens extends View {
         }
     }
 
+    /**
+     * The selected tab. Right after a tap Instagram can briefly mark both the old and the new
+     * tab selected, so prefer the one that wasn't selected before.
+     */
     private View selectedTab() {
+        View previous = null;
         for (int i = 0; i < bar.getChildCount(); i++) {
             View child = bar.getChildAt(i);
-            if (child.getVisibility() != GONE && (child.isSelected() || child.isActivated())) return child;
+            if (child.getVisibility() == GONE || !(child.isSelected() || child.isActivated())) continue;
+            if (child != lastSelected) return child;
+            previous = child;
         }
-        return null;
+        return previous;
     }
 
     private void updatePill() {
@@ -384,9 +412,13 @@ final class LiquidGlassLens extends View {
         // Grey resting capsule (~10% black, ~16% white on dark), fading into clear glass while moving.
         float restAlpha = 1f - Math.min(1f, p * 1.6f);
         if (restAlpha > 0f) {
-            int a = Math.round((dark ? 0x2A : 0x1A) * restAlpha);
-            fill.setColor(dark ? Color.argb(a, 0xFF, 0xFF, 0xFF) : Color.argb(a, 0, 0, 0));
-            canvas.drawRoundRect(lens, r, r, fill);
+            if (LiquidGlassNavBarPatch.GLASSY_PILL.get()) {
+                drawGlassyCapsule(canvas, r, dark, restAlpha);
+            } else {
+                int a = Math.round((dark ? 0x2A : 0x1A) * restAlpha);
+                fill.setColor(dark ? Color.argb(a, 0xFF, 0xFF, 0xFF) : Color.argb(a, 0, 0, 0));
+                canvas.drawRoundRect(lens, r, r, fill);
+            }
         }
 
         if (p > 0.02f && canvas.isHardwareAccelerated() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -407,6 +439,53 @@ final class LiquidGlassLens extends View {
         }
     }
 
+    private final Paint glassyShadow = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint glassyBody = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint glassyGloss = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint glassyRim = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF gloss = new RectF();
+
+    /**
+     * The resting pill as a small piece of glass: a soft shadow under it, a body lit from above,
+     * a gloss band over the upper half and a bright rim along the top edge.
+     */
+    private void drawGlassyCapsule(Canvas canvas, float r, boolean dark, float alpha) {
+        // Shadow, slightly below the pill.
+        glassyShadow.setColor(Color.argb(Math.round((dark ? 0x30 : 0x12) * alpha), 0, 0, 0));
+        glassyShadow.setShadowLayer(4f * density, 0f, 1.5f * density,
+                Color.argb(Math.round((dark ? 0x60 : 0x30) * alpha), 0, 0, 0));
+        canvas.drawRoundRect(lens, r, r, glassyShadow);
+
+        // Body: lighter at the top, a little darker at the bottom.
+        int top = dark ? Color.argb(Math.round(0x48 * alpha), 0xFF, 0xFF, 0xFF)
+                : Color.argb(Math.round(0x70 * alpha), 0xFF, 0xFF, 0xFF);
+        int bottom = dark ? Color.argb(Math.round(0x14 * alpha), 0xFF, 0xFF, 0xFF)
+                : Color.argb(Math.round(0x22 * alpha), 0, 0, 0);
+        glassyBody.setShader(new LinearGradient(0, lens.top, 0, lens.bottom, top, bottom, Shader.TileMode.CLAMP));
+        canvas.drawRoundRect(lens, r, r, glassyBody);
+
+        // Gloss over the upper half.
+        float inset = Math.min(r * 0.45f, 6f * density);
+        gloss.set(lens.left + inset, lens.top + 1.5f * density, lens.right - inset, lens.centerY());
+        float gr = gloss.height() / 2f;
+        glassyGloss.setShader(new LinearGradient(0, gloss.top, 0, gloss.bottom,
+                Color.argb(Math.round((dark ? 0x38 : 0x60) * alpha), 0xFF, 0xFF, 0xFF),
+                Color.argb(0, 0xFF, 0xFF, 0xFF), Shader.TileMode.CLAMP));
+        canvas.drawRoundRect(gloss, gr, gr, glassyGloss);
+
+        // Rim: bright along the top, faint in the middle, a soft glint at the bottom.
+        glassyRim.setStyle(Paint.Style.STROKE);
+        glassyRim.setStrokeWidth(Math.max(1f, 1f * density));
+        glassyRim.setShader(new LinearGradient(0, lens.top, 0, lens.bottom,
+                new int[]{Color.argb(Math.round((dark ? 0x90 : 0xE0) * alpha), 0xFF, 0xFF, 0xFF),
+                        Color.argb(Math.round(0x10 * alpha), 0xFF, 0xFF, 0xFF),
+                        Color.argb(Math.round((dark ? 0x40 : 0x70) * alpha), 0xFF, 0xFF, 0xFF)},
+                new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+        float half = glassyRim.getStrokeWidth() / 2f;
+        gloss.set(lens.left + half, lens.top + half, lens.right - half, lens.bottom - half);
+        canvas.drawRoundRect(gloss, r - half, r - half, glassyRim);
+    }
+
     /** Records everything up to and including the tab bar under the lens, then draws it as glass. */
     private void drawLens(Canvas canvas, float r, float p, boolean dark) {
         if (!(bar.getParent() instanceof ViewGroup)) return;
@@ -415,7 +494,8 @@ final class LiquidGlassLens extends View {
         if (barIndex < 0) return;
 
         float strength = 6f * density * p;
-        int pad = Math.round(strength + 4 * density);
+        // Room for the bend plus the widest red/blue split, so edge samples stay inside the scene.
+        int pad = Math.round(strength + 5f * density * p + 4 * density);
         int w = Math.round(lens.width()) + 2 * pad;
         int h = Math.round(lens.height()) + 2 * pad;
         if (w <= 0 || h <= 0) return;
@@ -453,6 +533,9 @@ final class LiquidGlassLens extends View {
         shader.setFloatUniform("mag", 1f);
         shader.setFloatUniform("bezel", Math.min(r, 16f * density));
         shader.setFloatUniform("strength", strength);
+        // Up to 5dp of red/blue split at the rim (the old fixed amount was about 0.5dp).
+        shader.setFloatUniform("dispersion",
+                5f * density * p * LiquidGlassNavBarPatch.EDGE_COLORS.get() / 100f);
         shader.setFloatUniform("dark", dark ? 1f : 0f);
         scene.setRenderEffect(RenderEffect.createRuntimeShaderEffect(shader, "content"));
 

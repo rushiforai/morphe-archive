@@ -2,6 +2,7 @@
 package io.github.pengusto.patches.extension.calendar;
 
 import android.app.Activity;
+import android.annotation.TargetApi;
 import android.text.*;
 import android.text.style.*;
 import android.text.method.LinkMovementMethod;
@@ -62,6 +63,20 @@ public final class DescriptionPreview {
         return display(raw).toString().replace('\n', ' ');
     }
 
+    /** Preserve HTML byte-for-byte. Plain text keeps Calendar's native save behavior. */
+    public static String saveValue(EditText editor) {
+        String raw = editor.getText().toString();
+        return HTML.matcher(raw).find() ? raw : nativeValue(editor);
+    }
+
+    // Replaced by the patch with a call to the original APK's value helper.
+    public static String nativeValue(EditText editor) {
+        throw new IllegalStateException("Calendar native value bridge was not linked");
+    }
+
+    // Both compatible Calendar APKs require API 26; the shared MPE also serves
+    // unrelated apps and therefore declares a lower minimum SDK.
+    @TargetApi(24)
     static CharSequence display(String raw) {
         SpannableStringBuilder parsed = new SpannableStringBuilder(Html.fromHtml(ROW_END.matcher(CELL_END.matcher(HIDDEN.matcher(raw).replaceAll("")).replaceAll(" ")).replaceAll("<br>"), Html.FROM_HTML_MODE_COMPACT));
         for (Object span : parsed.getSpans(0, parsed.length(), Object.class)) {

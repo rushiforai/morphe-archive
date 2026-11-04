@@ -1,4 +1,4 @@
-// Lists every plural pair Venus shows ({plural: singular}), from pl(), take() and count() calls in bootstrap.js.
+// Lists every plural pair Conduit shows ({plural: singular}), from pl(), take() and count() calls in bootstrap.js.
 // Zero external dependencies (no Acorn): node scripts/i18n_plurals.cjs > work/plurals.json
 const fs = require('node:fs');
 const {tokenize, splitArgs} = require('./i18n_strings.cjs');

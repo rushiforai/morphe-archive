@@ -25,6 +25,8 @@ public sealed class RedditWorld
     private readonly List<RecordedAction> actions = [];
     private readonly List<LoginSeen> logins = [];
     private readonly List<RequestTrouble> troubles = [];
+    private readonly Dictionary<string, (string User, string Path)> avatars = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<RequestTrouble, int> troubleHits = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<string, string> shareLinks = new(StringComparer.Ordinal);
     private long nextId;
     private long nextOrder;
@@ -97,6 +99,8 @@ public sealed class RedditWorld
             actions.Clear();
             logins.Clear();
             troubles.Clear();
+            troubleHits.Clear();
+            avatars.Clear();
             shareLinks.Clear();
             LoginPage = new LoginPageOptions();
             BlocksLoggedOut = true;
@@ -191,6 +195,12 @@ public sealed class RedditWorld
             var reply = new Comment(NewId(), parent.Post, parent, "e2e_commenter", markdown, DateTimeOffset.UtcNow);
             build?.Invoke(new CommentBuilder(this, reply));
             parent.Replies.Add(reply);
+            // As Reddit does, a reply to an account's comment goes to its inbox, unread: a comment reply.
+            if (FindAccount(parent.Author) is { } account && !string.Equals(reply.Author, account.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                account.Inbox.Insert(0, new Message(reply.Id, account, reply.Author, "comment reply", reply.Body, reply.Created) { Reply = reply });
+            }
+
             return reply;
         }
     }
@@ -205,6 +215,20 @@ public sealed class RedditWorld
             var message = new Message(NewId(), to, author, subject, body, DateTimeOffset.UtcNow);
             to.Inbox.Insert(0, message);
             return message;
+        }
+    }
+
+    /// <summary>
+    /// Records <paramref name="from"/>'s reply to the private message <paramref name="message"/>, as <c>api/comment</c>
+    /// on its t4 sends it: a message back to its author, which no inbox of the fake's holds.
+    /// </summary>
+    public Message ReplyToMessage(Message message, Account from, string body)
+    {
+        lock (Sync)
+        {
+            var reply = new Message(NewId(), from, from.Name, "re: " + message.Subject, body, DateTimeOffset.UtcNow) { IsNew = false };
+            message.SentReplies.Add(reply);
+            return reply;
         }
     }
 
@@ -260,12 +284,22 @@ public sealed class RedditWorld
     {
         lock (Sync)
         {
-            return troubles.FirstOrDefault(trouble => trouble.Matches(method, path));
+            var trouble = troubles.FirstOrDefault(trouble => trouble.Matches(method, path) && (trouble.Times is null || troubleHits.GetValueOrDefault(trouble) < trouble.Times));
+            if (trouble is not null)
+            {
+                troubleHits[trouble] = troubleHits.GetValueOrDefault(trouble) + 1;
+            }
+
+            return trouble;
         }
     }
 
     internal Message? FindMessage(string id) =>
-        accounts.SelectMany(account => account.Inbox).FirstOrDefault(message => string.Equals(message.Id, id, StringComparison.OrdinalIgnoreCase));
+        accounts.SelectMany(account => account.Inbox).FirstOrDefault(message => message.Reply is null && string.Equals(message.Id, id, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The inbox entry of a fullname: a private message (t4_) or a comment reply (t1_).</summary>
+    internal Message? FindInboxEntry(string fullName) =>
+        accounts.SelectMany(account => account.Inbox).FirstOrDefault(message => string.Equals(message.FullName, fullName, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Serves <paramref name="bytes"/> at <c>/_media/&lt;path&gt;</c> (<c>i.redd.it/x.gif</c>) and returns its URL, as the
@@ -278,6 +312,41 @@ public sealed class RedditWorld
             media[path.TrimStart('/')] = new MediaFile(contentType, bytes);
             return MediaUrl(path);
         }
+    }
+
+    /// <summary>
+    /// A video uploaded to v.redd.it that no post has (<see cref="AddRedditVideo"/>), as one removed from its post. Returns
+    /// its id.
+    /// </summary>
+    public string AddVideoWithoutPost()
+    {
+        var id = NewId() + "e2evideo";
+        AddRedditVideo(id);
+        return id;
+    }
+
+    /// <summary>
+    /// Serves a video as v.redd.it serves one uploaded to Reddit, under <c>v.redd.it/&lt;id&gt;/</c>: its DASH playlist,
+    /// <c>DASHPlaylist.mpd</c>, and the renditions it names next to it, <c>DASH_240.mp4</c> and <c>DASH_AUDIO_128.mp4</c>
+    /// (<see cref="MediaAsset.DashPlaylist"/>), and the same as HLS, <c>HLSPlaylist.m3u8</c> (<see cref="MediaAsset.HlsPlaylist"/>);
+    /// without a sound track unless <paramref name="withSound"/>. Returns the DASH playlist's path.
+    /// </summary>
+    public string AddRedditVideo(string id, bool withSound = true)
+    {
+        var playlist = $"v.redd.it/{id}/DASHPlaylist.mpd";
+        var dash = withSound ? MediaAsset.DashPlaylist : MediaAsset.SilentDashPlaylist;
+        var hls = withSound ? MediaAsset.HlsPlaylist : MediaAsset.SilentHlsPlaylist;
+        AddMedia(playlist, dash.ContentType, dash.Bytes);
+        AddMedia($"v.redd.it/{id}/DASH_240.mp4", MediaAsset.DashVideo.ContentType, MediaAsset.DashVideo.Bytes);
+        AddMedia($"v.redd.it/{id}/HLSPlaylist.m3u8", hls.ContentType, hls.Bytes);
+        AddMedia($"v.redd.it/{id}/HLS_240.m3u8", MediaAsset.HlsVideo.ContentType, MediaAsset.HlsVideo.Bytes);
+        if (withSound)
+        {
+            AddMedia($"v.redd.it/{id}/DASH_AUDIO_128.mp4", MediaAsset.DashAudio.ContentType, MediaAsset.DashAudio.Bytes);
+            AddMedia($"v.redd.it/{id}/HLS_AUDIO_128.m3u8", MediaAsset.HlsAudio.ContentType, MediaAsset.HlsAudio.Bytes);
+        }
+
+        return playlist;
     }
 
     /// <summary>The URL a media path is served at: <c>&lt;base&gt;/_media/&lt;path&gt;</c>.</summary>
@@ -296,6 +365,39 @@ public sealed class RedditWorld
     internal IReadOnlyList<Subreddit> SubredditsUnlocked => subreddits;
 
     internal IReadOnlyList<Post> PostsUnlocked => posts;
+
+    /// <summary>
+    /// A user's fullname, <c>t2_&lt;id&gt;</c>, as the JSON sends it in <c>author_fullname</c>: an account's own, or for
+    /// an author without an account (most of them), a stable one made from the name.
+    /// </summary>
+    public string UserFullName(string name)
+    {
+        lock (Sync)
+        {
+            return FindAccount(name)?.FullName ?? "t2_" + name.ToLowerInvariant();
+        }
+    }
+
+    /// <summary>
+    /// Gives <paramref name="user"/> an avatar, a PNG the fake serves, which <c>api/user_data_by_account_ids</c> names
+    /// in its <c>profile_img</c>: a picture, or one that is all see-through (<paramref name="seeThrough"/>). Returns the
+    /// avatar's path.
+    /// </summary>
+    public string GiveAvatar(string user, bool seeThrough = false)
+    {
+        lock (Sync)
+        {
+            var path = $"styles.redditmedia.com/{NewId()}e2eavatar.png";
+            var image = seeThrough ? MediaAsset.SeeThroughPng : MediaAsset.Png;
+            AddMedia(path, image.ContentType, image.Bytes);
+            avatars[UserFullName(user)] = (user, path);
+            return path;
+        }
+    }
+
+    /// <summary>The user and the avatar's path of a user fullname that has one, or null.</summary>
+    internal (string User, string Path)? AvatarOf(string fullName) =>
+        avatars.TryGetValue(fullName, out var avatar) ? avatar : null;
 
     internal Account? FindAccount(string name) =>
         accounts.FirstOrDefault(account => string.Equals(account.Name, name, StringComparison.OrdinalIgnoreCase));

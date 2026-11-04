@@ -7,17 +7,22 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Looper;
+import android.widget.EditText;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 import static org.junit.Assert.*;
@@ -75,6 +80,55 @@ public class HomeHeaderTest {
         assertEquals("x".repeat(30), HomeHeader.clean("x".repeat(40)));
         // A space at the limit would end the words on it, so the word after it goes too.
         assertEquals("x".repeat(29), HomeHeader.clean("x".repeat(29) + " yz"));
+    }
+
+    @Test public void typedWordsAreSavedOnceTypingPausesOrThePageCloses() {
+        int[] saves = {0};
+        android.content.SharedPreferences.OnSharedPreferenceChangeListener counter = (preferences, key) -> {
+            if (HomeHeader.TEXT.equals(key)) saves[0]++;
+        };
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            EditText field = screen.get().getWindow().getDecorView().findViewWithTag("home_header_text");
+            Settings.preferences.registerOnSharedPreferenceChangeListener(counter);
+            for (String typed : new String[] {"m", "my", "my c", "my chats"}) field.setText(typed);
+            assertEquals("nothing is saved mid-word", "", Settings.preferences.getString(HomeHeader.TEXT, ""));
+
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(HomeHeaderRow.SAVE_DELAY_MILLIS));
+            assertEquals("my chats", Settings.preferences.getString(HomeHeader.TEXT, ""));
+            assertEquals(1, saves[0]);
+
+            field.setText("my chats!");
+            screen.pause().stop();
+            assertEquals("leaving the page doesn't wait for the pause", "my chats!", Settings.preferences.getString(HomeHeader.TEXT, ""));
+            assertEquals(2, saves[0]);
+        } finally {
+            Settings.preferences.unregisterOnSharedPreferenceChangeListener(counter);
+        }
+    }
+
+    @Test public void aPageMadeAgainShowsTheSavedWordsNotItsOldOnes() {
+        Settings.preferences.edit().putString(HomeHeader.TEXT, "old").commit();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            // Another settings page changes the words, then this one is made again, as after a rotation.
+            Settings.preferences.edit().putString(HomeHeader.TEXT, "new").commit();
+            screen.recreate();
+            EditText field = screen.get().getWindow().getDecorView().findViewWithTag("home_header_text");
+            assertEquals("new", field.getText().toString());
+            screen.pause().stop();
+            assertEquals("new", Settings.preferences.getString(HomeHeader.TEXT, ""));
+        }
+    }
+
+    @Test public void aPageLeftUntouchedDoesntPutItsOldWordsBack() {
+        Settings.preferences.edit().putString(HomeHeader.TEXT, "old").commit();
+        try (var behind = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            behind.pause().stop();
+            // Another settings page changes the words while this one waits behind it.
+            Settings.preferences.edit().putString(HomeHeader.TEXT, "new").commit();
+            behind.restart().start().resume();
+            behind.pause().stop();
+            assertEquals("new", Settings.preferences.getString(HomeHeader.TEXT, ""));
+        }
     }
 
     @Test public void offPausedOrBlankKeepsTheWordmark() {
@@ -168,6 +222,33 @@ public class HomeHeaderTest {
         assertTrue(Color.blue(end) > Color.red(end));
     }
 
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void removingThePictureCanBeUndoneButNeverOverOneChosenSince() throws Exception {
+        Settings.preferences.edit().putBoolean(HomeHeader.KEY, true).commit();
+        OpenSections.all();
+        File copy = HomeHeader.file(context);
+        byte[] picture = png(40, 20, Color.RED);
+        java.nio.file.Files.write(copy.toPath(), picture);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            android.view.View root = screen.get().getWindow().getDecorView();
+            android.widget.TextView undo = root.findViewWithTag("undo");
+            root.findViewWithTag("home_header_remove").performClick();
+            assertFalse(copy.exists());
+            assertEquals("Undo Remove the picture", undo.getText().toString());
+            undo.performClick();
+            assertArrayEquals(picture, java.nio.file.Files.readAllBytes(copy.toPath()));
+            assertEquals(android.view.View.VISIBLE, root.findViewWithTag("home_header_remove").getVisibility());
+            assertFalse(new File(context.getFilesDir(), HomeHeaderPicture.PARTIAL).exists());
+
+            // A picture chosen after the remove stays when Undo is tapped.
+            root.findViewWithTag("home_header_remove").performClick();
+            byte[] chosen = png(30, 30, Color.GREEN);
+            java.nio.file.Files.write(copy.toPath(), chosen);
+            undo.performClick();
+            assertArrayEquals(chosen, java.nio.file.Files.readAllBytes(copy.toPath()));
+        }
+    }
+
     @Test public void aPictureKeepsItsShapeAtTheWordmarksHeightAndShrinksWhenTooWide() {
         Bitmap picture = Bitmap.createBitmap(400, 100, Bitmap.Config.ARGB_8888);
         HomeHeader.PictureMark mark = new HomeHeader.PictureMark(picture, 50, 1000);
@@ -199,6 +280,21 @@ public class HomeHeaderTest {
         Drawable words = HomeHeader.dress(mark);
         assertTrue(words instanceof HomeHeader.TextMark);
         assertTrue(HomeHeaderPicture.remove(copy));
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theWarmUpDecodesThePictureSoTheFirstHeaderDoesntWait() throws Exception {
+        File copy = HomeHeader.file(context);
+        HomeHeaderPicture.copy(new ByteArrayInputStream(png(400, 100, Color.RED)), copy, () -> true);
+        HomeHeader.warm();
+        assertNull("switch off, nothing read", org.robolectric.util.ReflectionHelpers.getStaticField(HomeHeader.class, "picture"));
+
+        words("");
+        HomeHeader.warm();
+        Bitmap warmed = org.robolectric.util.ReflectionHelpers.getStaticField(HomeHeader.class, "picture");
+        assertNotNull(warmed);
+        Drawable shown = HomeHeader.dress(wordmark(Color.BLUE));
+        assertSame(warmed, ((HomeHeader.PictureMark) shown).picture);
     }
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)

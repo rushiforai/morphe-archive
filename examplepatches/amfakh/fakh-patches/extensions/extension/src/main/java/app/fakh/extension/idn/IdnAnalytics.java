@@ -24,15 +24,4 @@ public final class IdnAnalytics {
             Log.w(IdnSettings.TAG, "Could not stop AppsFlyer", t);
         }
     }
-
-    /** Opts the user out of CleverTap: events and profile data are no longer recorded, push and popups still work. */
-    public static void optOutCleverTap() {
-        try {
-            Class<?> api = Class.forName("com.clevertap.android.sdk.CleverTapAPI");
-            Object instance = api.getMethod("getDefaultInstance", Context.class).invoke(null, application());
-            if (instance != null) api.getMethod("setOptOut", boolean.class).invoke(instance, true);
-        } catch (Throwable t) {
-            Log.w(IdnSettings.TAG, "Could not opt out of CleverTap", t);
-        }
-    }
 }

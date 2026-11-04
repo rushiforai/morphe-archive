@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /tmp/re/single3/sources/com/ 2>/dev/null; find /tmp/re/single3/sources -name '*.java' 2>/dev/null | head; echo ---; tail -3 /tmp/re/j1.log /tmp/re/j2.log /tmp/re/j3.log /tmp/re/j4.log 2>/dev/null | head -30)"
+    ]
+  }
+}

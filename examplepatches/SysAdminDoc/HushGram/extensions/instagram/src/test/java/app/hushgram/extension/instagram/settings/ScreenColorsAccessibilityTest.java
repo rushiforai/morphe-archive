@@ -116,6 +116,37 @@ public class ScreenColorsAccessibilityTest {
         assertNotEquals(Color.BLACK, charcoal.dialog);
     }
 
+    @Test public void anEmptyFieldsPlaceholderStaysReadableAndQuieterThanSavedText() {
+        for (ScreenColors colors : new ScreenColors[]{ScreenColors.DEFAULT, new ScreenColors(true), new ScreenColors(false)}) {
+            for (int surface : new int[]{colors.background, colors.card, colors.dialog}) {
+                contrast("placeholder", colors.hint, surface, 4.5);
+            }
+            assertTrue("A placeholder must read quieter than a saved summary",
+                    luminance(colors.hint) < luminance(colors.summary));
+        }
+        EditText field = new EditText(controller.get());
+        field.setHint("Your words");
+        ScreenColors.styleField(field);
+        assertEquals(ScreenColors.current().hint,
+                field.getHintTextColors().getColorForState(new int[]{android.R.attr.state_enabled}, 0));
+    }
+
+    @Test public void anUnpickedChoiceStillShowsItsPressInsideThePanel() {
+        Activity activity = controller.get();
+        CheckedTextView choice = new CheckedTextView(activity);
+        choice.setText("Smaller file");
+        new DialogChoices(singleRow(choice), ScreenColors.DEFAULT).getView(0, null, new FrameLayout(activity));
+        assertFalse(choice.isChecked());
+        RippleDrawable ripple = (RippleDrawable) choice.getBackground();
+        Drawable mask = ripple.findDrawableByLayerId(android.R.id.mask);
+        assertNotNull("A clear unpicked row masks its ripple to nothing without a mask of its own", mask);
+        assertTrue(ripple.getDrawable(0) instanceof InsetDrawable);
+        assertTrue(mask instanceof InsetDrawable);
+        mask.setBounds(0, 0, dp(160), dp(48));
+        assertEquals("The press keeps to the picked row's shape", dp(12),
+                ((InsetDrawable) mask).getDrawable().getBounds().left);
+    }
+
     private static void readable(ScreenColors colors) {
         for (int surface : new int[]{colors.background, colors.card, colors.dialog}) {
             contrast("title", colors.title, surface, 4.5);
@@ -165,7 +196,7 @@ public class ScreenColorsAccessibilityTest {
 
     @Test @Config(sdk = {28, 37})
     public void freshActionsPaintEnabledFillAndOutlineBeforeAnyStateToggle() {
-        ScreenColors colors = ScreenColors.DEFAULT;
+        ScreenColors colors = ScreenColors.current();
         for (int theme : new int[]{android.R.style.Theme_Material_Light_NoActionBar,
                 android.R.style.Theme_Material_NoActionBar}) {
             for (boolean primary : new boolean[]{true, false}) {
@@ -326,6 +357,22 @@ public class ScreenColorsAccessibilityTest {
         assertTrue("Unavailable text must keep the disabled visual state",
                 Color.alpha(color(disabledTitle.getTextColors(), false, false))
                         < Color.alpha(color(enabledTitle.getTextColors(), true, false)));
+        // A greyed-out row's summary says what to turn on first, so it still has to read.
+        TextView disabledSummary = disabled.findViewById(android.R.id.summary);
+        int reason = color(disabledSummary.getTextColors(), false, false);
+        assertTrue("The reason line still looks unavailable", Color.alpha(reason) < 0xFF);
+        for (ScreenColors look : new ScreenColors[]{new ScreenColors(false), new ScreenColors(true)}) {
+            contrast("disabled summary on the card", over(reason, look.card), look.card, 4.5);
+            contrast("disabled summary on the page", over(reason, look.background), look.background, 4.5);
+        }
+    }
+
+    /** [foreground] drawn over [background], the colour the screen actually shows. */
+    private static int over(int foreground, int background) {
+        float a = Color.alpha(foreground) / 255f;
+        return Color.rgb(Math.round(Color.red(foreground) * a + Color.red(background) * (1 - a)),
+                Math.round(Color.green(foreground) * a + Color.green(background) * (1 - a)),
+                Math.round(Color.blue(foreground) * a + Color.blue(background) * (1 - a)));
     }
 
     @Test public void stylingPreservesEachCheckedAndUncheckedItemAndItsNativeCallback() {

@@ -12,7 +12,15 @@ final class PosterHighlightRules {
     static final int[] COLORS = {0x55ffc107,0x5542a5f5,0x5566bb6a,0x55ef5350,0x55ff9800,0x55ec407a,
             0x55ab47bc,0x5526c6da,0x5526a69a,0x55cddc39,0x55a1887f,0x559e9e9e};
     private static final Pattern SLIP = Pattern.compile("(?<![^\\s()（）\\[\\]<>])([^\\s()（）\\[\\]<>]{4}-[^\\s()（）\\[\\]<>]{4})(?=$|[\\s()（）\\[\\]<>])");
-    private static final Pattern TRIP = Pattern.compile("[◆◇]([^\\s◆◇()（）<>]+)");
+    private static final Pattern TRIP = Pattern.compile("◆[\\s\\p{Z}\\p{Cf}\\p{Cc}]*([^\\s\\p{Z}\\p{Cf}\\p{Cc}◆◇()（）<>]+)");
+    private static final Pattern EDGE_SPACE = Pattern.compile("^[\\s\\p{Z}\\p{Cf}\\p{Cc}]+|[\\s\\p{Z}\\p{Cf}\\p{Cc}]+$");
+
+    static String tripValue(String value) {
+        if (value == null) return "";
+        value = EDGE_SPACE.matcher(value).replaceAll("");
+        if (value.startsWith("◆")) value = EDGE_SPACE.matcher(value.substring(1)).replaceAll("");
+        return value;
+    }
 
     static final class Poster {
         final String id, slip, suffix, trip;
@@ -26,7 +34,7 @@ final class PosterHighlightRules {
             suffix = slip.isEmpty() ? "" : slip.substring(5);
             matcher = TRIP.matcher(name == null ? "" : name);
             // ◇ can be typed by anyone; only the native solid trip marker is accepted.
-            trip = matcher.find() && matcher.group().charAt(0) == '◆' ? matcher.group(1) : "";
+            trip = matcher.find() ? matcher.group(1) : "";
         }
         String value(int kind) {
             switch (kind) {
@@ -53,6 +61,7 @@ final class PosterHighlightRules {
             this(kind,scope,target,value,enabled,-1);
         }
         Rule(int kind, int scope, String target, String value, boolean enabled, int colorIndex) {
+            if (kind == 4) value = tripValue(value);
             if (kind < 0 || kind >= KINDS.length || scope < 0 || scope >= SCOPES.length
                     || target == null || value == null || value.length() > 256
                     || (scope != 2 && target.isEmpty()) || (kind != 0 && value.isEmpty())

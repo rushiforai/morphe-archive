@@ -36,9 +36,8 @@ internal object MultiPageSponsoredListingsFingerprint : Fingerprint(
 @Suppress("unused")
 val hideSponsoredListingsPatch = bytecodePatch(
     name = "Hide sponsored listings",
-    description = "Turns on Best Buy's own option for search results without sponsored " +
-        "listings. The sponsored \"Featured products\" row in search still shows. " +
-        "Experimental; test on-device.",
+    description = "Turns on Best Buy's own option for search results without sponsored listings. The " +
+        "sponsored \"Featured products\" row in search still shows. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

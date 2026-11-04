@@ -12,6 +12,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
+import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
+import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
+import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
+import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
+import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
 import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
 import semicoloncolonel.mobilestream.patches.pbs.shared.Constants as Pbs
@@ -36,15 +42,18 @@ import semicoloncolonel.mobilestream.patches.tmobileplay.shared.Constants as TMo
 import semicoloncolonel.mobilestream.patches.tlife.shared.Constants as TLife
 import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
 import semicoloncolonel.mobilestream.patches.mint.shared.Constants as Mint
+import semicoloncolonel.mobilestream.patches.verizon.shared.Constants as Verizon
 import semicoloncolonel.mobilestream.patches.xfinity.shared.Constants as Xfinity
 import semicoloncolonel.mobilestream.patches.att.shared.Constants as Att
 import semicoloncolonel.mobilestream.patches.visible.shared.Constants as Visible
 import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
-import semicoloncolonel.mobilestream.patches.shared.GOV_APPS
 import semicoloncolonel.mobilestream.patches.recgov.shared.Constants as RecGov
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
+import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
+import semicoloncolonel.mobilestream.patches.nps.shared.Constants as Nps
+import semicoloncolonel.mobilestream.patches.fema.shared.Constants as Fema
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hide device identifiers (OPT-IN, default OFF).
@@ -107,13 +116,12 @@ private fun Instruction.isAdIdServiceAction(): Boolean =
 @Suppress("unused")
 val hideDeviceIdentifiersPatch = bytecodePatch(
     name = "Hide device identifiers",
-    description = "Gives the app a random per-install Android ID instead of your device's, and " +
-        "reports a zeroed advertising ID with ad tracking limited, as if you had deleted your " +
-        "ad ID in Android settings. The video DRM ID is left alone so playback works. Opt-in / " +
-        "experimental; test on-device.",
+    description = "Gives the app a random per-install Android ID instead of your device's, and reports " +
+        "a zeroed advertising ID with ad tracking limited, as if you had deleted your ad ID " +
+        "in Android settings. The video DRM ID is left alone so playback works. Experimental.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, TMobilePlay.COMPATIBILITY, TLife.COMPATIBILITY, JustWatch.COMPATIBILITY, Mint.COMPATIBILITY, Xfinity.COMPATIBILITY, Att.COMPATIBILITY, Visible.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *GOV_APPS, RecGov.COMPATIBILITY, *SHOPPING_APPS)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, TMobilePlay.COMPATIBILITY, TLife.COMPATIBILITY, JustWatch.COMPATIBILITY, Mint.COMPATIBILITY, Xfinity.COMPATIBILITY, Att.COMPATIBILITY, Verizon.COMPATIBILITY, Visible.COMPATIBILITY, WhiteHouse.COMPATIBILITY, Nps.COMPATIBILITY, Fema.COMPATIBILITY, RecGov.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 

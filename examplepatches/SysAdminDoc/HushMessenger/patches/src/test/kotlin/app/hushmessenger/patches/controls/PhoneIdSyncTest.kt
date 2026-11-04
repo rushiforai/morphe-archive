@@ -97,8 +97,8 @@ class PhoneIdSyncTest {
 
     @Test fun eachProfileHooksOneRequestersListAndSync() {
         assertEquals(setOf(SYNTHETIC_PHONE_ID_LIST, SYNTHETIC_PHONE_ID_SYNC), SYNTHETIC_PROFILE.hooks.getValue(PHONE_ID_SYNC))
-        // 585 renames the requester.
-        assertEquals(setOf("LX/1JA;->A03(LX/1JA;)Ljava/util/ArrayList;", "LX/1JA;->A06(Ljava/lang/String;)V"),
+        // 586 renames the requester.
+        assertEquals(setOf("LX/1GQ;->A03(LX/1GQ;)Ljava/util/ArrayList;", "LX/1GQ;->A06(Ljava/lang/String;)V"),
             BASE_PROFILE.hooks.getValue(PHONE_ID_SYNC))
     }
 

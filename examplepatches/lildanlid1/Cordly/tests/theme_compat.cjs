@@ -24,7 +24,7 @@ const ID = {RawColors:caseId('hookRawColorsModule'), SemanticColors:caseId('hook
     SettingsRegistry:+(/case (\d+): exports\.SETTING_RENDERER_CONFIG = nativeRegistry/.exec(src) || [])[1],
     toasts:partId('toasts'), TableRow:partId('TableRow'), TableRowGroup:partId('TableRowGroup'), TextInput:partId('TextInput')};
 for (const [name, id] of Object.entries(ID)) if (!id) throw new Error(`theme_compat: can't find ${name}'s module ID in bootstrap.js`);
-// Venus's own alias table, read from bootstrap.js so the report follows the code.
+// Conduit's own alias table, read from bootstrap.js so the report follows the code.
 const ALIASES = (0, eval)('(' + /const LEGACY_SEMANTIC_ALIASES = (\{[\s\S]*?\n    \});/.exec(src)[1] + ')');
 // Keys Discord no longer reads (CHAT_BACKGROUND, *_MOBILE_*, BG_BASE_*) only fill in for their plain key, so when the
 // theme sets that plain key too, a variant's color losing to it is the rule working, not a miss.
@@ -55,7 +55,7 @@ function bootWith(tables) {
     const React = {createElement:(type, props, ...c) => ({type, props:Object.assign({}, props, c.length ? {children:c.length === 1 ? c[0] : c} : {})}),
         cloneElement:(n, p) => Object.assign({}, n, {props:Object.assign({}, n.props, p)}), useState:v => [v, () => {}], useEffect(){}, useRef:v => ({current:v})};
     load(React, 19);
-    // Venus recognizes React Native by View, Text and Modal.
+    // Conduit recognizes React Native by View, Text and Modal.
     load({View:'View', Text:'Text', Image:'Image', Modal:'Modal', Pressable:'Pressable'}, 17);
     load({default:{getConstants:() => ({DocumentsDirPath:'/data'}), fileExists:async () => false, readFile:async () => '{}', writeFile:async () => {}, getSize:async () => 0}}, 1162);
     load({_private:{RawColors:tables.raw}}, ID.RawColors);

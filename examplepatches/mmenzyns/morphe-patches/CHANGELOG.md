@@ -1,3 +1,15 @@
+## [1.8.0](https://github.com/mmenzyns/morphe-patches/compare/v1.7.0...v1.8.0) (2026-11-03)
+
+### ✨ New Features
+
+* **alza:** add benefit prices, smart link sharing patches and 3-state chart toggle with backstack cleanup ([826a217](https://github.com/mmenzyns/morphe-patches/commit/826a21777fa6f12468cb2849cf7541fe5a2fe0e5))
+
+## [1.7.0](https://github.com/mmenzyns/morphe-patches/compare/v1.6.10...v1.7.0) (2026-11-03)
+
+### ✨ New Features
+
+* **alza:** redesign price history chart and improve layout and discount calculations ([82934aa](https://github.com/mmenzyns/morphe-patches/commit/82934aa2c0f0886d8034575dba785dc3a7922314))
+
 ## [1.6.10](https://github.com/mmenzyns/morphe-patches/compare/v1.6.9...v1.6.10) (2026-11-02)
 
 ### 🐛 Bug Fixes

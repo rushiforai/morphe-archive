@@ -137,6 +137,7 @@ The supported Discord version and bundle hash live in `DiscordPatches.kt` and `H
 | 6563 | `design/components/TextInput/native/TextInput.native.tsx` | TextInput | TextInput |
 | 6573 | `design/components/Icon/native/redesign/generated/CircleXIcon.tsx` | CircleXIcon | CircleXIcon |
 | 6584 | - | BottomSheetScrollView, BottomSheetFlatList, BottomSheetModal | @gorhom/bottom-sheet (Server info sheet scrolling) |
+| 6727 | - | LegacyScrollView, LegacyFlatList, LegacyTextInput | react-native-gesture-handler GestureComponents (View raw data sideways scrolling) |
 | 6900 | `modules/auth/native/components/Login.tsx` | default, LinkButton | Login: Add account screen (Account switcher) |
 | 6917 | `design/components/Icon/native/redesign/generated/KeyIcon.tsx` | KeyIcon | KeyIcon |
 | 6919 | `design/components/Icon/native/redesign/generated/MobilePhoneIcon.tsx` | MobilePhoneIcon | MobilePhoneIcon |

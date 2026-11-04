@@ -21,6 +21,10 @@ public sealed class OverflowMenu(AndroidDriver driver)
             TimeSpan.FromSeconds(10),
             "The menu of \"More options\"");
 
+    /// <summary>Waits until the menu shows <paramref name="entry"/>: menus other than the main screen's have no "View Sidebar".</summary>
+    public Task WaitUntilEntryShownAsync(OverflowMenuEntry entry) =>
+        Waiting.UntilShownAsync(driver, Locate.AppIdWithText("title", entry.ToShownText()), TimeSpan.FromSeconds(10), $"\"{entry.ToShownText()}\" in the menu of \"More options\"");
+
     /// <summary>Taps <paramref name="entry"/>.</summary>
     public Task ClickAsync(OverflowMenuEntry entry) => OnScreen.PressAsync(driver, Locate.AppIdWithText("title", entry.ToShownText()));
 

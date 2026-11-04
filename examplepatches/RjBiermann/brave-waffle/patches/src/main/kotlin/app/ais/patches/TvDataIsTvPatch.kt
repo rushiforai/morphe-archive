@@ -31,19 +31,25 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
  * the TV layout is preserved and the responses parse into the same models.
  */
 object TvSiteDataLambdaFingerprint : Fingerprint(
-    definingClass = "Lfp4;",
+    definingClass = "Ld35;",
+    name = "apply",
+    returnType = "Ljava/lang/Object;"
+)
+
+object TvAlbumDataLambdaFingerprint : Fingerprint(
+    definingClass = "Lmb;",
     name = "apply",
     returnType = "Ljava/lang/Object;"
 )
 
 object TvTagsStreamLambdaFingerprint : Fingerprint(
-    definingClass = "Lr31;",
+    definingClass = "Lz81;",
     name = "apply",
     returnType = "Ljava/lang/Object;"
 )
 
 object TvExtraLambdaFingerprint : Fingerprint(
-    definingClass = "Lwj7;",
+    definingClass = "Ls97;",
     name = "apply",
     returnType = "Ljava/lang/Object;"
 )
@@ -57,7 +63,7 @@ object TvExtraLambdaFingerprint : Fingerprint(
 object TvSiteInfoRequestCtorFingerprint : Fingerprint(
     definingClass = "Lcom/streamdev/aiostreamer/datatypes/site/SiteInfoRequest;",
     name = "<init>",
-    parameters = listOf("Ljava/lang/String;", "Lcom/streamdev/aiostreamer/filters/StandardFilter;", "Z", "Z")
+    parameters = listOf("Ljava/lang/String;", "Lcom/streamdev/aiostreamer/filters/StandardFilter;", "Z", "Z", "Z")
 )
 
 object VideoPornstarsGetterFingerprint : Fingerprint(
@@ -81,7 +87,8 @@ val tvDataIsTvPatch = bytecodePatch(
     execute {
         for ((fp, expected) in mapOf(
             TvSiteDataLambdaFingerprint to 2,
-            TvTagsStreamLambdaFingerprint to 2,
+            TvAlbumDataLambdaFingerprint to 2,
+            TvTagsStreamLambdaFingerprint to 3,
             TvExtraLambdaFingerprint to 1
         )) {
             val method = fp.method
@@ -89,7 +96,7 @@ val tvDataIsTvPatch = bytecodePatch(
             var patched = 0
             for (i in 0 until instrs.size - 1) {
                 val ref = (instrs[i] as? ReferenceInstruction)?.reference as? MethodReference
-                if (ref?.definingClass == "Ldp0;" && ref.name == "a" &&
+                if (ref?.definingClass == "Lot0;" && ref.name == "a" &&
                     instrs[i + 1].opcode == Opcode.MOVE_RESULT
                 ) {
                     val reg = method.getInstruction<OneRegisterInstruction>(i + 1).registerA
@@ -135,15 +142,17 @@ val tvDataIsTvPatch = bytecodePatch(
         // The pornTabs=false responses omit some VideoInformation lists (e.g.
         // pornstars); the TV grid adapter calls isEmpty() on them unguarded.
         // Make the getter null-safe for every caller.
+        // getPornstars has .locals 0 in 6.7.2, so the block uses p0 itself
+        // (the receiver is dead once we return).
         VideoPornstarsGetterFingerprint.method.addInstructions(
             0,
             """
-                iget-object v0, p0, Lcom/streamdev/aiostreamer/datatypes/sites/VideoInformation;->pornstars:Ljava/util/List;
-                if-eqz v0, :cond_vp
-                return-object v0
+                iget-object p0, p0, Lcom/streamdev/aiostreamer/datatypes/sites/VideoInformation;->pornstars:Ljava/util/List;
+                if-eqz p0, :cond_vp
+                return-object p0
                 :cond_vp
-                sget-object v0, Ljava/util/Collections;->EMPTY_LIST:Ljava/util/List;
-                return-object v0
+                sget-object p0, Ljava/util/Collections;->EMPTY_LIST:Ljava/util/List;
+                return-object p0
             """
         )
 

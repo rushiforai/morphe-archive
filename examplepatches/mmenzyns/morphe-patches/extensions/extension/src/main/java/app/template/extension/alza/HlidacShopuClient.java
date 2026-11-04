@@ -16,6 +16,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -28,9 +30,25 @@ public class HlidacShopuClient {
     private static final String API_BASE_URL = "https://api.hlidacshopu.cz/v2/detail?url=";
     private static final int TIMEOUT_MS = 5000;
 
+    private static class CacheEntry {
+        final PriceHistoryData data;
+        final long timestamp;
+
+        CacheEntry(PriceHistoryData data) {
+            this.data = data;
+            this.timestamp = System.currentTimeMillis();
+        }
+
+        boolean isExpired() {
+            // TTL: 1 hour for products with data, 10 minutes for empty/not-found
+            long ttl = (data != null && data.hasData()) ? (60 * 60 * 1000L) : (10 * 60 * 1000L);
+            return (System.currentTimeMillis() - timestamp) > ttl;
+        }
+    }
+
     private static HlidacShopuClient instance;
 
-    private final LruCache<String, PriceHistoryData> cache;
+    private final LruCache<String, CacheEntry> cache;
     private final ExecutorService executor;
     private final Handler mainHandler;
 
@@ -47,7 +65,7 @@ public class HlidacShopuClient {
     }
 
     private HlidacShopuClient() {
-        this.cache = new LruCache<String, PriceHistoryData>(50);
+        this.cache = new LruCache<String, CacheEntry>(50);
         this.executor = Executors.newSingleThreadExecutor();
         this.mainHandler = new Handler(Looper.getMainLooper());
     }
@@ -69,17 +87,24 @@ public class HlidacShopuClient {
 
         final String domain = AlzaPriceChartInjector.getDetectedDomain();
         final String cacheKey = domain + ":" + ((commodityId != null && !commodityId.isEmpty()) ? commodityId : fallbackUrl);
-        PriceHistoryData cachedData = cache.get(cacheKey);
-        if (cachedData != null) {
-            if (callback != null) {
-                callback.onSuccess(cachedData);
-            }
+        CacheEntry entry = cache.get(cacheKey);
+        if (entry != null && !entry.isExpired()) {
+            final PriceHistoryData cachedData = entry.data;
+            mainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (callback != null) {
+                        callback.onSuccess(cachedData);
+                    }
+                }
+            });
             return;
         }
 
         executor.execute(new Runnable() {
             @Override
             public void run() {
+                HttpURLConnection conn = null;
                 try {
                     String targetUrl;
                     if (fallbackUrl != null && fallbackUrl.startsWith("http")) {
@@ -96,7 +121,7 @@ public class HlidacShopuClient {
                     Log.i(TAG, "Requesting Hlídač shopů: " + apiUrl);
 
                     URL url = new URL(apiUrl);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
                     conn.setConnectTimeout(TIMEOUT_MS);
                     conn.setReadTimeout(TIMEOUT_MS);
@@ -113,7 +138,7 @@ public class HlidacShopuClient {
                                 null, null, null, null, null, null,
                                 null, null
                         );
-                        cache.put(cacheKey, emptyData);
+                        cache.put(cacheKey, new CacheEntry(emptyData));
                         mainHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -122,23 +147,25 @@ public class HlidacShopuClient {
                                 }
                             }
                         });
-                        conn.disconnect();
                         return;
                     }
                     if (responseCode != HttpURLConnection.HTTP_OK) {
-                        conn.disconnect();
                         throw new Exception("HTTP error code: " + responseCode);
                     }
 
                     InputStream in = conn.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
                     StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
+                    try {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
+                    } finally {
+                        try {
+                            reader.close();
+                        } catch (Throwable ignored) {}
                     }
-                    reader.close();
-                    conn.disconnect();
 
                     final PriceHistoryData data = parseResponse(
                             sb.toString(),
@@ -147,7 +174,7 @@ public class HlidacShopuClient {
                             identifier
                     );
 
-                    cache.put(cacheKey, data);
+                    cache.put(cacheKey, new CacheEntry(data));
 
                     mainHandler.post(new Runnable() {
                         @Override
@@ -167,6 +194,12 @@ public class HlidacShopuClient {
                             }
                         }
                     });
+                } finally {
+                    if (conn != null) {
+                        try {
+                            conn.disconnect();
+                        } catch (Throwable ignored) {}
+                    }
                 }
             }
         });
@@ -189,24 +222,45 @@ public class HlidacShopuClient {
             Double currentPriceMeta = null;
             Double commonPriceMeta = null;
 
-            if (metadata != null) {
-                if (metadata.has("name") && !metadata.isNull("name")) {
-                    name = metadata.optString("name");
+            JSONObject[] sources = new JSONObject[]{ metadata, dataObj, root };
+            for (JSONObject src : sources) {
+                if (src == null) continue;
+                if ((name == null || name.isEmpty() || name.equals(defaultProductName)) && src.has("name") && !src.isNull("name")) {
+                    name = src.optString("name");
                 }
-                if (metadata.has("realDiscount") && !metadata.isNull("realDiscount")) {
-                    realDiscount = metadata.optDouble("realDiscount");
+                if (realDiscount == null && src.has("realDiscount") && !src.isNull("realDiscount")) {
+                    realDiscount = src.optDouble("realDiscount");
                 }
-                if (metadata.has("claimedDiscount") && !metadata.isNull("claimedDiscount")) {
-                    claimedDiscount = metadata.optDouble("claimedDiscount");
+                if (claimedDiscount == null && src.has("claimedDiscount") && !src.isNull("claimedDiscount")) {
+                    claimedDiscount = src.optDouble("claimedDiscount");
                 }
-                if (metadata.has("currentPrice") && !metadata.isNull("currentPrice")) {
-                    currentPriceMeta = metadata.optDouble("currentPrice");
+                if (currentPriceMeta == null && src.has("currentPrice") && !src.isNull("currentPrice")) {
+                    currentPriceMeta = src.optDouble("currentPrice");
                 }
-                if (metadata.has("commonPrice") && !metadata.isNull("commonPrice")) {
-                    commonPriceMeta = metadata.optDouble("commonPrice");
-                } else if (metadata.has("referencePrice") && !metadata.isNull("referencePrice")) {
-                    commonPriceMeta = metadata.optDouble("referencePrice");
+                if (commonPriceMeta == null) {
+                    if (src.has("commonPrice") && !src.isNull("commonPrice")) {
+                        commonPriceMeta = src.optDouble("commonPrice");
+                    } else if (src.has("referencePrice") && !src.isNull("referencePrice")) {
+                        commonPriceMeta = src.optDouble("referencePrice");
+                    } else if (src.has("minPrice") && !src.isNull("minPrice")) {
+                        commonPriceMeta = src.optDouble("minPrice");
+                    }
                 }
+            }
+
+            if (name != null && !name.trim().isEmpty()) {
+                String active = AlzaPriceChartInjector.getActiveProductName();
+                if (active == null || active.trim().isEmpty()) {
+                    AlzaPriceChartInjector.setActiveProductName(name);
+                }
+            }
+
+            // Normalize fractional percentages from API (e.g. 0.12503 -> 12.503%, 0.30006 -> 30.006%)
+            if (realDiscount != null && realDiscount > 0.0 && realDiscount <= 1.0) {
+                realDiscount = realDiscount * 100.0;
+            }
+            if (claimedDiscount != null && claimedDiscount > 0.0 && claimedDiscount <= 1.0) {
+                claimedDiscount = claimedDiscount * 100.0;
             }
 
             List<PriceHistoryData.PricePoint> currentPricePoints = new ArrayList<PriceHistoryData.PricePoint>();
@@ -225,12 +279,16 @@ public class HlidacShopuClient {
                         JSONObject pt = currentArr.optJSONObject(i);
                         if (pt != null && pt.has("y") && !pt.isNull("y")) {
                             double price = pt.optDouble("y");
+                            if (Double.isNaN(price) || Double.isInfinite(price) || price <= 0) {
+                                continue;
+                            }
                             String x = pt.optString("x");
                             long time = parseTimestamp(isoFormat, x);
-                            currentPricePoints.add(new PriceHistoryData.PricePoint(time, price));
-
-                            if (price < minPrice) minPrice = price;
-                            if (price > maxPrice) maxPrice = price;
+                            if (time > 0) {
+                                currentPricePoints.add(new PriceHistoryData.PricePoint(time, price));
+                                if (price < minPrice) minPrice = price;
+                                if (price > maxPrice) maxPrice = price;
+                            }
                         }
                     }
                 }
@@ -241,13 +299,34 @@ public class HlidacShopuClient {
                         JSONObject pt = originalArr.optJSONObject(i);
                         if (pt != null && pt.has("y") && !pt.isNull("y")) {
                             double price = pt.optDouble("y");
+                            if (Double.isNaN(price) || Double.isInfinite(price) || price <= 0) {
+                                continue;
+                            }
                             String x = pt.optString("x");
                             long time = parseTimestamp(isoFormat, x);
-                            originalPricePoints.add(new PriceHistoryData.PricePoint(time, price));
+                            if (time > 0) {
+                                originalPricePoints.add(new PriceHistoryData.PricePoint(time, price));
+                                if (price < minPrice) minPrice = price;
+                                if (price > maxPrice) maxPrice = price;
+                            }
                         }
                     }
                 }
             }
+
+            // Sort price points chronologically
+            Collections.sort(currentPricePoints, new Comparator<PriceHistoryData.PricePoint>() {
+                @Override
+                public int compare(PriceHistoryData.PricePoint o1, PriceHistoryData.PricePoint o2) {
+                    return Long.compare(o1.timestamp, o2.timestamp);
+                }
+            });
+            Collections.sort(originalPricePoints, new Comparator<PriceHistoryData.PricePoint>() {
+                @Override
+                public int compare(PriceHistoryData.PricePoint o1, PriceHistoryData.PricePoint o2) {
+                    return Long.compare(o1.timestamp, o2.timestamp);
+                }
+            });
 
             Double min = (minPrice != Double.MAX_VALUE) ? minPrice : null;
             Double max = (maxPrice != Double.MIN_VALUE) ? maxPrice : null;
@@ -283,13 +362,13 @@ public class HlidacShopuClient {
 
     private static long parseTimestamp(SimpleDateFormat format, String dateStr) {
         if (dateStr == null || dateStr.length() < 19) {
-            return System.currentTimeMillis();
+            return -1L;
         }
         try {
             Date d = format.parse(dateStr.substring(0, 19));
-            return d != null ? d.getTime() : System.currentTimeMillis();
+            return d != null ? d.getTime() : -1L;
         } catch (Throwable t) {
-            return System.currentTimeMillis();
+            return -1L;
         }
     }
 }

@@ -30,8 +30,8 @@ internal object OutsideHbaNetworkToStringFingerprint : Fingerprint(
 @Suppress("unused")
 val disableHomeNetworkSignInPatch = bytecodePatch(
     name = "Disable Xfinity auto sign-in",
-    description = "Stops the Peacock phone app from signing in on its own when it is on an " +
-        "Xfinity home network. Signing in with your own Peacock account still works.",
+    description = "Stops the app from signing in on its own when it is on an Xfinity home network. " +
+        "Signing in with your own Peacock account still works.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

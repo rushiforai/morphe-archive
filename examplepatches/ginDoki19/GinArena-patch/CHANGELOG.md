@@ -1,3 +1,27 @@
+## [2.7.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.7.0...v2.7.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **decompiler:** mark 4.12.0 as stable ([0c350fa](https://github.com/ginDoki19/GinArena-patch/commit/0c350fa893e47b421c1d90179c422be87c50ad62))
+
+## [2.7.1-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.7.0...v2.7.1-dev.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **decompiler:** mark 4.12.0 as stable ([0c350fa](https://github.com/ginDoki19/GinArena-patch/commit/0c350fa893e47b421c1d90179c422be87c50ad62))
+
+## [2.7.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.6.0...v2.7.0) (2026-11-03)
+
+### ✨ New Features
+
+* **decompiler:** add APK Decompiler 4.12.0 patch ([e9f48a1](https://github.com/ginDoki19/GinArena-patch/commit/e9f48a1e32917ca1c69f38958dd74f5748f91227))
+
+## [2.7.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.6.0...v2.7.0-dev.1) (2026-11-03)
+
+### ✨ New Features
+
+* **decompiler:** add APK Decompiler 4.12.0 patch ([e9f48a1](https://github.com/ginDoki19/GinArena-patch/commit/e9f48a1e32917ca1c69f38958dd74f5748f91227))
+
 ## [2.6.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.5.1...v2.6.0) (2026-11-03)
 
 ### ✨ New Features

@@ -28,8 +28,7 @@ internal object GoogleSignInButtonFingerprint : Fingerprint(
 @Suppress("unused")
 val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
-    description = "Removes the Continue with Google option from the Tubi phone app. Email " +
-        "sign-in still works.",
+    description = "Removes the Continue with Google option from the app. Email sign-in still works.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

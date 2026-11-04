@@ -75,7 +75,7 @@ class CarMessagesTest {
         assertEquals(listOf(SYNTHETIC_CAR_EXTEND), found(carMessagesFixture()))
         validateControls(mirroredControls(carMessagesFixture()), setOf(CAR_MESSAGES))
         assertEquals(setOf(SYNTHETIC_CAR_EXTEND), SYNTHETIC_PROFILE.hooks.getValue(CAR_MESSAGES))
-        assertEquals(setOf("LX/0Qq;->AhZ(LX/0M6;)V"), BASE_PROFILE.hooks.getValue(CAR_MESSAGES))
+        assertEquals(setOf("LX/0Qt;->AiU(LX/0MB;)V"), BASE_PROFILE.hooks.getValue(CAR_MESSAGES))
     }
 
     @Test fun lookalikesAreNotTheExtender() {

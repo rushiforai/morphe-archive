@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 import app.noam.extension.chesscom.Utils;
+import app.noam.extension.chesscom.gamereview.GameReview;
 
 /**
  * The same Stockfish, running on the computer instead of the phone: the UCI conversation goes over a
@@ -40,14 +41,40 @@ public final class NetEngine extends Engine {
 
     @Override
     public boolean start(Context context) {
-        String host = BridgeSettings.host();
-        int port = BridgeSettings.port();
-        if (host.isEmpty()) {
-            Utils.log("Computer Stockfish: no address set");
-            return false;
-        }
         if (BridgeSettings.token().isEmpty()) {
             Utils.log("Computer Stockfish: no token set");
+            return false;
+        }
+        // The address that is set, then the ones a review connected through before. The router can
+        // hand the computer a different address, and the saved ones are then where it is found.
+        for (String candidate : BridgeSettings.candidates()) {
+            if (connect(context, candidate)) return true;
+        }
+        if (!GameReview.networkScan() || !BridgeSettings.autoScan()) return false;
+        // Nothing answered at any known address. The computer may have moved on this network, so
+        // sweep it once and use the first bridge that says hello.
+        Utils.log("Computer Stockfish: nothing answered at the set or saved addresses, looking around");
+        for (BridgeDiscovery.Device device : BridgeDiscovery.find(BridgeSettings.port()).devices) {
+            if (connect(context, device.host + ":" + device.port)) {
+                Utils.log("Computer Stockfish: found it at " + device.host + ":" + device.port);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Connects to one "host:port" and says hello. The first that works stays the socket, becomes the
+     * address reviews start with, and is saved for the next network.
+     */
+    private boolean connect(Context context, String candidate) {
+        int colon = candidate.lastIndexOf(':');
+        if (colon <= 0) return false;
+        String host = candidate.substring(0, colon);
+        int port;
+        try {
+            port = Integer.parseInt(candidate.substring(colon + 1));
+        } catch (NumberFormatException e) {
             return false;
         }
         try {
@@ -73,9 +100,15 @@ public final class NetEngine extends Engine {
             }
             // A search can take a minute: from here on reads block until Stockfish answers.
             opened.setSoTimeout(0);
-            return handshake(context, reader, writer);
+            // A refused address before this one hung the engine up; this socket is alive.
+            hungUp = false;
+            if (!handshake(context, reader, writer)) return false;
+            BridgeSettings.setHost(host);
+            BridgeSettings.setPort(port);
+            BridgeSettings.remember(host, port);
+            return true;
         } catch (IOException e) {
-            Utils.logError("Computer Stockfish did not connect to " + host + ":" + port, e);
+            Utils.logError("Computer Stockfish did not connect to " + candidate, e);
             quit();
             return false;
         }

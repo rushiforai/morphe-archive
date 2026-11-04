@@ -3,6 +3,7 @@ package app.template.patches.shared
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
     /**
@@ -131,4 +132,22 @@ object Constants {
             )
         )
     )
+
+    val COMPATIBILITY_APK_DECOMPILER = Compatibility(
+        name = "APK Decompiler",
+        packageName = "com.apktools.app.decompile",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x456BDB,
+        signatures = setOf("80c8e7990b68af1301f76057e7eabe63de4240e3ca74da46c36a9c8084c68386"),
+        targets = listOf(
+            AppTarget(
+                version = "4.12.0",
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 4120, SupportedAbi.ARMEABI_V7A to 4120),
+                isExperimental = false,
+                minSdk = 28,
+                description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 9.0+), build 4120"
+            )
+        )
+    )
+
 }

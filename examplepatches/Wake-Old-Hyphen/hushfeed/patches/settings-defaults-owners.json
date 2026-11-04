@@ -314,7 +314,10 @@
     ],
     "Ghost mode": [
       "GHOST_MODE",
-      "GHOST_HIDE_ONLINE_STATUS"
+      "GHOST_HIDE_ONLINE_STATUS",
+      "GHOST_HIDE_STORY_VIEWS",
+      "GHOST_HIDE_PROFILE_VISITS",
+      "GHOST_HIDE_TYPING"
     ],
     "Hide already seen videos": [
       "HIDE_SEEN_VIDEOS",
@@ -699,6 +702,9 @@
     ],
     "Skip update checks": [
       "SKIP_UPDATE_CHECKS"
+    ],
+    "Keep the next videos in full screen": [
+      "FULL_SCREEN_NEXT_VIDEOS"
     ],
     "Stay on the video in full screen": [
       "FULL_SCREEN_HOLD"

@@ -9,6 +9,7 @@ import android.preference.PreferenceScreen;
 
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.privacy.BenchmarkRuns;
+import app.morphe.extension.tiktok.privacy.DeviceIdentity;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -106,6 +107,25 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new GhostModePreference(context));
             addPreference(new TogglePreference(
                     context,
+                    "Hide story views",
+                    "You stay off the viewer list of stories you watch. Needs Ghost mode on.",
+                    Settings.GHOST_HIDE_STORY_VIEWS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide profile visits",
+                    "You stay off the Profile views list of people whose profile you open. Needs "
+                            + "Ghost mode on.",
+                    Settings.GHOST_HIDE_PROFILE_VISITS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide typing",
+                    "People you chat with won't see that you're typing. Needs Ghost mode on.",
+                    Settings.GHOST_HIDE_TYPING
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Hide online status",
                     "Friends won't see a green dot or Active now while you're in TikTok. Needs "
                             + "Ghost mode on. Their status may stop updating for you, and your "
@@ -198,6 +218,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                     Settings.HIDE_ROOT
             ));
             addPreference(new DeviceIdentityPreference(context));
+            if (DeviceIdentity.hasIdentity(context)) addPreference(DeviceIdentityPreference.ownIds(context));
         }
         if (SettingsStatus.resourceGovernorEnabled) {
             addPreference(new TogglePreference(

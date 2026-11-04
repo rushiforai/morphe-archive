@@ -164,7 +164,28 @@ val hidePostReplyBarKeepHazePatch = bytecodePatch(
         require(matchingInvokes(HAZE_MODIFIER).size == 1) {
             "D3-F1.2: expected exactly one reply Haze call."
         }
+        
+        // D3-G: Bypass only the Reply Bar Haze modifier.
+        // Preserve the incoming Modifier in v16.
+        val hazeIndex = matchingInvokes(HAZE_MODIFIER).single()
 
+        val hazeCall =
+            instructions[hazeIndex] as? RegisterRangeInstruction
+
+        val hazeResult =
+            instructions.getOrNull(hazeIndex + 1)
+                as? OneRegisterInstruction
+
+        require(
+            hazeCall?.startRegister == 16 &&
+                hazeCall.registerCount == 7 &&
+                instructions.getOrNull(hazeIndex + 1)?.opcode ==
+                    Opcode.MOVE_RESULT_OBJECT &&
+                hazeResult?.registerA == 6
+        ) {
+            "D3-G: unexpected Reply Bar Haze call registers."
+        }
+        
         val outerCandidates = matchingInvokes(OUTER_SURFACE)
             .filter { index ->
                 val call =
@@ -224,6 +245,11 @@ val hidePostReplyBarKeepHazePatch = bytecodePatch(
 
         replacements += clickableIndex to "nop"
         replacements += (clickableIndex + 1) to
+            "move-object/from16 v6, v16"
+
+        // D3-G: Remove the Reply Bar Haze effect.
+        replacements += hazeIndex to "nop"
+        replacements += (hazeIndex + 1) to
             "move-object/from16 v6, v16"
 
         // ---------------------------------------------------------

@@ -53,13 +53,19 @@ val followerTrackPatch = bytecodePatch(
         required = true,
     ) { it!!.startsWith("https://") }
 
+    // Optional on purpose. A required token is baked into every APK built from this
+    // patch, which is wrong for an APK that gets shared, and the server hands the
+    // token to an already-authenticated client at GET /egress/token anyway. With it
+    // blank the uploader sends no Authorization header and the batches queue on the
+    // phone until a token is provisioned, rather than being lost.
     val trackerToken by stringOption(
         key = "trackerToken",
         default = "",
         title = "Tracker token",
-        description = "INSTA_RELAY_TOKEN from the server's .env. Sent as a Bearer token.",
-        required = true,
-    ) { !it.isNullOrBlank() }
+        description = "INSTA_RELAY_TOKEN from the server's .env, sent as a Bearer token. " +
+            "Leave blank to keep it out of the APK - uploads queue until it is set.",
+        required = false,
+    )
 
     val batchSize by stringOption(
         key = "batchSize",
@@ -69,11 +75,26 @@ val followerTrackPatch = bytecodePatch(
         required = true,
     ) { it!!.toIntOrNull()?.let { n -> n in 1..200 } == true }
 
+    // ON by default. Capturing only what you happened to scroll past means a list of
+    // 546 yields whatever you had the patience for, and a partial list cannot detect
+    // departures at all - so the useful default is for the list to walk itself. It
+    // still paces one screen at a time with randomised gaps and stops the instant you
+    // touch the list, and the in-app dashboard can start or stop it at any time.
+    val autoScroll by stringOption(
+        key = "autoScroll",
+        default = "true",
+        title = "Scroll lists automatically",
+        description = "Walk a follower or following list to its end by itself once you " +
+            "open it. Paced deliberately, and stops as soon as you touch the screen.",
+        required = false,
+    ) { it == null || it == "true" || it == "false" }
+
     execute {
         val config = linkedMapOf(
             "cfg.url" to trackerUrl!!,
-            "cfg.token" to trackerToken!!,
+            "cfg.token" to (trackerToken ?: ""),
             "cfg.batch" to batchSize!!,
+            "cfg.autoscroll" to (autoScroll ?: "false"),
         )
 
         // User getters. Id and username are required; name and picture are extras.

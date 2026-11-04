@@ -17,13 +17,16 @@ public partial record OverflowMenuEntry
     /// <summary>The feed's subreddit's sidebar: greyed out by "Disable unavailable sidebar" on feeds without one.</summary>
     public partial record ViewSidebar;
 
+    /// <summary>In the media viewer's "More options": saves the post's media, to the device or the profile.</summary>
+    public partial record Save;
+
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
 }
 
 public static class OverflowMenuEntryShowing
 {
-    private static readonly OverflowMenuEntry[] Listed = [new OverflowMenuEntry.ListView(), new OverflowMenuEntry.CardView(), new OverflowMenuEntry.ViewSidebar()];
+    private static readonly OverflowMenuEntry[] Listed = [new OverflowMenuEntry.ListView(), new OverflowMenuEntry.CardView(), new OverflowMenuEntry.ViewSidebar(), new OverflowMenuEntry.Save()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this OverflowMenuEntry value) =>
@@ -31,6 +34,7 @@ public static class OverflowMenuEntryShowing
             listView => "List View",
             cardView => "Card View",
             viewSidebar => "View Sidebar",
+            save => "Save",
             unlisted => unlisted.Shown);
 
     /// <summary>The case the app's <paramref name="shown"/> text names, or <see cref="OverflowMenuEntry.Unlisted"/>.</summary>

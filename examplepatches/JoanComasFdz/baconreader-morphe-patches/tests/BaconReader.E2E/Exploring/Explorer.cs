@@ -197,6 +197,19 @@ public sealed class Explorer : BaseE2E
                 case "fail posts": Reddit.AnswersThePostsWith(command.Argument(0), command.Argument(1)); break;
                 case "refuse posts": Reddit.RefusesThePostsWith(command.Argument(0), command.Argument(1), command.Argument(2)); break;
                 case "drop posts": Reddit.DropsTheConnectionForThePosts(command.Argument(0)); break;
+                case "image post": Reddit.HasAnImagePost(command.Argument(1), command.Argument(0)); break;
+                case "gif post": Reddit.HasAGifPost(command.Argument(1), command.Argument(0)); break;
+                case "signed thumbnail post": Reddit.HasAnImagePostWithASignedThumbnail(command.Argument(1), command.Argument(0)); break;
+                case "video post": Reddit.HasAVideoPost(command.Argument(1), command.Argument(0)); break;
+                case "link post with preview": Reddit.HasALinkPostWithAPreviewAndNoThumbnail(command.Argument(1), command.Argument(0)); break;
+                case "nsfw image post": Reddit.HasAnNsfwImagePost(command.Argument(1), command.Argument(0)); break;
+                case "spoiler image post": Reddit.HasASpoilerImagePost(command.Argument(1), command.Argument(0)); break;
+                case "gallery post": Reddit.HasAGalleryPostOf(command.Argument(1), command.Argument(0), int.Parse(command.Argument(2), CultureInfo.InvariantCulture)); break;
+                case "crosspost": Reddit.HasACrosspostOf(command.Argument(1), command.Argument(0), command.Argument(2)); break;
+                case "avatar": Reddit.TheUserHasAnAvatar(command.Argument(0)); break;
+                case "late media": Reddit.AnswersTheMediaOfThePostLate(command.Argument(0), int.Parse(command.Argument(1), CultureInfo.InvariantCulture)); break;
+                case "fail media": Reddit.AnswersTheMediaOfThePostWith(command.Argument(0), command.Argument(1)); break;
+                case "fail thumbnail": Reddit.AnswersTheThumbnailOfThePostWithTheFirstTimes(command.Argument(0), command.Argument(1), int.Parse(command.Argument(2), CultureInfo.InvariantCulture)); break;
                 default: return $"error: unknown command \"{command.Name}\"";
             }
 
@@ -236,7 +249,9 @@ public sealed record ExplorerCommand(string Text, string Name, IReadOnlyList<str
         "comment by", "comment with silver", "comment with table link", "comment with spoiler link", "comments", "reply",
         "comment with image", "comment with gif", "comment with image link",
         "comment with video", "comment with video link", "subscribe", "message", "late comments", "fail posts",
-        "refuse posts", "drop posts",
+        "refuse posts", "drop posts", "image post", "gif post", "signed thumbnail post", "video post",
+        "link post with preview", "nsfw image post", "spoiler image post", "gallery post", "crosspost", "avatar",
+        "late media", "fail media", "fail thumbnail",
     ];
 
     /// <summary>Whether it makes Reddit data: from the commands file, it runs before the app opens.</summary>

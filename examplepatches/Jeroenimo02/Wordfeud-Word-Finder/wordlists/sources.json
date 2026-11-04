@@ -1,0 +1,132 @@
+{
+  "_comment": "Bronnen van de woordenlijsten per taal. Alleen openbare licenties. Wordt gelezen door tools/wordlists/build.py; zie wordlists/README.md.",
+  "languages": {
+    "en": {
+      "name": "English (ENABLE)",
+      "rulesets": [
+        0,
+        5
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/dolph/dictionary/233d25a56b9ac8bef906916ccf091a976995cce0/enable1.txt",
+        "sha256": "3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89"
+      },
+      "license": "Public domain (ENABLE word list)",
+      "attribution": "ENABLE2K word list, via dolph/dictionary",
+      "notes": "Free approximation of TWL (ruleset 0) and Collins/SOWPODS (ruleset 5); the server rejects words that are not in Wordfeud's own list."
+    },
+    "nb": {
+      "name": "Norsk bokmål",
+      "rulesets": [
+        1
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPRSTUVWYÆØÅ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/Ondkloss/norwegian-wordlist/de07f3fe9c9dda2012e143205e04df539be178ab/wordlist_20220201_norsk_ordbank_nob_2005.txt",
+        "sha256": "33ec794e5fbb35b0ea271c3b152bd35f95cb503e2edbdca93d6878a2581fce05"
+      },
+      "license": "CC BY 4.0",
+      "attribution": "Norsk ordbank (bokmål 2005), Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist"
+    },
+    "nl": {
+      "name": "Nederlands",
+      "rulesets": [
+        2
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/jensanjo/wordfeud-wordlists/9e8bbff63d7ebd80e2d91b9a33bd69d5d9c2bd06/nl/wordlist-nl.txt",
+        "sha256": "414075805ca9b76fba3cbdaab7dd5ff7cbf1f851c3580b06f1001e2fca97b287"
+      },
+      "license": "Revised BSD and/or CC BY 3.0 (OpenTaal)",
+      "attribution": "OpenTaal word list, via jensanjo/wordfeud-wordlists"
+    },
+    "sv": {
+      "name": "Svenska",
+      "rulesets": [
+        4
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPRSTUVXYZÅÄÖ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/mrcz/Wordfeud-Player/0d3db71bdcee6f490556fe1e7219ea2392393de8/ordlista.txt",
+        "sha256": "fb5870745290e808e5aca98209185b5cfcd70e9d5ba1b08033a2777cf3519762"
+      },
+      "license": "CC BY-SA 3.0",
+      "attribution": "Den stora svenska ordlistan (Göran Andersson), as adapted in mrcz/Wordfeud-Player",
+      "notes": "Share-alike: the derived list in this folder is also CC BY-SA 3.0. Ruleset 8 (Swedish strict) has no list: it most likely allows base forms only, and this list has all inflected forms."
+    },
+    "de": {
+      "name": "Deutsch",
+      "rulesets": [
+        9
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ",
+      "replace": {
+        "ß": "SS"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/enz/german-wordlist/1071d87d9535b57b80ec076c699f2578a28ee9dc/words",
+        "sha256": "20095928ca70974fb5d86e44f10181cee16e2831b0d4b1a4ddd12c261aebc5e9"
+      },
+      "license": "CC0 1.0",
+      "attribution": "enz/german-wordlist"
+    },
+    "nn": {
+      "name": "Norsk nynorsk",
+      "rulesets": [
+        10
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPRSTUVWYÆØÅ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/Ondkloss/norwegian-wordlist/de07f3fe9c9dda2012e143205e04df539be178ab/wordlist_20220201_norsk_ordbank_nno_2012.txt",
+        "sha256": "580775889d017efde0ed3d975e4bd7e0a4ea83ff77be7e7bf999d62f13ded84e"
+      },
+      "license": "CC BY 4.0",
+      "attribution": "Norsk ordbank (nynorsk 2012), Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist"
+    },
+    "da": {
+      "name": "Dansk",
+      "rulesets": [
+        3
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPRSTUVXYZÆØÅ",
+      "source": {
+        "url": "https://ordregister.dk/files/cor1.5.1.0.tsv",
+        "sha256": "1c4d1c06bd676e66be8e8c0af68615c8a892472a05af3b261ba8a9d1f2d2b82b",
+        "column": 4,
+        "filter_column": 5,
+        "filter_values": [
+          "N",
+          "K"
+        ],
+        "skip_capitalised": true
+      },
+      "license": "Free for any use (Det Centrale Ordregister); listed as CC0 1.0",
+      "attribution": "COR1 1.5.1.0 (Det Centrale Ordregister), Dansk Sprognævn; corresponds to Retskrivningsordbogen 5.1",
+      "notes": "Forms with status N (in Retskrivningsordbogen) and K (probably correct, e.g. genitives); U (generated, not normed) left out."
+    },
+    "fr": {
+      "name": "Français",
+      "rulesets": [
+        7
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "replace": {
+        "Œ": "OE",
+        "Æ": "AE"
+      },
+      "source": {
+        "url": "https://grammalecte.net/dic/lexique-grammalecte-fr-v7.7.zip",
+        "sha256": "bdccf2065e252010253171000a38de84581407896b6bc60aca7d4d69dab7e4d2",
+        "zip_member": "lexique-grammalecte-fr-v7.7.txt",
+        "column": 2,
+        "numeric_id": true,
+        "skip_capitalised": true
+      },
+      "license": "MPL 2.0",
+      "attribution": "Lexique des formes fléchies du français, Grammalecte v7.7 (Olivier R.)",
+      "notes": "Accents folded as in French Scrabble (É -> E); contains classic and 1990 reform spellings."
+    }
+  }
+}

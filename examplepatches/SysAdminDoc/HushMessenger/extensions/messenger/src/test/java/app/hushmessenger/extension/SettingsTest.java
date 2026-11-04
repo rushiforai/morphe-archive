@@ -534,6 +534,27 @@ public class SettingsTest {
         }
     }
 
+    @Test public void aHealthyControlsUseMovesOnceASecondAndAFailedOnesEveryTime() {
+        Settings.activeAt.clear();
+        Settings.hookErrors.clear();
+        Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+        assertTrue(Settings.enabled("keep_unsent"));
+        long used = Settings.lastActive("keep_unsent");
+        assertTrue(used > 0);
+        Settings.activeAt.put("keep_unsent", used - 1);
+        assertTrue(Settings.enabled("keep_unsent"));
+        assertEquals("a use within the second isn't written again", used - 1, Settings.lastActive("keep_unsent"));
+        Settings.activeAt.put("keep_unsent", used - 5000);
+        assertTrue(Settings.enabled("keep_unsent"));
+        assertTrue(Settings.lastActive("keep_unsent") >= used);
+
+        Settings.hookErrors.put("keep_unsent", "java.lang.RuntimeException at Settings.enabled|" + used);
+        Settings.activeAt.put("keep_unsent", used - 1);
+        assertTrue(Settings.enabled("keep_unsent"));
+        assertTrue("after a failure every use counts, so a working draw clears the error", Settings.lastActive("keep_unsent") >= used);
+        Settings.hookErrors.clear();
+    }
+
     // #25: a phone's emoji font isn't always NotoColorEmoji.ttf (Samsung ships SamsungColorEmoji.ttf, emoji modules
     // and other phones use their own), so Android 12+ uses the font Android itself shapes emoji with.
     @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)

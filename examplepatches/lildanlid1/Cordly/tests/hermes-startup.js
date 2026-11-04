@@ -35,7 +35,7 @@
                 if (typeof setup.default !== "function") throw Error("Missing original RN initializer");
                 setup.default();
                 ready = true;
-                // Any release: the check is that Venus ran, not which version (a hardcoded one broke every version bump).
+                // Any release: the check is that Conduit ran, not which version (a hardcoded one broke every version bump).
                 if (!g.__venusPatches || typeof g.__venusPatches.revision !== "string" || !g.__venusPatches.revision)
                     throw Error("Replacement prelude did not execute");
                 print("HBC98_REAL_RN_ENVIRONMENT_PASS");

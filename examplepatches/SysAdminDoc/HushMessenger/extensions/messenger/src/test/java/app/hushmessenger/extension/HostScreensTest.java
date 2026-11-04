@@ -792,6 +792,38 @@ public class HostScreensTest {
         assertFalse(Settings.enabled("people"));
     }
 
+    /** Records the watchers Messenger's Application is given, and throws the Error for one kind of them. */
+    static final class FailingApplication extends Application {
+        final List<Application.ActivityLifecycleCallbacks> registered = new java.util.ArrayList<>();
+        private final Class<?> failing;
+        private final Error error;
+
+        FailingApplication(Class<?> failing, Error error) { this.failing = failing; this.error = error; }
+
+        @Override public void registerActivityLifecycleCallbacks(Application.ActivityLifecycleCallbacks callback) {
+            if (failing.isInstance(callback)) throw error;
+            registered.add(callback);
+        }
+    }
+
+    @Test public void aWatcherThatCantLoadLeavesTheOthersAndMessengersStartAlone() {
+        Object[][] cases = {
+            {SettingsReopen.FirstScreen.class, new NoClassDefFoundError("app/hushmessenger/extension/SettingsReopen$FirstScreen"),
+                HostScreens.LeavingMessenger.class, "Can't watch for the first screen after a restart"},
+            {HostScreens.LeavingMessenger.class, new ExceptionInInitializerError("static init"),
+                SettingsReopen.FirstScreen.class, "Can't watch for Messenger leaving the screen"},
+        };
+        for (Object[] item : cases) {
+            ShadowLog.clear();
+            FailingApplication app = new FailingApplication((Class<?>) item[0], (Error) item[1]);
+            HostScreens.applicationCreated(app);
+            assertEquals(1, app.registered.size());
+            assertTrue(((Class<?>) item[2]).isInstance(app.registered.get(0)));
+            assertEquals(1, ShadowLog.getLogsForTag("HushMessenger").stream()
+                .filter(entry -> item[3].equals(entry.msg) && entry.throwable == item[1]).count());
+        }
+    }
+
     @Test public void messengersOtherProcessesStayStockLikeOnANormalInstall() {
         Application app = RuntimeEnvironment.getApplication();
         Settings.preferences = null;

@@ -303,11 +303,10 @@ switch ($Stage) {
         }
 
         try {
-            # The section's groups after the description's summary, again on a rerun so a CHANGELOG
-            # edit reaches it. check_release.py refuses a release whose two differ.
+            # The section's groups after the description's summary, again on a rerun so a CHANGELOG edit reaches it.
             Invoke-Python (Join-Path $root 'scripts/check_release.py') --describe
-            Write-Step 'bundle and catalog (one Gradle run)'
-            Invoke-Gradle @(':patches:buildAndroid', ':patches:generatePatchCatalog', '--no-configuration-cache')
+            Write-Step 'bundle and catalog (one Gradle run, no daemon left holding the signing key)'
+            Invoke-Gradle @(':patches:buildAndroid', ':patches:generatePatchCatalog', '--no-daemon', '--no-configuration-cache')
             $digest = Get-FileSha256 (Join-Path $root "patches/build/libs/$bundleName")
             $readme = Get-Content -LiteralPath $readmePath -Raw
             $line = [regex]"(?m)^[a-f0-9]{64}  $([regex]::Escape($bundleName))(\r?)$"
@@ -321,9 +320,8 @@ switch ($Stage) {
         }
         Save-Stage 'prepare' @{ base = (Get-Head); sha256 = $digest }
         Write-Step "bundle SHA-256 $digest"
-        Write-Host 'Next: update the README intro and counts, its Morphe Manager and Desktop minimums when the patcher moved (check_release.PATCHER_CLIENTS),'
-        Write-Host 'and the index description''s summary above its ### groups by hand, review the diff,'
-        Write-Host "commit it as 'chore: release $tag', then run -Stage preflight."
+        Write-Host 'Next: update the README intro and counts, its Manager and Desktop minimums when the patcher moved (check_release.PATCHER_CLIENTS), the index summary above its ### groups,'
+        Write-Host "and the README captures when settings changed (SettingsScreenshotTest with HUSH_SCREENSHOTS, then scripts/readme_captures.py --export), review the diff, commit it as 'chore: release $tag', then run -Stage preflight."
     }
 
     'preflight' {
@@ -489,24 +487,21 @@ switch ($Stage) {
         }
         Invoke-Git push origin "refs/tags/$tag"
 
-        & gh release view $tag --repo $Repository *> $null
-        if ($LASTEXITCODE) {
-            Write-Step 'GitHub release'
-            Invoke-Checked 'gh release create' { & gh release create $tag @files --repo $Repository --title $tag --notes-file $notes --verify-tag }
-        } else {
-            Write-Step "release $tag already exists, checking its assets"
-        }
+        # A draft until its assets match the build, so a run that stops halfway leaves nothing public and the rerun uploads the rest.
+        $view = & gh release view $tag --repo $Repository --json isDraft 2> $null
+        if ($LASTEXITCODE) { Invoke-Checked 'gh release create' { & gh release create $tag @files --repo $Repository --title $tag --notes-file $notes --verify-tag --draft }; $view = '{"isDraft": true}' }
+        $draft = [bool](($view | Out-String) | ConvertFrom-Json).isDraft
+        Write-Step "release $tag$(if ($draft) { ' (a draft)' }), checking its assets"
         $download = Join-Path $work 'downloaded'
-        Remove-Item -LiteralPath $download -Recurse -Force -ErrorAction SilentlyContinue
-        Invoke-Checked 'gh release download' { & gh release download $tag --repo $Repository --dir $download }
-        foreach ($file in $files) {
-            $name = Split-Path -Leaf $file
-            $back = Join-Path $download $name
-            if (-not (Test-Path -LiteralPath $back) -or (Get-FileSha256 $back) -ne (Get-FileSha256 $file)) {
-                throw "The released $name differs from the built one."
-            }
+        foreach ($pass in 1, 2) {
+            Remove-Item -LiteralPath $download -Recurse -Force -ErrorAction SilentlyContinue
+            Invoke-Checked 'gh release download' { & gh release download $tag --repo $Repository --dir $download }
+            $wrong = @($files | Where-Object { $back = Join-Path $download (Split-Path -Leaf $_); -not (Test-Path -LiteralPath $back) -or (Get-FileSha256 $back) -ne (Get-FileSha256 $_) })
+            if ($wrong.Count -and (-not $draft -or $pass -eq 2)) { throw ('The released {0} has a missing or different {1}. If the built one is right: gh release upload {0} {2} --repo {3} --clobber' -f $tag, (($wrong | Split-Path -Leaf) -join ', '), (($wrong | ForEach-Object { """$_""" }) -join ' '), $Repository) }
+            if ($wrong.Count) { Invoke-Checked 'gh release upload' { & gh release upload $tag @wrong --repo $Repository --clobber } } else { break }
         }
         Remove-Item -LiteralPath $download -Recurse -Force
+        if ($draft) { Invoke-Checked 'gh release edit' { & gh release edit $tag --repo $Repository --draft=false } }
         Save-Stage 'publish' @{ commit = $build.commit; sha256 = $build.sha256 }
         Write-Step 'published. Next: -Stage index.'
     }

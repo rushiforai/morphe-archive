@@ -417,6 +417,8 @@ Opening someone's profile takes you on to their posts as a scrolling list of ful
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Instagram'ın reel'ler arasına koyduğu, takip edilecek kişi ve içerik üreticisi kartları. Her reel oynatılmaya devam eder.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Ücretli ortaklık etiketi taşıyan reel'leri ve Instagram'ın öne çıkarılmış olarak işaretlediği reel'leri dışarıda bırakır. Reklamların kendi anahtarı var.
 Turn on Start Home on Following to use this choice.	Bu seçimi kullanmak için Ana sayfayı Takip edilenler ile başlat seçeneğini açın.
+# context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
+Turn on %1$s to use this slider.	Bu kaydırıcıyı kullanmak için %1$s seçeneğini açın.
 Turn on Story ring size to use this choice.	Bu seçimi kullanmak için Hikâye halkası boyutu seçeneğini açın.
 Turn on Default playback quality to use this choice.	Bu seçimi kullanmak için Varsayılan oynatma kalitesi seçeneğini açın.
 Updating remembered positions...	Kaydedilen konumlar güncelleniyor...
@@ -503,7 +505,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	Mesajlardaki videolar gibi ilerleme çubuğu
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	Reel'lere sohbetteki bir videonun ilerleme çubuğunu verir. Oynadıkça beyaza dönen ince gri bir çizgi ve büyük, yuvarlak beyaz bir tutamaç. Süre üstünde görünür. Sürükleyerek ilerle. Daha büyük ilerleme çubuğu da açıksa bu görünüm kullanılır. Kısa Reel'lerde de çubuğu tutar.
 Blur the bars around a reel	Reel çevresindeki çubukları bulanıklaştır
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	Ekranı doldurmayan bir Reel, siyah çubuklar yerine üstünde ve altında kendisinin bulanık bir kopyasını gösterir, sekme çubuğunun altındaki şerit ve saatin arkasındaki alan da Reel'i bulanık gösterir. Değişiklikten sonra Reels'i yeniden aç.
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Ekranı doldurmayan bir Reel, siyah çubuklar yerine üstünde ve altında kendisinin bulanık bir kopyasını gösterir, sekme çubuğunun altındaki şerit ve saatin arkasındaki alan da Reel'i bulanık gösterir. Kopya yalnızca Reel'in boşluk bıraktığı yerde görünür, örneğin Reels videosunun tamamını göster açıkken. Değişiklikten sonra Reels'i yeniden aç.
 # Chosen navigation long-press settings entry. Account tab availability varies.
 Settings entry	Ayarlara erişim
 Open settings with a tab long press	Sekmeye uzun basarak ayarları aç
@@ -772,7 +774,7 @@ Bio copied	Biyografi kopyalandı
 Copy bio	Biyografiyi kopyala
 Copy username and bio	Kullanıcı adını ve biyografiyi kopyala
 Profile extras button	Profil ekstra düğmesi
-Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	Profillerde üç noktanın yanına HushGram'ın profil eylemlerini açan bir düğme koyar. Üç nokta menüsündeki satırlar da kalır.
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. Needs Save profile picture, View profile picture or Copy username and bio on. The rows in the three-dot menu stay too.	Profillerde üç noktanın yanına HushGram'ın profil eylemlerini açan bir düğme koyar. Profil fotoğrafını kaydet, Profil fotoğrafını görüntüle veya Kullanıcı adını ve biyografiyi kopyala açık olmalı. Üç nokta menüsündeki satırlar da kalır.
 HushGram profile actions	HushGram profil eylemleri
 Nothing to do for this profile	Yapılacak bir şey yok
 Couldn't copy the bio	Biyografi kopyalanamadı
@@ -946,6 +948,10 @@ The tab bar keeps Instagram's order.	Sekme çubuğu Instagram'ın sırasını ko
 Tabs go in this order: %1$s. Restart Instagram to see the change.	Sekmeler bu sırada: %1$s. Değişikliği görmek için Instagram'ı yeniden başlat.
 Show and reorder tabs	Sekmeleri göster ve sırala
 Drag to move %1$s	%1$s öğesini taşımak için sürükle
+Move up	Yukarı taşı
+Move down	Aşağı taşı
+# context: Show and reorder tabs: what a screen reader is told after Move up or Move down on a row's handle; %1$s is the tab, %2$d its new place and %3$d how many tabs the list holds (#207)
+%1$s is now %2$d of %3$d	%1$s artık %3$d öğeden %2$d. sırada
 Reset	Sıfırla
 Create	Oluştur
 Start tab	Başlangıç sekmesi
@@ -966,6 +972,9 @@ Start stories with sound	Hikayeleri sesli başlat
 Stories open with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count, so on silent or with the volume down, stories stay quiet.	Hikayeler, Instagram'ın hoparlörüne dokunmuş gibi sesi açık olarak açılır. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir, bu yüzden sessizde veya ses kapalıyken hikayeler sessiz kalır.
 Stop swipe up to reply	Yanıtlamak için yukarı kaydırmayı durdur
 A swipe up on someone's story no longer opens the reply box and its reactions. Tap Send message to reply.	Birinin hikayesinde yukarı kaydırmak artık yanıt kutusunu ve tepkilerini açmaz. Yanıtlamak için Mesaj gönder'e dokunun.
+# context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
+Hide the reply box on stories	Hikayelerde yanıt kutusunu gizle
+Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	Başkalarının hikayelerinin altındaki Mesaj gönder kutusunu kaldırır. Yanındaki beğen ve paylaş düğmeleri yerinde kalır.
 # context: toast when Download all is tapped while another post is still saving; it waits its turn
 Queued. It starts once the post before it is saved.	Sırada. Önceki gönderi kaydedilince başlayacak.
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
@@ -1071,6 +1080,9 @@ Turn on Instagram's clear mode on a reel and the next reels open in it too. Leav
 # context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
 Start every reel in clear mode	Her reel'i temiz modda başlat
 Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	Reels'ler ilkinden itibaren dokunmadan temiz modda açılır. Temiz moddan kendin çıkarsan sonraki reels'ler düğmelerini yeniden gösterir. Ekran görüntülerine izin ver açık değilse Instagram temiz modda ekran görüntülerini engeller.
+# context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
+Don't vibrate in clear mode	Temiz modda titreşim olmasın
+Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Bir reel temiz modda açıldığında Instagram'ın yaptığı kısa titreşimi durdurur. Temiz mod açık kalsın açıkken bu her kaydırmada olur.
 Unlock with	Kilidi şununla aç
 Phone lock	Telefon kilidi
 HushGram PIN	HushGram PIN'i
@@ -1262,9 +1274,9 @@ Share to	Şununla paylaş
 Copy link	Bağlantıyı kopyala
 QR code	QR kodu
 WhatsApp status	WhatsApp durumu
-Reply to author	Yazara yanıt ver
+Reply to author (posts and reels)	Yazara yanıt ver (gönderiler ve reels)
 Watch on TV	TV'de izle
-Download profile card	Profil kartını indir
+Download profile card (on profiles)	Profil kartını indir (profillerde)
 Add to channel	Kanala ekle
 WhatsApp	WhatsApp
 SMS	SMS
@@ -1564,6 +1576,8 @@ No accounts yet	Henüz hesap yok
 %1$d account	%1$d hesap
 %1$d accounts	%1$d hesap
 Home header text	Ana Sayfa üst yazısı
+# context: placeholder in the empty Home header text field, where the person types their own words for the top of Home
+Your words	Kendi yazın
 Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Ana Sayfa'nın üstünde Instagram logosu yerine kendi sözlerin. En fazla %1$d karakter. Logoyu tutmak için boş bırak.
 Instagram's logo stays at the top of Home.	Ana Sayfa'nın üstünde Instagram logosu kalır.
 The top of Home says %1$s.	Ana Sayfa'nın üstünde %1$s yazıyor.
@@ -1590,6 +1604,10 @@ Red story mentions	Kırmızı hikaye bahsetmeleri
 Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Bahsetme etiketinin yazısını beyaz yerine kırmızı çizer, böylece parlak hikayelerde öne çıkar.
 Only received reels	Yalnızca alınan reels
 Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Bir sohbetin reels'lerinde gezinirken orada gönderdiklerin atlanır, yalnızca karşı tarafın paylaştıkları gösterilir. Sohbetin reels'lerinde kaydır açıkken çalışır.
+# context: Messages settings (#489), and the banner over a reel opened from a chat when the other person wrote after it; a tap goes back to the chat
+Messages after a reel	Reels videosundan sonraki mesajlar
+While you swipe through a chat's reels, a banner says when the other person sent a message after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe through a chat's reels on.	Bir sohbetin reels videolarında kaydırırken, karşı taraf ekrandaki videodan sonra mesaj gönderdiyse bir afiş bunu gösterir. Sohbette o mesaja dönmek için afişe dokun. Bir sohbetin reels videolarında kaydır açıkken çalışır.
+New message after this reel	Bu videodan sonra yeni mesaj
 Hide the audio icon on posts	Gönderilerdeki ses simgesini gizle
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Akışındaki videolardan hoparlör simgesini kaldırır. Videoya dokunmak sesi yine açıp kapatır. Ekranda zaten olan gönderiler yeniden yüklendiğinde değişir.
 Light when paused	Duraklatınca aydınlık
@@ -1663,3 +1681,55 @@ View once message	Tek seferlik görüntülenen mesaj
 Attachment	Ek
 # context: the button next to the reply field in the chat preview box.
 Send	Gönder
+Dim stories too	Hikayeleri de karart
+Burn-in guard also fades the top and bottom of a story while you watch without touching, the eye button too. Any tap brings them back.	Ekran yanığı koruması, dokunmadan izlerken bir hikayenin üstünü ve altını da soldurur, göz tuşu dahil. Herhangi bir dokunuş geri getirir.
+# context: Reels settings: a switch for a speed icon beside each reel that opens a list of speeds, after Copy text button on reels (#480). Keep the reel speed is HushGram's switch of that name
+Speed button on reels	Reels'te hız düğmesi
+Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Bir reel'in yanına hız simgesi koyar. 0,5x ile 3x arasında bir hız seçmek için dokun. Reel hızını koru açıksa sonraki reel'ler de bu hızda oynar.
+# context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
+Full screen button on reels	Reels'te tam ekran düğmesi
+Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Bir reel'in yanına Tam ekran simgesi koyar, böylece tek dokunuş menüsündeki Tam ekran ile aynı işi yapar. Her reel'i temiz modda başlat her reel'i böyle açar.
+# context: TalkBack label of the speed icon beside a reel (#480)
+Playback speed	Oynatma hızı
+# context: TalkBack label of the Full screen icon beside a reel, Instagram's own term (#480)
+Full screen	Tam ekran
+# context: toast when a speed picked from that icon's list couldn't be set (#480)
+Speed didn't change	Hız değişmedi
+# context: toast when a tap on the Full screen icon couldn't open the reel full screen (#480)
+Full screen didn't open	Tam ekran açılmadı
+# context: Stories switch that lays a story over the whole screen on tall phones (#436)
+Stories fill the screen	Hikayeler ekranı doldursun
+# context: that switch's summary (#436)
+On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	Uzun bir ekranda hikaye, çubuğun üstünde yuvarlak köşeli bir kart yerine daha kısa telefonlardaki gibi tüm ekranı kaplar ve yanıt çubuğu üstünde durur.
+# context: a button in the select-text window that copies the whole text (#492)
+Copy all	Tümünü kopyala
+# context: toast after Copy all in the select-text window (#492)
+Copied	Kopyalandı
+# context: title of the window showing one comment (#492)
+Comment	Yorum
+# context: toast when the select-text window fails (#492)
+Couldn't open the text	Metin açılamadı
+# context: menu row that opens text for selecting (#492)
+Select text	Metni seç
+# context: settings switch title (#492)
+Select text to copy	Kopyalamak için metin seç
+# context: that switch summary (#492)
+Adds Select text to a selected comment's menu, a post's details and a profile's menu. It opens the text in a window where you can select part of it and copy it. Links work there.	Bir yorumun menüsüne, gönderi ayrıntılarına ve profil menüsüne Metni seç ekler. Metin bir pencerede açılır, bir kısmını seçip kopyalayabilirsin. Bağlantılar çalışır.
+# context: notification channel name (#492)
+Unfollow alerts	Takibi bırakma uyarıları
+# context: that channel description (#492)
+Who stopped following you, after you open your Followers list	Takipçi listeni açtıktan sonra seni takibi bırakanlar
+# context: unfollow notification title, one person (#492)
+1 person stopped following you	1 kişi seni takip etmeyi bıraktı
+# context: unfollow notification title, several people (#492)
+%1$d people stopped following you	%1$d kişi seni takip etmeyi bıraktı
+# context: names then a count of the rest (#492)
+%1$s and %2$d more	%1$s ve %2$d kişi daha
+# context: settings switch title (#492)
+Notify me of unfollowers	Takibi bırakanları bildir
+# context: that switch summary (#492)
+After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	Kendi takipçi listeni sonuna kadar kaydırdığında, son seferden beri kimlerin ayrıldığını bildirimle gösterir. Instagram'dan fazladan bir şey istenmez.
+# context: settings switch title and button label, the row Instagram calls About this account (#492)
+About this account	Bu hesap hakkında
+About this account button	Bu hesap hakkında düğmesi
+Puts an (i) next to the three dots on a profile that opens Instagram's About this account for that account. Instagram took its own away.	Profilde üç noktanın yanına, o hesap için Instagram'ın Bu hesap hakkında ekranını açan bir (i) koyar. Instagram kendi düğmesini kaldırdı.

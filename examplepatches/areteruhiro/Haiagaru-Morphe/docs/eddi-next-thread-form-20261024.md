@@ -9,12 +9,12 @@
 
 ## 導入台帳
 
-root: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current`。
+root: `<workspace>`。
 
 2026-10-24 JST、emulator-5554、ChMate0.8.10.242 dev「Haiagaru 検証 242」、`jp.co.airfront.android.a2chMate.haiagaru.resumefix242`へInstallVerifiedApkで既存署名照合install-r Success。データ保持、実機変更なし。
 
-APK絶対パス `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/eddi-next-thread-form242.apk`、SHA256 `2D0FC3BB4A8AD10C9346BA5C6D0BF41E18607E8ED2B56973C61264ACC2F8E140`。
+APK絶対パス `<workspace>/build/eddi-next-thread-form242.apk`、SHA256 `2D0FC3BB4A8AD10C9346BA5C6D0BF41E18607E8ED2B56973C61264ACC2F8E140`。
 
-MPP絶対パス `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/eddi-next-thread-form.mpp`、SHA256 `8AC85CD3E077AD29E07ED8022700C3C17C790B1229CAFCCE48F8402F0337B8F0`。
+MPP絶対パス `<workspace>/build/eddi-next-thread-form.mpp`、SHA256 `8AC85CD3E077AD29E07ED8022700C3C17C790B1229CAFCCE48F8402F0337B8F0`。
 
 鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias Morphe、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。インストールログbuild/eddi-next-thread-form242-install.log。共通ソースの191/226導入は未実施。並行変更を含む作業ツリー候補であり、公開Releaseではない。版名更新/公開なし。

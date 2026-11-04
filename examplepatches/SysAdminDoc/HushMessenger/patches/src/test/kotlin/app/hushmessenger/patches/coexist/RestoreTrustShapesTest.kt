@@ -2,7 +2,6 @@ package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.controls.controlProfiles
 import app.hushmessenger.patches.controls.fixtureMethod
-import app.hushmessenger.patches.controls.redexStringTables
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -165,6 +164,37 @@ class RestoreTrustShapesTest {
     }
 
     @Test
+    fun `an fbns check that refuses leaves the signers method as Messenger wrote it`() {
+        val signers = signersMethod(6)
+        val fbns = fbnsCheck(read = "iget-object v2, v0, $SIGNATURES\niget-object v2, v0, $SIGNATURES")
+        val before = signers.body()
+        val fbnsBefore = fbns.body()
+        val failure = assertThrows(PatchException::class.java) { signers.restoreSigners("packageInfo", "Lfixture/Signers;", fbns) }
+        assertEquals(true, failure.message.orEmpty().contains("found 2"), failure.message)
+        assertEquals(before, signers.body())
+        assertEquals(fbnsBefore, fbns.body())
+    }
+
+    @Test
+    fun `a signers method that refuses leaves fbns as Messenger wrote it`() {
+        val signers = signersMethod(6, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+        val fbns = fbnsCheck()
+        val fbnsBefore = fbns.body()
+        assertThrows(PatchException::class.java) { signers.restoreSigners("packageInfo", "Lfixture/Signers;", fbns) }
+        assertEquals(fbnsBefore, fbns.body())
+    }
+
+    @Test
+    fun `both signer edits land together`() {
+        val signers = signersMethod(6)
+        val fbns = fbnsCheck()
+        val fbnsBefore = fbns.body()
+        signers.restoreSigners("packageInfo", "Lfixture/Signers;", fbns)
+        assertEquals(originalSigners, (signers.body()[2].reference as MethodReference).toString())
+        assertRouted(fbnsBefore, fbns.body(), "together")
+    }
+
+    @Test
     fun `the fbns mirror wants the read before both strings`() {
         assertEquals(true, fbnsCheck().isFbnsPackageCheck())
         val tagFirst = fixtureMethod(
@@ -323,26 +353,18 @@ class RestoreTrustShapesTest {
     }
 
     @Test
-    fun `a link launcher's package may come from a string table but has to load before its tag`() {
-        val table = "LX/000;->A00(I)Ljava/lang/String;"
-        val tables = mapOf(table to mapOf(0x2a to "com.instagram.barcelona", 0x2b to "com.instagram.android"))
-        // 585's 347014990 family: the key, the table call, and the package in the register setPackage reads.
-        val lookup = "const/16 v0, 0x2a\ninvoke-static {v0}, $table\nmove-result-object v2"
-        for (method in listOf(threadsLauncher(), threadsLauncher(pkg = lookup))) {
-            method.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG, tables)
-            assertEquals(1, method.linkLaunchSites("Threads").size)
-        }
+    fun `a link launcher's package has to load before its tag`() {
+        val method = threadsLauncher()
+        method.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG)
+        assertEquals(1, method.linkLaunchSites("Threads").size)
         val cases = listOf(
-            "another app's package" to threadsLauncher(pkg = lookup.replace("0x2a", "0x2b")),
-            "a key the table doesn't have" to threadsLauncher(pkg = lookup.replace("0x2a", "0x2c")),
-            "a lookup in something that isn't a table" to threadsLauncher(pkg = lookup.replace(table, "LX/001;->A00(I)Ljava/lang/String;")),
-            "a key in another register" to threadsLauncher(pkg = lookup.replace("const/16 v0", "const/16 v3")),
+            "another app's package" to threadsLauncher(pkg = "const-string v2, \"com.instagram.android\""),
             "no package" to threadsLauncher(pkg = ""),
             "the package after the tag" to threadsLauncher(pkg = "", tail = "const-string v2, \"com.instagram.barcelona\""),
         )
         for ((case, method) in cases) {
             val before = method.body()
-            val failure = assertThrows(PatchException::class.java, { method.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG, tables) }, case)
+            val failure = assertThrows(PatchException::class.java, { method.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG) }, case)
             assertEquals(true, failure.message.orEmpty().contains("doesn't load com.instagram.barcelona"), case)
             assertEquals(before, method.body(), case)
         }
@@ -364,11 +386,10 @@ class RestoreTrustShapesTest {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val methods = classes.flatMap { it.methods }
-            val tables = redexStringTables(classes)
             for ((app, tag) in listOf("com.instagram.barcelona" to THREADS_LINK_TAG, "com.instagram.android" to INSTAGRAM_LINK_TAG)) {
                 val launchers = methods.filter { it.isLinkLauncher(tag) }
                 assertEquals(1, launchers.size, "$code $tag")
-                launchers.single().requireLinkPackage(tag, app, tag, tables)
+                launchers.single().requireLinkPackage(tag, app, tag)
                 val method = MutableMethod(launchers.single())
                 val before = method.body()
                 val sites = method.linkLaunchSites(tag)

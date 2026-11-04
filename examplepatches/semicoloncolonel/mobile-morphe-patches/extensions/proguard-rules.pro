@@ -9,6 +9,8 @@
 # blockWebRequest / filterJsRequestUrl are called only from injected smali via invoke-static, and
 # BlockInterceptor is matched by instanceof, so R8 must keep all of them.
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.TrackerBlocker {
+    # Overwritten by patches, so R8 must not fold its constant answer.
+    public static boolean keepBraze();
     public static *** openConnection(java.net.URL);
     public static void install(okhttp3.OkHttpClient$Builder);
     public static *** blockWebRequest(android.webkit.WebResourceRequest);
@@ -115,3 +117,60 @@
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.ProxyRouter { *; }
 -keep class semicoloncolonel.mobilestream.extension.whitehouse.PromoHider { *; }
 -keep class semicoloncolonel.mobilestream.extension.recgov.HiddenDetails { public static *; }
+
+# YouTube TV — "Skip ads". onCuePointProvider() is called only from injected
+# smali in PlaybackControllerWrapper.
+-keep class semicoloncolonel.mobilestream.extension.yttv.ads.YttvDaiDisabler {
+    public static void onCuePointProvider(java.lang.Object);
+}
+
+# YouTube TV and Moviebase — "GmsCore support". checkGmsCore() is called only
+# from injected smali in the main activity's onCreate, and getOriginalPackageName /
+# getGmsCoreVendorGroupId are overwritten by the patch, so R8 must keep them
+# as they are and not fold their result.
+-keep class semicoloncolonel.mobilestream.extension.shared.misc.GmsCoreSupport {
+    public static *;
+}
+
+# FEMA — "Save content for offline use". request() is called only from
+# injected smali in CapacitorHttp$1.run.
+-keep class semicoloncolonel.mobilestream.extension.fema.OfflineCache {
+    public static java.lang.Object request(java.lang.Object, java.lang.String, java.lang.Object);
+}
+
+# YouTube TV — "Block telemetry". shouldBlock() is called only from injected
+# smali in the app's HTTP ping service.
+-keep class semicoloncolonel.mobilestream.extension.yttv.privacy.PingFilter {
+    public static boolean shouldBlock(android.net.Uri);
+}
+
+# Fandango at Home — "Mask ads". Called only from injected smali in
+# PlaybackData and PlayerActivity.
+-keep class semicoloncolonel.mobilestream.extension.fandango.ads.AdMask {
+    public static *;
+}
+
+# FEMA — "Save content for offline use". ImageCache is called only from
+# injected smali in BridgeWebViewClient; the shortcut activity and the save
+# service are referenced only from the manifest.
+-keep class semicoloncolonel.mobilestream.extension.fema.ImageCache { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.fema.OfflineShortcutActivity { *; }
+-keep class semicoloncolonel.mobilestream.extension.fema.OfflineSaveService { *; }
+
+# The Washington Post — "Disable AI". withoutAsk() is called only from
+# injected smali in the bottom bar's view model.
+-keep class semicoloncolonel.mobilestream.extension.washingtonpost.AskTabFilter { public static *; }
+
+# CBS News — "Skip ads". hide() is called only from injected smali in
+# StickyBannerAds.startAdRequest.
+-keep class semicoloncolonel.mobilestream.extension.cbsnews.StickyBannerHider { public static *; }
+
+# ABC News — "Mask live ad breaks". Called only from injected smali in
+# BreakEventProcessor and ComponentActivity.onCreate.
+-keep class semicoloncolonel.mobilestream.extension.abcnews.LiveBreakMask { public static *; }
+
+# Moviebase — "Hide Premium upsell". isAutomatic() is called only from injected
+# smali in the Premium screen opener.
+-keep class semicoloncolonel.mobilestream.extension.moviebase.UpsellFilter {
+    public static boolean isAutomatic(java.lang.Object);
+}

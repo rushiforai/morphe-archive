@@ -1,0 +1,11 @@
+# Shizuku対応の削除
+
+利用者の指定により、任意パッチ「Migrate ChMate data with Shizuku」を削除。
+
+移行UIの設定入口・反射呼び出し、専用extensionモジュール、AIDL、移行サービス、provider／権限を追加するパッチ、API／providerへの依存、関連ProGuardルール、READMEの案内を削除。標準バックアップとHaiagaruのローカル／MEGAバックアップは維持する。既存アプリのデータは操作しない。
+
+生成済みの旧専用MPEをビルド入力から外し、配布バンドルに含まれないことを検査する。過去のリリース・履歴や導入記録は書き換えない。
+
+適用試験で、従来のHTTPSフックが拡張内部のR8生成名を参照していた問題を検出。固定リストには対象でない補間クラスも含まれていた。Media3のHTTPソースとOkHttp URL Builderのクラス名を保持し、その確定名を参照するよう変更した。AndroidX側は既存の隔離処理後の確定名を指定する。全クラスを検出するフォールバックは追加しない。
+
+通常Lint付きbuild／buildAndroidが成功。候補MPPに移行patch／MPEがないこと、完成APKに移行クラス・Shizuku API／provider権限がないことを検査する。未公開。

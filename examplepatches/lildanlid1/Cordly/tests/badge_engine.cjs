@@ -197,7 +197,7 @@ const heartbeats = w => events(w, 'running_game_heartbeat');
         ok(w.api.badgeGrantWait() === 0 && w.api.badgeGrantRecord().hours === 0, 'another account has its own cooldown, total and days');
     }
     {
-        // A day Venus played on live is never filled again later.
+        // A day Conduit played on live is never filled again later.
         const w = world({progress: {GAME_TIME: 0}});
         w.api.BADGE_FALLBACK_GAMES.slice(0, 8).forEach(g => w.api.badges.played.add(g.id));
         const user = w.api.badges.user, yesterday = w.api.badgeGrantDays(user)[0];

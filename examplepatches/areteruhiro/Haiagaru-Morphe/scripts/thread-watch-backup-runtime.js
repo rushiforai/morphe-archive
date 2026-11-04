@@ -1,0 +1,37 @@
+/* Synthetic subscriptions only; restores original preferences and JobScheduler state. */
+function run(fn){return new Promise((resolve,reject)=>Java.perform(()=>{try{resolve(fn());}catch(e){reject(Error(String(e.stack||e)));}}));}
+rpc.exports={test(){return run(()=>{
+ const app=Java.use('android.app.ActivityThread').currentApplication();if(!/^jp\.co\.airfront\.android\.a2chMate\.haiagaru\.bindings(191|226|242)$/.test(String(app.getPackageName())))throw Error('isolated bindings package required');
+ const W=Java.use('app.morphe.extension.chmate.ThreadWatch'),S=Java.use('app.morphe.extension.chmate.HaiagaruSyncSnapshot'),B=Java.use('app.morphe.extension.chmate.ThreadWatchBackup'),J=Java.use('org.json.JSONObject'),StringClass=Java.use('java.lang.String'),Entry=Java.use('java.util.Map$Entry');
+ const p=app.getSharedPreferences('haiagaru_thread_watch',0),options=app.getSharedPreferences('haiagaru_thread_watch_options',0),jobs=Java.cast(app.getSystemService('jobscheduler'),Java.use('android.app.job.JobScheduler'));
+ if(!p.getAll().isEmpty())throw Error('existing subscriptions must be preserved');
+ const saved=[p,options].map(x=>[x,Java.retain(x.getAll())]);const url='https://fixture.invalid/test/read.cgi/a/1793113633/',other='https://fixture.invalid/test/read.cgi/a/1793113634/',key='threadNotifications',jobId=0x48690031;let checks=0;
+ function check(ok,label){if(!ok)throw Error(label);checks++;}
+ function clone(x){return J.$new(String(x.toString()));}
+ function capture(flags){return J.$new(StringClass.$new(S.captureMetadata(app,flags),'UTF-8'));}
+ function item(url){return J.$new(p.getString(url,'{}'));}
+ function put(url,count,token){p.edit().putString(url,JSON.stringify({count,token})).commit();}
+ function bad(data,label){const before=p.getAll(),minutes=options.getAll();let rejected=false;try{B.restore(app,J.$new(JSON.stringify(data)),false);}catch(e){rejected=true;}check(rejected,label);check(before.equals(p.getAll())&&minutes.equals(options.getAll()),label+' leaves subscriptions intact');}
+ try{
+  put(url,20,'fixture-original-token');options.edit().putInt('minutes',2880).commit();const snapshot=capture(4),data=snapshot.getJSONObject(key);
+  check(data.getInt('intervalMinutes')===2880,'interval captured');check(data.getJSONArray('threads').length()===1,'registered thread captured');check(data.getJSONArray('threads').getJSONObject(0).getInt('count')===20,'high-water count captured');check(!String(data.toString()).includes('token'),'operation token not exported');check(!capture(2).has(key),'NG-only backup excludes notifications');
+  put(other,99,'fixture-other');options.edit().putInt('minutes',3).commit();S.restore(app,snapshot,4);
+  check(p.getAll().size()===1&&p.contains(url)&&!p.contains(other),'full restore replaces subscription set');check(item(url).getInt('count')===20,'count restored');const firstToken=String(item(url).optString('token'));check(firstToken!=='fixture-original-token'&&firstToken.length>0,'fresh in-flight guard');check(options.getInt('minutes',0)===2880,'interval restored');let job=jobs.getPendingJob(jobId);check(job!==null&&job.isPeriodic()&&job.getExtras().getInt('minutes')===2880,'periodic job rearmed');
+  S.restore(app,snapshot,4);check(p.getAll().size()===1&&item(url).getInt('count')===20,'repeated restore does not multiply registrations');check(String(item(url).optString('token'))!==firstToken,'repeated restore invalidates old worker token');
+  const legacy=clone(snapshot);legacy.remove(key);put(other,7,'fixture-legacy');options.edit().putInt('minutes',3).commit();W.schedule.overload('android.content.Context').call(W,app);const old=p.getAll();S.restore(app,legacy,4);check(old.equals(p.getAll())&&options.getInt('minutes',0)===3,'old backup preserves device subscriptions and interval');
+  const empty=clone(snapshot);empty.put(key,J.$new('{"intervalMinutes":1,"threads":[]}'));S.restore(app,empty,4);check(p.getAll().isEmpty(),'explicit empty backup clears subscriptions');check(jobs.getPendingJob(jobId)===null,'empty restore cancels job');check(options.getInt('minutes',0)===1,'one-minute interval restored');
+  const incoming=clone(snapshot);incoming.put(key,J.$new(JSON.stringify({intervalMinutes:10080,threads:[{url,count:-1},{url:other,count:7}]})));S.restore(app,incoming,4);check(item(url).getInt('count')===-1,'uninitialized baseline retained');check(options.getInt('minutes',0)===10080,'seven-day interval supported');
+  put(url,45,'fixture-local');p.edit().remove(other).commit();options.edit().putInt('minutes',1).commit();W.schedule.overload('android.content.Context').call(W,app);S.mergeMissing(app,incoming,4);check(item(url).getInt('count')===45&&String(item(url).optString('token'))==='fixture-local','merge preserves local count and token');check(p.contains(other)&&item(other).getInt('count')===7,'merge adds missing subscription');check(options.getInt('minutes',0)===1,'merge preserves local interval');job=jobs.getPendingJob(jobId);check(job!==null&&!job.isPeriodic()&&job.getExtras().getInt('minutes')===1,'short one-shot job rearmed');const unchanged=p.getAll();S.mergeMissing(app,incoming,4);check(unchanged.equals(p.getAll()),'repeated merge preserves subscriptions');
+  for(const minutes of [0,10081,1.5])bad({intervalMinutes:minutes,threads:[]},'reject invalid interval '+minutes);
+  bad({intervalMinutes:1,threads:[{url:'javascript:alert(1)',count:0}]},'reject invalid URL');bad({intervalMinutes:1,threads:[{url,count:-2}]},'reject invalid count');bad({intervalMinutes:1,threads:[{url,count:0},{url:url.replace('https:','http:'),count:0}]},'reject normalized duplicate');
+  const hundred=[];for(let i=0;i<100;i++)hundred.push({url:'https://fixture.invalid/test/read.cgi/a/'+(1800000000+i)+'/',count:0});const before=p.getAll();let rejected=false;try{B.restore(app,J.$new(JSON.stringify({intervalMinutes:1,threads:hundred})),true);}catch(e){rejected=true;}check(rejected&&before.equals(p.getAll()),'over-capacity merge rejected without truncation');
+  const description=String(S.describeChanges(app,snapshot,4,false));check(description.includes('スレ新着通知: 1件')&&description.includes('2日'),'restore preview includes subscriptions and interval');
+  const Archive=Java.use('app.morphe.extension.chmate.HaiagaruBackupArchive'),disk=Archive.read(app,Archive.capture(app,4));
+  try{p.edit().clear().commit();options.edit().clear().commit();Archive.restore(app,disk,4,false);}finally{disk.close();}
+  check(p.contains(url)&&p.contains(other),'ZIP round trip restores subscriptions');check(options.getInt('minutes',0)===1,'ZIP round trip restores interval');check(jobs.getPendingJob(jobId)!==null,'ZIP round trip re-arms background check');
+  return {ok:true,checks,realNetworkRequests:0};
+ }finally{
+  for(const [prefs,map] of saved){const e=prefs.edit().clear(),it=map.entrySet().iterator();while(it.hasNext()){const row=Java.cast(it.next(),Entry),name=String(row.getKey()),v=row.getValue(),t=String(v.getClass().getName());if(t==='java.lang.Integer')e.putInt(name,Java.cast(v,Java.use(t)).intValue());else if(t==='java.lang.String')e.putString(name,String(v));else if(t==='java.lang.Long')e.putLong(name,Java.cast(v,Java.use(t)).longValue());else if(t==='java.lang.Boolean')e.putBoolean(name,Java.cast(v,Java.use(t)).booleanValue());else throw Error('unexpected fixture preference type');}if(!e.commit())throw Error('fixture cleanup failed');}
+  jobs.cancel(jobId);W.schedule.overload('android.content.Context').call(W,app);
+ }
+ });}};

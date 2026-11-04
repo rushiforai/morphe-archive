@@ -1,16 +1,14 @@
 package app.fakh.patches.kompas
 
 import app.fakh.patches.kompas.shared.Constants.COMPATIBILITY_KOMPAS
-import app.fakh.patches.shared.gms.mutableClass
+import app.fakh.patches.shared.web.wrapWebClients
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -100,27 +98,7 @@ val hideAdsPatch = bytecodePatch(
         NativeLoadAdFingerprint.method.addInstruction(0, "return-void")
         InterstitialLoadFingerprint.method.addInstruction(0, "return-void")
         // The kompas.com pages the app opens in a WebView carry the site's own banners.
-        var webClients = 0
-        WEB_PAGE_SCREENS.forEach { type ->
-            mutableClass(type).methods.filter { it.implementation != null }.forEach { method ->
-                method.instructions.withIndex().filter { (_, instruction) ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    instruction.opcode == Opcode.INVOKE_VIRTUAL && reference?.name == "setWebViewClient" &&
-                        reference.parameterTypes == listOf("Landroid/webkit/WebViewClient;")
-                }.forEach { (index, instruction) ->
-                    val call = instruction as FiveRegisterInstruction
-                    method.replaceInstruction(
-                        index,
-                        "invoke-static { v${call.registerC}, v${call.registerD} }, " +
-                            "$WEB_ADS->setClient(Landroid/webkit/WebView;Landroid/webkit/WebViewClient;)V",
-                    )
-                    webClients++
-                }
-            }
-        }
-        if (webClients != WEB_PAGE_SCREENS.size) {
-            throw PatchException("Kompas: expected ${WEB_PAGE_SCREENS.size} web page clients, found $webClients")
-        }
+        wrapWebClients(WEB_PAGE_SCREENS, WEB_ADS)
         TeadsBindFingerprint.method.addInstructions(
             0,
             """

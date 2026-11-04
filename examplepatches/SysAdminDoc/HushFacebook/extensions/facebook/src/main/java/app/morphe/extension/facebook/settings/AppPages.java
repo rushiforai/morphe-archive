@@ -142,8 +142,8 @@ final class AppPages {
         menu.addPreference(settingsShortcut);
         ways.add(Settings.SETTINGS_SHORTCUT, settingsShortcut);
         SwitchPreference logoPress = toggle(context, Settings.SETTINGS_LOGO_PRESS,
-                L10n.t("A long press on the Facebook logo at the top of the home feed opens these settings. Off, "
-                        + "the long press goes back to Facebook."));
+                L10n.t("A long press on the Facebook logo at the top of the home feed, or on the title at the top "
+                        + "of another tab, opens these settings. Off, the long press goes back to Facebook."));
         logoPress.setOnPreferenceChangeListener((preference, value) -> {
             Settings.SETTINGS_LOGO_PRESS.save((Boolean) value);
             ways.refresh();
@@ -279,7 +279,7 @@ final class AppPages {
                             + "words to keep, words to hide and places, and writes the rules into the search for you."))
                     .needs(Settings.MARKETPLACE_ADVANCED_SEARCH));
             marketplace.addPreference(toggle(context, Settings.MARKETPLACE_LISTING_DATE,
-                    L10n.t("A listing's page says how long ago it was listed and the date, next to its place. "
+                    L10n.t("A listing's page says how long ago it was listed and the date, under its price and next to its place. "
                             + "Facebook only shows it for new listings.")));
         }
         if (build.contains(PatchFamily.SELLER_VIEW_PROFILE)) {

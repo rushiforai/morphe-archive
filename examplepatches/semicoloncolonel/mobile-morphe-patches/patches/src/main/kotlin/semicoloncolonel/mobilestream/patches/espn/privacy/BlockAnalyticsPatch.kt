@@ -21,10 +21,9 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops third-party analytics and tracking in the ESPN app: Braze, New Relic, " +
-        "Conviva, Nielsen, comScore, Kochava, Adobe Analytics and Firebase. Blocking happens " +
-        "on the device, inside the app. TV provider sign-in and playback are left alone. " +
-        "Opt-in / experimental; test on-device.",
+    description = "Stops third-party analytics and tracking in the ESPN app: Braze, New Relic, Conviva, " +
+        "Nielsen, comScore, Kochava, Adobe Analytics and Firebase. TV provider sign-in and " +
+        "playback are left alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

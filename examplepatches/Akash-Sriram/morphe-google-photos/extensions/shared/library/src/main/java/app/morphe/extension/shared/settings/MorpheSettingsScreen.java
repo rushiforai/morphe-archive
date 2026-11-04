@@ -786,10 +786,18 @@ public final class MorpheSettingsScreen {
                 DeviceSpoofHelper.PROFILE_PIXEL_5.equals(selected[0])
         );
 
+        View cardOriginal = createProfileOptionCard(
+                activity, density, theme,
+                "Original Device (Disabled)",
+                "Spoofing disabled • Real device identity, Video Boost eligible, all backup qualities active",
+                DeviceSpoofHelper.PROFILE_ORIGINAL.equals(selected[0])
+        );
+
         Runnable refreshSelection = () -> {
             updateOptionCardSelection(cardAuto, DeviceSpoofHelper.PROFILE_AUTO.equals(selected[0]), theme);
             updateOptionCardSelection(cardXl, DeviceSpoofHelper.PROFILE_PIXEL_XL.equals(selected[0]), theme);
             updateOptionCardSelection(cardP5, DeviceSpoofHelper.PROFILE_PIXEL_5.equals(selected[0]), theme);
+            updateOptionCardSelection(cardOriginal, DeviceSpoofHelper.PROFILE_ORIGINAL.equals(selected[0]), theme);
         };
 
         cardAuto.setOnClickListener(v -> {
@@ -807,9 +815,15 @@ public final class MorpheSettingsScreen {
             refreshSelection.run();
         });
 
+        cardOriginal.setOnClickListener(v -> {
+            selected[0] = DeviceSpoofHelper.PROFILE_ORIGINAL;
+            refreshSelection.run();
+        });
+
         optionsContainer.addView(cardAuto);
         optionsContainer.addView(cardXl);
         optionsContainer.addView(cardP5);
+        optionsContainer.addView(cardOriginal);
         layout.addView(optionsContainer);
 
         TextView tvNotice = new TextView(activity);

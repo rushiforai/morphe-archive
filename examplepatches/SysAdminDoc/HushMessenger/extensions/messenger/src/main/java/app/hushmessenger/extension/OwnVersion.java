@@ -48,7 +48,7 @@ public final class OwnVersion {
         return code;
     }
 
-    /** The code in "585.0.0.53.94|347015062|base", or 0 for anything else. */
+    /** The code in "586.0.0.55.92|347215348|base", or 0 for anything else. */
     static long originalCode(String build) {
         Matcher parts = ProblemReport.ORIGINAL.matcher(build == null ? "" : build);
         if (!parts.matches()) return 0;

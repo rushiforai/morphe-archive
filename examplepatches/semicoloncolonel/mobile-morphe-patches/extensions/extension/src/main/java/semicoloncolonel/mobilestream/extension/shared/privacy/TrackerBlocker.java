@@ -65,7 +65,8 @@ public final class TrackerBlocker {
             // Attribution
             "adjust.com", "adjust.io", "adjust.world", "adjust.net.in",
             "branch.io",
-            // Marketing / engagement
+            // Marketing / engagement. Some apps also deliver push alerts
+            // through Braze; see keepBraze().
             "braze.com", "braze.eu", "appboy.com",
             // Audience and video measurement
             "conviva.com",
@@ -124,6 +125,16 @@ public final class TrackerBlocker {
             // JustWatch (26.43.10)
             "sp.justwatch.com", "t.justwatch.com", // JustWatch's own Snowplow event collectors
             "singular.net", // Singular attribution
+            // Fandango at Home (10.24)
+            "kochava.kvaedit.site", "kochava.dewrain.life", // Kochava fallback hosts
+            // CBS News (5.20)
+            "saa.cbsi.com", // CBS's Adobe Analytics
+            "data.flurry.com", "cfg.flurry.com", // Flurry
+            "siteintercept.qualtrics.com", // Qualtrics survey targeting
+            "z.moatads.com", "px.moatads.com", // Moat ad measurement
+            "events.brightline.tv", // Brightline ad events
+            // Moviebase (7.7.0)
+            "api-diagnostics.revenuecat.com", // RevenueCat SDK diagnostics, not purchases
             // NPS (2.15.0)
             "events.mapbox.com", // Mapbox map usage events
             // Google Analytics / Firebase Analytics upload
@@ -168,7 +179,24 @@ public final class TrackerBlocker {
 
     private static final Set<String> logged = Collections.synchronizedSet(new HashSet<>());
 
+    private static final String[] BRAZE_DOMAINS = {"braze.com", "braze.eu", "appboy.com"};
+
     private TrackerBlocker() {
+    }
+
+    /**
+     * Whether Braze is left alone. False here; an app's analytics patch makes
+     * it return true when the app delivers its push alerts through Braze.
+     */
+    public static boolean keepBraze() {
+        return false;
+    }
+
+    private static boolean isBraze(String host) {
+        for (String domain : BRAZE_DOMAINS) {
+            if (matches(host, domain)) return true;
+        }
+        return false;
     }
 
     public static boolean isBlocked(String host) {
@@ -176,6 +204,9 @@ public final class TrackerBlocker {
             return false;
         }
         String h = host.toLowerCase();
+        if (keepBraze() && isBraze(h)) {
+            return false;
+        }
         for (String domain : BLOCKED_DOMAINS) {
             if (matches(h, domain)) {
                 return true;

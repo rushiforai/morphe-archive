@@ -450,6 +450,48 @@ public final class StreamRanker {
         return episodeKind(stream, reqSeason, reqEpisode) != EP_REJECT;
     }
 
+    // ---- chapter swap (background only: a same-quality file with chapters may replace the winner) ----
+
+    /** At most this many other files get a chapter read while looking for a swap. */
+    static final int MAX_CHAPTER_SWAP_READS = 4;
+
+    /** HDR class of a file: 0 SDR, 1 HDR, 2 Dolby Vision. Classes never mix in a swap. */
+    static int hdrClass(ParsedMeta meta) {
+        if (meta == null) return -1;
+        return meta.dolbyVision ? 2 : meta.hdr ? 1 : 0;
+    }
+
+    /**
+     * True when alt may replace winner for its chapters: cached, a playable link, the same
+     * resolution, the same HDR class, and the requested episode by the ranker's own checks.
+     * Size is no bar: a much smaller file of the same class still wins.
+     */
+    static boolean chapterSwapEligible(Ranked winner, Ranked alt, int reqSeason, int reqEpisode) {
+        if (winner == null || alt == null || alt.stream == null) return false;
+        if (alt.stream.url == null || alt.stream.url.length() == 0) return false;
+        if (!alt.meta.cached) return false;
+        if (alt.meta.resolution != winner.meta.resolution) return false;
+        if (hdrClass(alt.meta) != hdrClass(winner.meta)) return false;
+        return reqEpisode <= 0 || episodeMatches(alt.stream, reqSeason, reqEpisode);
+    }
+
+    /** Eligible replacements of ranked[0], in ranked order (largest first in its class), at most 4. */
+    static List<Ranked> chapterSwapCandidates(List<Ranked> ranked, int reqSeason, int reqEpisode) {
+        List<Ranked> out = new ArrayList<Ranked>();
+        if (ranked == null || ranked.size() < 2) return out;
+        Ranked winner = ranked.get(0);
+        for (int i = 1; i < ranked.size() && out.size() < MAX_CHAPTER_SWAP_READS; i++) {
+            Ranked alt = ranked.get(i);
+            if (chapterSwapEligible(winner, alt, reqSeason, reqEpisode)) out.add(alt);
+        }
+        return out;
+    }
+
+    /** The swap may run only with the setting on, the entry still current, and Next not yet pressed. */
+    static boolean chapterSwapAllowed(boolean settingOn, boolean stillCurrent, boolean used) {
+        return settingOn && stillCurrent && !used;
+    }
+
     static int episodeKind(Stream stream, int reqSeason, int reqEpisode) {
         return episodeKind(stream, reqSeason, reqEpisode, 0);
     }

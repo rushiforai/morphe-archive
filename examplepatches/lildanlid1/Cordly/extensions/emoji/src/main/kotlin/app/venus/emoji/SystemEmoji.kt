@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
  * on, the emoji is drawn once with the phone's own emoji font (or an emoji font you imported) into a small PNG in Discord's cache,
  * and that file is used instead, so sizes, spoilers and taps keep working as before.
  *
- * Read from the saved Cordly setting once at launch, so one session never mixes the two styles.
+ * Read from the saved Conduit setting once at launch, so one session never mixes the two styles.
  * Only Java/Android APIs: the host's Kotlin helpers are obfuscated.
  */
 object SystemEmoji {
@@ -50,7 +50,7 @@ object SystemEmoji {
     private const val NAME_FILE = "emoji.name"
     private const val MAX_FONT = 64L * 1024 * 1024
     /** The font family React Native emojis ask for while an imported emoji font is in use (see bootstrap.js). */
-    private const val FAMILY = "CordlyEmoji"
+    private const val FAMILY = "VenusEmoji"
 
     /** Reads the saved setting once, before any emoji is drawn. Any problem leaves Discord's emojis alone. */
     @JvmStatic
@@ -59,7 +59,7 @@ object SystemEmoji {
         imported = null
         enabled = try {
             val file = File(context!!.filesDir, PREFS)
-            // Starts off, like every Cordly setting: no saved settings yet, or none for this switch, means off.
+            // Starts off, like every Conduit setting: no saved settings yet, or none for this switch, means off.
             val on = file.isFile && file.length() <= MAX_PREFS &&
                 savedOn(file)
             if (on && useFile) imported = try { load(File(File(context.filesDir, FILES), FONT_FILE)) } catch (_: Throwable) { null }
@@ -78,7 +78,7 @@ object SystemEmoji {
                             // Releases up to 1.7.0 drew straight into this folder: those loose files go too.
                             if (old != null) for (stale in old) if (stale.name != folder.name) { if (stale.isDirectory) removeFolder(stale) else stale.delete() }
                         } catch (_: Throwable) { }
-                    }, "Cordly-Emoji-Cleanup")
+                    }, "Conduit-Emoji-Cleanup")
                     cleanup.isDaemon = true
                     cleanup.priority = Thread.MIN_PRIORITY
                     cleanup.start()
@@ -117,7 +117,7 @@ object SystemEmoji {
     /**
      * Reopens Discord so a changed emoji setting applies everywhere at once. Called through
      * FileModule.getVideoDimensions' Promise: Discord for Android never uses that method (it only
-     * answers "only supported on iOS"), so no other Cordly guard shares it.
+     * answers "only supported on iOS"), so no other Conduit guard shares it.
      */
     @JvmStatic
     fun dispatch(request: String, promise: Promise) {
@@ -207,7 +207,7 @@ object SystemEmoji {
     }
 
     /**
-     * Copies an emoji font Cordly picked (a private copy in Discord's cache, from Android's file picker) into Discord's
+     * Copies an emoji font Conduit picked (a private copy in Discord's cache, from Android's file picker) into Discord's
      * files, after checking Android can draw emojis with it. Off the bridge thread: emoji fonts are often 10-30 MB.
      * The request is {"path", "name"}; only files inside Discord's own cache are accepted.
      */
@@ -246,7 +246,7 @@ object SystemEmoji {
             } finally {
                 try { source?.delete() } catch (_: Throwable) { }
             }
-        }, "Cordly-Emoji-Import")
+        }, "Conduit-Emoji-Import")
         worker.isDaemon = true
         worker.start()
     }
@@ -320,7 +320,7 @@ object SystemEmoji {
 
     /**
      * Whether the saved settings turn this on. Runs on Discord's main thread before the first screen:
-     * Cordly writes them with JSON.stringify, so a file without `"systemEmoji":true` (the switch off, the
+     * Conduit writes them with JSON.stringify, so a file without `"systemEmoji":true` (the switch off, the
      * common case) needs no JSON parsing. Anything else is parsed exactly as before.
      */
     private fun savedOn(file: File): Boolean {

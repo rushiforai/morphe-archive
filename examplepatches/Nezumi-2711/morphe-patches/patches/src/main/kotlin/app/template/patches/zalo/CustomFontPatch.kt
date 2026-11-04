@@ -163,7 +163,7 @@ val customFontPatch = bytecodePatch(
         check(ZaloZinstantTextFontFingerprint.matchAll(1..1).size == 1)
         if (packageMetadata.versionName == "26.10.02") {
             applyCurrentFontHooks()
-            attachNezumiSettings()
+            attachNezumiSettings("attachCustomFont")
             return@execute
         }
         check(ZaloZinstantText2FontFingerprint.matchAll(1..1).size == 1)
@@ -411,7 +411,7 @@ val customFontPatch = bytecodePatch(
             move-result-object v2
             invoke-virtual {v0, v2}, Lru1/l;->K0(Landroid/graphics/Typeface;)V
         """.trimIndent())
-        attachNezumiSettings()
+        attachNezumiSettings("attachCustomFont")
     }
 }
 

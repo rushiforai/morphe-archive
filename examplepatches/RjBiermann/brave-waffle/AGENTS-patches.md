@@ -1,29 +1,29 @@
-# AGENTS-patches.md — patch knowledge (verified against v6.7.1, versionCode 6719)
+# AGENTS-patches.md — patch knowledge (verified against v6.7.2, versionCode 6723; 6.7.1 is dead — the app forces the update)
 
 Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
 
 - **Settings screens & runtime toggles (ModSettingsPatch, v1.6.0)**: the app ships its
-  own native settings UI on both sides — phone: custom fragment `er5` (rows built in
+  own native settings UI on both sides — phone: custom fragment `e66` (rows built in
   code via `K0(section title)` containers + `J0(container, title, subtitle, key,
   default, listener)` switch rows; `listener = null` → plain toggle, key saved via
-  `ka1.f0(String, Z)`); TV: guided-step fragment `ua8` (actions built in `Q0` via
-  `c53` builder — id in field `a`, checked bit in field `f`, pref read with
+  `c34.d0(String, Z)`); TV: guided-step fragment `j49` (actions built in `V0` via
+  `ke3` builder — id in field `a`, checked bit in field `f`, pref read with
   `getBoolean(key, v1)` — click dispatch in `T0` by `cmp-long` on the id). Both store
-  prefs in `ka1.j` = `getSharedPreferences("settings", 0)` (init in ApplicationClass).
+  prefs in `c34.q` = `getSharedPreferences("settings", 0)` (init in ApplicationClass), writer `c34.d0(String,Z)`.
   `res/xml/preferences.xml` (0x7f190007) is DEAD — referenced nowhere. Runtime
   toggles exposed: `morphe_hide_nav_pro` (phone settings row + TV action, read in
   `NavDrawer.onCreate` — default false = links visible), `morphe_show_api_errors`
-  (TV action, read in `m72.c` — default false = popup suppressed, replaces the old
-  unconditional `m72.a` return-void; takes effect on the next popup, no restart),
+  (TV action, read in `jf2.c` — default false = popup suppressed, replaces the old
+  unconditional `jf2.a` return-void; takes effect on the next popup, no restart),
   `morphe_remove_news_promo` (no UI row, read in
-  `ce0.onPageFinished` — default true; applies on next news-page load).
+  `pi0.onPageFinished` — default true; applies on next news-page load).
   `morphe_hide_nav_pro` is the only one needing an app restart (read in
   `NavDrawer.onCreate`). HideNavProLinksPatch default is now TRUE
   (pref-controlled); TV guided action ids: ours is 0x40, app's are 1..7.
   Register tricks: NavDrawer gate reuses v0/v1/v8 (v8=false doubles as pref default);
-  `ce0.onPageFinished` clobbers p2 (URL dead in the default branch after invoke-super)
-  for the default=true register — `m72.a` could NOT host the read (locals 2, both
-  params live) which is why the gate lives in `m72.c` (locals 3).
+  `pi0.onPageFinished` clobbers p2 (URL dead in the default branch after invoke-super)
+  for the default=true register — `jf2.a` could NOT host the read (locals 2, both
+  params live) which is why the gate lives in `jf2.c` (6.7.2: locals 2 — the read moved into an added static helper, see below).
 - **Patcher API gotchas (cost 1 CI-less iteration, found locally)**:
   1. `addInstructionsWithLabels` with a branch to a label at the END of the smali
      block → ArrayIndexOutOfBoundsException (the patcher treats targets past the
@@ -37,7 +37,7 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
      `instructions.indexOfFirst { }` scan instead.
   4. An injected early-return guard compiles/applies fine and still be INVERTED
      (`if-eqz` vs `if-nez`) — application success proves nothing about runtime
-     semantics. Cost: shipped v1.7.0 with the m72.c error-dialog gate backwards
+     semantics. Cost: shipped v1.7.0 with the jf2.c error-dialog gate backwards
      (default OFF = popup shown). Verify each branch direction on the emulator:
      trigger the guarded path with the pref OFF (popup must be gone) AND ON.
 
@@ -46,14 +46,14 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   `Authorization: Bearer<accessToken>` and `hash` = RSA(4096)-PKCS1-encrypted
   `HashInformation` JSON (`time`, `version`=6719, `id`=androidId, `packageName`,
   `signatures`=[cert SHA-256 b64], `loginStatus`). Embedded RSA public key in
-  `x93.a()`. GSON serializes HashInformation fields directly (no @SerializedName →
+  `nj3.a()` (RSA key; name unverified in 6.7.2). GSON serializes HashInformation fields directly (no @SerializedName →
   raw field names).
 
 - **PRO check**: `LoginStatus.getPro()J` (NOT obfuscated) returns PRO-expiry unixtime seconds;
   every check in the app is `getPro() > getUnixtime()`. Patch = hook the getter to return
   `Long.MAX_VALUE`. GSON deserializes into the field directly, so server responses still parse;
   all reads go through the getter.
-- **Hash-validation risk**: the API validates the RSA-encrypted device hash (`x93.b()` →
+- **Hash-validation risk**: the API validates the RSA-encrypted device hash (`nj3.b(LoginStatus)` →
   `HashInformation`) that every request carries: the signing-certificate hash must be in
   the server's whitelist, and `loginStatus.pro` in the hash must be 0 or in the past (a
   future value → HTTP 500 "Application Error - please redownload"). Hence two patches:
@@ -61,9 +61,9 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   reports `pro=0` while local checks go through the getter. Verified server-side:
   `sig=orig, pro=0` → 200; `pro=MAX` or wrong sig → 500 redownload error.
   If the server ever tightens hash validation further, patch the `cmp-long` sites
-  instead (classes eb0, g75, jp9, p81, v5a in the decompile).
+  instead (classes eb0, g75, jp9, p81, v5a in the 6.7.1 decompile (unverified in 6.7.2)).
 - **Spoof fingerprint gotcha (cost 3 CI iterations)**: the matched instruction for
-  `methodCall(Base64, encodeToString)` in `x93.b` is the `invoke-static` (35c), and the
+  `methodCall(Base64, encodeToString)` in `nj3.b` is the `invoke-static` (35c), and the
   result register lives in the `move-result-object` at `index + 1` — read
   `getInstruction<OneRegisterInstruction>(index + 1).registerA`, then
   `removeInstructions(index, 2)` + `addInstruction(index, const-string ...)`.
@@ -90,7 +90,7 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   **Disabled by default** (`default = false`) per user request — enable with `--enable`.
   Keep Player Playlist visible (still needs login/PRO server-side, but user wants it kept).
 - **RemoveNewsPromotionPatch (v1.1.0)**: news page promo (server-HTML accordion item
-  in porn-app.com/news) removed 3 ways in `Lce0;`: (1) NEW `shouldInterceptRequest`
+  in porn-app.com/news) removed 3 ways in `Lpi0;`: (1) NEW `shouldInterceptRequest`
   override (assembled via full smali assembly — `addInstructionsWithLabels` cannot
   attach try/catch; assembler keeps handlers) fetches the page, cuts the
   `headingPromotion` accordion item from the HTML before the WebView parses it —
@@ -103,8 +103,8 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   the app. Verified on emulator: banner gone, 0 crashes.
 - **RemoveWebViewVersionNagPatch (v1.8.1)**: server-driven "WebView Component"
   version popup (required-vs-installed versionCode from server config) shown by the
-  shared `Lue4;->c(Object)` (all 4 callers: NavDrawer1, helper/b, player, TV
-  fragment) AND independently in the Start App button's listener `Lg7;->onClick`
+  shared `Lea3;->c(Object)` (all 4 callers: NavDrawer1, helper/b, player, TV
+  fragment) AND independently in the Start App button's listener `Lt7;->onClick`
   case 0xb (button silently dead without this — bit us twice). Both gates: single
   `if-lez` after a unique anchor replaced with `goto/16` to the same target.
   "Country Problem" (pref once) and "Android Version Problem" (< API 26, pref once)
@@ -114,5 +114,31 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   repo — base64-encoded (raw base64 literals in RemoveAdsPatch.kt; `b64:` prefix in
   builder config.toml, decoded in build.sh). New strings: base64 first
   (`printf 'https://...' | base64 -w0`). Keep it that way in new code.
+- **6.7.2 re-anchor (whole defpackage space renumbered — every obfuscated anchor moved)**:
+  `ka1`→`c34` (`.q` prefs, `.d0` bool writer), `er5`→`e66` (`z0`/`O0`/`P0`), `ua8`→`j49`
+  (`V0`/`Y0`), `c53`→`ke3`, `d53`→`le3`, `m72`→`jf2` (`c`), `ue4`→`ea3` (`c`), `g7`→`t7`
+  (`onClick`, NavDrawer1 `y()`→`C()`), `wk2`→`ct2` (`b1`→`g1`), `ce0`→`pi0` (merged client,
+  default branch is the LAST invoke-super), `dp0`→`ot0`, `fp4`/`r31`/`wj7`→`d35`/`mb`/
+  `z81`/`s97` (isTV sites 2/2/3/1), `te4`→`js4`, `bn`→`pq` (diff cb `wp1`→`xw1`),
+  `x93`→`nj3`. `SiteInfoRequest.<init>` gained a 5th param (String, StandardFilter, Z
+  pornTabs, Z globalSearch, Z album) — still `.locals 0`, p3 still pornTabs. Nav resource
+  ids shifted: nav_premium 0x7f0b0330, nav_tokens 0337, nav_buypro 0322, nav_porndb 032f,
+  nav_search_pro 0332, nav_tabs 0335; the WebView-nag anchor `0x7f16017b` (style
+  MobileDialog) is still the const right before the `if-lez`.
+- **4-bit register trap**: an injected instruction that names a p-register can overflow
+  4-bit register fields when the host method has many locals (`e66.z0` has `.locals 18`,
+  so p0 = v18 → "Invalid register: v18" and the patcher reports the useless
+  "Collection is empty"). Use range invokes (`invoke-virtual/range {v0 .. v1}`) or land the
+  code in an added helper method.
+- **`.locals` cannot be widened by an injected block** (`InlineSmaliCompiler` wraps the
+  snippet in a method that declares `.registers <host count>`; a `.locals` line is a parse
+  error). When a gate needs more registers than the host declares (`jf2.c` has 2), add a
+  static helper with `util/assembleFirstMethod(smali, ...)` and inject a one-register call.
+- **Verifier merge types**: injected code that leaves a register holding a different type
+  than the app's path at the merge label gets the whole class rejected at runtime
+  (`VerifyError: register v1 has type Conflict but expected Integer` in
+  `NavDrawer.onCreate`) even though patching and dex writing succeed — and clobbering such
+  a live register can also break navigation with a `ClassCastException`. Prefer a helper
+  method that touches none of the host's locals.
 - **No billing/ad SDKs** (no AdMob, no billingclient) — "ads" are only the in-player
   VMAP breaks.

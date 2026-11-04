@@ -1,6 +1,6 @@
 # Porting and inspection tools
 
-Developer-only tools for Discord's Hermes bytecode and for porting Venus to a new Discord build. Nothing here ships in
+Developer-only tools for Discord's Hermes bytecode and for porting Conduit to a new Discord build. Nothing here ships in
 the `.mpp`, and everything they write goes to `work/` (ignored by git). The porting checklist is in `AGENTS.md`.
 
 | Tool | What it does |
@@ -9,7 +9,7 @@ the `.mpp`, and everything they write goes to `work/` (ignored by git). The port
 | `find_apkm.py [--list]` | Prints the `.apkm` the tools use from `~/uploaded_files`: complete files only, the supported Discord build (from `AppTarget`) before any other, then the newest; `--list` says why each was or wasn't picked |
 | `port_check.py` | Prints the constants for `HbcPrelude.kt`/`HbcPrivacy.kt`, finds moved Metro modules and privacy targets, lists module IDs it doesn't check yet; exits 1 when anything needs attention. `--map` regenerates `module-map.md` |
 | `privacy_targets.py <bundle> --locate` | Regenerates the `Target(...)` lists in `HbcPrivacy.kt` |
-| `module-map.md` | Every Metro module Venus uses, generated from `BOOTSTRAP_MODULES` |
+| `module-map.md` | Every Metro module Conduit uses, generated from `BOOTSTRAP_MODULES` |
 | `hbc.py` | HBC98 reader, disassembler and module index (see below) |
 | `ops.txt` | HBC98 opcode table from Hermes' `BytecodeList.def`; `PrivacyTest.kt` checks the Kotlin constants against it |
 | `DexInspect.kt` | Lists DEX classes and methods matching a name (usage at its top) |

@@ -1,0 +1,16 @@
+"project_id_env": "CROWDIN_PROJECT_ID"
+"api_token_env": "CROWDIN_PERSONAL_TOKEN"
+"base_path": "."
+"preserve_hierarchy": true
+
+# One source file per patched app: the English texts of its Michii Patches settings screen.
+# Add an entry here when another app gets translations.
+"files":
+  - "source": "/extensions/extension/src/main/translations/en.json"
+    "translation": "/extensions/extension/src/main/translations/%two_letters_code%.json"
+    "dest": "/linkedin.json"
+    # Untranslated texts are left out, so the app shows them in English.
+    "skip_untranslated_strings": true
+    "languages_mapping":
+      "two_letters_code":
+        "pt-BR": "pt-BR"

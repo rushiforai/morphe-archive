@@ -11,7 +11,23 @@ Morphe patches for the apps I use.
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.4.1](https://github.com/danieleavolio/lovaion-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.5.0](https://github.com/danieleavolio/lovaion-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 Photon Camera&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.28.3.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Disables the PairIP license check so a re-signed build of Photon Camera starts instead of being refused. Required by every other patch. |  |
+| [Unlock Premium](#unlock-premium) | Forces the premium entitlement to always resolve as active, unlocking the VIP LUT packs, the AI photo review and the LUT Creator, with or without a Play purchase and with or without a network connection. |  |
+
+</details>
+
 <details open>
 <summary>📦 Tickdrop&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

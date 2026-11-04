@@ -815,6 +815,7 @@ public class ExternalGalleryTest {
         assertTrue(folder.mkdirs());
         assertFalse(Settings.inboundFolderRefused(folder));
         assertFalse(Settings.inboundFolderRefused(new File(app.getCacheDir(), "not_made_yet")));
+        assertFalse("no folder at all is Messenger's to deal with", Settings.inboundFolderRefused(null));
     }
 
     @Test public void aFileWhereTheFolderGoesStillGetsTheCopyMoved() throws IOException {

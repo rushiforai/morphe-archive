@@ -11,6 +11,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
+import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
+import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
+import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
+import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
+import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
 import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
 import semicoloncolonel.mobilestream.patches.pbs.shared.Constants as Pbs
@@ -35,6 +41,11 @@ import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
 import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
+import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
+import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
+import semicoloncolonel.mobilestream.patches.nps.shared.Constants as Nps
+import semicoloncolonel.mobilestream.patches.nfg.shared.Constants as Nfg
+import semicoloncolonel.mobilestream.patches.recgov.shared.Constants as RecGov
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Spoof carrier (OPT-IN, default OFF).
@@ -98,12 +109,12 @@ internal fun String.smaliEscaped() = buildString {
 @Suppress("unused")
 val spoofCarrierPatch = bytecodePatch(
     name = "Spoof carrier",
-    description = "Hides your mobile carrier from the app and the ad and analytics SDKs inside " +
-        "it, or reports a carrier name you choose. Carrier deals the app detects from your " +
-        "carrier will not work while this is on. Opt-in / experimental; test on-device.",
+    description = "Hides your mobile carrier from the app and the ad and analytics SDKs inside it, or " +
+        "reports a carrier name you choose. Carrier deals the app detects from your carrier " +
+        "will not work while this is on. Experimental.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *SHOPPING_APPS)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY, JustWatch.COMPATIBILITY, Nps.COMPATIBILITY, Nfg.COMPATIBILITY, RecGov.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 

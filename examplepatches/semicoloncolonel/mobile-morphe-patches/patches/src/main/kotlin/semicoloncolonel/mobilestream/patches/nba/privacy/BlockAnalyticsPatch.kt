@@ -21,9 +21,8 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
     description = "Stops third-party analytics and tracking in the NBA app: Braze, New Relic, " +
-        "Amplitude, Datadog, comScore, Kochava and Bitmovin player analytics. Blocking " +
-        "happens on the device, inside the app. Sign-in and playback are left alone. " +
-        "Opt-in / experimental; test on-device.",
+        "Amplitude, Datadog, comScore, Kochava and Bitmovin player analytics. Sign-in and " +
+        "playback are left alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

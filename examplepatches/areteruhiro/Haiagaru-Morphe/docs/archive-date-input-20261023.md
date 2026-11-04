@@ -19,7 +19,7 @@
 
 対象はemulator-5554。署名照合後install-r成功、データ消去なし。鍵C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias=Morphe、証明書SHA256=0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
 
-共通絶対ルートはC:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/。
+共通絶対ルートは<workspace>/build/。
 
 - 最終MPP: prerelease-final-ui.mpp SHA256=79D8BDFE0A23C5813FBBEA523AAE4DB87D0F25FD072DD01366BD2C4EFB456B93。
 - Haiagaru 検証 191 / ChMate 191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191: prerelease-final-ui191.apk SHA256=2057559B1B9D410FCDFC3B62540422E834CBECBA1814163EAA35CF4FF55DA333。

@@ -58,7 +58,7 @@ private val FINAL = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 /**
  * 583's older chat top bar, cut down: the QR scanner block that the button copies, the details button, the padding loop
  * that counts the socket's plugins, then the one walk of the list and the three-button cut. v1 is the list and v2 the
- * socket, as in 583.
+ * socket, as in 583. The cap is loaded into the cut's own register, as 586 does.
  */
 private val BAR_BODY = """
     const/16 v9, 0x3
@@ -112,7 +112,7 @@ private val BAR_BODY = """
     move-result-object v4
     const/4 v4, 0x0
     const/4 v6, 0x0
-    move v5, v9
+    const/4 v5, 0x3
     invoke-virtual {v4, v6, v5}, $IMMUTABLE_LIST->subList(II)$IMMUTABLE_LIST
     return-void
 """.trimIndent()
@@ -273,6 +273,17 @@ class MarkReadButtonTest {
         assertEquals(DETAILS_BUILD, recipe.details)
     }
 
+    // 586's bar hands the cap register straight to subList, with no move down from a higher register before the cut.
+    @Test fun onlyAThreeButtonCapInTheCutsOwnRegisterIsFound() {
+        assertEquals(listOf(SYNTHETIC_MARK_READ_BAR, SYNTHETIC_MARK_READ_FACTORY, SYNTHETIC_MARK_READ_CLICK), found(markReadFixture(bar())))
+        val four = BAR_BODY.replace("const/4 v5, 0x3", "const/4 v5, 0x4")
+        assertTrue(four != BAR_BODY)
+        assertTrue(found(markReadFixture(bar(four))).isEmpty())
+        // A cap moved down from another register before the cut, as 585's bars had it, no longer counts.
+        val moved = BAR_BODY.replace("const/4 v5, 0x3", "move v5, v9")
+        assertTrue(found(markReadFixture(bar(moved))).isEmpty())
+    }
+
     // 585's factory is an instance method whose early returns hand back other lists, and builds the button list through a
     // static helper that only builds and null-checks it. The site is the one return the details button reaches.
     @Test fun anInstanceFactoryReturnsTheListTheDetailsButtonReachesThroughItsBuildHelper() {
@@ -347,7 +358,7 @@ class MarkReadButtonTest {
             "a jump onto the walk itself" to markReadFixture(bar(BAR_BODY.replace("nop\n$walk", "if-eqz v5, :walk\n:walk\n$walk"))),
             "the list written in the seam" to markReadFixture(bar(BAR_BODY.replace("nop\n$walk", "move-object v1, v7\n$walk"))),
             "the socket written in the seam" to markReadFixture(bar(BAR_BODY.replace("nop\n$walk", "move-object v2, v7\n$walk"))),
-            "a bar that keeps four buttons" to markReadFixture(bar(BAR_BODY.replace("const/16 v9, 0x3", "const/16 v9, 0x4"))),
+            "a bar that keeps four buttons" to markReadFixture(bar(BAR_BODY.replace("const/4 v5, 0x3", "const/4 v5, 0x4"))),
             "no Mark as read icon" to markReadFixture(icons = listOf("QR_CODE:A5v")),
             "a builder outside the public API" to markReadFixture(builderFlags = 0),
             "a listener with one free register" to markReadFixture(clickMethod = click(registers = 3)),

@@ -1,6 +1,10 @@
 # MPEs are minified independently; their private class names must not overlap.
 -repackageclasses app.morphe.extension.isolated
 
+# Bytecode transport hooks use exact owners, independent of R8's generated names.
+-keepnames class androidx.media3.datasource.DefaultHttpDataSource
+-keepnames class okhttp3.HttpUrl$Builder
+
 # Rebased to ChMate's own Fragment class after compilation; keep the patch anchors intact.
 -keep class app.morphe.extension.chmate.NativeToolFragment { *; }
 -keep class app.morphe.extension.chmate.NativeToolTabs { *; }

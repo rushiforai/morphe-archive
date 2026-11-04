@@ -24,7 +24,7 @@ onCreateViewの戻り値に縦LinearLayoutを挿入する。重ね表示では�
 
 - 通常Lint付き初回build成功（5m25s）。MPP `build/cached-wacchoi-toggle.mpp` SHA256 `603512F8274E50EE65B1B8DC5F4231180FB47601B194C74879871CCB58082096`。
 - 191/226/242へのパッチ適用・再構築・署名成功。`VerifyCachedWacchoiHook`で各native onCreateViewの元命令/レジスター保持とwrapper挿入を確認。初回242検査は試験側がMOVE_OBJECT_16をFROM16と誤認して失敗し、修正後に成功。
-- emulator-5554の242検証パッケージ `jp.co.airfront.android.a2chMate.haiagaru.resumefix242`（Haiagaru 検証242）へ署名照合データ保持更新Success。初回APK `build/cached-wacchoi-toggle242.apk` SHA256 `EA5405EE6DFBE8A616EC72BCCC90F14ABE1A3F78F89A72EC14756D2DDE4A85D0`。鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias Morphe、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。全artifactはcanonical root `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current` 基準。
+- emulator-5554の242検証パッケージ `jp.co.airfront.android.a2chMate.haiagaru.resumefix242`（Haiagaru 検証242）へ署名照合データ保持更新Success。初回APK `build/cached-wacchoi-toggle242.apk` SHA256 `EA5405EE6DFBE8A616EC72BCCC90F14ABE1A3F78F89A72EC14756D2DDE4A85D0`。鍵 `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias Morphe、証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。全artifactはcanonical root `<workspace>` 基準。
 - 242 native検索画面のON/OFF・保存・他条件保持・手動編集保持10項目成功。ただし最初は存在のみを確認しており、画面確認でtoggle boundsがy=0..86、ステータスバー下に隠れていると判明。検査不足として表示を修正。例外付き初期のFragmentManager反射試験は成功扱いしない。
 - 226/242のedge-to-edge wrapperでsystemBars/cutout分を予約し、native Compose子には減らしたinsetsを渡す処理を追加。191の従来windowは変更しない。修正後通常Lint build成功2m58s（`build/cached-wacchoi-toggle-insets-build.log`）。最終242への適用/可視位置追試は継続中。
 - 試験は合成検索語bed4-6Zunをnative画面へ入力したもの。実レスの検索結果網羅性や全検索フラグ組合せは未検証。テストの設定は復元、投稿/外部通信なし。191/226の実画面トグル操作は未実施。

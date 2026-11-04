@@ -11,8 +11,8 @@ import semicoloncolonel.mobilestream.patches.shared.GOV_APPS
 @Suppress("unused")
 val govBlockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Firebase Analytics, and on NPS, Mapbox's map usage reports. Every app " +
-        "feature is left alone. Opt-in; test on-device.",
+    description = "Stops Firebase Analytics, and on NPS, Mapbox's map usage reports. Every app feature " +
+        "is left alone.",
     default = false,
 ) {
     compatibleWith(*GOV_APPS)

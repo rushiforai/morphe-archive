@@ -134,9 +134,18 @@ public class PriceHistoryData implements Serializable {
     }
 
     private DiscountCalculation doCalculateHlidacShopuDiscount() {
+        // 1. Prefer authoritative realDiscount directly from Hlídač shopů API
+        if (realDiscount != null && realDiscount > 0) {
+            double normalizedDiscount = (realDiscount <= 1.0) ? (realDiscount * 100.0) : realDiscount;
+            double ref = (commonPrice != null && commonPrice > 0) ? commonPrice
+                    : ((currentPrice != null && normalizedDiscount < 100) ? (currentPrice / (1.0 - normalizedDiscount / 100.0)) : (currentPrice != null ? currentPrice : 0.0));
+            return new DiscountCalculation(normalizedDiscount, ref, "z Hlídače shopů");
+        }
+
         if (currentPricePoints == null || currentPricePoints.size() < 2) {
-            if (realDiscount != null && realDiscount > 0) {
-                return new DiscountCalculation(realDiscount, commonPrice, "z Hlídače shopů");
+            if (realDiscount != null && realDiscount >= 0) {
+                double normalizedDiscount = (realDiscount <= 1.0 && realDiscount > 0) ? (realDiscount * 100.0) : realDiscount;
+                return new DiscountCalculation(normalizedDiscount, commonPrice != null ? commonPrice : currentPrice, "z Hlídače shopů");
             }
             return new DiscountCalculation(0.0, currentPrice, "");
         }
@@ -167,7 +176,10 @@ public class PriceHistoryData implements Serializable {
             firstDropIdx--;
         }
 
-        long discountStart = currentPricePoints.get(firstDropIdx + 1).timestamp;
+        // Safe indexing: prevent IndexOutOfBoundsException if firstDropIdx + 1 == n
+        long discountStart = (firstDropIdx + 1 < n)
+                ? currentPricePoints.get(firstDropIdx + 1).timestamp
+                : currentPricePoints.get(firstDropIdx).timestamp;
         long discountAge = now - discountStart;
 
         if (!priceMovedUp && discountAge <= maxDiscountWindow) {
@@ -187,39 +199,26 @@ public class PriceHistoryData implements Serializable {
             if (minBefore != Double.MAX_VALUE && minBefore > curPrice) {
                 double discount = Math.round(((minBefore - curPrice) / minBefore) * 1000.0) / 10.0;
                 return new DiscountCalculation(discount, minBefore, "podle nejnižší ceny za 30 dní před slevou");
-            } else {
-                return new DiscountCalculation(0.0, (minBefore != Double.MAX_VALUE ? minBefore : curPrice), "podle nejnižší ceny za 30 dní před slevou");
             }
+
+            // Metodika 2b: Kolísavá cena – pokud minBefore <= curPrice, ale referenční cena Hlídače shopů
+            // nebo modus/běžná cena za 90 dní je vyšší než curPrice, použij ji jako referenci.
+            if (commonPrice != null && commonPrice > curPrice) {
+                double discount = Math.round(((commonPrice - curPrice) / commonPrice) * 1000.0) / 10.0;
+                return new DiscountCalculation(discount, commonPrice, "podle referenční ceny Hlídače shopů");
+            }
+
+            double common90 = calculateCommonPriceOverWindow(currentPricePoints, now, 90L * 24 * 60 * 60 * 1000L, curPrice);
+            if (common90 > curPrice) {
+                double discount = Math.round(((common90 - curPrice) / common90) * 1000.0) / 10.0;
+                return new DiscountCalculation(discount, common90, "podle běžné ceny za posledních 90 dní");
+            }
+
+            return new DiscountCalculation(0.0, (minBefore != Double.MAX_VALUE ? minBefore : curPrice), "podle nejnižší ceny za 30 dní před slevou");
         } else {
             // Metodika 3: Tržní korekce (sleva starší 180 dní nebo pohyb ceny nahoru)
             // Běžná cena = cena, za kterou se zboží prodávalo nejčastěji za posledních 90 dní
-            long ninetyDaysAgo = now - (90L * 24 * 60 * 60 * 1000L);
-            java.util.Map<Double, Long> priceDurations = new java.util.HashMap<Double, Long>();
-            long lastTime = now;
-
-            for (int i = n - 1; i >= 0; i--) {
-                PricePoint pt = currentPricePoints.get(i);
-                long segStart = Math.max(pt.timestamp, ninetyDaysAgo);
-                long duration = lastTime - segStart;
-                if (duration > 0) {
-                    Long d = priceDurations.get(pt.price);
-                    priceDurations.put(pt.price, (d != null ? d : 0L) + duration);
-                }
-                lastTime = segStart;
-                if (pt.timestamp <= ninetyDaysAgo) {
-                    break;
-                }
-            }
-
-            double commonPriceCalc = curPrice;
-            long maxDur = -1;
-            for (java.util.Map.Entry<Double, Long> entry : priceDurations.entrySet()) {
-                if (entry.getValue() > maxDur) {
-                    maxDur = entry.getValue();
-                    commonPriceCalc = entry.getKey();
-                }
-            }
-
+            double commonPriceCalc = calculateCommonPriceOverWindow(currentPricePoints, now, 90L * 24 * 60 * 60 * 1000L, curPrice);
             if (commonPrice != null && commonPrice > 0) {
                 commonPriceCalc = commonPrice;
             }
@@ -231,6 +230,37 @@ public class PriceHistoryData implements Serializable {
                 return new DiscountCalculation(0.0, commonPriceCalc, "podle běžné ceny za posledních 90 dní");
             }
         }
+    }
+
+    private static double calculateCommonPriceOverWindow(List<PricePoint> points, long endTime, long windowDuration, double fallbackPrice) {
+        if (points == null || points.isEmpty()) return fallbackPrice;
+        long startTime = endTime - windowDuration;
+        java.util.Map<Double, Long> priceDurations = new java.util.HashMap<Double, Long>();
+        long lastTime = endTime;
+
+        for (int i = points.size() - 1; i >= 0; i--) {
+            PricePoint pt = points.get(i);
+            long segStart = Math.max(pt.timestamp, startTime);
+            long duration = lastTime - segStart;
+            if (duration > 0) {
+                Long d = priceDurations.get(pt.price);
+                priceDurations.put(pt.price, (d != null ? d : 0L) + duration);
+            }
+            lastTime = segStart;
+            if (pt.timestamp <= startTime) {
+                break;
+            }
+        }
+
+        double common = fallbackPrice;
+        long maxDur = -1;
+        for (java.util.Map.Entry<Double, Long> entry : priceDurations.entrySet()) {
+            if (entry.getValue() > maxDur) {
+                maxDur = entry.getValue();
+                common = entry.getKey();
+            }
+        }
+        return common;
     }
 
     public Double getEffectiveReferencePrice() {

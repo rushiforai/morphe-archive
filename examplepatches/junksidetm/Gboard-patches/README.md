@@ -32,6 +32,12 @@ Features designed and built by this project rather than simply unlocking an exis
 </details>
 
 <details>
+  <summary><code>Dictionaries &amp; Predictions</code></summary>
+
+  Choose resource versions for dictionaries, predictions, and input correction.
+</details>
+
+<details>
   <summary><code>Clipboard Enhancements</code></summary>
 
   Lets you enhance clipboard retention time, item count limits, preview lines, countdown and creation-time labels, order index, grid columns, and optionally render only the first 1,000 characters on each clipboard card.
@@ -151,6 +157,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 ### Gboard Feature Unlocks
 
 Features already present in Gboard that are exposed by enabling hidden settings, rollout gates, or built-in behavior.
+
+<details>
+  <summary><code>Keypress Vibration Intensity Control</code></summary>
+
+  Control keypress vibration intensity instead of duration.
+</details>
 
 <details>
   <summary><code>AI Writing Tools (Persistent &amp; Universal)</code></summary>

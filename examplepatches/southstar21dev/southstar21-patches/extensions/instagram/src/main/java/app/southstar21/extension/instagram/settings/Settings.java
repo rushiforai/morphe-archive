@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import app.southstar21.extension.instagram.liquidglass.LiquidGlassNavBarPatch;
+import app.southstar21.extension.instagram.navbuttons.HideNavigationButtonsPatch;
+import app.southstar21.extension.instagram.reels.DisableReelsPatch;
 
 /** Registry and storage of every patch's settings. */
 public final class Settings {
@@ -23,7 +25,9 @@ public final class Settings {
      */
     private static List<PatchSettings> all() {
         return Arrays.asList(
-                LiquidGlassNavBarPatch.SETTINGS
+                LiquidGlassNavBarPatch.SETTINGS,
+                HideNavigationButtonsPatch.SETTINGS,
+                DisableReelsPatch.SETTINGS
         );
     }
 
@@ -47,7 +51,20 @@ public final class Settings {
         return preferences;
     }
 
+    /**
+     * Some hooks run before the main activity has focus (e.g. while Instagram builds its tab
+     * list), so this loads the preferences from the application if init() hasn't run yet.
+     */
     static SharedPreferences preferencesOrNull() {
+        if (preferences == null) {
+            try {
+                Context app = (Context) Class.forName("android.app.ActivityThread")
+                        .getMethod("currentApplication").invoke(null);
+                if (app != null) init(app);
+            } catch (Throwable ignored) {
+                // Falls back to the defaults.
+            }
+        }
         return preferences;
     }
 }

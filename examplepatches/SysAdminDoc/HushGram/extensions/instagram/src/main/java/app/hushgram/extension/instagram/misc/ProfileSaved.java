@@ -7,6 +7,7 @@ package app.hushgram.extension.instagram.misc;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
@@ -15,6 +16,7 @@ import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,6 +36,7 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -55,8 +58,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * (three on some profiles, four with Reposts) and one more for the bookmark, which is drawn in the last slot on
  * the layout's overlay, with the layout's touch listener answering for that slot.
  *
- * <p>Tapping it does what you'd do by hand: opens the menu at the top right and taps Saved in it.
- * Instagram's own code opens Saved, so nothing in its bytecode is touched. The menu is a Jetpack Compose
+ * <p>Tapping it opens Instagram's Saved screen through its own {@code instagram://saved} link, which works in
+ * any language. A build with no answer to the link does what you'd do by hand instead: opens the menu at the
+ * top right and taps Saved in it. Nothing in Instagram's bytecode is touched. The menu is a Jetpack Compose
  * screen, which describes its rows as accessibility nodes whether or not a screen reader is on, so the row
  * is found by the label it carries, Saved, and a build that moves it still works. Every view is found by the
  * name Instagram gives it, and the profile counts as yours when it has the Create New button at the top
@@ -86,6 +90,10 @@ public final class ProfileSaved {
     private static final boolean DIAGNOSE = false;
     private static volatile boolean registered;
     private static final WeakHashMap<Activity, Boolean> watched = new WeakHashMap<>();
+    /**
+     * The row kept for each profile's row of tabs. The key is weak, and the row holds the tabs and the
+     * activity weakly too: a value that held its key would keep every profile screen ever looked at.
+     */
     private static final WeakHashMap<ViewGroup, Row> rows = new WeakHashMap<>();
 
     private ProfileSaved() {
@@ -158,20 +166,35 @@ public final class ProfileSaved {
             if (!(found instanceof ViewGroup) || !found.isShown() || found.getWidth() <= 0) return;
             View create = remembered(decor, CREATE_BUTTON, 1);
             if (create == null || !create.isShown()) return;
-            ViewGroup tabs = (ViewGroup) found;
-            Row row;
-            synchronized (rows) {
-                row = rows.get(tabs);
-                if (row == null) {
-                    row = new Row(activity, tabs);
-                    rows.put(tabs, row);
-                    HookStatus.invoked(FamilyNames.SAVED_ON_PROFILE);
-                }
-            }
-            row.keep();
+            remember(activity, (ViewGroup) found).keep();
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SAVED_ON_PROFILE, "tab", failure);
             why("threw " + failure);
+        }
+    }
+
+    /** The row kept for [tabs], made on the first look at it. */
+    private static Row remember(Activity activity, ViewGroup tabs) {
+        synchronized (rows) {
+            Row row = rows.get(tabs);
+            if (row == null) {
+                row = new Row(activity, tabs);
+                rows.put(tabs, row);
+                HookStatus.invoked(FamilyNames.SAVED_ON_PROFILE);
+            }
+            return row;
+        }
+    }
+
+    /** Keeps a row for [tabs] as a look at a profile would, for a test of what the kept rows hold on to. */
+    static void rememberForTests(Activity activity, ViewGroup tabs) {
+        remember(activity, tabs);
+    }
+
+    /** How many rows of tabs are kept, once the ones whose tabs are gone have been let go. */
+    static int rememberedForTests() {
+        synchronized (rows) {
+            return rows.size();
         }
     }
 
@@ -182,38 +205,42 @@ public final class ProfileSaved {
      */
     @Nullable
     private static View remembered(View decor, String name, int slot) {
-        java.lang.ref.WeakReference<View> held = seen[slot];
+        WeakReference<View> held = seen[slot];
         View view = held == null ? null : held.get();
         if (view != null && view.isAttachedToWindow() && view.getRootView() == decor) return view;
         view = GlassTabBar.find(decor, name);
-        seen[slot] = view == null ? null : new java.lang.ref.WeakReference<>(view);
+        seen[slot] = view == null ? null : new WeakReference<>(view);
         return view;
     }
 
     @SuppressWarnings("unchecked")
-    private static final java.lang.ref.WeakReference<View>[] seen = new java.lang.ref.WeakReference[2];
+    private static final WeakReference<View>[] seen = new WeakReference[2];
 
     static void why(String what) {
         if (DIAGNOSE) Log.w("HushSaved", what);
     }
 
-    /** One profile's tab row: the room made for the bookmark, the bookmark, and the touch on it. */
+    /**
+     * One profile's tab row: the room made for the bookmark, the bookmark, and the touch on it. The tabs
+     * and the activity are held weakly, since {@link #rows} keys on the tabs and a row that held them would
+     * keep its own key alive, and the profile's activity with it, for as long as Instagram ran.
+     */
     private static final class Row implements View.OnTouchListener {
-        private final Activity activity;
-        private final ViewGroup tabs;
+        private final WeakReference<Activity> activity;
+        private final WeakReference<ViewGroup> tabs;
         private final Icon icon;
         private boolean down;
 
         Row(Activity activity, ViewGroup tabs) {
-            this.activity = activity;
-            this.tabs = tabs;
+            this.activity = new WeakReference<>(activity);
+            this.tabs = new WeakReference<>(tabs);
             this.icon = new Icon(activity);
             tabs.getOverlay().add(icon);
             tabs.setOnTouchListener(this);
         }
 
-        /** The width of one slot: the row shared out evenly among Instagram's tabs and the bookmark. */
-        private int slot() {
+        /** The width of one slot: [tabs] shared out evenly among Instagram's tabs and the bookmark. */
+        private static int slot(ViewGroup tabs) {
             int own = tabs.getChildCount() > 0 && tabs.getChildAt(0) instanceof ViewGroup
                     ? ((ViewGroup) tabs.getChildAt(0)).getChildCount() : 3;
             return tabs.getWidth() / (Math.max(own, 1) + 1);
@@ -221,7 +248,9 @@ public final class ProfileSaved {
 
         /** Puts each of Instagram's tabs back to one slot of the row after Instagram lays it out again. */
         void keep() {
-            int slot = slot();
+            ViewGroup tabs = this.tabs.get();
+            if (tabs == null) return;
+            int slot = slot(tabs);
             View strip = tabs.getChildCount() > 0 ? tabs.getChildAt(0) : null;
             if (strip instanceof LinearLayout) {
                 LinearLayout group = (LinearLayout) strip;
@@ -243,21 +272,24 @@ public final class ProfileSaved {
             icon.setBounds(tabs.getWidth() - slot, 0, tabs.getWidth(), tabs.getHeight());
         }
 
-        private boolean inBookmark(MotionEvent event) {
-            return event.getX() >= tabs.getWidth() - slot() && event.getX() <= tabs.getWidth();
+        private static boolean inBookmark(ViewGroup tabs, MotionEvent event) {
+            return event.getX() >= tabs.getWidth() - slot(tabs) && event.getX() <= tabs.getWidth();
         }
 
         @Override public boolean onTouch(View view, MotionEvent event) {
             try {
+                ViewGroup tabs = this.tabs.get();
+                Activity shown = activity.get();
+                if (tabs == null || shown == null) return false;
                 switch (event.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
-                        down = inBookmark(event);
+                        down = inBookmark(tabs, event);
                         return down;
                     case MotionEvent.ACTION_UP:
-                        if (down && inBookmark(event)) {
+                        if (down && inBookmark(tabs, event)) {
                             down = false;
                             view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                            open(activity);
+                            open(shown);
                             return true;
                         }
                         down = false;
@@ -276,8 +308,37 @@ public final class ProfileSaved {
         }
     }
 
-    /** Opens the menu, then taps Saved in it as soon as the menu has filled in. */
+    /** Instagram's own link to the Saved screen, answered by its SavedUrlHandlerActivity in every language. */
+    static final String SAVED_LINK = "instagram://saved";
+
+    /**
+     * Opens Instagram's Saved screen through its {@code instagram://saved} link, the way the search button
+     * opens Search. The language doesn't matter and no menu opens. False when nothing in this app answers
+     * the link. Never throws.
+     */
+    static boolean openSavedScreen(Activity activity) {
+        try {
+            Intent link = new Intent(Intent.ACTION_VIEW, Uri.parse(SAVED_LINK)).setPackage(activity.getPackageName());
+            if (link.resolveActivity(activity.getPackageManager()) == null) return false;
+            activity.startActivity(link);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SAVED_ON_PROFILE, "link", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Opens Saved. Instagram's own link comes first. A build with no answer to it falls back to the menu
+     * and its row labelled Saved, which is only found while the label is English or HushGram's translation.
+     */
     static void open(Activity activity) {
+        if (openSavedScreen(activity)) return;
+        openThroughMenu(activity);
+    }
+
+    /** Opens the menu, then taps Saved in it as soon as the menu has filled in. */
+    static void openThroughMenu(Activity activity) {
         View decor = activity.getWindow().getDecorView();
         try {
             View menu = menuButton(decor);

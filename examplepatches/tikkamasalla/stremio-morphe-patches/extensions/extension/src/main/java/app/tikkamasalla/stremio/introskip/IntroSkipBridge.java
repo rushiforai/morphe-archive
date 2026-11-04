@@ -399,6 +399,10 @@ public final class IntroSkipBridge {
         private long onlineStartedAt;
         private String appliedSignature;
         private String lastSanityLogKey;
+        /** One-ahead result for this file (lowest source); empty until verified. */
+        private List<Segment> oneAheadSegs = new ArrayList<>();
+        private boolean oneAheadAsked;
+        private long oneAheadSeenDone = app.tikkamasalla.stremio.oneahead.OneAheadTrigger.doneSeq();
         // playback tracking
         private double lastPos = -1;
         private double flowPos = -1;
@@ -458,6 +462,10 @@ public final class IntroSkipBridge {
         // NextPrep: video the next episode was prepared for, last window check.
         private String prepKey;
         private long prepCheckedAt;
+        // One-ahead lookup not yet sent: the prepared next episode is kept until the
+        // current file's length is known (only the tab/auto path with a known length
+        // can price the lookup). Retried from the latched branch below, once.
+        private String pendingLookupNext;
         private Segment pillSegment;
         private boolean nextPill;
         private long noticeUntil;
@@ -524,6 +532,7 @@ public final class IntroSkipBridge {
         private final SkipPlayer.Listener listener = new SkipPlayer.Listener() {
             @Override
             public void onSeekLanding(boolean adjusted, long fromMs, long toMs) {
+                app.tikkamasalla.stremio.oneahead.OneAheadTrigger.noteSeek();
                 // The app's own start/resume seek before any motion defines the start position.
                 if (!everPlayed) initialPos = toMs / 1000.0;
                 if (SystemClock.uptimeMillis() - skippedAt > 4000L) return;
@@ -699,6 +708,8 @@ public final class IntroSkipBridge {
             onlineStartedAt = 0;
             appliedSignature = null;
             lastSanityLogKey = null;
+            oneAheadSegs = new ArrayList<>();
+            oneAheadAsked = false;
             current = null;
             currentBySeek = false;
             currentByJump = false;
@@ -747,6 +758,7 @@ public final class IntroSkipBridge {
         private void close(String why) {
             if (closed) return;
             closed = true;
+            app.tikkamasalla.stremio.oneahead.OneAheadTrigger.notePlayerGone();
             log("Session closed: " + why);
             PlaybackDiary.ev(activity, "end", "why", why, "pos", lastPos);
             try {
@@ -1111,6 +1123,7 @@ public final class IntroSkipBridge {
          */
         private void prepareNext(int state, boolean playing, double pos, long durationMs, long now) {
             try {
+                app.tikkamasalla.stremio.oneahead.OneAheadTrigger.notePlayer(state, playing);
                 String cur = prepVideoId();
                 NextPrep.notePlaying(cur); // a binge straight into the player spends the expectation
                 String watch = NextPrep.pendingLaunch();
@@ -1137,8 +1150,22 @@ public final class IntroSkipBridge {
                     }
                 }
                 if (movie || !kindResolved || durationMs <= 0 || cur.length() == 0) return;
+                long oaDone = app.tikkamasalla.stremio.oneahead.OneAheadTrigger.doneSeq();
+                if (oaDone != oneAheadSeenDone) {
+                    // A job that outlived the last session finished for the episode playing now: ask again.
+                    oneAheadSeenDone = oaDone;
+                    if (cur.equals(app.tikkamasalla.stremio.oneahead.OneAheadTrigger.doneVid()) && loadedKey != null) {
+                        oneAheadAsked = false;
+                        maybeFetchOneAhead(true);
+                    }
+                }
                 if (cur.equals(prepKey)) {
                     if (state == SkipPlayer.STATE_ENDED || durationMs / 1000.0 - pos <= 1.5) NextPrep.expectNextAfter(cur);
+                    if (pendingLookupNext != null && fetchedLength > 0) {
+                        String next = pendingLookupNext;
+                        pendingLookupNext = null;
+                        prefetchSkipsFor(next);
+                    }
                     return;
                 }
                 if (now - prepCheckedAt < 2000L) return;
@@ -1168,25 +1195,111 @@ public final class IntroSkipBridge {
 
         /** Looks up the next episode's skip segments now, with this episode's length (used only on a match). */
         private void prefetchSkipsFor(String nextVideoId) {
+            String cur = prepVideoId();
             MediaInfo info = pendingInfo;
             int[] req = StreamRanker.requestOf(nextVideoId);
-            if (info == null || req[1] <= 0 || fetchedLength <= 0 || !IntroSkipPrefs.isEnabled(activity)) return;
+            if (info == null || req[1] <= 0 || fetchedLength <= 0 || !IntroSkipPrefs.isEnabled(activity)) {
+                if (fetchedLength <= 0 && req[1] > 0 && IntroSkipPrefs.isEnabled(activity)) pendingLookupNext = nextVideoId;
+                return;
+            }
+            String curUrl = "";
+            try {
+                android.net.Uri u = player == null ? null : player.mediaUri();
+                if (u != null) curUrl = String.valueOf(u);
+            } catch (Throwable ignored) {
+                // No current link known.
+            }
             prefetchSkips(activity, info.imdbId, info.title, isKitsuId(info.imdbId) ? info.season : req[0], req[1],
-                    fetchedLength);
+                    fetchedLength, nextVideoId, cur, curUrl);
         }
 
         private double currentCreditsStartSeconds() {
             for (Segment s : segments) {
-                if (s.isCredits()) return s.startSeconds;
+                // One-ahead never drives preparation timing or preview cuts.
+                if (s.isCredits() && !app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.source)) {
+                    return s.startSeconds;
+                }
             }
             return -1.0;
         }
 
         private double currentCreditsEndSeconds() {
             for (Segment s : segments) {
-                if (s.isCredits()) return s.endSeconds;
+                if (s.isCredits() && !app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.source)) {
+                    return s.endSeconds;
+                }
             }
             return -1.0;
+        }
+
+        /**
+         * Verified one-ahead result for this file, on the NETWORK pool; lowest source. At the start of the
+         * episode it comes in like a late online segment. After a job that finished mid-episode it can come
+         * at any time, later than any lookup could: inside a segment that holds the auto-skip, the button shows.
+         */
+        private void maybeFetchOneAhead(final boolean jobFinishedNow) {
+            try {
+                if (oneAheadAsked || (!IntroSkipPrefs.isOneAheadEnabled(activity) && !IntroSkipPrefs.isBorrowEnabled(activity))) return;
+                final String vid = prepVideoId();
+                if (vid == null || vid.length() == 0 || player == null) return;
+                android.net.Uri u = player.mediaUri();
+                if (u == null) return;
+                final String url = String.valueOf(u);
+                final int media = mediaGeneration;
+                oneAheadAsked = true;
+                NETWORK.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            // The playing link is read only when a result could apply to it.
+                            if (!app.tikkamasalla.stremio.oneahead.OneAheadTrigger.hasResultFile(activity, vid)) return;
+                            long[] id = app.tikkamasalla.stremio.oneahead.OneAheadTrigger.probeIdentity(activity, url);
+                            if (id == null) {
+                                log("One-ahead: no segment (file probe failed) vid=" + vid);
+                                return;
+                            }
+                            app.tikkamasalla.stremio.oneahead.OneAheadResult r = app.tikkamasalla.stremio.oneahead.OneAheadTrigger.resultsFor(activity, vid, id[0], id[1]);
+                            if (r == null) {
+                                log("One-ahead: no segment (no result for this file) vid=" + vid);
+                                return;
+                            }
+                            final List<Segment> built = new ArrayList<>();
+                            for (app.tikkamasalla.stremio.oneahead.OneAheadShow.Seg s : app.tikkamasalla.stremio.oneahead.OneAheadShow.fromResult(r)) {
+                                built.add(new Segment(s.start, s.end, s.label, s.source != null ? s.source : app.tikkamasalla.stremio.oneahead.OneAheadResult.SOURCE,
+                                        false, 0.0));
+                            }
+                            if (built.isEmpty()) return;
+                            MAIN.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        // The same media, whatever lookups ran again meanwhile.
+                                        if (closed || media != mediaGeneration) return;
+                                        oneAheadSegs = built;
+                                        for (Segment s : built) {
+                                            log("One-ahead segment " + s.label + " " + fmt3(s.startSeconds)
+                                                    + "-" + fmt3(s.endSeconds) + "s (lowest source)");
+                                        }
+                                        combine(SystemClock.uptimeMillis());
+                                        if (jobFinishedNow && player != null) {
+                                            double at = player.positionMs() / 1000.0;
+                                            for (Segment s : segments) {
+                                                if (app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.source) && at >= s.startSeconds && at < s.endSeconds) seekHoldKey = s.key();
+                                            }
+                                        }
+                                    } catch (Throwable ignored) {
+                                        // One-ahead is optional.
+                                    }
+                                }
+                            });
+                        } catch (Throwable ignored) {
+                            // One-ahead is optional; nothing here may reach the pool's thread.
+                        }
+                    }
+                });
+            } catch (Throwable ignored) {
+                // One-ahead is optional.
+            }
         }
 
         /** Collects up to 2 addon subtitle URLs from the player's text tracks or Stremio's PlayerViewModel. */
@@ -1730,6 +1843,8 @@ public final class IntroSkipBridge {
             landFails.clear();
             cuePreview = null;
             appPostCredits = null;
+            oneAheadSegs = new ArrayList<>();
+            oneAheadAsked = false;
             chapters = null;
             online = null;
             onlineSource = null;
@@ -1767,6 +1882,7 @@ public final class IntroSkipBridge {
                     + " anime=" + IntroSkipPrefs.isAnimeEnabled(activity)
                     + " mode=" + IntroSkipPrefs.mode(activity)
                     + " recaps=" + IntroSkipPrefs.isRecapsEnabled(activity));
+            maybeFetchOneAhead(false);
             PreSkips pre = takePreSkips(imdbId, title, season, episode, episodeLength,
                     IntroSkipPrefs.isAnimeEnabled(activity));
             if (pre != null) {
@@ -2341,6 +2457,21 @@ public final class IntroSkipBridge {
                 }
             }
             guardLongCredits(out, pendingLogs);
+            // Lowest source of all: one-ahead waits for the real lookups, fills only a type no real source has,
+            // never merged or narrowed (InnerBounds family 0, kept out of "online"),
+            // and a real source answering later replaces it on the next combine.
+            if (!oneAheadSegs.isEmpty() && app.tikkamasalla.stremio.oneahead.OneAheadShow.lookupsDone(aniDone && introDone, !waitChapters)
+                    && (IntroSkipPrefs.isOneAheadEnabled(activity) || IntroSkipPrefs.isBorrowEnabled(activity))) {
+                java.util.Set<String> real = new java.util.HashSet<>();
+                for (Segment s : out) real.add(s.label);
+                for (Segment oa : oneAheadSegs) {
+                    if (real.contains(oa.label)) continue;
+                    if (!app.tikkamasalla.stremio.oneahead.OneAheadShow.sane(
+                            new app.tikkamasalla.stremio.oneahead.OneAheadShow.Seg(
+                                    oa.label, oa.startSeconds, oa.endSeconds), runtime)) continue;
+                    if (!overlaps(out, oa.startSeconds, oa.endSeconds)) out.add(oa);
+                }
+            }
             StringBuilder signature = new StringBuilder();
             for (Segment segment : out) signature.append(segment.key()).append(segment.source).append(segment.buttonOnly ? "!" : "").append(';');
             String sig = signature.toString();
@@ -3578,9 +3709,9 @@ public final class IntroSkipBridge {
             + "story so far|r[ée]sum[ée]|resumen|recapitula[çc][ãa]o|r[üu]ckblick|zusammenfassung|"
             + "ранее в сериале|в предыдущих сериях|рекап)(?![\\s:_-]+end\\b)(?:$|[^\\p{L}])|あらすじ");
     private static final Pattern CHAPTER_CREDITS = Pattern.compile("(?iu)(?:^|[^\\p{L}])(?:ed\\d*|ending|"
-            + "outro|credits|end credits|ending credits|closing credits|end theme|ending theme|"
+            + "outro|credits|creditos|créditos|end credits|ending credits|closing credits|end theme|ending theme|"
             + "encerramento|generique de fin|abspann|кінцеві титри|заключні титри|эндинг)(?![\\s:_-]+end\\b)(?:$|[^\\p{L}])|エンディング");
-    private static final Pattern CHAPTER_PREVIEW = Pattern.compile("(?iu)(?:^|[^\\p{L}])(?:preview|pv|teaser|"
+    private static final Pattern CHAPTER_PREVIEW = Pattern.compile("(?iu)(?:^|[^\\p{L}])(?:preview|pv|teaser|avance|"
             + "next episode|trailer|apercu|vorschau|у наступному епізоді|в следующей серии|превью)(?![\\s:_-]+end\\b)(?:$|[^\\p{L}])|予告");
     private static final Pattern CHAPTER_NOT = Pattern.compile("(?iu)(?:^|[^\\p{L}])(?:eyecatch)(?:$|[^\\p{L}])");
     /** The whole part before a song-title separator is a bare opening/ending word ("Opening", "ED2", "Ending Theme 2"). */
@@ -4119,6 +4250,15 @@ public final class IntroSkipBridge {
             this.toEnd = toEnd;
             this.groupDurationSeconds = groupDurationSeconds;
             this.buttonOnly = buttonOnly;
+        }
+
+        /** The same segment ending earlier; button-only stays as it was. */
+        Segment endingAt(double end) {
+            // A credits window cut short counts by its final length: a button that was only there because the
+            // window was too long goes away once it is short enough; any other reason for the button stays.
+            boolean wasLong = InnerBounds.longOnlineCredits(isCredits(), source, endSeconds - startSeconds);
+            boolean stillLong = InnerBounds.longOnlineCredits(isCredits(), source, end - startSeconds);
+            return new Segment(startSeconds, end, label, source, false, 0.0, buttonOnly && (!wasLong || stillLong));
         }
 
         Segment buttonOnlyCopy() {
@@ -4856,11 +4996,114 @@ public final class IntroSkipBridge {
         return safe(imdbId) + "|" + safe(title) + "|" + season + "|" + episode;
     }
 
+    /** Tells the one-ahead trigger the next episode's lookup finished (failures count as nothing found). */
+    private static void oneAheadLookupDone(android.content.Context ctx, String nextVideoId,
+                                           List<Segment> ani, List<Segment> intro,
+                                           String curId, String curUrl, long curLengthSec) {
+        try {
+            if (ctx == null || nextVideoId == null || nextVideoId.length() == 0
+                    || (!IntroSkipPrefs.isOneAheadEnabled(ctx) && !IntroSkipPrefs.isBorrowEnabled(ctx))) return;
+            boolean hasIntro = false, hasCredits = false;
+            for (List<Segment> list : new List[]{ani, intro}) {
+                if (list == null) continue;
+                for (Segment s : list) {
+                    if (s.isCredits()) hasCredits = true;
+                    else if (!s.isRecap() && !s.isPreview() && !s.isPostCredits()) hasIntro = true;
+                }
+            }
+            app.tikkamasalla.stremio.oneahead.OneAheadTrigger.onLookupDone(
+                    ctx, nextVideoId, hasIntro, hasCredits, curId, curUrl, curLengthSec);
+        } catch (Throwable ignored) {
+            // One-ahead is optional.
+        }
+    }
+
+    /** True when the file's own named chapters give both an intro and credits (small reads only). */
+    public static boolean chaptersCoverBoth(String url, double runtimeSec) {
+        return chaptersCover(url, runtimeSec, true, true);
+    }
+
+    /** True when the file's own named chapters cover every requested type (small reads only). */
+    public static boolean chaptersCover(String url, double runtimeSec, boolean needIntro, boolean needCredits) {
+        try {
+            if (url == null || url.length() == 0 || (!needIntro && !needCredits)) return false;
+            List<MkvChapters.Chapter> found = MkvChapters.read(url, new MkvChapters.Log() {
+                @Override
+                public void log(String message) { /* quiet on the trigger thread */ }
+            });
+            if (found == null) return false;
+            boolean intro = !needIntro, credits = !needCredits;
+            for (Segment s : chapterSegments(found, false, runtimeSec, QUIET, null)) {
+                if ("OP".equals(s.label)) intro = true;
+                if (s.isCredits()) credits = true;
+            }
+            return intro && credits;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /** Another file's named chapters for borrowing, strong names first, then weak intros; empty on none. Small reads only. */
+    public static List<app.tikkamasalla.stremio.oneahead.OneAheadBorrow.Named> chaptersToBorrow(String url, double runtimeSec) {
+        List<app.tikkamasalla.stremio.oneahead.OneAheadBorrow.Named> out = new ArrayList<>();
+        try {
+            List<MkvChapters.Chapter> found = MkvChapters.read(url, new MkvChapters.Log() {
+                @Override
+                public void log(String message) { /* quiet on the job thread */ }
+            });
+            if (found == null) return out;
+            for (Segment s : chapterSegments(found, false, runtimeSec, QUIET, null)) {
+                out.add(new app.tikkamasalla.stremio.oneahead.OneAheadBorrow.Named(s.label, s.startSeconds, s.endSeconds, false));
+            }
+            for (Segment s : chapterSegments(found, true, runtimeSec, QUIET, null)) {
+                out.add(new app.tikkamasalla.stremio.oneahead.OneAheadBorrow.Named(s.label, s.startSeconds, s.endSeconds, true));
+            }
+        } catch (Throwable ignored) {
+            out.clear();
+        }
+        return out;
+    }
+
+    /** True when Own times already cover every missing type of this episode (cache, no new fetch code). */
+    public static boolean ownTimesCover(String imdbId, int season, int episode, long runtimeMs,
+                                        boolean needIntro, boolean needCredits) {
+        try {
+            List<OwnTimes.Entry> entries = OwnTimes.forEpisode(OWN_FETCHER, imdbId, season, episode,
+                    runtimeMs, System.currentTimeMillis());
+            boolean intro = false, credits = false;
+            for (OwnTimes.Entry e : entries) {
+                if ("OP".equals(e.label)) intro = true;
+                if ("credits".equals(e.label)) credits = true;
+            }
+            return app.tikkamasalla.stremio.oneahead.OneAheadGate.ownCovers(
+                    needIntro, needCredits, intro, credits);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     /** Runs the same lookups startFetch would, on the NETWORK pool; kept only when no source failed. */
     static void prefetchSkips(final android.content.Context ctx, final String imdbId, final String title,
                               final int season, final int episode, final long length) {
+        prefetchSkips(ctx, imdbId, title, season, episode, length, "", "", "");
+    }
+
+    static void prefetchSkips(final android.content.Context ctx, final String imdbId, final String title,
+                              final int season, final int episode, final long length,
+                              final String nextVideoId, final String curId, final String curUrl) {
         final String key = preSkipsKey(imdbId, title, season, episode);
-        if (length <= 0 || PRE_SKIPS.containsKey(key) || !PRE_SKIPS_INFLIGHT.add(key)) return;
+        PreSkips done = PRE_SKIPS.get(key);
+        if (app.tikkamasalla.stremio.oneahead.OneAheadGate.prefetchCallback(length, done != null)) {
+            // Finished before: report it, never fetch again (also with the setting off).
+            oneAheadLookupDone(ctx, nextVideoId, done.ani, done.intro, curId, curUrl, length);
+            return;
+        }
+        if (!app.tikkamasalla.stremio.oneahead.OneAheadGate.prefetchFetches(
+                length, done != null, PRE_SKIPS_INFLIGHT.contains(key))) {
+            Log.i("OneAhead", "lookup not started: " + (length <= 0 ? "no-length" : done != null ? "done" : "inflight") + " len=" + length);
+            return;
+        }
+        if (!PRE_SKIPS_INFLIGHT.add(key)) return; // lost the race: an inflight one runs
         final boolean anime = IntroSkipPrefs.isAnimeEnabled(ctx);
         NETWORK.execute(new Runnable() {
             @Override
@@ -4871,7 +5114,7 @@ public final class IntroSkipBridge {
                         beginSource(ANISKIP_BUDGET_MS);
                         try {
                             ani = fetchAniSkip(ctx, imdbId, title, season, episode, length, QUIET);
-                            if (sourceFailed()) return;
+                            if (sourceFailed()) { Log.i("OneAhead", "lookup failed: AniSkip, no run"); return; }
                         } finally {
                             endSource();
                         }
@@ -4885,16 +5128,18 @@ public final class IntroSkipBridge {
                                 // Only the final result is kept.
                             }
                         }, QUIET);
-                        if (!failed.isEmpty()) return;
+                        if (!failed.isEmpty()) { Log.i("OneAhead", "lookup failed: " + failed.size() + " intro source(s), no run"); return; }
                         intro = chain.result();
                     }
                     if (PRE_SKIPS.size() >= 4) PRE_SKIPS.clear();
                     PRE_SKIPS.put(key, new PreSkips(ani, intro, length, anime));
+                    oneAheadLookupDone(ctx, nextVideoId, ani, intro, curId, curUrl, length);
                     PlaybackDiary.ev(ctx, "next.skips", "ready", true, "s", season, "e", episode,
                             "ani", ani == null ? -1 : ani.size(), "intro", intro == null ? -1 : intro.size());
                 } catch (Throwable ignored) {
                     // The next episode looks up at its start, as before.
                 } finally {
+                    // A failed lookup says nothing: it never starts a one-ahead run.
                     PRE_SKIPS_INFLIGHT.remove(key);
                 }
             }
@@ -5376,7 +5621,7 @@ public final class IntroSkipBridge {
      * meta lookup, cached per show);
      * (d) then IntroDB.app for missing segment types (a real mid-episode OP
      * replaces a 0.0s TheIntroDB OP and evicts overlapping mislabeled
-     * "credits"; an early "credits" with no OP anywhere is promoted).
+     * "credits"; a TheIntroDB early "credits" with no OP anywhere is promoted).
      * Runs on a NETWORK thread, never on the main thread, and never blocks AniSkip
      * (separate thread) or chapter skipping.
      */
@@ -5695,13 +5940,15 @@ public final class IntroSkipBridge {
                     logger.log("Segment SkipDB: " + s.label + " " + s.startSeconds + "s -> " + s.endSeconds + "s");
                 }
             }
-            // If TheIntroDB is the only source with data and mislabeled an opening sequence in the
-            // first 40% of the episode as "credits" with no separate OP anywhere, promote it to OP.
+            // If TheIntroDB mislabeled an opening sequence in the first 40% of the episode
+            // as "credits" with no separate OP anywhere, promote it to OP. Other sources keep
+            // their label: combine()'s positional sanity drops early online credits.
             if (!hasUsableSegmentType(out, "OP", episodeLength)) {
                 double maxIntroStart = episodeLength > 0 ? episodeLength * 0.40 : 300.0;
                 for (int i = 0; i < out.size(); i++) {
                     Segment s = out.get(i);
-                    if ("credits".equals(s.label) && !s.toEnd && s.startSeconds < maxIntroStart
+                    if ("credits".equals(s.label) && !s.toEnd && "IntroDB".equals(s.source)
+                            && s.startSeconds < maxIntroStart
                             && (episodeLength <= 0 || s.endSeconds < episodeLength * 0.5)) {
                         out.set(i, new Segment(s.startSeconds, s.endSeconds, "OP", s.source));
                         logger.log("IntroDB: promoted early credits (" + s.startSeconds + "s -> "
@@ -6356,15 +6603,12 @@ public final class IntroSkipBridge {
                                                  DebugLogger logger) {
         for (int i = segments.size() - 1; i >= 0; i--) {
             Segment s = segments.get(i);
-            if (!s.isCredits()) continue;
+            if (!s.isCredits() || app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.source)) continue; // combine() decides One-ahead
             double overlap = Math.min(s.endSeconds, preview.endSeconds)
                     - Math.max(s.startSeconds, preview.startSeconds);
             if (overlap <= 1.0) continue;
             if (preview.startSeconds - s.startSeconds >= 10.0) {
-                // A credits window cut short counts by its final length: still over the limit stays a button.
-                segments.set(i, new Segment(s.startSeconds, preview.startSeconds, s.label, s.source, false, 0.0,
-                        s.buttonOnly && InnerBounds.longOnlineCredits(true, s.source,
-                                preview.startSeconds - s.startSeconds)));
+                segments.set(i, s.endingAt(preview.startSeconds));
                 if (logger != null) {
                     logger.log("Trimmed credits end " + fmt3(s.endSeconds) + "s -> "
                             + fmt3(preview.startSeconds) + "s before preview");

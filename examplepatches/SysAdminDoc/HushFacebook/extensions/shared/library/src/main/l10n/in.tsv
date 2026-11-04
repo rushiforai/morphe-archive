@@ -998,7 +998,7 @@ The phone's language	Bahasa ponsel
 Languages to leave alone	Bahasa yang tidak diterjemahkan
 None picked. Posts in every language can be translated.	Belum ada yang dipilih. Postingan dalam bahasa apa pun bisa diterjemahkan.
 Left alone: %s	Tidak diterjemahkan: %s
-Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	Postingan di feed menampilkan seluruh teksnya, jadi tidak perlu mengetuk Lihat selengkapnya. Ketuk teks postingan untuk melipatnya kembali.
+Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	Postingan di feed dan keterangan di reels menampilkan seluruh teksnya, jadi tidak perlu mengetuk Lihat selengkapnya. Ketuk teksnya untuk melipatnya kembali.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Lihat siapa yang membagikan
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Menambahkan Lihat siapa yang membagikan ke menu postingan. Ini membuka daftar Facebook berisi orang yang membagikannya.
@@ -1305,10 +1305,10 @@ No dot or count on Feeds, Gaming, Events and the other tabs not listed here. The
 No dot or count on this tab. Its page still shows what's new when you open it.	Tanpa titik atau angka di tab ini. Halamannya tetap menampilkan yang baru saat kamu membukanya.
 # context: summary of the app icon count switch
 No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, which this can't remove.	Tanpa angka di ikon Facebook. Notifikasi tetap masuk. Beberapa peluncur menambahkan hitungannya sendiri, dan itu tidak bisa dihapus di sini.
-# context: switch title under News feed; it shows posts and reel captions in their original language instead of Facebook's automatic translation
+# context: switch title under News feed; it shows posts, comments and reel captions in their original language instead of Facebook's automatic translation
 Turn off auto-translation	Matikan terjemahan otomatis
 # context: description of that switch; See translation is the name of Facebook's own link under a post that translates it on request
-Posts and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Postingan dan keterangan reel tetap dalam bahasa aslinya. Tautan Lihat Terjemahan dari Facebook tetap ada di bawahnya.
+Posts, comments and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Postingan, komentar, dan keterangan reel tetap dalam bahasa aslinya. Tautan Lihat Terjemahan dari Facebook tetap ada di bawahnya.
 # context: switch title under Reels and Watch, below Keep the reel speed; it keeps a playback speed picked on a feed or Watch video for the next videos
 Keep the video speed	Pertahankan kecepatan video
 # context: description of that switch; the gear menu is the settings button on a video's player, where Playback speed is picked
@@ -1698,7 +1698,7 @@ Settings row in Menu	Baris pengaturan di Menu
 # context: summary of the switch for the Hushfacebook settings shortcut in the launcher icon's menu
 Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves that menu.	Menaruh Pengaturan Hushfacebook di menu yang muncul saat ikon Facebook ditekan lama. Jika dimatikan, pintasan itu hilang dari menu tersebut.
 # context: summary of the switch for opening the settings with a long press on the Facebook logo
-A long press on the Facebook logo at the top of the home feed opens these settings. Off, the long press goes back to Facebook.	Menekan lama logo Facebook di bagian atas beranda membuka pengaturan ini. Jika dimatikan, tekan lama itu kembali menjadi milik Facebook.
+A long press on the Facebook logo at the top of the home feed, or on the title at the top of another tab, opens these settings. Off, the long press goes back to Facebook.	Menekan lama logo Facebook di bagian atas beranda, atau judul di bagian atas tab lain, membuka pengaturan ini. Jika dimatikan, tekan lama itu kembali menjadi milik Facebook.
 # context: summary of the switch for the Hushfacebook settings row in Facebook's Menu
 Adds a Hushfacebook settings row at the end of Settings and privacy in Facebook's Menu. Off, the row leaves the Menu.	Menambahkan baris Pengaturan Hushfacebook di akhir Pengaturan dan privasi pada Menu Facebook. Jika dimatikan, baris itu hilang dari Menu.
 # context: summary shown instead of a switch's usual one while it is the only one of the three ways into the settings still on, so it is greyed out
@@ -2326,7 +2326,7 @@ Adv. Filters button	Tombol Filter lanj.
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Menambahkan tombol Filter lanj. di bawah Filter Marketplace pada hasil pencarian. Tombol ini membuka daftar kata yang disimpan, kata yang disembunyikan, dan tempat, lalu menuliskan aturannya ke pencarian untukmu.
 # context: switch title and summary under Marketplace; a listing is something for sale
 Show when listings went up	Tampilkan kapan iklan dipasang
-A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	Halaman iklan menampilkan sudah berapa lama iklan dipasang beserta tanggalnya, di samping lokasinya. Facebook hanya menampilkannya untuk iklan baru.
+A listing's page says how long ago it was listed and the date, under its price and next to its place. Facebook only shows it for new listings.	Halaman iklan menampilkan sudah berapa lama iklan dipasang beserta tanggalnya, di bawah harganya dan di samping lokasinya. Facebook hanya menampilkannya untuk iklan baru.
 # context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
 Listed %1$s (%2$s)	Dipasang %1$s (%2$s)
 How Adv. Filters works	Cara kerja Filter lanj.
@@ -2360,7 +2360,7 @@ The Subscribe button some authors get there instead, which subscribes with one t
 # context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
 Fix washed-out video colors	Perbaiki warna video yang pudar
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
-Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Video dan reel digambar bersama bagian layar lainnya, seperti Nonaktifkan overlay HW di Opsi developer. Coba ini jika reel terlihat pucat sampai ada sesuatu yang menutupinya. Sedikit lebih boros baterai.
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery and can make videos stutter, mostly high frame rate ones.	Video dan reel digambar bersama bagian layar lainnya, seperti Nonaktifkan overlay HW di Opsi developer. Coba ini jika reel terlihat pucat sampai ada sesuatu yang menutupinya. Sedikit lebih boros baterai. Video bisa tersendat, terutama yang frame rate-nya tinggi.
 # context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
 Burn-in guard	Pelindung burn-in
 Dim when idle	Redupkan saat diam
@@ -2471,10 +2471,12 @@ Reel post dates will show the day they were posted.	Tanggal posting reel akan me
 Hide pictures on the Blocked list	Sembunyikan foto di daftar blokir
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Orang yang kamu blokir tampil tanpa foto profil di halaman Pemblokiran pada pengaturan Facebook. Buka ulang halaman itu jika sudah terbuka.
 Hide Up next on videos	Sembunyikan Berikutnya di video
-Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	Menghapus bilah BERIKUTNYA berisi video selanjutnya dari bagian bawah video yang kamu buka dari feed. Perubahan berlaku mulai video berikutnya yang kamu buka.
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Menghapus bilah BERIKUTNYA berisi video selanjutnya dari bagian bawah video yang kamu buka dari feed, beserta ruang kosong yang disiapkan untuknya, jadi bilah progres tetap di bawah. Perubahan berlaku mulai video berikutnya yang kamu buka.
 Icons look soft on this screen. Repatch with the 120-640dpi bundle.	Ikon terlihat buram di layar ini. Patch ulang dengan bundle 120-640dpi.
 Icons look soft on this screen	Ikon terlihat buram di layar ini
 The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	Facebook yang kamu patch tidak punya gambar untuk layar ini, jadi beberapa ikon diperbesar. Patch ulang Facebook dari bundle (arm64-v8a) (120-640dpi) di APKMirror, yang punya gambar untuk semua layar.
 Let each post come back once	Biarkan tiap postingan muncul sekali lagi
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Postingan yang sudah kamu lewati muncul satu kali lagi, dan disembunyikan saat kamu melewatinya lagi. Lebih sedikit postingan yang hilang setelah menggulir cepat.
 There's no Facebook link in what you shared.	Yang kamu bagikan tidak berisi tautan Facebook.
+Open in Facebook from the share menu	Open in Facebook di menu berbagi
+Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Bagikan tautan Facebook dari browser Messenger atau aplikasi lain, lalu pilih Open in Facebook agar terbuka di sini.

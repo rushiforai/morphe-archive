@@ -130,10 +130,11 @@ public class Settings extends BaseSettings {
 
     /**
      * The black look for HushGram's page (#455): black rows and dialogs, HushGram's name at the top
-     * and each category on one line. Off to start. A settings-page choice, read saved even during Pause.
+     * and each category on one line. On to start (the reporter asked for it as the default). A
+     * settings-page choice, read saved even during Pause.
      */
     public static final BooleanSetting SETTINGS_BLACK_LOOK =
-            new BooleanSetting("hushgram_settings_black_look", FALSE);
+            new BooleanSetting("hushgram_settings_black_look", TRUE);
 
     /** A settings-page choice, read saved even during Pause. Existing backup names stay the default. */
     public static final BooleanSetting DATE_SETTINGS_EXPORT =
@@ -322,6 +323,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STOP_STORY_SWIPE_REPLY =
             new BooleanSetting("hushgram_stop_story_swipe_reply", FALSE);
+
+    /**
+     * The Send message box stays off the bottom of other people's stories
+     * ({@link app.hushgram.extension.instagram.stories.StoryReplyBox}). Read before each frame, and
+     * a viewer opened with it on puts the box back the next time it opens with it off. Off to start.
+     */
+    public static final BooleanSetting HIDE_STORY_REPLY_BOX =
+            new BooleanSetting("hushgram_hide_story_reply_box", FALSE);
 
     /**
      * The font files picked in settings show up in the story text editor alongside Instagram's own fonts
@@ -777,6 +786,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting ONLY_RECEIVED_CHAT_REELS =
             new BooleanSetting("hushgram_only_received_chat_reels", FALSE, parent(SWIPE_CHAT_REELS));
+
+    /**
+     * While swiping through a chat's reels, a banner says when the other person sent a message after the
+     * reel on screen, and a tap on it goes back to the chat at that message
+     * ({@link app.hushgram.extension.instagram.direct.ChatReelsNotice}, #489). A child of Swipe through a
+     * chat's reels. Off to start.
+     */
+    public static final BooleanSetting MESSAGES_AFTER_CHAT_REELS =
+            new BooleanSetting("hushgram_messages_after_chat_reels", FALSE, parent(SWIPE_CHAT_REELS));
 
     /**
      * Long pressing a chat's name offers to jump to its first message or to a date, paging back
@@ -1397,6 +1415,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_full_screen_messages", FALSE);
 
     /**
+     * Stories over the whole screen (#436): on a screen taller than 9:16 a story shows behind the
+     * reply bar, the way it does on a shorter phone, instead of as a rounded card above it. Off to
+     * start.
+     */
+    public static final BooleanSetting FILL_STORY_SCREEN =
+            new BooleanSetting("hushgram_fill_story_screen", FALSE);
+
+    /**
      * Which bars the three switches above hide (#231): both to start, or only the status bar or only the
      * navigation bar ({@link app.hushgram.extension.instagram.reels.HiddenBars}). Read each time a
      * screen hides them.
@@ -1820,6 +1846,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_track_unfollowers", FALSE);
 
     /**
+     * Notify me of unfollowers (#492): a notification when a Followers list you scrolled to the end is
+     * missing people the one before had ({@link app.hushgram.extension.instagram.profile.FollowerAlert}).
+     * Works with Recent unfollowers. Off to start.
+     */
+    public static final BooleanSetting NOTIFY_UNFOLLOWS =
+            new BooleanSetting("hushgram_notify_unfollows", FALSE);
+
+    /**
      * Suggested for you and the Discover people button on profiles
      * ({@link app.hushgram.extension.instagram.profile.ProfileSuggestions}). Read each time Instagram
      * builds or binds a profile's header, so off or paused, the suggestions are back on the next one.
@@ -2075,6 +2109,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COPY_COMMENT_AUTHORS =
             new BooleanSetting("hushgram_copy_comment_authors", FALSE);
 
+    /**
+     * Select text to copy (#492): a comment's menu, a post's details and a profile's menu get a Select text row
+     * ({@link app.hushgram.extension.instagram.comment.SelectText}). Off until enabled.
+     */
+    public static final BooleanSetting SELECT_TEXT =
+            new BooleanSetting("hushgram_select_text", FALSE);
+
     /** An explicit Save action for a photo the comment itself carries. Off until enabled. */
     public static final BooleanSetting SAVE_COMMENT_PHOTOS =
             new BooleanSetting("hushgram_save_comment_photos", FALSE);
@@ -2111,6 +2152,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PROFILE_EXTRAS_BUTTON =
             new BooleanSetting("hushgram_profile_extras_button", FALSE);
+
+    /**
+     * An (i) on a profile, next to the three dots, opens Instagram's About this account for that
+     * account ({@link app.hushgram.extension.instagram.download.ProfileExtras}). Instagram dropped
+     * its own. Off until enabled.
+     */
+    public static final BooleanSetting ABOUT_ACCOUNT_BUTTON =
+            new BooleanSetting("hushgram_about_account_button", FALSE);
 
     /**
      * A voice message's menu in a chat gets Save
@@ -2300,6 +2349,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_start_reel_clear_mode", FALSE, parent(KEEP_REEL_CLEAR_MODE));
 
     /**
+     * No vibration when a reel opens in clear mode. Instagram buzzes each time it draws a reel's
+     * exit button, which Keep clear mode on brings on every swipe (#480,
+     * {@link app.hushgram.extension.instagram.reels.ReelClearMode#quiet}). Read each time, so a
+     * change needs no restart. Off to start.
+     */
+    public static final BooleanSetting QUIET_REEL_CLEAR_MODE =
+            new BooleanSetting("hushgram_quiet_reel_clear_mode", FALSE);
+
+    /**
      * The top bar of a reels viewer staying in place while you swipe through reels (#411,
      * {@link app.hushgram.extension.instagram.reels.ReelsTopBarScroll}). Read at each scroll, so a
      * change needs no restart. Off to start.
@@ -2334,6 +2392,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting BURN_IN_LIGHT_WHEN_PAUSED =
             new BooleanSetting("hushgram_burn_in_light_when_paused", FALSE);
+
+    /**
+     * Burn-in guard's Dim stories too (#479): the story viewer's header, progress bar and reply bar dim
+     * as a reel's controls do, HushGram's own header buttons with them. Read at each look, so a change
+     * needs no restart. On to start, so turning Burn-in guard on covers stories as Hushfacebook's does.
+     */
+    public static final BooleanSetting BURN_IN_STORIES =
+            new BooleanSetting("hushgram_burn_in_stories", TRUE);
 
     /**
      * Download in every reel's more menu, saving the reel through the save pipeline below instead
@@ -2881,6 +2947,19 @@ public class Settings extends BaseSettings {
      * text can be copied (#303). Starts off, so the column stays Instagram's own.
      */
     public static final BooleanSetting TEXT_BUTTON_ON_REELS = new BooleanSetting("hushgram_text_button_on_reels", FALSE);
+
+    /**
+     * A speed icon in the column beside a reel whose tap picks the reel's speed from 0.5x to 3x
+     * (#480), kept for the next reels with Keep the reel speed on. Starts off, so the column stays
+     * Instagram's own.
+     */
+    public static final BooleanSetting SPEED_BUTTON_ON_REELS = new BooleanSetting("hushgram_speed_button_on_reels", FALSE);
+
+    /**
+     * A Full screen icon in the column beside a reel whose tap turns on Instagram's own Full screen,
+     * its clear mode, for that reel (#480). Starts off, so the column stays Instagram's own.
+     */
+    public static final BooleanSetting FULL_SCREEN_BUTTON_ON_REELS = new BooleanSetting("hushgram_full_screen_button_on_reels", FALSE);
 
     /**
      * The sounds Hide reels by sound hides, a line for each: the sound's id, a tab, its title, a tab

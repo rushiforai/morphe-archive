@@ -15,8 +15,7 @@ import semicoloncolonel.mobilestream.patches.tmobileplay.shared.Constants
 @Suppress("unused")
 val hideStoriesPatch = bytecodePatch(
     name = "Hide stories",
-    description = "Removes the Storyteller stories and video clips from T-Mobile Play's feeds. " +
-        "Opt-in; test on-device.",
+    description = "Removes the Storyteller stories and video clips from T-Mobile Play's feeds.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

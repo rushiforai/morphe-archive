@@ -38,9 +38,9 @@ internal object PageFinishedFingerprint : Fingerprint(
 @Suppress("unused")
 val hideSponsoredListingsPatch = bytecodePatch(
     name = "Hide sponsored listings",
-    description = "Hides sponsored products in Amazon search results and on product pages. " +
-        "Sponsored items in the app's native screens, such as some home page rows, may still " +
-        "show. Experimental; test on-device.",
+    description = "Hides sponsored products in Amazon search results and on product pages. Sponsored " +
+        "items in the app's native screens, such as some home page rows, may still show. " +
+        "Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

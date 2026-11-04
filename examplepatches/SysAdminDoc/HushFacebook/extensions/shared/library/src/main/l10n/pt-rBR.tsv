@@ -884,7 +884,7 @@ The phone's language	O idioma do celular
 Languages to leave alone	Idiomas que não são traduzidos
 None picked. Posts in every language can be translated.	Nenhum escolhido. Publicações em qualquer idioma podem ser traduzidas.
 Left alone: %s	Não traduzidos: %s
-Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	As publicações do feed mostram todo o texto, então não precisa tocar em Ver mais. Toque no texto de uma publicação para recolhê-lo de novo.
+Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	As publicações do feed e as legendas dos reels mostram todo o texto, então não precisa tocar em Ver mais. Toque no texto para recolhê-lo de novo.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Ver quem compartilhou
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Adiciona Ver quem compartilhou ao menu de uma publicação. Abre a lista do Facebook com as pessoas que a compartilharam.
@@ -1191,10 +1191,10 @@ No dot or count on Feeds, Gaming, Events and the other tabs not listed here. The
 No dot or count on this tab. Its page still shows what's new when you open it.	Sem ponto nem número nesta aba. A página continua mostrando as novidades quando você a abre.
 # context: summary of the app icon count switch
 No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, which this can't remove.	Sem número no ícone do Facebook. As notificações continuam chegando. Alguns launchers mostram a própria contagem, e isso não dá para remover aqui.
-# context: switch title under News feed; it shows posts and reel captions in their original language instead of Facebook's automatic translation
+# context: switch title under News feed; it shows posts, comments and reel captions in their original language instead of Facebook's automatic translation
 Turn off auto-translation	Desativar a tradução automática
 # context: description of that switch; See translation is the name of Facebook's own link under a post that translates it on request
-Posts and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Publicações e legendas de reels ficam no idioma em que foram escritas. O link Ver tradução do Facebook continua embaixo delas.
+Posts, comments and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Publicações, comentários e legendas de reels ficam no idioma em que foram escritos. O link Ver tradução do Facebook continua embaixo deles.
 # context: switch title under Reels and Watch, below Keep the reel speed; it keeps a playback speed picked on a feed or Watch video for the next videos
 Keep the video speed	Manter a velocidade dos vídeos
 # context: description of that switch; the gear menu is the settings button on a video's player, where Playback speed is picked
@@ -1584,7 +1584,7 @@ Settings row in Menu	Linha de configurações no Menu
 # context: summary of the switch for the Hushfacebook settings shortcut in the launcher icon's menu
 Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves that menu.	Coloca as Configurações do Hushfacebook no menu que aparece ao segurar o ícone do Facebook. Desligado, o atalho sai desse menu.
 # context: summary of the switch for opening the settings with a long press on the Facebook logo
-A long press on the Facebook logo at the top of the home feed opens these settings. Off, the long press goes back to Facebook.	Tocar e segurar o logotipo do Facebook, no topo do feed inicial, abre estas configurações. Desligado, o toque longo volta a ser do Facebook.
+A long press on the Facebook logo at the top of the home feed, or on the title at the top of another tab, opens these settings. Off, the long press goes back to Facebook.	Tocar e segurar o logotipo do Facebook, no topo do feed inicial, ou o título no topo de outra aba abre estas configurações. Desligado, o toque longo volta a ser do Facebook.
 # context: summary of the switch for the Hushfacebook settings row in Facebook's Menu
 Adds a Hushfacebook settings row at the end of Settings and privacy in Facebook's Menu. Off, the row leaves the Menu.	Adiciona uma linha Configurações do Hushfacebook no fim de Configurações e privacidade, no Menu do Facebook. Desligado, a linha sai do Menu.
 # context: summary shown instead of a switch's usual one while it is the only one of the three ways into the settings still on, so it is greyed out
@@ -2212,7 +2212,7 @@ Adv. Filters button	Botão Filtros av.
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Adiciona um botão Filtros av. abaixo dos Filtros do Marketplace nos resultados da pesquisa. Ele abre listas de palavras para manter, palavras para ocultar e lugares, e escreve as regras na pesquisa para você.
 # context: switch title and summary under Marketplace; a listing is something for sale
 Show when listings went up	Mostrar quando os anúncios foram publicados
-A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	A página de um anúncio mostra, ao lado do local, há quanto tempo ele foi publicado e a data. O Facebook só mostra isso em anúncios novos.
+A listing's page says how long ago it was listed and the date, under its price and next to its place. Facebook only shows it for new listings.	A página de um anúncio mostra, abaixo do preço e ao lado do local, há quanto tempo ele foi publicado e a data. O Facebook só mostra isso em anúncios novos.
 # context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
 Listed %1$s (%2$s)	Publicado %1$s (%2$s)
 How Adv. Filters works	Como os Filtros av. funcionam
@@ -2246,7 +2246,7 @@ The Subscribe button some authors get there instead, which subscribes with one t
 # context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
 Fix washed-out video colors	Corrigir cores desbotadas nos vídeos
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
-Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Vídeos e Reels são desenhados junto com o resto da tela, como Desativar sobreposições de HW nas opções do desenvolvedor. Experimente se os Reels ficam pálidos até algo cobri-los. Gasta um pouco mais de bateria.
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery and can make videos stutter, mostly high frame rate ones.	Vídeos e Reels são desenhados junto com o resto da tela, como Desativar sobreposições de HW nas opções do desenvolvedor. Experimente se os Reels ficam pálidos até algo cobri-los. Gasta um pouco mais de bateria. Os vídeos podem travar, principalmente os com taxa de quadros alta.
 # context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
 Burn-in guard	Proteção contra burn-in
 Dim when idle	Escurecer quando parado
@@ -2357,10 +2357,12 @@ Reel post dates will show the day they were posted.	As datas dos reels vão most
 Hide pictures on the Blocked list	Ocultar fotos na lista de bloqueados
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	As pessoas que você bloqueou aparecem sem foto do perfil na página Bloqueio das configurações do Facebook. Abra a página de novo se ela já estiver aberta.
 Hide Up next on videos	Ocultar A seguir nos vídeos
-Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	Tira a barra A SEGUIR com o próximo vídeo da parte de baixo de um vídeo que você abre pelo feed. Uma mudança vale a partir do próximo vídeo que você abrir.
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Tira a barra A SEGUIR com o próximo vídeo da parte de baixo de um vídeo que você abre pelo feed, junto com o espaço vazio reservado para ela, então a barra de progresso fica embaixo. Uma mudança vale a partir do próximo vídeo que você abrir.
 Icons look soft on this screen. Repatch with the 120-640dpi bundle.	Os ícones parecem borrados nesta tela. Aplique o patch de novo com o pacote 120-640dpi.
 Icons look soft on this screen	Os ícones parecem borrados nesta tela
 The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	O Facebook em que você aplicou o patch não tem imagens feitas para esta tela, então alguns ícones são ampliados. Aplique o patch de novo a partir do pacote (arm64-v8a) (120-640dpi) do APKMirror, que tem imagens para todas as telas.
 Let each post come back once	Deixar cada publicação voltar uma vez
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Uma publicação pela qual você já rolou aparece mais uma vez, e rolar por ela de novo a oculta. Menos publicações se perdem depois de uma rolagem rápida.
 There's no Facebook link in what you shared.	Não há nenhum link do Facebook no que você compartilhou.
+Open in Facebook from the share menu	Open in Facebook no menu de compartilhamento
+Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Compartilhe um link do Facebook pelo navegador do Messenger ou por qualquer outro app e escolha Open in Facebook para abri-lo aqui.

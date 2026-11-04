@@ -22,10 +22,9 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking in the Fox One phone app: AppsFlyer, Braze, " +
-        "Conviva, comScore, Adobe, Nielsen, Mux, Datadog, Segment, Contentsquare and Firebase. " +
-        "Blocking happens on the device, inside the app. Sign-in and playback are left alone. " +
-        "Opt-in / experimental; test on-device.",
+    description = "Stops analytics and tracking: AppsFlyer, Braze, Conviva, comScore, Adobe, Nielsen, " +
+        "Mux, Datadog, Segment, Contentsquare and Firebase. Sign-in and playback are left " +
+        "alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

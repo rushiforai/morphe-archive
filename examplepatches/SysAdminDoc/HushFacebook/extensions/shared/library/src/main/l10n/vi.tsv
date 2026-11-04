@@ -998,7 +998,7 @@ The phone's language	Ngôn ngữ của điện thoại
 Languages to leave alone	Ngôn ngữ không dịch
 None picked. Posts in every language can be translated.	Chưa chọn ngôn ngữ nào. Bài viết bằng mọi ngôn ngữ đều có thể được dịch.
 Left alone: %s	Không dịch: %s
-Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	Bài viết trong bảng feed hiện toàn bộ nội dung, nên không cần nhấn Xem thêm. Nhấn vào nội dung bài viết để thu gọn lại.
+Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	Bài viết trong bảng feed và chú thích của thước phim hiện toàn bộ nội dung, nên không cần nhấn Xem thêm. Nhấn vào nội dung để thu gọn lại.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Xem ai đã chia sẻ
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Thêm Xem ai đã chia sẻ vào menu của bài viết. Mục này mở danh sách của Facebook gồm những người đã chia sẻ bài viết.
@@ -1305,10 +1305,10 @@ No dot or count on Feeds, Gaming, Events and the other tabs not listed here. The
 No dot or count on this tab. Its page still shows what's new when you open it.	Không có chấm hay số đếm trên tab này. Trang của tab vẫn hiện nội dung mới khi bạn mở.
 # context: summary of the app icon count switch
 No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, which this can't remove.	Không có số trên biểu tượng ứng dụng Facebook. Thông báo vẫn đến. Một số trình chạy tự thêm số đếm riêng, mục này không gỡ được.
-# context: switch title under News feed; it shows posts and reel captions in their original language instead of Facebook's automatic translation
+# context: switch title under News feed; it shows posts, comments and reel captions in their original language instead of Facebook's automatic translation
 Turn off auto-translation	Tắt tự động dịch
 # context: description of that switch; See translation is the name of Facebook's own link under a post that translates it on request
-Posts and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Bài viết và chú thích reel giữ nguyên ngôn ngữ gốc. Liên kết Xem bản dịch của Facebook vẫn ở bên dưới.
+Posts, comments and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Bài viết, bình luận và chú thích reel giữ nguyên ngôn ngữ gốc. Liên kết Xem bản dịch của Facebook vẫn ở bên dưới.
 # context: switch title under Reels and Watch, below Keep the reel speed; it keeps a playback speed picked on a feed or Watch video for the next videos
 Keep the video speed	Giữ tốc độ video
 # context: description of that switch; the gear menu is the settings button on a video's player, where Playback speed is picked
@@ -1698,7 +1698,7 @@ Settings row in Menu	Dòng cài đặt trong Menu
 # context: summary of the switch for the Hushfacebook settings shortcut in the launcher icon's menu
 Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves that menu.	Thêm cài đặt Hushfacebook vào menu hiện ra khi nhấn giữ biểu tượng Facebook. Khi tắt, lối tắt rời khỏi menu đó.
 # context: summary of the switch for opening the settings with a long press on the Facebook logo
-A long press on the Facebook logo at the top of the home feed opens these settings. Off, the long press goes back to Facebook.	Nhấn giữ logo Facebook ở đầu bảng tin trang chủ sẽ mở các cài đặt này. Khi tắt, thao tác nhấn giữ trở lại như của Facebook.
+A long press on the Facebook logo at the top of the home feed, or on the title at the top of another tab, opens these settings. Off, the long press goes back to Facebook.	Nhấn giữ logo Facebook ở đầu bảng tin trang chủ, hoặc tiêu đề ở đầu một thẻ khác, sẽ mở các cài đặt này. Khi tắt, thao tác nhấn giữ trở lại như của Facebook.
 # context: summary of the switch for the Hushfacebook settings row in Facebook's Menu
 Adds a Hushfacebook settings row at the end of Settings and privacy in Facebook's Menu. Off, the row leaves the Menu.	Thêm dòng Cài đặt Hushfacebook ở cuối mục Cài đặt & quyền riêng tư trong Menu của Facebook. Khi tắt, dòng này rời khỏi Menu.
 # context: summary shown instead of a switch's usual one while it is the only one of the three ways into the settings still on, so it is greyed out
@@ -2326,7 +2326,7 @@ Adv. Filters button	Nút Bộ lọc NC
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Thêm nút Bộ lọc NC dưới Bộ lọc của Marketplace trong kết quả tìm kiếm. Nút này mở danh sách từ cần giữ, từ cần ẩn và nơi chốn, rồi viết quy tắc vào ô tìm kiếm cho bạn.
 # context: switch title and summary under Marketplace; a listing is something for sale
 Show when listings went up	Hiện thời điểm đăng tin
-A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	Trang của tin đăng hiện tin đã đăng bao lâu và ngày đăng, cạnh địa điểm. Facebook chỉ hiện điều này với tin mới.
+A listing's page says how long ago it was listed and the date, under its price and next to its place. Facebook only shows it for new listings.	Trang của tin đăng hiện tin đã đăng bao lâu và ngày đăng, dưới giá và cạnh địa điểm. Facebook chỉ hiện điều này với tin mới.
 # context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
 Listed %1$s (%2$s)	Đã đăng %1$s (%2$s)
 How Adv. Filters works	Cách Bộ lọc NC hoạt động
@@ -2360,7 +2360,7 @@ The Subscribe button some authors get there instead, which subscribes with one t
 # context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
 Fix washed-out video colors	Sửa màu video bị nhạt
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
-Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Video và reel được vẽ cùng phần còn lại của màn hình, giống Tắt lớp phủ HW trong Tùy chọn cho nhà phát triển. Hãy thử nếu reel trông nhạt màu cho đến khi có gì đó che lên. Tốn pin hơn một chút.
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery and can make videos stutter, mostly high frame rate ones.	Video và reel được vẽ cùng phần còn lại của màn hình, giống Tắt lớp phủ HW trong Tùy chọn cho nhà phát triển. Hãy thử nếu reel trông nhạt màu cho đến khi có gì đó che lên. Tốn pin hơn một chút. Video có thể bị giật, nhất là video có tốc độ khung hình cao.
 # context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
 Burn-in guard	Chống lưu ảnh màn hình
 Dim when idle	Làm mờ khi để yên
@@ -2471,10 +2471,12 @@ Reel post dates will show the day they were posted.	Ngày đăng reel sẽ hiệ
 Hide pictures on the Blocked list	Ẩn ảnh trong danh sách chặn
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Những người bạn đã chặn hiển thị không có ảnh đại diện trên trang Chặn trong phần cài đặt Facebook. Mở lại trang nếu trang đang mở.
 Hide Up next on videos	Ẩn Tiếp theo trên video
-Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	Gỡ thanh TIẾP THEO kèm video kế tiếp khỏi cuối video bạn mở từ bảng tin. Thay đổi áp dụng từ video tiếp theo bạn mở.
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Gỡ thanh TIẾP THEO kèm video kế tiếp khỏi cuối video bạn mở từ bảng tin, cùng khoảng trống dành cho nó, nên thanh tiến trình vẫn ở dưới cùng. Thay đổi áp dụng từ video tiếp theo bạn mở.
 Icons look soft on this screen. Repatch with the 120-640dpi bundle.	Biểu tượng trông bị mờ trên màn hình này. Hãy vá lại bằng gói 120-640dpi.
 Icons look soft on this screen	Biểu tượng trông bị mờ trên màn hình này
 The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	Facebook bạn đã vá không có hình ảnh dành cho màn hình này, nên một số biểu tượng bị phóng to. Hãy vá lại Facebook từ gói (arm64-v8a) (120-640dpi) trên APKMirror, gói này có hình ảnh cho mọi màn hình.
 Let each post come back once	Cho mỗi bài viết quay lại một lần
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Bài viết bạn đã cuộn qua sẽ xuất hiện thêm một lần nữa, và cuộn qua lần nữa sẽ ẩn nó. Cuộn nhanh sẽ ít làm mất bài viết hơn.
 There's no Facebook link in what you shared.	Nội dung bạn chia sẻ không có liên kết Facebook.
+Open in Facebook from the share menu	Open in Facebook trong menu chia sẻ
+Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Chia sẻ một liên kết Facebook từ trình duyệt của Messenger hoặc ứng dụng khác rồi chọn Open in Facebook để mở tại đây.

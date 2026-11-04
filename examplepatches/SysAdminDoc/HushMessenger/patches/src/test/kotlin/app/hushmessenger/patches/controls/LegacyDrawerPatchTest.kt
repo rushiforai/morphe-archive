@@ -44,11 +44,11 @@ class LegacyDrawerPatchTest {
 
     @Test fun factoryUsesFreshNativeModelsAndItsOwnCachedKeyAcrossAllFactoryMappings() {
         val profiles = controlProfiles.values.distinct()
-        // Every 585 build calls the icon's factory. 584.1's armv7 build made the Settings icon in place, a shape the inline
-        // tests below still give each profile.
-        assertEquals(setOf(false), profiles.map { legacyDrawerFixture(it).mapping.inlineIcon }.toSet())
-        for (profile in profiles.filter { !legacyDrawerFixture(it).mapping.inlineIcon }) {
-            val fixture = legacyDrawerFixture(profile)
+        // 586 makes the Settings icon in place, as 582 and 584.1's armv7 build did. 585 called the icon's factory, a shape
+        // this test still gives each profile.
+        assertEquals(setOf(true), profiles.map { legacyDrawerFixture(it).mapping.inlineIcon }.toSet())
+        for (profile in profiles) {
+            val fixture = legacyDrawerFixture(profile, inlineIcon = false)
             val before = fixture.methods.map { it.implementation?.instructions?.toList() }
             val prepared = plan(fixture, profile)
             assertEquals(before, fixture.methods.map { it.implementation?.instructions?.toList() }, "Preflight edited a source")
@@ -75,17 +75,16 @@ class LegacyDrawerPatchTest {
     /** 584.1's 951 family called G7K.A00, which lived on the icon's parent and returned a new G7P. */
     @Test fun anIconFactoryOnTheParentTypeIsAcceptedButNotOneOnAnUnrelatedClass() {
         for (profile in controlProfiles.values.distinct()) {
-            if (legacyDrawerFixture(profile).mapping.inlineIcon) continue
-            val onBase = legacyDrawerFixture(profile, iconFactoryOn = "base")
+            val onBase = legacyDrawerFixture(profile, inlineIcon = false, iconFactoryOn = "base")
             val references = plan(onBase, profile).factory.implementation!!.instructions
                 .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
             assertContains(references, onBase.mapping.iconFactory(onBase.mapping.iconBase))
-            val unrelated = legacyDrawerFixture(profile, iconFactoryOn = "dispatcher")
+            val unrelated = legacyDrawerFixture(profile, inlineIcon = false, iconFactoryOn = "dispatcher")
             val before = unrelated.methods.map { it.implementation?.instructions?.toList() }
             assertFailsWith<PatchException> { plan(unrelated, profile) }
             assertEquals(before, unrelated.methods.map { it.implementation?.instructions?.toList() })
         }
-        // 585 keeps every build's factory on the icon itself.
+        // No supported build puts the factory on the icon's parent.
         assertTrue(controlProfiles.values.distinct().none { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
     }
 
@@ -165,8 +164,8 @@ class LegacyDrawerPatchTest {
         for (profile in controlProfiles.values.distinct()) for (inline in listOf(false, true)) {
             assertEquals(emptyList(), problems(legacyDrawerFixture(profile, inlineIcon = inline), profile), "$profile inline=$inline")
             if (!inline) {
-                assertEquals(emptyList(), problems(legacyDrawerFixture(profile, iconFactoryOn = "base"), profile), "$profile base")
-                assertTrue(problems(legacyDrawerFixture(profile, iconFactoryOn = "dispatcher"), profile).isNotEmpty(), "$profile dispatcher")
+                assertEquals(emptyList(), problems(legacyDrawerFixture(profile, inlineIcon = false, iconFactoryOn = "base"), profile), "$profile base")
+                assertTrue(problems(legacyDrawerFixture(profile, inlineIcon = false, iconFactoryOn = "dispatcher"), profile).isNotEmpty(), "$profile dispatcher")
             }
             val variants = common + if (inline) listOf("inline-icon-missing-ctor", "inline-icon-constructor", "inline-icon-type", "inline-icon-color")
                 else listOf("icon-origin", "icon-return", "icon-shared")

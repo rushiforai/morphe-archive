@@ -1,3 +1,5 @@
+import org.gradle.process.CommandLineArgumentProvider
+
 group = "app.s.chzzk"
 
 patches {
@@ -24,10 +26,14 @@ tasks {
         from(rootProject.file("NOTICE")) { into("licenses") }
         from(rootProject.file("THIRD_PARTY_NOTICES")) { into("licenses") }
     }
+    val patchBundle = named<Jar>("jar").flatMap { it.archiveFile }
     register<JavaExec>("generatePatchesList") {
         dependsOn(build)
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        argumentProviders.add(CommandLineArgumentProvider {
+            listOf(patchBundle.get().asFile.absolutePath)
+        })
     }
     publish { dependsOn("generatePatchesList") }
 }

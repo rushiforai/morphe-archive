@@ -23,9 +23,8 @@ internal object OmaUnitListFingerprint : Fingerprint(
 @Suppress("unused")
 val hideUpsellPopupsPatch = bytecodePatch(
     name = "Hide upsell pop-ups",
-    description = "Stops the New York Times phone app from showing its full-screen " +
-        "subscription takeover and top-of-app promo banner. The paywall itself is not " +
-        "changed. Experimental; test on-device.",
+    description = "Stops the app from showing its full-screen subscription takeover and top-of-app " +
+        "promo banner. The paywall itself is not changed. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

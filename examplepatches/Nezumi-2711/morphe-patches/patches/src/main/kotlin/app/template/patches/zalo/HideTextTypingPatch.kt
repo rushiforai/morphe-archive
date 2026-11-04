@@ -79,6 +79,6 @@ val hideTextTypingPatch = bytecodePatch(
         check(GroupTextTypingFingerprint.matchAll(1..1).size == 1)
         suppressTextTyping(DirectTextTypingFingerprint.method, "p1")
         suppressTextTyping(GroupTextTypingFingerprint.method, "p2")
-        attachNezumiSettings()
+        attachNezumiSettings("attachTyping")
     }
 }

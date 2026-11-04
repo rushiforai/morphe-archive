@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import org.junit.After;
@@ -156,6 +157,128 @@ public class StorySeekBarTest {
         assertEquals(Gravity.BOTTOM, params.gravity);
         assertEquals("just above the 120 pixel Send message box", 120, params.bottomMargin);
         assertTrue(player.calls.isEmpty());
+    }
+
+    /**
+     * #486: on Instagram 453 the Send message box sits in the row along the story's bottom, and the
+     * old box's name only lives in a stub that's never inflated. The bar sits above that row, and
+     * moves up with it when a larger font makes the row taller.
+     */
+    @Test
+    public void onInstagram453TheBarSitsAboveTheStoryBottomRow() {
+        int footerId = View.generateViewId();
+        StorySeekBar.footerIdForTests(activity, footerId);
+        LinearLayout footer = new LinearLayout(activity);
+        footer.setId(footerId);
+        viewerView.addView(footer, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 181, Gravity.BOTTOM));
+        idle();
+        Settings.STORY_SEEK_BAR.save(true);
+        StorySeekBar.resumed(viewer);
+        idle();
+        assertEquals("above the 181 pixel row, not the 120 pixel box", 181, margin(bar()));
+
+        footer.getLayoutParams().height = 260;
+        footer.requestLayout();
+        idle();
+        tick();
+        idle();
+        assertEquals("a taller row moves the bar up", 260, margin(bar()));
+    }
+
+    /** #486: mid-swipe to the next person's stories both pages hold a bottom row, and the one on screen counts. */
+    @Test
+    public void theBottomRowOnScreenWinsOverTheNextPersonsMidSwipe() {
+        int footerId = View.generateViewId();
+        StorySeekBar.footerIdForTests(activity, footerId);
+        LinearLayout next = new LinearLayout(activity);
+        next.setId(footerId);
+        viewerView.addView(next, 0, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 240, Gravity.BOTTOM));
+        LinearLayout shown = new LinearLayout(activity);
+        shown.setId(footerId);
+        viewerView.addView(shown, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 181, Gravity.BOTTOM));
+        idle();
+        next.setTranslationX(content.getWidth());
+        Settings.STORY_SEEK_BAR.save(true);
+        StorySeekBar.resumed(viewer);
+        idle();
+        assertEquals("the row on screen, not the one past its edge", 181, margin(bar()));
+
+        next.setTranslationX(0);
+        shown.setTranslationX(-content.getWidth());
+        tick();
+        idle();
+        assertEquals("the swipe done, the next person's row", 240, margin(bar()));
+    }
+
+    /**
+     * #490: on your own story the "Say something..." line sits over the toolbar row, outside it, and
+     * the bar clears both. With the line gone the bar comes back down to the row.
+     */
+    @Test
+    public void onYourOwnStoryTheBarClearsTheSaySomethingLineOverTheToolbar() {
+        int footerId = View.generateViewId();
+        StorySeekBar.footerIdForTests(activity, footerId);
+        LinearLayout footer = new LinearLayout(activity);
+        footer.setId(footerId);
+        viewerView.addView(footer, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 100, Gravity.BOTTOM));
+        int lineId = View.generateViewId();
+        StorySeekBar.idForTests(activity, StorySeekBar.COMMENT_LINE, lineId);
+        View line = new View(activity);
+        line.setId(lineId);
+        FrameLayout.LayoutParams lineParams = new FrameLayout.LayoutParams(150, 40, Gravity.BOTTOM | Gravity.START);
+        lineParams.bottomMargin = 100;
+        viewerView.addView(line, lineParams);
+        idle();
+        Settings.STORY_SEEK_BAR.save(true);
+        StorySeekBar.resumed(viewer);
+        idle();
+        assertEquals("above the line over the 100 pixel row", 140, margin(bar()));
+
+        line.setVisibility(View.GONE);
+        tick();
+        idle();
+        assertEquals("the line gone, back above the 120 pixel box under it", 120, margin(bar()));
+    }
+
+    /** #490: a story comments line high up the story isn't the bottom row, so the bar stays down. */
+    @Test
+    public void aSaySomethingLineHighUpTheStoryDoesNotLiftTheBar() {
+        int lineId = View.generateViewId();
+        StorySeekBar.idForTests(activity, StorySeekBar.COMMENT_LINE, lineId);
+        View line = new View(activity);
+        line.setId(lineId);
+        FrameLayout.LayoutParams lineParams = new FrameLayout.LayoutParams(150, 40, Gravity.TOP | Gravity.START);
+        lineParams.topMargin = 20;
+        viewerView.addView(line, lineParams);
+        idle();
+        Settings.STORY_SEEK_BAR.save(true);
+        StorySeekBar.resumed(viewer);
+        idle();
+        assertEquals("still above the 120 pixel Send message box", 120, margin(bar()));
+    }
+
+    /** #490: your own story's toolbar counts on its own too, for a build that moves it out of the footer. */
+    @Test
+    public void yourOwnStorysToolbarOutsideTheFooterStillLiftsTheBar() {
+        int footerId = View.generateViewId();
+        StorySeekBar.footerIdForTests(activity, footerId);
+        LinearLayout footer = new LinearLayout(activity);
+        footer.setId(footerId);
+        viewerView.addView(footer, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 100, Gravity.BOTTOM));
+        int selfId = View.generateViewId();
+        StorySeekBar.idForTests(activity, StorySeekBar.SELF_TOOLBAR, selfId);
+        LinearLayout self = new LinearLayout(activity);
+        self.setId(selfId);
+        viewerView.addView(self, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 150, Gravity.BOTTOM));
+        idle();
+        Settings.STORY_SEEK_BAR.save(true);
+        StorySeekBar.resumed(viewer);
+        idle();
+        assertEquals("above the taller of the two rows", 150, margin(bar()));
+    }
+
+    private static int margin(SeekBar bar) {
+        return ((FrameLayout.LayoutParams) bar.getLayoutParams()).bottomMargin;
     }
 
     /** #471: Seek bar look's choice for stories reaches the bar as it follows the video. */

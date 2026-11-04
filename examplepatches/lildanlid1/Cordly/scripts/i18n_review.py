@@ -24,7 +24,7 @@ KEYS = [k for k in STRINGS if k not in NAMES and k not in CLDR]
 FORMS = {**{c: ['one', 'other'] for c in 'bg da de el es fi hu it nl no sv tr fr pt-BR hi'.split()},
          **{c: ['other'] for c in 'ja ko zh-CN zh-TW th vi id'.split()},
          **{c: ['one', 'few', 'many'] for c in 'ru uk pl'.split()}, **{c: ['one', 'few', 'other'] for c in 'hr cs lt ro'.split()}}
-KEEP = ['Venus', 'Discord', 'Google Translate', 'ReviewDB', 'Nitro', 'GitHub', 'GIF', 'GPL-3.0', 'manti.vendicated.dev', '@unknown-user', 'Android', 'Revenge', 'Vendetta', 'Blurple']
+KEEP = ['Conduit', 'Discord', 'Google Translate', 'ReviewDB', 'Nitro', 'GitHub', 'GIF', 'GPL-3.0', 'manti.vendicated.dev', '@unknown-user', 'Android', 'Revenge', 'Vendetta', 'Blurple']
 ph = lambda t: sorted(re.findall(r'\{\w+\}', t))
 
 

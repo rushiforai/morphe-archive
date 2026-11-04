@@ -10,30 +10,18 @@ import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
-import java.net.URLClassLoader
-import java.util.jar.Manifest
+import java.util.jar.JarFile
 
-fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
-    )
-    val loadedPatches = loadPatchesFromJar(patchFiles)
-    val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
-    val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
-
-    while (manifest.hasMoreElements()) {
-        Manifest(manifest.nextElement().openStream())
-            .mainAttributes
-            .getValue("Version")
-            ?.let {
-                generatePatchList(it, loadedPatches)
-            }
+fun main(args: Array<String>) {
+    val patchFile = File(args.single())
+    require(patchFile.isFile && patchFile.extension == "mpp") { "Patch bundle was not found: $patchFile" }
+    val version = JarFile(patchFile).use { bundle ->
+        requireNotNull(bundle.manifest?.mainAttributes?.getValue("Version")?.takeIf { it.isNotBlank() }) {
+            "Patch bundle manifest has no Version: $patchFile"
+        }
     }
+    val loadedPatches = loadPatchesFromJar(setOf(patchFile))
+    generatePatchList(version, loadedPatches)
 }
 
 @Suppress("DEPRECATION")

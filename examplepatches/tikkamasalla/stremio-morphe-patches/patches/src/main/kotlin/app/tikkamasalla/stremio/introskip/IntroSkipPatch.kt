@@ -25,6 +25,7 @@ val introSkipPatch = bytecodePatch(
     )
 
     compatibleWith(Constants.STREMIO_COMPATIBILITY)
+    dependsOn(oneAheadManifestPatch)
     extendWith("extensions/extension.mpe")
 
     execute {

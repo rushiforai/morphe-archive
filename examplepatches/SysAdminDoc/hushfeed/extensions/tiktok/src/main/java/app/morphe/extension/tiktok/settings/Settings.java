@@ -228,6 +228,11 @@ public class Settings extends BaseSettings {
     /** What settings search was last used for, newest first, as a JSON array. Kept out of backups. */
     public static final StringSetting RECENT_SETTINGS_SEARCHES =
             new StringSetting("recent_settings_searches", "[]", false, false);
+    /**
+     * The settings home lists every page's rows inline instead of folding each page under its row.
+     * A choice about the screen, so it's read with savedValue(): Pause doesn't change the layout.
+     */
+    public static final BooleanSetting SETTINGS_AS_LIST = new BooleanSetting("settings_as_list", FALSE);
     public static final StringSetting LONG_PRESS_ACTION = new StringSetting("long_press_action", "default");
     /**
      * The Long press choice runs only on the left and right thirds of the video, so a press in the
@@ -1219,6 +1224,14 @@ public class Settings extends BaseSettings {
     // Ghost mode is on, so it sits under that switch.
     public static final BooleanSetting GHOST_HIDE_ONLINE_STATUS =
             new BooleanSetting("ghost_hide_online_status", FALSE, false, Setting.parent(GHOST_MODE));
+    // One switch per report Ghost mode holds back, so a reader can keep some and let others go.
+    // On by default: turning Ghost mode on still holds back all three, as it did before they existed.
+    public static final BooleanSetting GHOST_HIDE_STORY_VIEWS =
+            new BooleanSetting("ghost_hide_story_views", TRUE, false, Setting.parent(GHOST_MODE));
+    public static final BooleanSetting GHOST_HIDE_PROFILE_VISITS =
+            new BooleanSetting("ghost_hide_profile_visits", TRUE, false, Setting.parent(GHOST_MODE));
+    public static final BooleanSetting GHOST_HIDE_TYPING =
+            new BooleanSetting("ghost_hide_typing", TRUE, false, Setting.parent(GHOST_MODE));
     public static final BooleanSetting DISABLE_ANALYTICS = new BooleanSetting("disable_analytics", FALSE);
     // Stop on-device AI profiling, in the default selection with this off. TikTok starts the
     // engine during launch, so a restart applies it.
@@ -1508,6 +1521,9 @@ public class Settings extends BaseSettings {
                 LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
                 FEED_MUTE_BUTTON_POSITION, DOWNLOAD_BUTTON_POSITION, COMMENT_TRANSLATE_BUTTON_TURNED_ON,
                 SHARE_ACTION_CATALOG, PROFILE_SHORTCUT_CATALOG, POPUP_LABEL_CATALOG, DIAGNOSTIC_REPORT_SALT, AUTO_STREAK_STATE,
+                // The settings screen still searches while paused. Answering the empty default
+                // hid the recent searches, and the next search saved itself over all of them.
+                RECENT_SETTINGS_SEARCHES,
                 // The budget's day is worked out from this hour. Paused, the budget counts
                 // nothing and holds nothing, but its record still has to name the right day.
                 SESSION_BUDGET_RESET_HOUR);

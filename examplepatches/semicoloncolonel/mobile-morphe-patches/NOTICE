@@ -15,7 +15,8 @@ Credits:
   SSAI switches, the Prime Video Minerva metrics hook, the ESPN
   isAdDisabled hook, the Fox One IMA/DAI
   and Yospace hooks (from ajstrick81's unreleased, in-development Fox One
-  patch), and the build setup are ajstrick81's work. This
+  patch), the YouTube TV analysis that found the player core's DAI switch,
+  and the build setup are ajstrick81's work. This
   project re-targets them at the phone apps.
   Source: https://github.com/ajstrick81/morphe-androidtv-patches
 
@@ -31,6 +32,46 @@ Credits:
 - Morphe (MorpheApp/morphe-patches)
   The patcher and the patch framework these patches are built on.
   Source: https://github.com/MorpheApp/morphe-patches
+
+- Morphe, "Video ads", GPL-3.0
+  The fingerprints that this project's YouTube TV "Skip ads" patch uses to
+  stop overlay, pause, and squeezeback ads come from Morphe's YouTube "Video
+  ads" patch.
+  Source: https://github.com/MorpheApp/morphe-patches/blob/main/patches/src/main/kotlin/app/morphe/patches/youtube/ad/Fingerprints.kt
+
+- Morphe and ReVanced, "GmsCore support", GPL-3.0
+  This project's YouTube TV "GmsCore support" patch and its GmsCoreSupport
+  extension class are ports of Morphe's GmsCore support patch, its
+  extension, and the package rename from its "Clone app" patch. Morphe
+  hard forked that code from ReVanced. The design, the Google Play services
+  fingerprints, and the lists of GmsCore permissions, intent actions, and
+  provider authorities are Morphe's and ReVanced's work.
+  Source: https://github.com/MorpheApp/morphe-patches/tree/main/patches/src/main/kotlin/app/morphe/patches/shared/misc/gms
+  Original: https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+
+  Morphe's NOTICE, which applies to those ports:
+
+    GPLv3 Section 7b: Preservation of User Notices
+
+    All derivative works (source code and binaries) must include this
+    NOTICE text and provide it to the software user.
+
+    Portions of this software are provided "AS IS" by the Morphe software project.
+    Any express or implied warranties, including the implied warranties of
+    merchantability and fitness for a particular purpose, are disclaimed.
+
+    GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+    You are prohibited from misrepresenting the origin of the Program,
+    and modified versions of the Program must be identified and marked in
+    reasonable ways as different from the original version so as not to cause
+    confusion regarding their origin.
+
+    GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+    This License does not grant any rights or permission under trademark law
+    to use the name "Morphe" or any of the Program's trade names, trademarks,
+    service marks, or logos.
 
 - hoo-dles (hoo-dles/morphe-patches), GPL-3.0
   The approach of this project's "Disable Pairip license check" patch for

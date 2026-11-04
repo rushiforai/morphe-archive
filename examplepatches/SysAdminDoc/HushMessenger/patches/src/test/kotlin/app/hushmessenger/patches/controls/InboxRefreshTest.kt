@@ -172,7 +172,12 @@ class InboxRefreshTest {
             val tries = items.implementation!!.tryBlocks.map { it.startCodeAddress to it.codeUnitCount }
             items.injectInboxItems()
             val after = items.implementation!!.instructions.toList()
-            assertEquals(before, after.drop(1), code)
+            // A switch payload has to start on an even code unit, so dexlib2 pads 586's with a nop once the call moves it.
+            // Only a nop at an odd code unit right before a payload is that padding.
+            val moved = after.drop(1)
+            val addresses = moved.runningFold(after.first().codeUnits) { at, it -> at + it.codeUnits }
+            assertEquals(before, moved.filterIndexed { i, it ->
+                !(it.opcode == Opcode.NOP && addresses[i] % 2 == 1 && moved.getOrNull(i + 1)?.opcode?.format?.isPayloadFormat == true) }, code)
             assertEquals(tries.map { (start, count) -> start + after.first().codeUnits to count },
                 items.implementation!!.tryBlocks.map { it.startCodeAddress to it.codeUnitCount }, code)
         }

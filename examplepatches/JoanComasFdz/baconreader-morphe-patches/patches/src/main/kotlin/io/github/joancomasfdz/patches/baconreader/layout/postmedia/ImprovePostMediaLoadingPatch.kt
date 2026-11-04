@@ -58,6 +58,13 @@ val improvePostMediaLoadingPatch = bytecodePatch(
             )
         }
 
+        // With "elongated image support", images load into the app's view for long images, whose Glide target has no
+        // failure handler.
+        GlideCustomTargetLoadFailedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p0 }, $EXTENSION_CLASS_DESCRIPTOR->onLargeImageFailed(Ljava/lang/Object;)V",
+        )
+
         // Loading overlay (still preview, size, progress), before the app resolves the media.
         PostMediaHandlerStartFingerprint.method.addInstruction(
             0,

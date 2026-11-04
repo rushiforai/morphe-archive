@@ -64,3 +64,8 @@ Custom branding renames the package, its permission and its providers the same w
 Bring back Tenor GIFs is based on the idea of Livie's BringBackTenor Vendetta plugin (lvwmwm/vendettian-plugins). Its
 code is written for this project against Discord 350.8's own GIF picker. It asks Tenor's public v1 API
 (g.tenor.com) for GIFs only while it's on. Venus Patches isn't affiliated with or endorsed by Tenor or Google.
+
+Conduit fork additions
+----------------------
+Server media tools, layout exports, Rich Presence settings and Conduit branding: lildanlid.
+Based on Venus Patches by VenusIsJaded and its credited contributors. GPL-3.0 applies.

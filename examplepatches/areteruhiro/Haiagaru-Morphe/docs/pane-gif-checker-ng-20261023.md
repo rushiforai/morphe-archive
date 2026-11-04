@@ -27,7 +27,7 @@
 
 全導入先はemulator-5554、鍵は`C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias=Morphe、証明書SHA-256=`0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。各回InstallVerifiedApk.ps1で既存署名を照合しinstall-r成功。既存データ消去なし。
 
-候補パスの共通絶対ルートは`C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/`。
+候補パスの共通絶対ルートは`<workspace>/build/`。
 
 | 表示名 / ChMate版 / package | APK（上記ルート配下） | SHA-256 | 使用MPP（上記ルート配下） |
 | --- | --- | --- | --- |

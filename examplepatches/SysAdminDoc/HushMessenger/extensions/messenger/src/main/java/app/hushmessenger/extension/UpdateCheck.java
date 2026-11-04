@@ -126,7 +126,8 @@ final class UpdateCheck {
             updateStatus.setTextColor(comparison > 0 ? page.ui.accent : page.ui.muted);
             if (comparison > 0) {
                 updateStatus.setText(page.text.get("update_available", latest));
-                Button view = page.ui.button(page.text.get("update_action"));
+                // The one thing to do once an update is out, so it's the filled button.
+                Button view = page.ui.primaryButton(page.text.get("update_action"));
                 view.setTag("update_release");
                 updateRelease = view;
                 view.setOnClickListener(v -> page.openPage(release.page));
@@ -146,6 +147,15 @@ final class UpdateCheck {
             String date = java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.MEDIUM,
                 page.getResources().getConfiguration().getLocales().get(0)).format(new java.util.Date(deadline));
             updateStatus.setText(page.text.get("update_retry", date));
+            updateStatus.setVisibility(View.VISIBLE);
+        });
+    }
+
+    private void showError(long generation) {
+        page.runOnUiThread(() -> {
+            if (!currentUpdate(generation)) return;
+            updateStatus.setText(page.text.get("update_error"));
+            updateStatus.setTextColor(page.ui.error);
             updateStatus.setVisibility(View.VISIBLE);
         });
     }
@@ -217,11 +227,11 @@ final class UpdateCheck {
                 showRelease(generation, release);
             } catch (java.io.IOException | IllegalArgumentException | IllegalStateException | SecurityException error) {
                 if (generation == updateGeneration) android.util.Log.e("HushMessenger", "Update check failed", error);
-                page.runOnUiThread(() -> {
-                    if (!currentUpdate(generation)) return;
-                    updateStatus.setText(page.text.get("update_error"));
-                    updateStatus.setVisibility(View.VISIBLE);
-                });
+                showError(generation);
+            } catch (RuntimeException error) {
+                // Anything else left this thread uncaught and ended Messenger with it.
+                if (generation == updateGeneration) Settings.hookFailedPrivately("check_updates", "Update check failed", error);
+                showError(generation);
             } finally {
                 if (conn != null) conn.disconnect();
                 synchronized (this) { if (updateConnection == conn) updateConnection = null; }

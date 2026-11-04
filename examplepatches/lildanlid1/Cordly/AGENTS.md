@@ -1,4 +1,4 @@
-# Notes for agents working on Cordly Patches
+# Notes for agents working on Venus Patches
 
 Read this before changing code, writing a release, a changelog entry or a pull request.
 

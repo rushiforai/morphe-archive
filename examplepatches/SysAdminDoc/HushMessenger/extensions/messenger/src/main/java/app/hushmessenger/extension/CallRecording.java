@@ -1,5 +1,7 @@
 package app.hushmessenger.extension;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
@@ -13,6 +15,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -257,9 +260,11 @@ public final class CallRecording {
             boolean recording = session != null;
             pill.setText(new SettingsText(top).get(recording ? "call_recording_stop_pill" : "call_recording_start"));
             GradientDrawable shape = new GradientDrawable();
-            shape.setCornerRadius(pill.getResources().getDisplayMetrics().density * 24);
-            shape.setColor(recording ? 0xFFD32F2F : 0xE6202124);
-            pill.setBackground(shape);
+            shape.setCornerRadius(pill.getResources().getDisplayMetrics().density * 12);
+            shape.setColor(recording ? SettingsUi.RECORDING : SettingsUi.CALL_SCRIM);
+            // Shows the tap, so a press during a call reads as taken before the recording starts or stops.
+            pill.setBackground(new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(SettingsUi.CALL_RIPPLE), shape, null));
         } catch (RuntimeException error) {
             Settings.hookFailedPrivately(KEY, "Couldn't show the Record button", error);
         }
@@ -317,8 +322,12 @@ public final class CallRecording {
         }
     }
 
+    // Lint reads the extension's own manifest; the notification posts from Messenger's process, checked just below.
+    @SuppressLint("NotificationPermission")
     private static void showNotification(Context context) {
         try {
+            // Android 13 drops a notification posted without the grant, so skip it and leave the pill to say it's recording.
+            if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return;
             NotificationManager manager = context.getSystemService(NotificationManager.class);
             if (manager == null) return;
             SettingsText text = new SettingsText(context);

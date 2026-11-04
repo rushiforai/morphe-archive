@@ -18,16 +18,16 @@ GIFには別途、最適化とあわせて直したい上限処理がある。`G
 
 確認箇所:
 
-- [共有NGの照合](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/SharedNg.java:39)
-- [日付・週の計算](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/SharedNgRules.java:70)
-- [画面モデルの定期走査](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/kotlin/app/morphe/extension/chmate/ModelUi.kt:110)
-- [GIFの全モデル無効化](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/GifAutoFetch.java:26)
-- [GIF試行履歴の上限](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/GifAutoFetch.java:76)
-- [赤いIDの判定](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/RedIdAutoNg.java:69)
-- [共通のField探索](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/ResponseArchiveEntry.java:48)
-- [投稿者情報・Spanの生成](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/PosterHighlight.java:169)
-- [個人NGの定期照合](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/PersonalNgSubmissions.java:97)
-- [動画サムネイルの履歴走査](C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/extensions/chmate/src/main/java/app/morphe/extension/chmate/VideoFrameThumbnail.java:42)
+- [共有NGの照合](../extensions/chmate/src/main/java/app/morphe/extension/chmate/SharedNg.java#L39)
+- [日付・週の計算](../extensions/chmate/src/main/java/app/morphe/extension/chmate/SharedNgRules.java#L70)
+- [画面モデルの定期走査](../extensions/chmate/src/main/kotlin/app/morphe/extension/chmate/ModelUi.kt#L110)
+- [GIFの全モデル無効化](../extensions/chmate/src/main/java/app/morphe/extension/chmate/GifAutoFetch.java#L26)
+- [GIF試行履歴の上限](../extensions/chmate/src/main/java/app/morphe/extension/chmate/GifAutoFetch.java#L76)
+- [赤いIDの判定](../extensions/chmate/src/main/java/app/morphe/extension/chmate/RedIdAutoNg.java#L69)
+- [共通のField探索](../extensions/chmate/src/main/java/app/morphe/extension/chmate/ResponseArchiveEntry.java#L48)
+- [投稿者情報・Spanの生成](../extensions/chmate/src/main/java/app/morphe/extension/chmate/PosterHighlight.java#L169)
+- [個人NGの定期照合](../extensions/chmate/src/main/java/app/morphe/extension/chmate/PersonalNgSubmissions.java#L97)
+- [動画サムネイルの履歴走査](../extensions/chmate/src/main/java/app/morphe/extension/chmate/VideoFrameThumbnail.java#L42)
 
 既に対策があるため、単純な削除・変更を避けたい箇所も確認した。`HiddenNgUnread` は設定参照・反射メタデータ・隠しレスの整列結果をキャッシュし、未読件数は二分探索を使っている。スレ全メディア一覧にもIntentのスナップショットを使うキャッシュがある。常時下部フィルターの `onPreDraw` は毎フレーム全処理を実行する構造ではなく、更新がキューにある場合だけ `layout` する。GIF通信のキャンセル監視には、接続待ち・読込待ちの中止を速くする役割がある。
 

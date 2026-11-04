@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.lang.ref.WeakReference;
+
 /**
  * Feature switches of the IDN patches, stored in their own SharedPreferences and edited on {@link IdnSettingsActivity}.
  *
@@ -39,6 +41,9 @@ public final class IdnSettings {
     private static boolean buyNext;
     /** Whether the banner bound last is a "buy" banner that is being hidden. */
     private static boolean buyHidden;
+
+    /** The profile banner's frame, as the loading switch last showed it. */
+    private static WeakReference<View> bannerFrame;
 
     /** The uiMode of the app's Settings screen when the page was opened; the app's own night mode setting decides it, not the system. */
     static int uiMode = -1;
@@ -169,14 +174,28 @@ public final class IdnSettings {
 
     /** Called when the profile binds any banner: true when it is a "buy" banner that has to be hidden. */
     public static boolean takeBuyBanner() {
+        boolean wasHidden = buyHidden;
         buyHidden = buyNext && hidePackageBanner();
         buyNext = false;
+        // The loading switch showed the frame again before this bind; a banner that is not hidden anymore brings it back.
+        if (wasHidden && !buyHidden) setBannerVisibility(View.VISIBLE);
         return buyHidden;
     }
 
-    /** Called when the profile shows the banner's frame again without binding it: it stays hidden if it was. */
+    /** Called when the profile shows the banner's frame: remembers it, and keeps it hidden if the last banner was hidden. */
     public static void keepBannerHidden(View banner) {
+        bannerFrame = new WeakReference<>(banner);
         if (buyHidden) banner.setVisibility(View.GONE);
+    }
+
+    /** Called instead of binding a "buy" banner: hides the frame the loading switch showed. */
+    public static void hideBanner() {
+        setBannerVisibility(View.GONE);
+    }
+
+    private static void setBannerVisibility(int visibility) {
+        View banner = bannerFrame == null ? null : bannerFrame.get();
+        if (banner != null) banner.setVisibility(visibility);
     }
 
     /**

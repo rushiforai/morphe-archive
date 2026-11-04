@@ -1,5 +1,6 @@
 extension { name = "extensions/chzzk.mpe" }
 android { namespace = "app.s.chzzk.extension" }
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(21)) }
 
 // The Java extension uses the app's Kotlin runtime through patched bridges.
 configurations.matching { it.name.endsWith("RuntimeClasspath") }.configureEach {

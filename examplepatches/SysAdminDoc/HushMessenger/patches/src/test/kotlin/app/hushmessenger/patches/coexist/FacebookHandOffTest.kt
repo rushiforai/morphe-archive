@@ -3,18 +3,28 @@ package app.hushmessenger.patches.coexist
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.hookId
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.hushmessenger.patches.MessengerTarget
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -81,6 +91,19 @@ class FacebookHandOffTest {
         })
         assertEquals(List(5) { "com.facebook.katana" }, rest.stringLoads())
         assertTrue(findFacebookHandOffs(listOf(fixtureClass("LX/Aaa;", listOf(hands)))).isEmpty())
+    }
+
+    @Test fun aMethodTheAnalysisCantFollowStopsThePatchByName() {
+        // A goto into the middle of the load, which the register analysis can't follow.
+        val broken = ImmutableMethod("LX/Ccc;", "A00", null, "V", AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(1, listOf(
+                ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("com.facebook.katana")),
+                ImmutableInstruction10t(Opcode.GOTO, -1),
+            ), null, null))
+        // Read as the dex has it. A MutableClass would move the jump onto the start of the load.
+        val dexClass = ImmutableClassDef("LX/Ccc;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", emptyList(), null, emptySet(), emptyList(), listOf(broken))
+        val failure = assertFailsWith<PatchException> { findFacebookHandOffs(listOf(dexClass)) }
+        assertTrue("LX/Ccc;->A00()V" in failure.message.orEmpty(), failure.message)
     }
 
     @Test fun onlyTheFacebookAppAndItsClonesPass() {

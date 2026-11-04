@@ -38,6 +38,11 @@ public class SettingsNavigationTest {
             android.view.accessibility.AccessibilityNodeInfo info = header.createAccessibilityNodeInfo();
             assertTrue(info.isHeading());
             assertEquals(android.widget.Button.class.getName(), info.getClassName().toString());
+            // Named by the header itself, so TalkBack says the section and its count before "Button".
+            // The table's own case, not the capitals the heading is drawn in.
+            CharSequence tally = ((android.view.ViewGroup) header).getChildAt(1).getContentDescription();
+            assertNotNull(tally);
+            assertEquals(new SettingsText(screen.get()).get("inbox") + ". " + tally, info.getContentDescription().toString());
             assertTrue(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND));
             assertFalse(info.getActionList().contains(android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE));
             // TalkBack speaks the state from these actions, so a state description of our own would say it twice.
@@ -241,6 +246,17 @@ public class SettingsNavigationTest {
             for (String key : SettingsActivity.EXPERIMENTAL) {
                 assertTrue(key, root.findViewWithTag(key).getContentDescription().toString().contains("Experimental"));
             }
+        }
+    }
+
+    @Test public void aButtonWithAShortLabelIsStillA48dpTapTarget() {
+        var app = RuntimeEnvironment.getApplication();
+        float density = app.getResources().getDisplayMetrics().density;
+        SettingsUi ui = new SettingsUi(app, false);
+        for (android.widget.Button button : new android.widget.Button[] {ui.button("OK"), ui.primaryButton("OK")}) {
+            button.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+            assertTrue(button.getMeasuredWidth() + " px", button.getMeasuredWidth() >= 48 * density);
+            assertTrue(button.getMeasuredHeight() + " px", button.getMeasuredHeight() >= 48 * density);
         }
     }
 

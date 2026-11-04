@@ -324,6 +324,70 @@ public class SetupSummaryTest {
         assertEquals(Settings.hookErrorTime(refreshed), Settings.hookErrorAt("menu_row"));
     }
 
+    @Test public void aHookTakingTurnsBetweenTwoFailuresSavesAndLogsEachAtMostOnceAMinute() {
+        java.util.concurrent.atomic.AtomicInteger writes = new java.util.concurrent.atomic.AtomicInteger();
+        android.content.SharedPreferences.OnSharedPreferenceChangeListener counter = (prefs, key) -> {
+            if ("hook_error_menu_row".equals(key)) writes.incrementAndGet();
+        };
+        Settings.preferences.registerOnSharedPreferenceChangeListener(counter);
+        try {
+            for (int i = 0; i < 1000; i++) Settings.hookFailed("menu_row", "Menu row failed",
+                i % 2 == 0 ? new IllegalStateException("first") : new IllegalArgumentException("second"));
+            assertEquals(1, writes.get());
+            assertEquals(2, stacksLogged("Menu row failed"));
+            // A minute on, the next failure is saved and its stack logged again.
+            Settings.hookErrorLogged.replaceAll((failure, at) -> at - 60_001);
+            String saved = Settings.preferences.getString("hook_error_menu_row", "");
+            Settings.preferences.edit().putString("hook_error_menu_row", saved.substring(0, saved.lastIndexOf('|') + 1)
+                + (Settings.hookErrorTime(saved) - 60_001)).commit();
+            writes.set(0);
+            Settings.hookFailed("menu_row", "Menu row failed", new IllegalArgumentException("second"));
+            assertEquals(1, writes.get());
+            assertEquals(3, stacksLogged("Menu row failed"));
+        } finally {
+            Settings.preferences.unregisterOnSharedPreferenceChangeListener(counter);
+        }
+    }
+
+    private static long stacksLogged(String what) {
+        return org.robolectric.shadows.ShadowLog.getLogsForTag("HushMessenger").stream()
+            .filter(log -> what.equals(log.msg) && log.throwable != null).count();
+    }
+
+    @Test public void aFailureAnOlderBuildSavedIsntShownAfterTheUpdate() throws Exception {
+        installedFeatures("avatar_stickers");
+        var app = RuntimeEnvironment.getApplication();
+        Settings.preferences.edit().putBoolean("avatar_stickers", true).commit();
+        Settings.hookFailedPrivately("avatar_stickers", "Failed", new IllegalStateException("private details"));
+        String build = Settings.patchedBuild(app);
+        assertNotNull(build);
+        assertEquals(build, Settings.preferences.getString(Settings.HOOK_ERRORS_BUILD, null));
+        // This build's own failure still shows after a restart.
+        Settings.hookErrors.clear();
+        Settings.activeAt.clear();
+        Settings.initialize(app);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertTrue(((android.widget.TextView) root.findViewWithTag("active_avatar_stickers")).getText().toString().startsWith("Stopped with an error"));
+            assertTrue(copiedSetup(root).contains("\navatar_stickers: java.lang.IllegalStateException at SetupSummaryTest."));
+        }
+        // The same record, saved by the build before an update.
+        Settings.preferences.edit().putString(Settings.HOOK_ERRORS_BUILD, (Settings.installedAt(app) - 1) + "/" + BuildConfig.VERSION_NAME).commit();
+        Settings.initialize(app);
+        assertEquals(0, Settings.hookErrorAt("avatar_stickers"));
+        assertFalse(Settings.lastHookErrors().containsKey("avatar_stickers"));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertFalse(((android.widget.TextView) root.findViewWithTag("active_avatar_stickers")).getText().toString().startsWith("Stopped with an error"));
+            assertFalse(copiedSetup(root).contains("Hook errors:"));
+        }
+        // This build's first failure drops what the older one left and marks the list as its own.
+        Settings.hookFailedPrivately("menu_row", "Failed", new IllegalStateException("private details"));
+        assertNull(Settings.preferences.getString("hook_error_avatar_stickers", null));
+        assertNotNull(Settings.preferences.getString("hook_error_menu_row", null));
+        assertEquals(build, Settings.preferences.getString(Settings.HOOK_ERRORS_BUILD, null));
+    }
+
     @Test public void hidingTheDrawerIconDisablesOnlyTheLauncherAlias() throws Exception {
         installedFeatures("people", "menu_row");
         var app = RuntimeEnvironment.getApplication();

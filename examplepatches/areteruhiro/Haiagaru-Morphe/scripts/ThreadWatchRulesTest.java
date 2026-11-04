@@ -30,6 +30,38 @@ public final class ThreadWatchRulesTest {
         check(ThreadWatchRules.bodies("<b>name</b><>mail<>date<>body<>title\n",0,1).get(1).equals("body"));
         check(ThreadWatchRules.bodies("<>mail<>date<>anonymous body<>title\n",0,1).get(1).equals("anonymous body"));
         check(ThreadWatchRules.bodies(dat+dat,0,6).keySet().equals(new java.util.LinkedHashSet<>(java.util.Arrays.asList(4,5,6))));
+        ThreadWatchRules.Target shita=ThreadWatchRules.target("http://jbbs.shitaraba.net/bbs/read.cgi/computer/45040/1793701433/10");
+        check(shita!=null&&shita.shitaraba);
+        check(shita.url.equals("https://jbbs.shitaraba.net/bbs/read.cgi/computer/45040/1793701433/"));
+        check(shita.subject.equals("https://jbbs.shitaraba.net/computer/45040/subject.txt"));
+        check(shita.dat.equals("https://jbbs.shitaraba.net/bbs/rawmode.cgi/computer/45040/1793701433/"));
+        check(ThreadWatchRules.target("http://jbbs.livedoor.jp/bbs/read.cgi/computer/45040/1793701433/").url.equals(shita.url));
+        check(ThreadWatchRules.target("https://evil.invalid/bbs/read.cgi/computer/45040/1793701433/")==null);
+        check(ThreadWatchRules.fromParts("jbbs.shitaraba.net","computer/45040",1793701433L).url.equals(shita.url));
+        check(ThreadWatchRules.fromParts("egg.5ch.io","android",1793113633L).url.equals("https://egg.5ch.io/test/read.cgi/android/1793113633/"));
+        check(ThreadWatchRules.counts("1793701433.cgi,したらばタイトル(15)\n").get("1793701433")==15);
+        check(ThreadWatchRules.titles("1793701433.cgi,したらばタイトル (part 2) (15)\n").get("1793701433").equals("したらばタイトル (part 2)"));
+        String raw="1<>name<>mail<>date<>old<>title<>id\n3<>name<>mail<>date<>&gt;&gt;1 reply<>title<>id\n5<>name<>mail<>date<>unrelated<>title<>id\n";
+        java.util.Map<Integer,String> fresh=ThreadWatchRules.newBodies(shita,raw,1,5);
+        check(fresh.size()==2&&fresh.get(3).equals("&gt;&gt;1 reply")&&fresh.containsKey(5)&&!fresh.containsKey(2));
+        check(ThreadWatchRules.newBodies(shita,raw,-1,5).isEmpty());
+        check(ThreadWatchRules.newBodies(shita,"<html>challenge",1,5).isEmpty());
+        check(ThreadWatchRules.newBodies(edge,dat,1,3).size()==2);
+        java.util.Set<Integer> own=ThreadWatchRules.ownPosts("1:1,5:17,7:16,8:0,9:3,bad,abc:1,2:bad,-1:1");
+        check(own.equals(new java.util.HashSet<>(java.util.Arrays.asList(1,5,9))));
+        check(ThreadWatchRules.repliesTo(">>1 reply",10,own));
+        check(ThreadWatchRules.repliesTo("＞＞5 reply",10,own));
+        check(ThreadWatchRules.repliesTo(">>2-6 reply",10,own));
+        check(ThreadWatchRules.repliesTo(">>2, 5、8 reply",10,own));
+        check(!ThreadWatchRules.repliesTo(">>7 reply",10,own));
+        check(!ThreadWatchRules.repliesTo(">>1 own post",5,own));
+        check(!ThreadWatchRules.repliesTo(">>9 future",8,own));
+        check(!ThreadWatchRules.repliesTo(">>10-1 reversed",11,own));
+        check(!ThreadWatchRules.repliesTo("unrelated",10,own));
+        check(ThreadWatchRules.repliesTo(">>1-9999999 bounded range",10,own));
+        check(!ThreadWatchRules.repliesTo(">>1 reply",10,java.util.Collections.emptySet()));
+        check(ThreadWatchRules.repliesTo(">>1 first incoming reply",11,own));
+        check(ThreadWatchRules.repliesTo(">>1 another incoming reply",12,own));
         System.out.println("ThreadWatchRules: "+checks+" passed");
     }
 }

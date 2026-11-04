@@ -119,10 +119,38 @@ public final class WacchoiSuffixNg {
             // Board scope is essential to registration, not optional help below the fold.
             content.removeView(scope);
             content.addView(scope, 0);
+            android.widget.Button[] existing = new android.widget.Button[1];
+            HaiagaruDialog[] editor = new HaiagaruDialog[1];
+            java.util.function.Supplier<NativeNgStore.Entry> existingTarget = () -> {
+                try {
+                    String value = text.getText().toString();
+                    if (regex.isChecked()) value = stripTrailingSeparators(value);
+                    return ExistingNgActions.find(store.entries(), value, scope.value(),
+                            registrationFlags((short) 0, regex.isChecked(), enabled.isChecked(), chain.isChecked(), hidden.isChecked()));
+                } catch (ReflectiveOperationException | RuntimeException error) { return null; }
+            };
+            Runnable refreshExisting = () -> {
+                if (existingTarget.get() == null) {
+                    if (existing[0] != null) {
+                        content.removeView(existing[0]);
+                        existing[0] = null;
+                    }
+                } else if (existing[0] == null) {
+                    android.widget.Button button = new android.widget.Button(activity);
+                    button.setText("登録済みNGの操作（削除・有効／無効）");
+                    button.setOnClickListener(v -> {
+                        NativeNgStore.Entry target = existingTarget.get();
+                        if (target != null) ExistingNgActions.show(activity, store, target, () -> editor[0].dismiss());
+                    });
+                    existing[0] = button;
+                    content.addView(button, 1);
+                }
+            };
             TextView baseLabel = new TextView(activity); baseLabel.setText("追加先（同じ板・有効／連鎖／非表示設定の正規表現NG）"); content.addView(baseLabel);
             Spinner base = new Spinner(activity); content.addView(base);
             List<NativeNgStore.Entry> choices = new ArrayList<>();
             Runnable refresh = () -> {
+                refreshExisting.run();
                 choices.clear();
                 List<String> labels = new ArrayList<>(); labels.add("新規登録");
                 try {
@@ -150,6 +178,13 @@ public final class WacchoiSuffixNg {
             chain.setOnCheckedChangeListener((button, checked) -> refresh.run());
             hidden.setOnCheckedChangeListener((button, checked) -> refresh.run());
             scope.onChanged(refresh);
+            text.addTextChangedListener(new android.text.TextWatcher() {
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    refreshExisting.run();
+                }
+                public void afterTextChanged(android.text.Editable value) {}
+            });
             TextView help = new TextView(activity);
             help.setText("NGNameを文字列で登録する人は\n-aabb\nNGのたびに新規登録\n―――――――――――――――――――\nNGNameを正規表現で登録する人は\n-aabb|\nベースとなるNGのところに追加登録\n\n正規表現では追加先を選択できます。末尾の | は追記用の区切りです。空の条件は保存しません。\nこのNG項目を長押しすると、下4桁をコピーして従来のNG編集画面を開きます。");
             if(upper)help.setText("上4桁は「aabb-」の形で登録します。\n文字列はNGごとに新規登録、正規表現は既存NGへの追加も選べます。対象板・有効／連鎖／非表示も指定できます。\n上4桁は複数の投稿者で共通することがあります。対象板と登録内容を確認してください。");
@@ -157,6 +192,7 @@ public final class WacchoiSuffixNg {
             ScrollView scroll = new ScrollView(activity); scroll.addView(content);
             HaiagaruDialog dialog = new HaiagaruDialog.Builder(activity).setTitle("NGName追加")
                     .setView(scroll).setNegativeButton("キャンセル", null).setPositiveButton("OK", null).create();
+            editor[0] = dialog;
             dialog.setOnShowListener(d -> dialog.getButton(HaiagaruDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
                 try {
                     String value = text.getText().toString();
@@ -172,10 +208,10 @@ public final class WacchoiSuffixNg {
                     if (regex.isChecked()) Pattern.compile(pattern);
                     short flags = registrationFlags((short) 0, regex.isChecked(), enabled.isChecked(), chain.isChecked(), hidden.isChecked());
                     String board = scope.value();
-                    for (NativeNgStore.Entry entry : current) {
-                        if (entry.pattern.equals(pattern) && entry.flags == flags && Objects.equals(entry.board, board)) {
-                            Toast.makeText(activity, "同じNGNameが登録済みです", Toast.LENGTH_SHORT).show(); return;
-                        }
+                    NativeNgStore.Entry duplicate = ExistingNgActions.find(current, pattern, board, flags);
+                    if (duplicate != null) {
+                        ExistingNgActions.show(activity, store, duplicate, dialog::dismiss);
+                        return;
                     }
                     if (target == null && current.size() >= Haiagaru.getNgRegistrationLimit())
                         throw new IllegalStateException("NGNameの登録上限に達しています");

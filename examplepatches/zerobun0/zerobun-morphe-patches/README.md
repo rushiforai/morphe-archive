@@ -21,7 +21,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/zerobun0/zerobun-morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.2.3](https://github.com/zerobun0/zerobun-morphe-patches/releases/tag/v1.2.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -35,7 +35,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Follower tracker](#follower-tracker) | Captures follower and following lists as you scroll them and sends them to your self-hosted tracker, which records who joined and who left, and when. Uses only the requests the app already makes. Apply alongside Piko. | • Tracker URL<br>• Tracker token<br>• Batch size |
+| [Follower tracker](#follower-tracker) | Captures follower and following lists as you scroll them and sends them to your self-hosted tracker, which records who joined and who left, and when. Uses only the requests the app already makes. Apply alongside Piko. | • Tracker URL<br>• Tracker token<br>• Batch size<br>• Scroll lists automatically |
 
 </details>
 

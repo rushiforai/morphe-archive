@@ -47,6 +47,7 @@ public final class StoryFontResolver {
     };
 
     private static final Map<String, Typeface> TYPEFACE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, byte[]> FONT_BYTES_CACHE = new ConcurrentHashMap<>();
     private static volatile boolean isBackgroundSeedingStarted = false;
 
     private StoryFontResolver() {}
@@ -80,7 +81,7 @@ public final class StoryFontResolver {
                     isThumb = true;
                 }
             } catch (Throwable t) {
-                Logger.printInfo(() -> TAG + ": resolveFontBytesForTarget error reading target: " + t.getMessage());
+                Logger.printDebug(() -> TAG + ": resolveFontBytesForTarget error reading target: " + t.getMessage());
             }
         }
 
@@ -108,7 +109,7 @@ public final class StoryFontResolver {
             final String fName = fontName;
             final int fWeight = weight;
             final boolean fItalic = isItalic;
-            Logger.printInfo(() -> TAG + ": " + (isThumbFinal ? "Home Carousel THUMB" : "Story Skottie")
+            Logger.printDebug(() -> TAG + ": " + (isThumbFinal ? "Home Carousel THUMB" : "Story Skottie")
                     + " render detected -> font=" + fName + " weight=" + fWeight + " italic=" + fItalic);
 
             String targetFilename = null;
@@ -146,39 +147,57 @@ public final class StoryFontResolver {
 
             final String chosenFilename = targetFilename;
 
-            // Check disk cache first
+            // 1. In-memory cache hit
+            byte[] cached = FONT_BYTES_CACHE.get(chosenFilename);
+            if (cached != null) {
+                return cached;
+            }
+
+            // 2. Check disk cache
             File fontFile = new File(fontsDir, chosenFilename);
             if (fontFile.exists() && fontFile.length() > 1000) {
                 byte[] bytes = readFileBytes(fontFile);
                 if (bytes != null && bytes.length > 0) {
-                    Logger.printInfo(() -> TAG + ": Supplying authentic " + fontFile.getName() + " from disk (" + bytes.length + " bytes)");
+                    FONT_BYTES_CACHE.put(chosenFilename, bytes);
+                    Logger.printDebug(() -> TAG + ": Supplying authentic " + fontFile.getName() + " from disk (" + bytes.length + " bytes)");
                     return bytes;
                 }
             }
 
-            // Check bundled assets
+            // 3. Check bundled assets
             if (context != null) {
                 byte[] assetBytes = readAssetBytes(context, "fonts/" + chosenFilename);
                 if (assetBytes != null && assetBytes.length > 1000) {
                     ensureBundledFont(context, fontsDir, chosenFilename);
-                    Logger.printInfo(() -> TAG + ": Supplying authentic " + chosenFilename + " from assets (" + assetBytes.length + " bytes)");
+                    FONT_BYTES_CACHE.put(chosenFilename, assetBytes);
+                    Logger.printDebug(() -> TAG + ": Supplying authentic " + chosenFilename + " from assets (" + assetBytes.length + " bytes)");
                     return assetBytes;
                 }
             }
 
-            // Fallback to bundled bold or medium
+            // 4. Fallback to bundled bold or medium
+            byte[] fallbackCached = FONT_BYTES_CACHE.get("Google_Sans_Text-Bold.ttf");
+            if (fallbackCached != null) {
+                return fallbackCached;
+            }
+
             File boldFile = new File(fontsDir, "Google_Sans_Text-Bold.ttf");
             if (boldFile.exists() && boldFile.length() > 1000) {
-                return readFileBytes(boldFile);
+                byte[] fallbackBytes = readFileBytes(boldFile);
+                if (fallbackBytes != null && fallbackBytes.length > 0) {
+                    FONT_BYTES_CACHE.put("Google_Sans_Text-Bold.ttf", fallbackBytes);
+                    return fallbackBytes;
+                }
             }
             if (context != null) {
                 byte[] fallbackAsset = readAssetBytes(context, "fonts/Google_Sans_Text-Bold.ttf");
                 if (fallbackAsset != null && fallbackAsset.length > 1000) {
+                    FONT_BYTES_CACHE.put("Google_Sans_Text-Bold.ttf", fallbackAsset);
                     return fallbackAsset;
                 }
             }
         } catch (Throwable t) {
-            Logger.printInfo(() -> TAG + ": resolveFontBytesForTarget error: " + t.getMessage());
+            Logger.printDebug(() -> TAG + ": resolveFontBytesForTarget error: " + t.getMessage());
         }
 
         return null;

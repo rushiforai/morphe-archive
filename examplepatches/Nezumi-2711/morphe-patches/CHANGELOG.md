@@ -1,3 +1,9 @@
+## [1.3.1-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.3.0...v1.3.1-dev.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **zalo:** scope Nezumi Settings to selected patches ([323d0d2](https://github.com/Nezumi-2711/morphe-patches/commit/323d0d2c150b597b32db6932a1d08aeaee4086fc))
+
 ## [1.3.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.2.1...v1.3.0) (2026-10-31)
 
 ### ✨ New Features

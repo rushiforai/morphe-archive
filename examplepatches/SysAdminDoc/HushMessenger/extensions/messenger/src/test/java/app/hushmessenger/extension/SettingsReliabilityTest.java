@@ -526,6 +526,29 @@ public class SettingsReliabilityTest {
         }
     }
 
+    /** The chevron's glyph mirrors in a right-to-left paragraph, and turned a quarter round it then points up while the section is shut. */
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test @Config(sdk = 36) public void sectionChevronsPointTheSameWayRightToLeft() {
+        RuntimeEnvironment.setQualifiers("en-rUS-w411dp-h891dp-mdpi");
+        RuntimeEnvironment.getApplication().getApplicationInfo().flags |= android.content.pm.ApplicationInfo.FLAG_SUPPORTS_RTL;
+        android.app.LocaleManager manager = RuntimeEnvironment.getApplication().getSystemService(android.app.LocaleManager.class);
+        manager.setApplicationLocales(android.os.LocaleList.forLanguageTags("ar-XB"));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = layout(screen.get(), 411, 891);
+            root.findViewWithTag("tab_app").performClick();
+            layout(screen.get(), 411, 891);
+            int checked = 0;
+            for (View header : sectionHeaders(root)) {
+                if (!header.isShown()) continue;
+                TextView chevron = (TextView) ((ViewGroup) header).getChildAt(2);
+                assertEquals(View.LAYOUT_DIRECTION_RTL, header.getLayoutDirection());
+                assertFalse(header.getTag() + " chevron drawn mirrored", chevron.getLayout().isRtlCharAt(0));
+                checked++;
+            }
+            assertTrue(checked >= 2);
+        } finally { manager.setApplicationLocales(android.os.LocaleList.getEmptyLocaleList()); }
+    }
+
     private static java.util.List<View> sectionHeaders(View view) {
         java.util.List<View> found = new java.util.ArrayList<>();
         if (view.getTag() instanceof String && ((String) view.getTag()).startsWith("section_")) found.add(view);

@@ -21,12 +21,15 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The relay against a proxy that really wants a password (#304): TikTok's stacks speak SOCKS5 with
@@ -126,7 +129,7 @@ public class ProxyRelayTest {
     }
 
     @Test public void addressesGetTheShapeAnHttpProxyExpects() throws Exception {
-        List<String> targets = new ArrayList<>();
+        List<String> targets = Collections.synchronizedList(new ArrayList<>());
         ServerSocket proxy = proxy(socket -> {
             targets.add(readHead(socket.getInputStream()).split("\r\n")[0]);
             socket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
@@ -141,6 +144,74 @@ public class ProxyRelayTest {
         assertEquals(0, answerTo(v6));
 
         assertEquals(List.of("CONNECT 192.0.2.7:443 HTTP/1.1", "CONNECT [2001:db8:0:0:0:0:0:1]:8443 HTTP/1.1"), targets);
+    }
+
+    /** A name with a line break in it would put lines of the client's choosing into the CONNECT request. */
+    @Test public void aNameThatCouldWriteIntoTheConnectRequestIsTurnedDown() throws Exception {
+        List<String> targets = Collections.synchronizedList(new ArrayList<>());
+        ServerSocket proxy = proxy(socket -> {
+            targets.add(readHead(socket.getInputStream()).split("\r\n")[0]);
+            socket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
+        });
+        relay = ProxyRelay.start(config("http", proxy, USER, PASSWORD));
+
+        Socket forged = askForSite("api16.example.test\r\nX-Forged: yes\r\n", 443);
+        assertEquals(8, answerTo(forged));
+        assertEquals("then it hangs up", -1, forged.getInputStream().read());
+        Socket spaced = askForSite("api16.example.test HTTP/1.1", 443);
+        assertEquals(8, answerTo(spaced));
+        // Letters beside a colon aren't an IPv6 literal; in brackets they'd carry a port of their own.
+        Socket ported = askForSite("evil.example:80", 443);
+        assertEquals(8, answerTo(ported));
+        Socket literal = askForSite("2001:db8::1", 443);
+        assertEquals(0, answerTo(literal));
+
+        assertEquals(List.of("CONNECT [2001:db8::1]:443 HTTP/1.1"), targets);
+    }
+
+    /**
+     * A client's small writes can reach the relay apart. A relay that refused on the name and
+     * hung up before the port came in had that port land on a closed socket, which answers with a
+     * reset, and the reset threw away the refusal the client hadn't read yet. So a refused request
+     * is read to its end first.
+     */
+    @Test public void aRefusalIsStillThereToReadWhenTheRequestEndsLate() throws Exception {
+        relay = ProxyRelay.start(NetworkProxy.parse("http", "proxy.example.com", "8080", USER, PASSWORD));
+        byte[] name = "evil.example:80".getBytes(StandardCharsets.US_ASCII);
+        ByteArrayOutputStream named = new ByteArrayOutputStream();
+        named.write(new byte[]{5, 1, 0, 3, (byte) name.length});
+        named.write(name);
+        assertEquals(8, answerToLateEnd(named.toByteArray(), new byte[]{1, (byte) 187}));
+        // BIND, with its port late.
+        assertEquals(7, answerToLateEnd(new byte[]{5, 2, 0, 1, 1, 2, 3, 4}, new byte[]{0, 80}));
+    }
+
+    /** An empty name is no site to tunnel to, and it's still a request that gets an answer. */
+    @Test public void anEmptyNameIsTurnedDownWithAnAnswer() throws Exception {
+        relay = ProxyRelay.start(NetworkProxy.parse("http", "proxy.example.com", "8080", USER, PASSWORD));
+        assertEquals(8, answerToLateEnd(new byte[]{5, 1, 0, 3, 0}, new byte[]{1, (byte) 187}));
+        // BIND by an empty name is still a command the relay doesn't carry.
+        assertEquals(7, answerToLateEnd(new byte[]{5, 2, 0, 3, 0}, new byte[]{0, 80}));
+    }
+
+    /** Sends a request without its last bytes, waits, sends those, and reads the relay's answer. */
+    private int answerToLateEnd(byte[] start, byte[] end) throws Exception {
+        Socket client = open();
+        OutputStream out = client.getOutputStream();
+        out.write(new byte[]{5, 1, 0});
+        out.flush();
+        assertArrayEquals(new byte[]{5, 0}, readExactly(client.getInputStream(), 2));
+        out.write(start);
+        out.flush();
+        // Long enough for a relay that answers early to have hung up already.
+        Thread.sleep(300);
+        out.write(end);
+        out.flush();
+        // And for the reset a closed socket sends back to arrive.
+        Thread.sleep(200);
+        int answer = answerTo(client);
+        assertEquals("then it hangs up", -1, client.getInputStream().read());
+        return answer;
     }
 
     @Test public void aRefusedSignInIsAFailedTunnelAndNeverAHang() throws Exception {
@@ -214,7 +285,107 @@ public class ProxyRelayTest {
         assertEquals(7, readExactly(client.getInputStream(), 10)[1]);
     }
 
+    /** At Android's thread limit Thread.start throws OutOfMemoryError, and the relay has to outlive it. */
+    @Test public void aConnectionThePhoneHasNoThreadForIsClosedAndTheRelayKeepsAccepting() throws Exception {
+        ServerSocket proxy = echoingHttpProxy(new CountDownLatch(1));
+        // Start 1 is the accept loop, start 2 the first connection.
+        relay = ProxyRelay.start(config("http", proxy, USER, PASSWORD), failingThreadStart(2));
+
+        Socket refused = open();
+        assertEquals("the refused client is hung up on", -1, readOrEnd(refused));
+        awaitOpenConnections(0);
+
+        Socket client = askForSite("api16.example.test", 443);
+        assertEquals("the next connection still gets its tunnel", 0, answerTo(client));
+        assertEchoes(client);
+        assertNothingEscaped();
+    }
+
+    @Test public void aTunnelWithNoThreadForTheWayBackClosesAndGivesItsSlotBack() throws Exception {
+        CountDownLatch firstTunnelEnded = new CountDownLatch(1);
+        ServerSocket proxy = echoingHttpProxy(firstTunnelEnded);
+        // Start 3 is the first connection's pump from the proxy back to TikTok.
+        relay = ProxyRelay.start(config("http", proxy, USER, PASSWORD), failingThreadStart(3));
+
+        Socket first = askForSite("api16.example.test", 443);
+        assertEquals(0, answerTo(first));
+        assertEquals("a tunnel that can't carry bytes is closed", -1, readOrEnd(first));
+        // The proxy's side ends cleanly, well before its own read would time out.
+        assertTrue("the relay left the proxy's side of the tunnel open",
+                firstTunnelEnded.await(TIMEOUT_MS / 3, TimeUnit.MILLISECONDS));
+        awaitOpenConnections(0);
+
+        Socket client = askForSite("api16.example.test", 443);
+        assertEquals(0, answerTo(client));
+        assertEchoes(client);
+        // Before, the error went on out of the first connection's thread, which on a phone ends
+        // TikTok. Read last, so that thread has long finished.
+        assertNothingEscaped();
+    }
+
+    @Test public void aRelayWithNoThreadToAcceptOnFailsToStartWithAnIoError() throws Exception {
+        try {
+            relay = ProxyRelay.start(NetworkProxy.parse("http", "proxy.example.com", "8080", USER, PASSWORD),
+                    failingThreadStart(1));
+        } catch (IOException expected) {
+            // NetworkProxy.route sends TikTok to the proxy itself on an IOException; an Error got past it.
+            return;
+        }
+        throw new AssertionError("start() returned a relay nothing accepts on");
+    }
+
     // -- Helpers --------------------------------------------------------------------------------
+
+    /** Answers every CONNECT and echoes the tunnel. {@code ended} counts down when one ends in a clean close. */
+    private ServerSocket echoingHttpProxy(CountDownLatch ended) throws IOException {
+        return proxy(socket -> {
+            readHead(socket.getInputStream());
+            socket.getOutputStream().write("HTTP/1.1 200 OK\r\n\r\n".getBytes(StandardCharsets.US_ASCII));
+            echo(socket);
+            ended.countDown();
+        });
+    }
+
+    /** Errors that got out of a relay thread, which Android's default handler would end TikTok with. */
+    private final List<Throwable> escaped = Collections.synchronizedList(new ArrayList<>());
+
+    /**
+     * Thread start number {@code failing} of the one relay it's given to throws the way Android's
+     * does at its limit. Every thread it does start reports an error that gets out of it.
+     */
+    private ProxyRelay.ThreadStarter failingThreadStart(int failing) {
+        AtomicInteger starts = new AtomicInteger();
+        return thread -> {
+            if (starts.incrementAndGet() == failing) {
+                throw new OutOfMemoryError("pthread_create (1040KB stack) failed: Try again");
+            }
+            thread.setUncaughtExceptionHandler((dead, error) -> escaped.add(error));
+            thread.start();
+        };
+    }
+
+    private void assertNothingEscaped() {
+        assertTrue("an error got out of a relay thread: " + escaped, escaped.isEmpty());
+    }
+
+    /** -1 when the relay closed the connection. A read that times out means it was left open. */
+    private static int readOrEnd(Socket client) throws IOException {
+        try {
+            return client.getInputStream().read();
+        } catch (SocketTimeoutException leftOpen) {
+            throw leftOpen;
+        } catch (IOException reset) {
+            return -1;
+        }
+    }
+
+    private void awaitOpenConnections(int expected) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+        while (relay.openConnections() != expected && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        assertEquals("connections being served", expected, relay.openConnections());
+    }
 
     private interface Handler {
         void handle(Socket socket) throws IOException;

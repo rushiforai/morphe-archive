@@ -76,7 +76,7 @@ You can also import `patches-<version>.mpp` from [Releases](https://github.com/V
 | | Clone emojis and stickers | Add any emoji or sticker to your own server (based on ExpressionCloner by Ven) |
 | | Clean channel names | Strips emoji, symbols and fancy fonts from channel names |
 | | Preview servers without joining | Browse servers that allow previews without joining (based on GuildLurk by fshin) |
-| | Pause invites | Pause a server's invites for a while (needs Manage Server) |
+| | Pause invites | Pause a server's invites until you resume them (needs Manage Server) |
 | | Fast delete channels | Delete channels without confirmation. **No undo** |
 | **Appearance** | Use your phone's font | Your phone's font everywhere |
 | | Use your phone's emojis | Your phone's emojis, or an imported emoji font |

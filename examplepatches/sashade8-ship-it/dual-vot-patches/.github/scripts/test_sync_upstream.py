@@ -17,6 +17,48 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev217_streaming_keeps_player_client_and_dual_audio_contract(self):
+        conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev217-conflicts.txt").read_text(
+            encoding="utf-8"
+        )
+        merged = sync_upstream.merge_streaming_data_request_dev217(conflict)
+        self.assertIn("ClientType client) {", merged)
+        self.assertIn("public boolean usesSabr() {\n            return client.requireSABR;", merged)
+        self.assertIn("public String clientUserAgent() {\n            return client.userAgent;", merged)
+        self.assertIn("new StreamData(streamingDataBuffer, playerConfigBuffer, hasAndroidMedia, clientType)", merged)
+        self.assertIn("if (!isDownload && !directStreamsOnly)", merged)
+        self.assertNotIn("lastSpoofedClientType = clientType", merged)
+        self.assertNotIn("<<<<<<<", merged)
+        # Each changed side, extra/missing conflict, or leftover marker must fail.
+        for invalid in (conflict.replace("boolean usesSabr,", "boolean changed,"),
+                        conflict.replace("ClientType client)", "ClientType changed)"),
+                        conflict.replace("clientType.userAgent);", "null);"),
+                        conflict.replace("hasAndroidMedia, clientType);", "hasAndroidMedia, null);"),
+                        conflict.replace("!isDownload && !directStreamsOnly", "!isDownload"),
+                        conflict.replace("if (!isDownload)", "if (true)"),
+                        conflict + conflict, "", conflict + "<<<<<<< extra\n"):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_dev217(invalid)
+
+    def test_dev217_resolver_dispatches_only_exact_blobs(self):
+        conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev217-conflicts.txt").read_text(
+            encoding="utf-8"
+        )
+        path = sync_upstream.STREAMING_DATA_REQUEST_PATH
+        destination = mock.Mock()
+        destination.read_text.return_value = conflict
+        root = mock.Mock()
+        root.__truediv__ = mock.Mock(return_value=destination)
+        with (mock.patch.object(sync_upstream, "ROOT", root),
+              mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+              mock.patch.object(sync_upstream, "output_of",
+                                side_effect=sync_upstream.STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS),
+              mock.patch.object(sync_upstream, "run") as run):
+            sync_upstream.resolve_streaming_data_request_conflict()
+            destination.write_text.assert_called_once_with(
+                sync_upstream.merge_streaming_data_request_dev217(conflict), encoding="utf-8", newline="")
+            run.assert_called_once_with("git", "add", "--", path)
+
     def test_dev210_pip_arrays_keep_all_yandex_languages(self):
         names = ('target_language_entries', 'target_language_entry_values',
                  'source_language_entries', 'source_language_entry_values',
@@ -126,6 +168,8 @@ class SyncUpstreamTests(unittest.TestCase):
 
     def test_dev210_unknown_inputs_remain_unresolved(self):
         cases = (
+            (sync_upstream.STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS,
+             sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
             (sync_upstream.STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,
              sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
             (sync_upstream.DEV210_TEST_DEPENDENCY_BLOBS,

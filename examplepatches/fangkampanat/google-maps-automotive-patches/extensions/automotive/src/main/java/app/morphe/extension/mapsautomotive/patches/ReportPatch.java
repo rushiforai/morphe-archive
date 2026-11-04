@@ -3,7 +3,9 @@ package app.morphe.extension.mapsautomotive.patches;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Looper;
@@ -55,12 +57,14 @@ import app.morphe.extension.shared.Utils;
  * says so until a report with the crash is queued. No dialog opens over the map, because the app may
  * restart while driving. The main process also watches its main thread ({@link MainWatchdog}), keeps
  * its own logcat lines from the start ({@link StartLogcat}) and looks for native crashes in the crash
- * log ({@link NativeCrashes}); development builds get tests ({@link DevTest}).
+ * log ({@link NativeCrashes}).
  */
 @SuppressWarnings("unused")
 public final class ReportPatch {
     static final String TAG = "MorpheReport";
     static final String URL = BuildConfig.MAPS_CAR_REPORT_URL, KEY = BuildConfig.MAPS_CAR_REPORT_KEY;
+    /** The launcher alias the patch adds for {@link ReportActivity}. */
+    private static final String LAUNCHER_ENTRY = "app.morphe.extension.mapsautomotive.patches.ReportLauncher";
     private static final long CRASH_TOAST_DELAY_MS = 8000;
     private static final String[] REDACTION_KEYS = {"coordinates", "map_links", "url_queries", "send_to_car_extras",
             "emails", "vins", "ip_addresses", "long_ids"};
@@ -78,7 +82,7 @@ public final class ReportPatch {
 
     /**
      * From Application.onCreate (CrashLogPatch), in the main process: the uploader, the native crash
-     * check, the main thread watchdog, the start log, a requested development test and the start notices.
+     * check, the main thread watchdog, the start log and the start notices.
      */
     static void onAppStart(Context context) {
         try {
@@ -87,11 +91,37 @@ public final class ReportPatch {
             Utils.runOnBackgroundThread(() -> NativeCrashes.check(context, true));
             MainWatchdog.start();
             StartLogcat.start(context);
-            DevTest.runRequested(context);
+            Utils.runOnBackgroundThread(() -> setLauncherEntry(context));
             new Handler(Looper.getMainLooper()).postDelayed(() -> showStartNotice(context), CRASH_TOAST_DELAY_MS);
         } catch (RuntimeException error) {
             ReportLog.w(TAG, "problem report not started", error);
         }
+    }
+
+    /**
+     * The "Report Maps Car" launcher entry, off in the manifest and turned on here, except on DiLink 5:
+     * its launcher shows one entry per app, showed this one instead of Maps Car (issue #3) and keeps
+     * what it read at install, so the entry must be off from the install. Maps' Settings row and the
+     * crash notification still open the report there. Set at each start, so a later build can change it.
+     */
+    private static void setLauncherEntry(Context context) {
+        boolean on = !BydBatteryPatch.tsAdapterCar();
+        try {
+            PackageManager manager = context.getPackageManager();
+            ComponentName entry = new ComponentName(context, LAUNCHER_ENTRY);
+            int state = on ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+            if (manager.getComponentEnabledSetting(entry) == state) return;
+            manager.setComponentEnabledSetting(entry, state, PackageManager.DONT_KILL_APP);
+            ReportLog.i(TAG, "Report Maps Car launcher entry " + (on ? "on" : "off (TS car adapter, one entry per app)"));
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "launcher entry not set", error);
+        }
+    }
+
+    /** Where the report screen opens from: its launcher entry, or Maps' Settings row where that is off. */
+    private static String reportPlace(boolean thai) {
+        if (!BydBatteryPatch.tsAdapterCar()) return "Report Maps Car";
+        return thai ? "การตั้งค่า > รายงานปัญหา" : "Settings > Report a problem";
     }
 
     // One toast per start: safe mode ended by an update, safe mode, or the last crash (once).
@@ -105,11 +135,11 @@ public final class ReportPatch {
             } else if (SafeMode.automatic()) {
                 ReportStore.takeCrashToast(context);
                 ReportNotice.safeMode(context);
-                text = thai ? "Maps Car อยู่ใน safe mode ฟีเจอร์เสริมปิดอยู่ ดูที่ Report Maps Car"
-                        : "Maps Car is in safe mode: extra features are off. See Report Maps Car.";
+                text = thai ? "Maps Car อยู่ใน safe mode ฟีเจอร์เสริมปิดอยู่ ดูที่ " + reportPlace(true)
+                        : "Maps Car is in safe mode: extra features are off. See " + reportPlace(false) + ".";
             } else if (ReportStore.takeCrashToast(context)) {
-                text = thai ? "Maps Car ปิดตัวผิดปกติครั้งก่อน ส่งรายงานได้ที่ Report Maps Car"
-                        : "Maps Car closed unexpectedly last time. Open Report Maps Car to send a report.";
+                text = thai ? "Maps Car ปิดตัวผิดปกติครั้งก่อน ส่งรายงานได้ที่ " + reportPlace(true)
+                        : "Maps Car closed unexpectedly last time. Open " + reportPlace(false) + " to send a report.";
             }
             if (text != null) Toast.makeText(context, text, Toast.LENGTH_LONG).show();
         } catch (RuntimeException error) {
@@ -305,35 +335,6 @@ public final class ReportPatch {
                     .show();
         });
         content.addView(restart);
-        if (DevTest.available()) addDevTests(host, views, content, thai);
-    }
-
-    // Development builds only: crash or freeze the main process on purpose, after a restart.
-    private static void addDevTests(Activity host, Views views, LinearLayout content, boolean thai) {
-        content.addView(views.divider());
-        TextView heading = views.text(17, views.primary, true);
-        heading.setText(thai ? "ทดสอบ (เฉพาะ build ทดสอบ)" : "Tests (development builds only)");
-        heading.setPadding(views.px(24), views.px(8), views.px(24), 0);
-        content.addView(heading);
-        content.addView(views.paragraph(thai ? "Maps Car จะเริ่มใหม่ แล้วทำตามที่เลือก 10 วินาทีหลังเปิด"
-                : "Maps Car restarts, then does this 10 s after it opens."));
-        String[][] tests = {
-                {DevTest.JAVA_CRASH, thai ? "เด้งแบบ Java" : "Java crash"},
-                {DevTest.NATIVE_CRASH, thai ? "เด้งแบบ native (SIGABRT)" : "Native crash (SIGABRT)"},
-                {DevTest.FREEZE, thai ? "ค้าง 8 วินาที" : "Freeze for 8 s"}};
-        for (String[] test : tests) {
-            TextView action = views.action(test[1]);
-            action.setOnClickListener(view -> new AlertDialog.Builder(host)
-                    .setTitle(test[1])
-                    .setMessage(thai ? "Maps Car จะเริ่มใหม่ การนำทางที่กำลังทำงานจะหยุด" : "Maps Car restarts. Active navigation stops.")
-                    .setPositiveButton(thai ? "เริ่ม" : "Start", (dialog, which) -> {
-                        if (DevTest.request(host.getApplicationContext(), test[0])) SafeMode.restartMaps(host);
-                        else message(host, thai ? "เริ่มการทดสอบไม่ได้" : "The test could not be started.");
-                    })
-                    .setNegativeButton(thai ? "ยกเลิก" : "Cancel", null)
-                    .show());
-            content.addView(action);
-        }
     }
 
     private static String featureName(String feature, boolean thai) {
@@ -342,6 +343,7 @@ public final class ReportPatch {
             case SafeMode.BYD_BATTERY: return thai ? "แบตเตอรี่รถ BYD (EV)" : "BYD battery (EV)";
             case SafeMode.SEND_TO_CAR: return "Send to car";
             case SafeMode.LOCATION_LOCKOUT_DELAY: return thai ? "แก้ตำแหน่งกะพริบของ BYD" : "BYD location flicker fix";
+            case SafeMode.BYD_NAVIGATION_VOLUME: return thai ? "ระดับเสียงนำทางของ BYD" : "BYD navigation volume";
             case SafeMode.TTS_WARMUP: return thai ? "เตรียมเสียงนำทางล่วงหน้า (TTS)" : "Voice guidance warm-up (TTS)";
             case SafeMode.WINDOW_REFRESH: return thai ? "ปรับเลย์เอาต์เมื่อแบ่งจอ" : "Split-screen layout refresh";
             default: return thai ? "แถวของ Maps Car ใน Settings" : "Maps Car rows in Settings";
@@ -354,6 +356,7 @@ public final class ReportPatch {
             case SafeMode.BYD_BATTERY: return thai ? "ไม่ส่งแบตเตอรี่ให้ Maps ไม่มีหน้าจอ EV" : "no battery for Maps, no EV screens";
             case SafeMode.SEND_TO_CAR: return thai ? "รับทริปจากมือถือไม่ได้" : "trips from the phone do not arrive";
             case SafeMode.LOCATION_LOCKOUT_DELAY: return thai ? "หน้าจอตำแหน่งปิดกะพริบเมื่อ GPS ของ BYD หลุด" : "the location lockout flashes when BYD's GPS drops";
+            case SafeMode.BYD_NAVIGATION_VOLUME: return thai ? "เสียงนำทางใช้ระดับเสียงเพลง" : "voice guidance follows the media volume";
             case SafeMode.TTS_WARMUP: return thai ? "เสียงนำทางแรกอาจเป็นเสียงสำรอง" : "the first prompt may use the canned voice";
             case SafeMode.WINDOW_REFRESH: return thai ? "การ์ดอาจใหญ่เกินหลังแบ่งจอ" : "cards may stay too large after a split-screen change";
             default: return thai ? "Settings ของ Maps ไม่มีแถวของ Maps Car" : "Maps' Settings without Maps Car's rows";

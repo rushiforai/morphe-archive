@@ -24,9 +24,8 @@ import semicoloncolonel.mobilestream.patches.starz.shared.Constants
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking in the Starz phone app: AppsFlyer, CleverTap, " +
-        "Leanplum, Braze, Firebase and Ethnio. Blocking happens on the device, inside the app. " +
-        "Sign-in and playback are left alone. Opt-in / experimental; test on-device.",
+    description = "Stops analytics and tracking: AppsFlyer, CleverTap, Leanplum, Braze, Firebase and " +
+        "Ethnio. Sign-in and playback are left alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

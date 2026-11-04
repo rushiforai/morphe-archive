@@ -36,6 +36,19 @@ public class MaterialYouThemeTest {
         CrashGuard.resetForTests();
     }
 
+    @Test public void chatBarsFollowMessengersThemeOnceItAnswers() {
+        org.robolectric.util.ReflectionHelpers.setStaticField(MaterialYouTheme.class, "answered", false);
+        Settings.preferences.edit().putBoolean("light", true).commit();
+        assertTrue("before an answer, Hush's Light theme decides", MaterialYouTheme.chatIsLight());
+        MaterialYouTheme.darkModeAnswer(false);
+        Settings.preferences.edit().putBoolean("light", false).commit();
+        assertTrue("Messenger in light mode, Hush's Light theme off", MaterialYouTheme.chatIsLight());
+        Settings.preferences.edit().putBoolean("light", true).commit();
+        MaterialYouTheme.darkModeAnswer(true);
+        assertFalse("Messenger in dark mode, Hush's Light theme on", MaterialYouTheme.chatIsLight());
+        Settings.preferences.edit().remove("light").commit();
+    }
+
     @Test public void pauseAndResumeRepublishSurfacesWithoutChangingDarkMode() {
         // Robolectric recreates the Application/preferences between tests but retains this class's static cache.
         org.robolectric.util.ReflectionHelpers.setStaticField(MaterialYouTheme.class, "bound", false);

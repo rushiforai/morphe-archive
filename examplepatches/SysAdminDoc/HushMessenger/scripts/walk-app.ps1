@@ -28,8 +28,8 @@
     Screens open by their fb-messenger:// links (am start -W -a VIEW -d ...), the inbox through
     its launcher activity, and the chat by -Thread, the user id of a chat on the signed-in account. The chat goes first: opening it by its
     link gets past the "Restore your Facebook chats" prompt Messenger shows after an update. A prompt
-    in front of the inbox with no Close gets stepped around the same way: the chat link, then the
-    launcher activity reordered to the front. The settings pages open through SettingsActivity with the page extra the restart button uses.
+    in front of a later screen is never tapped either. It gets stepped around the same way: the chat
+    link, then the step opened again (the inbox by reordering its launcher activity to the front). The settings pages open through SettingsActivity with the page extra the restart button uses.
 
     Device safety: the walk takes an exclusive serial lease in the shared lease folder and gives it
     back when it's done. It stops on a lock screen instead of unlocking, wakes the screen with
@@ -248,11 +248,9 @@ function Find-WalkNodeCenter {
     <#
     .SYNOPSIS
         The center of the enabled node whose whole text is -Text in a UI dump, as @(x, y), or $null.
-        With -Described, the node whose whole content-desc is -Text (an icon button has no text).
     #>
-    param([AllowEmptyString()][string]$Xml, [Parameter(Mandatory = $true)][string]$Text, [switch]$Described)
-    $attribute = if ($Described) { 'content-desc' } else { 'text' }
-    $pattern = '<node\b[^>]*\b' + $attribute + '="' + [regex]::Escape([Security.SecurityElement]::Escape($Text)) +
+    param([AllowEmptyString()][string]$Xml, [Parameter(Mandatory = $true)][string]$Text)
+    $pattern = '<node\b[^>]*\btext="' + [regex]::Escape([Security.SecurityElement]::Escape($Text)) +
         '"[^>]*\benabled="true"[^>]*\bbounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'
     $found = [regex]::Match([string]$Xml, $pattern)
     if (-not $found.Success) { return $null }
@@ -650,25 +648,17 @@ function Invoke-WalkApp {
                 default { $launch = Start-WalkMessenger $definition $uri }
             }
             Start-Sleep -Seconds $SettleSeconds
-            # Messenger puts its chat restore prompt in front now and then, as it does for anyone. Close it the way a
-            # person would, from a fresh dump, and open the step again. The step's own dump must then show its screen.
-            for ($closed = 0; $definition.Kind -cnotin 'settings', 'sheet' -and $closed -lt 2; $closed++) {
-                $front = Read-WalkScreen ''
-                if (-not (Test-WalkRestorePrompt $front)) { break }
-                $close = Find-WalkNodeCenter -Xml $front -Text 'Close' -Described
-                if ($null -ne $close) {
-                    Write-Host "[walk] closing Messenger's chat restore prompt in front of $($definition.Id)"
-                    [void](Invoke-WalkAdb @('shell', 'input', 'tap', [string]$close[0], [string]$close[1]))
-                    Start-Sleep -Seconds 2
-                    $launch = Start-WalkMessenger $definition $uri
-                } elseif ($definition.Kind -ceq 'inbox' -and $Thread) {
-                    # Some prompts (the API 32 emulator's) have no Close. The chat link opens past it without
-                    # touching the backup, and bringing the launcher activity to the front then shows the inbox.
-                    Write-Host "[walk] stepping around Messenger's chat restore prompt through the chat"
-                    [void](Start-WalkLink "fb-messenger://user-thread/$Thread")
-                    Start-Sleep -Seconds $SettleSeconds
-                    $launch = Invoke-WalkAdb @('shell', 'am', 'start', '-W', '--activity-reorder-to-front', '-n', "$Package/$WalkInboxActivity")
-                } else { break }
+            # Messenger puts its chat restore prompt in front now and then, as it does for anyone. It's never tapped: the
+            # chat link opens past it without touching the backup, then the step opens again (the inbox by bringing its
+            # launcher activity to the front). The step's own dump must then show its screen.
+            for ($around = 0; $definition.Kind -cnotin 'settings', 'sheet' -and $Thread -and $around -lt 2; $around++) {
+                if (-not (Test-WalkRestorePrompt (Read-WalkScreen ''))) { break }
+                Write-Host "[walk] stepping around Messenger's chat restore prompt in front of $($definition.Id) through the chat"
+                [void](Start-WalkLink "fb-messenger://user-thread/$Thread")
+                Start-Sleep -Seconds $SettleSeconds
+                $launch = if ($definition.Kind -ceq 'inbox') {
+                    Invoke-WalkAdb @('shell', 'am', 'start', '-W', '--activity-reorder-to-front', '-n', "$Package/$WalkInboxActivity")
+                } else { Start-WalkMessenger $definition $uri }
                 Start-Sleep -Seconds $SettleSeconds
             }
             if (-not $problem -and ($launch.Stdout -join "`n") -notmatch '(?m)^Status:\s*ok\r?$') { $problem = "$($definition.Id) wouldn't start" }
@@ -777,6 +767,10 @@ function Invoke-WalkApp {
 if ($MyInvocation.InvocationName -ne '.') {
     if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
     $Root = [IO.Path]::GetFullPath($Root)
+    # The chat link is one remote shell line, so the user id has to be just digits.
+    if ($Thread -and $Thread -notmatch '^\d+$') { throw "-Thread takes a chat's numeric user id, not '$Thread'." }
+    # Each device gets its own folder by default, since a walk clears its steps and receipt when it starts.
+    if (-not $PSBoundParameters.ContainsKey('OutDir') -and $Serial) { $OutDir = Join-Path $OutDir ($Serial -replace '[^\w.-]', '_') }
     $OutDir = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutDir)
     if (-not $PSBoundParameters.ContainsKey('Visit')) { $Visit = $WalkDefaultScreens }
     if (-not $Bundle) {

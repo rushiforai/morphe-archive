@@ -52,7 +52,7 @@ public final class ThreadTitleActions {
             String server=(String)NativeFields.find(info.getClass(),old?"i":middle?"g":"f").get(info);
             String board=(String)NativeFields.find(info.getClass(),old?"b":middle?"f":"g").get(info);
             Object id=NativeFields.find(info.getClass(),middle?"c":"e").get(info);
-            ThreadWatchRules.Target t=ThreadWatchRules.target("https://"+server+"/test/read.cgi/"+board+"/"+id+"/");if(t==null)return original;
+            ThreadWatchRules.Target t=ThreadWatchRules.fromParts(server,board,id);
             LinearLayout box=new LinearLayout(a);box.setOrientation(LinearLayout.VERTICAL);
             // 226/242 render a full-window Compose bottom sheet, rather than a
             // window-sized dialog. Keep extra actions beneath that sheet's content.
@@ -64,11 +64,15 @@ public final class ThreadTitleActions {
                 int bottom=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(android.view.WindowInsets.Type.systemBars()).bottom:insets.getSystemWindowInsetBottom();
                 v.setPadding(0,0,0,bottom);return insets;
             });
+            android.widget.CheckBox refresh=RefreshTargets.control(a,info);
+            if(refresh!=null)box.addView(refresh,new LinearLayout.LayoutParams(-1,-2));
+            if(t!=null){
             Button watch=new Button(a);watch.setAllCaps(false);watch.setText("このスレの新着通知");actions.addView(watch,new LinearLayout.LayoutParams(0,-2,1));
             watch.setOnClickListener(v->ThreadWatch.show(a,t));
             if(ReadingAuth.eligible(t.url)){
                 Button auth=new Button(a);auth.setText("エッヂの閲覧認証");auth.setAllCaps(false);actions.addView(auth,new LinearLayout.LayoutParams(0,-2,1));
                 auth.setOnClickListener(v->ReadingAuth.open(a,t.url));
+            }
             }
             box.addView(actions,new LinearLayout.LayoutParams(-1,-2));
             return box;

@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 /**
- * Cordly settings languages. Each one is a JSON file in the patched APK, assets/venus/i18n/<code>.json,
+ * Conduit settings languages. Each one is a JSON file in the patched APK, assets/venus/i18n/<code>.json,
  * read only when that language is picked (or Discord is set to it), so none of them slows down Discord's start.
  * Reached through FileModule.readAsset's Promise with a private prefix; ordinary readAsset calls fall through.
  * Only Java/Android APIs: the host's Kotlin helpers are obfuscated.

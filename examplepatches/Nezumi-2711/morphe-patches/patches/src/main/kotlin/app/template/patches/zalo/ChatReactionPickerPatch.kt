@@ -78,17 +78,17 @@ val chatReactionPickerPatch = bytecodePatch(
             return v${first.registerA}
         """.trimIndent(), ExternalLabel("nezumi_original_reaction", branch))
 
-        attachNezumiSettings()
+        attachNezumiSettings("attachReaction")
     }
 }
 
 context(_: BytecodePatchContext)
-internal fun attachNezumiSettings() {
+internal fun attachNezumiSettings(methodName: String) {
     check(ZaloSettingsFingerprint.matchAll(1..1).size == 1)
     val settings = ZaloSettingsFingerprint.method
     if (settings.implementation!!.instructions.any {
         (it as? ReferenceInstruction)?.reference?.toString() ==
-            "$SETTINGS_CLASS->attach(Landroid/view/View;Landroid/view/View;)V"
+            "$SETTINGS_CLASS->$methodName(Landroid/view/View;Landroid/view/View;)V"
     }) return
     val privacyIndex = settings.implementation!!.instructions.indexOfFirst {
         it.opcode == Opcode.SGET &&
@@ -102,5 +102,5 @@ internal fun attachNezumiSettings() {
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 3).opcode == Opcode.CHECK_CAST)
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 4).opcode == Opcode.IF_EQZ)
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 4).registerA == privacy.registerA)
-    settings.addInstructions(privacyIndex + 5, "invoke-static {v${lookup.registerC}, v${privacy.registerA}}, $SETTINGS_CLASS->attach(Landroid/view/View;Landroid/view/View;)V")
+    settings.addInstructions(privacyIndex + 5, "invoke-static {v${lookup.registerC}, v${privacy.registerA}}, $SETTINGS_CLASS->$methodName(Landroid/view/View;Landroid/view/View;)V")
 }

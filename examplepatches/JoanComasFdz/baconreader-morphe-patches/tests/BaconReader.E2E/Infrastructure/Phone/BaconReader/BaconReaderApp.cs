@@ -57,6 +57,24 @@ public sealed class BaconReaderApp(
     /// <summary>BaconReader's own screen for a link to an image.</summary>
     public PhotoViewer PhotoViewer { get; } = new(driver);
 
+    /// <summary>The screen a post's thumbnail opens in the list view: its media, or its web page.</summary>
+    public MediaViewer MediaViewer { get; } = new(driver);
+
+    /// <summary>The post's screen in its "Slide Show View": a link post's page.</summary>
+    public SlideShow SlideShow { get; } = new(driver);
+
+    /// <summary>"Submit a Post", which "Submit post" in the left menu opens.</summary>
+    public SubmitPost SubmitPost { get; } = new(driver);
+
+    /// <summary>"Where do you want to save?", which "Save" in the media viewer's "More options" opens.</summary>
+    public WhereToSave WhereToSave { get; } = new(driver);
+
+    /// <summary>"Image storage location", which asks for a folder the first time media is saved to the device.</summary>
+    public ImageStorageLocation ImageStorageLocation { get; } = new(driver);
+
+    /// <summary>The reply screen, "Post Comment", which "Comment" in a comment's action bar opens.</summary>
+    public ReplyScreen ReplyScreen { get; } = new(driver);
+
     /// <summary>BaconReader's settings (SettingsActivity): the menu of its sections.</summary>
     public Settings Settings { get; } = new(driver);
 

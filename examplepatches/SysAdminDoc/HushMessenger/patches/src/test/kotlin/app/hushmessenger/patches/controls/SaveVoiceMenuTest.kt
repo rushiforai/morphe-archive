@@ -173,7 +173,8 @@ private val CASTER_BODY = """
     return-void
 """.trimIndent()
 
-private val READ_AUDIO = "$READER->A0A($FB_USER_SESSION${MESSAGE}Ljava/lang/String;)$MENU_AUDIO_DATA"
+// 586's reader takes the message and a name, no session, and asks the classifier's static step itself.
+private val READ_AUDIO = "$READER->A0A(${MESSAGE}Ljava/lang/String;)$MENU_AUDIO_DATA"
 private val CLASSIFY = "$CLASSIFIER->A00($CLASSIFIER$MESSAGE)$KIND"
 private val ASK = "$CLASSIFIER->A01($FB_USER_SESSION$MESSAGE)$KIND"
 
@@ -183,7 +184,7 @@ private val PREFETCH_BODY = """
     move-result-object v1
     check-cast v1, $READER
     const/4 v0, 0x0
-    invoke-virtual {v1, v3, v4, v0}, $READ_AUDIO
+    invoke-virtual {v1, v4, v0}, $READ_AUDIO
     move-result-object v0
     if-eqz v0, :none
     iget-object v0, v0, $MENU_AUDIO_DATA->A01:$URI
@@ -192,8 +193,8 @@ private val PREFETCH_BODY = """
 """.trimIndent()
 
 private val READ_BODY = """
-    iget-object v0, v2, $READER->A08:$CLASSIFIER
-    invoke-virtual {v0, v3, v4}, $ASK
+    iget-object v0, v3, $READER->A08:$CLASSIFIER
+    invoke-static {v0, v4}, $CLASSIFY
     move-result-object v1
     sget-object v0, $KIND->A03:$KIND
     if-ne v1, v0, :other
@@ -229,8 +230,10 @@ private fun prefetcherClass(body: String = PREFETCH_BODY) = fixtureClass(PREFETC
     listOf(fixtureMethod("$PREFETCHER->A01($FB_USER_SESSION$MESSAGE)V", body, 5)), extraFields = listOf(field(PREFETCHER, "A00", HOLDER)))
 private fun holderClass(flags: Int = PUBLIC_STATIC) = fixtureClass(HOLDER, listOf(fixtureMethod("$HOLDER->A0E($HOLDER)$OBJECT", "const/4 v0, 0x0\nreturn-object v0", 2, flags)))
 private fun readerClass(body: String = READ_BODY) = fixtureClass(READER, listOf(fixtureMethod(READ_AUDIO, body, 6)), extraFields = listOf(field(READER, "A08", CLASSIFIER)))
-private fun classifierClass(asks: String = "invoke-static {v1, v3}, $CLASSIFY\nmove-result-object v0\nreturn-object v0", withStep: Boolean = true) = fixtureClass(CLASSIFIER,
-    (if (withStep) listOf(fixtureMethod(CLASSIFY, "const/4 v0, 0x0\nreturn-object v0", 3, PUBLIC_STATIC)) else emptyList()) + fixtureMethod(ASK, asks, 4))
+private fun classifierClass(withStep: Boolean = true, secondStep: Boolean = false) = fixtureClass(CLASSIFIER,
+    (if (withStep) listOf(fixtureMethod(CLASSIFY, "const/4 v0, 0x0\nreturn-object v0", 3, PUBLIC_STATIC)) else emptyList()) +
+        (if (secondStep) listOf(fixtureMethod(CLASSIFY.replace("->A00(", "->A04("), "const/4 v0, 0x0\nreturn-object v0", 3, PUBLIC_STATIC)) else emptyList()) +
+        fixtureMethod(ASK, "invoke-static {v1, v3}, $CLASSIFY\nmove-result-object v0\nreturn-object v0", 4))
 private fun kindClass(fieldType: String = KIND) = fixtureClass(KIND, extraFields = listOf(field(KIND, "A03", fieldType, PUBLIC_STATIC)))
 private fun audioDataClass(uriFlags: Int = PUBLIC) = fixtureClass(MENU_AUDIO_DATA, extraFields = listOf(field(MENU_AUDIO_DATA, "A01", URI, uriFlags)))
 private fun sheetMethod(body: String = SHEET_BODY, registers: Int = 24, flags: Int = PUBLIC) = fixtureMethod(MENU_SHEET, body, registers, flags)
@@ -345,11 +348,14 @@ class SaveVoiceMenuTest {
             "a request with no constructor" to saveVoiceMenuFixture(requestClass("I$URI")),
             "a prefetch in another order" to saveVoiceMenuFixture(prefetcherClass(PREFETCH_BODY.replace("const/4 v0, 0x0\n", "const/4 v0, 0x0\nconst/4 v0, 0x0\n"))),
             "a holder that isn't static" to saveVoiceMenuFixture(holderClass(PUBLIC)),
-            "a reader with no classifier" to saveVoiceMenuFixture(readerClass(READ_BODY.replace("invoke-virtual {v0, v3, v4}, $ASK\nmove-result-object v1", "const/4 v1, 0x0"))),
+            "a reader with no classifier" to saveVoiceMenuFixture(readerClass(changed(READ_BODY, "invoke-static {v0, v4}, $CLASSIFY\nmove-result-object v1", "const/4 v1, 0x0"))),
+            "a reader that asks the session step" to saveVoiceMenuFixture(readerClass(changed(READ_BODY, "invoke-static {v0, v4}, $CLASSIFY", "invoke-virtual {v0, v4, v4}, $ASK"))),
+            "a reader that asks another class's step" to saveVoiceMenuFixture(readerClass(changed(READ_BODY, "invoke-static {v0, v4}, $CLASSIFY",
+                "invoke-static {v0, v4}, ${CLASSIFY.replace("$CLASSIFIER->", "LX/Other;->")}"))),
             "a kind it doesn't compare" to saveVoiceMenuFixture(readerClass(READ_BODY.replace("sget-object v0, $KIND->A03:$KIND", "const/4 v0, 0x0"))),
             "another kind's field" to saveVoiceMenuFixture(readerClass(READ_BODY.replace("sget-object v0, $KIND->A03:$KIND", "sget-object v0, $KIND->A03:$OBJECT"))),
             "no session-free step" to saveVoiceMenuFixture(classifierClass(withStep = false)),
-            "a step the session one doesn't call" to saveVoiceMenuFixture(classifierClass("const/4 v0, 0x0\nreturn-object v0")),
+            "two session-free steps" to saveVoiceMenuFixture(classifierClass(secondStep = true)),
             "a private kind" to saveVoiceMenuFixture(kindClass().let { fixtureClass(KIND, extraFields = listOf(field(KIND, "A03", KIND, AccessFlags.PRIVATE.value or AccessFlags.STATIC.value))) }),
             "a private Uri" to saveVoiceMenuFixture(audioDataClass(privateField)),
             "no download" to saveVoiceMenuFixture(fixtureClass(AUDIO_FETCHER, listOf(constructor(AUDIO_FETCHER)), extraFields = listOf(field(AUDIO_FETCHER, "A0B", PREFETCHER)))),
@@ -565,6 +571,16 @@ class SaveVoiceMenuTest {
         val flag = code[make - 1] as NarrowLiteralInstruction
         assertEquals(0, flag.narrowLiteral)
         assertEquals((flag as OneRegisterInstruction).registerA, code[make].arguments()[1])
+    }
+
+    @Test fun aFetchHandsTheReaderTheMessageAndNoName() {
+        val recipe = assertNotNull(resolveSaveVoiceMenu(saveVoiceMenuFixture()))
+        val fetch = saveVoiceMenuBuilder(saveVoiceMenuStub(SAVE_VOICE_MENU_FETCH), recipe)
+        val code = fetch.code()
+        val read = code.indexOfFirst { it.reference() == READ_AUDIO }
+        // The reader, the message (p1) and the null name, as many as 586's reader takes with its receiver.
+        assertEquals(listOf(1, fetch.implementation!!.registerCount - 1, 2), code[read].arguments())
+        assertEquals(0, (code[read - 1] as NarrowLiteralInstruction).narrowLiteral)
     }
 
     @Test fun aChangedStubStopsThePatch() {

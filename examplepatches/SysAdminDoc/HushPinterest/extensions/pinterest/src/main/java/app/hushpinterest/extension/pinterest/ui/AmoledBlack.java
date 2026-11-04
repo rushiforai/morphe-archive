@@ -143,12 +143,14 @@ public final class AmoledBlack {
     /**
      * Called with the comments screen as Pinterest finishes building it. The sheet that slides up,
      * the bar that holds the reply box and the comment floating over the list each carry the gray.
-     * So does the reactions header across the top of the list, which Pinterest shows while the
-     * comments load and hides once they're in, in a gray of its own (#222226 on a video pin, #12).
+     * So do the two reactions headers, the one above the list and the one laid over its top, which
+     * Pinterest shows while the comments load and hides once they're in, in a gray of their own
+     * (#222226 on a video pin, #12).
      */
     public static void comments(View sheet) {
         built(sheet, Settings.BLACK_COMMENTS, true, "comments",
-                "comments_feed", "comment_bottom_bar", "floating_comment_view", "comment_reaction_header");
+                "comments_feed", "comment_bottom_bar", "floating_comment_view", "comment_reaction_header",
+                "community_insight_comment_header");
     }
 
     /**

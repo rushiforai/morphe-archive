@@ -27,7 +27,7 @@ internal fun findAppIconManagers(classes: Iterable<ClassDef>): Set<String> = cla
     APP_ICON_DEFAULT_ENTRY in strings && strings.any { it.startsWith(APP_ICON_ALIAS_PREFIX) }
 }.map { it.type }.toSet()
 
-/** 585's two benefit checks: a static one on the session alone, and an instance one that also reads a Context. */
+/** 586's two benefit checks: a static one on the session alone, and an instance one that also reads a Context. */
 private val APP_ICON_GATE_PARAMS = mapOf(true to listOf(FB_USER_SESSION), false to listOf("Landroid/content/Context;", FB_USER_SESSION))
 
 /** The manager's two benefit checks: one locks each icon in the picker, the other shows the App icon setting. */

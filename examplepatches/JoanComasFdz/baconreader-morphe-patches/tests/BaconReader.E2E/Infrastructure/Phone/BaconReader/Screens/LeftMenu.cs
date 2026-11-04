@@ -20,6 +20,8 @@ public sealed class LeftMenu(AndroidDriver driver)
     private const string EnvelopeLabel = ", orange envelope";
     private static readonly OpenQA.Selenium.By Menu = Locate.AppId("drawerView");
     private static readonly OpenQA.Selenium.By Entry = Locate.AppId("text");
+    // "Patches entry in settings"'s line at the bottom of the drawer, under the menu: "Patches <version> (<patcher>)".
+    private static readonly OpenQA.Selenium.By PatchesVersion = Locate.TextStartingWith("Patches ");
 
     /// <summary>Opens the menu: taps the toolbar's menu button.</summary>
     public Task OpenAsync() => OnScreen.PressAsync(driver, MenuButton);
@@ -63,6 +65,19 @@ public sealed class LeftMenu(AndroidDriver driver)
         OnScreen.ReadAsync(driver, () => new LeftMenuButtonSnapshot(
             driver.FindElement(MenuButton).GetAttribute("content-desc")?.EndsWith(EnvelopeLabel, StringComparison.Ordinal) == true));
 
+    /// <summary>
+    /// What the drawer shows at its bottom, under the menu: the patches' version, "Patches &lt;version&gt;
+    /// (&lt;patcher&gt;)", and whether it is below every entry of the menu.
+    /// </summary>
+    public Task<LeftMenuFooterSnapshot> ReadFooterAsync() =>
+        OnScreen.ReadAsync(driver, () =>
+        {
+            var version = driver.FindElements(PatchesVersion).FirstOrDefault(line => line.Displayed);
+            var lowestEntry = driver.FindElements(Menu).SelectMany(menu => menu.FindElements(Entry)).Where(entry => entry.Displayed)
+                .Select(entry => entry.Location.Y + entry.Size.Height).DefaultIfEmpty(0).Max();
+            return new LeftMenuFooterSnapshot(version?.Text, version is not null && version.Location.Y >= lowestEntry);
+        });
+
     /// <summary>What the menu shows: its entries, top to bottom.</summary>
     public Task<LeftMenuSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new LeftMenuSnapshot(
@@ -74,3 +89,9 @@ public sealed record LeftMenuButtonSnapshot(bool ShowsTheOrangeEnvelope);
 
 /// <summary>What the left menu shows: its entries, top to bottom.</summary>
 public sealed record LeftMenuSnapshot(ImmutableArray<MenuEntry> Entries);
+
+/// <summary>
+/// What the drawer shows at its bottom: the patches' version ("Patches unknown (Reseam 0.35.1)"; null when none shows),
+/// and whether it is below every entry of the menu.
+/// </summary>
+public sealed record LeftMenuFooterSnapshot(string? PatchesVersion, bool BelowTheMenu);

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "matchFileNames": [".github/workflows/release.yml"],
+      "matchDepNames": ["java-jdk"],
+      "matchCurrentValue": "21",
+      "allowedVersions": "/^21([.]|$)/"
+    }
+  ]
+}

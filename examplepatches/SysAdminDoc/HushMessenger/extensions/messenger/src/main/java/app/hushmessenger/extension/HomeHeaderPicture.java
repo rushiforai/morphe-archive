@@ -76,6 +76,30 @@ final class HomeHeaderPicture {
         }
     }
 
+    /** The saved copy's bytes, for Undo to put back, or null when there's none or it can't be read. */
+    static byte[] keep(File target) {
+        try {
+            return target.isFile() && target.length() <= MAX_BYTES ? Files.readAllBytes(target.toPath()) : null;
+        } catch (IOException | RuntimeException unreadable) {
+            return null;
+        }
+    }
+
+    /** Writes [bytes] back as the saved copy, whole or not at all, the way a pick does. */
+    static boolean restore(byte[] bytes, File target) {
+        File partial = new File(target.getParentFile(), PARTIAL);
+        try {
+            Files.write(partial.toPath(), bytes);
+            Files.move(partial.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            HomeHeader.forget();
+            return true;
+        } catch (IOException | RuntimeException failure) {
+            android.util.Log.w("HushMessenger", "Can't put the header picture back: " + failure.getClass().getSimpleName());
+            partial.delete();
+            return false;
+        }
+    }
+
     /** Takes the picture away, so the words or Messenger's wordmark show again. False when the copy wouldn't go. */
     static boolean remove(File target) {
         boolean gone = !target.exists() || target.delete();

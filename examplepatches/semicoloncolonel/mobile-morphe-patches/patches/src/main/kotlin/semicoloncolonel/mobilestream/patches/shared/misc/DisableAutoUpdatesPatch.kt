@@ -7,6 +7,12 @@
 package semicoloncolonel.mobilestream.patches.shared.misc
 
 import app.morphe.patcher.patch.resourcePatch
+import semicoloncolonel.mobilestream.patches.fandango.shared.Constants as Fandango
+import semicoloncolonel.mobilestream.patches.cbsnews.shared.Constants as CbsNews
+import semicoloncolonel.mobilestream.patches.nbcnews.shared.Constants as NbcNews
+import semicoloncolonel.mobilestream.patches.foxlocal.shared.Constants as FoxLocal
+import semicoloncolonel.mobilestream.patches.abcnews.shared.Constants as AbcNews
+import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
 import semicoloncolonel.mobilestream.patches.shared.SHOPPING_APPS
 import semicoloncolonel.mobilestream.patches.amc.shared.Constants as Amc
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
@@ -29,7 +35,18 @@ import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
 import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
+import semicoloncolonel.mobilestream.patches.verizon.shared.Constants as Verizon
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
+import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
+import semicoloncolonel.mobilestream.patches.fema.shared.Constants as Fema
+import semicoloncolonel.mobilestream.patches.mytsa.shared.Constants as MyTsa
+import semicoloncolonel.mobilestream.patches.nps.shared.Constants as Nps
+import semicoloncolonel.mobilestream.patches.nfg.shared.Constants as Nfg
+import semicoloncolonel.mobilestream.patches.recgov.shared.Constants as RecGov
+import semicoloncolonel.mobilestream.patches.tlife.shared.Constants as TLife
+import semicoloncolonel.mobilestream.patches.visible.shared.Constants as Visible
+import semicoloncolonel.mobilestream.patches.xfinity.shared.Constants as Xfinity
+import semicoloncolonel.mobilestream.patches.att.shared.Constants as Att
 
 // There is no manifest switch for Play Store auto-updates: the Store pushes an
 // update whenever its listed versionCode is higher than the installed one. So
@@ -75,7 +92,24 @@ val disableAutoUpdatesPatch = resourcePatch(
         Espn.COMPATIBILITY,
         Nfl.COMPATIBILITY,
         Nba.COMPATIBILITY,
+        Fandango.COMPATIBILITY,
+        CbsNews.COMPATIBILITY,
+        NbcNews.COMPATIBILITY,
+        FoxLocal.COMPATIBILITY,
+        AbcNews.COMPATIBILITY,
+        Moviebase.COMPATIBILITY,
         *SHOPPING_APPS,
+        JustWatch.COMPATIBILITY,
+        Fema.COMPATIBILITY,
+        MyTsa.COMPATIBILITY,
+        Nps.COMPATIBILITY,
+        Nfg.COMPATIBILITY,
+        RecGov.COMPATIBILITY,
+        TLife.COMPATIBILITY,
+        Visible.COMPATIBILITY,
+        Xfinity.COMPATIBILITY,
+        Att.COMPATIBILITY,
+        Verizon.COMPATIBILITY,
     )
 
     execute {

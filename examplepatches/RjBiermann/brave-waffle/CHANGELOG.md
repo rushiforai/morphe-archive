@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/RjBiermann/brave-waffle/compare/v1.9.0...v1.10.0) (2026-11-04)
+
+### ✨ New Features
+
+* support 6.7.2 (re-anchor obfuscated anchors, nav ids, pref store) ([d6ab3d6](https://github.com/RjBiermann/brave-waffle/commit/d6ab3d6d2637b7a3a3d5bed5eeefd9d0c1d95789))
+
 ## [1.9.0](https://github.com/RjBiermann/brave-waffle/compare/v1.8.0...v1.9.0) (2026-09-25)
 
 ### ✨ New Features

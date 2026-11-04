@@ -41,10 +41,9 @@ internal object FlagIsOverridableFingerprint : Fingerprint(
 @Suppress("unused")
 val enableDeveloperMenuPatch = bytecodePatch(
     name = "Enable developer menu",
-    description = "Makes the Fox News phone app's hidden debug menu open with a normal " +
-        "long-press on the Fox logo at the bottom of Settings, instead of a 10-second hold, " +
-        "and makes its feature-flag toggles actually take effect (reopen the app after " +
-        "changing one). For advanced users.",
+    description = "Makes the app's hidden debug menu open with a normal long-press on the Fox logo at " +
+        "the bottom of Settings, instead of a 10-second hold, and makes its feature-flag " +
+        "toggles take effect (reopen the app after changing one). For advanced users.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

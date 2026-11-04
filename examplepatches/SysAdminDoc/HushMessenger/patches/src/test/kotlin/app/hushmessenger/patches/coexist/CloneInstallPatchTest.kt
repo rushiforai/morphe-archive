@@ -48,6 +48,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -66,7 +67,7 @@ private val STOCK = """
       <uses-permission android:name="com.facebook.orca.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"/>
       <uses-permission android:name="com.facebook.katana.provider.ACCESS"/>
       <uses-permission android:name="app.hushfacebook.permission.prod.FB_APP_COMMUNICATION"/>
-      <queries><provider android:authorities="androidx.car.app.connection"/><package android:name="com.facebook.katana"/></queries>
+      <queries><provider android:authorities="androidx.car.app.connection"/><package android:name="com.facebook.katana"/><package android:name="com.facebook.orca"/></queries>
       <application android:label="@string/app_name">
         <meta-data android:name="android.telephony.PROPERTY_SATELLITE_DATA_OPTIMIZED" android:value="com.facebook.orca"/>
         <activity android:name="com.facebook.messenger.neue.MainActivity" android:taskAffinity="com.facebook.orca.Main">
@@ -317,6 +318,9 @@ class CloneInstallPatchTest {
             TAM_AUTHORITY to "$COPY$TAM_SUFFIX", "com.facebook.orca.hush.settings" to "$COPY.hush.settings"), result.authorities)
         assertEquals("androidx.car.app.connection", manifest.elements("queries").single().getElementsByTagName("provider")
             .let { (it.item(0) as Element).getAttribute("android:authorities") })
+        // 586 asks to see Messenger itself, which for the copy is the copy. Other apps it asks for stay.
+        assertEquals(listOf("com.facebook.katana", COPY), manifest.elements("queries").single().getElementsByTagName("package")
+            .let { nodes -> (0 until nodes.length).map { (nodes.item(it) as Element).getAttribute("android:name") } })
 
         assertEquals("$COPY.Main", manifest.named("activity", "com.facebook.messenger.neue.MainActivity").getAttribute("android:taskAffinity"))
         assertEquals("$COPY.com.facebook.bugreporter",
@@ -554,17 +558,48 @@ class CloneInstallPatchTest {
         }
     }
 
+    @Test fun aRefusedFacebookHandOffStopsThePatchBeforeTheCloneSitesChange() {
+        val katanaClone = "com.facebook.katana.morphe"
+        // No hand-off left to move, or a clone that takes the Facebook clone's own name.
+        for ((newPackage, handOffs) in listOf(COPY to emptyList<Pair<MutableMethod, Int>>(), katanaClone to listOf(broadcastSender() to 0))) {
+            val lookup = backupLookup()
+            val check = attachmentCheck()
+            val sender = broadcastSender()
+            val before = listOf(lookup, check, sender).map { it.code() }
+            assertFailsWith<PatchException> {
+                applyCloneCode(lookup, check, newPackage, listOf(sender to 1), emptySet(), emptyList(), katanaClone) { handOffs }
+            }
+            assertEquals(before, listOf(lookup, check, sender).map { it.code() }, newPackage)
+        }
+        // The regular Facebook app keeps its name everywhere, so its hand-offs aren't even looked for.
+        applyCloneCode(backupLookup(), attachmentCheck(), COPY, emptyList(), emptySet(), emptyList(), FACEBOOK_PACKAGE) { error("looked for hand-offs") }
+    }
+
+    @Test fun aHandOffAfterTheLookupSiteMovesWhereItWasFound() {
+        val katanaClone = "com.facebook.katana.morphe"
+        // A hand-off in the lookup's own method, after the instruction the clone lookup adds.
+        val body = LOOKUP_BODY.replace("return-void", "const-string v2, \"$FACEBOOK_PACKAGE\"\ninvoke-virtual {v4, v2}, $SET_PACKAGE\nreturn-void")
+        assertNotEquals(LOOKUP_BODY, body)
+        val lookup = backupLookup(body)
+        val handOff = lookup.code().indexOfFirst { (it as? ReferenceInstruction)?.reference.let { ref -> ref is StringReference && ref.string == FACEBOOK_PACKAGE } }
+        val size = lookup.code().size
+        applyCloneCode(lookup, attachmentCheck(), COPY, emptyList(), emptySet(), emptyList(), katanaClone) { listOf(lookup to handOff) }
+        val strings = lookup.code().mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+        assertEquals(size + 1, lookup.code().size)
+        assertEquals(1, strings.count { it == katanaClone })
+        assertFalse(FACEBOOK_PACKAGE in strings)
+        assertEquals(2 to katanaClone, lookup.loads(handOff + 1))
+    }
+
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
-        assertEquals(3, families.size)
+        assertEquals(1, families.size)
         assertTrue(families.all { it.size == 7 && it.count { id -> '@' in id } == 5 })
-        assertEquals(setOf("LX/OnZ;-><init>()V", "LX/4ae;->A00(Ljava/lang/String;)Z",
-            "LX/KeQ;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
-            "LX/8cK;->A04(Landroid/os/Bundle;)LX/9be;@225", "LX/8cK;->A04(Landroid/os/Bundle;)LX/9be;@318",
-            "LX/CVD;->onClick(Landroid/view/View;)V@81", "LX/Jig;->onClick(Landroid/view/View;)V@174"), expectedCloneSitesFor("347015064"))
-        // The second arm64 profile differs only in controls; its clone sites are the base's.
-        assertEquals(expectedCloneSitesFor("347015062"), expectedCloneSitesFor("347014996"))
-        assertEquals(expectedCloneSitesFor("347015062"), expectedCloneSitesFor("347015067"))
+        assertEquals(setOf("LX/Y7a;-><init>()V", "LX/4NY;->A00(Ljava/lang/String;)Z",
+            "LX/391;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/93D;->A04(Landroid/os/Bundle;)LX/9Xq;@228", "LX/93D;->A04(Landroid/os/Bundle;)LX/9Xq;@323",
+            "LX/Cg3;->onClick(Landroid/view/View;)V@83", "LX/Jm8;->onClick(Landroid/view/View;)V@155"), expectedCloneSitesFor("347215348"))
+        assertFailsWith<PatchException> { expectedCloneSitesFor("347015062") }
         assertFailsWith<PatchException> { expectedCloneSitesFor("346611999") }
     }
 

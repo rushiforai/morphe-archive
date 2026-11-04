@@ -1,0 +1,44 @@
+name: Crowdin
+
+on:
+  # New English texts are uploaded as soon as they reach dev.
+  push:
+    branches: [ dev ]
+    paths:
+      - "extensions/*/src/main/translations/en.json"
+      - "crowdin.yml"
+  # Finished translations come back as a pull request once a day.
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      upload_translations:
+        description: "Also upload the translations in the repository (first sync only)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: crowdin/github-action@v2
+        with:
+          upload_sources: true
+          upload_translations: ${{ inputs.upload_translations || false }}
+          download_translations: true
+          localization_branch_name: l10n_crowdin
+          create_pull_request: true
+          pull_request_title: "chore: Update translations from Crowdin"
+          pull_request_body: "Translations from [Crowdin](https://crowdin.com/project/michii-patches)."
+          pull_request_base_branch_name: dev
+          commit_message: "chore: Update translations from Crowdin"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

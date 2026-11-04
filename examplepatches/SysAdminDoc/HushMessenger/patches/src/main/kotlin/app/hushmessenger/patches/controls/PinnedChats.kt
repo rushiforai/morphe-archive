@@ -44,11 +44,11 @@ internal const val PIN_ARRANGE_CALL = "$LOCAL_PINS->arrange(Ljava/lang/Object;)V
 internal const val PINNED_CHAT_ROUTE = "$HOST_SCREENS->pinnedChatRoute()Ljava/lang/String;"
 
 /**
- * The config number Messenger reads its pinned chat limit from. 585 dropped the getter 584 had and reads it in place
+ * The config number Messenger reads its pinned chat limit from. 586 has no getter for it and reads it in place
  * wherever the pinned count is compared with it: the Pin row's check before a pin, the recount after one, the chat
  * list's fetch of pinned chats and the thread details' Pin state.
  */
-internal const val PINNED_CHAT_LIMIT_CONFIG = 0x8205ad0002101eL
+internal const val PINNED_CHAT_LIMIT_CONFIG = 0x82059c00020fdeL
 
 internal const val PINNED_CHAT_LIMIT_GATE = "$SETTINGS->pinnedChatLimit(I)I"
 

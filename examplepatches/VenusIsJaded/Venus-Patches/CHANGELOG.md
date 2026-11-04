@@ -1,3 +1,28 @@
+## [1.21.1](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.21.0...v1.21.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **Discord - Pause invites:** Fixed pausing invites only for up to 24 hours like Discord's own menu; they now stay paused until you resume them ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - View raw data:** Fixed long lines being impossible to scroll sideways when Wrap lines is off ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Keep media playing:** Fixed a tapped skip length pill disappearing and the choice going back to 10 s after a restart ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Keep media playing:** Fixed the notification's skip buttons not moving its seek bar ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Keep media playing:** Fixed the notification staying after returning to Discord with buttons that did nothing ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Keep media playing:** Fixed a video in the small window resetting, losing its place and coming back with an off-center play button ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Expand the message bar:** Fixed the post header in threads and forum posts covering the open bar's collapse button ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Show timeout duration:** Fixed the timeout tag lagging behind and saying 1m for a whole minute instead of counting down ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Clone emojis and stickers:** Fixed custom emojis missing the Add to a server button that stickers had ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Preview servers without joining:** Fixed the Preview button's text sitting off center on invites and next to the server ID field ([#145](https://github.com/VenusIsJaded/Venus-Patches/issues/145))
+* **Discord - Compress big files:** Fixed an upload waiting forever when the phone ran out of memory, and albums over four photos being refused
+* **Discord - Compress big files:** Fixed long videos being squeezed far below the size limit instead of filling it
+* **Discord - Remove anything:** Fixed removal marks spilling past New Group, covering the channel details tab labels and header buttons
+* **Discord - Read all button:** Fixed muted servers being skipped, so their channels stayed unread after tapping Read all
+* **Discord - Read all button:** Fixed the debug log filling up with a line every time the server bar scrolled past the button, pushing out everything useful
+* **Discord - Custom branding:** Fixed Custom branding being selected by default when adding the source, so patching installed a renamed second copy of Discord
+* **Discord - Send long messages:** Fixed spoilers, `>>>` quotes and inline code breaking when a long message was cut into parts, showing hidden text in the clear
+* **Discord - Send long messages:** Fixed a cut landing inside a custom emoji, mention, link, flag or joined emoji, leaving broken text in both parts
+* **Discord - Send long messages:** Fixed long forum posts and scheduled message edits skipping Discord's length check and then being refused when sent
+* **Discord - Send long messages:** Fixed a sticker sent with long typed text being refused, losing both the sticker and the text
+
 ## [1.21.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.20.0...v1.21.0) (2026-11-02)
 
 ### 🚀 Updated App Support

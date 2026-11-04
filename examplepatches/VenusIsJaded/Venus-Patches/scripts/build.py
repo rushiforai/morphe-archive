@@ -276,7 +276,7 @@ function lazyCoreRuntime(code) {
 
     const stage2Items = items.filter(it => !eagerSet.has(it.idx));
     let stage2Code = stage2Items.map(it => it.src).join('\n') +
-        '\nreturn{listImport:listImport,lengthConstants:lengthConstants,multiAccountConstants:multiAccountConstants,activateModule:activateModule,setSetting:setSetting,formatSize:formatSize,getSize:getSize};';
+        '\nreturn{listImport:listImport,splitRealImport:splitRealImport,lengthConstants:lengthConstants,multiAccountConstants:multiAccountConstants,activateModule:activateModule,setSetting:setSetting,formatSize:formatSize,getSize:getSize};';
     let nrStr = null;
     const nrAst = acorn.parse('(function(){' + stage2Code + '})', {ecmaVersion: 'latest'});
     const nrBody = nrAst.body[0].expression.body.body;
@@ -309,6 +309,7 @@ function lazyCoreRuntime(code) {
 
     const ddSrc = items[ddIdx].src
         .replace(/listImport\(/g, '$core().listImport(')
+        .replace(/splitRealImport\(/g, '$core().splitRealImport(')
         .replace(/lengthConstants\(/g, '$core().lengthConstants(')
         .replace(/multiAccountConstants\(/g, '$core().multiAccountConstants(')
         .replace(/activateModule\(/g, '$core().activateModule(');
@@ -316,7 +317,43 @@ function lazyCoreRuntime(code) {
     let eagerFooter = ddSrc + items[hdIdx].src + items[dvIdx].src + items[exIdx].src + items[exIdx + 1].src;
     eagerFooter += 'global.__venusPatches=Object.freeze({revision:revision,settings:settings,features:features,status:status,setSetting:function(k,v){return $core().setSetting(k,v)},formatSize:function(b){return $core().formatSize(b)},getSize:function(u){return $core().getSize(u)}});';
 
-    return '(function(global){' + eagerHeader + eagerFooter + '})(globalThis);';
+    const out = '(function(global){' + eagerHeader + eagerFooter + '})(globalThis);';
+    checkEagerScope(acorn, out, stage2Items);
+    return out;
+}
+// The eager code can only see its own names: anything declared in the core is out of reach unless it goes through
+// $core(). Splitting decorateDefine off from the core once let it call splitRealImport and read
+// SPLIT_REAL_LIMIT_MODULES directly, which threw "Property 'SPLIT_REAL_LIMIT_MODULES' doesn't exist" in Discord's first
+// hooked module and crashed every launch with Send long messages on. Fail the build instead.
+function checkEagerScope(acorn, code, coreItems) {
+    const coreNames = new Set();
+    for (const it of coreItems) for (const d of it.decls) coreNames.add(d);
+    const declared = new Set(), used = new Set();
+    function pattern(p) {
+        if (!p) return;
+        if (p.type === 'Identifier') declared.add(p.name);
+        else if (p.type === 'ObjectPattern') p.properties.forEach(q => pattern(q.type === 'RestElement' ? q.argument : q.value));
+        else if (p.type === 'ArrayPattern') p.elements.forEach(pattern);
+        else if (p.type === 'RestElement') pattern(p.argument);
+        else if (p.type === 'AssignmentPattern') pattern(p.left);
+    }
+    (function walk(n, parent, key) {
+        if (!n || typeof n !== 'object') return;
+        if (Array.isArray(n)) { n.forEach(c => walk(c, parent, key)); return; }
+        if (n.type === 'Identifier') {
+            const property = parent && ((parent.type === 'MemberExpression' && key === 'property' && !parent.computed) ||
+                (parent.type === 'Property' && key === 'key' && !parent.computed));
+            if (!property) used.add(n.name);
+            return;
+        }
+        if (n.type === 'VariableDeclarator') pattern(n.id);
+        if (/Function/.test(n.type)) { if (n.id) declared.add(n.id.name); n.params.forEach(pattern); }
+        if (n.type === 'CatchClause') pattern(n.param);
+        for (const k of Object.keys(n)) if (k !== 'type' && k !== 'start' && k !== 'end') walk(n[k], n, k);
+    })(acorn.parse(code, {ecmaVersion: 'latest'}), null, null);
+    const missing = [...used].filter(name => coreNames.has(name) && !declared.has(name)).sort();
+    if (missing.length) throw new Error('eager runtime reads names that only exist inside $core (call them through ' +
+        '$core() in lazyCoreRuntime): ' + missing.join(', '));
 }
 // Hermes's (0, eval) eagerly compiles every FunctionDeclaration and closure inside the runtime at startup,
 // even though load_calls.cjs shows only 5 functions run at startup. The Venus Settings pages, live previews,

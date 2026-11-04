@@ -30,6 +30,22 @@ class LinimalManifestComponentRegistrationTest {
     }
 
     @Test
+    fun `Restart Activity runs in its own process and task without external entry`() {
+        val document = manifestDocument("<application />")
+
+        LinimalManifestComponentRegistration.register(document)
+
+        val activities = document.getElementsByTagName("activity")
+        val restart = (0 until activities.length).map { activities.item(it) as org.w3c.dom.Element }
+            .single { it.getAttribute("android:name") == LinimalManifestComponentRegistration.RESTART_ACTIVITY }
+        assertEquals("false", restart.getAttribute("android:exported"))
+        assertEquals(LinimalManifestComponentRegistration.RESTART_PROCESS, restart.getAttribute("android:process"))
+        assertEquals("dev.utaa.linimal.restart", restart.getAttribute("android:taskAffinity"))
+        assertEquals("true", restart.getAttribute("android:noHistory"))
+        assertEquals(0, restart.getElementsByTagName("intent-filter").length)
+    }
+
+    @Test
     fun `Settings Activity theme has no system ActionBar`() {
         val document = manifestDocument("<application />")
 

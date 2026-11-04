@@ -50,7 +50,7 @@ internal fun explainPasskeyError(method: MutableMethod) {
     """)
 }
 
-/** Hidden helper: every Cordly and privacy patch pulls it in, so anyone who patches gets the clear message. */
+/** Hidden helper: every Conduit and privacy patch pulls it in, so anyone who patches gets the clear message. */
 internal val passkeyErrorHint = bytecodePatch {
     execute {
         explainPasskeyError(Fingerprint(

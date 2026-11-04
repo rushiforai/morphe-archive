@@ -264,7 +264,7 @@ public class ChoiceBackupTest {
             clipboard(ChoiceCodec.HEADER + "\nstories=true\ntyping=true\npeople=false\n");
             screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
             assertTrue(Settings.preferences.getBoolean("typing", false));
-            assertEquals("Changed 1 of 3 choices.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Restored 1 of 3 choices.", ShadowToast.getTextOfLatestToast());
             clipboard(ChoiceCodec.HEADER + "\nstories=false\ntyping=false\n");
             screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
             assertFalse(Settings.preferences.getBoolean("stories", true));
@@ -442,7 +442,7 @@ public class ChoiceBackupTest {
             ShadowToast.reset();
             activity.getWindow().getDecorView().findViewWithTag("save_choices_file").performClick();
             activity.onActivityResult(SettingsActivity.SAVE_CHOICES, Activity.RESULT_OK, new Intent().setData(uri));
-            awaitToast("Couldn't back up");
+            awaitToast("Couldn't save your choices to the file");
             assertArrayEquals(original, Files.readAllBytes(file.toPath()));
         }
     }
@@ -487,7 +487,7 @@ public class ChoiceBackupTest {
             assertEquals(before, Settings.preferences.getAll());
             activity.getWindow().getDecorView().findViewWithTag("save_choices_file").performClick();
             activity.onActivityResult(SettingsActivity.SAVE_CHOICES, Activity.RESULT_OK, new Intent().setData(uri));
-            awaitToast("Couldn't back up");
+            awaitToast("Couldn't save your choices to the file");
             assertEquals(0, output.size());
         }
     }
@@ -527,7 +527,7 @@ public class ChoiceBackupTest {
                 ShadowToast.reset();
                 activity.getWindow().getDecorView().findViewWithTag("save_choices_file").performClick();
                 activity.onActivityResult(SettingsActivity.SAVE_CHOICES, Activity.RESULT_OK, new Intent().setData(uri));
-                awaitToast("Couldn't back up");
+                awaitToast("Couldn't save your choices to the file");
                 assertEquals(0, output.size());
             }
         }
@@ -559,7 +559,7 @@ public class ChoiceBackupTest {
                     boolean ordinaryOldDocument = android.os.Build.VERSION.SDK_INT == 28 && authority.equals("com.android.externalstorage.documents");
                     boolean allowed = ordinaryOldDocument || android.os.Build.VERSION.SDK_INT >= 29 && owner.equals("org.example.files");
                     startFile(screen.get(), true, uri);
-                    awaitToast(allowed ? "Choices file saved" : "Couldn't back up");
+                    awaitToast(allowed ? "Choices file saved" : "Couldn't save your choices to the file");
                     finishWorkers();
                     assertEquals(allowed ? 1 : 0, opens.get());
                     if (!allowed) assertArrayEquals(original, output.toByteArray());
@@ -901,7 +901,7 @@ public class ChoiceBackupTest {
              ParcelFileDescriptor descriptor = ParcelFileDescriptor.open(file.toFile(), ParcelFileDescriptor.MODE_READ_WRITE)) {
             DocumentResolver.opener = (uri, signal) -> new AssetFileDescriptor(descriptor, 7, 5);
             startFile(screen.get(), true, Uri.parse("content://choices/short-slice"));
-            awaitToast("Couldn't back up");
+            awaitToast("Couldn't save your choices to the file");
             finishWorkers();
             assertArrayEquals(original, Files.readAllBytes(file));
         } finally { Files.deleteIfExists(file); }

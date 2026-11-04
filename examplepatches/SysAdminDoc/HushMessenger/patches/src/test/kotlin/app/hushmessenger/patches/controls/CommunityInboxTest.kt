@@ -91,7 +91,7 @@ class CommunityInboxTest {
         val contract = assertNotNull(findCommunityInbox(communityInboxFixture()))
         val render = contract.render as MutableMethod
         val at = render.communityReadSite(contract.capturedScope)
-        assertEquals(63, at)
+        assertEquals(60, at)
         injectCommunityInbox(contract, render, communityStub(JOINED_COMMUNITY_ROW), communityStub(MAIN_INBOX_SCOPE))
         val code = body(render)
         val filter = code[at + 3] as FiveRegisterInstruction
@@ -105,16 +105,16 @@ class CommunityInboxTest {
         // v0 is scratch only because the closure writes it again before the sink reads it.
         val live = communityInboxFixture()
         val liveRender = assertNotNull(findCommunityInbox(live)).render as MutableMethod
-        liveRender.replaceInstruction(69, "nop")
+        liveRender.replaceInstruction(66, "nop")
         assertNull(findCommunityInbox(live))
     }
 
-    @Test fun theSecondListReadIsTakenOnlyAt63() {
-        assertNotNull(findCommunityInbox(communityInboxFixture(secondRead = 63)))
-        // 582 read the list one instruction later. Every recorded build refuses that, and discovery fails before anything changes.
+    @Test fun theSecondListReadIsTakenOnlyAt60() {
+        assertNotNull(findCommunityInbox(communityInboxFixture(secondRead = 60)))
+        // 585 read the list at 63 (inline search icon check). Every recorded build refuses a read elsewhere, and discovery fails before anything changes.
         for (profile in listOf(SYNTHETIC_PROFILE) + controlProfiles.values.toSet()) {
             activeProfile = profile
-            for (secondRead in listOf(62, 64)) {
+            for (secondRead in listOf(59, 61, 63)) {
                 val classes = communityInboxFixture(secondRead = secondRead)
                 val before = classes.flatMap { it.methods }.associate { it.hookId() to body(it).map(::structural) }
                 assertNull(findCommunityInbox(classes), "read at $secondRead")

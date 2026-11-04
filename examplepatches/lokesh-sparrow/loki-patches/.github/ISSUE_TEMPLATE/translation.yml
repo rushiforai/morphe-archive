@@ -1,0 +1,42 @@
+name: 🌐 Translation
+description: Report a wrong translation, or offer to translate Loki Patches into a new language.
+title: "i18n: "
+labels: ["Translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <p align="center"><b>🧩 Loki Patches · Translation</b></p>
+
+        The texts are in [`extensions/extension/src/main/translations`](https://github.com/lokesh-sparrow/loki-patches/tree/dev/extensions/extension/src/main/translations), one JSON file per language with the English text as the key. You can also open a pull request directly.
+
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: "Français (fr)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type
+      options:
+        - A translation is wrong or sounds unnatural
+        - A text is not translated
+        - I'd like to add a new language
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: The current text, where it appears, and your suggested translation.
+      placeholder: |
+        Screen: Other → Language
+        Current: "Automatique (langue de l'appareil)"
+        Suggested: "..."
+    validations:
+      required: true

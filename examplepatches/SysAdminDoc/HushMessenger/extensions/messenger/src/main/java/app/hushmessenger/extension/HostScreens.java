@@ -39,27 +39,30 @@ public final class HostScreens {
 
     private HostScreens() {}
 
-    /** The patched factory hands over Messenger's Application here, just before Android attaches it. */
+    /**
+     * The patched factory hands over Messenger's Application here, just before Android attaches it. Nothing has
+     * checked safe mode yet, so a class that fails to load or initialize is caught too rather than stopping Messenger.
+     */
     public static void applicationCreated(Application app) {
         application = app;
         try {
             if (Settings.bundled(bundledControls()).contains(ChatAnimation.KEY)) ChatAnimation.register(app);
-        } catch (RuntimeException error) {
+        } catch (RuntimeException | LinkageError error) {
             Log.e("HushMessenger", "Can't watch for chats opening", error);
         }
         try {
             if (app != null && Settings.bundled(bundledControls()).contains(CallRecording.KEY)) CallRecording.register(app);
-        } catch (RuntimeException error) {
+        } catch (RuntimeException | LinkageError error) {
             Log.e("HushMessenger", "Can't watch for calls", error);
         }
         try {
             if (app != null) SettingsReopen.watch(app);
-        } catch (RuntimeException error) {
+        } catch (RuntimeException | LinkageError error) {
             Log.e("HushMessenger", "Can't watch for the first screen after a restart", error);
         }
         try {
             if (app != null) app.registerActivityLifecycleCallbacks(new LeavingMessenger());
-        } catch (RuntimeException error) {
+        } catch (RuntimeException | LinkageError error) {
             Log.e("HushMessenger", "Can't watch for Messenger leaving the screen", error);
         }
     }
@@ -114,7 +117,7 @@ public final class HostScreens {
     }
 
     /**
-     * The Messenger build the patch started from, "585.0.0.53.94|347015062|base": version name, version code and the
+     * The Messenger build the patch started from, "586.0.0.55.92|347215348|base": version name, version code and the
      * mapping its hooks came from. The patch rewrites this, so it holds on Root Mount installs and under Spoof package
      * version, where Android's version code says something else. The extension alone has none.
      */
@@ -463,6 +466,8 @@ public final class HostScreens {
         // A native crash in the loader only counts from Android 11, where the exit history records it.
         if (started && !failed && Settings.installed.contains(OwnFont.KEY)
                 && context.getPackageName().equals(Application.getProcessName())) OwnFont.warmUp();
+        if (started && !failed && Settings.installed.contains(HomeHeader.KEY)
+                && context.getPackageName().equals(Application.getProcessName())) HomeHeader.warmUp();
         // After CrashGuard too: Bold and Italic sit in every text field's menu, so safe mode has to take them out.
         if (started && !failed && Settings.installed.contains(TextStyleActivity.KEY)
                 && context.getPackageName().equals(Application.getProcessName())) TextStyleActivity.watch();

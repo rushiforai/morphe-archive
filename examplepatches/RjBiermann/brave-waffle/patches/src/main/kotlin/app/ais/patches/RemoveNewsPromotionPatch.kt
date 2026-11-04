@@ -5,23 +5,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import com.android.tools.smali.dexlib2.Opcodes
+import util.assembleFirstMethod
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.writer.builder.DexBuilder
-import com.android.tools.smali.smali.smaliFlexLexer
-import com.android.tools.smali.smali.smaliParser
-import com.android.tools.smali.smali.smaliTreeWalker
-import org.antlr.runtime.CommonTokenStream
-import org.antlr.runtime.tree.CommonTreeNodeStream
-import java.io.ByteArrayInputStream
-import java.io.InputStreamReader
 
 /**
  * The startup news page (a WebView) shows a third-party "Porn Site
  * Promotion" banner (accordion item with an ad iframe). The page is loaded
- * with the shared WebViewClient `ce0`; its default `onPageFinished` branch
+ * with the shared WebViewClient `pi0`; its default `onPageFinished` branch
  * (used by the news WebView) simply calls super.
  *
  * Two JS snippets are injected after every page load, both pref-gated:
@@ -91,7 +83,7 @@ private const val PREHIDE_PROMOTION_JS =
         "var a=function(){g();if(document.body){m.observe(document.body,{childList:true,subtree:true});}};" +
         "if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',a);}else{a();}})();"
 
-/** Full smali class whose single method is added to `Lce0;` as the
+/** Full smali class whose single method is added to `Lpi0;` as the
  *  shouldInterceptRequest override. Cuts the promo accordion item (located via
  *  its `headingPromotion` id anchor, spanning back to the previous
  *  `<div class="accordion-item">` and forward to the next) out of the served
@@ -101,7 +93,7 @@ private const val PREHIDE_PROMOTION_JS =
  *  Assembled with the real smali assembler because injected instruction
  *  blocks cannot carry try/catch (inline compiler drops handlers). */
 private const val INTERCEPT_SMALI = """
-    .class public Lce0;
+    .class public Lpi0;
     .super Landroid/webkit/WebViewClient;
 
     .method public shouldInterceptRequest(Landroid/webkit/WebView;Ljava/lang/String;)Landroid/webkit/WebResourceResponse;
@@ -114,7 +106,7 @@ private const val INTERCEPT_SMALI = """
         if-eqz v0, :ret_null
 
         const-string v0, "morphe_remove_news_promo"
-        sget-object v1, Lka1;->j:Landroid/content/SharedPreferences;
+        sget-object v1, Lc34;->q:Landroid/content/SharedPreferences;
         const/4 v2, 0x1
         invoke-interface {v1, v0, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
         move-result v0
@@ -208,38 +200,16 @@ private const val INTERCEPT_SMALI = """
 """
 
 object NewsWebClientFingerprint : Fingerprint(
-    definingClass = "Lce0;",
+    definingClass = "Lpi0;",
     name = "onPageFinished",
     returnType = "V"
 )
 
 object NewsWebClientStartFingerprint : Fingerprint(
-    definingClass = "Lce0;",
+    definingClass = "Lpi0;",
     name = "onPageStarted",
     returnType = "V"
 )
-
-/** Assemble INTERCEPT_SMALI with the real smali assembler and return the
- *  shouldInterceptRequest method (with its try/catch intact). Same assembly
- *  trick the patcher's InlineSmaliCompiler uses, but keeping the whole
- *  ClassDef instead of extracting bare instructions. */
-private fun assembleInterceptMethod(): com.android.tools.smali.dexlib2.iface.Method {
-    val dexBuilder = DexBuilder(Opcodes.getDefault())
-    val tokens = CommonTokenStream(
-        smaliFlexLexer(
-            InputStreamReader(ByteArrayInputStream(INTERCEPT_SMALI.toByteArray()), Charsets.UTF_8),
-            15
-        )
-    )
-    val parser = smaliParser(tokens)
-    val tree = parser.smali_file()
-    if (parser.numberOfSyntaxErrors > 0) error("intercept smali: ${parser.numberOfSyntaxErrors} syntax errors")
-    val nodes = CommonTreeNodeStream(tree.tree)
-    nodes.tokenStream = tokens
-    val walker = smaliTreeWalker(nodes)
-    walker.setDexBuilder(dexBuilder)
-    return walker.smali_file().methods.first()
-}
 
 @Suppress("unused")
 val removeNewsPromotionPatch = bytecodePatch(
@@ -251,12 +221,12 @@ val removeNewsPromotionPatch = bytecodePatch(
 
     execute {
         // Shared injection helper: gate on the pref, then run `js` on the
-        // WebView (p1). Injected right after the first invoke-super — the
-        // default (non-switch) branch, where p2 (URL) is dead afterwards and
-        // doubles as the default=true register (method only has v0/v1).
+        // WebView (p1). Injected right after the LAST invoke-super — pi0 is a
+        // merged client whose default branch is last, where p2 (URL) is dead
+        // afterwards and doubles as the default=true register (only v0/v1).
         fun injectGatedJs(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, js: String) {
             val impl = method.implementation!!
-            val superIndex = impl.instructions.indexOfFirst {
+            val superIndex = impl.instructions.indexOfLast {
                 val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
                 ref?.definingClass == "Landroid/webkit/WebViewClient;"
             }
@@ -264,7 +234,7 @@ val removeNewsPromotionPatch = bytecodePatch(
                 superIndex + 1,
                 """
                     const-string v0, "morphe_remove_news_promo"
-                    sget-object v1, Lka1;->j:Landroid/content/SharedPreferences;
+                    sget-object v1, Lc34;->q:Landroid/content/SharedPreferences;
                     const/4 p2, 0x1
                     invoke-interface {v1, v0, p2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
                     move-result v0
@@ -289,7 +259,7 @@ val removeNewsPromotionPatch = bytecodePatch(
         // Deterministic path: serve the news page with the promo accordion
         // item already cut out of the HTML, before the WebView ever parses it
         // — no paint race, zero flash on every WebView version.
-        val interceptMethod = assembleInterceptMethod()
-        mutableClassDefByOrNull("Lce0;")!!.virtualMethods.add(MutableMethod(interceptMethod))
+        val interceptMethod = assembleFirstMethod(INTERCEPT_SMALI, "news intercept")
+        mutableClassDefByOrNull("Lpi0;")!!.virtualMethods.add(MutableMethod(interceptMethod))
     }
 }

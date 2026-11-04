@@ -3,7 +3,6 @@ package app.hushmessenger.patches.controls
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
@@ -29,25 +28,6 @@ private const val KEEP = "$SETTINGS->keepShareStory(Z)Z"
 private const val SKIP = "$SETTINGS->shareStorySection(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
 
 private const val ROW_ID_BODY = "const-string v0, \"$STORY_ROW_ID\"\nreturn-object v0"
-
-/** 585 arm64's string table and the row id that looks the constant up in it. */
-private const val ID_TABLE = "LX/Sr9;->A00(I)Ljava/lang/String;"
-private const val TABLE_ID_BODY = "const/16 v0, 0x12a\ninvoke-static {v0}, $ID_TABLE\nmove-result-object v0\nreturn-object v0"
-
-private fun idTable() = fixtureClass("LX/Sr9;", listOf(fixtureMethod(ID_TABLE, """packed-switch p0, :cases
-const-string v0, ""
-return-object v0
-:story
-const-string v0, "$STORY_ROW_ID"
-return-object v0
-:other
-const-string v0, "SHARE_TO_FB_ID"
-return-object v0
-:cases
-.packed-switch 0x12a
-    :story
-    :other
-.end packed-switch""", 2, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)))
 
 /** The hoisted loader's A01 as 585 writes it, cut down: the story answer, then the row into the builder. */
 private const val HOISTED_BODY = """iget-object v1, p0, $HOISTED_SHARE_LOADER->A05:Ljava/util/concurrent/Future;
@@ -109,31 +89,9 @@ class ShareStoryTest {
         validateControls(mirroredControls(shareStoryFixture()), setOf(SHARE_STORY))
     }
 
-    @Test fun aRowIdLookedUpInAStringTableIsTheStoryRow() {
-        val tabled = shareStoryFixture(row = rowClass(TABLE_ID_BODY)) + idTable()
-        assertEquals(setOf(SYNTHETIC_HOISTED_STORY, SYNTHETIC_UNHOISTED_STORY), found(tabled))
-        assertEquals(ROW, shareStoryRow)
-        validateControls(mirroredControls(tabled), setOf(SHARE_STORY))
-        // Another key's string, a key in another register, or a lookup whose result isn't what getId() returns is no row.
-        val cases = mapOf(
-            "another key" to TABLE_ID_BODY.replace("0x12a", "0x12b"),
-            "a key in another register" to TABLE_ID_BODY.replace("const/16 v0", "const/16 v1"),
-            "another result returned" to TABLE_ID_BODY.replace("return-object v0", "return-object v1"),
-            "no table behind the call" to TABLE_ID_BODY.replace(ID_TABLE, "LX/Sr8;->A00(I)Ljava/lang/String;"),
-        )
-        for ((case, id) in cases) {
-            val classes = shareStoryFixture(row = rowClass(id)) + idTable()
-            assertTrue(found(classes).isEmpty(), case)
-            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(SHARE_STORY)) }
-        }
-    }
-
     @Test fun eachFamilyMapsItsOwnSection() {
         val hoisted = "$HOISTED_SHARE_LOADER->A01()V"
-        assertEquals(setOf("LX/Jlh;->A8X()V", hoisted), PROFILE_347015062.hooks.getValue(SHARE_STORY))
-        assertEquals(setOf("LX/Jlh;->A8X()V", hoisted), PROFILE_347014996.hooks.getValue(SHARE_STORY))
-        assertEquals(setOf("LX/JrJ;->A8X()V", hoisted), PROFILE_347014974.hooks.getValue(SHARE_STORY))
-        assertEquals(setOf("LX/MHR;->A8Y()V", hoisted), PROFILE_347014990.hooks.getValue(SHARE_STORY))
+        assertEquals(setOf("LX/PQ0;->A8Y()V", hoisted), BASE_PROFILE.hooks.getValue(SHARE_STORY))
     }
 
     // The switch promises that only Your story leaves the list. A row we can't tie to the story, or a gate that could
@@ -228,7 +186,7 @@ class ShareStoryTest {
             activeProfile = controlProfileFor(code)
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
-            val hooks = findShareStory(classes, redexStringTables(classes))
+            val hooks = findShareStory(classes)
             assertEquals(activeProfile.hooks.getValue(SHARE_STORY), hooks.map { it.hookId() }.toSet(), code)
             validateControls(mapOf(SHARE_STORY to hooks), setOf(SHARE_STORY))
             for (hook in hooks) {

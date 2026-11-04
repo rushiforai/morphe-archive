@@ -103,6 +103,6 @@ val hideMediaBoxPatch = bytecodePatch(
         """.trimIndent(), ExternalLabel("nezumi_show_media_box", instructions[rowIndex]))
         }
 
-        attachNezumiSettings()
+        attachNezumiSettings("attachMediaBox")
     }
 }

@@ -28,6 +28,8 @@
 //   scene=removeHeaders  the Messages tab header and a server's channel list header, laid out from the heights Discord measures
 //   scene=removeMessage  your message's hold menu: quick reactions and every row, with Translate and Select Messages added by Venus
 //   scene=removeGuild  the server menu: Community Server pill, Boost / Invite / Notifications, its rows and switches, Server Emoji
+//   scene=removeDetails  a DM's details: search / bell / settings in the header, the Members ... Files tabs and New Group above the
+//                      members, drawn in its padded wrapper the way Discord draws it
 //   scene=chatAdditions  a server chat with what Venus adds to messages: Show timeout duration's tag on Sam (timed out for 2h 14m)
 //                      and Download voice messages' button under a voice message, drawn from the real row hook (RowGenerator 8013)
 //   scene=cloneEmoji   Discord's sheet for a custom emoji tapped in chat, with Clone emojis and stickers' Add to a server button;
@@ -75,18 +77,20 @@ export const SCENE_SETTINGS = {
   chatAdditions: { timeoutDuration: true, voiceDownload: true }, cloneEmoji: { cloneExpressions: true },
   viewRawMenu: { viewRaw: true }, viewRaw: { viewRaw: true }, viewRawChannel: { viewRaw: true }, viewRawProfile: { viewRaw: true }, viewRawRole: { viewRaw: true },
   removeHeaders: { hideAnything: true }, removeGuild: { hideAnything: true }, removeMessage: { hideAnything: true, translate: true, bulkDelete: true },
+  removeDetails: { hideAnything: true },
 };
 
 // The stand-in modules: Discord's stores the sheet reads, its sheets, and the two guild-bar modules Venus hooks.
 export const hooked = [9839, 8013, 1392, 5207, 17433, 2090, 1417, 17439, 14101, 1087, 2068, 4845, 1114, 17538, 10692, 5532, 9978, 13759, 14995, 7445, 9683,
   15590, 17157, 13780, 14204, 9419, 12892, 12897, 12901, 12909, 12908,
-  14015, 15046, 10858, 14197, 8805, 11678, 11679, 10939, 7158, 14182, 17156, 17263, 12942, 14988, 14994, 14925, 14998, 10596, 17245, 10780, 7167];
+  14015, 15046, 10858, 14197, 8805, 11678, 11679, 10939, 7158, 14182, 17156, 17263, 12942, 14988, 14994, 14925, 14998, 10596, 17245, 10780, 7167,
+  17881, 17869, 9052, 11164];
 let host = null; // the Scene, once drawn: shows and hides sheets
 // Discord's own text for the message keys Remove anything matches labels by (en-GB, from the APK), served as intl (1128) in
 // the remove* scenes, so labels are found the way they are in Discord.
-const EN_TEXT = {"fsBWmS": "Edit Message", "5IEsGx": "Reply", "I3ltXO": "Forward", "rBIGBL": "Create Thread", "39d0Wj": "View Thread", "JrGD7E": "Copy Text", "RpE9k7": "Mark Unread", "CvQ18w": "Pin Message", "Bse+F/": "Unpin Message", "tpxJto": "Bookmark Message", "SvXS1Z": "Remove Bookmark", "mJ3P0N": "Create Reminder", "vrbqs1": "Edit Reminder", "P8tvKG": "Mention", "Xrt5Po": "Copy Message Link", "zBoHlf": "Copy Message ID", "S/xNKV": "Save Image", "JVuuz3": "Save Video", "vbAEaA": "Save File", "8xHmxo": "Copy Image Link", "92CPQ+": "Copy Media Link", "MFGE51": "Publish", "wUIMqa": "Remove Embeds", "4sxKOb": "Remove Embed", "ZbtGBm": "Remove All Reactions", "n5EBAJ": "Report to Discord", "+78Pfm": "Report", "xwMqD7": "Delete Message", "/AXYnE": "Copy User ID", "2QmKZ2": "Server Tag", "3fe7U5": "Connections", "4lTDZq": "Mutual Servers", "5h0QOP": "Search", "7815ae": "Add Friend", "7UgSGP": "Allow Message Requests", "7lZ31J": "Wishlist", "8pOYUE": "Change Friend Nickname", "8wXU9B": "Unignore", "Aen9eh": "Report Server", "BGYkaH": "Add Friend Nickname", "DisZzB": "View Per-server Profile", "Dv8gFT": "Leave Hub", "FB2ZZV": "Show All Channels", "GISTta": "View Main Profile", "HcoRu0": "Notifications", "J2TBi3": "Leave Server", "K7iRig": "Community Server", "KXNTgb": "Allow Direct Messages", "LPJmL/": "Roles", "LXw470": "Main", "PHjkRE": "Apps", "PKQB/H": "Edit Per-server Profile", "PdRCRg": "More Options", "Q60n1E": "Server Emoji", "QvQeLv": "Copy User Info", "Sd8Ixw": "Invite to Server", "TbHyMG": "Report This User for Abuse", "Uj0md3": "Boost", "UwOLJO": "Hide Muted Channels", "VINpSK": "Invite", "WqhZss": "Copy Link", "XyHpKH": "Unblock", "a6XYD9": "Member Since", "bHa9kN": "Ring", "chq59f": "Activity", "e6RscS": "Mark as Read", "h9mGOP": "Channels & Roles", "jhJzez": "Report App", "l4Emac": "Block", "l6w3Vj": "Badges", "mQKv+v": "Note (only visible to you)", "n5zMI+": "Remove from Group", "tlopTM": "Events", "xNdRDO": "Shop This Look", "y5MwJy": "Copy Username", "ygslb0": "Stop Ringing", "ytCpKs": "Ignore", "zROXEV": "Message"};
+const EN_TEXT = {"3hF1W4": "New Group", "fsBWmS": "Edit Message", "5IEsGx": "Reply", "I3ltXO": "Forward", "rBIGBL": "Create Thread", "39d0Wj": "View Thread", "JrGD7E": "Copy Text", "RpE9k7": "Mark Unread", "CvQ18w": "Pin Message", "Bse+F/": "Unpin Message", "tpxJto": "Bookmark Message", "SvXS1Z": "Remove Bookmark", "mJ3P0N": "Create Reminder", "vrbqs1": "Edit Reminder", "P8tvKG": "Mention", "Xrt5Po": "Copy Message Link", "zBoHlf": "Copy Message ID", "S/xNKV": "Save Image", "JVuuz3": "Save Video", "vbAEaA": "Save File", "8xHmxo": "Copy Image Link", "92CPQ+": "Copy Media Link", "MFGE51": "Publish", "wUIMqa": "Remove Embeds", "4sxKOb": "Remove Embed", "ZbtGBm": "Remove All Reactions", "n5EBAJ": "Report to Discord", "+78Pfm": "Report", "xwMqD7": "Delete Message", "/AXYnE": "Copy User ID", "2QmKZ2": "Server Tag", "3fe7U5": "Connections", "4lTDZq": "Mutual Servers", "5h0QOP": "Search", "7815ae": "Add Friend", "7UgSGP": "Allow Message Requests", "7lZ31J": "Wishlist", "8pOYUE": "Change Friend Nickname", "8wXU9B": "Unignore", "Aen9eh": "Report Server", "BGYkaH": "Add Friend Nickname", "DisZzB": "View Per-server Profile", "Dv8gFT": "Leave Hub", "FB2ZZV": "Show All Channels", "GISTta": "View Main Profile", "HcoRu0": "Notifications", "J2TBi3": "Leave Server", "K7iRig": "Community Server", "KXNTgb": "Allow Direct Messages", "LPJmL/": "Roles", "LXw470": "Main", "PHjkRE": "Apps", "PKQB/H": "Edit Per-server Profile", "PdRCRg": "More Options", "Q60n1E": "Server Emoji", "QvQeLv": "Copy User Info", "Sd8Ixw": "Invite to Server", "TbHyMG": "Report This User for Abuse", "Uj0md3": "Boost", "UwOLJO": "Hide Muted Channels", "VINpSK": "Invite", "WqhZss": "Copy Link", "XyHpKH": "Unblock", "a6XYD9": "Member Since", "bHa9kN": "Ring", "chq59f": "Activity", "e6RscS": "Mark as Read", "h9mGOP": "Channels & Roles", "jhJzez": "Report App", "l4Emac": "Block", "l6w3Vj": "Badges", "mQKv+v": "Note (only visible to you)", "n5zMI+": "Remove from Group", "tlopTM": "Events", "xNdRDO": "Shop This Look", "y5MwJy": "Copy Username", "ygslb0": "Stop Ringing", "ytCpKs": "Ignore", "zROXEV": "Message"};
 const T_ = k => EN_TEXT[k] || k;
-const removeScene = /^remove(Profile|Menu|Headers|Guild|Message)$/.test(q.get("scene") || "");
+const removeScene = /^remove(Profile|Menu|Headers|Guild|Message|Details)$/.test(q.get("scene") || "");
 export function setHost(next) { host = next; } // a settings page can host sheets too
 export function modules(store, me) {
   const user = id => id === me.id ? Object.assign({}, me, { email: "venus@example.com", phone: "+15555550123", verified: true, mfaEnabled: true, discriminator: "0", bot: false }) :
@@ -113,7 +117,7 @@ export function modules(store, me) {
     7175: { ActionSheet }, 7117: { BottomSheetTitleHeader: SheetHeader }, 7170: { ActionSheetCloseButton: SheetClose },
     5155: { default: { hideActionSheet: key => host && host.hide(key) }, showActionSheet: o => host && host.show(o.key, o.content) },
     7167: { showSimpleActionSheet: o => { if (q.get("scene") === "viewRaw" && o.key === "RoleItem") o.options[o.options.length - 1].onPress(); else host && host.show(o.key, <SimpleSheet {...o} />); } },
-    6584: { BottomSheetScrollView: p => <RN.View>{p.children}</RN.View> },
+    6584: { BottomSheetScrollView: p => <RN.View>{p.children}</RN.View> }, 6727: { LegacyScrollView: RN.ScrollView },
     17429: { FastListRenderSections: SECTIONS },
     // getGuildsBarGuildMenuItems: Discord's own rows in the server icon's hold menu.
     17433: { default: () => [{ IconComponent: D.makeIcon("EnvelopeIcon"), label: "Invite", action() {} },
@@ -186,6 +190,17 @@ export function modules(store, me) {
     12942: { default: function ConnectedGuildSearchAndInviteInner(p) { return <GuildSearchAndInvite guildId={p.guildId} canInvite />; } },
     14988: { default: GuildSheetHeader }, 14994: { default: GuildTabItems }, 14925: { GuildUnreadAction, GuildActionSheetSecondaryActions }, 14998: { default: GuildEmoji },
     12895: { MediaKeyboardButtonIcon: D.makeIcon("PlusLargeIcon") },
+    // A channel's details: the navigation bar draws NavigationHeader through renderItem, the tabs come from
+    // useSearchSegmentedControlState and SegmentedControlItem, and New Group from useMemberListAction.
+    17881: { default: () => <DetailsTransition items={[{ key: "main" }]} renderItem={() => <NavigationHeader />} /> },
+    17869: { useSearchSegmentedControlState: o => ({ items: o.items, visibleTabs: o.visibleTabs }) },
+    9052: { SegmentedControlItem: p => <RN.View style={{ paddingHorizontal: 10, paddingVertical: 8 }}>
+      <D.Text variant="text-md/semibold" color={p.index === 0 ? "text-brand" : "text-muted"}>{p.state.items[p.index].label}</D.Text></RN.View> },
+    11164: { default: () => ({ listActionHeight: () => 112, listActionRenderer: () => <RN.View style={{ paddingTop: 24 }}>
+      <RN.Pressable onPress={() => {}} style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 16, backgroundColor: D.tok("BACKGROUND_MOD_SUBTLE") }}>
+        {icon(11175, "ChatPlusIcon", "md")}<RN.View style={{ flex: 1 }}><D.Text variant="text-md/semibold" color="text-strong">{T_("3hF1W4")}</D.Text>
+        <D.Text variant="text-sm/medium" color="text-muted">Create a new group with aestheicadreanne</D.Text></RN.View>
+        {icon(5097, "ChevronSmallRightIcon", "sm")}</RN.Pressable></RN.View> }) },
     17158: { default: () => <RN.Pressable style={[ROUND, { flexDirection: "row", width: undefined, paddingHorizontal: 12, gap: 6 }]}>{icon(7047, "EnvelopeIcon", "sm")}
       <D.Text variant="text-sm/bold" color="text-strong">9</D.Text></RN.Pressable> },
     17157: { default: () => <RN.View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, gap: 8 }}>
@@ -649,8 +664,8 @@ export function Scene({ name, defined, registry }) {
     }; setTimeout(hold, 50); }
   }, []);
   if (name === "removeMode" && !sheets.length) return <RemoveMode defined={defined} registry={registry} />;
-  if (/^remove(Profile|Menu|Headers|Guild|Message)$/.test(name) && !sheets.length) return <RemoveScene defined={defined} registry={registry} dim={name === "removeGuild"}>
-    {name === "removeHeaders" ? <HeadersScreen defined={defined} /> : name === "removeGuild" ? <GuildMenuSheet defined={defined} /> :
+  if (/^remove(Profile|Menu|Headers|Guild|Message|Details)$/.test(name) && !sheets.length) return <RemoveScene defined={defined} registry={registry} dim={name === "removeGuild"}>
+    {name === "removeHeaders" ? <HeadersScreen defined={defined} /> : name === "removeDetails" ? <DetailsScreen defined={defined} /> : name === "removeGuild" ? <GuildMenuSheet defined={defined} /> :
       name === "removeMessage" ? <RN.View style={{ marginTop: 24 }}>{React.createElement(defined[9978].exports.default, { message: SPANISH[2], channel: { id: CHAT }, onClose() {} })}</RN.View> :
       <ProfileScreen defined={defined} />}</RemoveScene>;
   if (!sheets.length && (name === "viewRawProfile" || name === "viewRawRole" || name === "viewRaw" && (q.get("kind") === "user" || q.get("kind") === "role")))
@@ -900,6 +915,45 @@ function GuildMenuSheet({ defined }) {
     <A.GuildUnreadAction guild={guild} />
     <A.GuildActionSheetSecondaryActions guild={guild} />
     <Emoji guildId={guild.id} />
+  </RN.View>;
+}
+// ---- A DM's details (removeDetails).
+const DETAIL_BUTTON = { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: D.tok("BACKGROUND_MOD_SUBTLE") };
+const detailButton = (name, id, iconName) => named(name, () => <RN.Pressable onPress={() => {}} style={DETAIL_BUTTON}>{icon(id, iconName, "md")}</RN.Pressable>);
+const SearchButton = detailButton("SearchButton", 7017, "MagnifyingGlassIcon"), MuteButton = detailButton("MuteButton", 9045, "BellIcon");
+const SettingsButton = detailButton("SettingsButton", 7368, "SettingsIcon");
+function NavigationHeader() {
+  return <RN.View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 4, gap: 8 }}>
+    {icon(12271, "ArrowLargeLeftIcon", "md")}<RN.View style={{ flex: 1 }} />
+    <SearchButton /><MuteButton /><SettingsButton /></RN.View>;
+}
+function DetailsTransition(p) { return <RN.View>{p.items.map(item => <RN.View key={item.key}>{p.renderItem(item)}</RN.View>)}</RN.View>; }
+const DETAIL_TABS = [["members", "9Oq93m", "Members"], ["media", "Aw9+/M", "Media"], ["pins", "/MoGoB", "Pins"], ["links", "DFSvTt", "Links"], ["files", "WgVYR/", "Files"]]
+  .map(([id, key, label]) => ({ id, label: EN_TEXT[key] || label, page: null, count: 0 }));
+function DetailsTabs({ defined }) {
+  const state = defined[17869].exports.useSearchSegmentedControlState({ items: DETAIL_TABS, visibleTabs: DETAIL_TABS.map(t => t.id) });
+  const Item = defined[9052].exports.SegmentedControlItem;
+  return <RN.View style={{ flexDirection: "row", paddingHorizontal: 12, gap: 6, borderBottomWidth: 1, borderColor: D.tok("BORDER_SUBTLE") }}>
+    {state.items.map((item, i) => <Item key={item.id} state={state} index={i} />)}</RN.View>;
+}
+function DetailsMembers({ defined }) {
+  const action = defined[11164].exports.default({ channel: { id: RAW_CH.dm, isDM: () => true, isMultiUserDM: () => false } });
+  return <RN.View style={{ paddingHorizontal: 16 }}>{action.listActionRenderer()}
+    <D.Text variant="text-md/semibold" color="text-muted" style={{ marginTop: 24, marginBottom: 8 }}>Members — 2</D.Text>
+    <RN.View style={{ borderRadius: 16, backgroundColor: D.tok("BACKGROUND_MOD_SUBTLE") }}>{["Adreanne", "Venus"].map((name, i) =>
+      <RN.View key={name} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14 }}>
+        <RN.View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: i ? "#5865f2" : "#eb459e" }} />
+        <D.Text variant="text-md/bold" color="text-strong">{name}</D.Text></RN.View>)}</RN.View></RN.View>;
+}
+function DetailsScreen({ defined }) {
+  const Bar = defined[17881].exports.default;
+  return <RN.View style={{ paddingTop: 8 }}>
+    <Bar />
+    <RN.View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12 }}>
+      <RN.View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: "#eb459e" }} />
+      <RN.View><D.Text variant="heading-lg/bold" color="text-strong">Adreanne</D.Text><D.Text variant="text-md/medium" color="text-muted">aestheicadreanne</D.Text></RN.View></RN.View>
+    <DetailsTabs defined={defined} />
+    <DetailsMembers defined={defined} />
   </RN.View>;
 }
 function RemoveScene({ defined, registry, children }) {

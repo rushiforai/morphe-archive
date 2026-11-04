@@ -43,14 +43,14 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * branch is likewise replaced with an unconditional goto, and Start App
  * always proceeds. */
 object WebViewVersionCheckFingerprint : Fingerprint(
-    definingClass = "Lue4;",
+    definingClass = "Lea3;",
     name = "c",
     parameters = listOf("Ljava/lang/Object;"),
-    strings = listOf("countryProblem6719")
+    strings = listOf("countryProblem6723")
 )
 
 object StartAppClickFingerprint : Fingerprint(
-    definingClass = "Lg7;",
+    definingClass = "Lt7;",
     name = "onClick",
     parameters = listOf("Landroid/view/View;")
 )
@@ -86,13 +86,13 @@ val removeWebViewVersionNagPatch = bytecodePatch(
         val clickInstr = click.implementation!!.instructions
         val yIdx = clickInstr.indexOfFirst {
             val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
-            ref?.definingClass == "Lcom/streamdev/aiostreamer/mobile/ui/NavDrawer1;" && ref.name == "y"
+            ref?.definingClass == "Lcom/streamdev/aiostreamer/mobile/ui/NavDrawer1;" && ref.name == "C"
         }
-        check(yIdx > 0) { "WebView nag: NavDrawer1.y() call not found in Start App listener" }
+        check(yIdx > 0) { "WebView nag: NavDrawer1.C() call not found in Start App listener" }
 
         val startBranch = clickInstr[yIdx - 1] as BuilderInstruction21t
         check(startBranch.opcode.name == Opcode.IF_LEZ.name) {
-            "WebView nag: expected if-lez before NavDrawer1.y(), found ${startBranch.opcode}"
+            "WebView nag: expected if-lez before NavDrawer1.C(), found ${startBranch.opcode}"
         }
 
         click.replaceInstruction(yIdx - 1, BuilderInstruction20t(Opcode.GOTO_16, startBranch.target))

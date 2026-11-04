@@ -59,6 +59,18 @@ jobs:
           echo "MIHON_ORIGINAL_APK=$RUNNER_TEMP/mihon-input/mihon-arm64-v8a-v0.21.3.apk" >> "$GITHUB_ENV"
           echo "MORPHE_DESKTOP_JAR=$RUNNER_TEMP/mihon-input/morphe-desktop-1.19.1-all.jar" >> "$GITHUB_ENV"
 
+      - name: Fetch pinned Calendar verification inputs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/calendar-input"
+          gh release download 1.12.0 --repo FossifyOrg/Calendar \
+            --pattern calendar-23-foss-release.apk --dir "$RUNNER_TEMP/calendar-input"
+          gh release download 1.12.1 --repo FossifyOrg/Calendar \
+            --pattern calendar-24-foss-release.apk --dir "$RUNNER_TEMP/calendar-input"
+          echo "CALENDAR_ORIGINAL_120=$RUNNER_TEMP/calendar-input/calendar-23-foss-release.apk" >> "$GITHUB_ENV"
+          echo "CALENDAR_ORIGINAL_121=$RUNNER_TEMP/calendar-input/calendar-24-foss-release.apk" >> "$GITHUB_ENV"
+
       - name: Verify same-size Finamp native writes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

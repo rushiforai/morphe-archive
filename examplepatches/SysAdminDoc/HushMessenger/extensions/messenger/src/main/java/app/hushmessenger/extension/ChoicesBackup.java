@@ -84,7 +84,7 @@ final class ChoicesBackup {
             try { page.startActivityForResult(picker, SAVE_CHOICES); }
             catch (android.content.ActivityNotFoundException | SecurityException error) {
                 documentExport = null;
-                page.feedback(text.get("export_failed"), Toast.LENGTH_LONG);
+                page.feedback(text.get("choices_file_save_failed"), Toast.LENGTH_LONG);
             }
         });
         ui.add(choices, saveFile, 8);
@@ -135,7 +135,7 @@ final class ChoicesBackup {
         android.net.Uri uri = data.getData();
         // A document picker must return a provider grant, never a path opened with Messenger's own UID.
         if (!"content".equals(uri.getScheme())) {
-            page.feedback(text.get(request == SAVE_CHOICES ? "export_failed" : "restore_failed"), Toast.LENGTH_LONG);
+            page.feedback(text.get(request == SAVE_CHOICES ? "choices_file_save_failed" : "restore_failed"), Toast.LENGTH_LONG);
             return;
         }
         if (!documentSlots.tryAcquire()) {
@@ -289,7 +289,7 @@ final class ChoicesBackup {
         cancelChoicesFile.setVisibility(View.GONE);
         documentStatus.setVisibility(View.GONE);
         // A file that can't be read isn't a bad backup, so the two get different advice.
-        if (!success) page.feedback(text.get(job.request == SAVE_CHOICES ? "export_failed" : job.invalid ? "import_invalid" : "restore_failed"), Toast.LENGTH_LONG);
+        if (!success) page.feedback(text.get(job.request == SAVE_CHOICES ? "choices_file_save_failed" : job.invalid ? "import_invalid" : "restore_failed"), Toast.LENGTH_LONG);
         else if (job.request == SAVE_CHOICES) page.feedback(text.get("choices_file_saved"), Toast.LENGTH_SHORT);
         else if (job.generation == documentGeneration && job.before.equals(ChoiceCodec.encode(Settings.preferences, Settings.installed)))
             restoreChoices(choices);
@@ -324,7 +324,7 @@ final class ChoicesBackup {
             this.request = request;
             this.export = export;
             savedMessage = screen.page.text.get("choices_file_saved");
-            failedMessage = screen.page.text.get("export_failed");
+            failedMessage = screen.page.text.get("choices_file_save_failed");
             // A read that runs out of time changes nothing. Only a save can leave a cut-off file behind.
             String timeout = request == READ_CHOICES ? "choices_file_timeout_read" : "choices_file_timeout";
             timeoutMessage = screen.page.text.get(timeout);

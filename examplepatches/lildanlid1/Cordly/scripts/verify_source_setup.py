@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate that Cordly's Morphe source configuration matches the live repository."""
+"""Validate that Conduit's Morphe source configuration matches the live repository."""
 from pathlib import Path
 import json
 import re
@@ -29,4 +29,4 @@ if '--published' in sys.argv:
     assert manifest['download_url'] == f'https://github.com/{REPO}/releases/download/{VERSION["releaseTag"]}/{VERSION["releaseAsset"]}'
     assert patches['version'] == VERSION['version']
     assert isinstance(patches['patches'],list) and patches['patches']
-print('Cordly source configuration valid' + (' (published metadata)' if '--published' in sys.argv else ''))
+print('Conduit source configuration valid' + (' (published metadata)' if '--published' in sys.argv else ''))

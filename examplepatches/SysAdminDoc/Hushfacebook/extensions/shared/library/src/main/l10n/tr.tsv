@@ -998,7 +998,7 @@ The phone's language	Telefonun dili
 Languages to leave alone	Çevrilmeyecek diller
 None picked. Posts in every language can be translated.	Seçilen yok. Her dildeki gönderiler çevrilebilir.
 Left alone: %s	Çevrilmeyecek: %s
-Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	Akıştaki gönderiler metninin tamamını gösterir, Devamını gör'e dokunman gerekmez. Bir gönderinin metnine dokunarak onu yeniden daraltabilirsin.
+Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	Akıştaki gönderiler ve reels açıklamaları metninin tamamını gösterir, Devamını gör'e dokunman gerekmez. Metne dokunarak onu yeniden daraltabilirsin.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Kimlerin paylaştığını gör
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Bir gönderinin menüsüne Kimlerin paylaştığını gör ekler. Facebook'un gönderiyi paylaşan kişiler listesini açar.
@@ -1305,10 +1305,10 @@ No dot or count on Feeds, Gaming, Events and the other tabs not listed here. The
 No dot or count on this tab. Its page still shows what's new when you open it.	Bu sekmede nokta ya da sayı olmaz. Sayfası açtığında yenilikleri göstermeye devam eder.
 # context: summary of the app icon count switch
 No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, which this can't remove.	Facebook uygulama simgesinde sayı görünmez. Bildirimler yine gelir. Bazı başlatıcılar kendi sayacını ekler, bunu buradan kaldıramayız.
-# context: switch title under News feed; it shows posts and reel captions in their original language instead of Facebook's automatic translation
+# context: switch title under News feed; it shows posts, comments and reel captions in their original language instead of Facebook's automatic translation
 Turn off auto-translation	Otomatik çeviriyi kapat
 # context: description of that switch; See translation is the name of Facebook's own link under a post that translates it on request
-Posts and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Gönderiler ve reels açıklamaları yazıldıkları dilde kalır. Facebook'un Çevirisini gör bağlantısı altlarında durur.
+Posts, comments and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Gönderiler, yorumlar ve reels açıklamaları yazıldıkları dilde kalır. Facebook'un Çevirisini gör bağlantısı altlarında durur.
 # context: switch title under Reels and Watch, below Keep the reel speed; it keeps a playback speed picked on a feed or Watch video for the next videos
 Keep the video speed	Video hızını koru
 # context: description of that switch; the gear menu is the settings button on a video's player, where Playback speed is picked
@@ -1698,7 +1698,7 @@ Settings row in Menu	Menüde ayarlar satırı
 # context: summary of the switch for the Hushfacebook settings shortcut in the launcher icon's menu
 Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves that menu.	Facebook simgesine basılı tutunca açılan menüye Hushfacebook ayarlarını koyar. Kapalıyken bu menüden çıkar.
 # context: summary of the switch for opening the settings with a long press on the Facebook logo
-A long press on the Facebook logo at the top of the home feed opens these settings. Off, the long press goes back to Facebook.	Ana akışın üstündeki Facebook logosuna basılı tutmak bu ayarları açar. Kapalıyken basılı tutma yeniden Facebook'a ait olur.
+A long press on the Facebook logo at the top of the home feed, or on the title at the top of another tab, opens these settings. Off, the long press goes back to Facebook.	Ana akışın üstündeki Facebook logosuna ya da başka bir sekmenin üstündeki başlığa basılı tutmak bu ayarları açar. Kapalıyken basılı tutma yeniden Facebook'a ait olur.
 # context: summary of the switch for the Hushfacebook settings row in Facebook's Menu
 Adds a Hushfacebook settings row at the end of Settings and privacy in Facebook's Menu. Off, the row leaves the Menu.	Facebook Menüsünde Ayarlar ve gizlilik bölümünün sonuna Hushfacebook ayarları satırı ekler. Kapalıyken satır Menüden çıkar.
 # context: summary shown instead of a switch's usual one while it is the only one of the three ways into the settings still on, so it is greyed out
@@ -2326,7 +2326,7 @@ Adv. Filters button	Gel. Filtreler düğmesi
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Arama sonuçlarında Marketplace'in Filtreler'inin altına bir Gel. Filtreler düğmesi ekler. Tutulacak kelimeler, gizlenecek kelimeler ve yerler listelerini açar ve kuralları sizin için aramaya yazar.
 # context: switch title and summary under Marketplace; a listing is something for sale
 Show when listings went up	İlanların ne zaman verildiğini göster
-A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	Bir ilanın sayfası, konumunun yanında ne kadar önce verildiğini ve tarihini gösterir. Facebook bunu yalnızca yeni ilanlarda gösterir.
+A listing's page says how long ago it was listed and the date, under its price and next to its place. Facebook only shows it for new listings.	Bir ilanın sayfası, fiyatının altında ve konumunun yanında ne kadar önce verildiğini ve tarihini gösterir. Facebook bunu yalnızca yeni ilanlarda gösterir.
 # context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
 Listed %1$s (%2$s)	%1$s ilan verildi (%2$s)
 How Adv. Filters works	Gel. Filtreler nasıl çalışır
@@ -2360,7 +2360,7 @@ The Subscribe button some authors get there instead, which subscribes with one t
 # context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
 Fix washed-out video colors	Soluk video renklerini düzelt
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
-Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Videolar ve Reels, Geliştirici seçeneklerindeki HW katmanlarını devre dışı bırak gibi ekranın geri kalanıyla birlikte çizilir. Reels bir şey üstünü kapatana kadar soluk görünüyorsa dene. Biraz daha fazla pil kullanır.
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery and can make videos stutter, mostly high frame rate ones.	Videolar ve Reels, Geliştirici seçeneklerindeki HW katmanlarını devre dışı bırak gibi ekranın geri kalanıyla birlikte çizilir. Reels bir şey üstünü kapatana kadar soluk görünüyorsa dene. Biraz daha fazla pil kullanır. Videolar takılabilir, özellikle yüksek kare hızlı olanlar.
 # context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
 Burn-in guard	Ekran yanığı koruması
 Dim when idle	Boştayken karart
@@ -2471,10 +2471,12 @@ Reel post dates will show the day they were posted.	Reels'in paylaşım tarihi p
 Hide pictures on the Blocked list	Engellenenler listesinde fotoğrafları gizle
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Engellediğiniz kişiler, Facebook ayarlarındaki Engelleme sayfasında profil fotoğrafı olmadan görünür. Sayfa zaten açıksa yeniden açın.
 Hide Up next on videos	Videolarda Sıradaki'ni gizle
-Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	Akıştan açtığın bir videonun altındaki, sonraki videoyu gösteren SIRADAKİ çubuğunu kaldırır. Değişiklik açtığın bir sonraki videodan itibaren geçerli olur.
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Akıştan açtığın bir videonun altındaki, sonraki videoyu gösteren SIRADAKİ çubuğunu ve onun için ayrılan boş alanı kaldırır, böylece ilerleme çubuğu altta kalır. Değişiklik açtığın bir sonraki videodan itibaren geçerli olur.
 Icons look soft on this screen. Repatch with the 120-640dpi bundle.	Simgeler bu ekranda bulanık görünüyor. 120-640dpi paketiyle yeniden yamalayın.
 Icons look soft on this screen	Simgeler bu ekranda bulanık görünüyor
 The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	Yamaladığınız Facebook'ta bu ekran için yapılmış görseller yok, bu yüzden bazı simgeler büyütülüyor. Facebook'u APKMirror'daki (arm64-v8a) (120-640dpi) paketinden yeniden yamalayın, bu pakette her ekran için görseller var.
 Let each post come back once	Her gönderinin bir kez geri gelmesine izin ver
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Üzerinden kaydırdığınız bir gönderi bir kez daha görünür, tekrar üzerinden kaydırınca gizlenir. Hızlı kaydırmadan sonra daha az gönderi kaybolur.
 There's no Facebook link in what you shared.	Paylaştığın içerikte Facebook bağlantısı yok.
+Open in Facebook from the share menu	Paylaş menüsünde Open in Facebook
+Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Messenger'ın tarayıcısından ya da başka bir uygulamadan bir Facebook bağlantısı paylaşıp Open in Facebook'u seç, burada açılsın.

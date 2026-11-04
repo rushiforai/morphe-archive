@@ -2,16 +2,14 @@ package app.morphe.jadx.ui
 
 import app.morphe.jadx.Log
 import app.morphe.jadx.PluginOptions
+import app.morphe.jadx.eval.FingerprintMatch
 import app.morphe.jadx.eval.MorpheResolver
 import app.morphe.jadx.eval.ScriptingHost
-import app.morphe.jadx.eval.getShortId
 import app.morphe.jadx.ui.components.IconButton
 import app.morphe.jadx.ui.components.TextArea
 import app.morphe.jadx.ui.components.codepanel.CodePanel
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.Match
 import com.android.tools.smali.dexlib2.analysis.reflection.util.ReflectionUtils
-import com.android.tools.smali.dexlib2.iface.Method
 import jadx.api.plugins.JadxPluginContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -162,19 +160,19 @@ class EvaluatorFrame(private val context: JadxPluginContext, options: PluginOpti
             is ResultValue.Value -> "Script execution returned unexpected type:\n    ${result.type}"
         }
 
-    private fun matchesComponent(matches: List<Match>): Component {
+    private fun matchesComponent(matches: List<FingerprintMatch>): Component {
         if (matches.isNotEmpty()) {
             val resultsPanel = JPanel()
             resultsPanel.layout = BoxLayout(resultsPanel, BoxLayout.Y_AXIS)
 
             val matchBlocks = matches.map {
-                val classFQN = ReflectionUtils.dexToJavaName(it.method.definingClass);
+                val classFQN = ReflectionUtils.dexToJavaName(it.definingClass)
                 // context.decompiler.searchJavaClassByOrigFullName is broken and searches aliases instead of the
                 // original identifiers
                 val javaKlass = context.decompiler.classesWithInners.firstOrNull {cls -> cls.rawName == classFQN } ?:
                     throw Exception("Could not find $classFQN in decompiled class list")
 
-                val javaMethod = javaKlass.searchMethodByShortId(it.method.getShortId())
+                val javaMethod = javaKlass.searchMethodByShortId(it.methodShortId)
                 javaMethod?.let { jMethod ->
                     val block = JPanel()
                     block.layout = BoxLayout(block, BoxLayout.Y_AXIS)
@@ -194,10 +192,11 @@ class EvaluatorFrame(private val context: JadxPluginContext, options: PluginOpti
                     details.layout = BoxLayout(details, BoxLayout.Y_AXIS)
                     inset.add(details)
 
-                    it.instructionMatchesOrNull?.apply {
-                        details.add(TextArea("First instruction: ${first().index}"))
-                        if (size > 1)
-                            details.add(TextArea("Last instruction: ${last().index}", topPadding = 0))
+                    it.firstInstructionIndex?.let { first ->
+                        details.add(TextArea("First instruction: $first"))
+                        it.lastInstructionIndex?.let { last ->
+                            details.add(TextArea("Last instruction: $last", topPadding = 0))
+                        }
                     }
 
                     val jumpButton = JButton("Jump to method")

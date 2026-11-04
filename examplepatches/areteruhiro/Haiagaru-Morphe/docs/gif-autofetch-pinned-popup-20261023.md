@@ -26,7 +26,7 @@
 
 ## 候補導入（未公開）
 
-絶対ルート C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/ 。
+絶対ルート <workspace>/ 。
 
 - emulator-5554、Haiagaru 検証 226、0.8.10.226 dev、jp.co.airfront.android.a2chMate.haiagaru.resumefix226。同一証明書照合install-r Success、データ消去なし。実機は変更していない。
 - APK build/gif-popup226.apk SHA256=1A6E362CCCA78664EBE77F8EB654654214FD7379EB6FD70CEFAC03C7D2231635。

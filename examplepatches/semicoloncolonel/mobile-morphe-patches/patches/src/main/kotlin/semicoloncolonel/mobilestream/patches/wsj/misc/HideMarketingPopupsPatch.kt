@@ -28,9 +28,8 @@ internal object BrazeBeforeDisplayFingerprint : Fingerprint(
 @Suppress("unused")
 val hideMarketingPopupsPatch = bytecodePatch(
     name = "Hide marketing pop-ups",
-    description = "Stops the Wall Street Journal phone app from showing in-app marketing " +
-        "pop-ups, such as subscription offers. The paywall itself is not changed, and push " +
-        "notifications still work. Experimental; test on-device.",
+    description = "Stops the app from showing in-app marketing pop-ups, such as subscription offers. " +
+        "The paywall itself is not changed, and push notifications still work. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

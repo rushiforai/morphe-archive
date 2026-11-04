@@ -124,6 +124,36 @@ internal fun keepVideoPlaying(method: MutableMethod) {
 }
 
 /**
+ * MediaView.onConfigurationChanged(Configuration): while a video plays in Venus' picture-in-picture window, the window's
+ * landscape configuration made Discord release that video's player (a new orientation means a new player in setMediaData),
+ * which reset it in the window and left the chat's player broken (#145). Venus answers first; when it says keep, only
+ * View's own onConfigurationChanged runs. 26 registers, so `this` (p0) is v24: it's copied into v0 with move-object/from16,
+ * and the super call uses invoke-super/range, which reaches any register.
+ */
+internal fun keepVideoConfig(method: MutableMethod) {
+    if (method.parameterTypes.map { it.toString() } != listOf("Landroid/content/res/Configuration;") || method.returnType != "V")
+        throw PatchException("MediaView.onConfigurationChanged ABI changed")
+    requireLocals(method, 1)
+    requireUnpatched(method, "venus-")
+    val code = method.implementation?.instructions?.toList() ?: throw PatchException("${method.name} has no code")
+    val superCall = code.firstOrNull {
+        (it.opcode == Opcode.INVOKE_SUPER || it.opcode == Opcode.INVOKE_SUPER_RANGE) &&
+            ((it as ReferenceInstruction).reference as MethodReference).name == method.name
+    } ?: throw PatchException("MediaView.onConfigurationChanged no longer calls super")
+    val reference = (superCall as ReferenceInstruction).reference as MethodReference
+    method.addInstructions(0, """
+        move-object/from16 v0, p0
+        invoke-static {v0}, $BACKGROUND_MEDIA->keepConfig(Landroid/view/View;)Z
+        move-result v0
+        if-eqz v0, :venus_media_config
+        invoke-super/range {p0 .. p1}, $reference
+        return-void
+        :venus_media_config
+        nop
+    """)
+}
+
+/**
  * Venus first; Discord's own code (its call picture-in-picture) only runs when Venus didn't act. The guard goes at the very
  * start of the method and calls super itself before returning: a branch inserted after the super call of these short
  * methods came out pointing inside an instruction (VerifyApk caught it), while a prefix at index 0 encodes cleanly, like
@@ -200,6 +230,8 @@ val keepMediaPlaying = bytecodePatch(
             parameters = listOf("Z")).method)
         keepVideoPlaying(Fingerprint(definingClass = MEDIA_VIEW_LIFECYCLE, name = "onHostPause", returnType = "V",
             parameters = listOf()).method)
+        keepVideoConfig(Fingerprint(definingClass = MEDIA_VIEW, name = "onConfigurationChanged", returnType = "V",
+            parameters = listOf("Landroid/content/res/Configuration;")).method)
         activityGuard(Fingerprint(definingClass = MAIN_ACTIVITY, name = "onUserLeaveHint", returnType = "V", parameters = listOf()).method,
             "onUserLeaveHint(Landroid/app/Activity;)Z", "p0", "venus_discord_leave")
         activityGuard(Fingerprint(definingClass = MAIN_ACTIVITY, name = "onPictureInPictureModeChanged", returnType = "V",

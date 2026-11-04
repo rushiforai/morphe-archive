@@ -15,12 +15,17 @@ import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+
+import semicoloncolonel.mobilestream.extension.shared.misc.AdBreakText;
 
 /**
  * Pluto TV phone: masks live ad breaks with a black screen and muted audio.
@@ -240,6 +245,16 @@ public final class PlutoLiveMask {
             view.setFocusable(false);
             view.setElevation(1_000_000f);
             view.setTranslationZ(1_000_000f);
+            TextView label = new TextView(activity);
+            label.setText(AdBreakText.untimed());
+            label.setTextColor(Color.LTGRAY);
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            label.setGravity(Gravity.CENTER);
+            int padding = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, 32, activity.getResources().getDisplayMetrics());
+            label.setPadding(padding, padding, padding, padding);
+            view.addView(label, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             root.addView(view, new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             view.bringToFront();

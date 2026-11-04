@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import app.tikkamasalla.stremio.diag.PlaybackDiary;
+import app.tikkamasalla.stremio.oneahead.OneAheadTrigger;
 import app.tikkamasalla.stremio.tuning.FrameRateSwitch;
 
 import java.util.ArrayList;
@@ -36,18 +37,49 @@ public final class NextPrep {
     static final class Prepared {
         final String videoId, link, desc, reason;
         final long at;
+        final String streamUrl, fileName, addonTransport;
+        final boolean cached;
+        final long sizeBytes;
 
         Prepared(String videoId, String link, String desc, String reason, long at) {
+            this(videoId, link, desc, reason, at, "", "", "", false, 0L);
+        }
+
+        Prepared(String videoId, String link, String desc, String reason, long at,
+                 String streamUrl, String fileName, String addonTransport, boolean cached, long sizeBytes) {
             this.videoId = videoId;
             this.link = link;
             this.desc = desc;
             this.reason = reason;
             this.at = at;
+            this.streamUrl = streamUrl;
+            this.fileName = fileName;
+            this.addonTransport = addonTransport;
+            this.cached = cached;
+            this.sizeBytes = sizeBytes;
+        }
+    }
+
+    /** The ranked list a preparation chose from, kept for the background chapter swap. */
+    private static final class AltSet {
+        final String videoId, type, metaId, metaTransport;
+        final List<StreamRanker.Ranked> ranked;
+        final Map<StreamRanker.Stream, String[]> origin;
+
+        AltSet(String videoId, String type, String metaId, String metaTransport,
+               List<StreamRanker.Ranked> ranked, Map<StreamRanker.Stream, String[]> origin) {
+            this.videoId = videoId;
+            this.type = type;
+            this.metaId = metaId;
+            this.metaTransport = metaTransport;
+            this.ranked = ranked;
+            this.origin = origin;
         }
     }
 
     private static final Map<String, Addons> ADDONS = new ConcurrentHashMap<String, Addons>();
     private static volatile Prepared prepared;
+    private static volatile AltSet altSet;
     private static volatile String inflight = "";
     private static volatile String expectedId = "";
     private static volatile long expectedAt;
@@ -121,6 +153,11 @@ public final class NextPrep {
      */
     static void prepare(final Context ctx, final String type, final String nextVideoId, final String metaName,
                         final String streamTransport, final String metaTransport) {
+        prepare(ctx, type, nextVideoId, metaName, streamTransport, metaTransport, false);
+    }
+
+    static void prepare(final Context ctx, final String type, final String nextVideoId, final String metaName,
+                        final String streamTransport, final String metaTransport, final boolean external) {
         try {
             if (ctx == null || nextVideoId == null || nextVideoId.length() == 0 || !enabled(ctx)) return;
             Prepared p = prepared;
@@ -151,7 +188,7 @@ public final class NextPrep {
                 @Override
                 public void run() {
                     try {
-                        run0(ctx, t, nextVideoId, metaId, metaName, addons, meta);
+                        run0(ctx, t, nextVideoId, metaId, metaName, addons, meta, external);
                     } catch (Throwable error) {
                         Log.w(TAG, "prepare failed", error);
                     } finally {
@@ -169,6 +206,11 @@ public final class NextPrep {
     /** The preparation itself (worker thread; called directly by the PC rig test). */
     static void run0(Context ctx, String type, String videoId, String metaId, String metaName,
                              List<String[]> addons, String metaTransport) {
+        run0(ctx, type, videoId, metaId, metaName, addons, metaTransport, false);
+    }
+
+    static void run0(Context ctx, String type, String videoId, String metaId, String metaName,
+                             List<String[]> addons, String metaTransport, boolean external) {
         long started = System.currentTimeMillis();
         List<StreamRanker.Stream> candidates = new ArrayList<StreamRanker.Stream>();
         Map<StreamRanker.Stream, String[]> origin = new java.util.IdentityHashMap<StreamRanker.Stream, String[]>();
@@ -224,11 +266,97 @@ public final class NextPrep {
             return;
         }
         boolean warmed = best.meta.cached && warm(best.stream.url);
-        prepared = new Prepared(videoId, link, best.stream.toString(), best.reason, System.currentTimeMillis());
+        prepared = new Prepared(videoId, link, best.stream.toString(), best.reason, System.currentTimeMillis(),
+                best.stream.url, best.stream.fileName, src[1], best.meta.cached, best.meta.sizeBytes);
+        altSet = new AltSet(videoId, type, metaId, metaTransport,
+                new ArrayList<StreamRanker.Ranked>(ranked), origin);
+        try {
+            if (IntroSkipPrefs.isOneAheadEnabled(ctx) || IntroSkipPrefs.isBorrowEnabled(ctx)) {
+                OneAheadTrigger.onPrepared(ctx, videoId, type, metaId, best.stream.url, best.stream.fileName,
+                        src[1], metaTransport, best.meta.cached, best.meta.sizeBytes, external);
+            }
+        } catch (Throwable ignored) {
+            // One-ahead is optional.
+        }
         Log.i(TAG, "ready " + videoId + " -> " + best.stream + " (" + best.reason + ", " + how + ", "
                 + answered + "/" + asked + " addons, " + ms + " ms" + (warmed ? ", warmed" : "") + ")");
         PlaybackDiary.ev(ctx, "next.prep", "vid", videoId, "ok", true, "n", ranked.size(), "asked", asked,
                 "answered", answered, "ms", ms, "cached", best.meta.cached, "warm", warmed, "check", how, "why", best.reason);
+    }
+
+    /**
+     * Background chapter swap, called only by the one-ahead trigger worker: when the prepared
+     * winner's own chapters do not cover the missing types, a same-class candidate whose chapters
+     * do replaces it. Returns {url, fileName, sizeBytes} of the new winner, or null (no change).
+     * Setting off means no chapter read at all; a used or replaced entry is never touched.
+     */
+    public static String[] chapterSwap(Context ctx, String videoId, boolean needIntro, boolean needCredits,
+                                       double runtimeSec) {
+        try {
+            if (ctx == null || videoId == null || (!needIntro && !needCredits)) return null;
+            if (!IntroSkipPrefs.isOneAheadEnabled(ctx) && !IntroSkipPrefs.isBorrowEnabled(ctx)) return null; // setting off: no read
+            Prepared cur = prepared;
+            AltSet a = altSet;
+            // Only a cached winner is ever read: an uncached link must not be touched at all.
+            if (cur == null || !cur.cached || a == null || !videoId.equals(cur.videoId) || !videoId.equals(a.videoId)) return null;
+            if (a.ranked.isEmpty() || !cur.streamUrl.equals(a.ranked.get(0).stream.url)) return null;
+            boolean used = videoId.equals(launchedId) || videoId.equals(expectedId);
+            if (!StreamRanker.chapterSwapAllowed(true, prepared == cur, used)) return null;
+            if (IntroSkipBridge.chaptersCover(cur.streamUrl, runtimeSec, needIntro, needCredits)) return null;
+            int[] req = StreamRanker.requestOf(videoId);
+            for (StreamRanker.Ranked r : StreamRanker.chapterSwapCandidates(a.ranked, req[0], req[1])) {
+                if (!IntroSkipPrefs.isOneAheadEnabled(ctx) && !IntroSkipPrefs.isBorrowEnabled(ctx)) return null; // toggled off mid-check: stop reading
+                if (!IntroSkipBridge.chaptersCover(r.stream.url, runtimeSec, needIntro, needCredits)) continue;
+                String[] src = a.origin.get(r.stream);
+                if (src == null) continue;
+                String link = "";
+                for (int i = 0; i < 2 && link.length() == 0; i++) {
+                    String data = NextPrepCore.encodeStreamData(src[0], i == 1);
+                    Boolean ok = coreDecodes(data);
+                    if (ok == null || ok) link = NextPrepCore.playerLink(data, src[1], a.metaTransport, a.type, a.metaId, videoId);
+                    if (ok == null) break;
+                }
+                if (link.length() == 0) continue;
+                synchronized (NextPrep.class) {
+                    boolean stillUsed = videoId.equals(launchedId) || videoId.equals(expectedId);
+                    if (!StreamRanker.chapterSwapAllowed(IntroSkipPrefs.isOneAheadEnabled(ctx) || IntroSkipPrefs.isBorrowEnabled(ctx), prepared == cur, stillUsed)) return null;
+                    prepared = new Prepared(videoId, link, r.stream.toString(), "chapters",
+                            System.currentTimeMillis(), r.stream.url, r.stream.fileName, src[1], r.meta.cached, r.meta.sizeBytes);
+                }
+                Log.i(TAG, "swap " + videoId + " " + cur.sizeBytes + " -> " + r.meta.sizeBytes + " chapters");
+                return new String[]{r.stream.url, r.stream.fileName, String.valueOf(r.meta.sizeBytes)};
+            }
+            return null;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * The other cached streams of an episode, for borrowing chapters: rows {url, fileName, title}.
+     * Uncached links never leave here; they must not be touched at all.
+     */
+    public static List<String[]> borrowDonors(String videoId, String targetUrl) {
+        List<String[]> out = new ArrayList<String[]>();
+        try {
+            AltSet a = altSet;
+            if (a == null || videoId == null || !videoId.equals(a.videoId)) return out;
+            for (StreamRanker.Ranked r : a.ranked) {
+                if (!r.meta.cached || r.stream.url == null || r.stream.url.length() == 0
+                        || r.stream.url.equals(targetUrl)) continue;
+                out.add(new String[]{r.stream.url, r.stream.fileName, r.stream.name + " " + r.stream.title});
+            }
+        } catch (Throwable ignored) {
+            out.clear();
+        }
+        return out;
+    }
+
+    /** True while the prepared entry for videoId is still the one playing streamUrl. */
+    public static boolean isPreparedStream(String videoId, String streamUrl) {
+        Prepared p = prepared;
+        return p != null && videoId != null && videoId.equals(p.videoId)
+                && streamUrl != null && streamUrl.equals(p.streamUrl);
     }
 
     /** True/false when the app's core can decode the stream data of a player link; null when it cannot be asked. */
@@ -331,9 +459,44 @@ public final class NextPrep {
 
     /** Prepares from a player context (see playerContext); remembers which video it follows. */
     static void prepareFrom(Context ctx, String currentVideoId, String[] c) {
+        prepareFrom(ctx, currentVideoId, c, false);
+    }
+
+    static void prepareFrom(Context ctx, String currentVideoId, String[] c, boolean external) {
         if (c == null || c[0] == null || c[0].length() == 0) return;
         if (currentVideoId != null && currentVideoId.length() > 0) followsId.put(currentVideoId, c[0]);
-        prepare(ctx, c[1], c[0], c[2], c[3], c[4]);
+        prepare(ctx, c[1], c[0], c[2], c[3], c[4], external);
+    }
+
+    /**
+     * Ranked direct streams of one episode from one addon (this class's own query
+     * code, one request, no retry). Rows: {url, fileName, cached ? "1" : "0", sizeBytes}.
+     * Runs on the caller's thread; the one-ahead glue calls it from its worker.
+     */
+    public static List<String[]> queryEpisodeStreams(String type, String videoId, String transport) {
+        List<String[]> out = new ArrayList<String[]>();
+        try {
+            String url = NextPrepCore.streamRequestUrl(transport, type, videoId);
+            if (url.length() == 0) return out;
+            String body = get(url);
+            if (body == null) return out;
+            List<StreamRanker.Stream> candidates = new ArrayList<StreamRanker.Stream>();
+            for (NextPrepCore.Cand c : NextPrepCore.parseStreams(body)) {
+                if (c.url == null || c.url.length() == 0) continue;
+                if (c.name.contains("⚠") || c.title.contains("⚠") || c.title.contains("⛔")) continue;
+                candidates.add(new StreamRanker.Stream(c.name, c.title, c.url, "", c.fileName));
+            }
+            int[] req = StreamRanker.requestOf(videoId);
+            List<StreamRanker.Ranked> ranked = candidates.isEmpty() ? new ArrayList<StreamRanker.Ranked>()
+                    : StreamRanker.rank(candidates, false, req[0], req[1], 0);
+            for (StreamRanker.Ranked r : ranked) {
+                out.add(new String[]{r.stream.url, r.stream.fileName,
+                        r.meta.cached ? "1" : "0", String.valueOf(r.meta.sizeBytes)});
+            }
+        } catch (Throwable ignored) {
+            // No candidates.
+        }
+        return out;
     }
 
     private static final Map<String, String> followsId = new ConcurrentHashMap<String, String>();
@@ -358,8 +521,8 @@ public final class NextPrep {
             // Compose: the launch unloads the core player, so read its context now, while it
             // still names this video; the delayed run below prefers a fresh read and falls
             // back to this capture (an empty next id fails soft in prepareFrom, as today).
-            final String[] early = classicPlayerFragment == null && videoId.equals(PortHooks.streamId())
-                    ? playerContext(null) : null;
+            final String[] early = classicPlayerFragment != null ? playerContext(classicPlayerFragment)
+                    : videoId.equals(PortHooks.streamId()) ? playerContext(null) : null;
             final java.lang.ref.WeakReference<Object> frag = new java.lang.ref.WeakReference<Object>(classicPlayerFragment);
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
@@ -375,13 +538,73 @@ public final class NextPrep {
                             c = early;
                         }
                         if (c == null) return;
-                        Log.i(TAG, "external player: preparing after " + videoId);
-                        prepareFrom(ctx, videoId, c);
+                        if ((c[0] == null || c[0].length() == 0) && (IntroSkipPrefs.isOneAheadEnabled(ctx) || IntroSkipPrefs.isBorrowEnabled(ctx))) {
+                            // Neither read named the next episode (not known yet at launch, state gone since): ask the meta.
+                            final String[] noNext = c;
+                            Thread ask = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        String next = OneAheadTrigger.nextEpisodeId(noNext[1], NextPrepCore.metaIdOf(videoId), noNext[4], videoId);
+                                        Log.i("OneAhead", "ext next from meta: " + (next.length() > 0));
+                                        if (next.length() == 0) return;
+                                        noNext[0] = next;
+                                        new android.os.Handler(android.os.Looper.getMainLooper()).post(new Runnable() {
+                                            @Override public void run() { startExternal(ctx, videoId, noNext); }
+                                        });
+                                    } catch (Throwable ignored) {
+                                        // Today's path: nothing prepared.
+                                    }
+                                }
+                            }, "NextPrepExtNext");
+                            ask.setDaemon(true);
+                            ask.start();
+                            return;
+                        }
+                        startExternal(ctx, videoId, c);
                     } catch (Throwable ignored) {
                         // Today's path.
                     }
                 }
             }, EXTERNAL_DELAY_MS);
+        } catch (Throwable ignored) {
+            // Today's path.
+        }
+    }
+
+    private static void startExternal(final Context ctx, final String videoId, final String[] c) {
+        try {
+            Log.i(TAG, "external player: preparing after " + videoId);
+            prepareFrom(ctx, videoId, c, true);
+            // Real next-episode lookup first (never a blind "unknown"): the
+            // journal of the episode playing in Vimu holds its duration by now.
+            // No length or no id: the one-ahead run does not start at all.
+            if (!IntroSkipPrefs.isOneAheadEnabled(ctx) && !IntroSkipPrefs.isBorrowEnabled(ctx)) return;
+            final String[] ctxNext = c;
+            Thread lookup = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        long len = app.tikkamasalla.stremio.progress.ExternalProgress
+                                .vimuJournalDurationSec(ctx, videoId);
+                        String metaId = NextPrepCore.metaIdOf(ctxNext[0]);
+                        if (!app.tikkamasalla.stremio.oneahead.OneAheadGate.externalStarts(
+                                ctxNext[0], metaId, len)) {
+                            Log.i("OneAhead", "ext start refused: " + (ctxNext[0] == null || ctxNext[0].length() == 0
+                                    ? "no-next-id" : len <= 0 ? "no-length" : "no-meta-id") + " len=" + len);
+                            return;
+                        }
+                        int[] req = StreamRanker.requestOf(ctxNext[0]);
+                        Log.i("OneAhead", "ext lookup: next=" + ctxNext[0] + " len=" + len);
+                        IntroSkipBridge.prefetchSkips(ctx, metaId, ctxNext[2],
+                                req[0], req[1], len, ctxNext[0], videoId, "");
+                    } catch (Throwable t) {
+                        Log.i("OneAhead", "ext lookup failed " + t.getClass().getSimpleName());
+                    }
+                }
+            }, "NextPrepExtLookup");
+            lookup.setDaemon(true);
+            lookup.start();
         } catch (Throwable ignored) {
             // Today's path.
         }
@@ -570,6 +793,7 @@ public final class NextPrep {
     static void reset() {
         ADDONS.clear();
         prepared = null;
+        altSet = null;
         inflight = expectedId = launchedId = "";
         expectedAt = launchedAt = 0L;
         launchedReady = false;

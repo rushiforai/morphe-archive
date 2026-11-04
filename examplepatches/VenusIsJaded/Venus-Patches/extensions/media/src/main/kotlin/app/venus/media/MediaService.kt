@@ -31,7 +31,10 @@ class MediaService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         instance = this
-        if (!promote()) stopSelf()
+        // Android needs startForeground soon after startForegroundService, so it always runs; but when the sound already
+        // ended before the service got going (Discord came back first), the placeholder is taken down at once instead of
+        // staying as a notification with buttons that do nothing (#145).
+        if (!promote() || !BackgroundMedia.audioActive()) stop()
         return START_NOT_STICKY
     }
 
@@ -60,6 +63,20 @@ class MediaService : Service() {
                 stopForeground(false)
             }
         } catch (_: Throwable) { }
+    }
+
+    /** The sound ended or Discord came back: take the notification down with the service. */
+    fun stop() {
+        releaseWake()
+        try {
+            if (Build.VERSION.SDK_INT >= 24) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+            } else {
+                @Suppress("DEPRECATION")
+                stopForeground(true)
+            }
+        } catch (_: Throwable) { }
+        stopSelf()
     }
 
     override fun onDestroy() {

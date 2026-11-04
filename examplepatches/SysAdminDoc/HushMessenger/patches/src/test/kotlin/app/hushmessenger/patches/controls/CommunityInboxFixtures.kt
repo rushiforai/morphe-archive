@@ -32,7 +32,7 @@ internal fun communityStub(id: String, body: String = "const/4 v0, 0x0\nreturn v
  * types inline.
  */
 internal fun communityInboxFixture(anyBody: String? = null, channelBody: String? = null, inlineCheck: Boolean = false,
-    secondRead: Int = 63): List<MutableClass> {
+    secondRead: Int = 60): List<MutableClass> {
     val code = controlProfiles.entries.firstOrNull { it.value === activeProfile }?.key
     val record = code?.let { Files.readAllLines(Path.of("../scripts/profiles/$it.txt")) }
     val ids = (record?.single { it.startsWith("nativeCommunityInbox ") }?.substringAfter(' ') ?: SYNTHETIC_PROFILE.nativeCommunityInbox).split('|')
@@ -97,18 +97,21 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         9 to "iput-object v8, v1, $prefix", 18 to "return-void")), 17)
     val invokeId = record?.single { it.startsWith("hook community_inbox ") }?.substringAfter("hook community_inbox ")
         ?: syntheticHooks.getValue(COMMUNITY_INBOX).single()
-    // 583's layout: 84 instructions, the second read at 63, the viewport callback at 69, both aliases at 74 and 75, the sink at 76.
-    val invoke = fixtureMethod(invokeId, sparse(84, mapOf(
+    // 586's layout: 81 instructions, the second read at 60, the viewport callback at 66, both aliases at 71 and 72, the sink at 73.
+    // 586 reads the search icon flag through a two-instruction getter call, three fewer than 585's inline check, so everything
+    // from the second read on sits three earlier. A [secondRead] off 60 moves the whole tail with it.
+    val shift = secondRead - 60
+    val invoke = fixtureMethod(invokeId, sparse(81 + shift, mapOf(
         5 to "iget-object v0, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
         6 to "invoke-virtual {v0}, Ljava/util/AbstractCollection;->isEmpty()Z",
         8 to "if-nez v0, :empty", 27 to "iget-object v1, v4, $closure->\$threadTypeFilter:$scope",
         32 to "const-string v0, \"searchBarSection\"",
         secondRead to "iget-object v1, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
-        69 to "iget-object v0, v4, $closure->\$onThreadInViewport:Lkotlin/jvm/functions/Function1;",
-        74 to "move-object/from16 v17, v1", 75 to "move-object/from16 v18, v0",
-        76 to "invoke-static/range {v6 .. v18}, LX/Section;->build(LX/Session;LX/Scope;LX/Observer;LX/Binder;LX/Header;LX/Footer;LX/Loading;LX/Theme;LX/Publisher;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;)LX/Section;",
-        77 to "move-result-object v0", 78 to "invoke-virtual {v2, v0}, LX/Builder;->add(LX/Section;)V",
-        79 to "return-object v2", 82 to ":empty\nconst/4 v3, 0x0", 83 to "goto :end",
+        66 + shift to "iget-object v0, v4, $closure->\$onThreadInViewport:Lkotlin/jvm/functions/Function1;",
+        71 + shift to "move-object/from16 v17, v1", 72 + shift to "move-object/from16 v18, v0",
+        73 + shift to "invoke-static/range {v6 .. v18}, LX/Section;->build(LX/Session;LX/Scope;LX/Observer;LX/Binder;LX/Header;LX/Footer;LX/Loading;LX/Theme;LX/Publisher;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;)LX/Section;",
+        74 + shift to "move-result-object v0", 75 + shift to "invoke-virtual {v2, v0}, LX/Builder;->add(LX/Section;)V",
+        76 + shift to "return-object v2", 79 + shift to ":empty\nconst/4 v3, 0x0", 80 + shift to "goto :end",
         48 to ":end\nnop")), 21)
     val joined = fixtureMethod(joinedId, """
         iget-object v0, p0, $TS->A0d:$TK

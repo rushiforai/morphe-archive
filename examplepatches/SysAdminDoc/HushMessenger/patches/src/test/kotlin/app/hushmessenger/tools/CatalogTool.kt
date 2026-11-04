@@ -460,7 +460,8 @@ object CatalogTool {
         val references = validateExtensionContract(contents.patcherDex, contents.extensionDex, controls + RECORDED_CAPABILITIES)
         val document = catalog(version, patches)
         val output = Json { prettyPrint = true }.encodeToString(JsonObject.serializer(), document) + "\n"
-        report.parentFile.mkdirs()
+        // A bare file name has no parent until it's made absolute against the working directory.
+        report.absoluteFile.parentFile.mkdirs()
         val digest = MessageDigest.getInstance("SHA-256").digest(bundle.readBytes()).joinToString("") { "%02x".format(it) }
         val published = root.resolve("patches-list.json")
         if (args[0] == "generate") published.writeText(output)

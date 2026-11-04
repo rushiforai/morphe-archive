@@ -387,6 +387,37 @@ public class AutoReplyPictureTest {
     }
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void clearCornersGoOutWhiteAtEverySize() throws IOException {
+        // As it decodes, and shrunk to the limit, which draws it into a new bitmap.
+        for (int[] size : new int[][] {{60, 60}, {4100, 40}}) {
+            File source = new File(context.getCacheDir(), "logo.png");
+            Bitmap logo = Bitmap.createBitmap(size[0], size[1], Bitmap.Config.ARGB_8888);
+            logo.eraseColor(Color.TRANSPARENT);
+            new android.graphics.Canvas(logo).drawRect(size[0] / 4f, size[1] / 4f, size[0] * 3 / 4f, size[1] * 3 / 4f, paint(Color.rgb(200, 40, 90)));
+            try (FileOutputStream output = new FileOutputStream(source)) {
+                assertTrue(logo.compress(Bitmap.CompressFormat.PNG, 100, output));
+            }
+            logo.recycle();
+            Bitmap sent;
+            try (java.io.InputStream input = new java.io.FileInputStream(AutoReplyPicture.fileFor(context, AutoReplyPicture.copy(context, Uri.fromFile(source))))) {
+                sent = BitmapFactory.decodeStream(input);
+            }
+            int corner = sent.getPixel(0, 0);
+            int middle = sent.getPixel(sent.getWidth() / 2, sent.getHeight() / 2);
+            assertTrue(size[0] + " corner " + Integer.toHexString(corner), Color.red(corner) > 240 && Color.green(corner) > 240 && Color.blue(corner) > 240);
+            assertTrue(size[0] + " middle " + Integer.toHexString(middle), Color.red(middle) > 170 && Color.green(middle) < 80);
+            sent.recycle();
+            Files.delete(source.toPath());
+        }
+    }
+
+    private static android.graphics.Paint paint(int color) {
+        android.graphics.Paint paint = new android.graphics.Paint();
+        paint.setColor(color);
+        return paint;
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void aFileThatIsntAPictureLeavesNothingBehind() throws IOException {
         File text = new File(context.getCacheDir(), "notes.jpg");
         Files.write(text.toPath(), "not a picture".getBytes(StandardCharsets.UTF_8));

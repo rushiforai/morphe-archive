@@ -154,6 +154,27 @@ public final class ApiCompat {
         ReportLog.w(TAG, "android.car is not available: Car.createCar returns null for " + caller);
     }
 
+    // Android Automotive runs apps in a user of their own; DiLink runs them as user 0.
+
+    /**
+     * Injection point: Maps' Application onCreate, in place of its automotive-feature check in front of
+     * the code that disables Maps' receivers and exits the main process when it runs as user 0. On
+     * Android Automotive user 0 is the system's own; DiLink runs every app there, and DiLink 5 on the
+     * Sealion 7 declares the feature, so Maps exited at each start. Always false, so Maps starts as on
+     * DiLink 3, which lacks the feature. Reached only in the main process as user 0; logged where the
+     * feature is present.
+     */
+    public static boolean exitsAsSystemUser(Context context) {
+        try {
+            if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
+                ReportLog.i(TAG, "Android Automotive as user 0: Maps' system-user exit skipped");
+            }
+        } catch (RuntimeException ignored) {
+            // Maps starts either way.
+        }
+        return false;
+    }
+
     // SDK extensions do not exist before API 30.
 
     public static int getExtensionVersion(int sdk) {

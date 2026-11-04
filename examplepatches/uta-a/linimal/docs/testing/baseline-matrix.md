@@ -436,3 +436,28 @@ LINE 26.16.0 の XIG07 で、既読なしで開いたトークの真ん中の行
 | 相手側（公式 Web 版 LINE） | 全行に既読 |
 
 公式スマホ版を受信側にした確認は行っていない。この結果を受け、行ごとの操作は廃止した。
+
+## Google ログインとバックアップのアカウント選択の MicroG-RE 化（2026-11-03）
+
+XIG07（SDK 36）、LINE 26.16.0、MicroG-RE 7.3.0。ブランチ `feat/google-sign-in-microg`（`cc5404f`）を上書きインストールした。
+
+| 確認 | 結果 |
+| --- | --- |
+| install / ART verify / 起動 | 成功。crash と VerifyError は 0 件 |
+| patch-status | 68 件すべて OK |
+| 「Google でログイン」 | 成功。`HiddenActivity` → MicroG-RE の `AssistedSignInActivity` → `AuthSignInActivity` → `MainActivity` |
+| ログイン後の復元のアカウント選択 | MicroG-RE の `AccountPickerActivity` から本体の選択画面が開き、種別 `app.revanced` のアカウントを選択 |
+| Drive の token | MicroG-RE が署名を `89396dc4…5c50` として申告し、`drive.appdata` の token を発行 |
+
+復元とバックアップの完了そのものは、この時点では確認していない。
+
+
+## 表示系の設定変更後の再起動（2026-11-04）
+
+XIG07（SDK 36、HyperOS）、LINE 26.16.0。同じプロセスから `startActivity` してからプロセスを終了する方式では、開き直した画面も一緒に消えてホーム画面に戻った（遅延 500 ms・即時終了のどちらも同じ）。別プロセス `:linimal_restart` の中継 Activity が元のプロセスを終了してから LINE を起動する方式に変え、次を確認した。
+
+| 確認 | 結果 |
+| --- | --- |
+| install / ART verify / 起動 | 成功。crash は 0 件 |
+| patch-status | 68 件すべて OK |
+| 表示系の設定を切り替えて「再起動」 | LINE が自動で開き直り、設定が反映された |

@@ -24,9 +24,8 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Amplitude, Braze, Branch, Optimizely events, and Firebase Analytics. " +
-        "Marketing notifications, in-app promotions, and referral links stop too. Opt-in; test " +
-        "on-device.",
+    description = "Stops Amplitude, Braze, Branch, Optimizely events, and Firebase Analytics. Marketing " +
+        "notifications, in-app promotions, and referral links stop too.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

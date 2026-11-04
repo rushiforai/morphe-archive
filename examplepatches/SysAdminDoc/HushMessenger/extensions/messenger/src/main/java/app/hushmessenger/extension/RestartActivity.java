@@ -116,7 +116,7 @@ public class RestartActivity extends Activity {
         LinearLayout message = ui.column();
         message.setGravity(Gravity.CENTER);
         message.setPadding(ui.dp(24), ui.dp(32), ui.dp(24), ui.dp(32));
-        message.setBackground(ui.shape(ui.surface, ui.line, 12));
+        message.setBackground(ui.cardShape());
         TextView brand = ui.heading("HushMessenger");
         brand.setGravity(Gravity.CENTER);
         brand.setTextSize(11);
@@ -125,7 +125,7 @@ public class RestartActivity extends Activity {
         ShimmerTitle.wear(brand, ui.light);
         message.addView(brand);
         View accent = new View(ui.context);
-        accent.setBackground(ui.shape(ui.accent, 0, 2));
+        accent.setBackground(ui.shape(ui.accent, 0, 0));
         accent.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         LinearLayout.LayoutParams accentParams = new LinearLayout.LayoutParams(ui.dp(56), ui.dp(4));
         accentParams.topMargin = ui.dp(20);
@@ -145,7 +145,7 @@ public class RestartActivity extends Activity {
         ProgressBar progress = new ProgressBar(ui.context, null, android.R.attr.progressBarStyleHorizontal);
         progress.setTag("restart_progress");
         progress.setIndeterminate(true);
-        progress.setBackground(ui.shape(ui.line, 0, 2));
+        progress.setBackground(ui.shape(ui.line, 0, 0));
         progress.setIndeterminateTintList(ColorStateList.valueOf(ui.accent));
         progress.setProgressBackgroundTintList(ColorStateList.valueOf(ui.line));
         progress.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);

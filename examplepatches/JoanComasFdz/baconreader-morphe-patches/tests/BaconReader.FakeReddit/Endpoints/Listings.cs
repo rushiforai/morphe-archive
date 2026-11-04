@@ -51,6 +51,35 @@ internal static partial class Listings
             }
         });
 
+        // What a subreddit asks of a text post's text, which "Markdown editor"'s counter shows while a post is written.
+        app.MapGet("/api/v1/{subreddit}/post_requirements", (HttpContext context, string subreddit) =>
+        {
+            lock (world.Sync)
+            {
+                Caller.Read(context, world, out var refused);
+                if (refused is not null)
+                {
+                    return refused;
+                }
+
+                if (world.FindSubreddit(subreddit) is not { } found)
+                {
+                    return Answers.Error(StatusCodes.Status404NotFound, "Not Found");
+                }
+
+                var asked = found.PostRequirements ?? new PostRequirements();
+                return Answers.Json(new
+                {
+                    body_restriction_policy = asked.TextNotAllowed ? "notAllowed" : "none",
+                    body_text_min_length = asked.MinLength,
+                    body_text_max_length = asked.MaxLength,
+                    title_text_min_length = (int?)null,
+                    title_text_max_length = (int?)null,
+                    is_flair_required = false,
+                });
+            }
+        });
+
         // BaconReader reads a subreddit's stylesheet for its spoiler styles; the fake's subreddits have none.
         app.MapGet("/r/{subreddit}/stylesheet", (HttpContext context) =>
         {

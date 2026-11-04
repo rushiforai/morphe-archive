@@ -579,7 +579,7 @@ val dcimAndBackupControlPatch = bytecodePatch(
 
                 if (mfyMethodRef != null) {
                     val featuresClassDef = mutableClassDefBy(mfyMethodRef.definingClass)
-                    val mfyMethodNames = setOf(mfyMethodRef.name, "k", "m", "n", "o")
+                    val mfyMethodNames = setOf(mfyMethodRef.name)
                     featuresClassDef.methods
                         .filter { m -> m.name in mfyMethodNames && m.parameterTypes.isEmpty() && m.returnType == "Z" }
                         .forEach { m ->

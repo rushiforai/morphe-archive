@@ -34,7 +34,7 @@ private val PLAYER_HOSTS = listOf(
 
 @Suppress("unused")
 val maskLiveAdsPatch = bytecodePatch(
-    name = "Mask live ad breaks (black screen + mute)",
+    name = "Mask live ad breaks",
     description = "Live TV ads are part of the broadcast and cannot be cut out. During a live " +
         "break this covers the video with a black screen and mutes the audio, then restores " +
         "both when the show returns. Detection uses Pluto's own ad tags, which appear only " +

@@ -159,6 +159,8 @@ public final class IntroSkip implements Runnable {
     private static volatile String extSubLabel = "";
     private static volatile String extSubId = "";
     private static volatile int extSubIndex = -1;
+    /** One-ahead hand-off from the launch intent (lowest source). */
+    private static volatile app.tikkamasalla.stremio.oneahead.OneAheadShow.Handoff extOneAhead;
     /** The Intent the hand-off state was read from; any other Intent forces a fresh read. */
     private static volatile WeakReference<Intent> extSource;
 
@@ -194,11 +196,11 @@ public final class IntroSkip implements Runnable {
     /** End-credits chapter names (mirrors Stremio's CHAPTER_CREDITS): ED/ending/outro/credits
      * in any language. Vimu exposes chapters natively, so these are exact and usable for skipping. */
     private static final Pattern END_CREDITS_CHAPTER = Pattern.compile(
-            "(?i)(?:^|[^a-z])(?:ed\\d{0,2}|ending|outro|credits?|end credits|ending credits|closing credits"
+            "(?i)(?:^|[^a-z])(?:ed\\d{0,2}|ending|outro|credits?|creditos|créditos|end credits|ending credits|closing credits"
                     + "|end theme|ending theme|encerramento|generique de fin|abspann)(?:[^a-z]|$)|エンディング");
     /** Next-preview chapter names (mirrors Stremio's CHAPTER_PREVIEW). Same deal: exact. */
     private static final Pattern NEXT_PREVIEW_CHAPTER = Pattern.compile(
-            "(?i)(?:^|[^a-z])(?:preview|pv|teaser|next episode|trailer|apercu|vorschau)(?:[^a-z]|$)|予告");
+            "(?i)(?:^|[^a-z])(?:preview|pv|teaser|avance|next episode|trailer|apercu|vorschau)(?:[^a-z]|$)|予告");
 
     /** Strong prefix triggers at the start of a cue/line (after optional speaker/quote). */
     private static final Pattern SUB_PREVIEW_PREFIX = Pattern.compile(
@@ -552,7 +554,7 @@ public final class IntroSkip implements Runnable {
             + "(?:opening|ending) theme|オープニング|エンディング|опенинг|эндинг)(?:[\\s_.-]*(?:\\d{1,2}|[ivx]{1,3}))?$");
     private static final Pattern SONG_SEPARATOR = Pattern.compile("^(.*?)(?::|\\s[-\u2013\u2014]\\s)");
 
-    private static final class Seg {
+    static final class Seg {
         final int start;
         final int end;
         final String name;
@@ -610,7 +612,7 @@ public final class IntroSkip implements Runnable {
         boolean credits() {
             return "Credits".equals(name) && rule != null
                     && (rule.startsWith("introdb") || rule.startsWith("skipdb")
-                    || rule.startsWith("chapter") || rule.startsWith("aniskip")
+                    || rule.startsWith("chapter") || rule.startsWith("aniskip") || rule.startsWith("One-ahead") || rule.startsWith("Borrowed")
                     || rule.startsWith("Own times"));
         }
 
@@ -730,6 +732,7 @@ public final class IntroSkip implements Runnable {
         extSubLabel = "";
         extSubId = "";
         extSubIndex = -1;
+        extOneAhead = null;
         extSource = null;
     }
 
@@ -777,6 +780,8 @@ public final class IntroSkip implements Runnable {
             extSubLabel = safe(extras.getString("sub_label"));
             extSubId = safe(extras.getString("sub_track_id"));
             extSubIndex = extras.getInt("sub_track_index", -1);
+            extOneAhead = app.tikkamasalla.stremio.oneahead.OneAheadShow.decode(extras.getString(app.tikkamasalla.stremio.oneahead.OneAheadShow.EXTRA));
+            if (extOneAhead != null) Log.i(TAG, "one-ahead hand-off: " + extOneAhead.segs.size() + " segment(s), dur " + extOneAhead.durSec + "s");
             extHaveMedia = extMediaType.length() > 0 || extImdbId.length() > 0 || extEpisode > 0;
             extHaveSub = extSubUrl.length() > 0 || extSubLang.length() > 0
                     || extSubLabel.length() > 0 || extSubId.length() > 0 || extSubIndex >= 0;
@@ -1158,6 +1163,8 @@ public final class IntroSkip implements Runnable {
                 // A re-merge (failed source answered on retry) starts again from the
                 // chapters: drop what the previous merge added from online sources.
                 merged.removeAll(remoteMerged);
+                // One-ahead never takes a type or a time range from a real answer; refilled below if still missing.
+                merged = stripOneAhead(merged);
             }
             remoteMerged.clear();
             // IntroDB.app's post_credits scene also cuts a chapter credits/preview window that starts
@@ -1244,6 +1251,7 @@ public final class IntroSkip implements Runnable {
             // (the current remote is passed anyway so it can never be bypassed).
             settleWeakIntros(remoteGen == mediaGen ? remote : null, true);
         }
+        applyOneAhead(duration, posNow);
         // The subtitle-tail fetch only feeds Preview segments: no request while Previews are off.
         if (!subPreviewScanned && duration > 300000 && (remoteApplied || chapterReads >= 1)
                 && VimuIntroSkipPrefs.isPreviewsEnabled(f)) {
@@ -1353,7 +1361,8 @@ public final class IntroSkip implements Runnable {
                 ? VimuIntroSkipPrefs.CREDITS_AUTO.equals(creditsMode)
                 : !manualMode && !previewsOff && !inferredPreview;
         boolean autoPending = seg != null && !creditsOff && !previewsOff && autoModeForSeg
-                && !seg.buttonOnly && !currentBySeek && !skipped.contains(seg.key());
+                && !seg.buttonOnly
+                && !currentBySeek && !skipped.contains(seg.key());
         if (autoPending && playing && flowing) {
             hidePill(false);
             skip(f, p, seg, pos, true);
@@ -2707,20 +2716,8 @@ public final class IntroSkip implements Runnable {
                     out.add(app);
                 }
             }
-            // If TheIntroDB mislabeled an opening sequence in the first 40% as "Credits"
-            // with no separate Intro anywhere, promote it to Intro.
-            if (!hasSegType(out, "Intro")) {
-                double maxIntroStart = durationMs > 0 ? durationMs * 0.40 : 300000.0;
-                for (int i = 0; i < out.size(); i++) {
-                    Seg s = out.get(i);
-                    if ("Credits".equals(s.name) && s.start < maxIntroStart
-                            && (durationMs <= 0 || s.end < durationMs * 0.5)) {
-                        out.set(i, new Seg(s.start, s.end, "Intro", s.rule));
-                        Log.i(TAG, "IntroDB: promoted early credits (" + s.start + "-" + s.end + "ms) to Intro");
-                        break;
-                    }
-                }
-            }
+            // Any early Credits merged from IntroDB.app is dropped just below; SkipDB's was
+            // already dropped before the merge. TheIntroDB's own mislabeled opening was settled above.
             settleEarlyCredits(out, true, durationMs); // what is still early (IntroDB.app credits) goes
             // SkipDB fills only the segment types neither source has (previews included), and is
             // always read: it is also the other voice the earlier windows are narrowed against.
@@ -3060,6 +3057,74 @@ public final class IntroSkip implements Runnable {
             cur = narrowFrom(cur, orig, skip, runtimeMs, false);
             if (cur != orig) out.set(i, cur);
         }
+    }
+
+    /** The list without One-ahead entries, for anything that must see real sources only. */
+    private static List<Seg> stripOneAhead(List<Seg> list) {
+        List<Seg> out = new ArrayList<Seg>();
+        if (list != null) {
+            for (Seg s : list) {
+                if (!app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.rule)) out.add(s);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * One-ahead hand-off, once per tick: lowest source, otherwise like any other. It fills a type only after
+     * the real lookups finished, any real source of that type removes it, and it dies on a file change.
+     */
+    private void applyOneAhead(int durationMs, int posMs) {
+        try {
+            app.tikkamasalla.stremio.oneahead.OneAheadShow.Handoff h = extOneAhead;
+            if (h == null) return;
+            List<Seg> real = stripOneAhead(segments);
+            boolean sameFile = h.stillThisFile(mediaGen, posMs, durationMs);
+            if (!sameFile || (durationMs > 0 && !app.tikkamasalla.stremio.oneahead.OneAheadShow.durationOk(h.durSec, durationMs / 1000.0))) {
+                extOneAhead = null;
+                Log.i(TAG, "one-ahead dropped: " + (sameFile ? "real duration " + durationMs + "ms against " + h.durSec + "s" : "file changed"));
+                if (segments != null && real.size() != segments.size()) {
+                    segments = real;
+                    current = null;
+                }
+                return;
+            }
+            if (durationMs <= 0) return;
+            java.util.Set<String> labels = new java.util.HashSet<String>();
+            if (hasIntroType(real)) labels.add("OP");
+            if (hasCreditsSeg(real)) labels.add("credits");
+            List<Seg> next = new ArrayList<Seg>(real);
+            for (app.tikkamasalla.stremio.oneahead.OneAheadShow.Seg s : app.tikkamasalla.stremio.oneahead.OneAheadShow.fill(labels, h.segs, durationMs / 1000.0,
+                    app.tikkamasalla.stremio.oneahead.OneAheadShow.lookupsDone(onlineLookupDone(), chapterReads >= 1))) {
+                int from = (int) Math.round(s.start * 1000.0), to = (int) Math.round(s.end * 1000.0);
+                if (overlapsMs(real, from, to)) continue;
+                next.add(new Seg(from, to, "credits".equals(s.label) ? "Credits" : "Intro", s.source != null ? s.source : "One-ahead", false, 0));
+            }
+            if (sameKeys(next, segments)) return;
+            Collections.sort(next, new Comparator<Seg>() {
+                @Override
+                public int compare(Seg a, Seg b) { return Integer.compare(a.start, b.start); }
+            });
+            inheritSeek = current != null && currentBySeek;
+            segments = next;
+            current = null;
+            for (Seg s : next) {
+                if (app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.rule)) Log.i(TAG, "one-ahead segment '" + s.name + "' " + s.start + "-" + s.end + "ms (lowest source)");
+            }
+        } catch (Throwable error) {
+            Log.w(TAG, "one-ahead apply", error);
+        }
+    }
+
+    private static boolean sameKeys(List<Seg> a, List<Seg> b) {
+        if (b == null) return a.isEmpty();
+        if (a.size() != b.size()) return false;
+        java.util.Set<String> keys = new java.util.HashSet<String>();
+        for (Seg s : b) keys.add(s.key() + s.rule);
+        for (Seg s : a) {
+            if (!keys.contains(s.key() + s.rule)) return false;
+        }
+        return true;
     }
 
     /**
@@ -4083,7 +4148,7 @@ public final class IntroSkip implements Runnable {
                     List<Seg> cur = segments;
                     if (cur != null) {
                         for (Seg s : cur) {
-                            if (s.credits()) {
+                            if (s.credits() && !app.tikkamasalla.stremio.oneahead.OneAheadShow.isOneAhead(s.rule)) {
                                 credEndSec = s.end / 1000.0;
                                 break;
                             }
@@ -4187,7 +4252,7 @@ public final class IntroSkip implements Runnable {
         Log.i(TAG, "weak intro " + (pick == null ? "rejected" : "accepted '" + pick.name + "' " + pick.start + "-"
                 + pick.end + "ms") + " (online intro " + onlineIntro + ")");
         weakIntros.clear();
-        if (pick == null || (segments != null && overlapsMs(segments, pick.start, pick.end))) return;
+        if (pick == null || (segments != null && overlapsMs(stripOneAhead(segments), pick.start, pick.end))) return;
         List<Seg> next = segments == null ? new ArrayList<Seg>() : new ArrayList<>(segments);
         next.add(new Seg(pick.start, pick.end, pick.name, "name"));
         Collections.sort(next, new Comparator<Seg>() {

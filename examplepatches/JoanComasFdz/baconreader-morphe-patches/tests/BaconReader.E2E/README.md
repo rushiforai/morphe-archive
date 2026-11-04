@@ -103,7 +103,9 @@ the test process.
   | `https://cf-baconreader.onelouder.com/` | `<baseUrl>/_onelouder/` |
 
   Bare domains (`reddit.com`, `v.redd.it`, `amp.reddit.com`…) stay: BaconReader recognizes Reddit links in posts by
-  them. Its option, `baseUrl` (default `http://127.0.0.1:5080`), is `E2E_FAKE_REDDIT_URL` (`--options baseUrl=…`
+  them. Two of BaconReader's checks assume Reddit's own addresses, so the patch also takes a URL under
+  `<baseUrl>/_media/v.redd.it/` for a Reddit video (BaconReader plays one only by the host `v.redd.it`), and keeps the
+  fake's plain HTTP where BaconReader saves a video from an https URL. Its option, `baseUrl` (default `http://127.0.0.1:5080`), is `E2E_FAKE_REDDIT_URL` (`--options baseUrl=…`
   after the test-only `--patches`).
 - **Every scenario gets it.** BaseE2E adds "E2E fake Reddit" to every scenario's patches. A Given and `[PatchedWith]`
   never name it, only the patches under test (`ScenarioShapeTests` checks it).
@@ -208,6 +210,15 @@ arguments: a Markdown table is `Scores\n\n¦ Player ¦ Score ¦\n¦---¦---¦\n�
 | `fail posts: <subreddit> \| <status>` | the subreddit's posts answered with that status, such as `500 Internal Server Error` |
 | `refuse posts: <subreddit> \| <status> \| <explanation>` | the same, with Reddit's explanation |
 | `drop posts: <subreddit>` | the subreddit's posts answered by dropping the connection |
+| `image post: <subreddit> \| <title>`, `gif post`, `video post`, `nsfw image post`, `spoiler image post` | a media post |
+| `signed thumbnail post: <subreddit> \| <title>` | an image post whose thumbnail is a signed preview, sent with its "&" HTML-escaped |
+| `link post with preview: <subreddit> \| <title>` | a link post to a web page that runs JavaScript, with a preview and no thumbnail |
+| `gallery post: <subreddit> \| <title> \| <images>` | a gallery of that many images |
+| `crosspost: <subreddit> \| <title> \| <shared post title>` | a crosspost of that post |
+| `avatar: <user>` | the user's avatar, for "Show user avatars" |
+| `late media: <post title> \| <seconds>` | the post's image or GIF answered that late |
+| `fail media: <post title> \| <status>` | the post's image or GIF answered with that status |
+| `fail thumbnail: <post title> \| <status> \| <times>` | the post's thumbnail answered with that status the first times |
 
 **The phone and what Reddit saw:**
 

@@ -18,6 +18,7 @@ import android.os.PersistableBundle;
 import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -46,9 +47,11 @@ public final class SettingsActivity extends Activity {
     SettingsUi ui;
     SettingsText text;
     private LinearLayout controlsPage, appPage;
-    private LinearLayout header, brand, controlsContent, appContent;
+    private LinearLayout header, brand, controlsContent, appContent, pageHeader;
     private ScrollView controlsScroll, appScroll;
-    private TextView reminder;
+    private TextView reminder, wordmark, headerName;
+    /** The bar title's visibility as last set here, so it changes only when what it should show does. */
+    private int barTitleShown = -1;
     private EditText search;
     private boolean compact, scrollHeader, binding, lightTheme, recreatingTheme;
     private int restoreControlsScroll = -1, restoreAppScroll = -1;
@@ -89,15 +92,18 @@ public final class SettingsActivity extends Activity {
     private final Set<String> searchClosed = new java.util.HashSet<>();
     private TextView searchStatus, enabledCount, setupNote;
     private Button safeModeAction, clearQuery;
-    private Button drawerSearchLink;
+    private Button drawerSearchLink, batteryUse;
     private LinearLayout emptyState;
     /** Shown above both pages while a change waits for Messenger to restart. */
     private LinearLayout restartRow;
     private TextView restartWaiting;
+    private LinearLayout viewToggle;
     /** Shown above both pages for a few seconds after a Quick setup or Clear log, which act at once with no dialog. */
     private Button undoButton;
     /** What Undo does and when its time runs out. Main thread only, null when nothing can be taken back. */
     private Runnable undoAction, undoExpiry;
+    /** Whether the header last laid out with Undo showing, so the page only makes up for Undo coming or going. */
+    private boolean undoLaidOut;
     /** Between onStart and onStop. A Clear that finishes while settings are out of sight is final at once. */
     boolean started;
     static final int UNDO_MILLIS = 10_000;
@@ -123,7 +129,7 @@ public final class SettingsActivity extends Activity {
     /** Switches whose effect hasn't been confirmed on a phone. Each shows the Experimental badge. */
     /** The switches that take a way into these settings away, each with a reason when it can't turn on. */
     static final Set<String> WAYS_IN = Set.of("hide_menu_row", Settings.HIDE_ICON_SHORTCUTS, Settings.HIDE_LOGO_PRESS);
-    static final Set<String> EXPERIMENTAL = Set.of("pinned_chats", "nearby_scans", "phone_id_sync", "mark_read_button", "story_hold", "quiet_calls", "save_voice", "gallery_to_chat", "call_recording", "inbox_search_bar");
+    static final Set<String> EXPERIMENTAL = Set.of("pinned_chats", "nearby_scans", "phone_id_sync", "mark_read_button", "story_hold", "chat_preview", "quiet_calls", "save_voice", "gallery_to_chat", "call_recording", "inbox_search_bar");
     static final String[][] CONTROLS = {
         {"people", "Hide People You May Know", "Hides suggested people in chats, search and stories, and on the People and Notifications tabs. Good if you only want people you know.", "inbox"},
         {"friend_requests", "Hide friend request cards", "Hides friend request cards in your chat list. It doesn't accept or decline anyone.", "inbox"},
@@ -134,6 +140,7 @@ public final class SettingsActivity extends Activity {
         {"instants_button", "Hide the Instants button", "Hides the + button that slides in at the right edge of your chat list and the one under your chat heads. Both open Instants.", "inbox"},
         {"subtabs", "Hide inbox tabs", "Hides the All, Unread and Groups tabs above your chats.", "inbox"},
         {"inbox_search_bar", "Keep the search bar", "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger to see the change. Nothing changes if you never got the icon.", "inbox"},
+        {"chat_preview", "Preview chats on long press", "Press and hold a chat to peek at it in Messenger's own preview, with the chat's menu under it, without opening the chat.", "inbox"},
         {"mark_read_action", "Hide Mark as read", "Hides Mark as read in the menu you get when you press and hold a chat in your chat list, so you can't mark a chat read by accident. Mark as unread stays.", "inbox"},
         {"pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "inbox"},
         {"facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "navigation"},
@@ -191,6 +198,7 @@ public final class SettingsActivity extends Activity {
         {"keep_unsent", "Keep unsent messages", "Keeps messages on screen after someone unsends them, in chats where it works. In encrypted chats the message stays in its notification instead. Group chats aren't tested. Your own unsends may be limited.", "privacy"},
         {"anonymous_stories", "View stories anonymously", "Opens other people's stories without adding you to their viewer list. Messenger still marks them as seen on your side.", "privacy"},
         {"save_stories", "Save any story", "Adds Save to the More options menu on other people's stories, so you can keep the photo or video on your phone.", "privacy"},
+        {"blocked_list_pictures", "Hide pictures on the Blocked list", "Hides people's profile pictures on the list of people you've blocked, under Privacy and safety. Their names and Unblock stay.", "privacy"},
         {"material_you", "Material You theme", "Colors Messenger's dark mode with your wallpaper colors on Android 12 and newer, and a fixed blue on Android 11. Turn on dark mode in Messenger first. Light mode keeps its colors unless you turn on Light mode accent.", "theme"},
         {"app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger decides whether that setting shows for you. Turning this off can bring the default icon back.", "theme"},
         {"app_themes", "Unlock app themes", "Lets you pick any theme in Messenger's Theme setting without a subscription, so light mode can get a color too. Messenger still decides which themes it offers your account.", "theme"},
@@ -277,6 +285,14 @@ public final class SettingsActivity extends Activity {
                 // From the search row down a whole page, so its filters and first matches show above the keyboard too.
                 View row = (View) search.getParent();
                 int viewport = controlsScroll.getHeight() - controlsScroll.getPaddingTop() - controlsScroll.getPaddingBottom();
+                // The header above can leave a short list of matches too little page to lift the search to the top,
+                // so the page grows while the search has focus, and then the reveal runs again.
+                int room = row.getTop() + Math.max(row.getHeight(), viewport) + controlsContent.getPaddingBottom();
+                if (controlsContent.getHeight() < room && controlsContent.getMinimumHeight() < room) {
+                    revealSearch = true;
+                    controlsContent.post(() -> controlsContent.setMinimumHeight(room));
+                    return;
+                }
                 row.requestRectangleOnScreen(new Rect(0, 0, row.getWidth(), Math.max(row.getHeight(), viewport)), false);
             }
         };
@@ -308,9 +324,15 @@ public final class SettingsActivity extends Activity {
         root.addView(controlsPage, new LinearLayout.LayoutParams(-1, 0, 1));
         controlsScroll = scrollPage(controlsPage);
         controlsContent = pageContent(controlsScroll);
+        // The page opens on HushMessenger's icon, name and version, and the bar leaves the name off while it shows.
+        pageHeader = SettingsHeader.create(this, ui, text, hostVersion());
+        controlsContent.addView(pageHeader, new LinearLayout.LayoutParams(-1, -2));
+        headerName = pageHeader.findViewWithTag(SettingsHeader.NAME);
+        headerName.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> updateBarTitle());
+        controlsScroll.setOnScrollChangeListener((view, x, y, oldX, oldY) -> updateBarTitle());
         buildControls(controlsContent);
         reminder = ui.text(text.get("reopen"), 12, ui.muted, false);
-        reminder.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(32));
+        reminder.setPadding(ui.dp(18), ui.dp(12), ui.dp(18), ui.dp(32));
         ui.add(controlsPage, reminder, 0);
         appPage = ui.column();
         appPage.setTag("app_page");
@@ -360,9 +382,17 @@ public final class SettingsActivity extends Activity {
         updates.syncUpdateChoice(false);
     }
 
+    @Override protected void onPause() {
+        // Coming back from an Android screen measures the list again, and a focused search then pulls it back up to its
+        // cursor. One scrolled out of sight lets go, so the list stays where it was.
+        if (search != null && search.hasFocus() && !inList(search)) search.clearFocus();
+        super.onPause();
+    }
+
     @Override protected void onStop() {
         // Leaving settings makes a Quick setup or a Clear final, one still running included.
         started = false;
+        homeHeader.saveWords();
         messageLog.stop();
         endUndo();
         Settings.preferences.unregisterOnSharedPreferenceChangeListener(preferenceListener);
@@ -477,6 +507,11 @@ public final class SettingsActivity extends Activity {
             }
             for (RadioButton mode : bubbleModes) mode.setChecked(mode.getTag().equals("bubble_" + Settings.selectedBubbleMode()));
         } finally { binding = false; }
+        // Coming back from Android's battery prompt or app info shows what was chosen there.
+        if (batteryUse != null) {
+            String label = batteryLabel();
+            if (!label.contentEquals(batteryUse.getText())) batteryUse.setText(label);
+        }
         fontFile.refreshFontFile();
         updateSetup();
     }
@@ -490,13 +525,48 @@ public final class SettingsActivity extends Activity {
         if (compact == next && scrollHeader == nextScrollHeader) return;
         compact = next;
         scrollHeader = nextScrollHeader;
-        // Content pages already pad 16dp, so a header or reminder moved inside them adds none.
+        // Content pages already pad 18 dp, so a header or reminder moved inside them adds none.
         header.setPadding(ui.dp(scrollHeader ? 0 : 16), ui.dp(compact ? 4 : 8), ui.dp(scrollHeader ? 0 : 16), 0);
         placeBrand();
         placeHeader();
         ((ViewGroup) reminder.getParent()).removeView(reminder);
-        reminder.setPadding(ui.dp(compact ? 0 : 16), ui.dp(12), ui.dp(compact ? 0 : 16), ui.dp(compact ? 16 : 32));
+        reminder.setPadding(ui.dp(compact ? 0 : 18), ui.dp(12), ui.dp(compact ? 0 : 18), ui.dp(compact ? 16 : 32));
         ui.add(compact ? controlsContent : controlsPage, reminder, 0);
+        // A short window keeps its height for the rows, so the bar names the page instead.
+        if (pageHeader != null) pageHeader.setVisibility(compact ? View.GONE : View.VISIBLE);
+        updateBarTitle();
+    }
+
+    /** Messenger's version name, or null when Android doesn't say. */
+    private String hostVersion() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException unknown) {
+            return null;
+        }
+    }
+
+    /** The bar's title: Search settings while there's a search, else HushMessenger unless the page's header shows it. */
+    private void updateBarTitle() {
+        if (wordmark == null || search == null) return;
+        // The search lives on the Controls tab, so a search left typed there doesn't rename the App tab.
+        boolean typed = "controls".equals(page) && !search.getText().toString().trim().isEmpty();
+        CharSequence shown = typed ? text.get("search_settings") : "HushMessenger";
+        if (!android.text.TextUtils.equals(shown, wordmark.getText())) wordmark.setText(shown);
+        // Invisible rather than gone, so the bar keeps its height and the rows don't jump as the header scrolls.
+        int visibility = !typed && headerNameShown() ? View.INVISIBLE : View.VISIBLE;
+        if (visibility == barTitleShown) return;
+        barTitleShown = visibility;
+        wordmark.setVisibility(visibility);
+    }
+
+    /** Whether any of the header's name is on screen, counting a header not laid out yet as showing. */
+    private boolean headerNameShown() {
+        if (headerName == null || !headerName.isShown()) return false;
+        if (headerName.getHeight() == 0) return true;
+        android.graphics.Rect place = new android.graphics.Rect(0, 0, headerName.getWidth(), headerName.getHeight());
+        controlsContent.offsetDescendantRectToMyCoords(headerName, place);
+        return place.bottom > controlsScroll.getScrollY();
     }
 
     private void placeBrand() {
@@ -504,40 +574,89 @@ public final class SettingsActivity extends Activity {
         LinearLayout parent = compact ? ("app".equals(page) ? appContent : controlsContent) : header;
         if (brand.getParent() == parent) return;
         ((ViewGroup) brand.getParent()).removeView(brand);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        LinearLayout.LayoutParams params = brandSpace(parent);
         params.bottomMargin = ui.dp(compact ? 12 : 0);
         parent.addView(brand, 0, params);
     }
 
-    private void placeHeader() {
-        LinearLayout parent = scrollHeader ? ("app".equals(page) ? appContent : controlsContent) : (LinearLayout) controlsPage.getParent();
-        if (header.getParent() == parent) return;
-        ((ViewGroup) header.getParent()).removeView(header);
-        parent.addView(header, 0, new LinearLayout.LayoutParams(-1, -2));
+    /** The brand row's place: into its parent's padding, so Back's touch area starts 4 dp from the edge and its arrow 16. */
+    private LinearLayout.LayoutParams brandSpace(LinearLayout parent) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        // The header pads 16 dp, a page 18.
+        params.setMarginStart(-ui.dp(parent == header ? 12 : 14));
+        return params;
     }
 
+    private void placeHeader() {
+        LinearLayout parent = scrollHeader ? ("app".equals(page) ? appContent : controlsContent) : (LinearLayout) controlsPage.getParent();
+        if (header.getParent() != parent) {
+            ((ViewGroup) header.getParent()).removeView(header);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+            if (scrollHeader) {
+                // Inside a page the bar keeps the 16 dp line it has above one.
+                params.setMarginStart(-ui.dp(2));
+                params.setMarginEnd(-ui.dp(2));
+            }
+            parent.addView(header, 0, params);
+        }
+        placeRestartBar(parent);
+    }
+
+    /**
+     * The restart bar sits under the list, on the 18 dp line and above the gesture bar the window pads for. When the keyboard
+     * leaves the list almost no room, it goes into the page under the bar, with the header, and scrolls away with it.
+     */
+    private void placeRestartBar(LinearLayout parent) {
+        if (restartRow.getParent() == parent) return;
+        if (restartRow.getParent() != null) ((ViewGroup) restartRow.getParent()).removeView(restartRow);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        // A page's content already pads 18 dp at the sides.
+        int side = ui.dp(scrollHeader ? 0 : 18);
+        params.setMargins(side, ui.dp(8), side, ui.dp(8));
+        if (scrollHeader) parent.addView(restartRow, parent.indexOfChild(header) + 1, params);
+        else parent.addView(restartRow, params);
+    }
+
+    @SuppressWarnings("deprecation")
     private void buildHeader(LinearLayout root) {
-        // A toolbar, like HushFacebook's: the name, Open and the two tabs, with no banner above the settings.
+        // A toolbar, like HushFacebook's: Back, the name, Open and the two tabs, with no banner above the settings.
         header = ui.column();
         header.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), 0);
+        // The bar reaches into the padding, so Back's arrow lines up 16 dp from the edge with all 48 dp of it tappable.
+        header.setClipToPadding(false);
         ui.add(root, header, 0);
         brand = ui.row();
         if (ui.largeText) brand.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout wordmark = ui.column();
+        LinearLayout bar = ui.row();
+        android.widget.ImageButton back = new android.widget.ImageButton(this);
+        back.setTag("back");
+        back.setImageDrawable(SettingsIcons.icon(this, SettingsIcons.BACK, ui.heading));
+        back.setScaleType(android.widget.ImageView.ScaleType.CENTER);
+        back.setPadding(0, 0, 0, 0);
+        back.setBackground(ui.interactive(ui.background, 0, 12, ui.heading));
+        back.setContentDescription(text.get("back"));
+        // What the system Back does, so a settings screen opened from the app drawer closes the same way.
+        back.setOnClickListener(view -> onBackPressed());
+        LinearLayout.LayoutParams backSpace = new LinearLayout.LayoutParams(ui.dp(48), ui.dp(48));
+        backSpace.setMarginEnd(ui.dp(8));
+        bar.addView(back, backSpace);
+        LinearLayout wordmarkColumn = ui.column();
         TextView title = ui.title("HushMessenger", 20);
         title.setTag("wordmark");
         title.setAccessibilityHeading(true);
         // Linear font scaling on Android 13 and older could otherwise split the wordmark mid-word.
         title.setMaxLines(1);
         title.setAutoSizeTextTypeUniformWithConfiguration(14, 20, 1, TypedValue.COMPLEX_UNIT_SP);
-        ui.add(wordmark, title, 0);
+        ui.add(wordmarkColumn, title, 0);
+        wordmark = title;
         // Only a preview build says anything under the name, since that's a warning.
         if (Settings.preview) {
             TextView notice = ui.text(text.get("preview_notice"), 13, ui.warning, false);
             notice.setTag("preview_notice");
-            ui.add(wordmark, notice, 4);
+            ui.add(wordmarkColumn, notice, 4);
         }
-        brand.addView(wordmark, new LinearLayout.LayoutParams(ui.largeText ? -1 : 0, -2, ui.largeText ? 0 : 1));
+        bar.addView(wordmarkColumn, new LinearLayout.LayoutParams(0, -2, 1));
+        brand.addView(bar, new LinearLayout.LayoutParams(ui.largeText ? -1 : 0, -2, ui.largeText ? 0 : 1));
         Button open = ui.button(text.get("open"));
         open.setTag("open_messenger");
         open.setContentDescription(text.get("open_messenger"));
@@ -545,10 +664,11 @@ public final class SettingsActivity extends Activity {
         open.setPadding(ui.dp(12), ui.dp(6), ui.dp(12), ui.dp(6));
         open.setOnClickListener(view -> openMessenger());
         LinearLayout.LayoutParams openParams = new LinearLayout.LayoutParams(ui.largeText ? -2 : ui.dp(68), -2);
-        openParams.setMarginStart(ui.dp(ui.largeText ? 0 : 12));
+        // Large text stacks Open under the bar, on the page's line rather than the bar's.
+        openParams.setMarginStart(ui.dp(12));
         openParams.topMargin = ui.dp(ui.largeText ? 8 : 0);
         brand.addView(open, openParams);
-        ui.add(header, brand, 0);
+        header.addView(brand, brandSpace(header));
         LinearLayout navigation = ui.row();
         navigation.setPadding(ui.dp(3), ui.dp(3), ui.dp(3), ui.dp(3));
         navigation.setBackground(ui.shape(ui.surface, ui.line, 12));
@@ -560,33 +680,72 @@ public final class SettingsActivity extends Activity {
             tabs.add(button);
             navigation.addView(button, new LinearLayout.LayoutParams(0, -2, 1));
         }
-        ui.add(header, navigation, 8);
-        // In the header, so it shows on both pages the moment a restart-gated change is made, with the button right there.
+        // The bar keeps 16 dp for Back's arrow, and the tabs step in to the cards' 18 dp line under it.
+        LinearLayout.LayoutParams navigationSpace = new LinearLayout.LayoutParams(-1, -2);
+        navigationSpace.topMargin = ui.dp(8);
+        navigationSpace.setMarginStart(ui.dp(2));
+        navigationSpace.setMarginEnd(ui.dp(2));
+        header.addView(navigation, navigationSpace);
+        // HushGram's restart bar: off until a change waits on a restart, then one tap target under the list on both pages
+        // (placeHeader puts it there). The tools icon and the waiting line lead, and Restart says what a tap does.
         restartRow = ui.row();
         restartRow.setTag("restart_row");
         restartRow.setGravity(Gravity.CENTER_VERTICAL);
         if (ui.largeText) restartRow.setOrientation(LinearLayout.VERTICAL);
-        restartRow.setPadding(ui.dp(14), ui.dp(10), ui.dp(10), ui.dp(10));
-        restartRow.setBackground(ui.shape(ui.warningSurface, 0, 12));
-        restartWaiting = ui.text("", 14, ui.warning, true);
+        restartRow.setBackground(ui.interactive(ui.card, ui.heading, 12, ui.heading));
+        // After the background, which would otherwise set the padding.
+        restartRow.setPaddingRelative(ui.dp(16), ui.dp(12), ui.dp(20), ui.dp(12));
+        restartRow.setMinimumHeight(ui.dp(56));
+        restartRow.setClickable(true);
+        restartRow.setFocusable(true);
+        restartRow.setOnClickListener(view -> HostScreens.restartInto(this, page));
+        restartRow.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Button.class.getName());
+            }
+        });
+        restartWaiting = ui.text("", 15, ui.text, false);
         restartWaiting.setTag("restart_waiting");
         restartWaiting.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        restartWaiting.setGravity(Gravity.CENTER_VERTICAL);
+        restartWaiting.setCompoundDrawablesRelativeWithIntrinsicBounds(SettingsIcons.icon(this, SettingsIcons.TOOLS, ui.heading), null, null, null);
+        restartWaiting.setCompoundDrawablePadding(ui.dp(14));
         restartRow.addView(restartWaiting, new LinearLayout.LayoutParams(ui.largeText ? -1 : 0, -2, ui.largeText ? 0 : 1));
-        Button restartNow = ui.primaryButton(text.get("restart"));
+        TextView restartNow = ui.text(text.get("restart"), 15, ui.heading, true);
         restartNow.setTag("restart_now");
+        // The bar takes the tap and the screen reader's focus, so the label only names what it does.
         restartNow.setOnClickListener(view -> HostScreens.restartInto(this, page));
+        restartNow.setClickable(false);
+        restartNow.setFocusable(false);
         LinearLayout.LayoutParams restartParams = new LinearLayout.LayoutParams(-2, -2);
-        restartParams.setMarginStart(ui.dp(ui.largeText ? 0 : 12));
+        // Stacked under large text, it starts where the waiting line's words do, past the icon.
+        restartParams.setMarginStart(ui.dp(ui.largeText ? 38 : 12));
         restartParams.topMargin = ui.dp(ui.largeText ? 8 : 0);
         restartRow.addView(restartNow, restartParams);
         restartRow.setVisibility(View.GONE);
-        ui.add(header, restartRow, 8);
         undoButton = ui.button("");
         undoButton.setTag("undo");
         undoButton.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         undoButton.setOnClickListener(view -> undo());
         undoButton.setVisibility(View.GONE);
-        ui.add(header, undoButton, 8);
+        // On the cards' 18 dp line, like the tabs.
+        LinearLayout.LayoutParams undoSpace = new LinearLayout.LayoutParams(-1, -2);
+        undoSpace.topMargin = ui.dp(8);
+        undoSpace.setMarginStart(ui.dp(2));
+        undoSpace.setMarginEnd(ui.dp(2));
+        header.addView(undoButton, undoSpace);
+        // The header sits above the page, so Undo coming or going would slide every row under the finger. The page scrolls
+        // by what the header grew or shrank instead, leaving the swatch or button just tapped where it was.
+        header.addOnLayoutChangeListener((changed, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            boolean shown = undoButton.getVisibility() == View.VISIBLE;
+            if (shown == undoLaidOut) return;
+            undoLaidOut = shown;
+            int grew = (bottom - top) - (oldBottom - oldTop);
+            ScrollView scroll = "app".equals(page) ? appScroll : controlsScroll;
+            if (scrollHeader || oldBottom == oldTop || grew == 0 || scroll == null || !scroll.isShown()) return;
+            scroll.scrollBy(0, grew);
+        });
     }
 
     /** Shows Undo for [what] until it's tapped, its time runs out, something else takes its place or settings close. */
@@ -653,6 +812,40 @@ public final class SettingsActivity extends Activity {
         }
     }
 
+    /** Whether some of a view in the controls list shows in the list's window. */
+    private boolean inList(View view) {
+        if (controlsScroll == null || !view.isShown()) return false;
+        Rect spot = new Rect();
+        view.getDrawingRect(spot);
+        controlsScroll.offsetDescendantRectToMyCoords(view, spot);
+        int top = controlsScroll.getScrollY();
+        return spot.bottom > top && spot.top < top + controlsScroll.getHeight();
+    }
+
+    /**
+     * Keeps [anchor] where it is on screen through the next frame, scrolling its page by however far a change above it
+     * moved it. A line of text above a row growing or shrinking would otherwise slide the row out from under the finger.
+     */
+    void keepInPlace(View anchor) {
+        View list = anchor;
+        while (list != null && !(list instanceof ScrollView)) list = list.getParent() instanceof View ? (View) list.getParent() : null;
+        if (list == null || !anchor.isLaidOut() || !anchor.isShown()) return;
+        ScrollView scroll = (ScrollView) list;
+        int[] spot = new int[2];
+        anchor.getLocationInWindow(spot);
+        int before = spot[1];
+        // After the frame's layout, which has already made up for Undo coming or going in the header.
+        anchor.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override public boolean onPreDraw() {
+                anchor.getViewTreeObserver().removeOnPreDrawListener(this);
+                if (!anchor.isShown()) return true;
+                anchor.getLocationInWindow(spot);
+                scroll.scrollBy(0, spot[1] - before);
+                return true;
+            }
+        });
+    }
+
     private ScrollView scrollPage(LinearLayout parent) {
         ScrollView view = new ScrollView(this);
         view.setFillViewport(true);
@@ -672,15 +865,61 @@ public final class SettingsActivity extends Activity {
 
     private LinearLayout pageContent(ScrollView scroll) {
         LinearLayout content = ui.column();
-        content.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(24));
+        // HushGram's card line: cards, search and the restart bar all sit 18 dp in from the screen edge.
+        content.setPadding(ui.dp(18), ui.dp(12), ui.dp(18), ui.dp(24));
+        // A short window moves the bar in here, and Back's touch area reaches into the padding.
+        content.setClipToPadding(false);
         scroll.addView(content);
         return content;
     }
 
     private void buildControls(LinearLayout content) {
+        // HushGram's order under the header: the search, the list switch, then the Pause card and the sections.
+        // ui.field is HushGram's field: 12 dp corners in a 2 dp outline that takes the heading color with focus.
+        search = ui.field(text.get("search"), 100, true);
+        search.setTag("find_control");
+        search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        // The room a reveal added under the matches goes with the keyboard.
+        search.setOnFocusChangeListener((view, focused) -> { if (!focused) controlsContent.setMinimumHeight(0); });
+        search.setOnEditorActionListener((view, action, event) -> {
+            if (action != android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) return false;
+            ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(search.getWindowToken(), 0);
+            return true;
+        });
+        LinearLayout searchRow = ui.row();
+        searchRow.addView(search, new LinearLayout.LayoutParams(0, -2, 1));
+        clearQuery = ui.button(text.get("search_clear"));
+        clearQuery.setTag("clear_query");
+        clearQuery.setContentDescription(text.get("search_clear_description"));
+        clearQuery.setOnClickListener(view -> { search.setText(""); search.requestFocus(); });
+        LinearLayout.LayoutParams clearQueryParams = new LinearLayout.LayoutParams(-2, -2);
+        clearQueryParams.setMarginStart(ui.dp(8));
+        searchRow.addView(clearQuery, clearQueryParams);
+        ui.add(content, searchRow, 0);
+        searchStatus = ui.text("", 12, ui.muted, false);
+        searchStatus.setTag("search_status");
+        searchStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        ui.add(content, searchStatus, 6);
+        drawerSearchLink = ui.button(text.get("drawer_search"));
+        drawerSearchLink.setTag("find_drawer_icon");
+        drawerSearchLink.setOnClickListener(view -> {
+            // The drawer switches live in Quick access, so the link opens it on the way.
+            if (openSections.add("quick_access")) {
+                saveSections();
+                bindSection("quick_access");
+            }
+            showPage("app");
+        });
+        ui.add(content, drawerSearchLink, 8);
+        // HushGram's list switch: every section open on one page, or each folded under its heading. It stays through a
+        // search, so nothing above the field moves while a word is typed.
+        viewToggle = linkPanel("view_toggle", "show_as_list", SettingsIcons.MENU, false, this::flipSectionView);
+        viewToggle.setMinimumHeight(ui.dp(48));
+        addOverview(content, viewToggle, 10, false);
         // One small card: how many controls are on, and Pause.
         LinearLayout setup = ui.panel();
-        setup.setPadding(ui.dp(14), ui.dp(10), ui.dp(14), ui.dp(2));
+        // 12 dp in from the card, so its text starts on the rows' 30 dp icon line.
+        setup.setPadding(ui.dp(12), ui.dp(10), ui.dp(12), ui.dp(2));
         enabledCount = ui.text("", 15, ui.text, true);
         enabledCount.setTag("enabled_count");
         ui.add(setup, enabledCount, 0);
@@ -701,41 +940,7 @@ public final class SettingsActivity extends Activity {
         ui.add(setup, safeModeAction, 8);
         ui.rule(setup, 8);
         ui.add(setup, controlRow("paused", text.format("paused"), "", false), 0);
-        ui.add(content, setup, 0);
-        search = ui.field(text.get("search"), 100, true);
-        search.setTag("find_control");
-        search.setBackground(ui.interactive(ui.surface, ui.outline, 8));
-        search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
-        search.setOnEditorActionListener((view, action, event) -> {
-            if (action != android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) return false;
-            ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(search.getWindowToken(), 0);
-            return true;
-        });
-        LinearLayout searchRow = ui.row();
-        searchRow.addView(search, new LinearLayout.LayoutParams(0, -2, 1));
-        clearQuery = ui.button(text.get("search_clear"));
-        clearQuery.setTag("clear_query");
-        clearQuery.setContentDescription(text.get("search_clear_description"));
-        clearQuery.setOnClickListener(view -> { search.setText(""); search.requestFocus(); });
-        LinearLayout.LayoutParams clearQueryParams = new LinearLayout.LayoutParams(-2, -2);
-        clearQueryParams.setMarginStart(ui.dp(8));
-        searchRow.addView(clearQuery, clearQueryParams);
-        ui.add(content, searchRow, 10);
-        searchStatus = ui.text("", 12, ui.muted, false);
-        searchStatus.setTag("search_status");
-        searchStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-        ui.add(content, searchStatus, 6);
-        drawerSearchLink = ui.button(text.get("drawer_search"));
-        drawerSearchLink.setTag("find_drawer_icon");
-        drawerSearchLink.setOnClickListener(view -> {
-            // The drawer switches live in Quick access, so the link opens it on the way.
-            if (openSections.add("quick_access")) {
-                saveSections();
-                bindSection("quick_access");
-            }
-            showPage("app");
-        });
-        ui.add(content, drawerSearchLink, 8);
+        ui.add(content, setup, 10);
         LinearLayout group = null;
         LinearLayout groupBody = null;
         String last = "";
@@ -744,14 +949,14 @@ public final class SettingsActivity extends Activity {
             if (!last.equals(spec[3])) {
                 last = spec[3];
                 groupBody = ui.column();
-                groupBody.setPadding(ui.dp(14), ui.dp(2), ui.dp(14), ui.dp(2));
-                groupBody.setBackground(ui.shape(ui.surface, ui.line, 12));
+                // Inside the section's 1 dp outline, with HushGram's 4 dp more above the first row and below the last.
+                groupBody.setPadding(ui.dp(1), ui.dp(4), ui.dp(1), ui.dp(4));
                 // Lines only between shown controls: none above the first, none over the card's own border under the last.
                 android.graphics.drawable.GradientDrawable divider = ui.shape(ui.line, 0, 0);
                 divider.setSize(1, ui.dp(1));
                 groupBody.setDividerDrawable(divider);
                 groupBody.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
-                group = section(content, last, groupBody, groups.isEmpty() ? 12 : 8);
+                group = section(content, last, groupBody);
                 groups.add(group);
             }
             LinearLayout row = controlRow(spec[0], text.control(spec, 1), text.control(spec, 2), true);
@@ -776,10 +981,15 @@ public final class SettingsActivity extends Activity {
                 else {
                     messageLog.addMessageLogActions(wrapper);
                     ui.add(wrapper, controlRow(MessageLogButton.KEY, text.format(MessageLogButton.KEY), text.format("message_log_button_help"), false), 8);
+                    if (Settings.installed.contains("menu_row")) ui.add(wrapper, controlRow(MessageLogButton.MENU_KEY,
+                        text.format(MessageLogButton.MENU_KEY), text.format("message_log_menu_row_help"), false), 8);
                     if (Build.VERSION.SDK_INT >= 29) ui.add(wrapper, controlRow(MessageLog.SAVE_EXPIRING,
                         text.format(MessageLog.SAVE_EXPIRING), text.format("message_log_save_expiring_help"), false), 8);
                 }
-                wrapper.setPadding(0, 0, 0, ui.dp(12));
+                // The wrapper takes the row's side padding, so the row's extras line up with its icon.
+                row.setPadding(0, row.getPaddingTop(), 0, row.getPaddingBottom());
+                ((android.graphics.drawable.LayerDrawable) row.getBackground()).setLayerInsetRelative(1, 0, 0, 0, 0);
+                wrapper.setPadding(ui.dp(11), 0, ui.dp(11), ui.dp(12));
                 row = wrapper;
             }
             row.setTag(spec[3]);
@@ -788,8 +998,9 @@ public final class SettingsActivity extends Activity {
             installedControls.add(spec);
         }
         if (installedControls.isEmpty()) {
-            // Nothing to search; the status line explains how to add controls.
+            // Nothing to search or fold; the status line explains how to add controls.
             search.setVisibility(View.GONE);
+            viewToggle.setVisibility(View.GONE);
         }
         emptyState = ui.panel();
         emptyState.setTag("empty_state");
@@ -838,7 +1049,7 @@ public final class SettingsActivity extends Activity {
         choice.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
         choice.setButtonTintList(new android.content.res.ColorStateList(
             new int[][] {{-android.R.attr.state_enabled}, {android.R.attr.state_checked}, {}}, new int[] {ui.outline, ui.accent, ui.muted}));
-        choice.setBackground(ui.interactive(0, 0, 8));
+        choice.setBackground(ui.choice(8));
         return choice;
     }
 
@@ -861,6 +1072,10 @@ public final class SettingsActivity extends Activity {
         ui.add(content, modes, 8);
         // An unavailable bundle already says so in the row's description.
         if (Settings.available("bubbles")) ui.add(content, ui.text(text.get("bubble_help"), 13, ui.muted, false), 8);
+        batteryUse = ui.button(batteryLabel());
+        batteryUse.setTag("bubble_battery");
+        batteryUse.setOnClickListener(view -> openBatterySettings());
+        ui.add(content, batteryUse, 8);
         if (Build.VERSION.SDK_INT >= 30) {
             Button permissions = ui.button(text.get("bubble_permissions"));
             permissions.setTag("bubble_permissions");
@@ -894,12 +1109,43 @@ public final class SettingsActivity extends Activity {
         }
     }
 
+    private boolean unrestrictedBattery() {
+        android.os.PowerManager power = getSystemService(android.os.PowerManager.class);
+        return power != null && power.isIgnoringBatteryOptimizations(getPackageName());
+    }
+
+    private String batteryLabel() {
+        return text.get(unrestrictedBattery() ? "bubble_battery_on" : "bubble_battery_off");
+    }
+
+    private void openBatterySettings() {
+        // On Optimized battery Android refuses the chat head service whenever a message arrives while Messenger is
+        // running in the background. Messenger holds the permission to ask for Unrestricted, and app info is where
+        // someone turns it back.
+        boolean ask = !unrestrictedBattery() && checkSelfPermission(
+            android.Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) == PackageManager.PERMISSION_GRANTED;
+        String[] actions = ask
+            ? new String[] {android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS}
+            : new String[] {android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS};
+        for (String action : actions) {
+            Intent intent = new Intent(action, android.net.Uri.parse("package:" + getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            try {
+                if (getPackageManager().resolveActivity(intent, 0) == null) continue;
+                startActivity(intent);
+                return;
+            } catch (RuntimeException unavailable) {
+                // The next route, or the note below.
+            }
+        }
+        feedback(text.get("bubble_battery_missing"), Toast.LENGTH_LONG);
+    }
+
     @SuppressWarnings("deprecation")
     private LinearLayout controlRow(String key, String title, String description, boolean divided) {
-        boolean appRow = !divided && !"paused".equals(key);
         boolean overlay = !"paused".equals(key) && !ui.largeText;
         boolean available = Settings.available(key);
-        if (!available) description += " " + text.format(CameraActivity.KEY.equals(key) ? "camera_unsupported"
+        String reason = available ? "" : text.format(CameraActivity.KEY.equals(key) ? "camera_unsupported"
             : GalleryPicker.KEY.equals(key) ? "gallery_unsupported"
             : LocalChatSearch.KEY.equals(key) ? "local_search_unsupported"
             : CallRecording.KEY.equals(key) ? "call_recording_unsupported"
@@ -912,8 +1158,14 @@ public final class SettingsActivity extends Activity {
         LinearLayout.LayoutParams titleSpace = new LinearLayout.LayoutParams(-1, -2);
         // A margin, since relative padding set before the row is attached stays on the right in a mirrored layout.
         if (overlay) titleSpace.setMarginEnd(ui.dp(60));
+        // As tall as the switch track beside it, so the description starts under the track.
+        if (overlay) titleLine.setMinimumHeight(ui.dp(24));
         if (ui.largeText) titleLine.setOrientation(LinearLayout.VERTICAL);
-        titleLine.addView(ui.text(text.display(title), appRow ? 14 : 15, ui.text, false), new LinearLayout.LayoutParams(-2, -2));
+        // HushGram's row type: a 16 sp medium title over a 13 sp summary, both wrapping, an unusable row's dimmed.
+        TextView titleView = ui.text(text.display(title), 16, ui.text, true);
+        titleView.setLineSpacing(0, 1);
+        if (!available) titleView.setAlpha(0.38f);
+        titleLine.addView(titleView, new LinearLayout.LayoutParams(-2, -2));
         if (EXPERIMENTAL.contains(key)) {
             TextView badge = ui.text(text.get("experimental"), 11, ui.warning, false);
             badge.setBackground(ui.shape(ui.warningSurface, 0, 4));
@@ -923,7 +1175,20 @@ public final class SettingsActivity extends Activity {
             titleLine.addView(badge, params);
         }
         labels.addView(titleLine, titleSpace);
-        if (!description.isEmpty()) ui.add(labels, ui.text(text.display(description), appRow ? 12 : 13, ui.muted, false), 4);
+        if (!description.isEmpty()) {
+            TextView summary = ui.text(text.display(description), 13, ui.muted, false);
+            summary.setLineSpacing(0, 1);
+            if (!available) summary.setAlpha(0.75f);
+            ui.add(labels, summary, 4);
+        }
+        // Why the switch is off limits, on its own line at full strength: dimmed with the summary it fell under 4.5:1.
+        if (!available) {
+            TextView why = ui.text(text.display(reason), 13, ui.muted, false);
+            why.setTag("unavailable_" + key);
+            why.setLineSpacing(0, 1);
+            ui.add(labels, why, 4);
+            description = description.isEmpty() ? reason : description + " " + reason;
+        }
         // A switch records a use only when Messenger reaches its screen or event, so an off switch shows nothing.
         // A failure newer than the last use means the switch isn't doing its job, so that shows instead.
         TextView activeLabel = null;
@@ -933,7 +1198,10 @@ public final class SettingsActivity extends Activity {
             activityLabels.put(key, activeLabel);
             ui.add(labels, activeLabel, 4);
         }
-        row.addView(labels, new LinearLayout.LayoutParams(overlay ? -1 : 0, -2, overlay ? 0 : 1));
+        LinearLayout.LayoutParams labelSpace = new LinearLayout.LayoutParams(overlay ? -1 : 0, -2, overlay ? 0 : 1);
+        // The row's icon sits in this 38 dp: 24 dp of icon and 14 dp before the title.
+        labelSpace.setMarginStart(ui.dp(38));
+        row.addView(labels, labelSpace);
         Switch control = ui.toggle(key, text.display(title), text.display((EXPERIMENTAL.contains(key) ? text.format("experimental") + ". " : "") + description), Settings.preferences.getBoolean(key, false));
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(ui.dp(48), -2);
         // Normal-size App descriptions span the panel. Large text reserves a separate switch column.
@@ -961,7 +1229,6 @@ public final class SettingsActivity extends Activity {
             refreshChoices();
             feedback("paused".equals(key) ? text.get(checked ? "changes_paused" : "changes_resumed")
                 : text.get(checked ? "choice_on" : "choice_off", title), Toast.LENGTH_SHORT);
-            if ("light".equals(key)) refreshChoices();
             if ("hide_drawer_icon".equals(key)) applyDrawerIcon(this, checked);
             // The icon shortcuts follow their switch now, and stand in when another way in goes while they're hidden.
             if (Settings.HIDE_ICON_SHORTCUTS.equals(key) || (Settings.HIDE_LOGO_PRESS.equals(key) || "hide_drawer_icon".equals(key))
@@ -1002,9 +1269,48 @@ public final class SettingsActivity extends Activity {
             }
         });
         // A group draws the lines between its controls, so a control's own buttons sit above the line, not below it.
-        row.setBackground(ui.interactive(ui.surface, 0, 0));
-        row.setPadding(0, ui.dp(divided ? 11 : 0), 0, ui.dp(divided ? 11 : 0));
+        // The icon is drawn by the background, 30 dp from the screen edge in a section card or an App panel.
+        row.setBackground(ui.rowParts(ui.interactive(0, 0, 6), rowIcon(key), divided ? 11 : 0, false, 0));
+        // After the background, which would otherwise set the padding.
+        row.setPadding(ui.dp(divided ? 11 : 0), ui.dp(divided ? 10 : 0), ui.dp(divided ? 11 : 0), ui.dp(divided ? 10 : 0));
+        if (divided) row.setMinimumHeight(ui.dp(64));
         return row;
+    }
+
+    /** A row's icon: one its key's words call for, else its section's. Fixed per key, since some rows are rebuilt later. */
+    private static String rowIcon(String key) {
+        if (WAYS_IN.contains(key) || "hide_drawer_icon".equals(key)) return SettingsIcons.forKey(key, sectionIcon("quick_access"));
+        if ("light".equals(key) || "material_you_black".equals(key) || MaterialYouTheme.LIGHT_KEY.equals(key))
+            return SettingsIcons.forKey(key, sectionIcon("appearance"));
+        if ("check_updates".equals(key)) return SettingsIcons.forKey(key, sectionIcon("about"));
+        // A switch under another one takes that one's section.
+        String parent = Settings.KEEP_FACEBOOK_PROFILE.equals(key) ? "facebook"
+            : Settings.AVATAR_ROUNDED.equals(key) ? Settings.AVATAR_SHAPE
+            : Settings.KEEP_BADGES.containsValue(key) ? Settings.TAB_BADGES
+            : MessageLogButton.KEY.equals(key) || MessageLogButton.MENU_KEY.equals(key) || MessageLog.SAVE_EXPIRING.equals(key) ? MessageLog.KEY
+            : QuietCalls.CHOSEN_ONLY.equals(key) || key.startsWith(QuietCalls.CHAT_PREFIX) ? QuietCalls.KEY : key;
+        String section = "";
+        for (String[] spec : CONTROLS) if (spec[0].equals(parent)) { section = spec[3]; break; }
+        return SettingsIcons.forKey(key, sectionIcon(section));
+    }
+
+    /** Each section's icon, for its rows that have none of their own. */
+    private static String sectionIcon(String section) {
+        switch (section) {
+            case "inbox": return SettingsIcons.CHATS;
+            case "navigation": return SettingsIcons.TAB_BAR;
+            case "stickers": return SettingsIcons.LIKE;
+            case "conversations": return SettingsIcons.WRITING;
+            case "calls": return SettingsIcons.PHONE;
+            case "photos_videos": return SettingsIcons.STORIES;
+            case "links_bubbles": return SettingsIcons.LINKS;
+            case "privacy": return SettingsIcons.PRIVACY;
+            case "theme": return SettingsIcons.APPEARANCE;
+            case "quick_access": return SettingsIcons.OPENING;
+            case "appearance": return SettingsIcons.MOON;
+            case "about": return SettingsIcons.ABOUT;
+            default: return SettingsIcons.SETTINGS;
+        }
     }
 
     private void refreshStatus(Switch control) {
@@ -1036,7 +1342,7 @@ public final class SettingsActivity extends Activity {
         restart.setOnClickListener(view -> HostScreens.restartInto(this, page));
         ui.add(content, restart, 0);
         LinearLayout access = ui.panel();
-        access.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
+        access.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
         // The Menu tab row is its own patch, recorded as menu_row only when it applied.
         boolean menuRow = Settings.installed.contains("menu_row");
         // A Root Mount install has no drawer entry to mention or hide.
@@ -1077,16 +1383,16 @@ public final class SettingsActivity extends Activity {
             ui.add(access, wayControl(Settings.HIDE_LOGO_PRESS), 10);
         }
         if (drawerAlias && !hosted) {
-            TextView sharedInstall = ui.text(text.get("shared_install_help"), 13, ui.muted, false);
+            // Amber, since uninstalling from there wipes Messenger's data along with the icon.
+            TextView sharedInstall = ui.notice(text.get("shared_install_help"), true);
             sharedInstall.setTag("shared_install_help");
-            sharedInstall.setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12));
-            sharedInstall.setBackground(ui.shape(ui.infoSurface, ui.infoBorder, 8));
             ui.add(access, sharedInstall, 12);
         }
-        section(content, "quick_access", access, 12);
+        section(content, "quick_access", access);
         if (!installedControls.isEmpty()) {
             // The section around it carries the "quick_setups" tag.
             LinearLayout quick = quickPanel = ui.panel();
+            quick.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
             ui.add(quick, ui.text(text.get("quick_setups_help"), 13, ui.muted, false), 0);
             for (String name : QuickSetups.CHOICES) {
                 ui.rule(quick, 12);
@@ -1096,7 +1402,7 @@ public final class SettingsActivity extends Activity {
                 ui.add(quick, choice, 8);
                 ui.add(quick, ui.text(text.get("quick_" + name + "_help"), 13, ui.muted, false), 8);
             }
-            quickSection = section(content, "quick_setups", quick, 8);
+            quickSection = section(content, "quick_setups", quick);
             // A long press anywhere on the section hides it, header, buttons and help lines included.
             holdToHide(quickSection.getChildAt(0));
             holdToHide(quick);
@@ -1104,7 +1410,7 @@ public final class SettingsActivity extends Activity {
             showQuickSetups();
         }
         LinearLayout appearance = ui.panel();
-        appearance.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
+        appearance.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
         ui.add(appearance, controlRow("light", text.format("light"), text.format("light_help"), false), 0);
         if (Settings.installed.contains("material_you")) {
             ui.rule(appearance, 10);
@@ -1116,9 +1422,9 @@ public final class SettingsActivity extends Activity {
         }
         ui.rule(appearance, 10);
         ui.add(appearance, ui.text(text.get("theme_help"), 13, ui.muted, false), 12);
-        section(content, "appearance", appearance, 8);
+        section(content, "appearance", appearance);
         LinearLayout about = ui.panel();
-        about.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
+        about.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
         infoRow(about, text.get("version"), BuildConfig.VERSION_NAME);
         int art = ScreenArt.artDpi.applyAsInt(this), screen = getResources().getDisplayMetrics().densityDpi;
         if (ScreenArt.blurry(art, screen)) {
@@ -1132,9 +1438,10 @@ public final class SettingsActivity extends Activity {
         ui.rule(about, 10);
         ui.add(about, controlRow("check_updates", text.format("check_updates"), text.format("check_updates_help"), false), 4);
         updates.addTo(about);
-        section(content, "about", about, 8);
+        section(content, "about", about);
         updates.syncUpdateChoice(true);
         LinearLayout choices = ui.panel();
+        choices.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
         Button copy = ui.button(text.get("copy"));
         copy.setTag("copy_setup");
         copy.setOnClickListener(view -> copySetup());
@@ -1156,9 +1463,9 @@ public final class SettingsActivity extends Activity {
             ui.add(choices, quickHomeStatus, 8);
             showQuickSetups();
         }
-        section(content, "choices", choices, 8);
+        section(content, "choices", choices);
         LinearLayout usage = ui.panel();
-        usage.setPadding(ui.dp(14), ui.dp(14), ui.dp(14), ui.dp(14));
+        usage.setPadding(ui.dp(12), ui.dp(14), ui.dp(12), ui.dp(14));
         ui.add(usage, ui.text(text.get("save_help"), 13, ui.muted, false), 0);
         ui.add(usage, ui.text(text.get("pause_help"), 13, ui.muted, false), 10);
         ui.add(usage, ui.text(text.get("account_help"), 13, ui.muted, false), 10);
@@ -1168,38 +1475,49 @@ public final class SettingsActivity extends Activity {
         ui.add(help, ui.text(text.get("missing"), 15, ui.accent, true), 0);
         ui.add(help, ui.text(text.get("missing_help"), 13, ui.muted, false), 6);
         ui.add(usage, help, 12);
-        section(content, "usage", usage, 8);
+        section(content, "usage", usage);
         // #88: Messenger's own Log out, no dialog in front of it. A build the patch found none in says where to go instead.
-        LinearLayout logOut = linkPanel("log_out", "log_out", this::logOut);
+        // Log out acts on the spot, so it gets no chevron.
+        LinearLayout logOut = linkPanel("log_out", "log_out", SettingsIcons.PERSON, false, this::logOut);
         if (!LogOut.available()) {
             logOut.setOnClickListener(null);
             logOut.setEnabled(false);
             logOut.setClickable(false);
-            logOut.getChildAt(0).setAlpha(0.6f);
+            // The title dims, but the line saying where to log out instead keeps its full contrast.
+            logOut.getChildAt(0).setAlpha(0.38f);
             ((TextView) logOut.getChildAt(1)).setText(text.get("log_out_unavailable"));
             logOut.setContentDescription(text.get("log_out") + ". " + text.get("log_out_unavailable"));
         }
-        ui.add(content, logOut, 16);
-        Button source = ui.button(text.get("source"));
-        source.setTag("source_licenses");
-        source.setOnClickListener(view -> openPage("https://github.com/SysAdminDoc/HushMessenger#credits"));
-        ui.add(content, source, 16);
+        addOverview(content, logOut, 16, false);
+        addOverview(content, linkPanel("source_licenses", "source", SettingsIcons.LICENSE, true,
+            () -> openPage("https://github.com/SysAdminDoc/HushMessenger#credits")), 16, false);
         // Built when tapped, so the controls listed are the ones on right then.
-        ui.add(content, linkPanel("report_problem", "report", () -> openPage(ProblemReport.issueUrl(reportFacts()))), 12);
-        ui.add(content, linkPanel("support", "support", () -> openPage(SUPPORT_PAGE)), 12);
+        addOverview(content, linkPanel("report_problem", "report", SettingsIcons.BUG, true,
+            () -> openPage(ProblemReport.issueUrl(reportFacts()))), 16, false);
+        // Report and Support share one card, so Support's top line is Report's bottom one.
+        addOverview(content, linkPanel("support", "support", SettingsIcons.LIKE, true, () -> openPage(SUPPORT_PAGE)), 0, true);
         ui.add(content, ui.text(text.get("credits"), 12, ui.muted, false), 16);
         ui.add(content, ui.text(text.get("independent"), 12, ui.muted, false), 20);
     }
 
-    /** A panel that opens a page: text [id]'s title in the accent color over its "_help" line, read out as one button. */
-    private LinearLayout linkPanel(String tag, String id, Runnable open) {
+    /**
+     * HushGram's overview row: text [id]'s title over its "_help" line, read out as one button, with icon at the start
+     * and a chevron at the end when it opens a page. Full bleed, so its side lines sit just off screen.
+     */
+    private LinearLayout linkPanel(String tag, String id, String icon, boolean opens, Runnable open) {
         // A row with no "_help" text is its title alone, like Support.
         boolean help = SettingsText.ENGLISH.containsKey(id + "_help");
-        LinearLayout panel = ui.panel();
+        LinearLayout panel = ui.column();
         panel.setTag(tag);
         panel.setClickable(true);
         panel.setFocusable(true);
-        panel.setBackground(ui.interactive(ui.surface, ui.line, 12));
+        android.graphics.drawable.LayerDrawable parts = ui.rowParts(ui.interactive(ui.card, ui.line, 0), icon, 20, opens, 20);
+        parts.setLayerInsetRelative(0, -ui.dp(1), 0, -ui.dp(1), 0);
+        panel.setBackground(parts);
+        // After the background, which would otherwise set the padding.
+        panel.setPadding(ui.dp(20), ui.dp(6), ui.dp(20), ui.dp(6));
+        panel.setMinimumHeight(ui.dp(52));
+        panel.setGravity(Gravity.CENTER_VERTICAL);
         panel.setContentDescription(help ? text.get(id) + ". " + text.get(id + "_help") : text.get(id));
         panel.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
@@ -1208,10 +1526,30 @@ public final class SettingsActivity extends Activity {
                 info.setClassName(Button.class.getName());
             }
         });
-        ui.add(panel, ui.text(text.get(id), 16, ui.accent, true), 0);
-        if (help) ui.add(panel, ui.text(text.get(id + "_help"), 14, ui.muted, false), 4);
+        // The icon's 38 dp at the start, and the chevron's 16 plus 12 at the end.
+        TextView title = ui.text(text.get(id), 15, ui.text, true);
+        panel.addView(title, overviewText(opens, 0));
+        if (help) panel.addView(ui.text(text.get(id + "_help"), 12, ui.muted, false), overviewText(opens, 2));
         panel.setOnClickListener(view -> open.run());
         return panel;
+    }
+
+    private LinearLayout.LayoutParams overviewText(boolean opens, int top) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = ui.dp(top);
+        params.setMarginStart(ui.dp(38));
+        params.setMarginEnd(ui.dp(opens ? 28 : 0));
+        return params;
+    }
+
+    /** An overview row across the whole window, out of the page's 18 dp padding. Joined, it shares the row above's line. */
+    private void addOverview(LinearLayout content, LinearLayout row, int top, boolean joined) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = ui.dp(top);
+        params.setMarginStart(-ui.dp(18));
+        params.setMarginEnd(-ui.dp(18));
+        if (joined) ((android.graphics.drawable.LayerDrawable) row.getBackground()).setLayerInset(0, -ui.dp(1), -ui.dp(1), -ui.dp(1), 0);
+        content.addView(row, params);
     }
 
     /** What Report a problem fills in: versions, the phone and the English titles of the controls saved on. */
@@ -1362,15 +1700,17 @@ public final class SettingsActivity extends Activity {
     /**
      * One accordion section, HushFacebook's way: a header that opens and closes the card under it.
      * The header holds the title, a count the Controls tab fills in and the chevron, in that order.
+     * It looks like HushGram's heading, 22 dp in from the screen edge over a card on the 18 dp line.
      */
-    private LinearLayout section(LinearLayout parent, String id, View body, int top) {
+    private LinearLayout section(LinearLayout parent, String id, View body) {
         LinearLayout group = ui.column();
         group.setTag(id);
         LinearLayout header = ui.row();
         header.setTag("section_" + id);
         header.setMinimumHeight(ui.dp(48));
-        header.setPadding(ui.dp(14), ui.dp(10), ui.dp(10), ui.dp(10));
-        header.setBackground(ui.interactive(ui.surface, ui.line, 12));
+        header.setBackground(ui.interactive(0, 0, 8));
+        // After the background, which would otherwise set the padding.
+        header.setPadding(ui.dp(4), ui.dp(20), ui.dp(4), ui.dp(8));
         header.setClickable(true);
         header.setFocusable(true);
         TextView title = ui.heading(text.get(id));
@@ -1382,6 +1722,8 @@ public final class SettingsActivity extends Activity {
         TextView chevron = ui.text(String.valueOf((char) 0x203a), 20, ui.muted, true);
         chevron.setGravity(android.view.Gravity.CENTER);
         chevron.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        // The glyph mirrors in a right-to-left paragraph, and the quarter turn would then point it up while shut.
+        chevron.setTextDirection(View.TEXT_DIRECTION_LTR);
         // Square and as big as the glyph, which grows with the text size: it turns a quarter round as the section opens.
         int side = Math.max(ui.dp(24), (int) Math.ceil(Math.max(chevron.getPaint().getFontSpacing(),
             chevron.getPaint().measureText(chevron.getText().toString()))));
@@ -1392,6 +1734,9 @@ public final class SettingsActivity extends Activity {
                 super.onInitializeAccessibilityNodeInfo(host, info);
                 info.setClassName(Button.class.getName());
                 info.setHeading(true);
+                // A label of its own: read from the children, TalkBack said "Collapsed, Button" before the section's name.
+                CharSequence tally = count.getContentDescription();
+                info.setContentDescription(tally == null ? text.get(id) : text.get(id) + ". " + tally);
                 info.addAction(sectionShown(id) ? android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
                     : android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
             }
@@ -1406,8 +1751,10 @@ public final class SettingsActivity extends Activity {
             }
         });
         ui.add(group, header, 0);
-        ui.add(group, body, 6);
-        ui.add(parent, group, top);
+        // HushGram's section card, one per section.
+        body.setBackground(ui.cardShape());
+        ui.add(group, body, 0);
+        ui.add(parent, group, 0);
         sections.put(id, new LinearLayout[] {group, header});
         bindSection(id);
         return group;
@@ -1429,7 +1776,53 @@ public final class SettingsActivity extends Activity {
             saveSections();
         }
         bindSection(id);
+        updateViewToggle();
         if (parts != null) parts[1].sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_SELECTED);
+    }
+
+    /** Whether every Controls section on show is open, which is the list view. With none on show, the saved choice says. */
+    private boolean listView() {
+        boolean any = false;
+        for (LinearLayout group : groups) {
+            if (group.getVisibility() != View.VISIBLE) continue;
+            any = true;
+            if (!sectionShown((String) group.getTag())) return false;
+        }
+        if (any) return true;
+        for (LinearLayout group : groups) if (!openSections.contains((String) group.getTag())) return false;
+        return !groups.isEmpty();
+    }
+
+    /** The list switch's tap: every Controls section opens, or they all fold. During a search only the search's view changes. */
+    private void flipSectionView() {
+        boolean list = !listView();
+        for (LinearLayout group : groups) {
+            String id = (String) group.getTag();
+            if (searching) {
+                if (list) searchClosed.remove(id);
+                else searchClosed.add(id);
+            } else if (list) openSections.add(id);
+            else openSections.remove(id);
+        }
+        if (!searching) saveSections();
+        for (LinearLayout group : groups) bindSection((String) group.getTag());
+        updateViewToggle();
+    }
+
+    /** Words the list switch for what a tap shows: the long list, or the sections under their headings. */
+    private void updateViewToggle() {
+        if (viewToggle == null) return;
+        boolean list = listView();
+        String label = text.get(list ? "show_by_category" : "show_as_list");
+        TextView title = (TextView) viewToggle.getChildAt(0);
+        if (label.contentEquals(title.getText())) return;
+        title.setText(label);
+        viewToggle.setContentDescription(label);
+        // Stacked cards for the sections, lines for the long list, after HushGram.
+        android.graphics.drawable.Drawable icon = SettingsIcons.icon(this, list ? SettingsIcons.FEED : SettingsIcons.MENU, ui.heading);
+        // A drawable swapped into a layer gets no state of its own, and with none its tint reads as disabled.
+        icon.setState(viewToggle.getDrawableState());
+        ((android.graphics.drawable.LayerDrawable) viewToggle.getBackground()).setDrawable(1, icon);
     }
 
     private void bindSection(String id) {
@@ -1438,9 +1831,8 @@ public final class SettingsActivity extends Activity {
         boolean shown = sectionShown(id);
         LinearLayout header = parts[1];
         parts[0].getChildAt(1).setVisibility(shown ? View.VISIBLE : View.GONE);
-        ((TextView) header.getChildAt(0)).setTextColor(shown ? ui.accent : ui.muted);
+        // The heading keeps its color and the chevron says open or shut, so an open section wears no outline.
         header.getChildAt(2).setRotation(shown ? -90 : 90);
-        header.setActivated(shown);
         // No state description: TalkBack already says "collapsed" or "expanded" from the expand and collapse actions,
         // and a description of our own made it say the state twice.
     }
@@ -1463,6 +1855,7 @@ public final class SettingsActivity extends Activity {
             tab.setTextColor(selected ? ui.selectedText : ui.muted);
             tab.setBackground(ui.interactive(selected ? ui.accentFill : ui.surface, 0, 10));
         }
+        updateBarTitle();
     }
 
     private void updateSetup() {
@@ -1514,6 +1907,8 @@ public final class SettingsActivity extends Activity {
                 inside = text.get("message_log_keep");
                 for (int days : MessageLog.KEEP_CHOICES) inside += " " + text.get("message_log_keep_" + days);
                 inside += " " + text.get(MessageLogButton.KEY) + " " + text.get("message_log_button_help");
+                if (Settings.installed.contains("menu_row"))
+                    inside += " " + text.get(MessageLogButton.MENU_KEY) + " " + text.get("message_log_menu_row_help");
                 if (Build.VERSION.SDK_INT >= 29) inside += " " + text.get(MessageLog.SAVE_EXPIRING) + " " + text.get("message_log_save_expiring_help");
             }
             boolean match = SettingsSearch.matches(terms, spec[1], spec[2],
@@ -1533,10 +1928,12 @@ public final class SettingsActivity extends Activity {
         searching = !terms.isEmpty();
         searchClosed.clear();
         for (String id : sections.keySet()) bindSection(id);
+        updateViewToggle();
         searchStatus.setText(controlRows.isEmpty() ? text.get("none_installed") :
             visible == 0 ? text.get("no_matches") : text.get(controlRows.size() == 1 ? "results_one" : "results_many", visible, controlRows.size()));
         // With nothing installed, the status line already explains what to do.
         emptyState.setVisibility(visible == 0 && !controlRows.isEmpty() ? View.VISIBLE : View.GONE);
+        updateBarTitle();
     }
 
     @Override protected void onSaveInstanceState(Bundle state) {

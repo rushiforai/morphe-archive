@@ -30,6 +30,13 @@ public sealed class PostList(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By Text = Locate.AppId("quickSelfText");
     private static readonly OpenQA.Selenium.By AwardIcons = Locate.AppId("award_layout");
     private static readonly OpenQA.Selenium.By ActionBarMoreOptions = Locate.Description("More options");
+    private static readonly OpenQA.Selenium.By Thumbnail = Locate.AppId("thumbnail");
+    private static readonly OpenQA.Selenium.By ThumbnailClicker = Locate.AppId("thumbnailClicker");
+    private static readonly OpenQA.Selenium.By GalleryIndicator = Locate.AppId("thumbnail_album");
+    private static readonly OpenQA.Selenium.By CardImage = Locate.AppId("preview");
+
+    // "Fix list thumbnails" describes a thumbnail it blurs.
+    private const string BlurredThumbnail = "Blurred thumbnail";
 
     // The message the list showed when last read: another feed's error stays shown while the next one loads.
     private string? messageBefore;
@@ -87,20 +94,60 @@ public sealed class PostList(AndroidDriver driver)
             $"Only the posts {string.Join(", ", titles.Select(title => $"\"{title}\""))} in the main screen's list");
 
     /// <summary>
+    /// Waits until the list shows the post titled <paramref name="title"/>, as after a refresh that brings it, scrolling
+    /// down to it when it's below the screen.
+    /// </summary>
+    public async Task WaitUntilPostShownAsync(string title)
+    {
+        await WaitUntilPostsShownAsync();
+        // An NSFW post's title is tagged "<title> NSFW".
+        await OnScreen.ScrollToAsync(driver, List, Locate.AppIdWithTextStartingWith("title", title), $"The post \"{title}\"");
+    }
+
+    /// <summary>Waits until the post titled <paramref name="title"/> shows <paramref name="thumbnail"/>.</summary>
+    public Task WaitUntilThumbnailShownAsync(string title, PostThumbnail thumbnail) =>
+        Waiting.UntilAsync(
+            () => FindPost(title)?.FindElements(Thumbnail).FirstOrDefault(shown => shown.Displayed) is { } shown
+                && (shown.GetAttribute("content-desc") == BlurredThumbnail ? PostThumbnail.Blurred : PostThumbnail.Shown) == thumbnail,
+            TimeSpan.FromSeconds(10),
+            $"The post \"{title}\" with {(thumbnail == PostThumbnail.Blurred ? "a blurred thumbnail" : "a thumbnail that isn't blurred")}");
+
+    /// <summary>Waits until the card of the post titled <paramref name="title"/> shows an image, scrolling to it.</summary>
+    public async Task WaitUntilCardImageShownAsync(string title)
+    {
+        await WaitUntilPostShownAsync(title);
+        await Waiting.UntilAsync(
+            () => FindPost(title)?.FindElements(CardImage).Any(image => image.Displayed) == true,
+            TimeSpan.FromSeconds(10),
+            $"The image in the card of the post \"{title}\"");
+    }
+
+    /// <summary>Taps the thumbnail of the post titled <paramref name="title"/>, in the list view: it opens its media.</summary>
+    public Task ClickThumbnailAsync(string title) =>
+        OnScreen.PressAsync(driver, () => PostOrFail(title).FindElement(ThumbnailClicker));
+
+    /// <summary>
     /// What the post titled <paramref name="title"/> shows in the list: its points, between its vote arrows, its award
-    /// icons, the description of its button that opens its text, and its text under it.
+    /// icons, the description of its button that opens its text, its text under it, its thumbnail and whether the
+    /// gallery indicator shows over it.
     /// </summary>
     public Task<PostSnapshot> ReadPostAsync(string title) =>
         OnScreen.ReadAsync(driver, () =>
         {
             var post = PostOrFail(title);
-            return new PostSnapshot(title, post.FindElement(Points).Text.Trim())
+            // A card shows its points apart from the post's view.
+            return new PostSnapshot(title, post.FindElements(Points).FirstOrDefault()?.Text.Trim() ?? "")
             {
                 Awards = post.FindElements(AwardIcons).Sum(icons => icons.FindElements(By.ClassName("android.widget.ImageView")).Count),
                 TextButton = post.FindElements(TextButton).FirstOrDefault()?.GetAttribute("content-desc") is { Length: > 0 } description
                     ? TextPostButtonShowing.ReadTextPostButton(description)
                     : null,
                 Text = TextOf(title)?.Text.Trim(),
+                Thumbnail = post.FindElements(Thumbnail).FirstOrDefault(thumbnail => thumbnail.Displayed) is not { } thumbnail
+                    ? PostThumbnail.None
+                    : thumbnail.GetAttribute("content-desc") == BlurredThumbnail ? PostThumbnail.Blurred : PostThumbnail.Shown,
+                ShowsGalleryIndicator = post.FindElements(GalleryIndicator).Any(indicator => indicator.Displayed),
+                ShowsCardImage = post.FindElements(CardImage).Any(image => image.Displayed),
             };
         });
 
@@ -200,9 +247,21 @@ public sealed record PostListSnapshot(ImmutableArray<string> Titles, string? Mes
 /// <summary>A post of the list as it shows: its title, and its flair before it (null without one).</summary>
 public sealed record ShownPost(string Title, string? Flair)
 {
-    /// <summary>The post a title's view shows: " &lt;flair&gt;  &lt;title&gt;" with a flair, else the title.</summary>
+    // BaconReader tags an NSFW post's title, in the same view: "<title> NSFW".
+    private const string NsfwTag = " NSFW";
+
+    /// <summary>
+    /// The post a title's view shows: " &lt;flair&gt;  &lt;title&gt;" with a flair, else the title; an NSFW post's title
+    /// without the tag BaconReader puts after it, " NSFW".
+    /// </summary>
     public static ShownPost Read(string shown)
     {
+        shown = shown.TrimEnd();
+        if (shown.EndsWith(NsfwTag, StringComparison.Ordinal))
+        {
+            shown = shown[..^NsfwTag.Length];
+        }
+
         var split = shown.StartsWith(' ') ? shown.IndexOf("  ", 1, StringComparison.Ordinal) : -1;
         return split < 0 ? new(shown.Trim(), null) : new(shown[(split + 2)..].Trim(), shown[1..split].Trim());
     }
@@ -219,4 +278,20 @@ public sealed record PostSnapshot(string Title, string Points)
     public TextPostButton? TextButton { get; init; }
 
     public string? Text { get; init; }
+
+    public PostThumbnail Thumbnail { get; init; }
+
+    /// <summary>Whether BaconReader's gallery indicator, the lines above the thumbnail, shows.</summary>
+    public bool ShowsGalleryIndicator { get; init; }
+
+    /// <summary>Whether the post's card, in the card list, shows an image under its title.</summary>
+    public bool ShowsCardImage { get; init; }
+}
+
+/// <summary>A post's thumbnail in the list: none, one, or one "Fix list thumbnails" blurred.</summary>
+public enum PostThumbnail
+{
+    None,
+    Shown,
+    Blurred,
 }

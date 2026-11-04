@@ -25,14 +25,14 @@
 これはImage NGではなく、**画像取得専用VPNの追加ファイル**のエラーです。`haiagaru-image-ng.zip` にはVPNは入っていません。
 
 - VPNを使わない場合: 「画像取得専用VPN（実験用・検証中）」のチェックを外してください。Image NG用ZIPはHaiagaruの191画像判定オプションで選択したままで構いません。
-- VPNも使う場合: [VPN用haiagaru-image-vpn-v2.zip](https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.12.0-dev.4/haiagaru-image-vpn-v2.zip)を保存し、**VPN側のファイル選択**で指定してください。以前のパッチ向けに従来名のZIPも配布します。ZIP対応前のパッチでは、下の従来AARを使います。
+- VPNも使う場合: [VPN用haiagaru-image-vpn-v2.zip](https://github.com/areteruhiro/Haiagaru-Morphe/releases/latest/download/haiagaru-image-vpn-v2.zip)を保存し、**VPN側のファイル選択**で指定してください。以前のパッチ向けに従来名のZIPも配布します。ZIP対応前のパッチでは、下の従来AARを使います。
 
 ZIPはどちらも展開せず選びます。ファイル名を変更して代用しても、内容が違うため適用できません。
 
 ## GitHubの配布先・ソース
 
 - **絵文字フォント**: [NotoColorEmoji.ttfをダウンロード](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/patches/src/main/resources/chmate/emoji/NotoColorEmoji.ttf)。[開発元・ソース](https://github.com/googlefonts/noto-emoji)、[OFLライセンス](https://github.com/areteruhiro/Haiagaru-Morphe/blob/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/patches/src/main/resources/chmate/emoji/OFL.txt)。
-- **VPNライブラリ**: [image-stack.aarをダウンロード](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/vpn/image-stack/prebuilt/image-stack.aar)。[ソース・ビルド用ファイル](https://github.com/areteruhiro/Haiagaru-Morphe/tree/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/vpn/image-stack)、[ソースJAR](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/vpn/image-stack/prebuilt/image-stack-sources.jar)、[第三者ライセンス](https://github.com/areteruhiro/Haiagaru-Morphe/tree/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/third-party/image-stack)。VPNの全経路検証は未完了です。
+- **VPNライブラリ**: [image-stack.aarをダウンロード](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/vpn/image-stack/prebuilt/image-stack.aar)。[ソース・ビルド用ファイル](https://github.com/areteruhiro/Haiagaru-Morphe/tree/dev/vpn/image-stack)、[ソースJAR](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/vpn/image-stack/prebuilt/image-stack-sources.jar)、[第三者ライセンス](https://github.com/areteruhiro/Haiagaru-Morphe/tree/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/third-party/image-stack)。VPNの全経路検証は未完了です。
 - **画像判定の修正**: [haiagaru-image-ng.zipをGitHubから直接ダウンロード](https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/dev/optional-assets/haiagaru-image-ng.zip)。[GitHub Releases](https://github.com/areteruhiro/Haiagaru-Morphe/releases)にも軽量化対応版から同じZIPを添付します。[配布バイナリ](https://github.com/areteruhiro/Haiagaru-Morphe/tree/79759fb0ab0fa30a6755be13a53546b06d2cdf8d/patches/src/main/resources/chmate/tflite-226)、[TensorFlowのソース](https://github.com/tensorflow/tensorflow)。修正用バイナリはChMate 226 dev由来です。任意のTensorFlowビルドで代用することはできません。
 
 画像判定ZIPとVPN用ZIP／AARはそれぞれ4種類のCPU向けライブラリを含み、利用者がCPUを調べて選ぶ必要はありません。画像判定は対応する226 dev元APKの選択にも対応しています。
@@ -40,3 +40,6 @@ ZIPはどちらも展開せず選びます。ファイル名を変更して代�
 ## 開発者向け
 
 `./gradlew :patches:buildAndroid` は画像判定ZIPとVPN用ZIPを生成し、通常のSemantic Release CIでMPPと別々に添付します。巨大資材のソース・ライセンスはリポジトリに残し、MPPのリソースからだけ除外します。生成先は画像判定が `optional-assets/haiagaru-image-ng.zip`、新しいVPN版が `build/optional-assets/haiagaru-image-vpn-v2.zip`、旧パッチ互換用が `build/optional-assets/haiagaru-image-vpn.zip` です。VPN ZIPにはAAR内のJNIライブラリと対応する第三者ライセンスを含めます。
+
+
+VPNライブラリは対応するMPPと同じ更新のファイルを選んでください。開発版MPPを使用する場合は、同じ開発版のAARまたは生成ZIPが必要です。ビルドはソースの絶対パスとローカルのモジュール置換情報を埋め込まない設定を使用します。依存関係と第三者ライセンスは引き続き公開します。

@@ -1,7 +1,6 @@
 package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.MessengerTarget
-import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.hookId
 import app.morphe.patcher.patch.PatchException
@@ -190,14 +189,6 @@ class SpoofSelfReadsTest {
         assertTrue(spoofSelfReadsPatch in spoofPackageVersionPatch.dependencies)
     }
 
-    /** The armv7 builds expect ACRA's extra pre-Android 9 read, and every arm64 build the usual 17. */
-    @Test fun theArmv7BuildsExpectOneMoreRead() {
-        for (code in MessengerTarget.VERSION_CODES) {
-            val armv7 = code in setOf(347014974, 347014990)
-            assertEquals(if (armv7) 18 else 17, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
-        }
-    }
-
     /** Every supported stock build has its family's own reads, AppComponentManager's mismatch check among them. */
     @Test fun everyStockBuildHasItsFamilysOwnVersionReads() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
@@ -209,7 +200,7 @@ class SpoofSelfReadsTest {
         for (apk in apks) {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val methods = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes.flatMap { it.methods } }
-            val expected = selfVersionReadsFor(controlProfileFor(apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')))
+            val expected = SELF_VERSION_READS
             val reads = findSelfVersionReads(methods)
             if (reads.values.sum() != expected) {
                 miscounts += "${apk.fileName} ${reads.values.sum()} not $expected: ${reads.entries.map { "${it.key.hookId()} x${it.value}" }.sorted()}"

@@ -44,7 +44,7 @@
 
 ## 導入記録
 
-絶対root: C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/
+絶対root: <workspace>/
 
 - 最終APK build/thumbnail-viewport-menu242.apk SHA256=6DAD5A637F152C2D9C149136047F8FED215E850B71132285F54B3EB20416DA27。
 - 最終MPP build/thumbnail-viewport-menu-final.mpp SHA256=DB98FAFCF7E7F9CE3D6DD0D008348989D6C0755547054C1A934D291A3B0B5311。

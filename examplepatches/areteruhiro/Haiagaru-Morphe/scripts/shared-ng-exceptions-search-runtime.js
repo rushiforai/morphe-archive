@@ -1,0 +1,12 @@
+/* Detached actual search list and native response projection, no feed reads or submissions. */
+function main(fn){return new Promise((resolve,reject)=>Java.perform(()=>Java.scheduleOnMainThread(()=>{try{resolve(fn());}catch(e){reject(Error(String(e.stack||e)));}})));}
+rpc.exports={test(){return main(()=>{
+ const app=Java.use('android.app.ActivityThread').currentApplication(),pkg=String(app.getPackageName());if(!/\.haiagaru\.bindings(191|226|242)$/.test(pkg))throw Error('isolated bindings only');const a=Java.use('app.morphe.extension.chmate.Haiagaru').toolbarActivity(null),Rule=Java.use('app.morphe.extension.chmate.SharedNgRules$Rule'),List=Java.use('java.util.ArrayList'),Set=Java.use('java.util.HashSet');let checks=0;const check=(ok,label)=>{if(!ok)throw Error(label);checks++;};
+ const rows=List.$new();for(const values of [['a'.repeat(64),'*','keyword','検索テスト条件'],['b'.repeat(64),'5ch/all','id','FixtureID'],['c'.repeat(64),'edge/all','trip','FixtureTrip']])rows.add(Rule.$new.overload('java.lang.String','java.lang.String','java.lang.String','java.lang.String','java.lang.String','int','boolean').call(Rule,...values,'',5,false));
+ const selected=Set.$new();selected.add('d'.repeat(64));selected.add('a'.repeat(64));const box=Java.use('app.morphe.extension.chmate.SharedNgExceptions').$new(a,rows,selected),list=Java.cast(box.getChildAt(2),Java.use('android.widget.ListView'));
+ check(list.getCount()===3,'all rules visible');check(list.isItemChecked(0),'saved check shown');box.filter('ＦＩＸＴＵＲＥｉｄ');check(list.getCount()===1,'normalized ID search');check(!list.isItemChecked(0),'separate ID state');list.performItemClick(null,0,0);box.filter('検索');check(list.getCount()===1&&list.isItemChecked(0),'hidden checks retained across search');box.filter('no-such-fixture');check(list.getCount()===0&&String(Java.cast(box.getChildAt(1),Java.use('android.widget.TextView')).getText()).includes('該当なし'),'no match explained');box.filter('');const saved=box.selection();check(saved.contains('b'.repeat(64))&&saved.contains('a'.repeat(64))&&saved.contains('d'.repeat(64)),'all selected and absent-feed conditions retained');check(selected.size()===2&&!selected.contains('b'.repeat(64)),'cancel leaves original selection untouched');
+ const v=pkg.slice(-3);
+ // Matching engine behavior is covered separately; render and filter the actual view here.
+ check(box.selection().size()===3,'selection is independent of visible rows');
+ return {ok:true,version:v,checks,realNetworkRequests:0,sharedSettingsChanged:false};
+});}};

@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -114,7 +115,7 @@ public final class SettingsDialog extends DialogFragment {
         };
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.BLACK));
+            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(ScreenColors.current().background));
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             // With three-button navigation Android lays a grey scrim under the buttons; the
             // screen is black edge to edge, so the scrim only shows as a grey band. Android 9 has
@@ -242,11 +243,16 @@ public final class SettingsDialog extends DialogFragment {
         bar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         bar.setMinHeight(dp(56));
-        bar.setPaddingRelative(dp(20), dp(12), dp(20), dp(12));
+        bar.setPaddingRelative(dp(16), dp(12), dp(20), dp(12));
+        // A restart arrow and the heading blue's edge mark it as something to tap, not a notice.
+        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.TOOLS, palette.heading);
+        arrow.setBounds(0, 0, dp(24), dp(24));
+        bar.setCompoundDrawablesRelative(arrow, null, null, null);
+        bar.setCompoundDrawablePadding(dp(14));
         android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
         surface.setColor(palette.card);
-        surface.setCornerRadius(dp(16));
-        surface.setStroke(dp(1), palette.outline);
+        surface.setCornerRadius(dp(12));
+        surface.setStroke(dp(1), palette.heading);
         bar.setBackground(new android.graphics.drawable.RippleDrawable(
                 android.content.res.ColorStateList.valueOf(ScreenColors.half(palette.heading)), surface, surface));
         bar.setFocusable(true);
@@ -269,7 +275,8 @@ public final class SettingsDialog extends DialogFragment {
     private LinearLayout.LayoutParams restartBarSpace() {
         LinearLayout.LayoutParams space = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        space.setMargins(dp(12), dp(8), dp(12), dp(8));
+        // The cards' and the search field's 18dp side inset, so the bar lines up with them.
+        space.setMargins(dp(18), dp(8), dp(18), dp(8));
         return space;
     }
 
@@ -279,10 +286,20 @@ public final class SettingsDialog extends DialogFragment {
         if (bar != null) bar.setVisibility(owed ? View.VISIBLE : View.GONE);
     }
 
-    /** Shows the search title, and HushGram again for null. */
-    void showTitle(@androidx.annotation.Nullable CharSequence title) {
+    /**
+     * Shows the search title, and HushGram again for null. While [pageHeader], the page's own header
+     * has HushGram's name and icon on the screen, so the bar leaves the name off rather than show it
+     * twice. Once the header scrolls away the bar names the screen again. Runs on every scroll.
+     */
+    void showTitle(@androidx.annotation.Nullable CharSequence title, boolean pageHeader) {
         TextView bar = heading;
-        if (bar != null) bar.setText(title == null ? "HushGram" : title);
+        if (bar == null) return;
+        CharSequence text = title == null ? "HushGram" : title;
+        // A new text asks for a layout, which a scroll in the middle of one shouldn't.
+        if (!TextUtils.equals(text, bar.getText())) bar.setText(text);
+        // Invisible rather than gone, so the bar keeps its height and a search doesn't move the rows.
+        int shown = title == null && pageHeader ? View.INVISIBLE : View.VISIBLE;
+        if (bar.getVisibility() != shown) bar.setVisibility(shown);
     }
 
     /** Clears a search before Back closes the dialog. Expanding a section adds no Back level. */
@@ -467,9 +484,13 @@ public final class SettingsDialog extends DialogFragment {
             if (recovering) {
                 View list = container.findViewById(android.R.id.list);
                 if (list != null) list.requestFocus();
-                TextView pageHeading = heading;
+                TextView barTitle = heading;
                 owner.post(() -> {
-                    if (canOpenPage(owner) && !failed && heading == pageHeading) {
+                    if (!canOpenPage(owner) || failed || heading != barTitle) return;
+                    // The bar's title, or the header's name while the page shows it in its place.
+                    View pageHeading = barTitle.getVisibility() == View.VISIBLE
+                            ? barTitle : container.findViewWithTag(SettingsHeader.NAME);
+                    if (pageHeading != null) {
                         pageHeading.performAccessibilityAction(
                                 AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null);
                     }
@@ -494,6 +515,8 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     private void showFailure(View owner) {
+        // No page, so no header: the bar names the screen again.
+        showTitle(null, false);
         ScreenColors palette = ScreenColors.DEFAULT;
         ScrollView scroll = new ScrollView(getContext());
         LinearLayout content = new LinearLayout(getContext());

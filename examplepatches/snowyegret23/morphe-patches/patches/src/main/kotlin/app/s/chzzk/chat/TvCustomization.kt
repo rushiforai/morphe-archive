@@ -47,6 +47,11 @@ internal fun BytecodePatchContext.addTvCustomization() {
     addSeekHooks()
     addAudioHooks()
     addViewerCountHooks()
+    addLocalFeaturesHooks()
+    addFollowingNetworkHooks()
+    addPlayerDiagnosticsHooks()
+    addAccountFollowingHooks()
+    addFollowingEntryHooks()
     val stateFactory = classDefBy("Landroidx/compose/runtime/SnapshotStateKt;").methods.single {
         it.returnType == "Landroidx/compose/runtime/MutableState;" &&
             it.parameterTypeNames == listOf("Ljava/lang/Object;")

@@ -341,6 +341,35 @@ public class LocalPinsTest {
         assertFalse(mine.flag);
     }
 
+    @Test public void noAccountYetIsAskedAgainOnlyAfterAPause() throws Exception {
+        assertTrue(LocalPins.pinFull(new Key("mine")));
+        assertTrue(new File(context.getDatabasePath(LocalPins.KEY).getParentFile(), "msys_database_100").delete());
+        restart();
+        Summary early = new Summary("mine");
+        LocalPins.arrange(new Supplier(early));
+        assertFalse(early.flag);
+
+        account("100");
+        Summary next = new Summary("mine");
+        LocalPins.arrange(new Supplier(next));
+        assertFalse("the next draw doesn't list the database folder again", next.flag);
+
+        org.robolectric.shadows.ShadowSystemClock.advanceBy(java.time.Duration.ofMillis(2000));
+        Summary later = new Summary("mine");
+        LocalPins.arrange(new Supplier(later));
+        assertTrue(later.flag);
+    }
+
+    @Test public void aTapRightAfterSignInDoesntWaitOutThePause() throws Exception {
+        assertTrue(LocalPins.pinFull(new Key("mine")));
+        assertTrue(new File(context.getDatabasePath(LocalPins.KEY).getParentFile(), "msys_database_100").delete());
+        restart();
+        LocalPins.arrange(new Supplier(new Summary("chat")));
+        account("100");
+        assertTrue(LocalPins.unpinning(new Key("mine")));
+        assertTrue(LocalPins.pinFull(new Key("chat")));
+    }
+
     @Test public void theCurrentAccountComesFromItsDatabase() {
         File folder = context.getDatabasePath(LocalPins.KEY).getParentFile();
         assertEquals("100", LocalSearchStore.currentUser(folder));

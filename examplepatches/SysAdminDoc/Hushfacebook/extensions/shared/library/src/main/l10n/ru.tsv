@@ -1024,7 +1024,7 @@ The phone's language	Язык телефона
 Languages to leave alone	Языки без перевода
 None picked. Posts in every language can be translated.	Ничего не выбрано. Можно переводить публикации на любом языке.
 Left alone: %s	Без перевода: %s
-Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	В Ленте публикации отображаются полностью, поэтому нажимать «Еще» не нужно. Нажмите на текст публикации, чтобы снова свернуть его.
+Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	Публикации в Ленте и подписи к Reels отображаются полностью, поэтому нажимать «Еще» не нужно. Нажмите на текст, чтобы снова свернуть его.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Посмотреть, кто поделился
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Добавляет пункт «Посмотреть, кто поделился» в меню публикации. Он открывает список пользователей Facebook, которые поделились ею.
@@ -1331,10 +1331,10 @@ No dot or count on Feeds, Gaming, Events and the other tabs not listed here. The
 No dot or count on this tab. Its page still shows what's new when you open it.	На этой вкладке не будет точки или счетчика. При открытии страницы по-прежнему показываются новые элементы.
 # context: summary of the app icon count switch
 No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, which this can't remove.	На значке Facebook не будет счетчика. Уведомления по-прежнему приходят. Некоторые лаунчеры добавляют собственный счетчик, который эта настройка убрать не может.
-# context: switch title under News feed; it shows posts and reel captions in their original language instead of Facebook's automatic translation
+# context: switch title under News feed; it shows posts, comments and reel captions in their original language instead of Facebook's automatic translation
 Turn off auto-translation	Отключить автоматический перевод
 # context: description of that switch; See translation is the name of Facebook's own link under a post that translates it on request
-Posts and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Публикации и подписи Reels остаются на языке оригинала. Ссылка Facebook «Посмотреть перевод» по-прежнему доступна под ними.
+Posts, comments and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	Публикации, комментарии и подписи Reels остаются на языке оригинала. Ссылка Facebook «Посмотреть перевод» по-прежнему доступна под ними.
 # context: switch title under Reels and Watch, below Keep the reel speed; it keeps a playback speed picked on a feed or Watch video for the next videos
 Keep the video speed	Сохранять скорость видео
 # context: description of that switch; the gear menu is the settings button on a video's player, where Playback speed is picked
@@ -1738,7 +1738,7 @@ Settings row in Menu	Строка настроек в меню
 # context: summary of the switch for the Hushfacebook settings shortcut in the launcher icon's menu
 Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves that menu.	Добавляет настройки Hushfacebook в меню, которое открывается долгим нажатием на значок Facebook. Если выключено, этот пункт удаляется из меню.
 # context: summary of the switch for opening the settings with a long press on the Facebook logo
-A long press on the Facebook logo at the top of the home feed opens these settings. Off, the long press goes back to Facebook.	Долгое нажатие на логотип Facebook вверху главной Ленты открывает эти настройки. Если выключено, долгое нажатие снова выполняет действие Facebook.
+A long press on the Facebook logo at the top of the home feed, or on the title at the top of another tab, opens these settings. Off, the long press goes back to Facebook.	Долгое нажатие на логотип Facebook вверху главной Ленты или на заголовок вверху другой вкладки открывает эти настройки. Если выключено, долгое нажатие снова выполняет действие Facebook.
 # context: summary of the switch for the Hushfacebook settings row in Facebook's Menu
 Adds a Hushfacebook settings row at the end of Settings and privacy in Facebook's Menu. Off, the row leaves the Menu.	Добавляет строку настроек Hushfacebook в конец раздела «Настройки и конфиденциальность» в меню Facebook. Если выключено, строка удаляется из меню.
 # context: summary shown instead of a switch's usual one while it is the only one of the three ways into the settings still on, so it is greyed out
@@ -2380,7 +2380,7 @@ Adv. Filters button	Кнопка «Доп. фильтры»
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	Добавляет кнопку «Доп. фильтры» под фильтрами Marketplace в результатах поиска. Она открывает списки слов для включения и скрытия, а также местоположений, и автоматически добавляет правила в поисковый запрос.
 # context: switch title and summary under Marketplace; a listing is something for sale
 Show when listings went up	Показывать дату публикации объявления
-A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	На странице объявления рядом с местоположением показывается, сколько времени прошло с момента публикации, и дата. Facebook отображает эти сведения только для новых объявлений.
+A listing's page says how long ago it was listed and the date, under its price and next to its place. Facebook only shows it for new listings.	На странице объявления под ценой и рядом с местоположением показывается, сколько времени прошло с момента публикации, и дата. Facebook отображает эти сведения только для новых объявлений.
 # context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
 Listed %1$s (%2$s)	Опубликовано %1$s (%2$s)
 How Adv. Filters works	Как работают доп. фильтры
@@ -2414,7 +2414,7 @@ The Subscribe button some authors get there instead, which subscribes with one t
 # context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
 Fix washed-out video colors	Исправлять блеклые цвета видео
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
-Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	Видео и Reels отображаются вместе с остальной частью экрана, как при отключении аппаратных наложений в параметрах разработчика. Попробуйте, если Reels выглядят блеклыми, пока что-нибудь не перекроет их. Расход заряда немного увеличится.
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery and can make videos stutter, mostly high frame rate ones.	Видео и Reels отображаются вместе с остальной частью экрана, как при отключении аппаратных наложений в параметрах разработчика. Попробуйте, если Reels выглядят блеклыми, пока что-нибудь не перекроет их. Расход заряда немного увеличится. Видео может подтормаживать, особенно с высокой частотой кадров.
 # context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
 Burn-in guard	Защита от выгорания
 Dim when idle	Затемнять в покое
@@ -2525,10 +2525,12 @@ Reel post dates will show the day they were posted.	Для Reels будет по
 Hide pictures on the Blocked list	Скрывать фото в списке заблокированных
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Заблокированные вами люди показываются без фото профиля на странице блокировки в настройках Facebook. Если страница уже открыта, откройте её заново.
 Hide Up next on videos	Скрывать «Далее» в видео
-Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	Убирает полосу ДАЛЕЕ со следующим видео внизу видео, открытого из Ленты. Изменение действует со следующего видео, которое вы откроете.
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Убирает полосу ДАЛЕЕ со следующим видео внизу видео, открытого из Ленты, вместе с пустым местом под неё, так что шкала воспроизведения остаётся внизу. Изменение действует со следующего видео, которое вы откроете.
 Icons look soft on this screen. Repatch with the 120-640dpi bundle.	Значки на этом экране выглядят размытыми. Повторите патчинг с пакетом 120-640dpi.
 Icons look soft on this screen	Значки на этом экране выглядят размытыми
 The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	В пропатченном вами Facebook нет изображений для этого экрана, поэтому некоторые значки увеличены. Пропатчите Facebook заново из пакета (arm64-v8a) (120-640dpi) с APKMirror, в котором есть изображения для любого экрана.
 Let each post come back once	Показывать каждую публикацию ещё раз
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Публикация, мимо которой вы прокрутили, появится ещё один раз, а если снова прокрутить мимо, она будет скрыта. Так после быстрой прокрутки теряется меньше публикаций.
 There's no Facebook link in what you shared.	В том, чем вы поделились, нет ссылки на Facebook.
+Open in Facebook from the share menu	Open in Facebook в меню «Поделиться»
+Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Поделитесь ссылкой на Facebook из браузера Messenger или другого приложения и выберите Open in Facebook, чтобы открыть её здесь.

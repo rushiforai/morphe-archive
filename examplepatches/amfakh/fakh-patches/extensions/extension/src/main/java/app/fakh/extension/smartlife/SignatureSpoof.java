@@ -4,6 +4,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Base64;
 import android.util.Log;
 
@@ -11,13 +13,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Map;
 
 /**
  * Makes the app see its original signing certificate instead of the one a patched APK is resigned with.
  * Smart Life's native security library (libthing_security) reads the app's signature and kills the process
  * when it does not match. The system IPackageManager held in ActivityThread is wrapped with a dynamic proxy
  * that rewrites the certificate in every PackageInfo returned for this package, so GET_SIGNATURES and
- * GET_SIGNING_CERTIFICATES reads yield the original. Must run before the app reads its own signature.
+ * GET_SIGNING_CERTIFICATES reads yield the original. PackageInfo.CREATOR is replaced as well, so a PackageInfo
+ * that reaches the app by any other route, or from a cache filled earlier, is rewritten when it is unmarshalled.
+ * Must run before the app reads its own signature.
+ * The CREATOR replacement follows ApkSignatureKillerEx (https://github.com/L-JINBIN/ApkSignatureKillerEx), as
+ * adapted by Fuku856/smartlife-patches and the Reddit patches of MorpheApp/morphe-patches.
  */
 @SuppressWarnings("unused")
 public final class SignatureSpoof {
@@ -57,6 +64,8 @@ public final class SignatureSpoof {
             tuyaSmartSignature = new Signature(Base64.decode(TUYA_SMART_CERT, Base64.DEFAULT));
             bardiSignature = new Signature(Base64.decode(BARDI_CERT, Base64.DEFAULT));
 
+            replaceCreator();
+
             Class<?> activityThread = Class.forName("android.app.ActivityThread");
             Field pmField = activityThread.getDeclaredField("sPackageManager");
             pmField.setAccessible(true);
@@ -79,6 +88,70 @@ public final class SignatureSpoof {
     }
 
     /** The original certificate of [packageName], or null when it is not one of the apps this patch is for. */
+    /**
+     * Swaps PackageInfo.CREATOR for one that rewrites the certificate of this package, then empties the Parcel
+     * creator caches so a CREATOR cached before the swap is not used. The caches are hidden API, so the exemption
+     * goes through VMRuntime by double reflection; every step is best effort and the proxy still covers the rest.
+     */
+    private static void replaceCreator() {
+        try {
+            final Parcelable.Creator<PackageInfo> original = PackageInfo.CREATOR;
+            Parcelable.Creator<PackageInfo> creator = new Parcelable.Creator<PackageInfo>() {
+                @Override
+                public PackageInfo createFromParcel(Parcel source) {
+                    return (PackageInfo) patch(original.createFromParcel(source));
+                }
+
+                @Override
+                public PackageInfo[] newArray(int size) {
+                    return original.newArray(size);
+                }
+            };
+            Field field = PackageInfo.class.getDeclaredField("CREATOR");
+            field.setAccessible(true);
+            field.set(null, creator);
+        } catch (Throwable t) {
+            Log.w(TAG, "CREATOR replacement failed", t);
+            return;
+        }
+
+        exemptHiddenApi();
+        clearStatic(PackageManager.class, "sPackageInfoCache");
+        clearStatic(Parcel.class, "mCreators");
+        clearStatic(Parcel.class, "sPairedCreators");
+    }
+
+    /** Empties a static cache field, whether it is a Map or a PropertyInvalidatedCache. */
+    private static void clearStatic(Class<?> owner, String name) {
+        try {
+            Field field = owner.getDeclaredField(name);
+            field.setAccessible(true);
+            Object cache = field.get(null);
+            if (cache instanceof Map) {
+                ((Map<?, ?>) cache).clear();
+            } else if (cache != null) {
+                cache.getClass().getMethod("clear").invoke(cache);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Lifts the hidden API restrictions for this process by calling VMRuntime.setHiddenApiExemptions. */
+    private static void exemptHiddenApi() {
+        if (Build.VERSION.SDK_INT < 28) return;
+        try {
+            Method forName = Class.class.getDeclaredMethod("forName", String.class);
+            Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
+            Class<?> vmRuntime = (Class<?>) forName.invoke(null, "dalvik.system.VMRuntime");
+            Method getRuntime = (Method) getDeclaredMethod.invoke(vmRuntime, "getRuntime", null);
+            Method setExemptions = (Method) getDeclaredMethod.invoke(
+                vmRuntime, "setHiddenApiExemptions", new Class<?>[]{String[].class});
+            setExemptions.invoke(getRuntime.invoke(null), (Object) new String[]{"L"});
+        } catch (Throwable t) {
+            Log.w(TAG, "hidden API exemption unavailable: " + t.getCause());
+        }
+    }
+
     private static Signature originalFor(String packageName) {
         if (SMARTLIFE_PACKAGE.equals(packageName)) return smartLifeSignature;
         if (TUYA_SMART_PACKAGE.equals(packageName)) return tuyaSmartSignature;

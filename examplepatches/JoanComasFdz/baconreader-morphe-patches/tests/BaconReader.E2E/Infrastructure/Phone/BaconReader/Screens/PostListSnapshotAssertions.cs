@@ -48,6 +48,46 @@ public static class PostListSnapshotAssertions
         return that;
     }
 
+    /// <summary>The post shows a thumbnail, not blurred.</summary>
+    public static AssertingThat<PostSnapshot> ShowsAThumbnail(this AssertingThat<PostSnapshot> that) =>
+        ShowsThumbnail(that, PostThumbnail.Shown, "a thumbnail");
+
+    /// <summary>The post shows a thumbnail that isn't blurred.</summary>
+    public static AssertingThat<PostSnapshot> ShowsAThumbnailThatIsntBlurred(this AssertingThat<PostSnapshot> that) =>
+        ShowsThumbnail(that, PostThumbnail.Shown, "a thumbnail that isn't blurred");
+
+    /// <summary>The post shows a blurred thumbnail.</summary>
+    public static AssertingThat<PostSnapshot> ShowsABlurredThumbnail(this AssertingThat<PostSnapshot> that) =>
+        ShowsThumbnail(that, PostThumbnail.Blurred, "a blurred thumbnail");
+
+    /// <summary>The post's card, in the card list, shows an image under its title.</summary>
+    public static AssertingThat<PostSnapshot> ShowsAnImageInItsCard(this AssertingThat<PostSnapshot> that)
+    {
+        Assert.True(that.InstanceToAssert.ShowsCardImage, $"The card of the post \"{that.InstanceToAssert.Title}\" shows no image, but one was expected.");
+        return that;
+    }
+
+    /// <summary>The post shows BaconReader's gallery indicator over its thumbnail.</summary>
+    public static AssertingThat<PostSnapshot> ShowsTheGalleryIndicator(this AssertingThat<PostSnapshot> that)
+    {
+        var post = that.InstanceToAssert;
+        Assert.True(post.ShowsGalleryIndicator, $"The post \"{post.Title}\" shows no gallery indicator, but it was expected over its thumbnail.");
+        return that;
+    }
+
+    private static AssertingThat<PostSnapshot> ShowsThumbnail(AssertingThat<PostSnapshot> that, PostThumbnail expected, string what)
+    {
+        var post = that.InstanceToAssert;
+        var shown = post.Thumbnail switch
+        {
+            PostThumbnail.None => "no thumbnail",
+            PostThumbnail.Blurred => "a blurred thumbnail",
+            _ => "a thumbnail that isn't blurred",
+        };
+        Assert.True(post.Thumbnail == expected, $"The post \"{post.Title}\" shows {shown}, but {what} was expected.");
+        return that;
+    }
+
     /// <summary>The post shows <paramref name="points"/> points.</summary>
     public static AssertingThat<PostSnapshot> ShowsPoints(this AssertingThat<PostSnapshot> that, int points)
     {

@@ -12,9 +12,10 @@ import java.lang.reflect.Method;
  * Uses named read-only getters only. Process-local wrappers answer only the inspected
  * SDK checks for their device; they do not grant Android platform permissions.
  * <p>
- * Copied from fank-morphe-maps-patches 1.4.0; only the package differs.
+ * Copied from fank-morphe-maps-patches 1.4.0; only the package differs, plus {@link BydBatterySource},
+ * which {@link TsEnergyReader} also implements for DiLink 5.
  */
-final class BydEnergyReader {
+final class BydEnergyReader implements BydBatterySource {
     static final class Sample {
         long elapsed;
         long wall;
@@ -66,8 +67,8 @@ final class BydEnergyReader {
     private boolean optionalInitAttempted;
     private String optionalInitStatus = "optional_init=not_attempted";
 
-    /** Returns a short status for the log. Never throws. */
-    String init(Context context) {
+    @Override
+    public String init(Context context) {
         try {
             ReadContext scoped = new ReadContext(context.getApplicationContext());
             Class<?> statisticClass = Class.forName("android.hardware.bydauto.statistic.BYDAutoStatisticDevice");
@@ -92,12 +93,13 @@ final class BydEnergyReader {
         }
     }
 
-    boolean ready() {
+    @Override
+    public boolean ready() {
         return statistic != null && power != null;
     }
 
-    /** One validated reading, or null if SOC, energy or odometer is unavailable. */
-    Sample read() throws Exception {
+    @Override
+    public Sample read() throws Exception {
         if (!ready()) return null;
         Sample sample = new Sample();
         sample.elapsed = SystemClock.elapsedRealtime();
@@ -198,7 +200,7 @@ final class BydEnergyReader {
                 && value == Math.rint(value) ? (int) value : -1;
     }
 
-    private static double validConsumption(double value) {
+    static double validConsumption(double value) {
         return Double.isFinite(value) && value > 0 && value <= 99.9 ? value : Double.NaN;
     }
 
@@ -206,7 +208,7 @@ final class BydEnergyReader {
         return getter == null ? "missing" : Double.isFinite(value) ? "ok" : "unavailable";
     }
 
-    private static Object invoke(Method method, Object target, Object... args) throws Exception {
+    static Object invoke(Method method, Object target, Object... args) throws Exception {
         try {
             return method.invoke(target, args);
         } catch (InvocationTargetException e) {

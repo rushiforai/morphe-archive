@@ -31,7 +31,7 @@
 
 ## 成果物・導入
 
-ルートは C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/ 。
+ルートは <workspace>/ 。
 
 - build/thread-tab-swipe.mpp SHA-256: 8A5FB88F80A116A47A42B79FE9A42436BF23A8EF7108C356FEA6FA654A86708B。
 - build/thread-tab-swipe191.apk SHA-256: 978941413497B712819B24E58E4CB3F0F3E241FF9A4C457FA4169C285A90F1F2。

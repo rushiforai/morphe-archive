@@ -43,8 +43,8 @@ object SitePackagenameFingerprint : Fingerprint(
  * username/password + Sign Up for a real (free or PRO) login.
  */
 object TvAccountGateFingerprint : Fingerprint(
-    definingClass = "Lwk2;",
-    name = "b1",
+    definingClass = "Lct2;",
+    name = "g1",
     returnType = "V",
     parameters = listOf("Z", "Z")
 )
@@ -58,11 +58,12 @@ val bypassAccountNeededPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY_APP)
 
     execute {
+        // getPackagename has .locals 0 in 6.7.2: override through p0 itself.
         SitePackagenameFingerprint.method.addInstructions(
             0,
             """
-                const-string v0, "standardsite"
-                return-object v0
+                const-string p0, "standardsite"
+                return-object p0
             """
         )
 
@@ -76,11 +77,17 @@ val bypassAccountNeededPatch = bytecodePatch(
                 break
             }
         }
-        check(isEmptyResult >= 0) { "b1: isEmpty move-result not found" }
-        // p2=true only from the "Login with PRO Account" tile: keep the real
-        // isEmpty result there so the login dialog opens (real PRO login).
-        // p2=false (startup / site-tile gate): force isEmpty=false → silent
-        // anonymous login, the bypass this patch exists for.
+        check(isEmptyResult >= 0) { "g1: isEmpty move-result not found" }
+        // Stock: `if-nez p1, :cond_0` -> p1==0 jumps to the dialog branch
+        // (rn.y contains ui_user_account_needed); the fall-through branch is
+        // the anonymous login (rn.l). Forcing the isEmpty result to 0 when
+        // p2=false therefore skips the username gate.
+        // 6.7.2 observation: this emulator shows the same "User Account
+        // needed" chooser on the STOCK build (fresh install), i.e. the dialog
+        // is the app's normal first-run prompt / anonymous-login fallback —
+        // so its appearance is not evidence about this gate either way.
+        // p2=true only from the "Login with PRO Account" tile: keep the stock
+        // branch there so the real login dialog opens.
         gate.addInstructionsWithLabels(
             isEmptyResult + 1,
             """

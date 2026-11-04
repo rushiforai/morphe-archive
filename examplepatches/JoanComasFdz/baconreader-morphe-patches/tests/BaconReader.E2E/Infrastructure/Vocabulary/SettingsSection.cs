@@ -13,6 +13,10 @@ public partial record SettingsSection
     public partial record ListView;
 
     public partial record DetailView;
+    public partial record Filters;
+
+    /// <summary>Holds "Open links inside app".</summary>
+    public partial record Other;
 
     public partial record Patches;
 
@@ -23,13 +27,15 @@ public partial record SettingsSection
 /// <summary>What the app shows for each <see cref="SettingsSection"/>: the only place those strings live.</summary>
 public static class SettingsSectionShowing
 {
-    private static readonly SettingsSection[] Listed = [new SettingsSection.ListView(), new SettingsSection.DetailView(), new SettingsSection.Patches()];
+    private static readonly SettingsSection[] Listed = [new SettingsSection.ListView(), new SettingsSection.DetailView(), new SettingsSection.Filters(), new SettingsSection.Other(), new SettingsSection.Patches()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this SettingsSection value) =>
         value.Match(
             listView => "List View",
             detailView => "Detail View",
+            filters => "Filters",
+            other => "Other",
             patches => "Patches",
             unlisted => unlisted.Shown);
 

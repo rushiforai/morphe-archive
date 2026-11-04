@@ -417,6 +417,8 @@ Opening someone's profile takes you on to their posts as a scrolling list of ful
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Die Karten mit Personen und Creators zum Folgen, die Instagram zwischen Reels einfügt. Jedes Reel wird weiter abgespielt.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Lässt Reels mit dem Hinweis „Bezahlte Partnerschaft“ weg, und Reels, die Instagram als beworben markiert. Werbung hat einen eigenen Schalter.
 Turn on Start Home on Following to use this choice.	Aktiviere „Startseite mit Gefolgt öffnen“, um diese Auswahl zu nutzen.
+# context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
+Turn on %1$s to use this slider.	Aktiviere „%1$s“, um diesen Regler zu nutzen.
 Turn on Story ring size to use this choice.	Aktiviere „Größe der Story-Ringe“, um diese Auswahl zu nutzen.
 Turn on Default playback quality to use this choice.	Aktiviere „Standard-Wiedergabequalität“, um diese Auswahl zu nutzen.
 Updating remembered positions...	Gespeicherte Wiedergabepositionen werden aktualisiert...
@@ -503,7 +505,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	Suchleiste wie bei Videos in Nachrichten
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	Gibt Reels die Suchleiste eines Videos im Chat, eine dünne graue Linie, die beim Abspielen weiß wird, mit einem großen runden weißen Griff. Die Zeit steht darüber. Zum Spulen ziehen. Ist die größere Suchleiste auch an, gilt dieser Stil. Die Leiste bleibt auch bei kurzen Reels.
 Blur the bars around a reel	Balken um ein Reel weichzeichnen
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	Ein Reel, das den Bildschirm nicht ausfüllt, zeigt über und unter sich eine unscharfe Kopie von sich selbst statt schwarzer Balken, und auch der Streifen unter der Tab-Leiste und der Bereich hinter der Uhr zeigen das Reel unscharf. Öffne Reels nach einer Änderung erneut.
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Ein Reel, das den Bildschirm nicht ausfüllt, zeigt über und unter sich eine unscharfe Kopie von sich selbst statt schwarzer Balken, und auch der Streifen unter der Tab-Leiste und der Bereich hinter der Uhr zeigen das Reel unscharf. Die Kopie erscheint nur, wo ein Reel Platz lässt, etwa mit Ganzes Reel zeigen. Öffne Reels nach einer Änderung erneut.
 # Chosen navigation long-press settings entry. Account tab availability varies.
 Settings entry	Zugang zu den Einstellungen
 Open settings with a tab long press	Einstellungen durch langes Drücken auf einen Tab öffnen
@@ -772,7 +774,7 @@ Bio copied	Steckbrief kopiert
 Copy bio	Steckbrief kopieren
 Copy username and bio	Benutzername und Steckbrief kopieren
 Profile extras button	Zusatzknopf im Profil
-Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	Setzt neben die drei Punkte in Profilen einen Button, der die Profilaktionen von HushGram öffnet. Die Zeilen im Drei-Punkte-Menü bleiben auch erhalten.
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. Needs Save profile picture, View profile picture or Copy username and bio on. The rows in the three-dot menu stay too.	Setzt neben die drei Punkte in Profilen einen Button, der die Profilaktionen von HushGram öffnet. Braucht Profilbild speichern, Profilbild ansehen oder Benutzername und Steckbrief kopieren. Die Zeilen im Drei-Punkte-Menü bleiben auch erhalten.
 HushGram profile actions	HushGram-Profilaktionen
 Nothing to do for this profile	Hier gibt es nichts zu tun
 Couldn't copy the bio	Steckbrief konnte nicht kopiert werden
@@ -946,6 +948,10 @@ The tab bar keeps Instagram's order.	Die Tab-Leiste behält Instagrams Reihenfol
 Tabs go in this order: %1$s. Restart Instagram to see the change.	Die Tabs stehen in dieser Reihenfolge: %1$s. Starte Instagram neu, um die Änderung zu sehen.
 Show and reorder tabs	Tabs zeigen und ordnen
 Drag to move %1$s	Ziehen, um %1$s zu verschieben
+Move up	Nach oben
+Move down	Nach unten
+# context: Show and reorder tabs: what a screen reader is told after Move up or Move down on a row's handle; %1$s is the tab, %2$d its new place and %3$d how many tabs the list holds (#207)
+%1$s is now %2$d of %3$d	%1$s ist jetzt %2$d von %3$d
 Reset	Zurücksetzen
 Create	Erstellen
 Start tab	Starttab
@@ -966,6 +972,9 @@ Start stories with sound	Stories mit Ton starten
 Stories open with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count, so on silent or with the volume down, stories stay quiet.	Stories öffnen sich mit eingeschaltetem Ton, so als hättest du auf den Lautsprecher von Instagram getippt. Klingelton und Lautstärke deines Telefons zählen weiterhin, also bleiben Stories bei lautlos oder leiser Lautstärke stumm.
 Stop swipe up to reply	Nach oben wischen zum Antworten stoppen
 A swipe up on someone's story no longer opens the reply box and its reactions. Tap Send message to reply.	Wenn du bei der Story einer anderen Person nach oben wischst, öffnen sich das Antwortfeld und seine Reaktionen nicht mehr. Tippe auf Nachricht senden, um zu antworten.
+# context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
+Hide the reply box on stories	Antwortfeld in Stories ausblenden
+Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	Blendet das Feld Nachricht senden unten in den Stories anderer Personen aus. Die Buttons zum Liken und Teilen daneben bleiben an ihrem Platz.
 # context: toast when Download all is tapped while another post is still saving; it waits its turn
 Queued. It starts once the post before it is saved.	In der Warteschlange. Startet, sobald der Beitrag davor gespeichert ist.
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
@@ -1071,6 +1080,9 @@ Turn on Instagram's clear mode on a reel and the next reels open in it too. Leav
 # context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
 Start every reel in clear mode	Jedes Reel im klaren Modus starten
 Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	Reels öffnen sich ab dem ersten im klaren Modus, ohne Tippen. Verlässt du ihn selbst, zeigen die nächsten Reels ihre Buttons wieder. Instagram blockiert im klaren Modus Screenshots, außer Screenshots erlauben ist an.
+# context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
+Don't vibrate in clear mode	Im klaren Modus nicht vibrieren
+Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Stoppt das kurze Vibrieren, das Instagram abspielt, wenn ein Reel im klaren Modus öffnet. Mit Klaren Modus anlassen ist das bei jedem Wischen.
 Unlock with	Entsperren mit
 Phone lock	Handy-Sperre
 HushGram PIN	HushGram-PIN
@@ -1262,9 +1274,9 @@ Share to	Teilen mit
 Copy link	Link kopieren
 QR code	QR-Code
 WhatsApp status	WhatsApp-Status
-Reply to author	Dem Autor antworten
+Reply to author (posts and reels)	Dem Autor antworten (Beiträge und Reels)
 Watch on TV	Auf dem Fernseher ansehen
-Download profile card	Profilkarte herunterladen
+Download profile card (on profiles)	Profilkarte herunterladen (in Profilen)
 Add to channel	Zu Kanal hinzufügen
 WhatsApp	WhatsApp
 SMS	SMS
@@ -1564,6 +1576,8 @@ No accounts yet	Noch keine Konten
 %1$d account	%1$d Konto
 %1$d accounts	%1$d Konten
 Home header text	Text oben auf der Startseite
+# context: placeholder in the empty Home header text field, where the person types their own words for the top of Home
+Your words	Dein Text
 Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Eigene Worte oben auf der Startseite statt des Instagram-Logos. Bis zu %1$d Zeichen. Lass es leer, um das Logo zu behalten.
 Instagram's logo stays at the top of Home.	Oben auf der Startseite bleibt das Instagram-Logo.
 The top of Home says %1$s.	Oben auf der Startseite steht %1$s.
@@ -1590,6 +1604,10 @@ Red story mentions	Rote Story-Erwähnungen
 Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Zeigt den Text der Erwähnungs-Kapsel in Rot statt Weiß, damit er auf hellen Stories auffällt.
 Only received reels	Nur erhaltene Reels
 Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Beim Durchwischen der Reels eines Chats werden die übersprungen, die du dort gesendet hast, es geht also nur durch die Reels der anderen Person. Funktioniert mit eingeschaltetem Durch die Reels eines Chats wischen.
+# context: Messages settings (#489), and the banner over a reel opened from a chat when the other person wrote after it; a tap goes back to the chat
+Messages after a reel	Nachrichten nach einem Reel
+While you swipe through a chat's reels, a banner says when the other person sent a message after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe through a chat's reels on.	Beim Durchwischen der Reels eines Chats zeigt ein Banner an, wenn die andere Person nach dem Reel auf dem Bildschirm eine Nachricht gesendet hat. Tippe darauf, um zum Chat bei dieser Nachricht zurückzukehren. Funktioniert, wenn Durch die Reels eines Chats wischen an ist.
+New message after this reel	Neue Nachricht nach diesem Reel
 Hide the audio icon on posts	Audio-Symbol bei Beiträgen ausblenden
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Entfernt das Lautsprecher-Symbol von Videos in deinem Feed. Ein Tipp auf das Video schaltet den Ton weiterhin ein oder aus. Beiträge, die schon auf dem Bildschirm sind, ändern sich, wenn sie neu geladen werden.
 Light when paused	Hell bei Pause
@@ -1663,3 +1681,55 @@ View once message	Nachricht zum einmaligen Ansehen
 Attachment	Anhang
 # context: the button next to the reply field in the chat preview box.
 Send	Senden
+Dim stories too	Auch Storys abdunkeln
+Burn-in guard also fades the top and bottom of a story while you watch without touching, the eye button too. Any tap brings them back.	Der Einbrennschutz blendet auch oben und unten in einer Story ab, solange du ohne Berühren zusiehst, das Auge eingeschlossen. Jedes Tippen holt sie zurück.
+# context: Reels settings: a switch for a speed icon beside each reel that opens a list of speeds, after Copy text button on reels (#480). Keep the reel speed is HushGram's switch of that name
+Speed button on reels	Geschwindigkeitstaste bei Reels
+Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Setzt ein Geschwindigkeitssymbol neben ein Reel. Tippe darauf, um eine Geschwindigkeit von 0,5x bis 3x zu wählen. Ist Reel-Geschwindigkeit beibehalten an, laufen auch die nächsten Reels so.
+# context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
+Full screen button on reels	Vollbild-Button bei Reels
+Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Setzt ein Vollbild-Symbol neben ein Reel, damit ein Tippen dasselbe tut wie Vollbild in seinem Menü. Jedes Reel im klaren Modus starten öffnet jedes Reel so.
+# context: TalkBack label of the speed icon beside a reel (#480)
+Playback speed	Wiedergabegeschwindigkeit
+# context: TalkBack label of the Full screen icon beside a reel, Instagram's own term (#480)
+Full screen	Vollbild
+# context: toast when a speed picked from that icon's list couldn't be set (#480)
+Speed didn't change	Geschwindigkeit nicht geändert
+# context: toast when a tap on the Full screen icon couldn't open the reel full screen (#480)
+Full screen didn't open	Vollbild ließ sich nicht öffnen
+# context: Stories switch that lays a story over the whole screen on tall phones (#436)
+Stories fill the screen	Storys füllen den Bildschirm
+# context: that switch's summary (#436)
+On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	Auf einem hohen Bildschirm füllt eine Story den ganzen Bildschirm, mit der Antwortleiste darüber wie auf kürzeren Handys, statt als abgerundete Karte über der Leiste.
+# context: a button in the select-text window that copies the whole text (#492)
+Copy all	Alles kopieren
+# context: toast after Copy all in the select-text window (#492)
+Copied	Kopiert
+# context: title of the window showing one comment (#492)
+Comment	Kommentar
+# context: toast when the select-text window fails (#492)
+Couldn't open the text	Der Text ließ sich nicht öffnen
+# context: menu row that opens text for selecting (#492)
+Select text	Text auswählen
+# context: settings switch title (#492)
+Select text to copy	Text zum Kopieren auswählen
+# context: that switch summary (#492)
+Adds Select text to a selected comment's menu, a post's details and a profile's menu. It opens the text in a window where you can select part of it and copy it. Links work there.	Fügt dem Menü eines Kommentars, den Details eines Beitrags und dem Profilmenü „Text auswählen“ hinzu. Der Text öffnet sich in einem Fenster, in dem du einen Teil markieren und kopieren kannst. Links funktionieren dort.
+# context: notification channel name (#492)
+Unfollow alerts	Entfolgen-Hinweise
+# context: that channel description (#492)
+Who stopped following you, after you open your Followers list	Wer dir nicht mehr folgt, nachdem du deine Follower-Liste öffnest
+# context: unfollow notification title, one person (#492)
+1 person stopped following you	1 Person folgt dir nicht mehr
+# context: unfollow notification title, several people (#492)
+%1$d people stopped following you	%1$d Personen folgen dir nicht mehr
+# context: names then a count of the rest (#492)
+%1$s and %2$d more	%1$s und %2$d weitere
+# context: settings switch title (#492)
+Notify me of unfollowers	Über Entfolgende benachrichtigen
+# context: that switch summary (#492)
+After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	Zeigt eine Benachrichtigung, wer gegangen ist, nachdem du deine eigene Follower-Liste bis zum Ende gescrollt hast. Bei Instagram wird nichts zusätzlich angefragt.
+# context: settings switch title and button label, the row Instagram calls About this account (#492)
+About this account	Über dieses Konto
+About this account button	Knopf „Über dieses Konto“
+Puts an (i) next to the three dots on a profile that opens Instagram's About this account for that account. Instagram took its own away.	Setzt ein (i) neben die drei Punkte in einem Profil, das Instagrams „Über dieses Konto“ für dieses Konto öffnet. Instagram hat sein eigenes entfernt.

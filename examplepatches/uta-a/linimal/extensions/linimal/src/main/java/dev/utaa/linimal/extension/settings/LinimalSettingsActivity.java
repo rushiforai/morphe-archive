@@ -49,6 +49,8 @@ public final class LinimalSettingsActivity extends Activity {
             "既読をつけずに開いたトークで、送信後も既読を無効にします。初期値は OFF です。通常の入室には作用しません。"
                     + "\n注意：閲覧・返信しても相手側は未読表示のままになり、誤解やトラブルにつながる可能性があります。未読バッジも残ります。";
 
+    static final String RESTART_PENDING_SUMMARY = "アプリを再起動すると反映されます。";
+
     /** 描画済みの Switch だけを持ち、画面再構築時に必ず破棄します。 */
     private final List<FeatureRow> featureRows = new ArrayList<>();
     /** この Activity 内のページ状態はこの navigation だけで管理します。 */
@@ -437,8 +439,11 @@ public final class LinimalSettingsActivity extends Activity {
         LinimalConfigHealth health = config.getRuntimeHealth();
         for (FeatureRow row : featureRows) {
             boolean available = row.patchStatus == PatchStatus.OK && health == LinimalConfigHealth.OK;
-            row.summary.setText(available ? row.entry.getSummary()
-                    : unavailableSummary(row.patchStatus, health));
+            String summary = row.entry.getSummary();
+            if (config.isRestartPending(row.entry.getFeature())) {
+                summary = summary + "\n" + RESTART_PENDING_SUMMARY;
+            }
+            row.summary.setText(available ? summary : unavailableSummary(row.patchStatus, health));
             row.summary.setTextColor(available ? palette.secondaryText : palette.statusError);
 
             // 再描画で意図しない保存が起きないよう、listener を外してから状態を反映します。
@@ -452,6 +457,10 @@ public final class LinimalSettingsActivity extends Activity {
                     LinimalConfig.get().setSuppressionEnabled(row.entry.getFeature(), checked);
                     // 保存に失敗すると fail-open に戻るため、状態を読み直して表示します。
                     renderRuntimeConfig();
+                    if (LinimalConfig.get().getRuntimeHealth() == LinimalConfigHealth.OK
+                            && LinimalConfig.get().isRestartPending(row.entry.getFeature())) {
+                        AppRestarter.confirm(LinimalSettingsActivity.this);
+                    }
                 }
             });
         }

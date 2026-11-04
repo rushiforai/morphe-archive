@@ -122,9 +122,9 @@ final class AutoReplySheet {
             autoReplySave = null;
         });
         if (!Settings.wouldUse(AutoReply.KEY)) {
-            TextView status = ui.text(text.get("auto_reply_off"), 14, ui.muted, false);
-            status.setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12));
-            status.setBackground(ui.shape(ui.surface, ui.line, 12));
+            // In a box of its own, so a line about the switch doesn't wear an outline like the fields under it.
+            TextView status = ui.notice(text.get("auto_reply_off"), false);
+            status.setTag("auto_reply_off");
             ui.add(sheet.body, status, 0);
         }
         LinearLayout listHeading = ui.row();
@@ -211,7 +211,7 @@ final class AutoReplySheet {
                 if ((!rule.when.isEmpty() || pictureShown) && rule.reply.isEmpty()) {
                     TextView error = card.findViewWithTag("auto_reply_error");
                     error.setVisibility(View.VISIBLE);
-                    reply.setBackground(ui.interactive(ui.surface, ui.error, 12, ui.error));
+                    reply.setBackground(ui.fieldBackground(true));
                     if (Build.VERSION.SDK_INT >= 30) reply.setStateDescription(text.get("auto_reply_required"));
                     if (firstInvalid == null) firstInvalid = reply;
                 }
@@ -291,7 +291,7 @@ final class AutoReplySheet {
         pick.setTag("auto_reply_picture_pick");
         pick.setOnClickListener(clicked -> pickAutoReplyPicture(card));
         buttons.addView(pick);
-        Button clear = ui.button(text.get("auto_reply_picture_clear"));
+        Button clear = ui.destructiveButton(text.get("auto_reply_picture_clear"));
         clear.setTag("auto_reply_picture_clear");
         clear.setOnClickListener(clicked -> {
             invalidateAutoReplyImport(card);
@@ -462,7 +462,7 @@ final class AutoReplySheet {
         SettingsText text = page.text;
         LinearLayout card = ui.column();
         autoReplyCardIds.put(card, java.util.UUID.randomUUID().toString());
-        card.setBackground(ui.shape(ui.surface, ui.line, 12));
+        card.setBackground(ui.cardShape());
         card.setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(12));
         TextView number = ui.text("", 13, ui.accent, true);
         number.setTag("auto_reply_number");
@@ -481,7 +481,7 @@ final class AutoReplySheet {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (error.getVisibility() != View.VISIBLE) return;
                 error.setVisibility(View.GONE);
-                reply.setBackground(ui.interactive(ui.surface, ui.outline, 12));
+                reply.setBackground(ui.fieldBackground(false));
                 if (Build.VERSION.SDK_INT >= 30) reply.setStateDescription(null);
             }
             @Override public void afterTextChanged(Editable value) { }
@@ -493,7 +493,7 @@ final class AutoReplySheet {
         else setAutoReplyPicture(card, rule.picture);
         LinearLayout row = ui.row();
         row.setGravity(Gravity.END);
-        Button remove = ui.button(text.get("auto_reply_remove"));
+        Button remove = ui.destructiveButton(text.get("auto_reply_remove"));
         remove.setTag("auto_reply_remove");
         remove.setOnClickListener(clicked -> {
             int index = list.indexOfChild(card);

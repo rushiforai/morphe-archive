@@ -23,7 +23,7 @@
 ## 候補導入（未公開）
 
 - emulator-5554、ChMate 0.8.10.242 dev、表示名Haiagaru 検証 242、package jp.co.airfront.android.a2chMate.haiagaru.resumefix242。同一署名照合install-r成功、既存データ保持。
-- ルート C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/ 。
+- ルート <workspace>/ 。
 - build/ng-suffix242-dispatch.apk SHA-256: 3910B7C7E27B1218F61B959F11A8D6AEA967C765F6EB934B7F6C4759D8270156。
 - build/ng-suffix242-dispatch.mpp SHA-256: 1AEB6FCD3AA1C41CE5EC0F6EE2374FA342CE8D725D799489131A95CD947D4B8A。
 - 鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe、証明書SHA-256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。

@@ -1,3 +1,24 @@
+## [1.25.0](https://github.com/lildanlid1/Cordly/compare/v1.24.0...v1.25.0) (2026-11-04)
+
+### 🚀 Updated App Support
+
+* **Discord:** Add support for `351.11 - Stable` using the Venus Patches 1.21.1 port
+
+### ✨ New Features
+
+* **Discord - Rich Presence:** Publish custom activity names, details, images and elapsed time, with device-image uploads to a chosen channel
+* **Discord:** Include upstream listening, background media, file compression, expression cloning and expanded raw-data tools
+
+### 🐛 Bug Fixes
+
+* **Discord - Unlock Discord experiments:** Fixed startup staff checks loading UserStore during initialization and unlocking inside connection dispatch
+
+### 🔧 Improvements
+
+* **Discord - Conduit settings:** Rename the interface to Conduit and show emojis directly in Server info with hold-to-save previews
+* **Discord - View raw data:** Replace Inspect message JSON with the broader upstream inspector and migrate its enabled setting
+* **Discord:** Incorporate upstream 1.21.1 fixes for media playback, long messages, uploads, invite pausing and message-bar layout
+
 ## [1.24.0](https://github.com/lildanlid1/Cordly/compare/v1.23.0...v1.24.0) (2026-11-01)
 
 ### ✨ New Features
@@ -23,7 +44,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Cordly settings:** Keep original Discord package, launcher name and app icon without changing Android branding
+* **Discord - Conduit settings:** Keep original Discord package, launcher name and app icon without changing Android branding
 * **Discord - Server blueprints:** Skip member overwrites and dangerous admin permissions by default; require explicit import approval
 
 ## 1.22.0 (2026-10-31)
@@ -37,7 +58,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Cordly settings:** Keep Discord's app name, launcher icon and package unchanged; all new controls stay inside Cordly
+* **Discord - Conduit settings:** Keep Discord's app name, launcher icon and package unchanged; all new controls stay inside Conduit
 
 ## 1.21.1 (2026-10-31)
 
@@ -49,7 +70,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Cordly settings:** Keep the Android launcher name, icon and package as Discord, without a Custom branding patch
+* **Discord - Conduit settings:** Keep the Android launcher name, icon and package as Discord, without a Custom branding patch
 * **Discord - Media browser:** Reuse the emoji selector for stickers and protect exports with archive size limits
 
 ## [1.21.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.20.0...v1.21.0) (2026-10-31)
@@ -61,7 +82,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Cordly settings:** Rebrand settings and the optional companion app as Cordly
+* **Discord - Conduit settings:** Rebrand settings and the optional companion app as Conduit
 
 ## [1.20.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.19.0...v1.20.0) (2026-10-30)
 
@@ -82,7 +103,7 @@
 * **Discord - Fix link previews:** Translate X and Bluesky posts into your language, and pick a post style: full post, media, text or file
 * **Discord - Fix link previews:** Fix Imgur, Newgrounds, redd.it, Instagram stories, Facebook group posts and nitter links too
 * **Discord - Hide blocked or ignored messages:** Optionally close your DM with someone when you block them
-* **Discord - Venus settings:** Hide features you don't use from the Features list; they keep working and search still finds them
+* **Discord - Conduit settings:** Hide features you don't use from the Features list; they keep working and search still finds them
 
 ### 🐛 Bug Fixes
 
@@ -100,7 +121,7 @@
 
 * **Discord - Remove anything:** Replaces Hide the gift button, Hide the call button, Hide extra buttons and Hide the Quests banner; what you hid carries over
 * **Discord - Clean channel names:** Spaces in channel names is now its Spaces instead of dashes option; your setting carries over
-* **Discord - Venus settings:** UI changes across settings, including calmer Risky and Experimental warnings, a single About card and a clearer Voice channel options page
+* **Discord - Conduit settings:** UI changes across settings, including calmer Risky and Experimental warnings, a single About card and a clearer Voice channel options page
 
 ### ⚡ Performance Improvements
 
@@ -132,7 +153,7 @@
 * **Discord - Send long messages:** Fixed a long `@silent` message notifying everyone from its second part on
 * **Discord - Send long messages:** Fixed the rest of a long message being posted from another account after switching accounts mid-send
 * **Discord - Send long messages:** Fixed the end of a long message being dropped silently when one part failed to send; you can now copy what wasn't sent
-* **Discord - Send long messages:** Fixed edits longer than Discord's limit failing and losing the new text; Venus now explains and lets you copy it
+* **Discord - Send long messages:** Fixed edits longer than Discord's limit failing and losing the new text; Conduit now explains and lets you copy it
 * **Discord - Send long messages:** Fixed Nitro emojis in long messages sometimes staying as :name: text instead of links
 * **Discord - Send long messages:** Fixed parts ending in an empty code box or a stray line-break character
 * **Discord - Double-tap to reply:** Fixed the screen reader's Add quick reaction replying, editing or deleting your message instead of reacting
@@ -145,7 +166,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Tons of UI changes across every settings page, including turned-off pages introducing the feature, custom values as a pill and a cleaner Server info sheet
+* **Discord - Conduit settings:** Tons of UI changes across every settings page, including turned-off pages introducing the feature, custom values as a pill and a cleaner Server info sheet
 * **Discord - Custom themes:** Messages, embeds and code blocks drawn by Discord's native views now follow the theme too
 * **Discord - Custom themes:** More colors from themes made for newer Discord versions now apply
 * **Discord - Fix link previews:** Also remove share tracking from Tumblr, YouTube, Spotify, Twitch, Pinterest and DeviantArt links
@@ -180,12 +201,12 @@
 
 * **Discord - Message highlights:** The deleted messages color moved to Keep deleted messages, next to its new brightness option
 * **Discord - Translate messages:** The language list names each language in its own words and closes once you pick one
-* **Discord - Venus settings:** Previews just play: the Watch / Try it switch is gone, and pages whose description already says it all have no preview
+* **Discord - Conduit settings:** Previews just play: the Watch / Try it switch is gone, and pages whose description already says it all have no preview
 
 ### ⚡ Performance Improvements
 
 * **Discord - Translate messages:** Skip rows nobody asked to translate before any other work, 1.44x faster per chat row
-* **Discord:** Discord starts faster: the startup bytecode prelude builds the Venus runtime in blocks instead of one oversized array, and the runtime is 28% smaller, and the code features only need later is no longer read at launch at all, making a cold boot about 1.2x faster than 1.17.0. Each feature's code is now set up the first time that feature runs, so getting Discord's screens ready after launch takes less work
+* **Discord:** Discord starts faster: the startup bytecode prelude builds the Conduit runtime in blocks instead of one oversized array, and the runtime is 28% smaller, and the code features only need later is no longer read at launch at all, making a cold boot about 1.2x faster than 1.17.0. Each feature's code is now set up the first time that feature runs, so getting Discord's screens ready after launch takes less work
 
 ## [1.17.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.16.1...v1.17.0) (2026-10-20)
 
@@ -193,12 +214,12 @@
 
 * **Discord:** Add `Server info` patch: hold a server's icon to see who's online, channels, roles, emojis, boosts, the owner and your friends there ([#77](https://github.com/VenusIsJaded/Venus-Patches/issues/77))
 * **Discord:** Add `Icon packs` patch: replace Discord's icons with 10 built-in community icon packs or a custom pack link, with a live preview ([#61](https://github.com/VenusIsJaded/Venus-Patches/issues/61))
-* **Discord:** Add `Custom branding` patch: install Venus next to normal Discord with your own app name, package name, icon color and icon picture ([#78](https://github.com/VenusIsJaded/Venus-Patches/issues/78))
+* **Discord:** Add `Custom branding` patch: install Conduit next to normal Discord with your own app name, package name, icon color and icon picture ([#78](https://github.com/VenusIsJaded/Venus-Patches/issues/78))
 
 ### ⚡ Performance Improvements
 
 * **Discord:** Shrink the startup runtime and register Discord's modules with less work, making the startup header 1.59x faster
-* **Discord - Venus settings:** Look up which feature each setting belongs to from a cache, 7.8x faster across settings, backups and switches
+* **Discord - Conduit settings:** Look up which feature each setting belongs to from a cache, 7.8x faster across settings, backups and switches
 * **Discord - Show hidden channels:** Skip rescanning unchanged server channel lists and check channel names with less work, up to 2.6x faster
 * **Discord - Custom themes:** Parse theme colors 2x faster and compile themes into Discord's color tables 1.3x faster
 * **Discord - Translate messages:** Skip escaping text that needs none when laying out translations, 1.7x faster
@@ -220,7 +241,7 @@
 
 ### ⚡ Performance Improvements
 
-* **Discord:** Defer compiling Venus feature hooks, stores and settings pages until first needed and parse constant tables as JSON, cutting startup runtime eval time by almost 7x
+* **Discord:** Defer compiling Conduit feature hooks, stores and settings pages until first needed and parse constant tables as JSON, cutting startup runtime eval time by almost 7x
 * **Discord:** Speed up startup Metro module wrapping and HBC98 bytecode prelude string decomposition when patching and launching Discord
 * **Discord - Pastel name colors:** Cache pastel colors per tone by user ID and copy each message row once, speeding up color lookups by 5.8x and row coloring by 1.5x
 * **Discord - Custom themes:** Sync and restore only touched experiment color slots when switching themes, making experiment slot updates 5.6x faster
@@ -240,9 +261,9 @@
 
 ### ✨ New Features
 
-* **Discord - Venus settings:** Add Backup and restore to save every Venus setting to a file or the clipboard and bring it back after patching again ([#68](https://github.com/VenusIsJaded/Venus-Patches/issues/68))
-* **Discord - Venus settings:** Add a search bar to the Features list that finds features by name, description or option ([#68](https://github.com/VenusIsJaded/Venus-Patches/issues/68))
-* **Discord - Venus settings:** Add Start with the essentials, a one-tap setup on a fresh install that turns on eight popular offline features, with Undo
+* **Discord - Conduit settings:** Add Backup and restore to save every Conduit setting to a file or the clipboard and bring it back after patching again ([#68](https://github.com/VenusIsJaded/Venus-Patches/issues/68))
+* **Discord - Conduit settings:** Add a search bar to the Features list that finds features by name, description or option ([#68](https://github.com/VenusIsJaded/Venus-Patches/issues/68))
+* **Discord - Conduit settings:** Add Start with the essentials, a one-tap setup on a fresh install that turns on eight popular offline features, with Undo
 
 ### 🐛 Bug Fixes
 
@@ -252,13 +273,13 @@
 * **Discord - Complete Quests automatically:** Fixed queued Activity requests and late replies continuing after switch-off, logout or account changes
 * **Discord - Complete Quests automatically:** Fixed Activity heartbeats continuing after expiry, suspension, removal or completion on another client
 * **Discord - Complete Quests automatically:** Fixed accepting Quests dropping sealed metadata by passing the Quest ID where Discord expects a decision ID
-* **Discord - Venus settings:** Fixed six switches on the Quests and Deleted messages pages staying in English in every other language
+* **Discord - Conduit settings:** Fixed six switches on the Quests and Deleted messages pages staying in English in every other language
 * **Discord - User and server reviews:** Fixed tapping Cancel on Discord's authorize screen showing a "Couldn't sign in" error instead of just closing
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Tons of UI changes across every settings page, including a theme gallery, livelier previews, slimmer Features rows and haptics
-* **Discord - Venus settings:** Remove Catalan as a settings language; Venus settings now come in 30 languages
+* **Discord - Conduit settings:** Tons of UI changes across every settings page, including a theme gallery, livelier previews, slimmer Features rows and haptics
+* **Discord - Conduit settings:** Remove Catalan as a settings language; Conduit settings now come in 30 languages
 
 ### ⚡ Performance Improvements
 
@@ -268,12 +289,12 @@
 
 ### ✨ New Features
 
-* **Discord - Venus settings:** Add Catalan (Català) as a settings language, bringing Venus settings to 31 languages
+* **Discord - Conduit settings:** Add Catalan (Català) as a settings language, bringing Conduit settings to 31 languages
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Hand-review and refine all 30 translated settings languages for more natural, idiomatic wording
-* **Discord - Venus settings:** Tons of UI changes to the previews, which now look and work like the real Discord screens they change
+* **Discord - Conduit settings:** Hand-review and refine all 30 translated settings languages for more natural, idiomatic wording
+* **Discord - Conduit settings:** Tons of UI changes to the previews, which now look and work like the real Discord screens they change
 
 ## [1.14.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.13.0...v1.14.0) (2026-10-17)
 
@@ -291,7 +312,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Tons of UI changes, including animations, a designed About page, watchable previews with Try it, and a Quest progress bar
+* **Discord - Conduit settings:** Tons of UI changes, including animations, a designed About page, watchable previews with Try it, and a Quest progress bar
 
 ## [1.13.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.12.0...v1.13.0) (2026-10-16)
 
@@ -304,7 +325,7 @@
 
 ### 🐛 Bug Fixes
 
-* **Discord - Venus button on profile bar:** Fixed the first tap after restarting opening Account settings or a black screen instead of Venus settings ([#58](https://github.com/VenusIsJaded/Venus-Patches/issues/58))
+* **Discord - Conduit button on profile bar:** Fixed the first tap after restarting opening Account settings or a black screen instead of Conduit settings ([#58](https://github.com/VenusIsJaded/Venus-Patches/issues/58))
 * **Discord - Account switcher:** Fixed adding a sixth account removing one of your saved accounts instead of keeping up to 50 ([#59](https://github.com/VenusIsJaded/Venus-Patches/issues/59))
 * **Discord - Spaces in channel names:** Fixed forum, media, directory and app channels and channel mentions still showing dashes instead of spaces
 * **Discord - Double-tap to reply:** Fixed double-tapping replying in channels where you can't reply, and Discord still showing its double-tap to react tips
@@ -316,7 +337,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Tons of UI changes: every option page redesigned with a status card, Discord's row icons and live previews
+* **Discord - Conduit settings:** Tons of UI changes: every option page redesigned with a status card, Discord's row icons and live previews
 
 ### ⚡ Performance Improvements
 
@@ -330,7 +351,7 @@
 * **Discord:** Add `Unlock app icons` patch
 * **Discord - Unlock app icons:** Use any Discord app icon in Settings without Nitro, and hide the Nitro upsell button
 * **Discord:** Add `Account switcher` patch
-* **Discord - Account switcher:** Switch between up to 50 Discord accounts from a profile bar button or Venus settings
+* **Discord - Account switcher:** Switch between up to 50 Discord accounts from a profile bar button or Conduit settings
 * **Discord:** Add `User activity notifications` patch
 * **Discord - User activity notifications:** Show a notice when chosen friends or user IDs change status, start typing or send a message, inside or outside Discord
 
@@ -349,7 +370,7 @@
 
 ### ⚡ Performance Improvements
 
-* **Discord:** Skip background over-the-air bundle update checks and downloads on launch since Venus always runs the packaged bundle
+* **Discord:** Skip background over-the-air bundle update checks and downloads on launch since Conduit always runs the packaged bundle
 * **Discord:** Build the startup bytecode prelude from multi-character strings and dense array ops, cutting startup prelude instructions by two-thirds
 * **Discord - Show hidden channels:** Cache PermissionStore's original permission check once instead of looking it up on every channel check
 * **Discord - Use your phone's font:** Skip parsing the settings JSON on startup when the font switch is off
@@ -359,8 +380,8 @@
 
 ### ✨ New Features
 
-* **Discord - Venus settings:** Venus settings in 30 languages, including Russian ([#50](https://github.com/VenusIsJaded/Venus-Patches/issues/50))
-* **Discord - Venus settings:** Pick the settings language in Language, or follow Discord's
+* **Discord - Conduit settings:** Conduit settings in 30 languages, including Russian ([#50](https://github.com/VenusIsJaded/Venus-Patches/issues/50))
+* **Discord - Conduit settings:** Pick the settings language in Language, or follow Discord's
 * **Discord - Translate messages:** Translate only the messages you pick, from the hold menu ([#50](https://github.com/VenusIsJaded/Venus-Patches/issues/50))
 * **Discord - Translate messages:** Hold a message to show its original, or translate your own
 
@@ -381,8 +402,8 @@
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Tons of UI changes: Settings is now Features in six groups, with Discord icons, clearer wording and an About page
-* **Discord:** Patches are named by what they do, the same as in Venus
+* **Discord - Conduit settings:** Tons of UI changes: Settings is now Features in six groups, with Discord icons, clearer wording and an About page
+* **Discord:** Patches are named by what they do, the same as in Conduit
 * **Discord - Send Nitro stickers and emojis as links:** Removed Always send links, which only replaced emojis you could already use
 * **Discord - Skip delete confirmation:** One switch now covers both messages and link previews
 * **Discord - Pastel name colors:** Webhooks always get their color from their name
@@ -395,7 +416,7 @@
 * **Discord:** Add `ValidUser` patch
 * **Discord - ValidUser:** Fix @unknown-user mentions automatically, with no extra taps
 * **Discord:** Add `Profile bar settings button` patch
-* **Discord - Profile bar settings button:** Open Venus settings from a button next to the notifications bell
+* **Discord - Profile bar settings button:** Open Conduit settings from a button next to the notifications bell
 * **Discord:** Add `Split Large Messages` patch
 * **Discord - Split Large Messages:** Send messages over the limit as several, keeping code blocks closed
 * **Discord:** Add `Translate messages` patch
@@ -408,7 +429,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Every feature starts off, so nothing changes until you turn it on
+* **Discord - Conduit settings:** Every feature starts off, so nothing changes until you turn it on
 
 ## [1.8.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.7.0...v1.8.0) (2026-10-12)
 
@@ -451,7 +472,7 @@
 * **Discord - Dashless:** Check channel types without building a list every time
 * **Discord - Custom voice messages:** Check audio file types without building a list every time
 * **Discord - PlatformIndicators:** Less work on every presence update
-* **Discord - Venus settings:** Row switches and arrows are found once instead of on every render
+* **Discord - Conduit settings:** Row switches and arrows are found once instead of on every render
 * **Discord - File size on picker:** Known sizes show straight away on recycled photo tiles, never an old one
 * **Discord - File size on picker:** Size badges share one style instead of making new ones per tile
 * **Discord - Force system font:** Threads meeting a new font family share one cache slot
@@ -465,12 +486,12 @@
 ### 🐛 Bug Fixes
 
 * **Discord - Message tap gestures:** Fixed tapping your own message three times opening the message editor before the third tap arrived instead of deleting it
-* **Discord - Venus settings:** Fixed sub-options on a feature's page staying interactive while the feature's main switch was turned off
+* **Discord - Conduit settings:** Fixed sub-options on a feature's page staying interactive while the feature's main switch was turned off
 * **Discord - NoDelete:** Fixed the maximum saved messages text box remaining editable while NoDelete was turned off
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Clearer descriptions for every setting, including NoDelete, Pastelize and Message tap gestures
+* **Discord - Conduit settings:** Clearer descriptions for every setting, including NoDelete, Pastelize and Message tap gestures
 
 ## [1.6.0](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.5.0...v1.6.0) (2026-10-11)
 
@@ -484,7 +505,7 @@
 
 * **Discord:** Fixed passkey and security key prompts failing with "RP ID cannot be validated" instead of explaining why Android blocks them in a re-signed APK ([#37](https://github.com/VenusIsJaded/Venus-Patches/issues/37))
 * **Discord - NoDelete:** Fixed deleted messages permanently stopping from saving on disk if the saved archive file became corrupted
-* **Discord - Venus settings:** Fixed the About page displaying an outdated Venus Patches version number
+* **Discord - Conduit settings:** Fixed the About page displaying an outdated Conduit Patches version number
 * **Discord - Read All:** Fixed error toasts starting with a redundant "Error:" prefix
 
 ### ⚡ Performance Improvements
@@ -504,7 +525,7 @@
 
 ### 🔧 Improvements
 
-* **Discord - Venus settings:** Tons of UI changes: Plugins is now Settings, in groups, with plain switch names and arrows for more options
+* **Discord - Conduit settings:** Tons of UI changes: Plugins is now Settings, in groups, with plain switch names and arrows for more options
 * **Discord - Quest Completer:** Starts off until you turn on Complete Quests automatically
 
 ## [1.4.4](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.4.3...v1.4.4) (2026-10-10)
@@ -555,7 +576,7 @@
 
 ### 🔧 Improvements
 
-* **Discord:** Restore the 1.3.8 feature names in Morphe and Venus settings
+* **Discord:** Restore the 1.3.8 feature names in Morphe and Conduit settings
 * **Discord - PlatformIndicators:** Restore the original icons
 
 ### ⚡ Performance Improvements
@@ -570,7 +591,7 @@
 
 * **Discord:** Name every feature after what it does
 * **Discord - PlatformIndicators:** New device icons
-* **Discord:** Remove the size cap on Venus's built-in code
+* **Discord:** Remove the size cap on Conduit's built-in code
 
 ## [1.3.8](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.3.7...v1.3.8) (2026-10-09)
 
@@ -622,7 +643,7 @@
 ### 🔧 Improvements
 
 * **Discord:** Group patches under Plugins and Privacy in Morphe, with plain descriptions
-* **Discord - Venus settings:** Changing an option applies right away
+* **Discord - Conduit settings:** Changing an option applies right away
 
 ### ⚡ Performance Improvements
 
@@ -633,7 +654,7 @@
 
 ### 🐛 Bug Fixes
 
-* **Discord:** Fixed Morphe Manager failing to add Venus Patches as a source with "The patch bundle could not be downloaded"
+* **Discord:** Fixed Morphe Manager failing to add Conduit Patches as a source with "The patch bundle could not be downloaded"
 
 ### ⚡ Performance Improvements
 
@@ -692,7 +713,7 @@
 
 ### 🐛 Bug Fixes
 
-* **Discord:** Fixed a cached over-the-air Discord bundle update bypassing all Venus patches and privacy options
+* **Discord:** Fixed a cached over-the-air Discord bundle update bypassing all Conduit patches and privacy options
 
 ## [1.2.7](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.2.6...v1.2.7) (2026-10-05)
 
@@ -763,7 +784,7 @@
 
 ### ✨ New Features
 
-* **Discord:** Add `Venus settings`, `CopyBios`, `Dashless`, `FavouriteAnything` and `FreeNitro` patches
+* **Discord:** Add `Conduit settings`, `CopyBios`, `Dashless`, `FavouriteAnything` and `FreeNitro` patches
 
 ## [1.0.0-dev.3](https://github.com/VenusIsJaded/Venus-Patches/compare/v1.0.0-dev.1...v1.0.0-dev.3) (2026-10-03)
 

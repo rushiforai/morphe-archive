@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.noam.patches.chesscom.misc.extension.extensionHookPatch
+import app.noam.patches.chesscom.misc.icon.launcherIconPatch
 import app.noam.patches.chesscom.shared.Constants
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -29,7 +30,7 @@ val settingsPatch = bytecodePatch(
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
-    dependsOn(extensionHookPatch, settingsResourcePatch)
+    dependsOn(extensionHookPatch, launcherIconPatch, settingsResourcePatch)
 
     execute {
         // The More tab: a NOAM_PATCHES item key for the row (title and icon looked up at run time).

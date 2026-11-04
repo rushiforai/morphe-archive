@@ -1,6 +1,6 @@
 # 追加画面タブのChMateジェスチャー（PR #93の改善）
 
-主開発先 `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current` で実装。未公開。
+主開発先 `<workspace>` で実装。未公開。
 
 ## 続けて追加した操作（2026-10-26）
 
@@ -24,7 +24,7 @@
 
 ### 統合候補の導入結果
 
-通常の統合buildもC2 CompilerThread0のnative malloc失敗で停止。メモリ約5GiBを使うCodexの読み取り専用git statusプロセス40604を、コマンドがstatus --ignored/--untracked-files=allであることを確認して停止し、他のビルドは停止せず空きを確保。`TieredStopAtLevel=1`を付けた通常Lint付き統合ビルドは成功（5m19s、`build/combined-gestures-captcha-c1-build.log`）。このJava実行オプションは開発PCのビルド時だけで、Androidアプリには持ち込まない。対象15ソースのハッシュがビルド前後で同一であることも確認。
+通常の統合buildもC2 CompilerThread0のnative malloc失敗で停止。メモリ約5GiBを使うローカル開発ツールの読み取り専用git statusプロセス40604を、コマンドがstatus --ignored/--untracked-files=allであることを確認して停止し、他のビルドは停止せず空きを確保。`TieredStopAtLevel=1`を付けた通常Lint付き統合ビルドは成功（5m19s、`build/combined-gestures-captcha-c1-build.log`）。このJava実行オプションは開発PCのビルド時だけで、Androidアプリには持ち込まない。対象15ソースのハッシュがビルド前後で同一であることも確認。
 
 242元APKへ適用/再構築/署名成功。完成APKでnativeタブfactoryの元レジスター/オペランド/分岐先/Fragment rebasingと、投稿後の下書き保存wrapperが本体onPauseと同じwriterへ正しいowner/forceレジスターで委譲することを検査して成功。
 

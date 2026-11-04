@@ -1,3 +1,27 @@
+## [1.11.0](https://github.com/amfakh/fakh-patches/compare/v1.10.0...v1.11.0) (2026-11-04)
+
+### ✨ New Features
+
+* **detikcom:** support 7.14.1, with Hide ads (feed, article, Live TV and Milidetik), Disable analytics, Merge article pages to read a paged article in one go, and Stop autoplay for the video embeds, live ones included ([ee97776](https://github.com/amfakh/fakh-patches/commit/ee97776912867ffa3f6a1a37c500567474f85c90))
+* **CNN Indonesia:** support 2.50.7, with Hide ads (banners, "Promoted" rows, full-screen ads, ads on web pages), Disable analytics, and Merge article pages to read a paged article in one go ([b52fdfd](https://github.com/amfakh/fakh-patches/commit/b52fdfdc6bc5dc67230bbe5c1b9a756448ded257))
+
+## [1.10.0](https://github.com/amfakh/fakh-patches/compare/v1.9.1...v1.10.0) (2026-11-03)
+
+### ✨ New Features
+
+* **LinkedIn:** support 4.1.1267, next to 4.1.1264 ([e1c3549](https://github.com/amfakh/fakh-patches/commit/e1c35494caa727072995dbc64c33550495bda296))
+* **IDN:** support 6.69.1, from an XAPK or an APKS bundle; Disable analytics keeps CleverTap for push and popups, without the advertising ID ([518e6a0](https://github.com/amfakh/fakh-patches/commit/518e6a07d8cb2f36de8f277a085974efeaa2a997))
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** hide the highlighted comments of a post that a feed filter hid, instead of leaving them on their own in the feed ([b5d87cc](https://github.com/amfakh/fakh-patches/commit/b5d87cc448c84c56fc0b6a36e4451c5ae7e61eb3))
+
+## [1.9.1](https://github.com/amfakh/fakh-patches/compare/v1.9.0...v1.9.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **Smart Life, Tuya Smart, BARDI:** fix Spoof signature missing the original certificate on some devices, so the app no longer quits right after start ([3970956](https://github.com/amfakh/fakh-patches/commit/39709568e84d1f79fa721e851bc9d5c701dd9ac3))
+
 ## [1.9.0](https://github.com/amfakh/fakh-patches/compare/v1.8.2...v1.9.0) (2026-11-03)
 
 ### ✨ New Features

@@ -1,4 +1,4 @@
-/* Cordly media: offline regression checks with no external modules needed. */
+/* Conduit media: offline regression checks with no external modules needed. */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const source = fs.readFileSync('patches/src/main/resources/venus/bootstrap.js', 'utf8');
@@ -16,7 +16,7 @@ const code = [
 ].join('\n');
 const api = new Function('serverStore','serverCall', 'const SERVER_MEDIA_LIMIT=32*1024*1024; const SERVER_EDIT_ICON="venus-icon:"; const serverEdit={icons:new Map()}; const tr=(s)=>s; const serverDate=(ms)=>new Date(ms).toISOString().slice(0,10); const serverNumber=String; const serverVerification=(n)=>["None","Low","Medium","High","Highest"][n];\n' + code + '\nreturn {' +
     'serverMediaUrl,serverMediaBinary,serverMediaZip,serverGuildStickers,serverStickerUrl,serverStickerFormat,serverItemUrl,serverItemFormat,serverItemBadge,serverItemAnimated,serverGuildImage,serverBannerUri,serverSplashUri,serverDiscoverySplashUri,serverArtwork,serverSummary,serverMediaResults,serverEmojiCodes,serverMediaLinks};')(
-    id => id === 6031 ? {st: [{id:'123456789012345678',name:'Test',format_type:3}]} : null,
+    id => id === 6287 ? {st: [{id:'123456789012345678',name:'Test',format_type:3}]} : null,
     (store,fn) => fn === 'getStickersByGuildId' ? store.st : null
 );
 for (const n of [0,1,2,3,4,5,512,1025,65537]) {
@@ -73,5 +73,5 @@ assert.ok(api.serverSummary({name:'Example',id:'123456789012345678',created:1740
 
 assert.equal(fs.existsSync('patches/src/main/kotlin/app/venus/patches/BrandingPatches.kt'),false,
     'The actual Android app branding patch must be absent');
-assert.equal(source.includes('const revision = "1.24.0"'),true);
-console.log('Cordly media checks passed: ZIP, filters, sorting, emoji markup, server summaries/artwork, app identity.');
+assert.equal(source.includes('const revision = "1.25.0"'),true);
+console.log('Conduit media checks passed: ZIP, filters, sorting, emoji markup, server summaries/artwork, app identity.');

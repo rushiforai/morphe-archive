@@ -266,6 +266,8 @@ final class AutoReplyPicture {
             try {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize = sample;
+                // Mutable, so clear pixels can be painted white in place before the JPEG, which has no clear.
+                options.inMutable = true;
                 Bitmap decoded = decode(source, options);
                 if (decoded == null) throw new Failure(Failure.Kind.UNREADABLE, "not a picture");
                 Bitmap upright = null;
@@ -315,6 +317,7 @@ final class AutoReplyPicture {
     }
 
     private static String write(File folder, Bitmap upright) throws IOException {
+        onWhite(upright);
         File partial = File.createTempFile("PIC_", PARTIAL, folder);
         try {
             try (FileOutputStream output = new FileOutputStream(partial)) {
@@ -412,6 +415,15 @@ final class AutoReplyPicture {
             default: if (scale == 1f) return source;
         }
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
+    }
+
+    /**
+     * Paints white under [picture]'s clear and see-through pixels, the way it looks on a light chat. A JPEG keeps no
+     * clear, so they'd go out black. Changes [picture] itself, which the decode leaves mutable, so no copy is made.
+     */
+    static void onWhite(Bitmap picture) {
+        if (!picture.hasAlpha() || !picture.isMutable()) return;
+        new android.graphics.Canvas(picture).drawColor(android.graphics.Color.WHITE, android.graphics.PorterDuff.Mode.DST_OVER);
     }
 
     private static synchronized File freshName(File folder) {

@@ -178,6 +178,7 @@ public sealed class FakeRedditServer : IAsyncDisposable
         Login.Map(app, world);
         Media.Map(app, world);
         ShareLinks.Map(app, world);
+        Info.Map(app, world);
         Debug.Map(app, world);
         app.MapFallback((HttpContext context) =>
         {

@@ -51,3 +51,15 @@ private fun readIsGallery() = fieldAccess(
     definingClass = LINK_CLASS_DESCRIPTOR,
     name = "isGallery",
 )
+
+/** Picks the image of a post's card in the card list, from its address. */
+internal object ImageHelperResolvePreviewFingerprint : Fingerprint(
+    definingClass = "Lcom/onelouder/baconreader/imageutils/ImageHelper;",
+    name = "resolvePreview",
+    returnType = "Z",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        LINK_CLASS_DESCRIPTOR,
+        "Lcom/onelouder/baconreader/imageutils/ImageHelper\$ImagePreviewListener;",
+    ),
+)

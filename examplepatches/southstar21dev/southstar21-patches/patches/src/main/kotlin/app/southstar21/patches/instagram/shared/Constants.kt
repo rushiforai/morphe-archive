@@ -18,9 +18,6 @@ object Constants {
                 version = "453.0.0.57.79"
             ),
             AppTarget(
-                version = "439.0.0.37.89"
-            ),
-            AppTarget(
                 version = null,
                 isExperimental = true
             )

@@ -17,10 +17,17 @@ import android.widget.Toast;
 final class HomeHeaderRow {
     /** A picker's provider can stall, so a copy that hasn't finished by then is given up and Choose works again. */
     static int copyTimeoutMillis = 60_000;
+    /** Typing waits this long for a pause before the words are saved and the chat list redraws. */
+    static final int SAVE_DELAY_MILLIS = 300;
     /** The picture copy running now, if any. Main thread only. */
     private static Job job;
     private static java.lang.ref.WeakReference<HomeHeaderRow> shown = new java.lang.ref.WeakReference<>(null);
     private final SettingsActivity page;
+    private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable save = this::saveWords;
+    private EditText words;
+    /** Whether the words were typed since the last save. A page left untouched never puts its old words back. */
+    private boolean typed;
     private TextView status;
     private Button choose, remove;
 
@@ -32,8 +39,10 @@ final class HomeHeaderRow {
         SettingsUi ui = page.ui;
         SettingsText text = page.text;
         shown = new java.lang.ref.WeakReference<>(this);
-        EditText words = ui.field(text.get("home_header_words_hint", HomeHeader.MAX_LENGTH), HomeHeader.MAX_LENGTH, true);
+        words = ui.field(text.get("home_header_words_hint", HomeHeader.MAX_LENGTH), HomeHeader.MAX_LENGTH, true);
         words.setTag("home_header_text");
+        // Leaving the page saves what was typed, so a page made again reads the words from there, never its own old copy.
+        words.setSaveEnabled(false);
         words.setText(Settings.preferences.getString(HomeHeader.TEXT, ""));
         TextView label = ui.text(text.get("home_header_words"), 14, ui.text, true);
         label.setLabelFor(words.getId());
@@ -44,11 +53,13 @@ final class HomeHeaderRow {
 
             @Override public void onTextChanged(CharSequence typed, int start, int before, int count) { }
 
-            @Override public void afterTextChanged(android.text.Editable typed) {
-                Settings.preferences.edit().putString(HomeHeader.TEXT, typed.toString()).apply();
-                refresh();
+            @Override public void afterTextChanged(android.text.Editable edited) {
+                typed = true;
+                handler.removeCallbacks(save);
+                handler.postDelayed(save, SAVE_DELAY_MILLIS);
             }
         });
+        words.setOnFocusChangeListener((view, focused) -> { if (!focused) saveWords(); });
         status = ui.text("", 13, ui.muted, false);
         status.setTag("home_header_status");
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -57,11 +68,22 @@ final class HomeHeaderRow {
         choose.setTag("home_header_choose");
         choose.setOnClickListener(view -> pick());
         ui.add(content, choose, 8);
-        remove = ui.button(text.get("home_header_remove"));
+        remove = ui.destructiveButton(text.get("home_header_remove"));
         remove.setTag("home_header_remove");
         remove.setOnClickListener(view -> removePicture());
         ui.add(content, remove, 8);
         ui.add(content, ui.text(text.get("home_header_help", HomeHeaderPicture.MAX_MEGABYTES), 13, ui.muted, false), 8);
+        refresh();
+    }
+
+    /** Saves the words typed so far, if they changed. Leaving the field or the page saves them at once. */
+    void saveWords() {
+        handler.removeCallbacks(save);
+        if (words == null || !typed) return;
+        typed = false;
+        String now = words.getText().toString();
+        if (now.equals(Settings.preferences.getString(HomeHeader.TEXT, ""))) return;
+        Settings.preferences.edit().putString(HomeHeader.TEXT, now).apply();
         refresh();
     }
 
@@ -115,9 +137,22 @@ final class HomeHeaderRow {
 
     private void removePicture() {
         if (job != null) return;
-        boolean gone = HomeHeaderPicture.remove(HomeHeader.file(page));
+        java.io.File file = HomeHeader.file(page);
+        // A few hundred KB at most, held only while Undo shows.
+        byte[] kept = HomeHeaderPicture.keep(file);
+        boolean gone = HomeHeaderPicture.remove(file);
         refresh();
         page.feedback(page.text.get(gone ? "home_header_removed" : "home_header_remove_failed"), Toast.LENGTH_SHORT);
+        if (gone && kept != null) page.offerUndo(page.text.format("home_header_remove"), () -> putBack(kept));
+    }
+
+    /** Undo for Remove the picture. A picture picked since then stays, since Undo shouldn't take that one away. */
+    private void putBack(byte[] kept) {
+        java.io.File file = HomeHeader.file(page);
+        if (job != null || file.isFile()) return;
+        boolean back = HomeHeaderPicture.restore(kept, file);
+        refresh();
+        if (!back) page.feedback(page.text.get("home_header_not_saved"), Toast.LENGTH_LONG);
     }
 
     /** What a refused pick says. */

@@ -167,23 +167,20 @@ internal fun Method.markReadSite(list: Int, socket: Int, socketType: String): In
 }
 
 /**
- * Messenger's top bar keeps the first [MARK_READ_MOST_BUTTONS] buttons: its one subList end is moved from a register
- * whose one reaching definition is that constant. 585's armv7 bar reuses the register for other values before it sets
- * the cap, so it's the definition that reaches the cut, not the only write.
+ * Messenger's top bar keeps the first [MARK_READ_MOST_BUTTONS] buttons: the one reaching definition of its one subList
+ * end is that constant, handed to the cut directly with no move before it.
  */
 internal fun Method.markReadCapMatches(): Boolean {
     val code = markCode()
     val cut = code.indices.singleOrNull { code[it].markRef()?.toString() == SUB_LIST } ?: return false
     val end = code[cut].markArgs().getOrNull(2) ?: return false
-    val move = code.getOrNull(cut - 1) as? TwoRegisterInstruction ?: return false
-    val cap = if (move.registerA == end && (move as Instruction).opcode in setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)) move.registerB else return false
     val flow = try { ReadFlow(this) } catch (_: PatchException) { return false }
-    return flow.narrowConstantAt(cut - 1, cap, depth = 0) == MARK_READ_MOST_BUTTONS
+    return flow.narrowConstantAt(cut, end, depth = 0) == MARK_READ_MOST_BUTTONS
 }
 
 /**
  * A call to a static helper that takes an ImmutableList builder and only builds it, null-checks the list and returns
- * it, which 585's factory builds its button list through.
+ * it, which the factory builds its button list through.
  */
 private fun Instruction.isListBuildHelper(byType: Map<String, ClassDef>): Boolean {
     val ref = markRef() as? MethodReference ?: return false
@@ -201,10 +198,10 @@ private fun Instruction.isListBuildHelper(byType: Map<String, ClassDef>): Boolea
 }
 
 /**
- * The newer bar's seam. The factory, static or (585) an instance method, calls the [details] builder once, and that
- * call reaches exactly one return: the list an ImmutableList builder just built, directly or through a call [isBuild]
+ * The newer bar's seam. The factory, static or (as in 586) an instance method, calls the [details] builder once, and
+ * that call reaches exactly one return: the list an ImmutableList builder just built, directly or through a call [isBuild]
  * accepts, with nothing between that build and the return that writes the list, branches or is landed on. Returns the
- * details button never reaches, such as 585's early lists, are left alone. The account, chat and colors are parameters
+ * details button never reaches, such as early lists, are left alone. The account, chat and colors are parameters
  * of their own types, each declared once and never reassigned. Null when the shape moved.
  */
 internal fun Method.markReadFactorySite(details: String, isBuild: (Instruction) -> Boolean): MarkReadFactory? {
@@ -243,9 +240,9 @@ internal fun Method.markReadFactorySite(details: String, isBuild: (Instruction) 
 }
 
 /**
- * The narrow constant a register holds at [target], following plain moves to the register they copy. Messenger's armv7
- * bars hoist the listener case into a high register and move it down at the call, so the definition is not always a
- * literal. Null unless one definition reaches each step.
+ * The narrow constant a register holds at [target], following plain moves to the register they copy. A bar can hoist
+ * the listener case into a high register and move it down at the call, so the definition is not always a literal. Null
+ * unless one definition reaches each step.
  */
 internal fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 4): Int? {
     if (depth < 0) return null
@@ -340,8 +337,8 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
     }.distinct().singleOrNull() ?: return null
     val provider = iconProvider ?: return null
     val providerType = provider.substringAfter(')')
-    // The builder keeps its icon in an int field, which a public static helper fills from the provider's result. 585
-    // carries copies of that helper on other public classes; every copy must do the same steps, and the first is used.
+    // The builder keeps its icon in an int field, which a public static helper fills from the provider's result. A build
+    // can carry copies of that helper on other public classes; every copy must do the same steps, and the first is used.
     val setters = classes.filter { it.isPublic() }.flatMap { it.methods }.filter { m ->
         AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
             m.parameterTypes.map(CharSequence::toString).let { it.size == 3 && it[1] == providerType && it[2] == builder }

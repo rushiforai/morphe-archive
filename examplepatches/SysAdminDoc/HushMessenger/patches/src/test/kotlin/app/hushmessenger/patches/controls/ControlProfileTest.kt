@@ -25,34 +25,34 @@ class ControlProfileTest {
             for (key in BASE_PROFILE.hooks.keys) {
                 assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
             }
-            assertEquals(ExpectedTotals.HOOKS_585, profile.hooks.values.sumOf { it.size })
+            assertEquals(ExpectedTotals.HOOKS_586, profile.hooks.values.sumOf { it.size })
         }
-        assertEquals(6, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
+        assertEquals(7, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
     }
 
     @Test fun theVersionCodePicksTheProfile() {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), controlProfiles.keys)
-        assertSame(PROFILE_347015062, BASE_PROFILE)
-        for (code in listOf("347015062", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
+        assertSame(PROFILE_347215348, BASE_PROFILE)
+        for (code in listOf("347215348", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("347015062", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("347215348", profiles))
     }
 
     @Test fun aSecondVersionNameUsesItsOwnBuildsProfile() {
-        val versions = MessengerTarget.VERSIONS + ("586.0.0.1.91" to listOf(348000001))
+        val versions = MessengerTarget.VERSIONS + ("587.0.0.1.91" to listOf(348000001))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
-        assertSame(BASE_PROFILE, controlProfileFor("347015062", profiles))
+        assertSame(BASE_PROFILE, controlProfileFor("347215348", profiles))
         val found = mapOf("ad_context_banner" to SYNTHETIC_PROFILE.hooks.getValue("ad_context_banner").map { id ->
             fixtureMethod(id, "const/4 v0, 0x0\nreturn v0")
         })
         activeProfile = controlProfileFor("348000001", profiles)
         validateControls(found, setOf("ad_context_banner"), versions)
-        activeProfile = controlProfileFor("347015062", profiles)
+        activeProfile = controlProfileFor("347215348", profiles)
         val failure = assertFailsWith<PatchException> { validateControls(found, setOf("ad_context_banner"), versions) }
         assertContains(failure.message.orEmpty(),
-            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 586.0.0.1.91 APK (version code 348000001).")
+            "Use an unmodified Messenger ${MessengerTarget.supportedApks()} or 587.0.0.1.91 APK (version code 348000001).")
     }
 
     @Test fun validationFollowsTheActiveBuild() {

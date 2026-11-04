@@ -1,0 +1,2 @@
+overrides:
+  'semantic-release>@semantic-release/npm': '-'

@@ -8,6 +8,7 @@ import static app.morphe.extension.shared.StringRef.str;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
@@ -69,6 +70,7 @@ final class CharacterCounter {
         int padding = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8,
                 context.getResources().getDisplayMetrics()));
         view.setPadding(padding, 0, padding * 2, 0);
+        view.setContentDescription(str("revanced_markdown_counter_description"));
 
         max = isPost(context) ? POST_LIMIT : COMMENT_LIMIT;
         editText.addTextChangedListener(new TextWatcher() {
@@ -114,13 +116,19 @@ final class CharacterCounter {
         return false;
     }
 
+    /** The view's description names it, so screen readers read the count as its state, after the name, from Android 11. */
+    private void show(String text) {
+        view.setText(text);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) view.setStateDescription(text);
+    }
+
     private void update() {
         String text = editText.getText().toString();
         // Reddit counts characters, not UTF-16 units (an emoji is one).
         int count = text.codePointCount(0, text.length());
         NumberFormat format = NumberFormat.getIntegerInstance();
         if (textNotAllowed) {
-            view.setText(str("revanced_markdown_counter_not_allowed", subreddit));
+            show(str("revanced_markdown_counter_not_allowed", subreddit));
             view.setTextColor(count > 0 ? RED : warningColor);
             return;
         }
@@ -128,7 +136,7 @@ final class CharacterCounter {
         if (min > 0 && count < min) {
             label = str("revanced_markdown_counter_min", format.format(count), format.format(max), format.format(min));
         }
-        view.setText(label);
+        show(label);
         if (count > max) view.setTextColor(RED);
         else if (count >= max * 9 / 10 || (min > 0 && count > 0 && count < min)) view.setTextColor(warningColor);
         else view.setTextColor(normalColor);

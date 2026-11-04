@@ -107,6 +107,6 @@ val hideReadReceiptsPatch = bytecodePatch(
             const/16 p2, 0x0
         """.trimIndent(), ExternalLabel("nezumi_original_marker", markerStart))
 
-        attachNezumiSettings()
+        attachNezumiSettings("attachReadReceipts")
     }
 }

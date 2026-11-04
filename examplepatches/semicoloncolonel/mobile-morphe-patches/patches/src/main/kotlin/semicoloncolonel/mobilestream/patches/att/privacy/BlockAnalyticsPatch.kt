@@ -53,9 +53,8 @@ private val RESOLVE_PROMISE = """
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Dynatrace, Adobe (including its in-app marketing messages), Medallia " +
-        "surveys, and Firebase Analytics. Sign-in and the speed test are left alone. Opt-in; " +
-        "test on-device.",
+    description = "Stops Dynatrace, Adobe (including its in-app marketing messages), Medallia surveys, " +
+        "and Firebase Analytics. Sign-in and the speed test are left alone.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -22,9 +22,9 @@ import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Hides the AI-written review summaries on Best Buy product pages. The " +
-        "reviews themselves still show. Ask Blue, Best Buy's AI assistant, is not covered. " +
-        "Opt-in / experimental; test on-device.",
+    description = "Hides the AI-written review summaries on Best Buy product pages. The reviews " +
+        "themselves still show. Ask Blue, Best Buy's AI assistant, is not covered. " +
+        "Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

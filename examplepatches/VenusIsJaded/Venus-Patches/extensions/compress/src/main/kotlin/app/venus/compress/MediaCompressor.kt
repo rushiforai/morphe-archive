@@ -23,7 +23,7 @@ import java.io.InputStream
 import java.util.ArrayList
 import java.util.Collections
 import java.util.Comparator
-import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
@@ -41,7 +41,9 @@ object MediaCompressor {
     private const val PREFIX = "venus-compress-v1:"
     private val jobId = Pattern.compile("[A-Za-z0-9_-]{1,80}")
     private val jobs = ConcurrentHashMap<String, AtomicBoolean>()
-    private val worker = ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(4),
+    // One at a time (each job can hold a big picture in memory), but a whole album sent at once still queues: 4 places
+    // refused the sixth file.
+    private val worker = ThreadPoolExecutor(1, 1, 30, TimeUnit.SECONDS, LinkedBlockingQueue<Runnable>(64),
         { task -> Thread(task, "Venus-Compress").apply { isDaemon = true } }, ThreadPoolExecutor.AbortPolicy())
         .apply { allowCoreThreadTimeOut(true) }
 
@@ -81,7 +83,8 @@ object MediaCompressor {
                                 val result = if (kind == "image") compressImage(app, uri, limit, budget, id, cancelled)
                                     else compressAudio(app, uri, limit, budget, id, cancelled)
                                 promise.resolve(result.toString())
-                            } catch (error: Exception) {
+                            } catch (error: Throwable) {
+                                // OutOfMemoryError too: left unanswered, the upload waited forever.
                                 promise.reject("VENUS_COMPRESS", error.message ?: "Compression failed")
                             } finally { jobs.remove(id, cancelled) }
                         }
@@ -103,11 +106,14 @@ object MediaCompressor {
     private fun outputDirectory(context: Context): File {
         val directory = File(context.cacheDir, "venus-compress")
         check(directory.isDirectory || directory.mkdirs()) { "Compression cache directory unavailable" }
+        // Files are removed when their upload ends ("release"); this only sweeps what a crash left behind. A file from the last
+        // half hour may still be waiting to upload (an album sends many at once), so it is never swept by count.
+        val now = System.currentTimeMillis()
         val old = ArrayList<File>()
         val cached = directory.listFiles()
         if (cached != null) for (file in cached) {
-            if (System.currentTimeMillis() - file.lastModified() > 6 * 3600000L) file.delete()
-            if (file.exists()) old.add(file)
+            val age = now - file.lastModified()
+            if (age > 6 * 3600000L) file.delete() else if (age > 30 * 60000L) old.add(file)
         }
         Collections.sort(old, Comparator { left, right -> java.lang.Long.compare(left.lastModified(), right.lastModified()) })
         var prune = 0
@@ -176,14 +182,20 @@ object MediaCompressor {
         return out.toByteArray()
     }
 
+    /** The best encode that fits (or null), and how big the lowest allowed quality came out, to size the next try from. */
+    private class Fit(val bytes: ByteArray?, val floorSize: Long)
+
     /**
      * The highest quality from [ceiling] down to [floor] whose result fits, found by bisection (size only ever falls with
-     * quality), or null when even [floor] is too big.
+     * quality). [floor] is tried first: when even it is too big, its size says how much smaller the picture must get.
      */
     private fun bestQuality(bitmap: Bitmap, format: Bitmap.CompressFormat, ceiling: Int, floor: Int, budget: Long,
-                            cancelled: AtomicBoolean): ByteArray? {
-        var best: ByteArray? = null
-        var low = floor
+                            cancelled: AtomicBoolean): Fit {
+        check(!cancelled.get()) { "Compression cancelled" }
+        val atFloor = encode(bitmap, format, floor)
+        if (atFloor.size > budget) return Fit(null, atFloor.size.toLong())
+        var best = atFloor
+        var low = floor + 1
         var high = ceiling
         while (low <= high) {
             check(!cancelled.get()) { "Compression cancelled" }
@@ -191,7 +203,7 @@ object MediaCompressor {
             val bytes = encode(bitmap, format, middle)
             if (bytes.size <= budget) { best = bytes; low = middle + 1 } else high = middle - 1
         }
-        return best
+        return Fit(best, atFloor.size.toLong())
     }
 
     private fun compressImage(context: Context, uri: Uri, limit: Long, budget: Long, id: String, cancelled: AtomicBoolean): JSONObject {
@@ -205,8 +217,9 @@ object MediaCompressor {
         val mime = bounds.outMimeType ?: ""
         // Animated GIFs cannot be re-encoded without losing the animation; leave them for Discord to refuse.
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0 || mime == "image/gif") return unchanged(size)
+        // At most ~24 MP in memory (96 MB as ARGB): 48 MP ran phones out of memory, and nothing over the limit needs more.
         var sample = 1
-        while ((bounds.outWidth / sample).toLong() * (bounds.outHeight / sample).toLong() > 48000000L) sample *= 2
+        while ((bounds.outWidth / sample).toLong() * (bounds.outHeight / sample).toLong() > 24000000L) sample *= 2
         val decode = BitmapFactory.Options()
         decode.inSampleSize = sample
         val stream = open(context, uri)
@@ -236,17 +249,27 @@ object MediaCompressor {
                 if (Build.VERSION.SDK_INT >= 30) Bitmap.CompressFormat.WEBP_LOSSY else Bitmap.CompressFormat.WEBP
             } else Bitmap.CompressFormat.JPEG
             if (bytes == null) {
-                // Keep the picture whole while quality 88 or better fits; only then shrink it a little at a time.
-                bytes = bestQuality(current, lossy, 98, 88, budget, cancelled)
+                // Keep the picture whole while quality 88 or better fits. Otherwise shrink it straight to the size that should
+                // fit (file size follows the pixel count), always from the full picture so it is resampled once, not blurred a
+                // step at a time: usually one more round instead of up to ten.
+                var fit = bestQuality(current, lossy, 98, 88, budget, cancelled)
+                bytes = fit.bytes
+                val source = current
                 var scale = 1.0
-                while (bytes == null && scale > 0.3) {
-                    scale *= 0.88
-                    val smaller = Bitmap.createScaledBitmap(current, Math.max(1, Math.round(current.width * 0.88f)),
-                        Math.max(1, Math.round(current.height * 0.88f)), true)
-                    if (smaller !== current) current.recycle()
+                var tries = 0
+                while (bytes == null && tries < 6) {
+                    val step = Math.sqrt(budget.toDouble() / Math.max(1L, fit.floorSize)) * 0.96
+                    scale *= Math.max(0.5, Math.min(0.95, step))
+                    if (scale < 0.2) break
+                    val smaller = Bitmap.createScaledBitmap(source, Math.max(1, Math.round(source.width * scale).toInt()),
+                        Math.max(1, Math.round(source.height * scale).toInt()), true)
+                    if (current !== source && current !== smaller) current.recycle()
                     current = smaller
-                    bytes = bestQuality(current, lossy, 94, 88, budget, cancelled)
+                    fit = bestQuality(current, lossy, 94, 88, budget, cancelled)
+                    bytes = fit.bytes
+                    tries++
                 }
+                if (current !== source) source.recycle()
             }
             outWidth = current.width
             outHeight = current.height

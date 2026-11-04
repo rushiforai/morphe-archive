@@ -2,8 +2,9 @@
 
 **GinArena Patch** is a [Morphe](https://morphe.software/) patch bundle for free **1DM**
 (`idm.internet.download.manager`), **CRICFy TV** (`com.cricfytv.sports`), **CricZ TV**
-(`com.pro.cricztv`), **PlayZ TV** (`com.playz.tv`), and **MX Player** (`com.mxtech.videoplayer.ad`). Morphe Manager automatically
-filters patches per app, so selecting an app shows only the patches compatible with that app.
+(`com.pro.cricztv`), **PlayZ TV** (`com.playz.tv`), **MX Player** (`com.mxtech.videoplayer.ad`),
+**SK Tech TV** (`com.live.sktechtv`), and **APK Decompiler** (`com.apktools.app.decompile`).
+Morphe Manager automatically filters patches per app, so selecting an app shows only compatible patches.
 
 ### How to use these patches
 
@@ -18,7 +19,7 @@ github.com/ginDoki19/GinArena-patch
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v2.6.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v2.7.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -119,6 +120,22 @@ github.com/ginDoki19/GinArena-patch
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads, tracking, and forced updates, and keeps channels working after patching. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
+
+</details>
+
+<details>
+<summary>📦 APK Decompiler&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.12.0 |
+| :---: |
+| Standalone APK (arm64-v8a / armeabi-v7a, Android 9.0+), build 4120 |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks local premium tools and cleans up VIP labels. |  |
 
 </details>
 
@@ -379,12 +396,40 @@ Nothing else is touched: no permissions are changed and streaming behavior is le
 
 ---
 
+## 📦 APK Decompiler (4.12.0, build 4120)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+#### Unlock premium
+
+Enables local premium tools and cleans up VIP labels and buttons.
+
+### Target app (APK Decompiler)
+
+| | |
+|---|---|
+| Package | `com.apktools.app.decompile` |
+| Version | **4.12.0** (versionCode 4120), standalone APK (`arm64-v8a`, `armeabi-v7a`, Android 9.0+) |
+| Stock download | [APKPure — APK Decompiler](https://apkpure.com/decompile-app-based-on-jadx/com.apktools.app.decompile) — choose **4.12.0** and verify the hash below |
+| Signing certificate SHA-256 | `80c8e7990b68af1301f76057e7eabe63de4240e3ca74da46c36a9c8084c68386` |
+| APK SHA-256 | `f85934cf2c0ce8224b0fccb4c0d631813cfd028680d0c23ef28ea886a9d1053b` |
+
+> **Note:** This enables local access, not a Google Play purchase. Other versions and
+> server-controlled features are not verified.
+
+</details>
+
+---
+
 ## Usage (Morphe Manager)
 
 1. Add this repository as a remote patch source using the link at the top of this README.
-2. Download the official stock **1DM 20.0 APKM**, **CRICFy TV 7.4 APK**, **CricZ TV 7.3 APK**,
-   **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, or
-   **MX Player 3.4.1 standalone APK** above onto your device.
+2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.4 APK**, **CricZ TV 7.3 APK**,
+   **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 APK**, or
+   **APK Decompiler 4.12.0 APK** above onto your device.
 3. Uninstall the stock app first if it is already installed (re-signing changes the APK signature).
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
    file (rather than an already-patched installed app), configure options if desired (for MX

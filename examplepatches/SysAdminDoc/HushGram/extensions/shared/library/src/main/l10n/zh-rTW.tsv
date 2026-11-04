@@ -422,6 +422,8 @@ Opening someone's profile takes you on to their posts as a scrolling list of ful
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	隱藏 Instagram 在 Reels 之間插入的推薦用戶與創作者卡片。每則 Reel 仍會播放。
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	隱藏標示「付費合作夥伴」或 Instagram 標記為加強推廣的 Reels。廣告另有獨立開關。
 Turn on Start Home on Following to use this choice.	請啟用「首頁預設顯示追蹤中」以使用此選項。
+# context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
+Turn on %1$s to use this slider.	請啟用「%1$s」以使用此滑桿。
 Turn on Story ring size to use this choice.	請啟用「限時動態光圈尺寸」以使用此選項。
 Turn on Default playback quality to use this choice.	請啟用「預設播放畫質」以使用此選項。
 Updating remembered positions...	正在更新記住的播放位置…
@@ -508,7 +510,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	使用私訊影片樣式的進度列
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	讓 Reels 使用聊天影片的進度列：播放時由灰轉白的細線，搭配大型白色圓形拖曳鈕，上方顯示時間。拖曳即可跳轉。同時啟用「加大 Reels 進度列」時，會優先使用此樣式。也會保留短 Reels 的進度列。
 Blur the bars around a reel	模糊 Reel 周圍的留白
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	未填滿螢幕的 Reel 會在上下顯示自身的模糊影像，取代黑邊；分頁列下方與時鐘後方也會顯示模糊的 Reel。變更後請重新開啟 Reels。
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	未填滿螢幕的 Reel 會在上下顯示自身的模糊影像，取代黑邊；分頁列下方與時鐘後方也會顯示模糊的 Reel。模糊影像只會出現在 Reel 留有空間的地方，例如開啟「顯示完整的 Reels」時。變更後請重新開啟 Reels。
 # Chosen navigation long-press settings entry. Account tab availability varies.
 Settings entry	設定入口
 Open settings with a tab long press	長按分頁開啟設定
@@ -776,7 +778,7 @@ Bio copied	已複製個人簡介
 Copy bio	複製個人簡介
 Copy username and bio	複製使用者名稱與個人簡介
 Profile extras button	個人檔案額外選項按鈕
-Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	在個人檔案的三點按鈕旁新增按鈕，開啟 HushGram 的個人檔案操作。三點選單中的選項仍會保留。
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. Needs Save profile picture, View profile picture or Copy username and bio on. The rows in the three-dot menu stay too.	在個人檔案的三點按鈕旁新增按鈕，開啟 HushGram 的個人檔案操作。需開啟「儲存個人檔案相片」、「檢視個人檔案相片」或「複製使用者名稱與個人簡介」其中一項。三點選單中的選項仍會保留。
 HushGram profile actions	HushGram 個人檔案操作
 Nothing to do for this profile	此個人檔案沒有可用的操作
 Couldn't copy the bio	無法複製個人簡介
@@ -944,6 +946,10 @@ The tab bar keeps Instagram's order.	分頁列維持 Instagram 原本的順序�
 Tabs go in this order: %1$s. Restart Instagram to see the change.	分頁順序：%1$s。請重新啟動 Instagram 以套用變更。
 Show and reorder tabs	顯示與排列分頁
 Drag to move %1$s	拖曳以移動 %1$s
+Move up	上移
+Move down	下移
+# context: Show and reorder tabs: what a screen reader is told after Move up or Move down on a row's handle; %1$s is the tab, %2$d its new place and %3$d how many tabs the list holds (#207)
+%1$s is now %2$d of %3$d	%1$s 現在位於第 %2$d 項，共 %3$d 項
 Reset	重設
 Create	建立
 Start tab	啟動分頁
@@ -964,6 +970,9 @@ Start stories with sound	限時動態預設開啟聲音
 Stories open with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count, so on silent or with the volume down, stories stay quiet.	開啟限時動態時會啟用聲音，等同點擊 Instagram 的喇叭按鈕。仍受手機鈴聲與音量設定影響，因此靜音或音量調低時仍不會出聲。
 Stop swipe up to reply	停用上滑回覆
 A swipe up on someone's story no longer opens the reply box and its reactions. Tap Send message to reply.	在他人的限時動態向上滑動不再開啟回覆框與心情回應。請點擊「傳送訊息」回覆。
+# context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
+Hide the reply box on stories	隱藏限時動態的回覆框
+Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	移除他人限時動態底部的「傳送訊息」框。旁邊的按讚和分享按鈕會留在原位。
 # context: toast when Download all is tapped while another post is still saving; it waits its turn
 Queued. It starts once the post before it is saved.	已加入佇列，前一則貼文儲存完成後會開始。
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
@@ -1065,6 +1074,9 @@ Turn on Instagram's clear mode on a reel and the next reels open in it too. Leav
 # context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
 Start every reel in clear mode	每個 Reel 都以清爽模式開始
 Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	從第一個 Reel 起就以清爽模式開啟，不必點按。手動離開清爽模式後，後續 Reels 會重新顯示按鈕。除非開啟「允許截圖」，否則 Instagram 會在清爽模式中封鎖截圖。
+# context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
+Don't vibrate in clear mode	清爽模式中不震動
+Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Reel 以清爽模式開啟時，停止 Instagram 播放的短暫震動。開啟「保持清爽模式」時，每次滑動都會震動。
 Unlock with	解鎖方式
 Phone lock	手機鎖定
 HushGram PIN	HushGram PIN 碼
@@ -1256,9 +1268,9 @@ Share to	分享至
 Copy link	複製連結
 QR code	QR 碼
 WhatsApp status	WhatsApp 狀態
-Reply to author	回覆作者
+Reply to author (posts and reels)	回覆作者 (貼文和連續短片)
 Watch on TV	在電視上觀看
-Download profile card	下載個人檔案卡片
+Download profile card (on profiles)	下載個人檔案卡片 (在個人檔案)
 Add to channel	新增至頻道
 WhatsApp	WhatsApp
 SMS	簡訊
@@ -1567,6 +1579,8 @@ No accounts yet	尚未加入帳號
 %1$d account	%1$d 個帳號
 %1$d accounts	%1$d 個帳號
 Home header text	首頁頂端文字
+# context: placeholder in the empty Home header text field, where the person types their own words for the top of Home
+Your words	你的文字
 Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	在首頁頂端顯示你自己的文字，取代 Instagram 標誌。最多 %1$d 個字元。留空即可保留標誌。
 Instagram's logo stays at the top of Home.	首頁頂端保留 Instagram 標誌。
 The top of Home says %1$s.	首頁頂端顯示「%1$s」。
@@ -1593,6 +1607,10 @@ Red story mentions	紅色限時動態標註
 Draws the mention pill's text in red instead of white, so it stands out on bright stories.	將標註標籤的文字改用紅色而非白色，在明亮的限時動態上更醒目。
 Only received reels	僅限收到的 Reels
 Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	滑動瀏覽聊天室的 Reels 時，會略過你在該處傳送的，只瀏覽對方分享的 Reels。需開啟「滑動瀏覽聊天室的 Reels」才會生效。
+# context: Messages settings (#489), and the banner over a reel opened from a chat when the other person wrote after it; a tap goes back to the chat
+Messages after a reel	Reels 之後的訊息
+While you swipe through a chat's reels, a banner says when the other person sent a message after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe through a chat's reels on.	在聊天室的 Reels 之間滑動時，若對方在畫面上的 Reel 之後傳了訊息，會出現橫幅提示。點一下即可回到聊天室的那則訊息。需開啟「在聊天室的 Reels 之間滑動」才會生效。
+New message after this reel	這則 Reel 之後有新訊息
 Hide the audio icon on posts	隱藏貼文上的音訊圖示
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	移除動態中影片上的喇叭圖示。點一下影片仍可開啟或關閉聲音。畫面上已有的貼文會在重新載入後更新。
 Light when paused	暫停時亮起
@@ -1666,3 +1684,55 @@ View once message	限看一次的訊息
 Attachment	附件
 # context: the button next to the reply field in the chat preview box.
 Send	傳送
+Dim stories too	限時動態也調暗
+Burn-in guard also fades the top and bottom of a story while you watch without touching, the eye button too. Any tap brings them back.	不碰螢幕觀看限時動態時，防烙印保護也會讓上方和下方變暗，眼睛按鈕也一樣。輕觸任何地方即可恢復。
+# context: Reels settings: a switch for a speed icon beside each reel that opens a list of speeds, after Copy text button on reels (#480). Keep the reel speed is HushGram's switch of that name
+Speed button on reels	Reels 速度按鈕
+Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	在 Reel 旁加入速度圖示。點一下即可選擇 0.5x 到 3x 的速度。開啟「保留 Reels 播放速度」時，之後的 Reels 也會以這個速度播放。
+# context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
+Full screen button on reels	Reels 全螢幕按鈕
+Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	在 Reel 旁加入全螢幕圖示，點一下就和選單中的「全螢幕」一樣。開啟「每個 Reel 都以清爽模式開始」後，每個 Reel 都會這樣開啟。
+# context: TalkBack label of the speed icon beside a reel (#480)
+Playback speed	播放速度
+# context: TalkBack label of the Full screen icon beside a reel, Instagram's own term (#480)
+Full screen	全螢幕
+# context: toast when a speed picked from that icon's list couldn't be set (#480)
+Speed didn't change	速度未變更
+# context: toast when a tap on the Full screen icon couldn't open the reel full screen (#480)
+Full screen didn't open	無法開啟全螢幕
+# context: Stories switch that lays a story over the whole screen on tall phones (#436)
+Stories fill the screen	限時動態填滿螢幕
+# context: that switch's summary (#436)
+On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	在較長的螢幕上，限時動態會像在較短的手機上一樣覆蓋整個螢幕，回覆列疊在上方，而不是以圓角卡片顯示在回覆列上方。
+# context: a button in the select-text window that copies the whole text (#492)
+Copy all	全部複製
+# context: toast after Copy all in the select-text window (#492)
+Copied	已複製
+# context: title of the window showing one comment (#492)
+Comment	留言
+# context: toast when the select-text window fails (#492)
+Couldn't open the text	無法開啟文字
+# context: menu row that opens text for selecting (#492)
+Select text	選取文字
+# context: settings switch title (#492)
+Select text to copy	選取要複製的文字
+# context: that switch summary (#492)
+Adds Select text to a selected comment's menu, a post's details and a profile's menu. It opens the text in a window where you can select part of it and copy it. Links work there.	在留言選單、貼文詳細資料和個人檔案選單加入「選取文字」。文字會在視窗中開啟，你可以選取一部分來複製。連結也能點開。
+# context: notification channel name (#492)
+Unfollow alerts	取消追蹤通知
+# context: that channel description (#492)
+Who stopped following you, after you open your Followers list	你開啟追蹤者清單後，誰取消了追蹤你
+# context: unfollow notification title, one person (#492)
+1 person stopped following you	有 1 人取消追蹤你
+# context: unfollow notification title, several people (#492)
+%1$d people stopped following you	有 %1$d 人取消追蹤你
+# context: names then a count of the rest (#492)
+%1$s and %2$d more	%1$s 和另外 %2$d 人
+# context: settings switch title (#492)
+Notify me of unfollowers	通知我有人取消追蹤
+# context: that switch summary (#492)
+After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	你把自己的追蹤者清單捲到底後，會用通知告訴你自上次以來誰離開了。不會向 Instagram 多要求任何東西。
+# context: settings switch title and button label, the row Instagram calls About this account (#492)
+About this account	關於這個帳號
+About this account button	「關於這個帳號」按鈕
+Puts an (i) next to the three dots on a profile that opens Instagram's About this account for that account. Instagram took its own away.	在個人檔案的三個點旁放一個 (i),為該帳號開啟 Instagram 的「關於這個帳號」。Instagram 已移除原本的按鈕。

@@ -25,11 +25,9 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops third-party analytics and tracking in the Disney+ phone app: Braze, " +
-        "Conviva, Nielsen, and Firebase/Google Analytics. " +
-        "Blocking happens on the device, inside the app. Disney's own analytics share " +
-        "servers with sign-in and playback, so they are not blocked. Opt-in / experimental; " +
-        "test on-device.",
+    description = "Stops third-party analytics and tracking: Braze, Conviva, Nielsen, and " +
+        "Firebase/Google Analytics. Disney's own analytics share servers with sign-in and " +
+        "playback, so they are not blocked. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -8,6 +8,11 @@ import org.w3c.dom.Node
 object LinimalManifestComponentRegistration {
     private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
     private const val SETTINGS_ACTIVITY = "dev.utaa.linimal.extension.settings.LinimalSettingsActivity"
+    internal const val RESTART_ACTIVITY = "dev.utaa.linimal.extension.settings.LinimalRestartActivity"
+    /** 再起動の中継画面は、LINE のプロセスが終了しても残るよう別のプロセスと task で動かします。 */
+    internal const val RESTART_PROCESS = ":linimal_restart"
+    private const val RESTART_TASK_AFFINITY = "dev.utaa.linimal.restart"
+    private const val RESTART_ACTIVITY_THEME = "@android:style/Theme.Translucent.NoTitleBar"
 
     /** ActionBar なしの公開プラットフォームテーマ。配色は Activity 側の LinimalPalette が決めます。 */
     private const val SETTINGS_ACTIVITY_THEME = "@android:style/Theme.DeviceDefault.Light.NoActionBar"
@@ -33,6 +38,9 @@ object LinimalManifestComponentRegistration {
         if (hasComponentNamed(application, SETTINGS_ACTIVITY)) {
             throw ManifestComponentRegistrationException("SettingsActivityAlreadyRegistered")
         }
+        if (hasComponentNamed(application, RESTART_ACTIVITY)) {
+            throw ManifestComponentRegistrationException("RestartActivityAlreadyRegistered")
+        }
 
         val activity = document.createElement("activity")
         activity.setAttribute("android:name", SETTINGS_ACTIVITY)
@@ -43,6 +51,16 @@ object LinimalManifestComponentRegistration {
         // ActionBar 付きのテーマでは android:label がタイトルとして重なり、ヘッダーを覆います。
         activity.setAttribute("android:theme", SETTINGS_ACTIVITY_THEME)
         application.appendChild(activity)
+
+        val restart = document.createElement("activity")
+        restart.setAttribute("android:name", RESTART_ACTIVITY)
+        restart.setAttribute("android:exported", "false")
+        restart.setAttribute("android:excludeFromRecents", "true")
+        restart.setAttribute("android:noHistory", "true")
+        restart.setAttribute("android:process", RESTART_PROCESS)
+        restart.setAttribute("android:taskAffinity", RESTART_TASK_AFFINITY)
+        restart.setAttribute("android:theme", RESTART_ACTIVITY_THEME)
+        application.appendChild(restart)
     }
 
     private fun hasComponentNamed(application: Element, componentName: String): Boolean =

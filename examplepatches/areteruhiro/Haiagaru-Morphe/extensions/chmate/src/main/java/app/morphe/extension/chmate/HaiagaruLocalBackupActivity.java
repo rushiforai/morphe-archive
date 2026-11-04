@@ -56,9 +56,12 @@ public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
 
     private void launchPicker() {
         if(mode==MODE_FOLDER){
-            try{pickerStarted=true;startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+            try{pickerStarted=true;Intent folder=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                            |Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION|Intent.FLAG_GRANT_PREFIX_URI_PERMISSION),REQUEST_DOCUMENT);}
+                            |Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION|Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+                if(android.os.Build.VERSION.SDK_INT>=26){Uri initial=LocalAutoBackup.folderHint(this);
+                    if(initial!=null)folder.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI,initial);}
+                startActivityForResult(folder,REQUEST_DOCUMENT);}
             catch(Exception e){showError("フォルダ選択画面を開けませんでした");}return;
         }
         Intent picker = new Intent(mode == MODE_SAVE

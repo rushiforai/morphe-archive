@@ -18,5 +18,16 @@
         </SegmentList>
       </Representation>
     </AdaptationSet>
+    <AdaptationSet id="1" contentType="audio" startWithSAP="1" segmentAlignment="true" bitstreamSwitching="true">
+      <Representation id="1" mimeType="audio/mp4" codecs="mp4a.40.2" bandwidth="64234" audioSamplingRate="44100">
+        <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
+        <BaseURL>DASH_AUDIO_128.mp4</BaseURL>
+        <SegmentList timescale="1000000" duration="5000000" startNumber="1">
+          <Initialization range="0-764" />
+          <SegmentURL mediaRange="765-42055" indexRange="765-816" />
+          <SegmentURL mediaRange="42056-84156" indexRange="42056-42107" />
+        </SegmentList>
+      </Representation>
+    </AdaptationSet>
   </Period>
 </MPD>

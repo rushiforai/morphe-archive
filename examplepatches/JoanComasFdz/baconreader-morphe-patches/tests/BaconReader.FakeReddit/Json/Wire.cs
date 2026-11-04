@@ -154,10 +154,31 @@ public sealed record LinkData
     public bool IsVideo { get; init; }
     public bool IsGallery { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CrosspostParent { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public object[]? CrosspostParentList { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public GalleryData? GalleryData { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, MediaMetadata>? MediaMetadata { get; init; }
 }
+
+/// <summary>A video post's <c>media</c> and <c>secure_media</c>: its video uploaded to v.redd.it.</summary>
+public sealed record MediaData(RedditVideoData RedditVideo);
+
+/// <summary>A video uploaded to v.redd.it, as a post's <c>media.reddit_video</c>: its playlists, its MP4 and its size.</summary>
+public sealed record RedditVideoData(
+    int BitrateKbps = 220,
+    string FallbackUrl = "",
+    bool HasAudio = true,
+    int Height = 0,
+    int Width = 0,
+    string ScrubberMediaUrl = "",
+    string DashUrl = "",
+    int Duration = 0,
+    string HlsUrl = "",
+    bool IsGif = false,
+    string TranscodingStatus = "completed");
 
 /// <summary>A gallery post's <c>gallery_data</c>: its images, in order, by their ids in <c>media_metadata</c>.</summary>
 public sealed record GalleryData(IReadOnlyList<GalleryItem> Items);
@@ -335,6 +356,7 @@ public sealed record MessageData
     public double CreatedUtc { get; init; }
     public string Context { get; init; } = "";
     public object? Distinguished { get; init; }
+    public string? LinkTitle { get; init; }
 }
 
 /// <summary>

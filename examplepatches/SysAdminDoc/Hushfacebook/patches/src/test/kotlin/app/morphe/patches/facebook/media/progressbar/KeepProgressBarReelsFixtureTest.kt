@@ -25,7 +25,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -404,7 +403,7 @@ class KeepProgressBarReelsFixtureTest {
     }
 
     @Test
-    fun `each declared build moves the kept bar about once a frame`() = bundles { bundle ->
+    fun `each declared build moves the kept bar at the extension's wait`() = bundles { bundle ->
         val name = bundle.name
         val progress = scrubber(bundle).progress
         val base = progress.base
@@ -421,16 +420,17 @@ class KeepProgressBarReelsFixtureTest {
         val original = method.code()
         method.smoothWhileKept()
         val patched = method.code()
-        assertEquals("$where gains five instructions", original.size + 5, patched.size)
+        assertEquals("$where gains six instructions", original.size + 6, patched.size)
         assertEquals("$where: the extension is asked first", SMOOTHS_BAR, patched[0].reference())
         val register = (patched[1] as OneRegisterInstruction).registerA
         assertTrue("$where: the hook writes v$register and the next, which aren't locals", register + 1 < method.localRegisterCount())
         assertEquals("$where: a no goes on to Facebook", Opcode.IF_EQZ, patched[2].opcode)
-        assertEquals("$where: a yes waits a frame", SMOOTH_FRAME_DELAY_MS.toLong(), (patched[3] as WideLiteralInstruction).wideLiteral)
-        assertEquals("$where: as a long", Opcode.CONST_WIDE_16, patched[3].opcode)
-        assertEquals("$where: and returns it", Opcode.RETURN_WIDE, patched[4].opcode)
-        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(5).map { it.opcode })
-        assertEquals("$where: a no lands on Facebook's first instruction", setOf(3, 5), ControlFlow.of(method).normal[2].toSet())
+        assertEquals("$where: a yes asks the extension how long to wait", BAR_WAIT_MS, patched[3].reference())
+        assertEquals("$where: as a long", Opcode.MOVE_RESULT_WIDE, patched[4].opcode)
+        assertEquals("$where: into the same pair", register, (patched[4] as OneRegisterInstruction).registerA)
+        assertEquals("$where: and returns it", Opcode.RETURN_WIDE, patched[5].opcode)
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(6).map { it.opcode })
+        assertEquals("$where: a no lands on Facebook's first instruction", setOf(3, 6), ControlFlow.of(method).normal[2].toSet())
     }
 
     @Test
@@ -724,6 +724,92 @@ class KeepProgressBarReelsFixtureTest {
         assertEquals("$where: the stub calls the helper", "${holder.type}->$FOOTER_LIFT_HELPER(Ljava/lang/Object;)Z", stub[0].reference())
         assertEquals("$where: and answers what it answers", listOf(Opcode.MOVE_RESULT, Opcode.RETURN), stub.subList(1, 3).map { it.opcode })
         extensionHas(where, FOOTER_MADE)
+    }
+
+    @Test
+    fun `each declared build hands the scrubber another player's video for the reel while kept`() = bundles { bundle ->
+        val name = bundle.name
+        val holders = FixtureDex.classesHolding(bundle, SCRUBBER_RENDER).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        val read = reelVideoRead(holders)
+        val render = read.method
+        val where = "$name: ${render.definingClass}->${render.name}"
+        val original = render.code()
+        assertEquals("$where: the read isn't of a session's video data", read.videoData, original[read.at].reference())
+        // The bar's controller is made on the session the read is from (585 `new LX/05Bl;(v9, v10, v14)`),
+        // and the helper is handed the registry that controller is made with (#359).
+        val session = (original[read.at] as TwoRegisterInstruction).registerB
+        val controller = (0 until read.at).lastOrNull {
+            original[it].opcode == Opcode.INVOKE_DIRECT && original[it].reference()?.contains("-><init>(${read.sessionClass}${read.registryType}") == true
+        }
+        assertNotNull("$where: no controller made on the session and registry before the read", controller)
+        val made = original[controller!!] as FiveRegisterInstruction
+        assertEquals("$where: the controller isn't made on the session the read is from", session, made.registerD)
+        assertEquals("$where: or with the registry the helper is handed", read.registry, made.registerE)
+        val walk = original.mapNotNull { it.reference() }
+        for (wanted in listOf(read.sessions, read.keyVideo, read.videoData)) {
+            assertTrue("$where: Facebook's own look through every player doesn't read $wanted", wanted in walk)
+        }
+
+        // The bar the render returns is made on the video data the read leaves (585 `new LX/0Ayx;`, #359).
+        val bar = reelBarReturn(read) { type -> FixtureDex.classes(bundle, setOf(type))[type] }
+        assertEquals("$where: the bar's return isn't a return", Opcode.RETURN_OBJECT, original[bar.at].opcode)
+        val built = (bar.at - 1 downTo read.at).firstOrNull {
+            original[it].opcode == Opcode.INVOKE_DIRECT_RANGE || original[it].opcode == Opcode.INVOKE_DIRECT
+        }
+        assertNotNull("$where: the bar isn't built before it's returned", built)
+        assertTrue("$where: the bar isn't built with the video data's type",
+            original[built!!].reference()?.startsWith("${bar.barClass}-><init>(") == true &&
+                read.dataType in original[built].reference()!!)
+
+        val context = PatchContexts.of(holders.filter { it.type == render.definingClass })
+        context.borrowsReelVideo(read, bar)
+        val owner = context.mutableClassDefBy(render.definingClass)
+        val patched = owner.methods.single { it.sameAs(render) }.code()
+        assertEquals("$where gains three instructions", original.size + 3, patched.size)
+        val keyed = bar.at + 2
+        assertEquals("$where: the bar isn't handed to the key helper", bar.helper(read), patched[keyed].reference())
+        assertEquals("$where: as the register it's returned in", bar.register, (patched[keyed] as RegisterRangeInstruction).startRegister)
+        assertEquals("$where: the bar's return moved", Opcode.RETURN_OBJECT, patched[keyed + 1].opcode)
+        val call = patched[read.at + 1] as FiveRegisterInstruction
+        assertEquals("$where: the read isn't handed to the helper", read.helper, patched[read.at + 1].reference())
+        assertEquals("$where: with the read, the registry and the video id", listOf(read.own, read.registry, read.video),
+            listOf(call.registerC, call.registerD, call.registerE))
+        assertEquals("$where: the helper's answer isn't kept", Opcode.MOVE_RESULT_OBJECT, patched[read.at + 2].opcode)
+        assertEquals("$where: in the read's register", read.own, (patched[read.at + 2] as OneRegisterInstruction).registerA)
+        assertEquals("$where: the render's own test moved", Opcode.IF_NEZ, patched[read.at + 3].opcode)
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode },
+            patched.filterIndexed { at, _ -> at != read.at + 1 && at != read.at + 2 && at != keyed }.map { it.opcode })
+
+        val helper = owner.methods.single { it.name == REEL_VIDEO_HELPER }
+        assertEquals("$where: the helper isn't the one called", read.helper,
+            "${helper.definingClass}->${helper.name}(${helper.parameterTypes.joinToString("")})${helper.returnType}")
+        assertTrue("$where: the helper is public and static",
+            AccessFlags.PUBLIC.isSet(helper.accessFlags) && AccessFlags.STATIC.isSet(helper.accessFlags))
+        val body = helper.code()
+        assertEquals("$where: the viewer's own data isn't answered first", Opcode.IF_NEZ, body[0].opcode)
+        assertEquals("$where: then the extension isn't asked", BORROWS_VIDEO, body[1].reference())
+        val reads = body.mapNotNull { it.reference() }
+        for (wanted in listOf(read.sessions, read.keyClass, read.keyVideo, read.sessionClass, read.videoData)) {
+            assertTrue("$where: the helper's walk doesn't use $wanted", wanted in reads)
+        }
+        val flow = ControlFlow.of(helper)
+        val returns = body.indices.filter { body[it].opcode == Opcode.RETURN_OBJECT }
+        assertEquals("$where: the helper answers found data or what it was handed", 2, returns.size)
+        assertTrue("$where: a no from the extension doesn't answer what it was handed",
+            returns.last() in flow.normal[body.indexOfFirst { it.opcode == Opcode.IF_EQZ }])
+        assertEquals("$where: found data isn't told to the extension as lent", LENT, body[returns.first() - 1].reference())
+        extensionHas(where, BORROWS_VIDEO)
+        extensionHas(where, LENT)
+
+        val keyHelper = owner.methods.single { it.name == REEL_KEY_HELPER }
+        assertEquals("$where: the key helper isn't the one called", bar.helper(read),
+            "${keyHelper.definingClass}->${keyHelper.name}(${keyHelper.parameterTypes.joinToString("")})${keyHelper.returnType}")
+        val keyBody = keyHelper.code()
+        assertEquals("$where: the key helper doesn't read the bar's video data", bar.barData, keyBody[0].reference())
+        assertEquals("$where: then ask the extension", SCRUBBER_KEY, keyBody[1].reference())
+        assertEquals("$where: a key is set only when there is one", Opcode.IF_EQZ, keyBody[3].opcode)
+        assertEquals("$where: through Litho's own setter", "${bar.component}->$SET_KEY", keyBody[4].reference())
+        extensionHas(where, SCRUBBER_KEY)
     }
 
     private fun extensionHas(where: String, descriptor: String) {

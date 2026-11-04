@@ -21,8 +21,12 @@ and sends nothing anywhere. There are no accounts, no telemetry, no dependencies
 3. Allow the port through your firewall, once, in an **administrator** terminal:
 
    ```
-   netsh advfirewall firewall add rule name="sf-bridge" dir=in action=allow protocol=TCP localport=7892 profile=private
+   netsh advfirewall firewall add rule name="sf-bridge" dir=in action=allow protocol=TCP localport=7892 profile=any remoteip=localsubnet
    ```
+
+   `profile=any` matters: Windows counts a café, office or co-working network as public, and a
+   private-only rule is then ignored, so the phone cannot connect at all. `remoteip=localsubnet`
+   keeps the port closed to anything outside your own network.
 
    (On Linux, `sudo ufw allow 7892/tcp`.)
 

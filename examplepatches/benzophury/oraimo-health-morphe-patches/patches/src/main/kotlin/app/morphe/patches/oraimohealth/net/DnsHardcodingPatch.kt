@@ -6,20 +6,10 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.oraimohealth.shared.COMPATIBILITY_ORAIMO_HEALTH
 
 /**
- * Fingerprint matching the lookup method in okhttp3.Dns$Companion$DnsSystem (v2.0.4).
- */
-object DnsSystemLookupFingerprint : Fingerprint(
-    definingClass = "Lokhttp3/Dns\$Companion\$DnsSystem;",
-    name = "lookup",
-    returnType = "Ljava/util/List;",
-    parameters = listOf("Ljava/lang/String;")
-)
-
-/**
- * Fingerprint matching obfuscated OkHttp Dns lookup in v2.0.6 (fn/t.a).
+ * Fingerprint matching obfuscated OkHttp Dns lookup in v2.0.7 (gn/t.a).
  */
 object ObfuscatedDnsLookupFingerprint : Fingerprint(
-    definingClass = "Lfn/t;",
+    definingClass = "Lgn/t;",
     name = "a",
     returnType = "Ljava/util/List;",
     parameters = listOf("Ljava/lang/String;")
@@ -55,9 +45,8 @@ val dnsHardcodingPatch = bytecodePatch(
         """
 
         listOfNotNull(
-            UniversalDnsLookupFingerprint.methodOrNull,
-            DnsSystemLookupFingerprint.methodOrNull,
-            ObfuscatedDnsLookupFingerprint.methodOrNull
+            ObfuscatedDnsLookupFingerprint.methodOrNull,
+            UniversalDnsLookupFingerprint.methodOrNull
         ).distinct().forEach { method ->
             method.addInstructions(0, dnsInstructions)
         }

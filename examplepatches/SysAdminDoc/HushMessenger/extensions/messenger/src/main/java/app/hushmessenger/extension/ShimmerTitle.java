@@ -35,12 +35,12 @@ final class ShimmerTitle implements Runnable, View.OnAttachStateChangeListener, 
     /** How often a title that isn't showing checks whether it is again. */
     private static final long HIDDEN_CHECK_MS = 500;
     /**
-     * Messenger's gradient, blue (#0866FF, the launcher icon's) through purple and pink to orange, each stop lightened
-     * just enough to read at 7:1 on the dark page (black) and its panels (#10151D).
+     * Messenger's blues, sky through Messenger blue to royal, with no pink or coral to read as Instagram's. Each stop is
+     * lightened to read on the black page, cards and dialogs: 10.5, 7.6 and 7.6 to 1.
      */
-    static final int[] DARK = {0xFF69A2FF, 0xFFC686FF, 0xFFFF7499, 0xFFFF7A6C};
-    /** The same hues darkened to read at 7:1 on the light page (#F0F2F5) and its white panels. */
-    static final int[] LIGHT = {0xFF0047BA, 0xFF7000D1, 0xFFA4002C, 0xFFA20F00};
+    static final int[] DARK = {0xFF00C6FF, 0xFF4C9DFF, 0xFF7A96FF};
+    /** The same hues darkened to read at 7:1 on the light page (#F0F2F5) and its white panels: 7.3, 7.6 and 7.3. */
+    static final int[] LIGHT = {0xFF00528A, 0xFF0043B5, 0xFF2F3DC2};
     private static final int[] SHEEN = {0x00FFFFFF, 0xB3FFFFFF, 0x00FFFFFF};
     /**
      * The titles wearing the gradient, so painting one twice doesn't run two loops. The shimmer is held weakly too: it
@@ -80,6 +80,13 @@ final class ShimmerTitle implements Runnable, View.OnAttachStateChangeListener, 
 
     static boolean wears(TextView title) {
         return WORN.containsKey(title);
+    }
+
+    /** The stops title wears, or null when it wears none: the dark look's stops on the light page read at about 1:1. */
+    static int[] stopsOf(TextView title) {
+        WeakReference<ShimmerTitle> worn = WORN.get(title);
+        ShimmerTitle shimmer = worn == null ? null : worn.get();
+        return shimmer == null ? null : shimmer.stops.clone();
     }
 
     @Override public void onViewAttachedToWindow(View view) {

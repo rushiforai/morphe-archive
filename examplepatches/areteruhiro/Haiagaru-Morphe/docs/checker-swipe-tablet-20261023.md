@@ -33,8 +33,8 @@
 - 242も20ケース149項目に成功（build/checker-swipe-safe242-regression.log）。191ではその後、診断／履歴フックなしで実Hissi WebViewを左ペインに表示し、ADB右スワイプで自タブだけが閉じ、同じPID19624と右ペインのスレが残ることを確認。前後XMLはbuild/checker-before-real191.xml / checker-after-real191.xml。新規crash timestamp・ANRなし。セットアップ前に存在しなかった191のnativeToolTabs / hissiViewerSwipeHistoryキーは最後にremoveして復元（build/checker-swipe191-original-prefs.log）。
 
 - 対象emulator-5554、191表示名Haiagaru 検証 191 / package=jp.co.airfront.android.a2chMate.haiagaru.settingsfix191、242表示名Haiagaru 検証 242 / package=jp.co.airfront.android.a2chMate.haiagaru.resumefix242。元APKから再適用し、既存署名照合install-r成功。アンインストール・データ消去なし。
-- APKルート絶対パス: C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/
+- APKルート絶対パス: <workspace>/build/
 - checker-swipe-safe191.apk SHA256=66049EDF4D0D580C630A135867C890957A0C384C6DFE032FD73FC491219FB013
 - checker-swipe-safe242.apk SHA256=B251F66E4B0B9258B78B27D3BEEDF30A6F111D81294D6869D36F1688841AA204
-- 使用MPP: C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/checker-swipe-safe.mpp SHA256=C6CEFD9F51DC7D4EC591B758527F967F56DD4E8C787C8FA3B87882AC7B9D69A3
+- 使用MPP: <workspace>/build/checker-swipe-safe.mpp SHA256=C6CEFD9F51DC7D4EC591B758527F967F56DD4E8C787C8FA3B87882AC7B9D69A3
 - 鍵C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias=Morphe、証明書SHA256=0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。検証APKは未公開候補であり、ローカル1.12.0-dev.12表記は公開済みを意味しない。

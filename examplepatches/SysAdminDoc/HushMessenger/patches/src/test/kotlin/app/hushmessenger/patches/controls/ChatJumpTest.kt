@@ -49,16 +49,10 @@ class ChatJumpTest {
         assertEquals(listOf(SYNTHETIC_CHAT_JUMP), found(listOf(chatClass())))
         validateControls(mirroredControls(listOf(chatClass())), setOf(CHAT_JUMP))
         assertEquals(setOf(SYNTHETIC_CHAT_JUMP), SYNTHETIC_PROFILE.hooks.getValue(CHAT_JUMP))
-        val arm64 = setOf("LX/1k9;->onViewCreated$VIEW_ARGS")
-        assertEquals(arm64, BASE_PROFILE.hooks.getValue(CHAT_JUMP))
-        assertEquals(arm64, PROFILE_347014996.hooks.getValue(CHAT_JUMP))
-        assertEquals(setOf("LX/1lQ;->onViewCreated$VIEW_ARGS"), PROFILE_347014974.hooks.getValue(CHAT_JUMP))
-        assertEquals(setOf("LX/1kZ;->onViewCreated$VIEW_ARGS"), PROFILE_347014990.hooks.getValue(CHAT_JUMP))
+        assertEquals(setOf("LX/1qk;->onViewCreated$VIEW_ARGS"), BASE_PROFILE.hooks.getValue(CHAT_JUMP))
         // The chat fragment's class is the one the slide-in switch already names.
-        for (profile in listOf(BASE_PROFILE, PROFILE_347014996, PROFILE_347014974, PROFILE_347014990)) {
-            assertEquals(profile.hooks.getValue("chat_fragment").single().substringBefore("->"),
-                profile.hooks.getValue(CHAT_JUMP).single().substringBefore("->"))
-        }
+        assertEquals(BASE_PROFILE.hooks.getValue("chat_fragment").single().substringBefore("->"),
+            BASE_PROFILE.hooks.getValue(CHAT_JUMP).single().substringBefore("->"))
     }
 
     @Test fun anotherFragmentOrAnotherShapeIsNotTheChat() {

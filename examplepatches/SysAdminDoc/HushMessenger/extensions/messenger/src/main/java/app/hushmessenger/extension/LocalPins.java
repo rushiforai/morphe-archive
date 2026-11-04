@@ -33,6 +33,8 @@ public final class LocalPins {
     /** Null until an account's saved pins are read. Another account's keys match none of this one's rows. */
     private static LinkedHashSet<String> pins;
     private static String savedUnder;
+    /** Until when "no account yet" stands, so the chat list's draws don't each list the database folder. */
+    private static long noAccountUntil;
     /** Chats whose Pin row is there only because of this class: their pin can't go to the server. */
     private static final Set<String> offered = new HashSet<>();
     /** Rows this class marked. Identity only: a chat row's hash reads the flag being changed. */
@@ -48,6 +50,7 @@ public final class LocalPins {
         route = null;
         pins = null;
         savedUnder = null;
+        noAccountUntil = 0;
         offered.clear();
         marked.clear();
         suppliers.clear();
@@ -137,7 +140,7 @@ public final class LocalPins {
             if (target == null || !target.summary.isInstance(summary) || !Settings.wouldUse(KEY)) return stock;
             String key = target.key(summary);
             synchronized (LocalPins.class) {
-                if (saved().contains(key)) return false;
+                if (asked().contains(key)) return false;
                 if (stock) {
                     offered.remove(key);
                     return true;
@@ -160,7 +163,7 @@ public final class LocalPins {
             if (stock || target == null || !target.summary.isInstance(summary) || !Settings.wouldUse(KEY)) return stock;
             String key = target.key(summary);
             synchronized (LocalPins.class) {
-                return saved().contains(key);
+                return asked().contains(key);
             }
         } catch (Throwable error) {
             Settings.hookFailed(KEY, "Can't check a chat's Unpin row", error);
@@ -202,7 +205,7 @@ public final class LocalPins {
             Route target = route();
             if (target == null || threadKey == null || !Settings.enabled(KEY)) return false;
             synchronized (LocalPins.class) {
-                if (!saved().remove(String.valueOf(threadKey))) return false;
+                if (!asked().remove(String.valueOf(threadKey))) return false;
                 save();
             }
             changed(target, "local_pin_removed");
@@ -215,7 +218,7 @@ public final class LocalPins {
 
     private static boolean keep(Route target, String key) throws Throwable {
         synchronized (LocalPins.class) {
-            saved();
+            asked();
             if (savedUnder == null) return false;
             pins.add(key);
             save();
@@ -260,12 +263,23 @@ public final class LocalPins {
         return true;
     }
 
-    /** This account's pins in the order they were pinned. Empty, and not kept, until the account can be told. */
+    /** The pins for a chat menu or a tap. Someone acting on a chat asks for the account at once; the pause is for draws. */
+    private static Set<String> asked() {
+        noAccountUntil = 0;
+        return saved();
+    }
+
+    /** This account's pins in the order they were pinned. Empty, and not kept, until the account can be told, which is asked at most every RELOAD_MILLIS. */
     private static Set<String> saved() {
         if (pins != null) return pins;
+        long now = android.os.SystemClock.uptimeMillis();
+        if (now < noAccountUntil) return new LinkedHashSet<>();
         Context context = Settings.appContext;
         String user = context == null ? null : LocalSearchStore.currentUser(context.getDatabasePath(KEY).getParentFile());
-        if (user == null || Settings.preferences == null) return new LinkedHashSet<>();
+        if (user == null || Settings.preferences == null) {
+            noAccountUntil = now + RELOAD_MILLIS;
+            return new LinkedHashSet<>();
+        }
         LinkedHashSet<String> read = new LinkedHashSet<>();
         String text = Settings.preferences.getString(SAVED + user, "");
         for (String key : text.split("\n")) if (!key.isEmpty()) read.add(key);

@@ -36,11 +36,11 @@ internal fun BytecodePatchContext.patchInlineSettingsEntry(version:String) {
         """.trimIndent())
         // Intercept both native list callbacks before they change the header,
         // selected page or Compose navigation back stack.
-        for (name in listOf("Lo/zzaku;", "Lo/zzalx;")) {
+        for (name in listOf("Lo/zzaku;", "Lo/zzalx;", "Lo/zzamr;", "Lo/zzand;")) {
             val click=mutableClassDefBy(name).methods.single {
                 it.name=="c"&&it.parameterTypes==List(4){"Ljava/lang/Object;"}&&it.returnType=="Ljava/lang/Object;"
             }
-            check(click.implementation!!.registerCount==11)
+            check(click.implementation!!.registerCount==if(name=="Lo/zzamr;"||name=="Lo/zzand;")9 else 11)
             click.addInstructionsWithLabels(0,"""
                 invoke-static {p1}, $SETTINGS_ENTRY->selectRow(Ljava/lang/Object;)Z
                 move-result v0

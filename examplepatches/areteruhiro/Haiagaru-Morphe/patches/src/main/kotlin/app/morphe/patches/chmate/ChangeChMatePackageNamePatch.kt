@@ -66,11 +66,11 @@ val changeChMatePackageNamePatch = resourcePatch(
 
     val versionCodeOption = intOption(
         key = "versionCode",
-        default = 2_100_000_000,
+        default = Int.MAX_VALUE,
         title = "Version code",
-        description = "Defaults to the maximum Android distribution version code (2100000000). Allows switching between supported ChMate versions when package and signing key match. A lower-code APK cannot normally overwrite it. Clear to keep the original version code. Does not add support for unsupported versions.",
+        description = "Defaults to the maximum signed 32-bit version code (2147483647) for sideloaded APKs. This exceeds Google Play's distribution limit. Allows switching between supported ChMate versions when package and signing key match. A lower-code APK cannot normally overwrite it. Clear to keep the original version code. Does not add support for unsupported versions.",
     ) { value ->
-        value == null || value in 1..2_100_000_000
+        value == null || value in 1..Int.MAX_VALUE
     }
 
     dependsOn(bytecodePatch {
@@ -195,71 +195,6 @@ val changeChMatePackageNamePatch = resourcePatch(
                     }
                 }
             document.documentElement.setAttribute("package", newPackageName)
-        }
-    }
-}
-
-@Suppress("unused")
-val shizukuDataMigrationPatch = resourcePatch(
-    name = "Migrate ChMate data with Shizuku",
-    description = "Optionally copy shared data from the original ChMate package using Shizuku.",
-    default = false,
-) {
-    compatibleWith(chMateCompatibility)
-    dependsOn(changeChMatePackageNamePatch)
-    dependsOn(bytecodePatch {
-        extendWith("extensions/chmate-shizuku.mpe")
-    })
-
-    finalize {
-        document("AndroidManifest.xml").use { document ->
-            val targetPackageName = document.documentElement.getAttribute("package")
-            (document.getElementsByTagName("uses-sdk").item(0) as? Element)
-                ?.setAttribute("android:minSdkVersion", "24")
-
-            document.documentElement.appendChild(
-                document.createElement("uses-permission").apply {
-                    setAttributeNS(
-                        ANDROID_NAMESPACE,
-                        "android:name",
-                        "moe.shizuku.manager.permission.API_V23",
-                    )
-                },
-            )
-
-            val application = document.getElementsByTagName("application").item(0) as Element
-            application.appendChild(
-                document.createElement("meta-data").apply {
-                    setAttributeNS(
-                        ANDROID_NAMESPACE,
-                        "android:name",
-                        "moe.shizuku.client.V3_SUPPORT",
-                    )
-                    setAttributeNS(ANDROID_NAMESPACE, "android:value", "true")
-                },
-            )
-            application.appendChild(
-                document.createElement("provider").apply {
-                    setAttributeNS(
-                        ANDROID_NAMESPACE,
-                        "android:name",
-                        "rikka.shizuku.ShizukuProvider",
-                    )
-                    setAttributeNS(
-                        ANDROID_NAMESPACE,
-                        "android:authorities",
-                        "$targetPackageName.shizuku",
-                    )
-                    setAttributeNS(ANDROID_NAMESPACE, "android:multiprocess", "false")
-                    setAttributeNS(ANDROID_NAMESPACE, "android:enabled", "true")
-                    setAttributeNS(ANDROID_NAMESPACE, "android:exported", "true")
-                    setAttributeNS(
-                        ANDROID_NAMESPACE,
-                        "android:permission",
-                        "android.permission.INTERACT_ACROSS_USERS_FULL",
-                    )
-                },
-            )
         }
     }
 }

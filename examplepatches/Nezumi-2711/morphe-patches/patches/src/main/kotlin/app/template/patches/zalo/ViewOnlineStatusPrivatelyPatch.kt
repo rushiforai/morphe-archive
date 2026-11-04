@@ -344,6 +344,6 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
             if-nez v$clearValue, :nezumi_subtitle_retained
             const/16 v$clearValue, 0x8
         """.trimIndent(), ExternalLabel("nezumi_subtitle_retained", setterInstructions[clearIndex + 4]))
-        attachNezumiSettings()
+        attachNezumiSettings("attachOnlineStatus")
     }
 }

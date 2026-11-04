@@ -30,7 +30,8 @@ private const val EXTENSION_CLASS_DESCRIPTOR = "$EXTENSION_PACKAGE/FixListThumbn
 val fixListThumbnailsPatch = bytecodePatch(
     name = "Fix list thumbnails",
     description = "Fixes empty thumbnails in the post list, shows a preview as thumbnail for link posts " +
-        "and crossposted galleries, and blurs the thumbnails of NSFW and spoiler posts.",
+        "and crossposted galleries and as image in the card of galleries, and blurs the thumbnails of NSFW and " +
+        "spoiler posts.",
 ) {
     dependsOn(sharedExtensionPatch)
 
@@ -110,6 +111,20 @@ val fixListThumbnailsPatch = bytecodePatch(
                 "invoke-static { v${instruction.registerB} }, $EXTENSION_CLASS_DESCRIPTOR->isGallery(Ljava/lang/Object;)Ljava/lang/Boolean;",
             )
             method.addInstruction(index + 1, "move-result-object v${instruction.registerA}")
+        }
+
+        // The card list shows no image for galleries: the first image's preview instead.
+        ImageHelperResolvePreviewFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { p1, p2 }, $EXTENSION_CLASS_DESCRIPTOR->resolveCardPreview(Ljava/lang/Object;Ljava/lang/Object;)Z
+                    move-result v0
+                    if-eqz v0, :original
+                    return v0
+                """,
+                ExternalLabel("original", getInstruction(0)),
+            )
         }
     }
 }

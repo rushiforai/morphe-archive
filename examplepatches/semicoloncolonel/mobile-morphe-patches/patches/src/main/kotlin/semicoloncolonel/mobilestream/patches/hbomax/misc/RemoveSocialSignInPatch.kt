@@ -19,8 +19,7 @@ internal object EnableSignInWithGoogleFingerprint : Fingerprint(
 @Suppress("unused")
 val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
-    description = "Keeps Sign in with Google off in the HBO Max phone app. Email and phone " +
-        "sign-in still work.",
+    description = "Keeps Sign in with Google off. Email and phone sign-in still work.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

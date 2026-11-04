@@ -8,13 +8,13 @@ import java.security.MessageDigest
 
 /** Single-load prelude for the SHA-256-pinned HBC98 asset. No rebundling or native JNI hooks. */
 internal object HbcPrelude {
-    // Pinned Discord 350.8 - Stable HBC98 bundle: function count, global function body and string IDs.
-    const val FUNCTION_COUNT = 158673
-    const val GLOBAL_OFFSET = 14783912
-    const val GLOBAL_SIZE = 619373
-    const val GLOBAL_SHA256 = "a67c96b55c1e802c5a472a990ac5a97eb2b480f78067b63dd2f9fe4aec06aa70"
+    // Pinned Discord 351.11 - Stable HBC98 bundle: function count, global function body and string IDs.
+    const val FUNCTION_COUNT = 160594
+    const val GLOBAL_OFFSET = 14916476
+    const val GLOBAL_SIZE = 631883
+    const val GLOBAL_SHA256 = "652434dade35533c99407ee21160d2b5f37e7edb3f03526272b6243848f843d2"
     const val JOIN_ID = 152
-    const val EVAL_ID = 12199
+    const val EVAL_ID = 35211
     /** Longest existing string reused as one prelude piece; longer ones barely shorten the prelude. */
     const val MAX_PIECE = 64
     data class Result(val prefixSize: Int, val originalCodeSize: Int, val codeOffset: Int)
@@ -247,7 +247,7 @@ internal object HbcPrelude {
             // The pieces go into blocks of at most 65535, each joined on its own, then the block strings are joined.
             // NewArray's capacity and DefineOwnInDenseArrayL's index are 16-bit: one array for all ~380k pieces sent
             // every piece past 65535 through DefineOwnByIndexL (generic defineOwnProperty, growing storage), the
-            // single biggest Cordly cost of a cold boot (HBC98 VM, real 350.8 bundle).
+            // single biggest Conduit cost of a cold boot (HBC98 VM, real 350.8 bundle).
             // Builds one string into r11 from its pieces.
             fun build(parts: IntArray) {
                 val blockCount = (parts.size + 65534) / 65535

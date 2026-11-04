@@ -170,6 +170,7 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
 
         if (shadow != null && shadow.getAlpha() != 0f) shadow.setAlpha(0f);
 
+        stripNativeTabHighlights();
         updateSystemBarInsets();
         enforceGeometry();
         enforceContentMargins();
@@ -226,6 +227,21 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         int visibility = shown ? View.VISIBLE : View.GONE;
         if (v.getVisibility() != visibility) v.setVisibility(visibility);
         if (shown) v.invalidate();
+    }
+
+    /**
+     * Instagram's newer floating tab bar (rolled out server side, so not on every device) gives
+     * each tab a StateListDrawable background: a rounded grey capsule when selected, transparent
+     * otherwise. The lens already draws the selection, so that capsule would show up as a second
+     * pill inside ours. Instagram re-applies it on layout changes, hence the per-frame check.
+     */
+    private void stripNativeTabHighlights() {
+        for (int i = 0; i < bar.getChildCount(); i++) {
+            View child = bar.getChildAt(i);
+            if (child.getBackground() instanceof android.graphics.drawable.StateListDrawable) {
+                child.setBackground(null);
+            }
+        }
     }
 
     /**

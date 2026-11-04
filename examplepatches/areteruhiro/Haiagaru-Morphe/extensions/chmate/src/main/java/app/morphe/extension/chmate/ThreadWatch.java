@@ -17,8 +17,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /** Opt-in, device-local subject polling. No server or automatic posting. */
 public final class ThreadWatch {
     static final int ACTION=0x7e00000b,JOB=0x48690031;
-    private static final String PREFS="haiagaru_thread_watch",CHANNEL="haiagaru_thread_updates";
-    private static final Object LOCK=new Object();
+    static final String PREFS="haiagaru_thread_watch";
+    private static final String CHANNEL="haiagaru_thread_updates";
+    static final Object LOCK=new Object();
     static SharedPreferences prefs(Context c){return c.getSharedPreferences(PREFS,0);}
     static int interval(Context c){return Math.max(1,Math.min(10080,c.getSharedPreferences(PREFS+"_options",0).getInt("minutes",15)));}
     static String intervalLabel(int minutes){
@@ -72,41 +73,97 @@ public final class ThreadWatch {
             show(a,t);
         }catch(Exception error){Toast.makeText(a,"現在のスレを特定できません",Toast.LENGTH_LONG).show();}
     }
+    private static android.widget.CheckBox option(android.widget.LinearLayout box,Activity a,String label,boolean value){
+        android.widget.CheckBox check=new android.widget.CheckBox(a);check.setText(label);check.setChecked(value);box.addView(check);return check;
+    }
+    static void addSettingsButton(android.widget.LinearLayout box,Activity a){
+        android.widget.Button button=new android.widget.Button(a);button.setText("スレの新着通知・書き込み後の自動監視");button.setAllCaps(false);box.addView(button);
+        button.setOnClickListener(v->showDefaults(a));
+    }
+    static void showDefaults(Activity a){
+        SharedPreferences p=RefreshTargets.prefs(a);
+        android.widget.LinearLayout box=new android.widget.LinearLayout(a);box.setOrientation(1);
+        android.widget.CheckBox auto=option(box,a,"書き込み後に自動でスレを監視する",p.getBoolean("watchAfterPosting",false));
+        android.widget.CheckBox replies=option(box,a,"自分の書き込みへの返信だけ通知する",p.getBoolean("watchAutoRepliesOnly",true));
+        android.widget.CheckBox stop=option(box,a,"自分への返信を通知したら定期確認を停止する",p.getBoolean("watchAutoStopAfterReply",false));
+        Runnable enabled=()->{replies.setEnabled(auto.isChecked());stop.setEnabled(auto.isChecked());};enabled.run();auto.setOnCheckedChangeListener((v,b)->enabled.run());
+        new HaiagaruDialog.Builder(a).setTitle("書き込み後の自動監視")
+            .setMessage("投稿が成功し、ChMateで自分の書き込みを確認できたスレを自動登録します。停止後も次の書き込みで監視を再開します。設定変更は次の自動登録から適用します。初期OFFです。")
+            .setView(box).setNeutralButton("確認間隔",(d,w)->showInterval(a)).setNegativeButton("キャンセル",null)
+            .setPositiveButton("保存",(d,w)->{p.edit().putBoolean("watchAfterPosting",auto.isChecked()).putBoolean("watchAutoRepliesOnly",replies.isChecked()).putBoolean("watchAutoStopAfterReply",stop.isChecked()).apply();if(auto.isChecked())permission(a);}).show();
+    }
+    private static void permission(Activity a){
+        if(Build.VERSION.SDK_INT>=33&&a.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=PackageManager.PERMISSION_GRANTED)
+            a.requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},0x4931);
+        else if(Build.VERSION.SDK_INT>=24&&!((NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE)).areNotificationsEnabled())
+            Toast.makeText(a,"Androidのアプリ設定で通知を許可してください",Toast.LENGTH_LONG).show();
+    }
     static void show(Activity a,ThreadWatchRules.Target t){
         try{
             boolean registered=prefs(a).contains(t.url);
-            new HaiagaruDialog.Builder(a).setTitle("このスレの新着通知")
-                .setMessage((registered?"登録済みです。":"登録すると、")+"アプリを閉じていても約"+intervalLabel(interval(a))+"ごとに新着レスを確認します。省電力設定や通信状況により遅れることがあります。初回取得は通知せず、以後のレス数の増加を通知します。")
-                .setNeutralButton("確認間隔を変更",(d,w)->showInterval(a))
-                .setPositiveButton(registered?"登録を解除":"通知を登録",(d,w)->{
-                    synchronized(LOCK){
-                        if(registered)prefs(a).edit().remove(t.url).commit();
-                        else try{
-                            if(prefs(a).getAll().size()>=100){Toast.makeText(a,"登録できるのは100スレまでです",Toast.LENGTH_LONG).show();return;}
-                            JSONObject item=new JSONObject().put("count",-1).put("token",UUID.randomUUID().toString());
-                            prefs(a).edit().putString(t.url,item.toString()).commit();
-                        }catch(Exception error){return;}
-                    }
-                    ((NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(t.url,JOB);
-                    schedule(a);
-                    if(!registered&&Build.VERSION.SDK_INT>=33&&a.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=PackageManager.PERMISSION_GRANTED)
-                        a.requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},0x4931);
-                    else if(!registered&&Build.VERSION.SDK_INT>=24&&!((NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE)).areNotificationsEnabled())
-                        Toast.makeText(a,"Androidのアプリ設定で通知を許可してください",Toast.LENGTH_LONG).show();
-                }).setNegativeButton("閉じる",null).show();
+            JSONObject saved=new JSONObject(prefs(a).getString(t.url,"{}"));
+            android.widget.LinearLayout box=new android.widget.LinearLayout(a);box.setOrientation(1);
+            android.widget.CheckBox replies=option(box,a,"自分の書き込みへの返信だけ通知する",saved.optBoolean("repliesOnly",false));
+            android.widget.CheckBox stop=option(box,a,"自分への返信を通知したら定期確認を停止する",saved.optBoolean("stopAfterReply",false));
+            android.widget.Button defaults=new android.widget.Button(a);defaults.setText("書き込み後の自動監視を設定");box.addView(defaults);defaults.setOnClickListener(v->showDefaults(a));
+            HaiagaruDialog.Builder dialog=new HaiagaruDialog.Builder(a).setTitle("このスレの新着通知")
+                .setMessage((saved.optBoolean("paused",false)?"返信通知後に停止しています。":registered?"登録済みです。":"")+"約"+intervalLabel(interval(a))+"ごとに確認します。初回確認は通知しません。標準の返信通知と同じ返信は、先に通知した側だけで知らせます。返信判定にはこの端末の自分の書き込みマークを使用します。")
+                .setView(box).setNeutralButton("確認間隔を変更",(d,w)->showInterval(a))
+                .setPositiveButton(registered?"保存・監視を再開":"通知を登録",(d,w)->{
+                    synchronized(LOCK){try{
+                        if(!registered&&prefs(a).getAll().size()>=100){Toast.makeText(a,"登録できるのは100スレまでです",Toast.LENGTH_LONG).show();return;}
+                        JSONObject item=new JSONObject(prefs(a).getString(t.url,"{}"));
+                        item.put("count",item.optInt("count",-1)).put("token",UUID.randomUUID().toString()).put("paused",false)
+                            .put("repliesOnly",replies.isChecked()).put("stopAfterReply",stop.isChecked());
+                        prefs(a).edit().putString(t.url,item.toString()).commit();
+                    }catch(Exception error){return;}}
+                    schedule(a);permission(a);
+                }).setNegativeButton(registered?"登録を解除":"閉じる",(d,w)->{
+                    if(!registered)return;
+                    synchronized(LOCK){prefs(a).edit().remove(t.url).commit();}
+                    ((NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(t.url,JOB);schedule(a);
+                });dialog.show();
         }catch(Exception error){Toast.makeText(a,"通知設定を開けません",Toast.LENGTH_LONG).show();}
+    }
+    /** Called only after native posting confirmation records the exact response URL. */
+    public static void confirmed(String responseUrl){
+        Context c=Haiagaru.applicationContextForExtension();if(c==null)return;
+        SharedPreferences options=RefreshTargets.prefs(c);if(!options.getBoolean("watchAfterPosting",false))return;
+        ThreadWatchRules.Target t=ThreadWatchRules.target(responseUrl);if(t==null)return;
+        try{
+            String tail=new java.net.URI(responseUrl).getPath().substring(new java.net.URI(t.url).getPath().length());
+            if(!tail.matches("[0-9]{1,7}/?"))return;
+            int number=Integer.parseInt(tail.replace("/",""));if(number<1)return;
+            synchronized(LOCK){
+                if(!prefs(c).contains(t.url)&&prefs(c).getAll().size()>=100)return;
+                JSONObject item=new JSONObject(prefs(c).getString(t.url,"{}"));
+                org.json.JSONArray own=item.optJSONArray("own");if(own==null)own=new org.json.JSONArray();
+                for(int i=0;i<own.length();i++)if(own.optInt(i)==number)return;
+                if(own.length()>=1000)own=new org.json.JSONArray();own.put(number);
+                item.put("own",own).put("count",Math.max(number,item.optInt("count",-1))).put("token",UUID.randomUUID().toString()).put("paused",false)
+                    .put("repliesOnly",options.getBoolean("watchAutoRepliesOnly",true)).put("stopAfterReply",options.getBoolean("watchAutoStopAfterReply",false));
+                prefs(c).edit().putString(t.url,item.toString()).commit();
+            }
+            schedule(c);
+        }catch(Exception error){android.util.Log.w("Haiagaru","Post notification registration unavailable",error);}
+    }
+    static boolean hasActive(Context c){
+        for(String url:prefs(c).getAll().keySet())try{
+            if(ThreadWatchRules.target(url)!=null&&!new JSONObject(prefs(c).getString(url,"{}")).optBoolean("paused",false))return true;
+        }catch(Exception ignored){}
+        return false;
     }
     static void schedule(Context c){
         schedule(c,false);
     }
     /** Re-arm a completed short job; long intervals retain their periodic job. */
     static void completed(Context c){
-        if(interval(c)<15)schedule(c,true);
+        if(interval(c)<15||!hasActive(c))schedule(c,true);
     }
     private static void schedule(Context c,boolean completed){
         synchronized(LOCK){
         JobScheduler jobs=(JobScheduler)c.getSystemService(Context.JOB_SCHEDULER_SERVICE);if(jobs==null)return;
-        if(prefs(c).getAll().isEmpty()){jobs.cancel(JOB);return;}
+        if(!hasActive(c)){jobs.cancel(JOB);return;}
         int minutes=interval(c);long period=minutes*60_000L;boolean periodic=minutes>=15;
         for(JobInfo pending:jobs.getAllPendingJobs())if(pending.getId()==JOB){
             if(pending.isPeriodic()==periodic&&pending.getExtras().getInt("minutes",-1)==minutes
@@ -125,7 +182,8 @@ public final class ThreadWatch {
     static void check(Context c,AtomicBoolean stopped){
         Map<String,List<String>> groups=new LinkedHashMap<>();
         for(String key:prefs(c).getAll().keySet()){
-            ThreadWatchRules.Target t=ThreadWatchRules.target(key);if(t!=null)groups.computeIfAbsent(t.subject,k->new ArrayList<>()).add(key);
+            ThreadWatchRules.Target t=ThreadWatchRules.target(key);
+            try{if(t!=null&&!new JSONObject(prefs(c).getString(key,"{}")).optBoolean("paused",false))groups.computeIfAbsent(t.subject,k->new ArrayList<>()).add(key);}catch(Exception ignored){}
         }
         for(Map.Entry<String,List<String>> group:groups.entrySet()){
             if(stopped.get())return;
@@ -139,31 +197,62 @@ public final class ThreadWatch {
                 for(String key:group.getValue()){
                     if(stopped.get())return;
                     ThreadWatchRules.Target t=ThreadWatchRules.target(key);Integer count=counts.get(t.id);if(count==null)continue;
+                    JSONObject captured;
+                    synchronized(LOCK){captured=new JSONObject(prefs(c).getString(key,"{}"));}
+                    int known=captured.optInt("count",-1),matching=0,firstMatch=0;boolean replySeen=false;
+                    boolean repliesOnly=captured.optBoolean("repliesOnly",false),stopAfter=captured.optBoolean("stopAfterReply",false);
                     String preview="";
-                    int known;
-                    synchronized(LOCK){known=new JSONObject(prefs(c).getString(key,"{}")).optInt("count",-1);}
+                    Map<Integer,String> candidates=new LinkedHashMap<>();
+                    Set<Integer> directReplies=new HashSet<>();
                     if(ThreadWatchRules.increase(known,count)>0){
                         try{
-                            StringBuilder lines=new StringBuilder();
-                            for(Map.Entry<Integer,String> body:ThreadWatchRules.bodies(fetch(t.dat,stopped),known,count).entrySet()){
-                                String text=notificationText(body.getValue(),300);
-                                if(text.isEmpty())continue;
-                                if(lines.length()>0)lines.append('\n');
-                                lines.append(">>").append(body.getKey()).append(' ').append(text);
+                            Map<Integer,String> bodies=ThreadWatchRules.newBodies(t,fetch(t.dat,stopped),known,count);
+                            if(bodies.isEmpty()&&(repliesOnly||stopAfter))continue;
+                            Set<Integer> own=new HashSet<>();
+                            if(repliesOnly||stopAfter){
+                                org.json.JSONArray savedOwn=captured.optJSONArray("own");if(savedOwn!=null)for(int i=0;i<savedOwn.length();i++)if(savedOwn.optInt(i)>0)own.add(savedOwn.optInt(i));
+                                try{own.addAll(ThreadWatchOwnPosts.read(c,t));}catch(Exception unavailable){if(own.isEmpty())throw unavailable;}
                             }
-                            preview=lines.toString();
+                            List<String> lines=new ArrayList<>();
+                            for(Map.Entry<Integer,String> body:bodies.entrySet()){
+                                String plain=android.text.Html.fromHtml(body.getValue()).toString();
+                                boolean reply=ThreadWatchRules.repliesTo(plain,body.getKey(),own);replySeen|=reply;if(reply)directReplies.add(body.getKey());
+                                if(repliesOnly&&!reply)continue;
+                                candidates.put(body.getKey(),body.getValue());
+                                matching++;if(firstMatch==0)firstMatch=body.getKey();
+                                String text=notificationText(body.getValue(),300);if(text.isEmpty())continue;
+                                lines.add(">>"+body.getKey()+" "+text);if(lines.size()>3)lines.remove(0);
+                            }
+                            preview=android.text.TextUtils.join("\n",lines);
                         }catch(Exception unavailable){
-                            // Count/title notifications still work when DAT access needs authentication.
                             if(stopped.get())return;
+                            // Reply-only / stop-on-reply checks must retry after body/index failure.
+                            if(repliesOnly||stopAfter)continue;
                         }
                     }
                     synchronized(LOCK){
                         if(stopped.get())return;
                         JSONObject item=new JSONObject(prefs(c).getString(key,"{}"));
-                        if(!tokens.containsKey(key)||!tokens.get(key).equals(item.optString("token"))||!prefs(c).contains(key))continue;
+                        if(!tokens.containsKey(key)||!tokens.get(key).equals(item.optString("token"))||!prefs(c).contains(key)||item.optBoolean("paused",false))continue;
                         int before=item.optInt("count",-1),delta=ThreadWatchRules.increase(before,count);
-                        if(delta>0&&!notify(c,t,delta,count,titles.get(t.id),preview))continue;
-                        // Keep the high-water mark if the server briefly reports a smaller count.
+                        if(delta>0&&(!repliesOnly||matching>0)){
+                            Set<Integer> seen=ThreadWatchNative.seen(c,key,candidates.keySet());
+                            if(!candidates.isEmpty()){
+                                candidates.keySet().removeAll(seen);matching=candidates.size();
+                                if(matching==0){item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();continue;}
+                                firstMatch=candidates.keySet().iterator().next();List<String> uniqueLines=new ArrayList<>();
+                                for(Map.Entry<Integer,String> body:candidates.entrySet()){
+                                    uniqueLines.add(">>"+body.getKey()+" "+notificationText(body.getValue(),300));if(uniqueLines.size()>3)uniqueLines.remove(0);
+                                }
+                                preview=android.text.TextUtils.join("\n",uniqueLines);
+                            }
+                            int unique=ThreadWatchNative.seenCount(c,key,before+1,count);
+                            int delivered=repliesOnly?matching:Math.max(0,delta-unique);
+                            if(delivered==0){item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();continue;}
+                            if(!notify(c,t,delivered,count,titles.get(t.id),preview,firstMatch>0?firstMatch:Math.max(1,count-delta+1),repliesOnly))continue;
+                            if(candidates.isEmpty())ThreadWatchNative.recordRange(item,before+1,count);else ThreadWatchNative.record(item,candidates.keySet());
+                            if(stopAfter&&!Collections.disjoint(candidates.keySet(),directReplies))item.put("paused",true);
+                        }
                         item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();
                     }
                 }
@@ -180,7 +269,7 @@ public final class ThreadWatch {
             try(InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){
                 byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){if(stopped.get())throw new InterruptedIOException();if(out.size()+n>4*1024*1024)throw new IOException("Size");out.write(b,0,n);}
                 String type=c.getContentType();java.util.regex.Matcher charset=java.util.regex.Pattern.compile("charset\\s*=\\s*[\"']?([^;\\s\"']+)",2).matcher(type==null?"":type);
-                return new String(out.toByteArray(),Charset.forName(charset.find()?charset.group(1):url.contains("eddibb.cc/")?"UTF-8":"MS932"));
+                return new String(out.toByteArray(),Charset.forName(charset.find()?charset.group(1):url.contains("eddibb.cc/")?"UTF-8":url.contains("jbbs.shitaraba.net/")?"EUC-JP":"MS932"));
             }
         }finally{c.disconnect();}
     }
@@ -191,20 +280,20 @@ public final class ThreadWatch {
         int end=plain.offsetByCodePoints(0,Math.min(limit,plain.codePointCount(0,plain.length())));
         return plain.substring(0,end)+(end<plain.length()?"…":"");
     }
-    private static boolean notify(Context c,ThreadWatchRules.Target t,int delta,int count,String title,String preview){
+    private static boolean notify(Context c,ThreadWatchRules.Target t,int delta,int count,String title,String preview,int first,boolean repliesOnly){
         NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);
         if(Build.VERSION.SDK_INT>=33&&c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=PackageManager.PERMISSION_GRANTED)return false;
         if(Build.VERSION.SDK_INT>=24&&!manager.areNotificationsEnabled())return false;
         if(Build.VERSION.SDK_INT>=26){manager.createNotificationChannel(new NotificationChannel(CHANNEL,"登録スレの新着",NotificationManager.IMPORTANCE_DEFAULT));if(manager.getNotificationChannel(CHANNEL).getImportance()==0)return false;}
-        Intent open=new Intent(Intent.ACTION_VIEW,Uri.parse(t.url+Math.max(1,count-delta+1)))
+        Intent open=new Intent(Intent.ACTION_VIEW,Uri.parse(t.url+first))
             .setClassName(c,"jp.syoboi.a2chMate.activity.ResListActivity");
         PendingIntent tap=PendingIntent.getActivity(c,0,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder b=Build.VERSION.SDK_INT>=26?new Notification.Builder(c,CHANNEL):new Notification.Builder(c);
         String name=notificationText(title,160);if(name.isEmpty())name=Uri.parse(t.url).getHost()+" / "+t.id;
-        String summary="新着 "+delta+"件",body=preview.isEmpty()?summary+"（本文を取得できませんでした）":preview;
+        String summary=(repliesOnly?"自分への返信 ":"新着 ")+delta+"件",body=preview.isEmpty()?summary+"（本文を取得できませんでした）":preview;
         b.setSmallIcon(c.getApplicationInfo().icon).setContentTitle(name)
             .setContentText(body).setSubText(summary).setStyle(new Notification.BigTextStyle().bigText(body))
-            .setContentIntent(tap).setAutoCancel(true).setOnlyAlertOnce(true);
+            .setContentIntent(tap).setAutoCancel(true).setOnlyAlertOnce(false);
         try{
             android.graphics.drawable.Drawable icon=c.getPackageManager().getApplicationIcon(c.getApplicationInfo());
             int size=Math.round(48*c.getResources().getDisplayMetrics().density);

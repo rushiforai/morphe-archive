@@ -428,7 +428,7 @@ Couldn't open the file picker to import. Try again.,无法打开要导入的文�
 Couldn't put back the diagnostic data. Try again.,无法恢复诊断数据。再试一次.
 Couldn't put the saved videos back. Try again.,无法恢复保存的视频。再试一次.
 Proxy %1$s is down. Turn it off if TikTok won't load.,代理 %1$s 无法连接。TikTok 无法加载时请关闭代理.
-Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.,无法读取 TikTok 的当前值 (%1$s)。从菜单中刷新值以重试.
+Couldn't read TikTok's current values. Refresh values from the menu to try again.,无法读取 TikTok 的当前值。从菜单中刷新值以重试.
 Couldn't read that file. Choose it again.,无法读取该文件。再选择一次.
 Couldn't read this list. Close it and try again.,无法阅读此列表。关闭它并重试.
 Can't tell who wrote this. Block them on their profile.,无法识别评论者，请在其主页拉黑.
@@ -863,7 +863,6 @@ Home,首页
 Home tab name,主页选项卡名称
 Hook status,挂钩状态
 How far each edge press moves the video.,每次边缘按压会使视频移动多远.
-How long each photo stays on screen in a video made from a photo post.,由照片帖子制作的视频中每张照片在屏幕上停留的时间.
 How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.,下次视频被隐藏之前你观看了多少视频。几秒钟后零开始计数.
 "How wide each edge strip is, as a percent of the screen width.",每个边缘条的宽度，以屏幕宽度的百分比表示.
 Hushfeed,Hushfeed
@@ -1153,7 +1152,6 @@ Offer LIVE quality in more rooms,在更多房间提供 LIVE 品质
 Offer clear screen in every LIVE room,每个 LIVE 房间均提供清晰的屏幕
 Offline videos,离线视频
 Offline videos limit,离线视频限制
-"On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.",在一张照片帖子中，下载视频会生成带有帖子声音的 MP4，但没有 TikTok 徽标或结束卡。在包含多张照片的帖子中，“下载”会询问你是否想要原件或一个视频.
 On mobile data,关于移动数据
 On or off,打开或关闭
 "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.",在“好友”选项卡上，隐藏非相互关注账号（包括建议账号）的帖子、转发和直播。你自己的帖子会保留.
@@ -2223,7 +2221,6 @@ Above the bar,在进度条上方
 Full-width progress bar,全宽进度条
 "Run the progress bar from one screen edge to the other, without the gap TikTok leaves at each end.",进度条从屏幕一侧延伸到另一侧，去掉 TikTok 在两端留下的空隙.
 New device identity,新设备身份
-"Wipe TikTok's data and give it a new Android ID and advertising ID on the next start, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.",下次启动时清除 TikTok 的数据，并给它新的 Android ID 和广告 ID，让它看到一部没见过的手机。你将被退出登录，草稿也会丢失。Hushfeed 的设置会保留.
 TikTok starts as a new phone after the restart. Tap again to cancel.,重启后 TikTok 会以新手机的身份启动。再次点按可取消.
 Couldn't set up a new device identity. Try again.,无法设置新的设备身份。请重试.
 Saves at once,同时保存数
@@ -2403,3 +2400,21 @@ Videos you watch show up here,你看过的视频会显示在这里
 No videos match,没有匹配的视频
 Watch history cleared,观看历史已清除
 Couldn't open that video. Try again.,无法打开该视频。请重试.
+Keep the next videos in full screen,全屏时保留后面的视频
+"Full screen opens with just your video on most pages, so there's nothing to swipe to. This brings the videos after it along.",在大多数页面上，全屏只打开当前视频，无处可滑。开启后会带上它后面的视频.
+"Off until you tap it. Wipes TikTok's data once, on the next start, and gives it a new Android ID and advertising ID, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.","点按前不会生效. 在下次启动时清除一次 TikTok 的数据,并给它新的 Android ID 和广告 ID,让它看到一部没见过的手机. 你会退出登录并丢失草稿. Hushfeed 的设置会保留."
+"In use: TikTok sees the identity you made here, and it stays the same on every start. Tap to make another one, which wipes TikTok's data again.","使用中: TikTok 看到的是你在这里创建的身份,每次启动都保持不变. 点按可再创建一个,这会再次清除 TikTok 的数据."
+Couldn't finish wiping TikTok's data. Tap to try again.,未能清除完 TikTok 的数据. 点按重试.
+Use this phone's own IDs,使用这部手机自己的 ID
+"Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.","在下次启动时清除一次 TikTok 的数据,并换回这部手机真实的 Android ID 和广告 ID. 你会退出登录并丢失草稿."
+TikTok goes back to this phone's IDs after the restart. Tap again to cancel.,重启后 TikTok 会换回这部手机的 ID. 再次点按可取消.
+"On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.",在一张照片帖子中，下载视频会生成带有帖子声音的 MP4，但没有 TikTok 徽标或结束卡。在包含多张照片的帖子中，“下载”会询问你是否想要原件或一个视频。照片故事也会保存为视频.
+How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.,由照片帖子制作的视频中每张照片在屏幕上停留的时间。故事的视频时长与故事相同.
+Stop loading,停止加载
+Recording files deleted,录制文件已删除
+Hide story views,隐藏故事观看
+You stay off the viewer list of stories you watch. Needs Ghost mode on.,你不会出现在你观看的故事的观看者列表中。需要开启幽灵模式.
+Hide profile visits,隐藏个人资料访问
+You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.,你打开谁的个人资料，都不会出现在对方的个人资料访客列表中。需要开启幽灵模式.
+Hide typing,隐藏正在输入
+People you chat with won't see that you're typing. Needs Ghost mode on.,和你聊天的人不会看到你正在输入。需要开启幽灵模式.

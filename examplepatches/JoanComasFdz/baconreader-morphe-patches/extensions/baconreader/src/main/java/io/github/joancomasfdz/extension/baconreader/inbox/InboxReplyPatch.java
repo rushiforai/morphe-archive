@@ -63,7 +63,10 @@ public final class InboxReplyPatch {
             field.setAccessible(true);
             field.set(comment, field.get(message));
         }
-        for (Class<?> type = commentClass.getSuperclass().getSuperclass(); type != null; type = type.getSuperclass()) {
+        // Not Object's fields: on Android it holds the object's class (shadow$_klass_), and copying it would turn
+        // the new Comment back into a Message, which the reply screen can't cast.
+        for (Class<?> type = commentClass.getSuperclass().getSuperclass(); type != null && type != Object.class;
+                type = type.getSuperclass()) {
             for (Field field : type.getDeclaredFields()) { // ThingData: id, name.
                 if (Modifier.isStatic(field.getModifiers())) continue;
                 field.setAccessible(true);

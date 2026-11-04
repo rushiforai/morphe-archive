@@ -2,246 +2,301 @@
 
 Morphe patches that remove ads and block tracking in the phone versions of streaming, news, shopping, carrier, and government apps.
 
-Some of these patches are ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches). The original hook designs are their work. This project adapts them to the phone builds of the same apps. For the Android TV apps, use the original project.
+Some patches are phone ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches), and the original hook designs are their work. For the Android TV apps, use the original project.
 
-## Patch status
+**[Add to Morphe Manager](https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches)**: open this link on your phone with Morphe Manager installed.
+
+## Install
+
+1. Download the app from APKMirror in the version listed below. Use the `.apkm` bundle, or the `.apk` for CBS News, ESPN, Fandango at Home, Hulu, MyTSA, Prime Video, The Wall Street Journal, and T-Mobile Play. For Fox One, T-Life, NPS, National Forests & Grasslands, and Recreation.gov, install the app from the Play Store and patch the installed copy.
+2. Add this project in Morphe Manager with the link above, or go to Sources, tap +, choose Remote, and paste `https://raw.githubusercontent.com/semicoloncolonel/mobile-morphe-patches/main/patches-bundle.json`.
+3. Select the file and apply the patches.
+
+YouTube TV and Moviebase sign in with Google through MicroG RE, so install it first. The patched YouTube TV installs beside the official app and asks to see MicroG RE's accounts, which Android lists under Contacts. It cannot read your contacts. The patched Moviebase replaces the official app unless you turn on the Clone app option.
+
+## Apps
+
+¹ Experimental: still in testing and may not always work. If you run into an error, please leave a detailed report in [Issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues).<br>
+² Off by default: this patch is not applied unless you select it in Morphe Manager when patching.
 
 ### Streaming
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| AMC+ | Skip launch video, Skip ads (experimental), Block analytics & tracking (opt-in) | `1.8.62.1` | 10/31/26 |
-| Apple TV | Skip ads (experimental) | `3.0.0` | 10/30/26 |
-| Disney+ | Skip launch video, Skip ads, Block analytics & tracking (opt-in) | `26.20.0+rc1-2026.10.22` | 10/31/26 |
-| ESPN | Skip ads (experimental), Block analytics & tracking (opt-in) | `8.27.0` | 10/31/26 |
-| Fox One | Skip ads (experimental), Disable Pairip license check, Block analytics & tracking (opt-in) | `1.24.0` | 10/30/26 |
-| HBO Max | Skip ads, Remove social sign-in, Block analytics & tracking (opt-in) | `7.14.0.530` | 10/30/26 |
-| Hulu | Skip ads (experimental), Block analytics & tracking (opt-in) | `6.34.0` | 10/31/26 |
-| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking (opt-in) | `26.43.10` | 11/01/26 |
-| MGM+ | Skip ads (experimental), Skip pre-roll promo (experimental), Skip lion intro, Disable MGM+ AI (opt-in), Remove social sign-in, Block analytics & tracking (opt-in) | `240.0.2026240000` | 10/30/26 |
-| NBA | Skip ads (experimental), Disable Ask NBA AI (opt-in), Block analytics & tracking (opt-in) | `1.2.0` | 10/31/26 |
-| NFL | Skip ads (experimental), Block analytics & tracking (opt-in) | `61.0.18` | 10/31/26 |
-| Paramount+ | Skip launch video, Skip ads, Block analytics & tracking (opt-in) | `17.2.0` | 10/31/26 |
-| PBS | Skip ads (experimental), Block analytics & tracking (opt-in) | `5.27.0` | 10/30/26 |
-| Peacock | Skip ads (experimental), Disable Xfinity auto sign-in, Block analytics & tracking (opt-in) | `7.10.20` | 10/30/26 |
-| Pluto TV | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking (opt-in) | `17.2.0` | 10/31/26 |
-| Prime Video | Skip ads, Rename shared permissions, Block analytics & tracking (opt-in) | `3.0.477.1447` | 11/01/26 |
-| Starz | Skip launch video, Skip pre-roll promo (experimental), Remove social sign-in, Block analytics & tracking (opt-in) | `6.11.0` | 10/31/26 |
-| Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking (opt-in) | `10.43.1` | 10/30/26 |
+| AMC+ | Skip launch video, Skip ads¹, Block analytics & tracking¹ ² | `1.8.62.1` | 10/31/26 |
+| Apple TV | Skip ads¹, Block analytics & tracking¹ ² | `3.0.0` | 10/30/26 |
+| Disney+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `26.20.0+rc2-2026.10.28` | 11/02/26 |
+| ESPN | Skip ads¹, Block analytics & tracking¹ ² | `8.27.0` | 10/31/26 |
+| Fandango at Home | Mask ads, Block analytics & tracking² | `10.24.r009.179279954` | 11/02/26 |
+| Fox One | Skip ads¹, Disable Pairip license check, Block analytics & tracking¹ ² | `1.24.0` | 10/30/26 |
+| HBO Max | Skip ads, Remove social sign-in, Block analytics & tracking¹ ² | `7.14.0.530` | 10/30/26 |
+| Hulu | Skip ads¹, Block analytics & tracking¹ ² | `6.34.0+18552420-google` | 10/31/26 |
+| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking² | `26.43.10` | 11/01/26 |
+| MGM+ | Skip ads¹, Skip pre-roll promo¹, Skip lion intro, Disable MGM+ AI², Remove social sign-in, Block analytics & tracking¹ ² | `240.0.2026240000` | 10/30/26 |
+| Moviebase | GmsCore support, Disable Pairip license check, Block ads, Hide Premium upsell, Block analytics & tracking² | `7.7.0` | 11/02/26 |
+| NBA | Skip ads¹, Disable Ask NBA AI¹ ², Block analytics & tracking¹ ² | `1.2.0` | 10/31/26 |
+| NFL | Skip ads¹, Block analytics & tracking¹ ² | `61.0.18` | 10/31/26 |
+| Paramount+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `17.2.0` | 10/31/26 |
+| PBS | Skip ads¹, Block analytics & tracking¹ ² | `5.27.0` | 10/30/26 |
+| Peacock | Skip ads¹, Disable Xfinity auto sign-in, Block analytics & tracking¹ ² | `7.10.20` | 10/30/26 |
+| Pluto TV | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking¹ ² | `17.3.0` | 11/02/26 |
+| Prime Video | Skip ads, Rename shared permissions, Disable AI¹ ², Block analytics & tracking¹ ² | `3.0.477.1447` | 11/01/26 |
+| Starz | Skip launch video, Skip pre-roll promo¹, Remove social sign-in, Block analytics & tracking¹ ² | `6.11.0` | 10/31/26 |
+| Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking¹ ² | `10.43.1` | 10/30/26 |
+| YouTube TV | GmsCore support, Skip ads¹, Change app name, Block telemetry², Hide prompts and promos² | `10.44.0` | 11/02/26 |
 
 ### News
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| CNN | Skip ads (experimental), Opt out of data sale & sharing, Remove social sign-in, Block analytics & tracking (opt-in) | `26.21.0` | 10/30/26 |
-| Fox News | Skip ads (experimental), Opt out of data sale & sharing, Block analytics & tracking (opt-in), Enable developer menu | `5.49.2` | 10/31/26 |
-| MS NOW | Opt out of data sale & sharing, Block analytics & tracking (opt-in) | `14.6.0` | 10/31/26 |
-| The New York Times | Skip ads (experimental), Hide upsell pop-ups (experimental), Remove social sign-in, Block analytics & tracking (opt-in) | `11.98.0` | 10/30/26 |
-| The Wall Street Journal | Skip ads (experimental), Hide marketing pop-ups (experimental), Block analytics & tracking (opt-in) | `15.12.0.42675` | 10/30/26 |
-| The Washington Post | Skip ads (experimental), Hide marketing pop-ups (experimental), Disable AI (opt-in), Block analytics & tracking (opt-in) | `7.18.1` | 10/30/26 |
+| ABC News | Skip ads¹, Mask live ad breaks, Block analytics & tracking² | `8.98.2` | 11/02/26 |
+| CBS News | Disable signature check, Skip ads, Hide surveys, Opt out of data sale & sharing, Block analytics & tracking² | `5.20` | 11/02/26 |
+| CNN | Skip ads¹, Opt out of data sale & sharing, Remove social sign-in, Block analytics & tracking¹ ² | `26.21.0` | 10/30/26 |
+| Fox Local | Skip ads¹, Hide pop-ups and rating prompts, Opt out of data sale & sharing, Block analytics & tracking² | `7.22.0` | 11/02/26 |
+| Fox News | Skip ads¹, Opt out of data sale & sharing, Block analytics & tracking¹ ², Enable developer menu² | `5.49.2` | 10/31/26 |
+| MS NOW | Opt out of data sale & sharing, Block analytics & tracking¹ ² | `14.6.0` | 10/31/26 |
+| NBC News | Skip ads, Hide surveys and rating prompt, Opt out of data sale & sharing, Block analytics & tracking² | `15.0.1` | 11/02/26 |
+| The New York Times | Skip ads¹, Hide upsell pop-ups¹, Remove social sign-in, Block analytics & tracking¹ ² | `11.98.0` | 10/30/26 |
+| The Wall Street Journal | Skip ads¹, Hide marketing pop-ups¹, Block analytics & tracking¹ ² | `15.12.0.42675` | 10/30/26 |
+| The Washington Post | Skip ads¹, Hide marketing pop-ups¹, Disable AI¹ ², Block analytics & tracking¹ ² | `7.18.1` | 10/30/26 |
 
 ### Government
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| FEMA | Block analytics & tracking (opt-in) | `3.2.1` | 11/02/26 |
-| MyTSA | Block analytics & tracking (opt-in) | `5.1.0` | 11/02/26 |
-| National Forests & Grasslands | Disable Pairip license check, Block analytics & tracking (opt-in) | `1.3.0` | 11/02/26 |
-| NPS | Block analytics & tracking (opt-in), Block Bluetooth scanning (opt-in) | `2.15.0` | 11/02/26 |
-| Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking (opt-in), Show hidden details (opt-in) | `2.2.67` | 11/02/26 |
-| White House | Disable Pairip license check, Remove microphone access, Hide social feeds (opt-in), Hide promotions (opt-in), Block analytics & tracking (opt-in), Route traffic through a proxy (opt-in) | `47.7.8` | 11/02/26 |
+| FEMA | Save content for offline use, Block analytics & tracking² | `3.2.1` | 11/02/26 |
+| MyTSA | Block analytics & tracking² | `5.1.0` | 11/02/26 |
+| National Forests & Grasslands | Disable Pairip license check, Block analytics & tracking² | `1.3.0` | 11/02/26 |
+| NPS | Block analytics & tracking², Block Bluetooth scanning² | `2.15.0` | 11/02/26 |
+| Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking², Show hidden details² | `2.2.67` | 11/02/26 |
+| White House | Disable Pairip license check, Remove microphone access, Hide social feeds², Hide promotions², Block analytics & tracking², Route traffic through a proxy² | `47.7.8` | 11/02/26 |
 
 ### Shopping
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| Amazon Shopping | Hide sponsored listings, Disable AI (opt-in) | `32.19.0.100` | 11/01/26 |
-| Best Buy | Hide sponsored listings, Disable AI (opt-in) | `26.10.10` | 11/01/26 |
-| CVS | Disable AI (opt-in) | `26.10.50` | 11/01/26 |
-| DealSeek | Strip affiliate links, Disable Pairip license check, Block analytics & tracking (opt-in) | `1.64.0` | 11/01/26 |
-| Target | Hide sponsored listings, Disable AI (opt-in) | `2026.43.0` | 11/01/26 |
-| The Home Depot | Disable AI (opt-in) | `8.2.5` | 11/01/26 |
+| Amazon Shopping | Hide sponsored listings¹, Disable AI¹ ² | `32.19.0.100` | 11/01/26 |
+| Best Buy | Hide sponsored listings¹, Disable AI¹ ² | `26.10.10` | 11/01/26 |
+| CVS | Disable AI¹ ² | `26.10.50` | 11/01/26 |
+| DealSeek | Strip affiliate links, Disable Pairip license check, Block analytics & tracking¹ ² | `1.64.0` | 11/01/26 |
+| Target | Hide sponsored listings¹, Disable AI¹ ² | `2026.43.0` | 11/01/26 |
+| The Home Depot | Disable AI¹ ² | `8.2.5` | 11/01/26 |
 | Walgreens | The shared privacy patches only | `118.0` | 11/01/26 |
-| Walmart | Disable AI (opt-in) | `26.38` | 11/01/26 |
+| Walmart | Disable AI¹ ² | `26.42` | 11/02/26 |
 
 ### Carriers
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| Mint Mobile | Block analytics & tracking (opt-in) | `2.3.40` | 11/01/26 |
-| myAT&T | Block session recording, Block background network reports, Block analytics & tracking (opt-in), Disable AI (opt-in) | `2026.10.1` | 11/01/26 |
-| T-Life | Block location tracking, Block session recording, Block analytics & tracking (opt-in), Disable AI (opt-in) | `12.3.1` | 11/01/26 |
-| T-Mobile Play | Block ads, Block analytics & tracking (opt-in), Block TV discovery (opt-in), Hide stories (opt-in) | `19.4.4` | 11/01/26 |
-| Visible | Block ads, Block session recording, Block analytics & tracking (opt-in) | `3.0.5` | 11/01/26 |
-| Xfinity | Block analytics & tracking (opt-in), Block Advanced Security telemetry (opt-in), Disable AI (opt-in) | `6.14.0-2` | 11/01/26 |
-
-## How to install
-
-1. Download the phone build of the app from APKMirror, matching the version in the tables above. Use the `.apkm` bundle, except for ESPN, Hulu, Prime Video, The Wall Street Journal, Walmart, and T-Mobile Play, which ship as a single `.apk`. For Fox One, T-Life, NPS, National Forests & Grasslands, and Recreation.gov, install the app from the Play Store and patch the installed copy.
-2. In Morphe Manager, add this project as a patch source. On your phone, open [this link](https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches). You can also go to Sources, tap +, choose Remote, and paste `https://raw.githubusercontent.com/semicoloncolonel/mobile-morphe-patches/main/patches-bundle.json`.
-3. Select the `.apkm` file and apply the patches.
+| Mint Mobile | Block analytics & tracking² | `2.3.40` | 11/01/26 |
+| My Verizon | Block session recording, Block analytics & tracking², Disable AI¹ ² | `22.2.5` | 11/02/26 |
+| myAT&T | Block session recording, Block background network reports¹, Block analytics & tracking², Disable AI² | `2026.10.1` | 11/01/26 |
+| T-Life | Block location tracking, Block session recording, Block analytics & tracking², Disable AI² | `12.3.1` | 11/01/26 |
+| T-Mobile Play | Block ads, Block analytics & tracking², Block TV discovery², Hide stories² | `19.4.4` | 11/01/26 |
+| Visible | Block ads, Block session recording, Block analytics & tracking² | `3.0.5` | 11/01/26 |
+| Xfinity | Block analytics & tracking², Block Advanced Security telemetry², Disable AI² | `6.14.0-2` | 11/01/26 |
 
 ## What the patches do
 
-**Skip ads** stops ad breaks, server-stitched ads, and pause-screen ads. Ads that are part of a live broadcast still play.
+Everything runs on the phone, inside the patched app. The patches do not send data anywhere.
 
-- Pluto TV: on-demand ads only.
-- Paramount+: live sports breaks show Paramount's "Commercial in Progress" card.
-- AMC+: no stitched-in breaks, including the interactive true[X] and Brightline ads.
-- Apple TV: no ad interstitials in on-demand videos, or promos delivered the same way.
-- PBS: no sponsor messages before or during videos.
-- Fox News: no banner, feed, sponsored, or full-screen ads, and no ad breaks in videos.
-- CNN: no banner or sponsored-content ads, and no ads in videos and clips.
-- Hulu: no ads in on-demand videos. Live TV is not changed.
-- Prime Video: every title plays in the older player, which schedules no ad breaks. The newer player's features, such as X-Ray, are not available. All Access is not changed.
-- ESPN: no scheduled breaks or on-demand mid-rolls.
-- NBA: no ads before or during videos, games, NBA TV, and article videos.
-- NFL: no ads in clips and highlights.
+### Ads
 
-**Block ads** removes the ads and stops the ad networks from loading. On T-Mobile Play, it covers the ads in the feeds. On Visible, it stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications. On JustWatch, it covers banner, native, full-screen, and video ads, including the ones before and during free streams.
+**Skip ads** removes the ads in videos and in the app. Ads that are part of a live broadcast still play, except on NBA.
 
-**Hide social feeds** (White House) is off by default. In the patch options, choose which feeds to hide: Truth Social, X, Instagram, Facebook, LinkedIn, TikTok, YouTube, or the Wire (White House posts that link to articles). A hidden feed is never requested. Its tab stays in the app and shows that the feed could not load. Hiding YouTube also empties the Live tab, since its live streams and videos come from the same feed.
+<details>
+<summary>What Skip ads removes in each app</summary>
 
-**Hide promotions** (White House) is off by default. In the patch options, choose which buttons to hide: "Text President Trump" and "Get in Touch".
+- ABC News: ads in on-demand videos and the feeds, and the Taboola banner in articles.
+- AMC+: stitched-in breaks, including the interactive true[X] and Brightline ads.
+- Apple TV: ad interstitials in on-demand videos, and promos delivered the same way.
+- CBS News: banner ads, ads in videos and recordings, and Taboola recommendations under articles.
+- CNN: banner and sponsored-content ads, and ads in videos and clips. All Access streaming is not changed.
+- ESPN: scheduled breaks and on-demand mid-rolls.
+- Fox Local: ads in on-demand videos, articles, and live blogs, the splash ad, and Taboola recommendations.
+- Fox News: banner, feed, sponsored, and full-screen ads, and ad breaks in videos.
+- Fox One: ads in on-demand videos. On live TV, the ad tracking and the limits on skipping ahead during breaks.
+- Hulu: ads in on-demand videos. Live TV is not changed.
+- NBA: ads in videos, games, NBA TV, and article videos.
+- NBC News: ads in videos, and display ads on the home and section pages.
+- NFL: ads in clips and highlights.
+- Paramount+: ads in videos. Live sports breaks show Paramount's "Commercial in Progress" card.
+- PBS: sponsor messages before and during videos.
+- Pluto TV: on-demand ads. Live breaks are covered by Mask live ad breaks.
+- Prime Video: every ad break. Titles play in the older player, so features of the newer one, such as X-Ray, are not available.
+- YouTube TV: ads inserted into on-demand videos and DVR recordings, and overlay and pause ads.
 
-**Remove microphone access** (White House) removes the microphone permission, which no feature in the app uses.
+</details>
 
-**Skip location on open** (Recreation.gov) stops the app from reading your precise location every time you open it. Nearby search and permit check-in still use location when you use them.
+**Block ads** (JustWatch, Moviebase, T-Mobile Play, and Visible) removes the ads and stops the ad networks from starting. On Visible, it also stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications.
 
-**Hide rating prompt** (Recreation.gov) stops the "rate this app" prompt after checkout.
+**Mask live ad breaks** (ABC News and Pluto TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break.
 
-**Show hidden details** (Recreation.gov) is off by default. It shows details the app already receives from Recreation.gov but does not display:
+| Patch | App | What it does |
+|-------|-----|--------------|
+| Hide sponsored listings | Amazon Shopping, Best Buy, Target | Removes sponsored products from search results, and on Amazon, from product pages. Best Buy's "Featured products" row still shows. |
+| Hide sponsored titles | JustWatch | Removes sponsored title cards and the sponsored trailers before videos. |
+| Strip affiliate links | DealSeek | Opens each deal at the store's own page, without DealSeek's click tracker or affiliate tags. Covers Amazon, Walmart, Best Buy, eBay, Wayfair, and Target. |
 
-- Ticket lotteries: the number of applications, tickets requested and awarded, the limit per account, and when results come out, shown as a message when you open the lottery.
-- Ticket time slots: when sales for each slot close, after the number of tickets available.
-- Ticket facilities: the exact booking window rules, after the booking information.
-- Your lotteries in My Reservations: the deadline to confirm a win, after the results date.
-- Venue time slots: when booking opens or closes.
+### Pop-ups and prompts
 
-Nothing extra is requested from Recreation.gov, and booking works as before.
+| Patch | App | What it hides |
+|-------|-----|---------------|
+| Hide Premium upsell | Moviebase | The Premium screen that opens on its own at launch and after sign-in. Premium still opens from Settings and the app's buttons. |
+| Hide upsell pop-ups | The New York Times | The full-screen subscription takeover and the promo banner at the top. |
+| Hide marketing pop-ups | The Washington Post, The Wall Street Journal | In-app marketing messages, such as subscription offers, and the subscribe banner on The Washington Post's home page. |
+| Hide pop-ups and rating prompts | Fox Local | The rate-the-app prompt, the rating card in the feeds, and marketing pop-ups. |
+| Hide prompts and promos | YouTube TV | The rate-the-app dialog, promo banners, the app tour, the highlights autoplay prompt, and the "Watch on YouTube" dialog. The last three are hidden only on a fresh install or after you clear the app's data. |
+| Hide surveys | CBS News | Qualtrics surveys and the rate-the-app prompt they can lead to. |
+| Hide surveys and rating prompt | NBC News | Iterate surveys and the rate-the-app prompt. |
+| Hide rating prompt | Recreation.gov | The rate-the-app prompt after checkout. |
+| Hide sign-in prompts | Tubi | The request to sign in when you pause or leave a title. |
+| Hide promotions | White House | The buttons you choose: "Text President Trump" and "Get in Touch". |
+| Hide social feeds | White House | The feeds you choose: Truth Social, X, Instagram, Facebook, LinkedIn, TikTok, YouTube, or the Wire. A hidden feed's tab shows that it could not load. Hiding YouTube also empties the Live tab. |
+| Hide stories | T-Mobile Play | The Storyteller stories and video clips in the feeds. |
 
-**Route traffic through a proxy** (White House) is off by default. It sends the app's traffic through a proxy you set in the patch option, such as Orbot for Tor. If the proxy is not running, the app cannot connect. Web pages shown inside the app do not use the proxy. To encrypt DNS for every app, use Private DNS in Android's network settings.
+Push notifications and breaking-news alerts still arrive.
 
-**Hide sponsored titles** (JustWatch) removes JustWatch's own sponsored title cards and the sponsored trailers before videos.
+The White House patches let you remove only the parts of the app you do not want. With every option turned on, almost nothing of the app is left.
 
-**Mask live ad breaks** (Pluto TV) covers live ads with a black screen and mutes them, then restores the show when the break ends. Live ads are part of the broadcast, so they cannot be cut out.
+### AI features
 
-**Block analytics & tracking** is off by default. Crash reporting, sign-in, and playback are left alone. In every app, it also blocks Meta app events and the Meta Pixel, Google Ads conversion tracking, Google Analytics, Optimizely event logging, Bitmovin player analytics, and Mixpanel. Facebook sign-in and sharing keep working.
+**Disable AI** turns off the app's AI assistant and AI features.
 
-- On Tubi, it blocks Adjust, Branch, Braze, Nielsen, Conviva, NPAW/Youbora, Mux, Firebase/Google Analytics, Meta app events, and Tubi's own analytics endpoint.
-- On NBA, it blocks Braze, New Relic, Amplitude, Datadog, comScore, Kochava, and Bitmovin player analytics.
-- On NFL, it blocks Kochava, Adobe Analytics, Nielsen, Partnerize, Amplitude, and Firebase/Google Analytics. Analytics sent from the app's JavaScript are not covered.
-- On ESPN, it blocks Braze, New Relic, Conviva, Nielsen, comScore, Kochava, Adobe Analytics, and Firebase/Google Analytics. TV-provider sign-in through Adobe Pass is left alone.
-- On Disney+, it blocks Braze, Conviva, Nielsen, and Firebase/Google Analytics. Disney's own analytics use the same servers as sign-in and playback, so they are not blocked.
-- On Paramount+, it blocks Braze, Conviva, Nielsen, comScore, Kochava, Adobe Analytics, New Relic, Tealium, and Branch.
-- On HBO Max, it blocks Branch, Braze, comScore, Firebase/Google Analytics, AppsFlyer, and MediaMelon.
-- On Peacock, it blocks Braze, Conviva, Nielsen, comScore, Adobe Analytics, New Relic, Firebase/Google Analytics, mParticle, and Branch.
-- On Hulu, it blocks AppsFlyer, Adobe Analytics, Conviva, Nielsen, and Firebase/Google Analytics.
-- On Prime Video, it stops Amazon's Minerva metrics uploads and Firebase/Google Analytics.
-- On Pluto TV, it blocks Kochava, comScore, Nielsen, Adobe Analytics, Conviva, New Relic, Salesforce Marketing Cloud, and Pluto's Tealium tag config.
-- On MGM+, it blocks Braze, Kochava, Segment, Nielsen, and Firebase/Google Analytics.
-- On Fox One, it blocks AppsFlyer, Braze, Conviva, comScore, Adobe Analytics, Nielsen, Mux, Datadog, Segment, Contentsquare session replay, and Firebase/Google Analytics.
-- On The New York Times, it blocks AppsFlyer, Chartbeat, comScore, Datadog, Iterate surveys, and Firebase/Google Analytics. Statsig, which runs the app's feature settings, is left alone.
-- On The Washington Post, it blocks AppsFlyer, Chartbeat, comScore, Permutive, Iterable, Airship analytics, and Firebase/Google Analytics. Push notifications are left alone.
-- On Starz, it blocks AppsFlyer, CleverTap, Leanplum, Braze, Ethnio surveys, and Firebase/Google Analytics.
-- On PBS, it blocks AppsFlyer, Mux playback analytics, and Firebase/Google Analytics.
-- On Fox News, it blocks Adobe, AppsFlyer, Chartbeat, comScore, Nielsen, Firebase/Google Analytics, and Fox's own ad telemetry and ad-ID graph. Push notifications are left alone.
-- On MS NOW, it blocks Adobe, Kochava, Nielsen, comScore, Amplitude, Parse.ly, Iterate, and Firebase/Google Analytics.
-- On CNN, it blocks Adobe, AppsFlyer, Chartbeat, comScore, Firebase/Google Analytics, and CNN's own data collection. Push notifications are left alone.
-- On AMC+, it blocks AppsFlyer, Braze, mParticle, Nielsen, New Relic, NPAW/Youbora, and Firebase/Google Analytics. TV-provider sign-in through Adobe Pass is left alone.
-- On DealSeek, it blocks AppsFlyer, Meta app events, TikTok, PostHog, and Firebase/Google Analytics. PostHog feature flags, which the app reads, are left alone.
-- On The Wall Street Journal, it blocks Adobe Analytics, AppsFlyer, Braze, comScore, LiveRamp, Parse.ly, Permutive, Snowplow, and Firebase/Google Analytics. Podcasts are left alone.
-- On T-Life, it stops Adobe, MoEngage, Amplitude, Splunk, Luciq, Branch, and Firebase/Google Analytics. MoEngage's marketing notifications and in-app promotions stop too. ThreatMetrix fraud checks are left alone, since sign-in and payments use them.
-- On T-Mobile Play, it stops the app's usage events, Apptentive surveys, and Firebase/Google Analytics.
-- On myAT&T, it stops Dynatrace, Adobe (including its in-app marketing messages), Medallia surveys, and Firebase/Google Analytics. Akamai and Arkose, which sign-in uses, are left alone.
-- On Visible, it stops Tealium, Swrve (including its marketing notifications and in-app promotions), and Firebase/Google Analytics. The support chat is left alone.
-- On Mint Mobile, it stops Amplitude, Braze, Branch, Optimizely events, and Firebase/Google Analytics. Marketing notifications, in-app promotions, and referral links stop too. ThreatMetrix fraud checks are left alone.
-- On Xfinity, it stops Comcast's own event tracking, Datadog, Medallia surveys, Branch, and Firebase/Google Analytics.
-- On NPS, MyTSA, FEMA, and National Forests & Grasslands, it stops Firebase Analytics, and on NPS, Mapbox's map usage reports.
-- On Recreation.gov, it stops Firebase Analytics, which receives your reservation numbers and payment details, the advertising ID, crash and session reporting, and Mapbox usage reports. It also keeps your account ID from LaunchDarkly, the app's feature-flag service. Booking, permits, and notifications are left alone.
-- On White House, it stops Firebase Analytics, which records what you read, how far you scroll, what you watch, and what you search for, and stops the app from reading your advertising ID. Push notifications and polls are left alone.
-- On JustWatch, it blocks JustWatch's own event tracking, AppsFlyer, Adjust, Singular, Meta app events, and Firebase/Google Analytics.
+<details>
+<summary>What Disable AI turns off in each app</summary>
 
-**Disable Pairip license check** (Fox One, DealSeek, White House, and National Forests & Grasslands) lets the patched app start. Google's Pairip license check blocks any copy that was not installed from the Play Store, and every patched app counts as one.
+- Amazon Shopping: the shopping assistant (Rufus, now "Alexa for shopping") in the tabs, search, and camera lens, and the assistant in Amazon Pay. Prompts on Amazon's web pages inside the app can still appear.
+- Best Buy: the AI-written review summaries. Ask Blue, Best Buy's assistant, is not covered.
+- CVS: AI search in the help center, which also stops the download of Google's on-device AI model, AI insights, AI summaries of visits, lab results, and claims, and proactive AI on pharmacy orders.
+- MGM+ (Disable MGM+ AI): the "MGM+ AI" assistant, its "Get Personalized Pick" and "Not sure what to watch?" prompts, and the AI-picks rows on Home.
+- My Verizon: the assistant, its voice mode, and its floating button.
+- myAT&T: Andi, the assistant, and its Fusion AI features: chat history, voice to text, AI search suggestions, citations, and AI cards. The Andi button opens a chat that shows an error, and in-app chat with an agent stops too. Phone support is not affected.
+- NBA (Disable Ask NBA AI): the Ask NBA button on every screen and its tile on the Discover tab.
+- Prime Video: Alexa+, its chat button, and its companion mode.
+- T-Life: the T-Life AI assistant.
+- Target: Ask Target, AI mode in search, the AI gift finder, the AI shopping list scanner, and AI replies in support chat. AI review summaries still show.
+- The Home Depot: the Magic Apron assistant and its chat button on the store's web pages.
+- The Washington Post: Ask The Post AI, its Ask tab, AI article summaries, and the questions under articles.
+- Walmart: the Sparky assistant and the AI features on item and search pages. Customer care chat falls back to the regular help pages.
+- Xfinity: the Xfinity Assistant. Support steps that open it can stop working.
 
-**Strip affiliate links** (DealSeek) opens each deal at the store's own product page. The app normally sends a deal through its own click tracker, which also receives your analytics ID, and then through an affiliate network such as Impact or Sovrn. With this patch, the deal opens directly at the store, and affiliate tags such as Amazon's are removed. It covers Amazon, Walmart, Best Buy, eBay, Wayfair, and Target. DealSeek does not earn a commission on purchases made this way.
+</details>
 
-**Rename shared permissions** (Prime Video) is applied with every Prime Video patch. Without it, the patched Prime Video blocks installing Amazon Shopping and other Amazon apps with a "conflicting package" error, because they declare the same sign-in permissions. The patch adds a `mobilestream.` prefix to those permissions.
+### Privacy
 
-**Block location tracking** (T-Life) stops Radar, which sends your location to Radar's servers every 30 seconds while T-Life runs. Store check-in and location-based offers can be affected.
+**Block analytics & tracking** stops each app's analytics, ad measurement, and marketing services. Sign-in and playback are left alone, and so is crash reporting, except on Recreation.gov and T-Life. In every app except Apple TV, it also stops Firebase and Google Analytics, Meta app events and the Meta Pixel, Google Ads conversion tracking, Optimizely events, Bitmovin player analytics, and Mixpanel. Facebook sign-in and sharing keep working.
 
-**Block session recording** (T-Life, myAT&T, and Visible) stops Quantum Metric, which records what you do in the app. T-Life sends it your phone number, email, and billing account number, myAT&T your login ID and API traffic, and Visible your phone number and network calls.
+<details>
+<summary>What else it stops in each app</summary>
 
-**Block background network reports** (myAT&T) stops the Ookla background reports, which measure your signal and network with your location while you are not using the app. The speed test you start still works.
+- ABC News: mParticle, comScore, Braze, and Datadog.
+- AMC+: AppsFlyer, Braze, mParticle, Nielsen, New Relic, and NPAW/Youbora.
+- Apple TV: Apple's usage metrics, such as the pages you view and what you tap, play, and search for.
+- CBS News: Adobe Analytics, comScore, Nielsen, Mux, New Relic, Flurry, Kochava, and Moat.
+- CNN: Adobe, AppsFlyer, Chartbeat, comScore, and CNN's own data collection.
+- DealSeek: AppsFlyer, TikTok, and PostHog. The PostHog feature flags the app reads are left alone.
+- Disney+: Braze, Conviva, and Nielsen. Disney's own analytics share servers with sign-in and playback, so they are not blocked.
+- ESPN: Braze, New Relic, Conviva, Nielsen, comScore, Kochava, and Adobe Analytics.
+- Fandango at Home: comScore, Kochava, Mux, and Adobe Analytics.
+- Fox Local: AppsFlyer, comScore, Conviva, Mux, Nielsen, Datadog, LiveRamp, and Fox's own ad and app analytics. Braze, which sends the breaking-news alerts, is left alone.
+- Fox News: Adobe, AppsFlyer, Chartbeat, comScore, Nielsen, and Fox's own ad telemetry and ad-ID graph.
+- Fox One: AppsFlyer, Braze, Conviva, comScore, Adobe Analytics, Nielsen, Mux, Datadog, Segment, and Contentsquare session replay.
+- HBO Max: Branch, Braze, comScore, AppsFlyer, and MediaMelon.
+- Hulu: AppsFlyer, Adobe Analytics, Conviva, and Nielsen.
+- JustWatch: JustWatch's own event tracking, AppsFlyer, Adjust, and Singular.
+- MGM+: Braze, Kochava, Segment, and Nielsen.
+- Mint Mobile: Amplitude, Braze, Branch, and Optimizely, along with marketing notifications, in-app promotions, and referral links.
+- Moviebase: RevenueCat diagnostics. Purchases and list sync are left alone.
+- MS NOW: Adobe, Kochava, Nielsen, comScore, Amplitude, Parse.ly, and Iterate.
+- My Verizon: Adobe and its in-app marketing messages, New Relic, and Qualtrics surveys.
+- myAT&T: Dynatrace, Adobe and its in-app marketing messages, and Medallia surveys.
+- NBA: Braze, New Relic, Amplitude, Datadog, comScore, and Kochava.
+- NBC News: Adobe, mParticle, Nielsen, comScore, Conviva, Moat, and Iterate.
+- NFL: Kochava, Adobe Analytics, Nielsen, Partnerize, and Amplitude. Analytics sent from the app's JavaScript are not covered.
+- NPS: Mapbox map usage reports.
+- Paramount+: Braze, Conviva, Nielsen, comScore, Kochava, Adobe Analytics, New Relic, Tealium, and Branch.
+- PBS: AppsFlyer and Mux.
+- Peacock: Braze, Conviva, Nielsen, comScore, Adobe Analytics, New Relic, mParticle, and Branch.
+- Pluto TV: Kochava, comScore, Nielsen, Adobe Analytics, Conviva, New Relic, Salesforce Marketing Cloud, and Pluto's Tealium tag config.
+- Prime Video: Amazon's Minerva metrics.
+- Recreation.gov: the Firebase events that carry your reservation numbers and payment type, Crashlytics and Firebase Sessions, and Mapbox usage reports. It also keeps your account ID from LaunchDarkly, the app's feature-flag service.
+- Starz: AppsFlyer, CleverTap, Leanplum, Braze, and Ethnio surveys.
+- T-Life: Adobe, MoEngage and its marketing messages, Amplitude, Splunk, Luciq, and Branch.
+- T-Mobile Play: the app's usage events and Apptentive surveys.
+- The New York Times: AppsFlyer, Chartbeat, comScore, Datadog, and Iterate surveys.
+- The Wall Street Journal: Adobe Analytics, AppsFlyer, Braze, comScore, LiveRamp, Parse.ly, Permutive, and Snowplow.
+- The Washington Post: AppsFlyer, Chartbeat, comScore, Permutive, Iterable, and Airship analytics.
+- Tubi: Adjust, Branch, Braze, Nielsen, Conviva, NPAW/Youbora, Mux, and Tubi's own analytics.
+- Visible: Tealium and Swrve, with its marketing notifications and in-app promotions.
+- White House: the Firebase events that record what you read, watch, and search for, and the app's access to your advertising ID.
+- Xfinity: Comcast's own event tracking, Datadog, Medallia surveys, and Branch.
 
-**Block Advanced Security telemetry** (Xfinity) is off by default. It stops Advanced Security from uploading the websites it checked and your network changes. Threat filtering on the phone keeps working.
+</details>
 
-**Block TV discovery** (T-Mobile Play) is off by default. It stops Vizbee, which scans your home network for TVs and reports them with your device ID. Sending video to a TV from the app stops working.
+| Patch | App | What it does |
+|-------|-----|--------------|
+| Block telemetry | YouTube TV | Stops quality reports, interaction logging, view tracking, and ad measurement. Watch history, resume points, location checks, and DRM licenses are left alone. |
+| Block session recording | myAT&T, My Verizon, T-Life, Visible | Stops Quantum Metric, which records what you do in the app with details such as your phone number, email, or login ID. |
+| Block location tracking | T-Life | Stops Radar, which sends your location every 30 seconds while the app runs. Store check-in and location-based offers can be affected. |
+| Block background network reports | myAT&T | Stops Ookla's background reports of your signal and location. The speed test you start still works. |
+| Block Advanced Security telemetry | Xfinity | Stops the uploads of the websites Advanced Security checked and your network changes. Threat filtering keeps working. |
+| Block TV discovery | T-Mobile Play | Stops Vizbee, which scans your home network for TVs. Sending video to a TV from the app stops working. |
+| Opt out of data sale & sharing | CBS News, CNN, Fox Local, Fox News, MS NOW, NBC News | Sets the privacy choice to "do not sell or share" and sends ad partners the US Privacy opt-out signal. You can change it in the app's privacy settings, except on CBS News and CNN. |
+| Remove microphone access | White House | Removes the microphone permission, which no feature uses. |
+| Skip location on open | Recreation.gov | Stops the precise location check at every launch. Nearby search and permit check-in still use location. |
+| Route traffic through a proxy | White House | Sends the app's traffic through the proxy you set, such as Orbot for Tor. The app cannot connect while the proxy is off, and web pages inside the app do not use it. |
 
-**Hide stories** (T-Mobile Play) is off by default. It removes the Storyteller stories and video clips from the feeds.
+These are off by default and shared across apps:
 
-**Disable Ask NBA AI** (NBA) hides the Ask NBA chat button on every screen and removes the Ask NBA tile from the Discover tab.
+| Patch | Works on | What it does |
+|-------|----------|--------------|
+| Hide device identifiers | Every app except YouTube TV, MyTSA, and National Forests & Grasslands | Gives the app a random Android ID and a zeroed advertising ID. The DRM ID is left alone, so playback works. |
+| Spoof carrier | Every app except YouTube TV, the carrier apps, MyTSA, and FEMA | Hides your carrier, or shows a name you type. Carrier deals, such as League Pass with a phone plan, stop working. |
+| Report Wi-Fi connection | Streaming and news apps, except Apple TV, JustWatch, and YouTube TV | Shows mobile data as Wi-Fi, so Wi-Fi-only downloads and mobile quality limits do not apply. This can use a lot of data. |
+| Hide VPN connection | Streaming and news apps, except Apple TV, JustWatch, and YouTube TV | Hides an active VPN from the app's checks on the phone. The app's servers can still detect a VPN from your IP address. |
+| Hide Wi-Fi networks | Shopping apps and T-Life | Hides nearby Wi-Fi networks and the name of yours. Store detection, smart-home setup, and checkout fraud checks can be affected. On T-Life, leave it off if you use Secure Wi-Fi or T-Mobile Home Internet. |
+| Block Bluetooth scanning | Shopping apps, T-Life, and NPS | Stops scans for devices and beacons. In-store maps, CVS kiosk check-in, Amazon smart-home setup, park beacon content, and accessory pairing stop working. |
+| Hide cell tower info | Shopping apps | Hides the cell towers your phone sees, which can place you within a few blocks. |
+| Block background location | Shopping apps and T-Life | Removes background location access. Store-arrival features and pickup check-in can stop working. |
+| Disable auto-updates | Every app except The Washington Post, White House, Mint Mobile, T-Mobile Play, and YouTube TV | Stops the Play Store from replacing the patched app with the official one. It is always on with Tubi's Skip ads. |
 
-**Hide upsell pop-ups** (The New York Times) stops the full-screen subscription takeover and the promo banner at the top of the app.
+### Sign-in and startup
 
-**Hide marketing pop-ups** (The Washington Post and The Wall Street Journal) stops in-app marketing messages, such as subscription offers. Push notifications still arrive.
+| Patch | App | What it does |
+|-------|-----|--------------|
+| GmsCore support | Moviebase, YouTube TV | Signs in with Google through MicroG RE instead of Google Play services. |
+| Change app name | YouTube TV | Names the app "YT TV+" by default, so it is easy to tell apart from the official app. |
+| Remove social sign-in | CNN, HBO Max, MGM+, Starz, The New York Times, Tubi | Removes Google, Facebook, and Apple sign-in. Email, TV-provider, and subscriber sign-in keep working. An account created with Google or Facebook needs a password reset to sign in by email. |
+| Disable Xfinity auto sign-in | Peacock | Stops automatic sign-in on an Xfinity home network. |
+| Skip launch video | AMC+, Disney+, Paramount+, Pluto TV, Starz | Opens the app without the intro video. |
+| Skip lion intro | MGM+ | Opens the app without the lion video. |
+| Skip pre-roll promo | MGM+, Starz | Skips the app's own promo before a title. |
 
-**Disable AI** is off by default. On The Washington Post, it turns off Ask The Post AI, AI article summaries, and the Ask The Post questions shown under articles. On the other apps, it turns off the app's AI assistant and AI features:
+### Needed for the app to run
 
-- On Amazon Shopping, it turns off Rufus in the tabs, search, and camera lens, and the AI assistant in Amazon Pay. Rufus prompts that Amazon's web pages show inside the app may still appear.
-- On Walmart, it turns off the Sparky assistant and the AI features on item and search pages. Customer care chat, which Walmart routes through Sparky, falls back to the regular help pages.
-- On Target, it turns off Ask Target, AI mode in search, the AI gift finder, the AI shopping list scanner, and AI replies in support chat. AI review summaries still show.
-- On The Home Depot, it turns off the Magic Apron assistant in the app and hides its chat button on the store's web pages.
-- On CVS, it turns off AI search in the help center, which also stops the app from downloading Google's on-device AI model, AI insights, AI summaries of visits, lab results, and claims, and proactive AI on pharmacy orders.
-- On Best Buy, it hides the AI-written review summaries. Ask Blue, Best Buy's AI assistant, is not covered.
-- On T-Life, it turns off the T-Life AI assistant.
-- On myAT&T, it stops Andi, the AI assistant, from answering, and turns off its Fusion AI features: chat history, voice to text, AI search suggestions, citations, and AI cards. The Andi button still opens the chat, which shows an error. In-app chat with an agent stops too, since it goes through Andi. Phone support is not affected.
-- On Xfinity, it turns off the Xfinity Assistant. Support and troubleshooting steps that open the Assistant can stop working.
+| Patch | App | Why |
+|-------|-----|-----|
+| Disable Pairip license check | DealSeek, Fox One, Moviebase, National Forests & Grasslands, White House | Google's Pairip check blocks any copy not installed from the Play Store, which includes every patched app. |
+| Disable signature check | CBS News | CBS News erases its data and closes when it is not signed by CBS. This also skips its block on rooted phones. |
+| Rename shared permissions | Prime Video | Lets Amazon Shopping and other Amazon apps install beside the patched Prime Video. |
 
-**Hide sponsored listings** removes paid placements from search results. On Amazon Shopping, it hides sponsored products in search results and on product pages. On Target, it asks Target's search for results without sponsored products. On Best Buy, it turns on Best Buy's own option for searches without sponsored listings. Best Buy's "Featured products" row still shows.
+### Extra features
 
-**Opt out of data sale & sharing** (Fox News, MS NOW, and CNN) sets the app's privacy choice to "do not sell or share" and opts out of targeted advertising, as a second layer behind Block analytics & tracking. Ad and measurement partners receive the US Privacy opt-out signal. On Fox News and MS NOW, this is the starting choice and you can change it in the app's privacy settings. On MS NOW, it replaces the "Allow All" that the app saves for you after onboarding. On CNN, the opt-out stays on.
+**Save content for offline use** (FEMA) keeps the Prepare guides, disaster declarations, FAQ, and the images you have viewed readable without a connection. Long-press the app icon for **Save all**, which downloads every guide in English and Spanish (about 150 MB), or **Refresh**, which updates the saved pages. Saved content is replaced only after the new copy downloads completely.
 
-**Enable developer menu** (Fox News) is off by default. The hidden developer menu opens with a normal long-press on the Fox logo at the bottom of Settings, and its feature-flag toggles take effect after you reopen the app. Some of its settings point the app at test servers, so change only what you understand.
+**Show hidden details** (Recreation.gov) shows details the app receives but does not display: lottery application and award counts, the per-account limit, and result dates, when each ticket time slot stops selling, booking window rules, the deadline to confirm a lottery win, and when venue booking opens or closes.
 
-**Hide device identifiers** is off by default and works on every app here. It gives the app a random Android ID, generated once per install, instead of your device's. It also reports a zeroed advertising ID with ad tracking limited, the same as deleting your ad ID in Android settings. The video DRM ID is left alone so playback keeps working.
-
-**Report Wi-Fi connection** is off by default and works on the streaming and news apps. When the phone is on mobile data, the app sees an unmetered Wi-Fi connection instead, so settings such as "download over Wi-Fi only" and lower streaming quality on mobile data do not apply. Wi-Fi-only download jobs that the app hands to Android also run on mobile data. This can use a lot of mobile data.
-
-**Hide VPN connection** is off by default and works on the streaming and news apps. It hides an active VPN from the app's checks on the phone, so the app sees the Wi-Fi or mobile connection that the VPN runs over. The app can still recognize a VPN from your IP address on its servers, and checks built into an app's native code are not covered.
-
-**Spoof carrier** is off by default and works on every app here. It hides your mobile carrier from the app and from the ad, analytics, and crash-reporting SDKs inside it. The carrier name is blank unless you type a different name in the patch option, in which case the app sees that name. The carrier's network code is always hidden. Carrier deals that an app detects from your carrier, such as League Pass included with a phone plan, do not work while this is on.
-
-**Hide Wi-Fi networks** is off by default and works on the shopping apps and T-Life. The app sees no nearby Wi-Fi networks and cannot read the name of the network you are on, so it cannot tell which store's Wi-Fi is around you. Store detection, Wi-Fi setup for smart-home devices, and fraud checks at checkout can be affected. On T-Life, do not enable it if you use Secure Wi-Fi or manage T-Mobile Home Internet in the app.
-
-**Block Bluetooth scanning** is off by default and works on the shopping apps, T-Life, and NPS. On NPS, it stops the scan for beacons in parks, so content tied to a beacon at a park site does not show. The app cannot scan for Bluetooth devices or the beacons in a store, and it cannot see your paired devices. Beacon libraries no longer wake the app when the phone starts or charges. In-store maps and their location dot (Target and The Home Depot), pharmacy kiosk check-in (CVS), smart-home device setup (Amazon), and pairing with accessories inside the app stop working.
-
-**Hide cell tower info** is off by default and works on the shopping apps. The app cannot see the cell towers your phone sees, which can place you within a few blocks even without location access. Use Spoof carrier to hide the carrier itself.
-
-**Block background location** is off by default and works on the shopping apps and T-Life. It removes the app's ability to ask for location while it is closed or in the background, so it cannot notice you arriving at a store, even if you tap Allow all the time. Location while you use the app still works if you allow it. Automatic store mode, store-arrival notifications, pickup check-in, and T-Life store check-in can stop working.
-
-**Disable auto-updates** is off by default and works on every app here except The Washington Post, whose resources the patcher cannot rebuild. It stops the Play Store from silently replacing the patched app with the official version. On Tubi, it is always applied with Skip ads.
-
-**Skip pre-roll promo** removes the app's own promo that plays before a title. On MGM+, it jumps past the 20-30 second self-promo to the start of the main content, and only while that promo is playing, so normal titles and next-episode binge are left alone. On Starz, titles start without the promo for other Starz shows, so there is nothing to skip.
-
-**Skip lion intro** (MGM+ only) opens the app straight after the MGM+ logo, without the lion video.
-
-**Skip launch video** opens the app without the branded intro video or animation that plays on launch, so it reaches the home screen sooner. It covers Starz, AMC+, Paramount+, Pluto TV, and Disney+. On MGM+ the same idea is the separate **Skip lion intro** patch.
-
-**Remove social sign-in** removes the options to sign in with a Google, Facebook, or Apple account, so the app cannot link to one. Email sign-in, TV-provider sign-in (including YouTube TV as your provider), and subscriber sign-in keep working. It covers Tubi, Starz, MGM+, CNN, HBO Max, and The New York Times. On MGM+, it also stops Google's sign-in sheet from opening on its own at startup, and Login with Amazon stays for Amazon-billed subscribers. An account that was created with Google or Facebook needs a password reset to sign in by email. PBS, Fox News, The Wall Street Journal, and The Washington Post show their social options on their own sign-in web pages, which a patch cannot change.
-
-**Hide sign-in prompts** (Tubi only) stops the request to sign in to save your progress when you pause or leave a title. You can still sign in from the account screen.
-
-**Disable Xfinity auto sign-in** (Peacock only) stops the app from signing you in on its own when it detects an Xfinity home network. Signing in with your own Peacock account still works.
-
-**Disable MGM+ AI** (MGM+ only) is off by default. It turns off the "MGM+ AI" chat assistant: the "Get Personalized Pick" and "Not sure what to watch?" prompts, the AI chat itself, and the AI-picks rows on the Home screen. It forces the feature's flags off whatever the server sends, and changes nothing else.
-
-Everything runs on the device, inside the patched app. The patches do not send data anywhere.
+**Enable developer menu** (Fox News) opens the hidden developer menu with a long-press on the Fox logo at the bottom of Settings. Some of its settings point the app at test servers.
 
 ## Known issues
 
-- **Best Buy:** on some phones, the app looks washed out, with a white tint over every screen, and it can take a minute to start. The official app does the same on these phones, so the patches do not cause it. This is an irregular issue that is being reviewed.
-- **Walmart:** if a DNS filter such as Control D blocks `drfdisvc.walmart.com`, Walmart does not send sign-in codes by text. Allow that host and `h-walmart.online-metrix.net`, which Walmart uses for fraud checks at sign-in.
+| App | Issue | Cause or workaround |
+|-----|-------|---------------------|
+| Best Buy | On some phones, every screen has a white tint and the app can take a minute to start. | The official app does the same on these phones, so the patches do not cause it. This is under review. |
+| Moviebase | The Activity and Members tabs do not load. | Moviebase's community server accepts only requests that pass Google's Play Integrity check, which a patched app cannot pass. |
+| Walmart | Sign-in codes are not sent by text. | A DNS filter such as Control D is blocking `drfdisvc.walmart.com`. Allow it and `h-walmart.online-metrix.net`, which Walmart uses for fraud checks at sign-in. |
+| YouTube TV | The location check can take a while indoors, or fail with a VPN on. | MicroG RE falls back to GPS when its Wi-Fi location service has no data for your area. Turn off the VPN if YouTube TV cannot determine your location. |
 
 ## Disclaimer
 

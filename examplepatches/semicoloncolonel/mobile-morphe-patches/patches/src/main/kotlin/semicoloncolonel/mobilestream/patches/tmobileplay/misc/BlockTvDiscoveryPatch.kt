@@ -30,8 +30,8 @@ internal object VizbeeWrapperInitFingerprint : Fingerprint(
 @Suppress("unused")
 val blockTvDiscoveryPatch = bytecodePatch(
     name = "Block TV discovery",
-    description = "Stops Vizbee, which scans your home network for TVs and reports them with " +
-        "your device ID. Sending video to a TV from T-Mobile Play will not work. Opt-in; test on-device.",
+    description = "Stops Vizbee, which scans your home network for TVs and reports them with your " +
+        "device ID. Sending video to a TV from T-Mobile Play will not work.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

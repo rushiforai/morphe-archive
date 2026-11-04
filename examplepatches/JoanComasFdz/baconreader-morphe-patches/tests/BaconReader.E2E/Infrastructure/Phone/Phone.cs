@@ -24,6 +24,7 @@ public sealed class Phone
         Downloads = new Downloads(driver);
         AppInfo = new AppInfo(driver);
         OpenByDefault = new OpenByDefault(driver);
+        FolderPicker = new FolderPicker(driver);
         BaconReader = new BaconReaderApp(driver, Launcher, patches, noteAppShown);
     }
 
@@ -38,6 +39,9 @@ public sealed class Phone
 
     /// <summary>Android's "Open by default" screen for BaconReader: which of its links open in it.</summary>
     public OpenByDefault OpenByDefault { get; }
+
+    /// <summary>Android's folder picker, which an app opens to be given a folder.</summary>
+    public FolderPicker FolderPicker { get; }
 
     /// <summary>BaconReader, patched with the scenario's patches (<see cref="PatchSet"/>).</summary>
     public BaconReaderApp BaconReader { get; }

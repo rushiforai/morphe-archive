@@ -73,17 +73,19 @@ class AttributionUploadsTest {
     }
 
     @Test fun everyProfileHooksOneWorkerOfTheSameShape() {
-        // 585 names the worker's class differently per family (7je, 7nN, 7hg), so the method's shape is what every build shares.
+        // Builds name the worker's class differently (585's families had 7je, 7nN and 7hg), so the method's shape is what every build shares.
         val shape = Regex("""LX/\w+;->A02\(Landroid/content/Context;LX/\w+;${Regex.escape(FB_USER_SESSION)}IJZ\)V""")
         for ((code, profile) in controlProfiles) {
             val hooks = profile.hooks.getValue(ATTRIBUTION_UPLOADS)
             assertEquals(1, hooks.size, "$code")
             assertTrue(shape.matches(hooks.single()), "$code hooks ${hooks.single()}")
         }
-        for (profile in listOf(SYNTHETIC_PROFILE, BASE_PROFILE)) {
-            assertEquals(setOf(ATTRIBUTION_WORKER), profile.hooks.getValue(ATTRIBUTION_UPLOADS))
+        // 586 renames the worker's class and its request, so the base profile gets a fixture under its own names.
+        val base = "LX/81f;->A02(Landroid/content/Context;LX/81g;${FB_USER_SESSION}IJZ)V"
+        for ((profile, id) in listOf(SYNTHETIC_PROFILE to ATTRIBUTION_WORKER, BASE_PROFILE to base)) {
+            assertEquals(setOf(id), profile.hooks.getValue(ATTRIBUTION_UPLOADS))
             activeProfile = profile
-            validateControls(mirroredControls(attributionUploadFixture()), setOf(ATTRIBUTION_UPLOADS))
+            validateControls(mirroredControls(attributionUploadFixture(worker(id = id))), setOf(ATTRIBUTION_UPLOADS))
         }
     }
 

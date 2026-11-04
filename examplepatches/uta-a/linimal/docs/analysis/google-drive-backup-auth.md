@@ -33,10 +33,22 @@ MicroG-RE がその値を `client_sig` として Google に送り、token が発
   判定を false にして旧経路へ回す。
 - 旧経路の bind は `static Object (Context, ComponentName, callback)` が行う。ログ文字列 `GoogleAuthUtil` と
   `Could not bind to service.` を持つ。bind 先の署名を検査する処理はない。
-- アカウント選択は `com.google.android.gms.common.account.CHOOSE_ACCOUNT` で端末本体の Google Play services が行う。
+- アカウント選択は `com.google.android.gms.common.account.CHOOSE_ACCOUNT` で端末本体の Google Play services が行う
+  （2026-11-03 以降、Linimal は MicroG-RE の選択画面へ向ける。下記の 26.16.0 の節）。
   LINE は `Account(name, "com.google")` を作るが、MicroG-RE はアカウント名だけで自分のアカウント（type `app.revanced`）を探す。
   このため、MicroG-RE に同じ Google アカウントが追加されている必要がある。
 - `SignInHubActivity`（`GOOGLE_SIGN_IN`）と `signin.service.START` 系の client は同梱されているが、バックアップでは使わない。
+
+## LINE 26.16.0 での確認（2026-11-03）
+
+- バックアップの経路は 26.11.0 と同じ。選択画面の Intent は `xb5/v.b`、資格情報は `bw/a`（`c(String)` がアカウント名から
+  `getAccountsByType("com.google")` で Account を探す）、自動バックアップは `dj8/d`（`AutomaticChatBackupWorker`）。
+- `xb5/v.b` は register が 5 つで、Context の引数 register を途中で再利用する。Intent を返す箇所の hook は
+  プロセスの Application から Context を得る。
+- MicroG-RE の `AccountPickerActivity` は extras をそのまま Android 本体の `ChooseTypeAndAccountActivity` に渡す。
+  `allowableAccountTypes` を `app.revanced` にすると MicroG-RE のアカウントだけが出る。
+- MicroG-RE は token の要求を受けると、アカウント名で自分のアカウントを探し、無ければ `NetworkError` を返す。
+  端末本体で選んだアカウントが MicroG-RE に無い場合の失敗はこれで説明できる。
 
 ## MicroG-RE 側
 

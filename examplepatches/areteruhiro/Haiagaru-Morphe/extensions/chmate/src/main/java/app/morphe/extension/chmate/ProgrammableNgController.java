@@ -605,6 +605,12 @@ public final class ProgrammableNgController {
         Object value=field(model,name);java.lang.reflect.Method method=value.getClass().getMethod(getter);method.setAccessible(true);return method.invoke(value);
     }
     @SuppressWarnings("deprecation")
+    static ProgrammableNgScript.Input sharedResponseInput(Object response, Object board) throws Exception {
+        List<ProgrammableNgScript.Input> inputs = sharedReportInputs(Collections.singletonList(response), boardUrl(board));
+        if (inputs.size() != 1) throw new IllegalStateException("レスを取得できません");
+        return inputs.get(0);
+    }
+    @SuppressWarnings("deprecation")
     static List<ProgrammableNgScript.Input> sharedReportInputs(Object source,String board){
         if(source==null||board==null||board.equals(UNKNOWN_BOARD))return Collections.emptyList();
         ArrayList<ProgrammableNgScript.Input> inputs=new ArrayList<>();

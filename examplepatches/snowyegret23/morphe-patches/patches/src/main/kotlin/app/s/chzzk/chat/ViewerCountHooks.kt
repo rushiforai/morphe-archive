@@ -46,6 +46,7 @@ internal fun BytecodePatchContext.addViewerCountHooks() {
     val liveStatus = getter("status", "${statusType.dropLast(1)}${'$'}LiveStatus;")
     val channel = classDefBy(detailType).fields.single { it.name == "c" && it.type == "Ljava/lang/String;" }
     bridge("capture", 6, """
+        invoke-static {p0, p1}, Lapp/s/chzzk/extension/LocalFollowing;->capture(Ljava/lang/Object;Ljava/lang/Object;)V
         check-cast p0, $detailType
         check-cast p1, $statusType
         if-eqz p0, :done

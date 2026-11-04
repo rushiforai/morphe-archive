@@ -52,8 +52,8 @@ internal object MenuItemInitFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAskNbaPatch = bytecodePatch(
     name = "Disable Ask NBA AI",
-    description = "Hides the Ask NBA AI chat button on every screen of the NBA app and the " +
-        "Ask NBA tile in the Discover tab. Opt-in / experimental; test on-device.",
+    description = "Hides the Ask NBA AI chat button on every screen of the NBA app and the Ask NBA tile " +
+        "in the Discover tab. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

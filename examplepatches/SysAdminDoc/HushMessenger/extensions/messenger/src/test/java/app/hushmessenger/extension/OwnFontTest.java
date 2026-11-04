@@ -27,6 +27,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowLog;
 import static org.junit.Assert.*;
 
 /**
@@ -411,7 +412,10 @@ public class OwnFontTest {
         Typeface larger = OwnFont.typeface(400, false);
         float drawn = drawnAt(font, ByteBuffer.wrap(font).getInt(12), 125);
         assertTrue("the control: the larger size is visibly larger", ink(cjk, CJK, drawn) > ink(cjk, CJK, 60) * 1.4);
-        assertEquals(width(cjk, CJK, drawn), width(larger, CJK, 60), 0.01f);
+        float sized = width(cjk, CJK, drawn), got = width(larger, CJK, 60);
+        StringBuilder logged = new StringBuilder();
+        for (ShadowLog.LogItem item : ShadowLog.getLogsForTag("HushMessenger")) logged.append(" | ").append(item.msg);
+        assertEquals("sized " + sized + ", as it comes " + width(cjk, CJK, 60) + ", drawn " + got + logged, sized, got, 0.01f);
         assertEquals(ink(cjk, CJK, drawn), ink(larger, CJK, 60));
     }
 

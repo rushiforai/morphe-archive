@@ -35,24 +35,88 @@ private const val STOCKFISH_MEMBER = "stockfish/stockfish-android-arm64-universa
 private const val STOCKFISH_SHA256 = "ffd8fc2004d3d19f9fdab95d84c92709aea92e8d3af405eda0b281b23cf1daf8"
 /** The archive's size: a shorter file is a download that stopped, not a wrong one. */
 private const val STOCKFISH_ARCHIVE_SIZE = 80_233_187L
+private val STOCKFISH_FILE = "morphe-stockfish-19-${STOCKFISH_SHA256.take(16)}"
+private const val CACHE_FOLDER = ".morphe"
+private const val STOCKFISH_FOLDER = "stockfish"
 
 private val stockfishResourcePatch = resourcePatch(
     description = "Adds the official Stockfish 19 to the app's native libraries, downloaded (80 MB) from " +
-        "Stockfish's GitHub while patching.",
+        "Stockfish's GitHub while patching. The download is kept between patch runs.",
 ) {
     execute {
-        // A copy downloaded before is used again when it still checks out. The patcher's log then
-        // has no progress lines, so say that the download is not happening at all.
-        val engine = File(System.getProperty("java.io.tmpdir"), "morphe-stockfish-19-${STOCKFISH_SHA256.take(16)}")
-        if (engine.isFile && sha256(engine) == STOCKFISH_SHA256) {
-            logger.info("Stockfish 19 is already downloaded; no download is needed")
+        // A copy downloaded before is used again when it still checks out, so patching the same app
+        // again does not download the 80 MB again.
+        val directory = cacheDirectory()
+        val cached = cachedEngine(directory)
+        val engine = if (cached != null) {
+            val kept = keep(cached, directory)
+            logger.info("Stockfish 19 is already downloaded at ${kept.path}; no download is needed")
+            kept
         } else {
-            download(engine)
+            File(directory, STOCKFISH_FILE).also { download(it) }
         }
         // Android extracts native libraries into the one folder an app may run programs from.
         val target = get("lib/arm64-v8a/libstockfish.so")
         target.parentFile.mkdirs()
         engine.copyTo(target, overwrite = true)
+    }
+}
+
+/**
+ * The folder the downloaded engine is kept in between patch runs. The system's temp folder is
+ * cleared by cleaners and updates, so on a computer the cache lives in the user's home folder and
+ * on a phone next to the patcher's own cache folder, in its app data.
+ */
+private fun cacheDirectory(): File {
+    val temp = File(System.getProperty("java.io.tmpdir"))
+    val candidates = ArrayList<File>()
+    val home = System.getProperty("user.home")
+    if (!home.isNullOrBlank() && home != "/") {
+        candidates.add(File(File(home, CACHE_FOLDER), STOCKFISH_FOLDER))
+    }
+    // On Android the temp folder is the app's cache folder; its parent is the app's data folder,
+    // which cleaners and updates leave alone.
+    val data = temp.parentFile
+    if (data != null && data.parentFile != null) {
+        candidates.add(File(File(data, CACHE_FOLDER), STOCKFISH_FOLDER))
+    }
+    candidates.add(temp)
+    return candidates.firstOrNull(::usable) ?: temp
+}
+
+private fun usable(directory: File): Boolean = try {
+    (directory.isDirectory || directory.mkdirs()) && directory.canWrite()
+} catch (e: SecurityException) {
+    false
+}
+
+/** A cached engine that still matches its published SHA-256, in [directory] or the old temp folder. */
+private fun cachedEngine(directory: File): File? {
+    val folders = listOf(directory, File(System.getProperty("java.io.tmpdir")))
+    for (folder in folders.distinctBy { it.absolutePath }) {
+        val file = File(folder, STOCKFISH_FILE)
+        if (!file.isFile) continue
+        if (sha256(file) == STOCKFISH_SHA256) return file
+        // A damaged copy would only be checked again next time.
+        file.delete()
+    }
+    return null
+}
+
+/** Moves a copy found in the old temp folder into the cache folder, when it is a different one. */
+private fun keep(cached: File, directory: File): File {
+    if (cached.parentFile == directory) return cached
+    val target = File(directory, cached.name)
+    try {
+        directory.mkdirs()
+        if (cached.renameTo(target)) return target
+        // Temp and home can be on different disks, where a rename is refused.
+        cached.copyTo(target, overwrite = true)
+        cached.delete()
+        return target
+    } catch (e: IOException) {
+        logger.warning("Could not move the downloaded Stockfish 19 to ${target.path}: ${e.message}")
+        return cached
     }
 }
 

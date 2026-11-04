@@ -15,12 +15,17 @@ class ReleaseOrderTest(unittest.TestCase):
         self.assertLess(rebuild, gate)
         self.assertLess(gate, upload)
         command = plugins[gate][1].get('publishCmd', '')
-        for app in ['finamp', 'mihon']:
+        for app in ['finamp', 'mihon', 'calendar']:
             self.assertIn(f'tests/{app}/validate_bundle.py', command)
         self.assertIn('patches-${nextRelease.version}.mpp', command)
         # exec.publishCmd treats stdout as optional release-result JSON.
         for verifier in command.split(' && '):
             self.assertTrue(verifier.rstrip().endswith('>&2'))
+        calendar = next(part for part in command.split(' && ') if 'tests/calendar/validate_bundle.py' in part)
+        self.assertIn('$CALENDAR_ORIGINAL_120', calendar)
+        self.assertIn('$CALENDAR_ORIGINAL_121', calendar)
+        self.assertIn('$MORPHE_DESKTOP_JAR', calendar)
+        self.assertIn('tests/calendar/validate_bundle.py', plugins[gate][1]['prepareCmd'])
 
 
 if __name__ == '__main__': unittest.main()

@@ -27,9 +27,8 @@ internal object MetricsTransporterTransmitFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Amazon's Minerva metrics uploads and Firebase/Google Analytics in the " +
-        "Prime Video phone app. Crash reporting, sign-in and playback are left alone. " +
-        "Opt-in / experimental; test on-device.",
+    description = "Stops Amazon's Minerva metrics uploads and Firebase/Google Analytics. Crash " +
+        "reporting, sign-in and playback are left alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

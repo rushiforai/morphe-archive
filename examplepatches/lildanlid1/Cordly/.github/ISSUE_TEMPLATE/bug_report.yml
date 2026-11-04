@@ -6,12 +6,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Venus Patches bug report
+        # Conduit Patches bug report
 
         Before creating a new bug report, please keep the following in mind:
 
         - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/VenusIsJaded/Venus-Patches/issues?q=label%3A%22Bug+report%22).
-        - Include Discord, Android and Morphe versions plus the Venus diagnostics. Do not share tokens or private audio.
+        - Include Discord, Android and Morphe versions plus the Conduit diagnostics. Do not share tokens or private audio.
   - type: textarea
     attributes:
       label: Bug description

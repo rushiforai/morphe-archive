@@ -28,11 +28,22 @@ public sealed class Settings(AndroidDriver driver)
     public Task WaitUntilSectionShownAsync(SettingsSection section) =>
         Waiting.UntilShownAsync(driver, Locate.AppIdWithText("toolbarTitle", section.ToShownText()), TimeSpan.FromSeconds(10), $"BaconReader's \"{section.ToShownText()}\" settings");
 
+    /// <summary>Taps <paramref name="setting"/> in the open section, which ticks or unticks its checkbox.</summary>
+    public Task TickAsync(BaconReaderSetting setting) => OnScreen.PressAsync(driver, Locate.AppIdWithText("text", setting.ToShownText()));
+
+    /// <summary>What the settings menu lists: its sections, top to bottom.</summary>
+    public Task<SettingsMenuSnapshot> ReadMenuAsync() =>
+        OnScreen.ReadAsync(driver, () => new SettingsMenuSnapshot(
+            [.. driver.FindElements(Setting).Where(entry => entry.Displayed).OrderBy(entry => entry.Location.Y).Select(entry => SettingsSectionShowing.ReadSettingsSection(entry.Text.Trim()))]));
+
     /// <summary>What the open section offers: its settings and headers, top to bottom, as far as the screen shows them.</summary>
     public Task<SettingsSectionSnapshot> ReadSectionAsync() =>
         OnScreen.ReadAsync(driver, () => new SettingsSectionSnapshot(
             [.. driver.FindElements(Setting).Where(setting => setting.Displayed).Select(setting => BaconReaderSettingShowing.ReadBaconReaderSetting(setting.Text.Trim()))]));
 }
+
+/// <summary>What BaconReader's settings menu lists: its sections, top to bottom.</summary>
+public sealed record SettingsMenuSnapshot(System.Collections.Immutable.ImmutableArray<SettingsSection> Sections);
 
 /// <summary>What a section of BaconReader's settings offers: its settings and headers, top to bottom.</summary>
 public sealed record SettingsSectionSnapshot(System.Collections.Immutable.ImmutableArray<BaconReaderSetting> Settings);

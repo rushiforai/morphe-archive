@@ -20,9 +20,10 @@ private const val CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsaf
 private const val DRAWER_HELPER = "$CONFIG->A02()Z"
 internal const val DRAWER_EFFECT = "LX/H1n;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val DRAWER_RENDERER = "LX/4wu;->render(LX/5Sd;)V"
-/** The drawer's flag in 585. */
+/** The drawer's flag in 586. */
 private const val FLAG = EMOJI_DRAWER_FLAG
-/** 584, 583 and 582 numbered it differently. */
+/** 585, 584, 583 and 582 numbered it differently. */
+private const val FLAG_585 = 36320528377659062L
 private const val FLAG_584 = 36320584214265525L
 private const val FLAG_583 = 36320635751841408L
 private const val FLAG_582 = 36320652931710646L
@@ -166,7 +167,7 @@ class EmojiDrawerTest {
     }
 
     @Test fun anOlderReleasesFlagIsNotTheDrawer() {
-        for (flag in listOf(FLAG_584, FLAG_583, FLAG_582, OLD_FLAG)) {
+        for (flag in listOf(FLAG_585, FLAG_584, FLAG_583, FLAG_582, OLD_FLAG)) {
             val other = drawerEffect("LX/EfL;->invoke(Ljava/lang/Object;)Ljava/lang/Object;", flag)
             val classes = listOf(fixtureClass("LX/51i;", listOf(drawerRenderer("LX/51i;->render(LX/5XD;)V", flag))), fixtureClass("LX/EfL;", listOf(other)))
             assertTrue(found(classes).isEmpty(), "$flag")

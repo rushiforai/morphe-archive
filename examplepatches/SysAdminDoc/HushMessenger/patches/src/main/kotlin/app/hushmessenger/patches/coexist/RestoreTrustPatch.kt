@@ -5,9 +5,7 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
-import app.hushmessenger.patches.controls.indexOfAnchor
 import app.hushmessenger.patches.controls.jumpTargets
-import app.hushmessenger.patches.controls.redexStringTables
 import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -22,7 +20,6 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -97,8 +94,8 @@ internal const val INSTAGRAM_LINK_TAG = "InstagramLinkLauncher"
 /**
  * Messenger's Threads and Instagram link launchers: each takes the tapped link, builds a view intent
  * for its app and hands it to Meta's family launcher, logging under its own tag when that throws.
- * The app's package is checked apart from the fingerprint ([requireLinkPackage]), since some 585
- * builds load Threads' from a string table instead of a literal.
+ * The app's package is checked apart from the fingerprint ([requireLinkPackage]), which needs it
+ * loaded before the tag.
  */
 internal object ThreadsLinkLauncherFingerprint : Fingerprint(
     returnType = "V",
@@ -142,24 +139,23 @@ val restoreTrustPatch = bytecodePatch(
 
         val threads = ThreadsLinkLauncherFingerprint.method
         val instagram = InstagramLinkLauncherFingerprint.method
-        val tables = redexStringTables(mutableListOf<ClassDef>().apply { classDefForEach { add(it) } })
-        threads.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG, tables)
-        instagram.requireLinkPackage("Instagram", "com.instagram.android", INSTAGRAM_LINK_TAG, tables)
+        threads.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG)
+        instagram.requireLinkPackage("Instagram", "com.instagram.android", INSTAGRAM_LINK_TAG)
         // Both launchers are checked before either changes.
         val sites = listOf(threads.linkLaunchSites("Threads"), instagram.linkLaunchSites("Instagram"))
 
-        method.answerOriginalSigners(packageInfo, signers)
-        FbnsPackageCheckFingerprint.method.routeFbnsSigners()
+        method.restoreSigners(packageInfo, signers, FbnsPackageCheckFingerprint.method)
         threads.reportLinkLaunches(sites[0])
         instagram.reportLinkLaunches(sites[1])
     }
 }
 
-/** Stops the patch unless the launcher loads [pkg], as a literal or a [redexStringTables] lookup, before its [tag]. */
-internal fun Method.requireLinkPackage(app: String, pkg: String, tag: String, tables: Map<String, Map<Int, String>>) {
+/** Stops the patch unless the launcher loads [pkg] as a literal before its [tag]. */
+internal fun Method.requireLinkPackage(app: String, pkg: String, tag: String) {
     val code = implementation?.instructions?.toList().orEmpty()
-    val named = code.indexOfAnchor(pkg, tables)
-    val tagged = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == tag }
+    fun loads(value: String) = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value }
+    val named = loads(pkg)
+    val tagged = loads(tag)
     if (named < 0 || named > tagged) throw PatchException("Restore screens on re-signed builds: $app's link launcher doesn't load $pkg before its tag")
 }
 
@@ -299,7 +295,21 @@ internal fun MutableMethod.answerOriginalSigners(packageInfo: String, signers: S
  * registers, so both must be v15 or lower, and the read must not overwrite the package it read
  * from, which the call still needs. A jump landing straight after the read would skip the call.
  */
-internal fun MutableMethod.routeFbnsSigners() {
+internal fun MutableMethod.routeFbnsSigners(read: FbnsSignersRead = fbnsSignersRead()) {
+    addInstructions(
+        read.index + 1,
+        """
+            invoke-static { v${read.info}, v${read.signatures} }, $FBNS_SIGNERS
+            move-result-object v${read.signatures}
+        """,
+    )
+}
+
+/** Where FBNS's package check reads the signers, and the package and array registers the call names. */
+internal class FbnsSignersRead(val index: Int, val info: Int, val signatures: Int)
+
+/** The one place [routeFbnsSigners] can go, or a refusal. Changes nothing. */
+internal fun Method.fbnsSignersRead(): FbnsSignersRead {
     val code = implementation!!.instructions.toList()
     val reads = code.withIndex().filter { (_, instruction) ->
         instruction.opcode == Opcode.IGET_OBJECT &&
@@ -317,11 +327,15 @@ internal fun MutableMethod.routeFbnsSigners() {
     if (index + 1 in jumpTargets()) throw PatchException(
         "Restore screens on re-signed builds: FBNS's package check jumps past its signatures read"
     )
-    addInstructions(
-        index + 1,
-        """
-            invoke-static { v$info, v$signatures }, $FBNS_SIGNERS
-            move-result-object v$signatures
-        """,
-    )
+    return FbnsSignersRead(index, info, signatures)
+}
+
+/**
+ * Answers the original signers here and routes [fbns]'s signers read. FBNS's read is found first,
+ * so a check that refuses either one leaves both methods as Messenger wrote them.
+ */
+internal fun MutableMethod.restoreSigners(packageInfo: String, signers: String, fbns: MutableMethod) {
+    val read = fbns.fbnsSignersRead()
+    answerOriginalSigners(packageInfo, signers)
+    fbns.routeFbnsSigners(read)
 }

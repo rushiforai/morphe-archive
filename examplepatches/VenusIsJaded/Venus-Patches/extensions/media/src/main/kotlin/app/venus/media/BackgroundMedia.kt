@@ -255,6 +255,18 @@ object BackgroundMedia {
         return mediaView != null && fieldOf(mediaView, "mediaPlayer") === player
     }
 
+    /**
+     * MediaView.onConfigurationChanged: the window turns the screen "landscape", and Discord's handler then sees a new
+     * orientation and releases the view's player, the one playing in the window. That reset the video: play and pause in
+     * the window misbehaved, the position was lost and the chat's player came back broken (#145). While the window is
+     * up, and just after it closes, Discord's handler is skipped (View's own still runs).
+     */
+    @JvmStatic
+    fun keepConfig(mediaView: View?): Boolean {
+        if (mediaView == null || pipPlayer == null) return false
+        return pipOverlay != null || pipActivity?.get()?.isInPictureInPictureMode == true || SystemClock.uptimeMillis() - pipExitedAt < 1500
+    }
+
     /** MainActivity.onUserLeaveHint (Home, Recents, another app): a video playing with sound pops out. */
     @JvmStatic
     fun onUserLeaveHint(activity: Activity?): Boolean {
@@ -416,7 +428,11 @@ object BackgroundMedia {
         pipOverlay = null
         try { (overlay?.parent as? ViewGroup)?.removeView(overlay) } catch (_: Throwable) { }
         val original = pipOriginalView
-        if (original != null) call(pipPlayer, "reattachSurface", original)
+        if (original != null) {
+            call(pipPlayer, "reattachSurface", original)
+            // The chat's view was measured at the window's size meanwhile; lay it out again so its play button is centered.
+            try { (call(original, "getView") as? View)?.let { v -> (v.parent as? View ?: v).requestLayout() } } catch (_: Throwable) { }
+        }
     }
 
     private fun clearPip() {
@@ -460,13 +476,17 @@ object BackgroundMedia {
     private fun endAudio(pause: Boolean) {
         if (pause) call(audioManagerInstance(), "pauseCurrentPlayer", false)
         registerNoisy(false)
+        // Tell the system player the session is over before releasing it, so the shade and lock screen drop their card.
+        try { session?.setPlaybackState(PlaybackState.Builder().setState(PlaybackState.STATE_NONE, 0L, 0f).build()) } catch (_: Throwable) { }
         try { session?.isActive = false; session?.release() } catch (_: Throwable) { }
         session = null
         audioPlayer = null
         audioKey = ""
         notification = null
         foreground = false
-        try { MediaService.instance?.let { it.demote(); it.stopSelf() } } catch (_: Throwable) { }
+        // Remove, not detach: Android ignores an app cancelling a notification that's still its foreground service's, so a
+        // detached one outlived the released session and stayed with buttons that did nothing (#145).
+        try { MediaService.instance?.stop() } catch (_: Throwable) { }
         try { appContext?.getSystemService(NotificationManager::class.java)?.cancel(NOTIFICATION_ID) } catch (_: Throwable) { }
     }
 
@@ -494,6 +514,10 @@ object BackgroundMedia {
         val built = notification ?: return
         try { appContext?.getSystemService(NotificationManager::class.java)?.notify(NOTIFICATION_ID, built) } catch (_: Throwable) { }
     }
+
+    /** Whether a sound session is still going; the service stops itself when it starts after the session ended. */
+    @JvmStatic
+    fun audioActive(): Boolean = session != null
 
     /** The notification [MediaService] shows; a quiet placeholder when the session already ended. */
     @JvmStatic
@@ -658,7 +682,9 @@ object BackgroundMedia {
             ACTION_FORWARD -> { val end = duration(player); val to = position(player) + skipMs(); call(player, "seekTo", if (end > 0) Math.min(end, to) else to) }
             ACTION_STOP -> { endAudio(true); return }
         }
-        main.postDelayed(Runnable { sync() }, 120)
+        // A skip doesn't change play/pause, so sync() alone never published the new position: the notification's and lock
+        // screen's seek bar stayed where it was (#145). Refresh the playback state after every action.
+        main.postDelayed(Runnable { sync(); if (session != null && audioPlayer != null) refreshAudio(false) }, 120)
     }
 
     private fun videoAction(action: String) {

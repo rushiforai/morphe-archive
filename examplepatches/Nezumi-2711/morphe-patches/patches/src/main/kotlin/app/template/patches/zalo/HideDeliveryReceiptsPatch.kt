@@ -75,6 +75,6 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
             return-void
         """.trimIndent(), ExternalLabel("nezumi_original_delivery", originalStart))
 
-        attachNezumiSettings()
+        attachNezumiSettings("attachDeliveryReceipts")
     }
 }

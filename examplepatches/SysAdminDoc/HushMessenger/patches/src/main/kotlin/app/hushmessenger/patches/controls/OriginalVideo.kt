@@ -53,7 +53,7 @@ private fun Instruction.field() = (this as? ReferenceInstruction)?.reference as?
  *     cmp-long vR, vSize, vLimit     <- returned
  *     if-gez vR, :reencode
  *
- * 584.1 armv7 derives the margin from the target bitrate instead of using a fixed 5 MB:
+ * 586, like 583, derives the margin from the target bitrate instead of using a fixed 5 MB:
  *
  *     const-wide/16 vT, 8000
  *     mul-int/lit16 vT, vTarget, 1000

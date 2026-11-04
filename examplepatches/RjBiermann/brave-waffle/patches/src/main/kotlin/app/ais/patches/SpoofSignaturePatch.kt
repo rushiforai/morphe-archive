@@ -25,10 +25,11 @@ import com.android.tools.smali.dexlib2.AccessFlags
 private const val ORIGINAL_SIGNATURE = "VQMyUhZdmnnwK5RVCbeGqu0HN020MEDUM44crQyL1zw="
 
 object SignatureFingerprint : Fingerprint(
-    definingClass = "Lx93;",
+    definingClass = "Lnj3;",
     name = "b",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Ljava/lang/String;",
+    parameters = listOf("Lcom/streamdev/aiostreamer/datatypes/login/LoginStatus;"),
     filters = listOf(
         methodCall(
             definingClass = "Landroid/util/Base64;",

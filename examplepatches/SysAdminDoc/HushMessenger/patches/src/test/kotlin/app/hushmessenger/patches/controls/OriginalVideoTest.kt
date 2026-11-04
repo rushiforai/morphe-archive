@@ -39,7 +39,7 @@ internal val VIDEO_TRANSCODE_BODY = """
     return-void
 """.trimIndent()
 
-/** 583 and 584.1 armv7 derive the margin from the target bitrate and branch on less-than. */
+/** 583 and 586 derive the margin from the target bitrate and branch on less-than. */
 private val CONFIGURED_MARGIN_BODY = """
     const-string v0, "$VIDEO_PASSTHROUGH_MARK"
     if-lez v5, :other_checks

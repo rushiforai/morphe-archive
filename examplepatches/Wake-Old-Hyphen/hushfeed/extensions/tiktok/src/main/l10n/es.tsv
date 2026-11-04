@@ -139,7 +139,7 @@ Comma separated names exactly as the row under a profile's bio shows them, such 
 Couldn't add the older seen videos. Try again.	No se pudieron añadir los vídeos vistos anteriores. Inténtalo de nuevo.
 Couldn't copy. Use Save build details instead.	No se copió. Usa «Guardar detalles de la compilación».
 Couldn't copy the report. Use Save report instead.	No se copió el informe. Usa «Guardar informe».
-Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.	No se pudieron leer los valores actuales de TikTok (%1$s). Actualiza los valores desde el menú para volver a intentarlo.
+Couldn't read TikTok's current values. Refresh values from the menu to try again.	No se pudieron leer los valores actuales de TikTok. Actualiza los valores desde el menú para volver a intentarlo.
 Couldn't restart TikTok. Close it and open it again.	No se pudo reiniciar TikTok. Ciérralo y vuelve a abrirlo.
 Couldn't undo that. Try again.	No se pudo deshacer. Inténtalo de nuevo.
 Count a video as seen after	Contar un vídeo como visto después de
@@ -1684,9 +1684,7 @@ TikTok is locked	TikTok está bloqueado
 Unlock	Desbloquear
 TikTok can't lock without a phone screen lock	TikTok no se puede bloquear sin bloqueo de pantalla
 Save photo posts as a video	Guardar publicaciones de fotos como vídeo
-On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video.	En una publicación con una foto, Descargar video crea un MP4 con el sonido de la publicación y sin logo de TikTok ni tarjeta final. En una publicación con varias fotos, Descargar pregunta si quieres los originales o un solo video.
 Seconds per photo	Segundos por foto
-How long each photo stays on screen in a video made from a photo post.	Cuánto tiempo se ve cada foto en un vídeo hecho a partir de una publicación de fotos.
 Save photos or a video?	¿Guardar fotos o un vídeo?
 Save photos	Guardar fotos
 Save as video	Guardar como vídeo
@@ -2247,7 +2245,6 @@ Above moves the caption and the buttons up a little so the time fits over the ri
 Full-width progress bar	Barra de progreso a todo el ancho
 Run the progress bar from one screen edge to the other, without the gap TikTok leaves at each end.	La barra de progreso va de un borde de la pantalla al otro, sin el hueco que TikTok deja en cada extremo.
 New device identity	Nueva identidad del dispositivo
-Wipe TikTok's data and give it a new Android ID and advertising ID on the next start, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.	Borra los datos de TikTok y le da un nuevo ID de Android y un nuevo ID de publicidad en el próximo inicio, para que vea un teléfono que no conoce. Se cerrará tu sesión y perderás tus borradores. Los ajustes de Hushfeed se mantienen.
 TikTok starts as a new phone after the restart. Tap again to cancel.	TikTok se inicia como un teléfono nuevo después del reinicio. Toca de nuevo para cancelar.
 Couldn't set up a new device identity. Try again.	No se pudo configurar una nueva identidad del dispositivo. Inténtalo de nuevo.
 Saves at once	Guardados a la vez
@@ -2434,3 +2431,21 @@ Videos you watch show up here	Los videos que ves aparecen aquí
 No videos match	Ningún video coincide
 Watch history cleared	Historial de visualización borrado
 Couldn't open that video. Try again.	No se pudo abrir ese video. Inténtalo de nuevo.
+Keep the next videos in full screen	Mantener los siguientes vídeos en pantalla completa
+Full screen opens with just your video on most pages, so there's nothing to swipe to. This brings the videos after it along.	En la mayoría de las páginas, la pantalla completa abre solo tu vídeo, así que no hay nada a lo que deslizar. Esto trae también los vídeos siguientes.
+Off until you tap it. Wipes TikTok's data once, on the next start, and gives it a new Android ID and advertising ID, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. Hushfeed's settings stay.	Apagado hasta que lo toques. Borra los datos de TikTok una vez, en el próximo inicio, y le da un nuevo ID de Android y un nuevo ID de publicidad, para que vea un teléfono que no conoce. Se cerrará tu sesión y perderás tus borradores. Los ajustes de Hushfeed se quedan.
+In use: TikTok sees the identity you made here, and it stays the same on every start. Tap to make another one, which wipes TikTok's data again.	En uso: TikTok ve la identidad que creaste aquí, y sigue igual en cada inicio. Toca para crear otra, lo que vuelve a borrar los datos de TikTok.
+Couldn't finish wiping TikTok's data. Tap to try again.	No se pudieron borrar del todo los datos de TikTok. Toca para volver a intentarlo.
+Use this phone's own IDs	Usar los ID propios de este teléfono
+Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	Borra los datos de TikTok una vez, en el próximo inicio, y vuelve al ID de Android y al ID de publicidad reales de este teléfono. Se cerrará tu sesión y perderás tus borradores.
+TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	TikTok vuelve a los ID de este teléfono tras el reinicio. Toca de nuevo para cancelar.
+On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.	En una publicación con una foto, Descargar video crea un MP4 con el sonido de la publicación y sin logo de TikTok ni tarjeta final. En una publicación con varias fotos, Descargar pregunta si quieres los originales o un solo video. Una historia de fotos también se guarda como video.
+How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.	Cuánto tiempo se ve cada foto en un vídeo hecho a partir de una publicación de fotos. El vídeo de una historia dura lo mismo que la historia.
+Stop loading	Detener la carga
+Recording files deleted	Archivos de grabación eliminados
+Hide story views	Ocultar las visualizaciones de historias
+You stay off the viewer list of stories you watch. Needs Ghost mode on.	No aparecerás en la lista de espectadores de las historias que veas. Necesita el modo fantasma activado.
+Hide profile visits	Ocultar las visitas a perfiles
+You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.	No aparecerás en la lista de visualizaciones del perfil de las personas cuyo perfil abras. Necesita el modo fantasma activado.
+Hide typing	Ocultar que estás escribiendo
+People you chat with won't see that you're typing. Needs Ghost mode on.	Las personas con las que chateas no verán que estás escribiendo. Necesita el modo fantasma activado.

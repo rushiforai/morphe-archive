@@ -5,7 +5,9 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import app.noam.extension.chesscom.Features;
 
@@ -52,20 +54,44 @@ public final class HomeTabs {
     }
 
     /**
-     * 4.10.23 builds [Play, Puzzles, middle tabs..., More] inside the bar composable; drop
-     * Puzzles when the user turned it off in the settings.
+     * 4.10.23 builds [Play, Puzzles, middle tabs..., More] inside the bar composable, so Puzzles
+     * always sat right after Play no matter what the settings said. Rebuild that list here: Play
+     * stays first, More stays last, and everything between them (Puzzles included) follows the
+     * saved order. A tab the user turned off is simply not added.
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static List finalTabs(List tabs) {
         if (tabs == null || tabs.isEmpty() || !enabled()) return tabs;
-        if (shownTabs().contains("Puzzles")) return tabs;
+        SharedPreferences preferences = Features.preferences();
+        if (preferences == null || !preferences.contains(SHOWN)) return tabs;
         try {
-            List result = new ArrayList();
+            Map<String, Object> middle = new LinkedHashMap<>();
+            Object play = null;
+            Object more = null;
             for (Object tab : tabs) {
-                if (tab instanceof Enum && ((Enum<?>) tab).name().equals("Puzzles")) continue;
-                result.add(tab);
+                if (!(tab instanceof Enum)) return tabs;
+                String name = ((Enum<?>) tab).name();
+                if (name.equals("Play")) {
+                    play = tab;
+                } else if (name.equals("More")) {
+                    more = tab;
+                } else {
+                    middle.put(name, tab);
+                }
             }
-            return result.isEmpty() ? tabs : result;
+            if (play == null) return tabs;
+            List result = new ArrayList();
+            result.add(play);
+            for (String name : shownTabs()) {
+                Object tab = middle.remove(name);
+                if (tab != null) result.add(tab);
+            }
+            // Keep a tab the app added that the settings screen does not know about.
+            for (Map.Entry<String, Object> entry : middle.entrySet()) {
+                if (!Arrays.asList(TABS).contains(entry.getKey())) result.add(entry.getValue());
+            }
+            if (more != null) result.add(more);
+            return result;
         } catch (Throwable throwable) {
             return tabs;
         }
@@ -91,7 +117,8 @@ public final class HomeTabs {
                 Object tab = byName(all, name);
                 if (tab != null) result.add(tab);
             }
-            return result.isEmpty() ? tabs : result;
+            // An empty list is the user turning every middle tab off; Home and More stay.
+            return result;
         } catch (Throwable throwable) {
             return tabs;
         }

@@ -15,5 +15,13 @@ public class ThreadSearchTest{
   for(int i=0;i<4;i++)check(values[i].equals(r.getClass().getField(fields[i]).get(r)),"source unchanged");
   r.getClass().getField(fields[2]).set(r,"2026/10/28 ﾜｯﾁｮｲ abcd-EF12");ThreadSearchOptions.mask=1;check(search(r,"ID:A.Af1CYTq"),"native ID fallback");check(!search(r,"abcd-EF12"),"header wacchoi excluded");ThreadSearchOptions.mask=2;check(search(r,"abcd-EF12")&&!search(r,"ID:A.Af1CYTq"),"header wacchoi only");
  }
+ String marked="1 名前 11/03(火) 09:34:16.87 ID:abc\n本文03と火曜日、2026/11/03(火)";
+ for(String query:new String[]{"03","火","09:34","11/03"}){
+  Matcher m=ThreadSearchText.resetHighlight(Pattern.compile(query).matcher(""),marked);int hits=0;
+  while(ThreadSearchText.findHighlight(m)){check(m.start()>marked.indexOf('\n'),"date highlight cannot be in header "+query);hits++;}
+  check(hits==(query.equals("09:34")?0:query.equals("11/03")?1:2),"body match remains "+query);
+ }
+ Matcher identity=ThreadSearchText.resetHighlight(Pattern.compile("abc").matcher(""),marked);check(ThreadSearchText.findHighlight(identity),"ID highlighting retained");
+ Matcher nothing=ThreadSearchText.resetHighlight(Pattern.compile("火").matcher(""),"1 名前 11/03(火) 09:34:16\n本文だけ");check(!ThreadSearchText.findHighlight(nothing),"header-only weekday produces no search mark");
  System.out.println("Thread search: "+count+" checks passed");
  }}

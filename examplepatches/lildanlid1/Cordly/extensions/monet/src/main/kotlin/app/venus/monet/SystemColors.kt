@@ -13,11 +13,11 @@ import java.io.File
 /**
  * Material You colors and Custom themes, native side.
  *
- * 1. Hands Cordly the phone's wallpaper palettes (Android 12+ system_accent1..3 and system_neutral1..2, 13 shades each)
- *    as JSON. Cordly builds Discord's colors from them in JavaScript.
+ * 1. Hands Conduit the phone's wallpaper palettes (Android 12+ system_accent1..3 and system_neutral1..2, 13 shades each)
+ *    as JSON. Conduit builds Discord's colors from them in JavaScript.
  * 2. Recolors Discord's native views (the chat list, voice overlay, reactions, notifications, window background) with
  *    the same palette: every theme color they use passes through ColorUtilsKt.applySaturationFactor, which asks [remap]
- *    first. Cordly sends a table of Discord color -> Material color (same tone, so Light stays light and Midnight black);
+ *    first. Conduit sends a table of Discord color -> Material color (same tone, so Light stays light and Midnight black);
  *    it's saved, so the next launch is colored from the first frame.
  *
  * Reached through FileModule.getFileHash's Promise with a private URI prefix: Discord never calls getFileHash, and a
@@ -59,8 +59,8 @@ object SystemColors {
     }
 
     /**
-     * Whether Cordly' saved settings still have Material You or Custom themes on, so turning them off and leaving Discord
-     * before the native side heard about it never brings the colors back. Cordly writes them with JSON.stringify.
+     * Whether Conduit' saved settings still have Material You or Custom themes on, so turning them off and leaving Discord
+     * before the native side heard about it never brings the colors back. Conduit writes them with JSON.stringify.
      */
     private fun savedOn(file: File): Boolean {
         if (!file.isFile || file.length() > MAX_PREFS) return false

@@ -120,6 +120,7 @@ public final class ResponseArchive {
     }
 
     private static void append(Object owner, Object menuObject, Object response, Object board) throws Exception {
+        SharedNgResponseExclusion.append(menuObject, response, board);
         PosterHighlight.append(menuObject, response, board);
         appendViewMenu(menuObject);
         if (!(menuObject instanceof Menu) || response == null || board == null) return;
@@ -134,6 +135,7 @@ public final class ResponseArchive {
     }
 
     public static boolean handle(Object object) {
+        if (SharedNgResponseExclusion.handle(object)) return true;
         if(ResponseMenuSettings.handleTools(object))return true;
         if(WacchoiLongPressMenu.handlePrefixNg(object))return true;
         if(WacchoiLongPressMenu.handleSuffixNg(object))return true;
@@ -164,6 +166,7 @@ public final class ResponseArchive {
             Object flow = ResponseArchiveEntry.field(model, "af");
             Method get = flow.getClass().getMethod("d"); get.setAccessible(true);
             Object board = get.invoke(flow);
+            SharedNgResponseExclusion.appendSheet(builder, response, board);
             PosterHighlight.appendSheet(builder, response, board);
             ResponseArchiveEntry entry = snapshot(response, board);
             appendSheetAction(builder, "このレスをアーカイブに保存", archiveIcon(true), () -> {

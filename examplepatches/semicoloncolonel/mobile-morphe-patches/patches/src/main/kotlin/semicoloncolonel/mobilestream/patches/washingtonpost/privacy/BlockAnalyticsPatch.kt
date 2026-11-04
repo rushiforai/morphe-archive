@@ -25,10 +25,9 @@ import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking in the Washington Post phone app: AppsFlyer, " +
-        "Chartbeat, comScore, Permutive, Iterable, Airship analytics and Firebase. Blocking " +
-        "happens on the device, inside the app. Sign-in, articles and push notifications are " +
-        "left alone. Opt-in / experimental; test on-device.",
+    description = "Stops analytics and tracking: AppsFlyer, Chartbeat, comScore, Permutive, Iterable, " +
+        "Airship analytics and Firebase. Sign-in, articles and push notifications are left " +
+        "alone. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

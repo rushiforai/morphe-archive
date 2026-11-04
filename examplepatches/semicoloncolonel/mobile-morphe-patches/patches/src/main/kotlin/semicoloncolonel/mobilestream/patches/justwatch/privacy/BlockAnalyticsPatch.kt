@@ -16,9 +16,8 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops JustWatch's own event tracking, AppsFlyer, Adjust, Singular, Meta app " +
-        "events, and Firebase Analytics. Sign-in and your watchlist are left alone. Opt-in; " +
-        "test on-device.",
+    description = "Stops JustWatch's own event tracking, AppsFlyer, Adjust, Singular, Meta app events, " +
+        "and Firebase Analytics. Sign-in and your watchlist are left alone.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

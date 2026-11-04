@@ -21,20 +21,20 @@ This patch suite converts the Oraimo Health application into a clean, dedicated,
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.0](https://github.com/benzophury/oraimo-health-morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.11.0](https://github.com/benzophury/oraimo-health-morphe-patches/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 oraimo health&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.0.4 | 2.0.6 |
-| :---: | :---: |
+| 2.0.7 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [DNS Hardcoding](#dns-hardcoding) | Hardcodes DNS lookup in OkHttp to fail locally with UnknownHostException, preventing any remote DNS or HTTP traffic. |  |
-| [Hide Navigation Tabs (Layout)](#hide-navigation-tabs-layout) | Statically collapses Mall, Sport, and Mine tabs to 0dp in activity_main.xml, keeping Data and Device tabs. |  |
+| [Instant Launch](#instant-launch) | Removes the splash screen countdown timer (0 sec wait) for instant application startup. |  |
 | [Manifest Debloat](#manifest-debloat) | Prunes background telemetry upload services, aggressive keepalive daemons, and cloud activities from AndroidManifest.xml. |  |
 | [Offline Network Mode](#offline-network-mode) | Forces network utilities to report disconnected and disables network change listeners. |  |
 
@@ -48,7 +48,7 @@ This patch suite converts the Oraimo Health application into a clean, dedicated,
 
 | Package Name | Supported App Version |
 | :--- | :--- |
-| `com.transsion.oraimohealth` | `2.0.4`, `2.0.6` |
+| `com.transsion.oraimohealth` | `2.0.7` |
 
 ---
 
@@ -57,7 +57,7 @@ This patch suite converts the Oraimo Health application into a clean, dedicated,
 ### Using Morphe Manager (Android)
 1. Open **Morphe Manager** on your Android device.
 2. Add this repository under **Sources**: `https://github.com/benzophury/oraimo-health-morphe-patches`
-3. Select `oraimo_Health.apk` (v2.0.4 or v2.0.6).
+3. Select `oraimo_Health.apk` (v2.0.7).
 4. Verify all 4 patches are selected.
 5. Tap **Patch** and install.
 

@@ -1,4 +1,4 @@
-// Draws Venus pages with the real bootstrap.js and saves screenshots (see AGENTS.md, "Seeing the UI").
+// Draws Conduit pages with the real bootstrap.js and saves screenshots (see AGENTS.md, "Seeing the UI").
 //   node tests/ui/shot.cjs <name> '<query>' [<name> '<query>' ...]     -> work/ui/shots/<name>.png
 //   node tests/ui/shot.cjs --all [suffix] ['<extra query>']              -> every page, off and on
 //   node tests/ui/shot.cjs --scenes [suffix] ['<extra query>']           -> every Discord scene (scenes.jsx)

@@ -223,7 +223,7 @@ Use your own authorized Reddit OAuth client and reach the existing login flow wi
 
 ## Readable Calendar descriptions
 
-**Fossify Calendar 1.12.0** · [Setup & patch details](CALENDAR.md)
+**Fossify Calendar 1.12.0 and 1.12.1** · [Setup & patch details](CALENDAR.md)
 
 Read an HTML event description as text while retaining an explicit Edit HTML source action.
 
@@ -234,7 +234,9 @@ Read an HTML event description as text while retaining an explicit Edit HTML sou
 | **Previous Morphe patch: raw table tags** | **Revised patch: Morning Workshop, with source editing** |
 | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/before-editor.png" width="300" alt="Before: Previous Morphe patch: raw table tags"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/after-editor.png" width="300" alt="After: Revised patch: Morning Workshop, with source editing"> |
 
-[Capture provenance & checks](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review) · [Back to patch index](#before--after)
+[Editor capture provenance](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review)
+
+[Widget and notification comparisons](CALENDAR.md#widget-and-notification-comparisons) · [Back to patch index](#before--after)
 
 <a id="separate-all-day-reminder-defaults"></a>
 

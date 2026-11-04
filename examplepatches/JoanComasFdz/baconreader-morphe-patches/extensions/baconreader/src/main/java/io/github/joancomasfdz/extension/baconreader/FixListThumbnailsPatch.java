@@ -4,6 +4,8 @@
 
 package io.github.joancomasfdz.extension.baconreader;
 
+import static app.morphe.extension.shared.StringRef.str;
+
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.os.Build;
@@ -36,11 +38,19 @@ import java.util.regex.Pattern;
  * NSFW (with "Show NSFW images" off) and spoiler posts get a blurred one.
  * Crossposts of galleries get the preview of the first image, and BaconReader's own gallery indicator.
  * RedGIFs posts without a thumbnail get theirs from the RedGIFs API when they are shown.
+ *
+ * The card list shows a post's image from ImageHelper.resolvePreview, which knows image, video, Imgur and embed
+ * addresses but not a gallery's, reddit.com/gallery/<id>: a gallery's card shows the first image's preview.
  */
 @SuppressWarnings("unused")
 public final class FixListThumbnailsPatch {
     /** Smallest preview width used as a list thumbnail (the list shows them at ~70dp). */
     private static final int MIN_PREVIEW_WIDTH = 216;
+    /** Largest preview width used for a card, which shows it at the screen's width. */
+    private static final int CARD_PREVIEW_WIDTH = 1080;
+    private static final String CONTENT_TYPE = "com.onelouder.baconreader.imageutils.ImageHelper$ContentType";
+    private static final String RESOLVED_URL = "com.onelouder.baconreader.imageutils.ImageHelper$ResolvedUrl";
+    private static final String PREVIEW_LISTENER = "com.onelouder.baconreader.imageutils.ImageHelper$ImagePreviewListener";
     private static final Pattern WIDTH = Pattern.compile("[?&]width=(\\d+)");
     static final String NSFW = "#morphe-blur-nsfw";
     static final String SPOILER = "#morphe-blur-spoiler";
@@ -279,12 +289,23 @@ public final class FixListThumbnailsPatch {
     }
 
     /** Injected at the start of LinkProcessor.loadThumbnail: blurs the row's thumbnail, or clears the blur. */
+    /** The description each thumbnail view had before it was blurred. */
+    private static final Map<ImageView, CharSequence> descriptions = new WeakHashMap<>();
+
     public static void beforeLoad(Object link, ImageView imageView) {
         if (imageView == null || !canBlur()) return;
         try {
             boolean blur = link != null && marker((String) field(link, "thumbnail")) != null;
             float radius = BLUR_RADIUS_DP * imageView.getResources().getDisplayMetrics().density;
             imageView.setRenderEffect(blur ? RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP) : null);
+            // A blurred thumbnail is described as such, so screen readers and tests tell it apart. Rows are reused:
+            // the view's own description comes back when it shows a thumbnail that isn't blurred.
+            if (blur) {
+                if (!descriptions.containsKey(imageView)) descriptions.put(imageView, imageView.getContentDescription());
+                imageView.setContentDescription(str("revanced_thumbnail_blurred"));
+            } else if (descriptions.containsKey(imageView)) {
+                imageView.setContentDescription(descriptions.remove(imageView));
+            }
         } catch (Exception ex) {
             Logger.printInfo(() -> "Could not blur the thumbnail", ex);
         }
@@ -368,14 +389,61 @@ public final class FixListThumbnailsPatch {
         return null;
     }
 
-    /** A preview of the first image of a Reddit gallery, or null. */
-    private static String galleryPreview(Object link) throws Exception {
+    /** The previews of the first image of a Reddit gallery, smallest first, or null. */
+    private static List<?> firstImagePreviews(Object link) throws Exception {
         Object galleryData = field(link, "redditGalleryData");
         List<?> items = galleryData == null ? null : (List<?>) field(galleryData, "galleryItems");
         java.util.Map<?, ?> metadata = (java.util.Map<?, ?>) field(link, "redditMediaMetadata");
         if (items == null || items.isEmpty() || metadata == null) return null;
         Object media = metadata.get(field(items.get(0), "media_id"));
-        List<?> previews = media == null ? null : (List<?>) field(media, "p");
+        return media == null ? null : (List<?>) field(media, "p");
+    }
+
+    /** The largest preview of the first image of a Reddit gallery that fits a card, or null. */
+    private static String galleryCardPreview(Object link) throws Exception {
+        List<?> previews = firstImagePreviews(link);
+        if (previews == null) return null;
+        String best = null;
+        for (Object preview : previews) {
+            String url = (String) field(preview, "u");
+            if (url == null) continue;
+            Object width = field(preview, "x");
+            if (best != null && width != null && Integer.parseInt(width.toString()) > CARD_PREVIEW_WIDTH) break;
+            best = url;
+        }
+        return best != null && best.startsWith("http") ? unescape(best) : null;
+    }
+
+    /**
+     * Injected at the start of ImageHelper.resolvePreview(Context, Link, ImagePreviewListener), which picks the image
+     * of a post's card. A gallery, or a crosspost of one, gets the preview of its first image: returns true once the
+     * listener has it, false to let the app decide.
+     */
+    public static boolean resolveCardPreview(Object link, Object listener) {
+        if (link == null || listener == null) return false;
+        try {
+            String url = galleryCardPreview(link);
+            Object parent = url == null ? crosspostParent(link) : null;
+            if (parent != null) url = galleryCardPreview(parent);
+            if (url == null) return false;
+            // ResolvedUrl's constructor is package-private.
+            Class<?> contentType = Class.forName(CONTENT_TYPE);
+            Class<?> resolvedUrl = Class.forName(RESOLVED_URL);
+            java.lang.reflect.Constructor<?> constructor =
+                    resolvedUrl.getDeclaredConstructor(contentType, String.class);
+            constructor.setAccessible(true);
+            Object resolved = constructor.newInstance(contentType.getField("IMAGE").get(null), url);
+            Class.forName(PREVIEW_LISTENER).getMethod("onResolved", resolvedUrl).invoke(listener, resolved);
+            return true;
+        } catch (Exception ex) {
+            Logger.printInfo(() -> "Could not show the gallery's image in its card", ex);
+            return false;
+        }
+    }
+
+    /** A preview of the first image of a Reddit gallery, or null. */
+    private static String galleryPreview(Object link) throws Exception {
+        List<?> previews = firstImagePreviews(link);
         if (previews == null) return null;
         String best = null;
         for (Object preview : previews) {

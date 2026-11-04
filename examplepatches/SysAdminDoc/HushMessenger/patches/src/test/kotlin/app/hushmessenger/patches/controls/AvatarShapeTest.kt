@@ -190,17 +190,9 @@ class AvatarShapeTest {
             "LX/$placeholder;->draw(Landroid/graphics/Canvas;)V")
         fun ring(spec: String, drawable: String) = setOf("LX/$spec;->onCreateMountContent(Landroid/content/Context;)Ljava/lang/Object;",
             "LX/$drawable;->draw(Landroid/graphics/Canvas;)V")
-        val arm64 = setOf("LX/4dq;-><init>([FFZZZ)V", "LX/QE4;->A04(LX/Sli;LX/4cM;)V") + tile("2lH", "2jg", "2lQ", "2lt")
-        for (profile in listOf(PROFILE_347015062, PROFILE_347014996)) {
-            assertEquals(arm64, profile.hooks.getValue(AVATAR_SHAPE))
-            assertEquals(ring("2mD", "31X"), profile.hooks.getValue(STORY_RING))
-        }
-        assertEquals(setOf("LX/4gQ;-><init>([FFZZZ)V", "LX/NhC;->A04(LX/QIU;LX/4ev;)V") + tile("2mn", "2lC", "2mw", "2nP"),
-            PROFILE_347014974.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(ring("2nj", "33B"), PROFILE_347014974.hooks.getValue(STORY_RING))
-        assertEquals(setOf("LX/4dE;-><init>([FFZZZ)V", "LX/NEI;->A04(LX/Q7X;LX/4bk;)V") + tile("2lh", "2k6", "2lq", "2mJ"),
-            PROFILE_347014990.hooks.getValue(AVATAR_SHAPE))
-        assertEquals(ring("2md", "31x"), PROFILE_347014990.hooks.getValue(STORY_RING))
+        assertEquals(setOf("LX/4Z5;-><init>([FFZZZ)V", "LX/ZWT;->A04(LX/cXn;LX/4Tl;)V") + tile("2nw", "2mX", "2ia", "2oO"),
+            BASE_PROFILE.hooks.getValue(AVATAR_SHAPE))
+        assertEquals(ring("2oZ", "320"), BASE_PROFILE.hooks.getValue(STORY_RING))
     }
 
     // Only some pictures changing would look broken, so anything we can't prove about either path gets no hook at all.

@@ -490,6 +490,10 @@ public class ModSettingsActivity extends Activity {
                 IntroSkipSettings.S_SHOWLIST, false));
         rows.add(Row.sw(intro, IntroSkipPrefs.KEY_PREPARE_NEXT, IntroSkipSettings.T_PREPARE,
                 IntroSkipSettings.S_PREPARE, true));
+        rows.add(Row.sw(intro, IntroSkipPrefs.KEY_ONEAHEAD, IntroSkipSettings.T_ONEAHEAD,
+                IntroSkipSettings.S_ONEAHEAD, false));
+        rows.add(Row.sw(intro, IntroSkipPrefs.KEY_BORROW, IntroSkipSettings.T_BORROW,
+                IntroSkipSettings.S_BORROW, IntroSkipPrefs.BORROW_DEFAULT));
         rows.add(Row.header("Tracks and subtitles"));
         rows.add(Row.sw(intro, IntroSkipPrefs.KEY_TRACKMEM, IntroSkipSettings.T_TRACKMEM,
                 IntroSkipSettings.S_TRACKMEM, true));

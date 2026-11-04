@@ -159,11 +159,10 @@ internal fun BytecodePatchContext.rewriteCalls(rewrites: List<CallRewrite>) {
 @Suppress("unused")
 val hideWifiNetworksPatch = bytecodePatch(
     name = "Hide Wi-Fi networks",
-    description = "Hides nearby Wi-Fi networks and the name of the network you are on from the " +
-        "app, so it cannot tell which store's Wi-Fi is around you. May affect: store detection " +
-        "and store mode, Wi-Fi setup for smart-home devices (Amazon), and fraud checks at " +
-        "checkout, which can then ask for extra verification. Opt-in / experimental; test " +
-        "on-device.",
+    description = "Hides nearby Wi-Fi networks and the name of the network you are on from the app, so " +
+        "it cannot tell which store's Wi-Fi is around you. May affect: store detection and " +
+        "store mode, Wi-Fi setup for smart-home devices (Amazon), and fraud checks at " +
+        "checkout, which can then ask for extra verification. Experimental.",
     default = false,
 ) {
     compatibleWith(*SHOPPING_APPS)
@@ -197,11 +196,11 @@ internal val beaconWakeupPatch = resourcePatch {
 @Suppress("unused")
 val blockBluetoothScanningPatch = bytecodePatch(
     name = "Block Bluetooth scanning",
-    description = "Stops the app from scanning for Bluetooth devices and in-store beacons, and " +
-        "hides your paired devices. Beacon libraries no longer wake the app when the phone " +
-        "starts or charges. May affect: in-store maps and their location dot (Target, The Home " +
+    description = "Stops the app from scanning for Bluetooth devices and in-store beacons, and hides " +
+        "your paired devices. Beacon libraries no longer wake the app when the phone starts " +
+        "or charges. May affect: in-store maps and their location dot (Target, The Home " +
         "Depot), pharmacy kiosk check-in (CVS), smart-home device setup (Amazon), and pairing " +
-        "with Bluetooth accessories inside the app. Opt-in / experimental; test on-device.",
+        "with Bluetooth accessories inside the app. Experimental.",
     default = false,
 ) {
     compatibleWith(*SHOPPING_APPS)
@@ -216,9 +215,9 @@ val blockBluetoothScanningPatch = bytecodePatch(
 @Suppress("unused")
 val hideCellTowerInfoPatch = bytecodePatch(
     name = "Hide cell tower info",
-    description = "Hides the cell towers your phone sees from the app, which can place you " +
-        "within a few blocks even without location access. Use Spoof carrier to hide the " +
-        "carrier itself. Few app features rely on this. Opt-in / experimental; test on-device.",
+    description = "Hides the cell towers your phone sees from the app, which can place you within a few " +
+        "blocks even without location access. Use Spoof carrier to hide the carrier itself. " +
+        "Few app features rely on this. Experimental.",
     default = false,
 ) {
     compatibleWith(*SHOPPING_APPS)
@@ -237,7 +236,7 @@ val blockBackgroundLocationPatch = resourcePatch(
         "background, so it cannot notice you arriving at a store, even if you tap Allow all " +
         "the time. Location while you use the app still works if you allow it. May affect: " +
         "automatic store mode, store-arrival notifications, and pickup check-in that tracks " +
-        "your drive after you close the app. Opt-in / experimental; test on-device.",
+        "your drive after you close the app. Experimental.",
     default = false,
 ) {
     compatibleWith(*SHOPPING_APPS)

@@ -1,3 +1,37 @@
+## [1.6.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.1...v1.6.0) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** Fix list thumbnails shows a gallery's first image in its card ([865fc74](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/865fc74659af46868075c31c80967405b2e1c588))
+* **baconreader:** Fix Reddit links opens a post's own gallery or video in the media viewer, and v.redd.it links in the app ([cf7d244](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/cf7d244ae6a444fc7bd0c4f41acfd40374292fe5))
+* **baconreader:** Fix Reddit links plays a video no post has, finds a gallery's post through the API, and opens Reddit links in texts whatever "Open links inside app" says ([7587ead](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/7587eade1c09f893ad87f22529346e15c3434f3e))
+* **baconreader:** Improve post media loading shows its red bar when a long image fails ([34fe90d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/34fe90d1155a1a9e6b57558ea38b4d3b081cc1c3))
+* **baconreader:** Markdown editor describes its character counter ([bc0789b](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/bc0789bc1605b8b1f529a1e7db2ef600660501e5))
+* open the comment reply screen for a private message from the inbox, which crashed ([c2d60e6](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c2d60e68872b987824b3251a51f56cdb4bb9a39e))
+
+### ✨ New Features
+
+* describe blurred thumbnails and the media loading state ([97db8a6](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/97db8a6fc78a6a2e29127b9b6bfbaae155bb145b))
+
+## [1.6.0-dev.4](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.0-dev.3...v1.6.0-dev.4) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** Fix list thumbnails shows a gallery's first image in its card ([865fc74](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/865fc74659af46868075c31c80967405b2e1c588))
+* **baconreader:** Fix Reddit links plays a video no post has, finds a gallery's post through the API, and opens Reddit links in texts whatever "Open links inside app" says ([7587ead](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/7587eade1c09f893ad87f22529346e15c3434f3e))
+
+## [1.6.0-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* open the comment reply screen for a private message from the inbox, which crashed ([c2d60e6](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c2d60e68872b987824b3251a51f56cdb4bb9a39e))
+
+## [1.6.0-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.1...v1.6.0-dev.1) (2026-11-02)
+
+### ✨ New Features
+
+* describe blurred thumbnails and the media loading state ([97db8a6](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/97db8a6fc78a6a2e29127b9b6bfbaae155bb145b))
+
 ## [1.5.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-02)
 
 ### 🐛 Bug Fixes

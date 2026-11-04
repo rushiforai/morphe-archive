@@ -535,6 +535,18 @@ public final class ExternalProgress {
             stopInternalPlayer(lastBingeFragment == null ? null : lastBingeFragment.get());
             ensureExplicitPlayer(intent);
             applyHandoff(intent);
+            // One-ahead hand-off: attached only when already verified for this exact
+            // link; never waited for, so a slow check simply launches without it.
+            try {
+                String oa = app.tikkamasalla.stremio.oneahead.OneAheadTrigger.handoffFor(
+                        appContext, launchVideoId, String.valueOf(intent.getData()));
+                if (oa != null) {
+                    intent.putExtra(app.tikkamasalla.stremio.oneahead.OneAheadShow.EXTRA, oa);
+                    Log.i(TAG, "one-ahead hand-off attached vid=" + launchVideoId);
+                }
+            } catch (Throwable ignored) {
+                // One-ahead is optional.
+            }
             int position = intent.getIntExtra("startfrom", 0);
             intent.putExtra("return_result", true);
             intent.putExtra("startfrom", position);
@@ -1517,6 +1529,32 @@ public final class ExternalProgress {
         }, "ExtProgressHeartbeat");
         thread.setDaemon(true);
         thread.start();
+    }
+
+    /** Duration (s) the progress journal holds for this video, 0 when none. Worker thread only. */
+    public static long vimuJournalDurationSec(Context ctx, String videoId) {
+        try {
+            if (ctx == null || videoId == null || videoId.length() == 0) return 0L;
+            JournalPolicy.Row row = JournalClient.query(ctx);
+            if (row == null) {
+                long launched = videoId.equals(launchVideoId) ? launchDuration / 1000L : 0L;
+                Log.i("OneAhead", "ext journal: no row len=0 idMatch=false launchLen=" + launched);
+                return launched;
+            }
+            boolean idMatch = videoId.equals(row.stremioVideoId);
+            if (!idMatch || row.durationMs <= 0) {
+                // Vimu's row carries no Stremio video id (the launch never sets one): the length Stremio
+                // captured for this launch is the same file's, so it stands in.
+                long launched = videoId.equals(launchVideoId) ? launchDuration / 1000L : 0L;
+                Log.i("OneAhead", "ext journal: " + (idMatch ? "no-duration" : "id-mismatch")
+                        + " len=" + row.durationMs / 1000L + " idMatch=" + idMatch + " launchLen=" + launched);
+                return launched;
+            }
+            return row.durationMs / 1000L;
+        } catch (Throwable t) {
+            Log.i("OneAhead", "ext journal: failed " + t.getClass().getSimpleName() + " len=0 idMatch=false");
+            return 0L;
+        }
     }
 
     private static void applyHeartbeat(Context ctx, HandoffRecord rec, JournalPolicy.Row row) {

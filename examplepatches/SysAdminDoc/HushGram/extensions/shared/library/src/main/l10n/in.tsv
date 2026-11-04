@@ -417,6 +417,8 @@ Opening someone's profile takes you on to their posts as a scrolling list of ful
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Kartu orang dan kreator untuk diikuti yang diselipkan Instagram di antara reel. Semua reel tetap diputar.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Melewati reel berlabel Kemitraan berbayar, dan reel yang ditandai Instagram sebagai dipromosikan. Iklan punya tombolnya sendiri.
 Turn on Start Home on Following to use this choice.	Aktifkan Mulai Beranda di Mengikuti untuk menggunakan pilihan ini.
+# context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
+Turn on %1$s to use this slider.	Aktifkan %1$s untuk menggunakan penggeser ini.
 Turn on Story ring size to use this choice.	Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.
 Turn on Default playback quality to use this choice.	Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.
 Updating remembered positions...	Memperbarui posisi tersimpan...
@@ -503,7 +505,7 @@ Makes the seek bar thicker, with a round white handle and the time above it, ove
 Seek bar like DM videos	Bilah geser seperti video di pesan
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	Memberi Reel bilah geser seperti video di obrolan, garis abu-abu tipis yang berubah putih saat diputar, dengan pegangan putih bulat yang besar. Waktu tampil di atasnya. Seret untuk mencari posisi. Jika bilah geser lebih besar juga aktif, gaya ini yang dipakai. Bilah juga tetap tampil di Reel pendek.
 Blur the bars around a reel	Buramkan bilah di sekitar reel
-A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. Open Reels again after a change.	Reel yang tidak memenuhi layar menampilkan salinan buramnya di atas dan di bawahnya, bukan bilah hitam, dan strip di bawah bilah tab serta area di belakang jam juga menampilkan reel itu secara buram. Buka Reel lagi setelah ada perubahan.
+A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Reel yang tidak memenuhi layar menampilkan salinan buramnya di atas dan di bawahnya, bukan bilah hitam, dan strip di bawah bilah tab serta area di belakang jam juga menampilkan reel itu secara buram. Salinan itu hanya muncul di tempat reel menyisakan ruang, seperti saat Tampilkan reel utuh aktif. Buka Reel lagi setelah ada perubahan.
 # Chosen navigation long-press settings entry. Account tab availability varies.
 Settings entry	Akses pengaturan
 Open settings with a tab long press	Buka pengaturan dengan menekan lama tab
@@ -772,7 +774,7 @@ Bio copied	Bio disalin
 Copy bio	Salin bio
 Copy username and bio	Salin nama pengguna dan bio
 Profile extras button	Tombol tambahan profil
-Puts a button next to the three dots on profiles that opens HushGram's profile actions. The rows in the three-dot menu stay too.	Menaruh tombol di samping tiga titik pada profil yang membuka tindakan profil HushGram. Baris di menu tiga titik tetap ada.
+Puts a button next to the three dots on profiles that opens HushGram's profile actions. Needs Save profile picture, View profile picture or Copy username and bio on. The rows in the three-dot menu stay too.	Menaruh tombol di samping tiga titik pada profil yang membuka tindakan profil HushGram. Perlu Simpan foto profil, Lihat foto profil, atau Salin nama pengguna dan bio. Baris di menu tiga titik tetap ada.
 HushGram profile actions	Tindakan profil HushGram
 Nothing to do for this profile	Tidak ada aksi untuk profil ini
 Couldn't copy the bio	Tidak dapat menyalin bio
@@ -946,6 +948,10 @@ The tab bar keeps Instagram's order.	Bilah tab memakai urutan Instagram.
 Tabs go in this order: %1$s. Restart Instagram to see the change.	Tab diurutkan seperti ini: %1$s. Mulai ulang Instagram untuk melihat perubahannya.
 Show and reorder tabs	Tampilkan dan atur ulang tab
 Drag to move %1$s	Seret untuk memindahkan %1$s
+Move up	Naikkan
+Move down	Turunkan
+# context: Show and reorder tabs: what a screen reader is told after Move up or Move down on a row's handle; %1$s is the tab, %2$d its new place and %3$d how many tabs the list holds (#207)
+%1$s is now %2$d of %3$d	%1$s sekarang di posisi %2$d dari %3$d
 Reset	Atur ulang
 Create	Buat
 Start tab	Tab awal
@@ -966,6 +972,9 @@ Start stories with sound	Mulai cerita dengan suara
 Stories open with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count, so on silent or with the volume down, stories stay quiet.	Cerita terbuka dengan suara menyala, sama seperti mengetuk speaker Instagram. Mode dering dan volume ponsel tetap berlaku, jadi saat senyap atau volume dimatikan, cerita tetap tanpa suara.
 Stop swipe up to reply	Hentikan geser ke atas untuk membalas
 A swipe up on someone's story no longer opens the reply box and its reactions. Tap Send message to reply.	Menggeser ke atas pada cerita orang lain tidak lagi membuka kotak balasan dan reaksinya. Ketuk Kirim pesan untuk membalas.
+# context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
+Hide the reply box on stories	Sembunyikan kotak balasan di cerita
+Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	Menghapus kotak Kirim pesan dari bagian bawah cerita orang lain. Tombol suka dan bagikan di sebelahnya tetap di tempatnya.
 # context: toast when Download all is tapped while another post is still saving; it waits its turn
 Queued. It starts once the post before it is saved.	Dalam antrean. Dimulai setelah postingan sebelumnya tersimpan.
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
@@ -1071,6 +1080,9 @@ Turn on Instagram's clear mode on a reel and the next reels open in it too. Leav
 # context: Reels settings: a switch under Keep clear mode on (#138). Clear mode is the name used for Instagram's own mode that hides a reel's buttons; Allow screenshots is HushGram's switch of that name
 Start every reel in clear mode	Mulai setiap reel dalam mode bersih
 Reels open in clear mode from the first one, with no tap. Leave it yourself and the next reels show their buttons again. Instagram blocks screenshots in clear mode unless Allow screenshots is on.	Reels terbuka dalam mode bersih sejak yang pertama, tanpa ketukan. Keluar sendiri dan reels berikutnya menampilkan tombolnya lagi. Instagram memblokir tangkapan layar dalam mode bersih kecuali Izinkan tangkapan layar aktif.
+# context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
+Don't vibrate in clear mode	Jangan bergetar dalam mode bersih
+Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Menghentikan getaran singkat yang diputar Instagram saat reel terbuka dalam mode bersih. Dengan Tetap aktifkan mode bersih, itu terjadi setiap kali menggeser.
 Unlock with	Buka kunci dengan
 Phone lock	Kunci ponsel
 HushGram PIN	PIN HushGram
@@ -1262,9 +1274,9 @@ Share to	Bagikan ke
 Copy link	Salin tautan
 QR code	Kode QR
 WhatsApp status	Status WhatsApp
-Reply to author	Balas ke penulis
+Reply to author (posts and reels)	Balas ke penulis (postingan dan reel)
 Watch on TV	Tonton di TV
-Download profile card	Unduh kartu profil
+Download profile card (on profiles)	Unduh kartu profil (di profil)
 Add to channel	Tambahkan ke saluran
 WhatsApp	WhatsApp
 SMS	SMS
@@ -1564,6 +1576,8 @@ No accounts yet	Belum ada akun
 %1$d account	%1$d akun
 %1$d accounts	%1$d akun
 Home header text	Teks di atas Beranda
+# context: placeholder in the empty Home header text field, where the person types their own words for the top of Home
+Your words	Teksmu
 Words of your own at the top of Home, in place of Instagram's logo. Up to %1$d characters. Leave it blank to keep the logo.	Kata-katamu sendiri di bagian atas Beranda, sebagai pengganti logo Instagram. Hingga %1$d karakter. Biarkan kosong untuk tetap memakai logo.
 Instagram's logo stays at the top of Home.	Logo Instagram tetap di bagian atas Beranda.
 The top of Home says %1$s.	Bagian atas Beranda bertuliskan %1$s.
@@ -1590,6 +1604,10 @@ Red story mentions	Sebutan story warna merah
 Draws the mention pill's text in red instead of white, so it stands out on bright stories.	Menampilkan teks label sebutan dengan warna merah, bukan putih, agar menonjol di story yang terang.
 Only received reels	Hanya reel yang diterima
 Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	Saat menggeser reel dalam obrolan, reel yang Anda kirim di sana dilewati, jadi hanya reel yang dibagikan lawan bicara yang dilalui. Berfungsi jika Geser reel dalam obrolan aktif.
+# context: Messages settings (#489), and the banner over a reel opened from a chat when the other person wrote after it; a tap goes back to the chat
+Messages after a reel	Pesan setelah reel
+While you swipe through a chat's reels, a banner says when the other person sent a message after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe through a chat's reels on.	Saat kamu menggeser reel di chat, sebuah banner memberi tahu jika lawan bicara mengirim pesan setelah reel yang ada di layar. Ketuk untuk kembali ke chat di pesan itu. Berfungsi saat Geser melalui reel di chat aktif.
+New message after this reel	Pesan baru setelah reel ini
 Hide the audio icon on posts	Sembunyikan ikon audio di postingan
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Menghapus ikon speaker dari video di feed Anda. Mengetuk video tetap menyalakan atau mematikan suara. Postingan yang sudah ada di layar berubah saat dimuat ulang.
 Light when paused	Terang saat dijeda
@@ -1663,3 +1681,55 @@ View once message	Pesan sekali lihat
 Attachment	Lampiran
 # context: the button next to the reply field in the chat preview box.
 Send	Kirim
+Dim stories too	Redupkan cerita juga
+Burn-in guard also fades the top and bottom of a story while you watch without touching, the eye button too. Any tap brings them back.	Pelindung burn-in juga meredupkan bagian atas dan bawah cerita saat Anda menonton tanpa menyentuh, termasuk tombol mata. Ketukan apa pun mengembalikannya.
+# context: Reels settings: a switch for a speed icon beside each reel that opens a list of speeds, after Copy text button on reels (#480). Keep the reel speed is HushGram's switch of that name
+Speed button on reels	Tombol kecepatan di reel
+Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Menaruh ikon kecepatan di samping reel. Ketuk untuk memilih kecepatan dari 0,5x hingga 3x. Jika Pertahankan kecepatan reel aktif, reel berikutnya juga diputar dengan kecepatan itu.
+# context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
+Full screen button on reels	Tombol layar penuh di reel
+Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Menaruh ikon Layar penuh di samping reel, jadi satu ketukan sama dengan Layar penuh di menunya. Mulai setiap reel dalam mode bersih membuka setiap reel seperti itu.
+# context: TalkBack label of the speed icon beside a reel (#480)
+Playback speed	Kecepatan pemutaran
+# context: TalkBack label of the Full screen icon beside a reel, Instagram's own term (#480)
+Full screen	Layar penuh
+# context: toast when a speed picked from that icon's list couldn't be set (#480)
+Speed didn't change	Kecepatan tidak berubah
+# context: toast when a tap on the Full screen icon couldn't open the reel full screen (#480)
+Full screen didn't open	Layar penuh tidak terbuka
+# context: Stories switch that lays a story over the whole screen on tall phones (#436)
+Stories fill the screen	Cerita memenuhi layar
+# context: that switch's summary (#436)
+On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	Di layar yang tinggi, cerita menutupi seluruh layar dengan bilah balasan di atasnya seperti di ponsel yang lebih pendek, bukan kartu membulat di atas bilah.
+# context: a button in the select-text window that copies the whole text (#492)
+Copy all	Salin semua
+# context: toast after Copy all in the select-text window (#492)
+Copied	Tersalin
+# context: title of the window showing one comment (#492)
+Comment	Komentar
+# context: toast when the select-text window fails (#492)
+Couldn't open the text	Teks tidak bisa dibuka
+# context: menu row that opens text for selecting (#492)
+Select text	Pilih teks
+# context: settings switch title (#492)
+Select text to copy	Pilih teks untuk disalin
+# context: that switch summary (#492)
+Adds Select text to a selected comment's menu, a post's details and a profile's menu. It opens the text in a window where you can select part of it and copy it. Links work there.	Menambahkan Pilih teks ke menu komentar, detail postingan, dan menu profil. Teks dibuka di jendela tempat kamu bisa memilih sebagian dan menyalinnya. Tautan di dalamnya bisa dibuka.
+# context: notification channel name (#492)
+Unfollow alerts	Notifikasi berhenti mengikuti
+# context: that channel description (#492)
+Who stopped following you, after you open your Followers list	Siapa yang berhenti mengikutimu, setelah kamu membuka daftar pengikut
+# context: unfollow notification title, one person (#492)
+1 person stopped following you	1 orang berhenti mengikutimu
+# context: unfollow notification title, several people (#492)
+%1$d people stopped following you	%1$d orang berhenti mengikutimu
+# context: names then a count of the rest (#492)
+%1$s and %2$d more	%1$s dan %2$d lainnya
+# context: settings switch title (#492)
+Notify me of unfollowers	Beri tahu saya soal yang berhenti mengikuti
+# context: that switch summary (#492)
+After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	Setelah kamu menggulir daftar pengikutmu sampai akhir, menampilkan notifikasi berisi siapa yang pergi sejak terakhir kali. Tidak ada permintaan tambahan ke Instagram.
+# context: settings switch title and button label, the row Instagram calls About this account (#492)
+About this account	Tentang akun ini
+About this account button	Tombol Tentang akun ini
+Puts an (i) next to the three dots on a profile that opens Instagram's About this account for that account. Instagram took its own away.	Menaruh (i) di samping tiga titik pada profil yang membuka Tentang akun ini milik Instagram untuk akun tersebut. Instagram sudah menghapus miliknya.

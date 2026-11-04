@@ -26,6 +26,7 @@ import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
+import app.morphe.extension.tiktok.settings.preference.ShimmerTitle;
 import app.morphe.extension.tiktok.spoof.region.RegionSpoof;
 
 import java.lang.ref.WeakReference;
@@ -406,7 +407,9 @@ public final class SessionLockOverlay {
         if (root == null) return null;
         if (existing != null && existing.getParent() == root) return existing;
 
-        LinearLayout panel = new LinearLayout(activity);
+        // Scrolls once the stack is taller than the room above the tab bar, so both buttons stay
+        // reachable at the largest font and display sizes (see HoldPanel).
+        LinearLayout panel = new HoldPanel(activity);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setGravity(Gravity.CENTER);
         int sidePad = SettingsUi.dp(activity, 24);
@@ -431,6 +434,9 @@ public final class SessionLockOverlay {
         title.setTextColor(SettingsUi.OVERLAY_TEXT);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_HEADLINE);
         title.setGravity(Gravity.CENTER);
+        // In the moving cyan and red, as on the App lock cover. The light ink picks the colours
+        // for a dark ground, which this scrim is in either theme.
+        ShimmerTitle.wear(title);
         panel.addView(title);
         titleReference = new WeakReference<>(title);
 

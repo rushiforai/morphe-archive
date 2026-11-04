@@ -1,5 +1,7 @@
 package semicoloncolonel.mobilestream.patches.amazon.misc
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -25,10 +27,33 @@ import semicoloncolonel.mobilestream.patches.shared.misc.AI_FILTER
 // rewritten instead, and AiFeatureFilter answers the control treatment "C"
 // for the AI weblabs. Every other weblab is read as usual.
 //
+// In fully enabled marketplaces such as the US, the assistant (now branded
+// "Alexa for shopping") skips those weblabs: SavXStableEligibilityManager
+// asks remote config instead. evaluateEligibility() is therefore forced to
+// NOT_ELIGIBLE and isEligible() to false, which removes the assistant's tab
+// and panel everywhere.
+//
 // Not covered: Rufus prompts that Amazon's web pages draw themselves.
 // ─────────────────────────────────────────────────────────────────────────────
 
 private const val MOBILE_WEBLAB = "Lcom/amazon/weblab/mobile/IMobileWeblab;"
+private const val ELIGIBILITY_MANAGER =
+    "Lcom/amazon/mShop/savX/manager/eligibility/SavXStableEligibilityManager;"
+private const val ELIGIBILITY_STATE = "Lcom/amazon/mShop/savX/manager/eligibility/SavXEligibilityState;"
+
+internal object EvaluateEligibilityFingerprint : Fingerprint(
+    definingClass = ELIGIBILITY_MANAGER,
+    name = "evaluateEligibility",
+    returnType = ELIGIBILITY_STATE,
+    parameters = listOf(),
+)
+
+internal object IsEligibleFingerprint : Fingerprint(
+    definingClass = ELIGIBILITY_MANAGER,
+    name = "isEligible",
+    returnType = "Z",
+    parameters = listOf(),
+)
 private const val EXTENSION_PACKAGE = "Lsemicoloncolonel/mobilestream/extension/"
 
 private val REPLACEMENTS = mapOf(
@@ -46,9 +71,9 @@ private fun Instruction.weblabReplacement(): String? {
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off Rufus, Amazon's AI shopping assistant, in the app's tabs, search, " +
-        "and camera lens, and the AI assistant in Amazon Pay. Rufus prompts that Amazon's web " +
-        "pages show inside the app may still appear. Opt-in / experimental; test on-device.",
+    description = "Turns off Amazon's AI shopping assistant (Rufus, now \"Alexa for shopping\") in the " +
+        "app's tabs, search, and camera lens, and the AI assistant in Amazon Pay. " +
+        "Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
@@ -56,6 +81,15 @@ val disableAiPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        EvaluateEligibilityFingerprint.method.addInstructions(
+            0,
+            """
+                sget-object v0, $ELIGIBILITY_STATE->NOT_ELIGIBLE:$ELIGIBILITY_STATE
+                return-object v0
+            """,
+        )
+        IsEligibleFingerprint.method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+
         // Collect first, mutate after: mutableClassDefBy swaps the class map entry.
         val targets = mutableListOf<String>()
         classDefForEach { classDef ->

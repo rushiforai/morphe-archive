@@ -12,6 +12,7 @@ import android.provider.DocumentsContract;
 import android.widget.*;
 import java.io.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Objects;
 import org.json.JSONArray;
 
 /** Foreground-only checks. No alarms, background service or MEGA dependency. */
@@ -19,7 +20,8 @@ final class LocalAutoBackup {
     static final String PREFS="haiagaru.local-auto-backup";
     /** Configuration is portable; ownership records and success times are not. */
     static boolean backupSetting(String key){
-        return "hours".equals(key)||"keep".equals(key)||"categories".equals(key);
+        return "hours".equals(key)||"keep".equals(key)||"categories".equals(key)
+                ||"enabled".equals(key)||"tree".equals(key);
     }
     private static final AtomicBoolean REGISTERED=new AtomicBoolean(), RUNNING=new AtomicBoolean();
     private static long lastAttempt;
@@ -46,7 +48,7 @@ final class LocalAutoBackup {
     }
     private static void maybeRun(Context c){
         SharedPreferences p=prefs(c);long now=System.currentTimeMillis();
-        if(!p.getBoolean("enabled",false)||p.getString("tree","").isEmpty()
+        if(!p.getBoolean("enabled",false)||!folderGranted(c,p.getString("tree",""))
                 ||!due(now,p.getLong("last",0),p.getInt("hours",24)))return;
         // Avoid repeated failures while opening settings/pickers or returning from another app.
         long uptime=android.os.SystemClock.elapsedRealtime();
@@ -64,14 +66,14 @@ final class LocalAutoBackup {
         TextView note=new TextView(a);note.setText("アプリを開いている間に、指定間隔で選択フォルダへ保存します。Cookie・認証情報を含める場合は保存先の管理に注意してください。");body.addView(note);
         Button help=new Button(a);help.setText("詳しい使い方（GitHub）");help.setOnClickListener(v->a.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/areteruhiro/Haiagaru-Morphe/blob/dev/docs/local-auto-backup.md"))));body.addView(help);
         Switch enabled=new Switch(a);enabled.setText("ローカル自動バックアップを有効にする");enabled.setChecked(p.getBoolean("enabled",false));body.addView(enabled);
-        TextView destination=new TextView(a);destination.setText("保存先："+folderLabel(p.getString("tree","")));body.addView(destination);
+        TextView destination=new TextView(a);destination.setText(destinationLabel(a));body.addView(destination);
         Button folder=new Button(a);folder.setText("保存先フォルダを選ぶ");folder.setOnClickListener(v->{
             a.startActivity(new Intent(a,HaiagaruLocalBackupActivity.class).putExtra(HaiagaruLocalBackupActivity.EXTRA_MODE,HaiagaruLocalBackupActivity.MODE_FOLDER));
         });body.addView(folder);
         final boolean[] savingToggle={false};
         enabled.setOnCheckedChangeListener((v,on)->{
             if(savingToggle[0])return;
-            if(on&&p.getString("tree","").isEmpty()){enabled.setChecked(false);Toast.makeText(a,"先に保存先フォルダを選んでください",Toast.LENGTH_LONG).show();return;}
+            if(on&&!folderGranted(a,p.getString("tree",""))){enabled.setChecked(false);Toast.makeText(a,"先に保存先フォルダを選び直してアクセスを許可してください",Toast.LENGTH_LONG).show();return;}
             // The app may be replaced immediately after leaving this screen.
             // Do not show a saved toggle before its durable write has completed.
             if(!p.edit().putBoolean("enabled",on).commit()){
@@ -99,13 +101,14 @@ final class LocalAutoBackup {
         HaiagaruDialog dialog=new HaiagaruDialog.Builder(a).setTitle("ローカル自動バックアップ").setView(scroll).setNegativeButton("戻る",null).create();
         Runnable refresh=()->{
             if(a.isFinishing()||a.isDestroyed())return;
-            destination.setText("保存先："+folderLabel(p.getString("tree","")));
+            destination.setText(destinationLabel(a));
+            savingToggle[0]=true;enabled.setChecked(p.getBoolean("enabled",false));savingToggle[0]=false;
             long latest=p.getLong("last",0);
             status.setText("前回成功："+(latest==0?"未実行":BackupTime.display(latest))+"\n"+p.getString("status",""));
             dialog.refresh();
         };
         SharedPreferences.OnSharedPreferenceChangeListener listener=(changed,key)->{
-            if(key==null||key.equals("tree")||key.equals("last")||key.equals("status"))a.runOnUiThread(refresh);
+            if(key==null||key.equals("enabled")||key.equals("tree")||key.equals("last")||key.equals("status"))a.runOnUiThread(refresh);
         };
         dialog.setOnShowListener(d->{p.registerOnSharedPreferenceChangeListener(listener);refresh.run();});
         dialog.setOnDismissListener(d->p.unregisterOnSharedPreferenceChangeListener(listener));
@@ -127,6 +130,29 @@ final class LocalAutoBackup {
             }
             return id;
         }catch(Exception ignored){return Uri.decode(value);}
+    }
+    static boolean folderGranted(Context context,String value){
+        if(value==null||value.isEmpty())return false;
+        try{
+            Uri target=Uri.parse(value);
+            for(android.content.UriPermission grant:context.getContentResolver().getPersistedUriPermissions()){
+                Uri uri=grant.getUri();
+                if(grant.isReadPermission()&&grant.isWritePermission()
+                        &&Objects.equals(target.getAuthority(),uri.getAuthority())
+                        &&DocumentsContract.getTreeDocumentId(target).equals(DocumentsContract.getTreeDocumentId(uri)))return true;
+            }
+        }catch(RuntimeException ignored){}
+        return false;
+    }
+    static String destinationLabel(Context context){
+        String tree=prefs(context).getString("tree","");
+        return "保存先："+folderLabel(tree)+(tree.isEmpty()||folderGranted(context,tree)?"":"\n保存先フォルダを選び直してください（アクセス許可待ち）");
+    }
+    static Uri folderHint(Context context){
+        try{
+            Uri tree=Uri.parse(prefs(context).getString("tree",""));
+            return DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
+        }catch(RuntimeException ignored){return null;}
     }
     static synchronized void setFolder(Context c,Uri tree)throws IOException{
         if(tree==null)throw new IOException("保存先フォルダが選択されていません");
@@ -155,7 +181,7 @@ final class LocalAutoBackup {
             BackupProgress notification=new BackupProgress(c,"ローカル自動バックアップ");
             p.edit().putString("status","バックアップを作成しています…").apply();
             try{
-                String destination=p.getString("tree","");if(destination.isEmpty())throw new IOException("保存先フォルダを選んでください");
+                String destination=p.getString("tree","");if(!folderGranted(c,destination))throw new IOException("保存先フォルダを選び直してアクセスを許可してください");
                 int flags=p.getInt("categories",HaiagaruSyncSnapshot.DEFAULT)&HaiagaruSyncSnapshot.ALL;
                 if(flags==0)throw new IOException("バックアップする項目を選んでください");
                 Uri tree=Uri.parse(destination);

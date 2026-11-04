@@ -89,24 +89,30 @@ public static class OnScreen
 
     /// <summary>
     /// Scrolls <paramref name="scrollable"/> down, a screen at a time, until <paramref name="target"/> is on the screen (a
-    /// button at the end of a web page).
+    /// button at the end of a web page), and up from its end when it isn't below.
     /// </summary>
     public static async Task ScrollToAsync(AndroidDriver driver, By scrollable, By target, string what)
     {
         await WaitForActionGapAsync(driver);
+        // Down first, then up once the list can't scroll further down: the target may be above the screen.
+        var direction = "down";
         for (var screens = 0; !await Task.Run(() => IsOnScreen(driver, target)); screens++)
         {
-            if (screens == 10)
+            if (screens == 20)
             {
-                throw new InvalidOperationException($"{what} wasn't on the screen after scrolling 10 screens down.");
+                throw new InvalidOperationException($"{what} wasn't on the screen after scrolling 20 screens down and up.");
             }
 
-            await Task.Run(() => driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
+            var canScrollMore = await Task.Run(() => driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
             {
                 ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)driver.FindElement(scrollable)).Id,
-                ["direction"] = "down",
+                ["direction"] = direction,
                 ["percent"] = 0.75,
             }));
+            if (canScrollMore is false && direction == "down")
+            {
+                direction = "up";
+            }
         }
 
         NoteStepEnded(driver);

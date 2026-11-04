@@ -529,10 +529,11 @@ public class PausedHooksTest {
         // A post header's yes to rotating its subtitle is answered as a no, so it keeps the one line.
         probes.put(PatchFamily.POST_DATES, Collections.singletonList(() -> !PostDates.cycling(true)));
         // A post's cut text is answered with null, so Facebook keeps the whole text with no See more,
-        // and a post starts whole, so the first tap folds it.
+        // and a post starts whole, so the first tap folds it. A reel caption starts whole too (#268).
         probes.put(PatchFamily.FULL_POST_TEXT, Arrays.asList(
                 () -> FullPostText.cut(new SpannableString("x"), "a story") == null,
-                () -> !FullPostText.allowTruncation(true)));
+                () -> !FullPostText.allowTruncation(true),
+                () -> FullPostText.reelCaptionExpanded(false)));
         probes.put(PatchFamily.TRANSLATE_POSTS, Collections.singletonList(() -> {
             PostTranslationForTests.noNetwork();
             Spannable post = new SpannableString("Una frase en otro idioma");
@@ -544,10 +545,11 @@ public class PausedHooksTest {
         // picked answers that it doesn't apply.
         probes.put(PatchFamily.PHOTO_CAROUSEL, Arrays.asList(() -> PhotoCarousel.carousel(0),
                 () -> PhotoCarousel.skipLayout("com.facebook.feedplugins.attachments.album.PhotoLayoutFramePlugin")));
-        // A post marked for automatic translation reads as one to translate on request, and the
-        // reels footer hears a caption can't be translated by itself, so it asks for nothing.
+        // A post marked for automatic translation reads as one to translate on request, the reels
+        // footer hears a caption can't be translated by itself, so it asks for nothing, and an
+        // auto-translated comment reads as one shown as written.
         probes.put(PatchFamily.AUTO_TRANSLATION, Arrays.asList(AutoTranslationForTests::keepsThePost,
-                AutoTranslationForTests::keepsTheCaption));
+                AutoTranslationForTests::keepsTheCaption, AutoTranslationForTests::keepsTheComment));
         // The Feeds tab's yes to a title row is answered as a no, its filters go to a container
         // that's never on screen, and its posts get no room for them. The room follows what the
         // tab did with its filters, so that probe builds a tab first.
@@ -641,9 +643,10 @@ public class PausedHooksTest {
                 ReelDeclutter::hideEditsLabel,
                 // A stalled video's slow connection message.
                 ReelDeclutter::hideSlowConnectionMessage,
-                // The UP NEXT bar's lookup and the videos it hands out (#367).
+                // The UP NEXT bar's lookup and the videos it hands out (#367), and its room (#375).
                 ReelDeclutter::skipUpNextFetch,
                 ReelDeclutter::hideUpNextVideos,
+                ReelDeclutter::skipUpNextRoom,
                 ReelDeclutter::hideFollowButton,
                 ReelDeclutter::hideFollowingButton,
                 ReelDeclutter::skipHotComment,

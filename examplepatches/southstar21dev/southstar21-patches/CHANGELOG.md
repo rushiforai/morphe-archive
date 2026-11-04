@@ -1,3 +1,53 @@
+## [1.6.2](https://github.com/southstar21dev/southstar21-patches/compare/v1.6.1...v1.6.2) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* Stop the navigation bar selection pill jumping when tapping quickly between tabs ([bdebdf6](https://github.com/southstar21dev/southstar21-patches/commit/bdebdf67329f4c063a07c73c2505dbe2e95fad83))
+
+## [1.6.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.6.0...v1.6.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* Hide the home page heart with Activity, move the Reels tab switch to Navigation buttons and turn navigation buttons off by default ([a71eff3](https://github.com/southstar21dev/southstar21-patches/commit/a71eff30f767a85f37ee9238eaeb8f839fdbb0a3))
+
+## [1.6.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.5.0...v1.6.0) (2026-11-04)
+
+### ✨ New Features
+
+* Add Hide navigation buttons and Disable Reels patches ([cf2cd75](https://github.com/southstar21dev/southstar21-patches/commit/cf2cd754b3d5ea809fa5e71e0685187335d7bb83))
+
+## [1.5.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0...v1.5.0) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* Revert the navigation bar tab switching to the previous animation ([69b79fd](https://github.com/southstar21dev/southstar21-patches/commit/69b79fd17305b34a1037f68149eccaf3f0e0ef70))
+
+### ✨ New Features
+
+* Add stronger lens edge colors and a 3D selection pill option ([f9ff7d3](https://github.com/southstar21dev/southstar21-patches/commit/f9ff7d3fa3045f3061216f702153aeba110b1bd2))
+
+## [1.4.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.4...v1.4.0) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* Fade the navigation bar droplet out smoothly when switching tabs ([c408ab2](https://github.com/southstar21dev/southstar21-patches/commit/c408ab29e47c1a95d7788643e722e73477fad411))
+
+### ✨ New Features
+
+* Redesign the settings menu with a separate page for each patch ([9a6457b](https://github.com/southstar21dev/southstar21-patches/commit/9a6457b51a7c9d251379c012ddd8609020a0a5e1))
+
+## [1.3.4](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.3...v1.3.4) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* Keep the navigation bar selection smooth while Instagram loads a new page ([b15ace2](https://github.com/southstar21dev/southstar21-patches/commit/b15ace2084fea632e23cbd5bc016fcbd55905b90))
+
+## [1.3.3](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.2...v1.3.3) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* Remove Instagram's own selected tab highlight inside the Liquid Glass pill ([91e6a73](https://github.com/southstar21dev/southstar21-patches/commit/91e6a737f8adbc8ea4415c999d0b7ad0a6ded60f))
+
 ## [1.3.2](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.1...v1.3.2) (2026-10-31)
 
 ### 🐛 Bug Fixes

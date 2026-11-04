@@ -8,34 +8,50 @@ import android.os.Bundle;
 
 /**
  * Exercises the host device-test transport without changing settings or account data. With `-e probe
- * message_log_render` it runs MessageLogRenderProbe instead.
+ * message_log_render` it runs MessageLogRenderProbe instead, and `-e stall_ms 1500` stalls its viewer on purpose.
  */
 public final class BuildTransportProbe extends Instrumentation {
     private String probe;
+    private long stallMs;
 
     @Override public void onCreate(Bundle arguments) {
         super.onCreate(arguments);
         probe = arguments == null ? null : arguments.getString("probe");
+        String stall = arguments == null ? null : arguments.getString("stall_ms");
+        stallMs = stall == null ? 0 : Long.parseLong(stall);
         start();
+    }
+
+    /** The status a test runner reads for the one probe this run makes. */
+    private static Bundle status(String className, String testName) {
+        Bundle test = new Bundle();
+        test.putString("id", "InstrumentationTestRunner");
+        test.putString("class", className);
+        test.putString("test", testName);
+        test.putInt("numtests", 1);
+        test.putInt("current", 1);
+        return test;
     }
 
     @Override public void onStart() {
         if ("message_log_render".equals(probe)) {
+            // Statuses too, so a runner that reads them rather than the text sees a failed render.
+            Bundle test = status(MessageLogRenderProbe.class.getName(), "testMessageLogRenders");
+            sendStatus(1, test);
             Bundle result = new Bundle();
             try {
-                result.putString("stream", "\n" + new MessageLogRenderProbe(this).run() + "\nOK (1 probe)\n");
+                String report = new MessageLogRenderProbe(this, stallMs).run();
+                sendStatus(0, test);
+                result.putString("stream", "\n" + report + "\nOK (1 probe)\n");
             } catch (Exception | AssertionError error) {
+                test.putString("stack", error.toString());
+                sendStatus(-2, test);
                 result.putString("stream", "\nFAILURES!!!\n" + error + "\n");
             }
             finish(Activity.RESULT_OK, result);
             return;
         }
-        Bundle test = new Bundle();
-        test.putString("id", "InstrumentationTestRunner");
-        test.putString("class", getClass().getName());
-        test.putString("test", "testBuildLibrariesStayOutsideTheExtension");
-        test.putInt("numtests", 1);
-        test.putInt("current", 1);
+        Bundle test = status(getClass().getName(), "testBuildLibrariesStayOutsideTheExtension");
         sendStatus(1, test);
         Bundle result = new Bundle();
         try {

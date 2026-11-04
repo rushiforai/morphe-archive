@@ -1,4 +1,4 @@
-// Fills in, for every Venus language file, the texts the Unicode CLDR data (Node's Intl) already has right:
+// Fills in, for every Conduit language file, the texts the Unicode CLDR data (Node's Intl) already has right:
 // language names ("Translated from Spanish"), time units in their "... ago" form with every plural form, "ago",
 // and "and". A hand-made fix in scripts/i18n_overrides/<code>.json always wins.
 // Developer-only: node scripts/i18n_cldr.cjs   (after hand-reviewed translations are loaded)

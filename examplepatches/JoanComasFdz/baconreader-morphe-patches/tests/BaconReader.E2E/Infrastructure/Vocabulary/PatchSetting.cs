@@ -20,6 +20,13 @@ public partial record PatchSetting
     public partial record PlayVideosInComments;
     public partial record CommentsToLoad;
     public partial record AutoLoadLoadMoreComments;
+    public partial record JavaScriptInLinkPosts;
+    public partial record BlockedSites;
+    public partial record AllowedSites;
+    public partial record ShowUserAvatars;
+    public partial record AvatarSize;
+    public partial record AvatarBackground;
+    public partial record AutoplayVideosInDetailView;
 
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
@@ -38,6 +45,13 @@ public static class PatchSettingShowing
         new PatchSetting.PlayVideosInComments(),
         new PatchSetting.CommentsToLoad(),
         new PatchSetting.AutoLoadLoadMoreComments(),
+        new PatchSetting.JavaScriptInLinkPosts(),
+        new PatchSetting.BlockedSites(),
+        new PatchSetting.AllowedSites(),
+        new PatchSetting.ShowUserAvatars(),
+        new PatchSetting.AvatarSize(),
+        new PatchSetting.AvatarBackground(),
+        new PatchSetting.AutoplayVideosInDetailView(),
     ];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
@@ -50,6 +64,13 @@ public static class PatchSettingShowing
             playVideosInComments => "Play videos in comments",
             commentsToLoad => "Comments to load",
             autoLoadLoadMoreComments => "Auto-load \"load more comments\"",
+            javaScriptInLinkPosts => "JavaScript in link posts",
+            blockedSites => "Blocked sites",
+            allowedSites => "Allowed sites",
+            showUserAvatars => "Show user avatars",
+            avatarSize => "Avatar size",
+            avatarBackground => "Avatar background",
+            autoplayVideosInDetailView => "Autoplay videos in Detail View",
             unlisted => unlisted.Shown);
 
     /// <summary>The case the app's <paramref name="shown"/> text names, or <see cref="PatchSetting.Unlisted"/>.</summary>

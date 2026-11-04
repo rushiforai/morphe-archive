@@ -28,6 +28,10 @@ public final class SduiComponentFilter {
     private static final int MAX_LOGGED_VIEW_NAMES = 500;
     private static final Set<String> loggedViewNames = ConcurrentHashMap.newKeySet();
     private static final String[] COUNT_FORMATS = {"{0,plural,", "{0,number,"};
+    private static final String COMMENT_SHEET_PREFIX = "commentSheetNavigating_";
+    private static final int MAX_HIDDEN_COMMENT_SHEETS = 500;
+    /** Comment sheet keys of hidden posts, to hide their highlighted comments, which 4.1.1267 renders apart. */
+    private static final Set<String> hiddenCommentSheets = ConcurrentHashMap.newKeySet();
 
     /**
      * Called with every SDUI component before it is transformed; returns it or an edited copy. Focus mode blanks the
@@ -65,7 +69,9 @@ public final class SduiComponentFilter {
 
             switch (viewName) {
                 case "feed-full-update":
-                    return hideFeedUpdate(component, viewTracking);
+                    if (!hideFeedUpdate(component, viewTracking)) return false;
+                    rememberCommentSheets(payload(component));
+                    return true;
                 case "job-card":
                     return hidePromotedJob(component);
                 case "multiphoto-viewer":
@@ -87,6 +93,10 @@ public final class SduiComponentFilter {
                             && ProtoScanner.containsAscii(payload(component), "premium-upsell-card"), "profile promo");
                 default:
                     break;
+            }
+
+            if (viewName.isEmpty() && isCommentsOfHiddenPost(payload(component))) {
+                return hide(true, "comments of a hidden post");
             }
 
             if (Settings.hideGames()) {
@@ -203,6 +213,33 @@ public final class SduiComponentFilter {
         // of post text.
         if (suggested && ProtoScanner.hasExactString(payload, "Suggested", "Disarankan")) {
             return hide(true, "suggested post");
+        }
+        return false;
+    }
+
+    /** Keeps the comment sheet keys of a hidden post, which its highlighted comments block carries too. */
+    private static void rememberCommentSheets(byte[] payload) {
+        if (payload == null || !ProtoScanner.containsAscii(payload, COMMENT_SHEET_PREFIX)) return;
+        if (hiddenCommentSheets.size() >= MAX_HIDDEN_COMMENT_SHEETS) hiddenCommentSheets.clear();
+        for (String s : ProtoScanner.scan(payload).strings) {
+            if (s.startsWith(COMMENT_SHEET_PREFIX)) hiddenCommentSheets.add(s);
+        }
+    }
+
+    /**
+     * The highlighted comments under a post ("X commented") are a separate unnamed component that opens the post's
+     * comment sheet, so it is matched to its post by that sheet's key. The feed list holds the same keys, so a
+     * component that still contains posts is never it.
+     */
+    private static boolean isCommentsOfHiddenPost(byte[] payload) {
+        if (hiddenCommentSheets.isEmpty() || payload == null
+                || !ProtoScanner.containsAscii(payload, "comment-container")
+                || !ProtoScanner.containsAscii(payload, COMMENT_SHEET_PREFIX)
+                || ProtoScanner.containsAscii(payload, "feed-full-update")) {
+            return false;
+        }
+        for (String s : ProtoScanner.scan(payload).strings) {
+            if (s.startsWith(COMMENT_SHEET_PREFIX) && hiddenCommentSheets.contains(s)) return true;
         }
         return false;
     }

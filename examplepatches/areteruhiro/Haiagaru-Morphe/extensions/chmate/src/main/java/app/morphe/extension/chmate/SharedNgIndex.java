@@ -51,6 +51,15 @@ final class SharedNgIndex {
     boolean matchesTitle(String board,String reporter) {
         Bucket local=boards.get(board);return local!=null&&"edge/all".equals(board)&&local.reporters.contains(reporter);
     }
+    static List<SharedNgRules.Rule> matchingRules(List<SharedNgRules.Rule> source, int votes,
+            Set<String> ignored, Set<String> excluded, int kinds, String board, String id, String name, String body) {
+        List<SharedNgRules.Rule> matched = new ArrayList<>();
+        for (SharedNgRules.Rule rule : source) {
+            SharedNgIndex candidate = new SharedNgIndex(Collections.singletonList(rule), votes, ignored, excluded, kinds);
+            if (candidate.matches(board, id, name, body)) matched.add(rule);
+        }
+        return matched;
+    }
     boolean matches(String board,String id,String name,String rawBody) {
         Bucket local=boards.get(board),global=boards.get("*");
         if(local!=null&&local.identity(id,name)||global!=null&&global.identity(id,name))return true;

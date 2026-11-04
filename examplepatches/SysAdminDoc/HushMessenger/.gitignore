@@ -12,6 +12,10 @@
 *.keystore
 *.jks
 morphe-signing.key
+*.pem
+*.key
+*.p12
+*.pfx
 __pycache__/
 *.pyc
 *.class

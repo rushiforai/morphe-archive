@@ -10,6 +10,7 @@ import android.graphics.Point;
 import android.os.Build;
 import android.os.Process;
 import android.os.SystemClock;
+import android.os.UserManager;
 import android.system.Os;
 import android.system.OsConstants;
 import android.view.Display;
@@ -54,6 +55,8 @@ final class ReportBuilder {
     private static long snapshotAt;
     private static final int MAX_LOG_LINES = 2000, LOG_BUDGET_BYTES = 320 * 1024, PROCESS_BUDGET_BYTES = 16 * 1024,
             MAX_LINE_CHARS = 1024, SHORT = 256, MAX_LIBRARIES = 80;
+    // UIDs per Android user (UserHandle.PER_USER_RANGE).
+    private static final int PER_USER_RANGE = 100_000;
     // A cut crash file: its start and end with "\n…\n" between, 49,152 characters in all.
     private static final int CRASH_MAX_CHARS = 48 * 1024, CRASH_HEAD_CHARS = 40 * 1024,
             CRASH_TAIL_CHARS = CRASH_MAX_CHARS - CRASH_HEAD_CHARS - 3;
@@ -63,7 +66,8 @@ final class ReportBuilder {
     private static final String PROVIDER_PACKAGE = "app.revanced.android.gms";
     /**
      * Apps that may get in the way: stock Maps, phone Patched Maps, the prior-art AAOS build and Google
-     * Play services. Android 11+ hides them unless declared, so null means not installed or not visible.
+     * Play services. Android 11+ hides them unless declared: Maps' manifest declares stock Maps and Play
+     * services, the patch adds the other two (from 0.1.3), so null means not installed.
      * Google Play services' name is joined at run time: the patch rewrites that exact string everywhere
      * in the APK to MicroG-RE's package (a literal would report MicroG-RE under this name).
      */
@@ -326,7 +330,8 @@ final class ReportBuilder {
     /**
      * The car platform, for head units other than the tested BYD: the automotive feature (Android
      * Automotive), whether Android Automotive's car library and the TS car adapter (the vehicle SDK of
-     * DiLink 5) load in this app, and the system's shared libraries by name.
+     * DiLink 5) load in this app, the system's shared libraries by name, and the user this app runs as
+     * (Android Automotive keeps apps out of user 0, the system user; DiLink runs them there).
      */
     private static JSONObject platform(Context context) throws JSONException {
         PackageManager packages = context.getPackageManager();
@@ -344,7 +349,18 @@ final class ReportBuilder {
                 .put("automotive", packages.hasSystemFeature("android.hardware.type.automotive"))
                 .put("android_car", loads(context, "android.car.Car"))
                 .put("ts_car_adapter", loads(context, "com.ts.lib.caradapter.CarAdapterManager"))
-                .put("shared_libraries", libraries);
+                .put("shared_libraries", libraries)
+                .put("user_id", Process.myUid() / PER_USER_RANGE)
+                .put("system_user", orNull(systemUser(context)));
+    }
+
+    private static Boolean systemUser(Context context) {
+        try {
+            UserManager users = (UserManager) context.getSystemService(Context.USER_SERVICE);
+            return users == null ? null : users.isSystemUser();
+        } catch (RuntimeException error) {
+            return null;
+        }
     }
 
     private static boolean loads(Context context, String className) {

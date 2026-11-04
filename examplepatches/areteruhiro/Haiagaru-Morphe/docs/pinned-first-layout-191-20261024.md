@@ -10,14 +10,14 @@
 
 ## ビルド・導入
 
-ローカル作業root: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current`。以下はこのrootを基準とする。
+ローカル作業root: `<workspace>`。以下はこのrootを基準とする。
 
 - 通常Lintを含む `:patches:buildAndroid` 成功。`build/pinned-first-layout-verified-build.log`。
-- MPP絶対パス: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/pinned-first-layout-final.mpp`。
+- MPP絶対パス: `<workspace>/build/pinned-first-layout-final.mpp`。
 - MPP SHA256: `97583FA308B647E64F1C732BA8C3D57631588011DB8622FDF4315CC6DCD73D7E`。
 - 2026-10-24 JST、`emulator-5554`、191=`jp.co.airfront.android.a2chMate.haiagaru.settingsfix191`（Haiagaru 検証191）、242=`jp.co.airfront.android.a2chMate.haiagaru.resumefix242`へ `InstallVerifiedApk.ps1` で署名照合・データ保持更新。両方Success。
-- 191 APK絶対パス: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/pinned-first-layout191.apk`。SHA256 `B48A091366BAA84FFB89A2E30D7C47E6EF5DCE5A8245FF414BB0666061B8CC45`。
-- 242 APK絶対パス: `C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/pinned-first-layout242.apk`。SHA256 `073D00117DCF434283FD51CB137F5F1418BC0B393F4D7488BA82AE96A331032A`。
+- 191 APK絶対パス: `<workspace>/build/pinned-first-layout191.apk`。SHA256 `B48A091366BAA84FFB89A2E30D7C47E6EF5DCE5A8245FF414BB0666061B8CC45`。
+- 242 APK絶対パス: `<workspace>/build/pinned-first-layout242.apk`。SHA256 `073D00117DCF434283FD51CB137F5F1418BC0B393F4D7488BA82AE96A331032A`。
 - 鍵: `C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore`、alias `Morphe`。証明書SHA256 `0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed`。
 - 226は今回未導入。実機・公開版・バージョン名は変更なし。候補には別チャットの認証関連/先行バックアップ変更も含まれるため公開物と同一ではない。
 

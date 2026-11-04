@@ -91,7 +91,7 @@ object Handsfree {
     }
 
     /**
-     * Whether the saved settings turn this on. Cordly writes them with JSON.stringify, so a file without
+     * Whether the saved settings turn this on. Conduit writes them with JSON.stringify, so a file without
      * `"noHandsfree":true` (the switch off, the common case) needs no JSON parsing. Any problem means off.
      */
     private fun readSetting(): Boolean = try {

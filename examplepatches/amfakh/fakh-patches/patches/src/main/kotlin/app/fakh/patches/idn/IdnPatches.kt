@@ -13,11 +13,15 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val EXTENSION_SETTINGS = "Lapp/fakh/extension/idn/IdnSettings;"
 
@@ -37,6 +41,17 @@ private fun BytecodePatchContext.markIncluded(method: String) {
     )
 }
 
+/** Every reference the method's instructions carry, as smali text. */
+private fun Method.references(): List<String> =
+    implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() } ?: emptyList()
+
+/** Whether [instruction] is a call to an app enum's valueOf(String); the enum class is obfuscated, so only its shape is checked. */
+private fun isEnumValueOf(instruction: Instruction): Boolean {
+    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return reference.name == "valueOf" && reference.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;") &&
+        reference.returnType == reference.definingClass && !reference.definingClass.startsWith("Ljava/")
+}
+
 /** Declares the settings activity of the extension. */
 private val settingsManifestPatch = resourcePatch {
     execute {
@@ -51,12 +66,12 @@ private val settingsManifestPatch = resourcePatch {
     }
 }
 
-/** SettingsFragment.onViewCreated: the app's Settings screen, where the "Fakh Patches" row goes. */
+/** The Settings fragment's onViewCreated, where the "Fakh Patches" row goes. R8 renames the class; it reads the app version and the navigate_param argument. */
 private object SettingsScreenFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/profile/presentation/setting/SettingsFragment;",
     name = "onViewCreated",
     returnType = "V",
     parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
+    strings = listOf("navigate_param", " build "),
 )
 
 /** The "Fakh Patches" row on the app's Settings screen, and the page it opens. Every feature below depends on it. */
@@ -81,12 +96,10 @@ private object AdManagerLoadAdFingerprint : Fingerprint(
     parameters = listOf("Lcom/google/android/gms/ads/admanager/AdManagerAdRequest;"),
 )
 
-/** CleverTap's InAppController.showInApp: shows a campaign popup, such as the full-screen promo at launch. */
+/** CleverTap's InAppController, the step that shows a campaign popup such as the full-screen promo at launch. R8 renames the SDK class. */
 private object ShowInAppFingerprint : Fingerprint(
-    definingClass = "Lcom/clevertap/android/sdk/inapp/InAppController;",
-    name = "showInApp",
     returnType = "V",
-    parameters = listOf("Lcom/clevertap/android/sdk/inapp/CTInAppNotification;"),
+    strings = listOf("Attempting to show next In-App"),
 )
 
 @Suppress("unused")
@@ -133,20 +146,19 @@ val hideAdsPatch = bytecodePatch(
 
 /** MainInitRunner's first-run step: shows the tour that points at the Create button, then runs the start-up checks. */
 private object CreateButtonTourFingerprint : Fingerprint(
-    definingClass = "Lcom/idntimes/idntimes/presentation/main/MainInitRunner;",
     returnType = "V",
     parameters = listOf(),
-    custom = { method, _ ->
-        method.implementation?.instructions?.any {
-            (it as? ReferenceInstruction)?.reference?.toString() == "Lmedia/idn/onboarding/OnboardingScenario\$Builder;-><init>()V"
-        } == true
-    },
+    strings = listOf("KEY_PREF_HOME_HIGHLIGHT_CREATE_CONTENT"),
 )
 
-/** The constructor of the delegate that runs the "+" button; its second parameter is the main screen's view binding. */
+/** The constructor of the delegate that runs the "+" button (it animates the CircleToSquareButton); its second parameter is the main screen's view binding. */
 private object CreateMenuDelegateFingerprint : Fingerprint(
-    definingClass = "Lcom/idntimes/idntimes/presentation/main/MainCreateMenuDelegate;",
     name = "<init>",
+    custom = { _, classDef ->
+        val references = classDef.methods.flatMap { it.references() }
+        references.any { it.startsWith("Lcom/idntimes/idntimes/util/component/CircleToSquareButton;->") } &&
+            references.any { it.startsWith("Landroid/view/animation/AnimationUtils;->loadAnimation") }
+    },
 )
 
 @Suppress("unused")
@@ -191,12 +203,10 @@ val hideCreateButtonPatch = bytecodePatch(
     }
 }
 
-/** DeviceSecurityChecker.a(Z): reports root and Developer options; the short movie player blocks playback on either. */
+/** The device security check (DeviceSecurityChecker): reports root and Developer options; the short movie player blocks playback on either. */
 private object DeviceSecurityCheckFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/core/util/DeviceSecurityChecker;",
-    returnType = "Lmedia/idn/core/util/DeviceSecurityStatus;",
     parameters = listOf("Z"),
-    strings = listOf("development_settings_enabled"),
+    strings = listOf("development_settings_enabled", "su"),
 )
 
 @Suppress("unused")
@@ -224,8 +234,15 @@ val allowDeveloperOptionsPatch = bytecodePatch(
 
 /** The constructor of the home tab adapter: it turns each tab of the remote config into a HomeMenu. */
 private object HomeTabsFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/home/presentation/container/HomeContainerPagerAdapter;",
     name = "<init>",
+    custom = { method, _ ->
+        val instructions = method.implementation?.instructions?.toList() ?: emptyList()
+        val valueOf = instructions.firstOrNull(::isEnumValueOf)?.let { ((it as ReferenceInstruction).reference as MethodReference).returnType }
+        valueOf != null && instructions.any {
+            val field = (it as? ReferenceInstruction)?.reference as? FieldReference
+            field != null && field.name == "UNKNOWN" && field.type == valueOf
+        }
+    },
 )
 
 @Suppress("unused")
@@ -241,10 +258,7 @@ val hideHomeTabsPatch = bytecodePatch(
     execute {
         markIncluded("isHideTabsIncluded")
         HomeTabsFingerprint.method.apply {
-            val valueOf = instructions.indexOfFirst {
-                val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
-                reference?.name == "valueOf" && reference.definingClass.endsWith("/HomeMenu;")
-            }
+            val valueOf = instructions.indexOfFirst(::isEnumValueOf)
             if (valueOf < 0) throw PatchException("IDN: HomeMenu.valueOf was not found in the home tab adapter.")
             val name = (instructions[valueOf] as FiveRegisterInstruction).registerC
             // A hidden tab is renamed UNKNOWN, which the adapter already skips.
@@ -269,13 +283,10 @@ private fun autoPlaySetter(type: String) = Fingerprint(
     parameters = listOf("Z"),
 )
 
-/** The method of a Nonton home carousel card that starts its muted preview video: d(CarouselItem, ViewBinding). */
-private fun previewVideo(listener: String) = Fingerprint(
-    definingClass = "Lmedia/idn/shortmovie/presentation/home/view/$listener;",
-    name = "d",
-    returnType = "V",
-    custom = { method, _ -> method.parameterTypes.size == 2 },
-)
+private const val LOW_QUALITY_TRAILER = "Lmedia/idn/videoPlayer/ExoVideoPlayerView;->setLowQualityTrailer(Z)V"
+
+/** The bind method of a Nonton home carousel card: it starts the muted preview video, which is the only caller of setLowQualityTrailer. */
+private fun Method.startsPreviewVideo() = returnType == "V" && parameterTypes.size == 2 && references().contains(LOW_QUALITY_TRAILER)
 
 @Suppress("unused")
 val stopAutoplayPatch = bytecodePatch(
@@ -298,12 +309,16 @@ val stopAutoplayPatch = bytecodePatch(
                 """,
             )
         }
-        listOf(previewVideo("ShortMovieHomeCarouselVideoBigListener"), previewVideo("ShortMovieHomeCarouselVideoSmallListener")).forEach {
-            it.method.apply {
-                // The card shows its cover and plays nothing when the preview url is null.
+        val cardClasses = mutableListOf<String>()
+        classDefForEach { classDef -> if (classDef.methods.any { it.startsPreviewVideo() }) cardClasses += classDef.type }
+        val binds = cardClasses.flatMap { type -> mutableClassDefBy(type).methods.filter { it.startsPreviewVideo() } }
+        if (binds.size != 2) throw PatchException("IDN: expected 2 home carousel card previews, found ${binds.size}.")
+        binds.forEach {
+            it.apply {
+                // The card shows its cover and plays nothing when the preview url is null. The url is the first String field the card data is read for.
                 val url = instructions.indexOfFirst { instruction ->
-                    (instruction as? ReferenceInstruction)?.reference?.toString() ==
-                        "Lmedia/idn/shortmovie/presentation/home/view/ShortMovieHomeDataView;->m:Ljava/lang/String;"
+                    ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.type == "Ljava/lang/String;" &&
+                        instruction.opcode == Opcode.IGET_OBJECT
                 }
                 if (url < 0) throw PatchException("IDN: the preview url of a home carousel card was not found.")
                 val register = (instructions[url] as TwoRegisterInstruction).registerA
@@ -319,18 +334,18 @@ val stopAutoplayPatch = bytecodePatch(
     }
 }
 
-/** TopUpGoldBottomSheet.f0: shows the Gold packages sheet; the live rooms, the short movie player and the QR scanner call it. */
+/** TopUpGoldBottomSheet.show: shows the Gold packages sheet; the live rooms, the short movie player and the QR scanner call it. */
 private object GoldSheetFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/core/presentation/widget/bottomsheet/topup/TopUpGoldBottomSheet;",
     returnType = "V",
-    parameters = listOf("Landroidx/fragment/app/FragmentManager;", "Ljava/lang/String;"),
+    strings = listOf("topupgold_bottom_sheet"),
+    custom = { method, _ -> method.parameterTypes.size == 2 && method.parameterTypes[1].toString() == "Ljava/lang/String;" },
 )
 
-/** ProfileActivity.t: opens the screen the activity was started for, such as Settings or Top up Gold. */
+/** ProfileActivity's screen router: opens the screen the activity was started for, such as Settings or Top up Gold. */
 private object ProfileScreenFingerprint : Fingerprint(
     definingClass = "Lmedia/idn/profile/presentation/ProfileActivity;",
     returnType = "V",
-    parameters = listOf("Lmedia/idn/profile/navigation/ProfileScreen;"),
+    custom = { method, _ -> method.parameterTypes.size == 1 && method.parameterTypes[0].toString() != "Landroid/os/Bundle;" },
 )
 
 @Suppress("unused")
@@ -368,32 +383,25 @@ val redirectGoldPurchasePatch = bytecodePatch(
     }
 }
 
-private const val SUBSCRIPTION_STATUS = "Lmedia/idn/profile/presentation/profile/mypage/MySubscriptionStatusManager;"
-private const val BANNER_STATUS = "Lmedia/idn/profile/presentation/profile/mypage/SubscriptionBannerStatus"
-private const val BANNER_DATA = "Lmedia/idn/profile/presentation/profile/mypage/SubscriptionBannerDataView;"
+private const val SKELETON_LAYOUT = "Lcom/faltenreich/skeletonlayout/SkeletonLayout;"
 
-/** MySubscriptionStatusManager.b: fills the subscription banner on the profile with one of its variants. */
+/** MySubscriptionStatusManager's bind: fills the subscription banner on the profile with one of its variants (the only one-argument method that sets card colors). */
 private object SubscriptionBannerFingerprint : Fingerprint(
-    definingClass = SUBSCRIPTION_STATUS,
     returnType = "V",
-    parameters = listOf(BANNER_DATA),
+    custom = { method, _ ->
+        method.parameterTypes.size == 1 &&
+            method.references().count { it.endsWith("->setCardBackgroundColor(I)V") } >= 2
+    },
 )
 
-/** MySubscriptionStatusManager.c: shows or hides the banner's frame (and the loading skeleton) while the status loads. */
+/** MySubscriptionStatusManager's loading switch: shows or hides the banner's frame and the loading skeleton while the status loads. */
 private object SubscriptionFrameFingerprint : Fingerprint(
-    definingClass = SUBSCRIPTION_STATUS,
     returnType = "V",
     parameters = listOf("Z"),
-)
-
-private const val BIND_BANNER = "$SUBSCRIPTION_STATUS->b($BANNER_DATA)V"
-
-/** The method that turns the subscription status into banners: it calls the manager's b() once per status. */
-private object SubscriptionStatusCallerFingerprint : Fingerprint(
     custom = { method, _ ->
-        method.implementation?.instructions?.count {
-            (it as? ReferenceInstruction)?.reference?.toString() == BIND_BANNER
-        }?.let { it >= 2 } == true
+        method.implementation?.instructions?.any {
+            it.opcode == Opcode.CHECK_CAST && (it as ReferenceInstruction).reference.toString() == SKELETON_LAYOUT
+        } == true
     },
 )
 
@@ -410,44 +418,66 @@ val hidePackageBannerPatch = bytecodePatch(
     execute {
         markIncluded("isHidePackageBannerIncluded")
 
-        // The server can send its own banner, so the banner object says nothing; the status does. A package is
-        // available (Available), or none is active (Inactive): both read their banner field right before the branch
-        // that falls back to the default banner, so the mark goes there, not before the bind call a branch jumps over.
-        SubscriptionStatusCallerFingerprint.method.apply {
-            val reads = instructions.withIndex()
-                .filter {
-                    val reference = (it.value as? ReferenceInstruction)?.reference?.toString()
-                    reference == "$BANNER_STATUS\$Available;->b:$BANNER_DATA" || reference == "$BANNER_STATUS\$Inactive;->a:$BANNER_DATA"
+        val bind = SubscriptionBannerFingerprint.method
+        val bindCall = "${bind.definingClass}->${bind.name}(${bind.parameterTypes.joinToString("")})${bind.returnType}"
+        val bannerType = bind.parameterTypes.single().toString()
+
+        // The status code turns each subscription status into a banner: it calls the bind once per status that has a
+        // default banner. The server can send its own banner, so the banner object says nothing; the status does. A package
+        // is available, or none is active: both read their banner off the status right before the branch that falls back
+        // to the default banner, so the mark goes there, not before the bind call a branch can jump over.
+        var caller: Method? = null
+        var callerType = ""
+        classDefForEach { classDef ->
+            classDef.methods.forEach { method ->
+                if (method.references().count { it == bindCall } >= 2) {
+                    caller = method
+                    callerType = classDef.type
                 }
-                .map { it.index }
-            if (reads.size != 2) throw PatchException("IDN: the buy banner statuses were not found in the profile banner code.")
+            }
+        }
+        val statusCaller = caller ?: throw PatchException("IDN: the profile banner status code was not found.")
+        mutableClassDefBy(callerType).methods.first {
+            it.name == statusCaller.name && it.parameterTypes.map { type -> type.toString() } == statusCaller.parameterTypes.map { type -> type.toString() } && it.returnType == statusCaller.returnType
+        }.apply {
+            val marks = sortedSetOf<Int>()
+            instructions.forEachIndexed { index, instruction ->
+                if ((instruction as? ReferenceInstruction)?.reference?.toString() != bindCall) return@forEachIndexed
+                val read = (index - 1 downTo 0).firstOrNull {
+                    val field = (instructions[it] as? ReferenceInstruction)?.reference as? FieldReference
+                    instructions[it].opcode == Opcode.IGET_OBJECT && field != null &&
+                        field.type == bannerType && field.definingClass != bind.definingClass
+                }
+                if (read != null) marks += read
+            }
+            if (marks.size != 2) throw PatchException("IDN: the buy banner statuses were not found in the profile banner code.")
             // From the last, so the earlier indexes stay valid.
-            reads.reversed().forEach { addInstruction(it, "invoke-static { }, $EXTENSION_SETTINGS->buyBanner()V") }
+            marks.reversed().forEach { addInstruction(it, "invoke-static { }, $EXTENSION_SETTINGS->buyBanner()V") }
         }
 
-        SubscriptionBannerFingerprint.method.apply {
+        // The loading switch runs before the bind and shows the frame; the extension remembers it and hides it for a buy banner.
+        bind.apply {
             addInstructionsWithLabels(
                 0,
                 """
                     invoke-static { }, $EXTENSION_SETTINGS->takeBuyBanner()Z
                     move-result v0
                     if-eqz v0, :show
-                    iget-object v0, p0, $SUBSCRIPTION_STATUS->a:Lmedia/idn/profile/databinding/FragmentMyProfileBinding;
-                    iget-object v0, v0, Lmedia/idn/profile/databinding/FragmentMyProfileBinding;->d:Lmedia/idn/profile/databinding/ViewBasicInformationBinding;
-                    iget-object v0, v0, Lmedia/idn/profile/databinding/ViewBasicInformationBinding;->l:Lmedia/idn/profile/databinding/ViewProfileSubscriptionBinding;
-                    iget-object v0, v0, Lmedia/idn/profile/databinding/ViewProfileSubscriptionBinding;->a:Landroid/widget/RelativeLayout;
-                    const/16 v1, 0x8
-                    invoke-virtual { v0, v1 }, Landroid/view/View;->setVisibility(I)V
+                    invoke-static { }, $EXTENSION_SETTINGS->hideBanner()V
                     return-void
                 """,
                 ExternalLabel("show", getInstruction(0)),
             )
         }
 
-        // At the end of c() p0 is the banner's frame, which c(false) just made visible.
+        // The last call of the loading switch shows the banner's frame; the extension keeps it hidden if it was.
         SubscriptionFrameFingerprint.method.apply {
-            val end = instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
-            addInstruction(end, "invoke-static { p0 }, $EXTENSION_SETTINGS->keepBannerHidden(Landroid/view/View;)V")
+            val show = instructions.indexOfLast {
+                (it as? ReferenceInstruction)?.reference?.let { reference -> reference is MethodReference && reference.name == "setVisibility" } == true
+            }
+            if (show < 0) throw PatchException("IDN: the banner frame visibility call was not found.")
+            val frame = (instructions[show] as FiveRegisterInstruction).registerC
+            addInstruction(show + 1, "invoke-static { v$frame }, $EXTENSION_SETTINGS->keepBannerHidden(Landroid/view/View;)V")
         }
     }
 }
@@ -480,26 +510,18 @@ private val analyticsManifestPatch = resourcePatch {
     }
 }
 
-/** IDNAppsFlyerHelper.initialize(IDNApp): starts AppsFlyer from the startup pipeline. */
-private object AppsFlyerInitFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/core/util/appsflyer/IDNAppsFlyerHelper;",
+/** IDNApp.onCreate: the app's entry point, where AppsFlyer is stopped before the startup steps set it up. */
+private object AppCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/idntimes/idntimes/IDNApp;",
+    name = "onCreate",
     returnType = "V",
-    parameters = listOf("Lcom/idntimes/idntimes/IDNApp;"),
-    custom = { method, _ -> method.accessFlags and 0x8 != 0 },
+    parameters = listOf(),
 )
 
-/** CleverTapSdkInitializer.initialize: the startup step that sets CleverTap up. */
-private object CleverTapInitFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/core/startup/initializers/CleverTapSdkInitializer;",
-    returnType = "Ljava/lang/Object;",
-    parameters = listOf("Lkotlin/coroutines/jvm/internal/ContinuationImpl;"),
-)
-
-/** GtmSdkInitializer.initialize: the startup step that sets Google Tag Manager up. */
+/** The startup step that sets Google Tag Manager up; R8 merged it with other startup steps, which this method also runs for another case. */
 private object GtmInitFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/core/startup/initializers/GtmSdkInitializer;",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Lkotlin/coroutines/jvm/internal/ContinuationImpl;"),
+    strings = listOf("Google Tag Manager initialization failed"),
 )
 
 /** ComScoreInitializer.create: the androidx.startup entry that starts comScore. */
@@ -510,17 +532,16 @@ private object ComScoreInitFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
 )
 
-/** FirebaseSdkInitializer.initialize: it turns Crashlytics collection on right after Firebase starts. */
+/** The startup step that sets Firebase up: it turns Crashlytics collection on right after Firebase starts. */
 private object FirebaseInitFingerprint : Fingerprint(
-    definingClass = "Lmedia/idn/core/startup/initializers/FirebaseSdkInitializer;",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Lkotlin/coroutines/jvm/internal/ContinuationImpl;"),
+    strings = listOf("Firebase initialization failed \u2014 disabling Crashlytics"),
 )
 
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = "Disable analytics",
-    description = "Stops the analytics and crash reporting SDKs (AppsFlyer, CleverTap, Firebase Analytics, Crashlytics, Google Tag Manager, comScore and Facebook events) from collecting data. Push notifications stay.",
+    description = "Stops the analytics and crash reporting SDKs (AppsFlyer, Firebase Analytics, Crashlytics, Google Tag Manager, comScore and Facebook events) from collecting data. CleverTap stays for push and popups, without the advertising ID.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_IDN)
@@ -529,9 +550,25 @@ val disableAnalyticsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        // The startup steps return Success without doing their work, so the pipeline treats them as started.
-        val success = "sget-object p0, Lmedia/idn/core/startup/InitializationResult\$Success;->a:Lmedia/idn/core/startup/InitializationResult\$Success;\nreturn-object p0"
-        GtmInitFingerprint.method.addInstructions(0, success)
+        // GTM shares its method with another startup step. Its code starts at the first read of the static config
+        // map; there it returns Success (the value the method returns on its normal exit) without doing the work.
+        GtmInitFingerprint.method.apply {
+            val success = instructions.withIndex().firstNotNullOfOrNull { (_, instruction) ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                field?.takeIf { instruction.opcode == Opcode.SGET_OBJECT && it.type == it.definingClass && it.definingClass != definingClass }
+            } ?: throw PatchException("IDN: the Success result of the Google Tag Manager step was not found.")
+            val start = instructions.indexOfFirst {
+                (it as? ReferenceInstruction)?.reference.let { reference -> reference is FieldReference && reference.type == "Ljava/util/LinkedHashMap;" && it.opcode == Opcode.SGET_OBJECT }
+            }
+            if (start < 0) throw PatchException("IDN: the start of the Google Tag Manager step was not found.")
+            addInstructions(
+                start,
+                """
+                    sget-object v0, ${success.definingClass}->${success.name}:${success.type}
+                    return-object v0
+                """,
+            )
+        }
 
         ComScoreInitFingerprint.method.addInstructions(
             0,
@@ -542,21 +579,16 @@ val disableAnalyticsPatch = bytecodePatch(
         )
 
         // AppsFlyer starts later with start(); the extension stops it first, and a stopped SDK ignores start().
-        AppsFlyerInitFingerprint.method.addInstruction(
+        AppCreateFingerprint.method.addInstruction(
             0,
             "invoke-static { }, Lapp/fakh/extension/idn/IdnAnalytics;->stopAppsFlyer()V",
         )
 
-        // CleverTap stays for push and popups, but records nothing about the user.
-        CleverTapInitFingerprint.method.addInstruction(
-            0,
-            "invoke-static { }, Lapp/fakh/extension/idn/IdnAnalytics;->optOutCleverTap()V",
-        )
-
         FirebaseInitFingerprint.method.apply {
             val enable = instructions.indexOfFirst {
-                (it as? ReferenceInstruction)?.reference?.toString() ==
-                    "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->b(Z)V"
+                val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
+                reference != null && it.opcode == Opcode.INVOKE_VIRTUAL && reference.parameterTypes.map { type -> type.toString() } == listOf("Z") &&
+                    reference.returnType == "V"
             }
             if (enable < 0) throw PatchException("IDN: the Crashlytics collection switch was not found.")
             val register = (instructions[enable] as FiveRegisterInstruction).registerD

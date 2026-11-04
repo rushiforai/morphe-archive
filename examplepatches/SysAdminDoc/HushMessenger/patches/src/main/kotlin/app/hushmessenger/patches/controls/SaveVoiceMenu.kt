@@ -293,20 +293,19 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
     // The reader starts by asking its classifier the message's kind, and goes on only for the one kind that's audio.
     val readCode = byType[reader]?.methods?.singleOrNull { it.name == readAudio.name && it.menuParams() == readAudio.menuParams() }?.menuCode() ?: return null
     val classifierField = readCode.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.menuField()?.definingClass == reader }?.menuField() ?: return null
+    // 586's reader asks the classifier's session-free static step itself, the step a row added with no account at hand asks too.
+    val classifier = byType[classifierField.type] ?: return null
     val ask = readCode.indices.firstOrNull { i ->
-        readCode[i].opcode == Opcode.INVOKE_VIRTUAL && readCode[i].menuCall()?.definingClass == classifierField.type &&
-            readCode[i].menuCall()?.menuParams() == listOf(FB_USER_SESSION, MESSAGE)
+        readCode[i].opcode == Opcode.INVOKE_STATIC && readCode[i].menuCall()?.definingClass == classifier.type &&
+            readCode[i].menuCall()?.menuParams() == listOf(classifier.type, MESSAGE)
     } ?: return null
-    val kind = readCode[ask].menuCall()!!.returnType
+    val asked = readCode[ask].menuCall()!!
+    val kind = asked.returnType
     if (readCode.getOrNull(ask + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT) return null
     val audioKind = readCode.getOrNull(ask + 2)?.takeIf { it.opcode == Opcode.SGET_OBJECT }?.menuField()?.takeIf { it.type == kind } ?: return null
-    // The classifier's session-free step, which its session-taking one calls. A row is added where no account is at hand.
-    val classifier = byType[classifierField.type] ?: return null
     val classify = classifier.methods.singleOrNull {
         AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == kind && it.menuParams() == listOf(classifier.type, MESSAGE)
-    } ?: return null
-    val asked = classifier.methods.singleOrNull { it.name == readCode[ask].menuCall()!!.name && it.menuParams() == listOf(FB_USER_SESSION, MESSAGE) } ?: return null
-    if (asked.menuCode().none { it.opcode == Opcode.INVOKE_STATIC && it.menuCall()?.name == classify.name && it.menuCall()?.definingClass == classifier.type }) return null
+    }?.takeIf { it.name == asked.name } ?: return null
     if (!openField(classifierField) || !isPublic(classifier.accessFlags) || !isPublic(classify.accessFlags) || !openField(audioKind)) return null
     if (!openClass(MESSAGE) || !openClass(kind)) return null
 
@@ -366,7 +365,7 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
 
 /**
  * The fetcher's prefetch step, in the order the recipe reads it: the lazy holder off this, the reader out of it, the
- * reader's voice data for the session and message, then the data's Uri.
+ * reader's voice data for the message (586 no longer passes the session), then the data's Uri.
  */
 private fun Method.isAudioPrefetch(): Boolean {
     if (returnType != "V" || menuParams() != listOf(FB_USER_SESSION, MESSAGE)) return false
@@ -380,7 +379,7 @@ private fun Method.isAudioPrefetch(): Boolean {
     val read = code[5].menuCall() ?: return false
     val reader = code[3].menuRef().toString()
     return get.definingClass == holder && get.menuParams() == listOf(holder) && get.returnType == OBJECT &&
-        read.definingClass == reader && read.returnType == MENU_AUDIO_DATA && read.menuParams() == listOf(FB_USER_SESSION, MESSAGE, "Ljava/lang/String;") &&
+        read.definingClass == reader && read.returnType == MENU_AUDIO_DATA && read.menuParams() == listOf(MESSAGE, "Ljava/lang/String;") &&
         code[8].menuField()?.definingClass == MENU_AUDIO_DATA && code[8].menuField()?.type == MENU_URI
 }
 
@@ -506,7 +505,7 @@ internal fun saveVoiceMenuBuilder(stub: MutableMethod, recipe: SaveVoiceMenuReci
             check-cast p0, $FB_USER_SESSION
             check-cast p1, $MESSAGE
             const/4 v2, 0x0
-            invoke-virtual {v1, p0, p1, v2}, ${recipe.readAudio}
+            invoke-virtual {v1, p1, v2}, ${recipe.readAudio}
             move-result-object v1
             if-eqz v1, :none
             iget-object v1, v1, ${recipe.audioUri}

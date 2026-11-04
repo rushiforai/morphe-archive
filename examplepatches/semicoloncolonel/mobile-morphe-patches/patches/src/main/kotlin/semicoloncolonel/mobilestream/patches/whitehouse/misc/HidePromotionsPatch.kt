@@ -36,8 +36,8 @@ private val PROMOTIONS = listOf(
 @Suppress("unused")
 val hidePromotionsPatch = bytecodePatch(
     name = "Hide promotions",
-    description = "Hides the promotional buttons you choose in the patch options, such as " +
-        "\"Text President Trump\". Opt-in; test on-device.",
+    description = "Hides the promotional buttons you choose in the patch options, such as \"Text " +
+        "President Trump\".",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -13,7 +13,7 @@ import android.os.Looper;
 import android.widget.Toast;
 
 /**
- * 「MicroG-RE でトークをバックアップする」が ON なのに MicroG-RE がないとき、導入を案内します。
+ * 「MicroG-RE で Google ログインとバックアップを行う」が ON なのに MicroG-RE がないとき、導入を案内します。
  *
  * <p>通知とトーストの両方を出します。新規インストール直後の復元では通知がまだ許可されていないことが
  * 多く、通知だけでは気付けないためです。通知をタップすると MicroG-RE のリリースページをブラウザで開きます。
@@ -25,7 +25,7 @@ final class MicrogInstallNotifier {
     static final String RELEASES_URL = "https://github.com/MorpheApp/MicroG-RE/releases/latest";
     private static final String CHANNEL_ID = "linimal_microg_install";
     private static final int NOTIFICATION_ID = 0x4c4d4731;
-    static final String TOAST_TEXT = "トークのバックアップと復元には MicroG-RE が必要です。"
+    static final String TOAST_TEXT = "Google アカウントでのログインと、トークのバックアップ・復元には MicroG-RE が必要です。"
             + "MicroG-RE を入れ、LINE と同じ Google アカウントを追加してください。";
 
     private static final Object LOCK = new Object();
@@ -98,7 +98,7 @@ final class MicrogInstallNotifier {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pending = PendingIntent.getActivity(
                 context, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        String text = "トークのバックアップと復元には MicroG-RE が必要です。"
+        String text = "Google アカウントでのログインと、トークのバックアップ・復元には MicroG-RE が必要です。"
                 + "タップして MicroG-RE を入手し、LINE と同じ Google アカウントを追加してください。";
         builder.setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setContentTitle("MicroG-RE が見つかりません")

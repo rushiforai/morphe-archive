@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/danieleavolio/lovaion-patches/compare/v1.4.1...v1.5.0) (2026-11-03)
+
+### ✨ New Features
+
+* **photoncamera:** add Photon Camera premium unlock patch ([712a62e](https://github.com/danieleavolio/lovaion-patches/commit/712a62e1ca44262efc6a690923e745efbfd16f99))
+
 ## [1.4.1](https://github.com/danieleavolio/lovaion-patches/compare/v1.4.0...v1.4.1) (2026-10-27)
 
 ### 🐛 Bug Fixes

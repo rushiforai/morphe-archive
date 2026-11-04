@@ -33,9 +33,9 @@ internal object UpdatePositionFingerprint : Fingerprint(
 @Suppress("unused")
 val skipPrerollPromoPatch = bytecodePatch(
     name = "Skip pre-roll promo",
-    description = "Skips the ~20-30 second MGM+ self-promo that plays before a title in the phone " +
-        "app, by jumping to the start of the main content. Normal playback and next-episode " +
-        "binge are untouched. Experimental; test on-device.",
+    description = "Skips the ~20-30 second MGM+ self-promo that plays before a title, by jumping to the " +
+        "start of the main content. Normal playback and next-episode binge are untouched. " +
+        "Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

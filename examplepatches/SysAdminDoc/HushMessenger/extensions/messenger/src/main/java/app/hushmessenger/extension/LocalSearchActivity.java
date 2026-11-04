@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -85,7 +84,8 @@ public final class LocalSearchActivity extends Activity {
         status.setText(text.get("local_search_help"));
         if (state != null) return;
         field.setText(getIntent().getStringExtra(EXTRA_WORDS));
-        start();
+        // Opened with no words, the help stays up until Search is tapped.
+        if (LocalSearchStore.words(field.getText().toString()).length > 0) start();
     }
 
     @SuppressWarnings("deprecation") private View content() {
@@ -98,6 +98,7 @@ public final class LocalSearchActivity extends Activity {
         });
         root.addView(ui.title(text.get("local_search_title"), 22));
         field = ui.field(text.get("local_search_hint"), SEARCH_LENGTH, true);
+        field.setTag("local_search_field");
         field.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         field.setOnEditorActionListener((view, action, event) -> {
             if (action != EditorInfo.IME_ACTION_SEARCH) return false;
@@ -106,15 +107,22 @@ public final class LocalSearchActivity extends Activity {
         });
         ui.add(root, field, 12);
         search = ui.primaryButton(text.get("local_search_run"));
+        search.setTag("local_search_run");
         search.setOnClickListener(view -> {
             if (running != null) running.set(true);
             else start();
         });
         ui.add(root, search, 8);
         status = ui.text("", 13, ui.muted, false);
+        status.setTag("local_search_status");
+        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         ui.add(root, status, 10);
         ListView list = new ListView(this);
-        list.setDivider(null);
+        list.setTag("local_search_hits");
+        // Each hit is its own card, so the gap between them is a clear divider and the list draws no press color of its own.
+        list.setDivider(new android.graphics.drawable.ColorDrawable(0));
+        list.setDividerHeight(ui.dp(8));
+        list.setSelector(new android.graphics.drawable.ColorDrawable(0));
         list.setClipToPadding(false);
         list.setAdapter(adapter);
         list.setOnItemClickListener((parent, view, position, id) -> open(hits.get(position)));
@@ -126,7 +134,13 @@ public final class LocalSearchActivity extends Activity {
 
     private void start() {
         String words = field.getText().toString();
-        if (running != null || LocalSearchStore.words(words).length == 0) return;
+        if (running != null) return;
+        // Search with nothing typed says so, where it used to do nothing at all.
+        if (LocalSearchStore.words(words).length == 0) {
+            status.setText(text.get("local_search_empty"));
+            field.requestFocus();
+            return;
+        }
         InputMethodManager keyboard = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (keyboard != null) keyboard.hideSoftInputFromWindow(field.getWindowToken(), 0);
         hits.clear();
@@ -140,7 +154,8 @@ public final class LocalSearchActivity extends Activity {
             LocalSearchStore.Result result = null;
             try {
                 result = read(folder, words, stop);
-            } catch (SQLiteException | IllegalStateException error) {
+            } catch (RuntimeException error) {
+                // Anything left uncaught here ends the search process, and the screen closes without a word.
                 Settings.hookFailedPrivately(LocalChatSearch.KEY, "Couldn't read the saved messages", error);
             }
             LocalSearchStore.Result finished = result;
@@ -234,18 +249,22 @@ public final class LocalSearchActivity extends Activity {
                 heading = (TextView) row.getChildAt(0);
                 body = (TextView) row.getChildAt(1);
             } else {
+                // The settings' card, so a hit reads as one thing to tap and shows its press.
                 row = ui.column();
-                row.setPadding(ui.dp(4), ui.dp(10), ui.dp(4), ui.dp(10));
-                heading = ui.text("", 12, ui.muted, false);
+                row.setTag("local_search_hit");
+                row.setMinimumHeight(ui.dp(48));
+                row.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(12));
+                row.setBackground(ui.interactive(ui.card, ui.line, SettingsUi.CARD_RADIUS));
+                heading = ui.text("", 12, ui.muted, true);
                 body = ui.text("", 15, ui.text, false);
                 row.addView(heading);
-                row.addView(body);
+                ui.add(row, body, 4);
             }
             LocalSearchStore.Hit hit = hits.get(position);
             String when = DateUtils.formatDateTime(LocalSearchActivity.this, hit.time,
                 DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_TIME);
             heading.setText(hit.sender == null || hit.sender.isEmpty() ? when : hit.sender + ", " + when);
-            body.setText(hit.text.length() > SHOWN_TEXT ? hit.text.substring(0, SHOWN_TEXT) + "..." : hit.text);
+            body.setText(hit.text.length() > SHOWN_TEXT ? hit.text.substring(0, SHOWN_TEXT) + "…" : hit.text);
             return row;
         }
     }

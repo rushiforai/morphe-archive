@@ -8,10 +8,13 @@ import java.util.function.Function;
 
 /**
  * Message log button: a clock in the Chats tab's top bar, next to Messenger's new message button, that opens the
- * message log. It shows while Keep a message log and this switch are both on.
+ * message log. It shows while Keep a message log and this switch are both on. A second switch puts a Message log row
+ * in the Menu tab instead, or as well.
  */
 public final class MessageLogButton {
     static final String KEY = "message_log_button";
+    /** The Menu tab row, which Settings.addMenuSettingsEntry copies from Messenger's own Settings row. */
+    static final String MENU_KEY = "message_log_menu_row";
     /** The button's id in the top bar. Messenger hands it back on every tap, which is how ours is told apart. */
     static final String ID = "HushMessageLog";
     /** The id Messenger gives its new message button, which this one goes in front of. The patch checks the build uses it. */
@@ -23,6 +26,12 @@ public final class MessageLogButton {
     static boolean shown() {
         SharedPreferences prefs = Settings.preferences;
         return Settings.wouldUse(MessageLog.KEY) && prefs != null && prefs.getBoolean(KEY, false);
+    }
+
+    /** The same for the Menu tab row. */
+    static boolean inMenu() {
+        SharedPreferences prefs = Settings.preferences;
+        return Settings.wouldUse(MessageLog.KEY) && prefs != null && prefs.getBoolean(MENU_KEY, false);
     }
 
     /**
@@ -58,13 +67,17 @@ public final class MessageLogButton {
     /** Messenger's top bar listener asks this first. False for Messenger's own buttons, which it handles as before. */
     public static boolean clicked(View view, String id) {
         if (!ID.equals(id) || view == null) return false;
+        open(view.getContext());
+        return true;
+    }
+
+    /** Opens settings with the message log already showing, for the clock and the Menu tab row. */
+    static void open(Context context) {
         try {
-            Context context = view.getContext();
             context.startActivity(HostScreens.intentFor(context, HostScreens.SETTINGS).putExtra(MessageLogSheet.OPEN_EXTRA, true));
         } catch (Throwable error) {
             Settings.hookFailed(MessageLog.KEY, "Can't open the message log", error);
         }
-        return true;
     }
 
     /** Builds the button from this Messenger's own top bar classes, or null. The patch writes its body. */

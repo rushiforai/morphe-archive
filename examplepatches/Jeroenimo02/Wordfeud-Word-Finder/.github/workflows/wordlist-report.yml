@@ -1,0 +1,111 @@
+name: Word list reports
+
+# Receives "wordlist-report" events from the report worker (tools/report-worker): words the Wordfeud server
+# rejected in a game. Valid words are added to wordlists/<code>/remove.txt on the branch wordlist/<code>, the list
+# is rebuilt, and one pull request per language (wordlist/<code> -> main) collects all reports until it is merged.
+# Nothing reaches users before that pull request is merged (a merge makes a new release with the new list).
+on:
+  repository_dispatch:
+    types: [wordlist-report]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: wordlist-report
+  cancel-in-progress: false
+
+env:
+  BASE: main
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BASE }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: build/wordlist-cache
+          key: wordlist-sources-${{ hashFiles('wordlists/sources.json') }}
+
+      - name: Language of the report
+        id: lang
+        env:
+          RULESET: ${{ github.event.client_payload.ruleset }}
+        run: |
+          code=$(python3 -I - "$RULESET" <<'PY'
+          import json, sys
+          try:
+              rs = str(int(sys.argv[1]))
+          except ValueError:
+              rs = ""
+          print(json.load(open("wordlists/manifest.json"))["rulesets"].get(rs, ""))
+          PY
+          )
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+
+      - name: Switch to wordlist branch
+        if: steps.lang.outputs.code != ''
+        env:
+          CODE: ${{ steps.lang.outputs.code }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          B="wordlist/$CODE"
+          if git ls-remote --exit-code --heads origin "$B" >/dev/null; then
+            git checkout -B "$B" "origin/$B"
+            if ! git merge --no-edit "origin/$BASE"; then
+              # Generated files are rebuilt below, so take the base versions; remove.txt / add.txt merge as a union
+              # (.gitattributes). Any other conflict fails the job.
+              for f in $(git diff --name-only --diff-filter=U); do
+                case "$f" in
+                  wordlists/manifest.json|wordlists/*/words.txt.gz) git checkout "origin/$BASE" -- "$f" ;;
+                  *) echo "Unexpected conflict in $f"; exit 1 ;;
+                esac
+              done
+              git add -A wordlists
+              git -c core.editor=true merge --continue
+            fi
+          else
+            git checkout -B "$B" "origin/$BASE"
+          fi
+
+      - name: Add reported words
+        id: add
+        if: steps.lang.outputs.code != ''
+        env:
+          RULESET: ${{ github.event.client_payload.ruleset }}
+          WORDS: ${{ join(github.event.client_payload.words, ',') }}
+        run: python3 -I tools/wordlists/report.py --ruleset "$RULESET" --words "$WORDS" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Rebuild, commit and push
+        if: steps.add.outputs.added != ''
+        env:
+          CODE: ${{ steps.lang.outputs.code }}
+          ADDED: ${{ steps.add.outputs.added }}
+        run: |
+          python3 -I tools/wordlists/build.py --only "$CODE"
+          git add wordlists
+          git commit -m "fix(wordlists): $CODE: $ADDED verwijderd (gemeld door de patch)"
+          git push origin "wordlist/$CODE"
+
+      - name: Pull request
+        if: steps.add.outputs.added != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODE: ${{ steps.lang.outputs.code }}
+        run: |
+          B="wordlist/$CODE"
+          open=$(gh pr list --head "$B" --base "$BASE" --state open --json number --jq '.[0].number')
+          if [ -z "$open" ]; then
+            gh pr create --head "$B" --base "$BASE" \
+              --title "Woordenlijst $CODE: gemelde woorden verwijderen" \
+              --body "Woorden die de Wordfeud-server weigerde, automatisch gemeld door de patch. Elke melding voegt een commit toe aan deze branch; zie \`wordlists/$CODE/remove.txt\`. Controleer de woorden en merge wanneer je wilt: de merge maakt een nieuwe release met de bijgewerkte lijst."
+          fi

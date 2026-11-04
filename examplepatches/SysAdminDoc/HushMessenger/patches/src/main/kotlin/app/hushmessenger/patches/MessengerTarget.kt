@@ -5,7 +5,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 /**
- * The stock arm64 and armv7 Messenger builds the patches were checked against.
+ * The stock Messenger builds the patches were checked against. 586 has one, for arm64.
  *
  * A version name alone is insufficient: Meta publishes several DEX variants with that name. Each
  * build is recorded in scripts/profiles by CompatReport; the APKs themselves are local research
@@ -15,9 +15,9 @@ internal object MessengerTarget {
     const val PACKAGE = "com.facebook.orca"
     const val MIN_SDK = 28
 
-    /** Each supported version name and the version codes of its checked arm64 and armv7 builds. */
+    /** Each supported version name and the version codes of its checked builds. */
     val VERSIONS: Map<String, List<Int>> = mapOf(
-        "585.0.0.53.94" to listOf(347014974, 347014990, 347014996, 347015062, 347015064, 347015065, 347015067),
+        "586.0.0.55.92" to listOf(347215348),
     )
     val VERSION_CODES = VERSIONS.values.flatten()
 
@@ -26,7 +26,7 @@ internal object MessengerTarget {
     private const val META_SIGNER =
         "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27"
 
-    /** "585.0.0.53.94 APK (version code 347014974 or 347014990)", joined with " or " across version names. */
+    /** "586.0.0.55.92 APK (version code 347215348)", joined with " or " across version names. */
     fun supportedApks(versions: Map<String, List<Int>> = VERSIONS): String =
         versions.entries.joinToString(" or ") { (name, codes) -> "$name APK (version code ${codes.joinToString(" or ")})" }
 

@@ -119,6 +119,8 @@ class ReleaseNotes(unittest.TestCase):
         body = self.build()
         self.assertIn(f"- The full test suite, plus a patch run against the one Messenger {TARGET} build on file.", body)
         self.assertIn("- Morphe Desktop patched and rebuilt one APK from the one build family.", body)
+        self.assertIn(f"1. Update Messenger to {TARGET} first. Get it from [APKMirror's {TARGET} page]({PAGE}).", body)
+        self.assertNotIn("nodpi", body)
 
     def test_a_section_the_notes_cant_carry_word_for_word_is_refused(self):
         for name, section, expected in (

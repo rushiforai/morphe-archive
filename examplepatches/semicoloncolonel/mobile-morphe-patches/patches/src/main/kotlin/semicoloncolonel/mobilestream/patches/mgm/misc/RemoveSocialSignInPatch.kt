@@ -46,9 +46,9 @@ internal object SplashGoogleSignInFingerprint : Fingerprint(
 @Suppress("unused")
 val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
-    description = "Removes the Sign in with Google and Sign in with Apple buttons from the MGM+ " +
-        "phone app, and stops the app from opening Google's sign-in sheet on its own at " +
-        "startup. Email sign-in and Login with Amazon still work.",
+    description = "Removes the Sign in with Google and Sign in with Apple buttons from the app, and " +
+        "stops the app from opening Google's sign-in sheet on its own at startup. Email " +
+        "sign-in and Login with Amazon still work.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

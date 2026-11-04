@@ -390,18 +390,23 @@ public class AmoledBlackTest {
 
     /**
      * Seen on Pinterest 14.42.0 on a phone (#12): opening a video pin's comments showed a gray band
-     * across the top of the black list for about half a second. Pinterest shows the reactions header
-     * there in its own gray while the comments load, then hides it.
+     * across the top of the black list for about a quarter of a second. Pinterest shows a reactions
+     * header there in its own gray while the comments load, then hides it. The screen has two of
+     * them, one above the list and one laid over its top, and the second one is the band.
      */
-    @Test public void theReactionsHeaderShownWhileTheCommentsLoadTurnsBlackAndOffGivesItsGrayBack() {
+    @Test public void theReactionsHeadersShownWhileTheCommentsLoadTurnBlackAndOffGivesTheirGrayBack() {
         Settings.BLACK_COMMENTS.save(true);
-        FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view", "comment_reaction_header");
+        FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view",
+                "comment_reaction_header", "community_insight_comment_header");
         View reactions = fill(screen, 4, new ColorDrawable(REACTIONS));
+        View overList = fill(screen, 5, new ColorDrawable(REACTIONS));
         AmoledBlack.comments(screen);
         assertEquals(Color.BLACK, ((ColorDrawable) reactions.getBackground()).getColor());
+        assertEquals("the header over the list", Color.BLACK, ((ColorDrawable) overList.getBackground()).getColor());
         Settings.BLACK_COMMENTS.save(false);
         screen.layout(0, 0, 320, 480);
         assertEquals(REACTIONS, ((ColorDrawable) reactions.getBackground()).getColor());
+        assertEquals(REACTIONS, ((ColorDrawable) overList.getBackground()).getColor());
         Settings.BLACK_PIN_MENU.save(true);
         FrameLayout menu = sheet(true, "modal_header", "modal_container", "unused", "comment_reaction_header");
         View inMenu = fill(menu, 4, new ColorDrawable(REACTIONS));

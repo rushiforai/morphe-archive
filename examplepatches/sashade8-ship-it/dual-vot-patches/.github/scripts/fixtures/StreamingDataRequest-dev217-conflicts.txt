@@ -1,0 +1,36 @@
+<<<<<<< HEAD
+    public record StreamData(
+            byte[] streamingData,
+            @Nullable byte[] playerConfig,
+            boolean hasAndroidMedia,
+            boolean usesSabr,
+            String clientUserAgent
+    ) {
+=======
+    /**
+     * @param client Client the streams are of.
+     */
+    public record StreamData(byte[] streamingData, @Nullable byte[] playerConfig, boolean hasAndroidMedia,
+                             ClientType client) {
+>>>>>>> v2.1.0-dev.7
+
+<<<<<<< HEAD
+            return new StreamData(
+                    streamingDataBuffer,
+                    playerConfigBuffer,
+                    hasAndroidMedia,
+                    clientType.requireSABR,
+                    clientType.userAgent);
+=======
+            return new StreamData(streamingDataBuffer, playerConfigBuffer, hasAndroidMedia, clientType);
+>>>>>>> v2.1.0-dev.7
+
+<<<<<<< HEAD
+                // Stats for nerds describes playback, not a direct/download request.
+                if (!isDownload && !directStreamsOnly) {
+                    lastSpoofedClientType = clientType;
+=======
+                // Stats for nerds and the SABR choice describe what is playing,
+                // so the client is set when the streams are given to the player, and not here.
+                if (!isDownload) {
+>>>>>>> v2.1.0-dev.7

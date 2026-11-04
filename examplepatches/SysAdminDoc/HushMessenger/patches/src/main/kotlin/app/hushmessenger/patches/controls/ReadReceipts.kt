@@ -190,20 +190,22 @@ internal class ReplyReadShape(
     val sizes: Set<Int>, val composer: Int, val session: Int, val nullThread: Int, val absent: Int, val dispatch: Int,
     /** The register the composer copy lives in, and how many instructions before the dispatch the thread is staged into v12. */
     val composerReg: Int = 20, val stage: Int = 2,
+    /** The frame size, and the register the dispatch's first String is copied into v15 from once between staging and dispatch. */
+    val registers: Int = 36, val stringReg: Int = 18,
 )
 
 /**
- * Messenger 585's dispatcher, 397 instructions on arm64 and 393 on the 32-bit builds, with the seam at the same indices
- * in both. The composer is copied to v19 and the staging sits four before the dispatch.
+ * Messenger 586's arm64 dispatcher, 397 instructions in a 36-register frame. The composer is copied to v20, the staging
+ * sits four before the dispatch and the dispatch's first String comes to v15 from v18.
  */
-internal val REPLY_READ_SHAPE = ReplyReadShape(sizes = setOf(393, 397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 233, composerReg = 19, stage = 4)
+internal val REPLY_READ_SHAPE = ReplyReadShape(sizes = setOf(397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
 
-/** The exact 585 staging seam. The thread survives in v12 until the account is staged there for dispatch. */
+/** The exact 586 staging seam. The thread survives in v12 until the account is staged there for dispatch. */
 internal fun MutableMethod.validateReplyRead(): Int {
-    readRequire(isReplyReadDispatch() && implementation!!.registerCount == 35)
+    val shape = REPLY_READ_SHAPE
+    readRequire(isReplyReadDispatch() && implementation!!.registerCount == shape.registers)
     val flow = ReadFlow(this)
     val c = flow.code
-    val shape = REPLY_READ_SHAPE
     readRequire(c.size in shape.sizes)
     val d = shape.dispatch
     val s = d - shape.stage
@@ -228,7 +230,8 @@ internal fun MutableMethod.validateReplyRead(): Int {
     readRequire(c.indices.none { i -> i != n + 1 && flow.successors(i).contains(absent) } && jumpTargets().none { it in n..n + 3 } &&
         !flow.reaches(0, absent, setOf(n)))
     readRequire(move(s - 1, 11, cr, Opcode.MOVE_OBJECT_FROM16))
-    readRequire(move(s, 12, 10, Opcode.MOVE_OBJECT) && (s + 1 until d).count { move(it, 15, 0, Opcode.MOVE_OBJECT) } == 1)
+    val stringMove = if (shape.stringReg < 16) Opcode.MOVE_OBJECT else Opcode.MOVE_OBJECT_FROM16
+    readRequire(move(s, 12, 10, Opcode.MOVE_OBJECT) && (s + 1 until d).count { move(it, 15, shape.stringReg, stringMove) } == 1)
     val dispatch = c[d].readRef() as? MethodReference
     readRequire(c[d].opcode == Opcode.INVOKE_INTERFACE_RANGE && c[d].readArgs() == (11..16).toList() &&
         dispatch?.definingClass == parameterTypes[4].toString() && dispatch.returnType == "V" && dispatch.parameterTypes.size == 5 &&

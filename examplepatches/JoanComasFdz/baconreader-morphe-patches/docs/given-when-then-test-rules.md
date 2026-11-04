@@ -34,6 +34,10 @@ The first worked example is
 2. **Layout is a Gherkin too**, checked from where views are on the screen: two views don't overlap, a button sits at a
    row's end, a text isn't cut off. "Looks right", colours and spacing are never a Gherkin: nothing checks them but an
    eye, the reviewer's, on the scenarios' GIFs in the PR's e2e post.
+   - **The one exception: whether a patch draws something at all**, where no view of its own shows it and a setting
+     turns it on or off ("Avatar background" draws a disc behind avatars, which are drawn inside a comment's author
+     line). The check reads a screenshot in the one spot the screen's tree locates, and only tells drawn from plain
+     background, never which colour: `the comment "Without an avatar" shows a faint disc before the name`.
 3. **Not yet:** what the phone can't reach (a second device, a real camera). Such a criterion stays a plain line,
    checked by hand on a phone, and says why.
 

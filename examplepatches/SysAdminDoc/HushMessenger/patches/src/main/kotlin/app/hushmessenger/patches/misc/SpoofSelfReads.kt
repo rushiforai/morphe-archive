@@ -1,9 +1,5 @@
 package app.hushmessenger.patches.misc
 
-import app.hushmessenger.patches.controls.ControlProfile
-import app.hushmessenger.patches.controls.PROFILE_347014974
-import app.hushmessenger.patches.controls.PROFILE_347014990
-import app.hushmessenger.patches.controls.activeProfile
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -35,18 +31,12 @@ private val PACKAGE_LOOKUPS = setOf(
 )
 
 /**
- * Messenger's reads of its own version code in the arm64 builds, 17 in 585: AppComponentManager's check (which logs
+ * Messenger's reads of its own version code, 17 in 586: AppComponentManager's check (which logs
  * a mismatch with the APK's own code), its service, ACRA's crash-time data, Profilo's trace end, the int helper, Mapbox's
  * two identifiers, the Hatch bug report's app_version, ML Kit's Clearcut logger, Play Billing's proxy activity and its
  * request params, and six more. A different count means the build changed, and nothing is rewritten.
  */
 internal const val SELF_VERSION_READS = 17
-
-/** The armv7 builds keep ACRA's pre-Android 9 branch, so their crash-time data reads both getLongVersionCode and versionCode. */
-internal const val ARMV7_SELF_VERSION_READS = 18
-
-internal fun selfVersionReadsFor(profile: ControlProfile) =
-    if (profile === PROFILE_347014974 || profile === PROFILE_347014990) ARMV7_SELF_VERSION_READS else SELF_VERSION_READS
 
 private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
 
@@ -176,8 +166,7 @@ internal val spoofSelfReadsPatch = bytecodePatch(description = "Answer Messenger
     execute {
         val methods = mutableListOf<Method>()
         classDefForEach { methods.addAll(it.methods) }
-        // settingsExtension picked the build's profile before this runs.
-        val targets = planSelfVersionReads(methods, selfVersionReadsFor(activeProfile)).map { id ->
+        val targets = planSelfVersionReads(methods).map { id ->
             mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id }
         }
         targets.forEach { it.answerOwnVersionReads() }

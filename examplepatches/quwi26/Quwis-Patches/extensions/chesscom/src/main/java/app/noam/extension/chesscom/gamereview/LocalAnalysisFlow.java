@@ -201,8 +201,27 @@ final class LocalAnalysisFlow {
                 Object csrmm = moves.get(i);
                 fens[i + 1] = extractFen(getPositionAfter(csrmm));
             }
+            // 4.10.23 renamed the raw-move-to-string converter to a(history entry). Read the
+            // parser's own history and let the app name each move exactly as it does, so a
+            // castling move stays e1g1: the raw move accessor the old converter needed is gone.
+            try {
+                Object finalPosition = gameObj.getClass().getField("c").get(gameObj);
+                Object history = finalPosition == null
+                    ? null
+                    : finalPosition.getClass().getField("c").get(finalPosition);
+                if (history instanceof List && ((List<?>) history).size() == totalMoves) {
+                    Method lanMethod = Class.forName("com.chess.chessboard.compengine.MoveConverterKt")
+                        .getMethod("a", Class.forName("com.chess.chessboard.history.f"));
+                    for (int i = 0; i < totalMoves; i++) {
+                        playedLans[i] = (String) lanMethod.invoke(null, ((List<?>) history).get(i));
+                    }
+                }
+            } catch (Throwable ignored) {
+                // 4.10.18 keeps the old converter below.
+            }
             if (moveConvertMethod != null) {
                 for (int i = 0; i < totalMoves; i++) {
+                    if (playedLans[i] != null) continue;
                     Object csrmm = moves.get(i);
                     try {
                         Method getRawMoveMethod;
@@ -250,6 +269,20 @@ final class LocalAnalysisFlow {
                 if (fens[i + 1] != null && !BoardUtil.placement(next).equals(BoardUtil.placement(fens[i + 1]))) {
                     historyUsable = false;
                     boards[i + 1] = BoardUtil.parseBoard(fens[i + 1]);
+                }
+            }
+            // chess.com's review replays the played move from its LAN, and 4.10.23's converter
+            // only accepts the king's destination (e1g1), never king-takes-rook (e1h1).
+            for (int i = 0; i < totalMoves; i++) {
+                char[] before = boards[i] != null ? boards[i]
+                    : fens[i] != null ? BoardUtil.parseBoard(fens[i]) : null;
+                if (playedLans[i] != null && before != null) {
+                    playedLans[i] = BoardUtil.normalizeCastling(before, playedLans[i]);
+                }
+                // A move the app cannot replay makes its review crash with a bare NPE, so stop
+                // with our own error screen instead.
+                if (playedLans[i] == null) {
+                    throw new IOException("This game's moves could not be read");
                 }
             }
 

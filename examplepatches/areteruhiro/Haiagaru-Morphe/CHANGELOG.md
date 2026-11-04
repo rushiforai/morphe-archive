@@ -1,3 +1,246 @@
+# Haiagaru 1.22.1
+
+## 今回の修正
+
+- 「このレスに一致する共有NGを除外」を「共有NG条件確認」に改名し、レスのツールバー設定へ追加しました。表示・非表示と並び順を設定できます。
+- 共有NGの除外画面で、タップしてもチェックが入らない問題を修正しました。一覧のチェック状態が二重に反転していた処理を修正しています。
+- したらばのトリップ強調で、ChMate内部の名前欄に付く制御文字がトリップに混入し、登録済みルールと一致しない問題を修正しました。既存の強調ルールをそのまま利用できます。
+
+## 確認範囲
+
+実機191で、登録済みルールが有効でも強調されない原因が内部区切り文字であることを確認し、表示上の一時修正試験で強調されることを確認しました。完成パッチは191／226／242の隔離エミュレータで確認しています。今回変更していない本文・画像／GIF／動画の広範な再検証は、既存の利用者指定により省略しています。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* restore shared NG choices and native trip highlighting [skip ci] ([38dd511](https://github.com/areteruhiro/Haiagaru-Morphe/commit/38dd511d4ac51b21df34f868d090a66e44b85a3e))
+
+# Haiagaru 1.22.0
+
+## 今回の追加・修正
+
+- スレタイのメニューに「更新対象に含む」を追加しました。別の板・スレで更新した際にも、登録したスレの新着本文を標準の巡回処理で取得します。お気に入り・通知登録とは別に管理し、Haiagaruバックアップにも保存します。
+- したらばの新着通知に対応しました。スレごとに「自分の書き込みへの返信だけ通知する」「自分への返信を通知したら定期確認を停止する」を選べます。書き込み後に監視へ自動登録する親設定も追加しました（初期OFF）。停止後も次の新しい投稿確認で再開します。
+- 標準の返信通知とHaiagaru通知は、同じスレの同じ新着レスについて先に通知した方を残します。返信先が同じでも、新しく投稿されたレス番号が違えば別の返信として扱います。
+- 242のタブレット表示で「Haiagaru設定」をタップするとセーフモードが表示される経路を修正しました。
+- 共有NGの「チェックした条件を適用しない」に検索を追加しました。レスメニューから、そのレスに一致する共有NGだけを除外する操作も追加しました。検索で隠れた選択や未受信の既存除外設定は保持します。
+- 読書位置の補助保存を背景処理へ移し、スクロール中・非表示のタブレットペインで不要な位置調査を抑えました。
+- 投稿者強調のトリップ前後にある全角空白・制御文字の扱いを修正しました。スレ内検索で本文とは別のヘッダー日時・曜日が黄色く強調される処理も修正しました。本文に書かれた日時は従来どおり検索対象です。
+- Shizukuによる移行パッチと設定入口・関連依存を削除しました。
+
+## 確認範囲
+
+191／226／242の隔離エミュレータで、更新対象の保存と標準ジョブへの受け渡し、通知内容・停止／再開・バックアップ、標準通知との重複抑止を確認しています。242のタブレット設定画面とセーフモードへの遷移も確認しています。検証のための掲示板への書き込みや共有NG送信は行っていません。今回変更していない本文表示・画像／GIF／動画の広範な再検証は利用者の指定により省略しています。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* smooth reading position and exclude search timestamp highlights [skip ci] ([b0d0231](https://github.com/areteruhiro/Haiagaru-Morphe/commit/b0d0231ee8b21207eae2d71449da23a2a2543ec2))
+
+### ✨ New Features
+
+* add cross-board refresh and reply-aware notifications [skip ci] ([a82c0a7](https://github.com/areteruhiro/Haiagaru-Morphe/commit/a82c0a7544a64141e18bba2c67a7ebb62a8d9c2d))
+* exclude matching shared NG conditions from response menus [skip ci] ([b37b4c7](https://github.com/areteruhiro/Haiagaru-Morphe/commit/b37b4c74ebe0ecfc4a259294b13b4dc7ad30712b))
+* search received shared NG exception conditions [skip ci] ([4e05d85](https://github.com/areteruhiro/Haiagaru-Morphe/commit/4e05d85f11ad01b1bef4fea928c0756fee46b454))
+
+# Haiagaru 1.21.1
+
+## 今回の修正
+
+- ワッチョイ上下4桁のNG追加画面では、登録済みの条件がある場合だけ「登録済みNGの操作（削除・有効／無効）」ボタンを追加するようにしました。未登録時にはボタンを作成・追加しません。
+- 入力文字列・対象板・一致方式を変更して登録済み条件に一致しなくなった場合も、ボタンを取り除きます。再び一致すると追加します。
+- 標準NG登録画面は、従来どおり登録済み条件がある場合だけ操作メニューを表示します。
+
+## 確認範囲
+
+191／226／242の隔離エミュレータで、登録済み／未登録の表示、入力変更によるボタンの追加・除去、既存の削除・有効／無効操作を確認しています。今回変更していない本文表示・画像／GIF／動画の再検証は利用者の指定により省略しています。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* only add NG action button for registered conditions [skip ci] ([34e6fcd](https://github.com/areteruhiro/Haiagaru-Morphe/commit/34e6fcd855d264c2c26121f949226404becec79b))
+
+# Haiagaru 1.21.0
+
+## 今回の変更
+
+- 登録済みNGを開いたときに、削除・有効化・無効化・登録画面に戻る操作を選べるようにしました。ChMate標準のNG登録画面と、Haiagaruのワッチョイ上下4桁の追加画面に対応します。削除は確認後に実行し、有効／無効の切り替えでは条件・対象板・連鎖・非表示・登録日時を保持します。
+- Haiagaruバックアップの設定保存に、登録スレの新着通知（対象スレ・前回確認したレス数・確認間隔）、ローカル／MEGAのバックアップ選択項目、ローカル自動バックアップのON／OFFと保存先を追加しました。復元時は通知の確認処理も設定し直します。通知権限と保存先フォルダのAndroidアクセス許可は引き継げないため、再インストール後は必要に応じて許可してください。保存先が未許可の場合は設定を保持して「アクセス許可待ち」と表示します。
+- 異なるバックアップを続けて通常復元した際、後のバックアップにないHaiagaruの画面設定が残る点を修正しました。未収録の対象設定を初期値に戻し、設定が意図せず有効なまま残ることを防ぎます。
+- 「Change ChMate package name」のversionCode最大化の初期値・上限を、Androidの符号付き整数の最大値2147483647に変更しました。既に明示指定している値と、ChMate本来のバージョン名は維持します。
+- 画像取得専用VPNの同梱ライブラリからローカルのビルドパス情報を除きました。この版でVPNを選ぶ場合は、このReleaseの追加ZIPをご利用ください。
+
+## 確認範囲と制約
+
+191／226／242の隔離エミュレータで、登録済みNGの画面操作とネイティブ保存処理を確認しています。通知・バックアップ設定のZIP往復と設定復元は191／242で確認しました。再インストール時の権限待ちは設定のない状態で検証し、アプリのアンインストールや利用者データの消去は行っていません。
+
+復元後の遅延報告については設定の残留を修正しましたが、報告と同じ大きな遅延の再現には至っていません。今回変更していない本文表示・画像／GIF／動画の再検証は利用者の指定により省略しています。
+
+古いバックアップに記録されていないON／OFF・保存先・通知登録は復元できません。Androidの省電力・通信・実行回数の制限で通知や自動バックアップが遅れる場合があります。
+
+共有NG／F9対策とエッヂの公開レベルNGは開発中です。エッヂ認証日の記録・共有は含みません。
+
+## 追加ファイルについて
+
+Image NG・画像取得専用VPNをパッチ時に選ぶ場合は、**追加ファイルのダウンロードが必要です**。このページのAssetsから取得してください。
+
+- Image NG：`haiagaru-image-ng.zip`
+- 画像取得専用VPN：`haiagaru-image-vpn-v2.zip`
+
+それぞれZIPを展開せず、そのままMorpheのファイル選択で指定してください。これらのパッチを使わない場合、追加ファイルは不要です。
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+### 🐛 Bug Fixes
+
+* preserve portable backup settings and omit local build metadata [skip ci] ([de68f94](https://github.com/areteruhiro/Haiagaru-Morphe/commit/de68f94dded5cdb205a74ed9a790e757d05fe037))
+* reset absent Haiagaru UI settings during full backup restore [skip ci] ([c0184e3](https://github.com/areteruhiro/Haiagaru-Morphe/commit/c0184e3adcdb0486fd0790835e71f38e9fa4f11d))
+* use signed integer maximum for ChMate version code [skip ci] ([6150cbb](https://github.com/areteruhiro/Haiagaru-Morphe/commit/6150cbbb9b7e1fc135db42df81080b19cff73048))
+
+### ✨ New Features
+
+* manage existing NG rules from both registration dialogs [skip ci] ([6b013b0](https://github.com/areteruhiro/Haiagaru-Morphe/commit/6b013b0ac09462c2bb54a50a19fa0d3bee4a4b26))
+
 # Haiagaru 1.20.2
 
 ## 今回の修正

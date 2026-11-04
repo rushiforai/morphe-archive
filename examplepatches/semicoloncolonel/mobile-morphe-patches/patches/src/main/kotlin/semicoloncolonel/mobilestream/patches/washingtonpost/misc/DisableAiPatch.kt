@@ -2,6 +2,7 @@ package semicoloncolonel.mobilestream.patches.washingtonpost.misc
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -19,9 +20,12 @@ import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants
 //     Ask The Post question carousel (ATPQuestions). The getters return
 //     false / null, as for an article that has none.
 //
+//   Ask tab — the bottom bar's tab list loses Ask before it is shown.
+//
 // Nothing else in search or articles is changed.
 private const val CONFIG = "Lcom/washingtonpost/android/config/data/datasources/dto/config/"
 private const val ARTICLE = "Lcom/wapo/flagship/features/articles2/models/"
+private const val ASK_TAB_FILTER = "Lsemicoloncolonel/mobilestream/extension/washingtonpost/AskTabFilter;"
 
 internal object Search2ConfigToStringFingerprint : Fingerprint(
     name = "toString",
@@ -61,6 +65,12 @@ internal object ArticleSummaryFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+// The bottom bar's tabs (Home, Ask, Listen, Watch, Games, Search, Print).
+internal object BottomTabsFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("ask", "Ask", "listen", "games", "print"),
+)
+
 internal object ArticleAtpQuestionsFingerprint : Fingerprint(
     definingClass = "${ARTICLE}Article2;",
     returnType = "${ARTICLE}ATPQuestions;",
@@ -70,12 +80,13 @@ internal object ArticleAtpQuestionsFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off the Washington Post phone app's AI features: Ask The Post AI, " +
-        "AI article summaries, and the Ask The Post questions shown on articles. Opt-in / " +
-        "experimental; test on-device.",
+    description = "Turns off the app's AI features: Ask The Post AI and its tab, AI article summaries, and the Ask " +
+        "The Post questions shown on articles. Experimental.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    extendWith("extensions/extension.mpe")
 
     execute {
         Search2ConfigToStringFingerprint.classDef.methods
@@ -109,5 +120,30 @@ val disableAiPatch = bytecodePatch(
                 """.trimIndent(),
             )
         }
+
+        // The bottom bar's view model is the only class that both checks a
+        // tab and takes the list of tabs to show; the list loses Ask.
+        val tab = BottomTabsFingerprint.classDef.type
+        var barType: String? = null
+        classDefForEach { classDef ->
+            if (barType != null) return@classDefForEach
+            val checksTab = classDef.methods.any {
+                it.returnType == "Z" && it.parameterTypes.map(Any::toString) == listOf(tab)
+            }
+            val takesTabs = classDef.methods.any {
+                it.returnType == "V" && it.parameterTypes.map(Any::toString) == listOf("Ljava/util/List;")
+            }
+            if (checksTab && takesTabs) barType = classDef.type
+        }
+        val setTabs = mutableClassDefBy(barType ?: throw PatchException("Bottom bar not found")).methods.first {
+            it.returnType == "V" && it.parameterTypes.map(Any::toString) == listOf("Ljava/util/List;")
+        }
+        setTabs.addInstructions(
+            0,
+            """
+                invoke-static/range { p1 .. p1 }, $ASK_TAB_FILTER->withoutAsk(Ljava/util/List;)Ljava/util/List;
+                move-result-object p1
+            """.trimIndent(),
+        )
     }
 }

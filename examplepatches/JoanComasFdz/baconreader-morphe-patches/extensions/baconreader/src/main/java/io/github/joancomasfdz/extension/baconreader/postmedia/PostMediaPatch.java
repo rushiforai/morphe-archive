@@ -57,6 +57,12 @@ public final class PostMediaPatch {
     private static final int PAGE_LOADING = 0;
     private static final int PAGE_VIDEO = 3;
 
+    /** The Glide target that loads an image into the app's view for long images. */
+    private static final String LARGE_IMAGE_TARGET = "com.onelouder.baconreader.PostMediaHandler$3";
+
+    /** The app's view for long images. */
+    private static final String LARGE_IMAGE_VIEW = "com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView";
+
     /** One overlay per PostMediaHandler. */
     private static final Map<Object, LoadingOverlay> OVERLAYS = new WeakHashMap<>();
     /** HTTP status of the RedGIFs API error being reported on this thread. */
@@ -132,6 +138,14 @@ public final class PostMediaPatch {
         } catch (Exception ex) {
             Logger.printInfo(() -> "onImageLoadFailed failed", ex);
         }
+    }
+
+    /**
+     * Injected at the start of Glide's CustomTarget.onLoadFailed. With "elongated image support", the app loads images
+     * into its view for long images, whose Glide target has no failure handler: the bar shows the failure.
+     */
+    public static void onLargeImageFailed(Object target) {
+        if (target != null && LARGE_IMAGE_TARGET.equals(target.getClass().getName())) onImageLoadFailed(target);
     }
 
     /** Follows the this$ fields of inner classes up to the instance whose class name ends with {@code name}. */
@@ -239,6 +253,13 @@ public final class PostMediaPatch {
      * the page the app shows has content: an image in the photo/GIF view, a playing video,
      * or any other page (web, blocked, error).
      */
+    /** Whether a ViewFlipper's description is one a loading overlay gave it. */
+    private static boolean isLoadingDescription(CharSequence description) {
+        if (description == null) return false;
+        String text = description.toString();
+        return text.startsWith(str("revanced_post_media_loading")) || text.equals(str("revanced_post_media_loading_failed"));
+    }
+
     private static final class LoadingOverlay {
         /** The PostMediaHandler, weakly: its player tells when a video is ready. */
         final java.lang.ref.WeakReference<Object> handler;
@@ -250,6 +271,12 @@ public final class PostMediaPatch {
         boolean attached;
         boolean progressKnown;
         boolean failed;
+        /**
+         * The ViewFlipper's own description, given back when the overlay hides. Views in a ViewOverlay are not in the
+         * accessibility tree: while the overlay shows, the ViewFlipper's description tells its state ("Loading media,
+         * GIF · 80.6 MB", "Media failed to load"), for screen readers and tests.
+         */
+        CharSequence flipperDescription;
         final int accent;
         /** Changes on every show(), so a late size lookup for a previous post is ignored. */
         Object generation = new Object();
@@ -335,6 +362,9 @@ public final class PostMediaPatch {
             GlideUtils.clear(still);
             still.setImageDrawable(null);
             if (!attached) {
+                // Another overlay of the same ViewFlipper may have described it: that isn't its own.
+                CharSequence own = flipper.getContentDescription();
+                flipperDescription = isLoadingDescription(own) ? null : own;
                 flipper.getOverlay().add(root);
                 flipper.addOnLayoutChangeListener(resizer);
                 flipper.getViewTreeObserver().addOnPreDrawListener(watcher);
@@ -357,6 +387,7 @@ public final class PostMediaPatch {
             attached = false;
             flipper.removeCallbacks(ticker);
             flipper.getOverlay().remove(root);
+            if (isLoadingDescription(flipper.getContentDescription())) flipper.setContentDescription(flipperDescription);
             flipper.removeOnLayoutChangeListener(resizer);
             if (flipper.getViewTreeObserver().isAlive()) flipper.getViewTreeObserver().removeOnPreDrawListener(watcher);
             GlideUtils.clear(still);
@@ -377,6 +408,11 @@ public final class PostMediaPatch {
         void setLabel(String text) {
             label.setText(text);
             label.setVisibility(text == null || text.isEmpty() ? View.GONE : View.VISIBLE);
+            flipper.setContentDescription(failed
+                    ? str("revanced_post_media_loading_failed")
+                    : text == null || text.isEmpty()
+                            ? str("revanced_post_media_loading")
+                            : str("revanced_post_media_loading") + ", " + text);
             layoutToFlipper(); // Views in a ViewOverlay are not re-measured when their text changes.
         }
 
@@ -407,7 +443,27 @@ public final class PostMediaPatch {
             if (page == PAGE_LOADING) return false;
             if (page == PAGE_VIDEO) return playerReady();
             if (current instanceof ImageView) return ((ImageView) current).getDrawable() != null;
+            // The view for long images, which the app shows before Glide loads its image.
+            View largeImage = current instanceof ViewGroup ? largeImageView((ViewGroup) current) : null;
+            if (largeImage != null) return hasImage(largeImage);
             return true; // Web page, blocked, error, galleries: nothing to wait for.
+        }
+
+        private View largeImageView(ViewGroup page) {
+            for (int index = 0; index < page.getChildCount(); index++) {
+                View child = page.getChildAt(index);
+                if (LARGE_IMAGE_VIEW.equals(child.getClass().getName())) return child;
+            }
+            return null;
+        }
+
+        private boolean hasImage(View largeImage) {
+            try {
+                return (boolean) largeImage.getClass().getMethod("hasImage").invoke(largeImage);
+            } catch (Exception ex) {
+                Logger.printInfo(() -> "Could not check the long image", ex);
+                return true;
+            }
         }
 
         /** Whether the app's video player has a frame ready (works for videos the app starts itself). */

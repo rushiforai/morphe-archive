@@ -50,6 +50,9 @@
     <string name="revanced_embed_comment_images_download_failed">Could not download image</string>
     <string name="revanced_post_media_redgifs_deleted">This RedGIFs video was deleted</string>
     <string name="revanced_post_media_redgifs_not_found">This RedGIFs video was not found</string>
+    <string name="revanced_post_media_loading">Loading media</string>
+    <string name="revanced_post_media_loading_failed">Media failed to load</string>
+    <string name="revanced_thumbnail_blurred">Blurred thumbnail</string>
     <string name="revanced_baconreader_link_preview_javascript_title">JavaScript in link posts</string>
     <string name="revanced_baconreader_link_preview_javascript_summary_on">All sites run JavaScript, except the blocked ones</string>
     <string name="revanced_baconreader_link_preview_javascript_summary_off">Only the allowed sites run JavaScript</string>
@@ -124,6 +127,7 @@
     <string name="revanced_markdown_rule">Horizontal line</string>
     <string name="revanced_markdown_counter">%1$s / %2$s</string>
     <string name="revanced_markdown_counter_min">%1$s / %2$s (min. %3$s)</string>
+    <string name="revanced_markdown_counter_description">Character count</string>
     <string name="revanced_markdown_counter_not_allowed">No text in r/%s</string>
     <string name="revanced_comment_search_hint">Search comments</string>
     <string name="revanced_comment_search_all">SEARCH ALL</string>

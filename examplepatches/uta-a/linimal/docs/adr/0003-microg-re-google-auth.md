@@ -32,6 +32,19 @@ MicroG-RE（`app.revanced.android.gms`、microG GmsCore の fork）は、呼び�
 6. 設定 ON で MicroG-RE が未導入のまま token が要求されたら、導入の案内を 10 分に 1 回まで出す。案内は通知とトーストの両方とする。新規インストール直後の復元では通知が許可されていないことが多いためである。通知のタップ先は MicroG-RE のリリースページ（固定 URL）とする。GoogleAuthServiceClient の判定は別のフラグとの `&&` の後ろにあり呼ばれないことがあるため、案内は判定と `GetToken` の bind の両方の hook から出す。
 7. fingerprint が一意に定まらない、差し替える register を確認できない、manifest の形が想定と違う場合は変更せず、ERROR / TARGET_NOT_FOUND を記録する。定数が未設定なら DISABLED を記録する。
 
+### 変更（2026-11-03）
+
+アカウントの選択も MicroG-RE で行う。決定 3 の「`GetToken` の bind 先だけ」を改め、`CHOOSE_ACCOUNT` の選択画面を
+MicroG-RE（action `app.revanced.android.gms.common.account.CHOOSE_ACCOUNT`、アカウント種別 `app.revanced`）に向け、
+選んだ名前からは端末本体のアカウントを探さずに `Account(name, "com.google")` を作る。
+MicroG-RE に実在するかは確かめない。アカウントの可視性はアカウントごとに決まり、LINE から見える一覧では判定できないためである。
+以前に端末本体のアカウントで設定した自動バックアップなど、MicroG-RE に無い名前は NetworkError で失敗し、選び直しが要る。
+
+MicroG-RE は token を要求されたアカウントを名前だけで探し、見つからなければ `NetworkError` を返す
+（`AuthManagerServiceImpl.getTokenWithAccount`）。端末本体の Google Play services で選んだアカウントが MicroG-RE に無いと、
+LINE ではネットワークエラーのように見えて失敗する。Issue #12 の報告を受けた変更で、
+`andrewliang25/morphe-patches` も同じく選択画面を MicroG-RE へ向けている。端末本体に Google アカウントが無い端末でも選べる。
+
 ## 結果
 
 - MicroG-RE を導入し、MicroG-RE に Google アカウントを追加した利用者は、再署名版でも Google ドライブへのバックアップと復元ができる（下記の PoC で確認）。

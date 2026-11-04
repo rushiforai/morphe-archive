@@ -253,8 +253,8 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         modifier = Modifier.fillMaxWidth().combinedClickable(enabled = selectable,
                             onClick = {
-                                if (view.choiceMode != ListView.CHOICE_MODE_NONE)
-                                    view.setItemChecked(index, if (view.choiceMode == ListView.CHOICE_MODE_SINGLE) true else !view.isItemChecked(index))
+                                // ListView.performItemClick updates its choice state before dispatching
+                                // the listener. Toggling here as well would undo multiple-choice taps.
                                 view.performItemClick(row, index, adapter.getItemId(index)); changed()
                             },
                             onLongClick = { view.onItemLongClickListener?.onItemLongClick(view, row, index, adapter.getItemId(index)); changed() })) {

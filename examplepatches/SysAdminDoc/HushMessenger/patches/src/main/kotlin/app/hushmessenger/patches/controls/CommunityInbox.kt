@@ -261,7 +261,7 @@ internal fun findCommunityInbox(classes: Iterable<ClassDef>): CommunityInboxCont
         communityRequire(n.map { it.opcode } == listOf(Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
             Opcode.CONST_4, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN) && n.branchTarget(0) == 6 && n.branchTarget(3) == 6 &&
             nullable.implementation!!.registerCount == 1 && n[1].communityArgs() == listOf(0) && n[4].communityLiteral(0, 1) && n[6].communityLiteral(0, 0))
-        // 585 splits the community check: the key's own channel test first, then the announcement type compared inline.
+        // The community check is split: the key's own channel test first, then the announcement type compared inline.
         fun TwoRegisterInstruction.reads(a: Int, b: Int) = registerA == a && registerB == b
         val channelCall = a.firstOrNull()?.communityRef() as? MethodReference ?: throw CommunityChanged()
         communityRequire(a.map { it.opcode } == listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.IGET_OBJECT,
@@ -301,8 +301,9 @@ internal fun Method.communityReadSite(scope: String): Int {
     val c = communityCode()
     val listField = "$definingClass->\$inboxUnitItems:$IMMUTABLE_LIST"
     val reads = c.indices.filter { c[it].opcode == Opcode.IGET_OBJECT && c[it].communityRef().toString() == listField }
-    // The second read follows a session-gated block before the search bar, at 63.
-    communityRequire(reads.size == 2 && reads.first() == 5 && reads.last() == 63)
+    // The second read follows a session-gated block before the search bar, at 60, with the search icon flag asked
+    // through a getter.
+    communityRequire(reads.size == 2 && reads.first() == 5 && reads.last() == 60)
     val at = reads.last()
     // The list goes into v1, and the sink takes an $onThreadInViewport after the list, moved into place after the alias.
     val list = (c[at] as? TwoRegisterInstruction)?.takeIf { it.registerA == 1 && it.registerB == 4 }?.registerA ?: throw CommunityChanged()

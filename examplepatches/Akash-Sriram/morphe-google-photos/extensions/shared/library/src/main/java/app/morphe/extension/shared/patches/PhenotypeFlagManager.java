@@ -1059,7 +1059,10 @@ public final class PhenotypeFlagManager {
     private static volatile int sInternalStringResId = 0x7f14210f;
 
     public static String resolveSettingsString(int resId) {
-        if (resId != 0 && (resId == sInternalStringResId || resId == 0x7f14210f)) {
+        if (resId <= 0) {
+            return "";
+        }
+        if (resId == sInternalStringResId || resId == 0x7f14210f) {
             return "Morphe";
         }
         return null;

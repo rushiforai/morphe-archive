@@ -1,76 +1,88 @@
-# 🛍️ Menzac Patches — Alza Hlídač shopů (CZ / SK)
+# 🛍️ Menzac Patches — Alza Enhancements (CZ / SK)
 
 [![Latest Release](https://img.shields.io/github/v/release/mmenzyns/morphe-patches?color=00A651&logo=github&label=Release)](https://github.com/mmenzyns/morphe-patches/releases)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![Compatible App](https://img.shields.io/badge/App-Alza.cz%20%2F%20Alza.sk-00A651.svg)](https://play.google.com/store/apps/details?id=cz.alza.eshop)
-[![Powered by](https://img.shields.io/badge/Powered%20by-Hlídač%20shopů-FF5E00.svg)](https://www.hlidacshopu.cz/)
+[![Powered by](https://img.shields.io/badge/Powered%20by-Hlídač%20shopů%20%26%20FxAlza-FF5E00.svg)](https://www.hlidacshopu.cz/)
 
-Custom [Morphe](https://github.com/MorpheApp) patch bundle providing native, hardware-accelerated price history charts and real discount tracking from [Hlídač shopů](https://www.hlidacshopu.cz/) inside the official **Alza** Android app (`cz.alza.eshop`).
+Custom [Morphe](https://github.com/MorpheApp) patch bundle for the official **Alza** Android app (`cz.alza.eshop`), providing price history charts from [Hlídač shopů](https://www.hlidacshopu.cz/), an instant comparator for loyalty benefit prices (Gold, Silver, ISIC, B2B), and enhanced smart link sharing with [fxalza.cz](https://fxalza.cz/).
 
 Supports both **Czech Republic** (`alza.cz`, CZK) and **Slovakia** (`alza.sk`, EUR).
 
 ---
 
-## ❓ About
+## 📦 Features & Included Patches
 
-E-shops often advertise discounts that are calculated from artificial, inflated prices. **Hlídač shopů** (Shop Watcher) is an independent non-profit consumer transparency project developed by TopMonks, Apify, and Keboola that monitors long-term historical prices across Czech and Slovak e-commerce sites.
-
-This patch bundle seamlessly integrates Hlídač shopů directly into Alza's native Jetpack Compose user interface, allowing shoppers to verify real discounts before buying without ever having to leave the app.
+### 1. 📈 Alza Hlídač shopů Price History (CZ / SK)
+- **Nativní graf historie cen (Hlídač shopů)**: Přímo do detailu produktu vkládá hardwarově akcelerovaný interaktivní graf vývoje cen za posledních 365 dní.
+- **Výpočet reálné slevy (EU Omnibus směrnice)**: Odhaluje uměle navýšené původní ceny a počítá skutečnou slevu z nejnižší ceny za posledních 30 dní před akcí.
+- **3 režimy zobrazení v nastavení**:
+  - **Vypnuto**: Graf je zcela skryt a zobrazuje se původní rozvržení Alzy.
+  - **Velký**: Velký interaktivní graf pod cenovkou s možností sbalení.
+  - **Kompaktní**: Nahrazuje nabídku splátek (HomeCredit) elegantním mini-grafem přímo vedle cenovky s přesným lícováním.
 
 ---
 
-## ✨ Features
+### 2. 🏷️ Alza Benefit Prices (CZ / SK)
+- **Srovnávač věrnostních a partnerských ceníků**: Přímo v detailu produktu zobrazuje tlačítko s cenovým štítkem (např. *GOLD: 3 199 Kč* nebo *Stejná cena*) a po kliknutí otevírá dialog s kompletní tabulkou všech úrovní:
+  - **Gold, Silver, ISIC, Bronze, B2B a Basic**.
+- **Chytré seskupování ceníků**: Automaticky sdružuje úrovně se shodnou cenou (např. *Gold + Silver* nebo *OSTATNÍ*) pro maximální přehlednost.
+- **Automatické započítání promo akcí**: Podpora pro **AlzaPlus+**, slevové kupóny, cashback a výkupní bonus s interaktivními přepínači přímo v dialogu.
+- **Jednoklikové kopírování**:
+  - *Kopírovat nabídku*: Zkopíruje kompletní strukturovaný přehled cen všech úrovní s odkazem.
+  - *Kopírovat odkaz*: Zkopíruje čistou URL adresu produktu (případně FxAlza odkaz).
 
-- **📈 Inline Price History Chart (Nativní graf historie cen)**
-  - Seamlessly embedded into Alza's product detail view using native Jetpack Compose `AndroidView`.
-  - Displays up to 365 days of price history, tracking both selling price and former crossed-out price curves.
-  - Interactive: tap on the chart to open the product's full page on `hlidacshopu.cz`.
-  - Can be collapsed into a compact bar or expanded to full view.
-- **🎯 Genuine Discount Calculation (Skutečná sleva dle EU směrnice)**
-  - Calculates real discount percentage according to the EU Omnibus Directive (based on the lowest price in the last 30 days before the discount).
-  - Unmasks fake sales and misleading crossed-out baseline prices.
-- **⚡ Compact Mode (Kompaktní režim)**
-  - Replaces intrusive third-party loan/installment financing (HomeCredit) with a clean, responsive price badge and mini-chart placed directly beside the price tag.
-  - Automatically adapts to different screen sizes and display densities without wrapping awkwardly.
-- **🇨🇿 / 🇸🇰 Czech Republic & Slovakia Support**
-  - Automatically identifies whether the current product is on `alza.cz` (CZK) or `alza.sk` (EUR).
-  - Full localization support for both Czech and Slovak languages.
-- **⚙️ Integrated In-App Settings (Nastavení v aplikaci)**
-  - Manage patch options directly within the Alza app under **Menu → Nastavení a zabezpečení**.
-  - Toggle **Kompaktní režim (Compact Mode)** on or off anytime on the fly without needing to re-patch the APK.
+---
+
+### 3. 🔗 Alza Smart Link Sharing (FxAlza & Clean) (CZ / SK)
+- **Podpora FxAlza odkazů (`fxalza.cz` / `sk.fxalza.cz`)**:
+  - Přepisuje sdílené a kopírované odkazy z `alza.cz` na `fxalza.cz` (resp. `sk.fxalza.cz`), což vytváří nádherné a bohaté náhledy (embedy s fotkou a aktuální cenou) na Discordu, Telegramu, WhatsAppu i dalších sítích.
+- **Odstranění reklamního textu (Čisté odkazy)**:
+  - Automaticky odstraňuje otravné reklamní texty `Odesláno z aplikace Alza: ... A s členstvím AlzaPlus+ ti to doručí zdarma...` při nativním sdílení i kopírování.
+- **Nezávisle konfigurovatelné**: Obě možnosti lze samostatně zapnout nebo vypnout v nastavení aplikace.
+
+---
+
+## ⚙️ In-App Nastavení (Settings)
+
+Všechny funkce lze pohodlně konfigurovat přímo v aplikaci Alza pod kartou **Menu → Nastavení a zabezpečení**:
+- **Přepínač režimu grafu**: Třístavový segmentovaný ovladač (*Vypnuto* / *Velký* / *Kompaktní*).
+- **Tlačítko ceníků Alzy**: Možnost skrýt/zobrazit tlačítko v detailu produktu.
+- **Odkazy přes fxalza.cz**: Přepínač pro aktivaci generování náhledových odkazů.
+- **Čisté odkazy při sdílení**: Přepínač pro odstranění textu „Odesláno z aplikace Alza“.
 
 ---
 
 ## 📲 How to Use
 
-### 1. Add to Morphe Manager
+### 1. Přidání zdroje do Morphe Manageru
 
-Tap the button below on your Android device to add this repository directly into **Morphe Manager**:
+Klepnutím na tlačítko níže na vašem Android zařízení přidáte tento repozitář do **Morphe Manageru**:
 
 <a href="https://morphe.software/add-source?github=mmenzyns/morphe-patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
 </a>
 
-Or manually add the source in **Morphe Manager** (`Settings → Sources → Add Source`):
+Nebo vložte odkaz ručně v **Morphe Manageru** (`Settings → Sources → Add Source`):
 ```
 https://github.com/mmenzyns/morphe-patches
 ```
 
-### 2. Patch the Alza App
+### 2. Aplikace záplat na Alzu
 
-1. In Morphe Manager, select the **Alza** app (`cz.alza.eshop`).
-2. Ensure you have a supported version installed (see list below).
-3. Select the patch **Alza Hlídač shopů Price History (CZ / SK)**.
-4. Tap **Patch** and install the resulting APK.
+1. V Morphe Manageru vyberte aplikaci **Alza** (`cz.alza.eshop`).
+2. Vyberte podporovanou verzi (viz tabulka níže).
+3. Všechny 3 záplaty jsou ve výchozím stavu aktivní (případně si vyberte jen ty, které preferujete).
+4. Klepněte na **Patch** a nainstalujte vytvořené APK.
 
 ---
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.10](https://github.com/mmenzyns/morphe-patches/releases/tag/v1.6.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.8.0](https://github.com/mmenzyns/morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
-<summary>📦 Alza&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Alza&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **Package name:** `cz.alza.eshop`
@@ -82,7 +94,9 @@ https://github.com/mmenzyns/morphe-patches
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Alza Hlídač shopů Price History (CZ / SK)](#alza-hl-da-shop-price-history-cz-sk) | Displays inline price history chart from Hlídač shopů in product detail screen for Czech Republic and Slovakia (alza.cz / alza.sk). Includes compact mode replacing HomeCredit installments and settings in Menu. |  |
+| [Alza Benefit Prices (CZ / SK)](#alza-benefit-prices-cz-sk) | Displays benefit prices and tiers (Gold, Silver, ISIC, Bronze, B2B, Basic) with active promotions and coupons in product detail screen for Czech Republic and Slovakia. |  |
+| [Alza Hlídač shopů Price History (CZ / SK)](#alza-hl-da-shop-price-history-cz-sk) | Displays inline price history chart from Hlídač shopů in product detail screen for Czech Republic and Slovakia (alza.cz / alza.sk). Includes compact/large mode replacing HomeCredit installments and settings in Menu. |  |
+| [Alza Smart Link Sharing (FxAlza & Clean) (CZ / SK)](#alza-smart-link-sharing-fxalza-clean-cz-sk) | Enhances shared and copied Alza product links: enables fxalza.cz (or sk.fxalza.cz) domain for rich embeds on Discord and social media, and removes the 'Odesláno z aplikace Alza' promotional text. Configurable in Menu settings. |  |
 
 </details>
 
@@ -90,32 +104,25 @@ https://github.com/mmenzyns/morphe-patches
 
 ---
 
-## 🛠️ Building locally
+## 🛠️ Lokální sestavení
 
-To compile and package the patch bundle locally:
+Kompilace a vytvoření `.mpp` balíčku:
 
 ```bash
-# Clone the repository
-git clone https://github.com/mmenzyns/morphe-patches.git
-cd morphe-patches
-
-# Build the Android patch bundle (.mpp)
-./gradlew :patches:buildAndroid
+# Sestavení Android patch balíčku (.mpp)
+./gradlew :patches:buildAndroid --no-daemon
 ```
 
-The resulting patch bundle will be located at:
+Výsledný `.mpp` soubor se nachází v:
 ```
 patches/build/libs/patches-*.mpp
 ```
 
-You can test and apply the `.mpp` bundle using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop) or the Morphe CLI.
-
-For more details, visit the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
-
 ---
 
-## 📜 License & Credits
+## 📜 Licence & Zásluhy
 
-- Price history data and methodology provided by [Hlídač shopů](https://www.hlidacshopu.cz/) (licensed under creative/open terms).
-- Patches and extension code developed by [Mark Menzynski](https://github.com/mmenzyns).
-- This project is open-source software licensed under the [GNU General Public License v3.0](LICENSE).
+- Data historie cen a metodika: [Hlídač shopů](https://www.hlidacshopu.cz/) (TopMonks, Apify, Keboola).
+- Služba pro náhledy odkazů: [fxalza.cz](https://fxalza.cz/).
+- Vývoj záplat a rozšiřujícího modulu: [Mark Menzynski](https://github.com/mmenzyns).
+- Licencováno pod [GNU General Public License v3.0](LICENSE).

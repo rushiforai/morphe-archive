@@ -1,0 +1,63 @@
+name: ⭐ Feature request
+description: Suggest a new patch or an improvement to an existing one.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <p align="center"><b>🧩 Loki Patches · Feature request</b></p>
+
+        Got an idea? Great! A few things first:
+
+        - 🔎 **Search first.** Check the [existing feature requests](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Feature+request%22). If your idea is there, add a 👍 to it instead.
+        - 🧭 **Out of scope:** unlocking paid features or content (Premium, subscriptions), and anything that collects other people's data. These requests will be closed.
+
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - LinkedIn
+        - Other app (say which below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of request
+      options:
+        - New patch
+        - Improvement to an existing patch
+        - Settings screen or translations
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should it do?
+      description: Describe the feature. Screenshots, videos, or examples from other apps or patch bundles help a lot.
+      placeholder: Add an option to hide the "Add to your feed" suggestions on the home feed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why is it useful?
+      description: What problem does it solve for you, and how often do you run into it?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the existing feature requests and this is not a duplicate.
+          required: true
+        - label: This request does not unlock paid features or content.
+          required: true

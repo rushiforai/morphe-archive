@@ -20,12 +20,12 @@ import java.security.MessageDigest
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import kotlin.test.*
 
-/** Emoji drawer flag reads in 585, one in each of its six drawer hooks. */
-private const val EMOJI_DRAWER_READS = 6
+/** Emoji drawer flag reads in 586, one in each of its seven drawer hooks. 585 had six. */
+private const val EMOJI_DRAWER_READS = 7
 
-/** [resumeTail] pads onResume after the guarded part: 22 instructions in 585. An older release's two more are refused. */
+/** [resumeTail] pads onResume after the guarded part: 22 instructions in 586. An older release's two more are refused. */
 internal fun screenshotViewerFixture(
-    id: String, quickSize: Int = 446, resumeTail: Int = 22, quickSite: Int = 32, quickRegisters: Int = 40,
+    id: String, quickSize: Int = 446, resumeTail: Int = 22, quickSite: Int = 32, quickRegisters: Int = QUICKSNAP_REGISTERS,
 ): MutableMethod {
     val body: String
     val registers: Int
@@ -101,10 +101,10 @@ internal fun aiStickerCellFixture(
     sourceCount: Int = aiCells.single { it.render == id }.sources,
     superclass: String = aiCells.single { it.render == id }.superclass,
     size: Int = aiCells.single { it.render == id }.size,
-    // An older release's render isn't in aiCells, so it gets 585's arm64 menu label.
+    // An older release's render isn't in aiCells, so it gets the current menu label.
     menu: Int = aiCells.singleOrNull { it.render == id }?.menu ?: GENERATE_MENU_LABEL,
     menuSources: Int = aiCells.singleOrNull { it.render == id }?.menuSources ?: AI_MENU_SOURCES,
-    // The first menu source as 585's Suggested grid loop instead of a bare render, whether it keeps 584's Generate AI
+    // The first menu source as the Suggested grid loop instead of a bare render, whether it keeps 584's Generate AI
     // branch, and what to break in it.
     grid: Boolean = false,
     gridAi: Boolean = false,
@@ -152,7 +152,7 @@ internal fun aiStickerCellFixture(
 }
 
 /**
- * 585's DwT.render as the Suggested grid: a plain iterator loop over the items whose instance-of chain builds the Generate
+ * The Suggested grid's render (E1C in 586): a plain iterator loop over the items whose instance-of chain builds the Generate
  * menu cell straight from its label, the custom cell and the music cell (it jumps into the menu cell's constructor call),
  * then throws on an unknown item. [ai] adds 584's Generate AI branch, whose label jumps into the custom cell's constructor
  * call. [change] breaks one part of that for the refusal tests.
@@ -288,27 +288,33 @@ class NativeMediaControlsTest {
         assertFailsWith<PatchException> { caught.injectScreenshotViewer() }
     }
 
-    @Test fun olderViewerShapesAreRefusedAndTheOtherDialogNameKeepsItsCall() {
+    @Test fun olderViewerShapesAreRefusedAndTheDialogKeepsItsCall() {
         val resume = "$EPHEMERAL_VIEWER->onResume()V"
         assertEquals(listOf(14, 21), screenshotViewerFixture(resume).screenshotViewerSites())
         // Older releases ran onResume two instructions longer.
         assertFailsWith<PatchException> { screenshotViewerFixture(resume, resumeTail = 24).screenshotViewerSites() }
         val mask = screenshotViewerFixture(resume).apply { replaceInstruction(9, "const/16 v1, 0x80") }
         assertFailsWith<PatchException> { mask.screenshotViewerSites() }
-        assertEquals(listOf(9), screenshotViewerFixture("$EPHEMERAL_VIEWER->A1J(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites())
-        assertEquals(listOf(9), screenshotViewerFixture("$EPHEMERAL_VIEWER->A1H(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites())
-        // 584's A1K, A1O and A1I, 583's A1F and 582's A1D overrides, same body, are refused.
-        for (old in listOf("A1K", "A1O", "A1I", "A1F", "A1D")) assertFailsWith<PatchException>(old) {
-            screenshotViewerFixture("$EPHEMERAL_VIEWER->$old(Landroid/os/Bundle;)Landroid/app/Dialog;").screenshotViewerSites()
+        // 586 names it A1K, the name 584 once used.
+        val dialog = screenshotViewerFixture("$EPHEMERAL_VIEWER->$EPHEMERAL_DIALOG(Landroid/os/Bundle;)Landroid/app/Dialog;")
+        assertEquals(listOf(9), dialog.screenshotViewerSites())
+        assertEquals(listOf(9), CompatMirror.screenshotViewerSites(dialog))
+        // 585's A1J and A1H, 584's A1O and A1I, 583's A1F and 582's A1D overrides, same body, are refused.
+        for (old in listOf("A1J", "A1H", "A1O", "A1I", "A1F", "A1D")) {
+            val override = screenshotViewerFixture("$EPHEMERAL_VIEWER->$old(Landroid/os/Bundle;)Landroid/app/Dialog;")
+            assertFailsWith<PatchException>(old) { override.screenshotViewerSites() }
+            assertEquals(emptyList(), CompatMirror.screenshotViewerSites(override), old)
         }
         val quick = "$QUICKSNAP_VIEWER->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"
         // Builds have put the flag anywhere from 29 to 32. The one addFlags call is the site, with the same guarded prefix
-        // ahead of it, in 585's 40-register arm64 frame or 39-register armv7 one. 584's 23-register frame is refused.
-        assertEquals(listOf(30), screenshotViewerFixture(quick, quickSite = 30, quickRegisters = 39).screenshotViewerSites())
-        assertEquals(listOf(30), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, quickSite = 30, quickRegisters = 39)))
-        assertFailsWith<PatchException> { screenshotViewerFixture(quick, quickRegisters = 23).screenshotViewerSites() }
-        assertEquals(emptyList(), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, quickRegisters = 23)))
-        // 585's body has try blocks past the site, which leave it alone. One that covers the guarded prefix is refused.
+        // ahead of it, in 586's 39-register frame. 585's 40-register frame and 584's 23-register one are refused.
+        assertEquals(listOf(30), screenshotViewerFixture(quick, quickSite = 30).screenshotViewerSites())
+        assertEquals(listOf(30), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, quickSite = 30)))
+        for (frame in listOf(40, 23)) {
+            assertFailsWith<PatchException>("$frame") { screenshotViewerFixture(quick, quickRegisters = frame).screenshotViewerSites() }
+            assertEquals(emptyList(), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, quickRegisters = frame)), "$frame")
+        }
+        // 586's body has try blocks past the site, which leave it alone. One that covers the guarded prefix is refused.
         fun quickCaught(from: Int, to: Int) = screenshotViewerFixture(quick).apply {
             implementation!!.addCatch(implementation!!.newLabelForIndex(from), implementation!!.newLabelForIndex(to), implementation!!.newLabelForIndex(40))
         }
@@ -336,21 +342,19 @@ class NativeMediaControlsTest {
             assertEquals(listOf(cell.render), findAiStickerCells(aiStickerCellFixture(cell.render)).map { it.hookId() })
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, sourceCount = cell.sources - 1)).isEmpty())
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, sourceCount = cell.sources + 1)).isEmpty())
-            // An older release's label for the same row: 584's and 582's.
-            assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, label = 0x7f140559)).isEmpty())
-            assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, label = 0x7f14051c)).isEmpty())
+            // An older release's label for the same row (585's, 584's and 582's), or one of 585's Generate menu labels.
+            for (old in listOf(0x7f140560, 0x7f140559, 0x7f14051c))
+                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, label = old)).isEmpty(), old.toString(16))
+            for (old in listOf(0x7f141c2d, 0x7f141c2f))
+                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = old)).isEmpty(), old.toString(16))
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menuSources = cell.menuSources - 1)).isEmpty())
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menuSources = cell.menuSources + 1)).isEmpty())
             // "Generate custom stickers" in the menu label's place: the custom sticker cell isn't the AI menu.
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = 0x7f14128f)).isEmpty())
         }
-        // Every 585 cell offers its AI label from four renders and its Generate menu label from one.
-        assertEquals(listOf(
-            listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL, 1),
-            listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL, 1),
-            listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_ARMV7, 1),
-            listOf(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL_ARMV7, 1),
-        ), aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
+        // 586's cell offers its AI label from four renders and its Generate menu label from one.
+        assertEquals(listOf(listOf(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1)),
+            aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
     }
 
     @Test fun aMenuLabelThatBranchesBeforeTheCellIsNotASource() {
@@ -517,9 +521,9 @@ class NativeMediaControlsTest {
             val grid = method.validateAiStickerGrid()
             assertEquals(4, grid.flag)
             assertEquals("Ljava/util/Iterator;->hasNext()Z", (code[grid.skip] as ReferenceInstruction).reference.toString())
-            val menu = aiCells.single { it.render == activeProfile.hooks.getValue("ai_sticker_cell").single() }.menu
-            // 585 dropped the Generate AI item from the grid; a build that still lists it gets that branch skipped too.
-            assertEquals(listOf(menu) + listOfNotNull(GENERATE_AI_LABEL.takeIf { ai }),
+            val cell = aiCells.single { it.render == activeProfile.hooks.getValue("ai_sticker_cell").single() }
+            // 586 doesn't list the Generate AI item in the grid; a build that still lists it under its own label gets that branch skipped too.
+            assertEquals(listOf(cell.menu) + listOfNotNull(cell.label.takeIf { ai }),
                 grid.sites.map { (code[it] as NarrowLiteralInstruction).narrowLiteral })
             assertGridInjected(method, "fixture", if (ai) 2 else 1)
         }

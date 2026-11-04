@@ -55,10 +55,10 @@ private val crashReportingPatch = resourcePatch {
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Firebase Analytics, which receives your reservation numbers and " +
-        "payment details, the advertising ID, crash and session reporting, and Mapbox usage " +
-        "reports, and keeps your account ID from LaunchDarkly. Booking, permits, and " +
-        "notifications are left alone. Opt-in; test on-device.",
+    description = "Stops Firebase Analytics, which receives your reservation numbers and payment " +
+        "details, the advertising ID, crash and session reporting, and Mapbox usage reports, " +
+        "and keeps your account ID from LaunchDarkly. Booking, permits, and notifications are " +
+        "left alone.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import semicoloncolonel.mobilestream.patches.dealseek.shared.Constants as DealSeek
 import semicoloncolonel.mobilestream.patches.foxone.shared.Constants as FoxOne
+import semicoloncolonel.mobilestream.patches.moviebase.shared.Constants as Moviebase
 import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
 import semicoloncolonel.mobilestream.patches.nfg.shared.Constants as Nfg
 
@@ -47,7 +48,13 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
         "any copy not installed from the Play Store. Client-side only; it does not bypass Play " +
         "Integrity attestation.",
 ) {
-    compatibleWith(FoxOne.COMPATIBILITY, DealSeek.COMPATIBILITY, WhiteHouse.COMPATIBILITY, Nfg.COMPATIBILITY)
+    compatibleWith(
+        FoxOne.COMPATIBILITY,
+        DealSeek.COMPATIBILITY,
+        WhiteHouse.COMPATIBILITY,
+        Nfg.COMPATIBILITY,
+        Moviebase.COMPATIBILITY,
+    )
 
     execute {
         PairipProcessResponseFingerprint.method.apply {

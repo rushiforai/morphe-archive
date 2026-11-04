@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.9.0...v1.10.0) (2026-11-03)
+
+### ✨ New Features
+
+* **musicolet:** release Sync folder playlists ([1eccdfb](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/commit/1eccdfbc548c539cb2250718068bcf22e59e07f5))
+
 ## [1.9.0](https://github.com/Edoardo9708/LegheFC-Morphe-Patches/compare/v1.8.0...v1.9.0) (2026-11-01)
 
 ### ✨ New Features

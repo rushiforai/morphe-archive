@@ -56,6 +56,18 @@ public class ShimmerTitleTest {
         }
     }
 
+    /** Messenger's blues and nothing warmer: no stop in either look leans red, pink or purple the way Instagram's do. */
+    @Test public void everyStopIsOneOfMessengersBlues() {
+        float[] hsv = new float[3];
+        for (int[] stops : new int[][] {ShimmerTitle.DARK, ShimmerTitle.LIGHT})
+            for (int stop : stops) {
+                Color.colorToHSV(stop, hsv);
+                String hex = Integer.toHexString(stop);
+                assertTrue(hex + " is a blue, hue " + hsv[0], hsv[0] >= 185f && hsv[0] <= 240f);
+                assertTrue(hex + " leans blue, not red", Color.blue(stop) - Color.red(stop) > 60);
+            }
+    }
+
     @Test public void aSweepRunsAsTheTitleOpensAndOnceEachPeriod() {
         assertEquals(0f, ShimmerTitle.sweep(0L), 0f);
         assertEquals(0.5f, ShimmerTitle.sweep(ShimmerTitle.SWEEP_MS / 2), 0.001f);
@@ -85,15 +97,14 @@ public class ShimmerTitleTest {
             ShimmerTitle.wear(title, light);
             assertTrue(ShimmerTitle.wears(title));
             assertEquals(Color.WHITE, title.getCurrentTextColor());
-            // A whole drift round on, between sweeps: blue at the start, orange at the end.
+            // A whole drift round on, between sweeps: sky blue at the start, royal blue at the end.
             assertEquals(-1f, ShimmerTitle.sweep(ShimmerTitle.DRIFT_MS), 0f);
             Bitmap still = draw(title, ShimmerTitle.DRIFT_MS);
-            assertTrue(light + " warm letters", anyPixel(still, true));
-            assertTrue(light + " cool letters", anyPixel(still, false));
+            assertTrue(light + " sky to royal letters", hueSpread(still) >= 20f);
             Bitmap later = draw(title, ShimmerTitle.DRIFT_MS + ShimmerTitle.DRIFT_MS / 4);
             assertFalse(light + " the colors moved", still.sameAs(later));
             Bitmap sweeping = draw(title, ShimmerTitle.SWEEP_MS / 2);
-            assertTrue(light + " the sheen pass still shows the gradient", anyPixel(sweeping, true));
+            assertTrue(light + " the sheen pass still shows the gradient", hueSpread(sweeping) >= 10f);
         }
     }
 
@@ -209,15 +220,20 @@ public class ShimmerTitleTest {
     }
 
     /** Whether a solid letter pixel is clearly warm (red over blue) or, for not warm, clearly cool. */
-    private static boolean anyPixel(Bitmap bitmap, boolean warm) {
+    /** How many degrees of hue the solid, colored letters span. The sheen's whites and the soft edges don't count. */
+    private static float hueSpread(Bitmap bitmap) {
+        float low = 360f, high = 0f;
+        float[] hsv = new float[3];
         for (int x = 0; x < bitmap.getWidth(); x++)
             for (int y = 0; y < bitmap.getHeight(); y++) {
                 int pixel = bitmap.getPixel(x, y);
                 if (Color.alpha(pixel) < 250) continue;
-                int lean = Color.red(pixel) - Color.blue(pixel);
-                if (warm ? lean > 60 : lean < -60) return true;
+                Color.colorToHSV(pixel, hsv);
+                if (hsv[1] < 0.4f) continue;
+                low = Math.min(low, hsv[0]);
+                high = Math.max(high, hsv[0]);
             }
-        return false;
+        return high < low ? 0f : high - low;
     }
 
     private static double contrast(int one, int other) {

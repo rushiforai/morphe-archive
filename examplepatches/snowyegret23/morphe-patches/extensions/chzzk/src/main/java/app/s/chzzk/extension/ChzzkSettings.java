@@ -48,6 +48,7 @@ public final class ChzzkSettings {
 
     private ChzzkSettings() {}
 
+
     public static void attach(Activity host) {
         activity = new WeakReference<>(host);
         if (preferences == null) {
@@ -63,6 +64,8 @@ public final class ChzzkSettings {
             }
         }
         updateAudio();
+        LocalFollowing.attach(host);
+        updateFeatures();
         ChatUi.attach(host);
     }
 
@@ -128,8 +131,17 @@ public final class ChzzkSettings {
             preferences.getBoolean("audio_boost", false), preferences.getInt("audio_volume", 100));
     }
 
+    private static void updateFeatures() {
+        if (preferences == null) return;
+        LocalFilter.configure(preferences.getString("blacklist_channels", ""),
+            preferences.getString("blacklist_titles", ""), preferences.getString("blacklist_categories", ""));
+        PlayerDiagnostics.configure(preferences.getBoolean("player_statistics", false),
+            preferences.getInt("playback_profile", 0));
+    }
+
     static void changed() {
         updateAudio();
+        updateFeatures();
         if (revision == null) return;
         try {
             writeRevision.invoke(revision, ++revisionNumber);
@@ -474,6 +486,22 @@ public final class ChzzkSettings {
         final ScrollView scroll;
         Runnable onBack;
         int heightDp = 720;
+        Runnable followingListener;
+
+        private void releaseFollowingListener() {
+            if (followingListener != null) LocalFollowing.removeListener(followingListener);
+            followingListener = null;
+        }
+
+        @Override public void dismiss() {
+            releaseFollowingListener();
+            super.dismiss();
+        }
+
+        @Override public void onDetachedFromWindow() {
+            releaseFollowingListener();
+            super.onDetachedFromWindow();
+        }
 
         Sheet(Activity host, String heading) {
             super(host);
@@ -540,15 +568,13 @@ public final class ChzzkSettings {
             window.setLayout(Math.min(dp(host, 480), width - dp(host, 24)), Math.min(dp(host, heightDp), height - dp(host, 40)));
             window.setDimAmount(0.55f);
             window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-            if (TvSettings.active) {
-                TvSettings.prepareFocus(window.getDecorView());
-                if (android.os.Build.VERSION.SDK_INT >= 33) {
-                    getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                        android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, () -> {
-                            if (onBack != null) onBack.run();
-                            else dismiss();
-                        });
-                }
+            if (TvSettings.active) TvSettings.prepareFocus(window.getDecorView());
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, () -> {
+                        if (onBack != null) onBack.run();
+                        else dismiss();
+                    });
             }
         }
     }
@@ -600,7 +626,7 @@ public final class ChzzkSettings {
             String[] parsed = lines(field.getText().toString());
             preferences.edit().putString(key, String.join("\n", parsed)).apply();
             if ("keywords".equals(key)) keywords = parsed;
-            else blockedUsers = parsed;
+            else if ("blocked_users".equals(key)) blockedUsers = parsed;
             changed();
             sheet.dismiss();
         });
@@ -667,7 +693,7 @@ public final class ChzzkSettings {
             case "hide_donation": case "hide_subscription": case "hide_system": case "hide_prediction":
             case "hide_party": case "hide_shop": case "hide_donation_rank": case "hide_tongpow_rank":
             case "hide_prediction_panel": case "hide_chat_promotions": case "hide_follow_prompt":
-            case "auto_claim": case "keep_history":
+            case "auto_claim": case "keep_history": case "player_statistics":
             case "drag_chat_width": case "device_icons": case "hide_role_badge":
             case "hide_subscription_badge": case "hide_donation_badge": case "hide_activity_badge":
             case "hide_verified_badge": case "hide_channel_badge": case "hide_clip_button":
@@ -688,6 +714,7 @@ public final class ChzzkSettings {
             case "font_scale": case "emoji_scale": case "badge_scale": return new int[] {80, 200};
             case "line_scale": return new int[] {80, 160};
             case "timestamp_format": return new int[] {0, 3};
+            case "playback_profile": return new int[] {0, 2};
             case "audio_compression_strength": return new int[] {0, 2};
             case "audio_volume": return new int[] {100, 300};
             case "live_catch_up_buffer_seconds": return new int[] {1, 10};
@@ -730,7 +757,8 @@ public final class ChzzkSettings {
                         && (number < range[0] || number > range[1])) {
                     throw new IllegalArgumentException(key + ": 설정 범위를 벗어났습니다.");
                 }
-            } else if ("keywords".equals(key) || "blocked_users".equals(key)) {
+            } else if ("keywords".equals(key) || "blocked_users".equals(key)
+                    || "blacklist_channels".equals(key) || "blacklist_titles".equals(key) || "blacklist_categories".equals(key)) {
                 if (!(value instanceof String)) throw new IllegalArgumentException(key + ": 텍스트가 필요합니다.");
                 value = String.join("\n", lines((String) value));
             } else {
@@ -804,8 +832,269 @@ public final class ChzzkSettings {
         navigation(sheet.content, "메시지와 채팅 주변", "원문 표시 · 안내 메시지 · 순위", () -> messagePage(sheet));
         navigation(sheet.content, "플레이어", TvSettings.active ? "되감기 · 실시간 따라잡기 · 시청자 수" : "실시간 따라잡기 · 버튼 표시", () -> playerPage(sheet));
         navigation(sheet.content, "소리", "소리 평준화 · 추가 증폭", () -> audioPage(sheet));
+        navigation(sheet.content, "로컬 팔로잉", "계정과 별도로 저장한 채널", () -> followingPage(sheet));
+        navigation(sheet.content, "팔로잉 추가 알림 설정", "종료 · 제목 · 카테고리 변경", () -> followingNotifications(sheet));
+        navigation(sheet.content, "방송 블랙리스트", "채널 · 제목 · 카테고리 로컬 필터", () -> blacklistPage(sheet));
         navigation(sheet.content, "최근 채팅", "화면에 표시된 대화 다시 보기", () -> showHistory(sheet));
         navigation(sheet.content, "설정 관리", "설정 복사 · 붙여넣기 · 초기화", () -> managePage(sheet));
+    }
+
+    public static void renderFollowingEntry(Object composer) {}
+
+    public static Object followingEntryFactory() {
+        try {
+            Class<?> function = Class.forName("kotlin.jvm.functions.Function1");
+            return Proxy.newProxyInstance(function.getClassLoader(), new Class<?>[] {function}, (proxy, method, args) -> {
+                if ("invoke".equals(method.getName())) {
+                    Context context = (Context) args[0];
+                    LinearLayout row = new LinearLayout(context);
+                    row.setLayoutParams(new android.view.ViewGroup.LayoutParams(TvSettings.active ? dp(context, 120) : -1, -2));
+                    int horizontal = TvSettings.active ? 0 : dp(context, 16);
+                    int vertical = dp(context, TvSettings.active ? 4 : 8);
+                    row.setPadding(horizontal, vertical, horizontal, vertical);
+                    row.setGravity(Gravity.CENTER_VERTICAL);
+                    TextView account = text(context, "팔로잉", 15, TEXT);
+                    if (TvSettings.active) account.setVisibility(View.GONE);
+                    account.setGravity(Gravity.CENTER);
+                    row.addView(account, new LinearLayout.LayoutParams(0, dp(context, 44), 1));
+                    TextView local = text(context, TvSettings.active ? "로컬 팔로잉" : "로컬 팔로잉 ›", 15, TEXT);
+                    local.setGravity(Gravity.CENTER);
+                    GradientDrawable outline = background(context, android.graphics.Color.TRANSPARENT, 12);
+                    outline.setStroke(dp(context, 1), 0xff41464e);
+                    local.setBackground(outline);
+                    local.setContentDescription("로컬 팔로잉 열기");
+                    local.setOnClickListener(view -> {
+                        Activity host = activity.get();
+                        if (host != null && !host.isFinishing()) {
+                            Sheet sheet = new Sheet(host, "로컬 팔로잉");
+                            followingPage(sheet);
+                            sheet.show();
+                        }
+                    });
+                    row.addView(local, new LinearLayout.LayoutParams(0, dp(context, 44), 1));
+                    if (TvSettings.active) TvSettings.prepareFocus(row);
+                    return row;
+                }
+                if ("hashCode".equals(method.getName())) return System.identityHashCode(proxy);
+                if ("equals".equals(method.getName())) return proxy == args[0];
+                return "Local following entry";
+            });
+        } catch (ClassNotFoundException error) {
+            throw new IllegalStateException(error);
+        }
+    }
+
+    private static void followingListener(Sheet sheet) {
+        if (sheet.followingListener != null) return;
+        sheet.followingListener = () -> {
+            if (!sheet.isShowing()) return;
+            String heading = sheet.title.getText().toString();
+            if ("로컬 팔로잉".equals(heading)) {
+                for (int i = 0; i < sheet.content.getChildCount(); i++) {
+                    View child = sheet.content.getChildAt(i);
+                    if (child instanceof EditText && ((EditText) child).length() > 0) return;
+                }
+                int offset = sheet.scroll.getScrollY();
+                followingPage(sheet);
+                sheet.scroll.post(() -> {
+                    if ("로컬 팔로잉".contentEquals(sheet.title.getText())) sheet.scroll.scrollTo(0, offset);
+                });
+            }
+        };
+        LocalFollowing.addListener(sheet.followingListener);
+    }
+
+    private static EditText channelInput(Sheet sheet) {
+        EditText field = input(sheet, "치지직 채널 주소 또는 채널 ID");
+        field.setMinLines(1);
+        field.setMaxLines(1);
+        field.setSingleLine(true);
+        field.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+        field.setOnEditorActionListener((view, action, event) -> {
+            if (action != android.view.inputmethod.EditorInfo.IME_ACTION_DONE) return false;
+            android.view.inputmethod.InputMethodManager keyboard = (android.view.inputmethod.InputMethodManager)
+                sheet.host.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (keyboard != null) keyboard.hideSoftInputFromWindow(field.getWindowToken(), 0);
+            field.clearFocus();
+            return true;
+        });
+        return field;
+    }
+
+    private static void followingPage(Sheet sheet) {
+        LinearLayout content = page(sheet, "로컬 팔로잉");
+        followingListener(sheet);
+        label(content, "치지직 계정 팔로우와 별도로 이 앱에 저장합니다.");
+        LocalFollowing.Channel current = LocalFollowing.current();
+        if (current != null && !LocalFollowing.isFollowing(current.id)) {
+            action(content, "최근 연 채널 추가 · " + current.name, () -> {
+                LocalFollowing.setFollowing(current.id, current.name, current.imageUrl, true);
+                followingPage(sheet);
+            });
+        }
+        EditText field = channelInput(sheet);
+        TextView requestStatus = text(sheet.host, "", 13, MUTED);
+        requestStatus.setVisibility(View.GONE);
+        content.addView(requestStatus, new LinearLayout.LayoutParams(-1, -2));
+        action(content, "채널 추가", () -> {
+            if (!field.isEnabled()) return;
+            String value = field.getText().toString().trim();
+            if (LocalFollowing.parseChannelId(value) == null) { field.setError("채널 주소 또는 ID를 확인하세요"); return; }
+            android.view.inputmethod.InputMethodManager keyboard = (android.view.inputmethod.InputMethodManager)
+                sheet.host.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (keyboard != null) keyboard.hideSoftInputFromWindow(field.getWindowToken(), 0);
+            field.setEnabled(false);
+            requestStatus.setTextColor(MUTED);
+            requestStatus.setText("채널 정보를 확인하는 중입니다.");
+            requestStatus.setVisibility(View.VISIBLE);
+            LocalFollowing.add(value, (channel, error) -> {
+                if (!sheet.isShowing() || !field.isAttachedToWindow()
+                        || !"로컬 팔로잉".contentEquals(sheet.title.getText())) return;
+                field.setEnabled(true);
+                if (error != null) {
+                    field.setError(error);
+                    requestStatus.setTextColor(0xffff9090);
+                    requestStatus.setText(error);
+                } else followingPage(sheet);
+            });
+        });
+        action(content, "방송 상태 새로고침", () -> LocalFollowing.refresh(() -> {
+            if (sheet.isShowing() && "로컬 팔로잉".contentEquals(sheet.title.getText())
+                    && sheet.followingListener != null) sheet.followingListener.run();
+        }));
+        List<LocalFollowing.Channel> channels = LocalFollowing.following();
+        label(content, channels.size() + "개 채널");
+        for (LocalFollowing.Channel channel : channels) {
+            String status = "OPEN".equals(channel.status) ? "● 방송 중" : "CLOSE".equals(channel.status) ? "방송 종료" : "상태 확인 전";
+            navigation(content, channel.name, status + (channel.liveTitle.isEmpty() ? "" : " · " + channel.liveTitle),
+                () -> followingChannel(sheet, channel.id, false));
+        }
+        if (channels.isEmpty()) label(content, "채널 주소를 입력하거나 방송을 연 뒤 현재 채널을 추가하세요.");
+        action(content, "알림 설정", () -> followingNotifications(sheet));
+    }
+
+    private static Switch followingSwitch(LinearLayout content, String title, boolean checked, java.util.function.Consumer<Boolean> action) {
+        Switch control = new Switch(content.getContext());
+        control.setText(title);
+        control.setTextColor(TEXT);
+        control.setTextSize(14);
+        control.setMinHeight(dp(content.getContext(), 54));
+        control.setSwitchPadding(dp(content.getContext(), 18));
+        int[][] states = {new int[] {android.R.attr.state_checked}, new int[0]};
+        control.setThumbTintList(new ColorStateList(states, new int[] {GREEN, 0xffa6abb3}));
+        control.setTrackTintList(new ColorStateList(states, new int[] {0xff196b54, 0xff41464e}));
+        control.setChecked(checked);
+        control.setOnCheckedChangeListener((view, value) -> action.accept(value));
+        content.addView(control, new LinearLayout.LayoutParams(-1, -2));
+        return control;
+    }
+
+    private static void requestFollowingNotifications(Activity host) {
+        if (android.os.Build.VERSION.SDK_INT >= 33 && host.checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            host.requestPermissions(new String[] {"android.permission.POST_NOTIFICATIONS"}, 7314);
+        }
+    }
+
+    private static void followingNotifications(Sheet sheet) {
+        LinearLayout content = page(sheet, "팔로잉 추가 알림 설정");
+        followingListener(sheet);
+        followingSwitch(content, "추가 알림 사용", LocalFollowing.isMonitoringEnabled(), enabled -> {
+            LocalFollowing.setMonitoringEnabled(enabled);
+            if (enabled) requestFollowingNotifications(sheet.host);
+        });
+        label(content, "기본은 모두 꺼짐입니다. 채널별로 필요한 알림만 켜세요. 앱 밖에서는 15분 이상 늦어질 수 있고 절전·네트워크 상태에 따라 누락될 수 있습니다.");
+        android.app.NotificationManager manager = (android.app.NotificationManager) sheet.host.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null && !manager.areNotificationsEnabled()) {
+            label(content, "시스템에서 이 앱의 알림이 꺼져 있습니다.");
+            action(content, "시스템 알림 설정 열기", () -> {
+                try {
+                    sheet.host.startActivity(new android.content.Intent("android.settings.APP_NOTIFICATION_SETTINGS")
+                        .putExtra("android.provider.extra.APP_PACKAGE", sheet.host.getPackageName()));
+                } catch (android.content.ActivityNotFoundException error) {
+                    Toast.makeText(sheet.host, "기기 설정에서 이 앱의 알림을 허용해 주세요.", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        LinkedHashMap<String, LocalFollowing.Channel> available = new LinkedHashMap<>();
+        for (LocalFollowing.Channel channel : LocalFollowing.list()) available.put(channel.id, channel);
+        LocalFollowing.Channel current = LocalFollowing.current();
+        if (current != null) available.put(current.id, current);
+        for (LocalFollowing.Channel channel : available.values()) {
+            navigation(content, channel.name, notificationDescription(channel.events & ~LocalFollowing.START), () -> followingChannel(sheet, channel.id, true));
+        }
+        for (String[] channel : AccountFollowing.list()) {
+            if (available.containsKey(channel[0])) continue;
+            navigation(content, channel[1], "추가 알림 꺼짐", () -> {
+                LocalFollowing.setEvents(channel[0], channel[1], channel[2], 0);
+                followingChannel(sheet, channel[0], true);
+            });
+        }
+        label(content, "계정 팔로잉은 이 앱에서 불러온 채널을 표시합니다. 원하는 채널이 없으면 팔로잉 목록이나 방송을 열어 주세요. 기존 방송 시작 푸시와 별개입니다.");
+        action(content, "로컬 팔로잉 관리", () -> followingPage(sheet));
+    }
+
+    private static String notificationDescription(int events) {
+        if (events == 0) return "추가 알림 꺼짐";
+        ArrayList<String> result = new ArrayList<>();
+        if ((events & LocalFollowing.START) != 0) result.add("시작");
+        if ((events & LocalFollowing.END) != 0) result.add("종료");
+        if ((events & LocalFollowing.TITLE) != 0) result.add("제목");
+        if ((events & LocalFollowing.CATEGORY) != 0) result.add("카테고리");
+        return String.join(" · ", result);
+    }
+
+    private static void followingChannel(Sheet sheet, String id, boolean notifications) {
+        LocalFollowing.Channel channel = LocalFollowing.get(id);
+        if (channel == null) {
+            LocalFollowing.Channel current = LocalFollowing.current();
+            if (current == null || !id.equals(current.id)) { followingPage(sheet); return; }
+            channel = current;
+        }
+        final LocalFollowing.Channel selected = channel;
+        sheet.page(channel.name, () -> { if (notifications) followingNotifications(sheet); else followingPage(sheet); });
+        LinearLayout content = sheet.content;
+        if (!channel.liveTitle.isEmpty()) label(content, channel.liveTitle);
+        action(content, "방송 열기", () -> {
+            android.content.Intent intent = LocalFollowing.channelIntent(sheet.host, id);
+            try { sheet.host.startActivity(intent); sheet.dismiss(); }
+            catch (android.content.ActivityNotFoundException error) { Toast.makeText(sheet.host, "방송을 열 수 없습니다", Toast.LENGTH_SHORT).show(); }
+        });
+        followingSwitch(content, "로컬 팔로잉", channel.following, enabled -> {
+            LocalFollowing.setFollowing(id, selected.name, selected.imageUrl, enabled);
+            followingChannel(sheet, id, notifications);
+            if (TvSettings.active) {
+                View focus = sheet.content.findViewWithTag("s_chzzk_local_following");
+                String heading = sheet.title.getText().toString();
+                if (focus != null) focus.post(() -> {
+                    if (sheet.isShowing() && focus.isAttachedToWindow()
+                            && heading.contentEquals(sheet.title.getText())) focus.requestFocus();
+                });
+            }
+        }).setTag("s_chzzk_local_following");
+        label(content, notifications ? "이 채널의 추가 알림 · 기본 꺼짐" : "이 채널의 알림 · 기본 꺼짐");
+        boolean extraOnly = notifications || !channel.following;
+        String[] labels = extraOnly
+            ? new String[] {"방송 종료", "제목 변경", "카테고리 변경"}
+            : new String[] {"방송 시작", "방송 종료", "제목 변경", "카테고리 변경"};
+        int[] flags = extraOnly
+            ? new int[] {LocalFollowing.END, LocalFollowing.TITLE, LocalFollowing.CATEGORY}
+            : new int[] {LocalFollowing.START, LocalFollowing.END, LocalFollowing.TITLE, LocalFollowing.CATEGORY};
+        for (int i = 0; i < flags.length; i++) {
+            final int flag = flags[i];
+            followingSwitch(content, labels[i], (channel.events & flag) != 0, enabled -> {
+                LocalFollowing.Channel latest = LocalFollowing.get(id);
+                int events = latest == null ? 0 : latest.events;
+                events = enabled ? events | flag : events & ~flag;
+                LocalFollowing.setEvents(id, selected.name, selected.imageUrl, events);
+                if (enabled) requestFollowingNotifications(sheet.host);
+            });
+        }
+        if (!LocalFollowing.isMonitoringEnabled()) label(content, "상위 메뉴에서 ‘추가 알림 사용’을 켜야 알림을 받습니다.");
+        action(content, "목록과 추가 알림에서 제거", () -> {
+            LocalFollowing.remove(id);
+            if (notifications) followingNotifications(sheet); else followingPage(sheet);
+        });
     }
 
     private static LinearLayout page(Sheet sheet, String title) {
@@ -889,8 +1178,60 @@ public final class ChzzkSettings {
         action(content, "숨길 닉네임", () -> editList(sheet.host, "정확히 일치하는 닉네임", "blocked_users"));
     }
 
+    private static void blacklistPage(Sheet sheet) {
+        LinearLayout content = page(sheet, "방송 블랙리스트");
+        label(content, "계정의 차단 목록과 별도로 방송 목록에서 숨깁니다. 저장 후 목록을 새로고침하세요.");
+        navigation(content, "채널 숨기기", "채널 이름 또는 ID가 일치할 때", () -> editList(sheet.host, "숨길 채널 이름 또는 ID", "blacklist_channels"));
+        navigation(content, "제목으로 숨기기", "방송 제목에 단어가 포함될 때", () -> editList(sheet.host, "숨길 방송 제목 단어", "blacklist_titles"));
+        navigation(content, "카테고리로 숨기기", "카테고리 이름에 단어가 포함될 때", () -> editList(sheet.host, "숨길 카테고리", "blacklist_categories"));
+        LocalFollowing.Channel current = LocalFollowing.current();
+        if (current != null) action(content, "최근 연 채널 숨기기 · " + current.name, () -> {
+            String[] rules = lines(preferences.getString("blacklist_channels", ""));
+            for (String rule : rules) {
+                if (rule.equalsIgnoreCase(current.id)) {
+                    Toast.makeText(sheet.host, "이미 숨긴 채널입니다", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            if (rules.length >= 100) {
+                Toast.makeText(sheet.host, "채널은 최대 100개까지 숨길 수 있습니다", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String previous = String.join("\n", rules);
+            preferences.edit().putString("blacklist_channels", previous + (previous.isEmpty() ? "" : "\n")
+                + current.id.toLowerCase(Locale.ROOT)).apply();
+            changed();
+            Toast.makeText(sheet.host, "채널을 방송 목록에서 숨깁니다", Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private static void playbackProfilePage(Sheet sheet) {
+        LinearLayout content = page(sheet, "재생 버퍼 설정");
+        label(content, "다음 방송 재생부터 적용됩니다. 지연 우선은 연결이 불안정할 때 버퍼링이 늘 수 있습니다.");
+        String[] names = {"원본 설정", "지연 우선", "안정성 우선"};
+        for (int i = 0; i < names.length; i++) {
+            final int selected = i;
+            String focusTag = "s_chzzk_playback_profile_" + i;
+            action(content, (number("playback_profile", 0) == i ? "✓ " : "") + names[i], () -> {
+                setNumber("playback_profile", selected);
+                playbackProfilePage(sheet);
+                if (TvSettings.active) {
+                    View focus = sheet.content.findViewWithTag(focusTag);
+                    if (focus != null) focus.post(() -> {
+                        if (sheet.isShowing() && focus.isAttachedToWindow()
+                                && "재생 버퍼 설정".contentEquals(sheet.title.getText())) focus.requestFocus();
+                    });
+                }
+            });
+            content.getChildAt(content.getChildCount() - 1).setTag(focusTag);
+        }
+    }
+
     private static void playerPage(Sheet sheet) {
         LinearLayout content = page(sheet, "플레이어");
+        toggle(content, "재생 통계 표시", "player_statistics", false);
+        label(content, "해상도 · 재생 위치 · 버퍼 · 재생 가능한 라이브 구간 끝까지의 거리를 표시합니다. 계산할 수 없는 값은 —로 표시합니다.");
+        navigation(content, "재생 버퍼 설정", new String[] {"원본 설정", "지연 우선", "안정성 우선"}[number("playback_profile", 0)], () -> playbackProfilePage(sheet));
         navigation(content, "시청자 수 표시", "모서리 위치 · 색 · 크기 · 외곽선 · 투명도", () -> viewerPage(sheet));
         if (TvSettings.active) action(content, "지금 라이브 되감기", () -> TvSettings.seek(false));
         else toggle(content, "라이브 되감기 버튼", "live_rewind", true);

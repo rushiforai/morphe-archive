@@ -21,31 +21,50 @@ final class SettingsUi {
     final Context context;
     /** accent is for text and lines on the page; accentFill is Messenger's blue behind white text, like its own buttons. */
     final int background, surface, text, muted, accent, accentFill, line, outline, selected, warning, warningSurface;
-    final int track, thumb, ripple, infoSurface, infoBorder, selectedText, error, selection;
+    final int track, thumb, ripple, infoSurface, infoBorder, warningBorder, selectedText, error, selection;
+    /** The settings layout's roles by name; each is one of the colors above or its own. */
+    final int dialog, card, hint, heading, switchOff, iconSurface, onAccent;
     final boolean largeText, light;
+    /** The in-call Record button: red while it records (white on it 4.98), else the call screen's dark glass (white 16.1). */
+    static final int RECORDING = 0xffd32f2f, CALL_SCRIM = 0xe6202124;
+    /** The Record button's press, a white wash that shows on the red and on the dark glass alike. */
+    static final int CALL_RIPPLE = 0x40ffffff;
 
+    // Ratios are WCAG contrast, measured against the page, card and dialog (dark: all black; light: page #f0f2f5, card white).
     SettingsUi(Context context, boolean light) {
         this.context = context;
         this.light = light;
         background = light ? 0xfff0f2f5 : 0xff000000;
-        surface = light ? 0xffffffff : 0xff10151d;
-        text = light ? 0xff050505 : 0xfff3f5f9;
-        muted = light ? 0xff65676b : 0xffa6afbe;
+        // Cards and dialogs sit on the page's own black in the dark look, drawn out by their outline.
+        surface = light ? 0xffffffff : 0xff000000;
+        card = surface;
+        dialog = surface;
+        text = light ? 0xff050505 : 0xfff3f5f9; // light 18.2 / 20.4, dark 19.2
+        muted = light ? 0xff65676b : 0xffa6afbe; // light 5.05 / 5.67, dark 9.50
+        hint = light ? 0xff686b71 : 0xff8b95a5; // light 4.76 / 5.35, dark 6.94
         // No one blue reads as text on both the page and under white text, so each job gets its own.
-        accent = light ? 0xff0064e0 : 0xff4599ff;
-        accentFill = 0xff0866ff;
-        line = light ? 0xffdadde1 : 0xff222c3a;
-        outline = light ? 0xff8a8d91 : 0xff5c6878;
+        accent = light ? 0xff0064e0 : 0xff4599ff; // light 4.80 / 5.39, dark 7.25
+        heading = accent;
+        accentFill = 0xff0866ff; // Messenger's launcher blue; white on it 4.82
+        onAccent = 0xffffffff;
+        line = light ? 0xff84878c : 0xff525c6c; // card outlines and dividers: light 3.21 / 3.60, dark 3.11
+        switchOff = light ? 0xff84878c : 0xff6b7584; // light 3.60 on white, dark 4.50; the off thumb on it light 5.65, dark 4.66
+        outline = switchOff;
         selected = accentFill;
-        warning = light ? 0xff785100 : 0xffffcc67;
+        warning = light ? 0xff785100 : 0xffffcc67; // on warningSurface: light 6.19, dark 9.68
         warningSurface = light ? 0xffffefc5 : 0xff352800;
-        track = light ? 0xffd8dadf : 0xff2a3442;
-        thumb = light ? 0xffffffff : 0xffe1e6ef;
-        ripple = light ? 0x220866ff : 0x334599ff;
-        infoSurface = light ? 0xffe7f3ff : 0xff0f1c2e;
+        warningBorder = light ? 0xfff2d58c : 0xff5c4600; // like infoBorder: the surface's edge, drawn a step stronger
+        // A switch that can't be used, on or off: the off track at half strength, so it never reads as on.
+        track = half(switchOff);
+        // HushGram's off thumb: the title color in the light look, since a white one vanishes on the white card.
+        thumb = light ? text : 0xffffffff;
+        // The heading color at 20 percent.
+        ripple = (accent & 0x00ffffff) | 0x33000000;
+        infoSurface = light ? 0xffe7f3ff : 0xff0f1c2e; // the heading color on it: light 4.79, dark 5.92
+        iconSurface = infoSurface;
         infoBorder = light ? 0xffcfe3fb : 0xff1d3350;
-        selectedText = 0xffffffff;
-        error = light ? 0xffb3261e : 0xffffb4ab;
+        selectedText = onAccent;
+        error = light ? 0xffb3261e : 0xffffb4ab; // light 5.83 / 6.54, dark 12.37
         selection = (accent & 0x00ffffff) | 0x55000000;
         largeText = context.getResources().getConfiguration().fontScale > 1.3f ||
             context.getResources().getConfiguration().screenWidthDp < 360 ||
@@ -87,24 +106,52 @@ final class SettingsUi {
 
     TextView heading(String value) {
         // The text is English on every phone, so English capitals: a Turkish phone's own would dot the I.
-        TextView view = text(value.toUpperCase(java.util.Locale.ROOT), 12, muted, true);
-        view.setLetterSpacing(0.07f);
+        TextView view = text(value.toUpperCase(java.util.Locale.ROOT), 12, heading, true);
+        view.setLetterSpacing(0.055f);
         view.setAccessibilityHeading(true);
         return view;
     }
 
-    GradientDrawable shape(int fill, int border, int radius) {
+    GradientDrawable shape(int fill, int border, int radius) { return shape(fill, border, radius, 1); }
+
+    GradientDrawable shape(int fill, int border, int radius, int stroke) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(fill);
         drawable.setCornerRadius(dp(radius));
-        if (border != 0) drawable.setStroke(dp(1), border);
+        if (border != 0) drawable.setStroke(dp(stroke), border);
         return drawable;
+    }
+
+    /** A borderless shape that reports sides and ends as its padding, which a GradientDrawable takes only from XML before Android 10. */
+    GradientDrawable paddedShape(int fill, int radius, int sides, int ends) {
+        GradientDrawable drawable = new GradientDrawable() {
+            @Override public boolean getPadding(android.graphics.Rect padding) {
+                padding.set(sides, ends, sides, ends);
+                return true;
+            }
+        };
+        drawable.setColor(fill);
+        drawable.setCornerRadius(dp(radius));
+        return drawable;
+    }
+
+    /** color at half strength, for a disabled switch. */
+    static int half(int color) { return (color & 0x00ffffff) | ((color >>> 25) << 24); }
+
+    /** color, and 38 percent of it for a disabled row's icon. */
+    static ColorStateList dimmedWhenDisabled(int color) {
+        return new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {(color & 0x00ffffff) | 0x61000000, color});
     }
 
     Drawable interactive(int fill, int border, int radius) { return interactive(fill, border, radius, accent); }
 
-    /** focus colors the ring around a focused control, except on an accent fill, which always gets its own two rings. */
-    Drawable interactive(int fill, int border, int radius, int focus) {
+    Drawable interactive(int fill, int border, int radius, int focus) { return interactive(fill, border, radius, focus, 1); }
+
+    /**
+     * focus colors the ring around a focused control, except on an accent fill, which always gets its own two rings.
+     * A hovered, selected or activated control gets a ring in the same color.
+     */
+    Drawable interactive(int fill, int border, int radius, int focus, int stroke) {
         StateListDrawable states = new StateListDrawable();
         Drawable focused;
         if (fill == accentFill) {
@@ -119,38 +166,108 @@ final class SettingsUi {
             focused = rings;
         } else {
             GradientDrawable ring = shape(fill, focus, radius);
-            ring.setStroke(dp(2), focus);
+            ring.setStroke(dp(Math.max(2, stroke)), focus);
             focused = ring;
         }
-        states.addState(new int[] {-android.R.attr.state_enabled}, shape(fill == accentFill ? track : fill, border == 0 ? 0 : line, radius));
+        // A disabled accent control keeps its blue at 38 percent, like a disabled title.
+        states.addState(new int[] {-android.R.attr.state_enabled},
+            shape(fill == accentFill ? (fill & 0x00ffffff) | 0x61000000 : fill, border == 0 ? 0 : (line & 0x00ffffff) | 0x61000000, radius, stroke));
         states.addState(new int[] {android.R.attr.state_focused}, focused);
-        states.addState(new int[] {android.R.attr.state_hovered}, shape(fill == accentFill ? fill : infoSurface, border, radius));
-        states.addState(new int[] {}, shape(fill, border, radius));
+        for (int state : new int[] {android.R.attr.state_hovered, android.R.attr.state_selected, android.R.attr.state_activated})
+            states.addState(new int[] {state}, fill == accentFill ? shape(fill, border, radius, stroke) : shape(fill, focus, radius, stroke));
+        states.addState(new int[] {}, shape(fill, border, radius, stroke));
         return new RippleDrawable(ColorStateList.valueOf(ripple), states, shape(0xffffffff, 0, radius));
     }
 
+    /**
+     * A choice's background, after HushGram's choice cards: the picked one wears the accent at 13 percent,
+     * an unpicked one stays clear until pressed, and focus or hover rings it in the heading color.
+     */
+    Drawable choice(int radius) {
+        ColorStateList picked = new ColorStateList(new int[][] {{android.R.attr.state_checked}, {}},
+            new int[] {(accent & 0x00ffffff) | 0x22000000, 0});
+        StateListDrawable states = new StateListDrawable();
+        for (int state : new int[] {android.R.attr.state_focused, android.R.attr.state_hovered, android.R.attr.state_selected, android.R.attr.state_activated}) {
+            GradientDrawable ring = shape(0, 0, radius);
+            ring.setColor(picked);
+            ring.setStroke(dp(state == android.R.attr.state_focused ? 2 : 1), heading);
+            states.addState(new int[] {state}, ring);
+        }
+        GradientDrawable plain = shape(0, 0, radius);
+        plain.setColor(picked);
+        states.addState(new int[] {}, plain);
+        return new RippleDrawable(ColorStateList.valueOf(ripple), states, shape(0xffffffff, 0, radius));
+    }
+
+    /**
+     * A row's background with its leading icon, 24 dp in the heading color, start dp in from the row's
+     * start edge, and a chevron end dp in from its end edge when a tap opens something. Both follow
+     * the row's layout direction and dim with it.
+     */
+    LayerDrawable rowParts(Drawable base, String icon, int start, boolean chevron, int end) {
+        Drawable glyph = SettingsIcons.icon(context, icon, heading);
+        LayerDrawable parts = new LayerDrawable(chevron
+            ? new Drawable[] {base, glyph, new Chevron(muted, dp(2))} : new Drawable[] {base, glyph});
+        parts.setLayerGravity(1, Gravity.START | Gravity.CENTER_VERTICAL);
+        parts.setLayerSize(1, dp(24), dp(24));
+        parts.setLayerInsetRelative(1, dp(start), 0, 0, 0);
+        if (chevron) {
+            parts.setLayerGravity(2, Gravity.END | Gravity.CENTER_VERTICAL);
+            parts.setLayerSize(2, dp(16), dp(24));
+            parts.setLayerInsetRelative(2, 0, 0, dp(end), 0);
+        }
+        return parts;
+    }
+
+    /** HushGram's card corner, for every card: the section cards, the cards on the sheets and the restart card. */
+    static final int CARD_RADIUS = 10;
+
+    /** A card's background: the card fill in a 1 dp outline. */
+    GradientDrawable cardShape() { return shape(card, line, CARD_RADIUS); }
+
+    /** [fill] under a 1 dp line along its top, for a bar that sits over content scrolling past it. */
+    Drawable topEdge(int fill) {
+        return new LayerDrawable(new Drawable[] {shape(line, 0, 0), new android.graphics.drawable.InsetDrawable(shape(fill, 0, 0), 0, dp(1), 0, 0)});
+    }
+
+    /** A note in its own box: the info blue, or amber when it warns that something could be lost. */
+    TextView notice(String value, boolean caution) {
+        TextView view = text(value, 13, caution ? warning : muted, false);
+        view.setPadding(dp(12), dp(12), dp(12), dp(12));
+        view.setBackground(caution ? shape(warningSurface, warningBorder, 8) : shape(infoSurface, infoBorder, 8));
+        return view;
+    }
+
+    /** A secondary dialog or page button: the card's fill in a 2 dp outline, with text in the heading color. */
     Button button(String title) {
         Button view = new Button(context);
         view.setText(title);
-        view.setTextSize(14);
+        view.setTextSize(16);
         view.setAllCaps(false);
         view.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        view.setTextColor(new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {muted, accent}));
+        view.setTextColor(new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {muted, heading}));
         view.setMinHeight(dp(48));
         view.setMinimumHeight(dp(48));
-        view.setMinWidth(0);
-        view.setMinimumWidth(0);
+        view.setMinWidth(dp(64));
+        view.setMinimumWidth(dp(64));
         view.setPadding(dp(12), dp(8), dp(12), dp(8));
-        view.setBackground(interactive(surface, accent, 12));
+        view.setBackground(interactive(card, line, 12, heading, 2));
         view.setStateListAnimator(null);
         return view;
     }
 
     Button primaryButton(String title) {
         Button view = button(title);
-        view.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
-        view.setTextColor(new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {muted, selectedText}));
+        view.setTextColor(new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {muted, onAccent}));
         view.setBackground(interactive(accentFill, 0, 12));
+        return view;
+    }
+
+    /** A button that removes something: the secondary button with its text and focus ring in the error color. */
+    Button destructiveButton(String title) {
+        Button view = button(title);
+        view.setTextColor(new ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}}, new int[] {muted, error}));
+        view.setBackground(interactive(card, line, 12, error, 2));
         return view;
     }
 
@@ -158,16 +275,16 @@ final class SettingsUi {
         EditText view = new EditText(context);
         view.setId(View.generateViewId());
         view.setHint(hint);
-        view.setTextSize(15);
+        view.setTextSize(16);
         view.setSingleLine(singleLine);
         view.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         view.setFilters(new android.text.InputFilter[] {new android.text.InputFilter.LengthFilter(limit)});
         view.setTextColor(text);
-        view.setHintTextColor(muted);
+        view.setHintTextColor(this.hint);
         view.setHighlightColor(selection);
         view.setMinHeight(dp(48));
         view.setPadding(dp(12), dp(10), dp(12), dp(10));
-        view.setBackground(interactive(surface, outline, 12));
+        view.setBackground(fieldBackground(false));
         if (android.os.Build.VERSION.SDK_INT >= 29) {
             Drawable cursor = view.getTextCursorDrawable(), middle = view.getTextSelectHandle();
             Drawable left = view.getTextSelectHandleLeft(), right = view.getTextSelectHandleRight();
@@ -179,6 +296,11 @@ final class SettingsUi {
         return view;
     }
 
+    /** A field's 2 dp outline, in the error color while its text needs fixing. */
+    Drawable fieldBackground(boolean wrong) {
+        return wrong ? interactive(dialog, error, 12, error, 2) : interactive(dialog, switchOff, 12, heading, 2);
+    }
+
     private Drawable tinted(Drawable drawable) {
         Drawable copy = drawable.mutate();
         copy.setTint(accent);
@@ -188,7 +310,7 @@ final class SettingsUi {
     LinearLayout panel() {
         LinearLayout view = column();
         view.setPadding(dp(16), dp(16), dp(16), dp(16));
-        view.setBackground(shape(surface, line, 12));
+        view.setBackground(cardShape());
         return view;
     }
 
@@ -221,25 +343,30 @@ final class SettingsUi {
         view.setGravity(Gravity.CENTER);
         view.setThumbTintList(null);
         view.setTrackTintList(null);
-        StateListDrawable handles = new StateListDrawable();
-        for (int state : new int[] {-android.R.attr.state_enabled, android.R.attr.state_checked, 0}) {
-            GradientDrawable handle = shape(state < 0 ? muted : state > 0 ? selectedText : thumb, outline, 4);
-            handle.setSize(dp(18), dp(18));
-            handles.addState(state == 0 ? new int[] {} : new int[] {state}, handle);
+        // A 20 dp square thumb with 2 dp of track around it, on a 40 by 24 dp track; disabled is the same at half strength.
+        // Switch shrinks the track by the thumb's inset wherever the track's padding doesn't cover it, takes the inset off
+        // the travel, and is at least two thumbs plus the padding wide. So the thumb is inset only above and below, the
+        // handle reports 2 dp a side (a 16 dp thumb to Switch) and the track 4 dp a side: 40 dp wide, 16 dp of travel, and
+        // the 20 dp square drawn 2 dp in from either end.
+        int[][] states = {{-android.R.attr.state_enabled, android.R.attr.state_checked}, {-android.R.attr.state_enabled},
+            {android.R.attr.state_checked}, {}};
+        int[] thumbs = {half(onAccent), half(thumb), onAccent, thumb}, tracks = {track, track, accentFill, switchOff};
+        StateListDrawable handles = new StateListDrawable(), rails = new StateListDrawable();
+        for (int i = 0; i < states.length; i++) {
+            GradientDrawable handle = paddedShape(thumbs[i], 4, dp(2), 0);
+            handle.setSize(dp(20), dp(20));
+            handles.addState(states[i], new android.graphics.drawable.InsetDrawable(handle, 0, dp(2), 0, dp(2)));
+            GradientDrawable rail = paddedShape(tracks[i], 6, dp(4), dp(2));
+            rail.setSize(dp(40), dp(24));
+            rails.addState(states[i], rail);
         }
         view.setThumbDrawable(handles);
-        StateListDrawable tracks = new StateListDrawable();
-        GradientDrawable disabled = shape(track, line, 6);
-        disabled.setSize(dp(40), dp(20));
-        tracks.addState(new int[] {-android.R.attr.state_enabled}, disabled);
-        for (boolean on : new boolean[] {true, false}) {
-            GradientDrawable drawable = shape(on ? accentFill : track, on ? accentFill : outline, 6);
-            drawable.setSize(dp(40), dp(20));
-            tracks.addState(on ? new int[] {android.R.attr.state_checked} : new int[] {}, drawable);
-        }
-        view.setTrackDrawable(tracks);
+        view.setTrackDrawable(rails);
         view.setBackground(interactive(0x00000000, 0, 8));
         view.setChecked(checked);
+        // New drawables take no state until the switch's next state change, and an off switch built off has none, so
+        // until then it drew in its disabled look.
+        view.refreshDrawableState();
         return view;
     }
 }

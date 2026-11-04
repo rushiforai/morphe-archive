@@ -1,3 +1,9 @@
+## [1.6.4](https://github.com/pengusto/penguin-patches/compare/v1.6.3...v1.6.4) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **calendar:** render descriptions in widgets and reminders ([c024eb0](https://github.com/pengusto/penguin-patches/commit/c024eb059cd01b399083128bfda017e810049afd))
+
 ## [1.6.3](https://github.com/pengusto/penguin-patches/compare/v1.6.2...v1.6.3) (2026-10-31)
 
 ### 🐛 Bug Fixes

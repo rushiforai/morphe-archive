@@ -5,7 +5,7 @@
     python3 scripts/hbc/find_apkm.py --list [folder] # every APKM found, and why it was or wasn't picked
 
 Only complete files count: one that opens as a ZIP and has base.apk, so a half-uploaded file is skipped instead of
-failing later inside unzip. Among those, an APKM whose info.json is the Discord build Venus supports (versionCode from
+failing later inside unzip. Among those, an APKM whose info.json is the Discord build Conduit supports (versionCode from
 AppTarget in DiscordPatches.kt) wins over any other version; ties go to the newest upload. Uploading the same file
 twice (Discord.apkm, "Discord (2).apkm") is harmless: either copy is fine.
 """
@@ -58,7 +58,7 @@ def main():
     if best is None:
         sys.exit(f"No complete Discord .apkm in {folder}; pass its path")
     if usable[0][2] != want:
-        print(f"Warning: {best.name} is Discord {usable[0][3] or usable[0][2]}, Venus supports versionCode {want}", file=sys.stderr)
+        print(f"Warning: {best.name} is Discord {usable[0][3] or usable[0][2]}, Conduit supports versionCode {want}", file=sys.stderr)
     print(best)
 
 

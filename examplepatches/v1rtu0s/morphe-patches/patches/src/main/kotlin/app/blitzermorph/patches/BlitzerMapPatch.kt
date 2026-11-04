@@ -42,6 +42,7 @@ val SpeedCamerasClassFingerprint = Fingerprint(
 
 /**
  * Fingerprint for SpeedCameras.refresh() - to add preference check.
+ * refresh() calls enabled(Context) as its first statement.
  */
 val SpeedCamerasRefreshFingerprint = Fingerprint(
     definingClass = "Lorg/ungoogled/ui/SpeedCameras;",
@@ -49,7 +50,11 @@ val SpeedCamerasRefreshFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
     accessFlags = listOf(AccessFlags.STATIC),
-    filters = listOf(anyInstruction())
+    filters = listOf(
+        methodCall(
+            name = "enabled"
+        )
+    )
 )
 
 /**

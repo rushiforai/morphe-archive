@@ -112,7 +112,7 @@ fun main(args: Array<String>) {
     // A successful D8 build does not prove that an obfuscated host supplies Kotlin helper ABIs.
     // Check real definitions (including inherited methods), not the compiler's stock stdlib.
     val extensionClasses = allClasses.values.filter {
-        it.type.startsWith("Lapp/venus/extension/") || it.type.startsWith("Lapp/venus/chat/")
+        it.type.startsWith("Lapp/venus/extension/") || it.type.startsWith("Lapp/venus/chat/") || it.type.startsWith("Lapp/venus/media/")
     }
     val references = extensionClasses.flatMap { definition -> definition.methods.flatMap { method ->
         method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference }?.toList() ?: emptyList()
@@ -124,13 +124,21 @@ fun main(args: Array<String>) {
             ?: definition.superclass?.let { resolveField(reference, it, seen) }
             ?: definition.interfaces.firstNotNullOfOrNull { resolveField(reference, it, seen) }
     }
+    // A Conduit class that extends an Android class (Keep media playing's MediaService extends android.app.Service) calls methods
+    // the platform supplies, which the APK's DEX doesn't contain. Its chain ends at an android.* or java.* type outside the APK.
+    fun inheritsPlatform(type: String, seen: MutableSet<String> = mutableSetOf()): Boolean {
+        if (!type.startsWith("Lapp/venus/") || !seen.add(type)) return false
+        val superclass = allClasses[type]?.superclass ?: return false
+        if (superclass !in allClasses) return superclass.startsWith("Landroid/") || superclass.startsWith("Ljava/")
+        return inheritsPlatform(superclass, seen)
+    }
     fun isHost(type: String) = type.startsWith("Lkotlin/") || type.startsWith("Lapp/venus/") ||
         type.startsWith("Lcom/facebook/react/")
     for (reference in references) {
         when (reference) {
             is MethodReference -> if (isHost(reference.definingClass)) {
                 val resolved = resolve(reference)
-                if (resolved == null) abiErrors.add("Unresolved extension dependency: $reference")
+                if (resolved == null) { if (!inheritsPlatform(reference.definingClass)) abiErrors.add("Unresolved extension dependency: $reference") }
                 else if (!reference.definingClass.startsWith("Lapp/venus/") && resolved.accessFlags and 0x1 == 0)
                     abiErrors.add("Non-public host dependency: $reference")
             }
@@ -212,14 +220,14 @@ fun main(args: Array<String>) {
     val videoBridge = fileModules.single().methods.single { it.name == "getVideoDimensions" }
     val videoCalls = videoBridge.implementation!!.instructions.mapNotNull { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass }
     if ("Lapp/venus/emoji/SystemEmoji;" in videoCalls) {
-        check(videoCalls.count { it.startsWith("Lapp/venus/") } == 1) { "getVideoDimensions has more than one Venus guard" }
+        check(videoCalls.count { it.startsWith("Lapp/venus/") } == 1) { "getVideoDimensions has more than one Conduit guard" }
         check(fontCalls.none { it == "Lapp/venus/emoji/SystemEmoji;" } && bridgeRefs.filterIsInstance<MethodReference>().none { it.definingClass == "Lapp/venus/emoji/SystemEmoji;" }) { "Emoji bridge must not share another FileModule method" }
     }
     val some = "--some" in args.drop(1)
     ZipFile(apk).use { zip -> checkPackaging(zip, some) }
     checkManifest(apk)
-    // Every Venus extension the .mpp carries made it into the APK's DEX.
-    for (pkg in listOf("audio", "chat", "emoji", "extension", "font", "i18n", "monet"))
+    // Every Conduit extension the .mpp carries made it into the APK's DEX.
+    for (pkg in listOf("audio", "chat", "diag", "emoji", "extension", "font", "i18n", "media", "monet"))
         check(allClasses.keys.any { it.startsWith("Lapp/venus/$pkg/") }) { "No app.venus.$pkg classes in the APK" }
     if ("signed" in args.drop(1)) {
         val verification = ApkVerifier.Builder(apk).setMinCheckedPlatformVersion(26).build().verify()
@@ -308,7 +316,7 @@ fun localHeaderOffset(raf: RandomAccessFile, name: String): Long {
 }
 
 /**
- * The manifest still describes the Discord build Venus targets, and every provider authority and app permission uses the
+ * The manifest still describes the Discord build Conduit targets, and every provider authority and app permission uses the
  * APK's own package name. Custom branding renames them together; one left behind stops the copy installing next to Discord.
  */
 fun checkManifest(apk: File) {
@@ -323,8 +331,8 @@ fun checkManifest(apk: File) {
             if (event == AndroidBinXmlParser.EVENT_START_ELEMENT) when (parser.name) {
                 "manifest" -> {
                     pkg = attr("package")
-                    check(attr("versionCode") == "350008" && attr("versionName") == "350.8 - Stable") {
-                        "Manifest is ${attr("versionName")} (${attr("versionCode")}), not Discord 350.8 - Stable"
+                    check(attr("versionCode") == "351011" && attr("versionName") == "351.11 - Stable") {
+                        "Manifest is ${attr("versionName")} (${attr("versionCode")}), not Discord 351.11 - Stable"
                     }
                 }
                 "provider" -> attr("authorities")?.split(";")?.filter { !it.startsWith("$pkg.") }?.let { stray += it }
@@ -334,6 +342,6 @@ fun checkManifest(apk: File) {
         }
         check(pkg != null && Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$").matches(pkg)) { "Bad package name $pkg" }
         check(stray.isEmpty()) { "Not renamed to $pkg: $stray" }
-        println("Manifest: $pkg, Discord 350.8 - Stable, providers and permissions under $pkg")
+        println("Manifest: $pkg, Discord 351.11 - Stable, providers and permissions under $pkg")
     }
 }

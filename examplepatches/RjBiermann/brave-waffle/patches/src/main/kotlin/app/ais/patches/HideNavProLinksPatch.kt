@@ -1,11 +1,12 @@
 package app.ais.patches
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import util.assembleFirstMethod
 
 /**
  * The mobile nav drawer has several entries that are useless without a
@@ -17,28 +18,65 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *
  * Runtime-toggleable: the pref `morphe_hide_nav_pro` (default false, i.e.
  * links visible) is set by the "Hide account / PRO links" switch added to
- * the phone settings screen by ModSettingsPatch, and read here in
- * `NavDrawer.onCreate` so a toggle applies on the next screen creation.
+ * the phone settings screen by ModSettingsPatch, and read here so a toggle
+ * applies on the next screen creation.
  *
- * The app already hides its debug entries (Test Suite / Errors / Get Link)
- * in `NavDrawer.onCreate` with `menu.findItem(id).setVisible(false)`.
- * The same pattern is appended right after that block, wrapped in the pref
- * check. The existing code leaves the Menu reference clobbered
- * (`move-result-object v0`), so the menu is re-fetched from the
- * NavigationView (`p1`) first. Only v0/v1 are touched; `v8` (false) is
- * reused as both the pref default and the setVisible(false) argument.
+ * The hide loop lives in an added static method taking the NavigationView:
+ * `NavDrawer.onCreate` has 10 locals, so p1 (the NavigationView at that
+ * point, reused from the Bundle parameter) is v11 — out of range for 4-bit
+ * register instructions — and clobbering its locals makes the verifier
+ * reject the method (v1 must stay an Integer at the merge point) and breaks
+ * navigation. One range invoke touches nothing.
  */
 private val HIDDEN_NAV_IDS = intArrayOf(
-    0x7f0b0324, // nav_premium    "Your Account"
-    0x7f0b032b, // nav_tokens     "Get Free PRO"
-    0x7f0b0316, // nav_buypro     "PRO Benefits"
-    0x7f0b0323, // nav_porndb     "PornDB"
-    0x7f0b0326, // nav_search_pro "Global Search"
-    0x7f0b0329, // nav_tabs       "PornTabs"
+    0x7f0b0330, // nav_premium    "Your Account"
+    0x7f0b0337, // nav_tokens     "Get Free PRO"
+    0x7f0b0322, // nav_buypro     "PRO Benefits"
+    0x7f0b032f, // nav_porndb     "PornDB"
+    0x7f0b0332, // nav_search_pro "Global Search"
+    0x7f0b0335, // nav_tabs       "PornTabs"
 )
 
+private val HIDE_NAV_SMALI = buildString {
+    append(
+        """
+        .class public Lcom/streamdev/aiostreamer/mobile/ui/NavDrawer;
+        .super Ljava/lang/Object;
+
+        .method public static morpheHideNav(Lcom/google/android/material/navigation/NavigationView;)V
+            .locals 4
+            sget-object v0, Lc34;->q:Landroid/content/SharedPreferences;
+            const-string v1, "morphe_hide_nav_pro"
+            const/4 v2, 0x0
+            invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
+            move-result v0
+            if-eqz v0, :cond_morphe_nav_done
+            invoke-virtual {p0}, Lcom/google/android/material/navigation/NavigationView;->getMenu()Landroid/view/Menu;
+            move-result-object v0
+            const/4 v3, 0x0
+
+        """.trimIndent()
+    )
+    for (id in HIDDEN_NAV_IDS) {
+        append("\n    const v1, $id")
+        append("\n    invoke-interface {v0, v1}, Landroid/view/Menu;->findItem(I)Landroid/view/MenuItem;")
+        append("\n    move-result-object v1")
+        append("\n    invoke-interface {v1, v3}, Landroid/view/MenuItem;->setVisible(Z)Landroid/view/MenuItem;")
+    }
+    append(
+        """
+
+            :cond_morphe_nav_done
+            return-void
+        .end method
+        """.trimIndent()
+    )
+}
+
+private const val NAV_DRAWER_CLASS = "Lcom/streamdev/aiostreamer/mobile/ui/NavDrawer;"
+
 object MobileNavFingerprint : Fingerprint(
-    definingClass = "Lcom/streamdev/aiostreamer/mobile/ui/NavDrawer;",
+    definingClass = NAV_DRAWER_CLASS,
     name = "onCreate",
     returnType = "V"
 )
@@ -54,33 +92,21 @@ val hideNavProLinksPatch = bytecodePatch(
     execute {
         val method = MobileNavFingerprint.method
         // The app hides its debug entries with three MenuItem->setVisible(Z)
-        // invoke-interface calls; the third (last) one is where our block
-        // gets appended. invoke-interface refs are plain MethodReferences here.
+        // invoke-interface calls; the third (last) one is where our call
+        // gets appended, i.e. right after the drawer is fully built.
         val lastIndex = method.implementation!!.instructions.indexOfLast {
             val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
             ref != null && ref.definingClass == "Landroid/view/MenuItem;" && ref.name == "setVisible"
         }
-        var index = lastIndex
-        // Runtime gate: only v0/v1 are used; v8 (false) serves as pref default
-        // and as the setVisible(false) argument below.
-        val sb = StringBuilder(
-            """
-            const-string v1, "morphe_hide_nav_pro"
-            sget-object v0, Lka1;->j:Landroid/content/SharedPreferences;
-            invoke-interface {v0, v1, v8}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
-            move-result v1
-            if-eqz v1, :cond_morphe_nav_skip
-            invoke-virtual {p1}, Lcom/google/android/material/navigation/NavigationView;->getMenu()Landroid/view/Menu;
-            move-result-object v0
-            """.trimIndent()
+        check(lastIndex >= 0) { "NavDrawer.onCreate: no setVisible call found" }
+
+        mutableClassDefByOrNull(NAV_DRAWER_CLASS)!!
+            .directMethods
+            .add(MutableMethod(assembleFirstMethod(HIDE_NAV_SMALI, "hide-nav helper")))
+
+        method.addInstructions(
+            lastIndex + 1,
+            "invoke-static/range {p1 .. p1}, $NAV_DRAWER_CLASS->morpheHideNav(Lcom/google/android/material/navigation/NavigationView;)V"
         )
-        for (id in HIDDEN_NAV_IDS) {
-            sb.append("\nconst v1, $id\n")
-            sb.append("invoke-interface {v0, v1}, Landroid/view/Menu;->findItem(I)Landroid/view/MenuItem;\n")
-            sb.append("move-result-object v1\n")
-            sb.append("invoke-interface {v1, v8}, Landroid/view/MenuItem;->setVisible(Z)Landroid/view/MenuItem;\n")
-        }
-        sb.append(":cond_morphe_nav_skip\nnop")
-        method.addInstructionsWithLabels(++index, sb.toString())
     }
 }

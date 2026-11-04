@@ -1990,6 +1990,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchThreadRefreshValidators(packageMetadata.versionName)
         patchPatrolImages(packageMetadata.versionName)
         patchPatrolInterval(packageMetadata.versionName)
+        patchRefreshTargets(packageMetadata.versionName)
         patchExternalBoardAuth(packageMetadata.versionName)
         patchBoardCookies(packageMetadata.versionName)
         patchBeAutoLogout(packageMetadata.versionName)
@@ -3500,6 +3501,29 @@ private fun BytecodePatchContext.patchLargeImageAlignment(version: String) {
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchThreadSearchText(version: String) {
+    val markerOwner=when(version){
+        "0.8.10.191 dev"->"Lo/MediationServiceImplExternalSyntheticLambda1;"
+        "0.8.10.226 dev"->"Lo/BouncyCastleSocketAdapterCompanionfactory1;"
+        "0.8.10.242 dev"->"Lo/KeJ13;"
+        else->return
+    }
+    val marker=mutableClassDefBy(markerOwner).methods.single {
+        it.parameterTypes.size==5&&it.parameterTypes.firstOrNull()=="Ljava/util/regex/Matcher;"&&it.returnType=="V"
+    }
+    var resets=0;var finds=0
+    marker.implementation!!.instructions.toList().withIndex().forEach { (index,instruction)->
+        val ref=(instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if(ref?.definingClass=="Ljava/util/regex/Matcher;"&&ref.name=="reset"&&ref.parameterTypes==listOf("Ljava/lang/CharSequence;")){
+            val call=instruction as FiveRegisterInstruction
+            marker.replaceInstruction(index,"invoke-static {v${call.registerC}, v${call.registerD}}, Lapp/morphe/extension/chmate/ThreadSearchText;->resetHighlight(Ljava/util/regex/Matcher;Ljava/lang/CharSequence;)Ljava/util/regex/Matcher;")
+            resets++
+        }else if(ref?.definingClass=="Ljava/util/regex/Matcher;"&&ref.name=="find"&&ref.parameterTypes.isEmpty()){
+            val call=instruction as FiveRegisterInstruction
+            marker.replaceInstruction(index,"invoke-static {v${call.registerC}}, Lapp/morphe/extension/chmate/ThreadSearchText;->findHighlight(Ljava/util/regex/Matcher;)Z")
+            finds++
+        }
+    }
+    check(resets==1&&finds==1){"Search highlight boundaries changed: $version ($resets/$finds)"}
     val (owner,name,response,body)=when(version){
         "0.8.10.191 dev"->listOf("Lo/m9ExternalSyntheticLambda1\$4;","performFiltering","Lo/processAdDisplayErrorPostbackForUserError;","c")
         "0.8.10.226 dev"->listOf("Lo/listener;","b","Lo/BouncyCastleSocketAdapterCompanion;","d")
@@ -4916,7 +4940,7 @@ val haiagaruPatch = resourcePatch(
             entry.textContent = "フィルタ"
             strings.documentElement.appendChild(entry)
         }
-        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加")
+        val responseLabels = listOf("投稿者を強調", "レスを保存", "保存済みレスを見る", "ﾜｯﾁｮｲで検索", "ﾜｯﾁｮｲ下4桁をNG登録", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "ﾜｯﾁｮｲ上4桁をNG登録", "自動NGの除外IDに追加", "共有NG条件確認")
         val archiveIcons = mapOf(
             "haiagaru_response_history" to "M13,3c-4.97,0 -9,4.03 -9,9H1l3.89,3.89 .07,.14L9,12H6c0,-3.87 3.13,-7 7,-7s7,3.13 7,7 -3.13,7 -7,7c-1.93,0 -3.68,-.79 -4.94,-2.06l-1.42,1.42C8.27,19.99 10.51,21 13,21c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,8v5l4.28,2.54 .72,-1.21 -3.5,-2.08V8H12z",
             "haiagaru_response_save" to "M17,3H5c-1.11,0 -2,.9 -2,2v14c0,1.1 .89,2 2,2h14c1.1,0 2,-.9 2,-2V7l-4,-4zM12,19c-1.66,0 -3,-1.34 -3,-3s1.34,-3 3,-3 3,1.34 3,3 -1.34,3 -3,3zM15,9H5V5h10v4z",

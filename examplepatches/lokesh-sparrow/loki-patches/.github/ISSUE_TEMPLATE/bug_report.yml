@@ -1,0 +1,114 @@
+name: 🐞 Bug report
+description: Something doesn't work, or works differently than it should.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <p align="center"><b>🧩 Loki Patches · Bug report</b></p>
+
+        Thanks for taking the time to report a bug! A few things first:
+
+        - 🔎 **Search first.** Check the [open and closed bug reports](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Bug+report%22) to avoid duplicates.
+        - ⚙️ **Can't find the settings?** Tap your profile photo → **Loki Patches**, or long press the LinkedIn app icon → **Loki Patches**.
+        - 📦 **Use a supported version.** The supported LinkedIn versions are listed in the [README](https://github.com/lokesh-sparrow/loki-patches#patches). Other versions are experimental.
+        - 🚫 **Don't share patched APKs** or links to them in issues.
+
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - LinkedIn
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: In Android settings → Apps → LinkedIn, or the name of the APKMirror file you patched.
+      placeholder: "4.1.1255.1"
+    validations:
+      required: true
+
+  - type: input
+    id: patches-version
+    attributes:
+      label: Loki Patches version
+      description: Shown in Loki Patches → About.
+      placeholder: "1.0.1"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: "Samsung Galaxy A06, Android 14"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug. What did you expect to happen instead?
+      placeholder: |
+        The download button does not appear on photos in posts.
+        I expected it to show at the top right, like on profile photos.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can the bug be reproduced? The more exact, the faster it can be fixed.
+      placeholder: |
+        1. Open a post with several photos
+        2. Tap a photo
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostic-report
+    attributes:
+      label: Diagnostic report
+      description: |
+        This shows exactly which patches are applied and what failed, and is the fastest way to get a bug fixed:
+
+        1. Loki Patches → **Other** → turn on **Diagnostic logging**
+        2. Close LinkedIn, open it again, and **repeat the bug**
+        3. Loki Patches → **Other** → **Copy diagnostic report**
+        4. Paste it here
+
+        Links, IDs, and e-mail addresses are removed from the report, but please read it before posting.
+      placeholder: "### Loki Patches diagnostic report ..."
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recording
+      description: Drag images or videos here. Blur any personal information.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: Other patch bundles you use, things you already tried, or ideas for a fix.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Reports that don't follow this list may be closed.
+      options:
+        - label: I searched the existing issues and this is not a duplicate.
+          required: true
+        - label: I'm using Morphe and the Loki Patches source, not a patched APK downloaded from somewhere else.
+          required: true
+        - label: I wrote a clear title and filled in the requested information.
+          required: true

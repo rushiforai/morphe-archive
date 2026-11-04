@@ -110,7 +110,7 @@ private fun MethodReference.isLauncherCall() = returnType == "Z" && parameterTyp
     parameterTypes[0].toString() == BUNDLE && parameterTypes[1].toString().startsWith("L")
 
 /**
- * A capture event owns its fresh per-launch extras. Messenger 585's two composer event dispatchers cast the event to
+ * A capture event owns its fresh per-launch extras. Messenger 586's two composer event dispatchers cast the event to
  * [ACTIVATE_CAMERA] and hand it to one static helper, which takes it first and makes exactly one launcher call; an
  * instance handler that casts the event and makes that call itself matches too. Editor events share the launcher, but
  * never carry the capture event, so they don't match. The launcher interface comes back for the match against the chat

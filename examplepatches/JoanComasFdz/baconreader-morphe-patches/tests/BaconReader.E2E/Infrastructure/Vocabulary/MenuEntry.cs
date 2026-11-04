@@ -18,6 +18,9 @@ public partial record MenuEntry
     /// <summary>The app's settings: BaconReader's sections, then the patches' "Patches".</summary>
     public partial record Settings;
 
+    /// <summary>The form for a new post: a text, image or link post, its title, text and subreddit.</summary>
+    public partial record SubmitPost;
+
     /// <summary>What the app shows that no case names yet (a user name): a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
 }
@@ -25,7 +28,7 @@ public partial record MenuEntry
 /// <summary>What the app shows for each <see cref="MenuEntry"/>: the only place those strings live.</summary>
 public static class MenuEntryShowing
 {
-    private static readonly MenuEntry[] Listed = [new MenuEntry.AddAccount(), new MenuEntry.Inbox(), new MenuEntry.Settings()];
+    private static readonly MenuEntry[] Listed = [new MenuEntry.AddAccount(), new MenuEntry.Inbox(), new MenuEntry.Settings(), new MenuEntry.SubmitPost()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this MenuEntry value) =>
@@ -33,6 +36,7 @@ public static class MenuEntryShowing
             addAccount => "Add account",
             inbox => "Inbox",
             settings => "Settings",
+            submitPost => "Submit post",
             unlisted => unlisted.Shown);
 
     /// <summary>The case the app's <paramref name="shown"/> text names, or <see cref="MenuEntry.Unlisted"/>.</summary>

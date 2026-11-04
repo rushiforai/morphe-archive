@@ -88,15 +88,17 @@ internal val barHeightsPatch = bytecodePatch {
  * height in a static field its screens pad by, and keeps the old height while the bar is hidden, so
  * the screens left an empty strip where each bar was. Both stores of those heights ask the extension
  * first ([barHeightsPatch]), which answers 0 while it has the bars hidden. In the default selection with
- * both switches off.
+ * both switches off. The story viewer's layout asks too ([fillStoryScreen], #436), and so does the reel
+ * item layout on a screen wider than 9:16 ([fillWideReelScreen], #491).
  */
 @Suppress("unused")
 val fullScreenBarsPatch = bytecodePatch(
     name = "Full screen Reels and Home",
     description = "Hides the status bar and the navigation bar while Reels shows, and optionally while Home or your messages do. " +
         "Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual. " +
-        "Starts off. Turn it on in HushGram settings > Reels (Full screen Reels), Feed (Full screen Home) and " +
-        "Messages (Full screen Messages).",
+        "It can also show stories over the whole screen on tall phones. " +
+        "Starts off. Turn it on in HushGram settings > Reels (Full screen Reels), Feed (Full screen Home), " +
+        "Messages (Full screen Messages) and Stories (Stories fill the screen).",
 ) {
     category("Reels")
     dependsOn(settingsPatch, instagramExtensionPatch, barHeightsPatch)
@@ -105,7 +107,9 @@ val fullScreenBarsPatch = bytecodePatch(
     execute {
         requireStatusMethod("fullScreenBars")
         fillReelScreen()
+        fillWideReelScreen()
         fitReelScreen()
+        fillStoryScreen()
         enableStatus("fullScreenBars")
     }
 }

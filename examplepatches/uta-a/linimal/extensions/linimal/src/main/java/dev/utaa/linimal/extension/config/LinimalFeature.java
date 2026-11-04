@@ -72,4 +72,22 @@ public enum LinimalFeature {
     public String getFeatureId() {
         return featureId;
     }
+
+    /**
+     * 変更を反映するのにアプリの再起動が必要かどうか。画面の要素を隠す表示系の機能は、表示中の画面で
+     * 要素の有無が描画の途中に変わると LINE の Compose が落ちるため、プロセスの起動時の値を使い続けます。
+     * 既読や通信の振る舞いを変える機能は、その時点の値をすぐに使います。
+     */
+    public boolean requiresRestart() {
+        switch (this) {
+            case READ_WITHOUT_RECEIPT:
+            case NOTIFICATION_READ_WITHOUT_RECEIPT:
+            case EXTERNAL_BROWSER:
+            case PUSH_NOTIFICATIONS:
+            case GOOGLE_DRIVE_BACKUP:
+                return false;
+            default:
+                return true;
+        }
+    }
 }

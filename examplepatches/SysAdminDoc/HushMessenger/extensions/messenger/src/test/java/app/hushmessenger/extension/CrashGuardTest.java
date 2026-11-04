@@ -142,6 +142,18 @@ public class CrashGuardTest {
         assertEquals(first, CrashGuard.read(new File(dir, CrashGuard.START_RECORD)));
     }
 
+    @Test public void aStartBeforeThePreferencesLoadLeavesTheStartForTheNextCall() {
+        Settings.preferences = null;
+        try {
+            CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+        } finally {
+            Settings.preferences = prefs;
+        }
+        assertFalse(new File(dir, CrashGuard.START_RECORD).exists());
+        CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+        assertTrue(new File(dir, CrashGuard.START_RECORD).exists());
+    }
+
     @Test public void readAndWriteRoundTrip() {
         File f = new File(dir, "test-round-trip");
         assertNull(CrashGuard.read(f));

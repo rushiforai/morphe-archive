@@ -14,7 +14,24 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.5.1](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+<details open>
+<summary>📦 HealthifyMe&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| v31.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass Root Detection](#bypass-root-detection) | Removes the root-detection block so the app can be used on rooted devices. |  |
+| [Remove analytics](#remove-analytics) | Stops Firebase Analytics and CleverTap reporting, AppsFlyer attribution, and Facebook automatic app events/advertiser-ID collection. CleverTap push/in-app initialisation is disabled; crash reporting and Branch deep links are kept. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks premium and freemium features in the app, including the full macro and micronutrient breakdown for food items and the dashboard freemium card locks, locked-state CTAs (e.g. "Unlock Macros"), and the expired-trial tag chips. Server-delivered content such as diet plans, coaching, and AI features may still require a real subscription. |  |
+
+</details>
+
 <details open>
 <summary>📦 CRICFy TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

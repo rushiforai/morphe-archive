@@ -1,4 +1,4 @@
-// Lists every English text Venus shows through tr(), so language files can be checked against it.
+// Lists every English text Conduit shows through tr(), so language files can be checked against it.
 // Zero external dependencies (no Acorn): node scripts/i18n_strings.cjs  ->  JSON array on stdout
 const fs = require('node:fs');
 const source = fs.readFileSync('patches/src/main/resources/venus/bootstrap.js', 'utf8').replace('/*__FEATURES__*/', '{}');
@@ -196,7 +196,7 @@ for (let i = 0; i < tokens.length - 1; i++) {
             }
         });
     }
-    out.forEach(value => { if (/[A-Za-z]/.test(value) && value !== 'Venus') found.add(value); });
+    out.forEach(value => { if (/[A-Za-z]/.test(value) && value !== 'Conduit') found.add(value); });
 }
 
 // Components that take their texts as object props and pass them through tr() inside:

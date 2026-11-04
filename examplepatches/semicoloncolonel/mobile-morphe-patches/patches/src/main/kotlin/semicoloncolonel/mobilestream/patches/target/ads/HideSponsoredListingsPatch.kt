@@ -33,8 +33,8 @@ internal object SearchParameterPairFingerprint : Fingerprint(
 @Suppress("unused")
 val hideSponsoredListingsPatch = bytecodePatch(
     name = "Hide sponsored listings",
-    description = "Asks Target's search for results without sponsored products, so search " +
-        "results show only regular listings. Experimental; test on-device.",
+    description = "Asks Target's search for results without sponsored products, so search results show " +
+        "only regular listings. Experimental.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

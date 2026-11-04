@@ -995,7 +995,7 @@ The phone's language	手机语言
 Languages to leave alone	不翻译的语言
 None picked. Posts in every language can be translated.	未选择。任何语言的帖子都可以翻译。
 Left alone: %s	不翻译：%s
-Posts in the feed show all of their text, so there's no See more to tap. Tap a post's text to fold it back.	动态中的帖子会显示全部文字，不用再点“展开”。点按帖子的文字即可重新折叠。
+Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	动态中的帖子和短视频的说明会显示全部文字，不用再点“展开”。点按文字即可重新折叠。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看谁分享了
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在帖子菜单中添加“查看谁分享了”，打开 Facebook 上分享该帖子的用户列表。
@@ -1301,10 +1301,10 @@ No dot or count on Feeds, Gaming, Events and the other tabs not listed here. The
 No dot or count on this tab. Its page still shows what's new when you open it.	此标签页上不显示圆点或数字。打开它时，页面仍会显示有哪些新内容。
 # context: summary of the app icon count switch
 No number on Facebook's app icon. Notifications still arrive. Some launchers add their own count, which this can't remove.	Facebook 的应用图标上不显示数字。通知仍会送达。有些桌面启动器会自行添加数字，这里无法移除。
-# context: switch title under News feed; it shows posts and reel captions in their original language instead of Facebook's automatic translation
+# context: switch title under News feed; it shows posts, comments and reel captions in their original language instead of Facebook's automatic translation
 Turn off auto-translation	关闭自动翻译
 # context: description of that switch; See translation is the name of Facebook's own link under a post that translates it on request
-Posts and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	帖子和 Reels 的说明文字保持其撰写时的语言。帖子下方仍有 Facebook 的“查看翻译”链接。
+Posts, comments and reel captions stay in the language they were written in. Facebook's See translation link stays under them.	帖子、评论和 Reels 的说明文字保持其撰写时的语言。下方仍有 Facebook 的“查看翻译”链接。
 # context: switch title under Reels and Watch, below Keep the reel speed; it keeps a playback speed picked on a feed or Watch video for the next videos
 Keep the video speed	保持视频播放速度
 # context: description of that switch; the gear menu is the settings button on a video's player, where Playback speed is picked
@@ -1693,7 +1693,7 @@ Settings row in Menu	菜单中的设置行
 # context: summary of the switch for the Hushfacebook settings shortcut in the launcher icon's menu
 Puts Hushfacebook settings in the menu you get by holding Facebook's icon. Off, it leaves that menu.	把 Hushfacebook 设置放入长按 Facebook 图标时出现的菜单。关闭后它会从该菜单中消失。
 # context: summary of the switch for opening the settings with a long press on the Facebook logo
-A long press on the Facebook logo at the top of the home feed opens these settings. Off, the long press goes back to Facebook.	长按主页动态顶部的 Facebook 徽标会打开这些设置。关闭后，长按恢复为 Facebook 原有的行为。
+A long press on the Facebook logo at the top of the home feed, or on the title at the top of another tab, opens these settings. Off, the long press goes back to Facebook.	长按主页动态顶部的 Facebook 徽标，或其他标签页顶部的标题，会打开这些设置。关闭后，长按恢复为 Facebook 原有的行为。
 # context: summary of the switch for the Hushfacebook settings row in Facebook's Menu
 Adds a Hushfacebook settings row at the end of Settings and privacy in Facebook's Menu. Off, the row leaves the Menu.	在 Facebook 菜单的“设置和隐私”末尾添加一行 Hushfacebook 设置。关闭后，这一行会从菜单中消失。
 # context: summary shown instead of a switch's usual one while it is the only one of the three ways into the settings still on, so it is greyed out
@@ -2321,7 +2321,7 @@ Adv. Filters button	高级筛选按钮
 Adds an Adv. Filters button under Marketplace's Filters on search results. It opens lists of words to keep, words to hide and places, and writes the rules into the search for you.	在搜索结果中 Marketplace 的“筛选”下方添加“高级筛选”按钮。它会打开要保留的词语、要隐藏的词语和地点的列表，并帮你把规则写进搜索。
 # context: switch title and summary under Marketplace; a listing is something for sale
 Show when listings went up	显示商品发布时间
-A listing's page says how long ago it was listed and the date, next to its place. Facebook only shows it for new listings.	商品页面会在位置旁显示发布了多久以及发布日期。Facebook 只对新商品显示这些。
+A listing's page says how long ago it was listed and the date, under its price and next to its place. Facebook only shows it for new listings.	商品页面会在价格下方和位置旁显示发布了多久以及发布日期。Facebook 只对新商品显示这些。
 # context: added after a listing's place on its Marketplace page, like Moncton, NB; %1$s is how long ago in your language from the phone, like 3 weeks ago, %2$s is the date
 Listed %1$s (%2$s)	%1$s发布（%2$s）
 How Adv. Filters works	高级筛选的用法
@@ -2355,7 +2355,7 @@ The Subscribe button some authors get there instead, which subscribes with one t
 # context: switch title under Play SDR versions of HDR videos; washed-out means pale, faded colors
 Fix washed-out video colors	修复视频颜色发白
 # context: summary under that switch; Disable HW overlays and developer options are Android's own setting names, use the names Android shows in this language
-Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery.	视频和 Reels 会与屏幕其余部分一起绘制，效果同开发者选项中的“停用 HW 叠加层”。如果 Reels 在被别的东西盖住之前一直显得发白，可以试试。会多耗一点电。
+Videos and reels draw together with the rest of the screen, like Disable HW overlays in developer options. Try it if reels look pale until something covers them. Uses a little more battery and can make videos stutter, mostly high frame rate ones.	视频和 Reels 会与屏幕其余部分一起绘制，效果同开发者选项中的“停用 HW 叠加层”。如果 Reels 在被别的东西盖住之前一直显得发白，可以试试。会多耗一点电。视频可能会卡顿，尤其是高帧率视频。
 # context: Reels and Watch: title of the list that fades a full-screen video's buttons while the screen sits untouched, so they don't burn into an OLED screen (#288)
 Burn-in guard	防烧屏保护
 Dim when idle	闲置时淡化
@@ -2466,10 +2466,12 @@ Reel post dates will show the day they were posted.	Reels 的发布日期将显�
 Hide pictures on the Blocked list	隐藏屏蔽列表中的头像
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	你屏蔽的人在 Facebook 设置的屏蔽页面上不显示头像。如果该页面已打开，请重新打开。
 Hide Up next on videos	隐藏视频上的“接下来播放”
-Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed. A change shows from the next video you open.	去掉从动态打开的视频底部显示下一个视频的“接下来播放”栏。更改从你打开的下一个视频起生效。
+Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	去掉从动态打开的视频底部显示下一个视频的“接下来播放”栏，以及为它留出的空白，让进度条留在底部。更改从你打开的下一个视频起生效。
 Icons look soft on this screen. Repatch with the 120-640dpi bundle.	此屏幕上的图标显示模糊。请用 120-640dpi 安装包重新修补。
 Icons look soft on this screen	此屏幕上的图标显示模糊
 The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-640dpi) bundle on APKMirror, which has images for every screen.	你修补的 Facebook 没有适合此屏幕的图片，因此部分图标被放大了。请使用 APKMirror 上的 (arm64-v8a) (120-640dpi) 安装包重新修补 Facebook，它包含适合所有屏幕的图片。
 Let each post come back once	让每条帖子再出现一次
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	你滑过的帖子会再出现一次，再次滑过后才会隐藏。快速滑动后错过的帖子会更少。
 There's no Facebook link in what you shared.	你分享的内容中没有 Facebook 链接。
+Open in Facebook from the share menu	分享菜单中的 Open in Facebook
+Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	在 Messenger 的浏览器或其他应用中分享 Facebook 链接，选择 Open in Facebook，即可在这里打开。

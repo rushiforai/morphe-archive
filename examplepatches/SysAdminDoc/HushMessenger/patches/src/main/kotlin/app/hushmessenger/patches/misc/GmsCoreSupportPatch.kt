@@ -51,7 +51,7 @@ internal const val SPOOFED_SIGNATURE_METADATA = "app.revanced.android.gms.SPOOFE
 
 /**
  * SHA-1 of Messenger's original certificate (CN=Facebook Corporation, O=Facebook Mobile), the first in its signing
- * lineage. Every 585 build is signed with it below Android 13 and with Meta's rotated key from Android 13 on, and
+ * lineage. The 586 build is signed with it below Android 13 and with Meta's rotated key from Android 13 on, and
  * Android's GET_SIGNATURES answers the first certificate of a rotated lineage, so it's the one Google has always seen.
  */
 internal const val MESSENGER_CERTIFICATE_SHA1 = "8a3c4b262d721acd49a4bf97d5213199c86fa2b9"
@@ -364,7 +364,7 @@ internal data class GmsCorePlan(
 )
 
 /**
- * Finds the three edits in [classes], refusing when any of them isn't where 585 has it:
+ * Finds the three edits in [classes], refusing when any of them isn't where 586 has it:
  *
  * - Play services' availability check, the one method taking a Context and the minimum version that reads the
  *   version metadata ("MetadataValueReader") and Play services' package. It answers success, so the library stops

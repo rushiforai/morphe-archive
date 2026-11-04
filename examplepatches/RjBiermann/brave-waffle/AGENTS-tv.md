@@ -1,4 +1,5 @@
-# AGENTS-tv.md — TV notes (Television_1080p AVD, emulator-5556, leanback UI)
+# AGENTS-tv.md — TV notes (real TV AVD `tv36`: android-tv 36 x86_64 from the
+# workspace-local SDK root — see the emulator section in the workspace AGENTS.md)
 
 Entry: `AGENTS.md`. Login/server walls: `AGENTS-login.md`.
 

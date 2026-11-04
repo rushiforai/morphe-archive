@@ -38,7 +38,7 @@ body:
     attributes:
       label: Which version of it, or where did the APK come from?
       description: Manager and Desktop show their version in their own settings. For a prebuilt APK, link the page you downloaded it from.
-      placeholder: Morphe Manager 2.2.0
+      placeholder: Morphe Manager x.y.z, or the page the APK came from
   - type: input
     id: patches_source
     attributes:

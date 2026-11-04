@@ -1,0 +1,48 @@
+name: Word lists
+
+# Checks that the generated word lists (wordlists/*/words.txt.gz and wordlists/manifest.json) match their sources
+# and the remove.txt / add.txt files. On a wordlist/<code> branch an out-of-date list is rebuilt and committed,
+# so the pull request to dev always carries the finished list. The commit type is "fix" so that merging it into
+# main makes a new patch release, which is how installed patches get the new list.
+on:
+  push:
+    paths:
+      - "wordlists/**"
+      - "tools/wordlists/**"
+      - ".github/workflows/wordlists.yml"
+  pull_request:
+    paths:
+      - "wordlists/**"
+      - "tools/wordlists/**"
+      - ".github/workflows/wordlists.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: build/wordlist-cache
+          key: wordlist-sources-${{ hashFiles('wordlists/sources.json') }}
+      - name: Rebuild and commit (wordlist/* branches)
+        if: github.event_name == 'push' && startsWith(github.ref_name, 'wordlist/')
+        run: |
+          python3 tools/wordlists/build.py
+          if [ -n "$(git status --porcelain wordlists)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add wordlists
+            git commit -m "fix(wordlists): lijsten opnieuw gebouwd"
+            git push
+          fi
+      - name: Check
+        if: ${{ !(github.event_name == 'push' && startsWith(github.ref_name, 'wordlist/')) }}
+        run: python3 tools/wordlists/build.py --check

@@ -18,6 +18,14 @@ internal object PostMediaHandlerStartFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+/** Glide's failure callback of a target, which the app's target for long images (PostMediaHandler$3) leaves empty. */
+internal object GlideCustomTargetLoadFailedFingerprint : Fingerprint(
+    definingClass = "Lcom/bumptech/glide/request/target/CustomTarget;",
+    name = "onLoadFailed",
+    returnType = "V",
+    parameters = listOf("Landroid/graphics/drawable/Drawable;"),
+)
+
 internal object LoadGifContentFingerprint : Fingerprint(
     definingClass = POST_MEDIA_HANDLER_CLASS_DESCRIPTOR,
     name = "loadGifContent",

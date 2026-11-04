@@ -339,6 +339,8 @@ public final class LinimalConfigTest {
 
         config.setSuppressionEnabled(LinimalFeature.HOME_FEED_POST_CARDS, true);
         config.setSuppressionEnabled(LinimalFeature.PREMIUM_SETTINGS_ROW, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertTrue(config.isHomeFeedPostCardsSuppressionEnabled());
         assertTrue(config.isPremiumSettingsRowSuppressionEnabled());
@@ -353,6 +355,8 @@ public final class LinimalConfigTest {
         config.setSuppressionEnabled(LinimalFeature.PREMIUM, true);
         config.setSuppressionEnabled(LinimalFeature.HOME_FEED_POST_CARDS, false);
         config.setSuppressionEnabled(LinimalFeature.PREMIUM_SETTINGS_ROW, false);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertFalse(config.isSuppressionEnabled(LinimalFeature.HOME_FEED_POST_CARDS));
         assertFalse(config.isSuppressionEnabled(LinimalFeature.PREMIUM_SETTINGS_ROW));
@@ -373,6 +377,8 @@ public final class LinimalConfigTest {
                 backend.values.get(LinimalConfigSchema.HOME_FEATURED_COLLECTIONS_ENABLED_KEY));
 
         config.setSuppressionEnabled(LinimalFeature.HOME_FEATURED_COLLECTIONS, false);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertFalse(config.isHomeFeaturedCollectionsSuppressionEnabled());
         assertEquals(false, backend.values.get(LinimalConfigSchema.HOME_FEATURED_COLLECTIONS_ENABLED_KEY));
@@ -381,6 +387,8 @@ public final class LinimalConfigTest {
         assertTrue(config.isHomeRecommendationsSuppressionEnabled());
 
         config.setSuppressionEnabled(LinimalFeature.HOME_FEATURED_COLLECTIONS, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertTrue(config.isSuppressionEnabled(LinimalFeature.HOME_FEATURED_COLLECTIONS));
     }
@@ -539,6 +547,8 @@ public final class LinimalConfigTest {
         config.setSuppressionEnabled(LinimalFeature.LINE_AI_MESSAGE_CONTEXT_MENU, true);
         config.setSuppressionEnabled(LinimalFeature.LINE_AI_GALLERY_VIEWER, true);
         config.setSuppressionEnabled(LinimalFeature.SHOPPING, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertTrue(config.isSmartChannelAdsSuppressionEnabled());
         assertTrue(config.isHomeTopAdSuppressionEnabled());
@@ -570,6 +580,8 @@ public final class LinimalConfigTest {
         config.setSuppressionEnabled(LinimalFeature.WALLET, true);
         config.setReadReceiptMode(ReadReceiptMode.MANUAL);
         config.setSuppressionEnabled(LinimalFeature.EXTERNAL_BROWSER, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
         assertFalse(config.isPremiumSuppressionEnabled());
@@ -588,6 +600,8 @@ public final class LinimalConfigTest {
         LinimalConfig config = configFor(backend);
 
         config.setSuppressionEnabled(LinimalFeature.MINI, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
         assertTrue(config.isMiniSuppressionEnabled());
@@ -608,6 +622,8 @@ public final class LinimalConfigTest {
         LinimalConfig config = configFor(backend);
 
         config.setSuppressionEnabled(LinimalFeature.CHAT_LIST_HEADER_CALENDAR, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
         assertTrue(config.isChatListHeaderCalendarSuppressionEnabled());
@@ -646,12 +662,16 @@ public final class LinimalConfigTest {
         config.setSuppressionEnabled(LinimalFeature.HOME_TOP_AD, false);
         config.setSuppressionEnabled(LinimalFeature.AGENT_I_HOME_HEADER, false);
         config.setSuppressionEnabled(LinimalFeature.AGENT_I_CHAT_INFORMATION, false);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertFalse(config.isSuppressionEnabled(LinimalFeature.ADS));
         assertFalse(config.isSuppressionEnabled(LinimalFeature.LINE_AI));
 
         config.setSuppressionEnabled(LinimalFeature.ADS, true);
         config.setSuppressionEnabled(LinimalFeature.LINE_AI, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertTrue(config.isSmartChannelAdsSuppressionEnabled());
         assertFalse(config.isHomeTopAdSuppressionEnabled());
@@ -691,6 +711,8 @@ public final class LinimalConfigTest {
 
         config.setSuppressionEnabled(LinimalFeature.PREMIUM, true);
         config.setSuppressionEnabled(LinimalFeature.VOOM, true);
+        // 表示系の機能は、再起動後に hook へ反映されます。
+        config = config.restartForTesting();
 
         assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
         assertTrue(config.isPremiumSuppressionEnabled());
@@ -966,6 +988,55 @@ public final class LinimalConfigTest {
         assertEquals(expected, values.get(LinimalConfigSchema.AGENT_I_CHAT_LIST_SEARCH_ENABLED_KEY));
         assertEquals(expected, values.get(LinimalConfigSchema.LINE_AI_MESSAGE_CONTEXT_MENU_ENABLED_KEY));
         assertEquals(expected, values.get(LinimalConfigSchema.LINE_AI_GALLERY_VIEWER_ENABLED_KEY));
+    }
+
+    @Test
+    public void presentationChangesWaitForRestartButBehaviourChangesApplyImmediately() {
+        InMemoryBackend backend = new InMemoryBackend();
+        LinimalConfig config = configFor(backend);
+        boolean voomBefore = config.isVoomSuppressionEnabled();
+
+        config.setSuppressionEnabled(LinimalFeature.VOOM, !voomBefore);
+        config.setSuppressionEnabled(LinimalFeature.EXTERNAL_BROWSER, true);
+
+        // 表示中の画面を壊さないよう、表示系の hook は起動時の値を使い続けます。設定画面は保存値を表示します。
+        assertEquals(voomBefore, config.isVoomSuppressionEnabled());
+        assertEquals(!voomBefore, config.isSuppressionEnabled(LinimalFeature.VOOM));
+        assertTrue(config.isRestartPending(LinimalFeature.VOOM));
+        // 振る舞いの機能はすぐに反映し、再起動を求めません。
+        assertTrue(config.isExternalBrowserOverrideEnabled());
+        assertFalse(config.isRestartPending(LinimalFeature.EXTERNAL_BROWSER));
+
+        // 元に戻せば、反映待ちの変更はなくなります。
+        config.setSuppressionEnabled(LinimalFeature.VOOM, voomBefore);
+        assertFalse(config.isRestartPending(LinimalFeature.VOOM));
+        config.setSuppressionEnabled(LinimalFeature.VOOM, !voomBefore);
+
+        LinimalConfig restarted = config.restartForTesting();
+        assertEquals(!voomBefore, restarted.isVoomSuppressionEnabled());
+        assertFalse(restarted.isRestartPending(LinimalFeature.VOOM));
+    }
+
+    @Test
+    public void valuesReadBeforeASuccessfulLoadAreNotFrozen() {
+        InMemoryBackend backend = new InMemoryBackend();
+        LinimalConfig config = configFor(backend);
+        config.setSuppressionEnabled(LinimalFeature.VOOM, true);
+        // 起動直後に hook が初期化前の config（元の LINE）を読んでも、後から読めた設定が使われます。
+        LinimalConfig restarted = config.restartForTesting();
+        assertTrue(restarted.isVoomSuppressionEnabled());
+    }
+
+    @Test
+    public void onlyBehaviourFeaturesApplyWithoutRestart() {
+        for (LinimalFeature feature : LinimalFeature.values()) {
+            boolean behaviour = feature == LinimalFeature.READ_WITHOUT_RECEIPT
+                    || feature == LinimalFeature.NOTIFICATION_READ_WITHOUT_RECEIPT
+                    || feature == LinimalFeature.EXTERNAL_BROWSER
+                    || feature == LinimalFeature.PUSH_NOTIFICATIONS
+                    || feature == LinimalFeature.GOOGLE_DRIVE_BACKUP;
+            assertEquals(feature.name(), !behaviour, feature.requiresRestart());
+        }
     }
 
     private static LinimalConfig configFor(LinimalConfigStore.PreferenceBackend backend) {

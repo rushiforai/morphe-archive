@@ -8,27 +8,17 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.oraimohealth.shared.COMPATIBILITY_ORAIMO_HEALTH
 
 /**
- * Fingerprint matching isConnected in Transsion NetworkUtil (v2.0.4).
+ * Fingerprint matching obfuscated Transsion NetworkUtil.isConnected in v2.0.7 (w1.z).
  */
-object NetworkUtilIsConnectedFingerprint : Fingerprint(
-    definingClass = "Lcom/transsion/net/utils/NetworkUtil;",
-    name = "isConnected",
+object TranssionNetworkUtilIsConnectedFingerprint : Fingerprint(
+    definingClass = "Lcom/android/billingclient/api/w1;",
+    name = "z",
     returnType = "Z",
     parameters = listOf("Landroid/content/Context;")
 )
 
 /**
- * Fingerprint matching obfuscated Transsion NetworkUtil.isConnected in v2.0.6 (on/d.R).
- */
-object ObfuscatedNetworkUtilIsConnectedFingerprint : Fingerprint(
-    definingClass = "Lon/d;",
-    name = "R",
-    returnType = "Z",
-    parameters = listOf("Landroid/content/Context;")
-)
-
-/**
- * Universal fingerprint matching Transsion isConnected in any version by its signature and framework constants.
+ * Universal fingerprint matching Transsion isConnected by framework constants.
  */
 object UniversalNetworkUtilIsConnectedFingerprint : Fingerprint(
     returnType = "Z",
@@ -41,29 +31,9 @@ object UniversalNetworkUtilIsConnectedFingerprint : Fingerprint(
 )
 
 /**
- * Fingerprint matching isConnected in UtilCode NetworkUtils (v2.0.4).
+ * Fingerprint matching registerNetworkStatusChangedListener in UtilCode (e0.b).
  */
-object UtilCodeNetworkUtilsIsConnectedFingerprint : Fingerprint(
-    definingClass = "Lcom/blankj/utilcode/util/NetworkUtils;",
-    name = "isConnected",
-    returnType = "Z",
-    parameters = emptyList()
-)
-
-/**
- * Fingerprint matching registerNetworkStatusChangedListener in UtilCode NetworkUtils (v2.0.4).
- */
-object UtilCodeNetworkUtilsRegisterListenerFingerprint : Fingerprint(
-    definingClass = "Lcom/blankj/utilcode/util/NetworkUtils;",
-    name = "registerNetworkStatusChangedListener",
-    returnType = "V",
-    parameters = listOf("Lcom/blankj/utilcode/util/NetworkUtils\$OnNetworkStatusChangedListener;")
-)
-
-/**
- * Fingerprint matching registerNetworkStatusChangedListener in obfuscated UtilCode (v2.0.6, e0.b).
- */
-object ObfuscatedUtilCodeRegisterListenerFingerprint : Fingerprint(
+object UtilCodeRegisterListenerFingerprint : Fingerprint(
     definingClass = "Lcom/blankj/utilcode/util/e0;",
     name = "b",
     returnType = "V",
@@ -71,7 +41,7 @@ object ObfuscatedUtilCodeRegisterListenerFingerprint : Fingerprint(
 )
 
 /**
- * Universal fingerprint matching UtilCode network change BroadcastReceiver onReceive across all versions.
+ * Fingerprint matching UtilCode network change BroadcastReceiver onReceive.
  */
 object UtilCodeConnectivityReceiverFingerprint : Fingerprint(
     name = "onReceive",
@@ -101,23 +71,18 @@ val offlineNetworkPatch = bytecodePatch(
             return-void
         """
 
-        // Neutralize Transsion NetworkUtil isConnected across versions (v2.0.4 and v2.0.6)
+        // Neutralize Transsion NetworkUtil isConnected
         listOfNotNull(
-            UniversalNetworkUtilIsConnectedFingerprint.methodOrNull,
-            NetworkUtilIsConnectedFingerprint.methodOrNull,
-            ObfuscatedNetworkUtilIsConnectedFingerprint.methodOrNull
+            TranssionNetworkUtilIsConnectedFingerprint.methodOrNull,
+            UniversalNetworkUtilIsConnectedFingerprint.methodOrNull
         ).distinct().forEach { method ->
             method.addInstructions(0, stubFalse)
         }
 
-        // Neutralize UtilCode connectivity check (v2.0.4)
-        UtilCodeNetworkUtilsIsConnectedFingerprint.methodOrNull?.addInstructions(0, stubFalse)
+        // Disable UtilCode network change listener registration
+        UtilCodeRegisterListenerFingerprint.methodOrNull?.addInstructions(0, stubVoid)
 
-        // Disable UtilCode network change listener registration (v2.0.4 and v2.0.6)
-        UtilCodeNetworkUtilsRegisterListenerFingerprint.methodOrNull?.addInstructions(0, stubVoid)
-        ObfuscatedUtilCodeRegisterListenerFingerprint.methodOrNull?.addInstructions(0, stubVoid)
-
-        // Disable UtilCode BroadcastReceiver from firing network change callbacks (v2.0.4 and v2.0.6)
+        // Disable UtilCode BroadcastReceiver from firing network change callbacks
         UtilCodeConnectivityReceiverFingerprint.methodOrNull?.addInstructions(0, stubVoid)
     }
 }

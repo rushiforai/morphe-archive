@@ -147,6 +147,16 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeApplyTuning(
     uintptr_t tuning_start = base + TUNING_START_OFFSET;
     uintptr_t tuning_end = tuning_start + TUNING_SIZE;
 
+    // Standard mode (1.00x sharpen & stock denoise mode 2): directly restore 100% bit-for-bit stock curves
+    if (fabsf(sharpenScale - 1.0f) < 0.001f && denoiseMode == 2) {
+        if (s_backup_initialized) {
+            memcpy((void*)tuning_start, s_backup, TUNING_SIZE);
+            LOGI("Dynamic Tuning Applied: Standard Mode - Restored 100%% stock tuning curves bit-for-bit from backup buffer (Sharpen=1.00x, Denoise=Stock)");
+        }
+        mprotect((void*)page_start, protect_len, PROT_READ);
+        return;
+    }
+
     for (uintptr_t toc_ptr = base + TOC_START_OFFSET; toc_ptr < base + TOC_END_OFFSET; toc_ptr += sizeof(TocEntry)) {
         TocEntry* entry = (TocEntry*)toc_ptr;
         uintptr_t data_addr = (uintptr_t)entry->p_data;
@@ -159,6 +169,14 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeApplyTuning(
             // Handle Sharpen & De-Ring assets
             if (strstr(name, "sharpen_")) {
                 patched_sharpen_files++;
+                int is_tele = (strstr(name, "tele") != NULL);
+                // Issue 11 fix: Telephoto optics (5x/10x periscope) require full unsharp masking
+                // to overcome aperture diffraction and optical softness. When edge control is lowered
+                // (Natural 0.5x or Soft 0.0x), exempt telephoto curves so telephoto keeps 100% acutance
+                // and stock de-ring suppression, while wide/ultrawide have edge halos eliminated.
+                float asset_sharpen_scale = is_tele ? fmaxf(1.0f, sharpenScale) : sharpenScale;
+                float asset_dering_scale  = is_tele ? 1.0f : (0.25f + 0.75f * sharpenScale);
+
                 size_t off = 0;
                 while (off + 5 <= entry->sz) {
                     uint8_t tag = s_backup[rel_offset + off];
@@ -166,7 +184,7 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeApplyTuning(
                         float orig_val;
                         memcpy(&orig_val, &s_backup[rel_offset + off + 1], sizeof(float));
                         if (orig_val >= 0.01f && orig_val <= 50.0f) {
-                            float new_val = orig_val * sharpenScale;
+                            float new_val = orig_val * asset_sharpen_scale;
                             memcpy((void*)(data_addr + off + 1), &new_val, sizeof(float));
                             patched_sharpen_floats++;
                         }
@@ -176,7 +194,7 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeApplyTuning(
                         memcpy(&orig_val, &s_backup[rel_offset + off + 1], sizeof(float));
                         if (orig_val >= 0.01f && orig_val <= 10.0f) {
                             // When soft (0.0x) or natural (0.5x), clamp overshoot to eliminate edge ringing
-                            float new_val = orig_val * (0.25f + 0.75f * sharpenScale);
+                            float new_val = orig_val * asset_dering_scale;
                             memcpy((void*)(data_addr + off + 1), &new_val, sizeof(float));
                             patched_dering_floats++;
                         }
@@ -462,128 +480,166 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeSetFineTuning(
     }
 }
 
-// 128-bit NEON burst memory grading for Y plane (Luma) with SIMD film grain
-static inline void lut_grade_y(uint8_t* y_data, uint32_t width, uint32_t height, uint32_t stride, const uint8_t lut[256]) {
-    int grain_on = s_grain_enabled;
+static inline uint8x8_t neon_grade_8(int16x8_t w, int16x4_t v_scale, int32x4_t v_offset) {
+    int32x4_t p_lo = vmull_s16(vget_low_s16(w), v_scale);
+    int32x4_t p_hi = vmull_s16(vget_high_s16(w), v_scale);
+
+    int32x4_t s_lo = vshrq_n_s32(p_lo, 8);
+    int32x4_t s_hi = vshrq_n_s32(p_hi, 8);
+
+    int32x4_t a_lo = vaddq_s32(s_lo, v_offset);
+    int32x4_t a_hi = vaddq_s32(s_hi, v_offset);
+
+    int16x4_t n_lo = vqmovn_s32(a_lo);
+    int16x4_t n_hi = vqmovn_s32(a_hi);
+
+    int16x8_t comb = vcombine_s16(n_lo, n_hi);
+    return vqmovun_s16(comb);
+}
+
+// 128-bit dual-burst NEON SIMD vector grading for Y plane (Luma) - Zero memory table stalls
+static inline void neon_grade_y(uint8_t* y_data, uint32_t width, uint32_t height, uint32_t stride, int16_t scale_q8, int16_t offset) {
+    if (scale_q8 == 256 && offset == 128) return;
+
+    int16x4_t v_scale = vdup_n_s16(scale_q8);
+    int32x4_t v_offset = vdupq_n_s32(offset);
+    int16x8_t v_128 = vdupq_n_s16(128);
 
     for (uint32_t y = 0; y < height; y++) {
         uint8_t* row = y_data + y * stride;
         uint32_t x = 0;
 
-        if (grain_on) {
-            uint32_t y_offset = (y * 79) & 0xFF;
-            for (; x + 16 <= width; x += 16) {
-                uint8x16_t orig = vld1q_u8(row + x); // 128-bit burst read from Gralloc
-                uint8_t in[16];
-                uint8_t out[16];
-                vst1q_u8(in, orig);
-                for (int k = 0; k < 16; k++) out[k] = lut[in[k]];
-                uint8x16_t graded = vld1q_u8(out);
+        // 32 bytes per iteration (Dual 128-bit vector burst)
+        for (; x + 32 <= width; x += 32) {
+            uint8x16_t vy0 = vld1q_u8(row + x);
+            uint8x16_t vy1 = vld1q_u8(row + x + 16);
 
-                // Midtone weight in SIMD: 255 - |orig * 2 - 255| = 2 * min(orig, 255 - orig)
-                uint8x16_t inv_orig = vsubq_u8(vdupq_n_u8(255), orig);
-                uint8x16_t min_v = vminq_u8(orig, inv_orig);
-                uint8x16_t weight = vshlq_n_u8(min_v, 1);
+            int16x8_t w0_lo = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(vy0))), v_128);
+            int16x8_t w0_hi = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(vy0))), v_128);
+            int16x8_t w1_lo = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(vy1))), v_128);
+            int16x8_t w1_hi = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(vy1))), v_128);
 
-                int8x16_t n = vld1q_s8(s_noise_table + ((y_offset + x) & 0xFF));
+            uint8x8_t r0_lo = neon_grade_8(w0_lo, v_scale, v_offset);
+            uint8x8_t r0_hi = neon_grade_8(w0_hi, v_scale, v_offset);
+            uint8x8_t r1_lo = neon_grade_8(w1_lo, v_scale, v_offset);
+            uint8x8_t r1_hi = neon_grade_8(w1_hi, v_scale, v_offset);
 
-                int16x8_t g_lo = vshrq_n_s16(vmull_s8(vget_low_s8(n), vreinterpret_s8_u8(vget_low_u8(weight))), 9);
-                int16x8_t g_hi = vshrq_n_s16(vmull_s8(vget_high_s8(n), vreinterpret_s8_u8(vget_high_u8(weight))), 9);
+            vst1q_u8(row + x, vcombine_u8(r0_lo, r0_hi));
+            vst1q_u8(row + x + 16, vcombine_u8(r1_lo, r1_hi));
+        }
 
-                int16x8_t r_lo = vaddq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(graded))), g_lo);
-                int16x8_t r_hi = vaddq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(graded))), g_hi);
+        for (; x + 16 <= width; x += 16) {
+            uint8x16_t vy = vld1q_u8(row + x);
+            int16x8_t w_lo = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(vy))), v_128);
+            int16x8_t w_hi = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(vy))), v_128);
+            uint8x8_t r_lo = neon_grade_8(w_lo, v_scale, v_offset);
+            uint8x8_t r_hi = neon_grade_8(w_hi, v_scale, v_offset);
+            vst1q_u8(row + x, vcombine_u8(r_lo, r_hi));
+        }
 
-                vst1q_u8(row + x, vcombine_u8(vqmovun_s16(r_lo), vqmovun_s16(r_hi))); // 128-bit burst write
-            }
-            for (; x < width; x++) {
-                uint8_t o = row[x];
-                uint8_t g = lut[o];
-                int n = s_noise_table[(y_offset + x) & 0xFF];
-                int mw = 255 - abs((int)o * 2 - 255);
-                int gr = (n * mw) >> 10;
-                row[x] = clamp_u8((int)g + gr);
-            }
-        } else {
-            // Dual 128-bit burst pipeline (32 bytes per iteration)
-            for (; x + 32 <= width; x += 32) {
-                uint8x16_t v0 = vld1q_u8(row + x);
-                uint8x16_t v1 = vld1q_u8(row + x + 16);
-                uint8_t in0[16], in1[16];
-                uint8_t out0[16], out1[16];
-                vst1q_u8(in0, v0);
-                vst1q_u8(in1, v1);
-                for (int k = 0; k < 16; k++) {
-                    out0[k] = lut[in0[k]];
-                    out1[k] = lut[in1[k]];
-                }
-                vst1q_u8(row + x, vld1q_u8(out0));
-                vst1q_u8(row + x + 16, vld1q_u8(out1));
-            }
-            for (; x + 16 <= width; x += 16) {
-                uint8x16_t v = vld1q_u8(row + x);
-                uint8_t in[16], out[16];
-                vst1q_u8(in, v);
-                for (int k = 0; k < 16; k++) out[k] = lut[in[k]];
-                vst1q_u8(row + x, vld1q_u8(out));
-            }
-            for (; x < width; x++) {
-                row[x] = lut[row[x]];
-            }
+        for (; x < width; x++) {
+            int val = ((int)row[x] - 128) * (int)scale_q8 / 256 + (int)offset;
+            row[x] = clamp_u8(val);
         }
     }
 }
 
-// 128-bit NEON burst memory grading for NV12/NV21 UV plane (Chroma)
-static inline void lut_grade_uv_nv12(uint8_t* uv_data, uint32_t width, uint32_t uv_h, uint32_t stride,
-                                     const uint8_t lut_u[256], const uint8_t lut_v[256], int is_nv21) {
-    const uint8_t* lut_even = is_nv21 ? lut_v : lut_u;
-    const uint8_t* lut_odd  = is_nv21 ? lut_u : lut_v;
+// 128-bit dual-burst NEON SIMD vector grading for NV12/NV21 UV plane (Chroma)
+static inline void neon_grade_uv_nv12(uint8_t* uv_data, uint32_t width, uint32_t uv_h, uint32_t stride,
+                                      int16_t scale_q8, int16_t shift_even, int16_t shift_odd) {
+    if (scale_q8 == 0 && shift_even == 0 && shift_odd == 0) {
+        for (uint32_t y = 0; y < uv_h; y++) {
+            memset(uv_data + y * stride, 128, width);
+        }
+        return;
+    }
+    if (scale_q8 == 256 && shift_even == 0 && shift_odd == 0) return;
+
+    int16x4_t v_scale = vdup_n_s16(scale_q8);
+    int16x8_t v_128 = vdupq_n_s16(128);
+    int16_t shifts[8] = { shift_even, shift_odd, shift_even, shift_odd, shift_even, shift_odd, shift_even, shift_odd };
+    int16x8_t v_shifts = vld1q_s16(shifts);
+    int16x4_t v_shift_lo = vget_low_s16(v_shifts);
+    int16x4_t v_shift_hi = vget_high_s16(v_shifts);
 
     for (uint32_t y = 0; y < uv_h; y++) {
         uint8_t* row = uv_data + y * stride;
         uint32_t x = 0;
-        // Dual 128-bit burst pipeline (32 bytes per iteration)
+
+        // 32 bytes per iteration (Dual 128-bit vector burst = 16 UV pairs)
         for (; x + 32 <= width; x += 32) {
             uint8x16_t v0 = vld1q_u8(row + x);
             uint8x16_t v1 = vld1q_u8(row + x + 16);
-            uint8_t in0[16], in1[16];
-            uint8_t out0[16], out1[16];
-            vst1q_u8(in0, v0);
-            vst1q_u8(in1, v1);
-            for (int k = 0; k < 16; k += 2) {
-                out0[k]   = lut_even[in0[k]];
-                out0[k+1] = lut_odd [in0[k+1]];
-                out1[k]   = lut_even[in1[k]];
-                out1[k+1] = lut_odd [in1[k+1]];
-            }
-            vst1q_u8(row + x, vld1q_u8(out0));
-            vst1q_u8(row + x + 16, vld1q_u8(out1));
+
+            int16x8_t w0_lo = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(v0))), v_128);
+            int16x8_t w0_hi = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(v0))), v_128);
+            int16x8_t w1_lo = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(v1))), v_128);
+            int16x8_t w1_hi = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(v1))), v_128);
+
+            // w0_lo
+            int32x4_t p0_lo0 = vmull_s16(vget_low_s16(w0_lo), v_scale);
+            int32x4_t p0_lo1 = vmull_s16(vget_high_s16(w0_lo), v_scale);
+            int32x4_t s0_lo0 = vaddw_s16(vshrq_n_s32(p0_lo0, 8), v_shift_lo);
+            int32x4_t s0_lo1 = vaddw_s16(vshrq_n_s32(p0_lo1, 8), v_shift_hi);
+            int16x8_t r0_lo = vaddq_s16(vcombine_s16(vqmovn_s32(s0_lo0), vqmovn_s32(s0_lo1)), v_128);
+
+            // w0_hi
+            int32x4_t p0_hi0 = vmull_s16(vget_low_s16(w0_hi), v_scale);
+            int32x4_t p0_hi1 = vmull_s16(vget_high_s16(w0_hi), v_scale);
+            int32x4_t s0_hi0 = vaddw_s16(vshrq_n_s32(p0_hi0, 8), v_shift_lo);
+            int32x4_t s0_hi1 = vaddw_s16(vshrq_n_s32(p0_hi1, 8), v_shift_hi);
+            int16x8_t r0_hi = vaddq_s16(vcombine_s16(vqmovn_s32(s0_hi0), vqmovn_s32(s0_hi1)), v_128);
+
+            // w1_lo
+            int32x4_t p1_lo0 = vmull_s16(vget_low_s16(w1_lo), v_scale);
+            int32x4_t p1_lo1 = vmull_s16(vget_high_s16(w1_lo), v_scale);
+            int32x4_t s1_lo0 = vaddw_s16(vshrq_n_s32(p1_lo0, 8), v_shift_lo);
+            int32x4_t s1_lo1 = vaddw_s16(vshrq_n_s32(p1_lo1, 8), v_shift_hi);
+            int16x8_t r1_lo = vaddq_s16(vcombine_s16(vqmovn_s32(s1_lo0), vqmovn_s32(s1_lo1)), v_128);
+
+            // w1_hi
+            int32x4_t p1_hi0 = vmull_s16(vget_low_s16(w1_hi), v_scale);
+            int32x4_t p1_hi1 = vmull_s16(vget_high_s16(w1_hi), v_scale);
+            int32x4_t s1_hi0 = vaddw_s16(vshrq_n_s32(p1_hi0, 8), v_shift_lo);
+            int32x4_t s1_hi1 = vaddw_s16(vshrq_n_s32(p1_hi1, 8), v_shift_hi);
+            int16x8_t r1_hi = vaddq_s16(vcombine_s16(vqmovn_s32(s1_hi0), vqmovn_s32(s1_hi1)), v_128);
+
+            vst1q_u8(row + x, vcombine_u8(vqmovun_s16(r0_lo), vqmovun_s16(r0_hi)));
+            vst1q_u8(row + x + 16, vcombine_u8(vqmovun_s16(r1_lo), vqmovun_s16(r1_hi)));
         }
+
         for (; x + 16 <= width; x += 16) {
             uint8x16_t v = vld1q_u8(row + x);
-            uint8_t in[16], out[16];
-            vst1q_u8(in, v);
-            for (int k = 0; k < 16; k += 2) {
-                out[k]   = lut_even[in[k]];
-                out[k+1] = lut_odd [in[k+1]];
-            }
-            vst1q_u8(row + x, vld1q_u8(out));
+            int16x8_t w_lo = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(v))), v_128);
+            int16x8_t w_hi = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(v))), v_128);
+
+            int32x4_t p0 = vmull_s16(vget_low_s16(w_lo), v_scale);
+            int32x4_t p1 = vmull_s16(vget_high_s16(w_lo), v_scale);
+            int32x4_t s0 = vaddw_s16(vshrq_n_s32(p0, 8), v_shift_lo);
+            int32x4_t s1 = vaddw_s16(vshrq_n_s32(p1, 8), v_shift_hi);
+            int16x8_t r_lo = vaddq_s16(vcombine_s16(vqmovn_s32(s0), vqmovn_s32(s1)), v_128);
+
+            int32x4_t p2 = vmull_s16(vget_low_s16(w_hi), v_scale);
+            int32x4_t p3 = vmull_s16(vget_high_s16(w_hi), v_scale);
+            int32x4_t s2 = vaddw_s16(vshrq_n_s32(p2, 8), v_shift_lo);
+            int32x4_t s3 = vaddw_s16(vshrq_n_s32(p3, 8), v_shift_hi);
+            int16x8_t r_hi = vaddq_s16(vcombine_s16(vqmovn_s32(s2), vqmovn_s32(s3)), v_128);
+
+            vst1q_u8(row + x, vcombine_u8(vqmovun_s16(r_lo), vqmovun_s16(r_hi)));
         }
+
         for (; x < width; x += 2) {
-            row[x]   = lut_even[row[x]];
-            row[x+1] = lut_odd [row[x+1]];
+            int u = ((int)row[x] - 128) * (int)scale_q8 / 256 + (int)shift_even + 128;
+            int v = ((int)row[x+1] - 128) * (int)scale_q8 / 256 + (int)shift_odd + 128;
+            row[x] = clamp_u8(u);
+            row[x+1] = clamp_u8(v);
         }
     }
 }
 
-// Fast L1-cache resident table lookup for planar channels (YUV420 planar)
-static inline void lut_grade_channel_planar(uint8_t* data, uint32_t width, uint32_t height, uint32_t stride, const uint8_t lut[256]) {
-    lut_grade_y(data, width, height, stride, lut);
-}
-
-// Luminance-preserving color grading for RGBA frames with optional Film Grain
-static inline void lut_grade_rgba(uint8_t* data, uint32_t width, uint32_t height, uint32_t stride,
-                                  const uint8_t lut_y[256], float sat, float shift_u, float shift_v, int is_monochrome) {
+// Luminance-preserving color grading for RGB (3 channels) or RGBA (4 channels) frames with optional Film Grain
+static inline void lut_grade_raster(uint8_t* data, uint32_t width, uint32_t height, uint32_t channels, uint32_t stride,
+                                    const uint8_t lut_y[256], float sat, float shift_u, float shift_v, int is_monochrome) {
     int s_q8 = (int)roundf(sat * 256.0f);
     int s_r = (int)roundf(shift_v * 1.402f);
     int s_g = (int)roundf(-0.344136f * shift_u - 0.714136f * shift_v);
@@ -596,7 +652,7 @@ static inline void lut_grade_rgba(uint8_t* data, uint32_t width, uint32_t height
 
         if (is_monochrome) {
             for (uint32_t x = 0; x < width; x++) {
-                uint8_t* pix = row + x * 4;
+                uint8_t* pix = row + x * channels;
                 uint8_t gray = (uint8_t)((pix[0]*77 + pix[1]*150 + pix[2]*29) >> 8);
                 uint8_t out = lut_y[gray];
                 if (grain_on) {
@@ -608,7 +664,7 @@ static inline void lut_grade_rgba(uint8_t* data, uint32_t width, uint32_t height
             }
         } else {
             for (uint32_t x = 0; x < width; x++) {
-                uint8_t* pix = row + x * 4;
+                uint8_t* pix = row + x * channels;
                 int r = pix[0], g = pix[1], b = pix[2];
                 int luma = (r * 77 + g * 150 + b * 29) >> 8;
                 int graded_luma = lut_y[luma];
@@ -623,6 +679,63 @@ static inline void lut_grade_rgba(uint8_t* data, uint32_t width, uint32_t height
                 pix[0] = clamp_u8(r + dl + (((r - luma) * (s_q8 - 256)) >> 8) + s_r + gr);
                 pix[1] = clamp_u8(g + dl + (((g - luma) * (s_q8 - 256)) >> 8) + s_g + gr);
                 pix[2] = clamp_u8(b + dl + (((b - luma) * (s_q8 - 256)) >> 8) + s_b + gr);
+            }
+        }
+    }
+}
+
+static inline void neon_grade_rgba(uint8_t* data, uint32_t width, uint32_t height, uint32_t stride,
+                                   int16_t scale_q8, int16_t offset, int is_monochrome) {
+    int16x4_t v_scale = vdup_n_s16(scale_q8);
+    int32x4_t v_offset = vdupq_n_s32(offset);
+    int16x8_t v_128 = vdupq_n_s16(128);
+
+    for (uint32_t y = 0; y < height; y++) {
+        uint8_t* row = data + y * stride;
+        uint32_t x = 0;
+        if (is_monochrome) {
+            for (; x + 8 <= width; x += 8) {
+                uint8x8x4_t rgba = vld4_u8(row + x * 4);
+                uint16x8_t r16 = vmull_u8(rgba.val[0], vdup_n_u8(77));
+                uint16x8_t g16 = vmlal_u8(r16, rgba.val[1], vdup_n_u8(150));
+                uint16x8_t gray16 = vmlal_u8(g16, rgba.val[2], vdup_n_u8(29));
+                uint8x8_t gray8 = vshrn_n_u16(gray16, 8);
+
+                int16x8_t w = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(gray8)), v_128);
+                uint8x8_t out = neon_grade_8(w, v_scale, v_offset);
+
+                rgba.val[0] = out;
+                rgba.val[1] = out;
+                rgba.val[2] = out;
+                vst4_u8(row + x * 4, rgba);
+            }
+            for (; x < width; x++) {
+                uint8_t* pix = row + x * 4;
+                uint8_t gray = (uint8_t)((pix[0]*77 + pix[1]*150 + pix[2]*29) >> 8);
+                int c = ((int)gray - 128) * (int)scale_q8 / 256 + (int)offset;
+                uint8_t out = clamp_u8(c);
+                pix[0] = out; pix[1] = out; pix[2] = out;
+            }
+        } else {
+            for (; x + 8 <= width; x += 8) {
+                uint8x8x4_t rgba = vld4_u8(row + x * 4);
+                int16x8_t r_w = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(rgba.val[0])), v_128);
+                int16x8_t g_w = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(rgba.val[1])), v_128);
+                int16x8_t b_w = vsubq_s16(vreinterpretq_s16_u16(vmovl_u8(rgba.val[2])), v_128);
+
+                rgba.val[0] = neon_grade_8(r_w, v_scale, v_offset);
+                rgba.val[1] = neon_grade_8(g_w, v_scale, v_offset);
+                rgba.val[2] = neon_grade_8(b_w, v_scale, v_offset);
+                vst4_u8(row + x * 4, rgba);
+            }
+            for (; x < width; x++) {
+                uint8_t* pix = row + x * 4;
+                int r = ((int)pix[0] - 128) * (int)scale_q8 / 256 + (int)offset;
+                int g = ((int)pix[1] - 128) * (int)scale_q8 / 256 + (int)offset;
+                int b = ((int)pix[2] - 128) * (int)scale_q8 / 256 + (int)offset;
+                pix[0] = clamp_u8(r);
+                pix[1] = clamp_u8(g);
+                pix[2] = clamp_u8(b);
             }
         }
     }
@@ -644,16 +757,16 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
         return;
     }
 
-    if (!s_luts_initialized) {
-        init_look_luts();
-    }
-
-    update_active_luts(lookId);
-
-    const uint8_t* lut_y = s_active_lut_y;
-    const uint8_t* lut_u = s_active_lut_u;
-    const uint8_t* lut_v = s_active_lut_v;
     const LookProfile* prof = (lookId >= 0 && lookId < 13) ? &s_look_profiles[lookId] : &s_look_profiles[0];
+
+    int16_t scale_y = (int16_t)roundf((prof->contrast_p + s_ft_contrast * 0.35f) * 256.0f);
+    int16_t offset_y = 128 + (int16_t)roundf((prof->black_lift * 64.0f) + (s_ft_highlights + s_ft_shadows) * 20.0f);
+
+    int16_t scale_uv = prof->is_monochrome ? 0 : (int16_t)roundf((prof->saturation + s_ft_vibrance * 0.45f) * 256.0f);
+    if (scale_uv < 0) scale_uv = 0;
+
+    int16_t shift_u = (int16_t)roundf(prof->shift_u + s_ft_tint * (-10.0f));
+    int16_t shift_v = (int16_t)roundf(prof->shift_v + s_ft_tint * (+10.0f));
     int is_monochrome = prof->is_monochrome;
 
     AHardwareBuffer* buffer = AHardwareBuffer_fromHardwareBuffer(env, hwBuffer);
@@ -661,13 +774,6 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
 
     AHardwareBuffer_Desc desc;
     AHardwareBuffer_describe(buffer, &desc);
-
-    static int s_last_logged_look = -1;
-    if (s_last_logged_look != lookId) {
-        LOGI("nativeProcessHardwareBuffer ACTIVE: %ux%u, format=0x%x, usage=0x%llx, stride=%u, lookId=%d",
-             desc.width, desc.height, desc.format, (unsigned long long)desc.usage, desc.stride, lookId);
-        s_last_logged_look = lookId;
-    }
 
     AHardwareBuffer_Planes planes;
     int res = AHardwareBuffer_lockPlanes(buffer,
@@ -683,18 +789,17 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
     int is_rgba = (desc.format == 1 || desc.format == 2 || desc.format == 3);
 
     if (res != 0) {
-        // Fallback to simple lock
         void* virt = NULL;
         res = AHardwareBuffer_lock(buffer,
             AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN,
             -1, NULL, &virt);
         if (res == 0 && virt) {
             if (is_rgba) {
-                lut_grade_rgba((uint8_t*)virt, desc.width, desc.height, desc.stride * 4,
-                               lut_y, s_active_saturation, s_active_shift_u, s_active_shift_v, is_monochrome);
+                neon_grade_rgba((uint8_t*)virt, desc.width, desc.height, desc.stride * 4,
+                                scale_y, offset_y, is_monochrome);
             } else {
                 uint32_t y_size = desc.stride * desc.height;
-                lut_grade_y((uint8_t*)virt, desc.width, desc.height, desc.stride, lut_y);
+                neon_grade_y((uint8_t*)virt, desc.width, desc.height, desc.stride, scale_y, offset_y);
                 uint8_t* uv_data = (uint8_t*)virt + y_size;
                 uint32_t uv_h = desc.height / 2;
                 if (is_monochrome) {
@@ -702,17 +807,11 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
                         memset(uv_data + y * desc.stride, 128, desc.width);
                     }
                 } else {
-                    lut_grade_uv_nv12(uv_data, desc.width, uv_h, desc.stride, lut_u, lut_v, 0);
+                    neon_grade_uv_nv12(uv_data, desc.width, uv_h, desc.stride, scale_uv, shift_u, shift_v);
                 }
             }
             AHardwareBuffer_unlock(buffer, NULL);
             return;
-        }
-
-        static int s_err_logged = 0;
-        if (!s_err_logged) {
-            LOGE("AHardwareBuffer_lock failed: err=%d (usage=0x%llx)", res, (unsigned long long)desc.usage);
-            s_err_logged = 1;
         }
         return;
     }
@@ -721,14 +820,12 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
     uint32_t height = desc.height;
 
     if (is_rgba) {
-        lut_grade_rgba((uint8_t*)planes.planes[0].data, width, height,
-                       planes.planes[0].rowStride, lut_y, s_active_saturation,
-                       s_active_shift_u, s_active_shift_v, is_monochrome);
+        neon_grade_rgba((uint8_t*)planes.planes[0].data, width, height,
+                        planes.planes[0].rowStride, scale_y, offset_y, is_monochrome);
     } else if (planes.planeCount == 1) {
-        // Semi-planar YUV420 with contiguous memory in single plane
         uint32_t y_size = planes.planes[0].rowStride * height;
-        lut_grade_y((uint8_t*)planes.planes[0].data, width, height,
-                    planes.planes[0].rowStride, lut_y);
+        neon_grade_y((uint8_t*)planes.planes[0].data, width, height,
+                     planes.planes[0].rowStride, scale_y, offset_y);
         uint8_t* uv_data = (uint8_t*)planes.planes[0].data + y_size;
         uint32_t uv_h = (height + 1) / 2;
         if (is_monochrome) {
@@ -736,18 +833,13 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
                 memset(uv_data + y * planes.planes[0].rowStride, 128, width);
             }
         } else {
-            lut_grade_uv_nv12(uv_data, width, uv_h, planes.planes[0].rowStride, lut_u, lut_v, 0);
+            neon_grade_uv_nv12(uv_data, width, uv_h, planes.planes[0].rowStride, scale_uv, shift_u, shift_v);
         }
     } else {
-        // 1. Grade Luma (Y) across full width x height with calibrated S-curve
-        lut_grade_y((uint8_t*)planes.planes[0].data, width, height,
-                    planes.planes[0].rowStride, lut_y);
+        neon_grade_y((uint8_t*)planes.planes[0].data, width, height,
+                     planes.planes[0].rowStride, scale_y, offset_y);
 
-        // 2. Grade Chroma (UV) across full width x (height/2)
         uint32_t uv_h = (height + 1) / 2;
-
-        // On Android YUV_420_888 (format 0x23), Gralloc almost always uses semi-planar NV12/NV21
-        // where pixelStride == 2 and U/V are interleaved across the FULL row of `width` bytes.
         int is_interleaved = (planes.planeCount >= 2 && planes.planes[1].pixelStride == 2);
         if (!is_interleaved && planes.planeCount == 2) {
             is_interleaved = 1;
@@ -756,39 +848,69 @@ Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessHardwareB
         if (is_interleaved) {
             uint32_t uv_stride = planes.planes[1].rowStride ? planes.planes[1].rowStride : width;
             uint8_t* uv_data = (uint8_t*)planes.planes[1].data;
-            int is_nv21 = 0;
+            int16_t shift_even = shift_u;
+            int16_t shift_odd = shift_v;
 
-            // Check if NV21 (V plane data address is before U plane data address)
             if (planes.planeCount >= 3 && planes.planes[2].data && planes.planes[2].data < planes.planes[1].data) {
                 uv_data = (uint8_t*)planes.planes[2].data;
-                is_nv21 = 1;
+                shift_even = shift_v;
+                shift_odd = shift_u;
             }
 
             if (is_monochrome) {
-                // Neutralize Chroma across all rows and the ENTIRE width (no 50% split)
                 for (uint32_t y = 0; y < uv_h; y++) {
                     memset(uv_data + y * uv_stride, 128, width);
                 }
             } else {
-                // Process all width bytes (width/2 pairs of UV)
-                lut_grade_uv_nv12(uv_data, width, uv_h, uv_stride, lut_u, lut_v, is_nv21);
-            }
-        } else if (planes.planeCount >= 3) {
-            // Truly planar YUV420 (separate U and V planes with pixelStride == 1)
-            uint32_t uv_w = (width + 1) / 2;
-            if (is_monochrome) {
-                for (uint32_t y = 0; y < uv_h; y++) {
-                    memset((uint8_t*)planes.planes[1].data + y * planes.planes[1].rowStride, 128, uv_w);
-                    memset((uint8_t*)planes.planes[2].data + y * planes.planes[2].rowStride, 128, uv_w);
-                }
-            } else {
-                lut_grade_channel_planar((uint8_t*)planes.planes[1].data, uv_w, uv_h, planes.planes[1].rowStride, lut_u);
-                lut_grade_channel_planar((uint8_t*)planes.planes[2].data, uv_w, uv_h, planes.planes[2].rowStride, lut_v);
+                neon_grade_uv_nv12(uv_data, width, uv_h, uv_stride, scale_uv, shift_even, shift_odd);
             }
         }
     }
 
     AHardwareBuffer_unlock(buffer, NULL);
+}
+
+JNIEXPORT void JNICALL
+Java_com_google_android_patch_cameralooks_TomteInitHelper_nativeProcessRasterImage(
+    JNIEnv *env, jclass clazz, jlong dataPtr, jint width, jint height, jint channels, jint stride, jint lookId) {
+    (void)env; (void)clazz;
+    if (dataPtr == 0 || width <= 0 || height <= 0 || (channels != 3 && channels != 4) || stride <= 0) {
+        LOGE("nativeProcessRasterImage: invalid arguments (ptr=0x%lx, w=%d, h=%d, ch=%d, stride=%d)",
+             (unsigned long)dataPtr, width, height, channels, stride);
+        return;
+    }
+
+    if (lookId < 0 || lookId > 12) lookId = 0;
+
+    int has_fine_tuning = (fabsf(s_ft_contrast) > 0.01f ||
+                           fabsf(s_ft_shadows) > 0.01f ||
+                           fabsf(s_ft_highlights) > 0.01f ||
+                           fabsf(s_ft_vibrance) > 0.01f ||
+                           fabsf(s_ft_tint) > 0.01f);
+
+    if (lookId == 0 && !has_fine_tuning) {
+        return;
+    }
+
+    if (!s_luts_initialized) {
+        init_look_luts();
+    }
+
+    update_active_luts(lookId);
+
+    const uint8_t* lut_y = s_active_lut_y;
+    const LookProfile* prof = (lookId >= 0 && lookId < 13) ? &s_look_profiles[lookId] : &s_look_profiles[0];
+    int is_monochrome = prof->is_monochrome;
+
+    float sat = s_active_saturation;
+    float shift_u = s_active_shift_u;
+    float shift_v = s_active_shift_v;
+
+    LOGI("ProPatcher: Grading Captured Photo: %dx%d (%d channels, stride=%d), Look=%d, Mono=%d, Sat=%.2f, U_shift=%.1f, V_shift=%.1f",
+         width, height, channels, stride, lookId, is_monochrome, sat, shift_u, shift_v);
+
+    lut_grade_raster((uint8_t*)dataPtr, (uint32_t)width, (uint32_t)height, (uint32_t)channels, (uint32_t)stride,
+                     lut_y, sat, shift_u, shift_v, is_monochrome);
 }
 
 

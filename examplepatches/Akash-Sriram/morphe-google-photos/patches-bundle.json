@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-02T10:11:12",
-  "description": "## [1.17.7](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.6...v1.17.7) (2026-11-02)\n\n### \u2728 New Features\n\n* **Google Photos - Settings:** add static Pixel XL and Pixel 5 device profile override options ([ee4a12c](https://github.com/Akash-Sriram/morphe-google-photos/commit/ee4a12ceefafd65a2a0c1c47e92744642eb0f2d9))\n* **Google Photos - Spoof:** add dynamic Auto-Sync profile switching matching backup quality ([10364c6](https://github.com/Akash-Sriram/morphe-google-photos/commit/10364c6f404d2a743f4581ab38bf2fe6fc0aa49d))",
-  "download_url": "https://github.com/Akash-Sriram/morphe-google-photos/releases/download/v1.17.7/patches-1.17.7.mpp",
+  "created_at": "2026-11-04T00:27:26",
+  "description": "## [1.17.9](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.8...v1.17.9) (2026-11-04)\n\n### \ud83d\udc1b Bug Fixes\n\n* **Google Photos - Location:** fix map re-entry ANR, optimize UI performance, and guard missing mapbox styles ([#67](https://github.com/Akash-Sriram/morphe-google-photos/issues/67)) ([32f34b4](https://github.com/Akash-Sriram/morphe-google-photos/commit/32f34b44b6ba5b540676954e493d3f893a27c506))\n\n### \u2728 New Features\n\n* **Google Photos - Spoof:** add patch-level profile selection option for minimal builds ([47a5268](https://github.com/Akash-Sriram/morphe-google-photos/commit/47a5268990d4bea48b3aba3f45c2cb492ff1f389))",
+  "download_url": "https://github.com/Akash-Sriram/morphe-google-photos/releases/download/v1.17.9/patches-1.17.9.mpp",
   "signature_download_url": "",
-  "version": "1.17.7"
+  "version": "1.17.9"
 }

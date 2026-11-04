@@ -21,7 +21,7 @@
 ## 最終候補の導入情報
 
 - serial emulator-5554 / Haiagaru 検証 191 / ChMate0.8.10.191 dev / jp.co.airfront.android.a2chMate.haiagaru.settingsfix191。2026-10-24 13:00前後JSTに署名照合install-r Success。
-- 絶対root C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/。
+- 絶対root <workspace>/。
 - APK build/local-auto-backup-verified191.apk SHA256 C179B292615CE6E717B7DC320452BF3891DE2C5B2A86DCC05298B8B94C14B1B6。
 - MPP build/local-auto-backup-verified.mpp SHA256 66ADBD66E4DCFA399B99AD2AC8A69E880D824B8ECBB6D9EF5D90EB7E85F2D971。
 - 鍵 C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore、alias Morphe、証明書SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。

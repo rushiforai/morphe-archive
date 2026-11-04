@@ -660,6 +660,7 @@ public final class Haiagaru {
             }
             return true;
         }
+        RefreshTargets.refresh(fragment, itemId);
         if (FavoriteThreads.refresh(fragment, itemId)) return true;
         if (itemId == 0x7e000005 || itemId == 0x7e000006) {
             Activity activity = toolbarActivity(fragment);
@@ -3495,6 +3496,7 @@ public final class Haiagaru {
     private static LinearLayout settingsGENERAL(Activity activity) {
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.VERTICAL);
+        ThreadWatch.addSettingsButton(layout, activity);
         SharedPreferences preferences = preferences(activity);
         SharedPreferences chMatePreferences = PreferenceManager.getDefaultSharedPreferences(activity);
         String chMateVersion = "";
@@ -4680,11 +4682,6 @@ public final class Haiagaru {
             decor.requestLayout(); decor.invalidate();
         });
         addOptionalSettingsSection(
-                "package data migration",
-                () -> addPackageMigrationControl(activity, layout)
-        );
-
-        addOptionalSettingsSection(
                 "local/optional MEGA backup",
                 () -> HaiagaruMegaSync.addSettingsButton(layout, activity)
         );
@@ -4948,19 +4945,6 @@ public final class Haiagaru {
         }
         if (merged.length() > 0) merged.append('\n');
         return merged.append(preset).toString();
-    }
-
-    private static void addPackageMigrationControl(Activity activity, LinearLayout layout) {
-        if (originalPackageName().equals(activity.getPackageName())) return;
-        try {
-            Class.forName("app.morphe.extension.chmate.PackageDataMigration")
-                    .getDeclaredMethod("addControl", Activity.class, LinearLayout.class)
-                    .invoke(null, activity, layout);
-        } catch (ClassNotFoundException ignored) {
-            // The optional Shizuku data-migration patch was not selected.
-        } catch (ReflectiveOperationException error) {
-            Log.e(LOG_TAG, "Unable to add the package-data migration control", error);
-        }
     }
 
     private static void addBoardDuplicateCleanupControl(Activity activity, LinearLayout layout) {

@@ -12,7 +12,7 @@ object Constants {
         appIconColor = 0x5C2D91,
         targets = listOf(
             AppTarget(
-                version = "6.7.1"
+                version = "6.7.2"
             ),
             // Expected to keep working on future versions.
             AppTarget(

@@ -186,7 +186,7 @@ internal fun Method.traySite(): Int? {
  *     :built
  *
  * The hook is the factory's own override of the gate, so everything else that reads it sees the same answer. Only a
- * factory that overrides its gate counts: 585's chat composer does, and another surface's composer builds the same
+ * factory that overrides its gate counts: the chat composer's does, and another surface's composer builds the same
  * plugin behind a base gate it leaves alone.
  */
 private fun trayGate(all: List<ClassDef>): Method? {

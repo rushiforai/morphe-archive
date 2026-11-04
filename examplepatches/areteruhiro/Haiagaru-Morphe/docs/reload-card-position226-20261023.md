@@ -16,7 +16,7 @@
 
 ## 公開MPPでの導入
 
-ルート C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/ 。
+ルート <workspace>/ 。
 
 - serial emulator-5554、Haiagaru 検証 226、0.8.10.226 dev、package jp.co.airfront.android.a2chMate.haiagaru.resumefix226。
 - APK build/reload-position-dev13-226.apk、SHA256 29BEEB0D6098B94777FE8655AF5041DF208CE1D3CA9FE7689AE434466B8C20F9。

@@ -10,6 +10,6 @@ object Constants {
         packageName = "com.idntimes.idntimes",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xED1C24,
-        targets = listOf(AppTarget(version = "6.69.0", versionCode = 2295)),
+        targets = listOf(AppTarget(version = "6.69.1", versionCode = 2303)),
     )
 }

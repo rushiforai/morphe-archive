@@ -153,6 +153,12 @@ STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS = (
     "dd5831f51cf3698a73918c530fdbb40d240de4e3",
     "68bd0a8c5c033b0f5fbc6d835612671429e0fffe",
 )
+# Morphe 2.1.0-dev.7 tracks the client handed to each player, not the last fetch.
+STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS = (
+    "68bd0a8c5c033b0f5fbc6d835612671429e0fffe",
+    "052cda9a09259509e23fe74f92538cf93a63c081",
+    "16f2be79cdbdb4879429b9128dfa6fdc467af219",
+)
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
@@ -939,6 +945,73 @@ def merge_streaming_data_request_dev210(source: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_dev217(source: str) -> str:
+    """Keep per-video playback clients and Dual's direct-audio accessors/guard."""
+    ours_record = (
+        "    public record StreamData(\n"
+        "            byte[] streamingData,\n"
+        "            @Nullable byte[] playerConfig,\n"
+        "            boolean hasAndroidMedia,\n"
+        "            boolean usesSabr,\n"
+        "            String clientUserAgent\n"
+        "    ) {\n"
+    )
+    theirs_record = (
+        "    /**\n"
+        "     * @param client Client the streams are of.\n"
+        "     */\n"
+        "    public record StreamData(byte[] streamingData, @Nullable byte[] playerConfig, boolean hasAndroidMedia,\n"
+        "                             ClientType client) {\n"
+    )
+    # ClientType's fields are final. Derive Dual's existing accessors from the
+    # same response client consumed by the upstream player, without extra state.
+    record = theirs_record + (
+        "        public boolean usesSabr() {\n"
+        "            return client.requireSABR;\n"
+        "        }\n\n"
+        "        public String clientUserAgent() {\n"
+        "            return client.userAgent;\n"
+        "        }\n"
+    )
+    ours_return = (
+        "            return new StreamData(\n"
+        "                    streamingDataBuffer,\n"
+        "                    playerConfigBuffer,\n"
+        "                    hasAndroidMedia,\n"
+        "                    clientType.requireSABR,\n"
+        "                    clientType.userAgent);\n"
+    )
+    theirs_return = "            return new StreamData(streamingDataBuffer, playerConfigBuffer, hasAndroidMedia, clientType);\n"
+    ours_guard = (
+        "                // Stats for nerds describes playback, not a direct/download request.\n"
+        "                if (!isDownload && !directStreamsOnly) {\n"
+        "                    lastSpoofedClientType = clientType;\n"
+    )
+    theirs_guard = (
+        "                // Stats for nerds and the SABR choice describe what is playing,\n"
+        "                // so the client is set when the streams are given to the player, and not here.\n"
+        "                if (!isDownload) {\n"
+    )
+    expected = (
+        (ours_record, theirs_record, record),
+        (ours_return, theirs_return, theirs_return),
+        (ours_guard, theirs_guard,
+         theirs_guard.replace("if (!isDownload)", "if (!isDownload && !directStreamsOnly)")),
+    )
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    if len(conflicts) != len(expected):
+        raise SyncError("Unexpected dev 2.1.0-dev.7 streaming conflict count")
+    for conflict, (ours, theirs, _) in zip(conflicts, expected):
+        if conflict.group(1, 2) != (ours, theirs):
+            raise SyncError("Unexpected dev 2.1.0-dev.7 streaming conflict shape")
+    replacements = iter(item[2] for item in expected)
+    merged = re.sub(pattern, lambda _: next(replacements), source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved dev 2.1.0-dev.7 streaming conflict")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -947,9 +1020,13 @@ def resolve_streaming_data_request_conflict() -> None:
         output_of("git", "rev-parse", f":{stage}:{STREAMING_DATA_REQUEST_PATH}")
         for stage in (1, 2, 3)
     )
-    if stage_blobs == STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS:
+    if stage_blobs in (STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
-        merged = merge_streaming_data_request_dev210(destination.read_text(encoding="utf-8"))
+        merge_known = (merge_streaming_data_request_dev217
+                       if stage_blobs == STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS
+                       else merge_streaming_data_request_dev210)
+        merged = merge_known(destination.read_text(encoding="utf-8"))
         destination.write_text(merged, encoding="utf-8", newline="")
         run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)
         return

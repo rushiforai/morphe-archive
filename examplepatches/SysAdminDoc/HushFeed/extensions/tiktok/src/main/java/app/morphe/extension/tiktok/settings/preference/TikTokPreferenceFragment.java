@@ -136,7 +136,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private String shownSearch = "";
     private SettingsSearchInputPreference searchInput;
     private SettingsHeaderPreference masterHeader;
+    /** The icon, name and version over the rows. The bar above the list names the page once it's gone. */
+    private SettingsHeader pageHeader;
+    /** The bar pinned above the list: the main header, once the page it heads is fully built. */
+    private SettingsHeaderPreference barHeader;
+    private android.widget.FrameLayout barSlot;
     private SettingsSearchEntryPreference searchEntry;
+    private SettingsViewTogglePreference viewToggle;
     private final java.util.Map<Section, SettingsMenuPreference> sectionMenus =
             new java.util.EnumMap<>(Section.class);
     private SettingsMenuPreference aboutMenu;
@@ -565,6 +571,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     protected void initialize() {
         final var context = getActivity();
         activeFragment = this;
+        // Set again at the end. A page that fails to build shows its error rows with no bar.
+        barHeader = null;
 
         // Nothing sets one. The framework only raises that dialog for a setting carrying a
         // userDialogMessage, and no setting in this bundle has one, so this was a translated
@@ -657,6 +665,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         restartPending = new RestartPendingPreference(context);
         refreshRestartPending();
+        barHeader = masterHeader;
+        pinBar();
     }
 
     @Override
@@ -804,12 +814,66 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
+    /** The list under a bar that stays put: back, the page's name and the compact status. */
+    @Override
+    public View onCreateView(android.view.LayoutInflater inflater, android.view.ViewGroup container,
+                             Bundle savedInstanceState) {
+        View rows = super.onCreateView(inflater, container, savedInstanceState);
+        android.widget.LinearLayout page = new android.widget.LinearLayout(inflater.getContext());
+        page.setOrientation(android.widget.LinearLayout.VERTICAL);
+        barSlot = new android.widget.FrameLayout(inflater.getContext());
+        page.addView(barSlot, new android.widget.LinearLayout.LayoutParams(-1, -2));
+        page.addView(rows, new android.widget.LinearLayout.LayoutParams(-1, 0, 1f));
+        pinBar();
+        return page;
+    }
+
+    /** Puts the main header's bar in its slot, again if the page was built anew under it. */
+    private void pinBar() {
+        if (barSlot == null) return;
+        barSlot.removeAllViews();
+        if (barHeader == null) return;
+        barSlot.addView(barHeader.getView(null, barSlot), new android.widget.FrameLayout.LayoutParams(-1, -2));
+        showTitle();
+    }
+
+    /**
+     * The bar's title: Search settings while a search is typed, else Hushfeed, left off while the
+     * header's own name is on screen.
+     */
+    private void showTitle() {
+        if (barHeader == null) return;
+        boolean searching = searchScreen != null && !shownSearch.isEmpty();
+        barHeader.showTitle(searching ? L10n.t(getActivity(), "Search settings") : null, headerNameShown());
+    }
+
+    /**
+     * Whether some of the header's name is on screen. A search scrolls its field to the top and the
+     * header away, and so can a reader, and then the bar names the page.
+     */
+    private boolean headerNameShown() {
+        View view = getView();
+        ListView list = view == null ? null : view.findViewById(android.R.id.list);
+        if (list == null || pageHeader == null) return false;
+        View name = list.findViewWithTag(SettingsHeader.NAME);
+        return name != null && name.isShown() && name.getLocalVisibleRect(new android.graphics.Rect());
+    }
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         ListView list = view.findViewById(android.R.id.list);
         if (list != null) {
+            // A layout calls this too, so the bar learns when the header comes and goes as well as scrolls.
+            list.setOnScrollListener(new android.widget.AbsListView.OnScrollListener() {
+                @Override public void onScrollStateChanged(android.widget.AbsListView view, int state) {
+                }
+
+                @Override public void onScroll(android.widget.AbsListView view, int first, int count, int total) {
+                    showTitle();
+                }
+            });
             SettingsUi.styleScrollableList(list);
             // Keep the inline editor focused when the list rebuilds its search results.
             list.setItemsCanFocus(true);
@@ -918,7 +982,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         ListView list = getView().findViewById(android.R.id.list);
         if (list != null && list.getAdapter() != null) {
-            styledAdapter = new SettingsListAdapter(list.getAdapter());
+            styledAdapter = new SettingsListAdapter(list.getAdapter(), searchRows);
             list.setAdapter(styledAdapter);
             {
                 list.setOnItemLongClickListener((parent, row, position, id) -> {
@@ -1118,11 +1182,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     private void createSearchMenu(Context context, PreferenceScreen screen) {
         if (searchScreen != null) return;
+        // The list view's pages are fixed open, so they fold first like every other page does.
+        if (settingsAsList()) showAsList(false);
         searchExpanded = expandedGroups();
         for (SettingsMenuPreference menu : sectionMenus.values()) menu.setExpanded(false);
         if (aboutMenu != null) aboutMenu.setExpanded(false);
         searchScreen = screen;
         screen.removePreference(searchEntry);
+        // The results come right under the field, and the view a tap gives means nothing there.
+        if (viewToggle != null) screen.removePreference(viewToggle);
         searchInput = new SettingsSearchInputPreference(context, this::updateSearchResults);
         searchInput.setKey("action_search_settings");
         searchInput.setOrder(-900);
@@ -1142,6 +1210,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // empty as typed but folds away to nothing, and every setting contains "".
         String typed = query == null ? "" : query.trim();
         shownSearch = typed;
+        showTitle();
         String normalizedQuery = normalizeSearchText(typed);
         if (normalizedQuery.isEmpty()) {
             if (typed.isEmpty()) {
@@ -1181,6 +1250,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                             openSection(result.section, result.key, null);
                         });
                 toggle.setOrder(order++);
+                mark(toggle, resultIcon(result));
                 searchRows.add(toggle);
                 searchScreen.addPreference(toggle);
                 continue;
@@ -1189,6 +1259,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             row.setTitle(result.title);
             row.setSummary(result.displaySummary());
             row.setOrder(order++);
+            mark(row, resultIcon(result));
             row.setOnPreferenceClickListener(preference -> {
                 app.morphe.extension.tiktok.settings.SettingsSearchHistory.add(typed);
                 // A result's page can change what the rows show, so they read again on the way back.
@@ -1244,12 +1315,14 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                         updateSearchResults("");
                     });
             row.setOrder(order++);
+            mark(row, SettingsIcons.SEARCH);
             searchRows.add(row);
             searchScreen.addPreference(row);
         }
-        Preference clear = new Preference(context);
+        Preference clear = new ClearSearchHistoryRow(context);
         clear.setTitle(L10n.t(context, "Clear search history"));
         clear.setOrder(order);
+        mark(clear, SettingsIcons.DELETE);
         clear.setOnPreferenceClickListener(preference -> {
             app.morphe.extension.tiktok.settings.SettingsSearchHistory.clear();
             updateSearchResults("");
@@ -1260,14 +1333,52 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         return true;
     }
 
+    /** Forgets the recent searches where it stands, so it goes without the chevron. */
+    private static final class ClearSearchHistoryRow extends Preference
+            implements app.morphe.extension.shared.settings.preference.ImmediateAction {
+        ClearSearchHistoryRow(Context context) {
+            super(context);
+        }
+
+        @Override public boolean actsOnTap() {
+            return true;
+        }
+    }
+
     private void addSearchState(String title, String summary) {
         Preference state = new Preference(getActivity());
         state.setTitle(L10n.t(getActivity(), title));
         state.setSummary(L10n.t(getActivity(), summary));
         state.setSelectable(false);
         state.setOrder(-700);
+        mark(state, SettingsIcons.SEARCH);
         searchRows.add(state);
         searchScreen.addPreference(state);
+    }
+
+    /** A result's icon: one its key's words call for, or its section's. */
+    private static String resultIcon(SearchResult result) {
+        return SettingsIcons.forKey(result.key, result.section == null
+                ? SettingsIcons.SETTINGS : SettingsIcons.forMenu(result.section.icon));
+    }
+
+    /** Gives [row] the [icon] it leads with, which the list paints in the heading colour. */
+    private static Preference mark(Preference row, String icon) {
+        row.setIcon(SettingsIcons.icon(row.getContext(), icon, ScreenColors.current().heading));
+        return row;
+    }
+
+    /**
+     * Gives every row under [group] without an icon of its own one picked by the words of its
+     * key, or [fallback], its section's. Headings and categories only hold rows.
+     */
+    private static void markRows(PreferenceGroup group, String fallback) {
+        for (int i = 0; i < group.getPreferenceCount(); i++) {
+            Preference row = group.getPreference(i);
+            boolean holder = row instanceof SectionHeadingPreference || row instanceof PreferenceCategory;
+            if (!holder && row.getIcon() == null) mark(row, SettingsIcons.forKey(row.getKey(), fallback));
+            if (row instanceof PreferenceGroup) markRows((PreferenceGroup) row, fallback);
+        }
     }
 
     /** Set by tests, which see Utils' empty release version and so never a pending What's new. */
@@ -1616,9 +1727,12 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     /** Each category reveals its controls directly below its compact header. */
     private void createMasterMenu(Context context, PreferenceScreen screen) {
+        // The bar isn't a row: onCreateView pins it above the list, so it stays as the rows scroll.
         masterHeader = SettingsHeaderPreference.master(context, this::navigateBack,
                 () -> showRow(SettingsStatusPreference.KEY));
-        screen.addPreference(masterHeader);
+        pageHeader = new SettingsHeader(context);
+        pageHeader.setOrder(-1000);
+        screen.addPreference(pageHeader);
         searchEntry = new SettingsSearchEntryPreference(context, preference -> {
             openSearch();
             return true;
@@ -1626,6 +1740,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         searchEntry.setKey("action_search_settings");
         searchEntry.setOrder(-900);
         screen.addPreference(searchEntry);
+        viewToggle = new SettingsViewTogglePreference(context, preference -> {
+            toggleListView();
+            return true;
+        });
+        screen.addPreference(viewToggle);
 
         for (Section section : new Section[]{Section.FEED_FILTER, Section.FEED_NAVIGATION,
                 Section.INTERFACE, Section.PLAYBACK, Section.SCREEN_TIME, Section.COMMENTS,
@@ -1649,8 +1768,44 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // Search results occupy the space between the field and these category rows.
         for (int index = 0; index < screen.getPreferenceCount(); index++) {
             Preference row = screen.getPreference(index);
-            if (row != masterHeader && row != searchEntry) row.setOrder(10000 + index);
+            if (row != pageHeader && row != searchEntry && row != viewToggle) row.setOrder(10000 + index);
         }
+        if (settingsAsList()) showAsList(true);
+    }
+
+    /** Whether the home page shows every page's rows in one list. Pause doesn't change it. */
+    private static boolean settingsAsList() {
+        return Settings.SETTINGS_AS_LIST.savedValue();
+    }
+
+    /**
+     * Every page open in place and fixed open, its row a heading over its rows, or every page
+     * folded back under its row. About stays a fold either way: it's links and notes, not settings.
+     */
+    private void showAsList(boolean list) {
+        for (java.util.Map.Entry<Section, SettingsMenuPreference> entry : sectionMenus.entrySet()) {
+            SettingsMenuPreference menu = entry.getValue();
+            if (list) {
+                expandSection(entry.getKey());
+                menu.setExpandable(false);
+            } else {
+                menu.setExpandable(true);
+            }
+            menu.setSelectable(!list);
+        }
+    }
+
+    /** The row under the search: switches the view, saves it, and says what the next tap gives. */
+    private void toggleListView() {
+        boolean list = !settingsAsList();
+        Settings.SETTINGS_AS_LIST.save(list);
+        closeSearch();
+        showAsList(list);
+        if (list) {
+            updateUIToSettingValues();
+            refreshRestartPending();
+        }
+        if (viewToggle != null) viewToggle.refresh();
     }
 
     /** Report a problem, just above the Ko-fi row: a GitHub bug report with the facts filled in. */
@@ -1859,6 +2014,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     return true;
                 });
         notes.setKey(ReleaseNotes.KEY);
+        // A row in About's card like the others there, not the old tile.
+        notes.setCompact(true);
         screen.addPreference(notes);
     }
 
@@ -1871,6 +2028,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private TogglePreference pauseRow(Context context) {
         TogglePreference pause = new TogglePreference(context, "Pause Hushfeed", PAUSE_SUMMARY,
                 BaseSettings.PAUSED);
+        mark(pause, SettingsIcons.PAUSE);
         pause.setOnPreferenceChangeListener((preference, value) -> {
             if (!Boolean.TRUE.equals(value)) return true;
             if (SessionBudget.lockedToday()) {
@@ -1980,12 +2138,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 SettingsBackupPreference.addTo(this, menu);
             }
         }
+        // Each time it opens: a row a section adds while it's closed gets its icon too.
+        markRows(menu, SettingsIcons.forMenu(section.icon));
         menu.setExpanded(true);
     }
 
     private void expandAbout() {
         if (aboutMenu == null) return;
         if (aboutMenu.getPreferenceCount() == 0) createAboutMenu(getActivity(), aboutMenu);
+        markRows(aboutMenu, SettingsIcons.ABOUT);
         aboutMenu.setExpanded(true);
     }
 
@@ -2077,6 +2238,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         removeSearchRows();
         searchScreen.removePreference(searchInput);
         searchScreen.addPreference(searchEntry);
+        if (viewToggle != null) searchScreen.addPreference(viewToggle);
         searchScreen = null;
         updateSearchLongClicks();
         searchInput = null;
@@ -2084,8 +2246,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         shownSearch = "";
         restoreExpanded(searchExpanded);
         searchExpanded = null;
+        if (settingsAsList()) showAsList(true);
         updateUIToSettingValues();
         refreshRestartPending();
+        showTitle();
         return true;
     }
 

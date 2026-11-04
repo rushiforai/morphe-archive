@@ -133,7 +133,7 @@ print("__BENCH__" + JSON.stringify(out));
     process.argv.push("--rounds", String(samples));
     const rows = pick => programs.map(p => Object.assign({name: p.name}, stat(pick(p))));
     report("Runtime eval", rows(p => p.e));
-    report("17.7k module defines through Venus' __d", rows(p => p.d));
+    report("17.7k module defines through Conduit' __d", rows(p => p.d));
     report("Total", rows(p => p.e.map((e, i) => e + p.d[i])));
 }
 
