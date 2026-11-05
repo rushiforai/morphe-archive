@@ -32,7 +32,7 @@ object NuvioStreamPreload {
     @Volatile private var component: Any? = null
     @Volatile private var repository: Any? = null
     private val heroResolver by lazy {
-        Class.forName(NuvioNative.DETAIL_RESOLVER_NAME).getDeclaredMethod("D",
+        Class.forName(NuvioNative.DETAIL_RESOLVER_NAME).getDeclaredMethod(NuvioNative.DETAIL_RESOLVER_METHOD,
             Class.forName("com.nuvio.tv.domain.model.Meta"),
             Class.forName("com.nuvio.tv.domain.model.NextToWatch"), List::class.java).apply {
             check(java.lang.reflect.Modifier.isStatic(modifiers) &&
@@ -93,12 +93,14 @@ object NuvioStreamPreload {
             (target.mode == NEXT || !paused()) && valid()
         if (!allowed()) return false
         @Suppress("UNCHECKED_CAST")
-        val search = current.javaClass.getDeclaredMethod("l", String::class.java, String::class.java,
-            Int::class.javaObjectType, Int::class.javaObjectType, Boolean::class.javaPrimitiveType)
+        val search = current.javaClass.getDeclaredMethod("l", current.javaClass, String::class.java, String::class.java,
+            Int::class.javaObjectType, Int::class.javaObjectType, Boolean::class.javaPrimitiveType,
+            String::class.java, Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType, Int::class.javaPrimitiveType)
             .apply { isAccessible = true }
         check(Flow::class.java.isAssignableFrom(search.returnType)) { "Native stream search must return Flow" }
-        val results = search.invoke(current,
-            target.type, target.videoId, target.season, target.episode, false) as Flow<Any>
+        // Native default dispatcher: default force-refresh and both new search flags to false.
+        val results = search.invoke(null, current,
+            target.type, target.videoId, target.season, target.episode, false, null, false, false, 208) as Flow<Any>
         var success = false
         var groups = 0
         var sources = 0
@@ -106,8 +108,8 @@ object NuvioStreamPreload {
             if (!allowed())
                 throw CancellationException("Preload is no longer needed")
             // Verified native NetworkResult.Success on beta7.
-            success = result.javaClass.name == "b9.q" && (field(result, "a") as? List<*>)?.isNotEmpty() == true
-            if (result.javaClass.name == "b9.q") {
+            success = result.javaClass.name == "b9.r" && (field(result, "a") as? List<*>)?.isNotEmpty() == true
+            if (result.javaClass.name == "b9.r") {
                 val addons = field(result, "a") as List<*>
                 groups = addons.size
                 sources = addons.sumOf { addon -> (get(addon!!, "getStreams") as List<*>).size }
@@ -223,12 +225,12 @@ object NuvioStreamPreload {
 
     /** Allow local scrapers only for the exact next episode during its delayed search. */
     @JvmStatic fun nextEpisodePluginPause(request: Any): Flow<Boolean> {
-        val owner = field(request, "i")!!
+        val owner = field(request, "j")!!
         @Suppress("UNCHECKED_CAST")
         val native = field(owner, "l") as StateFlow<Boolean>
         return try {
-            val media = StreamTargets.Media(field(request, "k") as String, field(request, "j") as String,
-                field(request, "l") as? Int, field(request, "m") as? Int)
+            val media = StreamTargets.Media(field(request, "l") as String, field(request, "k") as String,
+                field(request, "m") as? Int, field(request, "n") as? Int)
             val activeProfile = profileFlow() ?: return native
             combine(native, nextPermits, activeProfile, settings) { paused, permits, active, _ ->
                 paused && !(enabled(NEXT) && permits.values.any { it.profile == active && it.media == media })

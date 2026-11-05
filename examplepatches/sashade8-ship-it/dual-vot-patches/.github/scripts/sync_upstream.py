@@ -159,6 +159,12 @@ STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS = (
     "052cda9a09259509e23fe74f92538cf93a63c081",
     "16f2be79cdbdb4879429b9128dfa6fdc467af219",
 )
+# Morphe 2.1.0-dev.10 reuses player streams without tying a fetch to inline playback.
+STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS = (
+    "16f2be79cdbdb4879429b9128dfa6fdc467af219",
+    "ee41c0a5dac90aabe26a7646eb7937ae663ef19c",
+    "2cf69f37a4e5114ef2954228df0284db1b2103e6",
+)
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
@@ -1012,6 +1018,48 @@ def merge_streaming_data_request_dev217(source: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_dev2110(source: str) -> str:
+    """Keep Morphe's reusable fetch lifecycle and Dual's uncached audio API."""
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    # SHA-256 of each exact reviewed pair: ours + NUL + theirs. Labels may vary,
+    # but neither side may change, even if the index blobs were checked earlier.
+    expected = (
+        "208eb559b3c487b4ab5932d0924e8ea926eecaf686baccae4961b8f76396dd70",
+        "db569eca4252af68fe6f6f42f5b5fd545afbd7956374b6af6df155204a2ebde0",
+        "a9693f035749fcead909911222d63902b4bcfabd786dddcc8de161433ac5b590",
+        "9bf794575cd58945d8bf001b229b08db6b8f01695a9d8726a1787ddcdb34765c",
+        "229726face3d5443cb6d7afb79804314bf88246d45ac249fa4326c813ab2c83b",
+        "c206eb1a0a2d8261e974b3b96dfa5dadc655e4a936990f68ee01ee8527efec66",
+    )
+    actual = tuple(hashlib.sha256((m.group(1) + "\0" + m.group(2)).encode()).hexdigest()
+                   for m in conflicts)
+    if actual != expected:
+        raise SyncError("Unexpected dev 2.1.0-dev.10 streaming conflict sides")
+
+    ours = [m.group(1) for m in conflicts]
+    theirs = [m.group(2) for m in conflicts]
+    # Inline configuration is now applied when handing streams to the player.
+    # Retain the existing Dual public signature for its media transport caller.
+    direct = ours[3].replace("videoId, isInline, fetchHeaders", "videoId, fetchHeaders")
+    direct = direct.replace("     * or the client shown in Stats for nerds.\n",
+                            "     * or the client shown in Stats for nerds.\n"
+                            "     * @param isInline Kept for compatibility; inline config is applied by the player.\n")
+    lifecycle = theirs[3].replace("clientOrderToUse, false);", "clientOrderToUse, false, false);")
+    replacements = iter((
+        ours[0].replace("            boolean isInline,\n", ""),
+        ours[1].replace("videoId), isInline, playerHeaders", "videoId), playerHeaders"),
+        theirs[2].replace("clientOrder, false));", "clientOrder, false, false));"),
+        direct + "    }\n\n    /**\n" + lifecycle,
+        theirs[4].replace("clientOrder, true);", "clientOrder, true, false);"),
+        ours[5].replace("            boolean isInline,\n", ""),
+    ))
+    merged = re.sub(pattern, lambda _: next(replacements), source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved dev 2.1.0-dev.10 streaming conflict")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -1021,11 +1069,14 @@ def resolve_streaming_data_request_conflict() -> None:
         for stage in (1, 2, 3)
     )
     if stage_blobs in (STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
-        merge_known = (merge_streaming_data_request_dev217
-                       if stage_blobs == STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS
-                       else merge_streaming_data_request_dev210)
+        merge_known = {
+            STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
+            STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS: merge_streaming_data_request_dev217,
+            STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS: merge_streaming_data_request_dev2110,
+        }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
         destination.write_text(merged, encoding="utf-8", newline="")
         run("git", "add", "--", STREAMING_DATA_REQUEST_PATH)

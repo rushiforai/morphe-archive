@@ -71,7 +71,7 @@ The unsigned inspection output at
 was rebuilt from the original APKS with visibility, diagnostics and Morphe 1.47.0
 Change installer source. Its seven native libraries matched originals exactly;
 package/version, callback and diagnostic DEX were verified. Report:
-`.inspect-first-descendant-runtime/visibility-candidate-verification.json`.
+`Skills/inspection-evidence/.inspect-first-descendant-runtime/visibility-candidate-verification.json`.
 The agent did not sign/install that artifact. The user subsequently tested their
 own rebuilt/installed configuration successfully.
 
@@ -104,7 +104,7 @@ under `patches/src/test/kotlin/santodan/patches/`. Inspection scripts remain und
 
 These descriptors and instruction sequences come from disassembly of the
 original DEX, not source mappings. Focused disassembly is in
-`E:\Morphe\.inspect-first-descendant-1.1.5-repro\`.
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-1.1.5-repro\`.
 
 | Contract | Confirmed behavior |
 | --- | --- |
@@ -239,7 +239,7 @@ Missing/changed and already-instrumented inputs were rejected. Combined testing
 confirmed both patches apply together to an unsigned original-split fixture,
 with all original native libraries retained and diagnostic DEX reloaded. That fixture is for inspection,
 not an installable app. Build logs are under
-`E:\Morphe\.inspect-first-descendant-runtime\build-diagnostics*.log`.
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-runtime\build-diagnostics*.log`.
 
 No app was signed or installed by these build/verification steps. User device
 tests are distinguished from host verification throughout this document.
@@ -259,7 +259,7 @@ It belongs to class `com.nexon.ngsm.Ngsm`, packaged in `base.apk/classes4.dex`.
 The original build strips the source filename to `SourceFile`; `Ngsm.java` is the
 conventional class-to-source name, not a recovered original source file. Exact
 original DEX disassembly is saved in
-`E:\Morphe\.inspect-first-descendant-1.1.5-repro\Ngsm.smali`, line 880.
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-1.1.5-repro\Ngsm.smali`, line 880.
 
 ### Full function, reconstructed from original DEX
 
@@ -354,7 +354,7 @@ name. Encoded strings, rule data and other checks remain possible. RTTI alone
 does not identify the rule responsible for the user's warning. Saved evidence
 includes `native-detector-rtti.json`, `ngsme-symbols.txt`,
 `ngsm-native-init-run.asm`, and `ngsme-adb-vtable-slot2.asm` under
-`E:\Morphe\.inspect-first-descendant-1.1.5\`.
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-1.1.5\`.
 
 ### File and scanner function
 
@@ -370,7 +370,7 @@ starts at ELF virtual address **`0xb39a50`** (file offset **`0xb35a50`**), size
 **`0x45d0`** bytes, ending exclusively at **`0xb3e020`**. Its full original ARM64
 disassembly is in:
 
-`E:\Morphe\.inspect-first-descendant-native-complete\hacktool-file-scan.asm`
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-native-complete\hacktool-file-scan.asm`
 
 The original C++ method name and source filename are stripped/obfuscated. For
 analysis it can be labeled `sub_B39A50`; that label is not a recovered symbol.
@@ -450,7 +450,7 @@ affect multiple security paths.
 From `E:\Morphe`, use a new output directory:
 
 ```powershell
-python santodan-patches\patches\src\test\python\trace_first_descendant_native.py --output .inspect-first-descendant-native-complete
+python santodan-patches\patches\src\test\python\trace_first_descendant_native.py --output Skills/inspection-evidence/.inspect-first-descendant-native-complete
 ```
 
 The script validates the original library hash, decodes the `.data` string table,
@@ -520,14 +520,14 @@ The same byte `0xff11f0` is set and reset in the native function starting at
 
 This is engine state controlled by another native workflow, not a recovered
 `isShizukuInstalled()` Boolean. Its complete instruction listing is saved in
-`E:\Morphe\.inspect-first-descendant-native-complete\engine-state-lifecycle.asm`.
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-native-complete\engine-state-lifecycle.asm`.
 The meaning of that state and the predicates selecting the writer's paths remain
 to be reconstructed. Static search also found other writes with the same offset
 `0x1f0`, but their base addresses are different; they are not this byte.
 
 ### Evidence and limitations
 
-`E:\Morphe\.inspect-first-descendant-native-complete\exit-flag-evidence.json`
+`E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-native-complete\exit-flag-evidence.json`
 records the verified original instruction words and resolved branch targets.
 The library hash and full scanner/JNI disassembly are documented in
 [related evidence](#native-package-scanning-evidence).
@@ -629,7 +629,7 @@ it does not change the detection rules.
 
 ### Saved evidence
 
-Under `E:\Morphe\.inspect-first-descendant-native-complete\`:
+Under `E:\Morphe\Skills\inspection-evidence\.inspect-first-descendant-native-complete\`:
 
 - `hacktool-file-scan.asm`: the scanner and direct code initialization.
 - `engine-state-lifecycle.asm`: function `0xd0fa3c` and both state writes.
@@ -682,7 +682,7 @@ out. No semantic meaning has been assigned to subcode 500216 without evidence.
 ### Read-only emulator evidence
 
 The installed APK pulled from `emulator-5554` is saved at
-`.inspect-first-descendant-runtime/installed-base.apk`. Its package is
+`Skills/inspection-evidence/.inspect-first-descendant-runtime/installed-base.apk`. Its package is
 `com.nexon.tfdc`, version name `1.1.5`, version code `2147483647` rather than the
 original `29`. Its signing certificate is `CN=Morphe`, SHA-256
 `c6f46fdf215e35e421ce61153b7fa671a485c3e266ccf03eabfe1d59c900a0d5`.
@@ -746,7 +746,7 @@ installation; avoid uninstalling or erasing data automatically.
 From `E:\Morphe`:
 
 ```powershell
-python santodan-patches\patches\src\test\python\inspect_first_descendant.py --output .inspect-first-descendant-new
+python santodan-patches\patches\src\test\python\inspect_first_descendant.py --output Skills/inspection-evidence/.inspect-first-descendant-new
 ```
 
 The output directory must be new. The script validates the original archive hash
@@ -756,5 +756,5 @@ values. It uses the existing Java 21, Android `aapt`/`apkanalyzer`, and NDK
 `llvm-strings` tools. It does not access a device or modify the original input.
 
 Validation performed: this command succeeded with output
-`.inspect-first-descendant-1.1.5-repro`; the resulting evidence matches the manually
+`Skills/inspection-evidence/.inspect-first-descendant-1.1.5-repro`; the resulting evidence matches the manually
 inspected call chain. The inspection scripts themselves do not require a Gradle build.

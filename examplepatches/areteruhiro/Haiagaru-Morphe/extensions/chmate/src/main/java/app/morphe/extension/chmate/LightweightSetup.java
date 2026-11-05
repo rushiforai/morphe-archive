@@ -45,7 +45,7 @@ final class LightweightSetup {
             for(int i=0;i<buttons.length();i++){
                 JSONObject button=buttons.optJSONObject(i);if(button==null)continue;
                 int id=button.optInt("id",Integer.MIN_VALUE);
-                boolean custom=id>=0x7e000001&&id<=0x7e000006||id==FavoriteThreads.TAB;
+                boolean custom=id>=0x7e000001&&id<=0x7e000006||id==FavoriteThreads.TAB||id==HomeRefreshTargets.TAB;
                 for(int action:ResponseMenuSettings.IDS)if(id==action)custom=true;
                 if(custom){button.put("visible",false);changed=true;}
             }

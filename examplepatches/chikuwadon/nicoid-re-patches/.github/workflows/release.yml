@@ -1,12 +1,21 @@
 name: Release
 
+# A release must be explicitly approved and manually started.
+# Routine pushes are verified by verify-main.yml / private-build.yml instead.
 on:
   workflow_dispatch:
-  push:
+    inputs:
+      release_confirmation:
+        description: 'Type APPROVE to publish a NEW release; never rerun against an existing tag'
+        required: true
+        type: string
 
 jobs:
   release:
     name: Release
+    if: >-
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+      && inputs.release_confirmation == 'APPROVE'
     permissions:
       contents: write
       issues: write
@@ -32,7 +41,10 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
-      - name: Check list interactions and download history
+      - name: Check published source baseline and metadata
+        run: python3 porting/tests/VerifyReleaseBaseline.py
+
+      - name: Check legacy list interactions and download history
         run: |
           revision=porting/revisions/v1.10.0
           mkdir -p /tmp/nicoid-current-tests
@@ -118,15 +130,38 @@ jobs:
       - name: Validate helper source precedence
         run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      # Semantic release runs its own Gradle build command.
-      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Patch bundled npm dependency
+        run: node .github/scripts/patch-bundled-undici.cjs
+
+      # Use the verified project dependency tree, not an action that installs
+      # its own separate (unpatched) semantic-release toolchain.
       - name: Release
-        uses: cycjimmy/semantic-release-action@v6
         id: release
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git ls-remote --refs --tags origin 'refs/tags/v*' |
+            awk '{print $2}' | sed 's|^refs/tags/||' |
+            grep -E '^v[0-9]+[.][0-9]+[.][0-9]+(-dev[.][0-9]+)?$' | sort -u > /tmp/nicoid-tags-before
+          ./node_modules/.bin/semantic-release
+          git ls-remote --refs --tags origin 'refs/tags/v*' |
+            awk '{print $2}' | sed 's|^refs/tags/||' |
+            grep -E '^v[0-9]+[.][0-9]+[.][0-9]+(-dev[.][0-9]+)?$' | sort -u > /tmp/nicoid-tags-after
+          mapfile -t created < <(comm -13 /tmp/nicoid-tags-before /tmp/nicoid-tags-after)
+          if (( ${#created[@]} > 1 )); then
+            echo "Unexpected multiple new release tags" >&2
+            exit 1
+          elif (( ${#created[@]} == 1 )); then
+            echo "new_release_published=true" >> "$GITHUB_OUTPUT"
+            echo "new_release_git_tag=${created[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_release_published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
@@ -135,20 +170,9 @@ jobs:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
-      # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      # Verify compilation if the manually approved run does not publish.
       - name: Verify project compiles
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew clean :patches:buildAndroid --no-daemon
-
-      - name: Save audit verification bundle
-        if: (github.ref == 'refs/heads/perf/audit-194' || github.ref == 'refs/heads/fix/post-194' || github.ref == 'refs/heads/verification/v1.9.12') && steps.release.outputs.new_release_published != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: nicoid-audit-verification
-          path: patches/build/libs/*.mpp
-          if-no-files-found: error
-          retention-days: 14
-

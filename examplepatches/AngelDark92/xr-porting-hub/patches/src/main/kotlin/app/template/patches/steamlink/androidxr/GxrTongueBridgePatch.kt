@@ -14,6 +14,10 @@ internal const val MODERN_TONGUE_LIBRARY_SIZE_5002395 = 2_301_432
 internal const val MODERN_TONGUE_VADDR_5002395 = 0x1433acL
 internal const val MODERN_TONGUE_STOCK_SHA256_5002395 =
     "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b"
+internal const val MODERN_TONGUE_LIBRARY_SIZE_5002527 = 2_333_472
+internal const val MODERN_TONGUE_VADDR_5002527 = 0x143fdcL
+internal const val MODERN_TONGUE_STOCK_SHA256_5002527 =
+    "cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03"
 
 // Valve's native Android-XR mapper already translates face expressions 0..62 and preserves
 // standard FB2 TongueOut at slot 68. This final block currently zeros FB2 slots 63..67.
@@ -42,6 +46,15 @@ internal val MODERN_TONGUE_REPLACEMENT = byteArrayOf(
 // still receives the expression array at SP+0x40 (X21), and X8 still points to
 // the FB2 output array at this final block. Both the 24 stock bytes and register
 // contract were checked on this exact ELF; only its independently derived address moves.
+//
+// 5002527: XRQGetFaceTracking is at 0x143888 (size 0xd78; sole caller
+// QSVLDeviceHmd::HandleEyeInput at 0x1023f0 via PLT). x21 = `add x21, sp, #0x40` at
+// 0x14391c is the Android expression array (the only other x21 write is in the cold
+// std::string error path at 0x143cc0); x8 = `ldr x8, [x19, #0x18]` at 0x143de4 is the
+// XrFaceExpressionWeights2FB weights pointer and is not rewritten before the block.
+// No branch lands inside the 24 bytes; the block sits at function + 0x754.
+//
+// TONGUE ONLY: the full face layer is never applied to a modern build.
 private data class ModernTongueLayout(
     val versionName: String,
     val versionCode: String,
@@ -63,6 +76,11 @@ private val MODERN_TONGUE_LAYOUTS = listOf(
         MODERN_TONGUE_VADDR_5002395, MODERN_TONGUE_STOCK_SHA256_5002395,
         MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_REPLACEMENT,
     ),
+    ModernTongueLayout(
+        "2.0.24", "5002527", MODERN_TONGUE_LIBRARY_SIZE_5002527,
+        MODERN_TONGUE_VADDR_5002527, MODERN_TONGUE_STOCK_SHA256_5002527,
+        MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_REPLACEMENT,
+    ),
 )
 
 private fun ByteArray.sha256(): String =
@@ -73,6 +91,7 @@ internal fun patchModernTongueTransport(
     versionName: String,
     versionCode: String,
 ): ByteArray {
+    // The shared registry is the authority; the exact-pair table then supplies the layout.
     if (!isModernTongueBridgeSteamLinkBuild(versionName, versionCode)) return bytes.copyOf()
     val layout = MODERN_TONGUE_LAYOUTS.singleOrNull {
         it.versionName == versionName && it.versionCode == versionCode

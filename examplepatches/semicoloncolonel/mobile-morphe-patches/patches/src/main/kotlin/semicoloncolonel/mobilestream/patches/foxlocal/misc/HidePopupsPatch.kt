@@ -31,8 +31,7 @@ internal object BrazeInAppMessageFingerprint : Fingerprint(
 @Suppress("unused")
 val hidePopupsPatch = bytecodePatch(
     name = "Hide pop-ups and rating prompts",
-    description = "Stops the prompt to rate the app, the rating card in the feeds, and in-app marketing " +
-        "pop-ups. Breaking-news alerts still arrive.",
+    description = "Stops the rating prompt, the rating card in the feeds, and marketing pop-ups.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -8,10 +8,12 @@ import org.w3c.dom.Element
 private val knownSourcePermissions = setOf(
     "android.permission.ACCESS_COARSE_LOCATION",
     "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_LOCAL_NETWORK",
     "android.permission.ACCESS_NETWORK_STATE",
     "android.permission.ACCESS_WIFI_STATE",
     "android.permission.CALL_PHONE",
     "android.permission.CHANGE_NETWORK_STATE",
+    "android.permission.CHANGE_WIFI_MULTICAST_STATE",
     "android.permission.CHANGE_WIFI_STATE",
     "android.permission.DETECT_SCREEN_CAPTURE",
     "android.permission.ENFORCE_UPDATE_OWNERSHIP",
@@ -111,20 +113,6 @@ private val nativeSignaturePatchSpecs = listOf(
         0x9c40,
         "d9f80020a8eb07013846fff729fb002f1cbf384600f088fc".decodeHex(),
         "d9f8000045f6b6517a46a2eb010121f90f0200f90f02ffe7".decodeHex()
-    ),
-    NativeSignaturePatchSpec(
-        "x86",
-        0x320e,
-        0x140f4,
-        "29f78b450089442408897c2404893424e807f3ffff85f67408893424e84b0e0000".decodeHex(),
-        "568b7d008db35ae7fcffb908000000f3a55e85f6740b893424e84e0e0000909090".decodeHex()
-    ),
-    NativeSignaturePatchSpec(
-        "x86_64",
-        0x8600,
-        0x15556,
-        "4c29ed488b134c89ef4889eee8d9f3ffff4d85ed74084c89efe84c0f0000".decodeHex(),
-        "488b3b488d35a030ffff6a0459f348a54d85ed74094c89efe84d0f000090".decodeHex()
     )
 )
 
@@ -571,6 +559,27 @@ internal val gamingManifestPatch = resourcePatch {
         document("AndroidManifest.xml").use { document ->
             document.replaceAuditedValues(
                 "Gaming profile",
+                replacements,
+                replacements.keys,
+                replacements.keys
+            )
+        }
+    }
+}
+
+internal val tvInstallManifestPatch = resourcePatch {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+    dependsOn(manifestInventoryValidationPatch)
+
+    execute {
+        val replacements = linkedMapOf(
+            "android.permission.ACCESS_LOCAL_NETWORK" to "android.permission.XCCESS_LOCAL_NETWORK",
+            "android.permission.CHANGE_WIFI_MULTICAST_STATE" to
+                "android.permission.XHANGE_WIFI_MULTICAST_STATE"
+        )
+        document("AndroidManifest.xml").use { document ->
+            document.replaceAuditedValues(
+                "TV install",
                 replacements,
                 replacements.keys,
                 replacements.keys

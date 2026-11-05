@@ -146,9 +146,21 @@ val stndrdUnlockPremiumPatch = bytecodePatch(
                     invoke-direct {v8}, Ljava/util/ArrayList;-><init>()V
                     const-string v1, "annual_regular"
                     invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                    const-string v1, "annual_regular6"
+                    invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
                     const-string v1, "monthly_regular"
                     invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                    const-string v1, "android.cbum.yearly"
+                    invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                    const-string v1, "android.cbum.monthly"
+                    invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
                     const-string v1, "stndrd_plus"
+                    invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                    const-string v1, "stndrd_plus_annual"
+                    invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                    const-string v1, "stndrd_plus_monthly"
+                    invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
+                    const-string v1, "stndrd_plus_quarterly"
                     invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z
                     const-string v1, "premium"
                     invoke-interface {v8, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z

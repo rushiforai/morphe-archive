@@ -28,11 +28,12 @@ val playlistProxyPatch = bytecodePatch(
     name = "Playlist proxy",
     description = "Sends live stream playlist requests to a proxy server you set in this patch's options, for " +
         "example one that returns playlists without stitched ads. The proxy sees which channel you watch and " +
-        "when, and receives each request in full, including your signed playback token, which identifies your " +
-        "account. The token is in the request's address (its query, or with {url} the whole Twitch URL), so " +
-        "the proxy's access logs can keep it. The proxy decides what the player plays and can add segments of " +
+        "when. With {channel}, only the lowercase channel name is forwarded; the original signed query is " +
+        "omitted. Without {channel}, the proxy gets the full request, including your signed playback token, " +
+        "which identifies your account. The token is in the request's address (its query, or with {url} the whole " +
+        "Twitch URL), so the proxy's access logs can keep it. The proxy decides what the player plays and can add segments of " +
         "its own: only use a proxy you trust. " +
-        "An http:// proxy gets an exception from Twitch's HTTPS-only rule for its host alone, and the token then " +
+        "An http:// proxy gets an exception from Twitch's HTTPS-only rule for its host alone, and the request " +
         "travels unencrypted. Does nothing while the proxy URL is empty; once it's set, the patch's switch " +
         "starts on (Lurk settings > Playback). Videos and clips are not proxied. " +
         "Avoid stitched ads leaves proxied streams alone: the proxy decides what their playlists hold.",
@@ -45,15 +46,17 @@ val playlistProxyPatch = bytecodePatch(
         key = "proxyUrl",
         default = "",
         title = "Proxy URL",
-        description = "An https:// (or unencrypted http://) URL. With {url} in it, {url} is replaced by the encoded " +
-            "Twitch playlist URL; otherwise the proxy takes the place of usher.ttvnw.net and gets the same path and " +
-            "query. Empty: the patch does nothing.",
+        description = "An https:// (or unencrypted http://) URL. With {channel}, for example " +
+            "https://example.org/live/{channel}, only the lowercase channel name is substituted in the path or query; Twitch's signed " +
+            "query is not sent. With {url}, the encoded full Twitch playlist URL is substituted. Without either, " +
+            "the proxy takes the place of usher.ttvnw.net and gets the same path and query. Use one placeholder " +
+            "type per URL. Empty: the patch does nothing.",
     ) { it.isNullOrBlank() || proxyProblem(it.trim()) == null }
 
     // Twitch only allows HTTPS. An http:// proxy's host gets a cleartext exception, nothing else does.
     dependsOn(resourcePatch {
         execute {
-            val uri = runCatching { URI(proxyUrl?.trim().orEmpty().replace("{url}", "")) }.getOrNull()
+            val uri = runCatching { proxyUri(proxyUrl?.trim().orEmpty()) }.getOrNull()
             if (uri?.scheme?.lowercase() != "http" || uri.host.isNullOrEmpty()) return@execute
             val config = document("AndroidManifest.xml").use { manifest ->
                 (manifest.getElementsByTagName("application").item(0) as Element).getAttribute("android:networkSecurityConfig")
@@ -116,19 +119,34 @@ val playlistProxyPatch = bytecodePatch(
             move-result-object p2
         """)
 
-        val host = URI(proxy.replace("{url}", "")).host
+        val host = proxyUri(proxy).host
+        val requestSummary = if (proxy.contains("{channel}")) {
+            "Only the channel name is forwarded; Twitch's signed query is omitted. "
+        } else {
+            "The proxy receives your signed playback token. "
+        }
         twitchSettings.add(SwitchSetting(KEY, "Playlist proxy",
-            "Load live playlists through $host, which sees what you watch, gets your signed playback token and " +
-                "decides what plays. On once a proxy is set.", Section.PLAYBACK))
+            "Load live playlists through $host, which sees what you watch and decides what plays. " +
+                requestSummary + "On once a proxy is set.", Section.PLAYBACK))
     }
 }
 
 private fun proxyProblem(proxy: String): String? {
-    val uri = runCatching { URI(proxy.replace("{url}", "")) }.getOrNull() ?: return "not a URL"
+    if (proxy.contains("{url}") && proxy.contains("{channel}")) return "use either {url} or {channel}, not both"
+    val uri = runCatching { proxyUri(proxy) }.getOrNull() ?: return "not a URL"
     return when {
         uri.scheme?.lowercase() != "https" && uri.scheme?.lowercase() != "http" -> "must start with https:// or http://"
         uri.host.isNullOrEmpty() -> "has no host"
-        proxy.count { it == '{' } != proxy.split("{url}").size - 1 -> "only {url} can be in braces"
         else -> null
     }
+}
+
+private fun proxyUri(proxy: String): URI {
+    // A channel template must keep a fixed origin, including the host granted cleartext access.
+    val origin = proxy.substringBefore("://") + "://" +
+        proxy.substringAfter("://").takeWhile { it !in "/?#" }
+    require("{channel}" !in origin && "{channel}" !in proxy.substringAfter('#', "")) {
+        "{channel} is only allowed in the path or query"
+    }
+    return URI(proxy.replace("{url}", "").replace("{channel}", ""))
 }

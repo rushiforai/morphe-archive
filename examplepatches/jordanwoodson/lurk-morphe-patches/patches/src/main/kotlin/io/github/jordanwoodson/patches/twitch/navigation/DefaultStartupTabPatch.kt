@@ -8,6 +8,8 @@ import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
 import io.github.jordanwoodson.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
 import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
+import io.github.jordanwoodson.patches.shared.invokeStatic
+import io.github.jordanwoodson.patches.shared.parameterRegister
 
 private const val INTERFACE = "Lio/github/jordanwoodson/extension/shared/twitch/TwitchInterface;"
 
@@ -29,6 +31,17 @@ val defaultStartupTabPatch = bytecodePatch(
             move-result-object p3
             check-cast p3, $destination
         """)
+        // Signed in, Home is React Native (the discovery feed with Following, Live and Clips tabs) and Twitch
+        // routes the Following destination into it on its default tab, Live (issue 51). The feed's initial
+        // props name the tab: the first feed of a plain launch gets "following" when that is the choice.
+        FeedInitialPropsFingerprint.twitchMatch("feed initial props").method.apply {
+            val tab = parameterRegister(4)
+            addInstructions(0, """
+                ${invokeStatic("$INTERFACE->feedTab(ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
+                    parameterRegister(1), parameterRegister(2), parameterRegister(3), tab)}
+                move-result-object v$tab
+            """)
+        }
         twitchSettings.add(ChoiceSetting("default_tab", "Default startup tab",
             "The screen Twitch opens on. Following needs an account.", Section.INTERFACE, "0",
             listOf("Home" to "0", "Browse" to "1", "Following" to "2", "Activity" to "3")))

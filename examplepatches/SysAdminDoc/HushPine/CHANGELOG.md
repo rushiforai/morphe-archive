@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 * What's new shows up again on a PineDrama you first patched with Hushfeed's bundle. The version you'd dismissed there was higher than HushPine's, so the row stayed hidden.
+* Picking another language on PineDrama's App language page and tapping Done switches the app's language again. PineDrama waited on a Play Store language download that a patched copy never gets, so nothing changed.
 
 ## 0.0.1 (2026-11-01)
 

@@ -21,7 +21,7 @@ weight history.
 
 - Original: `../OriginalApps/Pillo__0.6.20_APKPure.xapk`; its manifest metadata
   identifies package/version/code above. The extracted base
-  `../.inspect-pillo-620/xyz.rtrvr.pillo.apk` is byte-identical to the archive
+  `../Skills/inspection-evidence/.inspect-pillo-620/xyz.rtrvr.pillo.apk` is byte-identical to the archive
   member: SHA-256 `8bd9c668c63fa0106005b6ef4d891c8e64509d4284e5e9e58941b5e9fbace0a3`.
 - Across all 17 original DEX files, the typed instance method
   `ProgressScreenKt$ProgressScreen$6.invoke(PaddingValues,Composer,int):void`
@@ -99,7 +99,7 @@ Total -99.2 lbs, Min 231.5 lbs, Max 337.3 lbs and Change +6.6 lbs. Tab re-entry
 and a force-stop/cold restart retain populated values. Last since is correctly
 unset until a date is selected; windows with insufficient records retain dashes.
 Screenshot evidence stays outside the repository at
-`../.inspect-pillo-620/progress-profile-fix.png`, alongside re-entry/restart XML.
+`../Skills/inspection-evidence/.inspect-pillo-620/progress-profile-fix.png`, alongside re-entry/restart XML.
 
 Remaining device checks: additional profiles, empty/large histories, chart
 filters/comparison-date changes, editing/deleting records, rotation and a

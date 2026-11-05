@@ -29,6 +29,24 @@ object SofascoreAnalyticsEventFingerprint : Fingerprint(
     ),
 )
 
+// Firebase In-App Messaging: DataCollectionHelper.isAutomaticDataCollectionEnabled() (R8-renamed,
+// p5d.T in 26.10.19, a merged class), which FIAM asks before it fetches campaigns and before it
+// logs impressions. It is the only no-arg boolean reading both the manifest key
+// "firebase_inapp_messaging_auto_data_collection_enabled" and the "auto_init" preference.
+object InAppMessagingDataCollectionFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf(),
+    strings = listOf(
+        string("firebase_inapp_messaging_auto_data_collection_enabled", StringComparisonType.EQUALS),
+        string("auto_init", StringComparisonType.EQUALS),
+    ),
+)
+
+// androidx.startup: the EmojiCompat Initializer (an InitializationProvider meta-data entry, so the
+// class name is kept). create(Context) asks the package manager for the downloadable emoji font
+// provider at start-up and loads the font on a background thread after the first activity resumes.
+internal const val EMOJI_COMPAT_INITIALIZER = "Landroidx/emoji2/text/EmojiCompatInitializer;"
+
 // Firebase Performance: ConfigResolver.isPerformanceMonitoringEnabled() (R8-renamed, vp3.o in
 // 26.10.12), the gate both the transport and FirebasePerformance consult before collecting or
 // sending a trace. It is the only no-arg boolean that reads the "fpr_enabled" and

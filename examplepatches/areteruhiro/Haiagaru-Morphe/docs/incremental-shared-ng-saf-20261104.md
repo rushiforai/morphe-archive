@@ -1,0 +1,25 @@
+# 再表示時の共有NG再判定と自動バックアップ保存先
+
+利用者は再表示時に追加レスだけ処理したいと指定。SAF保存先は最初標準SAFと回答したが自動バックアップだけの問題と訂正、Download/Haiagaru指定の後、任意のフォルダへ自由に変更する要望へ訂正した。保存先を固定しない。
+
+## 共有NGの追加分判定
+
+SharedNgIndex単位にNgResponseDecisionCacheを追加。板/ID/生の名前HTML/生の本文HTMLの完全な組をキーにし、再表示では共有NG判定とそのためのHTML変換を再利用する。番号やオブジェクト同一性だけでは流用しないため、差し替え/編集・別板は再判定。受信条件/票数/種類/板除外/個別除外が変わると既存MatchPlanのindex自体が置換され、古い結果を使わない。処理中の設定変更は現indexとの不一致を検出して従来経路へ戻す。
+
+191/226/242のプログラムNGがOFFで共有NGだけONの場合、nativeのrawレスから直接この判定を呼び、全レスのProgrammableNgScript.Input/大きいmetadata Mapの作成も省く。rawフィールドの走査と一致済み番号Setの再作成は必要で、全く処理しないわけではない。プログラムNGがONならスレ全体・連鎖・任意式に依存するため従来の全体評価を維持。ChMate標準NG/連鎖/他の追加NGの計算は飛ばさず、nativeの既存bitを残して共有NG bitをORする。
+
+キャッシュはプロセス内のみ、最大4096キー/キー文字列の合計400万UTF16文字でLRU破棄。上限を超える単体入力は保存せず、破棄後の再表示や再起動では再計算。正規表現があるscopeの非一致はタイムアウトの可能性があるので保存せず、次回再試行する。したがって全ケースで新着だけになる保証はしない。正規表現の一致は再利用可能。以前のplainテキスト変換キャッシュを0にした場合も、この明示要望の共有判定再利用とは別である。
+
+NgResponseDecisionCacheTestで3017項目成功。1000行を3回表示した入力のdecodeは最初の1000件分のみ、新規10件の追加で10件分だけ増加。本文変更・別板・別index・regex非一致の再試行・LRU・巨大入力の非保存を確認。既存index10306/regex17/個別除外263も成功。Android上のnative取り込み/全profile起動/実スレ/速度未検証。
+
+## 保存先の任意選択
+
+既存SAFの任意フォルダ選択経路を維持し、ボタンを「保存先フォルダを選ぶ・変更する」と明示。「別の保存場所から選ぶ（前の保存先を指定しない）」を追加し、EXTRA_INITIAL_URIを付けずsystem pickerへ渡す。既存保存先が無効/アクセス権喪失ならfolderHintで初期URIを渡さない。primary:は設定ラベルで「内部ストレージ（直下）」と表示。選択結果がtree URIであることを確認後、既存のread/write永続許可取得とsetFolderへ渡す。folderName/URIをDownload/Haiagaruに固定しない。
+
+キャンセルで既存設定は変更しない。同じフォルダを選び直す場合の管理履歴保持、別フォルダ変更時の旧ZIP非削除、権限再選択の既存仕様は維持。Androidが選択できないroot/Download自体/Android data等の制限を回避しない。任意フォルダを作成/選択して確定する。実pickerでの保存/キャンセル/新フォルダ往復は未確認。
+
+プログラムNGのテスト画面では、共有NGだけの高速経路で未作成だったInputを必要時に遅延準備するようpreviewの条件も調整し、既存プレビューを維持する。
+
+通常Lint付き中間build2m56s、最終build/buildAndroid3m4s成功（build/incremental-ng-saf-final-build.log）。候補build/haiagaru-incremental-ng-saf.mppのCRC/NgResponseDecisionCache/SAF選択extra同梱を確認。内部dev.12表記は公開版とは異なるローカル候補。前の実機インストール記録とmatch-order修正は保持する。今回の新規APK生成/端末導入/公開は未実施。
+
+実機導入追記: 利用者指定で730eae72/XIG05の既存jp.co.airfrt.android.chMate.haiagartu/191へ同一署名install-r更新Success（2026-11-04 22:02:24 JST）。native NG hook検査PASS。導入済APKの全byte SHA256一致、firstInstallTime維持、HomeActivity cold起動ok、取得crash bufferに対象appの新規fatalなし。APK/MPP/署名鍵・SHA記録はdocs/android-installations.md。SAF実選択や共有NGの実表示速度は未確認。公開なし。

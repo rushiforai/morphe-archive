@@ -1,116 +1,139 @@
 # Feature guide
 
-This page holds the detail behind the [README](../README.md). Each section starts with what you notice as a viewer, then gives the exact rules and numbers.
+Technical rules, thresholds, and fallback logic for the patches covered in the [README](../README.md).
 
 ## Skipping
 
-You see a Skip button, or an automatic jump over the intro, recap or credits, depending on your settings. The patch collects skip times from several sources and ignores any that look unsafe.
+Skip intros, recaps, and credits automatically (`Auto` mode) or display an on-screen Skip button (`Manual` mode). No API keys are required.
 
-The sources, in the order they are tried: the video file's own chapters (named sections inside the file), AniSkip (anime), TheIntroDB, IntroDB.app (which fills in segment types that are still missing), then SkipDB as the last fallback. No API keys are needed. This project's own published timings are tried before the online sources. An entry is used only when your file's length matches the length it was measured on, within 2 s. While the length is unknown, the entry is held.
+### Skip settings
 
-Chapters named Opening, OP, Opening Credits, Main Titles, Title Sequence, Theme and similar names count as an intro. Online timings snap to chapter edges.
+Configure these options in Mod settings:
+* `Intro skip`: Master switch (on/off). Turning this off stops all lookups and hides the skip button. On Stremio, the `Next episode` pill still appears for series.
+* Anime openings: On/off.
+* Mode: `Auto` or `Manual`.
+* Recaps: On/off.
+* `Skip credits`: `Auto`, `Button`, or `Off` (default `Button`).
+* `Skip previews`: On/off (default off).
+* `Show skip marks`: On/off (default on, Stremio `1.6.12` only). Draws coloured segment markers on the progress bar.
 
-For credits, the skip jumps to the end of the credits instead of the end of the file, so an after-credits scene still plays. Chapters named post-credit, mid-credit, stinger, epilogue or bonus scene are never skipped, and a credits segment stops where one begins. A chapter named "Ending" counts as story. It counts as credits only when it starts in the last 20% of the file, runs at most 240 s, and something agrees with it: an online credits segment starting within 15 s, a preview or credits chapter right after it, or it is the last chapter.
+### Timestamp sources and lookup rules
 
-A preview from a named chapter or an online source follows the Skip previews setting (auto-skip or button). A preview that the patch only infers always gets a button, even in Auto mode. That covers the short tail after the credits, and the first dialogue lines found in the subtitle text.
+The patch checks sources in this order:
+1. Embedded chapters in the video file
+2. This project's published timings
+3. AniSkip (anime)
+4. TheIntroDB
+5. IntroDB.app (fills in missing segment types)
+6. SkipDB (final fallback)
 
-These rules keep incomplete data from skipping the wrong thing:
+**Runtime verification.** Online timestamps apply only when your file's duration matches the source's measured runtime within 2 s. If the player does not know the file runtime yet, it holds the entry until the duration loads.
 
-* Segments with an unknown end are ignored. So are intro, recap and credits segments with an unknown start.
-* Credits with a start but no end are used only once the runtime is known, only when they start in the last 40% of the file, and only when the source's file length fits this file.
-* When two online sources agree closely on a segment, only the part both agree on is skipped.
-* An early credits entry with no intro is dropped, so an outro near the start is never offered as Skip intro. The exception is TheIntroDB, which sometimes labels a real opening as credits: that entry still becomes the intro.
-* When sources disagree about a segment at 0:00, the Skip button shows instead of an automatic skip.
-* A title counts as a series only once its id (or Stremio's type) proves it. Until then skipping stays off.
-* With the Intro skip switch off, nothing is looked up and no skip button shows. On Stremio, the Next episode pill still appears for series.
+**Retries.** Playback never waits for a slow or offline server. Available sources apply immediately, while failed sources retry at 5 s, 20 s, and 60 s. Late responses merge cleanly without triggering a double skip.
 
-Resuming inside an intro still skips it. If you seek back on purpose, or seek into a segment yourself, a Skip button shows instead of another automatic skip. Remote keys are never blocked.
+**Anime and ID matching.** Before querying AniSkip, the patch resolves the anime title to the exact season and cour (broadcast block, including "Part 2" entries). A recap starting at `0:00` is kept if its duration is 10-180 s. Stremio provides the IMDb id or Kitsu id from its video metadata. Kitsu ids work with AniSkip, whereas IntroDB.app and SkipDB require an IMDb id and are skipped for Kitsu-only anime.
 
-If a source is down, the player does not wait for it. The other sources apply at once, and the failed source is retried after 5 s, 20 s and 60 s. A late answer is merged without skipping twice.
+**Playback controls.** Resuming an episode inside an intro still triggers a skip. If you manually rewind or seek into a skipped segment, the player shows the Skip button instead of auto-skipping again. Remote control keys are never blocked.
 
-For anime, the title is resolved to the right season and cour (a broadcast block, including "Part 2" style entries) before AniSkip is asked. A recap that starts at 0:00 is kept when its length is plausible (10-180 s).
+### Chapter rules
 
-The skip settings are on/off, anime on/off, Auto or Manual, recaps on/off, Skip credits (Auto, Button or Off, default Button), Skip previews (on/off, default off) and Show skip marks (on/off, default on, 1.6.12 only). Skip marks are coloured marks on the progress bar.
+* **Intros:** Chapters named `Opening`, `OP`, `Opening Credits`, `Main Titles`, `Title Sequence`, `Theme`, and close variations count as intros. Online timestamps snap to chapter edges.
+* **Generic "Intro" chapters:** A chapter named simply `"Intro"` counts only when AniSkip, TheIntroDB, or IntroDB.app agrees with it within 15 s. If no online source has an intro, Vimu still accepts a lone `"Intro"` chapter when it runs 20-150 s and starts after `0:00` (such as after a cold open). Stremio ignores lone `"Intro"` chapters without online confirmation.
+* **Credits and post-credit scenes:** Skipping credits seeks to the end of the credits segment rather than the end of the file, so post-credit scenes play normally. Chapters named `post-credit`, `mid-credit`, `stinger`, `epilogue`, or `bonus scene` never skip, and any credits segment trims where one of those begins.
+* **"Ending" chapters:** A chapter named `Ending` counts as story by default. It is treated as credits only when all three conditions hold: it starts in the last 20% of the file, runs 240 s or less, and has a confirming signal (an online credits entry within 15 s, a preview or credits chapter immediately after it, or it is the final chapter in the file).
+* **Previews:** Previews from named chapters or online sources follow your `Skip previews` setting (auto-skip or button). Previews inferred by the patch (the short tail after credits, or segments detected from opening dialogue lines in subtitle text) always display a button, even in `Auto` mode.
 
-### Working out missing skip times
+### Safety checks
 
-The setting Work out missing skip times is off by default. When it is on and Prepare next episode has found the next file, a background process compares the audio at the start and end of that file with other episodes of the show. It needs at least 2 other episodes to agree before it reports a segment. Results rank below every other source and follow your Auto or Manual choice. It runs in its own process, so a crash in it does not stop playback.
+The patch drops incomplete or conflicting timestamps to avoid cutting into the story:
+* **Series confirmation:** Skipping stays off until the video id or Stremio's metadata confirms the title is a series episode.
+* **Missing boundaries:** Segments without an end time are ignored. Intro, recap, and credits segments without a start time are ignored.
+* **Open-ended credits:** Credits with a start time but no end time apply only after the file runtime loads, only if they begin in the last 40% of the file, and only if the source's file length matches yours.
+* **Long credits:** Online credits segments longer than 180 s always show the Skip button instead of auto-skipping, even in `Auto` mode (though a shorter window can still overlap an unmarked scene).
+* **Source overlap:** When two online sources closely agree on a segment, only their overlapping time range is skipped.
+* **Early credits:** An early credits entry on an episode with no intro is dropped so an early outro is not offered as `Skip intro`. The only exception is TheIntroDB, which sometimes mislabels a real opening as credits; those entries are treated as the intro.
+* **Conflicts at 0:00:** When sources disagree on a segment starting at `0:00`, the player shows the Skip button instead of auto-skipping.
 
-Results apply only to the exact file they were worked out for. Each episode gets one try per day, a show gets up to 24 episodes per day, and the job reads at most 100 GB per day. A result that arrives after the episode has started shows a Skip button if you are inside the segment, and never skips on its own at that moment.
+### Local audio detection and fallbacks
 
-### Borrowed chapters
-
-The setting Borrow chapters from other releases is off by default and works without Work out missing skip times. It copies intro and credits marks from another release of the same episode, after an audio check proves the two files line up. If the check fails, nothing is copied. In an offline test of 40 file pairs, 44 of 45 copied segments landed within 1 s, with a median error of 0.001 s and no story cut, and all 62 deliberately mismatched cases were refused. It has not yet produced a result on a real device.
-
-### Anime theme-song backup
-
-When Work out missing skip times is on and an anime with a Kitsu id still has no intro or credits, the app tries the show's official opening and ending songs from AnimeThemes.moe. It only fills a missing type, and it does nothing if it cannot be certain which show it has. Because it needs only one episode, it can work where comparing episodes cannot. The PC version, used alone on 123 episodes, found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and the app's matcher agreed with it on all 99 episodes compared. It has not yet run on a real device.
+* **Work out missing skip times (off by default):** When `Prepare next episode` locates the next episode's file, an isolated background process compares the audio at the start and end of that file against other episodes of the show. Because the analyzer runs in its own process, a crash inside it never interrupts playback. At least 2 other episodes must match to report a segment. Results rank below all other sources, follow your `Auto` or `Manual` setting, and apply strictly to the exact file analyzed. If analysis finishes while you are already watching inside the detected segment, the player shows a Skip button and never jumps automatically. Quotas cap usage at 1 attempt per episode per day, 24 episodes per show per day, and 100 GB of data read per day.
+* **Borrow chapters from other releases (off by default):** Works independently of `Work out missing skip times`. Copies intro and credits chapter marks from another release of the same episode after an audio alignment check proves both files match. If alignment fails, nothing is copied. In an offline test of 40 file pairs, 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts), and all 62 deliberately mismatched pairs were rejected.
+* **Anime theme-song backup:** Runs when `Work out missing skip times` is on and an anime with a Kitsu id still lacks an intro or credits. Matches the show's official opening and ending songs from AnimeThemes.moe against the episode audio. It requires only a single episode, so it can work where comparing episodes cannot. It fills only missing segment types, and does nothing if it cannot confirm the exact show. Tested standalone on a PC across 123 episodes, it found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros found to 5 of 5. The app matcher agreed with the PC build on all 99 compared episodes.
 
 ## Streams
 
-You press play and the best stream starts without a list. Auto-pick best stream never chooses a CAM, telesync or screener, a stream for another season or episode, an addon warning card or an external link. It ranks the rest like this: a single-episode file before a season pack, cached before uncached, then resolution (a 4K label such as 2160p or 4K is required, and a bare "UHD" is not enough), HDR or Dolby Vision, size, codec and seeders. There is no size cap. If every stream is bad, the list stays on screen.
+### Auto-pick best stream
 
-Auto-pick waits 4 s when a cached stream is there and 8 s otherwise. It is on by default, and Always show stream list is off by default. Long-press an episode to open its list once.
+Press play on an episode to launch the highest-ranked stream without opening the stream selection list. `Auto-pick` is on by default and requires `Always show stream list` to be off (off by default). Long-press an episode to open its stream list manually for that play.
 
-While an episode plays, the best stream for the next one is prepared in the background, so Next, the end of the episode or Binge starts it at once. This needs Auto-pick on and Always show stream list off, and it has its own on/off setting, Prepare next episode. If the prepared stream has not started after 25 s, the patch gives up on it.
+`Auto-pick` waits 4 s when a cached stream is available and 8 s otherwise. It filters out CAM, telesync, and screener copies, wrong season or episode numbers, addon warning cards, and external web links. If every stream fails the filter, the stream list stays on screen.
 
-Hide spoilers is an optional switch. It hides thumbnails and synopses of unwatched episodes and shows "Episode N" instead of their titles.
+Remaining streams rank in this order:
+1. Single-episode file before a season pack
+2. Cached before uncached
+3. Resolution (requires an explicit 4K label such as `2160p` or `4K`; a bare `UHD` tag does not count)
+4. HDR or Dolby Vision
+5. File size (no size cap)
+6. Codec
+7. Seeders
+
+### Preload and spoiler controls
+
+* **Prepare next episode:** Resolves the next episode's best stream in the background during playback so pressing Next, finishing the episode, or using Binge starts it immediately. Requires `Auto-pick` on, `Always show stream list` off, and `Prepare next episode` on. If the prepared stream fails to start within 25 s, the patch drops it.
+* **Hide spoilers:** Optional toggle that hides thumbnails and synopses of unwatched episodes and replaces their titles with `Episode N`.
 
 ## Tracks and subtitles
 
-Pick an audio or subtitle language once, and the show's other episodes start with it. Stremio's player and Vimu share this memory, for IMDb and Kitsu ids. 
+Select an audio or subtitle language once, and future episodes of that show start with the same choice. Stremio's built-in player and Vimu share this saved preference across both IMDb and Kitsu ids.
 
-On 1.6.12, the remembered languages are set as the player's preferred languages before playback starts, so nothing switches and rebuffers afterwards. Vimu applies the memory before its own default rules. Without a memory, Vimu prefers Japanese audio for anime, then your Stremio audio language, then English. Anime also gets a full-dialogue subtitle in your language instead of Signs and Songs.
-
-Avoid SDH subtitles prefers full dialogue subtitles over SDH tracks, and strips sound notes when no other track remains. In Vimu, the same rule applies to the file's embedded tracks.
-
-In Vimu, Stremio passes the subtitle you chose plus up to five more (your language first, then English). If the file has no good embedded track in your language, Vimu loads the best addon subtitle itself and lists the rest in its own menu. The GREEN or GUIDE remote key cycles addon, embedded and off.
+* **Track pre-selection:** On Stremio `1.6.12`, remembered languages are set as the player's preferred tracks before playback begins, preventing mid-stream track switches and rebuffering.
+* **Vimu language defaults:** Vimu checks your saved show preference before its own default rules. When no preference is saved for a show, Vimu prefers Japanese audio for anime, then your Stremio audio language, and finally English. For anime subtitles, it selects a full-dialogue track in your language over a Signs and Songs track.
+* **Avoid SDH subtitles:** Prefers standard dialogue tracks over hearing-impaired (SDH) tracks, and strips sound cues when an SDH track is the only option left. In Vimu, this also applies to subtitle tracks embedded inside the video file.
+* **Vimu addon subtitles:** When launching Vimu, Stremio passes your chosen subtitle plus up to five fallback tracks (your language first, then English). If the video file has no suitable embedded track in your language, Vimu loads the best addon subtitle automatically and lists the remaining options in its subtitle menu. Press the `GREEN` or `GUIDE` remote key to cycle through addon subtitles, embedded subtitles, and subtitles off.
 
 ## External players
 
-Vimu, mpv and Just Player have been tested. MX Player and VLC follow the player's public intent API and have not been tested. With no default player set and Vimu not installed, Android shows its chooser. After you pick MX Player there, it stays the remembered player until you use Forget remembered player in Mod settings.
+Vimu, mpv, and Just Player are tested. MX Player and VLC use their public Android intent APIs and are untested.
 
-Back or Home in the player never marks an episode as finished. An episode is marked watched at 90% or on a real completion. Vimu writes its position to a journal every 10 s, and pausing saves it at once, so progress survives a crash. Stremio reads the journal while the player is open and when Stremio is started again after being closed (a cold start). Recovery after a cold start works on 1.6.12 only.
+If you have no default player set and Vimu is not installed, Android displays the system app chooser. Selecting MX Player in the chooser saves it as your remembered player until you select `Forget remembered player` in Mod settings.
 
-Binge with external players starts the next episode in the same player when an episode really finishes. It is on by default and applies to series only. Back, Home or a stop before the end never starts the next episode. VLC and mpv give no result on a normal end, so the patch needs the runtime to tell an early quit from a real end. With an unknown runtime, no next episode starts.
+* **Progress and crash recovery:** Pressing Back or Home inside an external player never marks an episode watched. An episode counts as watched only at 90% progress or on genuine completion. Vimu writes its playback position to a local journal every 10 s and saves immediately on pause, preserving your position if the app crashes. Stremio reads that journal while the player is open and on cold start (cold-start recovery works on `1.6.12` only).
+* **Binge with external players:** On by default for series only. When an episode genuinely finishes, the next episode starts automatically in the same external player. Pressing Back, Home, or stopping playback early never launches the next episode. Because VLC and mpv return no completion result on a normal exit, the patch checks the known file runtime to separate an early exit from a finished episode; if the runtime is unknown, the next episode does not start.
 
-## Settings and extras
+## Settings and playback extras
 
-Mod settings is one screen with every setting of these patches.
+`Mod settings` groups every patch option into one screen and adds these playback tools:
+* **Smoother playback (Stremio player):** Adds frame-rate matching under `Match frame rate` (`Seamless only`, `Always`, or `Off`).
+* **Larger playback buffer (Stremio player):** On by default. Buffers 50-120 s ahead (up to 256 MB) to reduce stalls on high-bitrate streams.
+* **Playback diary:** On by default. Writes a compact local log that you can fetch with `adb pull`. Never records stream URLs or account details.
+* **Enable debug mode (Intro Skip patch option):** Opens an on-screen log window when playback starts, showing the detected title, season, episode, and API responses.
 
-* Smoother playback, in Stremio's own player: frame-rate matching under the Match frame rate setting (Seamless only, Always or Off).
-* Larger playback buffer, in Stremio's own player: 50-120 s of read-ahead, up to 256 MB, on by default, for fewer stalls on high-bitrate streams.
-* Playback diary: a small local log, on by default, readable with `adb pull`. No stream addresses or accounts are written to it.
-* Enable debug mode, an option of the Intro Skip patch: opens a log window when playback starts and shows the detected title, season, episode and API responses.
+## Stremio version differences
 
-## Differences between Stremio versions
+**Stremio 1.6.12** is the reference build:
+* Patch options appear as rows inside Stremio Settings (`Interface` for `Hide spoilers`, `Playback` for the rest).
+* Skips use an exact seek.
+* Supports progress bar skip marks and cold-start external player recovery.
 
-1.6.12 is the reference build. Its settings are rows in Stremio Settings (Interface for Hide spoilers, Playback for the rest), skips use an exact seek, and only this build has skip marks and cold start recovery.
+**Stremio 1.10.4, 1.12.0, 2.4.0, and 2.5.0** use a newer player architecture, so the patches hook the app's core layer and playback engines directly. Versions `1.12.0` and `2.5.0` were added in 1.7 (`2.4.0` patches cleanly like `2.5.0`, though most testing was done on `2.5.0`). `Intro Skip`, `Auto-pick`, `Hide spoilers`, `Remember tracks per show`, `Avoid SDH subtitles`, `External player progress`, and `Binge` work on these versions with four differences:
+* **Keyframe seeking:** Skips use the engine's standard seek, which snaps to the nearest keyframe and can land 1-2 s early.
+* **Remember tracks:** Saves the language only, does not remember "Subtitles off", and requires Stremio's built-in "auto select" option to be enabled.
+* **Avoid SDH:** Strips hearing-impaired cues from subtitle text on the ExoPlayer engine, and enables mpv's built-in SDH filter on the mpv engine.
+* **Next episode launch:** Starts the next episode immediately if it was prepared during playback; otherwise, opens the next episode's stream screen where `Auto-pick` starts it.
 
-1.10.4, 1.12.0, 2.4.0 and 2.5.0 use a newer Stremio player screen, so the patches hook the app's core layer and player engines instead. Intro Skip, Auto-pick, Hide spoilers, Remember tracks per show, Avoid SDH subtitles, External player progress and Binge are all ported. You will notice these differences:
+## Vimu patches
 
-* Skips use the engine's normal seek, so they can land on the nearest keyframe, about 1-2 s early.
-* Remember tracks keeps the language only. "Subtitles off" is not remembered, and Stremio's "auto select" setting has to be on.
-* Avoid SDH cleans cue text on the ExoPlayer engine only. With the mpv engine, mpv's own SDH filter is switched on.
-* If the next episode was prepared while this one played, it starts at once. Otherwise the patch opens the next episode's stream page and Auto-pick starts it.
-
-1.12.0 and 2.5.0 are new in 1.7. 2.4.0 patches cleanly like 2.5.0, but most of the checking was done on 2.5.0.
-
-## Vimu
-
-Vimu 12.00 (net.gtvbox.videoplayer) gets seven patches. Intro Skip (Vimu) uses the same sources and rules as Stremio. Vimu Settings gets rows for Skip intros, anime openings, Auto/Manual mode, recaps, credits Auto/Button/Off, previews, and the preferred audio language.
-
-Intro Skip native fix (Vimu) is a 2 byte fix in libmediaengine.so for a native crash on rapid seeks. It is built for both armeabi-v7a and arm64-v8a (the arm64 build is new in 1.7).
-
-## Known limits
-
-* A chapter named just "Intro" counts only when AniSkip, TheIntroDB or IntroDB.app has an intro that agrees with it within 15 s. If no online source has an intro, a lone "Intro" chapter counts in Vimu only when it is 20-150 s long and does not start at 0:00, which is usually a cold open. On Stremio it is not used.
-* The IMDb id comes from Stremio's own video id. Kitsu ids work for AniSkip, but IntroDB.app and SkipDB need an IMDb id, so they are not asked for Kitsu-only anime.
-* Credits over 180 s from an online source show the Skip button even in Auto mode, but a shorter window can still contain a scene.
+Vimu `12.00` (`net.gtvbox.videoplayer`) has seven dedicated patches:
+* **Intro Skip (Vimu):** Uses the exact same timestamp sources and safety rules as Stremio. Adds rows to Vimu Settings for `Skip intros`, anime openings, `Auto`/`Manual` mode, recaps, credits (`Auto`/`Button`/`Off`), previews, and preferred audio language.
+* **Intro Skip native fix (Vimu):** Applies a 2 byte fix in `libmediaengine.so` to prevent a native crash during rapid seeks. Supports both `armeabi-v7a` and `arm64-v8a` (`arm64` support arrived in 1.7).
 
 ## Reporting a problem
 
-Open an issue with the app version, your device, the Morphe log if patching failed, and the relevant logcat lines. Useful tags are IntroSkip, IntroSkipPort (hooks on 1.10.4 and newer), AutoPick, TrackMemory, ExtProgress, BingeDbg, SdhAvoid and ModSettings. For Vimu: VimuIntroSkip, VimuResult, VimuTracks, VimuAddonSubs, VimuSubDialog and VimuFix. For example:
+Open an issue with your app version, device model, the Morphe log if patching failed, and the relevant logcat lines:
+* **Stremio log tags:** `IntroSkip`, `IntroSkipPort` (hooks on 1.10.4 and newer), `AutoPick`, `TrackMemory`, `ExtProgress`, `BingeDbg`, `SdhAvoid`, and `ModSettings`.
+* **Vimu log tags:** `VimuIntroSkip`, `VimuResult`, `VimuTracks`, `VimuAddonSubs`, `VimuSubDialog`, and `VimuFix`.
+
+Filter Stremio logs with:
 
 ```bash
 adb logcat -s IntroSkip IntroSkipPort AutoPick TrackMemory ExtProgress BingeDbg SdhAvoid ModSettings

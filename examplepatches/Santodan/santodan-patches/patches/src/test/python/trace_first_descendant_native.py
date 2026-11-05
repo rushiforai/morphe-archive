@@ -106,7 +106,7 @@ class Elf:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--library", type=Path, default=WORKSPACE / ".inspect-first-descendant-1.1.5/arm64/lib/arm64-v8a/libngsme.so")
+    parser.add_argument("--library", type=Path, default=WORKSPACE / "Skills/inspection-evidence/.inspect-first-descendant-1.1.5/arm64/lib/arm64-v8a/libngsme.so")
     parser.add_argument("--output", required=True, type=Path, help="New evidence directory")
     args = parser.parse_args()
     data = args.library.read_bytes()

@@ -32,12 +32,20 @@ public final class Settings {
     static final String HIDE_GAMES = "hide_games";
     static final String HIDE_NEW_POSTS_PILL = "hide_new_posts_pill";
     static final String HIDE_TRANSLATION = "hide_translation";
+    static final String HIDE_AI = "hide_ai";
+    static final String KEEP_FEED = "keep_feed";
+    static final String POST_MENU = "post_menu";
+    static final String VIEWER_TAP_TO_HIDE = "viewer_tap_to_hide";
+    static final String SWIPE_FEEDS = "swipe_feeds";
+    static final String MUTED_WORDS = "muted_words";
+    static final String ANONYMOUS_PROFILE_VIEWING = "anonymous_profile_viewing";
     static final String OPEN_LINKS_DIRECTLY = "open_links_directly";
     static final String HIDE_SPONSORED_MESSAGES = "hide_sponsored_messages";
     static final String GHOST_MODE = "ghost_mode";
     static final String BLOCK_TRACKING = "block_tracking";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
     static final String COPY_TEXT = "copy_text";
+    static final String COPY_TEXT_LONG_SHEET = "copy_text_long_sheet";
     static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
     static final String MATERIAL_YOU = "material_you";
     static final String AMOLED_BLACK = "amoled_black";
@@ -146,6 +154,11 @@ public final class Settings {
 
     static boolean copyText() {
         return isCopyTextIncluded() && get(COPY_TEXT, true);
+    }
+
+    /** Long posts open in a scrollable sheet instead of being selected in place. */
+    static boolean copyTextLongInSheet() {
+        return get(COPY_TEXT_LONG_SHEET, true);
     }
 
     // region Backup
@@ -265,6 +278,62 @@ public final class Settings {
         return isFeedFiltersIncluded() && get(HIDE_TRANSLATION, false);
     }
 
+    /** Words and phrases whose posts are hidden, one per line. */
+    static String mutedWords() {
+        return isFeedFiltersIncluded() ? getString(MUTED_WORDS, "") : "";
+    }
+
+    static void setMutedWords(String words) {
+        setString(MUTED_WORDS, words);
+    }
+
+    static boolean hideAi() {
+        return isFeedFiltersIncluded() && get(HIDE_AI, false);
+    }
+
+    public static boolean isSwipeFeedsIncluded() {
+        return false;
+    }
+
+    /** Swipe left and right on the home feed to switch between For you and Network. */
+    static boolean swipeFeeds() {
+        return isSwipeFeedsIncluded() && get(SWIPE_FEEDS, true);
+    }
+
+    public static boolean isViewerTapToHideIncluded() {
+        return false;
+    }
+
+    /** Tap a video or document in full screen to hide its caption and buttons, like photos. */
+    static boolean viewerTapToHide() {
+        return isViewerTapToHideIncluded() && get(VIEWER_TAP_TO_HIDE, true);
+    }
+
+    public static boolean isPostMenuIncluded() {
+        return false;
+    }
+
+    /** Copy text, Download and Save as PDF in the ⋯ menu of posts. */
+    static boolean postMenu() {
+        return isPostMenuIncluded() && get(POST_MENU, true);
+    }
+
+    public static boolean isKeepFeedIncluded() {
+        return false;
+    }
+
+    static boolean keepFeed() {
+        return isKeepFeedIncluded() && get(KEEP_FEED, true);
+    }
+
+    public static boolean isAnonymousProfileViewingIncluded() {
+        return false;
+    }
+
+    static boolean anonymousProfileViewing() {
+        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, false);
+    }
+
     static boolean hideAds() {
         return isHideAdsIncluded() && get(HIDE_ADS, true);
     }
@@ -281,9 +350,13 @@ public final class Settings {
         return isHidePremiumIncluded() && get(HIDE_PREMIUM, true);
     }
 
-    /** Called from HomeNavPanelTransformer.toPremiumViewData (the "Me" panel upsell card). */
-    public static boolean hideNavPanelUpsell() {
-        return hidePremium();
+    /**
+     * Called with the Premium upsell slot of the "Me" panel, when its data is created.
+     *
+     * @return null (no upsell bar) with Hide Premium upsells, otherwise the slot.
+     */
+    public static Object navPanelUpsellSlot(Object slot) {
+        return hidePremium() ? null : slot;
     }
 
     static boolean downloadMedia() {

@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import java.util.List;
 
-/** Reuse beta.9's native updater host and banner without replacing its drawing code. */
+/** Reuse beta.10's native updater host and banner without replacing its drawing code. */
 final class NuvioNativeSyncBanner {
     static final String EXT = "Lsoftware/santodan/extension/nuviomerged/NuvioSyncBanner;";
     static final String HOST = "Lna/k1;->n(Llb/k0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lr1/s;Lh1/n;I)V";
@@ -21,7 +21,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookRoot(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"invoke",3);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("e2821f28134885f7f897be21e75c6e4fef65f744c51afa62a45a644d820e400a"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("dedc41390385f7d6434496467cb757aa41aa84172c0c0525440f91b9a5afce4c"))
             throw new IllegalStateException("Native updater root changed or already patched");
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
         int anchor=-1;
@@ -38,7 +38,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookBanner(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"b",10);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("c182d07bc2cfa306a82fb98fe718093f273397befe20334af816176e6079d1e0"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("c8a2b537c95418e3872f356ef34f9c380a25526551df17ebda0567f5a427b89b"))
             throw new IllegalStateException("Native updater banner changed or already patched");
         var code=method.getImplementation();
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
@@ -50,16 +50,17 @@ final class NuvioNativeSyncBanner {
             List<String> args=null;
             // The installed-app close path calls a timed auto-dismiss control.
             // Sync cancellation must use the ordinary explicit close action instead.
-            if(i==732){
-                if(instruction.getOpcode()!=Opcode.IF_EQZ || ((OneRegisterInstruction)instruction).getRegisterA()!=68)
+            if(i==734){
+                int installed=NuvioAnchors.parameter(method,2);
+                if(instruction.getOpcode()!=Opcode.IF_EQZ || ((OneRegisterInstruction)instruction).getRegisterA()!=installed)
                     throw new IllegalStateException("Native banner close timer guard changed");
-                code.addInstruction(i,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,68,1,ref("timedClose",List.of("Z"),"Z")));
-                code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,68));
+                code.addInstruction(i,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,installed,1,ref("timedClose",List.of("Z"),"Z")));
+                code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,installed));
                 timerGuards++;
             }
-            // Original beta.9 b(): instruction 729, v34 cached isDownloading, directly
+            // Original beta.10 b(): instruction 731, v34 cached isDownloading, directly
             // after the primary action group closes. Its branch hides only the Close control.
-            if(i==729){
+            if(i==731){
                 if(instruction.getOpcode()!=Opcode.IF_NEZ || ((OneRegisterInstruction)instruction).getRegisterA()!=34 ||
                     !NuvioPlaybackButtonsPatch.reference(instructions.get(i-1)).equals("Lh1/k0;->p(Z)V"))
                     throw new IllegalStateException("Native banner close guard changed");
@@ -67,7 +68,7 @@ final class NuvioNativeSyncBanner {
                 code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,34));
                 closeGuards++;
             }
-            if(i==759){
+            if(i==761){
                 if(!target.equals("Lu6/g;->d0(ILh1/n;)Ljava/lang/String;"))
                     throw new IllegalStateException("Native banner close label changed");
                 name="closeText";args=List.of("I","Ljava/lang/Object;");closeLabels++;

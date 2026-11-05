@@ -1,10 +1,11 @@
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 private const val PKG = "com.duplila.screenshare"
-private const val GMA = "Lcom/google/android/gms/ads/"
+private const val MAIN_ACTIVITY = "Lcom/duplila/screenshare/main/MainActivity;"
 
 class DuplilaSmokeTest {
 
@@ -25,8 +26,12 @@ class DuplilaSmokeTest {
         ref?.definingClass == definingClass && ref.name == name
     }
 
+    private fun Method.hasString(value: String) = instructions().any {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value
+    }
+
     @Test
-    fun `license check, premium check, consent flow, banner and GMA are patched`() {
+    fun `license check, premium check, consent flow, banner and banner load are patched`() {
         val root = repoRoot()
         val apk = File(root, "apks/duplila/base.apk")
 
@@ -35,7 +40,7 @@ class DuplilaSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "5.3",
+            apk = apk, workDir = workDir, pkg = PKG, version = "5.4",
             patchNames = setOf("Disable license check", "Enable Premium", "Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -66,57 +71,40 @@ class DuplilaSmokeTest {
             "BillingManager.userPaid no longer holds the original withContext call (wrong method?)"
         )
 
-        // Disable ads, step 1: the UMP consent flow, found like the fingerprint.
-        val consentFlows = classes.flatMap { c -> c.methods.map { c to it } }.filter { (_, m) ->
-            m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("Z") &&
-                m.calls("Lcom/google/android/ump/ConsentInformation;", "requestConsentInfoUpdate")
+        // Disable ads, step 1: the UMP consent flow, found like the fingerprint (the (Z)V
+        // MainActivity method reading getConsentInformation()).
+        val consentFlows = cls(MAIN_ACTIVITY).methods.filter {
+            it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf("Z") &&
+                it.calls(MAIN_ACTIVITY, "getConsentInformation")
         }
-        assertEquals(1, consentFlows.size, "expected one consent flow method, found ${consentFlows.map { it.first.type }}")
-        val (consentOwner, consentFlow) = consentFlows.single()
-        assertReturnsEarlyVoid(consentFlow, label = "${consentOwner.type}.${consentFlow.name}(Z)")
+        assertEquals(1, consentFlows.size, "expected one consent flow method, found ${consentFlows.map { it.name }}")
+        assertReturnsEarlyVoid(consentFlows.single(), label = "MainActivity.${consentFlows.single().name}(Z)")
 
-        // Step 2: the banner composable, in the class whose AdView factory loads the banner.
-        val bannerClass: ClassDef = classes.single { c ->
-            !c.type.startsWith("Lcom/google/") && c.methods.any {
-                it.returnType == "${GMA}AdView;" &&
-                    it.calls("${GMA}AdView;", "setAdUnitId") && it.calls("${GMA}AdView;", "loadAd")
-            }
+        // Step 2: the banner composable, found by its "Cannot show ads" filler row.
+        val bannerViews = classes.flatMap { c -> c.methods.map { c to it } }.filter { (_, m) ->
+            val parameters = m.parameterTypes.map(CharSequence::toString)
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && parameters.size == 5 &&
+                parameters[1] == "Z" && parameters[3] == "I" && parameters[4] == "I" &&
+                m.hasString("Cannot show ads")
         }
-        val bannerView = bannerClass.methods.single {
-            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
-                it.parameterTypes.map(CharSequence::toString) == listOf(
-                    "Landroidx/compose/ui/Modifier;", "Z", "Landroidx/compose/runtime/Composer;", "I", "I",
-                )
-        }
+        assertEquals(1, bannerViews.size, "expected one banner composable, found ${bannerViews.map { it.first.type }}")
+        val (bannerClass, bannerView) = bannerViews.single()
         assertReturnsEarlyVoid(bannerView, label = "${bannerClass.type}.${bannerView.name}")
 
-        // Step 3: rule 9, every MobileAds static void is a no-op (the banner's own
-        // setRequestConfiguration + initialize included) and first-party id answers false.
-        val mobileAds = cls("${GMA}MobileAds;")
-        val ctx = "Landroid/content/Context;"
-        for ((name, parameters) in listOf(
-            "initialize" to listOf(ctx),
-            "initialize" to listOf(ctx, "${GMA}initialization/OnInitializationCompleteListener;"),
-            "setRequestConfiguration" to listOf("${GMA}RequestConfiguration;"),
-            "setAppVolume" to listOf("F"),
-            "setAppMuted" to listOf("Z"),
-        )) {
-            assertReturnsEarlyVoid(mobileAds.method(name, parameters), label = "MobileAds.$name(${parameters.joinToString()})")
+        // Step 3: BaseAdView.loadAd (R8-renamed), the method that creates the runnable carrying
+        // GMA's "BaseAdView.loadAd" crash tag; BaseAdView is that runnable's ViewGroup field.
+        val loadRunnable = classes.single { c ->
+            c.methods.any { it.name == "run" && it.returnType == "V" && it.hasString("BaseAdView.loadAd") }
         }
-        mobileAds.methods.filter {
-            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
-                it.implementation != null && it.name != "<clinit>"
-        }.forEach { method ->
-            assertReturnsEarlyVoid(method, label = "MobileAds.${method.name}(${method.parameterTypes.joinToString()})")
+        val baseAdView = loadRunnable.fields.map { it.type }
+            .mapNotNull { type -> classes.firstOrNull { it.type == type } }
+            .single { it.superclass == "Landroid/view/ViewGroup;" }
+        val loadAd = baseAdView.methods.single { method ->
+            method.returnType == "V" && method.parameterTypes.size == 1 && method.instructions().any {
+                it.opcode == Opcode.NEW_INSTANCE &&
+                    ((it as ReferenceInstruction).reference as? TypeReference)?.type == loadRunnable.type
+            }
         }
-        assertForcedBoolean(
-            mobileAds.method("putPublisherFirstPartyIdEnabled", listOf("Z")),
-            expected = false,
-            label = "MobileAds.putPublisherFirstPartyIdEnabled(Z)",
-        )
-        assertReturnsEarlyVoid(
-            cls("${GMA}BaseAdView;").method("loadAd", listOf("${GMA}AdRequest;")),
-            label = "BaseAdView.loadAd(AdRequest)",
-        )
+        assertReturnsEarlyVoid(loadAd, label = "BaseAdView.loadAd (${baseAdView.type}.${loadAd.name})")
     }
 }

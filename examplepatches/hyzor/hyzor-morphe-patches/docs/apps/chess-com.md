@@ -1,7 +1,7 @@
 # Chess.com
 
-Package `com.chess`, supported targets `4.10.18-googleplay` (versionCode 280075) and
-`4.10.23-googleplay` (versionCode 280100).
+Package `com.chess`, supported target `4.10.23-googleplay` (versionCode 280100). The patches
+are written for that build only: no older version's shapes are kept as fallbacks.
 Sources: [`patches/.../chesscom/`](../../patches/src/main/kotlin/dev/hyzor/patches/chesscom/) and
 [`extensions/chesscom/`](../../extensions/chesscom/).
 
@@ -11,13 +11,14 @@ right places, and do the resource and manifest work; the feature logic lives in 
 extension, which is merged into the patched app as a DEX.
 
 The set is a port of [Noam's Morphe Patches](https://github.com/ImNoammm/Noams-Morphe-Patches)
-(GPLv3), extended with 4.10.23 support. The clone patch is derived from
+(GPLv3), ported to the supported build. The clone patch is derived from
 [PrathxmOp/Prathxm-Patches](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0); the
 file header keeps that attribution.
 
 ## Noam's Patches settings
 
-Applying **Noam's Patches settings** adds a row at the top of the More tab. That screen is
+Applying **Noam's Patches settings** adds a row at the top of the More tab (titled
+*Noam's Patches · hyzor*). That screen is
 part of the extension (`MorpheSettingsActivity`, registered in the manifest by a resource
 patch) and groups the options into *Board*, *Look*, *Games* and *Less clutter*. Settings are
 stored in the `morphe_chesscom` SharedPreferences file.
@@ -33,16 +34,16 @@ extension learns about the app lifecycle through a hook that
 
 Both *Look* features rewrite lists instead of editing a layout:
 
-- **Bottom bar.** `NavigationBarState` keeps the middle tabs. On 4.10.23 the state has no
-  `tabs()` getter, so the patch rewrites the four-argument constructor's list
+- **Bottom bar.** `NavigationBarState` keeps the middle tabs. The state has no `tabs()`
+  getter, so the patch rewrites the four-argument constructor's list
   (`HomeTabs.middleTabs`) and rebuilds the finished list (`HomeTabs.finalTabs`, hooked after
   the bar's list is built): Home stays first, More last (the app appends it after the hook),
   and Puzzles follows the saved order like the other tabs instead of staying pinned after
   Home. The saved list may be empty: Home and More stay, and the bar renders with just those
   two tabs. Without a saved order the bar is left as the app built it.
-- **Home screen.** The older Home reads a sections map and a tile list; the redesign passes
-  each section to `Content` separately. Tiles are filtered and reordered in `HomeLayout.tiles` (older Home) and `recommendedActivities`
-  (redesign). 4.10.23's `RecommendedActivitiesSection` has two enum-typed fields (the
+- **Home screen.** The redesign passes each section to `Content` separately; tiles are
+  filtered and reordered in `HomeLayout.recommendedActivities`. `RecommendedActivitiesSection`
+  has two enum-typed fields (the
   carousel type and `LessonSection`), so the extension only picks the enum the constructor
   uses; it rebuilds the section through the app's own copy helper
   `a(RecommendedActivitiesSection, List)` when present, and otherwise through the full
@@ -58,9 +59,9 @@ model, and the bar reads the state once at startup. Both pages show the restart 
 
 ## Caveats
 
-- **Two targets, one fingerprint set.** 4.10.18 is the build the fingerprints were written
-  against; 4.10.23 is being tested against the same fingerprints. Check both when changing a
-  fingerprint.
+- **One target, no fallbacks.** The patches name the supported build's classes and methods
+  directly; there is no older version's shape behind a lookup. A class or method that moves
+  in a new build fails the patch instead of matching a stale shape.
 - **Stockfish analysis needs internet while patching.** The patch downloads the official
   Stockfish 19 Android arm64 build (about 80 MB) from Stockfish's GitHub, verifies the
   archive and engine SHA-256, and places it at `lib/arm64-v8a/libstockfish.so`. It is
@@ -87,6 +88,28 @@ model, and the bar reads the state once at startup. Both pages show the restart 
 - **Nothing premium is unlocked on the server.** *Unlock Premium content* forces the app's
   tier check to the top tier, so every client-side gate opens; the chess.com backend still
   decides what the account may play or download.
+
+## Lichess puzzles in the puzzle screen
+
+*Puzzles from Lichess* opens chess.com's `RatedPuzzlesGameActivity` in guest mode, and the
+session runs it as `PathPuzzlesMode.REGULAR` so the Classic layout and the rating stats load.
+
+- Before the first batch is seeded, the extension empties chess.com's `RATED_GUEST` queue.
+  The delete is a suspend DAO method, so the same table is cleared with
+  `DELETE FROM tactics_problem WHERE source = 4` through Room's writable database. Without it,
+  chess.com's older guest puzzles are served first and the screen shows chess.com's rating
+  and history instead of Lichess's.
+- The rating box reads the live Glicko rating, and the graph is drawn from a local history of
+  the last 20 ratings (`lichess_puzzle_history`), not chess.com's rating history. **Reset
+  rating** clears that history too.
+- The in-game settings dialog hides the rows that do nothing in a Lichess session: Collect
+  Puzzle Points, Always Show Rating, Show Puzzle Goals, Difficulty and Show Chat Hints.
+  Mistake Feedback, Voice and Show Timer are local and stay. The full Settings → Puzzles page
+  is unchanged.
+
+Runtime-tested on 4.10.23: the seed cleared chess.com's guest queue, puzzles scored locally,
+the rating box and graph showed the Lichess values, and the settings dialog showed only the
+three local rows.
 
 ## Feature groups
 

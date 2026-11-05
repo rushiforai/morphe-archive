@@ -1,7 +1,6 @@
 package dev.hyzor.patches.chesscom.theme
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import dev.hyzor.patches.chesscom.misc.settings.settingsPatch
@@ -9,7 +8,6 @@ import dev.hyzor.patches.chesscom.shared.Constants
 import dev.hyzor.patches.chesscom.shared.markFeaturePatched
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -36,7 +34,7 @@ val accentPatch = bytecodePatch(
     execute {
         markFeaturePatched("accentPatched")
 
-        // The design system's colour palette: static colours set in <clinit>, one getter each.
+        // The design system's colour palette: static colours set in <clinit>.
         var palette: ClassDef? = null
         classDefForEach { classDef ->
             if (palette != null || !classDef.type.startsWith("Lcom/chess/designsystem/tokens/")) return@classDefForEach
@@ -60,12 +58,12 @@ val accentPatch = bytecodePatch(
                 }
             }
         }
-        // 4.10.23's palette dropped two intermediate greens; keep the shade positions of the rest.
+        // The palette dropped two intermediate greens; require the rest, and shade 5 itself.
         if (shades.size < GREENS.size - 2 || shades.values.none { it == 5 }) {
             throw PatchException("Found ${shades.size} of ${GREENS.size} greens")
         }
 
-        // 4.10.23 packs every palette colour through one (J)J helper in <clinit>.
+        // The colours are built once in <clinit>, all packed through one (J)J helper.
         var converter: MethodReference? = null
         var lastLiteral: Long? = null
         paletteClass.methods.single { it.name == "<clinit>" }.implementation!!.instructions.forEach { instruction ->
@@ -80,42 +78,20 @@ val accentPatch = bytecodePatch(
             }
         }
 
-        var hooked = 0
-        paletteClass.methods.forEach { method ->
-            if (method.parameterTypes.isNotEmpty() || method.returnType != "J") return@forEach
-            val body = method.implementation?.instructions?.toList() ?: return@forEach
-            if (body.size != 2 || body[0].opcode != Opcode.SGET_WIDE || body[1].opcode != Opcode.RETURN_WIDE) return@forEach
-            val shade = shades[((body[0] as ReferenceInstruction).reference as FieldReference).name] ?: return@forEach
-            val value = method.getInstruction<OneRegisterInstruction>(1).registerA
-            val self = method.implementation!!.registerCount - 1
-            if (self == value || self == value + 1 || self > 15) throw PatchException("Unexpected palette registers")
-            method.addInstructions(
-                1,
+        val reference = converter ?: throw PatchException("The palette converter was not found")
+        mutableClassDefBy(reference.definingClass).methods.single {
+            it.name == reference.name && it.returnType == "J" &&
+                it.parameterTypes.map { type -> type.toString() } == listOf("J") &&
+                it.implementation != null
+        }.apply {
+            addInstructions(
+                0,
                 """
-                    const/16 v$self, $shade
-                    invoke-static { v$value, v${value + 1}, v$self }, $ACCENT->palette(JI)J
-                    move-result-wide v$value
+                    invoke-static { p0, p1 }, $ACCENT->pack(J)J
+                    move-result-wide v0
+                    return-wide v0
                 """,
             )
-            hooked++
-        }
-        if (hooked == 0) {
-            // 4.10.23: no getters, colours are built once in <clinit>.
-            val reference = converter ?: throw PatchException("The palette converter was not found")
-            mutableClassDefBy(reference.definingClass).methods.single {
-                it.name == reference.name && it.returnType == "J" &&
-                    it.parameterTypes.map { type -> type.toString() } == listOf("J") &&
-                    it.implementation != null
-            }.apply {
-                addInstructions(
-                    0,
-                    """
-                        invoke-static { p0, p1 }, $ACCENT->pack(J)J
-                        move-result-wide v0
-                        return-wide v0
-                    """,
-                )
-            }
         }
     }
 }

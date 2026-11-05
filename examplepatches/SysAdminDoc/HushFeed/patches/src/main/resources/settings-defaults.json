@@ -292,6 +292,7 @@
       "keep_for_you_on_pull_down",
       "home_tab_opens_settings",
       "profile_tab_opens_watch_history",
+      "inbox_tab_flips_read_receipts",
       "start_page",
       "show_feed_buttons",
       "hide_tako_ai",
@@ -311,6 +312,9 @@
     "Foldable split comment view": [
       "foldable_split_view",
       "foldable_split_view_min_width_dp"
+    ],
+    "Freeze TikTok's experiments": [
+      "freeze_remote_config"
     ],
     "Ghost mode": [
       "ghost_mode",
@@ -527,6 +531,7 @@
       "rail_hold_favorites",
       "long_press_full_menu_on_profiles",
       "long_press_full_menu_in_search",
+      "long_press_compact_menu",
       "edge_seek",
       "edge_seek_seconds"
     ],
@@ -555,7 +560,8 @@
     "Notification controls": [
       "hide_follower_notifications",
       "turn_off_push_notifications",
-      "hide_message_streaks"
+      "hide_message_streaks",
+      "hide_streak_popups"
     ],
     "Open external links directly": [
       "open_external_links"
@@ -636,7 +642,8 @@
     "Settings": [
       "morphe_language",
       "morphe_show_menu_icons",
-      "hide_settings_row"
+      "hide_settings_row",
+      "settings_as_list"
     ],
     "Share sheet tools": [
       "hide_share_channels",
@@ -1791,6 +1798,12 @@
       "type": "boolean",
       "default": false
     },
+    "freeze_remote_config": {
+      "field": "FREEZE_REMOTE_CONFIG",
+      "key": "freeze_remote_config",
+      "type": "boolean",
+      "default": false
+    },
     "friends_mutuals_only": {
       "field": "FRIENDS_MUTUALS_ONLY",
       "key": "friends_mutuals_only",
@@ -2559,6 +2572,12 @@
       "type": "boolean",
       "default": false
     },
+    "hide_streak_popups": {
+      "field": "HIDE_STREAK_POPUPS",
+      "key": "hide_streak_popups",
+      "type": "boolean",
+      "default": false
+    },
     "hide_subscriber_only": {
       "field": "HIDE_SUBSCRIBER_ONLY",
       "key": "hide_subscriber_only",
@@ -2648,6 +2667,12 @@
     "inbox_loaded_search": {
       "field": "INBOX_LOADED_SEARCH",
       "key": "inbox_loaded_search",
+      "type": "boolean",
+      "default": false
+    },
+    "inbox_tab_flips_read_receipts": {
+      "field": "INBOX_TAB_FLIPS_READ_RECEIPTS",
+      "key": "inbox_tab_flips_read_receipts",
       "type": "boolean",
       "default": false
     },
@@ -2884,6 +2909,12 @@
       "key": "long_press_action",
       "type": "string",
       "default": "default"
+    },
+    "long_press_compact_menu": {
+      "field": "LONG_PRESS_COMPACT_MENU",
+      "key": "long_press_compact_menu",
+      "type": "boolean",
+      "default": false
     },
     "long_press_full_menu_in_search": {
       "field": "LONG_PRESS_FULL_MENU_IN_SEARCH",
@@ -3570,6 +3601,12 @@
     "session_budget_wait_to_loosen": {
       "field": "SESSION_BUDGET_WAIT_TO_LOOSEN",
       "key": "session_budget_wait_to_loosen",
+      "type": "boolean",
+      "default": false
+    },
+    "settings_as_list": {
+      "field": "SETTINGS_AS_LIST",
+      "key": "settings_as_list",
       "type": "boolean",
       "default": false
     },

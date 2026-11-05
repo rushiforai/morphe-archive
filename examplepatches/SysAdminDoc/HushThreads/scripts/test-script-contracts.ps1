@@ -2458,7 +2458,7 @@ function Get-ReleaseFileText([string]$Relative) {
         }
         'CHANGELOG.md' {
             ([regex]'(?m)^## ').Replace([System.IO.File]::ReadAllText((Join-Path $Root 'CHANGELOG.md')),
-                ("## $seedVersion (2026-09-29)`n`n* **Threads:** The first release, $(@($catalog.patches).Count) patches " +
+                ("## $seedVersion (2026-09-29)`n`n* The first release, $(@($catalog.patches).Count) patches " +
                     "for Threads $($seedTarget.PackageVersion).`n`n## "), 1)
         }
     }
@@ -2634,7 +2634,7 @@ try {
             }
             Set-FactsFile 'CHANGELOG.md' {
                 param($text) ([regex]'(?m)^## ').Replace($text,
-                    "## $nextVersion (2026-09-26)`n`n* **Threads:** Moves the patches to Threads $movedBuild.`n`n## ", 1)
+                    "## $nextVersion (2026-09-26)`n`n* Moves the patches to Threads $movedBuild.`n`n## ", 1)
             }
             # The badge moves with the source; the sentence naming the latest release waits for it.
             Set-FactsFile 'README.md' {
@@ -2707,7 +2707,7 @@ try {
             -replace 'alt="Version \d+(?:\.\d+)+"', "alt=`"Version $nextVersion`""
     }
     Set-FactsFile 'CHANGELOG.md' {
-        param($text) "# Changelog`n`n## Unreleased`n`n* **Threads:** A pending source change.`n`n" +
+        param($text) "# Changelog`n`n## Unreleased`n`n* A pending source change.`n`n" +
             ($text -replace '(?ms)^## Unreleased[ \t]*\r?\n.*?(?=^##\s|\z)', '' -replace '(?m)^# Changelog\r?\n', '')
     }
     $pendingChangelog = Get-Content -LiteralPath (Join-Path $factsRoot 'CHANGELOG.md') -Raw
@@ -2724,14 +2724,14 @@ try {
     foreach ($case in @(
             @{ Name = 'missing Unreleased'; Text = $pendingChangelog -replace '(?ms)^## Unreleased.*?(?=^##\s|\z)', '';
                 Pattern = '*exactly one*Unreleased*' },
-            @{ Name = 'empty Unreleased'; Text = $pendingChangelog.Replace('* **Threads:** A pending source change.', '');
+            @{ Name = 'empty Unreleased'; Text = $pendingChangelog.Replace('* A pending source change.', '');
                 Pattern = '*no scoped change bullets*' },
             @{ Name = 'an undated published entry'; Text = $pendingChangelog -replace
                     ('(?m)^## ' + [regex]::Escape($catalogVersion) + '[^\r\n]*$'), "## $catalogVersion";
                 Pattern = '*no date*' },
-            @{ Name = 'unscoped published changes'; Text = $pendingChangelog.Replace($publishedSection,
-                    $publishedSection.Replace('* **Threads:', '* **Other:'));
-                Pattern = '*does not scope to Threads*' },
+            @{ Name = 'published changes scoped to another label'; Text = $pendingChangelog.Replace($publishedSection,
+                    ($publishedSection -replace '(?m)^\* ', '* **Other:** '));
+                Pattern = '*scoped to Other*' },
             @{ Name = 'missing published history'; Text = $pendingChangelog -replace
                     ('(?ms)^## ' + [regex]::Escape($catalogVersion) + '[^\r\n]*\r?\n.*?(?=^##\s|\z)'), '';
                 Pattern = '*no heading for*' },
@@ -2861,7 +2861,7 @@ try {
     # description for the release a phone is on. A bullet there may name an older build or another
     # count, so the facts are read up to the first ### line, in both modes.
     Set-FactsFile 'patches-bundle.json' {
-        param($text) $text -replace '("description":\s*"(?:[^"\\]|\\.)*)"', '$1\n\n### Changes\n\n* **Threads:** Builds before Threads 9.9.9.9.9 kept 3 patches."'
+        param($text) $text -replace '("description":\s*"(?:[^"\\]|\\.)*)"', '$1\n\n### Changes\n\n* Builds before Threads 9.9.9.9.9 kept 3 patches."'
     }
     try {
         Assert-True ((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw | ConvertFrom-Json).description -match
@@ -3589,12 +3589,12 @@ try {
         # underline, not a conflict, and passes.
         Assert-Throws { Push-ListingChange {
                 Set-Content -LiteralPath (Join-Path $listingRepo 'CHANGELOG.md') -Encoding ASCII -Value @(
-                    '## Unreleased', '', '<<<<<<< HEAD', '* **Threads:** one side.', '||||||| base', '=======',
-                    '* **Threads:** the other side.', '>>>>>>> 0123abc (the other side)') } } `
+                    '## Unreleased', '', '<<<<<<< HEAD', '* one side.', '||||||| base', '=======',
+                    '* the other side.', '>>>>>>> 0123abc (the other side)') } } `
             '*unresolved merge conflict*CHANGELOG.md:3:<<<<<<< HEAD*' 'A push carrying an unresolved merge conflict went out.'
         $ran = Push-ListingChange {
             Set-Content -LiteralPath (Join-Path $listingRepo 'CHANGELOG.md') -Encoding ASCII -Value @(
-                '## Unreleased', '', '* **Threads:** one side.', '* **Threads:** the other side.')
+                '## Unreleased', '', '* one side.', '* the other side.')
             New-Item -ItemType Directory -Path (Join-Path $listingRepo 'docs') -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $listingRepo 'docs/heading.md') -Encoding ASCII -Value @('A heading', '=======', '', 'Text.')
         }
@@ -4432,12 +4432,12 @@ A sentence about the release.
 
 ### Settings
 
-* **Threads:** one change.
-* **Threads:** another change.
+* one change.
+* another change.
 
 ### On the video
 
-* **Threads:** a third.
+* a third.
 
 ## 0.41.0
 
@@ -4455,10 +4455,18 @@ $undated = Test-ChangelogManagerEntry -Current ($readable -replace '## 0\.42\.0 
 Assert-True (-not $undated.Valid) 'An undated heading, which Manager skips, was accepted.'
 Assert-True ($undated.Reason -like '*no date*') "The undated heading was refused for the wrong reason: $($undated.Reason)"
 
-$unscoped = Test-ChangelogManagerEntry -Current ($readable -replace '\* \*\*Threads:\*\* another', '* another') `
+# A bullet with no label is a Threads change. The app's own label still counts, a leftover from before
+# the labels were dropped, and another label is refused as not this app's change.
+$unscoped = Test-ChangelogManagerEntry -Current ($readable -replace '\* another', '* another') -ExpectedVersion '0.42.0'
+Assert-True ($unscoped.Valid -and $unscoped.Bullets -eq 3) "Unlabeled bullets were refused or miscounted: $($unscoped.Reason)"
+$leftoverLabel = Test-ChangelogManagerEntry -Current ($readable -replace '\* another', '* **Threads:** another') `
     -ExpectedVersion '0.42.0'
-Assert-True (-not $unscoped.Valid) 'A bullet Manager does not scope to Threads was accepted.'
-Assert-True ($unscoped.Reason -like 'Line 12 *') "The unscoped bullet was refused for the wrong reason: $($unscoped.Reason)"
+Assert-True ($leftoverLabel.Valid -and $leftoverLabel.Bullets -eq 3) `
+    "A bullet with a leftover Threads label was refused or miscounted: $($leftoverLabel.Reason)"
+$foreignLabel = Test-ChangelogManagerEntry -Current ($readable -replace '\* another', '* **Feed:** another') `
+    -ExpectedVersion '0.42.0'
+Assert-True (-not $foreignLabel.Valid) 'A bullet labeled for something other than Threads was accepted.'
+Assert-True ($foreignLabel.Reason -like 'Line 12 *') "The foreign label was refused for the wrong reason: $($foreignLabel.Reason)"
 
 $wrapped = Test-ChangelogManagerEntry -Current ($readable -replace 'one change\.', "one`n  change.") `
     -ExpectedVersion '0.42.0'
@@ -4468,7 +4476,7 @@ Assert-True ($wrapped.Reason -like '*continues the bullet*') "The wrapped bullet
 $noBullets = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`nOnly prose.`n" -ExpectedVersion '0.42.0'
 Assert-True (-not $noBullets.Valid) 'An entry with no scoped bullet, which gets no update badge, was accepted.'
 
-$otherScope = Test-ChangelogManagerEntry -Current ($readable -replace '\*\*Threads:\*\* a third', '**Instagram:** a third') `
+$otherScope = Test-ChangelogManagerEntry -Current ($readable -replace '\* a third', '* **Instagram:** a third') `
     -ExpectedVersion '0.42.0'
 Assert-True (-not $otherScope.Valid) 'A bullet scoped to another app was accepted.'
 
@@ -4476,27 +4484,27 @@ Assert-True (-not $otherScope.Valid) 'A bullet scoped to another app was accepte
 # under Unreleased carries them. Manager shows a line only to the app it's scoped to, so it shows
 # these to nobody, which is what they're for: allowed, and not counted as Threads changes. The
 # release check refused every one, so a release had to drop them or relabel them for users.
-$withTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Threads:\*\* a third\.)',
+$withTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* a third\.)',
     "`$1`n* **Tooling:** a development-only change.") -ExpectedVersion '0.42.0'
 Assert-True ($withTooling.Valid -and $withTooling.Bullets -eq 3) `
     "A Tooling bullet in the released entry was refused or counted: $($withTooling.Reason), $($withTooling.Bullets) bullets"
 $toolingOnly = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`n* **Tooling:** only this.`n" -ExpectedVersion '0.42.0'
-Assert-True (-not $toolingOnly.Valid -and $toolingOnly.Reason -like '*no "* **Threads:** " bullet*') `
+Assert-True (-not $toolingOnly.Valid -and $toolingOnly.Reason -like '*no Threads change bullet*') `
     "An entry with Tooling bullets alone, which gets no update badge, was not refused for that: $($toolingOnly.Reason)"
-$wrappedTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Threads:\*\* a third\.)',
+$wrappedTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* a third\.)',
     "`$1`n* **Tooling:** a development-only`n  change.") -ExpectedVersion '0.42.0'
 Assert-True ($wrappedTooling.Reason -like '*continues the bullet*') `
     "A wrapped Tooling bullet was not held to one line like the others: $($wrappedTooling.Reason)"
 # A documentation change is written "* **Docs:** ...", and Manager shows it to nobody the same way.
 # Unreleased held three when the release stages came in, and the check refused every one.
-$withDocs = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Threads:\*\* a third\.)',
+$withDocs = Test-ChangelogManagerEntry -Current ($readable -replace '(\* a third\.)',
     "`$1`n* **Docs:** the README says more.") -ExpectedVersion '0.42.0'
 Assert-True ($withDocs.Valid -and $withDocs.Bullets -eq 3) `
     "A Docs bullet in the released entry was refused or counted: $($withDocs.Reason), $($withDocs.Bullets) bullets"
 $docsOnly = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`n* **Docs:** only this.`n" -ExpectedVersion '0.42.0'
-Assert-True (-not $docsOnly.Valid -and $docsOnly.Reason -like '*no "* **Threads:** " bullet*') `
+Assert-True (-not $docsOnly.Valid -and $docsOnly.Reason -like '*no Threads change bullet*') `
     "An entry with Docs bullets alone, which gets no update badge, was not refused for that: $($docsOnly.Reason)"
-$lowerDocs = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Threads:\*\* a third\.)',
+$lowerDocs = Test-ChangelogManagerEntry -Current ($readable -replace '(\* a third\.)',
     "`$1`n* **docs:** spelled another way.") -ExpectedVersion '0.42.0'
 Assert-True (-not $lowerDocs.Valid) 'A scope spelled "docs" passed as the Docs scope.'
 
@@ -4511,8 +4519,8 @@ Write-Host '[scripts] changelog Manager contracts passed'
 
 # --- Test-ChangelogUnreleased ---------------------------------------------------------------
 
-$pendingEntry = "# Changelog`n`n## Unreleased`n`n* **Threads:** A pending change.`n* **Tooling:** A build change.`n" +
-    "* **Docs:** A documentation change.`n`n## 0.42.0 (2026-09-20)`n`n* **Threads:** Shipped.`n"
+$pendingEntry = "# Changelog`n`n## Unreleased`n`n* A pending change.`n* **Tooling:** A build change.`n" +
+    "* **Docs:** A documentation change.`n`n## 0.42.0 (2026-09-20)`n`n* Shipped.`n"
 $pendingCheck = Test-ChangelogUnreleased -Current $pendingEntry
 Assert-True ($pendingCheck.Valid -and $pendingCheck.Bullets -eq 3) `
     "A scoped Unreleased section was refused or miscounted: $($pendingCheck.Reason)"
@@ -4523,13 +4531,12 @@ Assert-True (Test-ChangelogUnreleased -Current "## Unreleased`n`n* **Tooling:** 
 foreach ($case in @(
         @{ Name = 'a malformed heading'; Text = $pendingEntry.Replace('## Unreleased', '##Unreleased') },
         @{ Name = 'duplicate sections'; Text = $pendingEntry.Replace('## Unreleased', "## Unreleased`n`n## Unreleased") },
-        @{ Name = 'no change bullets'; Text = "## Unreleased`n`n### Pending`n`n## 0.42.0 (2026-09-20)`n* **Threads:** Shipped." },
-        @{ Name = 'an empty bullet'; Text = $pendingEntry.Replace('* **Threads:** A pending change.', '* **Threads:** ') },
-        @{ Name = 'an unscoped bullet'; Text = $pendingEntry.Replace('* **Threads:** A pending change.', '* A pending change.') },
-        @{ Name = 'a foreign app scope'; Text = $pendingEntry.Replace('**Threads:** A pending', '**Instagram:** A pending') },
+        @{ Name = 'no change bullets'; Text = "## Unreleased`n`n### Pending`n`n## 0.42.0 (2026-09-20)`n* Shipped." },
+        @{ Name = 'an empty bullet'; Text = $pendingEntry.Replace('* A pending change.', '* ') },
+        @{ Name = 'a foreign app scope'; Text = $pendingEntry.Replace('* A pending', '* **Instagram:** A pending') },
         @{ Name = 'a wrapped bullet'; Text = $pendingEntry.Replace('A pending change.', "A pending`n  change.") },
         @{ Name = 'an unresolved conflict'; Text = $pendingEntry.Replace('A pending change.', "A pending change.`n<<<<<<< HEAD") },
-        @{ Name = 'Unreleased after a release'; Text = "## 0.42.0 (2026-09-20)`n* **Threads:** Shipped.`n`n## Unreleased`n* **Threads:** Pending." })) {
+        @{ Name = 'Unreleased after a release'; Text = "## 0.42.0 (2026-09-20)`n* Shipped.`n`n## Unreleased`n* Pending." })) {
     $check = Test-ChangelogUnreleased -Current $case.Text
     Assert-True (-not $check.Valid) "Unreleased validation accepted $($case.Name)."
 }
@@ -6594,7 +6601,7 @@ try {
     Edit-ReleaseFile 'patches-list.json' { param($text) $text.Replace('"v' + $releaseVersionHere + '"', '"v' + $laterVersion + '"') }
     Edit-ReleaseFile 'CHANGELOG.md' {
         param($text) ([regex]'(?m)^## ').Replace($text,
-            "## $laterVersion (2026-09-26)`n`n* **Threads:** Needs Morphe Manager $laterFloor or newer.`n`n## ", 1)
+            "## $laterVersion (2026-09-26)`n`n* Needs Morphe Manager $laterFloor or newer.`n`n## ", 1)
     }
     Edit-ReleaseFile 'gradle/libs.versions.toml' {
         param($text) $text -replace '(?m)^(\s*manager-floor\s*=\s*")[^"]+', "`${1}$laterFloor"
@@ -6767,7 +6774,7 @@ try {
     $flowFiles = [ordered]@{
         '.gitignore' = "build/`nrelease-receipt-*.json`n"
         'gradle.properties' = "version = 1.2.2`n"
-        'CHANGELOG.md' = "# Changelog`n`n## Unreleased`n`n* **Threads:** A fixture change.`n`n## 1.2.2 (2026-10-01)`n`n* **Threads:** The release before.`n"
+        'CHANGELOG.md' = "# Changelog`n`n## Unreleased`n`n* A fixture change.`n`n## 1.2.2 (2026-10-01)`n`n* The release before.`n"
         'README.md' = "The latest release is [v1.2.2](https://github.com/Owner/Repo/releases/tag/v1.2.2), with 2 patches.`n"
         'patches-list.json' = ('{"patches":[' +
             '{"name":"Hide ads",' + $flowCompatibility + '},' +

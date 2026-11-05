@@ -242,6 +242,5 @@ public final class Arrows {
             if (button == null) iterator.remove();
             else button.refresh();
         }
-        ArrowsBar.changed();
     }
 }

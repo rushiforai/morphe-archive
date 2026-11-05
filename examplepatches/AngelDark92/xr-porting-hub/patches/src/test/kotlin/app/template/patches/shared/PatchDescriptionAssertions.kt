@@ -11,7 +11,10 @@ import kotlin.test.assertTrue
 internal fun assertPatchDescriptionContract(patch: Patch<*>) {
     val description = patch.description
     requireNotNull(description) { "${patch.name}: missing description" }
-    val buildLine = Regex("""\bBuilds?: ((?:\S+\s+)?(?:\d+\.\d+\.\d+(?:/\d+| \([^)]*\))(?:, )?)+)\.(?: |$)""")
+    // Two accepted forms: version-grouped ("2.0.24 (5002395, 5002527)") or, when that exceeds the
+    // build-line budget, the exact code-only list ("5001712, 5001812, ..."). Both feed the same
+    // code-set equality check below.
+    val buildLine = Regex("""\bBuilds?: ((?:(?:\S+\s+)?(?:\d+\.\d+\.\d+(?:/\d+| \([^)]*\))(?:, )?)+)|(?:\d{4,}(?:, \d{4,})*))\.(?: |$)""")
         .find(description)
     requireNotNull(buildLine) { "${patch.name}: missing Builds line in: $description" }
     val expected = patch.compatibility.orEmpty()

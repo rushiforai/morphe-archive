@@ -76,15 +76,24 @@ jobs:
 
           "version=$actualVersion" >> $env:GITHUB_OUTPUT
 
-      - name: Prepare release notes
-        shell: pwsh
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      # The release body is a Japanese translation of the English part of
+      # patches-bundle.json's description; the English and Chinese text stay in the bundle.
+      - name: Prepare Japanese release notes
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          $bundle = Get-Content -LiteralPath "patches-bundle.json" -Raw | ConvertFrom-Json
-          $notes = [string]$bundle.description
-          if ([string]::IsNullOrWhiteSpace($notes)) {
-              $notes = "Public mirror release for $env:GITHUB_REF_NAME."
-          }
-          Set-Content -LiteralPath "release-notes.md" -Value $notes -Encoding utf8
+          set -euo pipefail
+          python -m pip install --quiet 'anthropic==2.4.0'
+          python -I tools/release-notes/translate_ja.py --bundle patches-bundle.json --out release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "${GITHUB_REF_NAME} をリリースしました。" > release-notes.md
+          fi
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2

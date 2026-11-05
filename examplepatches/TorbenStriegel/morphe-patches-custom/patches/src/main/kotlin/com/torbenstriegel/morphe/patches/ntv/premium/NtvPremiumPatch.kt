@@ -50,9 +50,17 @@ private val HasPurSubscriptionFingerprint = Fingerprint(
     returnType = "Z",
 )
 
-private val IsAdsFreeFingerprint = Fingerprint(
+private val IsAdsFreeLegacyFingerprint = Fingerprint(
     definingClass = "Lde/ntv/billing/Billing;",
     name = "isAdsFree\$lib_base_release",
+    parameters = emptyList(),
+    returnType = "Z",
+)
+
+private val IsAdsFreeFingerprint = Fingerprint(
+    definingClass = "Lde/ntv/billing/Billing;",
+    name = "isAdsFree\$lib_base",
+    parameters = emptyList(),
     returnType = "Z",
 )
 
@@ -69,7 +77,7 @@ val ntvPremiumPatch = bytecodePatch(
             const/4 v0, 0x1
             return v0
         """.trimIndent())
-        IsAdsFreeFingerprint.method.addInstructions(0, """
+        (IsAdsFreeFingerprint.methodOrNull ?: IsAdsFreeLegacyFingerprint.method).addInstructions(0, """
             const/4 v0, 0x1
             return v0
         """.trimIndent())

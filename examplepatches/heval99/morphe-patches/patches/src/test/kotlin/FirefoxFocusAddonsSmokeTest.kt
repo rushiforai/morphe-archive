@@ -3,13 +3,13 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.value.IntEncodedValue
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
@@ -28,8 +28,13 @@ private const val PROMPT_DELEGATE = "Lorg/mozilla/geckoview/WebExtensionControll
 private const val ACTION = "Lorg/mozilla/geckoview/WebExtension\$Action;"
 private const val GECKO_RESULT = "Lorg/mozilla/geckoview/GeckoResult;"
 private const val FOCUS_APPLICATION = "Lorg/mozilla/focus/FocusApplication;"
-private const val MENU_BUILDER = "Lmozilla/components/browser/menu/WebExtensionBrowserMenuBuilder;"
+private const val BROWSER_MENU = "Lorg/mozilla/focus/menu/browser/BrowserMenu;"
+private const val MENU_MIDDLEWARE = "Lorg/mozilla/focus/menu/MenuMiddleware;"
+private const val BROWSER_STATE = "Lmozilla/components/browser/state/state/BrowserState;"
 private const val FUNCTION0 = "Lkotlin/jvm/functions/Function0;"
+private const val COMPOSE_MENU = "Lmozilla/components/compose/menu/"
+private const val TEXT = "Lmozilla/components/compose/base/text/Text;"
+private const val FOCUS_MENU_ITEM = "Lorg/mozilla/focus/menu/ToolbarMenu\$FocusMenuItem;"
 private const val ADD_TAB_USE_CASE = "Lmozilla/components/feature/tabs/TabsUseCases\$AddNewTabUseCase;"
 
 class FirefoxFocusAddonsSmokeTest {
@@ -61,7 +66,7 @@ class FirefoxFocusAddonsSmokeTest {
     }
 
     @Test
-    fun `Add-on support wraps the prompt delegate, tracks activities, forces the Extensions menu and hosts popups`() {
+    fun `Add-on support wraps the prompt delegate, tracks activities, adds the menu entries and hosts popups`() {
         val root = repoRoot()
         val apk = File(root, "apks/firefox-focus/base.apk")
 
@@ -73,19 +78,20 @@ class FirefoxFocusAddonsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "158.0.2",
+            version = "159.0.1",
             patchNames = setOf("Add-on support"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val byType = classes.associateBy { it.type }
         fun classDef(type: String): ClassDef = byType[type] ?: error("$type not found in emitted dexes")
 
-        // The extension is merged: the four public static entry points and its helper classes.
+        // The extension is merged: the five public static entry points and its helper classes.
         val extension = classDef(EXTENSION)
         val entryPoints = mapOf(
             "onApplicationCreate" to (listOf("Landroid/app/Application;") to "V"),
             "wrapPromptDelegate" to (listOf(CONTROLLER, PROMPT_DELEGATE) to PROMPT_DELEGATE),
-            "managerCallback" to (emptyList<String>() to FUNCTION0),
+            "addMenuItems" to (listOf("Ljava/util/List;", "Ljava/lang/Object;") to "V"),
+            "onMenuAction" to (listOf("Ljava/lang/Object;") to "V"),
             "onOpenPopup" to (listOf(GECKO_RESULT) to "V"),
         )
         for ((name, signature) in entryPoints) {
@@ -101,13 +107,11 @@ class FirefoxFocusAddonsSmokeTest {
         for (name in listOf("onInstallPromptRequest", "onUpdatePrompt", "onOptionalPrompt")) {
             assertTrue(promptDelegate.methods.any { it.name == name && it.implementation != null }, "AddonPromptDelegate has no $name")
         }
-        val callback = classDef("${EXTENSION_PACKAGE}FocusAddons\$ManagerCallback;")
-        assertTrue(FUNCTION0 in callback.interfaces, "ManagerCallback does not implement Function0")
-        assertTrue(
-            callback.methods.any { it.name == "invoke" && it.params().isEmpty() && it.returnType == "Ljava/lang/Object;" },
-            "ManagerCallback has no invoke()Ljava/lang/Object;",
-        )
-        for (helper in listOf("AddonsManager;", "GeckoViewDialog;")) classDef("$EXTENSION_PACKAGE$helper")
+        val tap = classDef("${EXTENSION_PACKAGE}AddonsMenu\$Tap;")
+        assertTrue("Ljava/lang/reflect/InvocationHandler;" in tap.interfaces, "AddonsMenu\$Tap is not an InvocationHandler")
+        for (helper in listOf("AddonsManager;", "GeckoViewDialog;", "AddonsMenu;", "AddonsMenu\$Api;")) {
+            classDef("$EXTENSION_PACKAGE$helper")
+        }
         // The compile-only stubs are not merged over Focus's own classes.
         val unit = classDef("Lkotlin/Unit;")
         assertTrue(unit.methods.count() > 1, "kotlin.Unit looks like the extension stub")
@@ -129,59 +133,105 @@ class FirefoxFocusAddonsSmokeTest {
         val onCreate = classDef(FOCUS_APPLICATION).method("onCreate", emptyList())
         assertRangeHookAtEntry(onCreate, "onApplicationCreate", 0, 1, "FocusApplication.onCreate")
 
-        // 3. Every WebExtensionBrowserMenuBuilder constructor writing showAddonsInMenu or
-        // onAddonsManagerTapped rewrites it right after: true, and the extension's callback.
-        val constructors = classDef(MENU_BUILDER).methods.filter { it.name == "<init>" && it.implementation != null }
-        var patchedShow = 0
-        var patchedCallback = 0
-        for (constructor in constructors) {
-            val insns = constructor.instructions()
-            val label = "$MENU_BUILDER-><init>(${constructor.params().joinToString("")})"
-            for ((field, opcode) in listOf("showAddonsInMenu" to Opcode.IPUT_BOOLEAN, "onAddonsManagerTapped" to Opcode.IPUT_OBJECT)) {
-                val writes = insns.indices.filter {
-                    insns[it].opcode == opcode && insns[it].fieldRef()?.let { ref ->
-                        ref.definingClass == MENU_BUILDER && ref.name == field
-                    } == true
-                }
-                if (writes.isEmpty()) continue
-                assertEquals(0, writes.size % 2, "$label: $field writes are not original + forced pairs: $writes")
-                for (pair in writes.chunked(2)) {
-                    val (original, forced) = pair
-                    val value = (insns[forced] as TwoRegisterInstruction).registerA
-                    if (field == "showAddonsInMenu") {
-                        assertEquals(original + 2, forced, "$label: forced showAddonsInMenu does not follow the original write")
-                        val const = insns[original + 1]
-                        assertTrue(
-                            const.opcode == Opcode.CONST_4 && (const as OneRegisterInstruction).registerA == value &&
-                                (const as NarrowLiteralInstruction).narrowLiteral == 1,
-                            "$label: showAddonsInMenu is not forced to true",
-                        )
-                        patchedShow++
-                    } else {
-                        assertEquals(original + 3, forced, "$label: forced onAddonsManagerTapped does not follow the original write")
-                        val call = insns[original + 1].methodRef()
-                        val move = insns[original + 2]
-                        assertTrue(
-                            insns[original + 1].opcode == Opcode.INVOKE_STATIC && call?.definingClass == EXTENSION &&
-                                call.name == "managerCallback" && call.returnType == FUNCTION0 &&
-                                move.opcode == Opcode.MOVE_RESULT_OBJECT && (move as OneRegisterInstruction).registerA == value,
-                            "$label: onAddonsManagerTapped is not replaced with managerCallback()",
-                        )
-                        patchedCallback++
-                    }
-                }
+        // 3. BrowserMenu.menuGroupsFor(BrowserState, Drawable): every return-object vR is preceded by
+        // move-object/from16 vS, vR; move-object/from16 vS+1, p1; invoke-static/range {vS .. vS+1}
+        // addMenuItems, and the hook carries the return's branch labels (the loop exit jumps there).
+        val menuGroupsFor = classDef(BROWSER_MENU).method("menuGroupsFor", listOf(BROWSER_STATE, "Landroid/graphics/drawable/Drawable;"))
+        val menuInsns = menuGroupsFor.instructions()
+        val stateRegister = menuGroupsFor.implementation!!.registerCount - 2
+        val returns = menuInsns.indices.filter { menuInsns[it].opcode == Opcode.RETURN_OBJECT }
+        assertTrue(returns.isNotEmpty(), "BrowserMenu.menuGroupsFor has no return-object")
+        for (index in returns) {
+            val result = (menuInsns[index] as OneRegisterInstruction).registerA
+            val call = menuInsns[index - 1]
+            val ref = call.methodRef()
+            assertTrue(
+                call.opcode == Opcode.INVOKE_STATIC_RANGE && ref?.definingClass == EXTENSION && ref.name == "addMenuItems" &&
+                    ref.params() == listOf("Ljava/util/List;", "Ljava/lang/Object;"),
+                "menuGroupsFor return $index is not preceded by $EXTENSION->addMenuItems(List, Object): ${call.opcode} $ref",
+            )
+            val range = call as RegisterRangeInstruction
+            assertEquals(2, range.registerCount, "menuGroupsFor: addMenuItems register count")
+            val scratch = range.startRegister
+            for ((offset, source, what) in listOf(Triple(3, result, "the returned list"), Triple(2, stateRegister, "p1 (the BrowserState)"))) {
+                val move = menuInsns[index - offset]
+                assertTrue(
+                    move.opcode == Opcode.MOVE_OBJECT_FROM16 && (move as TwoRegisterInstruction).registerB == source &&
+                        move.registerA == scratch + (3 - offset),
+                    "menuGroupsFor: addMenuItems does not get $what in v${scratch + 3 - offset}",
+                )
             }
         }
-        assertTrue(patchedShow > 0 && patchedCallback > 0, "no menu builder constructor was patched ($patchedShow, $patchedCallback)")
-        // 158.0: R8 merged the call sites into <init>(List, BrowserStore, I).
+        // p1 is still the BrowserState at the return: nothing in the method writes it.
+        for (instruction in menuInsns) {
+            if (!instruction.opcode.setsRegister() || instruction !is OneRegisterInstruction) continue
+            val wide = instruction.opcode.setsWideRegister() && instruction.registerA + 1 == stateRegister
+            assertTrue(
+                instruction.registerA != stateRegister && !wide,
+                "menuGroupsFor writes p1 (v$stateRegister): ${instruction.opcode}",
+            )
+        }
+        // The entries go in front of the "settings" row.
         assertTrue(
-            constructors.any {
-                it.params() == listOf("Ljava/util/List;", "Lmozilla/components/browser/state/store/BrowserStore;", "I")
-            },
-            "the 158.0 <init>(List, BrowserStore, I) constructor is gone",
+            menuInsns.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "settings" },
+            "menuGroupsFor no longer names the \"settings\" row",
         )
 
-        // 4. WebExtension$Action.openPopup(GeckoResult, String) hands p1 to onOpenPopup first and
+        // 4. MenuMiddleware.invoke(store, next, action) starts with onMenuAction(p3).
+        val middleware = classDef(MENU_MIDDLEWARE).methods.single {
+            it.name == "invoke" && it.params().size == 3 && it.implementation != null
+        }
+        assertRangeHookAtEntry(middleware, "onMenuAction", 3, 1, "MenuMiddleware.invoke")
+
+        // AddonsMenu.Api reaches these by reflection and leaves the menu alone when they are gone;
+        // check them here so an app update that moves them is noticed.
+        fun publicField(type: String, name: String, static: Boolean = false) = assertTrue(
+            classDef(type).fields.any {
+                it.name == name && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) == static
+            },
+            "$type has no public${if (static) " static" else ""} field $name",
+        )
+        fun publicMethod(type: String, name: String, params: List<String>) = assertTrue(
+            AccessFlags.PUBLIC.isSet(classDef(type).method(name, params).accessFlags),
+            "$type->$name(${params.joinToString("")}) is not public",
+        )
+        val menuEvent = "${COMPOSE_MENU}store/MenuEvent;"
+        val menuItemIcon = "${COMPOSE_MENU}ui/MenuItemIcon;"
+        val menuItemState = "${COMPOSE_MENU}ui/MenuItemState;"
+        assertTrue(
+            classDef("${COMPOSE_MENU}data/StandardMenuItem;").methods.any {
+                it.name == "<init>" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+                    it.params().containsAll(listOf(TEXT, menuEvent, menuItemIcon, menuItemState))
+            },
+            "StandardMenuItem has no public constructor taking Text, MenuEvent, MenuItemIcon and MenuItemState",
+        )
+        publicMethod("Lmozilla/components/compose/base/text/Text\$String;", "<init>", listOf("Ljava/lang/String;"))
+        publicMethod("${COMPOSE_MENU}ui/MenuItemIconDrawable;", "<init>", listOf("Landroid/graphics/drawable/Drawable;"))
+        publicField(menuItemState, "DEFAULT", static = true)
+        publicField(menuItemState, "DISABLED", static = true)
+        publicMethod("${COMPOSE_MENU}data/MenuItemsGroup;", "getId", emptyList())
+        publicMethod("${COMPOSE_MENU}data/MenuItemsGroup\$Row;", "<init>", listOf("Ljava/lang/String;", "Ljava/util/List;"))
+        assertTrue(AccessFlags.INTERFACE.isSet(classDef(FOCUS_MENU_ITEM).accessFlags), "$FOCUS_MENU_ITEM is not an interface")
+        publicMethod("Lorg/mozilla/focus/menu/MenuItemTapped;", "<init>", listOf(FOCUS_MENU_ITEM))
+        publicField("Lorg/mozilla/focus/menu/MenuItemTapped;", "item")
+        publicField(BROWSER_STATE, "extensions")
+        assertTrue(
+            classDef("Lmozilla/components/browser/state/selector/SelectorsKt;").method("getSelectedTab", listOf(BROWSER_STATE))
+                .accessFlags.let { AccessFlags.PUBLIC.isSet(it) && AccessFlags.STATIC.isSet(it) },
+            "SelectorsKt.getSelectedTab(BrowserState) is not public static",
+        )
+        classDef("Lmozilla/components/browser/state/state/TabSessionState;").method("getExtensionState", emptyList())
+        val extensionState = "Lmozilla/components/browser/state/state/WebExtensionState;"
+        for (field in listOf("id", "name", "enabled", "isBuiltIn", "browserAction")) publicField(extensionState, field)
+        val action = "Lmozilla/components/concept/engine/webextension/Action;"
+        for (field in listOf("title", "enabled", "onClick")) publicField(action, field)
+        val onClickType = classDef(action).fields.single { it.name == "onClick" }.type
+        assertTrue(
+            onClickType == FUNCTION0 || FUNCTION0 in classDef(onClickType).interfaces,
+            "Action.onClick ($onClickType) is not a Function0",
+        )
+
+        // 5. WebExtension$Action.openPopup(GeckoResult, String) hands p1 to onOpenPopup first and
         // keeps its body (the popup flag + loadUri listener).
         val openPopup = classDef(ACTION).method("openPopup", listOf(GECKO_RESULT, "Ljava/lang/String;"))
         val popup = assertRangeHookAtEntry(openPopup, "onOpenPopup", 1, 1, "Action.openPopup")
@@ -286,7 +336,7 @@ class FirefoxFocusAddonsSmokeTest {
             assertTrue(descriptor in referencedMethods, "the extension no longer calls $descriptor")
         }
         // GeckoView calls the prompt delegate through the interface: AddonPromptDelegate must
-        // override the three 158.0 methods with their exact descriptors.
+        // override the three methods (158.0 and 159.0.1) with their exact descriptors.
         val focusPromptDelegate = classDef(PROMPT_DELEGATE)
         for (name in listOf("onInstallPromptRequest", "onUpdatePrompt", "onOptionalPrompt")) {
             assertTrue(

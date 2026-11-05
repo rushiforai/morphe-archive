@@ -42,13 +42,20 @@ private object ContextualFeedFilterFingerprint : Fingerprint(
     filters = listOf(string("feed_contextual_self_profile")),
 )
 
-/** Where the ad controller inserts an ad into the timeline. It asks the ad's Media whether it is one. */
+/**
+ * Where the ad controller inserts an ad into the timeline. It asks the ad's Media whether it is one.
+ * Since 454 its other log string is read from a shared string table, so only `timeline_request`
+ * stays in the method; the session first and the two ints and boolean last single it out.
+ */
 private object FeedAdInsertionFingerprint : Fingerprint(
     returnType = "Z",
-    filters = listOf(
-        string("instagram_ad_async_ad_controller_action_success"),
-        string("timeline_request"),
-    ),
+    filters = listOf(string("timeline_request")),
+    custom = { method, _ ->
+        val parameters = method.parameterTypes
+        parameters.size == 10 &&
+            parameters.first() == "Lcom/instagram/common/session/UserSession;" &&
+            parameters.takeLast(3) == listOf("I", "I", "Z")
+    },
 )
 
 /**
@@ -85,10 +92,11 @@ val hideAdsPatch = bytecodePatch(
                 .distinctBy { it.toString() }
                 .singleOrNull()
 
-        // Up to 452 the controller calls Media's is-ad getter; from 453 it calls the getter's static
-        // helper inline, and the getter is the one Media boolean getter calling that helper.
+        // Up to 452 and again from 454 the controller calls Media's is-ad getter; on 453 it calls
+        // the getter's static helper inline, and the getter is the one Media boolean getter
+        // calling that helper.
         val insertion = FeedAdInsertionFingerprint.method.instructions.toList()
-        val isAd = insertion.uniqueVirtualCall {
+        val isAdName = insertion.uniqueVirtualCall {
             it.definingClass == MEDIA && it.parameterTypes.isEmpty() && it.returnType == "Z"
         }?.name ?: run {
             val helpers = insertion.filter { it.opcode == Opcode.INVOKE_STATIC }
@@ -100,7 +108,8 @@ val hideAdsPatch = bytecodePatch(
                 getter.returnType == "Z" && getter.parameterTypes.isEmpty() &&
                     getter.implementation?.instructions?.any { it.getReference<MethodReference>()?.toString() in helpers } == true
             }.singleOrNull()?.name
-        }?.let { name -> "$MEDIA->$name()Z" } ?: throw PatchException("The ad controller does not ask Media whether it is an ad once")
+        } ?: throw PatchException("The ad controller does not ask Media whether it is an ad once")
+        val isAd = "$MEDIA->$isAdName()Z"
 
         // The Following feed gets its ads in its own response, so the ad pod check above never
         // sees them. The filter now rejects any item whose Media is an ad.
@@ -130,7 +139,7 @@ val hideAdsPatch = bytecodePatch(
                 invoke-virtual/range { v$register .. v$register }, $isAd
                 move-result v$register
                 if-eqz v$register, :original
-                const/4 v$register, 0x0
+                const/16 v$register, 0x0
                 return v$register
                 """,
                 ExternalLabel("original", code[1]),

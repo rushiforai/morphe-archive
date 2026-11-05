@@ -11,7 +11,7 @@ import java.util.*;
 public final class NuvioUpdateInstaller {
     public static final String INSTALLER = "Llb/c;";
     public static final String RECEIVER = "Lcom/nuvio/tv/updater/UpdateInstallResultReceiver;";
-    public static final String INSTALL_ACTION = "Lcom/nuvio/tv/data/local/jc;";
+    public static final String INSTALL_ACTION = "Lcom/nuvio/tv/data/local/da;";
     static final String AUTHORITY = "com.nuvio.tv.fileprovider";
     static final String DM_KEY = "com.nuvio.tv.updater.WITH_DEX_METADATA";
     static final String RECEIVER_HASH = "b1a786864cb39d37ddde4b34a1b2cd864bde6540e5fe343d3b6cb703a096de7b";
@@ -56,7 +56,7 @@ public final class NuvioUpdateInstaller {
     public static void disableMetadata(MutableClass installer, MutableClass receiver) {
         MutableMethod method = unique(installer, "b");
         if (!method.toString().equals(INSTALLER + "->b(Landroid/content/Context;Ljava/io/File;ZZ)V") ||
-            (method.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(method).equals("61ccf26f3106e55a9eb8fbe82a6592a3fa0b05d29cb1af3862451ac644f04454"))
+            (method.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(method).equals("cbe2d1dfb7628f7a44724177e93183d4bd68f6aae60be34ae6db10ccba964d40"))
             throw new IllegalStateException("Changed or already patched installer");
         MutableMethod callback = receiver(receiver);
         int result = dmResult(callback);
@@ -75,7 +75,7 @@ public final class NuvioUpdateInstaller {
             throw new IllegalArgumentException("Invalid clone update authority");
         MutableMethod install = unique(action, "invokeSuspend");
         if (!install.toString().equals(INSTALL_ACTION + "->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;") ||
-            !NuvioPlaybackButtonsPatch.fingerprint(install).equals("7d83a4bad50451b13863270569932e49924e4415082435c564e534a44e920733"))
+            !NuvioPlaybackButtonsPatch.fingerprint(install).equals("4da35b93ee483f675689cfc62c3f14c8306a3f874364df811216383c13005929"))
             throw new IllegalStateException("Changed or already renamed install action");
         MutableMethod callback = receiver(receiver);
         for (var method : List.of(install, callback)) {

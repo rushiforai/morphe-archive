@@ -54,8 +54,7 @@ internal object LocalPreferencesFingerprint : Fingerprint(
 @Suppress("unused")
 val hidePromptsPatch = bytecodePatch(
     name = "Hide prompts and promos",
-    description = "Hides the rate-the-app dialog, promo banners, the app tour, and the " +
-        "\"Watch on YouTube\" dialog.",
+    description = "Hides the rating dialog, promo banners, the app tour, and the \"Watch on YouTube\" dialog.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

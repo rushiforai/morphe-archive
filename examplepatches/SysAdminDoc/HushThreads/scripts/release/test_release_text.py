@@ -19,13 +19,13 @@ Changes in the source build, then released versions.
 
 ## Unreleased
 
-* **Threads:** Hide the Instagram button is new (#7).
+* Hide the Instagram button is new (#7).
 * **Docs:** The README says which connections honor user certificates.
 * **Tooling:** The fixture tests run as their own task.
 
 ## 0.0.12 (2026-10-07)
 
-* **Threads:** First.
+* First.
 """
 README = """<a href="x"><img src="https://img.shields.io/badge/version-0.0.12-000000" alt="Version 0.0.12"></a>
 
@@ -103,7 +103,7 @@ class ReleaseTextTest(unittest.TestCase):
     def test_cut_dates_unreleased_and_moves_every_version_string(self):
         self.run_command(release_text.cut, version="0.0.13", date="2026-10-09")
         changelog = self.read("CHANGELOG.md")
-        self.assertIn("released versions.\n\n## 0.0.13 (2026-10-09)\n\n* **Threads:** Hide the Instagram", changelog)
+        self.assertIn("released versions.\n\n## 0.0.13 (2026-10-09)\n\n* Hide the Instagram", changelog)
         self.assertNotIn("## Unreleased", changelog)
         self.assertEqual(changelog.count("## 0.0.12 (2026-10-07)"), 1)
         self.assertIn("version = 0.0.13\n", self.read("gradle.properties"))
@@ -119,10 +119,20 @@ class ReleaseTextTest(unittest.TestCase):
         self.run_command(release_text.cut, version="0.0.13", date="2026-10-09")
         self.assertEqual(self.read(release_text.USER_AGENT_TEST).count("HushThreads/0.0.13"), 2)
 
+    def test_cut_drops_a_leftover_app_label_and_accepts_unlabeled_bullets(self):
+        labeled = CHANGELOG.replace("* Hide the Instagram", "* **Threads:** Hide the Instagram")
+        self.write("CHANGELOG.md", labeled)
+        self.run_command(release_text.cut, version="0.0.13", date="2026-10-09")
+        changelog = self.read("CHANGELOG.md")
+        self.assertIn("## 0.0.13 (2026-10-09)\n\n* Hide the Instagram", changelog)
+        self.assertNotIn("**Threads:**", changelog)
+        self.assertIn("* **Docs:** The README says", changelog)
+        self.assertIn("* **Tooling:** The fixture tests run", changelog)
+
     def test_cut_refuses_what_manager_would_misread_and_writes_nothing(self):
-        for bad, needle in (("* **Threads:** Hide the Instagram", "- **Threads:** Hide the Instagram"),
-                            ("* **Threads:** Hide the Instagram", "* **Feed:** Hide the Instagram"),
-                            ("* **Threads:** Hide the Instagram", "* **Tooling:** Hide the Instagram"),
+        for bad, needle in (("* Hide the Instagram", "- **Threads:** Hide the Instagram"),
+                            ("* Hide the Instagram", "* **Feed:** Hide the Instagram"),
+                            ("* Hide the Instagram", "* **Tooling:** Hide the Instagram"),
                             ("is new (#7).", "is new\n  (#7)."),
                             ("is new (#7).", "is new \u2014 (#7).")):
             self.write("CHANGELOG.md", CHANGELOG.replace(bad, needle))
@@ -200,7 +210,7 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertIn("placeholder: Version 0.0.13 for Threads 450.0.0.51.78\n", self.read(".github/ISSUE_TEMPLATE/bug_report.yml"))
         # Manager shows this description for the release an app was patched with, so it ends with the
         # Threads bullets in the shape its changelog parser reads. Docs and Tooling reach nobody there.
-        self.assertTrue(description.endswith("\n\n### Changes\n\n* **Threads:** Hide the Instagram button is new (#7)."))
+        self.assertTrue(description.endswith("\n\n### Changes\n\n* Hide the Instagram button is new (#7)."))
         self.assertNotIn("README says which", description)
         self.assertNotIn("fixture tests run", description)
 

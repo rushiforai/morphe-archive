@@ -57,15 +57,20 @@ public final class ThreadTitleActions {
             // 226/242 render a full-window Compose bottom sheet, rather than a
             // window-sized dialog. Keep extra actions beneath that sheet's content.
             box.addView(original,old?new LinearLayout.LayoutParams(-1,-2):new LinearLayout.LayoutParams(-1,0,1));
+            LinearLayout controls=new LinearLayout(a);controls.setOrientation(LinearLayout.VERTICAL);
             LinearLayout actions=new LinearLayout(a);
             android.util.TypedValue background=new android.util.TypedValue();
-            if(a.getTheme().resolveAttribute(android.R.attr.colorBackground,background,true))actions.setBackgroundColor(background.data);
-            if(!old)actions.setOnApplyWindowInsetsListener((v,insets)->{
+            int panelColor=(a.getResources().getConfiguration().uiMode&android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES?0xff202020:0xfffafafa;
+            if(a.getTheme().resolveAttribute(android.R.attr.colorBackground,background,true))panelColor=background.data|0xff000000;
+            // The checkbox lies outside Material's sheet Surface. Paint the complete
+            // control area so the thread behind the transparent dialog cannot show through.
+            controls.setBackgroundColor(panelColor);
+            if(!old)controls.setOnApplyWindowInsetsListener((v,insets)->{
                 int bottom=android.os.Build.VERSION.SDK_INT>=30?insets.getInsets(android.view.WindowInsets.Type.systemBars()).bottom:insets.getSystemWindowInsetBottom();
                 v.setPadding(0,0,0,bottom);return insets;
             });
             android.widget.CheckBox refresh=RefreshTargets.control(a,info);
-            if(refresh!=null)box.addView(refresh,new LinearLayout.LayoutParams(-1,-2));
+            if(refresh!=null)controls.addView(refresh,new LinearLayout.LayoutParams(-1,-2));
             if(t!=null){
             Button watch=new Button(a);watch.setAllCaps(false);watch.setText("このスレの新着通知");actions.addView(watch,new LinearLayout.LayoutParams(0,-2,1));
             watch.setOnClickListener(v->ThreadWatch.show(a,t));
@@ -74,7 +79,8 @@ public final class ThreadTitleActions {
                 auth.setOnClickListener(v->ReadingAuth.open(a,t.url));
             }
             }
-            box.addView(actions,new LinearLayout.LayoutParams(-1,-2));
+            controls.addView(actions,new LinearLayout.LayoutParams(-1,-2));
+            box.addView(controls,new LinearLayout.LayoutParams(-1,-2));
             return box;
     }
     private ThreadTitleActions(){}

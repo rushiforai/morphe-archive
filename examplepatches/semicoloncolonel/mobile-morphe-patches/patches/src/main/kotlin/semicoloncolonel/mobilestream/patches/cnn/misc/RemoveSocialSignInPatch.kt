@@ -25,9 +25,7 @@ internal object FeatureEnabledFingerprint : Fingerprint(
 @Suppress("unused")
 val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
-    description = "Removes the Continue with Google option from the CNN app. Email sign-in and " +
-        "Prime Video account linking still work. An account created with Google needs a " +
-        "password reset to sign in by email.",
+    description = "Removes the Continue with Google sign-in option.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -22,9 +22,12 @@ import java.io.OutputStream;
 public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
     public static final String EXTRA_MODE = "haiagaru.backup.mode";
     public static final String EXTRA_CATEGORIES = "haiagaru.backup.categories";
+    public static final String EXTRA_CHOOSE_OTHER_LOCATION = "haiagaru.backup.otherLocation";
     public static final int MODE_SAVE = 1;
     public static final int MODE_OPEN = 2;
     public static final int MODE_FOLDER = 3;
+    public static final int MODE_IMPORT_ARCHIVE = 4;
+    public static final int MODE_IMPORT_ARCHIVE_ZIP = 5;
     private static final int REQUEST_DOCUMENT = 1;
     private int mode;
     private int categories;
@@ -32,6 +35,10 @@ public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
     private HaiagaruBackupArchive.Backup openedBackup;
     private HaiagaruDialog progress;
     private BackupProgress notification;
+    private ArchiveZipSource archiveZip;
+    private File archiveZipFile;
+    private Uri archiveImportUri;
+    private boolean archiveCopyStarted;
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
@@ -39,9 +46,13 @@ public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
         categories = getIntent().getIntExtra(EXTRA_CATEGORIES, HaiagaruSyncSnapshot.DEFAULT)
                 & HaiagaruSyncSnapshot.ALL;
         pickerStarted = state != null && state.getBoolean("pickerStarted", false);
-        if (mode != MODE_SAVE && mode != MODE_OPEN && mode != MODE_FOLDER) {
+        if (mode != MODE_SAVE && mode != MODE_OPEN && mode != MODE_FOLDER && mode != MODE_IMPORT_ARCHIVE && mode != MODE_IMPORT_ARCHIVE_ZIP) {
             finish();
             return;
+        }
+        if((mode==MODE_IMPORT_ARCHIVE||mode==MODE_IMPORT_ARCHIVE_ZIP)&&state!=null&&state.getString("archiveImportUri")!=null){
+            if(state.getBoolean("archiveCopyStarted",false)){finish();return;}
+            openArchiveFolder(Uri.parse(state.getString("archiveImportUri")));return;
         }
         if (!pickerStarted && mode == MODE_OPEN && getIntent().getData() != null) {
             pickerStarted = true;
@@ -51,15 +62,22 @@ public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
 
     @Override protected void onSaveInstanceState(Bundle state) {
         state.putBoolean("pickerStarted", pickerStarted);
+        if(archiveImportUri!=null)state.putString("archiveImportUri",archiveImportUri.toString());
+        state.putBoolean("archiveCopyStarted",archiveCopyStarted);
         super.onSaveInstanceState(state);
     }
 
     private void launchPicker() {
+        if(mode==MODE_IMPORT_ARCHIVE){
+            try{pickerStarted=true;startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PREFIX_URI_PERMISSION),REQUEST_DOCUMENT);}
+            catch(Exception e){showError("フォルダ選択画面を開けませんでした");}return;
+        }
         if(mode==MODE_FOLDER){
             try{pickerStarted=true;Intent folder=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                             |Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION|Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
-                if(android.os.Build.VERSION.SDK_INT>=26){Uri initial=LocalAutoBackup.folderHint(this);
+                if(android.os.Build.VERSION.SDK_INT>=26&&!getIntent().getBooleanExtra(EXTRA_CHOOSE_OTHER_LOCATION,false)){Uri initial=LocalAutoBackup.folderHint(this);
                     if(initial!=null)folder.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI,initial);}
                 startActivityForResult(folder,REQUEST_DOCUMENT);}
             catch(Exception e){showError("フォルダ選択画面を開けませんでした");}return;
@@ -92,12 +110,58 @@ public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
             return;
         }
         if(mode==MODE_FOLDER){
-            try{getContentResolver().takePersistableUriPermission(uri,data.getFlags()&(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
+            try{if(!android.provider.DocumentsContract.isTreeUri(uri))throw new IOException("フォルダを選択してください");
+                getContentResolver().takePersistableUriPermission(uri,data.getFlags()&(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION));
                 LocalAutoBackup.setFolder(this,uri);Toast.makeText(this,"自動バックアップの保存先を設定しました",Toast.LENGTH_LONG).show();finish();}
             catch(Exception e){showError("保存先のアクセス権を保持できませんでした");}
         }
+        else if(mode==MODE_IMPORT_ARCHIVE||mode==MODE_IMPORT_ARCHIVE_ZIP) openArchiveFolder(uri);
         else if (mode == MODE_SAVE) save(uri);
         else open(uri);
+    }
+
+    private void openArchiveFolder(Uri uri){
+        archiveImportUri=uri;
+        run(null,()->{
+            final ArchiveFolderTransfer.Source source;final String root;
+            if(mode==MODE_IMPORT_ARCHIVE){
+                if(!android.provider.DocumentsContract.isTreeUri(uri))throw new IOException("フォルダを選択してください");
+                source=new NativeArchiveFolderImport.Tree(this,uri);root=android.provider.DocumentsContract.getTreeDocumentId(uri);
+            }else{
+                archiveZipFile=HaiagaruBackupArchive.temporary(this);
+                try(InputStream in=getContentResolver().openInputStream(uri);OutputStream out=new FileOutputStream(archiveZipFile)){
+                    if(in==null)throw new IOException("ZIPを開けません");HaiagaruBackupArchive.copy(in,out);
+                }
+                archiveZip=new ArchiveZipSource(archiveZipFile);source=archiveZip;root="";
+            }
+            phase("アーカイブの内容を確認しています…");ArchiveFolderTransfer.Plan plan=ArchiveFolderTransfer.scan(source,root);
+            runOnUiThread(()->{
+                if(isFinishing()||isDestroyed())return;
+                java.util.LinkedHashSet<String> groups=new java.util.LinkedHashSet<>();for(ArchiveFolderTransfer.Entry e:plan.entries)groups.add(e.path.split("/",2)[0]);
+                String[] names=groups.toArray(new String[0]);boolean[] selected=new boolean[names.length];
+                android.app.AlertDialog choose=new android.app.AlertDialog.Builder(this).setTitle("取り込むフォルダ・ファイルを選択")
+                    .setMultiChoiceItems(names,selected,(d,i,value)->selected[i]=value)
+                    .setNegativeButton("キャンセル",(d,w)->finish()).setOnCancelListener(d->finish()).setNeutralButton("すべて選択",null).setPositiveButton("内容を確認",null).create();
+                choose.setOnShowListener(d->{
+                    choose.getButton(-3).setOnClickListener(v->{boolean all=true;for(boolean value:selected)all&=value;java.util.Arrays.fill(selected,!all);for(int i=0;i<names.length;i++)choose.getListView().setItemChecked(i,!all);choose.getButton(-3).setText(all?"すべて選択":"すべて解除");});
+                    choose.getButton(-1).setOnClickListener(v->{java.util.Set<String> picked=new java.util.HashSet<>();for(int i=0;i<names.length;i++)if(selected[i])picked.add(names[i]);
+                        ArchiveFolderTransfer.Plan chosen=ArchiveFolderTransfer.select(plan,picked);if(chosen.entries.isEmpty()){Toast.makeText(this,"取り込む項目を選択してください",Toast.LENGTH_LONG).show();return;}
+                        choose.dismiss();new HaiagaruDialog.Builder(this).setTitle("選択したアーカイブを上書き復元")
+                            .setMessage(chosen.threads+"件のDATと関連IDXを取り込みます。同名ファイルは上書きします。選択していない項目と元データは変更しません。完了後、標準のスレッドアーカイブ一覧を開き直してください。")
+                            .setNegativeButton("キャンセル",(x,w)->finish()).setOnCancelListener(x->finish())
+                            .setPositiveButton("上書きして取り込む",(x,w)->{archiveCopyStarted=true;run("アーカイブを取り込みました。一覧を開き直してください",()->{
+                                try{phase("アーカイブをコピーしています…");ArchiveFolderTransfer.restore(source,chosen,ArchiveOrigins.archiveRoot(this));}
+                                finally{closeArchiveZip();}
+                            });}).show();
+                    });
+                });choose.show();
+            });
+        });
+    }
+
+    private void closeArchiveZip(){
+        if(archiveZip!=null)try{archiveZip.close();}catch(IOException ignored){}
+        if(archiveZipFile!=null)archiveZipFile.delete();
     }
 
     private void save(Uri uri) {
@@ -243,6 +307,7 @@ public final class HaiagaruLocalBackupActivity extends HaiagaruComposeActivity {
     @Override protected void onDestroy() {
         hideProgress();
         if (openedBackup != null) { openedBackup.close(); openedBackup = null; }
+        if(!archiveCopyStarted)closeArchiveZip();
         super.onDestroy();
     }
 

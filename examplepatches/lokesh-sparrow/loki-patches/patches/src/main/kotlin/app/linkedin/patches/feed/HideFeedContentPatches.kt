@@ -5,10 +5,8 @@ import app.linkedin.patches.shared.Constants.EXTENSION_PACKAGE
 import app.linkedin.patches.shared.markIncluded
 import app.linkedin.patches.shared.sduiComponentFilterPatch
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
 
 private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
 
@@ -54,10 +52,13 @@ val feedFiltersPatch = bytecodePatch(
  * in the native "Me" panel. With a null slot it returns nothing for free members (and still returns
  * "Access my Premium" for actual Premium members).
  */
-private object NavPanelPremiumFingerprint : Fingerprint(
-    definingClass = "Lcom/linkedin/android/home/navpanel/HomeNavPanelTransformer;",
-    name = "toPremiumViewData",
-    parameters = listOf("Lcom/linkedin/android/pegasus/dash/gen/voyager/dash/premium/PremiumUpsellSlotContent;"),
+private object NavPanelResponseFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/home/navpanel/HomeNavPanelAggregateResponse;",
+    name = "<init>",
+    custom = { method, _ ->
+        method.parameterTypes.size == 4 &&
+            method.parameterTypes[1].toString() == "Lcom/linkedin/android/pegasus/dash/gen/voyager/dash/premium/PremiumUpsellSlotContent;"
+    },
 )
 
 @Suppress("unused")
@@ -71,19 +72,16 @@ val hidePremiumUpsellsPatch = bytecodePatch(
     execute {
         markIncluded("isHidePremiumIncluded")
 
-        NavPanelPremiumFingerprint.method.apply {
-            // At method entry every local register is free, so v0 can be used as scratch.
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $SETTINGS_CLASS->hideNavPanelUpsell()Z
-                    move-result v0
-                    if-eqz v0, :keep
-                    const/4 v0, 0x0
-                    move-object/from16 p1, v0
-                """,
-                ExternalLabel("keep", getInstruction(0))
-            )
-        }
+        // The Me panel's Premium bar is built from the upsell slot of this response. It is cleared here, which also
+        // works where LinkedIn moved the code that reads it (4.1.1267). The slot goes through the extension because the
+        // constructor has no free register.
+        NavPanelResponseFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static/range { p2 .. p2 }, $SETTINGS_CLASS->navPanelUpsellSlot(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object p2
+                check-cast p2, Lcom/linkedin/android/pegasus/dash/gen/voyager/dash/premium/PremiumUpsellSlotContent;
+            """
+        )
     }
 }

@@ -15,9 +15,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.4](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;70 patches total
+> **[v1.9.5](https://github.com/LuckyToShine/czyeru/releases/tag/v1.9.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;71 patches total
 <details open>
-<summary>📦 Conexión Lince UVM&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Conexión Lince UVM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -29,6 +29,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [AMOLED dark theme](#amoled-dark-theme) | Turns on the dark theme that is inside the app and makes its background black. Text and backgrounds that the app sets by itself are changed too. Pictures are not changed. | • Background color |
 | [Allow screenshots](#allow-screenshots) | Lets you take screenshots and screen recordings in the app, for example of your student ID. |  |
+| [Disable forced update](#disable-forced-update) | Reports a newer app version to the school's server and hides the store update pop-up, so the app keeps working instead of getting stuck loading when a new version comes out. | • App version |
 | [Hide survey pop-ups](#hide-survey-pop-ups) | Stops the pop-up with an image, a text and a button that the app shows on the home screen for surveys and notices, including forms you already answered. |  |
 | [Keep session open](#keep-session-open) | Asks the school's login server for an offline session, so the app does not sign you out and send you back to the Microsoft login after about 30 minutes. The server must allow offline sessions. |  |
 

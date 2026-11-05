@@ -142,7 +142,7 @@ bool texture(Group& g) {
 }
 bool uniformContract(GLuint program) {
     auto& a = api();
-    if (a.glGetUniformLocation(program,"SL_blueNoise") != 14 || a.glGetUniformLocation(program,"SL_enabled") != 15) return false;
+    if (a.glGetUniformLocation(program,"SL_blueNoise") != SL_NOISE_LOCATION || a.glGetUniformLocation(program,"SL_enabled") != SL_ENABLE_LOCATION) return false;
     GLint count{}; a.glGetProgramiv(program,GL_ACTIVE_UNIFORMS,&count);
     unsigned samplers = 0;
     for (GLint i=0; i<count; ++i) {
@@ -159,7 +159,7 @@ bool uniformContract(GLuint program) {
         }
         if (std::strcmp(name,"SL_blueNoise") != 0 && std::strcmp(name,"SL_enabled") != 0) {
             const GLint location=a.glGetUniformLocation(program,name);
-            if (location < 0 || size < 1 || location+size-1 > 13) return false;
+            if (location < 0 || size < 1 || location+size-1 > SL_MAX_HOST_LOCATION) return false;
         }
     }
     return samplers == 2;
@@ -250,7 +250,7 @@ EXPORT void gxLinkProgram(GLuint program) {
     GLint ok{}; a.glGetProgramiv(program,GL_LINK_STATUS,&ok);
     if (ok && !mixedLayers && layer != sl_blue_noise::Layer::None && uniformContract(program) && texture(*g)) {
         GLint previous{}; a.glGetIntegerv(GL_CURRENT_PROGRAM,&previous);
-        a.glUseProgram(program); a.glUniform1i(14,1); a.glUniform1i(15,0); a.glUseProgram(previous);
+        a.glUseProgram(program); a.glUniform1i(SL_NOISE_LOCATION,1); a.glUniform1i(SL_ENABLE_LOCATION,0); a.glUseProgram(previous);
         g->programs.emplace(program,Program{layer,false});
         note(layer == sl_blue_noise::Layer::Fovea
             ? "Foveal blue-noise program linked; guarded per-draw enable active."
@@ -278,18 +278,18 @@ EXPORT void gxDrawArrays(GLenum mode, GLint first, GLsizei count) {
     GLint units{}, videoUnit{}; a.glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,&units);
     a.glGetUniformiv(id,a.glGetUniformLocation(id,"tex0"),&videoUnit);
     GLint unit=units-1; if (unit==videoUnit) --unit;
-    if (unit>=0) a.glUniform1i(14,unit);
+    if (unit>=0) a.glUniform1i(SL_NOISE_LOCATION,unit);
     if (unit<0 || !layerCaller(caller,it->second.layer) || !targetFramebuffer() || !g->texture || !a.glIsTexture(g->texture)) {
-        a.glUniform1i(15,0); a.glDrawArrays(mode,first,count);
+        a.glUniform1i(SL_ENABLE_LOCATION,0); a.glDrawArrays(mode,first,count);
         if (!it->second.warned) { note("Video draw left undithered: layer/framebuffer/resource precondition failed."); it->second.warned=true; }
         return;
     }
     TextureState state(unit); a.glBindTexture(GL_TEXTURE_2D,g->texture);
-    a.glUniform1i(14,unit); a.glUniform1i(15,1);
+    a.glUniform1i(SL_NOISE_LOCATION,unit); a.glUniform1i(SL_ENABLE_LOCATION,1);
     const GLboolean fixedDither=a.glIsEnabled(GL_DITHER); a.glDisable(GL_DITHER);
     a.glDrawArrays(mode,first,count);
     if (fixedDither) a.glEnable(GL_DITHER);
-    a.glUniform1i(15,0);
+    a.glUniform1i(SL_ENABLE_LOCATION,0);
 }
 EXPORT EGLContext gxdCreateContext(EGLDisplay display,EGLConfig config,EGLContext share,const EGLint* attributes) {
     auto& a=api(); EGLContext ctx=a.eglCreateContext(display,config,share,attributes);

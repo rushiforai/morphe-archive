@@ -25,9 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import kotlin.Unit;
-import kotlin.jvm.functions.Function0;
-
 /**
  * Entry points of the Firefox Focus "Add-on support" patch. Every method the patch calls is
  * public static, runs on the main thread and never throws into Focus.
@@ -39,7 +36,9 @@ import kotlin.jvm.functions.Function0;
  *   Components' delegate hands every prompt to a store action Focus never reads, so install,
  *   update and optional-permission prompts would wait forever. The wrapper answers them. The same
  *   call hands us the controller: no GeckoRuntime lookup, no race with GeckoRuntime.create.</li>
- *   <li>{@link #managerCallback}: the WebExtensionBrowserMenuBuilder "Extensions Manager" action.</li>
+ *   <li>{@link #addMenuItems}: BrowserMenu.menuGroupsFor() result. Adds the add-on row (browser
+ *   actions and the Extensions manager) to Focus's Compose browser menu, see {@link AddonsMenu}.</li>
+ *   <li>{@link #onMenuAction}: MenuMiddleware.invoke() entry. Runs the taps on those entries.</li>
  *   <li>{@link #onOpenPopup}: WebExtension$Action.openPopup() entry. Shows browser action popups.</li>
  * </ul>
  *
@@ -87,8 +86,11 @@ public final class FocusAddons {
         try {
             boolean first = controller == null;
             controller = webExtensionController;
-            if (first) MAIN.post(safely("allowExistingAddonsInPrivateBrowsing",
-                    FocusAddons::allowExistingAddonsInPrivateBrowsing));
+            if (first) {
+                MAIN.post(safely("allowExistingAddonsInPrivateBrowsing",
+                        FocusAddons::allowExistingAddonsInPrivateBrowsing));
+                MAIN.post(safely("requestIcons", AddonsMenu::requestIcons));
+            }
             return new AddonPromptDelegate();
         } catch (Throwable t) {
             Log.e(TAG, "wrapPromptDelegate", t);
@@ -96,9 +98,22 @@ public final class FocusAddons {
         }
     }
 
-    /** Replaces WebExtensionBrowserMenuBuilder.onAddonsManagerTapped. */
-    public static Function0<Object> managerCallback() {
-        return new ManagerCallback();
+    /** Hook: BrowserMenu.menuGroupsFor(state, icon) before it returns [groups]; adds to it in place. */
+    public static void addMenuItems(List<Object> groups, Object browserState) {
+        try {
+            AddonsMenu.addItems(groups, browserState);
+        } catch (Throwable t) {
+            Log.e(TAG, "addMenuItems", t);
+        }
+    }
+
+    /** Hook: MenuMiddleware.invoke(store, next, action) entry, with the menu action. */
+    public static void onMenuAction(Object action) {
+        try {
+            AddonsMenu.onMenuAction(action);
+        } catch (Throwable t) {
+            Log.e(TAG, "onMenuAction", t);
+        }
     }
 
     /** Hook: WebExtension$Action.openPopup(GeckoResult, String) entry, p1 = the popup session. */
@@ -379,19 +394,6 @@ public final class FocusAddons {
 
         @Override
         public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        }
-    }
-
-    /** The menu's onAddonsManagerTapped: () -> Unit. */
-    private static final class ManagerCallback implements Function0<Object> {
-        @Override
-        public Object invoke() {
-            try {
-                AddonsManager.open();
-            } catch (Throwable t) {
-                Log.e(TAG, "open manager", t);
-            }
-            return Unit.INSTANCE;
         }
     }
 }

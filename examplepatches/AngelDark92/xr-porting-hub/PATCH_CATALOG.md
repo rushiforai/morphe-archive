@@ -12,7 +12,7 @@ The retired entries below are historical records and are not selectable.
 
 | Category | Count | Current patches |
 |---|---:|---|
-| Image quality | 4 | [Alpha-0 high-resolution trigger](#alpha-0-high-resolution-trigger-alpha0highresolutiontriggerpatch); [OLED color calibration](#oled-color-calibration-oledcalibrationpatch); [Blue-noise dithering](#blue-noise-dithering-bluenoisepatch); [Surface video + trigger (experimental)](#surface-video--trigger-experimental-surfacevideotriggerpatch) |
+| Image quality | 4 | [Alpha-0 high-resolution trigger](#alpha-0-high-resolution-trigger-alpha0highresolutiontriggerpatch); [OLED color calibration](#oled-color-calibration-oledcalibrationpatch); [Blue-noise dithering](#blue-noise-dithering-bluenoisepatch); [Stock quad composition (experimental)](#stock-quad-composition-experimental-stockquadcompositionpatch) |
 | Tracking & audio | 4 | [Visual Delay Fix](#visual-delay-fix-hmdonlypatch); [GXR face and tongue bridge](#gxr-face-and-tongue-bridge-gxrfacebridgepatch); [XR Input Routing Config](#xr-input-routing-config-xrinputroutingconfigpatch); [Microphone input preset](#microphone-input-preset-microphoneinputpresetpatch) |
 | Startup & permissions | 4 | [Startup permission requests (before 5002322)](#startup-permission-requests-before-5002322-xrstartuppermissionspatch); [Startup splash and XR launch mode (before 5002322)](#startup-splash-and-xr-launch-mode-before-5002322-xrlauncherbootstrappatch); [Unrestricted battery usage](#unrestricted-battery-usage-unrestrictedbatteryusagepatch); [Appear on top (legacy)](#appear-on-top-legacy-appearontoppatch) |
 | App & device identity | 4 | [Change package name](#change-package-name-changepackagenamepatch); [Device identity](#device-identity-deviceidentitypatch); Galaxy XR vendor driver; [OpenXR CPU and GPU BOOST](#openxr-cpu-and-gpu-boost-performanceboostpatch) |
@@ -73,13 +73,17 @@ Separate, default-off experiment for exact **2.0.22/5002322** and **2.0.23/50023
 
 Steam Link 2.0.20/5001812, 2.0.21/5001968 and 2.0.22/5002244 support was retired on 2026-10-21 and restored on 2026-10-22 with per-build native tables, compatibility entries, tests and catalogs. The restored pre-2363 builds share the same 21-patch recommended set. Historical retired/restored records stay under `diagnostics/`.
 
+## GXR spacewarp layer (experimental) — RETIRED 2026-11-01 (removed from source)
+
+**Status: retired and deleted. Do not re-add or re-derive this patch (including partial VTS/EGL variants) without a new mechanism and new evidence.**
+
+The layer tried to synthesize a frame when the stream missed a display tick by hooking private VRLink scene internals: per-build code windows, the `eglCreateImageKHR` GOT slot and the value-transport read. It cannot be implemented reliably without tapping into VRLink or creating a separate listener, so the patch, native layer, manifest, six per-base gate/VTS profile pairs, payload and tests were removed on 2026-11-01. The PC driver's **Async Spacewarp** setting is separate; without a headset-side synthesizer it holds frames instead of producing intermediate ones. See the [retirement record](diagnostics/steamlink-spacewarp-retirement/README.md) and the historical [pin record](diagnostics/steamlink-5002395/SPACEWARP-2026-10-26.md).
+
 ## Current adaptations
 
 The current catalog supports exactly **2.0.20/5001712**, **2.0.20/5001812**, **2.0.21/5001968**, **2.0.22/5002244**, **2.0.23/5002363** and **2.0.24/5002395**. Compatibility uses the exact version name and build code, never a version range. Historical references to 5001740, 5002296, 5002313, 5002318, and 5002322 below do not make those builds selectable.
 
-The four pre-2363 builds expose the same 24 standalone patches and recommend the same 21, including Codecs Support, Network Optimizations and Controller velocity frame. 2.0.23/5002363 and 2.0.24/5002395 each expose 11 individual patches and recommend 10. The OpenXR CPU and GPU BOOST patch is experimental and off by default. Morphe Manager auto-selects the set for the detected exact version and build. Appear on top and Change package name remain optional.
-
-The GXR spacewarp layer supports the same six exact builds: 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 and 2.0.24/5002395. Its bundled native layer embeds one scene/VTS profile per base and selects it by hashing that base's pinned identity window at load time; a build with no matching profile stands down to stock.
+The four pre-2363 builds expose the same 25 standalone patches and recommend the same 21, including Codecs Support, Network Optimizations and Controller velocity frame. 2.0.23/5002363 and 2.0.24/5002395 each expose 12 individual patches; both recommend 10. The OpenXR CPU and GPU BOOST patch is experimental and off by default. Morphe Manager auto-selects the set for the detected exact version and build. Appear on top and Change package name remain optional.
 
 The 5001712 reference is an analysis reconstruction, so its regression checks do not establish pristine-source APK patching. 5002244 has a reconstructed decoded fixture; 5001812 and 5001968 currently have decoded trees only.
 
@@ -87,13 +91,13 @@ Startup permissions and splash/XR launch-mode edits are separate patches, part o
 
 ### Steam Link 2.0.23 / 5002363
 
-This exact pair exposes 11 core individual patches; the 10-patch recommended set is default-enabled: GXR face and tongue bridge, Alpha-0 high-resolution trigger, Microphone input preset, OLED color calibration, Blue-noise dithering (fovea default), Unrestricted battery usage, Visual Delay Fix, Network Optimizations, Codecs Support and Controller velocity frame. OpenXR CPU and GPU BOOST is experimental and off by default. Device identity is legacy-only: stock 2.0.23 identity is authoritative, so no identity patch is shipped for this build. Native targets: OLED shader `0x970a1`; format MOVs `0x10c840`, `0x10c8b0`, `0x10c920`; microphone `0xf44c0`; HMD pose hook `0x101f1c`; tongue block `0x141c6c`. High resolution uses the 3-projection API layer. Legacy mutations and retired experiments remain excluded.
+This exact pair exposes 12 individual patches; the 10-patch recommended set is default-enabled: GXR face and tongue bridge, Alpha-0 high-resolution trigger, Microphone input preset, OLED color calibration, Blue-noise dithering (fovea default), Unrestricted battery usage, Visual Delay Fix, Network Optimizations, Codecs Support and Controller velocity frame. OpenXR CPU and GPU BOOST is experimental and off by default. Device identity is legacy-only: stock 2.0.23 identity is authoritative, so no identity patch is shipped for this build. Native targets: OLED shader `0x970a1`; format MOVs `0x10c840`, `0x10c8b0`, `0x10c920`; microphone `0xf44c0`; HMD pose hook `0x101f1c`; tongue block `0x141c6c`. High resolution uses the 3-projection API layer. Legacy mutations and retired experiments remain excluded.
 
 See the [5002363 validation](diagnostics/steamlink-5002363/README.md), [native targets](diagnostics/steamlink-5002363/native-targets.md), and [Java/config targets](diagnostics/steamlink-5002363/surface-targets.md).
 
 ### Steam Link 2.0.24 / 5002395
 
-This exact pair exposes the same 11 core individual patches and 10-patch recommended set as 2.0.23. The manifest and all four config assets are byte-identical to 2.0.23; only the SDL smali and native libraries changed. Device identity remains legacy-only. Native targets: OLED shader `0x97aae`; format MOVs `0x10da98`, `0x10db08`, `0x10db78`; microphone `0xf5710`; HMD pose hook `0x103174`; tongue block `0x1433ac`; Network scene `0x1682a0`/`0x169044`/`0x1772cc` and main `0x903634`; Codecs Support anchor `0xfe954` with 15 GOT slots. High resolution retains the verified 3-projection topology. The optional telemetry setting is not admitted for 2.0.24 yet and fails closed instead of installing an empty receipt. The experimental GXR spacewarp layer now carries a 2.0.24 scene/VTS profile (identity anchor `0xfe954`, `eglCreateImageKHR` slot `0x232170`) and is selectable for this pair; it stays off by default and headset validation is pending.
+This exact pair exposes 12 individual patches and the same 10-patch recommended set as 2.0.23. The manifest and all four config assets are byte-identical to 2.0.23; only the SDL smali and native libraries changed. Device identity remains legacy-only. Native targets: OLED shader `0x97aae`; format MOVs `0x10da98`, `0x10db08`, `0x10db78`; microphone `0xf5710`; HMD pose hook `0x103174`; tongue block `0x1433ac`; Network scene `0x1682a0`/`0x169044`/`0x1772cc` and main `0x903634`; Codecs Support anchor `0xfe954` with 15 GOT slots. High resolution retains the verified 3-projection Alpha-0 fallback. Stock quad is experimental and mutually exclusive with Alpha-0. The optional telemetry setting is not admitted for 2.0.24 yet and fails closed instead of installing an empty receipt.
 
 See the [5002395 native validation](diagnostics/steamlink-5002395/README.md) and [native targets](diagnostics/steamlink-5002395/native-targets.md).
 
@@ -320,7 +324,7 @@ Preserves Valve's native `XR_ANDROID_face_tracking` mapping for expressions 0–
 |---|---|
 | `AndroidManifest.xml` `uses-permission` | Adds `android.permission.SYSTEM_ALERT_WINDOW` (required for `GxrOverlayBridge` TYPE_APPLICATION_OVERLAY compositor window) |
 | `AndroidManifest.xml` launcher | Adds/routes through `GalaxyXRPermissionActivity`; preserves the stock target SDK, XR features/categories, VRLink start mode, native permission routine, and controller config on the supported legacy build. Native 5002363 excludes this fallback. |
-| Minimal extension DEX | Adds only `GalaxyXRPermissionActivity`, `GxrOverlayBridge`, and `GxrResolutionProbe`; contains no SDL/controller class fragments. |
+| Minimal extension DEX | Adds only `GalaxyXRPermissionActivity` and `GxrOverlayBridge`; contains no SDL/controller class fragments. |
 | `SteamLink` lifecycle methods | Adds the overlay/resolution probe calls without modifying `SDLSurface`, `SDLControllerManager`, or generic-motion routing |
 
 ---
@@ -367,6 +371,30 @@ when explicitly requested: the function loaded, a 2x2 Surface was created and qu
 terminal quad. No overlay permission, type-2038 Steam Link window, or recording contamination
 existed. The headset palm A/B/A result was `MATCHES REFERENCE -> MATCHES REFERENCE -> MATCHES
 REFERENCE`, establishing perceived parity with Valve's native 3-projection APK with Appear on top.
+
+---
+
+### Retired: Swapchain enlarge
+**Removed 2026-11-03; not required by Stock quad composition or Alpha-0.** Historical behavior follows; source, payload and selectable patch are removed.
+
+| Artifact | Exact guarded edit |
+|---|---|
+| `lib/arm64-v8a/libgxr_swapchain_enlarge.so` | Release-built, stripped implicit OpenXR API layer (`swapchain-enlarge-v1.0-20261027`). Grows Valve's sRGB8 projection swapchains by 1.5x, capped at 8192 and never below the source extent. The app keeps its own viewport and imageRect; the layer clears the enlarged images once. No composition layer is added. |
+| `assets/openxr/1/api_layers/implicit.d/XR_APILAYER_local_GalaxyXR_swapchain_enlarge_v1.json` | Registers the layer; disable environment is `GXR_DISABLE_SWAPCHAIN_ENLARGE`. |
+
+This is an extent-sensitivity preflight. It tests whether the runtime sizes output from the projection swapchain rather than the view. It does not add detail and does not change the codec, decoder, render target dimensions, or layer count. The exact scene library must match the pinned size and SHA-256. Mutually exclusive with Alpha-0 and Atlas surface; both orders fail closed. [Historical record](diagnostics/steamlink-atlas-surface/README.md).
+
+---
+
+### Retired: Atlas surface
+**Removed 2026-11-03; not required by Stock quad composition or Alpha-0.** Historical behavior follows; source, payload and selectable patch are removed.
+
+| Artifact | Exact guarded edit |
+|---|---|
+| `lib/arm64-v8a/libgxr_atlas_surface.so` | Release-built, stripped implicit OpenXR API layer (`atlas-surface-v1.0-20261027`). Copies each projection view's source sub-rect into a runtime `XR_KHR_android_surface_swapchain` sized to the runtime's max per-eye extent, re-points the existing projection views at those images, and adds no layer. The source rect's aspect ratio is preserved and the target is never downscaled. |
+| `assets/openxr/1/api_layers/implicit.d/XR_APILAYER_local_GalaxyXR_atlas_surface_v1.json` | Registers the layer; disable environment is `GXR_DISABLE_ATLAS_SURFACE`. |
+
+This is a presentation supersample, not a decoder redirect. It can avoid compositor downsampling but cannot add detail beyond Valve's source extent. It reads runtime images only after wait and before release, preserves pose/FOV/layer flags and `next` chains, and falls back to the original frame on any failure. The exact scene library must match the pinned size and SHA-256. Mutually exclusive with Alpha-0 and Swapchain enlarge. [Historical record](diagnostics/steamlink-atlas-surface/README.md).
 
 ---
 
@@ -439,15 +467,22 @@ Both the sRGB8-only and dual-format CPU+GPU variants submitted Valve's sources a
 
 ---
 
-### Surface video + trigger (experimental) (`surfaceVideoTriggerPatch`)
-**Default: off; experimental catalog only** - exact 2.0.20/5001712.
+### Stock quad composition (experimental) (`stockQuadCompositionPatch`)
+**Default: off; experimental catalog only** - exact 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 and 2.0.24/5002395.
 
 | Artifact | Exact guarded edit |
 |---|---|
-| `lib/arm64-v8a/libgxr_surface_video_trigger.so` | Release-built, stripped implicit OpenXR API layer (`surface-video-trigger-2proj-v1.0-20261025`). Copies the two Valve sRGB8 projection images into Android Surface swapchains of the same size/alpha, re-points the two projection views at those Surface images, and appends a 2x2 fully transparent terminal trigger quad. RGB10/FP16 sources pass through. |
-| `assets/openxr/1/api_layers/implicit.d/XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json` | Registers the layer; disable environment is `GXR_DISABLE_SURFACE_VIDEO_TRIGGER`. |
+| `lib/arm64-v8a/libgxr_stock_quad.so` | Separate implicit OpenXR API layer (`stock-quad-5002527-v1`). Reproduces stock 5002527's four eye-aware quads from verified two- and three-projection layouts. |
+| `assets/openxr/1/api_layers/implicit.d/XR_APILAYER_local_GalaxyXR_stock_quad_v1.json` | Registers the layer; disable environment is `GXR_DISABLE_STOCK_QUAD`. |
 
-This tests the standard-codec presentation mechanism (HEVC/AV1/H.264) without ASTC and without quad conversion. It is a GPU copy bridge, not a direct decoder-to-Surface bypass. It reads runtime images only after wait and before release, with no atlas reconstruction or fovea resampling. Only sRGB8 source swapchains are converted; RGB10 and FP16 frames pass through unchanged. Any frame without exactly two projection layers passes through unchanged. A transfer or runtime rejection disables the layer for the session and leaves later frames untouched. **Needs:** deselect Alpha-0 high-resolution trigger; both append a terminal trigger and the installer rejects either order. [Implementation and runtime check](extensions/surface-video-trigger/README.md). Headset validation is pending.
+Outputs background-left/right then fovea-left/right quads at 1.996 m using runtime eye-to-head poses, with flags 0/0/6/6. It preserves the original swapchains, rectangles, spaces, composition-settings chains, frame chain and trailing layers. On three-projection builds, only the unused underside projection is dropped. Stock four-quad and unsupported frames pass through. Invalid preconditions forward the original frame; a rejected converted frame disables conversion for the rest of that session without a second `xrEndFrame`. **Needs:** deselect Alpha-0; the installer rejects either order and removes retired Swapchain/Atlas payloads. [Implementation and diagnostics](extensions/stock-quad-composition/README.md). Static and host validation only; headset acceptance and resolution behavior remain unverified.
+
+---
+
+### Retired: Surface video + trigger
+**Removed after the copy bridge did not produce high resolution**
+
+The copy bridge replaced Valve's normal projection swapchains with Surface images, preserved their extent and appended a terminal quad. It did not produce high resolution; the initial `next`-chain pass-through blocker was corrected statically without later headset proof. The selectable patch, native source, payload, manifest, tests and extension tree are removed. Historical evidence remains in [the diagnostics record](diagnostics/steamlink-surface-video-trigger/README.md).
 
 ---
 
@@ -639,6 +674,17 @@ Exact 2.0.23/5002363 and 2.0.24/5002395; headset validation pending. See the [di
 - v7/v8 (2026-10-21) keep the helper resident and resolve its originals from `libmediandk`; v6 crashed with SIGSEGV on every stream entry after the first because the reloaded layer inherited dead wrapper pointers, and v7 crashed inside the loader while creating a later instance because the pinned layer still held the previous instance's chain link. v8 live validation pending
 - Removing this patch: repatch from the original APK and set the driver Stream codec back to HEVC first — an unpatched client cannot decode an H.264/AV1 stream (driver uninstall needs no ordering: its setting is removed with the driver)
 - Records: [AV1 v6 TD-OBU fix](diagnostics/steamlink-streaming/2026-10-14-codecs-support-v6-td-obu-fix.md), [H.264 stage-4 verification](diagnostics/steamlink-streaming/2026-10-15-h264-stage4-verification.md), [v7 layer-reload crash](diagnostics/steamlink-streaming/2026-10-21-codecs-support-v7-layer-reload-crash.md)
+
+---
+
+### Retired: Hybrid codec helper
+**Removed 2026-11-03; not required by Stock quad composition or Alpha-0.** Historical behavior follows; the helper, native code, selectable patch and optional Codecs Support hook are removed. Standard Codecs Support remains.
+
+| Artifact | Exact guarded edit |
+|---|---|
+| `lib/arm64-v8a/libgxr_hybrid_codec.so` | Release-built, stripped GXH1 hybrid-frame demux and CPU fovea decoder (427,504 bytes; SHA-256 `3f3ee03dd9b9f9b31f2f11f6504f3079b8c1065f357223718703bd26c41e3a30`). Installed beside `libgxr_codecs_support.so`; that layer resolves it with `dlopen()` from its own directory and arms it only when `gxr_hybrid_probe()` returns 1. |
+
+Experimental fovea helper for the hybrid ASTC/PyroWave stream. It strips the GXH1 envelope and decodes ASTC/PyroWave fovea patches on the CPU, but does not composite the canvases into the eye textures: decode-only, no compositing claim. An absent, disabled or failed helper leaves the stock rendering path unchanged. The exact scene library must match the same pinned decoder-import regions as Codecs Support, and the helper refuses to install when the layer library is absent. Kill switch: `GXR_DISABLE_HYBRID_CODEC=1` (any non-empty value other than `0`). The implementation has been removed; this paragraph records the former design.
 
 ---
 

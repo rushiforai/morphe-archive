@@ -33,6 +33,22 @@ public final class TwitchInterface {
         }
     }
 
+    private static volatile boolean feedBuilt;
+
+    /**
+     * Injection point: the React Native Home feed's initial props (signed-in accounts get that Home), with the
+     * tab it should open on. Twitch routes the Following destination into this feed but opens its default tab,
+     * Live, so for the first feed a plain launch builds, the Following start screen means the feed's own
+     * Following tab. Deep links, later feeds and any other tab Twitch asked for are kept.
+     */
+    public static String feedTab(boolean fromDeepLink, String benchmarkRunId, String benchmarkTrial, String subfeedTab) {
+        if (feedBuilt) return subfeedTab;
+        feedBuilt = true;
+        if (fromDeepLink || Settings.getInt("default_tab") != 2) return subfeedTab;
+        if (subfeedTab != null && !"live".equals(subfeedTab)) return subfeedTab;
+        return "following";
+    }
+
     public static boolean bitsVisible(boolean stock) {
         return stock && !Settings.isEnabled("hide_tipping");
     }

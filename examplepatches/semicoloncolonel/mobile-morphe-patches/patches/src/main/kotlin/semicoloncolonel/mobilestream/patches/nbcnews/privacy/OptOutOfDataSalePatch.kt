@@ -24,8 +24,7 @@ internal object OneTrustReadyFingerprint : Fingerprint(
 @Suppress("unused")
 val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
-    description = "Starts the NBC News app opted out of the sale and sharing of your data and of targeted " +
-        "ads. You can still change the choice under Your Privacy Choices.",
+    description = "Starts the app opted out of the sale and sharing of your data.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

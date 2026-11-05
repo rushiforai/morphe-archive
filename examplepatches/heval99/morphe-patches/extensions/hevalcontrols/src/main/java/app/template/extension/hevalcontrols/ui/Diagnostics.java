@@ -12,13 +12,14 @@ import app.template.extension.hevalcontrols.Registry;
 /**
  * The "Copy diagnostics" report. Privacy-safe by construction: versions, device model, flags and
  * feature states only. Failures are an exception class and an extension frame, never a message.
- * No account, content, file path or identifier of the user is included.
+ * No account, content, file path or identifier of the user is included. List settings are counts
+ * only: never the picked keys or the option labels.
  */
 final class Diagnostics {
     static String report(Context context) {
         Registry registry = Registry.get();
         StringBuilder out = new StringBuilder(1024);
-        out.append("Heval Controls diagnostics\n");
+        out.append("Patch settings diagnostics\n");
         line(out, "app", context.getPackageName() + " " + runningVersion(context));
         line(out, "patched_for", orUnknown(Registry.patchedAppVersion()));
         line(out, "bundle", orUnknown(Registry.bundleVersion()));
@@ -34,9 +35,15 @@ final class Diagnostics {
         line(out, "restart_pending", String.valueOf(HevalSettings.pendingRestartCount()));
         out.append("features:\n");
         for (Feature feature : registry.features()) {
-            out.append("  ").append(feature.id).append(": ").append(HevalSettings.stateOf(feature).name().toLowerCase(java.util.Locale.ROOT))
-                    .append(", chosen=").append(HevalSettings.isChosen(feature.id))
-                    .append(", default=").append(feature.defaultEnabled);
+            out.append("  ").append(feature.id).append(": ").append(HevalSettings.stateOf(feature).name().toLowerCase(java.util.Locale.ROOT));
+            if (feature.isList()) {
+                out.append(", list, picked=").append(HevalSettings.pickedHidden(feature.id).size())
+                        .append(", hidden_now=").append(HevalSettings.getHidden(feature.id).size())
+                        .append(", options=").append(HevalSettings.options(feature.id).size());
+            } else {
+                out.append(", chosen=").append(HevalSettings.isChosen(feature.id))
+                        .append(", default=").append(feature.defaultEnabled);
+            }
             if (feature.restartRequired) out.append(", restart");
             String failure = HevalSettings.failureOf(feature.id);
             if (failure != null) out.append(", failure=").append(failure);

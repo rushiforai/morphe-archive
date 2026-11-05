@@ -79,7 +79,7 @@ public final class PersonalNgSubmissions {
             TextView triggerHelp=new TextView(activity);
             triggerHelp.setText("NGを登録・変更・削除して保存すると、約1秒後に変更分を自動送信します。連続操作はまとめ、1回20件まで送信します。定期的な全件確認は行いません。通信に失敗した送信待ちだけ15分後に再試行し、次回起動時にも回復します。アプリ終了中は動作しません。");
             form.addView(triggerHelp);
-            TextView help=new TextView(activity);help.setText("初回同意後、選んだ種類の既存NGをまとめて送り、その後の追加・変更・削除も送信します。送信するのはNGの値・種類・掲示板の区分・一致設定・ランダムな送信元IDです。android等の個別板名と有効期間は送信しません。掲示板が不明な過去NGと全板指定のID・ワッチョイは、全掲示板に適用する共有条件として送信します。名前や個人的なNGワードも含まれます。NGワードは空白を除いて5文字以上かつ英字だけではないものを送信します。ローカルのNG登録には影響しません。記者IDは「記者IDだけをNG」の登録と、高度なNGのひな形と同じ完全一致条件からIDだけを取り出します。複雑なJavaScript条件は対象外です。Cookie・認証情報・閲覧履歴・書き込み履歴・高度NGのJavaScriptは送りません。\n受け取った共有NGは別キャッシュに保管し、再送しません。削除はあなたの報告の取り消しとして扱います。配信済み条件の停止とは別です。オフで未送信データの送信も停止します。");form.addView(help);
+            TextView help=new TextView(activity);help.setText("初回同意後、選んだ種類の既存NGをまとめて送り、その後の追加・変更・削除も送信します。送信するのはNGの値・種類・掲示板の区分・一致設定・送信元を区別する識別子です。生の端末IDは送信しません。承認済みの配信条件には公開用の報告者識別子が付き、受信側で報告者ごとに除外できます。android等の個別板名と有効期間は送信しません。掲示板が不明な過去NGと全板指定のID・ワッチョイは、全掲示板に適用する共有条件として送信します。名前や個人的なNGワードも含まれます。NGワードは空白を除いて5文字以上かつ英字だけではないものを送信します。ローカルのNG登録には影響しません。記者IDは「記者IDだけをNG」の登録と、高度なNGのひな形と同じ完全一致条件からIDだけを取り出します。複雑なJavaScript条件は対象外です。Cookie・認証情報・閲覧履歴・書き込み履歴・高度NGのJavaScriptは送りません。\n受け取った共有NGは別キャッシュに保管し、再送しません。削除はあなたの報告の取り消しとして扱います。配信済み条件の停止とは別です。オフで未送信データの送信も停止します。");form.addView(help);
             Button preview=new Button(activity);preview.setText("選択した既存NGの件数・送信内容を確認");form.addView(preview);
             preview.setOnClickListener(previewView->{
                 Set<String> selected=new HashSet<>();for(int i=0;i<types.length;i++)if(choices[i].isChecked())selected.add(types[i]);
@@ -111,7 +111,15 @@ public final class PersonalNgSubmissions {
             }).show();
     }
     static String hash(String value)throws Exception{byte[] bytes=MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));char[] hex="0123456789abcdef".toCharArray(),result=new char[bytes.length*2];for(int i=0;i<bytes.length;i++){result[i*2]=hex[(bytes[i]&255)>>>4];result[i*2+1]=hex[bytes[i]&15];}return new String(result);}
-    static String installation()throws Exception{String id=prefs().getString("installation","");if(id.isEmpty()){id=hash(UUID.randomUUID().toString());if(!prefs().edit().putString("installation",id).commit())throw new Exception("送信元IDを保存できません");}return id;}
+    static String deviceKey()throws Exception{
+        try{return SharedNgDeviceKey.create(android.provider.Settings.Secure.getString(context.getContentResolver(),android.provider.Settings.Secure.ANDROID_ID));}
+        catch(RuntimeException unavailable){return "";}
+    }
+    static String installation()throws Exception{String id=prefs().getString("installation","");if(id.isEmpty()){id=deviceKey();if(id.isEmpty())id=hash(UUID.randomUUID().toString());if(!prefs().edit().putString("installation",id).commit())throw new Exception("送信元IDを保存できません");}return id;}
+    static JSONObject requestIdentity(String action)throws Exception{
+        JSONObject request=new JSONObject().put("version",2).put("action",action).put("device",installation());
+        String key=deviceKey();if(!key.isEmpty())request.put("deviceKey",key);return request;
+    }
     private static JSONObject condition(String category,NativeNgStore.Entry entry)throws Exception{
         String board=SharedNgBoardCatalog.resolve(context,entry.board);
         if(board.isEmpty()||board.equals("unknown.invalid/unresolved"))board="*"; // User-selected shared policy: unresolved past registrations apply globally.
@@ -180,13 +188,20 @@ public final class PersonalNgSubmissions {
             boolean changed=queueFiltered||now.length()!=previous.length()||additions.length()!=0;
             if(!changed)for(Iterator<String> keys=previous.keys();keys.hasNext();)if(!now.has(keys.next())){changed=true;break;}
             if(changed&&!p.edit().putString("snapshot."+sourceKey,now.toString()).putString("queue."+sourceKey,queue.toString()).commit())throw new Exception("送信待ちを保存できません");
-            if(queue.length()==0)return;
             long wait=p.getLong("retryAfter",0)-System.currentTimeMillis();
             if(wait>0){scheduleRetry(wait);return;}
+            String deviceKey=deviceKey();String binding="identityRegistered."+hash(endpoint+"\n"+deviceKey);
+            if(!deviceKey.isEmpty()&&!p.getBoolean(binding,false)){
+                if(!p.getBoolean("consent",false)||generation!=p.getLong("generation",0)||!endpoint.equals(SharedNg.endpoint()))return;
+                JSONObject bound=SharedNg.request("POST",endpoint,requestIdentity("identity"));
+                if(!bound.optBoolean("ok"))throw new Exception("送信元の登録を再試行します");
+                if(!p.edit().putBoolean(binding,true).commit())throw new Exception("送信元の登録結果を保存できません");
+            }
+            if(queue.length()==0)return;
             JSONArray batch=new JSONArray();int bytes=0;for(int i=0;i<queue.length()&&batch.length()<20;i++){JSONObject row=publicCondition(queue.getJSONObject(i));if(!p.getBoolean("type."+row.optString("sourceCategory"),true))continue;int size=row.toString().getBytes(StandardCharsets.UTF_8).length;if(bytes+size>50000)break;bytes+=size;batch.put(row);}
             if(!p.getBoolean("consent",false)||generation!=p.getLong("generation",0)||!endpoint.equals(SharedNg.endpoint()))return;
             if(batch.length()==0)return;
-            JSONObject answer=SharedNg.request("POST",endpoint,new JSONObject().put("version",2).put("action","personal").put("device",installation()).put("reports",batch));
+            JSONObject answer=SharedNg.request("POST",endpoint,requestIdentity("personal").put("reports",batch));
             if(!answer.optBoolean("ok"))throw new Exception(answer.optString("error","送信失敗"));
             Set<String> sent=new HashSet<>();for(int i=0;i<batch.length();i++)sent.add(batch.getJSONObject(i).getString("operationId"));
             Set<String> ack=new HashSet<>();JSONArray acknowledged=answer.getJSONArray("ack");for(int i=0;i<acknowledged.length();i++){String id=acknowledged.getString(i);if(!sent.contains(id))throw new Exception("送信していない操作の応答が返りました");ack.add(id);}

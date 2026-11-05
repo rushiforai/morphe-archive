@@ -25,10 +25,7 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.blockTrackers
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking: Kochava, comScore, Nielsen, Adobe Analytics, Conviva, " +
-        "New Relic, Salesforce Marketing Cloud, and Pluto's Tealium tag config, where they " +
-        "use the system network connection. Crash reporting, sign-in and playback are left " +
-        "alone. Experimental.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

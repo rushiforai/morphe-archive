@@ -21,8 +21,7 @@ import semicoloncolonel.mobilestream.patches.espn.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Stops scheduled ad breaks and on-demand mid-rolls in ESPN videos. Commercials in " +
-        "live broadcasts are part of the stream and still play. Experimental.",
+    description = "Stops the scheduled ad breaks and on-demand mid-rolls in videos.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

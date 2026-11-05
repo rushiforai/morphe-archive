@@ -41,8 +41,7 @@ internal object WithAdsFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the banner and sponsored-content ads in the CNN app, and plays CNN articles' " +
-        "videos and clips without ads. All Access streaming is not changed. Experimental.",
+    description = "Removes the banner and sponsored-content ads, and the ads in videos and clips.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

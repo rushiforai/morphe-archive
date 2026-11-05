@@ -16,12 +16,15 @@ import java.security.MessageDigest
 internal const val CODECS_SUPPORT_LIBRARY = "libgxr_codecs_support.so"
 internal const val CODECS_SUPPORT_MANIFEST = "XR_APILAYER_local_GalaxyXR_codecs_support.json"
 internal const val CODECS_SUPPORT_LIBRARY_SHA256 =
-    "4ad5e8b16c7cef480d9cb0ea0905fbbb823d534d986704402bf5bb48977f2e51"
+    "eab08c05e85f46725a0a81112750cd9ce9ff201946a79817231fccc640be4045"
 internal const val CODECS_SUPPORT_MANIFEST_SHA256 =
     "801f2a6cf8155486879339a7eb7b83b1554a537f517ba50b6406a5a98a96fec5"
 
+// 5002527 is an exact pair owned by this patch's scene contract, so the guard does not depend
+// on the shared native-XR list. Every other pair still goes through the shared registry.
 internal fun isCodecsSupportSteamLinkBuild(versionName: String, versionCode: String): Boolean =
-    app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild(versionName, versionCode) ||
+    (versionName == "2.0.24" && versionCode == "5002527") ||
+        app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild(versionName, versionCode) ||
         app.template.patches.shared.Constants.isNativeXrSteamLinkBuild(versionName, versionCode)
 
 private fun codecsSha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
@@ -63,7 +66,19 @@ private val codecsSupportScenePreconditions: Map<String, List<Triple<Int, Int, S
         Triple(0xff2f8, 0x80, "49570c2a54e39d80d2f8bb61c190b9d8b821675a79a4d4c4bf5f94bfb7acde3a"),
         Triple(0xfe948, 0x40, "51b57ce6a5c20fab3266923460c046f1247823cb95526252c61a92020f052464"),
     ),
+    // QSVLCodecNDK::Init+0xc, SubmitFrameForDecode+0xd0 (queueInputBuffer call) and Init head,
+    // derived from the exact 2333472-byte scene (sha256 cfa9a908...ea03) with the same method
+    // that reproduces the 5002395 triples above.
+    "2.0.24/5002527" to listOf(
+        Triple(0xfe22c, 0x80, "b3f5a532ab84606e6107901a6e94c97fd6f5c9329b2f4e257851fd0adb7e00ff"),
+        Triple(0xfebd0, 0x80, "e34d93b0c58d3c3e1d0b0e0a840ef0d970930456cbecf4a9540cccc74d0ff9e5"),
+        Triple(0xfe220, 0x40, "f7450ac76c9d866d2256e06d40de265bf94aae8e945e18b91b86dc567a28bcfe"),
+    ),
 )
+
+/** Hash the bundled runtime pins for the first (anchor) region of an exact `version/code`. */
+internal fun codecsSupportAnchorSha256(build: String): String? =
+    codecsSupportScenePreconditions[build]?.firstOrNull()?.third
 
 internal fun validateCodecsSupportScene(
     scene: ByteArray,

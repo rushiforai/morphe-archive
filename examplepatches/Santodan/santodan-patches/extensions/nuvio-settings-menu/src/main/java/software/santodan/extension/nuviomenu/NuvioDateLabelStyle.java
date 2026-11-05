@@ -75,7 +75,7 @@ public final class NuvioDateLabelStyle {
                     preferences(scope).edit().putInt(percentKey(selected), ((Number) args[0]).intValue()).apply();
                     revise(loader, scope); return unit(loader);
                 });
-                method(Class.forName(playbackOwner(), false, loader), "h", 14).invoke(null,
+                method(Class.forName(playbackOwner(), false, loader), "j", 14).invoke(null,
                     DateLabelStyle.TITLES[property], percent, percent + "%", 50, 200, 10, change,
                     null, noop, true, staticValue(loader, NuvioNative.EMPTY_MODIFIER_NAME, "b"), composer, 0, 128);
                 continue;

@@ -35,6 +35,28 @@ private val settingsManifestPatch = resourcePatch {
             activity.setAttribute("android:label", "Loki Patches")
             activity.setAttribute("android:theme", "@android:style/Theme.DeviceDefault.DayNight")
             application.appendChild(activity)
+
+            // Opens the lokipatches://post/... links of the items added to a post's ⋯ menu, invisibly.
+            val postAction = document.createElement("activity")
+            postAction.setAttribute("android:name", "app.linkedin.extension.PostActionActivity")
+            postAction.setAttribute("android:exported", "true")
+            postAction.setAttribute("android:excludeFromRecents", "true")
+            postAction.setAttribute("android:noHistory", "true")
+            postAction.setAttribute("android:taskAffinity", "")
+            postAction.setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
+            val filter = document.createElement("intent-filter")
+            filter.appendChild(document.createElement("action").apply {
+                setAttribute("android:name", "android.intent.action.VIEW")
+            })
+            filter.appendChild(document.createElement("category").apply {
+                setAttribute("android:name", "android.intent.category.DEFAULT")
+            })
+            filter.appendChild(document.createElement("data").apply {
+                setAttribute("android:scheme", "lokipatches")
+                setAttribute("android:host", "post")
+            })
+            postAction.appendChild(filter)
+            application.appendChild(postAction)
         }
     }
 }
@@ -175,6 +197,15 @@ val sduiComponentFilterPatch = bytecodePatch {
                     return-object v0
                 """,
                 ExternalLabel("show", getInstruction(0))
+            )
+            // Runs before the filter: edits components (the items added to a post's ⋯ menu).
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $SDUI_FILTER_CLASS->rewrite(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object p1
+                    check-cast p1, Lproto/sdui/components/core/Component;
+                """
             )
         }
     }

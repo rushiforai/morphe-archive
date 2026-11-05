@@ -34,8 +34,7 @@ private val SWITCHES = setOf(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off Alexa+ in Prime Video: the AI chat, its floating button, and the companion " +
-        "mode. Experimental.",
+    description = "Turns off Alexa+, its floating button, and its companion mode.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

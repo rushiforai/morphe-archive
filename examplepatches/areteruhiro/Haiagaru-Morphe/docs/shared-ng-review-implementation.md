@@ -1,6 +1,6 @@
 # 共有NGの審査・配信（開発中）
 
-未公開の実装です。公開GASは2026-10-30に既存URLのままv3（v2受付・直接配信）へ更新済み。実ユーザーNGは送信していません。
+現行の公開GASは2026-11-04に既存URLのままv15へ更新済みです。以下は実装・検証履歴を含みます。レポーターごとの除外操作は[操作説明](shared-ng-reporter-exclusions.md)を参照してください。
 
 ## 開発中の現行仕様（2026-10-30）
 
@@ -117,3 +117,8 @@ GAS実配備: reviewPersonalNg/exportReviewedSharedNgの実行完了、毎時rev
 - 公開GET action=reviewedはok=true/revision113/rules1704、private metadataなし。公開POSTによる実reporterのなりすまし試験は行っていない。
 - editorでの追加export実行は他処理のlock保持により15秒でtimeout。公開GET成功と別の検証であり、追加export/auditの実行成功とは扱わない。
 - 今後の除外リスト変更はGASプロパティのみ。アプリ更新もGAS再デプロイも不要。GASコード変更時は既存deploymentの新バージョン公開が必要。
+
+2026-11-04追記: 利用者指定の識別子を履歴のB列で検索し、B1=reporterと確認。既存IGNORED_REPORTERSを保持して対象1件を追加し、GAS設定の保存後のdisabled値で2件の登録を確認。識別子そのものはGitへ記載しない。既存履歴は削除せず、既存実装により今後の保存/集計票から除外。コード変更・再デプロイ・アプリ更新なし。BAN後の公開feed再取得/実送信の試験は行っていない。画面確認記録build/shared-ng-reporter-ban-20261104.pngはIGNORED_REPORTERS行のみ（他の秘密プロパティを除外）。
+
+
+2026-11-04〜05 レポーター単位のローカル除外: 配信に公開用のcontributorsを追加し、旧クライアントへはcapability指定がなければ除去する。元の管理用reporter/operationId等は配信しない。受信端末で除外した人の票だけを引き、他の人の票と閾値を維持する。解除・将来の別条件・設定バックアップに対応。GAS Code/PersonalInbox/Publishの既存sourceとHEADの一致を先に照合して保存・再取得一致確認、同じURLをv15（23:20 JST）へ更新。公開GET最初の試行は失敗、再取得でnew/oldともok/full/revision193・2568条件、contributorsの重複なし・票数一致・private metadataなし、旧形式にはcontributorsなしを確認。ローカルserver全473項目成功。226の隔離実機で署名一致Instrumentationの実タップ・票数差引・未来条件除外・解除・native raw field/cache更新・設定バックアップ復元12項目成功。Frida接続時のnative crashは成功扱いせず停止後に通常起動、以降は標準Instrumentationで確認。生のトレースやprivateデータは公開しない。

@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_stock_quad_v1",
+    "library_path": "libgxr_stock_quad.so",
+    "api_version": "1.1",
+    "implementation_version": "1",
+    "description": "Galaxy XR stock-equivalent 5002527 quad composition for Steam Link projection layers",
+    "disable_environment": "GXR_DISABLE_STOCK_QUAD"
+  }
+}

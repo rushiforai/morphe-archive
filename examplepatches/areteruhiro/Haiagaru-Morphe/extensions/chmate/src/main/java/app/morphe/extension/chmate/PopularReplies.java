@@ -228,7 +228,10 @@ public final class PopularReplies {
         TextView help=new TextView(a);help.setText("オフはChMate標準の判定です。直接返信方式では、返信への返信を数えません。表示方法は下の設定で別に選べます。");layout.addView(help);
         Switch toggle=new Switch(a);toggle.setText("人気レスをポップアップで表示する");
         toggle.setChecked(prefs(a).getBoolean("popularReplyPopup",false));
-        toggle.setOnCheckedChangeListener((v,on)->prefs(a).edit().putBoolean("popularReplyPopup",on).apply());layout.addView(toggle);
+        toggle.setOnCheckedChangeListener((v,on)->{
+            prefs(a).edit().putBoolean("popularReplyPopup",on).apply();
+            if(on)ExtraQuickFilters.refreshPopularity();
+        });layout.addView(toggle);
         Button threshold=new Button(a);threshold.setText("人気レスの閾値を変更");
         threshold.setOnClickListener(v->threshold(a,thresholdValue(a,3),null));layout.addView(threshold);
     }

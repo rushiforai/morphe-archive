@@ -27,7 +27,7 @@ public final class InterfaceProbe {
     static void check(boolean value, String message) {
         if (!value) throw new AssertionError(message);
     }
-    static void startup() {
+    static void startup() throws Exception {
         Destination[] expected = {Destination.Default, Destination.Default, Destination.Browse,
                 Destination.Following, Destination.NotificationCenter, Destination.Default};
         for (int setting = -1; setting <= 4; setting++) {
@@ -43,6 +43,29 @@ public final class InterfaceProbe {
             check(TwitchInterface.startDestination(MissingDestination.Default) == MissingDestination.Default,
                     "Missing chosen enum value falls back to stock");
         }
+        feed();
+    }
+    /** The React Native Home feed's tab: only the first feed of a plain launch, only for Following. */
+    static void feed() throws Exception {
+        java.lang.reflect.Field built = TwitchInterface.class.getDeclaredField("feedBuilt");
+        built.setAccessible(true);
+        for (int setting = -1; setting <= 4; setting++) {
+            Settings.defaultTab = setting;
+            built.set(null, false);
+            String first = TwitchInterface.feedTab(false, null, null, "live");
+            check(first.equals(setting == 2 ? "following" : "live"), "First feed of a plain launch follows default_tab " + setting);
+            check("live".equals(TwitchInterface.feedTab(false, null, null, "live")), "Later feeds keep Twitch's tab");
+            built.set(null, false);
+            check("live".equals(TwitchInterface.feedTab(true, null, null, "live")), "A deep link keeps its tab");
+            built.set(null, false);
+            check("clips".equals(TwitchInterface.feedTab(false, null, null, "clips")), "Another tab Twitch asked for stays");
+            built.set(null, false);
+            String none = TwitchInterface.feedTab(false, null, null, null);
+            check(setting == 2 ? "following".equals(none) : none == null, "No tab means Twitch's default unless Following was chosen");
+            built.set(null, false);
+            check("b".equals(TwitchInterface.feedTab(false, "run", "trial", "b")), "Benchmark props pass through");
+        }
+        built.set(null, false);
     }
     static void home(boolean enabled) {
         FeedLocationPage live = new FeedLocationPage(new FeedLocation.Live());
@@ -71,7 +94,7 @@ public final class InterfaceProbe {
         java.util.List<?> unrelated = Arrays.asList("Clips", Tab.CLIPS);
         check(TwitchInterface.homeTabs(unrelated, null) == unrelated, "Only real Home page types are filtered");
     }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         startup();
         for (boolean enabled : new boolean[] {false, true}) {
             Settings.enabled = enabled;

@@ -53,13 +53,23 @@ public final class SduiMediaDownload {
 
     private static final Handler main = new Handler(Looper.getMainLooper());
     private static final Map<Object, List<MediaItem>> mediaByFragment = new WeakHashMap<>();
+    /** The document (PDF or carousel) shown on a media screen, saved as a PDF from the same button. */
+    private static final Map<Object, DocumentPdf.Doc> documentByFragment = new WeakHashMap<>();
     private static final ExecutorService thumbnailLoader = Executors.newFixedThreadPool(2);
     private static final LruCache<String, Bitmap> thumbnails = new LruCache<>(40);
 
     private static Object resumedFragment;
     private static boolean resumedIsMedia;
+    private static volatile String resumedScreen = "";
+
+    /** The screen id of the SDUI screen in front, such as com.linkedin.sdui.flagshipnav.media.VideoViewer. */
+    static String resumedScreen() {
+        return resumedScreen;
+    }
     private static List<MediaItem> pending;
     private static long pendingAt;
+    private static DocumentPdf.Doc pendingDocument;
+    private static long pendingDocumentAt;
 
     // region Hooks from SduiFragment (main thread)
 
@@ -69,6 +79,7 @@ public final class SduiMediaDownload {
             String screen = screenId(fragment);
             Settings.debugLog("SduiFragment resumed screen=" + screen);
             resumedFragment = fragment;
+            resumedScreen = screen;
             resumedIsMedia = screen.startsWith(MEDIA_SCREEN_PREFIX)
                     || screen.startsWith(PROFILE_PHOTO_SCREEN_PREFIX) || screen.equals(PROFILE_COVER_SCREEN)
                     || screen.equals(PROFILE_BACKGROUND_SCREEN);
@@ -83,7 +94,13 @@ public final class SduiMediaDownload {
                 attach(fragment, pending);
             }
             pending = null;
-            if (mediaByFragment.containsKey(fragment)) showDownloadButton(activity, fragment);
+            if (pendingDocument != null && SystemClock.uptimeMillis() - pendingDocumentAt < PENDING_WINDOW_MS) {
+                documentByFragment.put(fragment, pendingDocument);
+            }
+            pendingDocument = null;
+            if (mediaByFragment.containsKey(fragment) || documentByFragment.containsKey(fragment)) {
+                showDownloadButton(activity, fragment);
+            }
         } catch (Throwable t) {
             Diagnostics.error("onFragmentResumed failed", t);
         }
@@ -129,6 +146,21 @@ public final class SduiMediaDownload {
         });
     }
 
+    /** Called when the full screen document player is built, possibly on a background thread. */
+    static void offerDocument(DocumentPdf.Doc doc) {
+        main.post(() -> {
+            Object fragment = resumedFragment;
+            if (fragment != null && resumedIsMedia) {
+                documentByFragment.put(fragment, doc);
+                Activity activity = activity(fragment);
+                if (activity != null) showDownloadButton(activity, fragment);
+            } else {
+                pendingDocument = doc;
+                pendingDocumentAt = SystemClock.uptimeMillis();
+            }
+        });
+    }
+
     private static void attach(Object fragment, List<MediaItem> items) {
         mediaByFragment.put(fragment, merge(mediaByFragment.get(fragment), items));
         Settings.debugLog("media attached: " + describe(mediaByFragment.get(fragment)));
@@ -155,6 +187,13 @@ public final class SduiMediaDownload {
         if (button == null) {
             button = createDownloadButton(activity);
             content.addView(button);
+        }
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) button.getLayoutParams();
+        // The document viewer's top bar has a second row with the title and page counter.
+        int top = dp(activity, documentByFragment.get(fragment) != null ? 164 : 88);
+        if (params.topMargin != top) {
+            params.topMargin = top;
+            button.setLayoutParams(params);
         }
         button.bringToFront();
         button.setOnClickListener(v -> onDownloadClick(activity, fragment));
@@ -193,6 +232,25 @@ public final class SduiMediaDownload {
 
     private static void onDownloadClick(Activity activity, Object fragment) {
         List<MediaItem> items = mediaByFragment.get(fragment);
+        DocumentPdf.Doc doc = documentByFragment.get(fragment);
+        if (doc != null) {
+            if (items == null || items.isEmpty()) {
+                DocumentPdf.save(activity, doc);
+            } else {
+                AlertDialog dialog = new AlertDialog.Builder(activity)
+                        .setTitle(I18n.tr("Choose media"))
+                        .setItems(new String[]{I18n.f("Document as PDF (%1$s pages)", doc.pages), I18n.tr("Photos and videos")},
+                                (d, which) -> {
+                                    if (which == 0) DocumentPdf.save(activity, doc);
+                                    else if (items.size() == 1) download(activity, items);
+                                    else showChooser(activity, new ArrayList<>(items));
+                                })
+                        .setNegativeButton(I18n.tr("Cancel"), null)
+                        .show();
+                SettingsActivity.tintButtons(dialog, activity);
+            }
+            return;
+        }
         if (items == null || items.isEmpty()) {
             Downloads.toast(activity, "Media not found");
             return;

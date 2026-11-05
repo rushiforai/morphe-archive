@@ -182,4 +182,50 @@ internal val BLUE_NOISE_LAYOUTS = listOf(
             BlueNoiseGuard(0x88930, 43200, "fb3cac0953fd436b45093bfb19c8d26bc5bef61f7e90db27f2afe3128a83c462"), // .rela.plt
             BlueNoiseGuard(0x20be0, 31668, "ed02bc776ee042083afbcd96d48429992e1e92425ca25046e8cddc9b083953b1"), // .gnu.hash
         )),
+    // Independently derived from decoded 2.0.24/5002527 (not transplanted): the 11 import
+    // names have the same shape as 5002395 (nine .dynstr/rodata strings, each referenced once
+    // by a PLT slot or a chewInit relocation). Fovea/base glDrawArrays returns are the
+    // instructions after the `bl glDrawArrays` calls at 0xf6664 / 0xf6744 in
+    // SRGBCorrectionPass::RenderSpecific (0xf6480). The prefix block is 1206 bytes, the masked
+    // suffix 411 bytes, and the full-source stock hashes are SHA-256(prefix + suffix) of the
+    // untouched stock sources (vInnerFade stays at location 14). Valve's vInnerFade is left
+    // intact: this base uses the inner-fade helper payload (helper slots 16/17).
+    BlueNoiseLayout("2.0.24", "5002527", 2333472,
+        "cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03", 0xa3085, 0x9f70a, 0xf6668L,
+        listOf(
+            BlueNoiseSite(0x6b341, "libGLESv3.so", "libgxd.so"),
+            BlueNoiseSite(0x42a66, "glShaderSource", "gxShaderSource"),
+            BlueNoiseSite(0x29749, "glDrawArrays", "gxDrawArrays"),
+            BlueNoiseSite(0x423a8, "eglCreateContext", "gxdCreateContext"),
+            BlueNoiseSite(0x42420, "eglDestroyContext", "gxdDestroyContext"),
+            BlueNoiseSite(0x423dd, "eglMakeCurrent", "gxdMakeCurrent"),
+            BlueNoiseSite(0x42444, "eglTerminate", "gxdTerminate"),
+            BlueNoiseSite(0xa534f, "glCompileShader", "gxCompileShader"),
+            BlueNoiseSite(0xab146, "glLinkProgram", "gxLinkProgram"),
+            BlueNoiseSite(0x95e93, "glDeleteShader", "gxDeleteShader"),
+            BlueNoiseSite(0xaa54d, "glDeleteProgram", "gxDeleteProgram"),
+        ), listOf(
+            BlueNoiseGuard(0x180790, 160, "a6419668e838ad940b5c53a643fe8acaf6feba59fa28be77a1af175d8eed2b64"),
+            BlueNoiseGuard(0xf6480, 780, "214c231734c06be0e71f0ff4c50dbde24ddadc3a9b4c8fcc27d2fb662b767c05"),
+            BlueNoiseGuard(0xf62d4, 428, "6e90aed293ccf7ce183cbc481429ba8d93fc2cfcc5ceab67c907e7ae6a5d3b8e"),
+            BlueNoiseGuard(0xf5d7c, 508, "b1aec7ee0a018e8f3199a7a8818fc01cb78660fef3ff86352eff0bea441c4c75"),
+            BlueNoiseGuard(0x9b2c0, 29, "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"),
+            BlueNoiseGuard(0x9f70a, 411, "86efda0fc6d87db53627ab0b0f20ec0b7dff6b5a45d580107aab1f148e372707"),
+            BlueNoiseGuard(0x180524, 16, "4290d8eb18dea6b9d47445fd2651154585569d2cfd1924baa8ab1732c577113d"),
+            BlueNoiseGuard(0x180584, 16, "f79f47b10962b32241bdd631c20b9d9b284d63331136b4d6f5b67c457bf96e76"),
+            BlueNoiseGuard(0x180564, 16, "9954d6e680fa0e67161597ffc65c41105852222c07d8f63af142f895c2f90f1c"),
+            BlueNoiseGuard(0x180554, 16, "925d2d6087b1d9981765d8e61e118b1e2c08d4ca05eb3cf3cb968a2c3b9bd4bc"),
+            BlueNoiseGuard(0x2f8, 124176, "1db483ac8b7dd856283420cc3f05727776e1877eef1970f2ec056275aeacc752"), // .dynsym
+            BlueNoiseGuard(0x233f18, 544, "7d37e84f8d9821f9787f6b7272ca9cc7bfecabf9591956f8f1f7460bd03c19e7"), // .dynamic
+            BlueNoiseGuard(0x6b368, 126480, "c1fc3298c70864a1a1652a826559816d10eca80aa76e8f177be0b2527f946a8e"), // .rela.dyn
+            BlueNoiseGuard(0x8a178, 43560, "0f9467a15362f27b7407907cd563c79a4d34f697f5d2e3492b0a7c5d89376f0e"), // .rela.plt
+            BlueNoiseGuard(0x210f8, 31920, "28edd78370489b3b71640702438d86e5a3fc0017e94315ee40a5b2b4bb84e292"), // .gnu.hash
+        ),
+        shaderSize = VIDEO_SHADER_SIZE_INNER_FADE,
+        maskedSize = VD_SDR_FOVEA_SUFFIX_SIZE_INNER_FADE,
+        maskedStockHash = "44c9f03332812f799da1ae4ef0463eb79008ac1c70b094ac309bde2918e75bb6",
+        backgroundStockHash = "ff76ffc30fdd974746d5b8f2352f52a435b2857893d3ab8cf96c440d4051821b",
+        stockPrefixHash = "45392bceb20404945ad349e04318dd52c07441456018b62267847ed58349a453",
+        helper = BlueNoiseHelperVariant.INNER_FADE,
+    ),
 )

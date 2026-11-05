@@ -2,21 +2,13 @@ package dev.hyzor.patches.chesscom.board
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import dev.hyzor.patches.chesscom.misc.settings.settingsPatch
 import dev.hyzor.patches.chesscom.shared.Constants
 import dev.hyzor.patches.chesscom.shared.markFeaturePatched
 import dev.hyzor.patches.chesscom.shared.returnString
 import dev.hyzor.patches.chesscom.shared.toBinaryName
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val BOARD_COLORS = "${Constants.EXTENSION_PACKAGE}/board/BoardColors;"
 
@@ -35,28 +27,6 @@ internal object DarkAndLightSquaresToStringFingerprint : Fingerprint(
     parameters = listOf(),
     strings = listOf("DarkAndLightSquares(darkSquareColor="),
 )
-
-/** Passes what a getter returns through [hook] (descriptor of a static extension method). */
-private fun MutableMethod.filterReturn(hook: String, objectType: String? = null) {
-    val index = instructions.indexOfLast { it.opcode == Opcode.RETURN || it.opcode == Opcode.RETURN_OBJECT }
-    if (index < 0) throw PatchException("$name has no return")
-    val register = getInstruction<OneRegisterInstruction>(index).registerA
-    addInstructions(
-        index,
-        if (objectType == null) {
-            """
-                invoke-static/range { v$register .. v$register }, $hook
-                move-result v$register
-            """
-        } else {
-            """
-                invoke-static/range { v$register .. v$register }, $hook
-                move-result-object v$register
-                check-cast v$register, $objectType
-            """
-        },
-    )
-}
 
 @Suppress("unused")
 val boardColorsPatch = bytecodePatch(
@@ -83,46 +53,20 @@ val boardColorsPatch = bytecodePatch(
             it.name == "<init>" && it.parameterTypes.firstOrNull()?.toString() == backgroundType
         }.maxByOrNull { it.parameterTypes.size } ?: throw PatchException("The board theme constructor was not found")
 
-        val backgroundGetter = theme.methods.singleOrNull {
-            it.parameterTypes.isEmpty() && it.returnType == backgroundType
-        }
-        if (backgroundGetter != null) {
-            val firstParameter = constructor.implementation!!.registerCount - constructor.parameterTypes.size
-            fun fieldFromParameter(index: Int): FieldReference = constructor.implementation!!.instructions.firstNotNullOfOrNull {
-                ((it as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { _ ->
-                    it.opcode == Opcode.IPUT && (it as TwoRegisterInstruction).registerA == firstParameter + index
-                }
-            } ?: throw PatchException("The board theme field of parameter $index was not found")
-            val darkCoordinates = fieldFromParameter(1)
-            val lightCoordinates = fieldFromParameter(2)
-
-            // A plain getter: read the field, return it (hashCode reads every field too).
-            fun getterOf(field: FieldReference) = theme.methods.single { method ->
-                method.parameterTypes.isEmpty() && method.returnType == field.type &&
-                    method.implementation?.instructions?.toList()?.let { body ->
-                        body.size == 2 && (body[0] as? ReferenceInstruction)?.reference == field
-                    } == true
-            }
-
-            backgroundGetter.filterReturn("$BOARD_COLORS->background(Ljava/lang/Object;)Ljava/lang/Object;", backgroundType)
-            getterOf(darkCoordinates).filterReturn("$BOARD_COLORS->darkSquareCoordinates(I)I")
-            getterOf(lightCoordinates).filterReturn("$BOARD_COLORS->lightSquareCoordinates(I)I")
-        } else {
-            // 4.10.23 inlined the getters; replace the values where the theme is built.
-            constructor.apply {
-                addInstructions(
-                    0,
-                    """
-                        invoke-static/range { p1 .. p1 }, $BOARD_COLORS->background(Ljava/lang/Object;)Ljava/lang/Object;
-                        move-result-object p1
-                        check-cast p1, $backgroundType
-                        invoke-static { p2 }, $BOARD_COLORS->darkSquareCoordinates(I)I
-                        move-result p2
-                        invoke-static { p3 }, $BOARD_COLORS->lightSquareCoordinates(I)I
-                        move-result p3
-                    """,
-                )
-            }
+        // The values are read where the theme is built (the getters are inlined).
+        constructor.apply {
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $BOARD_COLORS->background(Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object p1
+                    check-cast p1, $backgroundType
+                    invoke-static { p2 }, $BOARD_COLORS->darkSquareCoordinates(I)I
+                    move-result p2
+                    invoke-static { p3 }, $BOARD_COLORS->lightSquareCoordinates(I)I
+                    move-result p3
+                """,
+            )
         }
     }
 }

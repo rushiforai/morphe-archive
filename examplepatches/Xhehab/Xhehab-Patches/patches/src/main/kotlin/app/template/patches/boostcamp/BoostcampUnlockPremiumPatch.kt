@@ -22,7 +22,7 @@ import app.template.patches.shared.revenueCatHybridCustomerInfoMapFingerprint
  * 4) No-op RC paywall presenters (resolve Promise so JS does not hang)
  */
 private const val PRIMARY_ENTITLEMENT = "premium_entitlement"
-private const val PRIMARY_PRODUCT = "boostcamp.pro.annual.dec.2023-12-11"
+private const val PRIMARY_PRODUCT = "boostcamp.pro.annual.dec.2023"
 private const val PURCHASE_DATE = "2026-07-09T00:00:00.000Z"
 private const val EXPIRATION_DATE = "2035-07-09T00:00:00.000Z"
 private const val PURCHASE_DATE_MILLIS = "0x19f442c9400L"
@@ -49,6 +49,31 @@ private val BOOSTCAMP_ENTITLEMENT_IDS = listOf(
 
 private val BOOSTCAMP_PRODUCT_IDS = listOf(
     PRIMARY_PRODUCT,
+    "boostcamp.pro.monthly.dec.2023",
+    "boostcamp.pro.annual.59.99",
+    "boostcamp.pro.monthly.14.99",
+    "boostcamp.pro.annual.59.99.14.days.free",
+    "boostcamp.pro.monthly.14.99.14.days.free",
+    "boostcamp.pro.annual.referral",
+    "boostcamp.pro.monthly.referral",
+    "boostcamp.pro.monthly.referral_channel",
+    "boostcamp_pro:pro-annual",
+    "boostcamp_pro:pro-monthly",
+    "boostcamp_pro:pro-annual-referral",
+    "boostcamp_pro:pro-annual-referral_channel",
+    "boostcamp_pro:pro-monthly-referral",
+    "boostcamp_annual_48.99",
+    "boostcamp_premium_annual_subscription",
+    "boostcamp_premium_annual_subscription:annual-sub-plan-1",
+    "boostcamp_premium_monthly_subscription",
+    "boostcamp_premium_monthly_subscription:monthly-sub-plan-1",
+    "boostcamp_pro_test_prices:pro-annual-59-99-14-days-free-trial",
+    "boostcamp_pro_test_prices:pro-annual-39-99",
+    "rc_promo_premium_entitlement_monthly",
+    "rc_promo_premium_entitlement_yearly",
+    "rc_promo_premium_entitlement_lifetime",
+    "rc_promo_premium_entitlement_six_month",
+    "rc_promo_premium_entitlement_three_month",
     "ANDOID_ANNUAL_PRO_59_99_2025",
     "ANDROID_MONTHLY_PRO_14_99_2025",
     "ANDROID_ANNUAL_PRO_NEW",
@@ -59,24 +84,6 @@ private val BOOSTCAMP_PRODUCT_IDS = listOf(
     "ANDROID_AFFILIATE_MONTHLY_PRO_14_99",
     "ANDROID_ANNUAL_PRODUCT_ID",
     "ANDROID_MONTHLY_PRODUCT_ID",
-    "boostcamp.pro.monthly.dec.2023-12-24",
-    "boostcamp.pro.annual.59.99.14.days.free",
-    "boostcamp.pro.annual.referralCode",
-    "boostcamp.pro.monthly.14.99.14.days.freeTrial",
-    "boostcamp.pro.monthly.referral",
-    "boostcamp_premium_annual_subscription",
-    "boostcamp_premium_annual_subscription:annual-sub-plan-1",
-    "boostcamp_premium_monthly_subscription",
-    "boostcamp_premium_monthly_subscription:monthly-sub-plan-1",
-    "boostcamp_pro:pro-annual-referral_channel",
-    "boostcamp_pro:pro-monthly-referral",
-    "boostcamp_pro_test_prices:pro-annual-59-99-14-days-free-trial",
-    "boostcamp_pro_test_prices:pro-annual-39-99",
-    "rc_promo_premium_entitlement_monthly",
-    "rc_promo_premium_entitlement_yearly",
-    "rc_promo_premium_entitlement_lifetime",
-    "rc_promo_premium_entitlement_six_month",
-    "rc_promo_premium_entitlement_three_month",
     "IOS_AFFILIATE_ANNUAL_PRO_59_99",
     "IOS_AFFILIATE_MONTHLY_PRO_14_99",
     "IOS_ANNUAL_PRODUCT_ID",

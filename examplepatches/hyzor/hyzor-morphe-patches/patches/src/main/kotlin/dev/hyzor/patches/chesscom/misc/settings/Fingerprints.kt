@@ -10,7 +10,7 @@ internal object MoreMenuStateToStringFingerprint : Fingerprint(
     strings = listOf("MoreMenuUiState(items="),
 )
 
-/** 4.10.23's More tap handler: a Compose function reference instead of MoreViewModel. */
+/** The More screen's tap handler: a Compose function reference. */
 internal object HomeMoreMenuClickFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Lcom/chess/home/more/MoreMenuItemKey;"),

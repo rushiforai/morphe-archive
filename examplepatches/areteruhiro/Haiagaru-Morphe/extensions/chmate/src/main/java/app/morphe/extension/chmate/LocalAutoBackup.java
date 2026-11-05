@@ -67,9 +67,14 @@ final class LocalAutoBackup {
         Button help=new Button(a);help.setText("詳しい使い方（GitHub）");help.setOnClickListener(v->a.startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://github.com/areteruhiro/Haiagaru-Morphe/blob/dev/docs/local-auto-backup.md"))));body.addView(help);
         Switch enabled=new Switch(a);enabled.setText("ローカル自動バックアップを有効にする");enabled.setChecked(p.getBoolean("enabled",false));body.addView(enabled);
         TextView destination=new TextView(a);destination.setText(destinationLabel(a));body.addView(destination);
-        Button folder=new Button(a);folder.setText("保存先フォルダを選ぶ");folder.setOnClickListener(v->{
+        Button folder=new Button(a);folder.setText("保存先フォルダを選ぶ・変更する");folder.setOnClickListener(v->{
             a.startActivity(new Intent(a,HaiagaruLocalBackupActivity.class).putExtra(HaiagaruLocalBackupActivity.EXTRA_MODE,HaiagaruLocalBackupActivity.MODE_FOLDER));
         });body.addView(folder);
+        Button otherLocation=new Button(a);otherLocation.setText("別の保存場所から選ぶ（前の保存先を指定しない）");
+        otherLocation.setOnClickListener(v->a.startActivity(new Intent(a,HaiagaruLocalBackupActivity.class)
+                .putExtra(HaiagaruLocalBackupActivity.EXTRA_MODE,HaiagaruLocalBackupActivity.MODE_FOLDER)
+                .putExtra(HaiagaruLocalBackupActivity.EXTRA_CHOOSE_OTHER_LOCATION,true)));body.addView(otherLocation);
+        TextView folderHelp=new TextView(a);folderHelp.setText("保存先は固定ではありません。フォルダ選択画面で任意の場所へ移動し「このフォルダを使用」で確定してください。内部ストレージの直下はprimary:という識別子です。直下やDownload自体を選べない場合は、その中に任意の専用フォルダを作成して選んでください。キャンセルした場合は現在の保存先を維持します。");body.addView(folderHelp);
         final boolean[] savingToggle={false};
         enabled.setOnCheckedChangeListener((v,on)->{
             if(savingToggle[0])return;
@@ -125,6 +130,7 @@ final class LocalAutoBackup {
             // getTreeDocumentId already decodes UTF-8 once; do not URL-decode it a second time.
             String id=DocumentsContract.getTreeDocumentId(tree);
             if("com.android.externalstorage.documents".equals(tree.getAuthority())){
+                if(id.equals("primary:"))return "内部ストレージ（直下）";
                 if(id.startsWith("primary:"))return "内部ストレージ/"+id.substring("primary:".length());
                 return id.replaceFirst(":","/");
             }
@@ -151,6 +157,7 @@ final class LocalAutoBackup {
     static Uri folderHint(Context context){
         try{
             Uri tree=Uri.parse(prefs(context).getString("tree",""));
+            if(!DocumentsContract.isTreeUri(tree)||!folderGranted(context,tree.toString()))return null;
             return DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));
         }catch(RuntimeException ignored){return null;}
     }

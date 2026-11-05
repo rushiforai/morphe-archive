@@ -20,8 +20,7 @@ private const val MADME = "Lcom/madme/mobile/sdk/"
 @Suppress("unused")
 val blockAdsPatch = bytecodePatch(
     name = "Block ads",
-    description = "Stops Madme, which shows ads over other apps, after calls, when you unlock " +
-        "the phone, and as notifications.",
+    description = "Stops Madme, which shows ads over other apps, after calls, and as notifications.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

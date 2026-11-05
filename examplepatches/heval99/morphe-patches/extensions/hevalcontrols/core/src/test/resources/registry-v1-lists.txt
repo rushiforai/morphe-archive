@@ -1,0 +1,4 @@
+hevalcontrols-registry:1
+demo.hide_ads	Hide ads	Removes banner and feed ads.	Ads	1	0	0	
+demo.hidden_countries	Hidden countries	Leagues from the picked countries are hidden.	Leagues	0	1	0		list
+demo.hidden_teams	Hidden teams	Needs ads off.	Teams	0	0	0	demo.hide_ads	list

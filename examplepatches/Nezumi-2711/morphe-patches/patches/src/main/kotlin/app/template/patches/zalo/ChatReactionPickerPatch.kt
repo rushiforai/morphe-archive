@@ -55,7 +55,7 @@ val chatReactionPickerPatch = bytecodePatch(
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.08.01"), AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.10.02")),
     ))
 
     dependsOn(nativeSignaturePatch)

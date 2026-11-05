@@ -20,7 +20,7 @@ private fun qualtricsFingerprint(name: String) = object : Fingerprint(
 @Suppress("unused")
 val hideSurveysPatch = bytecodePatch(
     name = "Hide surveys",
-    description = "Stops the Qualtrics surveys and the rate-the-app prompt that a survey can lead to.",
+    description = "Stops the Qualtrics surveys and the rating prompt they can lead to.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

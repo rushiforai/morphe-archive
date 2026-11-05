@@ -1,3 +1,13 @@
+## [1.17.10](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.9...v1.17.10) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Ui:** prevent flag count tab overflow with auto-sizing and rename to Custom Flags ([#68](https://github.com/Akash-Sriram/morphe-google-photos/issues/68)) ([5621b4f](https://github.com/Akash-Sriram/morphe-google-photos/commit/5621b4fd2592cc48523b9ef10034510fb897d033))
+
+### ✨ New Features
+
+* **Google Photos - Branding:** support custom app name and rename patch to Custom branding ([#69](https://github.com/Akash-Sriram/morphe-google-photos/issues/69)) ([ccf258e](https://github.com/Akash-Sriram/morphe-google-photos/commit/ccf258eddc7319ffb7ba556c28e3deeeee74194e))
+
 ## [1.17.9](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.8...v1.17.9) (2026-11-04)
 
 ### 🐛 Bug Fixes

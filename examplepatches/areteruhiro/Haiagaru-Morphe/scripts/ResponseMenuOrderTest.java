@@ -15,9 +15,10 @@ public final class ResponseMenuOrderTest {
         check(ordered.stream().map(Action::id).toList().equals(Arrays.stream(desired).boxed().toList()),"share slots interleaved with native and added actions");
         for(Action action:source)check(ordered.stream().anyMatch(a->a==action),"item/destination/callback identity");
         List<Action> once=new ArrayList<>(ordered);ResponseMenuOrder.apply(ordered,Action::id,rank);check(ordered.equals(once),"repeat stable");
-        ordered=new ArrayList<>(source);ResponseMenuOrder.apply(ordered,Action::id,Map.of(50,1,51,0));check(ordered.equals(source),"no saved shares leaves old menu unchanged");
+        ordered=new ArrayList<>(source);ResponseMenuOrder.apply(ordered,Action::id,Map.of(50,1,51,0));check(ordered.get(0)==source.get(1)&&ordered.get(1)==source.get(0),"saved native order applies without share slots");
+        ordered=new ArrayList<>(source);ResponseMenuOrder.apply(ordered,Action::id,Map.of(0x7e484a01,0,50,1,51,2));check(ordered.get(0)==source.get(7)&&ordered.get(1)==source.get(0),"added action precedes reply without saved shares");
         List<Action> noShares=new ArrayList<>(List.of(source.get(0),source.get(1)));ResponseMenuOrder.apply(noShares,Action::id,rank);
-        check(noShares.equals(List.of(source.get(0),source.get(1))),"unavailable shares do not reorder unrelated menu");
+        check(noShares.equals(List.of(source.get(1),source.get(0))),"available native actions use saved ranks when shares are absent");
         Action unknownA=new Action(999,null,null),unknownB=new Action(998,null,null);
         ordered=new ArrayList<>(source);ordered.add(unknownA);ordered.add(unknownB);ResponseMenuOrder.apply(ordered,Action::id,rank);
         check(ordered.get(ordered.size()-2)==unknownA&&ordered.get(ordered.size()-1)==unknownB,"unknown actions retained in stable order");

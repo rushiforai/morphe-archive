@@ -6,9 +6,9 @@ function ngExportReviewedLocked_(){
  ngReviewPersonalLocked_();const book=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId),rows=ngAllPersonalRows_(book),active=new Map(),ignored=new Set(ngIgnoredReporters_());
  for(const row of rows){if(ignored.has(row[1]))continue;const c=ngParsedInboxCondition_(row);if(!c)continue;const key=ngConditionKey_(c);active.set(row[1]+':'+key,{row,c,key});}
  const groups=new Map();for(const x of active.values())if(x.row[3]==='upsert'&&x.row[5]==='approved'){
-  const key=x.key;if(!groups.has(key))groups.set(key,{id:key,board:ngFamilyBoard_(x.c.board),boardName:ngFamilyName_(x.c.board),kind:x.c.kind,value:x.c.value,period:"",regex:!!x.c.regex,flags:x.c.flags&~9,votes:0,revoked:false,minLevel:JSON.parse(x.row[8]).minLevel,minVotes:1});groups.get(key).votes++;
+  const key=x.key;if(!groups.has(key))groups.set(key,{id:key,board:ngFamilyBoard_(x.c.board),boardName:ngFamilyName_(x.c.board),kind:x.c.kind,value:x.c.value,period:"",regex:!!x.c.regex,flags:x.c.flags&~9,votes:0,revoked:false,minLevel:JSON.parse(x.row[8]).minLevel,minVotes:1,contributors:[]});const group=groups.get(key);group.votes++;group.contributors.push(ngPublicReporter_(x.row[1]));
  }
- const rules=Array.from(groups.values()).sort((a,b)=>a.id.localeCompare(b.id));
+ const rules=Array.from(groups.values()).sort((a,b)=>a.id.localeCompare(b.id));for(const rule of rules)rule.contributors.sort();
  const revoked=JSON.parse(PropertiesService.getScriptProperties().getProperty('REVIEW_REVOKED_IDS')||'[]');for(const rule of rules)if(revoked.includes(rule.id))rule.revoked=true;
  const fingerprint=ngHash_(JSON.stringify(rules)),props=PropertiesService.getScriptProperties();
  let revision=Number(props.getProperty('EXPORT_REVISION')||0);if(props.getProperty('EXPORT_HASH')!==fingerprint){revision++;props.setProperty('EXPORT_HASH',fingerprint);props.setProperty('EXPORT_REVISION',String(revision));}
@@ -64,7 +64,7 @@ function reviewedSharedNgFeed(e){
  let data=ngReviewedCacheGet_();
  if(!data){data=exportReviewedSharedNg();ngReviewedCachePut_(data);}
  // Older clients reject unknown kinds; expose the new kind only on explicit capability opt-in.
- const feed=JSON.parse(data),cap=e&&e.parameter||{};feed.rules=feed.rules.filter(r=>(cap.regex==='1'||!r.regex)&&(cap.matchModes==='1'||[0,16].includes((r.flags||0)&0x70))&&(cap.reporter==='1'||r.kind!=='reporter')&&(cap.globalIdentity==='1'||r.board!=='*'||!['id','wacchoi','prefix','suffix'].includes(r.kind)));data=JSON.stringify(feed);
+ const feed=JSON.parse(data),cap=e&&e.parameter||{};feed.rules=feed.rules.filter(r=>(cap.regex==='1'||!r.regex)&&(cap.matchModes==='1'||[0,16].includes((r.flags||0)&0x70))&&(cap.reporter==='1'||r.kind!=='reporter')&&(cap.globalIdentity==='1'||r.board!=='*'||!['id','wacchoi','prefix','suffix'].includes(r.kind)));if(cap.contributors!=='1')for(const rule of feed.rules)delete rule.contributors;data=JSON.stringify(feed);
  return ContentService.createTextOutput(data).setMimeType(ContentService.MimeType.JSON);
 }
 /** Read-only audit: never re-review, publish, change revision, or log personal values. */

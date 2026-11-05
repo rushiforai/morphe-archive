@@ -18,7 +18,7 @@ class PatchListGeneratorTest {
             listOf("2.0.24"),
             targetsForReleaseChannel(latest, ReleaseChannel.EXPERIMENTAL).map { it.version },
         )
-        assertEquals(5002395, latest.targets.single().versionCodes!!.values.toSet().single())
+        assertEquals(5002527, latest.targets.single().versionCodes!!.values.toSet().single())
     }
 
     @Test
@@ -38,7 +38,7 @@ class PatchListGeneratorTest {
             ).map { it.version },
         )
         assertEquals(
-            5002395,
+            5002527,
             experimental.targets.single().versionCodes!!.values.toSet().single(),
         )
     }

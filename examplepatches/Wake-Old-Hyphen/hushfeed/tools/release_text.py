@@ -27,7 +27,6 @@ ROOT = Path(__file__).resolve().parents[1]
 CHANGELOG = ROOT / "CHANGELOG.md"
 NOTES = ROOT / "extensions/tiktok/src/main/l10n/notes"
 LANGUAGES = ("az", "de", "es", "in", "it", "pt-rBR", "ru", "tr", "vi", "zh-Hans")
-SCOPE = "* **TikTok:** "
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 GUIDE = "concepts/patch-development.md"
 # The README's Supported target lines, and the line naming the build the next release patches.
@@ -88,15 +87,15 @@ def bullets(body: str) -> list[str]:
 
 
 def grouped_changelog(body: str) -> str:
-    """The ### groups Manager shows. Loose bullets go under Changes, a bullet with no scope gets
-    TikTok's and a line under a bullet joins it."""
+    """The ### groups Manager shows. Loose bullets go under Changes and a line under a bullet
+    joins it. Bullets carry no app label: Manager shows a single-app source's whole list."""
     groups: dict[str, list[str]] = {}
     heading = "Changes"
     for line in body.split("\n"):
         if line.startswith("### "):
             heading = line[4:].strip() or "Changes"
         elif line.startswith("* "):
-            groups.setdefault(heading, []).append(line if re.match(r"\* \*\*[^*]+:\*\* ", line) else SCOPE + line[2:])
+            groups.setdefault(heading, []).append(line)
         elif line.strip() and groups.get(heading):
             groups[heading][-1] += " " + line.strip()
     return "\n\n".join(f"### {name}\n\n" + "\n".join(items) for name, items in groups.items())
@@ -123,7 +122,8 @@ def cut(args) -> None:
     new = "## Unreleased\n\n" + heading + "\n\n" + grouped + "\n\n"
     start = text.index("## Unreleased\n")
     end = start + len("## Unreleased\n") + len(body)
-    write(CHANGELOG, text[:start] + new + text[end:].lstrip("\n"))
+    # Every file is read before any is written, so a cut that fails leaves nothing half cut.
+    edits = {CHANGELOG: text[:start] + new + text[end:].lstrip("\n")}
     # What's new reads en.txt, one summary per bullet. A draft that doesn't line up gives way to
     # the CHANGELOG's own words.
     english = NOTES / "en.txt"
@@ -134,13 +134,14 @@ def cut(args) -> None:
         if drafted is not None:
             table = table.replace("## Unreleased\n" + drafted, "", 1)
         table = "## Unreleased\n\n" + "\n".join(items) + "\n\n" + table.lstrip("\n")
-    write(english, table.replace("## Unreleased\n", heading + "\n", 1))
-    translated = 0
+    edits[english] = table.replace("## Unreleased\n", heading + "\n", 1)
     for lang in LANGUAGES:
         path = NOTES / f"{lang}.txt"
         if path.exists() and (section(read(path), "Unreleased") or "").strip():
-            write(path, read(path).replace("## Unreleased\n", heading + "\n", 1))
-            translated += 1
+            edits[path] = read(path).replace("## Unreleased\n", heading + "\n", 1)
+    for path, new_text in edits.items():
+        write(path, new_text)
+    translated = len(edits) - 2
     print(f"[release] {len(items)} bullets under {heading}; What's new drafted in {translated} of {len(LANGUAGES)} tables")
 
 
@@ -170,7 +171,7 @@ def github_notes(args) -> None:
     count = 0
     for block in grouped_changelog(body).split("\n\n### "):
         name, _, lines = block.removeprefix("### ").partition("\n\n")
-        items = ["- " + item[len(SCOPE):] if item.startswith(SCOPE) else "- " + item[2:] for item in bullets(lines)]
+        items = ["- " + item[2:] for item in bullets(lines)]
         parts.append(NOTE_GROUPS.get(name, name) + "\n\n" + "\n".join(items))
         count += len(items)
     _, targets = catalog()

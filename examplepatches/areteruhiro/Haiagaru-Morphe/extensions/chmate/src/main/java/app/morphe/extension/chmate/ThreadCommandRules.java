@@ -16,6 +16,7 @@ public final class ThreadCommandRules {
             if (h.equals("5ch.net") || h.endsWith(".5ch.net") || h.equals("5ch.io")
                     || h.endsWith(".5ch.io") || h.equals("bbspink.com") || h.endsWith(".bbspink.com")) return "5ch";
             if (h.equals("bbs.eddibb.cc") || h.equals("d1ch.cc") || h.equals("v1ch.cc")) return "edge";
+            if (h.equals("kenmo.org") || h.endsWith(".kenmo.org")) return "kenmo";
             if (h.equals("open2ch.net") || h.endsWith(".open2ch.net")) return "open2ch";
             if (h.equals("jbbs.shitaraba.net") || h.equals("jbbs.livedoor.jp")) return "shitaraba";
             if (h.equals("afternoontea.st") || h.endsWith(".afternoontea.st")) return "afternoontea";
@@ -30,6 +31,7 @@ public final class ThreadCommandRules {
                 "どんぐり：Lv0・常時表示・大砲不可", "どんぐり：Lv0・任意表示・大砲不可",
                 "名前欄：どんぐりレベル・装備表示", "名前欄：どんぐりポイント", "名前欄：装備表示を隠す（UPLIFT必要）"};
         if (profile.equals("edge")) return new String[]{"ワッチョイを表示", "ワッチョイ＋レベルを表示", "レベルを表示", "自由入力"};
+        if (profile.equals("kenmo")) return new String[]{"IDを表示（!id）", "IDを非表示（!noid）", "ワッチョイを表示（!slip）", "ワッチョイを非表示（!noslip）", "IPを表示（!ip・IP公開に注意）", "IPを非表示（!noip）", "スレ固有のID・ワッチョイ（!chid）", "IP由来のID（!ipid）", "IDを月内固定（!longid）", "ワッチョイを月内固定（!longslip）", "スレ主マークを表示（!nushi）", "スレ主マークを非表示（!nonushi）", "ひよこマークを表示（!piyo）", "ひよこマークを非表示（!nopiyo）", "ゆるゆりの名前を表示（!yuruyuri）", "再認証の間隔（!reauth・秒数を編集）", "最大レス数（!max・数値を編集）", "タイトル変更を禁止（!notitlechange）", "自由入力"};
         if (profile.equals("open2ch")) return new String[]{"自演防止表示（!jien）", "自由入力", "アク禁（レス番号を指定・スレ主等）", "アク禁解除（レス番号を指定・スレ主等）"};
         return new String[]{"自由入力（掲示板の仕様を確認してください）"};
     }
@@ -41,6 +43,7 @@ public final class ThreadCommandRules {
                 triple("!extend:checked:vvvvv:1000:512:donguri=0/3"), triple("!extend:checked:vvvvv:1000:512:donguri=0/4"),
                 "!donguri", "!point", "!nosoubi"};
         if (profile.equals("edge")) return new String[]{triple("!metadent:vv:"), triple("!metadent:vvv:"), "!metadent:v:", ""};
+        if (profile.equals("kenmo")) return new String[]{"!id", "!noid", "!slip", "!noslip", "!ip", "!noip", "!chid", "!ipid", "!longid", "!longslip", "!nushi", "!nonushi", "!piyo", "!nopiyo", "!yuruyuri", "!reauth:60", "!max:1000", "!notitlechange", ""};
         if (profile.equals("open2ch")) return new String[]{"!jien", "", "!aku{レス番号}", "!kaijo{レス番号}"};
         return new String[]{""};
     }

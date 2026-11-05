@@ -16,7 +16,7 @@ binary Git diff.
 
 Input: `../OriginalApps/NuvioTV-1.1.0-beta7.apk`, SHA-256
 `a35eb5033615018f50f5205dc51f52e526b3b606f7e563943201dfbd7366d1f2`.
-DEX inspection artifacts are under `../.inspect-nuvio-beta7/`.
+DEX inspection artifacts are under `../Skills/inspection-evidence/.inspect-nuvio-beta7/`.
 
 ## Native contracts
 

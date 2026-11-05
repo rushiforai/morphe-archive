@@ -247,7 +247,8 @@ public final class AdsProbe {
 
         // Mute stitched ads, native player: the real metadata handler and stream load.
         // Names from the APK's locators; the fallbacks are Twitch 31.7.0's: native player aoa, ad overlay vw
-        // with state rw (playing). The hidden state isn't located: pw is Twitch 31.8.0's (sw in 31.7.0).
+        // with state rw (playing). The hidden state isn't located: it is Twitch 31.9.0's rw (pw in 31.8.0, sw in
+        // 31.7.0); 31.9.0's playing state is qw, from the locators.
         Class<?> nativeType = Class.forName(ProbeLocators.type("twitch.match.native_ad_cue", "aoa"));
         Method cue = nativeType.getMethod(ProbeLocators.method("twitch.match.native_ad_cue", "h"), JSONObject.class);
         Method load = null;
@@ -293,7 +294,7 @@ public final class AdsProbe {
         Method render = overlayType.getMethod(ProbeLocators.method("twitch.match.stitched_ad_overlay", "u"),
             Class.forName("tv.twitch.android.core.mvp.viewdelegate.ViewDelegateState"));
         Object playing = allocate(Class.forName(ProbeLocators.type("twitch.match.stitched_ad_playing", "rw")));
-        Object hidden = Class.forName("pw").getField("a").get(null);
+        Object hidden = Class.forName("rw").getField("a").get(null);
         check(hidden.getClass().getSuperclass() == playing.getClass().getSuperclass(), "pw is not the overlay's hidden state");
         switches.put("mute_stitched_ads", true);
         originalContinues(render, renderer, playing);

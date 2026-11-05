@@ -241,7 +241,7 @@ internal fun HermesBundle.hideChatHighlights() {
         returnNull(it, HYPE_TRAIN)
     }
     returnNull("ChannelLeaderboardStripHost", LEADERBOARDS)
-    falseProperty("SkylineLeaderboardTrophy", "hasBoards", LEADERBOARDS)
+    falseProperty("SkylineLeaderboardTrophy", "hasLeaderboard", LEADERBOARDS)
     listOf("CommunityGiftHighlightService", "MysterySubGiftHighlightService").forEach { returnNull(it, SUB_NOTICES) }
     // LibraryTmiClient's USERNOTICE handlers each emit one chat line and return undefined.
     listOf(

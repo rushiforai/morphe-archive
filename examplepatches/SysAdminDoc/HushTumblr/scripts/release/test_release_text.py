@@ -23,12 +23,12 @@ Every HushTumblr release, newest first.
 
 * **Tooling:** The gate runs the quick checks first.
 
-* **Tumblr:** Hide ads now covers the shopping row.
+* Hide ads now covers the shopping row.
 * **Tumblr:** Download board saves more pins.
 
 ## 0.0.6 (2026-10-10)
 
-* **Tumblr:** HushTumblr now patches Tumblr 46.4.0.110 only.
+* HushTumblr now patches Tumblr 46.4.0.110 only.
 """
 
 README = """# HushTumblr
@@ -120,24 +120,24 @@ class ReleaseTextTest(unittest.TestCase):
 
     # --- cut -------------------------------------------------------------------------------------
 
-    def test_cut_dates_the_section_with_tumblr_first_and_keeps_the_rest(self):
+    def test_cut_dates_the_section_with_tumblr_first_drops_a_leftover_label_and_keeps_the_rest(self):
         self.cut()
         text = self.text("CHANGELOG.md")
         self.assertNotIn("## Unreleased", text)
         self.assertIn(
             "## 0.0.7 (2026-10-11)\n\n"
-            "* **Tumblr:** Hide ads now covers the shopping row.\n"
-            "* **Tumblr:** Download board saves more pins.\n"
+            "* Hide ads now covers the shopping row.\n"
+            "* Download board saves more pins.\n"
             "* **Tooling:** The gate runs the quick checks first.\n\n"
             "## 0.0.6 (2026-10-10)\n", text)
         self.assertTrue(text.startswith("# Changelog\n\nEvery HushTumblr release, newest first.\n\n## 0.0.7"))
-        self.assertTrue(text.endswith("* **Tumblr:** HushTumblr now patches Tumblr 46.4.0.110 only.\n"))
+        self.assertTrue(text.endswith("* HushTumblr now patches Tumblr 46.4.0.110 only.\n"))
 
     def test_cut_keeps_crlf_line_ends(self):
         self.put("CHANGELOG.md", CHANGELOG, "\r\n")
         self.cut()
         raw = self.text("CHANGELOG.md")
-        self.assertIn("## 0.0.7 (2026-10-11)\r\n\r\n* **Tumblr:**", raw)
+        self.assertIn("## 0.0.7 (2026-10-11)\r\n\r\n* Hide ads", raw)
         self.assertNotIn("\n", raw.replace("\r\n", ""))
 
     def test_cut_refuses_scopes_a_release_cannot_carry_and_names_them(self):
@@ -149,22 +149,22 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("**Source:** Manager shows the icon.", err)
         self.assertIn("**Docs:** The reference docs describe 46.5.0.109.", err)
-        self.assertIn("only **Tumblr:** and **Tooling:**", err)
+        self.assertIn("only plain bullets and **Tooling:**", err)
         self.assertEqual(self.text("CHANGELOG.md"), broken)
 
     def test_cut_refuses_what_manager_would_drop_or_skip(self):
         cases = {
             "a continuation line": CHANGELOG.replace("shopping row.", "shopping row.\n  and the related pins."),
-            "a bullet with no scope": CHANGELOG.replace("* **Tumblr:** Download", "* Download"),
-            "no Tumblr bullet": CHANGELOG.replace("* **Tumblr:** Hide", "* **Tooling:** Hide").replace(
+            "an empty bullet": CHANGELOG.replace("* **Tooling:** The gate runs the quick checks first.", "* "),
+            "no Tumblr bullet": CHANGELOG.replace("* Hide", "* **Tooling:** Hide").replace(
                 "* **Tumblr:** Download", "* **Tooling:** Download"),
             "an em dash": CHANGELOG.replace("more pins.", "more pins \u2014 up to 500."),
             "an empty section": CHANGELOG.split("* **Tooling:**")[0] + "## 0.0.6 (2026-10-10)\n",
         }
         expected = {
             "a continuation line": "isn't a bullet of its own",
-            "a bullet with no scope": "no scope",
-            "no Tumblr bullet": "no **Tumblr:** bullet",
+            "an empty bullet": "has an empty bullet",
+            "no Tumblr bullet": "no bullet about the app",
             "an em dash": "em or en dashes",
             "an empty section": "no bullets",
         }
@@ -186,6 +186,13 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertIn("no ## Unreleased", err)
         code, err = self.run_tool("cut", "--version", "0.7")
         self.assertIn("isn't X.Y.Z", err)
+
+    def test_check_counts_unlabeled_and_app_labeled_bullets_as_app_changes(self):
+        # Two bullets about the app, one unlabeled and one still carrying the label, plus one Tooling.
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(release_text.main(["--root", str(self.root), "check", "--unreleased"]), 0)
+        self.assertIn("3 bullets, 2 Tumblr and 1 Tooling", out.getvalue())
 
     def test_check_reads_without_writing(self):
         before = self.text("CHANGELOG.md")
@@ -350,15 +357,15 @@ class ReleaseTextTest(unittest.TestCase):
     def test_index_includes_every_released_bullet_in_manager_groups(self):
         self.cut()
         self.put("CHANGELOG.md", self.text("CHANGELOG.md").replace(
-            "## 0.0.7", "## Unreleased\n\n* **Tumblr:** Not released yet.\n\n## 0.0.7", 1))
+            "## 0.0.7", "## Unreleased\n\n* Not released yet.\n\n## 0.0.7", 1))
         code, err = self.index()
         self.assertEqual(code, 0, err)
         description = json.loads(self.text("patches-bundle.json"))["description"]
         self.assertIn("\n\n### What's new\n\n", description)
         groups = description.split("\n\n### ", 1)[1]
         self.assertEqual(groups, "What's new\n\n"
-                         "* **Tumblr:** Hide ads now covers the shopping row.\n"
-                         "* **Tumblr:** Download board saves more pins.\n\n"
+                         "* Hide ads now covers the shopping row.\n"
+                         "* Download board saves more pins.\n\n"
                          "### Behind the scenes\n\n"
                          "* **Tooling:** The gate runs the quick checks first.")
         self.assertNotIn("Not released yet.", description)
@@ -371,7 +378,7 @@ class ReleaseTextTest(unittest.TestCase):
         code, err = self.index()
         self.assertEqual(code, 0, err)
         description = json.loads(self.text("patches-bundle.json"))["description"]
-        self.assertIn("* **Tumblr:** " + historical, description)
+        self.assertIn("* " + historical, description)
         summary = description.split("\n\n### ", 1)[0]
         self.assertEqual(set(re.findall(r"(?<![\d.])(\d+) patches\b", summary)), {"3"})
         self.assertEqual(set(re.findall(r"Tumblr\s+(\d+(?:\.\d+)+)(?!\d)", summary)), {"46.5.0.109"})
@@ -382,7 +389,7 @@ class ReleaseTextTest(unittest.TestCase):
         code, err = self.index()
         self.assertEqual(code, 0, err)
         description = json.loads(self.text("patches-bundle.json"))["description"]
-        self.assertIn("### What's new\n\n* **Tumblr:**", description)
+        self.assertIn("### What's new\n\n* Hide ads", description)
         self.assertNotIn("### Behind the scenes", description)
 
     def test_index_needs_the_released_section(self):

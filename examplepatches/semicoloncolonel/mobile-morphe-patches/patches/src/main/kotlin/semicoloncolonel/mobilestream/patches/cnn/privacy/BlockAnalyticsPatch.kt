@@ -35,9 +35,7 @@ private val trackerStarts = listOf(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking in the CNN app: Adobe, AppsFlyer, Chartbeat, comScore, " +
-        "Firebase and CNN's own data collection. Sign-in, subscriptions, push and video are " +
-        "left alone. Experimental.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

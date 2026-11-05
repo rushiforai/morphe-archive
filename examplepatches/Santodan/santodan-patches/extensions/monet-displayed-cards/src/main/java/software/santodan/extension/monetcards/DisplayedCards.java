@@ -177,24 +177,24 @@ public final class DisplayedCards {
         final Object empty, unit;
         Bridge() throws ReflectiveOperationException {
             boolean modern = NativeLayout.modern;
-            Class<?> focusType = Class.forName(modern ? "a.wp1" : "a.cm1"), composerType = Class.forName(modern ? "a.jw1" : "a.yr1");
-            click = Class.forName(modern ? "a.uu1" : "a.iq1");
-            property = Class.forName(modern ? "a.wu1" : "a.kq1");
+            Class<?> focusType = Class.forName(NativeLayout.type(modern ? "a.wp1" : "a.cm1")), composerType = Class.forName(NativeLayout.type(modern ? "a.jw1" : "a.yr1"));
+            click = Class.forName(NativeLayout.type(modern ? "a.uu1" : "a.iq1"));
+            property = Class.forName(NativeLayout.type(modern ? "a.wu1" : "a.kq1"));
             configure = property.getMethod("a", Object.class);
-            Class<?> properties = Class.forName(modern ? "a.qp1" : "a.wl1");
+            Class<?> properties = Class.forName(NativeLayout.type(modern ? "a.qp1" : "a.wl1"));
             left = properties.getMethod("e", focusType); right = properties.getMethod("k", focusType);
             up = properties.getMethod("j", focusType);
-            footer = modern ? Class.forName("a.ux2").getMethod("B0", int.class, focusType, focusType, click, composerType)
-                : Class.forName("a.mq2").getMethod("L0", String.class, click, focusType, focusType, composerType, int.class);
+            footer = modern ? Class.forName(NativeLayout.type("a.ux2")).getMethod(NativeLayout.v111 ? "E0" : "B0", int.class, focusType, focusType, click, composerType)
+                : Class.forName(NativeLayout.type("a.mq2")).getMethod("L0", String.class, click, focusType, focusType, composerType, int.class);
             focus = focusType.getConstructor();
-            button = Class.forName(modern ? "a.ux2" : "a.mq2").getMethod(modern ? "C0" : "M0", String.class, boolean.class, focusType,
-                Class.forName(modern ? "a.y95" : "a.zz4"), click, focusType, focusType, focusType, composerType, int.class, int.class);
-            Class<?> state = Class.forName(modern ? "a.xb5" : "a.q15");
+            button = Class.forName(NativeLayout.type(modern ? "a.ux2" : "a.mq2")).getMethod(modern ? (NativeLayout.v111 ? "F0" : "C0") : "M0", String.class, boolean.class, focusType,
+                Class.forName(NativeLayout.type(modern ? "a.y95" : "a.zz4")), click, focusType, focusType, focusType, composerType, int.class, int.class);
+            Class<?> state = Class.forName(NativeLayout.type(modern ? "a.xb5" : "a.q15"));
             get = state.getMethod("g"); set = state.getMethod("i", int.class);
             begin = composerType.getMethod(modern ? "h0" : "g0", int.class); remember = composerType.getMethod(modern ? "T" : "S");
             save = composerType.getMethod(modern ? "r0" : "q0", Object.class); end = composerType.getMethod(modern ? "r" : "q", boolean.class);
-            empty = Class.forName(modern ? "a.pp0" : "a.am0").getField("a").get(null);
-            unit = Class.forName(modern ? "a.lo7" : "a.s67").getField("a").get(null);
+            empty = Class.forName(NativeLayout.type(modern ? "a.pp0" : "a.am0")).getField("a").get(null);
+            unit = Class.forName(NativeLayout.type(modern ? "a.lo7" : "a.s67")).getField("a").get(null);
         }
         void renderFooter(String label, Object apply, Object focus, Object up, Object composer, int flags) throws ReflectiveOperationException {
             if (!NativeLayout.modern) {

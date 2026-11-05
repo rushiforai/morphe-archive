@@ -14,7 +14,6 @@ class NativeXrTrackingConfigTest {
             setOf(
                 "Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;",
                 "Lcom/valvesoftware/steamlink/GxrOverlayBridge;",
-                "Lcom/valvesoftware/steamlink/GxrResolutionProbe;",
             ),
             extensionClassTypes("/extensions/minimal-extension.mpe"),
         )

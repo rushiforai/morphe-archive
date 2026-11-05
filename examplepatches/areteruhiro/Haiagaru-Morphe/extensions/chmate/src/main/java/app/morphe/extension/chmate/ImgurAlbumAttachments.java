@@ -366,8 +366,9 @@ public final class ImgurAlbumAttachments {
             LinkedHashSet<String> urls = new LinkedHashSet<>();
             boolean changed = false;
             int mode = Haiagaru.mediaAutoFetchMode();
+            boolean imagesEnabled = Haiagaru.mediaImageFetchEnabled();
             for (String url : (String[]) existing) {
-                if (Haiagaru.mediaImageFetchEnabled()) {
+                if (imagesEnabled) {
                     String normalized = TwimgImageUrls.canonical(url);
                     if (normalized != null && !normalized.equals(url)) {
                         url = normalized;
@@ -378,7 +379,7 @@ public final class ImgurAlbumAttachments {
                 // i.imgur.com/a/... is an album page, not an additional image.
                 // Replace only once resolution succeeds; failed albums remain retryable.
                 Matcher album = url == null ? null : ALBUM.matcher(url);
-                if ((mode != 3 || Haiagaru.mediaImageFetchEnabled()) && album != null && album.matches()) {
+                if ((mode != 3 || imagesEnabled) && album != null && album.matches()) {
                     synchronized (CACHE) {
                         Entry entry = CACHE.get(album.group(1));
                         resolvedPost = entry != null && entry.images != null && entry.images.length > 0;
@@ -412,7 +413,7 @@ public final class ImgurAlbumAttachments {
                 boolean video = DirectVideoUrls.supported(image);
                 if (video && mode == 3) continue;
                 if (!video && XMediaAttachments.isPoster(image) && mode != 0 && mode != 1) continue;
-                if (!video && !Haiagaru.mediaImageFetchEnabled() && !XMediaAttachments.isPoster(image)
+                if (!video && !imagesEnabled && !XMediaAttachments.isPoster(image)
                         && !GifAutoFetchPolicy.supported(image)) continue;
                 if (video && mode == 0) {
                     VIDEO_MODELS.put(model, Boolean.TRUE);

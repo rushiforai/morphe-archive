@@ -26,8 +26,7 @@ internal object SaveProgressPromptFingerprint : Fingerprint(
 @Suppress("unused")
 val hideSignInPromptsPatch = bytecodePatch(
     name = "Hide sign-in prompts",
-    description = "Stops the app from asking you to sign in to save your progress when you pause or " +
-        "leave a title. You can still sign in from the account screen.",
+    description = "Stops the app from asking you to sign in when you pause or leave a title.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

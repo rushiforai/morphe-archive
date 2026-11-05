@@ -1,7 +1,7 @@
 package app.template.patches.shared.hevalcontrols
 
 /**
- * One feature shown in Heval Controls, registered by the patch that implements it.
+ * One feature shown on the Patch settings screen, registered by the patch that implements it.
  *
  * @param id Stable key, `^[a-z][a-z0-9_.]{0,63}$`, conventionally `<app>.<feature>` (for example
  *        `linkedin.hide_promoted`). It names the saved choice, so never rename a shipped id.
@@ -17,6 +17,8 @@ package app.template.patches.shared.hevalcontrols
  *        read-only as "Applied at patch time"; it has no runtime gate.
  * @param dependencies Ids of features that must be on for this one to take effect. A dependency
  *        missing from the APK makes this feature "Unsupported" (stock) at runtime.
+ * @param kind [HevalFeatureKind.SWITCH] (on/off) or [HevalFeatureKind.LIST] (pick items to hide);
+ *        declare lists with [HevalListFeature].
  */
 data class HevalFeature(
     val id: String,
@@ -27,11 +29,17 @@ data class HevalFeature(
     val restartRequired: Boolean = false,
     val buildTimeOnly: Boolean = false,
     val dependencies: List<String> = emptyList(),
+    val kind: HevalFeatureKind = HevalFeatureKind.SWITCH,
 ) {
     init {
-        require(ID_REGEX.matches(id)) { "Invalid Heval Controls feature id: $id" }
+        require(ID_REGEX.matches(id)) { "Invalid Patch settings feature id: $id" }
         require(name.isNotBlank()) { "Feature $id has no name" }
         require(category.isNotBlank()) { "Feature $id has no category" }
+        if (kind == HevalFeatureKind.LIST) {
+            // An empty list is stock, so a list cannot start "on" or be fixed at patch time.
+            require(!default) { "List feature $id cannot be on by default (an empty list is the default)" }
+            require(!buildTimeOnly) { "List feature $id cannot be build-time-only" }
+        }
         dependencies.forEach { dependency ->
             require(ID_REGEX.matches(dependency)) { "Feature $id has an invalid dependency id: $dependency" }
             require(dependency != id) { "Feature $id depends on itself" }
@@ -44,6 +52,47 @@ data class HevalFeature(
     }
 }
 
+/** What a Patch settings row is: an on/off switch or a "pick items to hide" list. */
+enum class HevalFeatureKind {
+    /** On/off; hooks call `HevalSettings.isEnabled(id)`. */
+    SWITCH,
+
+    /**
+     * A multi-select list of items to hide; app extensions call `HevalSettings.getHidden(id)` /
+     * `isHidden(id, key)` and feed the picker with `registerOptions` / `reportOptionsSeen`. An empty
+     * list (the default) is stock.
+     */
+    LIST,
+}
+
+/**
+ * A "pick items to hide" list setting (for example hidden countries). Registered like any feature,
+ * with [HevalControlsHost.featurePatch] or [HevalControlsHost.register]. The id names the user's
+ * saved picks, so never rename a shipped id.
+ *
+ * @param restartRequired The app reads the list once per process, so a change applies after a
+ *        restart.
+ * @param dependencies Ids of switches that must be on for this list to take effect.
+ */
+@Suppress("FunctionName")
+fun HevalListFeature(
+    id: String,
+    name: String,
+    description: String,
+    category: String,
+    restartRequired: Boolean = false,
+    dependencies: List<String> = emptyList(),
+) = HevalFeature(
+    id = id,
+    name = name,
+    description = description,
+    category = category,
+    default = false,
+    restartRequired = restartRequired,
+    dependencies = dependencies,
+    kind = HevalFeatureKind.LIST,
+)
+
 /**
  * Writes the registry string that the patch puts into `Registry.encoded()` in the extension.
  * The Java decoder is `RegistryCodec` in `extensions/hevalcontrols/core`; both sides are pinned by
@@ -54,14 +103,21 @@ data class HevalFeature(
  * buildTimeOnly (`0`/`1`) and comma-separated dependencies. Text fields escape `\`, tab, LF and
  * CR as `\\`, `\t`, `\n` and `\r`. Bump [VERSION] only for an incompatible change: the decoder
  * ignores extra trailing fields, so adding a field at the end keeps version 1 readable.
+ *
+ * A list feature ([HevalFeatureKind.LIST], 2026-11-03) adds a ninth field, `list`. Switches never
+ * get one, so a registry without lists encodes exactly as before (pinned by `registry-v1.txt`);
+ * `registry-v1-lists.txt` pins a registry with a list.
  */
 object HevalRegistryCodec {
     const val HEADER_PREFIX = "hevalcontrols-registry:"
     const val VERSION = 1
 
+    /** The ninth field of a list record. */
+    const val KIND_LIST = "list"
+
     fun encode(features: List<HevalFeature>): String {
         val duplicates = features.groupBy { it.id }.filterValues { it.size > 1 }.keys
-        require(duplicates.isEmpty()) { "Duplicate Heval Controls feature ids: $duplicates" }
+        require(duplicates.isEmpty()) { "Duplicate Patch settings feature ids: $duplicates" }
 
         return buildString {
             append(HEADER_PREFIX).append(VERSION).append('\n')
@@ -75,7 +131,8 @@ object HevalRegistryCodec {
                     flag(feature.restartRequired),
                     flag(feature.buildTimeOnly),
                     feature.dependencies.joinToString(","),
-                ).joinTo(this, "\t")
+                ).let { fields -> if (feature.kind == HevalFeatureKind.LIST) fields + KIND_LIST else fields }
+                    .joinTo(this, "\t")
                 append('\n')
             }
         }

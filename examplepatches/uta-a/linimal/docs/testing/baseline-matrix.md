@@ -461,3 +461,21 @@ XIG07（SDK 36、HyperOS）、LINE 26.16.0。同じプロセスから `startActi
 | install / ART verify / 起動 | 成功。crash は 0 件 |
 | patch-status | 68 件すべて OK |
 | 表示系の設定を切り替えて「再起動」 | LINE が自動で開き直り、設定が反映された |
+
+## MicroG-RE の認証エラーの通知（2026-11-04）
+
+XIG07（SDK 36）、LINE 26.16.0、MicroG-RE 7.3.0。v0.10.0 に診断の patch を加えた bundle で生成し、`~/morphe/linimal.keystore` で上書き install した。データ消去なし。
+
+| 確認 | 結果 |
+| --- | --- |
+| install / ART verify / 起動 | 成功。crash と VerifyError は 0 件 |
+| patch-status | 69 件すべて OK（`linimal.patch.google-auth-failure-diagnostics` を含む） |
+| 注入位置（生成 APK の `sq/h`） | `Error` を読んだ直後に `onTokenError`、`Could not bind to service.` の直後に `onAuthServiceBindFailed`（差し替え後の ComponentName を渡す） |
+| バックアップ設定でのアカウントの選び直し | 成功。MicroG-RE が `drive.appdata` の token を発行し、通知は出ない |
+| 「今すぐバックアップ」 | 成功。通知は出ない |
+| MicroG-RE を `pm suspend` した状態の「今すぐバックアップ」 | bind は失敗せず、MicroG-RE が保存済みの token を返して成功した。bind の失敗は再現できていない |
+| MicroG-RE の token の期限切れ後に、MicroG-RE の通信だけを遮断してアカウントを選び直す | LINE は「LINEにアクセスできません。インターネット接続を確認してください。」を表示し、同時に通知「Google ドライブの認証に失敗しました」が出た。本文は「MicroG-RE がエラー「NetworkError」を返しました。…」と `MicroG-RE 7.3.0 / LINE 26.16.0 / Android 16 (SDK 36)`。メールアドレスと token は含まない |
+
+通信の遮断には `cmd connectivity set-chain3-enabled true` と `set-package-networking-enabled false app.revanced.android.gms` を使い、確認後に両方を戻した。chain を有効にしないと遮断は効かず、MicroG-RE は token を取り直して成功する。MicroG-RE は期限内の token を保存して返すため、期限（発行から 1 時間）が切れるまでは失敗を再現できない。この確認を受けて、`NetworkError` の説明に「MicroG-RE が Google に接続できなかった」場合を加えた。
+
+最初の build では、`getString` が `BaseBundle` のメソッドとして参照されていたことと、bind 先を差し替える hook が同じ register に結果を置くことから、fail-safe により注入されず ERROR になった。どちらも判定を直した。

@@ -62,8 +62,7 @@ internal object RestrictedProcessingFingerprint : Fingerprint(
 @Suppress("unused")
 val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
-    description = "Starts the CBS News app opted out of analytics, the sale and sharing of your data, and " +
-        "targeted ads. The app's own privacy settings cannot turn them back on while this is applied.",
+    description = "Starts the app opted out of the sale and sharing of your data.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

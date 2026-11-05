@@ -69,3 +69,17 @@ internal object ServiceCheckFingerprint : Fingerprint(
     strings = listOf(string(SERVICE_CHECK_MESSAGE, StringComparisonType.CONTAINS)),
     custom = { method, _ -> isServiceCheckParameters(method.parameterTypes) },
 )
+
+// Added 2026-11-03 for the scoped (login-only) mode, see GmsCoreScope.kt. BaseGmsClient's
+// connect step (play-services-basement): it builds the service binding from the client's
+// start-service package, start-service action and dynamic-lookup getters, and throws this message
+// when a client asks for dynamic lookup with too low a minimum version. The message survives R8 in
+// every build seen; the getters themselves are R8-renamed, so GmsCoreScope reads their names from
+// this method's call sequence.
+internal const val BASE_GMS_CLIENT_DYNAMIC_LOOKUP_ERROR =
+    "the minimum apk version of this BaseGmsClient is too low to support dynamic lookup"
+
+internal object BaseGmsClientConnectFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf(string(BASE_GMS_CLIENT_DYNAMIC_LOOKUP_ERROR, StringComparisonType.CONTAINS)),
+)

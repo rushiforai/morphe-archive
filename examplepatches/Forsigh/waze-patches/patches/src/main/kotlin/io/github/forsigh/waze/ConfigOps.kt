@@ -102,3 +102,33 @@ internal fun recordLong(patchId: String, vararg entries: Pair<String, Long>) {
 internal fun recordString(patchId: String, vararg entries: Pair<String, String>) {
     entries.forEach { (key, value) -> Overrides.strings[key] = value }
 }
+
+/**
+ * Body of the static helper that pushes [entries] into Waze's native config store, by calling the
+ * same setter Waze's own settings screen uses. Written once per sync hook, never per key.
+ *
+ * `ConfigManager.isReady()` is checked first: the sync callbacks also fire before the native layer
+ * is up, and the setter throws there.
+ */
+internal fun nativeSyncBlock(entries: Map<String, Boolean>): String = buildString {
+    appendLine("invoke-static {}, Lcom/waze/ConfigManager;->isReady()Z")
+    appendLine("move-result v0")
+    appendLine("if-eqz v0, :native_done")
+    appendLine("invoke-static {}, Lcom/waze/ConfigManager;->getInstance()Lcom/waze/ConfigManager;")
+    appendLine("move-result-object v0")
+    appendLine("if-nez v0, :native_done")
+    entries.forEach { (key, value) ->
+        appendLine("sget-object v1, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/b;")
+        appendLine("if-nez v1, :native_done")
+        appendLine("const/4 v2, ${if (value) 1 else 0}")
+        appendLine("invoke-virtual {v0, v1, v2}, Lcom/waze/ConfigManager;->setConfigValueBool(Lcom/waze/config/b;Z)V")
+    }
+    appendLine(":native_done")
+    appendLine("return-void")
+}
+
+/** Registers a Boolean key that has to reach the native config store, not just the Java getter. */
+internal fun recordNativeBoolean(prefix: String, value: Boolean, vararg keys: String) {
+    keys.forEach { Overrides.nativeBooleans[it] = value }
+    println("${prefix}Native: native config writes = ${keys.joinToString()}")
+}

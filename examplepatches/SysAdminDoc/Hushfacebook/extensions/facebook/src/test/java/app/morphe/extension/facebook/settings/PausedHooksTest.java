@@ -110,9 +110,11 @@ import app.morphe.extension.facebook.comments.CommentBlock;
 import app.morphe.extension.facebook.comments.CommentSheetOptions;
 import app.morphe.extension.facebook.comments.FullHeightComments;
 import app.morphe.extension.facebook.comments.MetaAiSummaries;
+import app.morphe.extension.facebook.comments.ReactorBlock;
 import app.morphe.extension.facebook.composer.TagSuggestionsForTests;
 import app.morphe.extension.facebook.media.HdrBrightnessForTests;
 import app.morphe.extension.facebook.media.PictureInPictureForTests;
+import app.morphe.extension.facebook.media.CenteredFullscreenForTests;
 import app.morphe.extension.facebook.media.FeedSound;
 import app.morphe.extension.facebook.media.FrameStepForTests;
 import app.morphe.extension.facebook.media.PinchZoomForTests;
@@ -580,6 +582,15 @@ public class PausedHooksTest {
         // A tile in the stories row comes out round.
         probes.put(PatchFamily.STORIES_TRAY_CIRCLES,
                 Collections.singletonList(app.morphe.extension.facebook.stories.StoriesTrayCirclesForTests::rounds));
+        // A single tap in a story waits to see whether a second one comes.
+        probes.put(PatchFamily.STORY_TAPS,
+                Collections.singletonList(app.morphe.extension.facebook.stories.StoryTapsForTests::holdsATap));
+        // A story's credit line leaves its credits out, its suggested replies draw nothing and its card
+        // gets a progress bar.
+        probes.put(PatchFamily.STORY_VIEWER_CLEANUP, Arrays.asList(
+                app.morphe.extension.facebook.stories.StoryViewerCleanup::hideCredits,
+                app.morphe.extension.facebook.stories.StoryViewerCleanup::hideReplySuggestions,
+                app.morphe.extension.facebook.stories.StoryProgressBarForTests::drawsABar));
         // A photo's song gets the longer clip.
         probes.put(PatchFamily.STORY_MUSIC_LENGTH, Collections.singletonList(() -> StoryMusic.clipLength(15000) == 30000));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
@@ -790,7 +801,9 @@ public class PausedHooksTest {
                         Settings.INLINE_FEED_VIDEO_CONTROLS.save(true);
                     }
                 },
-                () -> TapToPlay.showReelPlayButton(false)));
+                () -> TapToPlay.showReelPlayButton(false),
+                // A full screen video starts with its details and comments folded away (#242).
+                CenteredFullscreenForTests::centersAVideo));
         // A long video left at 5:00 is saved, and its next start seeks back there.
         // A long video picks up where it was left, and a reel played on and a story viewed go on the
         // Recently watched list (#183).
@@ -956,6 +969,8 @@ public class PausedHooksTest {
                     }
                 },
                 CommentBlock::blockIcon,
+                // A reaction list row drops Facebook's shared friending button for its own (#271).
+                () -> ReactorBlock.sharedButton(new Object()) == null,
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("https://s.shopee.vn/9zKs")),
                 () -> CommentSheetOptions.hidesComment(new GraphQLComment("Big SPOILER inside")),
                 () -> CommentSheetOptions.incomingTypers(3) == 0,

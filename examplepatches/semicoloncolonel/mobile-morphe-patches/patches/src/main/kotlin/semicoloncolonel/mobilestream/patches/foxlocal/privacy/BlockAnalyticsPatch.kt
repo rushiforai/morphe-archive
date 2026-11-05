@@ -56,8 +56,7 @@ internal object FoxKitAnalyticsUploadFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops AppsFlyer, comScore, Conviva, Mux, Nielsen, Datadog, LiveRamp, Firebase Analytics, and " +
-        "Fox's own ad and app analytics. Breaking-news alerts, sign-in, and playback are left alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

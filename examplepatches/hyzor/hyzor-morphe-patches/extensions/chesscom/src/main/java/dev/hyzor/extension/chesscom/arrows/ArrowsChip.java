@@ -15,7 +15,7 @@ import android.widget.TextView;
 import dev.hyzor.extension.chesscom.Utils;
 
 /**
- * 4.10.23's bot game bar is a Compose bar the patch cannot add buttons to, so a small in-app chip
+ * The bot game's bar is a Compose bar the patch cannot add buttons to, so a small in-app chip
  * over the board does the same job: Arrows toggles the drawing mode, Clear removes the marks.
  */
 public final class ArrowsChip {
@@ -56,11 +56,11 @@ public final class ArrowsChip {
             root.addView(bar, params);
 
             arrows.setOnClickListener(view -> {
-                ArrowsBar.toggle(root);
+                Arrows.toggleDrawing(root);
                 refresh(activity, arrows, clear);
             });
             clear.setOnClickListener(view -> {
-                ArrowsBar.clearMarks(root);
+                Arrows.clear(root);
                 refresh(activity, arrows, clear);
             });
             refresh(activity, arrows, clear);
@@ -71,9 +71,9 @@ public final class ArrowsChip {
 
     private static void refresh(Activity activity, TextView arrows, TextView clear) {
         View decor = activity.getWindow().getDecorView();
-        boolean drawing = ArrowsBar.isDrawing(decor);
+        boolean drawing = Arrows.drawing(decor);
         arrows.setTextColor(drawing ? 0xFFFFB74D : Color.WHITE);
-        clear.setTextColor(ArrowsBar.hasMarks(decor) ? Color.WHITE : 0x66FFFFFF);
+        clear.setTextColor(Arrows.hasMarks(decor) ? Color.WHITE : 0x66FFFFFF);
     }
 
     private static TextView entry(Context context, String text) {

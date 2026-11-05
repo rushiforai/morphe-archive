@@ -56,7 +56,7 @@ class JetAudioSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "13.1.2",
+            version = "13.2.0",
             patchNames = setOf("Enable Pro"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

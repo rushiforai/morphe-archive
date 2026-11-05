@@ -32,6 +32,7 @@ import java.util.logging.Logger
 // car's energy model from an OEM ContentProvider; Maps Car acts as that source. Each hook below calls BydBatteryPatch, which
 // returns the original value unless BYD battery is turned on in Settings on a BYD car and its feature
 // switch is on. All hooks are required: a missing anchor, an ambiguity or an unknown layout fails the patch.
+// The battery on arrival at charging stops and at the destination is part of this patch (ArrivalBatteryHooks.kt).
 
 internal const val BYD_BATTERY_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/BydBatteryPatch;"
 private const val ENERGY_PROVIDER_CLASS = "app.morphe.extension.mapsautomotive.patches.BydEnergyModelProvider"
@@ -126,7 +127,8 @@ private val bydEnergyProviderPatch = resourcePatch {
 val bydBatteryPatch = bytecodePatch(
     name = "BYD battery (EV)",
     description = "Feeds the BYD battery into Maps' EV routing (battery on arrival, chargers). " +
-        "On by default on the tested BYD Dolphin, off with an \"untested\" notice on other BYD models; a Settings row turns it on or off.",
+        "On by default on the tested BYD Dolphin, off with an \"untested\" notice on other BYD models; a Settings row turns it on or off " +
+        "and sets the battery to arrive with at charging stops and at the destination.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -139,6 +141,7 @@ val bydBatteryPatch = bytecodePatch(
         redirectEnergyModelListener()
         acceptOwnEnergyProvider()
         readOwnEnergyModel()
+        useArrivalBattery()
         IncludedFeatures.settingsRows += BYD_BATTERY_CLASS
         IncludedFeatures.features += "byd_battery"
     }

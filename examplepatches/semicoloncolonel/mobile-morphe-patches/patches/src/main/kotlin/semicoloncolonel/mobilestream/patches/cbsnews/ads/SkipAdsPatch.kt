@@ -73,9 +73,7 @@ internal object ConfiantFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the banner ads, the ads before and during videos and recordings, and the " +
-        "Taboola recommendations under articles. Ads in the live streams are part of the broadcast and " +
-        "still play.",
+    description = "Removes the banner ads, the video ads, and the Taboola recommendations.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

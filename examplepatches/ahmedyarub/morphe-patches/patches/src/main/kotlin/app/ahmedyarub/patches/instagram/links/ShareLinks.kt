@@ -15,10 +15,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.getReference
 import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val LINKS_CLASS = "Lapp/ahmedyarub/extension/instagram/Links;"
 
@@ -45,10 +49,25 @@ private val URL_KEYS = mapOf(
     ProfileUrlResponseJsonParserFingerprint to "profile_to_share_url",
 )
 
-internal object StoryItemThirdPartySharingUrlResponseImplFingerprint : Fingerprint(
-    returnType = "Ljava/lang/String;",
-    definingClass = "StoryItemThirdPartySharingUrlResponseImpl;",
+/**
+ * The callback the story share request reports to. Since 454 the story URL has no response model
+ * of its own: the callback reads it out of the response's innerData and hands it to its own
+ * String method, the call [hookShareLinks] hooks.
+ */
+internal object ShareUrlCallbackFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Object;"),
+    custom = { method, _ ->
+        val instructions = method.implementation?.instructions ?: emptyList()
+        instructions.any { (it.getReference<FieldReference>())?.name == "innerData" } &&
+            instructions.any { it.isOwnUrlCall(method.definingClass) }
+    },
 )
+
+private fun Instruction.isOwnUrlCall(definingClass: String) =
+    opcode == Opcode.INVOKE_VIRTUAL && getReference<MethodReference>()?.let {
+        it.definingClass == definingClass && it.parameterTypes == listOf("Ljava/lang/String;") && it.returnType == "V"
+    } == true
 
 internal object LiveThirdPartySharingUrlResponseImplFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
@@ -88,19 +107,19 @@ internal fun hookShareLinks(extensionMethodName: String) {
         }
     }
 
-    // Returned directly by the response model.
-    listOf(
-        StoryItemThirdPartySharingUrlResponseImplFingerprint,
-        LiveThirdPartySharingUrlResponseImplFingerprint,
-    ).forEach { fingerprint ->
-        val match = fingerprint.match()
+    // Returned directly by the response model. Safe by construction: the fingerprint only
+    // matches methods returning String, so the register feeding return-object is a String.
+    LiveThirdPartySharingUrlResponseImplFingerprint.method.apply {
+        val returnInstruction = instructions.last { it.opcode == Opcode.RETURN_OBJECT }
 
-        // Safe by construction: the fingerprint only matches methods returning String, so
-        // the register feeding return-object is a String.
-        match.method.apply {
-            val returnInstruction = instructions.last { it.opcode == Opcode.RETURN_OBJECT }
+        addInstructions(returnInstruction.location.index, hook(returnInstruction.registersUsed[0]))
+    }
 
-            addInstructions(returnInstruction.location.index, hook(returnInstruction.registersUsed[0]))
-        }
+    // Handed to the story share callback. The URL is the String parameter of the call, and a
+    // branch lands on the call, so the hook takes over its label.
+    ShareUrlCallbackFingerprint.method.apply {
+        val call = instructions.single { it.isOwnUrlCall(definingClass) }
+
+        addInstructionsAtControlFlowLabel(call.location.index, hook(call.registersUsed[1]))
     }
 }

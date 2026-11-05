@@ -45,6 +45,20 @@ MicroG-RE は token を要求されたアカウントを名前だけで探し、
 LINE ではネットワークエラーのように見えて失敗する。Issue #12 の報告を受けた変更で、
 `andrewliang25/morphe-patches` も同じく選択画面を MicroG-RE へ向けている。端末本体に Google アカウントが無い端末でも選べる。
 
+### 変更（2026-11-04）
+
+MicroG-RE へ向けた token 要求が失敗したとき、失敗の種類を通知する。LINE は bind の失敗、MicroG-RE が返したエラー、
+`GoogleAuthException` のどれも `IOException` にまとめ、「LINEにアクセスできません」の 1 種類の表示にするため、
+利用者からの報告（Issue #12）では原因を切り分けられなかった。
+
+- `GoogleAuthUtil` が応答から `Error` を読んだ直後と、`Could not bind to service.` で例外を投げる直前に hook を呼ぶ。
+  値と処理の流れは変えない。MicroG-RE へ向けているときだけ通知する。
+- 通知に載せるのは、エラー文字列（英数字と一部の記号、80 文字まで）と MicroG-RE・LINE・Android の version だけとし、
+  メールアドレスと token は載せない。
+- アクセス許可の確認（`NeedPermission` など）は LINE が MicroG-RE の画面を開いて解決するので通知しない。
+- 同じ内容は 1 分に 1 回まで、通知は 1 つを置き換える。
+- 診断用の hook も `linimal.google-drive-backup` の必須 patch に加える。注入できなければ、他の MicroG-RE 関連の patch と同じく機能全体を無効にする。
+
 ## 結果
 
 - MicroG-RE を導入し、MicroG-RE に Google アカウントを追加した利用者は、再署名版でも Google ドライブへのバックアップと復元ができる（下記の PoC で確認）。

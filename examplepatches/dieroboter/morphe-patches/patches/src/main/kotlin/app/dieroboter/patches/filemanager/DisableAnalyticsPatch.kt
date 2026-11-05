@@ -3,7 +3,7 @@ package app.dieroboter.patches.filemanager
 import app.morphe.patcher.patch.bytecodePatch
 import app.dieroboter.patches.shared.Constants.COMPATIBILITY_FILE_MANAGER
 
-private const val APP_ANALYTICS = "Lax/A3/a;"
+private const val APP_ANALYTICS = "Lax/b8/a;"
 private const val FIREBASE_ANALYTICS = "Lcom/google/firebase/analytics/FirebaseAnalytics;"
 private const val APP_REPORTER = "Lcom/alphainventor/filemanager/ApplicationReporter;"
 
@@ -11,13 +11,13 @@ private const val STRING = "Ljava/lang/String;"
 private const val BUNDLE = "Landroid/os/Bundle;"
 
 /**
- * Disable analytics and telemetry (File Manager 3.8.3).
+ * Disable analytics and telemetry (File Manager 3.8.5).
  *
  * The developer already set firebase_analytics_collection_enabled=false in
  * the manifest, but the reporting plumbing remains and is what this patch
  * removes:
  *
- * - The app's own analytics forwarder (ax/A3/a): its event method c() is
+ * - The app's own analytics forwarder (ax/b8/a): its event method c() is
  *   the single funnel through which app code logs Firebase events. Its
  *   initializer b(Context) is deliberately kept - it creates and stores
  *   the FirebaseAnalytics instance - only the sink is no-oped.
@@ -31,7 +31,8 @@ private const val BUNDLE = "Landroid/os/Bundle;"
  *   Its init(Context) is kept - it also wires the app context and the
  *   shared logger other code uses; only the reporting start is a sink.
  *
- * Deliberately not touched: Firebase Remote Config (ax/A3/b). It is the
+ * Deliberately not touched: Firebase Remote Config (the forwarder's
+ * sibling wrapper). It is the
  * app's configuration channel - feature values and defaults are read from
  * it all over the app - not an event pipeline, and its fetch is woven
  * into an initializer whose stored defaults other methods rely on.

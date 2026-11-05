@@ -9,6 +9,7 @@ import android.media.Rating;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -71,6 +72,7 @@ public final class OriginIslandMusicCardPatch {
      * since it may not start to play from the background.
      */
     private static final long HIDE_AFTER_PLAY_DELAY_MS = 700;
+    private static final long OPEN_TO_PLAY_DELAY_MS = 2_000;
 
     /**
      * The card only listens for lyrics once it has connected, which takes a moment.
@@ -97,6 +99,7 @@ public final class OriginIslandMusicCardPatch {
      */
     private static boolean cardConnected;
     private static WeakReference<Activity> playOnLaunchActivityRef = new WeakReference<>(null);
+    private static boolean resumingFromClosed;
 
     /**
      * If the song is liked according to the playback state, or null if it does not tell.
@@ -178,6 +181,105 @@ public final class OriginIslandMusicCardPatch {
             }
         } catch (Exception ex) {
             Log.e(TAG, "onActivityResume failure", ex);
+        }
+    }
+
+    /**
+     * Injection point. Called as the session of the app is asked to play.
+     *
+     * The card starts the app and asks it to play if it is closed, but the app only loads what it
+     * last played for the play button of a headset, or as it opens.
+     *
+     * @return The callback if the app should be asked to play, or null if it is made to resume here.
+     */
+    public static synchronized Object onPlay(Object callback) {
+        try {
+            MediaSession session = sessionRef.get();
+            if (session == null || resumingFromClosed || hasSomethingToPlay(session)
+                    || Build.VERSION.SDK_INT < Build.VERSION_CODES.P
+                    || !MUSIC_CARD_PACKAGE.equals(session.getCurrentControllerInfo().getPackageName())) {
+                return callback;
+            }
+
+            Log.i(TAG, "Asked to play by the music card with nothing loaded");
+            resumingFromClosed = true;
+            Context context = getAppContext();
+            Runnable pressPlay = () -> {
+                pressPlay(session);
+                mainHandler.postDelayed(() -> openToPlay(session, context), OPEN_TO_PLAY_DELAY_MS);
+            };
+
+            // A copy of the app that is installed under another package has the app play instead.
+            if (RegularApp.isAvailable(context)) {
+                RegularApp.resume(context, pressPlay);
+                mainHandler.postDelayed(() -> resumingFromClosed = false, OPEN_TO_PLAY_DELAY_MS);
+            } else {
+                mainHandler.post(pressPlay);
+            }
+
+            return null;
+        } catch (Exception ex) {
+            Log.e(TAG, "onPlay failure", ex);
+            return callback;
+        }
+    }
+
+    /**
+     * @return The session of the app, or null if it has not made one yet.
+     */
+    static MediaSession getSession() {
+        return sessionRef.get();
+    }
+
+    /**
+     * @return The lyrics of what plays in the LRC format, or an empty string if it has none.
+     */
+    static synchronized String getLyrics() {
+        return lyrics;
+    }
+
+    /**
+     * @return The loop mode of the card for the play modes of the app, or 0 if they are not known yet.
+     */
+    static int getLoopMode() {
+        if (playModes == null || !playModes.isKnown()) {
+            return 0;
+        }
+        if (playModes.getShuffleMode() >= PlayModes.SHUFFLE_MODE_ALL) {
+            return LOOP_MODE_RANDOM;
+        }
+        return playModes.getRepeatMode() == PlayModes.REPEAT_MODE_ONE ? LOOP_MODE_SINGLE : LOOP_MODE_LIST;
+    }
+
+    private static boolean hasSomethingToPlay(MediaSession session) {
+        return session.getController().getMetadata() != null;
+    }
+
+    private static void pressPlay(MediaSession session) {
+        session.getController().dispatchMediaButtonEvent(
+                new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PLAY));
+        session.getController().dispatchMediaButtonEvent(
+                new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PLAY));
+    }
+
+    /**
+     * Opens the app, as the card does for the apps it knows, if the play button did not help.
+     */
+    private static synchronized void openToPlay(MediaSession session, Context context) {
+        try {
+            resumingFromClosed = false;
+            if (hasSomethingToPlay(session)) {
+                return;
+            }
+
+            Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
+            if (intent != null) {
+                Log.i(TAG, "Opening the app to play");
+                context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtra(EXTRA_LAUNCH_FROM, LAUNCH_FROM_MUSIC_CARD));
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "openToPlay failure", ex);
         }
     }
 
@@ -674,6 +776,7 @@ public final class OriginIslandMusicCardPatch {
             lyrics = lrc;
             // The app may still be about to publish the track these lyrics are for.
             mainHandler.post(OriginIslandMusicCardPatch::sendLyrics);
+            mainHandler.post(QQMusicApiService::onLyricsChanged);
         }
     }
 

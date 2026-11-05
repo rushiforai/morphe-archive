@@ -51,10 +51,7 @@ internal object NowtilusEnabledFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Blocks HBO Max's ad servers inside the app, the way a DNS ad blocker would, " +
-        "so the player falls back to its clean stream and the ad video does not play. On TV " +
-        "this sometimes shows \"Couldn't Play Content\" (error 39999) when a resumed episode " +
-        "reaches a mid-roll; if that happens, start the episode from the beginning.",
+    description = "Blocks HBO Max's ad servers, so videos play without ads.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

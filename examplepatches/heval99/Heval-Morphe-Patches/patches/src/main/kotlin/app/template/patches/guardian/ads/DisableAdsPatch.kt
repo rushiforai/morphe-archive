@@ -2,19 +2,74 @@ package app.template.patches.guardian.ads
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_GUARDIAN
 import app.template.patches.shared.addInstructionsWithLabelsChecked
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
-private const val GMA = "Lcom/google/android/gms/ads/"
-private val LOAD_AD_ERROR_INIT = listOf(
-    "I",
-    "Ljava/lang/String;",
-    "Ljava/lang/String;",
-    "${GMA}AdError;",
-    "${GMA}ResponseInfo;",
+private const val STRING = "Ljava/lang/String;"
+
+/**
+ * The calls the app's own "No consent given for google ads" failure makes. Since 6.240 R8 renames
+ * Google Mobile Ads' LoadAdError and AdListener (6.241: lt7 and tc, onAdFailedToLoad is tc.b), so
+ * the types are read from that block instead of being named.
+ */
+private class ConsentFailure(
+    val getAdListener: MethodReference,
+    val errorType: String,
+    val errorInit: MethodReference,
+    val onAdFailedToLoad: MethodReference,
 )
+
+private val Instruction.methodRef get() = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+private fun MutableMethod.consentFailure(): ConsentFailure {
+    val label = "$definingClass->$name"
+    val insns = implementation!!.instructions.toList()
+    val message = insns.indexOfFirst {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == NO_CONSENT_MESSAGE
+    }
+    if (message < 0) throw PatchException("$label: no \"$NO_CONSENT_MESSAGE\" failure")
+    val end = (message until insns.size).firstOrNull { insns[it].opcode == Opcode.RETURN_VOID }
+        ?: throw PatchException("$label: the consent failure does not return")
+    val block = insns.subList(message, end)
+
+    // new-instance <error> sits a few instructions before the message (the constructor's literals).
+    val errorType = (message - 1 downTo maxOf(0, message - 6))
+        .map { insns[it] }
+        .firstOrNull { it.opcode == Opcode.NEW_INSTANCE }
+        ?.let { ((it as ReferenceInstruction).reference as TypeReference).type }
+        ?: throw PatchException("$label: the consent failure creates no error object")
+    val errorInit = block.mapNotNull { it.methodRef }
+        .firstOrNull { it.definingClass == errorType && it.name == "<init>" }
+        ?: throw PatchException("$label: the consent failure does not construct $errorType")
+    val initParameters = errorInit.parameterTypes.map(CharSequence::toString)
+    if (initParameters.size != 5 || initParameters.take(3) != listOf("I", STRING, STRING) ||
+        initParameters.drop(3).any { !it.startsWith("L") }
+    ) {
+        throw PatchException("$label: unexpected $errorType constructor $initParameters")
+    }
+    val getAdListener = block.mapNotNull { it.methodRef }
+        .firstOrNull { it.name == "getAdListener" && it.parameterTypes.isEmpty() }
+        ?: throw PatchException("$label: the consent failure does not read the view's AdListener")
+    val onAdFailedToLoad = block.mapNotNull { it.methodRef }
+        .firstOrNull {
+            it.definingClass == getAdListener.returnType && it.returnType == "V" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(errorType)
+        }
+        ?: throw PatchException("$label: the consent failure does not report $errorType to ${getAdListener.returnType}")
+    return ConsentFailure(getAdListener, errorType, errorInit, onAdFailedToLoad)
+}
+
+private fun MethodReference.smali() =
+    "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
 /**
  * Every Google Ad Manager slot in The Guardian loads through one method, and the app's own "no
@@ -32,25 +87,13 @@ val disableAdsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GUARDIAN)
 
     execute {
-        // The GMA calls the step 1 prologue makes must exist in this SDK version.
-        val gmaCalls = mapOf(
-            "${GMA}LoadAdError;" to ("<init>" to LOAD_AD_ERROR_INIT),
-            "${GMA}BaseAdView;" to ("getAdListener" to emptyList()),
-            "${GMA}AdListener;" to ("onAdFailedToLoad" to listOf("${GMA}LoadAdError;")),
-        )
-        gmaCalls.forEach { (type, call) ->
-            val (name, parameters) = call
-            val found = classDefBy(type).methods.any { method ->
-                method.name == name && method.parameterTypes.map(CharSequence::toString) == parameters
-            }
-            if (!found) throw PatchException("$type->$name(${parameters.joinToString("")}) not found")
-        }
-
         // 1. The ad load reports a load failure to the view's AdListener and returns, the same
         // way its own consent and "Forced ad failure" paths do, before the GMA request and the
-        // Amazon APS bid. On failure the app's listeners set front advert cards and MPU views to
-        // GONE and mark interstitial pages as failed.
+        // Amazon APS bid (the app's only APS request). On failure the app's listeners set front
+        // advert cards and MPU views to GONE and mark interstitial pages as failed; none of them
+        // looks at the error code.
         LoadAdFingerprint.method.apply {
+            val failure = consentFailure()
             // p-register of the AdManagerAdView (second) parameter: static methods have no `this`.
             val first = if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
             val words = parameterTypes.map { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
@@ -60,17 +103,17 @@ val disableAdsPatch = bytecodePatch(
             addInstructionsWithLabelsChecked(
                 0,
                 """
-                    invoke-virtual/range {p$adView .. p$adView}, ${GMA}BaseAdView;->getAdListener()${GMA}AdListener;
+                    invoke-virtual/range {p$adView .. p$adView}, ${failure.getAdListener.smali()}
                     move-result-object v0
                     if-eqz v0, :skip
-                    new-instance v1, ${GMA}LoadAdError;
+                    new-instance v1, ${failure.errorType}
                     const/4 v2, 0x3
                     const-string v3, "Ads disabled"
                     const-string v4, "com.guardian"
                     const/4 v5, 0x0
                     const/4 v6, 0x0
-                    invoke-direct/range {v1 .. v6}, ${GMA}LoadAdError;-><init>(ILjava/lang/String;Ljava/lang/String;${GMA}AdError;${GMA}ResponseInfo;)V
-                    invoke-virtual {v0, v1}, ${GMA}AdListener;->onAdFailedToLoad(${GMA}LoadAdError;)V
+                    invoke-direct/range {v1 .. v6}, ${failure.errorInit.smali()}
+                    invoke-virtual {v0, v1}, ${failure.onAdFailedToLoad.smali()}
                     :skip
                     return-void
                 """

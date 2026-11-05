@@ -75,36 +75,26 @@ val blitzerMapPatch = bytecodePatch(
     // Note: This patch depends on bearinmind_patches:speedCamerasPatch which adds the SpeedCameras class
     // The dependency is resolved at runtime by Morphe Manager when both sources are enabled
 
-    // 1. Add the preference key constant to SpeedCameras.<clinit>
-    execute {
-        SpeedCamerasClassFingerprint.method.addInstructions(
-            -1, // append to end of <clinit>
-            """
-                .field public static final KEY_BLITZER_DE:Ljava/lang/String; = "blitzer_de_cameras"
-            """
-        )
-    }
-
     // 2. Hook moved() to call extension only when preference is enabled
-    execute {
-        BlitzerHookFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static {p0}, $EXTENSION_CLASS;->onLocationChanged(Landroid/location/Location;)V
-            """
-        )
-    }
+        execute {
+            BlitzerHookFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static {p0}, $EXTENSION_CLASS->onLocationChanged(Landroid/location/Location;)V
+                """
+            )
+        }
 
-    // 3. Add preference check in refresh() to initialize extension state
-    execute {
-        SpeedCamerasRefreshFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static {p0}, $EXTENSION_CLASS;->initialize(Landroid/content/Context;)V
-            """
-        )
+        // 3. Add preference check in refresh() to initialize extension state
+        execute {
+            SpeedCamerasRefreshFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static {p0}, $EXTENSION_CLASS->initialize(Landroid/content/Context;)V
+                """
+            )
+        }
     }
-}
 
 /**
  * Resource patch to add the Blitzer.de toggle to Speed Cameras preferences.

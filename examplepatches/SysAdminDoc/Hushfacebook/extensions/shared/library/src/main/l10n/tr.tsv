@@ -116,7 +116,7 @@ See-through bars	Saydam çubuklar
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
 The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. On Android 12 and newer the feed behind them is blurred.	Üst çubuk ve sekme çubuğu saydam olur, böylece kaydırırken akış arkalarından görünür. Android 12 ve sonrasında arkalarındaki akış bulanıklaştırılır.
 Rounded tab bar	Yuvarlak sekme çubuğu
-With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen.	Sekme çubuğu alttayken uçları yuvarlak olur ve biraz küçülür, ekranın alt kenarının hemen üstünde durur.
+With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen, with a soft highlight behind the tab you're on.	Sekme çubuğu alttayken uçları yuvarlak olur ve biraz küçülür, ekranın alt kenarının hemen üstünde durur ve açık olan sekmenin arkasında hafif bir vurgu görünür.
 # context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
 Force dark mode	Karanlık modu zorla
 # context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
@@ -1237,6 +1237,12 @@ With Stop Story auto-advance on, a finished story plays again from the start ins
 Save photo in post menus	Gönderi menülerinde fotoğrafı kaydet
 # context: summary of the Save photo in post menus switch; "Save any photo" is the label of the switch above it and "Save photo" is the menu item, so use their translations
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	Her fotoğrafı kaydet açıkken, fotoğraflı bir gönderinin üç nokta menüsünde de Fotoğrafı kaydet çıkar. Birden çok fotoğraf varsa her biri sırayla kaydedilir.
+Search photo	Fotoğrafla ara
+Search photo with	Fotoğrafla şununla ara
+Search photo in post menus	Gönderi menülerinde fotoğrafla ara
+With Save any photo on, a post with one photo gets Search photo in its three-dot menu. It hands the photo to the app you pick, such as Google Lens, to look up what's in it or copy its text.	Her fotoğrafı kaydet açıkken tek fotoğraflı bir gönderinin üç nokta menüsüne Fotoğrafla ara eklenir. Fotoğraf, içinde ne olduğunu bulmak ya da metnini kopyalamak için seçtiğin uygulamaya, örneğin Google Lens'e gider.
+No app on this phone can search with a photo	Bu telefonda fotoğrafla arama yapabilen bir uygulama yok
+Couldn't get this photo. Try again in a moment.	Bu fotoğraf alınamadı. Birazdan tekrar dene.
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	Fotoğrafı kaydet
 # context: primary save row for a Story that reshares a Reel
@@ -1363,6 +1369,11 @@ Hide reposts	Yeniden paylaşılan gönderileri gizle
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Başka bir gönderiyi paylaşan gönderileri, açıklamalı ya da açıklamasız, gizler. Özgün gönderiler kalır. Varsayılan olarak kapalı, çünkü gerçek bir akışta henüz denenmedi.
 Hide posts from Pages	Sayfalardan gelen gönderileri gizle
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Sayfaların yazdığı gönderileri gizler, takip ettiğin sayfalar da dahil. Arkadaşlarının ve grupların gönderileri kalır, bir arkadaşının paylaştığı sayfa gönderisi de kalır.
+Hide posts in other languages	Diğer dillerdeki gönderileri gizle
+Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Telefonun her gönderinin metni veya her reelin açıklaması için kendi tahminine göre, tutmadığın bir dilde yazılmış gönderileri ve Reels sekmesindeki reelleri gizler. Emin olmadıkları kalır ve hiçbir şey telefondan çıkmaz.
+Languages to keep	Tutulacak diller
+None picked, so posts in %s stay.	Hiçbiri seçilmedi, bu yüzden %s gönderiler kalır.
+Kept: %s	Tutulan: %s
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	Facebook'u kilitle
 Save crashes to Downloads	Çökmeleri İndirilenler'e kaydet
@@ -1739,6 +1750,14 @@ With Pinch to zoom on, the photo or story stays zoomed when you let go, and a st
 Double tap to zoom	Yakınlaştırmak için çift dokun
 # context: summary of that switch; "Pinch to zoom" is the label of the switch two rows above it, so use its translation; a story is the full-screen picture or video someone shares for a day
 With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, and double tap again to put it back. A single tap still opens the photo, a moment later.	Yakınlaştırmak için kıstır açıkken profildeki bir fotoğrafa çift dokunarak dokunduğun yere yakınlaşırsın, tekrar çift dokununca eski haline döner. Tek dokunuş fotoğrafı yine açar, sadece bir an sonra.
+# context: a switch under Pinch to zoom; with it on, the rest of the screen gets darker behind a zoomed photo or story
+Dim around a zoom	Yakınlaştırmanın çevresini karart
+# context: that switch's summary; "Pinch to zoom" is the label of the switch above it, so use its translation; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	Yakınlaştırmak için kıstır açıkken, yakınlaştırdıkça bir fotoğrafın veya hikayenin çevresindeki ekran kararır. Ekranın geri kalanını olduğu gibi bırakmak için kapat.
+# context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
+Keep videos playing while zoomed	Yakınlaştırırken videolar oynamaya devam etsin
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	Yakınlaştırmak için kıstır açıkken bir profilde veya Sayfada yakınlaştırdığın video oynamaya devam eder. Yakınlaştırılmış kalsın da açıksa videoyu duraklatmak için yakınlaştırmaya basılı tut, oynatmak için yine basılı tut. Hikayeler yakınlaştırırken hareketsiz kalır.
 No ads downloaded in advance	Önceden indirilen reklam yok
 No ad tracking	Reklam takibi yok
 No Facebook ads in other apps	Diğer uygulamalarda Facebook reklamı yok
@@ -2042,7 +2061,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Son resmi tutan uygulama hâlâ yanıt vermedi. Daha sonra tekrar dene.
 Inline feed video controls	Akış videosu denetimleri
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Akış videolarına oynat/duraklat düğmesi ekler. Tam ekran açmak için videonun kendisine dokunun. Canlı videolar ve reklamlar kendi denetimlerini korur. “Oynatmak için dokun” da açıksa Facebook'un kendi otomatik oynatma ayarı seçtiğiniz gibi kalır, böylece düğme görünebilir. Videolar yine de dokunmanızı bekler.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Akış videolarına oynat/duraklat düğmesi ekler. Tam ekran açmak için videonun kendisine dokunun. Reklamlar kendi denetimlerini korur. “Oynatmak için dokun” da açıksa Facebook'un kendi otomatik oynatma ayarı seçtiğiniz gibi kalır, böylece düğme görünebilir. Videolar yine de dokunmanızı bekler.
 Play feed video	Akış videosunu oynat
 Pause feed video	Akış videosunu duraklat
 Support	Destek
@@ -2129,6 +2148,13 @@ Reels order will be set to %1$s.	Reels sırası %1$s olarak ayarlanacak.
 Cast button on feed videos	Akış videolarında yayınla düğmesi
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Akış videolarına bir yayınla düğmesi ekler. Videoyu, Web Video Caster gibi sende olan bir yayın uygulamasına verir, o da TV'ne gönderir. Facebook'un artık kendi yayınlama özelliği yok.
 Cast this video	Bu videoyu yayınla
+Full player button on feed videos	Akış videolarında tam oynatıcı düğmesi
+Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Akış videolarına, videoyu Facebook'un kendi tam oynatıcısında tüm denetimleriyle açan bir düğme ekler. Canlı videolarda da bulunur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
+# context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
+Open full screen videos centered	Tam ekran videoları ortada aç
+# context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
+Videos you open full screen, from a comment or a link, start with their details and comments folded away, so the video sits in the middle of the screen. The arrow under it still brings them back.	Bir yorumdan ya da bağlantıdan tam ekran açtığın videolar ayrıntılar ve yorumlar katlanmış olarak başlar, böylece video ekranın ortasında durur. Altındaki ok onları yine geri getirir.
+Open in the full player	Tam oynatıcıda aç
 Seek bar on feed videos	Akış videolarında sarma çubuğu
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Akıştaki bir videonun altında bir çubuk gösterir. Sürükleyip bırakarak o noktaya atlayın. Canlı videolar ve reklamlar kendi denetimlerini korur. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.
 Feed video position	Akış videosu konumu
@@ -2287,6 +2313,10 @@ After the time you pick on Home, Feeds, Video and Reels, they're covered for a b
 Break after	Moladan önceki süre
 # context: a row under Take breaks that opens a list of times; it's how long a break lasts
 Break length	Mola süresi
+# context: a switch under Take breaks; with it on, watching 20 different reels also starts a break
+Also after 20 reels	20 reel'den sonra da
+# context: that switch's summary; a reel is one of Facebook's short videos, and it counts toward the 20 once it has played for 3 seconds
+A break also starts once you've watched 20 reels, if that comes first. A reel counts once it's played for 3 seconds, and ads and live videos don't count.	Önce hangisi gelirse, 20 reel izlediğinde de bir mola başlar. Bir reel 3 saniye oynatıldığında sayılır, reklamlar ve canlı videolar sayılmaz.
 # context: a choice in those lists
 10 minutes	10 dakika
 # context: a choice in those lists
@@ -2378,6 +2408,9 @@ After %1$d seconds	%1$d saniye sonra
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Dokununca soluk kalsın
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Ekran yanığı koruması düğmeleri soldurduktan sonra, Reels'te neye dokunur ya da kaydırırsan kaydır soluk kalırlar, sonraki reel'de de. Yine çalışırlar. Reels'ten çıkınca geri gelirler.
+# context: Reels: switch that shows the Reels screen and its video in black and white
+Show Reels in gray	Reels'i gri göster
+Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Reels ve düğmeleri siyah beyaz görünür, böylece bırakmak daha kolay olur. Akışın, hikayelerin, fotoğrafların ve sohbetlerin renkli kalır. Bir sonraki reel'den itibaren başlar ve Reels biraz daha fazla pil kullanır.
 # context: settings import preview; %1$s is a Burn-in guard choice such as Dim when idle
 Burn-in guard will be set to %1$s.	Ekran yanığı koruması %1$s olarak ayarlanacak.
 Burn-in guard will dim the Reels screen as soon as you stop touching it.	Ekran yanığı koruması, dokunmayı bıraktığın anda Reels ekranını soluklaştıracak.
@@ -2417,6 +2450,9 @@ Block button on comments	Yorumlarda Engelle düğmesi
 The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.	Yorumdaki beğenmeme düğmesi Engelle olur. Bir dokunuş, o kişi için Facebook'un kendi engelleme ekranını açar.
 Block	Engelle
 Couldn't open Block for this comment.	Bu yorum için Engelle açılamadı.
+Block button on reaction lists	Tepki listelerinde Engelle düğmesi
+In the list of people who reacted to a post, the button on each row, like Add friend or Message, becomes Block. One tap opens Facebook's own block screen.	Bir gönderiye tepki verenler listesinde her satırdaki düğme, örneğin Arkadaş ekle veya Mesaj, Engelle olur. Bir dokunuş Facebook'un kendi engelleme ekranını açar.
+Couldn't open Block for this person.	Bu kişi için Engelle açılamadı.
 this person	bu kişi
 Most viewed on profile Reels	Profil Reels'te en çok izlenenler
 A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count stays after the rest.	Bir profilin Reels sekmesi, en yeniler yerine en çok izlenen reels'leri önce listeler. Kapalıyken Facebook'un sırası korunur. Yalnızca sekmenin yüklediği reels'ler sıralanır ve izlenme sayısı olmayan bir reel diğerlerinin arkasında kalır.
@@ -2480,3 +2516,19 @@ A post you scrolled past shows up one more time, and scrolling past it again hid
 There's no Facebook link in what you shared.	Paylaştığın içerikte Facebook bağlantısı yok.
 Open in Facebook from the share menu	Paylaş menüsünde Open in Facebook
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Messenger'ın tarayıcısından ya da başka bir uygulamadan bir Facebook bağlantısı paylaşıp Open in Facebook'u seç, burada açılsın.
+GmsCore support	GmsCore desteği
+Version %1$s for Facebook %2$s	Facebook %2$s için sürüm %1$s
+Show all settings as a list	Tüm ayarları liste olarak göster
+Show settings by category	Ayarları kategoriye göre göster
+Story play button	Hikaye oynatma düğmesi
+Double tap for next story	Sonraki hikaye için çift dokun
+A tap in the middle of a story shows a play and pause button, like Reels. Taps on the sides still change stories.	Bir hikayenin ortasına dokunmak, Reels'teki gibi bir oynat ve duraklat düğmesi gösterir. Kenarlara dokunmak yine hikayeyi değiştirir.
+Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Hikayeler yalnızca çift dokunuşla değişir, sol taraf bir öncekine, başka her yer bir sonrakine geçer. Tek dokunuş hikayeyi duraklatır veya oynatır, ya da açıksa oynatma düğmesini gösterir.
+Pause story	Hikayeyi duraklat
+Play story	Hikayeyi oynat
+Hide song and effect credits	Şarkı ve efekt bilgilerini gizle
+Hide reply suggestions	Yanıt önerilerini gizle
+Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Hikayede paylaşan kişinin adının altındaki satırdan şarkı ve efekt bilgilerini kaldırır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
+Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Bir hikayenin altındaki önerilen yanıtlar satırını kaldırır. Yanıt kutusu kalır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
+Progress bar at the bottom	Altta ilerleme çubuğu
+Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Bir hikayenin altında, oynatıldıkça dolan ince bir çubuk gösterir, Reels'teki gibi.

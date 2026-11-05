@@ -50,6 +50,20 @@ MicroG-RE がその値を `client_sig` として Google に送り、token が発
 - MicroG-RE は token の要求を受けると、アカウント名で自分のアカウントを探し、無ければ `NetworkError` を返す。
   端末本体で選んだアカウントが MicroG-RE に無い場合の失敗はこれで説明できる。
 
+## 失敗時の表示（LINE 26.16.0、2026-11-04）
+
+- バックアップ設定でアカウントを選ぶと、`ub5/u0` が選んだ名前で `BackupRestoreRepository.o(String)` を呼ぶ。
+  `o()` は `c(String)`（`getUploadedBackupFile`）で Drive の既存バックアップを一覧し、token は `bw/a.a()` → `sq/h.b` で取る。
+- `o()` は `IOException` を `yb5.f.a` にし、`ub5/u0` は `R.string.e_network`（「LINEにアクセスできません。インターネット接続を確認してください。」）
+  を表示する。`bw.d`（UserRecoverableAuthIOException）は `yb5.f.b` になり、回復用の Intent を開く。
+- `sq/h.c(Context, Bundle)` は応答の `Error` を読み、`NetworkError`、`ServiceUnavailable`、`InternalError`、`AuthSecurityError`、
+  `AccountNotPresent` を `IOException` に、`NeedPermission` などを `UserRecoverableAuthException` に、それ以外を `GoogleAuthException` にする。
+  bind の失敗（`Could not bind to service.`）も `IOException`。`GoogleAuthException` は `bw/a` の interceptor が `GoogleAuthIOException` に包む。
+  つまり、許可の確認以外の token の失敗は、どれも同じネットワークエラーの表示になる。
+- MicroG-RE の `getTokenWithAccount` は、アカウント名が無いときと、Google への要求が失敗したとき（Google のエラー応答を含む）の
+  どちらも `NetworkError` を返す。理由は MicroG-RE のログ（`GmsAuthManager`、`GmsAccountErrorResolve`）にしか出ない。
+- Linimal は `sq/h.c` の `Error` を読んだ直後と、bind の失敗の直前に hook を入れ、MicroG-RE へ向けているときに通知する（ADR 0003 の 2026-11-04 の変更）。
+
 ## MicroG-RE 側
 
 - `PackageSpoofUtils` は、呼び出し元の manifest の meta-data `app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE` の値を、

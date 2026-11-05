@@ -18,7 +18,6 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 
 private const val MORE_KEY = "Lcom/chess/home/more/MoreMenuItemKey;"
-private const val MORE_VIEW_MODEL = "Lcom/chess/home/more/MoreViewModel;"
 private const val MORE_ENTRY = "${Constants.EXTENSION_PACKAGE}/settings/MoreEntry;"
 
 @Suppress("unused")
@@ -90,17 +89,10 @@ val settingsPatch = bytecodePatch(
             """,
         )
 
-        // Its tap opens Noam's Patches; the app handles every other row.
-        // 4.10.18 handles taps in MoreViewModel; 4.10.23 moved them into the Compose lambda.
-        val legacyViewModel = mutableClassDefByOrNull(MORE_VIEW_MODEL)
-        val clickMethod = if (legacyViewModel != null) {
-            legacyViewModel.methods.single {
-                it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } == listOf(MORE_KEY)
-            }
-        } else {
-            mutableClassDefBy(HomeMoreMenuClickFingerprint.originalClassDef).methods.single {
-                it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } == listOf(MORE_KEY)
-            }
+        // Its tap opens Noam's Patches; the app handles every other row. The taps go through the
+        // More screen's Compose lambda.
+        val clickMethod = mutableClassDefBy(HomeMoreMenuClickFingerprint.originalClassDef).methods.single {
+            it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } == listOf(MORE_KEY)
         }
         clickMethod.addInstructionsWithLabels(
             0,

@@ -1,6 +1,6 @@
 # LinkedIn
 
-Patches for the LinkedIn app (`com.linkedin.android`, version `4.1.1267`, APKM from APKMirror).
+Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.1267` and `4.1.1269`, APKM from APKMirror).
 
 ## Patches
 
@@ -18,6 +18,7 @@ Morphe Manager groups them by category.
 | Feed | Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
 | Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: focus mode, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
 | Feed | Disable double-tap like | On | Double tapping a post or photo no longer likes it. |
+| Feed | Expand posts | On | Adds a switch in Fakh Patches that shows posts expanded by default. Tapping the text collapses them. Starts off. |
 | Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
 | Privacy | Open links directly | On | Opens outside links without LinkedIn's warning page, including `lnkd.in` short links. |
 | Privacy | Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
@@ -49,13 +50,13 @@ chat as read or unread from the chat list still works.
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o linkedin-patched.apk <LinkedIn 4.1.1267 APKM>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o linkedin-patched.apk <LinkedIn 4.1.1269 APKM>
 ```
 
 ## Getting the APK
 
-Download the `4.1.1267` APKM from APKMirror. Morphe Manager looks the app up on APKMirror itself,
-so it can take you to that page.
+Download the `4.1.1269` APKM from APKMirror; `4.1.1264` and `4.1.1267` work too. Morphe Manager looks the app up on
+APKMirror itself, so it can take you to that page.
 
 ## Credits
 

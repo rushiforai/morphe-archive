@@ -33,11 +33,6 @@ public final class Premium {
         return enabled() ? null : offer;
     }
 
-    /** Home toolbar: no Premium icon in place of the league or bell icon. */
-    public static Object toolbarIcon(Object placement) {
-        return enabled() ? null : placement;
-    }
-
     /** The redesigned Home's toolbar: no diamond. */
     public static boolean showDiamond(boolean show) {
         return show && !enabled();
@@ -77,7 +72,7 @@ public final class Premium {
 
     /**
      * A mutable copy of a settings row list with the Upgrade row filtered, or null for null. The
-     * return type is ArrayList because the 4.10.23 settings adapter keeps its combined rows in an
+     * return type is ArrayList because the settings adapter keeps its combined rows in an
      * ArrayList field: writing a plain List there fails the DEX verifier and opening Settings
      * crashes. ArrayList is assignable to both that field and the List fields.
      */

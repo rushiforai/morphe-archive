@@ -33,7 +33,7 @@ public final class InitProvider extends ContentProvider {
             final long start = SystemClock.uptimeMillis();
             HevalSettings.init(context);
             CrashGuard.onProcessStart(context);
-            Log.i(TAG, "Heval Controls started in " + (SystemClock.uptimeMillis() - start) + " ms (paused="
+            Log.i(TAG, "Patch settings started in " + (SystemClock.uptimeMillis() - start) + " ms (paused="
                     + HevalSettings.isPaused() + ", safeMode=" + HevalSettings.isSafeMode()
                     + ", engineFailed=" + HevalSettings.isEngineFailed() + ")");
             if (CrashGuard.enteredSafeModeThisStart()) {
@@ -42,8 +42,8 @@ public final class InitProvider extends ContentProvider {
                     @Override
                     public void run() {
                         try {
-                            Toast.makeText(app, "Heval Controls turned off its features after repeated crashes. "
-                                    + "Open Heval Controls to resume.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(app, "Patch settings turned off its features after repeated crashes. "
+                                    + "Open Patch settings to resume.", Toast.LENGTH_LONG).show();
                         } catch (Throwable ignored) {
                             // A notice is optional.
                         }
@@ -52,7 +52,7 @@ public final class InitProvider extends ContentProvider {
             }
         } catch (Throwable failure) {
             // Never break the app's startup: hooks fall back to their defaults or stock behaviour.
-            Log.e(TAG, "Heval Controls could not start: " + failure.getClass().getName());
+            Log.e(TAG, "Patch settings could not start: " + failure.getClass().getName());
         }
         return true;
     }

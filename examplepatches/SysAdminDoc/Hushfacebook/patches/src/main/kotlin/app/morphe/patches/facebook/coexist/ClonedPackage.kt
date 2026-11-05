@@ -268,12 +268,17 @@ internal fun Method.builtAuthorityResults(packageName: String, authorities: Set<
 /**
  * Hands every authority Facebook's code puts together from BuildConstants' name
  * ([builtAuthorityResults]) to the extension, which answers the running app's. Answers how many it
- * handed over. The classes come from the string index by each suffix of an authority under
- * [packageName], and the extension is left alone.
+ * handed over. The classes come from the string index by the literals that put one together
+ * ([buildsOwnAuthority]): each suffix of an authority under [packageName], alone or after a %s, and
+ * any content:// address starting with a %s and a dot, which may go on with a path. A search by
+ * suffix read the whole index once per authority (#216); these read it at most once. The extension
+ * is left alone.
  */
 internal fun BytecodePatchContext.routeBuiltAuthorities(packageName: String, authorities: Set<String>): Int {
-    val owners = authorities.filter { it.startsWith("$packageName.") }
-        .flatMap { classDefByStrings(it.removePrefix(packageName), StringComparisonType.ENDS_WITH) }
+    val suffixes = authorities.filter { it.startsWith("$packageName.") }.map { it.removePrefix(packageName) }
+    val owners = suffixes.flatMap { suffix -> listOf(suffix, "%s$suffix") }
+        .flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }
+        .plus(classDefByStrings("$CONTENT%s.", StringComparisonType.STARTS_WITH))
         .filterNot { it.type.startsWith(EXTENSION_ROOT) }
         .distinctBy { it.type }
         .filter { owner -> owner.methods.any { it.builtAuthorityResults(packageName, authorities).isNotEmpty() } }
@@ -639,8 +644,10 @@ private val clonedPackageManifestPatch = resourcePatch {
     }
 
     finalize {
+        // The stock list is read before any patch runs, so the providers patches add since (Search
+        // photo's) are read here, still under the stock package until this moves them.
         val followed = document("AndroidManifest.xml").use {
-            it.followRenamedPackage(packageMetadata.packageName, stockAuthorities, stockPermissions)
+            it.followRenamedPackage(packageMetadata.packageName, stockAuthorities + it.ownAuthorities(packageMetadata.packageName), stockPermissions)
         } ?: return@finalize
         patchLog.info(
             "The package was renamed, so ${followed.declarations} permission declaration(s) still under the old name " +

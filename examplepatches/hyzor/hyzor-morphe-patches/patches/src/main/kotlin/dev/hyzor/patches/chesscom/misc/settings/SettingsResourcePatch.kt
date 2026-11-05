@@ -21,7 +21,7 @@ internal val settingsResourcePatch = resourcePatch(
                 resources.appendChild(
                     document.createElement("string").apply {
                         setAttribute("name", "morphe_settings_title")
-                        textContent = "Noam\\'s Patches"
+                        textContent = "Noam\\'s Patches · hyzor"
                     },
                 )
             }

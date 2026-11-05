@@ -17,8 +17,12 @@ import org.junit.Test;
 
 public class RegistryCodecTest {
     static String fixture() throws IOException {
-        try (InputStream in = RegistryCodecTest.class.getClassLoader().getResourceAsStream("registry-v1.txt")) {
-            assertNotNull("registry-v1.txt fixture missing", in);
+        return fixture("registry-v1.txt");
+    }
+
+    static String fixture(String name) throws IOException {
+        try (InputStream in = RegistryCodecTest.class.getClassLoader().getResourceAsStream(name)) {
+            assertNotNull(name + " fixture missing", in);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buffer = new byte[4096];
             int read;
@@ -121,6 +125,78 @@ public class RegistryCodecTest {
         assertTrue(result.supported);
         assertEquals(1, result.features.size());
         assertEquals(Collections.emptyList(), result.features.get(0).dependencies);
+    }
+
+    @Test
+    public void theSwitchOnlyFixtureStillDecodesAsSwitches() throws IOException {
+        // Registries written before list settings existed decode exactly as before.
+        for (Feature feature : RegistryCodec.decode(fixture()).features) {
+            assertEquals(Feature.KIND_SWITCH, feature.kind);
+            assertFalse(feature.isList());
+        }
+    }
+
+    @Test
+    public void decodesTheListFixture() throws IOException {
+        RegistryCodec.Result result = RegistryCodec.decode(fixture("registry-v1-lists.txt"));
+        assertEquals(1, result.version);
+        assertTrue(result.supported);
+        assertEquals(0, result.skipped);
+        assertEquals(3, result.features.size());
+
+        Feature ads = result.features.get(0);
+        assertFalse(ads.isList());
+        assertTrue(ads.defaultEnabled);
+
+        Feature countries = result.features.get(1);
+        assertEquals("demo.hidden_countries", countries.id);
+        assertEquals("Hidden countries", countries.name);
+        assertEquals("Leagues", countries.category);
+        assertTrue(countries.isList());
+        assertEquals(Feature.KIND_LIST, countries.kind);
+        assertFalse(countries.defaultEnabled);
+        assertTrue(countries.restartRequired);
+        assertFalse(countries.buildTimeOnly);
+        assertEquals(Collections.emptyList(), countries.dependencies);
+
+        Feature teams = result.features.get(2);
+        assertTrue(teams.isList());
+        assertFalse(teams.restartRequired);
+        assertEquals(Collections.singletonList("demo.hide_ads"), teams.dependencies);
+    }
+
+    @Test
+    public void listRecordRules() {
+        RegistryCodec.Result result = RegistryCodec.decode("hevalcontrols-registry:1\n"
+                + "list.on\tOn\t\tX\t1\t0\t0\t\tlist\n"          // a list never starts on
+                + "list.patch_time\tP\t\tX\t0\t0\t1\t\tlist\n"   // a list cannot be build-time-only
+                + "kind.unknown\tU\t\tX\t1\t0\t0\t\tslider\n"     // unknown kind: a switch, as before
+                + "kind.empty\tE\t\tX\t0\t0\t0\t\t\n"             // empty kind: a switch
+                + "list.more\tM\t\tX\t0\t0\t0\t\tlist\tlater\n"); // fields after the kind are ignored
+        assertEquals(1, result.skipped);
+        assertEquals(4, result.features.size());
+        Feature on = result.features.get(0);
+        assertTrue(on.isList());
+        assertFalse(on.defaultEnabled);
+        assertFalse(result.features.get(1).isList());
+        assertTrue(result.features.get(1).defaultEnabled);
+        assertFalse(result.features.get(2).isList());
+        assertTrue(result.features.get(3).isList());
+    }
+
+    @Test
+    public void listFeatureConstructorRules() {
+        Feature legacy = new Feature("x.a", "A", "", "X", true, false, false, null);
+        assertEquals(Feature.KIND_SWITCH, legacy.kind);
+        Feature list = new Feature("x.b", "B", "", "X", true, false, false, null, Feature.KIND_LIST);
+        assertTrue(list.isList());
+        assertFalse(list.defaultEnabled);
+        try {
+            new Feature("x.c", "C", "", "X", false, false, true, null, Feature.KIND_LIST);
+            throw new AssertionError("a build-time-only list was accepted");
+        } catch (IllegalArgumentException expected) {
+            // fine
+        }
     }
 
     @Test

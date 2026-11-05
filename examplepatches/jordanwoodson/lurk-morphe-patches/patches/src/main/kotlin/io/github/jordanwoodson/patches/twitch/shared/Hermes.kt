@@ -216,23 +216,27 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
 
     /**
      * Turns the function's single read of [property] (GetById) into `false` in the same register, so
-     * a prop such as `onShare` or `hasBoards` reads as false while every other prop and hook stays.
+     * a prop such as `onShare` or `hasLeaderboard` reads as false while every other prop and hook stays.
      */
     fun falseProperty(functionName: String, property: String, key: String, defaultEnabled: Boolean = true) {
         val function = function(functionName)
         val id = stringId(property)
-        ensure(id in 0..65535, "$property needs a larger Hermes instruction")
-        val matches = (0..function.body.size - 6).filter { offset ->
-            (function.body[offset].toInt() and 255) == 0x45 &&
-                (function.body[offset + 4].toInt() and 255) == (id and 255) &&
-                (function.body[offset + 5].toInt() and 255) == (id ushr 8)
+        ensure(id >= 0, "$property is not a string of the bundle")
+        // GetById (0x45) takes a 16-bit string ID; past 65535 the compiler emits GetByIdLong (0x46, 32-bit).
+        val long = id > 65535
+        val size = if (long) 8 else 6
+        val idBytes = if (long) 4 else 2
+        val matches = (0..function.body.size - size).filter { offset ->
+            (function.body[offset].toInt() and 255) == (if (long) 0x46 else 0x45) &&
+                (0 until idBytes).all { i -> (function.body[offset + 4 + i].toInt() and 255) == ((id ushr (8 * i)) and 255) }
         }
         val offset = matches.singleOrNull() ?: fail("expected one $property read in $functionName")
         val register = function.body[offset + 1]
         ensure((register.toInt() and 255) >= function.numberRegisters + function.nonPointerRegisters,
             "$property result has no general register")
-        replace(function, key, function.body.copyOfRange(offset, offset + 6),
-            byteArrayOf(0x96.toByte(), register, 0x96.toByte(), register, 0x96.toByte(), register), defaultEnabled)
+        // LoadConstFalse (0x96) in the read's register, repeated over the read's whole length.
+        replace(function, key, function.body.copyOfRange(offset, offset + size),
+            ByteArray(size) { i -> if (i % 2 == 0) 0x96.toByte() else register }, defaultEnabled)
     }
 
     fun replace(functionName: String, key: String, before: ByteArray, after: ByteArray,
@@ -452,7 +456,7 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
     private fun align(offset: Int) = (offset + 3) and -4
 
     companion object {
-        const val SOURCE_SHA256 = "059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583"
+        const val SOURCE_SHA256 = "b8d3338ca8f7ec5e4b9182baac0b5dcd24b96986483cb4d805bc5293e14b0c01"
 
         /**
          * Byte length of each v98 instruction, by opcode, in base 36. Generated from hermes-dec 0.1.7's

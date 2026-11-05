@@ -116,12 +116,15 @@
 -keep class semicoloncolonel.mobilestream.extension.whitehouse.FeedFilter { *; }
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.ProxyRouter { *; }
 -keep class semicoloncolonel.mobilestream.extension.whitehouse.PromoHider { *; }
+-keep class semicoloncolonel.mobilestream.extension.yttv.MembershipUpsellFilter { public static *; }
 -keep class semicoloncolonel.mobilestream.extension.recgov.HiddenDetails { public static *; }
 
 # YouTube TV — "Skip ads". onCuePointProvider() is called only from injected
 # smali in PlaybackControllerWrapper.
+# setController() is called from the same smali, and keepLiveDai() and the
+# name getters are overwritten by patches, so R8 must not fold their results.
 -keep class semicoloncolonel.mobilestream.extension.yttv.ads.YttvDaiDisabler {
-    public static void onCuePointProvider(java.lang.Object);
+    public static *;
 }
 
 # YouTube TV and Moviebase — "GmsCore support". checkGmsCore() is called only
@@ -174,3 +177,13 @@
 -keep class semicoloncolonel.mobilestream.extension.moviebase.UpsellFilter {
     public static boolean isAutomatic(java.lang.Object);
 }
+
+# Xumo Play — "Mask live ad breaks". playlist() and attach() are called only
+# from injected smali, and positionMethod() / volumeMethod() are overwritten by
+# the patch, so R8 must keep them as they are and not fold their result.
+-keep class semicoloncolonel.mobilestream.extension.xumo.XumoLiveMask { public static *; }
+
+
+# YouTube TV — "Mask live ad breaks". cuepoints() is called only from injected
+# smali in the cue-point callback.
+-keep class semicoloncolonel.mobilestream.extension.yttv.ads.YttvLiveMask { public static *; }

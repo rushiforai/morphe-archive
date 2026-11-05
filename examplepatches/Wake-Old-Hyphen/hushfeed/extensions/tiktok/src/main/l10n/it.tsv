@@ -12,6 +12,8 @@ Importing new history ended Undo for the earlier clear. You can clear the import
 %1$d settings in that file can't be restored here and were skipped	%1$d impostazioni del file non possono essere ripristinate qui e sono state saltate
 Import watch history	Importa cronologia di visualizzazione
 Keep the language picked in TikTok	Mantieni la lingua scelta in TikTok
+Freeze TikTok's experiments	Blocca gli esperimenti di TikTok
+TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.	I server di TikTok gli mandano di continuo nuove impostazioni, ed è così che prova nuovi layout e funzioni sulle persone. Con questa opzione attiva, TikTok tiene quelle che ha ora e ignora le nuove. Se qualcosa in TikTok smette di funzionare, disattivala così può ricevere le correzioni.
 Nothing is playing to speed up	Nessun video in riproduzione da accelerare
 One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.	Un codice lingua, come en o es. I commenti e le didascalie che TikTok traduce escono in questa lingua invece che in quella dell'app. Lascialo vuoto per tenere la scelta di TikTok.
 MP3 (.mp3), plays anywhere	MP3 (.mp3), si riproduce ovunque
@@ -1753,7 +1755,7 @@ Play sounds TikTok pulled	Riproduci i suoni rimossi da TikTok
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	Riproduce l'audio dei video che TikTok ha silenziato perché il loro suono è stato rimosso per copyright o nella tua regione. TikTok potrebbe continuare a indicare il suono come non disponibile.
 Match region fields in requests	Allinea i campi regione nelle richieste
 Keep the For You feed on your real SIM	Mantieni Per te sulla SIM reale
-Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	La ricerca degli sticker e il resto di TikTok vedono ancora la SIM qui sopra, mentre Per te chiede video con il paese e l'operatore della SIM del tuo telefono. Il tuo indirizzo IP e la cronologia dell'account contano ancora.
+With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	Con la SIM cambiata, TikTok può continuare a mostrarti video che hai già visto. Attivalo per evitarlo. La ricerca degli sticker e il resto di TikTok vedono ancora la SIM qui sopra, mentre Per te chiede video con il paese e l'operatore della SIM del tuo telefono. Il tuo indirizzo IP e la cronologia dell'account contano ancora.
 Show exact LIVE viewer counts	Mostra il numero esatto di spettatori LIVE
 A LIVE room shows how many people are watching as a rounded number like 1.2K. This shows the exact count instead.	Una stanza LIVE mostra quante persone guardano con un numero arrotondato come 1,2K. Questo mostra invece il numero esatto.
 Offer LIVE quality in more rooms	Offri la qualità LIVE in più stanze
@@ -2449,3 +2451,5 @@ Hide profile visits	Nascondi le visite ai profili
 You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.	Non comparirai nell'elenco delle visualizzazioni del profilo delle persone di cui apri il profilo. Serve la modalità fantasma attiva.
 Hide typing	Nascondi la digitazione
 People you chat with won't see that you're typing. Needs Ghost mode on.	Le persone con cui chatti non vedranno che stai scrivendo. Serve la modalità fantasma attiva.
+Show all settings as a list	Mostra tutte le impostazioni in un elenco
+Show settings by category	Mostra le impostazioni per categoria

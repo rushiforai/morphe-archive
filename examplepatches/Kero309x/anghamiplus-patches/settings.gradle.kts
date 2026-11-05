@@ -1,4 +1,4 @@
-rootProject.name = "anghamiplus-patches"
+rootProject.name = "Kero309x-patches"
 
 pluginManagement {
     repositories {

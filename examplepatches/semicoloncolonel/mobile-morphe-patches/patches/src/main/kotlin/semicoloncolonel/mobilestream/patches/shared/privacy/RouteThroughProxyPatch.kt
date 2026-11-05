@@ -19,9 +19,7 @@ private const val EXTENSION_PACKAGE = "Lsemicoloncolonel/mobilestream/extension/
 @Suppress("unused")
 val routeThroughProxyPatch = bytecodePatch(
     name = "Route traffic through a proxy",
-    description = "Sends the app's network traffic through a proxy you choose, such as Orbot for Tor. " +
-        "If the proxy is not running, the app cannot connect. Web pages shown inside the app " +
-        "do not use the proxy.",
+    description = "Sends the app's network traffic through a proxy you choose, such as Orbot.",
     default = false,
 ) {
     compatibleWith(WhiteHouse.COMPATIBILITY)

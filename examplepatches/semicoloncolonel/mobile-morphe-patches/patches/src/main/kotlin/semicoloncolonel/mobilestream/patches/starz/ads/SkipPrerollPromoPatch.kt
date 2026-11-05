@@ -28,8 +28,7 @@ internal object CurrentPrerollFingerprint : Fingerprint(
 @Suppress("unused")
 val skipPrerollPromoPatch = bytecodePatch(
     name = "Skip pre-roll promo",
-    description = "Starts Starz titles without the promo for other Starz shows that plays first, so " +
-        "there is nothing to skip. Experimental.",
+    description = "Starts titles without the promo for other Starz shows that plays first.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

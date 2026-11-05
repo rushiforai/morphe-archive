@@ -55,8 +55,7 @@ internal object PlayerStopFingerprint : Fingerprint(
 @Suppress("unused")
 val maskAdsPatch = bytecodePatch(
     name = "Mask ads",
-    description = "Covers the ads in free movies and shows with a black screen and mutes them " +
-        "while they play. The ads still play, since free titles only stream after them.",
+    description = "Covers the ads in free titles with a \"We'll be right back!\" screen and mutes them.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

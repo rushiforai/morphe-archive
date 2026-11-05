@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
@@ -24,6 +25,30 @@ internal fun methodFingerprint(
     parameters = parameters,
     returnType = returnType,
 )
+
+/** A method declaration, used to pin targets whose obfuscated names differ per app version. */
+internal data class MethodTarget(
+    val definingClass: String,
+    val name: String,
+    val parameters: List<String> = emptyList(),
+    val returnType: String? = null,
+) {
+    fun fingerprint() = methodFingerprint(definingClass, name, parameters, returnType)
+}
+
+/**
+ * Picks the targets for the Yanosik version being patched.
+ *
+ * Obfuscated class and method names change on every release, so each patch keeps one set of targets
+ * per supported version, keyed by version name. Fails clearly instead of matching a wrong class that
+ * happens to reuse an old obfuscated name.
+ */
+internal fun <T> BytecodePatchContext.targetsFor(targetsByVersion: Map<String, T>): T {
+    val version = packageMetadata.versionName
+    return targetsByVersion[version] ?: throw PatchException(
+        "Yanosik $version is not supported. Supported versions: ${targetsByVersion.keys.joinToString()}",
+    )
+}
 
 /** Replaces the whole body of a method with [smali]. */
 internal fun MutableMethod.replaceBody(smali: String) {

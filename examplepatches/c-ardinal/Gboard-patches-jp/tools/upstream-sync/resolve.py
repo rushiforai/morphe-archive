@@ -16,6 +16,7 @@ ALLOWED_CONFLICTS = {"CHANGELOG.md", "gradle.properties", "patches-bundle.json",
 EN_FEATURES = "### ✨ New Features"
 ZH_FEATURES = "### ✨ 新功能"
 ZH_FIXES = "### 🐛 修復"
+EN_FIXES = "### 🐛 Bug Fixes"
 EN_PLACEHOLDER_BULLET = "* **Gboard:** fill missing Japanese settings strings with English placeholders (translation pending)."
 ZH_PLACEHOLDER_BULLET = "* **Gboard:** 缺少日文的設定文字暫以英文填入（待翻譯）。"
 JP_HEADING = re.compile(r"^## \[(?P<base>[^\]]+?)-jp\.\d+\]")
@@ -68,8 +69,56 @@ def append_bullet(body, heading, bullet, before=None):
     return "\n".join(lines[: last + 1] + ([""] if last == start - 1 else []) + [bullet] + lines[last + 1 :])
 
 
-def new_section_body(upstream_sections, version, has_placeholders):
-    body = section_body(upstream_sections, version)
+def version_key(version):
+    return tuple(int(part) for part in version.split("."))
+
+
+def heading_order(heading):
+    """Sort English headings before Chinese ones, features before fixes before anything else."""
+    is_zh = bool(re.search(r"[\u3040-\u30ff\u4e00-\u9fff]", heading))
+    rank = 0 if heading in (EN_FEATURES, ZH_FEATURES) else 1 if heading in (EN_FIXES, ZH_FIXES) else 2
+    return (is_zh, rank)
+
+
+def merge_bodies(bodies):
+    """Merge changelog section bodies (newest first) into one, grouping bullets under shared headings."""
+    groups = {}
+    for body in bodies:
+        heading = None
+        for line in body.split("\n"):
+            if line.startswith("### "):
+                heading = line.strip()
+                groups.setdefault(heading, [])
+            elif heading and line.strip():
+                groups[heading].append(line)
+    ordered = sorted(groups, key=heading_order)
+    return "\n\n".join(f"{h}\n\n" + "\n".join(groups[h]) for h in ordered if groups[h])
+
+
+def released_since(upstream_sections, previous, version):
+    """Bodies of upstream stable releases newer than `previous` up to `version`, newest first."""
+    picked = []
+    for section in upstream_sections:
+        base = heading_base(section)
+        if not base or not re.fullmatch(r"\d+\.\d+\.\d+", base):
+            continue
+        if version_key(base) <= version_key(version) and (previous is None or version_key(base) > version_key(previous)):
+            picked.append(section.split("\n", 1)[1].strip("\n") if "\n" in section else "")
+    return picked
+
+
+def last_fork_base(fork_text):
+    """Upstream version of the newest fork release in the fork's changelog, e.g. '4.0.0'."""
+    for section in split_sections(fork_text)[1]:
+        match = JP_HEADING.match(section)
+        if match and re.fullmatch(r"\d+\.\d+\.\d+", match.group("base")):
+            return match.group("base")
+    return None
+
+
+def new_section_body(upstream_sections, version, has_placeholders, previous=None):
+    bodies = released_since(upstream_sections, previous, version) if previous else []
+    body = merge_bodies(bodies) if len(bodies) > 1 else section_body(upstream_sections, version)
     if has_placeholders:
         body = append_bullet(body, EN_FEATURES, EN_PLACEHOLDER_BULLET, before=None)
         body = append_bullet(body, ZH_FEATURES, ZH_PLACEHOLDER_BULLET, before=ZH_FIXES)
@@ -151,10 +200,10 @@ def pr_body(tag, version, resolved, placeholders):
 def release_notes(tag, version):
     prerelease = version.rsplit(".", 1)[0] + ".0"
     return (
-        f"Pre-release build of the upstream `{tag}` sync for testing on a device.\n\n"
-        f"The tag is `v{prerelease}`, but the bundled files already say `{version}`: "
-        f"`v{version}` will be tagged after the sync PR is merged.\n\n"
-        f"Upstream changes: see the `{version}` section of CHANGELOG.md in the sync branch.\n"
+        f"上流 `{tag}` の同期を端末で試すためのプレリリース版です。\n\n"
+        f"タグは `v{prerelease}` ですが、同梱ファイルのバージョンは既に `{version}` になっています。"
+        f"同期 PR のマージ後に `v{version}` のタグを付けて正式にリリースします。\n\n"
+        f"変更内容は、同期ブランチの CHANGELOG.md にある `{version}` の項目をご覧ください。\n"
     )
 
 
@@ -185,9 +234,11 @@ def resolve(repo, tag, slug, out):
     write_text(out / "placeholders.txt", "".join(f"{key}\n" for key in placeholders))
 
     upstream_changelog = git(repo, "show", "MERGE_HEAD:CHANGELOG.md")
-    body = new_section_body(split_sections(upstream_changelog)[1], upstream_ver, bool(placeholders))
+    fork_changelog = git(repo, "show", "HEAD:CHANGELOG.md")
+    body = new_section_body(split_sections(upstream_changelog)[1], upstream_ver, bool(placeholders),
+                            previous=last_fork_base(fork_changelog))
     heading = f"## [{version}](https://github.com/{slug}/compare/v{upstream_ver}...v{version}) ({now:%Y-%m-%d})"
-    changelog = splice_changelog(upstream_changelog, git(repo, "show", "HEAD:CHANGELOG.md"), heading, body)
+    changelog = splice_changelog(upstream_changelog, fork_changelog, heading, body)
     write_text(root / "CHANGELOG.md", changelog)
 
     bundle = render_bundle(git(repo, "show", "MERGE_HEAD:patches-bundle.json"), body, version, slug, f"{now:%Y-%m-%dT%H:%M:%S}")

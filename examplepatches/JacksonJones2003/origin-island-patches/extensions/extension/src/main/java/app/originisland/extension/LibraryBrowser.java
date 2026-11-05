@@ -3,6 +3,8 @@ package app.originisland.extension;
 import android.content.ComponentName;
 import android.content.Context;
 import android.media.browse.MediaBrowser;
+import android.media.session.MediaController;
+import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -96,6 +98,7 @@ public final class LibraryBrowser {
             "com.google.android.apps.youtube.music.mediabrowser.MusicBrowserService";
 
     private static final String CLIENT_ANDROID_AUTO = "com.google.android.projection.gearhead";
+    private static final long CONTROL_DISCONNECT_DELAY_MS = 5_000;
     /**
      * Test app of Google, which the app gives a tree of only what is on the device.
      */
@@ -145,12 +148,26 @@ public final class LibraryBrowser {
             CLIENT_ANDROID_AUTO, CLIENT_MEDIA_CONTROLLER_TEST) {
         @Override
         boolean isOnPath(int depth, MediaBrowser.MediaItem node) {
-            return (depth == 1 ? OFFLINE_NODE_ID : DOWNLOADS_NODE_ID).equals(node.getMediaId());
+            // The downloads are below what is on the device, or right below the root in newer versions.
+            return (depth == 1 && OFFLINE_NODE_ID.equals(node.getMediaId()))
+                    || DOWNLOADS_NODE_ID.equals(node.getMediaId());
         }
 
         @Override
         boolean isList(int depth, List<MediaBrowser.MediaItem> children) {
-            return depth == 2;
+            if (depth == 2) {
+                return true;
+            }
+            if (depth != 1) {
+                return false;
+            }
+            // What is on the device has the downloads below it, and the downloads have their items.
+            for (MediaBrowser.MediaItem child : children) {
+                if (DOWNLOADS_NODE_ID.equals(child.getMediaId())) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -249,6 +266,62 @@ public final class LibraryBrowser {
         }
     }
 
+    interface Control {
+        void run(MediaController.TransportControls controls);
+    }
+
+    interface Connected {
+        void onConnected(MediaController controller);
+    }
+
+    static void control(Context context, Control control) {
+        connectAsAndroidAuto(context, controller -> control.run(controller.getTransportControls()));
+    }
+
+    /**
+     * Has the app do something as it does for Android Auto, which it lets control it.
+     * Must not be called with a lock of the app held.
+     */
+    static void connectAsAndroidAuto(Context context, Connected connected) {
+        mainHandler.post(() -> {
+            try {
+                int clientUid;
+                try {
+                    clientUid = context.getPackageManager().getPackageUid(CLIENT_ANDROID_AUTO, 0);
+                } catch (Exception ex) {
+                    clientUid = Process.myUid();
+                }
+
+                Bundle rootHints = new Bundle();
+                rootHints.putString(HINT_CLIENT, CLIENT_ANDROID_AUTO);
+                rootHints.putInt(HINT_CLIENT_UID, clientUid);
+
+                MediaBrowser[] browser = {null};
+                browser[0] = new MediaBrowser(context, new ComponentName(context, BROWSER_SERVICE),
+                        new MediaBrowser.ConnectionCallback() {
+                            @Override
+                            public void onConnected() {
+                                try {
+                                    Log.i(TAG, "Connected to the app as Android Auto");
+                                    connected.onConnected(new MediaController(context, browser[0].getSessionToken()));
+                                } catch (Exception ex) {
+                                    Log.e(TAG, "control failure", ex);
+                                }
+                                mainHandler.postDelayed(browser[0]::disconnect, CONTROL_DISCONNECT_DELAY_MS);
+                            }
+
+                            @Override
+                            public void onConnectionFailed() {
+                                Log.i(TAG, "The app refused to be controlled");
+                            }
+                        }, rootHints);
+                browser[0].connect();
+            } catch (Exception ex) {
+                Log.e(TAG, "control failure", ex);
+            }
+        });
+    }
+
     /**
      * Injection point.
      *
@@ -290,6 +363,24 @@ public final class LibraryBrowser {
         }
 
         return info;
+    }
+
+    /**
+     * Injection point. Called as the app asks the platform for the package of the controller of
+     * a command to its session, which it trusts to play from a search.
+     *
+     * @return Android Auto for a command of this app, which are the ones of the extension,
+     *         or null if the app should ask the platform.
+     */
+    public static String getCallingPackage(MediaSession session) {
+        try {
+            if (session != null && session.getCurrentControllerInfo().getUid() == Process.myUid()) {
+                return CLIENT_ANDROID_AUTO;
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "getCallingPackage failure", ex);
+        }
+        return null;
     }
 
     /**

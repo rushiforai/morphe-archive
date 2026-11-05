@@ -16,8 +16,7 @@ private const val QUANTUM_METRIC = "Lcom/quantummetric/instrument/QuantumMetric"
 @Suppress("unused")
 val blockSessionRecordingPatch = bytecodePatch(
     name = "Block session recording",
-    description = "Stops Quantum Metric, which records what you do in T-Life and is sent your " +
-        "phone number, email, and billing account number.",
+    description = "Stops Quantum Metric, which records what you do in T-Life.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

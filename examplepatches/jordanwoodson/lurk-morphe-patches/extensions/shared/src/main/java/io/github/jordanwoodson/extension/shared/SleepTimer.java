@@ -88,6 +88,17 @@ public final class SleepTimer {
         }
     }
 
+    /**
+     * The chosen time changed while something may be playing (the player's Sleep timer row): arms again from
+     * now for the current playback, as a play would, or cancels the pending pause when it was turned off.
+     */
+    public static void settingChanged() {
+        synchronized (STARTED) {
+            long playing = generation;
+            MAIN.post(() -> arm(playing));
+        }
+    }
+
     /** A player paused, stopped or was released. Never waits for a pause in progress. */
     public static void onStop(Object player) {
         if (player != null) STARTED.remove(player);

@@ -35,6 +35,7 @@ import semicoloncolonel.mobilestream.patches.peacock.shared.Constants as Peacock
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
 import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
+import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
 
@@ -166,12 +167,10 @@ internal object HideVpnSwitchFingerprint : Fingerprint(
 @Suppress("unused")
 val reportWifiConnectionPatch = bytecodePatch(
     name = "Report Wi-Fi connection",
-    description = "Makes the app see an unmetered Wi-Fi connection when the phone is on mobile data, so " +
-        "Wi-Fi-only downloads and quality limits do not apply. This can use a lot of mobile " +
-        "data. Experimental.",
+    description = "Makes the app see a Wi-Fi connection when the phone is on mobile data.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Xumo.COMPATIBILITY)
 
     dependsOn(networkStateRewritePatch)
 
@@ -185,11 +184,10 @@ val reportWifiConnectionPatch = bytecodePatch(
 @Suppress("unused")
 val hideVpnConnectionPatch = bytecodePatch(
     name = "Hide VPN connection",
-    description = "Hides an active VPN from the app's on-device checks, so it sees the network the VPN " +
-        "runs over. The app can still tell from your IP address on its servers. Experimental.",
+    description = "Hides an active VPN from the app's checks on the phone.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Xumo.COMPATIBILITY)
 
     dependsOn(networkStateRewritePatch)
 

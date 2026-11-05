@@ -18,8 +18,7 @@ internal object XfinityAssistantEnabledFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off the Xfinity Assistant chat. Some support and troubleshooting steps that " +
-        "open the Assistant may stop working.",
+    description = "Turns off the Xfinity Assistant chat.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

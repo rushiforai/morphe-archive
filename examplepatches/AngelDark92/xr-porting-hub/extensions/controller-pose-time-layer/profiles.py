@@ -25,6 +25,8 @@ PROFILES = {
                     send=(0xF4DA4, 0x550), submit=0x16128C, submit_got=0x22F238, clock=(0x15CB78, 0x40)),
     "5002395": dict(version="2.0.24", state=(0x108F88, 0xA9C), state_got=0x232038,
                     send=(0xF5FF4, 0x550), submit=0x1629CC, submit_got=0x2316B8, clock=(0x15E2B8, 0x40)),
+    "5002527": dict(version="2.0.24", state=(0x1089FC, 0xA9C), state_got=0x239B78,
+                    send=(0x180FD0, 0x550), submit=0x163D8C, submit_got=0x239588, clock=(0x15F564, 0x40)),
 }
 
 

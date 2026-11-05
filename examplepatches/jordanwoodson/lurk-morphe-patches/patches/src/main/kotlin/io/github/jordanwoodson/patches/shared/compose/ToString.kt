@@ -5,6 +5,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -13,6 +14,10 @@ private val FIELD_READS = setOf(
     Opcode.IGET_SHORT,
 )
 private val RETURNS = setOf(Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT)
+private val MOVES = setOf(
+    Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16, Opcode.MOVE_WIDE_16,
+    Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16,
+)
 
 /**
  * The field a Kotlin data class prints after [label] in its toString(), such as ", message=". R8 renames the
@@ -35,12 +40,22 @@ internal fun ClassDef.toStringField(app: AppCode, label: String): FieldReference
             }
     }
     val valueAppend = appends.getOrNull(1) ?: throw app.error("no value after \"$label\" in $type")
-    val register = (instructions[valueAppend] as FiveRegisterInstruction).registerD
-    val read = (valueAppend - 1 downTo 0).map { instructions[it] }.firstOrNull {
-        it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == register
+    var register = (instructions[valueAppend] as FiveRegisterInstruction).registerD
+    var before = valueAppend
+    while (true) {
+        val write = (before - 1 downTo 0).firstOrNull {
+            instructions[it].opcode.setsRegister() && (instructions[it] as? OneRegisterInstruction)?.registerA == register
+        } ?: throw app.error("the value after \"$label\" in $type isn't a field")
+        val read = instructions[write]
+        // With many fields R8 parks the values in high registers and moves each back before its append.
+        if (read.opcode in MOVES) {
+            register = (read as TwoRegisterInstruction).registerB
+            before = write
+            continue
+        }
+        if (read.opcode !in FIELD_READS) throw app.error("the value after \"$label\" in $type isn't a field")
+        return (read as ReferenceInstruction).reference as FieldReference
     }
-    if (read == null || read.opcode !in FIELD_READS) throw app.error("the value after \"$label\" in $type isn't a field")
-    return (read as ReferenceInstruction).reference as FieldReference
 }
 
 /**

@@ -80,6 +80,6 @@ number is unchanged, a client may retain its previously cached bundle: remove
 the old local source/cache and reimport the repaired file if necessary. Adding
 an APK to the GitHub release does not affect this constructor compatibility issue.
 
-Logs are under `../.inspect-nuvio-beta8/patcher2-*.log`. This repair is committed
+Logs are under `../Skills/inspection-evidence/.inspect-nuvio-beta8/patcher2-*.log`. This repair is committed
 with `[skip ci]` and uploaded to the existing release manually. No workflow,
 app installation or device test is required for this release asset replacement.

@@ -17,7 +17,7 @@ final class MinimalSetup {
         LinearLayout panel=new LinearLayout(a);panel.setOrientation(1);
         TextView info=new TextView(a);info.setText("最低限パッチとして以下を有効にし、他のHaiagaru追加機能を無効にします。\n\n"
             +"・エッヂの記者ID表示＆NG\n・エッヂ過去ログ検索のツールバー\n・Kyodemo／必死チェッカーの専用ビューア\n"
-            +"・過去ログ自動取得\n・広告削除\n・ビューア\n・URLサムネイル取得\n・過去ログ検索\n\n"
+            +"・過去ログ自動取得\n・広告削除\n・ビューア\n・URLサムネイル取得\n・過去ログ検索\n・191の接続再利用抑止・代替IPへの切替高速化・進捗通知の集約\n\n"
             +"ログ・認証情報・登録済みルールは削除しません。通信互換性の修正や安全対策は残ります。元のChMate標準機能は変更しません。"
             +"ローカル自動バックアップの設定は維持します。ビューアなどは該当パッチの導入が必要です。あとから設定を個別に変更できます。");panel.addView(info);
         Switch on=new Switch(a);on.setText("最低限構成を有効にする");on.setChecked(false);panel.addView(on);
@@ -53,7 +53,7 @@ final class MinimalSetup {
             boolean changed=false;
             for(int i=0;i<rows.length();i++){
                 JSONObject row=rows.optJSONObject(i);if(row==null)continue;int id=row.optInt("id",Integer.MIN_VALUE);
-                boolean custom=id>=0x7e000001&&id<=0x7e000006||id==FavoriteThreads.TAB;
+                boolean custom=id>=0x7e000001&&id<=0x7e000006||id==FavoriteThreads.TAB||id==HomeRefreshTargets.TAB;
                 for(int action:ResponseMenuSettings.IDS)if(id==action)custom=true;
                 if(custom){row.put("visible",id==0x7e000001);changed=true;}
             }

@@ -116,7 +116,7 @@ See-through bars	Bilah tembus pandang
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
 The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. On Android 12 and newer the feed behind them is blurred.	Bilah atas dan bilah tab menjadi tembus pandang, jadi feed terlihat di baliknya saat kamu menggulir. Di Android 12 dan yang lebih baru, feed di belakangnya diburamkan.
 Rounded tab bar	Bilah tab membulat
-With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen.	Saat bilah tab ada di bawah, ujungnya jadi bulat dan ukurannya sedikit lebih kecil, tepat di atas tepi bawah layar.
+With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen, with a soft highlight behind the tab you're on.	Saat bilah tab ada di bawah, ujungnya jadi bulat dan ukurannya sedikit lebih kecil, tepat di atas tepi bawah layar, dengan sorotan lembut di belakang tab yang sedang kamu buka.
 # context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
 Force dark mode	Paksa mode gelap
 # context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
@@ -1237,6 +1237,12 @@ With Stop Story auto-advance on, a finished story plays again from the start ins
 Save photo in post menus	Simpan foto di menu postingan
 # context: summary of the Save photo in post menus switch; "Save any photo" is the label of the switch above it and "Save photo" is the menu item, so use their translations
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	Saat Simpan foto apa pun aktif, postingan berisi foto juga mendapat Simpan foto di menu titik tiganya. Postingan dengan beberapa foto menyimpan semuanya satu per satu.
+Search photo	Cari foto
+Search photo with	Cari foto dengan
+Search photo in post menus	Cari foto di menu postingan
+With Save any photo on, a post with one photo gets Search photo in its three-dot menu. It hands the photo to the app you pick, such as Google Lens, to look up what's in it or copy its text.	Dengan Simpan foto apa pun aktif, postingan dengan satu foto mendapat Cari foto di menu titik tiganya. Foto dikirim ke aplikasi yang kamu pilih, seperti Google Lens, untuk mencari tahu isinya atau menyalin teksnya.
+No app on this phone can search with a photo	Tidak ada aplikasi di ponsel ini yang bisa mencari dengan foto
+Couldn't get this photo. Try again in a moment.	Tidak bisa mengambil foto ini. Coba lagi sebentar lagi.
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	Simpan foto
 # context: primary save row for a Story that reshares a Reel
@@ -1363,6 +1369,11 @@ Hide reposts	Sembunyikan postingan yang dibagikan ulang
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Menyembunyikan postingan yang membagikan postingan lain, dengan atau tanpa keterangan. Postingan asli tetap ada. Mati secara bawaan, karena belum dicoba di feed sungguhan.
 Hide posts from Pages	Sembunyikan postingan dari Halaman
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Menyembunyikan postingan yang ditulis Halaman, termasuk yang kamu ikuti. Postingan dari teman dan grup tetap ada, begitu juga postingan Halaman yang dibagikan teman.
+Hide posts in other languages	Sembunyikan postingan dalam bahasa lain
+Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Menyembunyikan postingan dan reel di tab Reels dalam bahasa yang tidak kamu pertahankan, berdasarkan tebakan ponsel sendiri atas teks setiap postingan atau keterangan setiap reel. Yang tidak pasti tetap ada, dan tidak ada yang keluar dari ponsel.
+Languages to keep	Bahasa yang tetap ada
+None picked, so posts in %s stay.	Belum ada yang dipilih, jadi postingan dalam %s tetap ada.
+Kept: %s	Tetap ada: %s
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	Kunci Facebook
 Save crashes to Downloads	Simpan crash ke Download
@@ -1739,6 +1750,14 @@ With Pinch to zoom on, the photo or story stays zoomed when you let go, and a st
 Double tap to zoom	Ketuk dua kali untuk zoom
 # context: summary of that switch; "Pinch to zoom" is the label of the switch two rows above it, so use its translation; a story is the full-screen picture or video someone shares for a day
 With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, and double tap again to put it back. A single tap still opens the photo, a moment later.	Saat Cubit untuk zoom aktif, ketuk dua kali foto di profil untuk memperbesar di tempat yang kamu ketuk, lalu ketuk dua kali lagi untuk mengembalikannya. Ketuk sekali tetap membuka foto, hanya sesaat lebih lambat.
+# context: a switch under Pinch to zoom; with it on, the rest of the screen gets darker behind a zoomed photo or story
+Dim around a zoom	Gelapkan sekitar zoom
+# context: that switch's summary; "Pinch to zoom" is the label of the switch above it, so use its translation; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	Saat Cubit untuk zoom aktif, layar di sekitar foto atau cerita jadi lebih gelap saat kamu memperbesar. Matikan agar bagian layar lainnya tetap seperti biasa.
+# context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
+Keep videos playing while zoomed	Tetap putar video saat diperbesar
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	Saat Cubit untuk zoom aktif, video yang kamu perbesar di profil atau Halaman tetap diputar. Kalau Tetap diperbesar juga aktif, tekan lama tampilan zoom untuk menjeda video, dan tekan lama lagi untuk memutarnya. Cerita tetap diam selama kamu memperbesar.
 No ads downloaded in advance	Tanpa iklan yang diunduh lebih dulu
 No ad tracking	Tanpa pelacakan iklan
 No Facebook ads in other apps	Tanpa iklan Facebook di aplikasi lain
@@ -2042,7 +2061,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Aplikasi yang menyimpan gambar terakhir masih belum merespons. Coba lagi nanti.
 Inline feed video controls	Kontrol video di beranda
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Menambahkan tombol putar/jeda pada video di beranda. Ketuk video untuk membukanya dalam layar penuh. Video siaran langsung dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” juga aktif, pengaturan putar otomatis Facebook tetap seperti yang kamu pilih agar tombol ini bisa muncul, dan video tetap menunggu ketukanmu.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Menambahkan tombol putar/jeda pada video di beranda. Ketuk video untuk membukanya dalam layar penuh. Iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” juga aktif, pengaturan putar otomatis Facebook tetap seperti yang kamu pilih agar tombol ini bisa muncul, dan video tetap menunggu ketukanmu.
 Play feed video	Putar video beranda
 Pause feed video	Jeda video beranda
 Support	Bantuan
@@ -2129,6 +2148,13 @@ Reels order will be set to %1$s.	Urutan reel akan diatur ke %1$s.
 Cast button on feed videos	Tombol transmisi di video feed
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Menambahkan tombol transmisi ke video feed. Tombol ini menyerahkan video ke aplikasi transmisi yang kamu punya, seperti Web Video Caster, yang mengirimnya ke TV-mu. Facebook sudah tidak punya fitur transmisi sendiri.
 Cast this video	Transmisikan video ini
+Full player button on feed videos	Tombol pemutar penuh di video feed
+Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol ke video feed yang membuka video di pemutar penuh milik Facebook, lengkap dengan semua kontrolnya. Video siaran langsung juga mendapatkannya. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+# context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
+Open full screen videos centered	Buka video layar penuh di tengah
+# context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
+Videos you open full screen, from a comment or a link, start with their details and comments folded away, so the video sits in the middle of the screen. The arrow under it still brings them back.	Video yang kamu buka layar penuh, dari komentar atau tautan, dimulai dengan detail dan komentar terlipat, jadi video berada di tengah layar. Panah di bawahnya tetap bisa menampilkannya lagi.
+Open in the full player	Buka di pemutar penuh
 Seek bar on feed videos	Bilah geser di video feed
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menampilkan bilah di bagian bawah video feed. Geser lalu lepaskan untuk melompat ke titik itu. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
 Feed video position	Posisi video feed
@@ -2287,6 +2313,10 @@ After the time you pick on Home, Feeds, Video and Reels, they're covered for a b
 Break after	Istirahat setelah
 # context: a row under Take breaks that opens a list of times; it's how long a break lasts
 Break length	Lama istirahat
+# context: a switch under Take breaks; with it on, watching 20 different reels also starts a break
+Also after 20 reels	Juga setelah 20 reel
+# context: that switch's summary; a reel is one of Facebook's short videos, and it counts toward the 20 once it has played for 3 seconds
+A break also starts once you've watched 20 reels, if that comes first. A reel counts once it's played for 3 seconds, and ads and live videos don't count.	Istirahat juga dimulai setelah kamu menonton 20 reel, jika itu terjadi lebih dulu. Reel dihitung setelah diputar selama 3 detik, dan iklan serta video siaran langsung tidak dihitung.
 # context: a choice in those lists
 10 minutes	10 menit
 # context: a choice in those lists
@@ -2378,6 +2408,9 @@ After %1$d seconds	Setelah %1$d detik
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Tetap redup saat saya ketuk
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Setelah Pelindung burn-in meredupkan tombol, tombol tetap redup di Reels apa pun yang kamu ketuk atau geser, termasuk di reel berikutnya. Tombol tetap berfungsi. Keluar dari Reels mengembalikannya.
+# context: Reels: switch that shows the Reels screen and its video in black and white
+Show Reels in gray	Tampilkan Reels dalam abu-abu
+Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Reels dan tombolnya tampil hitam putih, jadi lebih mudah untuk berhenti menonton. Feed, cerita, foto, dan chat kamu tetap berwarna. Mulai berlaku dari reel berikutnya, dan Reels memakai sedikit lebih banyak baterai.
 # context: settings import preview; %1$s is a Burn-in guard choice such as Dim when idle
 Burn-in guard will be set to %1$s.	Pelindung burn-in akan diatur ke %1$s.
 Burn-in guard will dim the Reels screen as soon as you stop touching it.	Pelindung burn-in akan meredupkan layar Reels begitu kamu berhenti menyentuhnya.
@@ -2417,6 +2450,9 @@ Block button on comments	Tombol blokir di komentar
 The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.	Jempol ke bawah pada komentar menjadi Blokir. Satu ketukan membuka layar blokir Facebook untuk orang itu.
 Block	Blokir
 Couldn't open Block for this comment.	Tidak bisa membuka Blokir untuk komentar ini.
+Block button on reaction lists	Tombol blokir di daftar reaksi
+In the list of people who reacted to a post, the button on each row, like Add friend or Message, becomes Block. One tap opens Facebook's own block screen.	Di daftar orang yang bereaksi pada postingan, tombol di setiap baris, seperti Tambahkan teman atau Kirim pesan, menjadi Blokir. Satu ketukan membuka layar blokir Facebook.
+Couldn't open Block for this person.	Tidak bisa membuka Blokir untuk orang ini.
 this person	orang ini
 Most viewed on profile Reels	Paling banyak dilihat di Reels profil
 A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count stays after the rest.	Tab Reels sebuah profil menampilkan reel yang paling banyak dilihat lebih dulu, bukan yang terbaru. Saat mati, urutan Facebook tetap dipakai. Hanya reel yang sudah dimuat tab yang diurutkan, dan reel tanpa jumlah tayangan ada di belakang yang lain.
@@ -2480,3 +2516,19 @@ A post you scrolled past shows up one more time, and scrolling past it again hid
 There's no Facebook link in what you shared.	Yang kamu bagikan tidak berisi tautan Facebook.
 Open in Facebook from the share menu	Open in Facebook di menu berbagi
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Bagikan tautan Facebook dari browser Messenger atau aplikasi lain, lalu pilih Open in Facebook agar terbuka di sini.
+GmsCore support	Dukungan GmsCore
+Version %1$s for Facebook %2$s	Versi %1$s untuk Facebook %2$s
+Show all settings as a list	Tampilkan semua pengaturan sebagai daftar
+Show settings by category	Tampilkan pengaturan per kategori
+Story play button	Tombol putar cerita
+Double tap for next story	Ketuk dua kali untuk cerita berikutnya
+A tap in the middle of a story shows a play and pause button, like Reels. Taps on the sides still change stories.	Ketukan di tengah cerita menampilkan tombol putar dan jeda, seperti Reels. Ketukan di sisi tetap mengganti cerita.
+Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Cerita hanya berganti dengan ketukan dua kali, sisi kiri ke cerita sebelumnya dan tempat lain ke berikutnya. Ketukan sekali menjeda atau memutar cerita, atau menampilkan tombol putar jika aktif.
+Pause story	Jeda cerita
+Play story	Putar cerita
+Hide song and effect credits	Sembunyikan kredit lagu dan efek
+Hide reply suggestions	Sembunyikan saran balasan
+Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Menghapus kredit lagu dan efek dari baris di bawah nama pengunggah cerita. Berlaku mulai cerita berikutnya yang kamu buka.
+Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Menghapus baris saran balasan di bagian bawah cerita. Kotak balasan tetap ada. Berlaku mulai cerita berikutnya yang kamu buka.
+Progress bar at the bottom	Bilah progres di bawah
+Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Menampilkan bilah tipis di bagian bawah cerita yang terisi saat cerita diputar, seperti di Reels.

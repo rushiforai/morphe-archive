@@ -30,7 +30,8 @@ final class PatchStatusRequirements {
         requirements.put("linimal.google-drive-backup",
                 ids("linimal.patch.google-auth-microg-manifest", "linimal.patch.google-auth-token-routing",
                         "linimal.patch.google-auth-sign-in-routing",
-                        "linimal.patch.google-auth-account-picker-routing"));
+                        "linimal.patch.google-auth-account-picker-routing",
+                        "linimal.patch.google-auth-failure-diagnostics"));
         requirements.put("linimal.agent-i-home-header", ids("linimal.patch.agent-i-home-header"));
         requirements.put("linimal.agent-i-chat-information",
                 ids("linimal.patch.agent-i-chat-information-entry"));

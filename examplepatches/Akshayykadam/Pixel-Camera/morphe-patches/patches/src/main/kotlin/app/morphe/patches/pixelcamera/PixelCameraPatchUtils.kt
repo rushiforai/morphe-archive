@@ -38,6 +38,149 @@ object PixelCameraPatchUtils {
     }
 
     /**
+     * Replaces an existing method with a new method having a specified registerCount,
+     * compiling the instructions from smali.
+     */
+    fun replaceMethodWithRegisterCount(
+        clazz: MutableClass?,
+        methodName: String,
+        returnType: String,
+        parameterTypes: List<String>,
+        registerCount: Int,
+        smaliBody: String
+    ): Boolean {
+        if (clazz == null) return false
+        val oldMethod = clazz.methods.firstOrNull {
+            it.name == methodName && it.returnType == returnType && it.parameterTypes == parameterTypes
+        } ?: return false
+
+        val accessFlags = oldMethod.accessFlags
+        val implBuilder = com.android.tools.smali.dexlib2.builder.MutableMethodImplementation(registerCount)
+        val method = com.android.tools.smali.dexlib2.immutable.ImmutableMethod(
+            clazz.type,
+            methodName,
+            parameterTypes.map { com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(it, null, null) },
+            returnType,
+            accessFlags,
+            null, null,
+            implBuilder
+        )
+        val mutableMethod = MutableMethod(method)
+        val instructions = smaliBody.trimIndent().toInstructions(mutableMethod)
+        val impl = mutableMethod.implementation!!
+        for (ins in instructions) {
+            impl.addInstruction(ins)
+        }
+        clazz.methods.remove(oldMethod)
+        clazz.methods.add(mutableMethod)
+        return true
+    }
+
+    /**
+     * Patches Lvfa (timestamp synchronizer) to:
+     * 1. Default tolerance to 8.33ms (0x7f2815) when tolerance <= 0 in constructor.
+     * 2. Dynamically synchronize clock-domain mismatch (|diff| > 200ms) in method a(JJ)Z.
+     * 3. Prevent spurious buffer dropping in method b(JJ)Z when |diff| > 200ms.
+     */
+    fun patchVfaTimestampSync(clazz: MutableClass?) {
+        if (clazz == null) return
+
+        val initSmali = """
+            invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+            iput-wide p1, p0, Lvfa;->b:J
+            const-wide/16 v0, 0x0
+            cmp-long v2, p3, v0
+            if-gtz v2, :cond_0
+            const-wide/32 p3, 0x7f2815
+            :cond_0
+            iput-wide p3, p0, Lvfa;->a:J
+            return-void
+        """.trimIndent()
+        replaceMethodWithRegisterCount(clazz, "<init>", "V", listOf("J", "J"), 9, initSmali)
+
+        val aSmali = """
+            sub-long/2addr p1, p3
+            iget-wide p3, p0, Lvfa;->b:J
+            add-long/2addr p1, p3
+            const-wide/16 v0, 0x0
+            cmp-long v2, p1, v0
+            const/4 v3, 0x1
+            if-nez v2, :cond_0
+            return v3
+            :cond_0
+            iget-wide v4, p0, Lvfa;->a:J
+            cmp-long v0, v4, v0
+            if-eqz v0, :cond_1
+            cmp-long v0, p1, v4
+            if-gez v0, :cond_1
+            neg-long v0, v4
+            cmp-long v0, p1, v0
+            if-lez v0, :cond_1
+            goto :cond_sync
+            :cond_1
+            const-wide/32 v0, 0xbebc200
+            cmp-long v2, p1, v0
+            if-gtz v2, :cond_sync
+            neg-long v0, v0
+            cmp-long v2, p1, v0
+            if-ltz v2, :cond_sync
+            const/4 p0, 0x0
+            return p0
+            :cond_sync
+            sub-long/2addr p3, p1
+            iput-wide p3, p0, Lvfa;->b:J
+            return v3
+        """.trimIndent()
+        replaceMethodWithRegisterCount(clazz, "a", "Z", listOf("J", "J"), 11, aSmali)
+
+        val bSmali = """
+            sub-long/2addr p3, p1
+            iget-wide p1, p0, Lvfa;->b:J
+            sub-long/2addr p3, p1
+            const-wide/32 v0, 0xbebc200
+            cmp-long v2, p3, v0
+            if-gtz v2, :ret_false
+            neg-long v0, v0
+            cmp-long v2, p3, v0
+            if-ltz v2, :ret_false
+            iget-wide p0, p0, Lvfa;->a:J
+            add-long/2addr p3, p0
+            const-wide/16 p0, 0x0
+            cmp-long p0, p3, p0
+            if-gez p0, :cond_0
+            const/4 p0, 0x1
+            return p0
+            :cond_0
+            :ret_false
+            const/4 p0, 0x0
+            return p0
+        """.trimIndent()
+        replaceMethodWithRegisterCount(clazz, "b", "Z", listOf("J", "J"), 9, bSmali)
+    }
+
+    /**
+     * Replaces Lvfa 0-tolerance instantiation with 8.33ms (0x7f2815) in Lwst;->a.
+     */
+    fun patchWstTolerance(clazz: MutableClass?) {
+        if (clazz == null) return
+        val method = clazz.methods.firstOrNull { it.name == "a" && it.returnType == "Lvff;" } ?: return
+        val impl = method.implementation ?: return
+        val instructions = impl.instructions.toList()
+        for (i in instructions.indices) {
+            val ins = instructions[i]
+            val ref = (ins as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference?.toString() ?: ""
+            if (ref.contains("Lvfa;-><init>(JJ)V")) {
+                val ins35c = ins as? com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+                if (ins35c != null && ins35c.registerD == 10 && ins35c.registerE == 11 && ins35c.registerF == 10 && ins35c.registerG == 11) {
+                    val newIns = "invoke-direct {v${ins35c.registerC}, v10, v11, v14, v15}, Lvfa;-><init>(JJ)V".toInstructions(method).first()
+                    impl.replaceInstruction(i, newIns)
+                    break
+                }
+            }
+        }
+    }
+
+    /**
      * Forces a boolean method to always return true (const/4 v0, 0x1; return v0).
      */
     fun forceReturnTrue(clazz: MutableClass?, methodName: String): Boolean {
@@ -720,11 +863,35 @@ object PixelCameraPatchUtils {
                         """.trimIndent())
                         append("\n")
                     }
+                    if (!content.contains("pref_category_advanced_settings_title")) {
+                        append("""
+    <string name="pref_category_advanced_settings_title">Advanced settings</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_category_about_title")) {
+                        append("""
+    <string name="pref_category_about_title">About</string>
+    <string name="pref_about_title">Pixel Camera</string>
+    <string name="pref_about_version_summary">version 11.1.040.982810059.19 (v1.1.2)</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                    if (!content.contains("pref_camera_focal_length_cycling_title")) {
+                        append("""
+    <string name="pref_camera_focal_length_cycling_title">1x Focal Length Cycling</string>
+    <string name="pref_camera_focal_length_cycling_summary">Tap the 1× button to switch between 24 mm, 28 mm, and 35 mm focal lengths.\nWhen off, 1× remain locked at native optical 1×.</string>
+                        """.trimIndent())
+                        append("\n")
+                    }
+                }
+                if (content.contains("<string name=\"sauce_shadows_label\">Shadows</string>")) {
+                    content = content.replace("<string name=\"sauce_shadows_label\">Shadows</string>", "<string name=\"sauce_shadows_label\">Deep Shadows</string>")
                 }
                 if (stringsToInject.isNotBlank()) {
                     content = content.replace("<resources>", "<resources>\n    $stringsToInject")
-                    stringsFile.writeText(content, Charsets.UTF_8)
                 }
+                stringsFile.writeText(content, Charsets.UTF_8)
             }
         } catch (_: Throwable) {}
 
@@ -814,23 +981,37 @@ object PixelCameraPatchUtils {
             val gm3File = context.get("res/xml/camera_gm3_preferences.xml", false)
             if (gm3File.exists()) {
                 var content = gm3File.readText(Charsets.UTF_8)
-                if (!content.contains("pref_camera_jpeg_quality_key")) {
-                    val gm3Prefs = """
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="10" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="11" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="12" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="13" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+                if (!content.contains("pref_category_advanced_settings")) {
+                    val gm3Category = """
+    <androidx.preference.PreferenceCategory android:title="@string/pref_category_advanced_settings_title" android:key="pref_category_advanced_settings">
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_photo_camera_vd_theme_24" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+    </androidx.preference.PreferenceCategory>
                     """.trimIndent()
 
-                    val targetRegex = Regex("""(android:key="pref_category_resolution_camera"[^>]*>[\s\S]*?)(</androidx\.preference\.PreferenceCategory>)""")
-                    val match = targetRegex.find(content)
-                    content = if (match != null) {
-                        val g1 = match.groupValues[1]
-                        val g2 = match.groupValues[2]
-                        content.substring(0, match.range.first) + g1 + "\n    " + gm3Prefs + "\n  " + g2 + content.substring(match.range.last + 1)
+                    val targetVideoTag = "<androidx.preference.PreferenceCategory android:title=\"@string/mode_video\""
+                    content = if (content.contains(targetVideoTag)) {
+                        content.replace(targetVideoTag, "$gm3Category\n    $targetVideoTag")
                     } else {
-                        content.replace("</androidx.preference.PreferenceScreen>", "    $gm3Prefs\n</androidx.preference.PreferenceScreen>")
+                        content.replace("</androidx.preference.PreferenceScreen>", "    $gm3Category\n</androidx.preference.PreferenceScreen>")
                     }
+                    gm3File.writeText(content, Charsets.UTF_8)
+                }
+
+                if (content.contains("pref_category_help_and_feedback")) {
+                    val aboutGm3 = """
+    <androidx.preference.PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
+        <androidx.preference.Preference android:icon="@drawable/settingslib_ic_info_outline_24" android:title="@string/pref_about_title" android:key="pref_about_key" android:summary="@string/pref_about_version_summary" />
+        <androidx.preference.Preference android:icon="@drawable/gs_developer_mode_vd_theme_24" android:key="pref_category_developer" app:title="@string/pref_developer_settings" />
+    </androidx.preference.PreferenceCategory>
+                    """.trimIndent()
+                    content = content.replace(
+                        Regex("""<androidx\.preference\.PreferenceCategory[^>]*key="pref_category_help_and_feedback"[^>]*>[\s\S]*?</androidx\.preference\.PreferenceCategory>"""),
+                        aboutGm3
+                    )
                     gm3File.writeText(content, Charsets.UTF_8)
                 }
             }
@@ -841,23 +1022,37 @@ object PixelCameraPatchUtils {
             val camPrefFile = context.get("res/xml/camera_preferences.xml", false)
             if (camPrefFile.exists()) {
                 var content = camPrefFile.readText(Charsets.UTF_8)
-                if (!content.contains("pref_camera_jpeg_quality_key")) {
-                    val camPrefs = """
-            <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="10" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
-            <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="11" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
-            <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="12" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-            <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="13" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+                if (!content.contains("pref_category_advanced_settings")) {
+                    val camCategory = """
+    <PreferenceCategory android:title="@string/pref_category_advanced_settings_title" android:key="pref_category_advanced_settings">
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_photo_camera_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
+        <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+    </PreferenceCategory>
                     """.trimIndent()
 
-                    val targetRegex = Regex("""(android:key="pref_category_resolution_camera"[^>]*>[\s\S]*?)(</PreferenceCategory>)""")
-                    val match = targetRegex.find(content)
-                    content = if (match != null) {
-                        val g1 = match.groupValues[1]
-                        val g2 = match.groupValues[2]
-                        content.substring(0, match.range.first) + g1 + "\n    " + camPrefs + "\n  " + g2 + content.substring(match.range.last + 1)
+                    val targetVideoTag = "<PreferenceCategory android:title=\"@string/mode_video\""
+                    content = if (content.contains(targetVideoTag)) {
+                        content.replace(targetVideoTag, "$camCategory\n    $targetVideoTag")
                     } else {
-                        content.replace("</PreferenceScreen>", "    $camPrefs\n</PreferenceScreen>")
+                        content.replace("</PreferenceScreen>", "    $camCategory\n</PreferenceScreen>")
                     }
+                    camPrefFile.writeText(content, Charsets.UTF_8)
+                }
+
+                if (content.contains("pref_category_help_and_feedback")) {
+                    val aboutCam = """
+    <PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
+        <Preference android:icon="@drawable/settingslib_ic_info_outline_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_about_title" android:key="pref_about_key" android:summary="@string/pref_about_version_summary" />
+        <PreferenceScreen android:icon="@drawable/quantum_gm_ic_developer_mode_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_developer_settings" android:key="pref_category_developer" />
+    </PreferenceCategory>
+                    """.trimIndent()
+                    content = content.replace(
+                        Regex("""<PreferenceCategory[^>]*key="pref_category_help_and_feedback"[^>]*>[\s\S]*?</PreferenceCategory>"""),
+                        aboutCam
+                    )
                     camPrefFile.writeText(content, Charsets.UTF_8)
                 }
             }

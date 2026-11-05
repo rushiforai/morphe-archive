@@ -14,7 +14,6 @@ import dev.hyzor.patches.chesscom.shared.Constants
 import dev.hyzor.patches.chesscom.shared.markFeaturePatched
 import dev.hyzor.patches.chesscom.shared.returnString
 import dev.hyzor.patches.chesscom.shared.toBinaryName
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -95,31 +94,23 @@ val arcadePatch = bytecodePatch(
         val animationsConstructor = mutableClassDefBy(standardAnimations).methods.single {
             it.name == "<init>" && it.parameterTypes.size == 2
         }
-        // <init>(move, dragCancel): the field set from the last parameter is dragCancel.
+        // <init>(move, dragCancel): the field set from the last parameter is dragCancel, so the
+        // hook below passes the right animation.
         val registers = animationsConstructor.implementation!!.registerCount
-        val dragCancelField = animationsConstructor.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
-            instruction.fieldReference()?.takeIf {
-                instruction.opcode == Opcode.IPUT_OBJECT &&
-                    (instruction as TwoRegisterInstruction).registerA == registers - 1
-            }
+        animationsConstructor.implementation!!.instructions.firstOrNull { instruction ->
+            instruction.opcode == Opcode.IPUT_OBJECT &&
+                (instruction as TwoRegisterInstruction).registerA == registers - 1
         } ?: throw PatchException("The drag-cancel animation field was not found")
-        // 4.10.23 inlined the getter; capture the value in the constructor instead.
-        val dragCancelGetter = standardAnimations.methods.firstOrNull { method ->
-            method.parameterTypes.isEmpty() && method.returnType == dragCancelField.type &&
-                method.implementation?.instructions?.any { it.fieldReference() == dragCancelField } == true
-        }?.name ?: ""
-        if (dragCancelGetter.isEmpty()) {
-            animationsConstructor.addInstructions(
-                0,
-                "invoke-static/range { p1 .. p2 }, $ARCADE->onStandardAnimations(Ljava/lang/Object;Ljava/lang/Object;)V",
-            )
-        }
+        // The getter is inlined, so capture the drag-cancel animation in the constructor instead.
+        animationsConstructor.addInstructions(
+            0,
+            "invoke-static/range { p1 .. p2 }, $ARCADE->onStandardAnimations(Ljava/lang/Object;Ljava/lang/Object;)V",
+        )
         mutableClassDefBy(ARCADE).methods.apply {
             first { it.name == "easingCurveClass" }
                 .returnString(EasingCurveToStringFingerprint.originalClassDef.type.toBinaryName())
             first { it.name == "fixedDurationClass" }
                 .returnString(FixedDurationToStringFingerprint.originalClassDef.type.toBinaryName())
-            first { it.name == "dragCancelGetter" }.returnString(dragCancelGetter)
         }
         // Every board takes Arcade's move animation: the board view and its piece layer.
         mutableClassDefBy(CHESS_BOARD_VIEW).methods.single {
@@ -155,7 +146,7 @@ val arcadePatch = bytecodePatch(
             """,
         )
 
-        // 4.10.23 merged AnimatedPiece into an obfuscated view of the same package.
+        // AnimatedPiece is an obfuscated view of the same package.
         val animatedPieceType = classDefByOrNull { classDef ->
             classDef.type.startsWith("Lcom/chess/chessboard/view/viewlayers/") &&
                 classDef.superclass == "Landroid/view/View;" &&
@@ -182,8 +173,7 @@ val arcadePatch = bytecodePatch(
                 val dropped = run.startRegister + run.registerCount - 1
                 val self = thisRegister()
                 if (listOf(self, dropped).any { it > 15 }) throw PatchException("Move registers out of range")
-                // 4.10.18 passes the animation as the runner's first parameter; 4.10.23's runner
-                // takes other arguments, but the animation is this method's first parameter.
+                // The runner takes other arguments, but the animation is this method's first parameter.
                 addInstruction(
                     runIndex,
                     "invoke-static { v$self, p1, v$dropped }, " +
@@ -193,51 +183,6 @@ val arcadePatch = bytecodePatch(
         // The player picks a piece up (dragStart(dragData, magnify)) ...
         animatedPiece.methods.single { it.returnType == "V" && it.parameterTypes.size == 2 && it.parameters()[1] == "Z" }
             .beforeEveryReturn("invoke-static/range { p0 .. p0 }, $ARCADE->onDragStart(Landroid/view/View;)V")
-
-        // ... or lets go of it where it cannot move (the drag-cancel animation).
-        // 4.10.23 has no getter to recognise it by, so the drag-end effect is skipped there.
-        if (dragCancelGetter.isNotEmpty()) {
-            animatedPiece.methods.single { method ->
-                method.returnType == "V" && method.parameterTypes.isEmpty() &&
-                    AccessFlags.PUBLIC.isSet(method.accessFlags) &&
-                    method.calls { it.definingClass == standardAnimationsType && it.name == dragCancelGetter }
-            }.addInstruction(0, "invoke-static/range { p0 .. p0 }, $ARCADE->onDragEnd(Landroid/view/View;)V")
-        }
-        // The app's "Dynamic" style checks: off while Arcade draws the effects.
-        val dynamicChecks = mutableListOf<Pair<ClassDef, Method>>()
-        classDefForEach { classDef ->
-            if (!classDef.type.startsWith("Lcom/chess/chessboard/settings/")) return@classDefForEach
-            classDef.methods.forEach { method ->
-                if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
-                    method.parameterTypes.size == 1 &&
-                    method.implementation?.instructions?.any {
-                        it.opcode == Opcode.SGET_OBJECT &&
-                            it.fieldReference()?.let { field ->
-                                field.definingClass == "Lcom/chess/entities/PieceAnimationsType;" && field.name == "DYNAMIC"
-                            } == true
-                    } == true
-                ) {
-                    dynamicChecks += classDef to method
-                }
-            }
-        }
-        // 4.10.23 moved the settings architecture; no such checks are left to switch off.
-        dynamicChecks.forEach { (classDef, method) ->
-            mutableClassDefBy(classDef).methods.first {
-                it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == "Z"
-            }.apply {
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static { }, $ARCADE->dynamicAllowed()Z
-                        move-result v0
-                        if-nez v0, :morphe_dynamic
-                        return v0
-                    """,
-                    ExternalLabel("morphe_dynamic", getInstruction(0)),
-                )
-            }
-        }
         // Board painters: last move outlined in the mover's colour, and the website's move hints.
         mutableClassDefBy(LastMovePainterFingerprint.originalClassDef).methods.single { method ->
             method.returnType == "V" && method.parameterTypes.size == 6 &&
@@ -249,7 +194,7 @@ val arcadePatch = bytecodePatch(
         }.apply {
             val shown = firstFieldRead(FUNCTION0)
             val squares = firstFieldRead(PROVIDER)
-            // 4.10.23 keeps the parameters above v15, so copy them into low locals first.
+            // The parameters sit above v15, so copy them into low locals first.
             addInstructionsWithLabels(
                 0,
                 """
@@ -293,7 +238,7 @@ val arcadePatch = bytecodePatch(
                         it.returnType == "Ljava/util/Set;"
                 }
             }
-            // 4.10.23 builds the hint set from a state object; the website hints are skipped there.
+            // The hint set comes from a state object; the website hints are skipped.
             if (hintsOf != null) addInstructionsWithLabels(
                 0,
                 """

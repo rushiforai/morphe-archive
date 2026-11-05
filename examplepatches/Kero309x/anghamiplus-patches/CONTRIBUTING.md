@@ -1,6 +1,6 @@
-# Contributing to Anghami Plus Patches
+# Contributing to Kero309x Patches
 
-Thanks for your interest in **Anghami Plus Patches**, the Morphe patch bundle for the Anghami Android app. Bug reports, feature requests, documentation fixes and new patches are all welcome.
+Thanks for your interest in **Kero309x Patches**, the modular Morphe extension patch bundle. Bug reports, feature requests, documentation fixes and new patches are all welcome.
 
 Please read this guide before opening an issue or a pull request.
 
@@ -27,8 +27,8 @@ Please read this guide before opening an issue or a pull request.
 ### Get the sources and build
 
 ```bash
-git clone https://github.com/Kero309x/anghamiplus-patches.git
-cd anghamiplus-patches
+git clone https://github.com/Kero309x/Kero309x-patches.git
+cd Kero309x-patches
 git checkout dev
 
 ./gradlew build                 # compile the patch bundle

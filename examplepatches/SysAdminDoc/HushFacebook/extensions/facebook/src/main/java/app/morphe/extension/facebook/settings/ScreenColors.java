@@ -67,6 +67,8 @@ final class ScreenColors {
     final int title;
     /** Row summaries and a dialog's message. */
     final int summary;
+    /** The placeholder of an empty field, quieter than a summary and still 4.5:1 on every surface. */
+    final int hint;
     /** Section titles. */
     final int heading;
     /** A switch that's on, and the buttons of a dialog. */
@@ -76,8 +78,12 @@ final class ScreenColors {
     /** Grouped preference rows and their edge. */
     final int card;
     final int outline;
+    /** A tonal step above the card, behind an icon that has a surface of its own. */
+    final int iconSurface;
     /** Text on the filled primary dialog action. */
     final int onAccent;
+    /** A field's error line, calm on the dialog. */
+    final int error;
 
     /** The colours the screen on show was built with, or null for the black page. */
     @Nullable
@@ -109,17 +115,31 @@ final class ScreenColors {
      * grey of its scale that reads at 3:1 under the black thumb and on the card.
      */
     private ScreenColors() {
+        // WCAG 2.2 ratios on the black page, its card and the dialog, measured 2026-11-03.
         light = false;
         background = Color.BLACK;
         dialog = 0xFF28292C;
+        // 16.15 on the page, 12.64 on the card, 11.18 on the dialog.
         title = 0xFFDFE2E5;
+        // 9.51, 7.44, 6.59.
         summary = 0xFFAAAFB5;
+        // 6.71, 5.25, 4.65: the darkest step of the summary grey that keeps 4.5 on the dialog.
+        hint = 0xFF8E9297;
+        // 7.49 on the page, 5.86 on the card, 5.19 on the dialog.
         heading = 0xFF3E9EFB;
+        // 5.28 on the card; black reads on it at 6.75.
         accent = 0xFF2694FE;
+        // 3.50 on the card, 3.09 on the dialog; the black thumb reads on it at 4.47.
         switchOff = 0xFF6F747C;
         card = 0xFF1F1F22;
+        // Astryx's 10% border over the card, 1.32 on it: an edge, not a control's boundary. A
+        // focused row's outline is the heading, 5.86.
         outline = 0xFF343437;
+        // The heading reads on it at 5.17.
+        iconSurface = 0xFF29292D;
         onAccent = Color.BLACK;
+        // 9.68 on the card, 8.57 on the dialog.
+        error = 0xFFFFB4AB;
     }
 
     private ScreenColors(TonePalette palette, boolean light) {
@@ -129,23 +149,35 @@ final class ScreenColors {
             dialog = palette.tone(TonePalette.NEUTRAL, 95);
             title = palette.tone(TonePalette.NEUTRAL, 10);
             summary = palette.tone(TonePalette.NEUTRAL_VARIANT, 30);
+            // Tone 40 on tone 95 is 5.7:1 for any wallpaper.
+            hint = palette.tone(TonePalette.NEUTRAL_VARIANT, 40);
             heading = palette.tone(TonePalette.ACCENT, 40);
             accent = palette.tone(TonePalette.ACCENT, 40);
             switchOff = palette.tone(TonePalette.NEUTRAL_VARIANT, 50);
             card = palette.tone(TonePalette.NEUTRAL, 95);
             outline = palette.tone(TonePalette.NEUTRAL_VARIANT, 80);
+            // The accent at tone 40 reads on tone 90 at about 5:1.
+            iconSurface = palette.tone(TonePalette.NEUTRAL, 90);
             onAccent = Color.WHITE;
+            // Material 3's error at tone 40, 5.7 on the dialog.
+            error = 0xFFBA1A1A;
         } else {
             background = palette.tone(TonePalette.NEUTRAL, 10);
             dialog = palette.tone(TonePalette.NEUTRAL, 20);
             title = palette.tone(TonePalette.NEUTRAL, 90);
             summary = palette.tone(TonePalette.NEUTRAL_VARIANT, 80);
+            // Tone 70 on tone 20 is 5.7:1 for any wallpaper.
+            hint = palette.tone(TonePalette.NEUTRAL_VARIANT, 70);
             heading = palette.tone(TonePalette.ACCENT, 80);
             accent = palette.tone(TonePalette.ACCENT, 80);
             switchOff = palette.tone(TonePalette.NEUTRAL_VARIANT, 60);
             card = palette.tone(TonePalette.NEUTRAL, 20);
             outline = palette.tone(TonePalette.NEUTRAL_VARIANT, 30);
+            // The accent at tone 80 reads on tone 30 at about 5.5:1.
+            iconSurface = palette.tone(TonePalette.NEUTRAL, 30);
             onAccent = background;
+            // Material 3's error at tone 80, 7.7 on the dialog.
+            error = 0xFFFFB4AB;
         }
     }
 
@@ -162,12 +194,16 @@ final class ScreenColors {
         card = surfaces[1];
         dialog = card;
         outline = surfaces[surfaces.length - 1];
+        // The popover step, between the card and its edge.
+        iconSurface = surfaces[2];
         title = AmoledTheme.readable(DEFAULT.title, card, TEXT_CONTRAST);
         summary = AmoledTheme.readable(DEFAULT.summary, card, TEXT_CONTRAST);
+        hint = AmoledTheme.readable(DEFAULT.hint, card, TEXT_CONTRAST);
         heading = AmoledTheme.readable(DEFAULT.heading, card, TEXT_CONTRAST);
         accent = AmoledTheme.readable(DEFAULT.accent, card, CONTROL_CONTRAST);
         switchOff = AmoledTheme.readable(DEFAULT.switchOff, card, CONTROL_CONTRAST);
         onAccent = TonePalette.luminance(accent) <= (1.05 / TEXT_CONTRAST) - 0.05 ? Color.WHITE : Color.BLACK;
+        error = AmoledTheme.readable(DEFAULT.error, card, TEXT_CONTRAST);
     }
 
     /**
@@ -255,7 +291,6 @@ final class ScreenColors {
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
             title.setTextColor(dimmedWhenDisabled(this.title));
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             if (title.getParent() instanceof View) {
                 View text = (View) title.getParent();
@@ -266,7 +301,6 @@ final class ScreenColors {
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null) {
             summary.setTextColor(dimmedWhenDisabled(this.summary));
-            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             summary.setLineSpacing(0, 1);
         }
         View widget = row.findViewById(android.R.id.switch_widget);
@@ -275,31 +309,39 @@ final class ScreenColors {
                     {-android.R.attr.state_enabled}, {android.R.attr.state_checked}, {}};
             Switch toggle = (Switch) widget;
             GradientDrawable thumb = new GradientDrawable();
+            thumb.setShape(GradientDrawable.RECTANGLE);
             thumb.setCornerRadius(dp(row, 4));
             thumb.setSize(dp(row, 20), dp(row, 20));
             thumb.setColor(Color.WHITE);
             GradientDrawable track = new GradientDrawable();
             track.setCornerRadius(dp(row, 6));
-            track.setSize(dp(row, 42), dp(row, 24));
+            track.setSize(dp(row, 40), dp(row, 24));
             track.setColor(Color.WHITE);
             toggle.setThumbDrawable(thumb);
             toggle.setTrackDrawable(track);
-            toggle.setSwitchMinWidth(dp(row, 44));
+            toggle.setSwitchMinWidth(dp(row, 40));
+            toggle.setSplitTrack(false);
             toggle.setThumbTintList(new ColorStateList(states, new int[]{half(onAccent), half(offThumb()), onAccent, offThumb()}));
             toggle.setTrackTintList(new ColorStateList(states, new int[]{half(accent), half(switchOff), accent, switchOff}));
         }
         paintChevron(row, preference);
         ImageView icon = row.findViewById(android.R.id.icon);
+        // Decoration: the row's title already says what it is, so a screen reader skips the icon.
+        if (icon != null) icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         if (icon != null && preference.getIcon() != null) {
             ViewGroup.LayoutParams imageSize = icon.getLayoutParams();
             imageSize.width = dp(row, 24);
             imageSize.height = dp(row, 24);
             icon.setLayoutParams(imageSize);
+            icon.setPadding(0, 0, 0, 0);
+            icon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+            icon.setBackground(null);
             if (icon.getParent() instanceof ViewGroup) {
                 ViewGroup frame = (ViewGroup) icon.getParent();
-                frame.setPaddingRelative(0, 0, dp(row, 16), 0);
+                frame.setPaddingRelative(0, 0, dp(row, 14), 0);
+                frame.setMinimumWidth(0);
                 ViewGroup.LayoutParams size = frame.getLayoutParams();
-                size.width = dp(row, 40);
+                size.width = dp(row, 38);
                 frame.setLayoutParams(size);
             }
         }
@@ -310,30 +352,88 @@ final class ScreenColors {
         paintSurface(row, preference, first, last);
     }
 
-    /** Group boundaries follow the visible rows, including a filtered search result. */
+    /** {@link #paintSurface(View, Preference, boolean, boolean, boolean)} for a row a section doesn't hold, on the page itself. */
     void paintSurface(View row, Preference preference, boolean first, boolean last) {
-        GradientDrawable surface = new GradientDrawable();
-        surface.setColor(card);
-        surface.setStroke(dp(row, 1), focusStroke(heading, outline));
-        Drawable inset = new InsetDrawable(surface, 0, first ? 0 : -dp(row, 1), 0, 0);
-        row.setBackground(preference.isSelectable()
-                ? new RippleDrawable(ColorStateList.valueOf(half(accent)), inset, null) : inset);
-        // Explicit padding after the inset background prevents its padding from moving the text.
-        // Astryx spaces in 4 dp steps, so 8 above and below rather than 7.
-        row.setPaddingRelative(dp(row, 16), dp(row, 8), dp(row, 16), dp(row, 8));
-        row.setMinimumHeight(dp(row, 52));
+        paintSurface(row, preference, first, last, !(preference.getParent() instanceof PreferenceCategory));
     }
 
-    /** A section title. */
+    /**
+     * Group boundaries follow the visible rows, including a filtered search result. A row on the
+     * page itself ([overview]) runs edge to edge with square corners and its side and top strokes
+     * pushed a dp off its bounds, so the page has no hairline down either edge and one between
+     * rows. A section's rows share one card, inset 18 dp, rounded at its top and bottom, with
+     * 4 dp more room above its first row and below its last. The card's height is the row's: its
+     * text wraps at any font size and the row grows to fit.
+     */
+    void paintSurface(View row, Preference preference, boolean first, boolean last, boolean overview) {
+        float radius = overview ? 0 : dp(row, 10);
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(card);
+        surface.setStroke(dp(row, 1), preference.isSelectable() ? interactionOutline(outline)
+                : ColorStateList.valueOf(outline));
+        surface.setCornerRadii(new float[]{
+                first ? radius : 0, first ? radius : 0,
+                first ? radius : 0, first ? radius : 0,
+                last ? radius : 0, last ? radius : 0,
+                last ? radius : 0, last ? radius : 0});
+        int side = overview ? -dp(row, 1) : dp(row, 18);
+        Drawable inset = new InsetDrawable(surface, side, overview ? -dp(row, 1) : first ? dp(row, 4) : -dp(row, 1),
+                side, !overview && last ? dp(row, 4) : 0);
+        row.setBackground(preference.isSelectable()
+                ? new RippleDrawable(interactionRipple(heading), inset, null).mutate() : inset);
+        // Explicit padding after the inset background prevents its padding from moving the text.
+        // Astryx spaces in 4 dp steps, so 8 above and below; a section's row puts its 2 dp more,
+        // and the card's 4 dp of room, on its parts, which stay centred on the card.
+        int horizontal = overview ? 20 : 30;
+        row.setPaddingRelative(dp(row, horizontal), dp(row, 8), dp(row, horizontal), dp(row, 8));
+        int above = overview ? 0 : 2 + (first ? 4 : 0);
+        int below = overview ? 0 : 2 + (last ? 4 : 0);
+        if (row instanceof LinearLayout && ((LinearLayout) row).getOrientation() == LinearLayout.HORIZONTAL) {
+            ViewGroup parts = (ViewGroup) row;
+            for (int index = 0; index < parts.getChildCount(); index++) {
+                ViewGroup.LayoutParams place = parts.getChildAt(index).getLayoutParams();
+                if (!(place instanceof ViewGroup.MarginLayoutParams)) continue;
+                ((ViewGroup.MarginLayoutParams) place).topMargin = dp(row, above);
+                ((ViewGroup.MarginLayoutParams) place).bottomMargin = dp(row, below);
+                parts.getChildAt(index).setLayoutParams(place);
+            }
+        }
+        row.setMinimumHeight(dp(row, overview ? 52 : 64));
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) title.setTextSize(TypedValue.COMPLEX_UNIT_SP, overview ? 15 : 16);
+        TextView summary = row.findViewById(android.R.id.summary);
+        if (summary != null) summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, overview ? 12 : 13);
+    }
+
+    /** A section title, in the heading colour, over the cards it names. */
     void paintHeading(View row) {
         TextView title = row.findViewById(android.R.id.title);
         if (title != null) {
-            title.setTextColor(summary);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
-            title.setLetterSpacing(0.07f);
+            title.setTextColor(heading);
+            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            title.setLetterSpacing(0.055f);
             title.setAllCaps(true);
         }
-        row.setPaddingRelative(dp(row, 16), dp(row, 16), dp(row, 16), dp(row, 8));
+        row.setPaddingRelative(dp(row, 22), dp(row, 20), dp(row, 22), dp(row, 8));
+    }
+
+    /**
+     * The restart row, drawn as the button it is: a card on the 18 dp line with 8 dp of page above
+     * and below, rounded 12 dp and outlined in the heading colour, at least 56 dp tall. It stays a
+     * row of the list, at its top, so it shows on whatever page is open the moment a change waits.
+     */
+    void paintRestartBar(View row) {
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(card);
+        surface.setCornerRadius(dp(row, 12));
+        surface.setStroke(dp(row, 1), interactionOutline(heading, title));
+        Drawable inset = new InsetDrawable(surface, dp(row, 18), dp(row, 8), dp(row, 18), dp(row, 8));
+        row.setBackground(new RippleDrawable(interactionRipple(heading), inset, null).mutate());
+        row.setPaddingRelative(dp(row, 18 + 16), dp(row, 8 + 6), dp(row, 18 + 20), dp(row, 8 + 6));
+        row.setMinimumHeight(dp(row, 8 + 56 + 8));
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) title.setTextColor(dimmedWhenDisabled(this.title));
     }
 
     /** Marks the chevron a row was given, so a recycled row's can be found and taken off. */
@@ -541,9 +641,8 @@ final class ScreenColors {
     }
 
     /**
-     * A dialog on show: its surface, title, message, buttons and text field. A single or multiple
-     * choice list's rows take the screen's colours through {@link DialogChoices}; any other list's
-     * rows keep the theme's.
+     * A dialog on show: its surface, title, message, list rows, buttons and text field. Every list's
+     * rows take the screen's colours through {@link DialogChoices}, with their picks kept.
      */
     void paint(@Nullable AlertDialog dialog) {
         if (dialog == null) return;
@@ -555,7 +654,7 @@ final class ScreenColors {
             panel.setStroke(dp(window.getDecorView(), 1), outline);
             window.setBackgroundDrawable(panel);
             int width = Math.min(dialog.getContext().getResources().getDisplayMetrics().widthPixels
-                    - dp(window.getDecorView(), 40), dp(window.getDecorView(), 560));
+                    - dp(window.getDecorView(), 32), dp(window.getDecorView(), 560));
             window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
         @SuppressWarnings("DiscouragedApi")
@@ -564,6 +663,7 @@ final class ScreenColors {
         if (title != null) {
             ShimmerTitle.wear(title, this.dialog);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+            title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             title.setSingleLine(false);
             title.setMaxLines(Integer.MAX_VALUE);
         }
@@ -571,51 +671,61 @@ final class ScreenColors {
         // one on show there: AlertDialog's own sits GONE above it, and findViewById finds that first.
         if (window != null) paintMessages(window.getDecorView());
         android.widget.ListView choices = dialog.getListView();
-        if (choices != null && choices.getAdapter() != null && !(choices.getAdapter() instanceof DialogChoices)) {
-            if (choices.getChoiceMode() == android.widget.ListView.CHOICE_MODE_SINGLE) {
-                int selected = choices.getCheckedItemPosition();
-                choices.setAdapter(new DialogChoices(choices.getAdapter(), this));
-                if (selected >= 0) choices.setItemChecked(selected, true);
-                choices.setDivider(null);
-            } else if (choices.getChoiceMode() == android.widget.ListView.CHOICE_MODE_MULTIPLE) {
-                // A new adapter clears the list's ticks, so they go back on after it.
-                android.util.SparseBooleanArray ticked = choices.getCheckedItemPositions();
-                ticked = ticked == null ? new android.util.SparseBooleanArray() : ticked.clone();
-                choices.setAdapter(new DialogChoices(choices.getAdapter(), this));
-                for (int i = 0; i < ticked.size(); i++) {
-                    if (ticked.valueAt(i)) choices.setItemChecked(ticked.keyAt(i), true);
-                }
-                choices.setDivider(null);
-            }
+        if (choices != null && choices.getAdapter() != null && !(choices.getAdapter() instanceof DialogChoices)
+                && !(choices.getAdapter() instanceof ChoiceCards)) {
+            DialogChoices.swap(choices, new DialogChoices(choices.getAdapter(), this));
+            choices.setDivider(null);
         }
         for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
             Button button = dialog.getButton(which);
             if (button == null) continue;
-            boolean primary = which == AlertDialog.BUTTON_POSITIVE;
-            GradientDrawable surface = new GradientDrawable();
-            surface.setColor(new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}},
-                    new int[]{primary ? outline : this.dialog, primary ? accent : this.dialog}));
-            surface.setCornerRadius(dp(button, ELEMENT_RADIUS));
-            surface.setStroke(dp(button, 2), new ColorStateList(
-                    new int[][]{{-android.R.attr.state_enabled}, {android.R.attr.state_focused}, {}},
-                    new int[]{Color.TRANSPARENT, this.title, primary ? accent : Color.TRANSPARENT}));
-            RippleDrawable background = new RippleDrawable(ColorStateList.valueOf(half(primary ? onAccent : accent)),
-                    surface, null);
+            paintAction(button, which == AlertDialog.BUTTON_POSITIVE);
             // The framework button's own insets: the 48dp touch height keeps a 36dp fill, clear of
             // the dialog's edge like every Material button.
-            background.setLayerInsetRelative(0, dp(button, 4), dp(button, 6), dp(button, 4), dp(button, 6));
-            button.setBackground(background);
-            button.setTextColor(primary
-                    ? new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}}, new int[]{summary, onAccent})
-                    : dimmedWhenDisabled(secondaryActionText()));
-            button.setAllCaps(false);
-            button.setSingleLine(false);
-            button.setMaxLines(3);
-            button.setMinHeight(dp(button, 48));
-            button.setPaddingRelative(dp(button, 16), dp(button, 6), dp(button, 16), dp(button, 6));
+            ((RippleDrawable) button.getBackground()).setLayerInsetRelative(
+                    0, dp(button, 4), dp(button, 6), dp(button, 4), dp(button, 6));
         }
         View field = dialog.findViewById(android.R.id.edit);
         if (field instanceof EditText) paintField((EditText) field);
+    }
+
+    /**
+     * A dialog's button as a card: the primary one filled in the accent, the others on the card
+     * colour, each outlined, at least 48 dp tall and 64 wide, wrapping a long word rather than
+     * cutting it off.
+     */
+    private void paintAction(TextView action, boolean primary) {
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(dimmedWhenDisabled(primary ? accent : card));
+        surface.setCornerRadius(dp(action, ELEMENT_RADIUS));
+        surface.setStroke(dp(action, 2), interactionOutline(primary ? accent : outline,
+                primary ? onAccent : heading));
+        action.setBackgroundTintList(null);
+        // View's tint pass mutates the background after setting its state. Mutate first so
+        // that pass can't replace enabled children with fresh, empty-state copies.
+        action.setBackground(new RippleDrawable(
+                interactionRipple(primary ? onAccent : heading), surface, null).mutate());
+        action.setTextColor(dimmedWhenDisabled(primary ? onAccent : secondaryActionText()));
+        action.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        action.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        action.setAllCaps(false);
+        action.setSingleLine(false);
+        action.setMaxLines(Integer.MAX_VALUE);
+        action.setEllipsize(null);
+        action.setHorizontallyScrolling(false);
+        action.setGravity(android.view.Gravity.CENTER);
+        action.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        action.setMinHeight(dp(action, 48));
+        action.setMinimumHeight(dp(action, 48));
+        action.setMinWidth(dp(action, 64));
+        action.setMinimumWidth(dp(action, 64));
+        action.setPaddingRelative(dp(action, 16), dp(action, 12), dp(action, 16), dp(action, 12));
+    }
+
+    /** A list row's fill: [normal] at rest, the accent at 13% once it's picked. */
+    ColorStateList choiceFill(int normal) {
+        return new ColorStateList(new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{(accent & 0x00FFFFFF) | 0x22000000, normal});
     }
 
     /**
@@ -626,14 +736,14 @@ final class ScreenColors {
         field.setHintTextColor(summary);
         GradientDrawable outline = new GradientDrawable();
         outline.setColor(dialog);
-        outline.setCornerRadius(dp(field, ELEMENT_RADIUS));
-        outline.setStroke(dp(field, 2), new ColorStateList(
-                new int[][]{{-android.R.attr.state_enabled}, {android.R.attr.state_focused}, {}},
-                new int[]{this.outline, heading, switchOff}));
+        outline.setCornerRadius(dp(field, CONTAINER_RADIUS));
+        outline.setStroke(dp(field, 2), interactionOutline(switchOff));
         field.setBackgroundTintList(null);
         field.setBackground(outline);
         field.setPaddingRelative(dp(field, 12), dp(field, 10), dp(field, 12), dp(field, 10));
         field.setTextColor(dimmedWhenDisabled(title));
+        field.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        field.setMinHeight(dp(field, 48));
         field.setHighlightColor(half(accent));
         Drawable cursor = field.getTextCursorDrawable();
         if (cursor != null) {
@@ -662,7 +772,12 @@ final class ScreenColors {
     }
 
     private void paintMessages(View view) {
-        if (view instanceof TextView && view.getId() == android.R.id.message) ((TextView) view).setTextColor(summary);
+        if (view instanceof TextView && view.getId() == android.R.id.message) {
+            TextView message = (TextView) view;
+            message.setTextColor(dimmedWhenDisabled(summary));
+            message.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            message.setLineSpacing(dp(view, 2), 1);
+        }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int index = 0; index < group.getChildCount(); index++) paintMessages(group.getChildAt(index));
@@ -721,6 +836,30 @@ final class ScreenColors {
         return new ColorStateList(new int[][]{{android.R.attr.state_enabled, android.R.attr.state_focused},
                 {android.R.attr.state_enabled, android.R.attr.state_selected}, {}},
                 new int[]{focused, focused, resting});
+    }
+
+    /**
+     * A row's or a field's edge: [normal] at rest, at 38% when it's disabled, and in the heading
+     * colour while a keyboard, a mouse or a list's own selection is on it (focused, hovered,
+     * selected, activated or checked), so each of those stays visible.
+     */
+    ColorStateList interactionOutline(int normal) {
+        return interactionOutline(normal, heading);
+    }
+
+    private static ColorStateList interactionOutline(int normal, int focused) {
+        return new ColorStateList(new int[][]{
+                {-android.R.attr.state_enabled}, {android.R.attr.state_focused},
+                {android.R.attr.state_hovered}, {android.R.attr.state_selected},
+                {android.R.attr.state_activated}, {android.R.attr.state_checked}, {}},
+                new int[]{(normal & 0x00FFFFFF) | (Math.round(Color.alpha(normal) * 0.38f) << 24),
+                        focused, focused, focused, focused, focused, normal});
+    }
+
+    /** A press ripple in [color] at 20%, and none on a disabled control. */
+    static ColorStateList interactionRipple(int color) {
+        return new ColorStateList(new int[][]{{-android.R.attr.state_enabled}, {}},
+                new int[]{Color.TRANSPARENT, (color & 0x00FFFFFF) | 0x33000000});
     }
 
     /** A quiet outlined action with the same touch target as the dialog buttons. */

@@ -6,20 +6,21 @@ Apply the same workflow used for Rumble and Kick: inspect the original app, impl
 the viable equivalents of the existing patches, verify the resulting APK and runtime
 settings, and publish a tested stable Lurk release through the repository workflow.
 
-The supported target is `tv.twitch.android.app` **31.8.0**, version code **3108006**.
-The patches were written against 31.6.0 (3106006), moved to 31.7.0 (3107006) on 2026-10-21 and to
-31.8.0 on 2026-10-29. Two APKMirror bundles of 31.8.0 are stored with `bin/apk-add`, which verified
-their signature, in `apks/twitch/31.8.0/`: the arm64-v8a 480-640 dpi bundle for phones (Android 10+,
-the default input) and the arm64-v8a, x86 and x86_64 480 dpi bundle (Android 8.0+) that emulator
-installs pick. The phone bundle's base APK SHA-256 is
-`09fad5136771353a7cd7748f894d406f03b6c129e3e637287f98baf5c48666a4`.
+The supported target is `tv.twitch.android.app` **31.9.0**, version code **3109006**.
+The patches were written against 31.6.0 (3106006), moved to 31.7.0 (3107006) on 2026-10-21, to
+31.8.0 (3108006) on 2026-10-29 and to 31.9.0 on 2026-11-04. Google Play has served 31.9.0 since
+2026-10-30, and Uptodown lists it; APKMirror lists it only as `31.9.0_BETA` (version code 13109xxx, a
+different build) so far. The stored input is Google Play's split APKs for the development phone
+(arm64-v8a, xxhdpi; Android 12L+), pulled from the phone and packed with `bin/lib/apk.py pack-splits`
+into `apks/twitch/31.9.0/`; `bin/apk-add` verified their signature. The base APK SHA-256 is
+`dceebe96deca2292251d7d74bed0f30419f0aac41d2060d1fd03a622eb138b74`. There is no x86_64 build of 31.9.0 yet, so emulator installs
+run through ARM translation; the on-device probes ran on the phone.
 
 Allowed sources are APKMirror, Google Play and Uptodown (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 The variants used are listed here:
 
-- [APKMirror release and variants](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/)
-- [APKMirror arm64-v8a bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-android-apk-download/)
-- [APKMirror arm64-v8a + x86 + x86_64 bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-4-android-apk-download/)
+- [Google Play](https://play.google.com/store/apps/details?id=tv.twitch.android.app)
+- [Uptodown versions](https://twitch.en.uptodown.com/android/versions)
 
 What changed from 31.6.0 to 31.7.0 for the patches: the React Native bundle (still Hermes v98)
 renumbered its strings, functions, literals and registers, and the React Native player moved its
@@ -40,11 +41,24 @@ by byte anchors and size checks (Hide Clips' three clip callbacks, compared by h
 The version-pinned tests that name R8-renamed classes, string or resource IDs or Metro module numbers
 were moved to 31.8.0's, and the stock bundle's SHA-256 they pin with it.
 
+What changed from 31.8.0 to 31.9.0: the bundle (still Hermes v98) has a new SHA-256, renumbered again, and its
+string table passed 65,535 entries, so some property reads now use the 32-bit `GetByIdLong`; `falseProperty`
+handles both forms. `SkylineLeaderboardTrophy` no longer takes a `hasBoards` prop but calls
+`useChannelLeaderboard()` and returns null without `hasLeaderboard`, which Hide chat highlights now reads as
+false. `SubscribeButton` gained a third render path (a primary-variant button) next to the text and icon
+buttons, so Hide subscription upsells guards three returns. The compiler-pinned edits (Hide Clips in
+`DiscoveryFeedContent`, whose pager array is now r96 with the jump past the third child at 0x6f61, and the
+player's Share button) were re-derived from 31.9.0's disassembly; an old Hide Clips pattern matched a different
+three-element array in 31.9.0, which the offset check caught. Natively, the Ultralight player's eligibility now
+reads `R.bool.isTablet` and leaves tablets on the native player; Tablet layout hooks that read too. The
+version-pinned tests (Hermes offsets and registers, Metro module numbers) were moved to 31.9.0's; the stock
+bundle's SHA-256 is now read from `Hermes.kt` by every test that checks it.
+
 APKMirror reports the signing certificate SHA-256 as
 `1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53`.
 The supplied APK's verified signature matches this certificate, which is now pinned
 in `twitch/shared/Constants.kt`. Decompiled Java, smali and resources are under
-`$MORPHE_WORK/twitch/31.8.0/` (`bin/decompile twitch`). Twitch also embeds a Hermes v98 React Native bundle
+`$MORPHE_WORK/twitch/31.9.0/` (`bin/decompile twitch`). Twitch also embeds a Hermes v98 React Native bundle
 and web-view JavaScript; native screens alone do not cover every feature.
 
 ## Coverage
@@ -228,6 +242,15 @@ Changing the bar's own default tab is not an option: the navigation host require
 destination (`Must use NavGraphFragment resolver for start destination`). Verified on the emulator:
 Browse opens at launch.
 
+Signed in, Home is React Native (the discovery feed, with Following, Live and Clips tabs), and Twitch routes
+the Following destination into that feed on its default tab, Live
+([issue #51](https://github.com/jordanwoodson/lurk-morphe-patches/issues/51)). The feed's tab is one of its
+initial props (`subfeedTab`, set in `DiscoveryFeedRNInitialPropsBuilder.build`, whose class and method names
+Twitch keeps), so the patch also hooks that method's start: for the first feed a plain launch builds, with
+Following chosen, `TwitchInterface.feedTab` turns a missing or `live` tab into `following`; deep links, later
+feeds and any other tab Twitch asked for pass through (`tests/twitch/verify_interface.py`). Verified on a
+phone, signed in: the feed opens on its Following tab.
+
 ### Trackers in Disable analytics
 
 31.8.0, like 31.6.0 and 31.7.0, has no Bugsnag, Facebook SDK, SafetyNet or Amazon APS. Disable analytics now also:
@@ -325,7 +348,16 @@ fills in.
 
 *Sleep timer* re-arms on every `play()`. It pauses through the Guest Star pause-all registry (native
 and portal) and through `TwitchMediaSessionModule`/`FeedPlayerRegistry` (React Native), so background
-audio can be resumed from its notification.
+audio can be resumed from its notification. The time can also be changed without leaving the stream
+([issue #52](https://github.com/jordanwoodson/lurk-morphe-patches/issues/52)): the player's settings sheet
+(the gear; `stream_settings_fragment`, whose view holder looks its rows up in its constructor, found by the
+`background_audio_wrapper`, `background_audio_text` and `pip_wrapper` IDs) gets a *Sleep timer* row right
+after Twitch's Background audio row. `TwitchStreamSettings.sleepTimerRow` builds it from the sibling row's
+layout, padding, background and text style, so it looks like Twitch's own, and shows the current choice;
+a tap opens the same chooser as Lurk settings (labels and values from the registry, through
+`Settings.choiceLabels`/`choiceValues`). The pick is written with `Settings.setChoice`, which accepts only a
+registered choice's own values, and `SleepTimer.settingChanged` re-arms from that moment for whatever is
+playing, or cancels the pending pause for Off (`tests/shared/test_sleep_timer.py`, `change`).
 
 *Refresh stream* calls the error screen's Retry, `N1(0, true)`. For live that fetches a new token and
 playlist; a VOD keeps its position. It's triggered by a long press on the settings gear of the live
@@ -557,14 +589,23 @@ both cases.
 
 *Playlist proxy* is opt-in and does nothing without its `proxyUrl` option. It sends live usher requests
 to the configured proxy. Its switch starts on once a URL is set, since setting one is the opt-in. The
-proxy sees which channel is watched and when, and receives the signed playback token in the request
-URL: in the query when it takes usher's place, inside the encoded Twitch URL with `{url}`, so its access
-logs can keep it. Whatever it returns is what the player plays, including segments of its own; the
+proxy sees which channel is watched and when. A `{channel}` template such as
+`https://example.org/live/{channel}` substitutes the lowercase channel login from either live usher
+path (`/api/channel/hls/<channel>.m3u8` or `/api/v2/channel/hls/<channel>.m3u8`), without forwarding
+Twitch's signed query or fragment. This supports proxies that obtain their own playback token
+([issue #57](https://github.com/jordanwoodson/lurk-morphe-patches/issues/57)). A template may contain
+its own query, but cannot combine `{channel}` and `{url}`. `{channel}` is allowed only in the proxy
+path or query, keeping the scheme and host fixed. Invalid channel paths pass through unchanged.
+The other modes receive the signed playback token in the request URL: in the query when the proxy
+takes usher's place, inside the encoded Twitch URL with `{url}`, so its access logs can keep it.
+Whatever it returns is what the player plays, including segments of its own; the
 description says so and to use only a proxy you trust. *Avoid stitched ads* reads
 only `usher.ttvnw.net` master playlists, so a stream loaded through the proxy is never tracked: with
 both patches on, the proxy alone decides what the playlists hold, and Mute stitched ads still acts on
 any ad cues they keep. `TwitchAsyncProbe proxy` checks that a proxied master, in place of usher or with
-the usher URL in its query, isn't consumed.
+the usher URL in its query, or using a channel-only path, isn't consumed.
+`tests/twitch/test_playlist_proxy.py` checks both live path forms, lowercase conversion independent
+of locale, token omission, invalid paths, disabled behavior and preservation of the existing modes.
 
 `bin/test-twitch-ads` runs these hooks on ART. Signed out, no display or stitched ads were served,
 so real ad delivery is verified only through the probe and the emitted bytecode. The proxy was checked
@@ -878,7 +919,31 @@ unchanged code but were not seen in the app.
 Badges download FrankerFaceZ's and Chatterino's public lists of badge holders and match them on the
 device, so no chatter is looked up. Badge images come from the https addresses in those lists:
 FrankerFaceZ's are on cdn.frankerfacez.com; Chatterino's are on fourtf.com today, but the host is
-whatever Chatterino's list names, which the descriptions say. Holder and chatter IDs are 64-bit. The exception is *pronouns* (`badges_pronouns`, off by default):
+whatever Chatterino's list names, which the descriptions say. Holder and chatter IDs are 64-bit.
+
+*7TV badges* (`badges_7tv`, off by default; [issue #48](https://github.com/jordanwoodson/lurk-morphe-patches/issues/48))
+have no list to download: 7TV's REST API only answers per user, and looking every chatter up there would hand
+7TV the chat's roster. Instead `TwitchSevenTvBadges` does what 7TV's own browser extension does: while a
+channel's chat is open it keeps one WebSocket to 7TV's event service (`wss://events.7tv.io/v3`), subscribed to
+`cosmetic.*` and `entitlement.*` for that channel (`{platform: TWITCH, ctx: channel, id: <channel ID>}`). 7TV
+then pushes each badge's definition (`cosmetic.create`, kind `BADGE`: tooltip and `cdn.7tv.app` files) and, as it
+sees chatters of that channel, which badge each has chosen (`entitlement.create`/`delete` with the user's Twitch
+connection ID). So 7TV learns the channel, exactly as it does from the 7TV emotes switch, and nothing about the
+viewer or which chatters are on screen. The channel comes from the third-party emotes' chat-connect hook (the
+badges patch now depends on that patch) and from React Native rows' room; the connection moves with the channel
+(unsubscribe, subscribe) and closes after ten minutes without a chat line, when the switch goes off, or when 7TV
+asks for a reconnect, reopening on the next line (a minute later after a failure). Twitch's OkHttp is renamed by
+R8, so the client is a small RFC 6455 implementation over `SSLSocket` with hostname verification: masked text
+frames out, text, continuation, ping and close in, frames capped at 1 MB. Holders are kept for up to 20,000
+chatters (oldest out) and badge definitions for the session; the largest file up to 3x is used, its still copy for
+an animated badge. Badges appear after Twitch's own on native lines through the same badge model, and in React
+Native rows through the same snapshot, with *Emote and badge info* naming them "7TV badge". Checked on the JVM
+(`tests/twitch/test_seventv_badges.py`: the event shapes above as 7TV sent them on 2026-11-04, and the client
+against a local server) and on the emulator, signed out, in a 10,000-viewer chat: the connection opens for the
+channel's ID and badge definitions and holders arrive within seconds (Debug logging shows the counts). 7TV only
+pushes entitlements for chatters its own users have seen, so a quiet channel shows none.
+
+The exception is *pronouns* (`badges_pronouns`, off by default):
 pronouns.alejo.io has no bulk list, so the username of each chatter whose message you see is looked
 up there.
 - Answers, including "none", are cached for an hour, for up to 2000 users.
@@ -887,7 +952,12 @@ up there.
 - Pronouns are drawn as a small text badge.
 
 *Chat overlay* (off by default) scrolls live chat right to left across the top of the video, like
-danmaku. It's fed from the native chat list feeder, found through the `LiveChatMessage(messageId=`
+danmaku. Its hook in the vertical theatre's stream observer carries a label of its own and goes in through
+`addInstructionsWithLabels`: the patcher's plain `addInstructions` keeps such a label's address relative to the
+snippet, which is only right at index 0, and ART's verifier then rejected the whole observer class, so every
+dual-format stream crashed the app, Pause Lurk or not
+([issue #49](https://github.com/jordanwoodson/lurk-morphe-patches/issues/49); `tests/verify_branch_targets.py`,
+run by `bin/verify-hooks`, now checks every branch of every hooked method of a patched APK). It's fed from the native chat list feeder, found through the `LiveChatMessage(messageId=`
 toString. The overlay is a plain view on `android.R.id.content` that ignores all touches. It attaches
 only in landscape outside picture-in-picture while a video surface covers at least half the width,
 and detaches in portrait, in picture-in-picture, when the video goes away, or after 15 s without
@@ -984,7 +1054,9 @@ the second seeked to 26:29.
 
 *Tablet layout* makes Twitch read its tablet resources as true. `isTablet` switches the form factor
 to Tablet, so Home and the player rotate and the player shows chat beside the video in landscape.
-`is_tablet` only affects the cast dialogs. `following_drawer_use_sidebar` gives the navigation rail,
+Since 31.9.0 Twitch also reads `isTablet` when it decides whether the React Native (Ultralight) player may
+run, and keeps tablets on the native one; with the switch on, the phone gets the native player too, as a
+real tablet does. `is_tablet` only affects the cast dialogs. `following_drawer_use_sidebar` gives the navigation rail,
 in landscape only unless "Navigation rail in portrait" is on: signed in, Twitch opens its 320 dp
 Following sidebar next to the rail, which would leave almost no room in portrait.
 
@@ -1165,7 +1237,7 @@ fragment (not part of the bundle): the row draws with the ghost icon after Priva
 opens Lurk settings. Reaching it the normal way, signed in, needs an account and wasn't checked.
 
 The original Hermes v98 bundle SHA-256 is
-`059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583` (31.8.0).
+`b8d3338ca8f7ec5e4b9182baac0b5dcd24b96986483cb4d805bc5293e14b0c01` (31.9.0).
 Patch-time parsing pins that hash/version, verifies function boundaries and unique
 instruction patterns, and permits only equal-length non-overlapping edits. Every edit also passes
 `HermesBundle.requireSafeEdit`, which decodes the function with the v98 instruction lengths
@@ -1215,6 +1287,17 @@ without fatal exceptions, missing-method errors or verification errors in the
 captured startup logs. The native-only ad/consent selection has exactly two controls,
 leaves the RN loader untouched and retains the original Hermes asset without a
 manifest. The independent interface/playback selection also patches successfully.
+
+Moving to 31.9.0 was checked on 2026-11-04: with every patch selected, all 54 patches apply (`bin/bump`), and
+the default selection applies its 42. `bin/verify-hooks` finds every expected hook (Playlist proxy's in a build with
+a proxy URL set) and that every branch of the 1,193 hooked methods lands on an instruction; `bin/test-twitch`
+counts 142 extension methods called from app code. `bin/test-host`, `bin/test-twitch-interface-hermes`,
+`bin/test-twitch-chat-hermes` and `tests/twitch/test_privacy_hermes.py` (72 edits in 63 functions, all-off
+restoring the stock bundle) pass, and so does every `bin/test-twitch*` ART probe with its stock negative controls.
+The ART probes ran on the emulator with the arm64 Play build (they only load dex); the phone's ART refuses
+`sun.misc.Unsafe`, which they use to build Twitch objects without running constructors. On the development phone
+(Android 16), signed in with a test account, the default build starts on Following with that choice, plays a
+dual-format stream in the vertical view, and shows the Sleep timer row in the player's settings sheet.
 
 Moving to 31.8.0 was checked on 2026-10-29: with every patch selected and without `-f`, all 54
 patches apply to both stored bundles (the phone bundle with a Playlist proxy URL set, so that its

@@ -9,20 +9,44 @@ internal data class BlueNoiseLayout(
     val version: String, val code: String, val size: Int, val stockHash: String,
     val prefix: Int, val suffix: Int, val drawReturn: Long,
     val sites: List<BlueNoiseSite>, val guards: List<BlueNoiseGuard>,
+    // Defaults describe every base before 2.0.24/5002527.
+    val shaderSize: Int = VIDEO_SHADER_SIZE,
+    val maskedSize: Int = VD_SDR_FOVEA_SUFFIX_SIZE,
+    // Hash of the full GL source the stock fovea / background program presents to
+    // glShaderSource when this layout is hooked (stock prefix + stock suffix).
+    val maskedStockHash: String = BLUE_NOISE_STOCK_MASKED_HASH,
+    val backgroundStockHash: String = BLUE_NOISE_STOCK_BACKGROUND_HASH,
+    val stockPrefixHash: String = BLUE_NOISE_STOCK_PREFIX_HASH,
+    // 5002527 only: the stock video program declares vInnerFade at uniform location 14, which
+    // the standard helper reserves for SL_blueNoise (it also rejects any host uniform above
+    // location 13). That base uses the inner-fade payload, whose helper-owned slots are 16/17
+    // (host uniforms up to 15), so the stock uniform, its declaration and its native consumer
+    // are never modified.
+    val helper: BlueNoiseHelperVariant = BlueNoiseHelperVariant.STANDARD,
 )
+internal enum class BlueNoiseHelperVariant(val resource: String, val sha256: String) {
+    STANDARD("/steamlink/blue-noise/libgxd.so", BLUE_NOISE_PAYLOAD_SHA256),
+    INNER_FADE("/steamlink/blue-noise/libgxd-inner-fade.so", BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256);
+
+    fun bundled(): ByteArray =
+        (object {}.javaClass.getResourceAsStream(resource)
+            ?: throw PatchException("Missing blue-noise native payload $resource")).use { it.readBytes() }
+}
 internal data class BlueNoiseResult(val scene: ByteArray, val helper: ByteArray?)
 internal enum class BlueNoiseLayer { FOVEA, BACKGROUND }
 private data class BlueNoiseTarget(val suffix: Int, val size: Int, val drawReturn: Long, val stockHash: String)
 private fun blueNoiseTarget(layout: BlueNoiseLayout, layer: BlueNoiseLayer): BlueNoiseTarget =
-    if (layer == BlueNoiseLayer.FOVEA) BlueNoiseTarget(layout.suffix, 296, layout.drawReturn, BLUE_NOISE_STOCK_MASKED_HASH)
+    if (layer == BlueNoiseLayer.FOVEA) BlueNoiseTarget(layout.suffix, layout.maskedSize, layout.drawReturn, layout.maskedStockHash)
     else when (layout.code) {
-        "5001812" -> BlueNoiseTarget(0x9d182, 29, 0xf1c28L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
-        "5001968" -> BlueNoiseTarget(0x96e5b, 29, 0xed558L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
+        "5001812" -> BlueNoiseTarget(0x9d182, 29, 0xf1c28L, layout.backgroundStockHash)
+        "5001968" -> BlueNoiseTarget(0x96e5b, 29, 0xed558L, layout.backgroundStockHash)
 
-        "5001712" -> BlueNoiseTarget(0x9d23d, 29, 0xf1d28L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
-        "5002244" -> BlueNoiseTarget(0x976e6, 29, 0xeeb44L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
-        "5002363" -> BlueNoiseTarget(0x99013, 29, 0xf1c84L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
-        "5002395" -> BlueNoiseTarget(0x99a51, 29, 0xf2ed4L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
+        "5001712" -> BlueNoiseTarget(0x9d23d, 29, 0xf1d28L, layout.backgroundStockHash)
+        "5002244" -> BlueNoiseTarget(0x976e6, 29, 0xeeb44L, layout.backgroundStockHash)
+        "5002363" -> BlueNoiseTarget(0x99013, 29, 0xf1c84L, layout.backgroundStockHash)
+        "5002395" -> BlueNoiseTarget(0x99a51, 29, 0xf2ed4L, layout.backgroundStockHash)
+        // glDrawArrays return of the base program inside RenderSpecific (0xf6744 + 4).
+        "5002527" -> BlueNoiseTarget(0x9b2c0, 29, 0xf6748L, layout.backgroundStockHash)
         else -> throw PatchException("Unknown background blue-noise layout")
     }
 
@@ -33,9 +57,11 @@ private fun blueNoiseRequire(condition: Boolean, message: String) {
     if (!condition) throw PatchException(message)
 }
 
-internal fun bundledBlueNoiseHelper(): ByteArray =
-    (object {}.javaClass.getResourceAsStream("/steamlink/blue-noise/libgxd.so")
-        ?: throw PatchException("Missing blue-noise native payload" )).use { it.readBytes() }
+internal fun bundledBlueNoiseHelper(): ByteArray = BlueNoiseHelperVariant.STANDARD.bundled()
+
+internal fun bundledBlueNoiseInnerFadeHelper(): ByteArray = BlueNoiseHelperVariant.INNER_FADE.bundled()
+
+private val KNOWN_PAYLOAD_HASHES = BlueNoiseHelperVariant.entries.map { it.sha256 }.toSet()
 
 private val BLUE_NOISE_CONFIG_MARKERS = listOf(
     "SLBN_CONFIGURED_HASH_____________________________________________",
@@ -44,9 +70,12 @@ private val BLUE_NOISE_CONFIG_MARKERS = listOf(
     "SLBN_BACKGROUND_STOCK___________________________________________", "SLBN_BASE_PC____",
 )
 
-internal fun isConfiguredBlueNoiseHelper(bytes: ByteArray): Boolean {
-    val stock = bundledBlueNoiseHelper()
-    if (stock.size != bytes.size || blueNoiseHash(stock) != BLUE_NOISE_PAYLOAD_SHA256) return false
+/** True when [bytes] is a canonical bundled helper (either variant) carrying only owned configuration. */
+internal fun isConfiguredBlueNoiseHelper(bytes: ByteArray): Boolean =
+    BlueNoiseHelperVariant.entries.any { isConfiguredBlueNoiseHelper(bytes, it.bundled()) }
+
+private fun isConfiguredBlueNoiseHelper(bytes: ByteArray, stock: ByteArray): Boolean {
+    if (stock.size != bytes.size || blueNoiseHash(stock) !in KNOWN_PAYLOAD_HASHES) return false
     val normalized = bytes.copyOf()
     BLUE_NOISE_CONFIG_MARKERS.forEach { marker ->
         val offset = stock.toString(Charsets.ISO_8859_1).indexOf(marker)
@@ -109,23 +138,23 @@ internal fun applyBlueNoiseLayer(
     if (mode == FoveaMode.OFF && states.none { it } && existingHelper == null) return BlueNoiseResult(bytes.copyOf(), null)
     layout.guards.forEach { guard ->
         val actual = bytes.copyOfRange(guard.offset, guard.offset + guard.size)
-        val adjustedFovea = guard.offset == layout.suffix && guard.size == VD_SDR_FOVEA_SUFFIX_SIZE &&
+        val adjustedFovea = guard.offset == layout.suffix && guard.size == layout.maskedSize &&
             isGammaAdjustedFoveaSuffix(actual) && isOledCalibrationShader(
-                bytes.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE))
+                bytes.copyOfRange(layout.prefix, layout.prefix + layout.shaderSize))
         blueNoiseRequire(blueNoiseHash(actual) == guard.hash || adjustedFovea,
             "Blue-noise native route guard failed at 0x${guard.offset.toString(16)} for $version/$code")
     }
-    blueNoiseRequire(findVideoShader(bytes) == layout.prefix, "Blue-noise shader position mismatch")
+    blueNoiseRequire(findVideoShader(bytes, layout.shaderSize) == layout.prefix, "Blue-noise shader position mismatch")
     BlueNoiseLayer.entries.forEach { targetLayer ->
         val target = blueNoiseTarget(layout, targetLayer)
         blueNoiseRequire(bytes[target.suffix - 1] == 0.toByte() && bytes[target.suffix + target.size] == 0.toByte(),
             "Blue-noise suffix boundary mismatch")
     }
-    val canonical = payload ?: bundledBlueNoiseHelper()
-    blueNoiseRequire(blueNoiseHash(canonical) == BLUE_NOISE_PAYLOAD_SHA256, "Blue-noise payload integrity mismatch")
+    val canonical = payload ?: layout.helper.bundled()
+    blueNoiseRequire(blueNoiseHash(canonical) == layout.helper.sha256, "Blue-noise payload integrity mismatch")
     val selected = mutableSetOf<BlueNoiseLayer>()
     if (existingHelper != null) {
-        blueNoiseRequire(isConfiguredBlueNoiseHelper(existingHelper), "Refusing unrecognized blue-noise helper")
+        blueNoiseRequire(isConfiguredBlueNoiseHelper(existingHelper, canonical), "Refusing unrecognized blue-noise helper")
         val configuration = blueNoiseConfiguration(existingHelper, canonical)
         blueNoiseRequire(states.all { it } && configuration.isNotEmpty(), "Helper/import state mismatch")
         configuration.forEach { (configuredLayer, values) ->
@@ -137,16 +166,16 @@ internal fun applyBlueNoiseLayer(
     }
     if (mode == FoveaMode.OFF) selected -= layer else selected += layer
     val enabled = selected.isNotEmpty()
+    val result = bytes.copyOf()
     val helper = if (!enabled) null else {
-        val prefix = bytes.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)
-        validateBlueNoisePrefix(prefix)
+        val prefix = bytes.copyOfRange(layout.prefix, layout.prefix + layout.shaderSize)
+        validateBlueNoisePrefix(layout, prefix)
         configureBlueNoiseLayers(canonical, selected.associateWith { selectedLayer ->
             val target = blueNoiseTarget(layout, selectedLayer)
             listOf(blueNoiseHash(prefix + bytes.copyOfRange(target.suffix, target.suffix + target.size)),
                 target.stockHash, target.drawReturn.toString(16).padStart(16, '0'))
         })
     }
-    val result = bytes.copyOf()
     layout.sites.forEach { site ->
         ((if (enabled) site.hooked else site.stock) + "\u0000").toByteArray(Charsets.US_ASCII)
             .copyOf(site.stock.length + 1).copyInto(result, site.offset)
@@ -154,8 +183,8 @@ internal fun applyBlueNoiseLayer(
     return BlueNoiseResult(result, helper)
 }
 
-private fun validateBlueNoisePrefix(prefix: ByteArray) {
-    if (blueNoiseHash(prefix) == "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a") return
+private fun validateBlueNoisePrefix(layout: BlueNoiseLayout, prefix: ByteArray) {
+    if (blueNoiseHash(prefix) == layout.stockPrefixHash) return
     blueNoiseRequire(isOledCalibrationShader(prefix),
         "Blue noise requires the exact stock shader or OLED calibration with the VD-like fovea toggle OFF; unknown or already-dithered shaders are not stacked")
 }
@@ -167,7 +196,7 @@ internal fun configureBlueNoiseHelper(payload: ByteArray, configuredHash: String
 
 private fun configureBlueNoiseLayers(payload: ByteArray, layers: Map<BlueNoiseLayer, List<String>>): ByteArray {
     // CI packages this canonical payload; rebuild with patches/src/main/cpp/blue_noise/Build-Native.ps1.
-    blueNoiseRequire(blueNoiseHash(payload) == BLUE_NOISE_PAYLOAD_SHA256, "Blue-noise payload integrity mismatch")
+    blueNoiseRequire(blueNoiseHash(payload) in KNOWN_PAYLOAD_HASHES, "Blue-noise payload integrity mismatch")
     val result = payload.copyOf()
     fun replace(marker: String, value: String) {
         val pattern = marker.toByteArray(Charsets.US_ASCII)
@@ -188,5 +217,9 @@ private fun configureBlueNoiseLayers(payload: ByteArray, layers: Map<BlueNoiseLa
 }
 
 internal const val BLUE_NOISE_PAYLOAD_SHA256 = "5c30791621cc94a3f2f358e9b98e8029bc0765c1a0d44f6d1bc4690b2f45e858"
+// Rebuilt from the same source with -DSL_NOISE_LOCATION=16 -DSL_ENABLE_LOCATION=17
+// -DSL_MAX_HOST_LOCATION=15 (Build-Native.ps1 -InnerFadeVariant); used only by 2.0.24/5002527.
+internal const val BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256 = "95e3d478c3bfa364c9b5ebe3439096cc2b3e90ada71733ecef7a01a30b9f3ebf"
 internal const val BLUE_NOISE_STOCK_MASKED_HASH = "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
 internal const val BLUE_NOISE_STOCK_BACKGROUND_HASH = "871e528249132d814a3e1110ded3ff1a25e3f016bdddd1e16aa67a000d835246"
+internal const val BLUE_NOISE_STOCK_PREFIX_HASH = "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a"

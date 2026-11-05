@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.16.2](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v0.16.4](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -56,23 +56,25 @@ MEO 5.7.0 patches provide a separately installable clone and compatibility handl
 <summary>📦 Monet&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
-The original premium unlock is from [Doom's Patches](https://github.com/rushiranpise/morphe-patches), updated here for Monet Launcher **1.1.0**, retaining the existing 1.0.97 target. A separate experimental variant has no version restriction and validates billing ownership and all 16 evaluator input states rather than exact compiler flags/registers. Future compatibility is not guaranteed; unsupported layouts fail safely. Select **only one**; both are disabled by default. Both variants passed original-DEX, packaged-bundle and APK rebuild checks on 1.1.0. The user reported that the updated premium patch works on their device; the selected alternative and individual lifecycle checks were not specified. See [implementation and verification details](docs/Monet.md).
+The original premium unlock is from [Doom's Patches](https://github.com/rushiranpise/morphe-patches), updated here for Monet Launcher **1.1.1**, retaining existing **1.1.0 / 1.0.97** support. A separate experimental variant has no version restriction and validates billing ownership and all 16 evaluator input states. Future compatibility is not guaranteed; unsupported layouts fail safely. Select **only one** premium alternative; both are disabled by default. The user reports the experimental patch works on 1.1.1. Both alternatives passed original-DEX and packaged-bundle checks. See [the latest contracts and verification](docs/Monet111.md).
 
-The optional **Monet - Individual Nuvio catalog rows** patch adds published catalogs inside **NuVioTV > Content**, with NuVio's installed icon and refresh independent of Recommendations. It supports **1.1.0**, retaining existing **1.0.97** support and saved selections. Native channel/filter choices are preserved without duplicate catalogs. Native/runtime, all six bundle combinations and rebuilt unsigned-APK audits passed; **1.1.0 device testing remains necessary**. The earlier device confirmation applies to 1.0.97 only. See [setup and verification details](docs/MonetCatalogChannels.md).
+The optional **Monet - Individual Nuvio catalog rows** patch adds published catalogs inside **NuVioTV > Content**, with NuVio's installed icon and refresh independent of Recommendations. It supports **1.1.1**, retaining existing **1.1.0 / 1.0.97** support and saved selections. Native channel/filter choices are preserved without duplicate catalogs. Native/runtime checks, all six bundle combinations and rebuilt unsigned-APK audits passed; **1.1.1 device testing remains necessary**. See [setup and verification details](docs/MonetCatalogChannels.md).
 
-The optional **Monet - Unlimited displayed cards** patch removes the 20-card display cap and adds -10/+10 and Max to the original themed picker. It now supports **1.1.0**, retaining existing **1.0.97** support. The port preserves native Apply rendering, scoped numeric summaries and Max labels across text redraws. Original-DEX, runtime and standalone/premium/catalog bundle checks passed; device testing remains necessary. See [usage and verification details](docs/MonetDisplayedCards.md).
+The optional **Monet - Unlimited displayed cards** patch removes the 20-card display cap and adds -10/+10 and Max to the original themed picker. It supports **1.1.1**, retaining existing **1.1.0 / 1.0.97** support. The port preserves native Apply rendering, scoped summaries and Max labels across redraws. Original-DEX, runtime, standalone/premium/catalog bundle checks and APK audits passed; device testing remains necessary. See [usage and verification details](docs/MonetDisplayedCards.md).
+
+Startup app selection and **After standby** are cumulative: enabling both is intended to launch the selected app after a full Android boot and after standby. The reported power-on failure remains under investigation; the latest captured test with standby disabled shows a suspend/wake cycle, not a new Android boot. No startup behavior is changed by these patches. See [the log findings](docs/Monet111.md#startup-app-cold-boot-versus-standby).
 
 **🎯 Supported versions:**
 
-| 1.0.97 | 1.1.0 |
-| :---: | :---: |
+| 1.0.97 | 1.1.0 | 1.1.1 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Monet - Individual Nuvio catalog rows](docs/MonetCatalogChannels.md) | Select individual NuvioTV catalogs in the app's content picker, with Nuvio icons and refresh independent of Recommendations. |  |
 | [Monet - Unlimited displayed cards](docs/MonetDisplayedCards.md) | Remove the 20-card limit from Displayed Cards. Add -10, +10 and Max to the original themed picker, preserving its layout and single-card steps. |  |
-| [Monet - Unlock premium](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.1.0. Unlock local premium features. Select only one Monet premium patch. |  |
-| [Monet - Unlock premium (Experimental, any version)](docs/Monet.md) | Original premium unlock from Doom's Patches, verified on Monet 1.1.0. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names or final flags. Future layouts may still be unsupported. Select only one Monet premium patch. |  |
+| [Monet - Unlock premium](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.1.1. Unlock local premium features. Select only one Monet premium patch. |  |
+| [Monet - Unlock premium (Experimental, any version)](docs/Monet.md) | Original premium unlock from Doom's Patches, verified on Monet 1.1.1. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names or final flags. Future layouts may still be unsupported. Select only one Monet premium patch. |  |
 
 </details>
 
@@ -80,7 +82,7 @@ The optional **Monet - Unlimited displayed cards** patch removes the 20-card dis
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
 
-These sixteen patches target NuvioTV beta.9 only. See [beta.9 verification](docs/NuvioBeta9.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
+These sixteen patches target NuvioTV beta.10 only. See [beta.10 verification](docs/NuvioBeta10.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
 
 - **GitHub APK updates**: Optional patch that checks APK releases from `Santodan/santodan-patches`, shares background download progress with the native banner, and opens Android's normal APK installer for foreground installation progress. The installed release version defaults to the bundle version. Includes installer fixes for patched APKs and side-by-side installations. See [GitHub release publishing instructions](docs/NuvioApkUpdates.md).
 
@@ -122,7 +124,7 @@ These sixteen patches target NuvioTV beta.9 only. See [beta.9 verification](docs
 
 - **Preload streams on detail page**: Searches sources for the current Play or Resume movie or episode, following changes to the next episode on the detail page.
 
-- **Preload streams for next episode**: Fetches the next episode's source list after 30 seconds of actual playback, giving the current episode time to buffer. Pauses and buffering do not count toward the delay. Nuvio reuses the results when you open the next episode; expired searches refresh in the background during longer episodes. On beta.9, enabling this switch also suppresses Nuvio's separate threshold preload and prevents the manual next-episode picker from forcing another search. Explicit source refresh remains available. This switch is disabled by default and independent of the other preload switches.
+- **Preload streams for next episode**: Fetches the next episode's source list after 30 seconds of actual playback, giving the current episode time to buffer. Pauses and buffering do not count toward the delay. Nuvio reuses the results when you open the next episode; expired searches refresh in the background during longer episodes. On beta.10, enabling this switch also suppresses Nuvio's separate threshold preload and prevents the manual next-episode picker from forcing another search. Explicit source refresh remains available. This switch is disabled by default and independent of the other preload switches.
 
 ### Playback
 
@@ -146,7 +148,7 @@ The patch settings are under **Layout > Santodan-Patches**, grouped under **Cont
 
 **🎯 Supported versions:**
 
-| 1.1.0-beta.9 |
+| 1.1.0-beta.10 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -203,6 +205,8 @@ Pillo's hybrid notification patch supports 0.6.27, with existing 0.6.19/0.6.20 s
 
 
 **Premium and ad-free** supports only Pillo 0.6.27. Select **Pillo - Premium and ad-free** instead of the external **Unlock Premium** patch, whose fingerprint no longer matches this app version. See [0.6.27 compatibility and restore notes](docs/Pillo627.md).
+
+The premium patch also prevents subscription refreshes from resetting the notification settings. If **mark as taken** was already disabled by an earlier build, enable it again after applying the updated premium patch. Your choice to disable it remains respected.
 
 **🎯 Supported versions:**
 

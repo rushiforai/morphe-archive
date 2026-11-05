@@ -48,57 +48,79 @@ public final class RumblePlayback {
         return Settings.isRegistered(MOBILE) ? Settings.getInt(MOBILE) : 0;
     }
 
-    /** Injection point: whether the mobile-data cap applies to the video starting now. */
-    public static boolean capActive() {
+    /** Whether the mobile-data cap applies to the video starting now. */
+    static boolean capActive() {
         return capHeight() > 0 && Network.isMetered(Settings.appContext());
     }
 
-    /**
-     * Injection point: the default of Rumble's "live streams use Auto" preference, which is true. False
-     * while Live streams too is on and a default quality is chosen, so live streams start at that quality.
-     */
-    public static boolean liveUsesAutoByDefault() {
-        return !(Settings.isRegistered(LIVE) && Settings.isEnabled(LIVE) && wifiHeight() > 0);
+    /** Whether a default quality applies to live streams too (Live streams too). */
+    static boolean liveToo() {
+        return Settings.isRegistered(LIVE) && Settings.isEnabled(LIVE);
     }
 
     /**
-     * Injection point: the start of Rumble's start-source chooser, with its sources, the height and bitrate
-     * last picked in the player (or nulls) and the server's preferred height. Returns the height to start
-     * at. The same instance as {@code saved} keeps the picked height and bitrate; another value is used
-     * with the highest bitrate; null leaves Rumble's preferred height.
+     * Whether the video the player is loading on this thread is live. The player's video load sets it and
+     * the start-source chooser it calls next reads and clears it; other callers of the chooser (the Shorts
+     * cache) find none, and Shorts aren't live.
      */
-    public static Integer startHeight(List<?> sources, Integer saved, Integer savedBitrate, int preferred) {
-        int cap = capActive() ? capHeight() : 0;
-        if (cap <= 0) {
-            if (saved != null) return saved;
-            int wifi = wifiHeight();
-            return wifi > 0 ? Integer.valueOf(wifi) : null;
+    private static final ThreadLocal<Boolean> LOADING_LIVE = new ThreadLocal<>();
+
+    /** Injection point: the start of the player's video load, with the video it loads. */
+    public static void loadingVideo(Object video) {
+        boolean live = false;
+        if (video != null) {
+            try {
+                Object status = liveStatus(video);
+                String name = status instanceof Enum ? ((Enum<?>) status).name() : "";
+                // Rumble's player counts a stream that is live or not started yet (OFFLINE) as live.
+                live = "LIVE".equals(name) || "OFFLINE".equals(name);
+            } catch (RuntimeException e) {
+                Logger.d("quality: no live status, " + e);
+            }
         }
+        LOADING_LIVE.set(live);
+    }
+
+    /**
+     * Injection point: the start of Rumble's start-source chooser, with its sources, the height it starts at
+     * when there is no Auto (720p, or the Shorts' own), whether Auto may be picked and data saver. Rumble
+     * starts on Auto whenever it may and a source is Auto. Returns the height to start at without Auto, or
+     * -1 to leave Rumble's choice.
+     */
+    public static int startHeight(List<?> sources, int height, boolean allowAuto, boolean lowQuality) {
+        Boolean loading = LOADING_LIVE.get();
+        LOADING_LIVE.remove();
+        boolean live = loading != null && loading;
+        if (lowQuality) return -1; // Data saver picks the lowest source; it wins.
+        int wifi = wifiHeight();
+        boolean useDefault = wifi > 0 && (!live || liveToo());
+        int cap = capActive() ? capHeight() : 0;
+        if (cap <= 0) return useDefault ? wifi : -1;
         int[] heights = new int[sources == null ? 0 : sources.size()];
+        boolean auto = false;
         for (int i = 0; i < heights.length; i++) {
             try {
                 heights[i] = sourceHeight(sources.get(i));
             } catch (RuntimeException e) {
                 heights[i] = 0;
             }
+            if (heights[i] == 0) auto = true;
         }
-        int pick = cappedHeight(saved, preferred, wifiHeight(), cap, heights);
-        if (saved != null && savedBitrate != null && saved == pick) return saved;
-        return pick;
+        int base;
+        if (useDefault) base = wifi;
+        else if (allowAuto && auto) base = cap; // Auto on mobile data starts at the cap.
+        else base = height;
+        return cappedHeight(base, cap, heights);
     }
 
     /**
-     * The height to start at under a cap: what Rumble or the default quality would start at, lowered to the
-     * highest available height at or below the cap. Rumble picks the nearest height by the difference of
-     * reciprocals, which can land above the cap when no source matches; an available height can't.
+     * The height to start at under a cap: [base] (what Rumble or the default quality would start at),
+     * lowered to the highest available height at or below the cap. Rumble picks the source nearest a height,
+     * which can land above the cap when no source matches; an available height can't. Without any, the
+     * lowest height, and without sources the target itself (Rumble then falls back to Auto).
      */
-    static int cappedHeight(Integer saved, int preferred, int wifi, int cap, int[] heights) {
-        int base;
-        if (saved != null && saved > 0) base = saved;
-        else if (saved == null && wifi > 0) base = wifi;
-        else if (saved == null && preferred > 0) base = preferred;
-        else base = cap; // Auto (height 0) on mobile data starts at the cap.
-        int target = Math.min(base, cap);
+    static int cappedHeight(int base, int cap, int[] heights) {
+        int target = base > 0 ? Math.min(base, cap) : cap;
         int best = 0;
         int lowest = Integer.MAX_VALUE;
         for (int height : heights) {
@@ -280,5 +302,10 @@ public final class RumblePlayback {
     /** Replaced at patch time: a player video source's height (0 for Auto). */
     private static int sourceHeight(Object source) {
         return 0;
+    }
+
+    /** Replaced at patch time: a video's livestream status (an enum: UNKNOWN, ENDED, OFFLINE, LIVE). */
+    private static Object liveStatus(Object video) {
+        return null;
     }
 }

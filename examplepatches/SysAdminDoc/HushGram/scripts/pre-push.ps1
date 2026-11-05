@@ -177,6 +177,30 @@ function Get-DeclaredFixtures([string]$CatalogText, [string]$Folder) {
         [pscustomobject]@{ Version = $version; Apk = $apk }
     }
 }
+# Every other code the catalog pins each declared version to, beside the one Get-DeclaredFixtures
+# picks: one bundle ships for every ABI, and Redex lays out each ABI's dex its own way, so a contract
+# that holds on one build can fail on another (454's x86 and x86_64 builds failed seven rules that
+# both arm builds kept). Each is the instagram-<version>-<code> APK, bundle or split bundle in
+# -Folder, else that name's folder holding base.apk. Apk is $null for a code with neither there.
+function Get-OtherDeclaredBuilds([string]$CatalogText, [string]$Folder, [object[]]$Picked) {
+    $target = Get-PatchTarget -PatchList ($CatalogText | ConvertFrom-Json)
+    $files = @(Get-ChildItem -LiteralPath $Folder -File | Sort-Object Name)
+    foreach ($version in @($target.PackageVersions)) {
+        $prefix = "instagram-$version-"
+        [string[]]$pickedCodes = @($Picked | Where-Object { $_.Version -ceq $version -and $_.Apk } |
+            ForEach-Object { [regex]::Match($_.Apk.Name.Substring($prefix.Length), '^\d+').Value })
+        foreach ($code in @($target.PackageVersionCodes[$version] | Where-Object { $_ })) {
+            if ($pickedCodes -ccontains $code) { continue }
+            $apk = @($files | Where-Object {
+                $_.Name -like "$prefix$code*" -and $_.Extension -in '.apk', '.apks', '.apkm', '.xapk' -and
+                    $_.Name.Substring($prefix.Length) -match "^$code(?!\d)" }) | Select-Object -First 1
+            if (-not $apk) {
+                $apk = Get-Item -LiteralPath (Join-Path $Folder "$prefix$code/base.apk") -ErrorAction SilentlyContinue
+            }
+            [pscustomobject]@{ Version = $version; Code = $code; Apk = $apk }
+        }
+    }
+}
 function Invoke-Git {
     # git's output is read as UTF-8 (Use-Utf8ConsoleOutput), so a non-ASCII path or message comes
     # back whole when the push starts in Git Bash. $args is copied first, since inside the block
@@ -807,6 +831,7 @@ try {
     $before = Get-Content -LiteralPath $catalog -Raw
     $fixtures = $env:HUSHGRAM_FIXTURE_DIR
     $fixtureApks = @()
+    $otherBuilds = @()
     $fixtureFingerprint = $null
     if (-not $focused -and $fixtures -and (Test-Path -LiteralPath $fixtures -PathType Container)) {
         # Taken before anything is built: the patch tests read the whole folder.
@@ -815,6 +840,10 @@ try {
         $fixtureApks = @(foreach ($fixture in @(Get-DeclaredFixtures -CatalogText $before -Folder $fixtures)) {
             if (-not $fixture.Apk) { Stop-Push "no fixture for the declared build $($fixture.Version) in $fixtures" }
             $fixture
+        })
+        $otherBuilds = @(foreach ($other in @(Get-OtherDeclaredBuilds -CatalogText $before -Folder $fixtures -Picked $fixtureApks)) {
+            if (-not $other.Apk) { Stop-Push "no fixture for the declared build $($other.Version) ($($other.Code)) in $fixtures" }
+            $other
         })
     }
 
@@ -850,8 +879,27 @@ try {
     }
 
     $gateStage = 'full'
+    # Once morphe-signing.pub is committed, the bundle this gate builds is the one a release ships,
+    # and Morphe Manager 2.3 refuses an unsigned bundle from a source it has seen signed. The key
+    # stays off the repository: MORPHE_SIGNING_KEY, or the file HUSHGRAM_BUNDLE_KEY names, or
+    # ~/.ssh/hushgram_morphe_signing.key, which scripts/bundle_signature.py generate writes.
+    $signingPublic = Join-Path $gate 'morphe-signing.pub'
+    $signed = Test-Path -LiteralPath $signingPublic -PathType Leaf
+    if ($signed -and -not $env:MORPHE_SIGNING_KEY) {
+        $keyFile = if ($env:HUSHGRAM_BUNDLE_KEY) { $env:HUSHGRAM_BUNDLE_KEY } else { Join-Path $HOME '.ssh/hushgram_morphe_signing.key' }
+        if (-not (Test-Path -LiteralPath $keyFile -PathType Leaf)) {
+            Stop-Push "morphe-signing.pub is committed, so the bundle must be signed, but there's no key at $keyFile. Set MORPHE_SIGNING_KEY or HUSHGRAM_BUNDLE_KEY."
+        }
+        $env:MORPHE_SIGNING_KEY = ([IO.File]::ReadAllText($keyFile)).Trim()
+    }
     Invoke-GradleBuild -ProjectDir $gate -Tasks @('--console=plain', ':patches:test', ':patches:buildAndroid')
     if ($LASTEXITCODE -ne 0) { Stop-Push 'the patch tests failed or the bundle did not build' }
+    if ($signed) {
+        $gateStage = 'signature'
+        $built = Get-ChildItem -LiteralPath (Join-Path $gate 'patches/build/release') -Filter 'patches-*.mpp' | Select-Object -First 1
+        & py -3.13 -I (Join-Path $gate 'scripts/bundle_signature.py') verify $built.FullName --public $signingPublic
+        if ($LASTEXITCODE -ne 0) { Stop-Push 'the bundle is not signed with the key morphe-signing.pub publishes' }
+    }
 
     $gateStage = 'fixtures'
     $bundle = Get-ChildItem -LiteralPath (Join-Path $gate 'patches/build/release') -Filter 'patches-*.mpp' | Select-Object -First 1
@@ -875,6 +923,15 @@ try {
         & pwsh -NoProfile -File $verifyScript -Apk $apk.FullName `
             -DesktopJar $desktop -WorkDir $work -Bundle $bundle.FullName -PatchList $catalog @keep
         if ($LASTEXITCODE -ne 0) { Stop-Push "patching Instagram $version failed" }
+    }
+    # The other ABIs' builds get the same run, contracts included, and keep nothing: the release
+    # scripts read back one run per version.
+    foreach ($other in $otherBuilds) {
+        $work = Join-Path $gate "build/verify-$($other.Version)-$($other.Code)"
+        New-Item -ItemType Directory -Path $work -Force | Out-Null
+        & pwsh -NoProfile -File $verifyScript -Apk $other.Apk.FullName `
+            -DesktopJar $desktop -WorkDir $work -Bundle $bundle.FullName -PatchList $catalog
+        if ($LASTEXITCODE -ne 0) { Stop-Push "patching Instagram $($other.Version) ($($other.Code)) failed" }
     }
     $fixturesPatched = $true
     $gateStage = 'done'

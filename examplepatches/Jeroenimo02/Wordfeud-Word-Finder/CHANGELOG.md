@@ -1,3 +1,17 @@
+## [1.1.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.0...v1.1.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* meld-PR ook later aanmaken en opnieuw proberen bij GitHub-fouten ([f3a2d9e](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/f3a2d9e0095d2a23c6fa43500674592b6b9ad65c))
+* **wordlists:** nl: CDI verwijderd (gemeld door de patch) ([cedf04b](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/cedf04b6122770539a4aaa16f92d20e1bdc0be77))
+
+## [1.1.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.0...v1.1.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* meld-PR ook later aanmaken en opnieuw proberen bij GitHub-fouten ([f3a2d9e](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/f3a2d9e0095d2a23c6fa43500674592b6b9ad65c))
+* **wordlists:** nl: CDI verwijderd (gemeld door de patch) ([cedf04b](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/cedf04b6122770539a4aaa16f92d20e1bdc0be77))
+
 ## [1.1.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.0.0...v1.1.0) (2026-11-03)
 
 ### ✨ New Features

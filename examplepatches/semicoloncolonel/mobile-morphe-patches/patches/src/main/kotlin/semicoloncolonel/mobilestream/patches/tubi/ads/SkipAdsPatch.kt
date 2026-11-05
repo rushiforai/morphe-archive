@@ -18,8 +18,7 @@ import semicoloncolonel.mobilestream.patches.tubi.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Suppresses ads: IMA ad events and DAI streams, Rainmaker ad breaks, and image pause " +
-        "ads. Also stops the Play Store from auto-updating the patched app.",
+    description = "Removes the ads in videos, including ad breaks and image pause ads.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

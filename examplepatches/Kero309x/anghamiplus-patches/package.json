@@ -1,15 +1,15 @@
 {
-  "name": "anghamiplus-patches",
+  "name": "kero309x-patches",
   "private": true,
-  "description": "Morphe patch bundle for the Anghami Android application.",
+  "description": "Universal multi-application Morphe extension patch bundle.",
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kero309x/anghamiplus-patches.git"
+    "url": "git+https://github.com/Kero309x/Kero309x-patches.git"
   },
-  "homepage": "https://github.com/Kero309x/anghamiplus-patches#readme",
+  "homepage": "https://github.com/Kero309x/Kero309x-patches#readme",
   "bugs": {
-    "url": "https://github.com/Kero309x/anghamiplus-patches/issues"
+    "url": "https://github.com/Kero309x/Kero309x-patches/issues"
   },
   "devDependencies": {
     "@cleyrop-org/semantic-release-backmerge": "^6.2.0",

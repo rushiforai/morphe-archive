@@ -26,9 +26,7 @@ import semicoloncolonel.mobilestream.patches.visible.shared.Constants
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Tealium, Swrve, and Firebase Analytics. Marketing notifications and in-app " +
-        "promotions from Swrve stop too. Sign-in, activation, and the support chat are left " +
-        "alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

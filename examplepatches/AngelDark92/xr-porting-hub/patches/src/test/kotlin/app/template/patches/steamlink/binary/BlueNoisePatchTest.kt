@@ -24,7 +24,7 @@ class BlueNoisePatchTest {
         assertEquals(setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
                 "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
-                "2.0.24" to 5002395),
+                "2.0.24" to 5002395, "2.0.24" to 5002527),
             blueNoisePatch.compatibility.orEmpty().flatMap { compatibility ->
                 assertEquals("Steam Link", compatibility.name)
                 compatibility.targets.map { target ->
@@ -75,6 +75,7 @@ class BlueNoisePatchTest {
             Triple("2.0.22", "5002244", 2_251_920),
             Triple("2.0.23", "5002363", 2_292_008),
             Triple("2.0.24", "5002395", 2_301_432),
+            Triple("2.0.24", "5002527", 2_333_472),
         )
         bases.forEach { (version, code, size) ->
             val file = java.io.File("android-steamlinkvr-release-base-$version-$code/lib/arm64-v8a/libvrlink_scene.so")
@@ -154,5 +155,201 @@ class BlueNoisePatchTest {
                 assertContentEquals(byteArrayOf(4, 5, 6), foreign)
             }
         }
+    }
+
+    // ---- 2.0.24/5002527: inner-fade helper payload (helper slots 16/17, stock vInnerFade untouched) ----
+
+    private fun decodedScene5002527(): ByteArray? {
+        val root = generateSequence(java.io.File(System.getProperty("user.dir")).canonicalFile) { it.parentFile }
+            .firstOrNull { java.io.File(it, "patches/src/main/kotlin").isDirectory } ?: return null
+        val file = java.io.File(root, "android-steamlinkvr-release-base-2.0.24-5002527/lib/arm64-v8a/libvrlink_scene.so")
+        return file.takeIf { it.isFile }?.readBytes()
+    }
+
+    private val layout5002527 get() = BLUE_NOISE_LAYOUTS.single { it.code == "5002527" }
+
+    @Test
+    fun `inner-fade payload is a pinned separate resource and prior payload bytes are unchanged`() {
+        val standard = bundledBlueNoiseHelper()
+        val variant = bundledBlueNoiseInnerFadeHelper()
+        assertEquals("5c30791621cc94a3f2f358e9b98e8029bc0765c1a0d44f6d1bc4690b2f45e858", blueNoiseHash(standard))
+        assertEquals(BLUE_NOISE_PAYLOAD_SHA256, blueNoiseHash(standard))
+        assertEquals("95e3d478c3bfa364c9b5ebe3439096cc2b3e90ada71733ecef7a01a30b9f3ebf", blueNoiseHash(variant))
+        assertEquals(BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256, blueNoiseHash(variant))
+        val standardText = standard.toString(Charsets.ISO_8859_1)
+        val variantText = variant.toString(Charsets.ISO_8859_1)
+        // Appended GLSL declares only the helper-owned slots; the stock slot 14 is never claimed by the variant.
+        assertTrue(standardText.contains("layout(location=14) uniform highp sampler2D SL_blueNoise;"))
+        assertTrue(standardText.contains("layout(location=15) uniform bool SL_enabled;"))
+        assertTrue(variantText.contains("layout(location=16) uniform highp sampler2D SL_blueNoise;"))
+        assertTrue(variantText.contains("layout(location=17) uniform bool SL_enabled;"))
+        assertFalse(variantText.contains("layout(location=14) uniform highp sampler2D SL_blueNoise;"))
+        assertFalse(variantText.contains("layout(location=15) uniform bool SL_enabled;"))
+        // Same six owned configuration markers, each exactly once, so one config path serves both.
+        for (marker in markers) {
+            assertEquals(1, Regex(Regex.escape(marker)).findAll(variantText).count(), marker)
+        }
+        assertFalse(isConfiguredBlueNoiseHelper(byteArrayOf(1, 2, 3)))
+        // Only the 5002527 layout selects the variant; every earlier layout keeps the standard payload.
+        BLUE_NOISE_LAYOUTS.forEach { layout ->
+            val expected = if (layout.code == "5002527") BlueNoiseHelperVariant.INNER_FADE else BlueNoiseHelperVariant.STANDARD
+            assertEquals(expected, layout.helper, layout.code)
+        }
+    }
+
+    @Test
+    fun `either payload variant configures and rejects the other as a foreign helper`() {
+        val hash = "0123456789abcdef".repeat(4)
+        val standard = configureBlueNoiseHelper(bundledBlueNoiseHelper(), hash, 0xf6668L)
+        val variant = configureBlueNoiseHelper(bundledBlueNoiseInnerFadeHelper(), hash, 0xf6668L)
+        assertTrue(isConfiguredBlueNoiseHelper(standard))
+        assertTrue(isConfiguredBlueNoiseHelper(variant))
+        assertFalse(isConfiguredBlueNoiseHelper(variant.copyOf().also { it[it.lastIndex] = (it.last().toInt() xor 1).toByte() }))
+        assertFalse(isConfiguredBlueNoiseHelper(variant.copyOf(variant.size - 1)))
+        assertFailsWith<PatchException> { configureBlueNoiseHelper(variant.copyOf().also { it[0] = 0 }, hash, 0xf6668L) }
+        // A standard helper presented to the 5002527 layout (and vice versa) is refused, atomically.
+        val scene = ByteArray(layout5002527.size)
+        assertFailsWith<PatchException> {
+            applyBlueNoiseLayer(scene, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA, payload = bundledBlueNoiseHelper())
+        }
+        assertFailsWith<PatchException> {
+            applyBlueNoiseLayer(ByteArray(2_301_432), "2.0.24", "5002395", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA,
+                payload = bundledBlueNoiseInnerFadeHelper())
+        }
+        // Synthetic buffers of the right size but wrong bytes fail closed for every mode and layer.
+        for (layer in BlueNoiseLayer.entries) for (mode in FoveaMode.entries) {
+            val snapshot = scene.copyOf()
+            // The import names are neither stock nor hooked, so even OFF refuses to touch the buffer.
+            assertFailsWith<PatchException>("$layer/$mode") { applyBlueNoiseLayer(scene, "2.0.24", "5002527", mode, layer) }
+            assertContentEquals(snapshot, scene)
+        }
+        assertFailsWith<PatchException> { applyBlueNoiseLayer(ByteArray(64), "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA) }
+        // Neighbouring pairs never infer this layout.
+        for ((version, code) in listOf("2.0.24" to "5002526", "2.0.23" to "5002527", "2.0.24" to "5002528")) {
+            val unrelated = byteArrayOf(9, 8, 7)
+            val result = applyBlueNoiseLayer(unrelated, version, code, FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA)
+            assertContentEquals(unrelated, result.scene)
+            assertNull(result.helper)
+        }
+    }
+
+    @Test
+    fun `5002527 real decoded renderer hooks only the eleven import names and configures the inner-fade helper`() {
+        val stock = decodedScene5002527()
+        org.junit.Assume.assumeTrue("BLOCKED: decoded 2.0.24/5002527 scene is absent", stock != null)
+        stock!!
+        val layout = layout5002527
+        assertEquals("cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03", blueNoiseHash(stock))
+        // The configured stock hashes must be the real prefix+suffix sources, not synthetic values.
+        val prefix = stock.copyOfRange(layout.prefix, layout.prefix + layout.shaderSize)
+        assertEquals(layout.stockPrefixHash, blueNoiseHash(prefix))
+        assertEquals(layout.maskedStockHash, blueNoiseHash(prefix + stock.copyOfRange(layout.suffix, layout.suffix + layout.maskedSize)))
+        assertEquals(layout.backgroundStockHash, blueNoiseHash(prefix + stock.copyOfRange(0x9b2c0, 0x9b2c0 + 29)))
+        val stockUniform = "layout(location = 14) uniform vec4 vInnerFade;"
+        assertTrue(prefix.toString(Charsets.ISO_8859_1).contains(stockUniform))
+
+        val siteBytes = layout.sites.flatMap { site -> (site.offset until site.offset + site.stock.length + 1).toList() }.toSet()
+        val fovea = applyBlueNoiseLayer(stock, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA)
+        val both = applyBlueNoiseLayer(fovea.scene, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.BACKGROUND,
+            existingHelper = fovea.helper)
+        for (result in listOf(fovea, both)) {
+            val scene = result.scene
+            assertEquals(stock.size, scene.size)
+            val changed = stock.indices.filter { stock[it] != scene[it] }
+            assertTrue(changed.isNotEmpty())
+            assertTrue(changed.all { it in siteBytes }, "Only import-name bytes may change; stock vInnerFade code/shader stays intact")
+            layout.sites.forEach { site ->
+                val hooked = (site.hooked + "\u0000").toByteArray(Charsets.US_ASCII)
+                assertContentEquals(hooked.copyOf(site.stock.length + 1), scene.copyOfRange(site.offset, site.offset + site.stock.length + 1))
+            }
+            // Stock vInnerFade shader declaration and RenderSpecific consumer (mov w1,#14) are untouched.
+            assertContentEquals(stock.copyOfRange(layout.prefix, layout.prefix + layout.shaderSize),
+                scene.copyOfRange(layout.prefix, layout.prefix + layout.shaderSize))
+            assertContentEquals(byteArrayOf(0xc1.toByte(), 0x01, 0x80.toByte(), 0x52), scene.copyOfRange(0xf661c, 0xf6620))
+            val helper = assertNotNull(result.helper)
+            assertEquals(bundledBlueNoiseInnerFadeHelper().size, helper.size)
+            assertTrue(isConfiguredBlueNoiseHelper(helper))
+            val text = helper.toString(Charsets.ISO_8859_1)
+            assertTrue(text.contains(layout.maskedStockHash + "\u0000"))
+            assertTrue(text.contains("00000000000f6668\u0000"))
+        }
+        assertTrue(both.helper!!.toString(Charsets.ISO_8859_1).let {
+            it.contains(layout.backgroundStockHash + "\u0000") && it.contains("00000000000f6748\u0000")
+        })
+        assertFalse(fovea.helper!!.toString(Charsets.ISO_8859_1).contains("00000000000f6748"))
+        // Idempotence, order independence and exact restoration through every transition.
+        val again = applyBlueNoiseLayer(both.scene, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.BACKGROUND,
+            existingHelper = both.helper)
+        assertContentEquals(both.scene, again.scene)
+        assertContentEquals(both.helper, again.helper)
+        val reversed = applyBlueNoiseLayer(
+            applyBlueNoiseLayer(stock, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.BACKGROUND).let {
+                applyBlueNoiseLayer(it.scene, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA, existingHelper = it.helper)
+            }.scene, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA)
+        assertContentEquals(both.scene, reversed.scene)
+        val onlyBackground = applyBlueNoiseLayer(both.scene, "2.0.24", "5002527", FoveaMode.OFF, BlueNoiseLayer.FOVEA, existingHelper = both.helper)
+        assertTrue(onlyBackground.helper != null && isConfiguredBlueNoiseHelper(onlyBackground.helper!!))
+        assertFalse(onlyBackground.helper!!.toString(Charsets.ISO_8859_1).contains(layout.maskedStockHash + "\u0000"))
+        val off = applyBlueNoiseLayer(onlyBackground.scene, "2.0.24", "5002527", FoveaMode.OFF, BlueNoiseLayer.BACKGROUND,
+            existingHelper = onlyBackground.helper)
+        assertContentEquals(stock, off.scene, "Disabling both layers must restore the exact stock library")
+        assertNull(off.helper)
+        // The standard payload and a foreign existing helper are refused without side effects.
+        assertFailsWith<PatchException> {
+            applyBlueNoiseLayer(stock, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA, payload = bundledBlueNoiseHelper())
+        }
+        val standardConfigured = configureBlueNoiseHelper(bundledBlueNoiseHelper(), "0123456789abcdef".repeat(4), 0xf6668L)
+        assertFailsWith<PatchException> {
+            applyBlueNoiseLayer(fovea.scene, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.BACKGROUND, existingHelper = standardConfigured)
+        }
+    }
+
+    @Test
+    fun `5002527 real decoded renderer accepts calibration but rejects unknown prefixes and route changes`() {
+        val stock = decodedScene5002527()
+        org.junit.Assume.assumeTrue("BLOCKED: decoded 2.0.24/5002527 scene is absent", stock != null)
+        stock!!
+        val layout = layout5002527
+        // Calibrated prefix (OLED, VD-like off) is a supported input for both layers.
+        val calibrated = stock.copyOf().also {
+            paddedVideoShader(1.2f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, innerFade = true).copyInto(it, layout.prefix)
+        }
+        for (layer in BlueNoiseLayer.entries) {
+            val result = applyBlueNoiseLayer(calibrated, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, layer)
+            assertTrue(isConfiguredBlueNoiseHelper(assertNotNull(result.helper)))
+            val restored = applyBlueNoiseLayer(result.scene, "2.0.24", "5002527", FoveaMode.OFF, layer, existingHelper = result.helper)
+            assertContentEquals(calibrated, restored.scene)
+        }
+        // Already-dithered, altered or wrong-size prefixes, changed suffixes/stubs/tables never stack.
+        val unknownPrefixes = listOf(
+            calibrated.copyOf().also { it[layout.prefix + 300] = '!'.code.toByte() },
+            stock.copyOf().also { paddedVideoShader(1.2f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.STANDARD, innerFade = true).copyInto(it, layout.prefix) },
+            stock.copyOf().also { it[layout.prefix + layout.shaderSize] = 1 },
+        )
+        for (source in unknownPrefixes) {
+            val snapshot = source.copyOf()
+            assertFailsWith<PatchException> { applyBlueNoiseLayer(source, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA) }
+            assertContentEquals(snapshot, source)
+        }
+        val corruptions = layout.guards.flatMap { listOf(it.offset, it.offset + it.size - 1) } +
+            layout.sites.map { it.offset } + listOf(0x9b2c0 - 1, 0x9b2c0 + 29, layout.suffix - 1, layout.suffix + layout.maskedSize)
+        for (offset in corruptions) {
+            val corrupt = stock.copyOf().also { it[offset] = (it[offset].toInt() xor 1).toByte() }
+            val snapshot = corrupt.copyOf()
+            assertFailsWith<PatchException>("0x${offset.toString(16)}") {
+                applyBlueNoiseLayer(corrupt, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA)
+            }
+            assertContentEquals(snapshot, corrupt)
+        }
+        // A mixed import state (one site hooked) is refused.
+        val mixed = stock.copyOf().also {
+            val site = layout.sites.first()
+            (site.hooked + "\u0000").toByteArray(Charsets.US_ASCII).copyOf(site.stock.length + 1).copyInto(it, site.offset)
+        }
+        assertFailsWith<PatchException> { applyBlueNoiseLayer(mixed, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA) }
+        // The shaders must still carry the stock uniform at the audited location for every hooked state.
+        val hooked = applyBlueNoiseLayer(stock, "2.0.24", "5002527", FoveaMode.INPUT_10BIT, BlueNoiseLayer.FOVEA).scene
+        assertEquals(1, Regex(Regex.escape("layout(location = 14) uniform vec4 vInnerFade;"))
+            .findAll(hooked.copyOfRange(layout.prefix, layout.prefix + layout.shaderSize).toString(Charsets.ISO_8859_1)).count())
     }
 }

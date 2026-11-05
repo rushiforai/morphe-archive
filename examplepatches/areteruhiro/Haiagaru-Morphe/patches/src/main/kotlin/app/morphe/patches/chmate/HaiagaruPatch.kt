@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
@@ -1607,6 +1608,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchBrowsingAndSearchHistory(packageMetadata.versionName)
         patchGroupedBrowsingHistory(packageMetadata.versionName)
         patchNativeDrawDates(packageMetadata.versionName)
+        patchNativeAaClassifier(packageMetadata.versionName)
         patchNativeUiTheme(packageMetadata.versionName)
         patchFavoriteThreads(packageMetadata.versionName)
         patchHomeRefreshKeywords(packageMetadata.versionName)
@@ -3501,6 +3503,7 @@ private fun BytecodePatchContext.patchLargeImageAlignment(version: String) {
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchThreadSearchText(version: String) {
+    patchThreadSearchBack(version)
     val markerOwner=when(version){
         "0.8.10.191 dev"->"Lo/MediationServiceImplExternalSyntheticLambda1;"
         "0.8.10.226 dev"->"Lo/BouncyCastleSocketAdapterCompanionfactory1;"
@@ -3524,6 +3527,36 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchThreadSearchText(
         }
     }
     check(resets==1&&finds==1){"Search highlight boundaries changed: $version ($resets/$finds)"}
+    // The search task that builds hit indices is separate from the adapter filter.
+    // Evaluate one response projection, then skip the stock header/mail/number fallbacks.
+    val (hitOwner,hitName)=when(version){
+        "0.8.10.191 dev"->"Lo/o3;" to "d"
+        "0.8.10.226 dev"->"Lo/setSelectedColor;" to "c"
+        else->"Lo/zzadk\$IconCompatParcelizer;" to "invokeSuspend"
+    }
+    val hits=mutableClassDefBy(hitOwner).methods.single { it.name==hitName&&it.returnType=="Ljava/lang/Object;" }
+    val hitCode=hits.implementation!!.instructions.toList()
+    val hitResets=hitCode.withIndex().filter { (_,instruction)->
+        val ref=(instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass=="Ljava/util/regex/Matcher;"&&ref.name=="reset"
+    }
+    check(hitResets.size==5){"Search result fields changed: $version"}
+    val firstReset=hitResets.first();val hitCall=firstReset.value as FiveRegisterInstruction
+    val rowField=hitCode.withIndex().last { (index,instruction)->index<firstReset.index&&instruction.opcode==Opcode.IGET_OBJECT&&
+        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.type==when(version){
+            "0.8.10.191 dev"->"Lo/processAdDisplayErrorPostbackForUserError;"
+            "0.8.10.226 dev"->"Lo/BouncyCastleSocketAdapterCompanion;"
+            else->"Lo/KeJ11;"
+        }
+    }
+    val rowRegister=(rowField.value as TwoRegisterInstruction).registerA
+    val firstMiss=(firstReset.index+1 until firstReset.index+8).single { hitCode[it].opcode==Opcode.IF_EQZ }
+    val increment=hitCode.withIndex().single { (_,instruction)->instruction.opcode==Opcode.ADD_INT_LIT8&&
+        (instruction as NarrowLiteralInstruction).narrowLiteral==1 }
+    hits.replaceInstruction(firstReset.index,"invoke-static {v${hitCall.registerC}, v$rowRegister}, Lapp/morphe/extension/chmate/ThreadSearchText;->reset(Ljava/util/regex/Matcher;Ljava/lang/Object;)Ljava/util/regex/Matcher;")
+    val resultRegister=(hitCode[firstMiss] as OneRegisterInstruction).registerA
+    hits.removeInstruction(firstMiss)
+    hits.addInstructionsWithLabels(firstMiss,"if-eqz v$resultRegister, :next_search_response",ExternalLabel("next_search_response",increment.value))
     val (owner,name,response,body)=when(version){
         "0.8.10.191 dev"->listOf("Lo/m9ExternalSyntheticLambda1\$4;","performFiltering","Lo/processAdDisplayErrorPostbackForUserError;","c")
         "0.8.10.226 dev"->listOf("Lo/listener;","b","Lo/BouncyCastleSocketAdapterCompanion;","d")
@@ -4883,6 +4916,14 @@ val haiagaruPatch = resourcePatch(
             favorites.textContent = "★スレ"
             strings.documentElement.appendChild(favorites)
             strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name", "haiagaru_refresh_target_threads")
+                textContent = "対象スレ"
+            })
+            strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name", "haiagaru_refresh_target_threads_description")
+                textContent = "更新対象のスレ"
+            })
+            strings.documentElement.appendChild(strings.createElement("string").apply {
                 setAttribute("name", "haiagaru_favorite_threads_description")
                 textContent = "★スレのみ巡回"
             })
@@ -4909,6 +4950,14 @@ val haiagaruPatch = resourcePatch(
             favorites.textContent = "★ Threads"
             strings.documentElement.appendChild(favorites)
             strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name", "haiagaru_refresh_target_threads")
+                textContent = "Target threads"
+            })
+            strings.documentElement.appendChild(strings.createElement("string").apply {
+                setAttribute("name", "haiagaru_refresh_target_threads_description")
+                textContent = "Refresh target threads"
+            })
+            strings.documentElement.appendChild(strings.createElement("string").apply {
                 setAttribute("name", "haiagaru_favorite_threads_description")
                 textContent = "Shows starred threads across boards"
             })
@@ -4923,7 +4972,15 @@ val haiagaruPatch = resourcePatch(
             publicResources.createPublicId("string", "haiagaru_favorite_threads")
             publicResources.createPublicId("string", "haiagaru_favorite_threads_description")
             publicResources.createPublicId("drawable", "haiagaru_favorite_threads")
+            publicResources.createPublicId("string", "haiagaru_refresh_target_threads")
+            publicResources.createPublicId("string", "haiagaru_refresh_target_threads_description")
+            publicResources.createPublicId("drawable", "haiagaru_refresh_target_threads")
         }
+        get("res").resolve("drawable/haiagaru_refresh_target_threads.xml").writeText("""
+            <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+                <path android:fillColor="#FFFFFFFF" android:pathData="M17.65,6.35C16.2,4.9 14.21,4 12,4c-4.42,0 -7.99,3.58 -7.99,8s3.57,8 7.99,8c3.73,0 6.84,-2.55 7.73,-6h-2.08c-0.82,2.33 -3.04,4 -5.65,4 -3.31,0 -6,-2.69 -6,-6s2.69,-6 6,-6c1.66,0 3.14,0.69 4.22,1.78L13,11h7V4l-2.35,2.35z"/>
+            </vector>
+        """.trimIndent())
         get("res").resolve("drawable/haiagaru_favorite_threads.xml").writeText("""
             <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
                 <path android:fillColor="#FFFFFFFF" android:pathData="M12,17.27L18.18,21l-1.64,-7.03L22,9.24l-7.19,-0.61L12,2 9.19,8.63 2,9.24l5.46,4.73L5.82,21z"/>

@@ -278,6 +278,79 @@
     goto :goto_1
 
     :cond_2
+    invoke-static {v0}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isManualLensActive(Ljava/lang/Object;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_manual_lens_apply_guh
+
+    if-eqz p0, :cond_check_std_guh
+
+    invoke-interface {p0}, Ljava/util/List;->size()I
+
+    move-result v1
+
+    const/4 v2, 0x3
+
+    if-ne v1, v2, :cond_check_std_guh
+
+    const/4 v1, 0x0
+
+    invoke-interface {p0, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;
+
+    move-result-object v1
+
+    instance-of v2, v1, Ljava/lang/Number;
+
+    if-eqz v2, :cond_check_std_guh
+
+    check-cast v1, Ljava/lang/Number;
+
+    invoke-virtual {v1}, Ljava/lang/Number;->floatValue()F
+
+    move-result v1
+
+    const/high16 v2, 0x3f800000    # 1.0f
+
+    cmpl-float v1, v1, v2
+
+    if-nez v1, :cond_check_std_guh
+
+    :cond_manual_lens_apply_guh
+    const/4 v1, 0x1
+
+    if-ne p1, v1, :cond_manual_lens_fixed_1_0x
+
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFocalLengthCyclingEnabled()Z
+
+    move-result v1
+
+    if-eqz v1, :cond_manual_lens_fixed_1_0x
+
+    iget-object p0, v0, Lkmo;->h:Lusf;
+
+    invoke-interface {p0}, Lusf;->d()Ljava/lang/Object;
+
+    move-result-object p0
+
+    check-cast p0, Ljava/lang/Float;
+
+    goto :cond_focal_enabled_guh
+
+    :cond_manual_lens_fixed_1_0x
+    const/high16 v2, 0x3f800000    # 1.0f
+
+    iget-object p0, v0, Lkmo;->h:Lusf;
+
+    invoke-interface {p0}, Lusf;->d()Ljava/lang/Object;
+
+    move-result-object p0
+
+    check-cast p0, Ljava/lang/Float;
+
+    goto :cond_std_zoom_guh
+
+    :cond_check_std_guh
     invoke-interface {p0, p1}, Ljava/util/List;->get(I)Ljava/lang/Object;
 
     move-result-object p0
@@ -302,6 +375,15 @@
 
     if-nez v1, :cond_std_zoom_guh
 
+    invoke-static {}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->isFocalLengthCyclingEnabled()Z
+
+    move-result v1
+
+    if-nez v1, :cond_focal_enabled_guh
+
+    goto :cond_std_zoom_guh
+
+    :cond_focal_enabled_guh
     if-nez p0, :cond_check_cur_zoom_guh
 
     const/high16 v2, 0x3f800000    # 1.0f
@@ -356,10 +438,6 @@
 
     :cond_focal_outside_guh
     const/high16 v2, 0x3f800000    # 1.0f
-
-    invoke-static {v2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->getSavedFocalLength(F)F
-
-    move-result v2
 
     :cond_apply_focal_zoom_guh
     invoke-static {v2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->saveFocalLength(F)V

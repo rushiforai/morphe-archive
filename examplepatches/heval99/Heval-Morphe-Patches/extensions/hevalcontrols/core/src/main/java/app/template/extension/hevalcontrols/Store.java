@@ -8,7 +8,7 @@ import java.util.Map;
  * in-memory fake. Implementations may throw: the engine treats any failure as "stock behaviour".
  */
 interface Store {
-    /** Every stored value (Boolean or String). */
+    /** Every stored value (Boolean, String or a Set of String). */
     Map<String, ?> readAll();
 
     /** Applies [puts] and [removes] in one synchronous commit; false when nothing was saved. */

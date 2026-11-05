@@ -113,6 +113,45 @@ public final class GoogleAuthRoutingHooks {
     }
 
     /**
+     * {@code GoogleAuthUtil} が token の応答から {@code Error} を読んだ直後に呼ばれます。
+     * MicroG-RE へ向けているときに、MicroG-RE が返したエラー文字列を通知します。値は変えず、LINE の処理はそのまま続きます。
+     */
+    public static void onTokenError(String error) {
+        try {
+            if (!GoogleAuthFailureNotifier.isReportableError(error)) {
+                return;
+            }
+            Context context = currentApplication();
+            if (routingFor(context) != Routing.MICROG) {
+                return;
+            }
+            GoogleAuthFailureNotifier.notifyFailure(context, GoogleAuthFailureNotifier.Kind.MICROG_ERROR, error);
+        } catch (Throwable ignored) {
+            // 通知できなくても LINE の処理には影響させません。
+        }
+    }
+
+    /**
+     * {@code GoogleAuthUtil} が component に bind できず、例外を投げる直前で呼ばれます。
+     * bind 先が MicroG-RE のときだけ通知します。
+     */
+    public static void onAuthServiceBindFailed(String message, ComponentName component) {
+        try {
+            if (component == null || !isMicrogGetToken(component.getPackageName(), component.getClassName())) {
+                return;
+            }
+            GoogleAuthFailureNotifier.notifyFailure(
+                    currentApplication(), GoogleAuthFailureNotifier.Kind.BIND_FAILED, message);
+        } catch (Throwable ignored) {
+            // 通知できなくても LINE の処理には影響させません。
+        }
+    }
+
+    static boolean isMicrogGetToken(String packageName, String className) {
+        return MICROG_PACKAGE.equals(packageName) && GET_TOKEN_CLASS.equals(className);
+    }
+
+    /**
      * バックアップのアカウント選択の Intent を返す直前で呼ばれます。MicroG-RE へ向けるときは、
      * 端末本体の Google Play services ではなく MicroG-RE の選択画面を開き、MicroG-RE のアカウントだけを表示させます。
      * token は MicroG-RE がアカウント名で探すため、選択も MicroG-RE で行うと、選んだアカウントが必ず見つかります。

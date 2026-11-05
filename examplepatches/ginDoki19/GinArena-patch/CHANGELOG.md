@@ -1,3 +1,72 @@
+## [2.8.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0...v2.8.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **player:** hide logos and limit CricFy to 7.4 ([9e2a949](https://github.com/ginDoki19/GinArena-patch/commit/9e2a9495f8f382336dedb19c7390bb2c2f7426c0))
+
+## [2.8.1-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0...v2.8.1-dev.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **player:** hide logos and limit CricFy to 7.4 ([9e2a949](https://github.com/ginDoki19/GinArena-patch/commit/9e2a9495f8f382336dedb19c7390bb2c2f7426c0))
+
+## [2.8.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.7.1...v2.8.0) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** correct forced-update bypass branch ([d31ce97](https://github.com/ginDoki19/GinArena-patch/commit/d31ce9766e4f33ba6544e2ae231835e15642e7ec))
+* **playfy:** handle space-padded content payloads ([464f8e2](https://github.com/ginDoki19/GinArena-patch/commit/464f8e27f06c4314d7fe6f92178f3afcaeaa66e0))
+* **playfy:** prevent Firebase Messaging startup crash ([be844c1](https://github.com/ginDoki19/GinArena-patch/commit/be844c16e60d4aef32e1b87c41fed9e33293568f))
+* **playfy:** publish Playfy playback fix ([077715f](https://github.com/ginDoki19/GinArena-patch/commit/077715f3ae18bf008dcb943236455f44f543d356))
+* **playfy:** restore playback and remove Telegram popup ([a113a99](https://github.com/ginDoki19/GinArena-patch/commit/a113a99fcabc2db7bea4f4fc6bed469eaa92a36f))
+
+### ✨ New Features
+
+* **playfy:** add Playfy TV 1.7 patch ([bda57f3](https://github.com/ginDoki19/GinArena-patch/commit/bda57f3f4c1d2779b6f06de667f36c1056e078a2))
+
+## [2.8.0-dev.6](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0-dev.5...v2.8.0-dev.6) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** publish Playfy playback fix ([077715f](https://github.com/ginDoki19/GinArena-patch/commit/077715f3ae18bf008dcb943236455f44f543d356))
+
+## [2.8.0-dev.5](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0-dev.4...v2.8.0-dev.5) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** publish Playfy playback fix ([077715f](https://github.com/ginDoki19/GinArena-patch/commit/077715f3ae18bf008dcb943236455f44f543d356))
+* **playfy:** restore playback and remove Telegram popup ([a113a99](https://github.com/ginDoki19/GinArena-patch/commit/a113a99fcabc2db7bea4f4fc6bed469eaa92a36f))
+
+## [2.8.0-dev.5](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0-dev.4...v2.8.0-dev.5) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** restore playback and remove Telegram popup ([a113a99](https://github.com/ginDoki19/GinArena-patch/commit/a113a99fcabc2db7bea4f4fc6bed469eaa92a36f))
+
+## [2.8.0-dev.4](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0-dev.3...v2.8.0-dev.4) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** handle space-padded content payloads ([464f8e2](https://github.com/ginDoki19/GinArena-patch/commit/464f8e27f06c4314d7fe6f92178f3afcaeaa66e0))
+
+## [2.8.0-dev.3](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0-dev.2...v2.8.0-dev.3) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** correct forced-update bypass branch ([d31ce97](https://github.com/ginDoki19/GinArena-patch/commit/d31ce9766e4f33ba6544e2ae231835e15642e7ec))
+
+## [2.8.0-dev.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0-dev.1...v2.8.0-dev.2) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **playfy:** prevent Firebase Messaging startup crash ([be844c1](https://github.com/ginDoki19/GinArena-patch/commit/be844c16e60d4aef32e1b87c41fed9e33293568f))
+
+## [2.8.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.7.1...v2.8.0-dev.1) (2026-11-04)
+
+### ✨ New Features
+
+* **playfy:** add Playfy TV 1.7 patch ([bda57f3](https://github.com/ginDoki19/GinArena-patch/commit/bda57f3f4c1d2779b6f06de667f36c1056e078a2))
+
 ## [2.7.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.7.0...v2.7.1) (2026-11-04)
 
 ### 🐛 Bug Fixes

@@ -92,7 +92,8 @@ public final class SettingsSearchInputPreference extends Preference {
         // typed in the announcement, so "cats" came back as the label. The hint names it.
         editText.setMinimumHeight(SettingsUi.dp(context, 48));
         editText.setPadding(0, 0, 0, 0);
-        SettingsUi.styleEditText(editText);
+        // The row above is the field's frame, so the field takes the colours and no frame.
+        SettingsUi.tintField(editText);
         editText.setBackground(null);
         // Every native search flow lands with the field focused, the keyboard up and the action
         // key searching. This one made the reader tap the box first, showed a generic action
@@ -147,7 +148,11 @@ public final class SettingsSearchInputPreference extends Preference {
         clearButton = clear;
         row.addView(clear, new LinearLayout.LayoutParams(clearSize, clearSize));
         updateClearButton();
-        root.addView(row, new LinearLayout.LayoutParams(-1, -2));
+        // The field's frame sits on the cards' 18 dp side line, as the entry it replaces did.
+        LinearLayout.LayoutParams frame = new LinearLayout.LayoutParams(-1, -2);
+        frame.setMarginStart(SettingsUi.dp(context, 18));
+        frame.setMarginEnd(SettingsUi.dp(context, 18));
+        root.addView(row, frame);
 
         resultCount = SettingsUi.resultCount(context, "settings_search_result_count");
         resultCount.setAllCaps(true);

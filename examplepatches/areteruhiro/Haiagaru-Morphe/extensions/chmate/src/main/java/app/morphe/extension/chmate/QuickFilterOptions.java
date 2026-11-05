@@ -36,7 +36,11 @@ final class QuickFilterOptions {
         Switch toggle=new Switch(activity);toggle.setText(label);
         android.content.SharedPreferences prefs=activity.getSharedPreferences(WacchoiSearchOptions.PREFS,0);
         toggle.setChecked(prefs.getBoolean(key,initial));root.addView(toggle);
-        toggle.setOnCheckedChangeListener((button,on)->{prefs.edit().putBoolean(key,on).apply();ExtraQuickFilters.updateOptions(activity);});
+        toggle.setOnCheckedChangeListener((button,on)->{
+            prefs.edit().putBoolean(key,on).apply();
+            if(on&&"quickFilterCounts".equals(key))ExtraQuickFilters.refreshPopularity();
+            ExtraQuickFilters.updateOptions(activity);
+        });
     }
     private QuickFilterOptions(){}
 }

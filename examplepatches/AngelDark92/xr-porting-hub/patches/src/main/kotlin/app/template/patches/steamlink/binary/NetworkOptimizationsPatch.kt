@@ -216,24 +216,50 @@ internal fun applyNetworkOptimizationsMain(
     return replaceExact(bytes, layout.mainEdit)
 }
 
-@Suppress("unused")
-val networkOptimizationsPatch = rawResourcePatch(
-    name = "Network Optimizations",
-    description = "Keeps streaming smooth after packet loss. " +
-        buildLabel(COMPATIBILITIES_STEAM_LINK),
-    default = true,
-) {
-    category(PatchCategories.STREAMING_AND_NETWORK)
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
+internal fun isNetworkOptimizationsTarget(
+    packageName: String,
+    versionName: String,
+    versionCode: String,
+    recommended: Boolean,
+): Boolean = packageName == "com.valvesoftware.steamlinkvr" &&
+    layoutFor(versionName, versionCode)?.let { (it.version == "2.0.20") == recommended } == true
 
-    execute {
-        if (packageMetadata.packageName != "com.valvesoftware.steamlinkvr") return@execute
-        layoutFor(packageMetadata.versionName, packageMetadata.versionCode) ?: return@execute
-        val scene = get("lib/arm64-v8a/libvrlink_scene.so")
-        scene.writeBytes(applyNetworkOptimizationsScene(
-            scene.readBytes(), packageMetadata.versionName, packageMetadata.versionCode))
-        val main = get("lib/arm64-v8a/libmain.so")
-        main.writeBytes(applyNetworkOptimizationsMain(
-            main.readBytes(), packageMetadata.versionName, packageMetadata.versionCode))
+private fun createNetworkOptimizationsPatch(name: String, recommended: Boolean) = run {
+    val compatibilities = COMPATIBILITIES_STEAM_LINK.filter { compatibility ->
+        compatibility.targets.any { target ->
+            target.versionCodes?.values?.any { code ->
+                isNetworkOptimizationsTarget(
+                    compatibility.packageName.orEmpty(), target.version.orEmpty(), code.toString(), recommended)
+            } == true
+        }
+    }
+    rawResourcePatch(
+        name = name,
+        description = "Keeps streaming smooth after packet loss. " +
+            buildLabel(compatibilities),
+        default = recommended,
+    ) {
+        category(PatchCategories.STREAMING_AND_NETWORK)
+        compatibleWith(*compatibilities.toTypedArray())
+
+        execute {
+            if (!isNetworkOptimizationsTarget(packageMetadata.packageName, packageMetadata.versionName,
+                    packageMetadata.versionCode, recommended)) return@execute
+            val scene = get("lib/arm64-v8a/libvrlink_scene.so")
+            val main = get("lib/arm64-v8a/libmain.so")
+            val patchedScene = applyNetworkOptimizationsScene(
+                scene.readBytes(), packageMetadata.versionName, packageMetadata.versionCode)
+            val patchedMain = applyNetworkOptimizationsMain(
+                main.readBytes(), packageMetadata.versionName, packageMetadata.versionCode)
+            scene.writeBytes(patchedScene)
+            main.writeBytes(patchedMain)
+        }
     }
 }
+
+// Morphe's default is global: separate names retain optional later-build edits without recommending them.
+@Suppress("unused")
+val networkOptimizationsPatch = createNetworkOptimizationsPatch("Network Optimizations", recommended = true)
+
+@Suppress("unused")
+val optionalNetworkOptimizationsPatch = createNetworkOptimizationsPatch("Network Optimizations (optional)", recommended = false)

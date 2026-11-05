@@ -22,17 +22,17 @@ internal fun HermesBundle.hideClipDiscoveryTabs() {
         hex("90 07 ${id16("clips")} 63 07 05 07 00 48 04 03 00 $objectId 44 03 04 02 $keys 6e 04 03 04 05 10 01 04 93 00 93 00"))
 
     // DiscoveryFeedContent's offsets and registers are the compiler's for the supported version: its pager children
-    // array is r93, built from r94; the page after the second child starts at 0x6bc3.
+    // array is r96, built from r97; the page after the second child starts at 0x6de4.
     val content = function("DiscoveryFeedContent")
-    replace(content, "hide_clips", hex("08 5d 03 00 5a 5d 5e 00"), hex("08 5d 02 00 5a 5d 5e 00"))
+    replace(content, "hide_clips", hex("08 60 03 00 5a 60 61 00"), hex("08 60 02 00 5a 60 61 00"))
     // Skip creation and insertion of ClipsFeedPage. The first two children, parent JSX call,
     // scroll ranges and initial selection now all use the same two-entry TABS model. Nothing
     // outside the skipped range jumps into it, and it writes none of the registers read after it.
-    // `children[1] = page; jsxs`, then a long jump to the parent props after the third child (0x6d24).
-    val secondPage = hex("5a 5d 5e 01 44 62 5f ff ${id8("jsxs")}")
-    if (!content.body.copyOfRange(0x6bbf, 0x6bc8).contentEquals(secondPage))
+    // `children[1] = page; jsxs`, then a long jump to the parent props after the third child (0x6f61).
+    val secondPage = hex("5a 60 61 01 44 65 62 ff ${id8("jsxs")}")
+    if (!content.body.copyOfRange(0x6de0, 0x6de9).contentEquals(secondPage))
         throw PatchException("Twitch: unexpected clip pager children")
-    replace(content, "hide_clips", secondPage, hex("5a 5d 5e 01 af 61 01 00 00"))
+    replace(content, "hide_clips", secondPage, hex("5a 60 61 01 af 7d 01 00 00"))
 
     // Explicit in-feed clip requests use Twitch's existing native clip pager instead. The
     // original t86 callback selected index 2 before injecting a clip, which is no longer valid.
@@ -56,23 +56,23 @@ internal fun HermesBundle.hideClipDiscoveryTabs() {
     // Home feed edges, which could remain empty after falling back from initialTab=clips.
     // The effect still requires a non-empty initialClipSlug and deduplicates it through its ref.
     // `ready = Boolean(clipSlug && !loading && edges.length > 0)`: the Call2 becomes LoadConstTrue r82.
-    replace(content, "hide_clips", hex("6e 52 43 05 2f"), hex("95 52 10 52 52"))
+    replace(content, "hide_clips", hex("6e 52 4c 05 29"), hex("95 52 10 52 52"))
 
     // Give initial clipSlug effects and pending deep-link events the same native callback.
-    // Omit one memo dependency save (slot 190), so this small props block recomputes safely.
-    val props = content.body.copyOfRange(0x20af, 0x210d)
-    val oldSave = hex("8b 00 be 60 10 00 58")
+    // Omit one memo dependency save (slot 206), so this small props block recomputes safely.
+    val props = content.body.copyOfRange(0x222f, 0x2294)
+    val oldSave = hex("8b 00 ce 60 10 00 55")
     val saveAt = props.indices.singleOrNull { at -> at + oldSave.size <= props.size && props.copyOfRange(at, at + oldSave.size).contentEquals(oldSave) }
         ?: throw PatchException("Twitch: missing clip props memo dependency")
     val updatedProps = props.copyOf()
-    if (!updatedProps.copyOfRange(30, 34).contentEquals(hex("52 2f 58 05")))
+    if (!updatedProps.copyOfRange(30, 34).contentEquals(hex("52 29 55 05")))
         throw PatchException("Twitch: missing initial clip callback prop")
     // r160 holds the stock clip callback closure, which is created right after this block, so it is
-    // free here; r101 is the component's function environment.
-    if (!content.body.copyOfRange(3, 5).contentEquals(hex("40 65")))
+    // free here; r104 is the component's function environment.
+    if (!content.body.copyOfRange(3, 5).contentEquals(hex("40 68")))
         throw PatchException("Twitch: unexpected clip feed environment register")
     updatedProps[32] = 160.toByte()
-    val closure = byteArrayOf(0x84.toByte(), 160.toByte(), 101, entry.id.toByte(), (entry.id ushr 8).toByte())
+    val closure = byteArrayOf(0x84.toByte(), 160.toByte(), 104, entry.id.toByte(), (entry.id ushr 8).toByte())
     replace(content, "hide_clips", props, closure + updatedProps.copyOfRange(0, saveAt) +
         updatedProps.copyOfRange(saveAt + oldSave.size, updatedProps.size) + hex("93 05"))
 
@@ -109,9 +109,9 @@ internal fun HermesBundle.hideSubscriptionInterface() {
     }
     falseProperty("SubscribeButton", "isUpgrade", "hide_subscription_upsells")
 
-    // SubscribeButton renders either a text button or an icon button. Both paths have a compiler
-    // memo-cache save block immediately before return. Use its last 19 bytes for a result guard,
-    // and redirect the corresponding cache-hit edge through that guard. All React hooks and the
+    // SubscribeButton renders a text button, an icon button or (since 31.9.0) a primary-variant button. Each
+    // path has a compiler memo-cache save block immediately before return. Use its last 19 bytes for a result
+    // guard, and redirect the corresponding cache-hit edge through that guard. All React hooks and the
     // original subscribed element remain intact. The replaced cache entries merely recompute.
     val function = function("SubscribeButton")
     if (function.frameSize <= 5 || function.numberRegisters + function.nonPointerRegisters > 5) {
@@ -127,10 +127,16 @@ internal fun HermesBundle.hideSubscriptionInterface() {
         0x94.toByte(), 4, // LoadConstNull for a non-subscriber.
         0x76, 4, // Ret.
     )
+    // Text button: slots 44/45, element r16, cache hit JmpLong at 0x3e5 (to the Ret at 0x47f, now 0x471).
     replace(function, "hide_subscription_upsells",
-        hex("8b 00 24 60 06 00 0f 8b 00 25 60 06 00 09 10 04 09 76 04"), guard(9))
-    replace(function, "hide_subscription_upsells", hex("af 8f 00 00 00"), hex("af 81 00 00 00"))
+        hex("8b 00 2c 60 06 00 0e 8b 00 2d 60 06 00 10 10 04 10 76 04"), guard(16))
+    replace(function, "hide_subscription_upsells", hex("af 9a 00 00 00"), hex("af 8c 00 00 00"))
+    // Icon button: slots 34/35, element r14, cache hit Jmp at 0x55d (to 0x5d3, now 0x5c5).
     replace(function, "hide_subscription_upsells",
-        hex("8b 00 1b 60 06 00 07 8b 00 1c 60 06 00 05 10 04 05 76 04"), guard(5))
+        hex("8b 00 22 60 06 00 07 8b 00 23 60 06 00 0e 10 04 0e 76 04"), guard(14))
     replace(function, "hide_subscription_upsells", hex("ae 76"), hex("ae 68"))
+    // Primary button: slots 23/24, element r5, cache hit Jmp at 0x60b (to 0x676, now 0x668).
+    replace(function, "hide_subscription_upsells",
+        hex("8b 00 17 60 06 00 07 8b 00 18 60 06 00 05 10 04 05 76 04"), guard(5))
+    replace(function, "hide_subscription_upsells", hex("ae 6b"), hex("ae 5d"))
 }

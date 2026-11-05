@@ -120,7 +120,7 @@ See-through bars	Прозрачные панели
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
 The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. On Android 12 and newer the feed behind them is blurred.	Верхняя панель и панель вкладок становятся прозрачными, и при прокрутке сквозь них видна Лента. На Android 12 и новее содержимое Ленты за панелями размывается.
 Rounded tab bar	Скруглённая панель вкладок
-With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen.	Когда панель вкладок внизу, у неё появляются круглые края и она становится чуть меньше, прямо над нижним краем экрана.
+With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen, with a soft highlight behind the tab you're on.	Когда панель вкладок внизу, у неё появляются круглые края и она становится чуть меньше, прямо над нижним краем экрана, а за открытой вкладкой появляется мягкая подсветка.
 # context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
 Force dark mode	Принудительно включить темный режим
 # context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
@@ -1263,6 +1263,12 @@ With Stop Story auto-advance on, a finished story plays again from the start ins
 Save photo in post menus	Сохранять фото из меню публикаций
 # context: summary of the Save photo in post menus switch; "Save any photo" is the label of the switch above it and "Save photo" is the menu item, so use their translations
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	Если включена настройка «Сохранять любые фото», в меню публикации с фотографиями также появляется пункт «Сохранить фото». Если фото несколько, они сохраняются по одному.
+Search photo	Найти по фото
+Search photo with	Найти по фото с помощью
+Search photo in post menus	Поиск по фото в меню публикаций
+With Save any photo on, a post with one photo gets Search photo in its three-dot menu. It hands the photo to the app you pick, such as Google Lens, to look up what's in it or copy its text.	Когда включено «Сохранять любые фото», у публикации с одним фото в меню с тремя точками появляется «Найти по фото». Фото передаётся в выбранное приложение, например Google Lens, чтобы узнать, что на нём, или скопировать текст.
+No app on this phone can search with a photo	На этом телефоне нет приложения для поиска по фото
+Couldn't get this photo. Try again in a moment.	Не удалось получить это фото. Попробуйте ещё раз чуть позже.
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	Сохранить фото
 # context: primary save row for a Story that reshares a Reel
@@ -1389,6 +1395,11 @@ Hide reposts	Скрывать репосты
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Скрывает публикации, которыми делятся другие публикации, с подписью или без нее. Исходные публикации остаются. По умолчанию выключено, поскольку функция еще не проверялась на реальной Ленте.
 Hide posts from Pages	Скрывать публикации Страниц
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Скрывает публикации Страниц, в том числе тех, на которые вы подписаны. Публикации друзей и групп остаются, как и репосты публикаций Страниц, которыми поделились друзья.
+Hide posts in other languages	Скрывать публикации на других языках
+Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Скрывает публикации и ролики во вкладке Reels на языке, которого нет в вашем списке, по собственной оценке телефона для текста каждой публикации или подписи к ролику. То, в чём он не уверен, остаётся, и ничего не покидает телефон.
+Languages to keep	Оставляемые языки
+None picked, so posts in %s stay.	Ничего не выбрано, поэтому остаются публикации на языке: %s.
+Kept: %s	Остаются: %s
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	Блокировать Facebook
 Save crashes to Downloads	Сохранять сведения о сбоях в Загрузки
@@ -1779,6 +1790,14 @@ With Pinch to zoom on, the photo or story stays zoomed when you let go, and a st
 Double tap to zoom	Увеличение двойным нажатием
 # context: summary of that switch; "Pinch to zoom" is the label of the switch two rows above it, so use its translation; a story is the full-screen picture or video someone shares for a day
 With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, and double tap again to put it back. A single tap still opens the photo, a moment later.	Если включено масштабирование жестом, дважды нажмите на фото в профиле, чтобы увеличить область под пальцем, и нажмите дважды снова, чтобы вернуть исходный размер. Одиночное нажатие по-прежнему открывает фото с небольшой задержкой.
+# context: a switch under Pinch to zoom; with it on, the rest of the screen gets darker behind a zoomed photo or story
+Dim around a zoom	Затемнять вокруг увеличения
+# context: that switch's summary; "Pinch to zoom" is the label of the switch above it, so use its translation; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	Если включено масштабирование жестом, экран вокруг фото или Истории темнеет, пока вы увеличиваете. Выключите, чтобы остальная часть экрана оставалась как есть.
+# context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
+Keep videos playing while zoomed	Не останавливать видео при увеличении
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	Если включено масштабирование жестом, видео, которое вы увеличили в профиле или на Странице, продолжает играть. Если также включено «Сохранять масштаб», нажмите и удерживайте увеличенное изображение, чтобы поставить видео на паузу, и еще раз, чтобы воспроизвести его. Истории во время увеличения не двигаются.
 No ads downloaded in advance	Не загружать рекламу заранее
 No ad tracking	Не отслеживать рекламу
 No Facebook ads in other apps	Не показывать рекламу Facebook в других приложениях
@@ -2086,7 +2105,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	Приложение, в котором находится последнее изображение, по-прежнему не отвечает. Повторите попытку позже.
 Inline feed video controls	Встроенные элементы управления видео в Ленте
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Добавляет кнопку воспроизведения и паузы к видео в Ленте. Нажмите на само видео, чтобы открыть его в полноэкранном режиме. Для прямых эфиров и рекламы сохраняются собственные элементы управления. Если также включено воспроизведение по нажатию, собственная настройка автозапуска Facebook остается в выбранном вами состоянии, чтобы кнопка отображалась, а видео по-прежнему ждут вашего нажатия.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Добавляет кнопку воспроизведения и паузы к видео в Ленте. Нажмите на само видео, чтобы открыть его в полноэкранном режиме. Для рекламы сохраняются собственные элементы управления. Если также включено воспроизведение по нажатию, собственная настройка автозапуска Facebook остается в выбранном вами состоянии, чтобы кнопка отображалась, а видео по-прежнему ждут вашего нажатия.
 Play feed video	Воспроизвести видео в Ленте
 Pause feed video	Приостановить видео в Ленте
 Support	Поддержка
@@ -2173,6 +2192,13 @@ Reels order will be set to %1$s.	Порядок Reels будет изменен 
 Cast button on feed videos	Кнопка трансляции для видео в Ленте
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Добавляет кнопку трансляции к видео в Ленте. Она передает видео в установленное приложение для трансляции, например Web Video Caster, которое отправляет его на телевизор. В Facebook больше нет собственной функции трансляции.
 Cast this video	Транслировать это видео
+Full player button on feed videos	Кнопка полного плеера для видео в Ленте
+Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Добавляет к видео в Ленте кнопку, которая открывает видео в полном плеере Facebook со всеми его элементами управления. Прямые эфиры тоже ее получают. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+# context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
+Open full screen videos centered	Открывать полноэкранные видео по центру
+# context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
+Videos you open full screen, from a comment or a link, start with their details and comments folded away, so the video sits in the middle of the screen. The arrow under it still brings them back.	Видео, которые вы открываете на весь экран из комментария или по ссылке, начинаются со свёрнутыми подробностями и комментариями, поэтому видео оказывается посередине экрана. Стрелка под ним по-прежнему возвращает их.
+Open in the full player	Открыть в полном плеере
 Seek bar on feed videos	Полоса перемотки для видео в Ленте
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Показывает внизу видео в Ленте полосу перемотки. Перетащите ползунок и отпустите, чтобы перейти к нужному моменту. Для прямых эфиров и рекламы остаются собственные элементы управления. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
 Feed video position	Позиция видео в Ленте
@@ -2339,6 +2365,10 @@ After the time you pick on Home, Feeds, Video and Reels, they're covered for a b
 Break after	Перерыв после
 # context: a row under Take breaks that opens a list of times; it's how long a break lasts
 Break length	Длительность перерыва
+# context: a switch under Take breaks; with it on, watching 20 different reels also starts a break
+Also after 20 reels	Также после 20 Reels
+# context: that switch's summary; a reel is one of Facebook's short videos, and it counts toward the 20 once it has played for 3 seconds
+A break also starts once you've watched 20 reels, if that comes first. A reel counts once it's played for 3 seconds, and ads and live videos don't count.	Перерыв также начнется, когда вы посмотрите 20 Reels, если это случится раньше. Reels засчитывается после 3 секунд воспроизведения, реклама и прямые эфиры не засчитываются.
 # context: a choice in those lists
 10 minutes	10 минут
 # context: a choice in those lists
@@ -2432,6 +2462,9 @@ After %1$d seconds	Через %1$d секунд
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Не осветлять при касании
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	После затемнения кнопок защитой от выгорания они остаются затемненными в Reels при любых нажатиях и свайпах, в том числе при переходе к следующему Reels. Кнопки продолжают работать. При выходе из Reels они снова отображаются.
+# context: Reels: switch that shows the Reels screen and its video in black and white
+Show Reels in gray	Reels в оттенках серого
+Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Reels и их кнопки показываются чёрно-белыми, так от них легче оторваться. Лента, истории, фото и чаты остаются цветными. Это начнётся со следующего Reels, а Reels будут расходовать чуть больше заряда.
 # context: settings import preview; %1$s is a Burn-in guard choice such as Dim when idle
 Burn-in guard will be set to %1$s.	Для защиты от выгорания будет установлено значение %1$s.
 Burn-in guard will dim the Reels screen as soon as you stop touching it.	Защита от выгорания затемнит экран Reels сразу после прекращения касаний.
@@ -2471,6 +2504,9 @@ Block button on comments	Кнопка блокировки в комментар
 The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.	Значок дизлайка в комментарии заменяется кнопкой «Заблокировать». Одно нажатие открывает собственный экран блокировки Facebook для этого пользователя.
 Block	Заблокировать
 Couldn't open Block for this comment.	Не удалось открыть экран блокировки для этого комментария.
+Block button on reaction lists	Кнопка блокировки в списках реакций
+In the list of people who reacted to a post, the button on each row, like Add friend or Message, becomes Block. One tap opens Facebook's own block screen.	В списке людей, отреагировавших на публикацию, кнопка в каждой строке, например «Добавить в друзья» или «Написать», заменяется кнопкой «Заблокировать». Одно нажатие открывает экран блокировки Facebook.
+Couldn't open Block for this person.	Не удалось открыть экран блокировки для этого человека.
 this person	этого человека
 Most viewed on profile Reels	Самые просматриваемые Reels в профиле
 A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count stays after the rest.	На вкладке Reels профиля сначала показываются ролики с наибольшим количеством просмотров, а не самые новые. Если выключено, используется порядок Facebook. Сортируются только загруженные вкладкой Reels; ролики без счетчика просмотров остаются в конце.
@@ -2534,3 +2570,19 @@ A post you scrolled past shows up one more time, and scrolling past it again hid
 There's no Facebook link in what you shared.	В том, чем вы поделились, нет ссылки на Facebook.
 Open in Facebook from the share menu	Open in Facebook в меню «Поделиться»
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Поделитесь ссылкой на Facebook из браузера Messenger или другого приложения и выберите Open in Facebook, чтобы открыть её здесь.
+GmsCore support	Поддержка GmsCore
+Version %1$s for Facebook %2$s	Версия %1$s для Facebook %2$s
+Show all settings as a list	Показать все настройки списком
+Show settings by category	Показать настройки по категориям
+Story play button	Кнопка воспроизведения в Историях
+Double tap for next story	Двойное нажатие для следующей Истории
+A tap in the middle of a story shows a play and pause button, like Reels. Taps on the sides still change stories.	Нажатие в центре Истории показывает кнопку воспроизведения и паузы, как в Reels. Нажатия по краям по-прежнему переключают Истории.
+Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Истории переключаются только двойным нажатием, слева на предыдущую, в любом другом месте на следующую. Одиночное нажатие ставит Историю на паузу или продолжает её, либо показывает кнопку воспроизведения, если она включена.
+Pause story	Приостановить Историю
+Play story	Воспроизвести Историю
+Hide song and effect credits	Скрыть подписи песни и эффекта
+Hide reply suggestions	Скрыть варианты ответа
+Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Убирает подписи песни и эффекта из строки под именем автора Истории. Действует со следующей открытой Истории.
+Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Убирает ряд предложенных ответов внизу Истории. Поле ответа остаётся. Действует со следующей открытой Истории.
+Progress bar at the bottom	Полоса прогресса внизу
+Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Показывает внизу Истории тонкую полосу, которая заполняется по мере воспроизведения, как в Reels.

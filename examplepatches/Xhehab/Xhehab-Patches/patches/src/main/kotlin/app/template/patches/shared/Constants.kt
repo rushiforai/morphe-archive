@@ -20,7 +20,7 @@ object Constants {
         packageName = "uni.cbum",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x111111,
-        targets = listOf(AppTarget(version = "4.1.44"))
+        targets = listOf(AppTarget(version = "4.1.63"))
     )
 
     // FST-7
@@ -47,7 +47,7 @@ object Constants {
         packageName = "com.bpmhealth.boostcamp",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x2A2132,
-        targets = listOf(AppTarget(version = "262"))
+        targets = listOf(AppTarget(version = "267"))
     )
 
     // Built With Science
@@ -92,7 +92,7 @@ object Constants {
         packageName = "com.rp.hypertrophy",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xEC0915,
-        targets = listOf(AppTarget(version = "1.8.0"))
+        targets = listOf(AppTarget(version = "1.9.0"))
     )
 
     // THENX

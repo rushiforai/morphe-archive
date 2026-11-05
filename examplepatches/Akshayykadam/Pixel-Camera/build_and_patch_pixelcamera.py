@@ -6610,14 +6610,18 @@ def patch_zoom_controllers():
         with open(kmo_path, "w", encoding="utf-8") as f:
             f.write(content)
 
-    # 5. guh.smali (1x Main Camera Focal Length Cycling: 1.0x (24mm) -> 1.2x (28mm) -> 1.5x (35mm) -> 1.0x)
+    # 5. guh.smali (1x Main Camera Focal Length Cycling & Manual Lens Mode Zoom Resolver)
     guh_path = os.path.join(APKTOOL_DIR, "smali", "guh.smali")
-    if os.path.exists(guh_path):
+    smali_patch = os.path.join(ROOT_DIR, "smali_patches", "guh.smali")
+    if os.path.exists(smali_patch) and os.path.exists(os.path.dirname(guh_path)):
+        shutil.copyfile(smali_patch, guh_path)
+        print("    [+] guh.smali: Synchronized from smali_patches/guh.smali.")
+    elif os.path.exists(guh_path):
         with open(guh_path, "r", encoding="utf-8") as f:
             guh_content = f.read()
 
-        if ":cond_apply_focal_zoom_guh" in guh_content or ":cond_std_zoom_guh" in guh_content:
-            print("    [+] guh.smali: already patched with 1x focal length cycling.")
+        if "isManualLensActive" in guh_content and ":cond_apply_focal_zoom_guh" in guh_content:
+            print("    [+] guh.smali: already patched with manual lens target zoom and focal length cycling.")
         else:
             guh_target = """    check-cast p0, Ljava/lang/Number;
 
@@ -7563,7 +7567,7 @@ def patch_brightness_shadows_controllers():
         elif orig_qwh_l in c:
             c = c.replace(orig_qwh_l, repl_qwh_l_new, 1)
 
-        # 10b. Ensure qwh.i (Look Intensity) is not hooked to updateColorFineTuning
+        # 10b. Hook qwh.i (Color: Vibrance=0, Tint=1, Warmth=2)
         orig_qwh_i = """.method public final i(IFZ)V
     .locals 5
 
@@ -7574,10 +7578,10 @@ def patch_brightness_shadows_controllers():
     invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->updateColorFineTuning(IF)V
 
     iget-object v0, p0, Lqwh;->e:Lurt;"""
-        if repl_qwh_i in c:
-            c = c.replace(repl_qwh_i, orig_qwh_i, 1)
+        if orig_qwh_i in c:
+            c = c.replace(orig_qwh_i, repl_qwh_i, 1)
 
-        # 10c. Hook qwh.j (Color: Vibrance=0, Tint=1)
+        # 10c. Ensure qwh.j (Detail: Sharpness=0, Grain=1) does not clobber Color fine tuning
         orig_qwh_j = """.method public final j(IFZ)V
     .locals 5
 
@@ -7588,8 +7592,8 @@ def patch_brightness_shadows_controllers():
     invoke-static {p1, p2}, Lcom/google/android/patch/cameralooks/TomteInitHelper;->updateColorFineTuning(IF)V
 
     iget-object v0, p0, Lqwh;->e:Lurt;"""
-        if orig_qwh_j in c:
-            c = c.replace(orig_qwh_j, repl_qwh_j, 1)
+        if repl_qwh_j in c:
+            c = c.replace(repl_qwh_j, orig_qwh_j, 1)
 
         with open(qwh_path, "w", encoding="utf-8") as f:
             f.write(c)
@@ -7611,6 +7615,17 @@ def patch_brightness_shadows_controllers():
             with open(izt_path, "w", encoding="utf-8") as f:
                 f.write(c)
             print("    [+] izt.smali: Hooked Reset All to TomteInitHelper.resetFineTuning().")
+
+    # 10e. Relabel Look 3 (sauce_shadows_label) to "Deep Shadows" to eliminate collision with Tone Shadows slider
+    strings_path = os.path.join(APKTOOL_DIR, "res", "values", "strings.xml")
+    if os.path.exists(strings_path):
+        with open(strings_path, "r", encoding="utf-8") as f:
+            c_str = f.read()
+        if '<string name="sauce_shadows_label">Shadows</string>' in c_str:
+            c_str = c_str.replace('<string name="sauce_shadows_label">Shadows</string>', '<string name="sauce_shadows_label">Deep Shadows</string>')
+            with open(strings_path, "w", encoding="utf-8") as f:
+                f.write(c_str)
+            print("    [+] strings.xml: Relabeled sauce_shadows_label to 'Deep Shadows'.")
 
     # 11. Ensure pzq.smali preserves standard pzq.c initialization (twilight mode disabled by default)
     pzq_path = os.path.join(APKTOOL_DIR, "smali", "pzq.smali")
@@ -10169,32 +10184,36 @@ def copy_to_desktop(signed_apk):
     if os.path.isdir(desktop_dir):
         dest_apk = os.path.join(desktop_dir, os.path.basename(signed_apk))
         shutil.copy2(signed_apk, dest_apk)
-        dest_v111 = os.path.join(desktop_dir, "PixelCamera-1.1.1.apk")
-        shutil.copy2(signed_apk, dest_v111)
-        dest_sf = os.path.join(desktop_dir, "Camera-v11.1.040.982810059.19-patches-v1.1.1.apk")
+        dest_v112 = os.path.join(desktop_dir, "PixelCamera-1.1.2.apk")
+        shutil.copy2(signed_apk, dest_v112)
+        dest_sf = os.path.join(desktop_dir, "Camera-v11.1.040.982810059.19-patches-v1.1.2.apk")
         shutil.copy2(signed_apk, dest_sf)
         size_mb = os.path.getsize(dest_apk) / (1024 * 1024)
-        print(f"    [+] Successfully copied APK to Desktop: {dest_apk}, {dest_v111}, and {dest_sf} ({size_mb:.2f} MB)")
+        print(f"    [+] Successfully copied APK to Desktop: {dest_apk}, {dest_v112}, and {dest_sf} ({size_mb:.2f} MB)")
 
         # Also copy the Morphe .mpp patch file to Desktop
-        mpp_src = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.1.1.mpp")
+        mpp_src = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.1.2.mpp")
         if not os.path.exists(mpp_src):
-            built_mpp = os.path.join(ROOT_DIR, "morphe-patches", "patches", "build", "libs", "patches-1.1.1.mpp")
+            built_mpp = os.path.join(ROOT_DIR, "morphe-patches", "patches", "build", "libs", "patches-1.1.2.mpp")
             if os.path.exists(built_mpp):
                 mpp_src = built_mpp
+        if not os.path.exists(mpp_src):
+            built_mpp_legacy = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.1.1.mpp")
+            if os.path.exists(built_mpp_legacy):
+                mpp_src = built_mpp_legacy
         if os.path.exists(mpp_src):
-            shutil.copy2(mpp_src, os.path.join(desktop_dir, "morphe-patches-pixelcamera-1.1.1.mpp"))
-            shutil.copy2(mpp_src, os.path.join(desktop_dir, "patches-1.1.1.mpp"))
-            print(f"    [+] Successfully copied patch to Desktop: {os.path.join(desktop_dir, 'morphe-patches-pixelcamera-1.1.1.mpp')}")
+            shutil.copy2(mpp_src, os.path.join(desktop_dir, "morphe-patches-pixelcamera-1.1.2.mpp"))
+            shutil.copy2(mpp_src, os.path.join(desktop_dir, "patches-1.1.2.mpp"))
+            print(f"    [+] Successfully copied patch to Desktop: {os.path.join(desktop_dir, 'morphe-patches-pixelcamera-1.1.2.mpp')}")
         
         pixelcam_dir = os.path.join(desktop_dir, "PixelCam")
         if os.path.isdir(pixelcam_dir):
             shutil.copy2(signed_apk, os.path.join(pixelcam_dir, os.path.basename(signed_apk)))
-            shutil.copy2(signed_apk, os.path.join(pixelcam_dir, "PixelCamera-1.1.1.apk"))
+            shutil.copy2(signed_apk, os.path.join(pixelcam_dir, "PixelCamera-1.1.2.apk"))
             if os.path.exists(mpp_src):
-                shutil.copy2(mpp_src, os.path.join(pixelcam_dir, "morphe-patches-pixelcamera-1.1.1.mpp"))
-            print(f"    [+] Also copied to {pixelcam_dir}/PixelCamera-1.1.1.apk")
-        return dest_v111
+                shutil.copy2(mpp_src, os.path.join(pixelcam_dir, "morphe-patches-pixelcamera-1.1.2.mpp"))
+            print(f"    [+] Also copied to {pixelcam_dir}/PixelCamera-1.1.2.apk")
+        return dest_v112
     else:
         print("    [!] Warning: Desktop directory not found, skipping Desktop copy.")
         return None
@@ -10217,11 +10236,13 @@ def install_and_launch(signed_apk):
     print(f"    {res.stdout.strip()}")
     if "Success" in res.stdout:
         # Also copy Morphe .mpp patch to device Download directory
-        mpp_file = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.1.1.mpp")
+        mpp_file = os.path.join(ROOT_DIR, "morphe-patches-pixelcamera-1.1.2.mpp")
+        if not os.path.exists(mpp_file):
+            mpp_file = os.path.join(ROOT_DIR, "morphe-patches", "patches", "build", "libs", "patches-1.1.2.mpp")
         if os.path.exists(mpp_file):
             print(f"[*] Copying {os.path.basename(mpp_file)} to device /sdcard/Download/...")
-            subprocess.run(["adb", "-s", target_device, "push", mpp_file, "/sdcard/Download/morphe-patches-pixelcamera-1.1.1.mpp"], stdout=subprocess.DEVNULL)
-            subprocess.run(["adb", "-s", target_device, "push", mpp_file, "/sdcard/Download/patches-1.1.1.mpp"], stdout=subprocess.DEVNULL)
+            subprocess.run(["adb", "-s", target_device, "push", mpp_file, "/sdcard/Download/morphe-patches-pixelcamera-1.1.2.mpp"], stdout=subprocess.DEVNULL)
+            subprocess.run(["adb", "-s", target_device, "push", mpp_file, "/sdcard/Download/patches-1.1.2.mpp"], stdout=subprocess.DEVNULL)
             print("    [+] Successfully copied Morphe patch to /sdcard/Download/ on device!")
         print(f"[*] Launching PixelCamera on {target_device} (com.google.android.GoogleCameraEng)...")
         subprocess.run(["adb", "-s", target_device, "shell", "am", "force-stop", "com.google.android.GoogleCameraEng"])
@@ -10532,6 +10553,32 @@ def patch_image_quality_preferences():
         else:
             print("    [+] strings.xml: RAW compression strings already present.")
 
+        if "pref_category_advanced_settings_title" not in content:
+            cat_string = """    <string name="pref_category_advanced_settings_title">Advanced settings</string>"""
+            content = content.replace("<resources>", f"<resources>\n{cat_string}")
+            with open(strings_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] strings.xml: Advanced settings category title added.")
+
+        if "pref_category_about_title" not in content:
+            about_strings = """    <string name="pref_category_about_title">About</string>
+    <string name="pref_about_title">Pixel Camera</string>
+    <string name="pref_about_version_summary">version 11.1.040.982810059.19 (v1.1.2)</string>"""
+            content = content.replace("<resources>", f"<resources>\n{about_strings}")
+            with open(strings_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] strings.xml: About category and version strings added.")
+
+        if "pref_camera_focal_length_cycling_title" not in content:
+            focal_strings = """    <string name="pref_camera_focal_length_cycling_title">1x Focal Length Cycling</string>
+    <string name="pref_camera_focal_length_cycling_summary">Tap the 1× button to switch between 24 mm, 28 mm, and 35 mm focal lengths.\\nWhen off, 1× remain locked at native optical 1×.</string>"""
+            content = content.replace("<resources>", f"<resources>\n{focal_strings}")
+            with open(strings_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] strings.xml: Focal length cycling strings added.")
+        else:
+            print("    [+] strings.xml: Focal length cycling strings already present.")
+
     # 2. Inject arrays into arrays.xml
     arrays_path = os.path.join(APKTOOL_DIR, "res", "values", "arrays.xml")
     if os.path.exists(arrays_path):
@@ -10577,30 +10624,60 @@ def patch_image_quality_preferences():
     if os.path.exists(gm3_path):
         with open(gm3_path, "r", encoding="utf-8") as f:
             content = f.read()
-        if "pref_camera_raw_compression_key" not in content:
-            extra_gm3 = """        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="12" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="13" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />"""
-            content = content.replace('android:key="pref_camera_noise_reduction_key"', f'{extra_gm3}\n        android:key="pref_camera_noise_reduction_key"')
+        if "pref_category_advanced_settings" not in content:
+            extra_gm3 = """    <androidx.preference.PreferenceCategory android:title="@string/pref_category_advanced_settings_title" android:key="pref_category_advanced_settings">
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreferenceCompat android:icon="@drawable/gs_photo_camera_vd_theme_24" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <com.google.android.apps.camera.ui.preference.ListWithDescriptionsPreferenceCompat android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+    </androidx.preference.PreferenceCategory>"""
+            content = content.replace('<androidx.preference.PreferenceCategory android:title="@string/mode_video"', f'{extra_gm3}\n    <androidx.preference.PreferenceCategory android:title="@string/mode_video"')
             with open(gm3_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print("    [+] camera_gm3_preferences.xml: RAW compression and Sharpness menus injected.")
+            print("    [+] camera_gm3_preferences.xml: Advanced settings category injected.")
         else:
-            print("    [+] camera_gm3_preferences.xml: RAW compression preference already present.")
+            print("    [+] camera_gm3_preferences.xml: Advanced settings category already present.")
+
+        if "pref_category_help_and_feedback" in content:
+            about_gm3 = """    <androidx.preference.PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
+        <androidx.preference.Preference android:icon="@drawable/settingslib_ic_info_outline_24" android:title="@string/pref_about_title" android:key="pref_about_key" android:summary="@string/pref_about_version_summary" />
+        <androidx.preference.Preference android:icon="@drawable/gs_developer_mode_vd_theme_24" android:key="pref_category_developer" app:title="@string/pref_developer_settings" />
+    </androidx.preference.PreferenceCategory>"""
+            content = re.sub(r'<androidx\.preference\.PreferenceCategory[^>]*key="pref_category_help_and_feedback"[^>]*>[\s\S]*?</androidx\.preference\.PreferenceCategory>', about_gm3, content)
+            with open(gm3_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] camera_gm3_preferences.xml: Help and feedback replaced with About category.")
 
     # 4. Inject into camera_preferences.xml
     cam_pref_path = os.path.join(APKTOOL_DIR, "res", "xml", "camera_preferences.xml")
     if os.path.exists(cam_pref_path):
         with open(cam_pref_path, "r", encoding="utf-8") as f:
             content = f.read()
-        if "pref_camera_raw_compression_key" not in content:
-            extra_cam = """            <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="12" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
-            <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="13" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />"""
-            content = content.replace('android:key="pref_camera_noise_reduction_key"', f'{extra_cam}\n            android:key="pref_camera_noise_reduction_key"')
+        if "pref_category_advanced_settings" not in content:
+            extra_cam = """    <PreferenceCategory android:title="@string/pref_category_advanced_settings_title" android:key="pref_category_advanced_settings">
+        <com.google.android.apps.camera.ui.preference.ManagedSwitchPreference android:icon="@drawable/gs_photo_camera_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_focal_length_cycling_title" android:key="pref_camera_focal_length_cycling_key" android:summary="@string/pref_camera_focal_length_cycling_summary" android:order="1" android:defaultValue="false" />
+        <ListPreference android:icon="@drawable/gs_high_res_vd_theme_24" android:entries="@array/pref_camera_jpeg_quality_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_jpeg_quality_title" android:key="pref_camera_jpeg_quality_key" android:summary="%s" android:order="2" android:defaultValue="95" android:entryValues="@array/pref_camera_jpeg_quality_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_texture_vd_theme_24" android:entries="@array/pref_camera_noise_reduction_entries" android:title="@string/pref_camera_noise_reduction_title" android:key="pref_camera_noise_reduction_key" android:summary="%s" android:order="3" android:defaultValue="stock" android:entryValues="@array/pref_camera_noise_reduction_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_raw_on_vd_theme_24" android:entries="@array/pref_camera_raw_compression_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_raw_compression_title" android:key="pref_camera_raw_compression_key" android:summary="%s" android:order="4" android:defaultValue="uncompressed" android:entryValues="@array/pref_camera_raw_compression_entryvalues" />
+        <ListPreference android:icon="@drawable/gs_details_vd_theme_24" android:entries="@array/pref_camera_sharpness_entries" android:layout="@layout/preference_with_margin" android:title="@string/pref_camera_sharpness_title" android:key="pref_camera_sharpness_key" android:summary="%s" android:order="5" android:defaultValue="natural" android:entryValues="@array/pref_camera_sharpness_entryvalues" />
+    </PreferenceCategory>"""
+            content = content.replace('<PreferenceCategory android:title="@string/mode_video"', f'{extra_cam}\n    <PreferenceCategory android:title="@string/mode_video"')
             with open(cam_pref_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            print("    [+] camera_preferences.xml: RAW compression and Sharpness menus injected.")
+            print("    [+] camera_preferences.xml: Advanced settings category injected.")
         else:
-            print("    [+] camera_preferences.xml: RAW compression preference already present.")
+            print("    [+] camera_preferences.xml: Advanced settings category already present.")
+
+        if "pref_category_help_and_feedback" in content:
+            about_cam = """    <PreferenceCategory android:title="@string/pref_category_about_title" android:key="pref_category_about">
+        <Preference android:icon="@drawable/settingslib_ic_info_outline_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_about_title" android:key="pref_about_key" android:summary="@string/pref_about_version_summary" />
+        <PreferenceScreen android:icon="@drawable/quantum_gm_ic_developer_mode_vd_theme_24" android:layout="@layout/preference_with_margin" android:title="@string/pref_developer_settings" android:key="pref_category_developer" />
+    </PreferenceCategory>"""
+            content = re.sub(r'<PreferenceCategory[^>]*key="pref_category_help_and_feedback"[^>]*>[\s\S]*?</PreferenceCategory>', about_cam, content)
+            with open(cam_pref_path, "w", encoding="utf-8") as f:
+                f.write(content)
+            print("    [+] camera_preferences.xml: Help and feedback replaced with About category.")
 
     # 5. Patch pbe.smali (Camera2 CaptureRequest providers)
     pbe_path = os.path.join(APKTOOL_DIR, "smali", "pbe.smali")
@@ -11313,6 +11390,172 @@ def patch_capture_stalling_fixes():
             print("    [+] pxe.smali: Guarded cond_13 jump against metering frame failure.")
         elif "cond_metering_failed" in content:
             print("    [+] pxe.smali: Metering failure guard already present.")
+
+    # 4. vfa.smali and wst.smali: Clock-domain synchronization and 8.33ms minimum tolerance
+    patch_vfa_and_wst_smali()
+
+def patch_vfa_and_wst_smali():
+    print("[*] Patching vfa.smali and wst.smali (Pixel 10 Tensor G5 frame timestamp correlation & non-zero tolerance)...")
+    vfa_path = os.path.join(APKTOOL_DIR, "smali", "vfa.smali")
+    if os.path.exists(vfa_path):
+        vfa_smali_content = """\
+.class public final Lvfa;
+.super Ljava/lang/Object;
+.source "PG"
+
+
+# instance fields
+.field public final a:J
+
+.field public volatile b:J
+
+
+# direct methods
+.method public constructor <init>(JJ)V
+    .locals 4
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-wide p1, p0, Lvfa;->b:J
+
+    const-wide/16 v0, 0x0
+
+    cmp-long v2, p3, v0
+
+    if-gtz v2, :cond_0
+
+    const-wide/32 p3, 0x7f2815
+
+    :cond_0
+    iput-wide p3, p0, Lvfa;->a:J
+
+    return-void
+.end method
+
+
+# virtual methods
+.method public final a(JJ)Z
+    .locals 6
+
+    sub-long/2addr p1, p3
+
+    iget-wide p3, p0, Lvfa;->b:J
+
+    add-long/2addr p1, p3
+
+    const-wide/16 v0, 0x0
+
+    cmp-long v2, p1, v0
+
+    const/4 v3, 0x1
+
+    if-nez v2, :cond_0
+
+    return v3
+
+    :cond_0
+    iget-wide v4, p0, Lvfa;->a:J
+
+    cmp-long v0, v4, v0
+
+    if-eqz v0, :cond_1
+
+    cmp-long v0, p1, v4
+
+    if-gez v0, :cond_1
+
+    neg-long v0, v4
+
+    cmp-long v0, p1, v0
+
+    if-lez v0, :cond_1
+
+    goto :cond_sync
+
+    :cond_1
+    const-wide/32 v0, 0xbebc200
+
+    cmp-long v2, p1, v0
+
+    if-gtz v2, :cond_sync
+
+    neg-long v0, v0
+
+    cmp-long v2, p1, v0
+
+    if-ltz v2, :cond_sync
+
+    const/4 p0, 0x0
+
+    return p0
+
+    :cond_sync
+    sub-long/2addr p3, p1
+
+    iput-wide p3, p0, Lvfa;->b:J
+
+    return v3
+.end method
+
+.method public final b(JJ)Z
+    .locals 4
+
+    sub-long/2addr p3, p1
+
+    iget-wide p1, p0, Lvfa;->b:J
+
+    sub-long/2addr p3, p1
+
+    const-wide/32 v0, 0xbebc200
+
+    cmp-long v2, p3, v0
+
+    if-gtz v2, :ret_false
+
+    neg-long v0, v0
+
+    cmp-long v2, p3, v0
+
+    if-ltz v2, :ret_false
+
+    iget-wide p0, p0, Lvfa;->a:J
+
+    add-long/2addr p3, p0
+
+    const-wide/16 p0, 0x0
+
+    cmp-long p0, p3, p0
+
+    if-gez p0, :cond_0
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_0
+    :ret_false
+    const/4 p0, 0x0
+
+    return p0
+.end method
+"""
+        with open(vfa_path, "w", encoding="utf-8") as f:
+            f.write(vfa_smali_content)
+        print("    [+] vfa.smali: Patched with dynamic clock-domain sync (>200ms) and minimum 8.33ms tolerance.")
+
+    wst_path = os.path.join(APKTOOL_DIR, "smali", "wst.smali")
+    if os.path.exists(wst_path):
+        with open(wst_path, "r", encoding="utf-8") as f:
+            wst_content = f.read()
+        target_wst = "invoke-direct {v9, v10, v11, v10, v11}, Lvfa;-><init>(JJ)V"
+        repl_wst = "invoke-direct {v9, v10, v11, v14, v15}, Lvfa;-><init>(JJ)V"
+        if target_wst in wst_content:
+            wst_content = wst_content.replace(target_wst, repl_wst)
+            with open(wst_path, "w", encoding="utf-8") as f:
+                f.write(wst_content)
+            print("    [+] wst.smali: Replaced Lvfa 0-tolerance with 8.33ms (v14,v15) tolerance.")
+        elif repl_wst in wst_content:
+            print("    [+] wst.smali: 8.33ms tolerance already present.")
 
 def patch_gei_smali():
     print("[*] Patching gei.smali and fue.smali (Pixel 10 / P25 / Buenos missing model & asset sanitization)...")

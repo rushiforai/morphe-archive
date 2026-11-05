@@ -8,9 +8,9 @@ object Constants {
     val COMPATIBILITY = Compatibility(
         name = "JustWatch",
         packageName = "com.justwatch.justwatch",
-        description = "The JustWatch streaming guide app.",
+        description = "The JustWatch streaming guide app, for phones and Android TV.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFBC500,
-        targets = listOf(AppTarget("26.43.10"))
+        targets = listOf(AppTarget("26.43.10"), AppTarget("26.43.8"))
     )
 }

@@ -13,7 +13,7 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off the T-Life AI assistant. Support by phone and in stores is not affected.",
+    description = "Turns off the T-Life AI assistant.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

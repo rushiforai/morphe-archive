@@ -20,8 +20,7 @@ import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Stops the app from playing ad interstitials in on-demand videos. Promos and bumpers " +
-        "delivered the same way are skipped too. Experimental.",
+    description = "Stops the ad interstitials in on-demand videos.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

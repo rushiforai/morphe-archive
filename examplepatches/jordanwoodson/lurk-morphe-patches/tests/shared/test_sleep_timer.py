@@ -56,6 +56,15 @@ public class SleepTimerProbe {
     check(repeated.pauses==1,"first expiry did not pause once");start(repeated);expire();Handler.advance(3000);
     check(repeated.pauses==2,"second expiry did not pause once");Handler.advance(60_000);
     check(repeated.pauses==2,"old expiry paused again");}
+    // The chosen time changed mid-playback (the player's Sleep timer row): re-armed from now; Off cancels.
+    if(test[1].equals("change")){
+    Player changed=new Player();start(changed);Handler.advance(30_000);
+    Settings.values.put("sleep_timer","2");SleepTimer.settingChanged();Handler.advance(0);Handler.advance(90_000);
+    check(changed.pauses==0,"the old one-minute expiry still fired after the change");Handler.advance(30_000+3000);
+    check(changed.pauses==1,"re-armed timer did not pause two minutes after the change");
+    Player off=new Player();Settings.values.put("sleep_timer","1");start(off);Handler.advance(30_000);
+    Settings.values.put("sleep_timer","0");SleepTimer.settingChanged();Handler.advance(120_000);
+    check(off.pauses==0,"Off from the row still paused");Settings.values.put("sleep_timer","1");end(off);end(changed);}
     // Timer-off before fallback must suppress the outstanding pause.
     if(test[1].equals("disable")){
     Player disabled=new Player();start(disabled);expire();Settings.values.put("sleep_timer","0");Handler.advance(3000);
@@ -68,7 +77,7 @@ public class SleepTimerProbe {
 if __name__ == '__main__':
     run('SleepTimerProbe', ['SleepTimer.java', 'kick/KickPlayer.java', 'twitch/TwitchPlayer.java'],
         PROBE, [helper + ':' + scenario for helper in ['kick.KickPlayer', 'twitch.TwitchPlayer']
-                for scenario in ['new', 'resume', 'replay', 'stop', 'repeat', 'disable']]
+                for scenario in ['new', 'resume', 'replay', 'stop', 'repeat', 'change', 'disable']]
         + ['concurrency:' + boundary for boundary in ['initial-expiry', 'initial-runnable', 'fallback', 'executor',
             'queued-new', 'queued-resume', 'queued-current', 'queued-stock', 'queued-failure', 'queued-disabled',
             'lockfree-stop', 'lockfree-play']],

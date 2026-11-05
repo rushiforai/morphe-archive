@@ -34,13 +34,20 @@ function ngParsedInboxCondition_(row){
  }catch(invalid){return null;}
 }
 function ngEmptyInboxRow_(row){return row.every(value=>value===''||value===null||value===undefined);}
+function ngBindReporterDevice_(body){
+ if(typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||typeof body.deviceKey!=='string'||!/^[a-f0-9]{64}$/.test(body.deviceKey))throw Error('Invalid device identity');
+ const props=PropertiesService.getScriptProperties();if(!props.getProperty('REPORTER_PEPPER'))throw Error('Run setupSharedNg first');
+ const lock=LockService.getScriptLock();lock.waitLock(15000);try{ngDeviceReporter_(body,props,SpreadsheetApp.openById(NG_CONFIG.spreadsheetId));return ngJson_({ok:true});}finally{lock.releaseLock();}
+}
 function ngReceivePersonal_(body){
  if(body.version!==2||body.action!=='personal'||typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||!Array.isArray(body.reports)||!body.reports.length||body.reports.length>20)throw Error('Invalid personal batch');
  const incoming=body.reports.map(ngInboxValidate_),props=PropertiesService.getScriptProperties(),pepper=props.getProperty('REPORTER_PEPPER');if(!pepper)throw Error('Run setupSharedNg first');
  const reporter=ngHash_(pepper+':'+body.device);
- if(ngReporterIgnored_(reporter))return ngJson_({ok:true,accepted:new Set(incoming.map(r=>r.operationId)).size,ack:incoming.map(r=>r.operationId)});
+ if(!body.deviceKey&&ngReporterIgnored_(reporter))return ngJson_({ok:true,accepted:new Set(incoming.map(r=>r.operationId)).size,ack:incoming.map(r=>r.operationId)});
  const lock=LockService.getScriptLock();lock.waitLock(15000);try{
-  ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);ngRecoverPersonalTransfer_(b);const s=b.getSheetByName('Inbox'),rows=ngAllPersonalRows_(b),reporter=ngHash_(pepper+':'+body.device),known=new Set(rows.filter(r=>r[1]===reporter).map(r=>r[0]));
+  ngInboxSetup_();const b=SpreadsheetApp.openById(NG_CONFIG.spreadsheetId);ngRecoverPersonalTransfer_(b);const reporter=ngDeviceReporter_(body,props,b);
+  if(ngReporterIgnored_(reporter))return ngJson_({ok:true,accepted:new Set(incoming.map(r=>r.operationId)).size,ack:incoming.map(r=>r.operationId)});
+  const s=b.getSheetByName('Inbox'),rows=ngAllPersonalRows_(b),known=new Set(rows.filter(r=>r[1]===reporter).map(r=>r[0]));
   const day=new Date().toISOString().slice(0,10);let used=rows.filter(r=>r[1]===reporter&&String(r[4]).startsWith(day)).length;let accepted=0;
   for(const r of incoming){if(known.has(r.operationId))continue;if(++used>100)throw Error('Daily report limit');known.add(r.operationId);accepted++;}
   const staged=[];for(const r of incoming)if(!rows.some(row=>row[0]===r.operationId&&row[1]===reporter)&&!staged.some(row=>row[0]===r.operationId))staged.push([r.operationId,reporter,JSON.stringify(r.condition),r.action,new Date().toISOString(),'pending','awaiting_policy',0,'{}']);

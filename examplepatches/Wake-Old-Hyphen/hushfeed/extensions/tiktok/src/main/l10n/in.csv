@@ -13,6 +13,8 @@ Importing new history ended Undo for the earlier clear. You can clear the import
 %1$d settings in that file can't be restored here and were skipped,%1$d pengaturan dalam berkas tidak dapat dipulihkan di sini dan dilewati
 "Import watch history","Impor riwayat tontonan"
 Keep the language picked in TikTok,Pertahankan bahasa yang dipilih di TikTok
+Freeze TikTok's experiments,Bekukan eksperimen TikTok
+"TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.","Server TikTok terus mengirim pengaturan baru, begitulah TikTok menguji tata letak dan fitur baru pada orang-orang. Jika ini menyala, TikTok menyimpan pengaturan yang ada sekarang dan mengabaikan yang baru. Jika ada yang berhenti berfungsi di TikTok, matikan ini agar TikTok bisa mendapat perbaikan."
 Nothing is playing to speed up,Tidak ada yang diputar untuk dipercepat
 "One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.","Satu kode bahasa, seperti en atau es. Komentar dan keterangan yang diterjemahkan TikTok muncul dalam bahasa ini, bukan bahasa aplikasi. Biarkan kosong untuk memakai pilihan TikTok."
 "MP3 (.mp3), plays anywhere","MP3 (.mp3), bisa diputar di mana saja"
@@ -1745,7 +1747,7 @@ Play sounds TikTok pulled,Putar suara yang ditarik TikTok
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,Putar audio pada video yang dibisukan TikTok karena suaranya ditarik akibat hak cipta atau di wilayah Anda. TikTok mungkin tetap menyebut suaranya tidak tersedia.
 Match region fields in requests,Samakan kolom wilayah dalam permintaan
 Keep the For You feed on your real SIM,Biarkan Untuk Kamu memakai SIM asli
-"Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","Pencarian stiker dan bagian TikTok lainnya tetap melihat SIM di atas, sedangkan Untuk Kamu meminta video dengan negara dan operator SIM ponselmu sendiri. Alamat IP dan riwayat akunmu tetap berpengaruh."
+"With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","Dengan SIM yang diganti, TikTok bisa terus menampilkan video yang sudah kamu tonton. Aktifkan ini untuk menghentikannya. Pencarian stiker dan bagian TikTok lainnya tetap melihat SIM di atas, sedangkan Untuk Kamu meminta video dengan negara dan operator SIM ponselmu sendiri. Alamat IP dan riwayat akunmu tetap berpengaruh."
 Show exact LIVE viewer counts,Tampilkan jumlah penonton LIVE yang tepat
 A LIVE room shows how many people are watching as a rounded number like 1.2K. This shows the exact count instead.,"Ruang LIVE menampilkan jumlah penonton sebagai angka dibulatkan seperti 1,2K. Ini menampilkan jumlah yang tepat."
 Offer LIVE quality in more rooms,Tawarkan kualitas LIVE di lebih banyak ruang
@@ -2420,3 +2422,5 @@ Hide profile visits,Sembunyikan kunjungan profil
 You stay off the Profile views list of people whose profile you open. Needs Ghost mode on.,Kamu tidak akan muncul di daftar tayangan profil orang yang profilnya kamu buka. Mode siluman harus menyala.
 Hide typing,Sembunyikan status mengetik
 People you chat with won't see that you're typing. Needs Ghost mode on.,Orang yang kamu ajak chat tidak akan melihat bahwa kamu sedang mengetik. Mode siluman harus menyala.
+Show all settings as a list,Tampilkan semua setelan sebagai daftar
+Show settings by category,Tampilkan setelan menurut kategori

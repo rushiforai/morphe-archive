@@ -20,9 +20,7 @@ import semicoloncolonel.mobilestream.patches.wsj.shared.Constants
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking: Adobe, AppsFlyer, Braze, comScore, LiveRamp, Parse.ly, " +
-        "Permutive, Snowplow and Firebase. Sign-in, articles and podcasts are left alone. " +
-        "Experimental.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

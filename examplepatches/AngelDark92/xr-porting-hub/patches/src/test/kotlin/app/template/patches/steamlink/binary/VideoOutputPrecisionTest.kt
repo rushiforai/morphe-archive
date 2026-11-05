@@ -26,7 +26,128 @@ class VideoOutputPrecisionTest {
         Layout("2.0.22", "5002244", VIDEO_LIBRARY_SIZE_5002244, SWAPCHAIN_FORMAT_OFFSETS_5002244),
         Layout("2.0.23", "5002363", VIDEO_LIBRARY_SIZE_5002363, SWAPCHAIN_FORMAT_OFFSETS_5002363),
         Layout("2.0.24", "5002395", VIDEO_LIBRARY_SIZE_5002395, SWAPCHAIN_FORMAT_OFFSETS_5002395),
+        Layout("2.0.24", "5002527", VIDEO_LIBRARY_SIZE_5002527, SWAPCHAIN_FORMAT_OFFSETS_5002527),
     )
+
+    private fun decodedScene(version: String, code: String): java.io.File? {
+        val root = generateSequence(java.io.File(System.getProperty("user.dir")).canonicalFile) { it.parentFile }
+            .firstOrNull { java.io.File(it, "patches/src/main/kotlin").isDirectory } ?: return null
+        return java.io.File(root, "android-steamlinkvr-release-base-$version-$code/lib/arm64-v8a/libvrlink_scene.so")
+            .takeIf { it.isFile }
+    }
+
+    @Test
+    fun `inner-fade shader keeps the vInnerFade uniform and fills the 1206-byte block`() {
+        assertEquals(1206, VIDEO_SHADER_SIZE_INNER_FADE)
+        VideoOutputPrecision.entries.forEach { precision ->
+            VideoDitherMode.entries.forEach { dither ->
+                listOf(.50f to 0f, 1f to 1f, 1.2f to 1.45f, 2.50f to 3f).forEach { (gamma, saturation) ->
+                    val shader = paddedVideoShader(gamma, saturation, precision, dither, innerFade = true)
+                    assertEquals(VIDEO_SHADER_SIZE_INNER_FADE, shader.size, "$precision/$dither/$gamma/$saturation")
+                    assertFalse(shader.contains(0.toByte()))
+                    val text = shader.ascii()
+                    assertTrue(text.contains("layout(location=14) uniform vec4 vInnerFade;"))
+                    assertEquals(1, Regex("vInnerFade").findAll(text).count())
+                    assertShaderInterface(text, dither != VideoDitherMode.OFF)
+                    assertNull(retiredNativeProjectionHook(shader))
+                }
+            }
+        }
+        // The legacy block is untouched: no vInnerFade, 1087 bytes.
+        val legacy = paddedVideoShader(1.2f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP)
+        assertEquals(VIDEO_SHADER_SIZE, legacy.size)
+        assertFalse(legacy.ascii().contains("vInnerFade"))
+    }
+
+    @Test
+    fun `inner-fade calibration recognition accepts only the exact stock-location block`() {
+        val shader = paddedVideoShader(1.2f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, innerFade = true)
+        assertTrue(isOledCalibrationShader(shader))
+        val text = shader.ascii()
+        // Valve's uniform keeps its stock location 14; there is no relocated or second declaration form.
+        assertEquals(1, Regex("layout\\(location=14\\) uniform vec4 vInnerFade;").findAll(text).count())
+        assertFalse(text.contains("location=7"))
+        // Wrong location, a missing declaration, a duplicate and a changed body all fail closed.
+        val wrongLocation = text.replace("location=14) uniform vec4 vInnerFade", "location=9 ) uniform vec4 vInnerFade")
+            .toByteArray(Charsets.US_ASCII)
+        assertFalse(isOledCalibrationShader(wrongLocation))
+        val missing = text.replace("layout(location=14) uniform vec4 vInnerFade;", "")
+            .padEnd(VIDEO_SHADER_SIZE_INNER_FADE, ' ').toByteArray(Charsets.US_ASCII)
+        assertFalse(isOledCalibrationShader(missing))
+        val duplicate = shader.copyOf().also {
+            val extra = "layout(location=7 ) uniform vec4 vInnerFade;".toByteArray(Charsets.US_ASCII)
+            extra.copyInto(it, it.size - extra.size)
+        }
+        assertFalse(isOledCalibrationShader(duplicate))
+        assertFalse(isOledCalibrationShader(shader.copyOf().also { it[200] = '!'.code.toByte() }))
+        // A 1087-byte legacy block and a 1206-byte block are distinct layouts: sizes never cross over.
+        val legacy = paddedVideoShader(1.2f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP)
+        assertTrue(isOledCalibrationShader(legacy))
+        assertFalse(isOledCalibrationShader(legacy.copyOf(VIDEO_SHADER_SIZE_INNER_FADE).also {
+            for (i in VIDEO_SHADER_SIZE until it.size) it[i] = ' '.code.toByte()
+        }))
+        assertFalse(isOledCalibrationShader(shader.copyOf(VIDEO_SHADER_SIZE)))
+    }
+
+    @Test
+    fun `shader locator honours the per-layout nul boundary`() {
+        val library = ByteArray(VIDEO_SHADER_SIZE_INNER_FADE + 32).apply {
+            paddedVideoShader(1.06f, 1.12f, VideoOutputPrecision.SRGB8_HIGHP, innerFade = true).copyInto(this)
+        }
+        assertEquals(0, findVideoShader(library, VIDEO_SHADER_SIZE_INNER_FADE))
+        // The legacy 1087-byte boundary is not a NUL in this block.
+        assertFailsWith<PatchException> { findVideoShader(library) }
+        library[VIDEO_SHADER_SIZE_INNER_FADE] = 1
+        assertFailsWith<PatchException> { findVideoShader(library, VIDEO_SHADER_SIZE_INNER_FADE) }
+    }
+
+    @Test
+    fun `5002527 real decoded renderer takes the calibration shader and format sites without side effects`() {
+        val file = decodedScene("2.0.24", "5002527")
+        org.junit.Assume.assumeTrue("BLOCKED: decoded 2.0.24/5002527 scene is absent", file != null)
+        val stock = file!!.readBytes()
+        assertEquals(VIDEO_LIBRARY_SIZE_5002527, stock.size)
+        assertEquals("cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03", sha256Hex(stock))
+        assertTrue(isSupportedVideoLibrarySize(stock.size))
+        val shaderPos = findVideoShader(stock, VIDEO_SHADER_SIZE_INNER_FADE)
+        assertEquals(0xa3085, shaderPos)
+        // The production template, not a literal: stock shader declares vInnerFade at 14.
+        val stockShader = stock.copyOfRange(shaderPos, shaderPos + VIDEO_SHADER_SIZE_INNER_FADE).ascii()
+        assertTrue(stockShader.contains("layout(location = 14) uniform vec4 vInnerFade;"))
+        assertTrue(stockShader.contains("layout(location = 2) uniform samplerExternalOES tex0;"))
+        assertTrue(stockShader.contains("layout(location = 3) uniform float fFadeAmount;"))
+        assertTrue(stockShader.contains("layout(location = 6) uniform vec4 UniDitherOffsets;"))
+        for ((gamma, saturation) in listOf(1f to 1f, 1.2f to 1.45f, 1.06f to 1.12f)) {
+            val calibrated = stock.copyOf().apply {
+                paddedVideoShader(gamma, saturation, VideoOutputPrecision.SRGB8_HIGHP, innerFade = true)
+                    .copyInto(this, shaderPos)
+            }
+            assertTrue(calibrated.indices.all {
+                it in shaderPos until shaderPos + VIDEO_SHADER_SIZE_INNER_FADE || calibrated[it] == stock[it]
+            }, "Out-of-scope byte changed")
+            assertEquals(0, calibrated[shaderPos + VIDEO_SHADER_SIZE_INNER_FADE].toInt(), "NUL boundary")
+            assertEquals(shaderPos, findVideoShader(calibrated, VIDEO_SHADER_SIZE_INNER_FADE))
+            assertTrue(isOledCalibrationShader(calibrated.copyOfRange(shaderPos, shaderPos + VIDEO_SHADER_SIZE_INNER_FADE)))
+        }
+        // The stock block is not mistaken for calibration; the legacy locator rejects it.
+        assertFalse(isOledCalibrationShader(stock.copyOfRange(shaderPos, shaderPos + VIDEO_SHADER_SIZE_INNER_FADE)))
+        assertFailsWith<PatchException> { findVideoShader(stock) }
+        // Format sites: both swapchains are already sRGB8; the transition set is atomic and reversible.
+        val offsets = SWAPCHAIN_FORMAT_OFFSETS_5002527
+        VideoOutputPrecision.entries.forEach { target ->
+            val changed = setProjectionSwapchainFormat(stock, target, "2.0.24", "5002527")
+            val diff = stock.indices.filter { stock[it] != changed[it] }
+            assertTrue(diff.all { index -> offsets.any { index in it until it + 4 } }, "Out-of-scope format byte")
+            offsets.forEach { assertContentEquals(formatInstruction(target), changed.copyOfRange(it, it + 4)) }
+            assertContentEquals(stock, setProjectionSwapchainFormat(changed, VideoOutputPrecision.SRGB8_HIGHP, "2.0.24", "5002527"))
+            assertContentEquals(changed, setProjectionSwapchainFormat(changed, target, "2.0.24", "5002527"))
+        }
+        // Neighbouring pairs never reach these sites.
+        assertContentEquals(stock, setProjectionSwapchainFormat(stock, VideoOutputPrecision.RGB10_A2_EXPERIMENTAL, "2.0.24", "5002526"))
+        assertFailsWith<PatchException> {
+            setProjectionSwapchainFormat(stock, VideoOutputPrecision.RGB10_A2_EXPERIMENTAL, "2.0.24", "5002395")
+        }
+    }
 
     @Test
     fun `srgb8 control shader is highp and retains disabled 8-bit-scaled vector dither`() {

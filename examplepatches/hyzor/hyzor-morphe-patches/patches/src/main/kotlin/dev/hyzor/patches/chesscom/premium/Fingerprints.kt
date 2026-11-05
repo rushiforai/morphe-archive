@@ -26,12 +26,6 @@ internal object BotGroupToStringFingerprint : Fingerprint(
     strings = listOf("BotGroup(uuid="),
 )
 
-/** Home toolbar: shows the Premium icon in place of the league or bell icon. */
-internal object ToolbarPremiumIconFingerprint : Fingerprint(
-    name = "invokeSuspend",
-    strings = listOf("menuItemPremiumIconR", "menuItemPremiumIconL"),
-)
-
 /** toString() of the redesigned Home's toolbar state for a signed-in player. */
 internal object HomeToolbarStateToStringFingerprint : Fingerprint(
     name = "toString",

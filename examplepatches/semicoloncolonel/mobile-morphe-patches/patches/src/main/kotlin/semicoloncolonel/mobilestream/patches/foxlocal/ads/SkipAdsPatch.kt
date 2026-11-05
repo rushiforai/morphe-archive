@@ -63,9 +63,7 @@ internal object TaboolaEnabledFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the ads before and during on-demand videos, the ads in articles and live blogs, " +
-        "the splash ad, and Taboola recommendations, with no empty space left behind. Ads in the live station " +
-        "streams are part of the broadcast and still play. Experimental.",
+    description = "Removes the ads in videos, articles, and live blogs, and the splash ad.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

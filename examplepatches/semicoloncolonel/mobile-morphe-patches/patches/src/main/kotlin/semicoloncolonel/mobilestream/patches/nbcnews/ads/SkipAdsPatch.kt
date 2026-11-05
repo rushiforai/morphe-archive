@@ -41,8 +41,7 @@ private const val STRATEGY = "Lcom/sky/core/player/addon/common/ads/AdvertisingS
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the ads before and during videos and the display ads on the home and section " +
-        "pages, with no empty space left behind. Ads in the live stream are part of the broadcast and still play.",
+    description = "Removes the video ads and the display ads on the home and section pages.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

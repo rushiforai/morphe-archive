@@ -19,9 +19,7 @@ import dev.hyzor.extension.chesscom.Utils;
 
 /**
  * Resolves obfuscated Chess.com classes that the local Game Review needs, by structure rather
- * than by obfuscated name, so a rename inside a release does not break it (confirmed on
- * 4.10.18: every class here resolved by shape even where the single-letter method names this
- * feature was first built against had already drifted).
+ * than by obfuscated name, so a rename inside a release does not break it.
  */
 final class AppTypes {
     private static final String TAG = "GameReviewAppTypes";

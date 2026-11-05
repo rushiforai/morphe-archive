@@ -191,7 +191,10 @@ final class RegularApp {
     private static void connect(Context context, Connected connected, Runnable failed) {
         try {
             MediaBrowser[] browser = {null};
-            browser[0] = new MediaBrowser(context.getApplicationContext(), new ComponentName(PACKAGE, BROWSER_SERVICE),
+            // The app tells the package of a client from its context, and the one of the application
+            // of a copy can be made to tell the package of the app for its sign-in.
+            Context clientContext = context instanceof android.app.Service ? context : context.getApplicationContext();
+            browser[0] = new MediaBrowser(clientContext, new ComponentName(PACKAGE, BROWSER_SERVICE),
                     new MediaBrowser.ConnectionCallback() {
                         @Override
                         public void onConnected() {

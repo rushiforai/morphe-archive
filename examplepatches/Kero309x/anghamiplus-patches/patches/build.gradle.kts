@@ -4,14 +4,12 @@ patches {
     // Anghami 8.0.28 local-Plus research patches (local gates only;
     // server premium checks remain). See README.md.
     about {
-        name = "Anghami Plus Patches"
-        description = "Advanced feature unlock, ad-free playback, and UI enhancements for Anghami. " +
-            "Based on the Anghami patch set by Mohamed Amr Nady " +
-            "(mohamedamrnady/anghami-patches, GPLv3) - see ATTRIBUTION.md."
-        source = "https://github.com/Kero309x/anghamiplus-patches"
-        author = "Kero309x, based on work by Mohamed Amr Nady (@mohamedamrnady)"
-        contact = "https://github.com/Kero309x/anghamiplus-patches/issues"
-        website = "https://github.com/Kero309x/anghamiplus-patches"
+        name = "Kero309x Morphe Patches"
+        description = "Modular Morphe patch bundle for Android bytecode transformation."
+        source = "https://github.com/Kero309x/Kero309x-patches"
+        author = "Kero309x"
+        contact = "https://github.com/Kero309x/Kero309x-patches/issues"
+        website = "https://github.com/Kero309x/Kero309x-patches"
         license = "GPLv3"
     }
 }

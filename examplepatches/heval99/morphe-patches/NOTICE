@@ -23,7 +23,7 @@ provided that such references:
 Third-party code
 ================
 
-Heval Controls (extensions/hevalcontrols and
+Patch settings, the Heval Controls framework (extensions/hevalcontrols and
 patches/src/main/kotlin/app/template/patches/shared/hevalcontrols) contains code
 based on SysAdminDoc/HushMessenger (https://github.com/SysAdminDoc/HushMessenger),
 licensed under the GNU General Public License v3.0, at commit

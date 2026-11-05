@@ -22,7 +22,8 @@ internal fun BytecodePatchContext.patchFavoriteThreads(version: String) {
         else it.name == "haiagaruNativeHistorySort" && it.parameterTypes == listOf("I", "Z")
     }
     // Track the actual HOME mode before mapping only this sorting invocation.
-    // The flow/persisted selected-tab ID remains 108, independent of native 102.
+    // The flow/persisted tab stays 108 (favorites) or 109 (refresh targets),
+    // independent of the native 102 snapshot used to build either list.
     val body = method.implementation!!.instructions.toList()
     if (!modern) {
         val rowList = if (version.contains("191")) "Lo/onAdDisplayed\$setBackgroundResource;" else "Lo/Yy2\$CheckResult;"
@@ -66,6 +67,7 @@ internal fun BytecodePatchContext.patchFavoriteThreads(version: String) {
             move-result v$reg
         """.trimIndent())
     }
+    // 242's first Int is the HOME ID; the second is its native sort index.
     method.addInstructions(0, """
         invoke-static/range {p0 .. p1}, $FAVORITES->selected(Ljava/lang/Object;I)V
         invoke-static/range {p1 .. p1}, $FAVORITES->nativeMode(I)I

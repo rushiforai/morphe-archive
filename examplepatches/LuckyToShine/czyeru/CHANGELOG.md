@@ -1,3 +1,9 @@
+## [1.9.5](https://github.com/LuckyToShine/czyeru/compare/v1.9.4...v1.9.5) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **uvm:** add Disable forced update patch ([7442d0c](https://github.com/LuckyToShine/czyeru/commit/7442d0cf3e304fe09ca37387d09cda2f622e4564))
+
 ## [1.9.4](https://github.com/LuckyToShine/czyeru/compare/v1.9.3...v1.9.4) (2026-11-03)
 
 ### 🐛 Bug Fixes

@@ -51,10 +51,7 @@ internal object GetFeatureFlagsFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Stops Andi, AT&T's AI assistant, from answering, and turns off its Fusion AI " +
-        "features: chat history, voice to text, AI search suggestions, citations, and AI " +
-        "cards. In-app chat with an agent stops too, since it goes through Andi. Phone " +
-        "support is not affected.",
+    description = "Turns off Andi, AT&T's AI assistant, and its Fusion AI features.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

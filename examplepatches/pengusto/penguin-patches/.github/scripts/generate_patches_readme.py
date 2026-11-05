@@ -43,9 +43,34 @@ readme = readme_path.read_text(encoding="utf-8")
 inline_previews = "<!-- PATCHES_PREVIEWS_START -->" in readme
 
 
-def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
+# Official app artwork, pinned to upstream commits. Linking to the projects'
+# own files keeps their artwork and attribution with their original sources.
+ICON_SOURCES = {
+    "org.fossify.calendar": ("FossifyOrg/Calendar", "a0d428461b5caac11ad570f77a4134b912093205", "fastlane/metadata/android/en-US/images/icon.png"),
+    "org.fossify.clock": ("FossifyOrg/Clock", "0511f508368ada82cdb587b0bf8df9d56cf9e6ad", "fastlane/metadata/android/en-US/images/icon.png"),
+    "org.fossify.messages": ("FossifyOrg/Messages", "02f511b292cc9790d0189a7e3d96ce3d71493890", "fastlane/metadata/android/en-US/images/icon.png"),
+    "org.fossify.contacts": ("FossifyOrg/Contacts", "6938eccfd1a10f924a6ced13695c73bd0cd84328", "fastlane/metadata/android/en-US/images/icon.png"),
+    "org.fossify.musicplayer": ("FossifyOrg/Music-Player", "e76d0f222eaba2cfd4501ccc3b6a8d2e9f29b0c3", "fastlane/metadata/android/en-US/images/icon.png"),
+    "org.fossify.filemanager": ("FossifyOrg/File-Manager", "c95de62b90c9f42601b88eca4f795338da3b161c", "fastlane/metadata/android/en-US/images/icon.png"),
+    "com.unicornsonlsd.finamp": ("finamp-app/finamp", "f001dcd396ab2c65d466ad60e4380c53c45d34d9", "fastlane/metadata/android/en-US/images/icon.png"),
+    "app.mihon": ("mihonapp/mihon", "ede052af170e2ef2949dac2acd91adfb58043a96", "fastlane/metadata/android/en-US/images/icon.png"),
+    "app.komikku": ("komikku-app/komikku", "383ffaa81667f45fc6c2975edb1760a7606531d3", ".github/readme-images/app-icon.png"),
+    "me.ash.reader": ("ReadYouApp/ReadYou", "d2b979ccad9a3e54b9499929a9dc2824578b0fd9", "fastlane/metadata/android/en-US/images/icon.png"),
+    "de.mm20.launcher2.release": ("MM2-0/Kvaesitso", "c4805f3f18d5bcf071c5287f81466efd79169b20", "fastlane/metadata/android/en-US/images/icon.png"),
+    "com.nononsenseapps.feeder": ("spacecowboy/Feeder", "846b19d39b932b1a9864b4317365034f36fc4856", "fastlane/metadata/android/en-US/images/icon.png"),
+    "org.tasks": ("tasks/tasks", "d7c0afdb94f913943fd54833d3e108871e78bc36", "fastlane/metadata/android/en-US/images/icon.png"),
+    "ml.docilealligator.infinityforreddit.plus": ("Docile-Alligator/Infinity-For-Reddit", "cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0", "fastlane/metadata/android/en-US/images/icon.png"),
+}
+
+
+def pkg_icon(pkg, name):
+    """Use an official icon when known; retain a fallback for future apps."""
+    source = ICON_SOURCES.get(pkg)
+    if source is None:
+        return "📦"
+    repo, commit, path = source
+    alt = html.escape(f"{name} app icon", quote=True)
+    return f'<img src="https://raw.githubusercontent.com/{repo}/{commit}/{path}" alt="{alt}" width="24" height="24">'
 
 # Group patches by package; patches with no compatiblePackages are universal.
 # JSON structure: compatiblePackages is a list of objects with
@@ -66,7 +91,7 @@ for patch in data["patches"]:
         if pkg not in by_pkg:
             by_pkg[pkg] = {
                 "name":    name,
-                "emoji":   pkg_emoji(pkg),
+                "icon":    pkg_icon(pkg, name),
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
             }
@@ -200,7 +225,7 @@ def build_content(expanded=False):
     # One spoiler per app, in the order they appear in the JSON
     for pkg, entry in by_pkg.items():
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
+        label   = f"{entry['icon']} {html.escape(entry['name'])}"
         lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches, GUIDES.get(pkg)), expanded))
         lines.append("")
 

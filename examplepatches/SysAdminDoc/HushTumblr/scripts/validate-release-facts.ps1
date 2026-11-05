@@ -967,10 +967,11 @@ function Test-ChangelogHere {
         '(?ms)^##[ \t]+Unreleased[ \t]*\r?\n(?<entry>.*?)(?=^#{1,2}[ \t]|\z)')
     # An ordinary source push can precede release preparation. Keep its notes pending while
     # still requiring the published release's dated entry and all earlier release history.
-    # A matching index, a release gate or an empty pending section gets no exception.
+    # A matching index, a release gate or an empty pending section gets no exception. A pending note
+    # is a bullet with no label (a Tumblr change), one with the Tumblr label, or a Tooling one.
     if ($AllowPublishedIndexLag -and $indexLagsSource -and $releaseVersion -ne $publishedVersion -and
             @(Get-ChangelogVersions -Text $current) -notcontains $releaseVersion -and $pending.Success -and
-            $pending.Groups['entry'].Value -match '(?m)^\* \*\*(?:Tumblr|Tooling):\*\*\s+\S') {
+            $pending.Groups['entry'].Value -match '(?m)^\* (?:\*\*(?:Tumblr|Tooling):\*\*\s+|(?!\*\*[^*\r\n]+?:\*\*))\S') {
         $changelogVersion = $publishedVersion
         Write-Host "[release] source $releaseVersion has Unreleased notes; checking published $publishedVersion history"
     }
@@ -985,7 +986,7 @@ function Test-ChangelogHere {
     $manager = Test-ChangelogManagerEntry -Current $current -ExpectedVersion $changelogVersion
     if (-not $manager.Valid) { throw "Morphe Manager cannot show this release: $($manager.Reason)" }
     Write-Host ("[release] Morphe Manager can read the $changelogVersion entry: dated " +
-        "$($manager.Date), $($manager.Bullets) bullets scoped Tumblr")
+        "$($manager.Date), $($manager.Bullets) bullets about Tumblr")
 
     $described = @(Get-ChangelogVersions -Text $current)
     if ($null -eq $previous) {

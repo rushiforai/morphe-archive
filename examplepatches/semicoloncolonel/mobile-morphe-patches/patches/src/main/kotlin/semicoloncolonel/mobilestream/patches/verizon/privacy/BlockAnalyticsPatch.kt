@@ -36,8 +36,7 @@ internal object NewRelicStartFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Adobe (including its in-app marketing messages), New Relic, Qualtrics surveys, " +
-        "and Firebase Analytics. Sign-in and bill pay are left alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

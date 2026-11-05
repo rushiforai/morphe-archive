@@ -27,22 +27,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.3.1](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 Yanosik&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 26.9.0 |
-| :---: |
+| 26.9.0 | 26.10.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block Yanosik telemetry](#block-yanosik-telemetry) | Blocks analytics, crash reporting, usage statistics, the notiOne SDK and Wi-Fi/cell tower data collection. Location reporting for POI alerts and traffic keeps working. |  |
 | [Bypass Android Auto certificate checks](#bypass-android-auto-certificate-checks) | Bypasses the Car App Library host certificate validation so Yanosik works on Android Auto. |  |
 | [Home screen dark mode](#home-screen-dark-mode) | Makes the home screen follow the system light or dark theme. |  |
-| [Remove Yanosik ads](#remove-yanosik-ads) | Removes banner ads, splash/start adverts and advert-based navigation POIs. |  |
+| [Remove Yanosik ads](#remove-yanosik-ads) | Removes banner ads, splash/start adverts, voice adverts, advert-based navigation POIs and selects the ad-free map style. |  |
 | [Remove Yanosik radio](#remove-yanosik-radio) | Removes the built-in Radio Yanosik from the main screen and the map button. |  |
 | [Unlock Yanosik PRO](#unlock-yanosik-pro) | Reports an active premium entitlement and unlocks the PRO-only settings (view after launch, floating icon). |  |
 
@@ -98,7 +98,7 @@ The Gradle build resolves the `app.morphe.patches` plugin from the Morphe regist
 - Patch an app with [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) or the Morphe CLI:
 
 ```
-java -jar cli.jar patch --patches patches-*.mpp Yanosik_26.9.0.apkm
+java -jar cli.jar patch --patches patches-*.mpp Yanosik_26.10.0.apkm
 ```
 
 > Building requires a GitHub personal access token with `read:packages` for the Morphe registry

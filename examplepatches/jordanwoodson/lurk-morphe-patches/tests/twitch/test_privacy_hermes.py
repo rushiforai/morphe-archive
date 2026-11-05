@@ -20,7 +20,9 @@ from zipfile import is_zipfile, ZipFile
 from hermes_dec.parsers.hbc_bytecode_parser import parse_hbc_bytecode
 from hermes_dec.parsers.hbc_file_parser import HBCReader
 
-STOCK_SHA256 = "059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583"
+# The supported version's stock bundle, as pinned in the patch sources (bin/hermes-pin rewrites it there).
+STOCK_SHA256 = re.search(r'SOURCE_SHA256 = "([0-9a-f]{64})"', (Path(__file__).resolve().parents[2] /
+    "patches/src/main/kotlin/io/github/jordanwoodson/patches/twitch/shared/Hermes.kt").read_text()).group(1)
 
 
 def footer(data):

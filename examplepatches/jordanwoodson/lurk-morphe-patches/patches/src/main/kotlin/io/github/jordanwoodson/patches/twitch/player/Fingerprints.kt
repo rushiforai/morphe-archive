@@ -219,3 +219,16 @@ internal object RNSurfaceMeasureFingerprint : Fingerprint(
     definingClass = "Lcom/twitchrn/player/PlaybackSurface;", name = "measureForContent", returnType = "V",
     parameters = listOf("I", "I", "F", "Lcom/amazonaws/ivs/player/ResizeMode;"),
 )
+
+// The stream settings sheet (the player's gear): its view holder's constructor takes the activity and the
+// inflated sheet and looks every row up, Background audio's text and wrapper and the Pop out switch's among
+// them, in that order.
+internal object StreamSettingsViewFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    returnType = "V", parameters = listOf("L", "Landroid/view/View;"),
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "background_audio_text"),
+        resourceLiteral(ResourceType.ID, "background_audio_wrapper"),
+        resourceLiteral(ResourceType.ID, "pip_wrapper"),
+    ),
+)

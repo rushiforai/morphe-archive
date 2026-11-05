@@ -28,9 +28,7 @@ internal object IsDoNotSellOptOutFingerprint : Fingerprint(
 @Suppress("unused")
 val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
-    description = "Keeps the CNN app opted out of the sale and sharing of your data and of " +
-        "targeted ads (the US Privacy \"do not sell or share\" signal). Other privacy choices " +
-        "are unchanged.",
+    description = "Keeps the app opted out of the sale and sharing of your data.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

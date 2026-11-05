@@ -24,7 +24,7 @@ internal object ShowSplashVideoFingerprint : Fingerprint(
 @Suppress("unused")
 val skipLaunchVideoPatch = bytecodePatch(
     name = "Skip launch video",
-    description = "Opens the app without the branded intro video that plays on launch.",
+    description = "Opens the app without the branded intro video.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

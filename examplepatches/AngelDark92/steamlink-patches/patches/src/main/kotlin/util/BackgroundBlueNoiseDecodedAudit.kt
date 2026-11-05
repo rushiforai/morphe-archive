@@ -19,8 +19,27 @@ object BackgroundBlueNoiseDecodedAudit {
     private data class Background(val suffix: Int, val drawReturn: Long)
     private val backgrounds = mapOf(
         "5001712" to Background(0x9d23d, 0xf1d28L),
+        "5001812" to Background(0x9d182, 0xf1c28L),
+        "5001968" to Background(0x96e5b, 0xed558L),
+        "5002244" to Background(0x976e6, 0xeeb44L),
         "5002363" to Background(0x99013, 0xf1c84L),
+        "5002395" to Background(0x99a51, 0xf2ed4L),
+        // 5002527: opaque base suffix is the guarded 0x9b2c0 block; the base program's
+        // glDrawArrays returns at 0xf6748 (after `bl` at 0xf6744 in SRGBCorrectionPass::RenderSpecific).
+        "5002527" to Background(0x9b2c0, 0xf6748L),
     )
+
+    // Independently verified projection-swapchain format sites per exact base.
+    private fun swapchainFormatOffsets(code: String): IntArray = when (code) {
+        "5001712" -> SWAPCHAIN_FORMAT_OFFSETS_5001712
+        "5001812" -> intArrayOf(0x10ab24, 0x10ab94)
+        "5001968" -> intArrayOf(0x106a94, 0x106b04)
+        "5002244" -> SWAPCHAIN_FORMAT_OFFSETS_5002244
+        "5002363" -> SWAPCHAIN_FORMAT_OFFSETS_5002363
+        "5002395" -> SWAPCHAIN_FORMAT_OFFSETS_5002395
+        "5002527" -> SWAPCHAIN_FORMAT_OFFSETS_5002527
+        else -> error("Missing independently verified format sites for $code")
+    }
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -52,27 +71,33 @@ object BackgroundBlueNoiseDecodedAudit {
     private fun auditBase(library: File, layout: BlueNoiseLayout) {
         val stock = library.readBytes()
         check(stock.size == layout.size && blueNoiseHash(stock) == layout.stockHash) { "Wrong decoded input: $library" }
-        check(findVideoShader(stock) == layout.prefix)
+        // Layout-specific: 5002527 has a 1206-byte prefix, a 411-byte masked suffix, its own
+        // stock source hashes and the inner-fade helper (slots 16/17, vInnerFade left at location 14).
+        val shaderSize = layout.shaderSize
+        val maskedSize = layout.maskedSize
+        val innerFade = shaderSize == VIDEO_SHADER_SIZE_INNER_FADE
+        check(findVideoShader(stock, shaderSize) == layout.prefix)
         check(layout.sites.size == 11)
         val background = backgrounds.getValue(layout.code)
         check(background.drawReturn != layout.drawReturn)
         val suffixes = mapOf(
-            BlueNoiseLayer.FOVEA to stock.copyOfRange(layout.suffix, layout.suffix + 296),
+            BlueNoiseLayer.FOVEA to stock.copyOfRange(layout.suffix, layout.suffix + maskedSize),
             BlueNoiseLayer.BACKGROUND to stock.copyOfRange(background.suffix, background.suffix + 29),
         )
         check(suffixes.getValue(BlueNoiseLayer.BACKGROUND).toString(Charsets.US_ASCII) == "\n\t\t\tcolor.a = 1.0;\n        }\n")
-        val stockHashes = mapOf(BlueNoiseLayer.FOVEA to BLUE_NOISE_STOCK_MASKED_HASH,
-            BlueNoiseLayer.BACKGROUND to BLUE_NOISE_STOCK_BACKGROUND_HASH)
+        val stockHashes = mapOf(BlueNoiseLayer.FOVEA to layout.maskedStockHash,
+            BlueNoiseLayer.BACKGROUND to layout.backgroundStockHash)
         val drawReturns = mapOf(BlueNoiseLayer.FOVEA to layout.drawReturn,
             BlueNoiseLayer.BACKGROUND to background.drawReturn)
-        val originalPrefix = stock.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)
+        val originalPrefix = stock.copyOfRange(layout.prefix, layout.prefix + shaderSize)
         for (layer in BlueNoiseLayer.entries) {
             check(blueNoiseHash(originalPrefix + suffixes.getValue(layer)) == stockHashes.getValue(layer)) {
                 "Stock full-source hash mismatch for $layer on ${layout.code}"
             }
         }
-        val payload = bundledBlueNoiseHelper()
-        check(blueNoiseHash(payload) == BLUE_NOISE_PAYLOAD_SHA256)
+        // Never load the standard helper for every layout: each layout names its own variant.
+        val payload = layout.helper.bundled()
+        check(blueNoiseHash(payload) == layout.helper.sha256) { "Wrong canonical payload for ${layout.helper}" }
         val payloadText = payload.toString(Charsets.ISO_8859_1)
         val offsets = markers.map { marker ->
             val offset = payloadText.indexOf(marker)
@@ -92,10 +117,10 @@ object BackgroundBlueNoiseDecodedAudit {
             check(profile != null || fovealGamma == 1f)
             val bytes = stock.copyOf()
             if (profile != null) paddedVideoShader(profile.first, profile.second,
-                VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF).copyInto(bytes, layout.prefix)
+                VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF, innerFade = innerFade).copyInto(bytes, layout.prefix)
             val adjusted = applyVdSdrFovea(bytes, layout.version, layout.code, FoveaMode.OFF, fovealGamma)
             if (fovealGamma == 1f) check(adjusted.contentEquals(bytes)) { "Neutral gamma changed existing bytes" }
-            else check(bytes.indices.all { bytes[it] == adjusted[it] || it in layout.suffix until layout.suffix + 296 }) {
+            else check(bytes.indices.all { bytes[it] == adjusted[it] || it in layout.suffix until layout.suffix + maskedSize }) {
                 "Foveal gamma changed bytes outside masked suffix"
             }
             return setProjectionSwapchainFormat(adjusted, VideoOutputPrecision.SRGB8_HIGHP, layout.version, layout.code)
@@ -110,7 +135,7 @@ object BackgroundBlueNoiseDecodedAudit {
         }
         fun verifyHelper(helper: ByteArray, scene: ByteArray, selected: Set<BlueNoiseLayer>) {
             check(helper.size == payload.size && isConfiguredBlueNoiseHelper(helper))
-            val prefix = scene.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)
+            val prefix = scene.copyOfRange(layout.prefix, layout.prefix + shaderSize)
             for (layer in BlueNoiseLayer.entries) {
                 val values = if (layer in selected) listOf(blueNoiseHash(prefix + suffix(scene, layer)),
                     stockHashes.getValue(layer), drawReturns.getValue(layer).toString(16).padStart(16, '0'))
@@ -131,10 +156,10 @@ object BackgroundBlueNoiseDecodedAudit {
         }
         fun verify(state: BlueNoiseResult, baseline: ByteArray, selected: Set<BlueNoiseLayer>) {
             val scene = state.scene
-            check(scene.size == stock.size && findVideoShader(scene) == layout.prefix)
-            check(scene[layout.prefix + VIDEO_SHADER_SIZE] == 0.toByte())
-            val prefix = scene.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)
-            check(prefix.contentEquals(baseline.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)))
+            check(scene.size == stock.size && findVideoShader(scene, shaderSize) == layout.prefix)
+            check(scene[layout.prefix + shaderSize] == 0.toByte())
+            val prefix = scene.copyOfRange(layout.prefix, layout.prefix + shaderSize)
+            check(prefix.contentEquals(baseline.copyOfRange(layout.prefix, layout.prefix + shaderSize)))
             for (layer in BlueNoiseLayer.entries) {
                 val suffixOffset = if (layer == BlueNoiseLayer.FOVEA) layout.suffix else background.suffix
                 val suffix = suffix(baseline, layer)
@@ -148,11 +173,7 @@ object BackgroundBlueNoiseDecodedAudit {
                     "Complete $layer shader boundary changed"
                 }
             }
-            val formatOffsets = when (layout.code) {
-                "5001712" -> intArrayOf(0x10a9c4, 0x10aa34)
-                "5002363" -> intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
-                else -> error("Missing independently verified format sites")
-            }
+            val formatOffsets = swapchainFormatOffsets(layout.code)
             formatOffsets.forEach { offset ->
                 val word = (0..3).fold(0) { value, byte -> value or ((scene[offset + byte].toInt() and 255) shl (byte * 8)) }
                 check(word == (0x52800009 or (35907 shl 5))) { "Output is not sRGB8" }
@@ -203,7 +224,7 @@ object BackgroundBlueNoiseDecodedAudit {
         val both = compose(baseline(null), FoveaMode.INPUT_10BIT, FoveaMode.INPUT_8BIT)
         val calibratedBase = baseline(1.20f to 1.45f)
         val calibratedScene = both.scene.copyOf().apply {
-            calibratedBase.copyInto(this, layout.prefix, layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)
+            calibratedBase.copyInto(this, layout.prefix, layout.prefix, layout.prefix + shaderSize)
         }
         for (layer in BlueNoiseLayer.entries) {
             val refreshed = apply(BlueNoiseResult(calibratedScene, both.helper), layer, FoveaMode.INPUT_10BIT)
@@ -270,7 +291,7 @@ object BackgroundBlueNoiseDecodedAudit {
         }, null, "guard@0x${guard.offset.toString(16)}")
         for (site in layout.sites) reject(baseline(null).apply { this[site.offset] = '!'.code.toByte() }, null,
             "site@0x${site.offset.toString(16)}")
-        for (suffix in listOf(layout.suffix to 296, background.suffix to 29)) {
+        for (suffix in listOf(layout.suffix to maskedSize, background.suffix to 29)) {
             for (boundary in listOf(suffix.first - 1, suffix.first + suffix.second)) {
                 reject(baseline(null).apply { this[boundary] = 1 }, null, "suffix boundary@0x${boundary.toString(16)}")
             }
@@ -298,7 +319,11 @@ object BackgroundBlueNoiseDecodedAudit {
             check(unknown.scene.contentEquals(stock) && unknown.helper == null)
         }
         check(library.readBytes().contentEquals(stock)) { "Decoded fixture changed" }
-        check(blueNoiseHash(bundledBlueNoiseHelper()) == BLUE_NOISE_PAYLOAD_SHA256) { "Canonical payload changed" }
+        check(blueNoiseHash(layout.helper.bundled()) == layout.helper.sha256) { "Canonical payload changed" }
+        check(blueNoiseHash(bundledBlueNoiseHelper()) == BLUE_NOISE_PAYLOAD_SHA256 &&
+            blueNoiseHash(bundledBlueNoiseInnerFadeHelper()) == BLUE_NOISE_INNER_FADE_PAYLOAD_SHA256) {
+            "A canonical helper variant changed"
+        }
         println("PASS ${layout.version}/${layout.code}: $cases layer/depth cases across stock + 7 calibrations and gamma 1.02/1.10/1.30, $transitions layer transitions, $gammaTransitions gamma/hash transitions, $rejected atomic rejections; both orders, remove/re-add either layer, full OFF, neutral byte identity, unchanged background, calibration refresh, exact scene/config diffs, complete sources/alpha, distinct draw PCs, sRGB8, source unchanged")
     }
 

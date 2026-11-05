@@ -56,15 +56,17 @@ project. The name "Morphe" is used only to say what the patches are for (see [NO
    APKMirror or Uptodown for it; on APKMirror, take the variant listed below), choose the patches you
    want and patch. Manager installs the result.
 
-Lurk is tested on these APKMirror variants. Other variants of the same version may fail to patch or
+Lurk is tested on these builds. Other variants of the same version may fail to patch or
 to install, so take these:
 
-- **Twitch 31.8.0**: the [arm64-v8a bundle, 480-640dpi, Android 10+](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-android-apk-download/).
-- **Kick 40.33.0**: the arm64-v8a bundle, 480-640dpi, Android 10+, on the
-  [40.33.0 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-33-0-release/)
+- **Twitch 31.9.0**: from [Google Play](https://play.google.com/store/apps/details?id=tv.twitch.android.app) or
+  [Uptodown](https://twitch.en.uptodown.com/android/versions). APKMirror lists 31.9.0 only as a beta so far, which
+  is a different build; don't use it.
+- **Kick 40.34.0**: the arm64-v8a bundle, 480-640dpi, Android 10+, on the
+  [40.34.0 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-34-0-release/)
   (not one of the two universal builds).
-- **Rumble 3.21.0**: the universal bundle (all four architectures, 120-640dpi, Android 8.0+) on the
-  [3.21.0 release page](https://www.apkmirror.com/apk/rumble-inc/rumble/rumble-stream-watch-videos-3-21-0-release/).
+- **Rumble 3.22.0**: from Google Play, since APKMirror still lists only 3.21.0 (tested with Google Play's
+  arm64-v8a split APKs).
 
 > [!IMPORTANT]
 > **Keep your signing key.** Manager signs every app it patches with a key it creates on first use,
@@ -156,14 +158,14 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide Shorts *(off)* | Removes Shorts from the bottom bar, Home, My Feed, channels, categories and search. Shorts links still open. |
 
 <!-- PATCHES_START -->
-> **[v1.15.1](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.15.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;130 patches total
+> **[v1.16.0](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;130 patches total
 <details>
 <summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 40.33.0 |
+| 40.34.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -213,7 +215,7 @@ switch that starts off; the full list says which, and where to turn it on.
 
 **🎯 Supported versions:**
 
-| 3.21.0 |
+| 3.22.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -226,11 +228,11 @@ switch that starts off; the full list says which, and where to turn it on.
 | Change app name | Changes the name shown under Rumble's launcher icon and in Android's settings. | • App name |
 | Chat keywords | Highlights live chat messages that mention you or contain your highlight words with a tinted background, optionally with a vibration, and hides messages with blocked words or from blocked users. Mentions are on by default; the word and user lists start empty. On by default. Turn it off in Lurk settings > Chat. |  |
 | Chat timestamps | Shows the time each live chat message was sent in front of the sender's name. On by default. Turn it off in Lurk settings > Chat. |  |
-| Clean share links | Removes everything after the ? from Rumble links before they are shared, so tracking tags such as e9s (where you found the video) can't go out with them. Rumble 3.21.0 shares clean links; this keeps them clean if the server starts adding tags. |  |
+| Clean share links | Removes everything after the ? from Rumble links before they are shared, so tracking tags such as e9s (where you found the video) can't go out with them. Rumble 3.22.0 shares clean links; this keeps them clean if the server starts adding tags. |  |
 | Clone app | Installs Rumble under another package name, so it sits alongside the original app with its own sign-in and settings. Use "Change app name" to tell the two apart in the launcher. | • Package name |
 | Default playback speed | Starts videos at a chosen playback speed instead of 1x, until you pick another speed in the player. Live streams without rewind still play at 1x. Starts off (1x). Choose a speed in Lurk settings > Playback. |  |
 | Default startup tab | Opens Rumble on Home or My Feed every time, instead of the one you last chose. Starts off. Choose a tab in Lurk settings > Interface. |  |
-| Default video quality | Starts videos at a chosen quality, or the closest one available, instead of Rumble's 480p. Once you pick a quality in the player, Rumble keeps using that one. Starting live streams at it too, and a lower cap on mobile data, are separate settings. Starts off (Rumble's default). Choose a quality in Lurk settings > Playback. | • Quality<br>• Live streams too<br>• On mobile data |
+| Default video quality | Starts videos at a chosen quality, or the closest one available, instead of Rumble's Auto. A quality you pick in the player applies to that video. Starting live streams at it too, and a lower cap on mobile data, are separate settings. Starts off (Rumble's default). Choose a quality in Lurk settings > Playback. | • Quality<br>• Live streams too<br>• On mobile data |
 | Disable analytics | Stops Rumble's own analytics, which it sends whatever the consent setting: clicks, impressions, searches, watch progress and player state, with your user ID, username, advertising ID and AppsFlyer ID, to e.rumble.com and its debug log. Signed-in watch history may stop updating unless watch progress is kept. | • Keep watch progress |
 | Disable autoplay | Stops Rumble from playing the next video when one ends, and from playing muted previews in feeds, including the featured video on Home. Only the defaults change: Settings > Playback can turn either back on. Starts off. Turn them on in Lurk settings > Playback. | • Next video<br>• Feed previews |
 | Disable tracking SDKs | Switches Firebase Analytics and Firebase Performance off for good, so recorded consent can't turn them on, and stops the Facebook SDK from initializing itself fully, logging app events or reading the advertising ID by default. Crashlytics and AppsFlyer have no such switch and still follow consent; Block cookie notice keeps them off. Changes the APK when patching, so it has no switch in Lurk settings. |  |
@@ -267,7 +269,7 @@ switch that starts off; the full list says which, and where to turn it on.
 
 **🎯 Supported versions:**
 
-| 31.8.0 |
+| 31.9.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -314,14 +316,14 @@ switch that starts off; the full list says which, and where to turn it on.
 | Navigation bar position | Adds a choice that moves Twitch's bottom navigation bar to the top of the screen and/or hides its labels, leaving only the icons. Twitch's own layout stays until another choice is made in Lurk settings. |  |
 | Normal latency | Adds a setting that turns off the player's low-latency mode for live streams: a few seconds more delay to the broadcaster, for fewer rebuffers on a weak connection. Off until turned on in Lurk settings. |  |
 | Player gestures | Sets the skip interval of the video (VOD) rewind and forward buttons and the media notification, and adds brightness (left) and volume (right) swipes on the video in landscape. Twitch's -10/+30 seconds stay until you choose another interval in Lurk settings; swipes start off. |  |
-| Playlist proxy | Sends live stream playlist requests to a proxy server you set in this patch's options, for example one that returns playlists without stitched ads. The proxy sees which channel you watch and when, and receives each request in full, including your signed playback token, which identifies your account. The token is in the request's address (its query, or with {url} the whole Twitch URL), so the proxy's access logs can keep it. The proxy decides what the player plays and can add segments of its own: only use a proxy you trust. An http:// proxy gets an exception from Twitch's HTTPS-only rule for its host alone, and the token then travels unencrypted. Does nothing while the proxy URL is empty; once it's set, the patch's switch starts on (Lurk settings > Playback). Videos and clips are not proxied. Avoid stitched ads leaves proxied streams alone: the proxy decides what their playlists hold. | • Proxy URL |
+| Playlist proxy | Sends live stream playlist requests to a proxy server you set in this patch's options, for example one that returns playlists without stitched ads. The proxy sees which channel you watch and when. With {channel}, only the lowercase channel name is forwarded; the original signed query is omitted. Without {channel}, the proxy gets the full request, including your signed playback token, which identifies your account. The token is in the request's address (its query, or with {url} the whole Twitch URL), so the proxy's access logs can keep it. The proxy decides what the player plays and can add segments of its own: only use a proxy you trust. An http:// proxy gets an exception from Twitch's HTTPS-only rule for its host alone, and the request travels unencrypted. Does nothing while the proxy URL is empty; once it's set, the patch's switch starts on (Lurk settings > Playback). Videos and clips are not proxied. Avoid stitched ads leaves proxied streams alone: the proxy decides what their playlists hold. | • Proxy URL |
 | Refresh stream | Long-press the player's settings gear, or the middle of the video, to reload a stuck stream through Twitch's own Retry: a new access token and playlist for live streams, the same position for videos. Covers Twitch's native players. |  |
 | Remove tracking permissions | Removes advertising ID and Google Play install-referrer permissions. Other identifiers and analytics require separate controls. |  |
 | Show deleted messages | Keeps the text of chat messages that moderators delete, or remove with a timeout or ban, struck through and dimmed instead of Twitch's "message deleted" placeholder. A second switch keeps the messages when a moderator clears the whole chat. |  |
 | Show video stats | Adds the video stats button Twitch shows only to its staff to the native player: latency to the broadcaster, bitrate, buffer, dropped frames, codecs and server, and for live streams the stream's uptime, from the stream age Twitch's playlist already carries. Everything shown is local to the player. |  |
-| Sleep timer | Pauses playback a chosen time after it last started or resumed, through Twitch's own pause for native, portal and React Native players, and says so in a short notice. Choose the time in Lurk settings; it is off until then. |  |
+| Sleep timer | Pauses playback a chosen time after it last started or resumed, through Twitch's own pause for native, portal and React Native players, and says so in a short notice. Choose the time in Lurk settings or in the player's settings sheet (the gear), which gets a Sleep timer row under Background audio; it is off until then. |  |
 | Tablet layout | Adds a switch that makes Twitch treat the phone as a tablet: Home and the player rotate, the player shows chat beside the video in landscape, and a navigation rail on the left replaces the bottom bar in landscape (and in portrait too with a second switch). Off until turned on in Lurk settings; applies after a restart. |  |
-| Third-party badges | Adds switches that show FrankerFaceZ and Chatterino badges and pronouns.alejo.io pronouns next to chatters' names in native and React Native chat. Each switch is off until turned on in Lurk settings. The badge switches download that service's public list of all badge holders (api.frankerfacez.com, api.chatterino.com) about once an hour and check it on the phone, then load each badge's image from the https address the list names (FrankerFaceZ: cdn.frankerfacez.com; Chatterino: currently fourtf.com, but any host its list gives). The pronouns switch sends the username of each chatter whose message you see to pronouns.alejo.io. 7TV badges are not included. |  |
+| Third-party badges | Adds switches that show FrankerFaceZ, Chatterino and 7TV badges and pronouns.alejo.io pronouns next to chatters' names in native and React Native chat. Each switch is off until turned on in Lurk settings. The FrankerFaceZ and Chatterino switches download that service's public list of all badge holders (api.frankerfacez.com, api.chatterino.com) about once an hour and check it on the phone, then load each badge's image from the https address the list names (FrankerFaceZ: cdn.frankerfacez.com; Chatterino: currently fourtf.com, but any host its list gives). The 7TV switch keeps a connection to 7TV's event service (events.7tv.io) while a channel's chat is open, which tells 7TV the channel, as the 7TV emotes switch does, and nothing about you or the chatters you see; 7TV sends the badges of that channel's chatters and their images come from cdn.7tv.app. The pronouns switch sends the username of each chatter whose message you see to pronouns.alejo.io. |  |
 | Third-party emotes | Adds switches that show 7TV, BetterTTV and FrankerFaceZ emotes in chat, Twitch's chat history and VOD chat replay. When on, each sends the ID of the channel you watch to that service (7tv.io, api.betterttv.net, api.frankerfacez.com) for its emote lists and loads the emote images from its CDN. "Emotes in the picker" also lists them in the emote picker, one section per service, and in autocomplete after ':', from the same lists; that part was checked with Twitch's own picker and autocomplete code on Android's runtime, not in the app, which needs an account to open the picker. Starts off. Turn it on in Lurk settings > Chat. |  |
 | Use native player | Always opens live channels in Twitch's native player, never the React Native "Ultralight" player a server experiment can switch some users to. Most Lurk playback, chat and ad patches hook the native player. |  |
 | VOD chapters | Adds a Chapters button to the native video (VOD) player that lists the stream's game and category changes and jumps to one through Twitch's own seek. The list comes from Twitch's public data: one request to gql.twitch.tv per video the native player loads, feed previews included, with the app's client ID and without your account. On by default; the switch is in Lurk settings > Playback. |  |

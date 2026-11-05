@@ -29,8 +29,7 @@ private const val SIFT = "Lcom/xfinity/dh/analytics/sift/AnalyticsProcessor;"
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Comcast's own event tracking, Datadog, Medallia surveys, Branch, and Firebase " +
-        "Analytics. Sign-in, bill pay, and WiFi management are left alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -199,7 +199,7 @@ object NuvioLauncherChannels {
                                             val results = fetch.invoke(repository, *args, screen) as Flow<Any>
                                             withTimeout(30_000) {
                                                 results.collect { result ->
-                                                    if (result.javaClass.name == "b9.q") {
+                                                    if (result.javaClass.name == "b9.r") {
                                                         val row = field(result, "a")!!
                                                         val tiles = list(row, "getItems").map { mediaTile(it) }
                                                         lock.withLock {

@@ -23,7 +23,21 @@ function ngText_(value){return String(value).normalize('NFKC').replace(/\s+/g,' 
 /** Private server configuration; acknowledge ignored reports without persisting them. */
 function ngIgnoredReporters_(){return String(PropertiesService.getScriptProperties().getProperty('IGNORED_REPORTERS')||'').split(/[\s,]+/).filter(value=>/^[a-f0-9]{64}$/.test(value));}
 function ngReporterIgnored_(reporter){return ngIgnoredReporters_().includes(reporter);}
-function ngReviewedCacheKey_(){const ignored=Array.from(new Set(ngIgnoredReporters_())).sort();return 'reviewed-feed-v9'+(ignored.length?':'+ngHash_(JSON.stringify(ignored)):'');}
+function ngReviewedCacheKey_(){const ignored=Array.from(new Set(ngIgnoredReporters_())).sort();return 'reviewed-feed-v10'+(ignored.length?':'+ngHash_(JSON.stringify(ignored)):'');}
+/** Public pseudonym is separate from the private administrative reporter key. */
+function ngPublicReporter_(reporter){return ngHash_('haiagaru-public-reporter-v1:'+reporter);}
+/** Called only under the script lock. Retain a legacy reporter when binding a device for the first time. */
+function ngDeviceReporter_(body,props,book){
+ const legacy=ngHash_(props.getProperty('REPORTER_PEPPER')+':'+body.device);
+ if(body.deviceKey===undefined||body.deviceKey==='')return legacy;
+ if(typeof body.deviceKey!=='string'||!/^[a-f0-9]{64}$/.test(body.deviceKey))throw Error('Invalid device key');
+ const key=ngHash_(props.getProperty('REPORTER_PEPPER')+':device-v1:'+body.deviceKey);
+ let sheet=book.getSheetByName('ReporterDevices');
+ if(!sheet){sheet=book.insertSheet('ReporterDevices');sheet.getRange(1,1,1,2).setValues([['deviceKeyHash','reporter']]);sheet.setFrozenRows(1);}
+ const rows=ngRows_(sheet),existing=rows.find(row=>row[0]===key);
+ if(existing){if(!/^[a-f0-9]{64}$/.test(String(existing[1])))throw Error('Invalid reporter binding');return String(existing[1]);}
+ sheet.getRange(sheet.getLastRow()+1,1,1,2).setValues([[key,legacy]]);SpreadsheetApp.flush();return legacy;
+}
 function ngValidate_(r){
   if(!r||typeof r.board!=='string'||!/^([a-z0-9.-]+)(:\d+)?(\/[A-Za-z0-9_.-]+)+$/.test(r.board)||r.board.length>300)throw Error('Invalid board');
   if(!['id','wacchoi','keyword'].includes(r.kind)||typeof r.value!=='string'||r.value.length>2000||typeof r.period!=='string')throw Error('Invalid condition');
@@ -95,7 +109,7 @@ function doGet(e){try{
   const json=JSON.stringify(response);if(json.length<20000)cache.put('feed2:'+response.revision+':'+since+':'+offset,json,900);return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }catch(err){return ngJson_({ok:false,error:String(err.message||err)});}}
 function doPost(e){
-  try{const raw=e&&e.postData?e.postData.contents:'';if(raw.length<=65536&&Utilities.newBlob(raw).getBytes().length<=65536){const personal=JSON.parse(raw);if(personal.version===2)return ngReceivePersonal_(personal);}}catch(error){return ngJson_({ok:false,error:String(error.message||error)});}
+  try{const raw=e&&e.postData?e.postData.contents:'';if(raw.length<=65536&&Utilities.newBlob(raw).getBytes().length<=65536){const personal=JSON.parse(raw);if(personal.version===2)return personal.action==='identity'?ngBindReporterDevice_(personal):ngReceivePersonal_(personal);}}catch(error){return ngJson_({ok:false,error:String(error.message||error)});}
   const lock=LockService.getScriptLock();try{
   const raw=e&&e.postData?e.postData.contents:'';if(raw.length>65536||Utilities.newBlob(raw).getBytes().length>65536)throw Error('Request too large');const body=JSON.parse(raw);
   if(body.version!==1||typeof body.device!=='string'||!/^[a-f0-9]{64}$/.test(body.device)||!Array.isArray(body.reports)||body.reports.length===0||body.reports.length>NG_CONFIG.maxBatch)throw Error('Invalid batch');

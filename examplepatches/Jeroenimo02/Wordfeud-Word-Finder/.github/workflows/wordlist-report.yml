@@ -97,15 +97,27 @@ jobs:
           git push origin "wordlist/$CODE"
 
       - name: Pull request
-        if: steps.add.outputs.added != ''
+        # Also when nothing new was added: a pull request that failed to open earlier (e.g. a GitHub 5xx) is then
+        # opened with the next report. Retries transient GitHub errors.
+        if: steps.lang.outputs.code != ''
         env:
           GH_TOKEN: ${{ github.token }}
           CODE: ${{ steps.lang.outputs.code }}
         run: |
           B="wordlist/$CODE"
-          open=$(gh pr list --head "$B" --base "$BASE" --state open --json number --jq '.[0].number')
-          if [ -z "$open" ]; then
-            gh pr create --head "$B" --base "$BASE" \
-              --title "Woordenlijst $CODE: gemelde woorden verwijderen" \
-              --body "Woorden die de Wordfeud-server weigerde, automatisch gemeld door de patch. Elke melding voegt een commit toe aan deze branch; zie \`wordlists/$CODE/remove.txt\`. Controleer de woorden en merge wanneer je wilt: de merge maakt een nieuwe release met de bijgewerkte lijst."
-          fi
+          git ls-remote --exit-code --heads origin "$B" >/dev/null || { echo "no branch $B"; exit 0; }
+          git fetch -q origin "$B" "$BASE"
+          if [ "$(git rev-list --count "origin/$BASE..origin/$B")" = "0" ]; then echo "$B has nothing new"; exit 0; fi
+          for attempt in 1 2 3 4; do
+            if open=$(gh pr list --head "$B" --base "$BASE" --state open --json number --jq '.[0].number'); then
+              if [ -n "$open" ]; then echo "pull request #$open is open"; exit 0; fi
+              if gh pr create --head "$B" --base "$BASE" \
+                  --title "Woordenlijst $CODE: gemelde woorden verwijderen" \
+                  --body "Woorden die de Wordfeud-server weigerde, automatisch gemeld door de patch. Elke melding voegt een commit toe aan deze branch; zie \`wordlists/$CODE/remove.txt\`. Controleer de woorden en merge wanneer je wilt: de merge maakt een nieuwe release met de bijgewerkte lijst."; then
+                exit 0
+              fi
+            fi
+            echo "GitHub error, attempt $attempt; retrying"
+            sleep $((attempt * 20))
+          done
+          exit 1

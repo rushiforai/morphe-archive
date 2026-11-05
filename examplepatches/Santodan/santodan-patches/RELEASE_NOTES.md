@@ -1,4 +1,9 @@
-## Pending changes since v0.16.1
+## Pending changes since v0.16.2
+
+- **pillo:** Fix the 0.6.27 premium patch's subscription callback resetting notification settings, including **mark as taken**, after a billing refresh. Preserve the user's enabled or disabled choice.
+- **nuviotv:** Update all sixteen patches for **1.1.0-beta.10** (1073), including the new native stream-search dispatcher, Hilt providers, player fields, sync banner, date controls, icons and installer action.
+
+## Released in v0.16.2
 
 - **nuviotv:** Update all sixteen patches for **1.1.0-beta.9** (1072), including the renamed tracking, player, settings, card, launcher and updater contracts. Preserve native playback and existing saved patch settings.
 

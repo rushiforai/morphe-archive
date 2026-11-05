@@ -76,6 +76,25 @@ val changeChMatePackageNamePatch = resourcePatch(
     dependsOn(bytecodePatch {
         execute {
             val newPackageName = packageNameOption.value!!
+            // Native backup uses an exact preference-store allowlist. Its
+            // package-derived store name is not an exact package literal.
+            val backupOwner = when (packageMetadata.versionName) {
+                "0.8.10.191 dev" -> "Lo/showFullscreenAd\$RemoteActionCompatParcelizer;"
+                "0.8.10.226 dev" -> "Lo/CloseGuard\$read;"
+                "0.8.10.242 dev" -> "Lo/setBackupListener;"
+                else -> null
+            }
+            backupOwner?.let { owner ->
+                val initializer = mutableClassDefBy(owner).methods.single { it.name == "<clinit>" }
+                val sites = initializer.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
+                    if (instruction.packageNameLiteralOrNull() == ORIGINAL_PACKAGE_NAME + "_preferences")
+                        index to (instruction as OneRegisterInstruction).registerA else null
+                }
+                check(sites.size == 1) { "Native backup preference store changed" }
+                sites.forEach { (index, register) ->
+                    initializer.replaceInstruction(index, "const-string v$register, \"${newPackageName}_preferences\"")
+                }
+            }
             patchPackageNameDerivedObfuscationInputs()
             patchSelfNavigationIntents()
             boundClassForEach("ChangeChMatePackageNamePatch:1") { classDef ->
@@ -195,6 +214,71 @@ val changeChMatePackageNamePatch = resourcePatch(
                     }
                 }
             document.documentElement.setAttribute("package", newPackageName)
+        }
+    }
+}
+
+@Suppress("unused")
+val shizukuDataMigrationPatch = resourcePatch(
+    name = "Migrate ChMate data with Shizuku",
+    description = "Shizukuを使い、移行元ChMateの共有データフォルダを個別／全選択して上書き移行します。任意パッチ・Android 7以降・Shizuku v13以降が必要です。アプリ内部の設定領域は対象外です。",
+    default = false,
+) {
+    compatibleWith(chMateCompatibility)
+    dependsOn(changeChMatePackageNamePatch)
+    dependsOn(bytecodePatch {
+        extendWith("extensions/chmate-shizuku.mpe")
+    })
+
+    finalize {
+        document("AndroidManifest.xml").use { document ->
+            val targetPackageName = document.documentElement.getAttribute("package")
+            (document.getElementsByTagName("uses-sdk").item(0) as? Element)
+                ?.setAttribute("android:minSdkVersion", "24")
+
+            document.documentElement.appendChild(
+                document.createElement("uses-permission").apply {
+                    setAttributeNS(
+                        ANDROID_NAMESPACE,
+                        "android:name",
+                        "moe.shizuku.manager.permission.API_V23",
+                    )
+                },
+            )
+
+            val application = document.getElementsByTagName("application").item(0) as Element
+            application.appendChild(
+                document.createElement("meta-data").apply {
+                    setAttributeNS(
+                        ANDROID_NAMESPACE,
+                        "android:name",
+                        "moe.shizuku.client.V3_SUPPORT",
+                    )
+                    setAttributeNS(ANDROID_NAMESPACE, "android:value", "true")
+                },
+            )
+            application.appendChild(
+                document.createElement("provider").apply {
+                    setAttributeNS(
+                        ANDROID_NAMESPACE,
+                        "android:name",
+                        "rikka.shizuku.ShizukuProvider",
+                    )
+                    setAttributeNS(
+                        ANDROID_NAMESPACE,
+                        "android:authorities",
+                        "$targetPackageName.shizuku",
+                    )
+                    setAttributeNS(ANDROID_NAMESPACE, "android:multiprocess", "false")
+                    setAttributeNS(ANDROID_NAMESPACE, "android:enabled", "true")
+                    setAttributeNS(ANDROID_NAMESPACE, "android:exported", "true")
+                    setAttributeNS(
+                        ANDROID_NAMESPACE,
+                        "android:permission",
+                        "android.permission.INTERACT_ACROSS_USERS_FULL",
+                    )
+                },
+            )
         }
     }
 }

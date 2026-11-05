@@ -25,6 +25,9 @@ private val CONTROLLER_EXTRAPOLATION_BUILDS = listOf(
     ControllerExtrapolationBuild("2.0.22", 5002244, measured = false),
     ControllerExtrapolationBuild("2.0.23", 5002363, measured = true),
     ControllerExtrapolationBuild("2.0.24", 5002395, measured = false),
+    // 5002527 keeps the same pose action name ("pamir-stream-pose") and an identical
+    // GetControllerState/SendPoses flow, so the base-independent layer carries over unchanged.
+    ControllerExtrapolationBuild("2.0.24", 5002527, measured = false),
 )
 
 internal fun isControllerExtrapolationBuild(version: String, versionCode: String): Boolean =
@@ -65,6 +68,7 @@ val controllerPoseExtrapolationPatch = rawResourcePatch(
 
     execute {
         // Morphe dependencies do not re-check compatibility before execution.
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE) return@execute
         if (!isControllerExtrapolationBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
             return@execute
         }

@@ -631,7 +631,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 
 > **[v1.6.4](https://github.com/pengusto/penguin-patches/releases/tag/v1.6.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details>
-<summary>📦 Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Messages/02f511b292cc9790d0189a7e3d96ce3d71493890/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Messages app icon" width="24" height="24"> Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -648,7 +648,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Fossify Clock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Clock/0511f508368ada82cdb587b0bf8df9d56cf9e6ad/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Clock app icon" width="24" height="24"> Fossify Clock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -663,7 +663,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Infinity+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="24" height="24"> Infinity+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -678,7 +678,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Finamp&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary><img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -699,7 +699,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Read You&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/d2b979ccad9a3e54b9499929a9dc2824578b0fd9/fastlane/metadata/android/en-US/images/icon.png" alt="Read You app icon" width="24" height="24"> Read You&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -714,7 +714,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Fossify File Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/File-Manager/c95de62b90c9f42601b88eca4f795338da3b161c/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify File Manager app icon" width="24" height="24"> Fossify File Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -729,7 +729,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Komikku&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/komikku-app/komikku/383ffaa81667f45fc6c2975edb1760a7606531d3/.github/readme-images/app-icon.png" alt="Komikku app icon" width="24" height="24"> Komikku&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -744,7 +744,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Tasks.org&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/tasks/tasks/d7c0afdb94f913943fd54833d3e108871e78bc36/fastlane/metadata/android/en-US/images/icon.png" alt="Tasks.org app icon" width="24" height="24"> Tasks.org&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -759,7 +759,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Fossify Music Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Music-Player/e76d0f222eaba2cfd4501ccc3b6a8d2e9f29b0c3/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Music Player app icon" width="24" height="24"> Fossify Music Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -774,7 +774,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Mihon&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/mihonapp/mihon/ede052af170e2ef2949dac2acd91adfb58043a96/fastlane/metadata/android/en-US/images/icon.png" alt="Mihon app icon" width="24" height="24"> Mihon&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -789,7 +789,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Fossify Calendar&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Calendar/a0d428461b5caac11ad570f77a4134b912093205/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Calendar app icon" width="24" height="24"> Fossify Calendar&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -805,7 +805,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Kvaesitso&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/MM2-0/Kvaesitso/c4805f3f18d5bcf071c5287f81466efd79169b20/fastlane/metadata/android/en-US/images/icon.png" alt="Kvaesitso app icon" width="24" height="24"> Kvaesitso&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -820,7 +820,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Fossify Contacts&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Contacts/6938eccfd1a10f924a6ced13695c73bd0cd84328/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Contacts app icon" width="24" height="24"> Fossify Contacts&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -835,7 +835,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary>📦 Feeder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/spacecowboy/Feeder/846b19d39b932b1a9864b4317365034f36fc4856/fastlane/metadata/android/en-US/images/icon.png" alt="Feeder app icon" width="24" height="24"> Feeder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**

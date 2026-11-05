@@ -57,6 +57,12 @@ object WazeConstants {
             // moved (hide recent destinations, skip sign-in, unlock driver moods, disable Play Store
             // updates) were re-anchored and then checked in the patched dex.
             AppTarget(version = "5.26.90.901"),
+            // Eighth target (versionCode 1030748). Checked the same way as the others: all 33 rows
+            // apply with zero failures, the eleven bytecode assertions that cover the sign-in,
+            // recents and version anchors pass, the speedometer cluster is still
+            // main_screen.g.b.e, and 80 of the 81 config keys survive (the AAP update-rate switch
+            // is dropped by Waze and skipped by the override emitter).
+            AppTarget(version = "5.27.0.1"),
             // Experimental: attempt on any version / any architecture.
             AppTarget(version = null, isExperimental = true),
         ),

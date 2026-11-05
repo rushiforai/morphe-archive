@@ -69,9 +69,7 @@ private const val SKIP_BUTTON = "$AI_FILTER->skipTargetAskTargetButton(" +
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off Ask Target, Target's AI shopping agent and AI mode in search, the AI gift " +
-        "finder, the AI shopping list scanner, and AI replies in support chat, which then " +
-        "goes to the regular chat. AI review summaries still show. Experimental.",
+    description = "Turns off Ask Target, AI mode in search, and Target's other AI shopping tools.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

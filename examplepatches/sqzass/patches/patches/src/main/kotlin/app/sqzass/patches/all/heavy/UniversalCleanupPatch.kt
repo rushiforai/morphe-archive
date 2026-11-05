@@ -38,9 +38,6 @@ private val stripLocalesOption = booleanOption(
     description = "Delete locale resource directories not on the keep list.",
 )
 
-// ponytail: unused-component detection via dex reference scan, ABI/density
-// splits, and large-asset removal are not covered — no patch API lists dex
-// references or rewrites binary resource tables.
 @Suppress("unused")
 val universalCleanupPatch = resourcePatch(
     name = "Universal cleanup",

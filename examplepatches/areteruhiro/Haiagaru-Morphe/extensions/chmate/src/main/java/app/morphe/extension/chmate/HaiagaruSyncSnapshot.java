@@ -52,7 +52,7 @@ final class HaiagaruSyncSnapshot {
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String[] EXTRA_SETTINGS = {"haiagaru_thread_commands", "haiagaru_replace_str",
             "haiagaru.programmable-ng", "haiagaru_eddi_search", "haiagaru_upload_history",LocalAutoBackup.PREFS,
-            BackupOptionSettings.LOCAL,BackupOptionSettings.MEGA};
+            BackupOptionSettings.LOCAL,BackupOptionSettings.MEGA,SharedNgReporterBlocks.PREFS};
 
     private HaiagaruSyncSnapshot() {}
 
@@ -137,6 +137,7 @@ final class HaiagaruSyncSnapshot {
         snapshot.put("sourcePackage", context.getPackageName());
         snapshot.put("categories", categories & ALL);
         if ((categories & BOOKMARKS) != 0) {
+            snapshot.put("boards", captureTable(context, "boards"));
             snapshot.put("bookmarks", captureBookmarks(context));
         }
         if ((categories & NG) != 0) {
@@ -198,6 +199,10 @@ final class HaiagaruSyncSnapshot {
 
     /** A recovery copy is created before any live data is changed. */
     static void restore(Context context, JSONObject snapshot, int categories) throws Exception {
+        restore(context, snapshot, categories, true);
+    }
+
+    static void restore(Context context, JSONObject snapshot, int categories, boolean reconcileDat) throws Exception {
         validate(snapshot.toString().getBytes(StandardCharsets.UTF_8));
         int available = snapshot.optInt("categories", 0);
         int selected = categories & available & ALL;
@@ -209,6 +214,7 @@ final class HaiagaruSyncSnapshot {
         writeAtomic(recovery, capture(context, selected));
 
         if ((selected & BOOKMARKS) != 0) {
+            mergeBoards(context, snapshot.optJSONArray("boards"), false);
             mergeBookmarks(context, snapshot.optJSONArray("bookmarks"), false);
         }
         if ((selected & NG) != 0) {
@@ -229,6 +235,7 @@ final class HaiagaruSyncSnapshot {
         }
         if ((selected & COOKIES) != 0) restoreCookies(context, snapshot.getJSONObject("cookies"), false);
         if ((selected & SETTINGS) != 0) ThreadWatchBackup.restore(context,snapshot.optJSONObject(ThreadWatchBackup.KEY),false);
+        if (reconcileDat && (selected & BOOKMARKS) != 0) RestoredThreadCache.reconcile(context,snapshot.optJSONArray("bookmarks"));
     }
 
     /**
@@ -238,9 +245,16 @@ final class HaiagaruSyncSnapshot {
      * preference, post, or memo.
      */
     static void mergeMissing(Context context, JSONObject snapshot, int categories) throws Exception {
+        mergeMissing(context, snapshot, categories, true);
+    }
+
+    static void mergeMissing(Context context, JSONObject snapshot, int categories, boolean reconcileDat) throws Exception {
         validate(snapshot.toString().getBytes(StandardCharsets.UTF_8));
         int selected = categories & snapshot.optInt("categories", 0) & ALL;
-        if ((selected & BOOKMARKS) != 0) mergeBookmarks(context, snapshot.optJSONArray("bookmarks"), true);
+        if ((selected & BOOKMARKS) != 0) {
+            mergeBoards(context, snapshot.optJSONArray("boards"), true);
+            mergeBookmarks(context, snapshot.optJSONArray("bookmarks"), true);
+        }
         if ((selected & NG) != 0) restoreNg(context, snapshot.optJSONObject("ng"));
         if ((selected & SETTINGS) != 0) mergeMissingSettings(context,
                 snapshot.optJSONObject("settings"), snapshot.optString("sourcePackage", ""));
@@ -255,6 +269,7 @@ final class HaiagaruSyncSnapshot {
         }
         if ((selected & COOKIES) != 0) restoreCookies(context, snapshot.getJSONObject("cookies"), true);
         if ((selected & SETTINGS) != 0) ThreadWatchBackup.restore(context,snapshot.optJSONObject(ThreadWatchBackup.KEY),true);
+        if (reconcileDat && (selected & BOOKMARKS) != 0) RestoredThreadCache.reconcile(context,snapshot.optJSONArray("bookmarks"));
     }
 
     private static boolean cookieStoreName(String name) {
@@ -307,12 +322,16 @@ final class HaiagaruSyncSnapshot {
     }
 
     private static JSONArray captureBookmarks(Context context) throws Exception {
+        return captureTable(context, "bookmarks");
+    }
+
+    private static JSONArray captureTable(Context context, String table) throws Exception {
         JSONArray rows = new JSONArray();
         File file = context.getDatabasePath("roidon.sqlite");
         if (!file.isFile()) return rows;
         SQLiteDatabase db = SQLiteDatabase.openDatabase(
                 file.getAbsolutePath(), null, SQLiteDatabase.OPEN_READONLY);
-        try (Cursor cursor = db.query("bookmarks", null, null, null, null, null, null)) {
+        try (Cursor cursor = db.query(table, null, null, null, null, null, null)) {
             while (cursor.moveToNext()) {
                 if (rows.length() >= MAX_BOOKMARKS) {
                     throw new IOException("履歴が同期上限を超えています");
@@ -345,6 +364,47 @@ final class HaiagaruSyncSnapshot {
             db.close();
         }
         return rows;
+    }
+
+    private static void mergeBoards(Context context, JSONArray rows, boolean missingOnly) throws Exception {
+        if (rows == null) return; // Old backups contain no board records.
+        if (rows.length() > MAX_BOOKMARKS) throw new IOException("板情報が同期上限を超えています");
+        File file = context.getDatabasePath("roidon.sqlite");
+        if (!file.isFile()) throw new IOException("ChMateの板DBが見つかりません");
+        try (SQLiteDatabase db = SQLiteDatabase.openDatabase(file.getPath(), null, SQLiteDatabase.OPEN_READWRITE)) {
+            Set<String> columns = new HashSet<>();
+            try (Cursor cursor = db.rawQuery("PRAGMA table_info(boards)", null)) {
+                while (cursor.moveToNext()) columns.add(cursor.getString(1));
+            }
+            db.beginTransaction();
+            try {
+                for (int i = 0; i < rows.length(); i++) {
+                    JSONObject row = rows.getJSONObject(i);
+                    String name = row.optString("name", "");
+                    if (name.isEmpty()) continue;
+                    ContentValues values = new ContentValues();
+                    for (String column : columns) {
+                        if ("_id".equals(column) || !row.has(column) || row.isNull(column)) continue;
+                        Object value = row.get(column);
+                        if (value instanceof String) values.put(column, (String)value);
+                        else if (value instanceof Number) values.put(column, ((Number)value).longValue());
+                    }
+                    try (Cursor existing = db.query("boards", new String[]{"name"}, "name=?", new String[]{name}, null, null, null)) {
+                        if (existing.moveToFirst()) {
+                            if (!missingOnly) {
+                                ContentValues favorites = new ContentValues();
+                                for (String key : new String[]{"flag", "board_order"})
+                                    if (values.containsKey(key)) favorites.put(key, values.getAsLong(key));
+                                if (favorites.size() > 0) db.update("boards", favorites, "name=?", new String[]{name});
+                            }
+                        } else if (db.insert("boards", null, values) == -1) {
+                            throw new IOException("板情報を復元できませんでした");
+                        }
+                    }
+                }
+                db.setTransactionSuccessful();
+            } finally { db.endTransaction(); }
+        }
     }
 
     private static void mergeBookmarks(Context context, JSONArray rows, boolean missingOnly) throws Exception {

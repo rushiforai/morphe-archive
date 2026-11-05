@@ -27,9 +27,7 @@ private const val RESULT = "Lcom/apple/android/tv/tvappservices/bindings/BridgeM
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Apple's usage metrics in the Apple TV app: the pages you view, what you " +
-        "tap, play, and search for, and what is shown to you. Crash reporting, sign-in, and " +
-        "playback are left alone. Experimental.",
+    description = "Stops Apple's usage metrics, such as the pages you view and what you play.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

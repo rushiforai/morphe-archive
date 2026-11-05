@@ -22,15 +22,19 @@ final class ThreadWatchBackup {
                 JSONObject item=new JSONObject(prefs.getString(url,"{}"));
                 threads.put(new JSONObject().put("url",target.url).put("count",item.optInt("count",-1))
                         .put("repliesOnly",item.optBoolean("repliesOnly",false)).put("stopAfterReply",item.optBoolean("stopAfterReply",false))
-                        .put("paused",item.optBoolean("paused",false)).put("own",item.optJSONArray("own")==null?new JSONArray():item.getJSONArray("own")));
+                        .put("paused",item.optBoolean("paused",false)).put("own",item.optJSONArray("own")==null?new JSONArray():item.getJSONArray("own"))
+                        .put("durationMinutes",item.optInt("durationMinutes",0)).put("expiresAt",item.optLong("expiresAt",0))
+                        .put("pauseReason",item.optString("pauseReason")).put("title",item.optString("title")));
             }
-            JSONObject data=new JSONObject().put("intervalMinutes",ThreadWatch.interval(context)).put("threads",threads);
+            JSONObject data=new JSONObject().put("intervalMinutes",ThreadWatch.interval(context)).put("threads",threads)
+                .put("durationMinutes",ThreadWatchManagement.defaultDuration(context));
             validate(data);return data;
         }
     }
     static void validate(JSONObject data) throws Exception {
         if(data==null)throw new IOException("通知設定の形式が不正です");
         integer(data,"intervalMinutes",1,10080);
+        if(data.has("durationMinutes"))integer(data,"durationMinutes",0,43200);
         JSONArray threads=data.optJSONArray("threads");
         if(threads==null||threads.length()>100)throw new IOException("通知登録は100件までです");
         Set<String> urls=new HashSet<>();
@@ -42,6 +46,12 @@ final class ThreadWatchBackup {
                     ?ThreadWatchRules.target((String)value):null;
             if(target==null||!urls.add(target.url))throw new IOException("通知登録のURLが不正または重複しています");
             integer(item,"count",-1,9_999_999);
+            if(item.has("durationMinutes"))integer(item,"durationMinutes",0,43200);
+            if(item.has("expiresAt")){
+                Object deadline=item.opt("expiresAt");
+                if(!(deadline instanceof Integer)&&!(deadline instanceof Long)||((Number)deadline).longValue()<0)throw new IOException("通知期限が不正です");
+            }
+            for(String key:new String[]{"title","pauseReason"})if(item.has(key)&&(!(item.opt(key) instanceof String)||item.getString(key).length()>4096))throw new IOException("通知登録の表示情報が不正です");
             for(String flag:new String[]{"repliesOnly","stopAfterReply","paused"})if(item.has(flag)&&!(item.opt(flag) instanceof Boolean))throw new IOException("通知設定のスイッチが不正です");
             if(item.has("own")){
                 JSONArray own=item.optJSONArray("own");if(own==null||own.length()>1000)throw new IOException("自分の書き込み番号の形式が不正です");
@@ -79,13 +89,17 @@ final class ThreadWatchBackup {
                 editor.putString(url,new JSONObject().put("count",item.getInt("count"))
                         .put("token",UUID.randomUUID().toString()).put("repliesOnly",item.optBoolean("repliesOnly",false))
                         .put("stopAfterReply",item.optBoolean("stopAfterReply",false)).put("paused",item.optBoolean("paused",false))
-                        .put("own",item.optJSONArray("own")==null?new JSONArray():item.getJSONArray("own")).toString());
+                        .put("own",item.optJSONArray("own")==null?new JSONArray():item.getJSONArray("own"))
+                        .put("durationMinutes",item.optInt("durationMinutes",0)).put("expiresAt",item.optLong("expiresAt",0))
+                        .put("pauseReason",item.optString("pauseReason")).put("title",item.optString("title")).toString());
             }
             if(registrationsChanged&&!editor.commit())throw new IOException("通知登録を復元できません");
             SharedPreferences options=context.getSharedPreferences(ThreadWatch.PREFS+"_options",0);
             boolean restoreInterval=!merge||!options.contains("minutes");
             if(restoreInterval&&!options.edit()
                     .putInt("minutes",data.getInt("intervalMinutes")).commit())throw new IOException("通知間隔を復元できません");
+            if(data.has("durationMinutes")&&(!merge||!options.contains("durationMinutes"))&&!options.edit()
+                    .putInt("durationMinutes",data.getInt("durationMinutes")).commit())throw new IOException("通知期限を復元できません");
             reschedule=registrationsChanged||restoreInterval;
             if(!merge){
                 NotificationManager notifications=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);

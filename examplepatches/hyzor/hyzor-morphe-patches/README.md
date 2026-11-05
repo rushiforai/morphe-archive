@@ -4,10 +4,10 @@ Patches for apps I use, for use with [Morphe](https://morphe.software).
 
 | App | Package | Supported versions |
 |---|---|---|
-| [Sleep as Android](docs/apps/sleep-as-android.md) | `com.urbandroid.sleep` | `20261006`, `20260616` |
+| [Sleep as Android](docs/apps/sleep-as-android.md) | `com.urbandroid.sleep` | `20261006` |
 | [SnoreLab](docs/apps/snorelab.md) | `com.snorelab.app` | `2.33.5.7814` |
 | [NYT Games](docs/apps/nyt-games.md) | `com.nytimes.crossword` | `6.48.0` |
-| [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.18`, `4.10.23` |
+| [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.23` |
 | [Duolingo](docs/apps/duolingo.md) | `com.duolingo` | `6.104.3` |
 | [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `8.9.6` |
 
@@ -26,7 +26,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.1](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v1.6.1](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
 <details open>
 <summary>📦 NYT Games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -49,18 +49,18 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 4.10.18-googleplay | 4.10.23-googleplay |
-| :---: | :---: |
+| 4.10.23-googleplay |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [AMOLED black](#amoled-black) | Pure black backgrounds instead of chess.com's dark grey, in the newer and the older screens. Switch it in Noam's Patches (then restart the app). |  |
 | [Accent color](#accent-color) | Your own colour in place of chess.com's green, chosen in Noam's Patches → Accent color: buttons, highlights, icons and text of the app. |  |
 | [Arcade animations](#arcade-animations) | Adds the chess.com website's Arcade piece animations to every board: light trails, bursts when a piece is picked up, dropped or captured, a flash on check, outlined last-move squares and animated move hints. Switch it in Noam's Patches. |  |
-| [Arrows in games](#arrows-in-games) | Adds Arrows and Clear buttons to the game bars (live, daily, archived, pass and play, bots, coach). While Arrows is on, dragging on the board draws an arrow and tapping marks a square, as on the website, and pieces don't move. |  |
+| [Arrows in games](#arrows-in-games) | Adds Arrows and Clear buttons to the live, daily and pass-and-play game bars, and a small chip over the board in bot games. While Arrows is on, dragging on the board draws an arrow and tapping marks a square, as on the website, and pieces don't move. |  |
 | [Board colors](#board-colors) | Choose the board's square colours: your own, or one of chess.com's colour themes, on every board of the app. In Noam's Patches → Board colors. |  |
 | [Clone Chess.com](#clone-chess-com) | Renames the app to com.chess.noam so it installs next to the real Chess.com app instead of over it. Leave it off to keep updating your current install. |  |
-| [Customize Home screen](#customize-home-screen) | Choose which tiles and sections the Home screen shows, and the order of the tiles. Works on both of chess.com's Home screens (the older list and the redesign). |  |
+| [Customize Home screen](#customize-home-screen) | Choose which tiles and sections the Home screen shows, and the order of the tiles. |  |
 | [Customize bottom bar](#customize-bottom-bar) | Choose the tabs between Home and More (Puzzles, Learn, Watch, Bots, Train) and their order, in Noam's Patches → Bottom bar. |  |
 | [Hide Premium-only content](#hide-premium-only-content) | Free accounts no longer see what only Premium members can use: Premium-only bots are not listed, and the Premium toolbar button, the Home and More banners and the Settings Upgrade row, the Home diamond, the sale banner and More's Membership row are gone. Nothing is unlocked. |  |
 | [Lichess Puzzles](#lichess-puzzles) | Puzzles from Lichess becomes the Puzzles tab's big button, with chess.com's Solve Puzzles above it. Lichess's puzzles play in chess.com's own puzzle screen (board, coach, sounds), rated on the phone the way Lichess rates them; nothing is sent to chess.com. |  |
@@ -70,7 +70,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 | [Noam's Patches settings](#noam-s-patches-settings) | Adds a Noam's Patches row at the top of the More tab, where the other patches of this bundle are switched on and off. Patches you did not select do not show up there. |  |
 | [Stockfish analysis](#stockfish-analysis) | Stockfish 19 on your phone, offline (arm64): best-move arrows on finished games, the analysis boards, the game explorer and Game Review (in a Lichess review, on the moves Lichess didn't mark), and an eval bar where chess.com has none of its own. It never shows while a game is being played or in puzzles. Patching downloads the official Stockfish 19 (80 MB) from Stockfish's GitHub, so it needs internet. |  |
 | [Time controls under a minute](#time-controls-under-a-minute) | The custom time slider goes below one minute: 10, 15, 20, 30 and 45 seconds, with or without increment, the way the website allows. Labels read "30 sec" and "0:30+1". |  |
-| [Unlimited Game Review](#unlimited-game-review) | Game Review asks who reviews the game: chess.com, Lichess's servers (online, with your Lichess account) or, with the Stockfish analysis patch, Stockfish on your phone (offline, no daily limit). The phone and Lichess judge moves the Lichess way (?! inaccuracies, ? mistakes, ?? blunders, accuracy and centipawn loss) in chess.com's own review screen, and the phone marks the moves Lichess leaves unmarked Best, Excellent or Good, as chess.com does. Finished games only; a live game on screen is never analysed. |  |
+| [Unlimited Game Review](#unlimited-game-review) | Game Review asks who reviews the game: chess.com, Lichess's servers (online, with your Lichess account) or, with the Stockfish analysis patch, Stockfish on your phone (offline, no daily limit). A Lichess or phone review is scored the Lichess way (accuracy, centipawn loss, and inaccuracies, mistakes and blunders) and shown in chess.com's own review screen. Finished games only; a live game on screen is never analysed. |  |
 | [Unlimited Play Coach](#unlimited-play-coach) | Removes the one-free-game-per-day limit on Play Coach, a bot-only practice mode. |  |
 | [Unlock Premium content](#unlock-premium-content) | The app's own premium-tier check always answers with the top tier, so content gated on it (lessons, drills, insights, themes, puzzle-rush extras and anything else that reads the account's tier) treats the account as a member. The server still decides what you may actually play online. |  |
 | [Unlock all bots](#unlock-all-bots) | Every bot in Versus Bots can be played, including ones only Premium members may play. |  |
@@ -101,8 +101,8 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 20261006 | 20260616 |
-| :---: | :---: |
+| 20261006 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -145,7 +145,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 ## 📱 Sleep as Android
 
-Supported targets: `20261006`, `20260616`.
+Supported target: `20261006`.
 
 | Patch | Default | What it does |
 |---|---|---|
@@ -202,7 +202,8 @@ WebViews with the website's own dark theme and stay dark grey.
 
 ## 📱 Chess.com
 
-Supported targets: `4.10.18` and `4.10.23` (both `-googleplay`).
+Supported target: `4.10.23-googleplay`. Older builds, including 4.10.18, are no longer
+supported.
 
 20 patches, most backed by the bundle's Java extension. The **Noam's Patches** row in the
 More tab turns the feature patches on and off, and only the patches you selected appear
@@ -229,6 +230,22 @@ on the re-signed build depends on the login-integrity patch, which every other D
 patch depends on.
 
 [6.104.3 hook changes and on-device verification →](docs/apps/duolingo.md)
+
+## 📱 Nova Launcher
+
+Supported target: `89600 (8.9.6)` (APK, versionCode `89600`).
+
+| Patch | Default | What it does |
+|---|---|---|
+| Enable Prime | on | Unlocks the features gated on Nova Prime. |
+
+Nova keeps the Prime decision on the device. The patch returns `true` from the static Prime
+gate (`qx.b1.b()`), forces the persisted `"1"` value read at startup to `0x200` (the app's own
+"direct licence" state), and returns `true` from the active-subscription check (`gy.d0.w()`),
+which also keeps the Play licence revocation path from starting. Client-side only: anything
+Nova asks its backend for still needs a real account.
+
+[Port notes, hook map and on-device verification →](docs/apps/nova-launcher.md)
 
 ## ✅ Verification
 
@@ -297,7 +314,7 @@ attribution:
 - **Nova Launcher:** port of
   [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (both GPLv3),
-  re-resolved for 8.9.5.
+  re-resolved for 8.9.6.
 
 Original patch code is © the upstream authors and contributors — ImNoammm, hoo-dles,
 rushiranpise, Entree3k, PrathxmOp and their contributors. New code in this repository is

@@ -45,8 +45,9 @@ as 2.0.23:
 
 Optional base-agnostic layers (pose extrapolation, HAL pose, grip haptics, performance
 boost, vendor driver, foveal canvas) are enabled for the pair. The GXR spacewarp layer
-now has a 2.0.24 scene/VTS profile and is advertised for this build (experimental, off
-by default); see the [spacewarp record](SPACEWARP-2026-10-26.md) for its pins. The
+was retired and removed on 2026-11-01; its 2.0.24 pins are retained only as history in
+the [spacewarp record](SPACEWARP-2026-10-26.md). See the
+[retirement record](../steamlink-spacewarp-retirement/README.md). The
 optional Codecs Support telemetry setting also fails closed for 2.0.24 (no admission
 profile).
 

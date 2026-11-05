@@ -285,6 +285,14 @@ public class Settings extends BaseSettings {
                     return !GestureActions.takesLongPress(LONG_PRESS_ACTION.savedValue());
                 }
             });
+    /** Keeps the small long-press share sheet everywhere, For You included; wins over the two full-menu switches (#334). */
+    public static final BooleanSetting LONG_PRESS_COMPACT_MENU =
+            new BooleanSetting("long_press_compact_menu", FALSE, new Setting.Availability() {
+                @Override
+                public boolean isAvailable() {
+                    return !GestureActions.takesLongPress(LONG_PRESS_ACTION.savedValue());
+                }
+            });
     /** What a left swipe on a feed video does: TikTok's creator profile, nothing, or the comments. */
     public static final StringSetting SWIPE_LEFT_ACTION = new StringSetting("swipe_left_action", "default");
     public static final BooleanSetting EDGE_SEEK = new BooleanSetting("edge_seek", FALSE);
@@ -391,6 +399,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("block_suggested_video_notifications", TRUE);
     public static final BooleanSetting HIDE_MESSAGE_STREAKS =
             new BooleanSetting("hide_message_streaks", FALSE);
+    /** Streak pop-ups, the in-app streak alert and the streak message TikTok drops into a chat. */
+    public static final BooleanSetting HIDE_STREAK_POPUPS =
+            new BooleanSetting("hide_streak_popups", FALSE);
     /**
      * Leaves a message in the chat when the other person unsends it. Messages you unsend
      * yourself are still removed. Off by default. See KeepUnsent.
@@ -557,6 +568,8 @@ public class Settings extends BaseSettings {
      * accounts that press is TikTok's account switcher, which this takes over while it's on.
      */
     public static final BooleanSetting PROFILE_TAB_OPENS_WATCH_HISTORY = new BooleanSetting("profile_tab_opens_watch_history", FALSE);
+    /** A long press on the Inbox tab flips Hide read receipts and toasts the new state (#333). */
+    public static final BooleanSetting INBOX_TAB_FLIPS_READ_RECEIPTS = new BooleanSetting("inbox_tab_flips_read_receipts", FALSE);
     /** The tab TikTok opens on from its icon: tiktok (its own pick), for_you, following, friends, inbox or profile. */
     public static final StringSetting START_PAGE = new StringSetting("start_page", "tiktok");
     /** TikTok's previous, pause and next buttons on the feed, shown without a screen reader. Off by default. */
@@ -1194,6 +1207,9 @@ public class Settings extends BaseSettings {
             new IntegerSetting("seen_video_mark_percent", 0).withRange(0, 90);
     /** A list of the videos watched, with who posted them and their captions, on the phone (#172). */
     public static final BooleanSetting LOCAL_WATCH_HISTORY = new BooleanSetting("local_watch_history", FALSE);
+    /** A long press on For You opens that list over the feed instead of these settings (#172). */
+    public static final BooleanSetting FOR_YOU_HOLD_OPENS_WATCH_HISTORY = new BooleanSetting(
+            "for_you_hold_opens_watch_history", FALSE, Setting.parent(LOCAL_WATCH_HISTORY));
     public static final BooleanSetting HIDE_PLAYLIST_BAR = new BooleanSetting("hide_playlist_bar", FALSE, true);
     public static final BooleanSetting HIDE_EVENT_BADGE = new BooleanSetting("hide_event_badge", FALSE, true);
     public static final BooleanSetting HIDE_INSERTED_CARDS = new BooleanSetting("hide_inserted_cards", FALSE, true);
@@ -1276,6 +1292,20 @@ public class Settings extends BaseSettings {
     // Keep the app language (#61), in the default selection with this off. TikTok's reset runs
     // once early in each start, so a change counts from the next one, with no restart asked for.
     public static final BooleanSetting KEEP_APP_LANGUAGE = new BooleanSetting("keep_app_language", FALSE);
+    // Freeze TikTok's experiments, in the default selection with this off. Asked each time a
+    // server settings response arrives, so a change counts from the next one, with no restart.
+    public static final BooleanSetting FREEZE_REMOTE_CONFIG = new BooleanSetting("freeze_remote_config", FALSE);
+    /**
+     * Which TikTok and account the last server settings store that went through came from, as
+     * "version code/uid" with the uid empty when it wasn't known, or empty when TikTok hasn't
+     * stored any since the patch went in. No row of its own: a freeze turned on before TikTok ever
+     * stored any would leave it on nothing but its built-in defaults, and one held across a TikTok
+     * update or an account switch would keep values the new build or account was never sent, so a
+     * start with the freeze on lets every store through when this names another TikTok or
+     * account. Kept out of import and export, since it describes this phone.
+     */
+    public static final StringSetting REMOTE_CONFIG_STAMP =
+            new StringSetting("remote_config_stamp", "", false, false);
     // Profile background (#80), in the default selection with this off. TikTok asks its gate as
     // Edit profile or a profile is built, but the allow-list value its profile requests send is
     // snapshotted once per account and process, so a change takes a restart to reach the server.

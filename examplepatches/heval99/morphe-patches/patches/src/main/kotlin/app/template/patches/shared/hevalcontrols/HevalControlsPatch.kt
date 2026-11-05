@@ -9,9 +9,7 @@ package app.template.patches.shared.hevalcontrols
 import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.InstallerType
 import app.morphe.patcher.patch.Patch
-import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -42,14 +40,14 @@ internal const val HEVAL_INIT_ORDER = "1000"
 private val logger = Logger.getLogger("HevalControls")
 
 /**
- * The Heval Controls host of one app: the named "Heval Controls" patch plus the registry its
+ * The Heval Controls host of one app: the named "Patch settings" patch plus the registry its
  * feature patches fill. Create one per app with [hevalControlsPatch] and expose [patch] as a
  * top-level `val` so Manager lists it.
  */
 class HevalControlsHost internal constructor(internal val compatibility: Compatibility) {
     private val features = mutableListOf<HevalFeature>()
 
-    /** The "Heval Controls" patch. Feature patches `dependsOn` it. */
+    /** The "Patch settings" patch. Feature patches `dependsOn` it. */
     lateinit var patch: BytecodePatch
         internal set
 
@@ -59,7 +57,7 @@ class HevalControlsHost internal constructor(internal val compatibility: Compati
      */
     fun register(feature: HevalFeature) {
         if (features.any { it.id == feature.id }) {
-            throw PatchException("Heval Controls feature ${feature.id} is registered twice")
+            throw PatchException("Patch settings feature ${feature.id} is registered twice")
         }
         features += feature
     }
@@ -78,10 +76,16 @@ class HevalControlsHost internal constructor(internal val compatibility: Compati
  *    features, the bundle version and the patched app version into the extension's `Registry`
  *    getters.
  *
- * Unavailable on Root Mount installs, which keep the stock manifest (no provider or activity).
+ * Available on every installer, Root Mount included: the feature patches depend on it, so making
+ * it unavailable would take them all away. A mount install keeps the stock manifest, so the
+ * provider and the activity are not registered there, but the dex is the patched one: hooks
+ * initialise the engine lazily through `AppContext.currentApplication()` (registered defaults until
+ * the Application exists, then the saved choices), the crash guard (armed only by the provider)
+ * stays off, and in-app entry points must check that the activity is registered before showing
+ * themselves (see extensions/truecaller `HevalControlsEntry`).
  *
  * @param compatibility The app this host (and its feature patches) applies to.
- * @param default Whether "Heval Controls" is selected by default.
+ * @param default Whether "Patch settings" is selected by default.
  * @param dependencies Unnamed per-app patches that are part of the host, typically the in-app entry
  *        point that calls `HevalControlsActivity.open(Context)`. They run before the host.
  */
@@ -99,18 +103,11 @@ fun hevalControlsPatch(
     }
 
     host.patch = bytecodePatch(
-        name = "Heval Controls",
+        name = "Patch settings",
         description = "Adds a screen to turn supported features on or off.",
         default = default,
     ) {
         compatibleWith(compatibility)
-
-        availability { installer, _ ->
-            when (installer) {
-                InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
-                else -> if (default) PatchAvailability.ENABLED else PatchAvailability.DISABLED
-            }
-        }
 
         dependsOn(manifestPatch, *dependencies.toTypedArray())
 
@@ -166,7 +163,7 @@ private fun BytecodePatchContext.writeRegistry(features: List<HevalFeature>) {
         feature.dependencies.filter { it !in registered }.forEach { missing ->
             // Not fatal: the user may have left the dependency's patch out. The screen then shows
             // the feature as unsupported and its hooks stay stock.
-            logger.warning("Heval Controls feature ${feature.id} depends on $missing, which is not patched")
+            logger.warning("Patch settings feature ${feature.id} depends on $missing, which is not patched")
         }
     }
 
@@ -223,7 +220,7 @@ internal fun Document.addHevalControlsComponents() {
     for (i in 0 until existing.length) {
         val name = (existing.item(i) as? Element)?.getAttribute("android:name") ?: continue
         if (name.startsWith("app.template.extension.hevalcontrols.")) {
-            throw PatchException("Heval Controls is already in this APK ($name). Start from the stock APK.")
+            throw PatchException("Patch settings is already in this APK ($name). Start from the stock APK.")
         }
     }
 
@@ -239,7 +236,7 @@ internal fun Document.addHevalControlsComponents() {
         createElement("activity").apply {
             setAttribute("android:name", HEVAL_ACTIVITY)
             setAttribute("android:exported", "false")
-            setAttribute("android:label", "Heval Controls")
+            setAttribute("android:label", "Patch settings")
         },
     )
 }

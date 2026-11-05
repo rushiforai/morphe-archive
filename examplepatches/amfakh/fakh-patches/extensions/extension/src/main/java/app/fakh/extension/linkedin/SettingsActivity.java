@@ -154,11 +154,15 @@ public final class SettingsActivity extends Activity {
             categories.add(ads);
         }
 
-        if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()) {
+        if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
+                || Settings.isExpandPostsIncluded()) {
             Category feed = new Category("Feed");
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Turn off double-tap to like",
                         "Double-tapping a post or photo won't like it.");
+            }
+            if (Settings.isExpandPostsIncluded()) {
+                feed.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default", "Posts start expanded. Tap the text to collapse.");
             }
             if (Settings.isFeedFiltersIncluded()) {
                 feed.toggle(Settings.FOCUS_MODE, false, "Focus mode", "Hide like, comment, and repost counts.")
@@ -659,6 +663,7 @@ public final class SettingsActivity extends Activity {
                 {"Hide Premium upsells", Settings.isHidePremiumIncluded()},
                 {"Feed filters", Settings.isFeedFiltersIncluded()},
                 {"Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()},
+                {"Expand posts", Settings.isExpandPostsIncluded()},
                 {"Download media", Settings.isDownloadMediaIncluded()},
                 {"Messaging", Settings.isMessagingIncluded()},
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},

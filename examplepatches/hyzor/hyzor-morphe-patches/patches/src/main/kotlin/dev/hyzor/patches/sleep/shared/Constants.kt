@@ -18,10 +18,6 @@ object Constants {
         targets = listOf(
             // Version the fingerprints and register counts below were verified against.
             AppTarget(version = "20261006"),
-            // Version the patches were originally written for. The two extra hooks are
-            // resolved with `methodOrNull`, so they degrade to a no-op if this build
-            // does not have them.
-            AppTarget(version = "20260616"),
         ),
     )
 }

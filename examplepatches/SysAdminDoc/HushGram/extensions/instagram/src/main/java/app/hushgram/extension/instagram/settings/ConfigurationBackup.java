@@ -134,7 +134,15 @@ public final class ConfigurationBackup {
         if (PatchFamily.STORIES_TRAY.inBuild()) settings.put(Settings.TRAY_BADGE.key, Settings.TRAY_BADGE);
         if (PatchFamily.SPOOF_LOCATION.inBuild()) settings.put(Settings.SPOOF_LOCATION_PLACE.key, Settings.SPOOF_LOCATION_PLACE);
         if (PatchFamily.APP_PROXY.inBuild()) settings.put(Settings.APP_PROXY_SERVER.key, Settings.APP_PROXY_SERVER);
-        if (PatchFamily.CAPTION_WORD_REELS.inBuild()) settings.put(Settings.REELS_BLOCKED_WORDS.key, Settings.REELS_BLOCKED_WORDS);
+        if (PatchFamily.CAPTION_WORD_REELS.inBuild()) {
+            settings.put(Settings.REELS_BLOCKED_WORDS.key, Settings.REELS_BLOCKED_WORDS);
+            settings.put(Settings.REELS_KEPT_LANGUAGES.key, Settings.REELS_KEPT_LANGUAGES);
+            // Also on Home, both of them: their rows show only with Home's reads in the build.
+            if (PatchFamily.feedTypesInBuild()) {
+                settings.put(Settings.HIDE_CAPTION_WORD_HOME.key, Settings.HIDE_CAPTION_WORD_HOME);
+                settings.put(Settings.HIDE_OTHER_LANGUAGE_HOME.key, Settings.HIDE_OTHER_LANGUAGE_HOME);
+            }
+        }
         if (PatchFamily.LOW_VIEW_REELS.inBuild()) {
             settings.put(Settings.MIN_REEL_VIEWS.key, Settings.MIN_REEL_VIEWS);
             settings.put(Settings.MIN_REEL_LIKES.key, Settings.MIN_REEL_LIKES);
@@ -266,6 +274,7 @@ public final class ConfigurationBackup {
         settings.put(Settings.SETTINGS_SHORTCUT.key, Settings.SETTINGS_SHORTCUT);
         settings.put(Settings.SETTINGS_LOGO_PRESS.key, Settings.SETTINGS_LOGO_PRESS);
         settings.put(Settings.CATEGORY_PAGES.key, Settings.CATEGORY_PAGES);
+        settings.put(Settings.CATEGORY_GRID.key, Settings.CATEGORY_GRID);
         settings.put(Settings.DESCRIPTIONS_BEHIND_INFO.key, Settings.DESCRIPTIONS_BEHIND_INFO);
         settings.put(Settings.SETTINGS_BLACK_LOOK.key, Settings.SETTINGS_BLACK_LOOK);
         settings.put(Settings.DATE_SETTINGS_EXPORT.key, Settings.DATE_SETTINGS_EXPORT);
@@ -416,7 +425,8 @@ public final class ConfigurationBackup {
             int given = (Integer) value;
             return given < number.minimum() || given > number.maximum() ? null : value;
         }
-        int longest = setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.STORY_PRIORITY_ACCOUNTS || setting == Settings.HIDDEN_SETTINGS_ROWS
+        int longest = setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.REELS_KEPT_LANGUAGES
+                || setting == Settings.STORY_PRIORITY_ACCOUNTS || setting == Settings.HIDDEN_SETTINGS_ROWS
                 || setting == Settings.MUTED_NOTIFICATION_CHANNELS ? MAX_WORDS_TEXT : MAX_TEXT;
         if (!(value instanceof String) || ((String) value).length() > longest) return null;
         if (fallback instanceof Enum) {
@@ -494,7 +504,8 @@ public final class ConfigurationBackup {
             return text.equals(ProfileTabs.SAME_AS_OTHERS) || text.equals(ProfileTabs.join(ProfileTabs.parse(text)));
         }
         // The words Hide reels by caption words looks for: any text without control characters but line breaks.
-        if (setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.STORY_PRIORITY_ACCOUNTS) return blockedWordsAllowed(text);
+        if (setting == Settings.REELS_BLOCKED_WORDS || setting == Settings.REELS_KEPT_LANGUAGES
+                || setting == Settings.STORY_PRIORITY_ACCOUNTS) return blockedWordsAllowed(text);
         // An enum constant name of Instagram's; a name this Instagram lacks keeps its heart.
         if (setting == Settings.LIKE_ANIMATION) return text.matches("[A-Za-z0-9_$]{0,64}");
         // The ghost switches Ghost mode turns, as their keys with commas between; blank means all of them.

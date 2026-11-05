@@ -107,7 +107,7 @@ class MailcomSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "9.19.0",
+            version = "9.20.2",
             patchNames = setOf("Disable ads", "Disable telemetry", "Disable rating prompts", "Hide upsells"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

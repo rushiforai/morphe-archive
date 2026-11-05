@@ -54,9 +54,7 @@ internal object RemoteConfigBooleanFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking in the MS NOW app: Adobe, Kochava, Nielsen, comScore, " +
-        "Amplitude, Parse.ly, Iterate and Firebase. Sign-in and playback are left alone. " +
-        "Experimental.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

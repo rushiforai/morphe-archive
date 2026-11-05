@@ -96,6 +96,23 @@ final class ProtoEdit {
         return new Field(number, 0, out.toByteArray());
     }
 
+    /** The payload of the first length-delimited field along {@code path}, or null if one is missing. */
+    static byte[] nested(byte[] data, int... path) {
+        for (int number : path) {
+            List<Field> fields = parse(data);
+            if (fields == null) return null;
+            data = null;
+            for (Field field : fields) {
+                if (field.number == number && field.wireType == 2) {
+                    data = field.data;
+                    break;
+                }
+            }
+            if (data == null) return null;
+        }
+        return data;
+    }
+
     /** True if the bytes contain the ASCII text anywhere, at any depth. */
     static boolean contains(byte[] data, String text) {
         return ProtoScanner.containsAscii(data, text);

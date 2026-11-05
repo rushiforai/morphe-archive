@@ -97,14 +97,24 @@ class ShizukuBridgePatchTest {
 
     @Test
     fun `bridge covers the legacy and native bases`() {
-        listOf("2.0.20" to "5001712", "2.0.23" to "5002363", "2.0.24" to "5002395")
+        listOf("2.0.20" to "5001712", "2.0.23" to "5002363", "2.0.24" to "5002395", "2.0.24" to "5002527")
             .forEach { (version, versionCode) ->
                 assertTrue(isShizukuBridgeBuild(version, versionCode), "$version/$versionCode")
+                assertTrue(isShizukuBridgeTarget(CONTROLLER_STEAM_LINK_PACKAGE, version, versionCode))
             }
         listOf("2.0.23" to "5002364", "2.0.19" to "5001712", "2.0.20" to "5002363",
-            "2.0.24" to "5002363")
+            "2.0.24" to "5002363", "2.0.24" to "5002526", "2.0.23" to "5002527")
             .forEach { (version, versionCode) ->
                 assertFalse(isShizukuBridgeBuild(version, versionCode), "$version/$versionCode")
+            }
+    }
+
+    @Test
+    fun `bridge mutations stay inert on any other package even for a listed build`() {
+        listOf("cn.vr4p.oculus4xvrplayerov", "com.example.other", "", "com.valvesoftware.steamlinkvr.gxr")
+            .forEach { packageName ->
+                assertFalse(isShizukuBridgeTarget(packageName, "2.0.24", "5002527"), packageName)
+                assertFalse(isShizukuBridgeTarget(packageName, "2.0.23", "5002363"), packageName)
             }
     }
 }

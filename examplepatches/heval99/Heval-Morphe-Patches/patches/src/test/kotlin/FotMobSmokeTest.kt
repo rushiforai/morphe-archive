@@ -1,3 +1,17 @@
+import app.template.patches.fotmob.betting.HIDE_BETTING_CONTENT
+import app.template.patches.fotmob.misc.animations.DISABLE_ANIMATIONS
+import app.template.patches.fotmob.misc.animations.FASTER_ANIMATIONS
+import app.template.patches.fotmob.misc.font.USE_SYSTEM_FONT
+import app.template.patches.fotmob.misc.promotions.DISABLE_PLUS_PROMO_POPUP
+import app.template.patches.fotmob.misc.rating.DISABLE_RATING_PROMPTS
+import app.template.patches.fotmob.misc.refresh.SLOWER_LIVE_REFRESH
+import app.template.patches.fotmob.competitions.HIDDEN_COMPETITIONS
+import app.template.patches.fotmob.countries.COMPETITION_FILTER
+import app.template.patches.fotmob.countries.COUNTRY_FILTER
+import app.template.patches.fotmob.countries.HIDDEN_COUNTRIES
+import app.template.patches.fotmob.countries.SUGGESTION_FILTERS
+import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
+import app.template.patches.shared.hevalcontrols.HevalRegistryCodec
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
@@ -11,6 +25,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -46,6 +61,14 @@ private const val RATING_APP_MESSAGE = "Lcom/fotmob/android/feature/appmessage/m
 private const val PLUS_PROMO_CONFIG = "Lcom/fotmob/android/feature/billing/model/PlusPromoConfig;"
 private const val PLUS_PROMO_KEY = "fotmobplus_promo"
 private const val TYPEFACE = "Landroid/graphics/Typeface;"
+private const val SYSTEM_FONT_EXTENSION = "Lapp/template/extension/fotmob/SystemFontPatch;"
+private const val ANIMATION_SPEED = "Lapp/template/extension/fotmob/AnimationSpeed;"
+private const val ACTIVITY_HOOKS = "Lapp/template/extension/fotmob/ActivityHooks;"
+private const val FOTMOB_CONTROLS_ENTRY = "Lapp/template/extension/fotmob/HevalControlsEntry;"
+private const val HEVAL_EXTENSION = "Lapp/template/extension/hevalcontrols/"
+private const val SETTINGS_GLOBAL = "Landroid/provider/Settings\$Global;"
+private const val SETTINGS_ACTIVITY = "Lcom/fotmob/android/feature/setting/ui/SettingsActivity;"
+private const val RC_REALTIME_PATH = "/namespaces/firebase:streamFetchInvalidations"
 
 class FotMobSmokeTest {
 
@@ -81,11 +104,12 @@ class FotMobSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "240.17974.20261023",
+            version = "241.18134.20261030",
             patchNames = setOf(
                 "Disable ads", "Disable telemetry", "Enable FotMob+", "GmsCore support", "Spoof signature",
                 "Hide betting content", "Disable rating prompts", "Disable FotMob+ promo popup",
-                "Use system font",
+                "Use system font", "Patch settings", "Turn off animations", "Faster animations", "Slower live refresh",
+                "Hide countries", "Hide competitions",
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -177,6 +201,304 @@ class FotMobSmokeTest {
         assertBettingRatingAndPromoDisabled(classes)
         assertSystemFont(classes)
         assertSystemFontStyles()
+        assertAnimationSpeed(classes)
+        assertSlowerLiveRefresh(classes)
+        assertHideCountries(classes)
+        assertHevalControls(classes)
+    }
+
+    private fun Instruction.stringOrNull(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+
+    /** The instruction index the offset instruction at [index] jumps to. */
+    private fun List<Instruction>.branchTarget(index: Int): Int {
+        val offsets = runningFold(0) { address, insn -> address + insn.codeUnits }
+        return offsets.indexOf(offsets[index] + (this[index] as OffsetInstruction).codeOffset)
+    }
+
+    /**
+     * The instructions at [at] are the Patch settings gate for [featureId] (const-string vX, the
+     * /range isEnabled call, move-result vX, if-eqz vX). Returns the index it jumps to.
+     */
+    private fun assertGate(method: Method, featureId: String, label: String, at: Int = 0): Int {
+        val insns = method.instructions()
+        val id = insns.getOrNull(at)
+        assertTrue(id?.opcode == Opcode.CONST_STRING && id.stringOrNull() == featureId, "$label: no \"$featureId\" gate at $at; got ${id?.opcode}")
+        val register = (id as OneRegisterInstruction).registerA
+        val call = insns[at + 1]
+        assertTrue(
+            call.opcode == Opcode.INVOKE_STATIC_RANGE && call.methodRef()?.definingClass == HEVAL_SETTINGS_CLASS &&
+                call.methodRef()?.name == "isEnabled" && (call as RegisterRangeInstruction).startRegister == register,
+            "$label: the gate does not ask HevalSettings.isEnabled(v$register); got ${call.opcode} ${call.methodRef()}"
+        )
+        assertTrue(
+            insns[at + 2].opcode == Opcode.MOVE_RESULT && (insns[at + 2] as OneRegisterInstruction).registerA == register &&
+                insns[at + 3].opcode == Opcode.IF_EQZ && (insns[at + 3] as OneRegisterInstruction).registerA == register,
+            "$label: the gate does not branch on the isEnabled result; got ${insns[at + 2].opcode} ${insns[at + 3].opcode}"
+        )
+        return insns.branchTarget(at + 3)
+    }
+
+    /** [method] starts with the gate for [featureId], then [body] (opcodes); the gate jumps past it. */
+    private fun assertGatedPath(method: Method, featureId: String, label: String, body: List<Opcode>): List<Instruction> {
+        val target = assertGate(method, featureId, label)
+        val path = method.instructions().subList(4, 4 + body.size)
+        assertEquals(body, path.map { it.opcode }, "$label: gated path")
+        assertEquals(4 + body.size, target, "$label: the gate does not jump past the gated path")
+        return path
+    }
+
+    /**
+     * The static (T)T value helper [ref]: the gate for [featureId], `const` [literal] + return,
+     * then `return p0` as the stock path.
+     */
+    private fun assertValueHelper(classes: List<ClassDef>, ref: MethodReference, featureId: String, literal: Int) {
+        val helper = classes.single { it.type == ref.definingClass }.methods.single {
+            it.name == ref.name && it.parameterTypes.map(CharSequence::toString) == ref.parameterTypes.map(CharSequence::toString)
+        }
+        val label = "${ref.definingClass}->${ref.name}"
+        val target = assertGate(helper, featureId, label)
+        val insns = helper.instructions()
+        assertEquals(literal, (insns[4] as NarrowLiteralInstruction).narrowLiteral, "$label: value while on")
+        assertEquals(Opcode.RETURN, insns[5].opcode, "$label: no return after the value")
+        assertEquals(6, target, "$label: the stock path is not the gate target")
+        assertEquals(Opcode.RETURN, insns[6].opcode, "$label: stock path")
+        assertEquals(helper.implementation!!.registerCount - 1, (insns[6] as OneRegisterInstruction).registerA, "$label: stock path returns p0")
+    }
+
+    /** At [index]: invoke-static/range {vR .. vR} of a static (T)T helper, then move-result vR. */
+    private fun valueHelperCallAt(insns: List<Instruction>, index: Int, register: Int, label: String): MethodReference {
+        val call = insns[index]
+        val ref = call.methodRef()
+        assertTrue(
+            call.opcode == Opcode.INVOKE_STATIC_RANGE && (call as RegisterRangeInstruction).startRegister == register &&
+                call.registerCount == 1 && ref != null && ref.parameterTypes.size == 1,
+            "$label: no value helper call on v$register at $index; got ${call.opcode} $ref"
+        )
+        assertTrue(
+            insns[index + 1].opcode == Opcode.MOVE_RESULT && (insns[index + 1] as OneRegisterInstruction).registerA == register,
+            "$label: the helper result does not go back into v$register"
+        )
+        return ref!!
+    }
+
+    // Turn off animations / Faster animations: every Settings.Global.getFloat(ContentResolver,
+    // String, float) of the app (11 methods in 240 and 241) calls AnimationSpeed.getFloat with the same
+    // arguments; the extension keeps the direct framework call (its call-through).
+    private fun assertAnimationSpeed(classes: List<ClassDef>) {
+        fun MethodReference.isGetFloat(owner: String) = definingClass == owner && name == "getFloat" && returnType == "F" &&
+            parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/ContentResolver;", "Ljava/lang/String;", "F")
+        val extension = classes.singleOrNull { it.type == ANIMATION_SPEED } ?: error("AnimationSpeed is not in the patched dex")
+        assertTrue(
+            extension.methods.single { it.name == "getFloat" }.instructions().any { it.methodRef()?.isGetFloat(SETTINGS_GLOBAL) == true },
+            "AnimationSpeed.getFloat no longer calls Settings.Global.getFloat itself"
+        )
+        val app = classes.filter { !it.type.startsWith("Lapp/template/extension/") }
+        val direct = app.flatMap { cls ->
+            cls.methods.filter { m -> m.instructions().any { it.methodRef()?.isGetFloat(SETTINGS_GLOBAL) == true } }.map { "${cls.type}->${it.name}" }
+        }
+        assertTrue(direct.isEmpty(), "Settings.Global.getFloat still called directly: $direct")
+        val redirected = app.flatMap { cls ->
+            cls.methods.filter { m -> m.instructions().any { it.methodRef()?.isGetFloat(ANIMATION_SPEED) == true } }.map { "${cls.type}->${it.name}" }
+        }
+        assertEquals(11, redirected.size, "methods calling AnimationSpeed.getFloat: $redirected")
+        assertTrue(
+            redirected.any { it.startsWith("Lcom/fotmob/android/feature/onboarding/ui/firstrun/OnboardingStartActivity;") },
+            "the onboarding call site is not redirected"
+        )
+
+        // The lifecycle hooks are registered from FotMobApp.onCreate right after super.onCreate().
+        val onCreate = classes.single { it.type == "Lcom/fotmob/android/FotMobApp;" }.method("onCreate", listOf())
+        val insns = onCreate.instructions()
+        val superCall = insns.indexOfFirst { it.opcode == Opcode.INVOKE_SUPER && it.methodRef()?.name == "onCreate" }
+        val hook = insns[superCall + 1]
+        assertTrue(
+            hook.opcode == Opcode.INVOKE_STATIC_RANGE && hook.methodRef()?.definingClass == ACTIVITY_HOOKS &&
+                hook.methodRef()?.name == "register" &&
+                (hook as RegisterRangeInstruction).startRegister == onCreate.implementation!!.registerCount - 1,
+            "FotMobApp.onCreate does not call ActivityHooks.register(this) after super.onCreate(); got ${hook.opcode} ${hook.methodRef()}"
+        )
+    }
+
+    // Hide countries: each data path goes through CountryFilter right before it is stored or
+    // returned (invoke-static/range on the value register, move-result-object into the same one).
+    private fun assertFilteredAt(insns: List<Instruction>, index: Int, register: Int, helper: String, label: String, cast: String? = null) {
+        val tail = if (cast != null) 3 else 2
+        val call = insns[index - tail]
+        val ref = call.methodRef()
+        assertTrue(
+            call.opcode == Opcode.INVOKE_STATIC_RANGE && ref?.definingClass == COUNTRY_FILTER && ref.name == helper &&
+                (call as RegisterRangeInstruction).startRegister == register && call.registerCount == 1,
+            "$label: not filtered by CountryFilter.$helper (v$register); got ${call.opcode} $ref"
+        )
+        val move = insns[index - tail + 1]
+        assertTrue(move.opcode == Opcode.MOVE_RESULT_OBJECT && (move as OneRegisterInstruction).registerA == register, "$label: no move-result-object v$register")
+        if (cast != null) assertEquals(cast, insns[index - 1].typeRef(), "$label: check-cast")
+    }
+
+    private fun assertHideCountries(classes: List<ClassDef>) {
+        val byType = classes.associateBy { it.type }
+
+        val holder = byType.getValue("Lcom/fotmob/models/LiveMatchesAndLeagueRank;")
+            .method("<init>", listOf("Lcom/fotmob/models/LiveMatches;", "Ljava/util/List;")).instructions()
+        val store = holder.indexOfFirst { it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.type == "Lcom/fotmob/models/LiveMatches;" }
+        assertFilteredAt(holder, store, (holder[store] as TwoRegisterInstruction).registerA, "filterLiveMatches",
+            "LiveMatchesAndLeagueRank.<init>", "Lcom/fotmob/models/LiveMatches;")
+
+        val convert = byType.getValue("Lcom/fotmob/network/converters/LeagueConverter;")
+            .method("convert", listOf("Lokhttp3/ResponseBody;")).instructions()
+        val returns = convert.indices.filter { convert[it].opcode == Opcode.RETURN_OBJECT }
+        assertTrue(returns.isNotEmpty(), "LeagueConverter.convert has no return-object")
+        returns.forEach { assertFilteredAt(convert, it, (convert[it] as OneRegisterInstruction).registerA, "filterLeagues", "LeagueConverter.convert") }
+
+        val suggestion = byType.getValue("Lcom/fotmob/models/search/Suggestion;")
+        val seen = mutableSetOf<String>()
+        suggestion.methods.filter { it.name == "<init>" && it.implementation != null }.forEach { ctor ->
+            val insns = ctor.instructions()
+            insns.indices.filter { insns[it].opcode == Opcode.IPUT_OBJECT }.forEach { index ->
+                val field = insns[index].fieldRef()!!
+                val helper = SUGGESTION_FILTERS[field.name] ?: return@forEach
+                seen += field.name
+                assertFilteredAt(insns, index, (insns[index] as TwoRegisterInstruction).registerA, helper,
+                    "Suggestion.<init>${ctor.parameterTypes} ${field.name}")
+            }
+        }
+        assertEquals(SUGGESTION_FILTERS.keys, seen, "Suggestion fields stored by a constructor")
+
+        // Both list patches are selected, yet each site is filtered once (the shared hooks patch).
+        fun List<Instruction>.filterCalls() = count { it.methodRef()?.definingClass == COUNTRY_FILTER }
+        assertEquals(1, holder.filterCalls(), "CountryFilter calls in LiveMatchesAndLeagueRank.<init>")
+        assertEquals(returns.size, convert.filterCalls(), "CountryFilter calls in LeagueConverter.convert")
+        val suggestionStores = suggestion.methods.filter { it.name == "<init>" && it.implementation != null }.sumOf { ctor ->
+            ctor.instructions().count { it.opcode == Opcode.IPUT_OBJECT && it.fieldRef()?.name in SUGGESTION_FILTERS.keys }
+        }
+        assertEquals(suggestionStores, suggestion.methods.sumOf { it.instructions().filterCalls() }, "CountryFilter calls in Suggestion constructors")
+
+        // The picker seeds come from ActivityHooks.register (FotMobApp.onCreate).
+        val register = byType.getValue(ACTIVITY_HOOKS).method("register", listOf("Landroid/app/Application;")).instructions()
+        assertTrue(register.any { it.methodRef()?.let { r -> r.definingClass == COUNTRY_FILTER && r.name == "init" } == true },
+            "ActivityHooks.register does not call CountryFilter.init")
+        // Picker flags (2026-11-03): CountryFilter.init registers CountryIcons (FIFA -> ISO table,
+        // every seed code covered: extensions/fotmob CountryIconsTest).
+        val init = byType.getValue(COUNTRY_FILTER).method("init", listOf("Landroid/app/Application;"))
+        assertOptionIconsWired(byType, init, "Lapp/template/extension/fotmob/CountryIcons;", images = true)
+
+        // Hide competitions (2026-11-03) shares every hook above (fotMobListFiltersPatch, edited
+        // once: one filter call per site, checked by assertFilteredAt's exact positions and below).
+        // Each feature patch turns its part on: patched() returns true.
+        for (type in listOf(COUNTRY_FILTER, COMPETITION_FILTER)) {
+            val patched = byType.getValue(type).methods.single { it.name == "patched" && it.returnType == "Z" && it.parameterTypes.isEmpty() }
+            assertForcedBoolean(patched, expected = true, label = "$type.patched()")
+        }
+        assertEquals("fotmob.hidden_competitions", HIDDEN_COMPETITIONS.id, "the Hidden competitions list id changed")
+        val competition = byType.getValue(COMPETITION_FILTER)
+        assertTrue(competition.methods.flatMap { m -> m.instructions().mapNotNull { it.stringOrNull() } }
+            .contains("https://images.fotmob.com/image_resources/logo/leaguelogo/%s.png"), "CompetitionFilter lost its logo URL")
+        assertTrue(competition.methods.flatMap { m -> m.instructions().mapNotNull { it.stringOrNull() } }
+            .contains("fotmob.hidden_competitions"), "CompetitionFilter does not use the fotmob.hidden_competitions list")
+        assertTrue(init.instructions().any { it.methodRef()?.let { r -> r.definingClass == COMPETITION_FILTER && r.name == "init" } == true },
+            "CountryFilter.init does not call CompetitionFilter.init")
+        val competitionInit = competition.methods.single { it.name == "init" }
+        assertOptionIconsWired(byType, competitionInit, "Lapp/template/extension/fotmob/CompetitionIcons;", images = true)
+        // The seeds: the bundled leagues file (CountryData.competitionSeeds) goes to registerOptions
+        // on a background thread started by CompetitionFilter.init.
+        assertTrue(competitionInit.instructions().any { it.methodRef()?.let { r -> r.definingClass == "Ljava/lang/Thread;" && r.name == "start" } == true },
+            "CompetitionFilter.init does not start the seed thread")
+        val seedRunner = classes.filter { it.type.startsWith("Lapp/template/extension/fotmob/CompetitionFilter$") }
+            .flatMap { it.methods }.flatMap { it.instructions() }.mapNotNull { it.methodRef() }
+        assertTrue(seedRunner.any { it.definingClass == "Lapp/template/extension/fotmob/CountryData;" && it.name == "competitionSeeds" } &&
+            seedRunner.any { it.definingClass == HEVAL_SETTINGS_CLASS && it.name == "registerOptions" },
+            "the seed thread does not register CountryData.competitionSeeds")
+
+        // Every hook consults the competition list too (and the countries list through patched()).
+        val filter = byType.getValue(COUNTRY_FILTER)
+        for (hook in listOf("filterLiveMatches", "filterLeagues") + SUGGESTION_FILTERS.values) {
+            val calls = filter.methods.single { it.name == hook }.instructions().mapNotNull { it.methodRef() }
+            assertTrue(calls.any { it.definingClass == COMPETITION_FILTER && (it.name == "hidden" || it.name == "patched") },
+                "CountryFilter.$hook does not consult CompetitionFilter")
+        }
+        // Competition logos are offered from the leagues list and search, never from match lists.
+        val reporters = filter.methods.filter { m -> m.instructions().any { it.methodRef()?.let { r -> r.definingClass == COMPETITION_FILTER && r.name == "reportSeen" } == true } }
+            .map { it.name }.toSet()
+        assertEquals(setOf("filterLeagues", "filterLeagueSuggestions"), reporters, "CompetitionFilter.reportSeen callers")
+    }
+
+    // Slower live refresh: in the match page ticker (found like the fingerprint), the const/16 15
+    // limit goes through the feature's value helper (30 while on) right before the if-lt.
+    private fun assertSlowerLiveRefresh(classes: List<ClassDef>) {
+        val sites = classes.flatMap { it.methods }.flatMap { m ->
+            val insns = m.instructions()
+            insns.indices.filter { insns[it].referencesString("Refreshing match facts!") }.mapNotNull { log ->
+                (log - 3 until log).firstOrNull { it >= 0 && insns[it].opcode == Opcode.IF_LT }?.let { Triple(m, insns, it) }
+            }
+        }
+        assertEquals(1, sites.size, "match refresh tickers: ${sites.map { "${it.first.definingClass}.${it.first.name}" }}")
+        val (method, insns, branch) = sites.single()
+        val label = "${method.definingClass}.${method.name} (match refresh)"
+        val limit = (insns[branch] as TwoRegisterInstruction).registerB
+        val ref = valueHelperCallAt(insns, branch - 2, limit, label)
+        val const = insns[branch - 3]
+        assertTrue(
+            const.opcode == Opcode.CONST_16 && (const as NarrowLiteralInstruction).narrowLiteral == 15 &&
+                (const as OneRegisterInstruction).registerA == limit,
+            "$label: the helper does not filter the stock limit 15; got ${const.opcode}"
+        )
+        assertEquals(method.definingClass, ref.definingClass, "$label: helper class")
+        assertValueHelper(classes, ref, SLOWER_LIVE_REFRESH.id, 30)
+    }
+
+    private fun assertHevalControls(classes: List<ClassDef>) {
+        val byType = classes.associateBy { it.type }
+        for (type in listOf(HEVAL_SETTINGS_CLASS, "${HEVAL_EXTENSION}Registry;", "${HEVAL_EXTENSION}InitProvider;",
+            "${HEVAL_EXTENSION}ui/HevalControlsActivity;", FOTMOB_CONTROLS_ENTRY, ACTIVITY_HOOKS, ANIMATION_SPEED, SYSTEM_FONT_EXTENSION,
+            COUNTRY_FILTER, "Lapp/template/extension/fotmob/CountryData;", "Lapp/template/extension/fotmob/CountrySeeds;",
+            COMPETITION_FILTER, "Lapp/template/extension/fotmob/CompetitionIcons;")) {
+            assertTrue(type in byType, "$type is not in the patched dex")
+        }
+        val entryStrings = byType.getValue(FOTMOB_CONTROLS_ENTRY).methods.flatMap { m -> m.instructions().mapNotNull { it.stringOrNull() } }
+        assertTrue("Patch settings" in entryStrings, "the Settings row does not say \"Patch settings\"")
+
+        // The registry lists exactly the FotMob features (any record order: execution order).
+        val registry = byType.getValue("${HEVAL_EXTENSION}Registry;").methods.single { it.name == "encoded" }.instructions()
+        assertTrue(registry[0].opcode == Opcode.CONST_STRING_JUMBO && registry[1].opcode == Opcode.RETURN_OBJECT, "Registry.encoded() was not rewritten")
+        val encoded = registry[0].stringOrNull()!!.split('\n')
+        val wanted = HevalRegistryCodec.encode(
+            listOf(
+                HIDE_BETTING_CONTENT, DISABLE_RATING_PROMPTS, DISABLE_PLUS_PROMO_POPUP, USE_SYSTEM_FONT,
+                DISABLE_ANIMATIONS, FASTER_ANIMATIONS, SLOWER_LIVE_REFRESH, HIDDEN_COUNTRIES, HIDDEN_COMPETITIONS,
+            ),
+        ).split('\n')
+        assertTrue(
+            encoded.first() == wanted.first() && encoded.size == wanted.size && encoded.toSet() == wanted.toSet(),
+            "Registry.encoded() is\n${encoded.joinToString("\n")}\nexpected (any order)\n${wanted.joinToString("\n")}"
+        )
+
+        // Manifest: the non-exported init provider (initOrder 1000) and the non-exported screen.
+        val manifestFile = workDir.walkTopDown()
+            .firstOrNull { it.name == "AndroidManifest.xml" && it.readText().contains("hevalcontrols") }
+            ?: error("no decoded AndroidManifest.xml with Patch settings under $workDir")
+        val manifest = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(manifestFile).documentElement
+        fun elements(tag: String) = manifest.getElementsByTagName(tag).let { list -> (0 until list.length).map { list.item(it) as Element } }
+        val provider = elements("provider").single { it.getAttribute("android:name") == "app.template.extension.hevalcontrols.InitProvider" }
+        assertTrue(
+            provider.getAttribute("android:authorities") == "$PKG.hevalcontrols" && provider.getAttribute("android:exported") == "false" &&
+                provider.getAttribute("android:initOrder") == "1000",
+            "Patch settings provider has the wrong authority, exported flag or initOrder"
+        )
+        val activity = elements("activity").single { it.getAttribute("android:name") == "app.template.extension.hevalcontrols.ui.HevalControlsActivity" }
+        assertEquals("false", activity.getAttribute("android:exported"), "HevalControlsActivity exported")
+
+        // The Settings row: SettingsActivity.onCreate calls addRow(this) right after setContentView.
+        val onCreate = byType.getValue(SETTINGS_ACTIVITY).method("onCreate", listOf("Landroid/os/Bundle;"))
+        val insns = onCreate.instructions()
+        val setContent = insns.indexOfFirst { it.methodRef()?.name == "setContentView" }
+        val entry = insns[setContent + 1]
+        assertTrue(
+            entry.opcode == Opcode.INVOKE_STATIC_RANGE && entry.methodRef()?.definingClass == FOTMOB_CONTROLS_ENTRY &&
+                entry.methodRef()?.name == "addRow" &&
+                (entry as RegisterRangeInstruction).startRegister == onCreate.implementation!!.registerCount - 2,
+            "SettingsActivity.onCreate does not call addRow(p0) after setContentView; got ${entry.opcode} ${entry.methodRef()}"
+        )
+        assertEquals(1, insns.count { it.methodRef()?.definingClass == FOTMOB_CONTROLS_ENTRY }, "addRow calls")
     }
 
     // Use system font, bytecode: both targets found like the patch does (the "my" locale check
@@ -197,19 +519,18 @@ class FotMobSmokeTest {
         val store = (myIndex until initInsns.size).first { i ->
             initInsns[i].opcode == Opcode.SPUT_BOOLEAN && initInsns[i].fieldRef()?.definingClass == init.definingClass
         }
-        val forced = initInsns[store - 1]
-        assertTrue(
-            forced.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) && (forced as NarrowLiteralInstruction).narrowLiteral == 0 &&
-                (forced as OneRegisterInstruction).registerA == (initInsns[store] as OneRegisterInstruction).registerA,
-            "$initLabel: the flag store is not preceded by a zero const on its register; got ${forced.opcode}"
-        )
-        // Both branches of the "my" check must run the forced zero: no jump may land on the store.
+        // The stored flag goes through the feature's (Z)Z value helper (false while on).
+        val flagRegister = (initInsns[store] as OneRegisterInstruction).registerA
+        val helper = valueHelperCallAt(initInsns, store - 2, flagRegister, initLabel)
+        assertEquals(init.definingClass, helper.definingClass, "$initLabel: helper class")
+        assertValueHelper(classes, helper, USE_SYSTEM_FONT.id, 0)
+        // Both branches of the "my" check must run the helper: no jump may land between it and the store.
         val addresses = initInsns.runningFold(0) { address, insn -> address + insn.codeUnits }
         val targets = initInsns.indices.mapNotNull { i ->
             (initInsns[i] as? OffsetInstruction)?.let { addresses[i] + it.codeOffset }
         }.toSet()
-        assertTrue(addresses[store] !in targets, "$initLabel: a branch jumps straight to the flag store, past the forced zero")
-        assertTrue(addresses[store - 1] in targets, "$initLabel: no branch reaches the forced zero")
+        assertTrue(addresses[store] !in targets && addresses[store - 1] !in targets, "$initLabel: a branch jumps past the helper call")
+        assertTrue(addresses[store - 2] in targets, "$initLabel: no branch reaches the helper call")
 
         val loaders = classes.flatMap { it.methods }.filter { m ->
             AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == TYPEFACE &&
@@ -221,26 +542,88 @@ class FotMobSmokeTest {
         assertEquals(1, loaders.size, "Typeface loaders: ${loaders.map { "${it.definingClass}.${it.name}" }}")
         val loader = loaders.single()
         val loaderLabel = "${loader.definingClass}.${loader.name} (Typeface loader)"
-        val insns = loader.instructions()
-        val call = insns[0]
+        // While the feature is on: SystemFontPatch.create(p2 family, p3 style) is returned at once.
+        val path = assertGatedPath(
+            loader, USE_SYSTEM_FONT.id, loaderLabel,
+            listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+        )
+        val call = path[0]
         val callRef = call.methodRef()
         val p2 = loader.implementation!!.registerCount - 4 + 2
         assertTrue(
-            call.opcode == Opcode.INVOKE_STATIC_RANGE && callRef?.definingClass == TYPEFACE && callRef.name == "create" &&
-                callRef.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I") &&
+            callRef?.definingClass == SYSTEM_FONT_EXTENSION && callRef.name == "create" &&
+                callRef.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I") && callRef.returnType == TYPEFACE &&
                 (call as RegisterRangeInstruction).startRegister == p2 && call.registerCount == 2,
-            "$loaderLabel: does not start with Typeface.create(p2 family, p3 style); got ${call.opcode} $callRef"
+            "$loaderLabel: the gated path is not SystemFontPatch.create(p2 family, p3 style); got ${call.opcode} $callRef"
         )
+        assertEquals(
+            (path[1] as OneRegisterInstruction).registerA, (path[2] as OneRegisterInstruction).registerA,
+            "$loaderLabel: the created Typeface is not returned"
+        )
+
+        // The extension is merged, and no app code calls Typeface.create(String, int) directly any
+        // more: AppCompat's fontFamily resolution, Compose and the loader all go through it.
+        val extension = classes.singleOrNull { it.type == SYSTEM_FONT_EXTENSION }
+        assertTrue(extension != null, "SystemFontPatch extension class is missing")
         assertTrue(
-            insns[1].opcode == Opcode.MOVE_RESULT_OBJECT && insns[2].opcode == Opcode.RETURN_OBJECT &&
-                (insns[1] as OneRegisterInstruction).registerA == (insns[2] as OneRegisterInstruction).registerA,
-            "$loaderLabel: the created Typeface is not returned at once; got ${insns.take(3).map { it.opcode }}"
+            extension!!.methods.any { it.name == "composeFamily" } && extension.methods.any { it.name == "create" },
+            "SystemFontPatch lacks create/composeFamily"
+        )
+        fun MethodReference.isCreateByName() = definingClass == TYPEFACE && name == "create" &&
+            parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I")
+        // The redirect skips the extension package: its fallbacks (create's original call, the
+        // device-font lookups in map/weighted) must stay direct framework calls, or every
+        // Typeface.create would recurse into itself.
+        val extensionCreate = extension.method("create", listOf("Ljava/lang/String;", "I"))
+        assertTrue(
+            extensionCreate.instructions().any { it.methodRef()?.isCreateByName() == true },
+            "SystemFontPatch.create no longer falls back to Typeface.create(String, int) directly"
+        )
+        val selfCalls = extension.methods.flatMap { m ->
+            m.instructions().mapNotNull { it.methodRef() }
+                .filter { it.definingClass == SYSTEM_FONT_EXTENSION && it.name == "create" }
+                .map { "${m.name} -> ${it.name}" }
+        }
+        assertTrue(selfCalls.isEmpty(), "SystemFontPatch calls its own create (would recurse): $selfCalls")
+        val direct = classes.filter { it.type != SYSTEM_FONT_EXTENSION }.flatMap { cls ->
+            cls.methods.filter { m -> m.instructions().any { it.methodRef()?.isCreateByName() == true } }
+                .map { "${cls.type}->${it.name}" }
+        }
+        assertTrue(direct.isEmpty(), "Typeface.create(String, int) still called directly: $direct")
+        val redirected = classes.filter { it.type != SYSTEM_FONT_EXTENSION }.sumOf { cls ->
+            cls.methods.sumOf { m ->
+                m.instructions().count { insn ->
+                    insn.methodRef()?.let { it.definingClass == SYSTEM_FONT_EXTENSION && it.name == "create" } == true
+                }
+            }
+        }
+        assertTrue(redirected >= 10, "only $redirected calls go through SystemFontPatch.create")
+
+        // Compose's platform typeface factory (found by its library shape) first maps the family.
+        val factories = classes.flatMap { it.methods }.filter { m ->
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == TYPEFACE && m.parameterTypes.size == 3 &&
+                m.parameterTypes[0].toString() == "Ljava/lang/String;" && m.parameterTypes[2].toString() == "I" &&
+                m.instructions().any { it.fieldRef()?.let { f -> f.definingClass == TYPEFACE && f.name == "DEFAULT_BOLD" } == true } &&
+                m.instructions().any { insn ->
+                    insn.methodRef()?.let { it.definingClass == TYPEFACE && it.name == "create" && it.parameterTypes.size == 3 } == true
+                }
+        }
+        assertEquals(1, factories.size, "Compose typeface factories: ${factories.map { "${it.definingClass}.${it.name}" }}")
+        val factory = factories.single()
+        val factoryInsns = factory.instructions()
+        val p0 = factory.implementation!!.registerCount - 3
+        val mapCall = factoryInsns[0]
+        assertTrue(
+            mapCall.methodRef()?.let { it.definingClass == SYSTEM_FONT_EXTENSION && it.name == "composeFamily" } == true &&
+                (mapCall as FiveRegisterInstruction).registerCount == 1 && mapCall.registerC == p0 &&
+                factoryInsns[1].opcode == Opcode.MOVE_RESULT_OBJECT && (factoryInsns[1] as OneRegisterInstruction).registerA == p0,
+            "${factory.definingClass}.${factory.name}: does not start with p0 = SystemFontPatch.composeFamily(p0); got ${factoryInsns.take(2)}"
         )
     }
 
-    // Use system font, resources: the decoded styles the patch wrote. The API 26+ theme's six font
-    // attributes now hold the system families of the base/Burmese themes, and the switch text
-    // appearance uses the system medium family.
+    // Use system font, resources: the stock theme and switch styles are untouched (the switch can be
+    // off), and the overlay the extension applies holds the system families of the base/Burmese
+    // themes plus a switch style whose text appearance uses the system medium family.
     private fun assertSystemFontStyles() {
         fun styles(dir: String): Map<String, Map<String, String>> {
             val file = workDir.walkTopDown().singleOrNull { it.name == "styles.xml" && it.parentFile.name == dir }
@@ -254,14 +637,22 @@ class FotMobSmokeTest {
             }
         }
         val theme = styles("values-v26")["Base.Theme.FotMob.V26"] ?: error("values-v26: Base.Theme.FotMob.V26 not found")
+        assertEquals("@font/flex_regular", theme["font_regular"], "Base.Theme.FotMob.V26 font_regular (stock)")
+        val base = styles("values")
+        val switch = base["TextAppearance.FotMob.Switch"] ?: error("values: TextAppearance.FotMob.Switch not found")
+        assertEquals("@font/flex_semi_bold", switch["android:fontFamily"], "TextAppearance.FotMob.Switch android:fontFamily (stock)")
+
         val expected = mapOf(
             "font_regular" to "sans-serif", "font_medium" to "sans-serif-medium", "font_semi_bold" to "sans-serif-medium",
             "font_extra_bold" to "sans-serif-black", "nativeAdBodyFont" to "sans-serif", "nativeAdTitleFont" to "sans-serif-medium",
+            "materialSwitchStyle" to "@style/HevalSystemFontSwitch",
         )
-        assertEquals(expected, theme.filterKeys { it in expected }, "Base.Theme.FotMob.V26 font items")
-        val switch = styles("values")["TextAppearance.FotMob.Switch"] ?: error("values: TextAppearance.FotMob.Switch not found")
-        assertEquals("sans-serif-medium", switch["android:fontFamily"], "TextAppearance.FotMob.Switch android:fontFamily")
-        assertEquals("sans-serif-medium", switch["fontFamily"], "TextAppearance.FotMob.Switch fontFamily")
+        assertEquals(expected, base["HevalSystemFontOverlay"], "HevalSystemFontOverlay items")
+        assertEquals(mapOf("android:textAppearance" to "@style/HevalSystemFontSwitchText"), base["HevalSystemFontSwitch"], "HevalSystemFontSwitch")
+        assertEquals(
+            mapOf("android:fontFamily" to "sans-serif-medium", "fontFamily" to "sans-serif-medium"),
+            base["HevalSystemFontSwitchText"], "HevalSystemFontSwitchText",
+        )
     }
 
     // Hide betting content, Disable rating prompts, Disable FotMob+ promo popup: each target is
@@ -276,14 +667,15 @@ class FotMobSmokeTest {
         val gates = methods.filter { m -> m.isContinuationShape() && m.instructions().any { it.stringStartsWith(ODDS_GATE_LOG) } }
         assertEquals(1, gates.size, "odds gate candidates: ${gates.map { "${it.definingClass}.${it.name}" }}")
         val gate = gates.single()
-        val gateInsns = gate.instructions()
-        val falseField = (gateInsns[0] as? ReferenceInstruction)?.reference as? FieldReference
+        val gatePath = assertGatedPath(
+            gate, HIDE_BETTING_CONTENT.id, "${gate.definingClass}.${gate.name} (odds gate)",
+            listOf(Opcode.SGET_OBJECT, Opcode.RETURN_OBJECT),
+        )
+        val falseField = gatePath[0].fieldRef()
         assertTrue(
-            gateInsns[0].opcode == Opcode.SGET_OBJECT && falseField?.definingClass == "Ljava/lang/Boolean;" &&
-                falseField.name == "FALSE" && gateInsns[1].opcode == Opcode.RETURN_OBJECT &&
-                (gateInsns[0] as OneRegisterInstruction).registerA == (gateInsns[1] as OneRegisterInstruction).registerA,
-            "${gate.definingClass}.${gate.name} (odds gate) does not start with Boolean.FALSE + return-object; " +
-                "got ${gateInsns.take(2).map { it.opcode }}"
+            falseField?.definingClass == "Ljava/lang/Boolean;" && falseField.name == "FALSE" &&
+                (gatePath[0] as OneRegisterInstruction).registerA == (gatePath[1] as OneRegisterInstruction).registerA,
+            "${gate.definingClass}.${gate.name} (odds gate): the gated path does not return Boolean.FALSE"
         )
 
         val producers = methods.filter { m ->
@@ -293,24 +685,23 @@ class FotMobSmokeTest {
             }
         }
         assertEquals(1, producers.size, "RatingAppMessage producers: ${producers.map { "${it.definingClass}.${it.name}" }}")
-        assertReturnsNull(producers.single(), "RatingAppMessage producer")
+        assertReturnsNull(producers.single(), "RatingAppMessage producer", DISABLE_RATING_PROMPTS.id)
 
         val readers = methods.filter { m ->
             m.returnType == PLUS_PROMO_CONFIG && m.parameterTypes.isEmpty() && AccessFlags.STATIC.isSet(m.accessFlags) &&
                 m.instructions().any { it.referencesString(PLUS_PROMO_KEY) }
         }
         assertEquals(1, readers.size, "PlusPromoConfig readers: ${readers.map { "${it.definingClass}.${it.name}" }}")
-        assertReturnsNull(readers.single(), "PlusPromoConfig reader")
+        assertReturnsNull(readers.single(), "PlusPromoConfig reader", DISABLE_PLUS_PROMO_POPUP.id)
     }
 
-    private fun assertReturnsNull(method: Method, what: String) {
-        val insns = method.instructions()
+    /** [method] starts with the [featureId] gate whose path is const/4 0 + return-object. */
+    private fun assertReturnsNull(method: Method, what: String, featureId: String) {
+        val path = assertGatedPath(method, featureId, "${method.definingClass}.${method.name} ($what)", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT))
         assertTrue(
-            insns[0].opcode == Opcode.CONST_4 && (insns[0] as NarrowLiteralInstruction).narrowLiteral == 0 &&
-                insns[1].opcode == Opcode.RETURN_OBJECT &&
-                (insns[0] as OneRegisterInstruction).registerA == (insns[1] as OneRegisterInstruction).registerA,
-            "${method.definingClass}.${method.name} ($what) does not start with const/4 0 + return-object; " +
-                "got ${insns.take(2).map { it.opcode }}"
+            (path[0] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                (path[0] as OneRegisterInstruction).registerA == (path[1] as OneRegisterInstruction).registerA,
+            "${method.definingClass}.${method.name} ($what): the gated path does not return null"
         )
     }
 
@@ -324,6 +715,12 @@ class FotMobSmokeTest {
         assertEquals(1, gates.size, "shouldShowAds candidates: ${gates.map { "${it.definingClass}.${it.name}" }}")
         val gate = gates.single()
         assertForcedBoolean(gate, expected = false, label = "${gate.definingClass}.${gate.name} (shouldShowAds)")
+
+        // The Meta Audience Network and Vungle startup providers answer true at once.
+        for (provider in listOf("Lcom/facebook/ads/AudienceNetworkContentProvider;", "Lcom/vungle/ads/VungleProvider;")) {
+            val onCreate = classes.single { it.type == provider }.method("onCreate", listOf())
+            assertForcedBoolean(onCreate, expected = true, label = "$provider.onCreate")
+        }
     }
 
     private fun assertTelemetryDisabled(classes: List<ClassDef>, stock: List<ClassDef>) {
@@ -403,6 +800,55 @@ class FotMobSmokeTest {
                 "${method.definingClass}.${method.name}()Z (not the Crashlytics getter) was changed",
             )
         }
+
+        // Remote Config realtime: in the client holding the stream path, the synchronized (J)V
+        // that schedules the connection returns at once; its other methods keep their stock code.
+        val realtime = classes.single { cls -> cls.methods.any { m -> m.instructions().any { it.referencesString(RC_REALTIME_PATH) } } }
+        val schedulers = realtime.methods.filter {
+            it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf("J") && it.isSynchronized()
+        }
+        assertEquals(1, schedulers.size, "synchronized (J)V in ${realtime.type}: ${schedulers.map { it.name }}")
+        assertReturnsEarlyVoid(schedulers.single(), label = "${realtime.type}.${schedulers.single().name} (realtime connection)")
+        val stockRealtime = stockByType.getValue(realtime.type)
+        val schedulerName = schedulers.single().name
+        for (method in realtime.methods.filter { it.name != schedulerName && it.implementation != null }) {
+            val stockMethod = stockRealtime.methods.single {
+                it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+            }
+            assertEquals(stockMethod.instructions().map { it.opcode }, method.instructions().map { it.opcode }, "${realtime.type}.${method.name} was changed")
+        }
+
+        // AppsFlyer init: right after the "enable_appsflyer_sdk" getter's move-result, the result
+        // register is set to 0 (FotMob's "disabled in Remote Config" path).
+        val afGates = classes.flatMap { it.methods }.filter { m ->
+            m.instructions().any { it.referencesString("enable_appsflyer_sdk") } &&
+                m.instructions().any { it.methodRef()?.let { r -> r.definingClass == APPSFLYER_LIB && r.name == "init" } == true }
+        }
+        assertEquals(1, afGates.size, "AppsFlyer init methods: ${afGates.map { "${it.definingClass}.${it.name}" }}")
+        val afInsns = afGates.single().instructions()
+        val afKey = afInsns.indexOfFirst { it.referencesString("enable_appsflyer_sdk") }
+        val afMove = (afKey + 1 until afKey + 4).first { afInsns[it].opcode == Opcode.MOVE_RESULT }
+        val afForced = afInsns[afMove + 1]
+        assertTrue(
+            afForced.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) && (afForced as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                (afForced as OneRegisterInstruction).registerA == (afInsns[afMove] as OneRegisterInstruction).registerA &&
+                afInsns[afMove + 2].opcode == Opcode.IF_NEZ,
+            "AppsFlyer init flag is not forced to 0 before its check; got ${afInsns.subList(afMove, afMove + 3).map { it.opcode }}"
+        )
+        // The firebase.test.lab check in FotMobApp.onCreate is untouched (it also gates account sync).
+        val app = classes.single { it.type == "Lcom/fotmob/android/FotMobApp;" }.method("onCreate", listOf())
+        val appInsns = app.instructions()
+        val lab = appInsns.indexOfFirst { it.referencesString("firebase.test.lab") }
+        assertTrue(lab > 0 && appInsns[lab + 1].methodRef()?.name == "getString", "FotMobApp firebase.test.lab check changed")
+
+        // EmojiCompatInitializer.create returns Boolean.TRUE at once.
+        val emoji = classes.single { it.type == "Landroidx/emoji2/text/EmojiCompatInitializer;" }
+            .method("create", listOf("Landroid/content/Context;")).instructions()
+        assertTrue(
+            emoji[0].opcode == Opcode.SGET_OBJECT && emoji[0].fieldRef()?.let { it.definingClass == "Ljava/lang/Boolean;" && it.name == "TRUE" } == true &&
+                emoji[1].opcode == Opcode.RETURN_OBJECT,
+            "EmojiCompatInitializer.create does not return Boolean.TRUE at once; got ${emoji.take(2).map { it.opcode }}"
+        )
     }
 
     private fun assertOnboardingAutoSignInSkipped(classes: List<ClassDef>, stock: List<ClassDef>) {

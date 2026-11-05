@@ -15,7 +15,7 @@ The read-only update report found 43 unique class matches, 80 classes needing
 review and 61 stale explicit references. Class similarity suggestions were
 followed by method/field and call-site inspection, including R8 utility splitting.
 Local inventories, semantic field evidence and verification logs are under
-`../.inspect-nuvio-beta9/`.
+`../Skills/inspection-evidence/.inspect-nuvio-beta9/`.
 
 | Contract | Beta.9 binding |
 | --- | --- |
@@ -93,7 +93,7 @@ Artifacts:
 - Bundle: `patches/build/libs/patches-0.16.0.mpp`; the repository version was already 0.16.0 and was not changed.
 - Unsigned APK: `../Apps/NuvioTV/NuvioTV-1.1.0-beta.9-patches-unsigned.apk`.
 - APK SHA-256: `eb9c0f5a4669a71218f8d27d521409fdffe385c48afdcee9e9f915551dcd47ea`.
-- Logs: `../.inspect-nuvio-beta9/final-verification.log`, `banner-register-verification.log`, `rebuild.log`, `apk-verification-final.log` and `apk-audit.json`.
+- Logs: `../Skills/inspection-evidence/.inspect-nuvio-beta9/final-verification.log`, `banner-register-verification.log`, `rebuild.log`, `apk-verification-final.log` and `apk-audit.json`.
 
 The APK was rebuilt and audited. It was not signed, installed or tested on a
 device. No commit or push was made. The pending release-note scope is `nuviotv`.
@@ -109,7 +109,7 @@ The pending release-note scope remains `nuviotv`.
 The new current bundle is `patches/build/libs/patches-0.16.1.mpp`.
 `buildAndroid`, `generatePatchesList`, the complete `verifyNuvioLatest` suite,
 `verifyAndroidBundle` and `verifyMorpheDesktopImport` with Desktop 1.19.1 passed
-again; see `../.inspect-nuvio-beta9/post-pull-verification.log`.
+again; see `../Skills/inspection-evidence/.inspect-nuvio-beta9/post-pull-verification.log`.
 The version came from the pulled release commit. No local version bump, commit
 or push was made. This follow-up rebuilt the MPP; the unsigned APK recorded
 above remains the earlier build and was not rebuilt or installed here.

@@ -129,24 +129,14 @@ final class LocalAnalysisFlow {
         emitter.emit(initialProgress);
 
         try {
-            // Parse PGN using the app's native parser. 4.10.18 keeps it in q, 4.10.23 renamed
-            // the class to o; find whichever one has the static parse method.
+            // Parse PGN using the app's native parser.
             Class<?> fenTypeClass = Class.forName("com.chess.chessboard.fen.FenParser$FenType");
             Object fenTypeC = fenTypeClass.getField("c").get(null);
-            Method parsePgnMethod = null;
-            for (String className : new String[]{"com.chess.chessboard.pgn.q", "com.chess.chessboard.pgn.o"}) {
-                try {
-                    Method candidate = Class.forName(className)
-                        .getMethod("a", String.class, boolean.class, boolean.class, fenTypeClass);
-                    if (java.lang.reflect.Modifier.isStatic(candidate.getModifiers())) {
-                        parsePgnMethod = candidate;
-                        break;
-                    }
-                } catch (Throwable ignored) {
-                    // Try the next class.
-                }
+            Method parsePgnMethod = Class.forName("com.chess.chessboard.pgn.o")
+                .getMethod("a", String.class, boolean.class, boolean.class, fenTypeClass);
+            if (!java.lang.reflect.Modifier.isStatic(parsePgnMethod.getModifiers())) {
+                throw new IllegalStateException("The PGN parser is not static");
             }
-            if (parsePgnMethod == null) throw new IllegalStateException("The PGN parser was not found");
             Object gameObj = parsePgnMethod.invoke(null, pgn, true, true, fenTypeC);
 
             Method getMovesMethod = null;
@@ -504,24 +494,8 @@ final class LocalAnalysisFlow {
                 try {
                     int last = Math.min(bookPlies, totalMoves);
                     float openingScore = last == 0 ? data.startScore : data.plies[last - 1].scoreAfter;
-                    // 4.10.18: (String name, String url, float score); 4.10.23: (name, score, url).
-                    Constructor<?> openingConstructor = null;
-                    for (Constructor<?> candidate : openingClass.getConstructors()) {
-                        Class<?>[] openingTypes = candidate.getParameterTypes();
-                        if (openingTypes.length != 3 || openingTypes[0] != String.class) continue;
-                        boolean scoreMiddle = openingTypes[1] == float.class && openingTypes[2] == String.class;
-                        boolean scoreLast = openingTypes[1] == String.class && openingTypes[2] == float.class;
-                        if (scoreMiddle || scoreLast) {
-                            openingConstructor = candidate;
-                            break;
-                        }
-                    }
-                    if (openingConstructor != null) {
-                        boolean scoreMiddle = openingConstructor.getParameterTypes()[1] == float.class;
-                        openingInfo = scoreMiddle
-                            ? openingConstructor.newInstance(opening.name, openingScore, "")
-                            : openingConstructor.newInstance(opening.name, "", openingScore);
-                    }
+                    openingInfo = openingClass.getConstructor(String.class, float.class, String.class)
+                        .newInstance(opening.name, openingScore, "");
                 } catch (Throwable t) {
                     Log.e(TAG, "Could not build OpeningInfo", t);
                 }

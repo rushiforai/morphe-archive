@@ -10,20 +10,16 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import dev.hyzor.extension.chesscom.Features;
 import dev.hyzor.extension.chesscom.Utils;
 
 /**
- * chess.com serves one of two Home screens per account (the older list or the redesign), so every
- * switch applies to both. Items are recognised by what their data classes print ("QuickPlay(...").
+ * The Home screen's tiles and sections, reordered and filtered as the user chose. Items are
+ * recognised by what their data classes print ("QuickPlay(...").
  */
 public final class HomeLayout {
     /** Tiles (the redesign calls them recommended activities). */
@@ -49,40 +45,10 @@ public final class HomeLayout {
     private static final String HIDDEN_TILES = "home_hidden_tiles_v2";
     private static final String HIDDEN_SECTIONS = "home_hidden_sections_v2";
 
-    private static Map<String, String> sectionsByClass;
-
     private HomeLayout() {}
-
-    /** "binary.class.Name=SectionName;..." for the older Home's section classes; set by the patch. */
-    private static String sectionClasses() {
-        return "";
-    }
 
     private static boolean enabled() {
         return Features.customHomePatched() && Features.isEnabled(Features.CUSTOM_HOME);
-    }
-
-    /** The grid's tiles, reordered and filtered as the user chose. */
-    @SuppressWarnings("rawtypes")
-    public static List tiles(List tiles) {
-        if (tiles == null || !enabled()) return tiles;
-        return arrange(tiles);
-    }
-
-    /** The sections map as the screen reads it, without the hidden sections. */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static Map sections(Map sections) {
-        if (sections == null || !enabled()) return sections;
-        Set<String> hidden = hiddenSections();
-        if (hidden.isEmpty()) return sections;
-        Map<String, String> names = sectionNames();
-        Map filtered = new LinkedHashMap(sections);
-        Iterator keys = filtered.keySet().iterator();
-        while (keys.hasNext()) {
-            Object key = keys.next();
-            if (key instanceof Class && hidden.contains(olderSection(names.get(((Class<?>) key).getName())))) keys.remove();
-        }
-        return filtered;
     }
 
     /** The recommended activities, filtered and reordered (a new section object when changed). */
@@ -315,29 +281,6 @@ public final class HomeLayout {
         }
     }
 
-    private static String olderSection(String name) {
-        if (name == null) return null;
-        switch (name) {
-            case "CurrentDailyGames":
-                return "daily_games";
-            case "Challenges":
-            case "OutgoingChallenges":
-                return "challenges";
-            case "ChallengeRecommendations":
-                return "recommendations";
-            case "FriendsCarousel":
-                return "friends";
-            case "Stats":
-                return "stats";
-            case "FinishedVsPlayerGames":
-            case "FinishedVsBotsGames":
-            case "FinishedCoachGames":
-                return "history";
-            default:
-                return null;
-        }
-    }
-
     /** The redesigned Home's section classes, by what they print. */
     private static String redesignSection(String name) {
         switch (name) {
@@ -363,18 +306,6 @@ public final class HomeLayout {
     private static int rank(List<String> order, String id) {
         int index = order.indexOf(id);
         return index < 0 ? Integer.MAX_VALUE : index;
-    }
-
-    private static Map<String, String> sectionNames() {
-        if (sectionsByClass == null) {
-            Map<String, String> map = new HashMap<>();
-            for (String pair : sectionClasses().split(";")) {
-                int equals = pair.indexOf('=');
-                if (equals > 0) map.put(pair.substring(0, equals), pair.substring(equals + 1));
-            }
-            sectionsByClass = map;
-        }
-        return sectionsByClass;
     }
 
     private static Set<String> set(String key) {

@@ -1,1 +1,1 @@
-// Root build configuration for Anghami Plus Patches (Kero309x/anghamiplus-patches)
+// Root build configuration for Kero309x Patches (Kero309x/Kero309x-patches)

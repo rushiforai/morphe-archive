@@ -52,8 +52,7 @@ internal object ActivityCreateFingerprint : Fingerprint(
 @Suppress("unused")
 val maskLiveAdBreaksPatch = bytecodePatch(
     name = "Mask live ad breaks",
-    description = "Covers the ad breaks in the live streams with a black screen and mutes them, then restores " +
-        "the stream when the break ends. Live ads are part of the broadcast, so they cannot be removed.",
+    description = "Covers live ad breaks with a \"We'll be right back!\" screen and mutes them.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

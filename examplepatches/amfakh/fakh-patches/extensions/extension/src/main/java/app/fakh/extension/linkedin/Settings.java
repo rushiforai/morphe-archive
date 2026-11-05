@@ -23,6 +23,7 @@ public final class Settings {
     static final String HIDE_PREMIUM = "hide_premium";
     static final String DOWNLOAD_MEDIA = "download_media";
     static final String FOCUS_MODE = "focus_mode";
+    static final String EXPAND_POSTS = "expand_posts";
     static final String HIDE_CELEBRATIONS = "hide_celebrations";
     static final String HIDE_FEED_JOBS = "hide_feed_jobs";
     static final String HIDE_REPOSTS = "hide_reposts";
@@ -82,6 +83,10 @@ public final class Settings {
     }
 
     public static boolean isFeedFiltersIncluded() {
+        return false;
+    }
+
+    public static boolean isExpandPostsIncluded() {
         return false;
     }
 
@@ -224,6 +229,10 @@ public final class Settings {
     }
 
     // Feed filters remove normal content, so they are off until the user turns them on.
+
+    static boolean expandPosts() {
+        return isExpandPostsIncluded() && get(EXPAND_POSTS, false);
+    }
 
     static boolean focusMode() {
         return isFeedFiltersIncluded() && get(FOCUS_MODE, false);

@@ -27,3 +27,5 @@ devices and remote subscription-service accounts are outside this acceptance.
 [Actual Manager JVM/ART acceptance](manager-acceptance.json) includes exported
 APK hashes and new runtime logs. Same-key original-code removal and patch
 reapplication both preserve all three imported subscriptions and DataStore bytes.
+
+The public v1.4.0 remote source was refreshed and independently hash-verified, then applied/exported/installed through Manager with saved state unchanged. See `publishedSource` in the receipt and the raw `manager-released-*` captures.

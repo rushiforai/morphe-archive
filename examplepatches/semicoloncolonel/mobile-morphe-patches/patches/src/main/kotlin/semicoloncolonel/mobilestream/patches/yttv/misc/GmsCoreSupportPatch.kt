@@ -133,9 +133,7 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
 @Suppress("unused")
 val gmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore support",
-    description = "Lets the re-signed app sign in with a Google account through GmsCore (microG) " +
-        "instead of Google Play services. The app is installed under a different package name, " +
-        "so it can be installed beside the stock app. Requires ReVanced GmsCore.",
+    description = "Signs in with Google through GmsCore instead of Google Play services.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

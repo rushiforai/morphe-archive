@@ -93,7 +93,7 @@ object Constants {
         apkFileType = ApkFileType.APK,
         targets = listOf(
             AppTarget(
-                version = "3.8.3"
+                version = "3.8.5"
             )
         )
     )

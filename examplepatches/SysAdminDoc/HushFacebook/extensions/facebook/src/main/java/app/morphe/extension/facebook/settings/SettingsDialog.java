@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.InputType;
 import android.util.TypedValue;
@@ -28,6 +29,7 @@ import android.widget.FrameLayout;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -61,12 +63,24 @@ public final class SettingsDialog extends DialogFragment {
      */
     static final String TYPING = "hushfacebook_search_typing";
     static final String BUILD_DETAILS = "hushfacebook_build_details";
+    static final String VIEW_TOGGLE = "hushfacebook_view_toggle";
     /** Whether the keyboard is up over a view. Replaced in tests, where no keyboard draws. */
     static java.util.function.Predicate<View> keyboardUp = SettingsDialog::keyboardShowing;
 
     private TextView pageTitle;
+    /** What the bar calls the page once the header's name has scrolled away. */
+    private CharSequence pageName = "Hushfacebook";
+    private HeaderColumn column;
+    /** The header over the search: Facebook's icon, the name and the version line. */
+    private View headerIcon;
+    private TextView headerName;
+    private View headerVersion;
     Button pauseAction;
     private LinearLayout searchBox;
+    /** Under the search: shows the settings as one list or a button per section. */
+    private LinearLayout viewToggle;
+    private ImageView viewToggleIcon;
+    private TextView viewToggleLabel;
     private EditText search;
     private TextView results;
     private int found;
@@ -162,8 +176,9 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         typingAgain = savedInstanceState != null && savedInstanceState.getBoolean(TYPING);
-        LinearLayout root = new LinearLayout(getContext());
-        root.setOrientation(LinearLayout.VERTICAL);
+        ScreenColors palette = colors == null ? ScreenColors.black() : colors;
+        HeaderColumn root = new HeaderColumn(getContext());
+        column = root;
         root.setBackgroundColor(background());
 
         LinearLayout bar = new LinearLayout(getContext());
@@ -228,24 +243,57 @@ public final class SettingsDialog extends DialogFragment {
         labels.addView(pauseAction, actionPlace);
         root.addView(bar);
         View divider = new View(getContext());
-        divider.setBackgroundColor((colors == null ? ScreenColors.black() : colors).outline);
+        divider.setBackgroundColor(palette.outline);
         root.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
+        // The bar and its line stay put while the header, the search and the list scroll under them.
+        root.pin(2);
+
+        headerName = SettingsHeader.addTo(root, palette);
+        headerIcon = root.findViewWithTag(SettingsHeader.ICON);
+        headerVersion = root.findViewWithTag(SettingsHeader.VERSION);
 
         buildSearch(root);
 
         FrameLayout container = new FrameLayout(getContext());
         container.setId(CONTAINER_ID);
-        root.addView(container, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        // The column gives it the height below the bar.
+        root.addView(container, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0));
 
-        // Facebook targets a recent API, so its windows are edge to edge: keep the bars off the
-        // content.
+        root.setOnScrollChangeListener((view, x, y, oldX, oldY) -> showBarTitle());
+        root.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom)
+                -> showBarTitle());
+        // Facebook targets a recent API, so its windows are edge to edge: keep the bars and the
+        // keyboard off the content.
         root.setOnApplyWindowInsetsListener((view, insets) -> {
-            android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+            android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             return insets;
         });
         return root;
+    }
+
+    /** Lets the header follow [list]: it slides up under the bar as the rows scroll. */
+    void followList(ListView list) {
+        if (column != null) column.follow(list);
+    }
+
+    /**
+     * The bar leaves the name off while the header under it shows it, and names the page again
+     * once the header has scrolled away. While a search is typed it says so. Invisible rather than
+     * gone, so the bar keeps its height and its buttons stay where they were.
+     */
+    private void showBarTitle() {
+        if (pageTitle == null || column == null || headerName == null) return;
+        boolean searching = searchBox.getVisibility() == View.VISIBLE && search.length() > 0;
+        CharSequence text = searching ? L10n.t("Search settings") : pageName;
+        if (!TextUtils.equals(text, pageTitle.getText())) pageTitle.setText(text);
+        // "Search settings" names what the screen is doing, not the page; the header's name, which
+        // stays during a search, is the page's heading then.
+        if (pageTitle.isAccessibilityHeading() == searching) pageTitle.setAccessibilityHeading(!searching);
+        boolean nameShows = !searching && headerName.getVisibility() == View.VISIBLE
+                && (!column.isLaidOut() || headerName.getBottom() > column.getScrollY() + column.pinnedBottom());
+        int shown = nameShows ? View.INVISIBLE : View.VISIBLE;
+        if (pageTitle.getVisibility() != shown) pageTitle.setVisibility(shown);
     }
 
     private void buildSearch(LinearLayout root) {
@@ -254,28 +302,28 @@ public final class SettingsDialog extends DialogFragment {
         searchBox.setGravity(Gravity.CENTER_VERTICAL);
         android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
         surface.setColor(palette.card);
-        surface.setCornerRadius(dp(8));
+        surface.setCornerRadius(dp(10));
         surface.setStroke(dp(1), ScreenColors.focusStroke(palette.heading, palette.outline));
         searchBox.setBackground(surface);
         searchBox.setAddStatesFromChildren(true);
-        searchBox.setPaddingRelative(dp(12), 0, 0, 0);
+        searchBox.setPaddingRelative(dp(14), 0, dp(4), 0);
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.SEARCH, palette.summary));
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        searchBox.addView(icon, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        searchBox.addView(icon, new LinearLayout.LayoutParams(dp(20), dp(20)));
         search = new EditText(getContext());
         search.setHint(L10n.t("Search settings"));
         search.setContentDescription(L10n.t("Search settings"));
         search.setSingleLine(true);
-        search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
                 | android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
                 | android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         search.setBackground(null);
         search.setTextColor(palette.title);
-        search.setHintTextColor(palette.summary);
-        search.setPaddingRelative(dp(10), dp(8), 0, dp(8));
+        search.setHintTextColor(palette.hint);
+        search.setPaddingRelative(dp(12), dp(10), 0, dp(10));
         search.setMinimumHeight(dp(48));
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
@@ -296,6 +344,7 @@ public final class SettingsDialog extends DialogFragment {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
                 clear.setVisibility(text.length() == 0 ? emptyClearVisibility : View.VISIBLE);
+                showBarTitle();
                 HushfacebookPreferenceFragment page = page();
                 if (!settingSearch && page != null && page.navigation != null) page.navigation.search(text.toString());
             }
@@ -308,8 +357,10 @@ public final class SettingsDialog extends DialogFragment {
         });
         LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        layout.setMargins(dp(12), dp(12), dp(12), dp(8));
+        // On the 18 dp line the section cards and the restart bar stand on.
+        layout.setMargins(dp(18), dp(4), dp(18), dp(12));
         root.addView(searchBox, layout);
+        buildViewToggle(root, palette);
         // Typed letters alone tell a screen reader nothing about the list below, so the count is
         // spoken from a polite live region, once the typing has settled.
         results = new TextView(getContext());
@@ -321,6 +372,7 @@ public final class SettingsDialog extends DialogFragment {
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         place.setMarginStart(dp(20));
         place.setMarginEnd(dp(20));
+        place.topMargin = dp(8);
         place.bottomMargin = dp(8);
         root.addView(results, place);
         // A newly opened screen must not steal focus and raise the keyboard.
@@ -329,8 +381,71 @@ public final class SettingsDialog extends DialogFragment {
         searchBox.setVisibility(View.GONE);
     }
 
+    /**
+     * Under the search, a row of the page like a section's button: it shows every section's rows
+     * on one list, or a button per section, and offers whichever the list isn't showing. It stays
+     * while a search is typed.
+     */
+    private void buildViewToggle(LinearLayout root, ScreenColors palette) {
+        viewToggle = new LinearLayout(getContext());
+        viewToggle.setTag(VIEW_TOGGLE);
+        viewToggle.setOrientation(LinearLayout.HORIZONTAL);
+        viewToggle.setGravity(Gravity.CENTER_VERTICAL);
+        viewToggle.setMinimumHeight(dp(48));
+        viewToggle.setPaddingRelative(dp(20), dp(4), dp(20), dp(4));
+        android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
+        surface.setColor(palette.card);
+        surface.setStroke(dp(1), palette.interactionOutline(palette.outline));
+        // Edge to edge like the rows under it: only the line along its bottom shows.
+        android.graphics.drawable.Drawable inset = new android.graphics.drawable.InsetDrawable(surface, -dp(1), -dp(1), -dp(1), 0);
+        viewToggle.setBackground(new android.graphics.drawable.RippleDrawable(
+                ScreenColors.interactionRipple(palette.heading), inset, null));
+        viewToggle.setFocusable(true);
+        viewToggle.setClickable(true);
+        viewToggleIcon = new ImageView(getContext());
+        viewToggleIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        viewToggleIcon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        viewToggleIcon.setPaddingRelative(0, 0, dp(14), 0);
+        viewToggle.addView(viewToggleIcon, new LinearLayout.LayoutParams(dp(38), dp(24)));
+        viewToggleLabel = new TextView(getContext());
+        viewToggleLabel.setTextColor(palette.title);
+        viewToggleLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        viewToggleLabel.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        viewToggleLabel.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        viewToggle.addView(viewToggleLabel, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        viewToggle.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Button.class.getName());
+            }
+        });
+        viewToggle.setOnClickListener(ignored -> {
+            HushfacebookPreferenceFragment page = page();
+            if (page != null && page.navigation != null) page.navigation.showAsList(!page.navigation.listMode());
+        });
+        showViewToggle(false);
+        viewToggle.setVisibility(View.GONE);
+        root.addView(viewToggle, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    /** The toggle offers the view the list isn't showing: [list] is the one it shows now. */
+    void showViewToggle(boolean list) {
+        ScreenColors palette = colors == null ? ScreenColors.black() : colors;
+        CharSequence label = list ? L10n.t("Show settings by category") : L10n.t("Show all settings as a list");
+        if (!TextUtils.equals(label, viewToggleLabel.getText())) viewToggleLabel.setText(label);
+        viewToggleIcon.setImageDrawable(SettingsIcons.icon(getContext(), list ? SettingsIcons.FEED : SettingsIcons.MENU,
+                palette.heading));
+    }
+
     void showPage(CharSequence title, boolean home, String query) {
-        pageTitle.setText(title);
+        pageName = title;
+        // The header belongs to the main page, and stays there while a search is typed.
+        int header = home ? View.VISIBLE : View.GONE;
+        headerIcon.setVisibility(header);
+        headerName.setVisibility(header);
+        headerVersion.setVisibility(header);
         int headingSize = 22;
         if (home) {
             pageTitle.setAutoSizeTextTypeUniformWithConfiguration(12, headingSize, 1, TypedValue.COMPLEX_UNIT_SP);
@@ -340,9 +455,11 @@ public final class SettingsDialog extends DialogFragment {
         }
         pageTitle.setMaxLines(home ? 1 : Integer.MAX_VALUE);
         searchBox.setVisibility(home ? View.VISIBLE : View.GONE);
+        viewToggle.setVisibility(home ? View.VISIBLE : View.GONE);
         settingSearch = true;
         if (!search.getText().toString().equals(query)) search.setText(query);
         settingSearch = false;
+        showBarTitle();
         boolean typing = typingAgain && home;
         typingAgain = false;
         if (typing) {

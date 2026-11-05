@@ -149,7 +149,9 @@ public final class SettingsActivity extends Activity {
         }
 
         if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
-                || Settings.isCopyTextIncluded()) {
+                || Settings.isCopyTextIncluded() || Settings.isKeepFeedIncluded()
+                || Settings.isPostMenuIncluded() || Settings.isViewerTapToHideIncluded()
+                || Settings.isSwipeFeedsIncluded()) {
             Category feed = new Category("Feed", IconDrawable.FEED);
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Disable double-tap like",
@@ -158,6 +160,24 @@ public final class SettingsActivity extends Activity {
             if (Settings.isCopyTextIncluded()) {
                 feed.toggle(Settings.COPY_TEXT, true, "Copy text",
                         "Long press a post, comment, or any text to select and copy it, like on Reddit.");
+                feed.toggle(Settings.COPY_TEXT_LONG_SHEET, true, "Long posts in a sheet",
+                        "Long posts open in a scrollable sheet with the whole text. Off: selected in place like short text.");
+            }
+            if (Settings.isPostMenuIncluded()) {
+                feed.toggle(Settings.POST_MENU, true, "Post menu items",
+                        "Copy text, Download photos and videos, and Save document as PDF in the ⋯ menu of posts.");
+            }
+            if (Settings.isSwipeFeedsIncluded()) {
+                feed.toggle(Settings.SWIPE_FEEDS, true, "Swipe between feeds",
+                        "Swipe left for Network and right for For you, when the tabs are on screen.");
+            }
+            if (Settings.isViewerTapToHideIncluded()) {
+                feed.toggle(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide in viewers",
+                        "Tap a video or document in full screen to hide the caption and buttons, like photos.");
+            }
+            if (Settings.isKeepFeedIncluded()) {
+                feed.toggle(Settings.KEEP_FEED, true, "Keep feed on reopen",
+                        "Stay where you were when you come back. Pull down or tap \"New posts\" for new posts.");
             }
             if (Settings.isFeedFiltersIncluded()) {
                 feed.toggle(Settings.FOCUS_MODE, false, "Focus mode", "Hide like, comment, and repost counts.")
@@ -177,7 +197,24 @@ public final class SettingsActivity extends Activity {
                         .toggle(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button",
                                 "The pill that appears at the top of the feed.")
                         .toggle(Settings.HIDE_TRANSLATION, false, "Hide \"See translation\"",
-                                "The translate button below posts in other languages.");
+                                "The translate button below posts in other languages.")
+                        .toggle(Settings.HIDE_AI, false, "Hide AI suggestions",
+                                "AI prompts, suggestions, and assistant cards. Experimental.")
+                        .value("Muted words", new ValueRow() {
+                            public String currentValue() {
+                                String words = Settings.mutedWords().trim();
+                                return words.isEmpty() ? I18n.tr("Posts with these words or phrases are hidden.")
+                                        : words.replace("\n", ", ");
+                            }
+
+                            public Runnable onClick() {
+                                return SettingsActivity.this::editMutedWords;
+                            }
+
+                            public boolean enabled() {
+                                return true;
+                            }
+                        });
             }
             categories.add(feed);
         }
@@ -262,7 +299,7 @@ public final class SettingsActivity extends Activity {
         }
 
         if (Settings.isOpenLinksDirectlyIncluded() || Settings.isBlockTrackingIncluded()
-                || Settings.isSanitizeShareLinksIncluded()) {
+                || Settings.isSanitizeShareLinksIncluded() || Settings.isAnonymousProfileViewingIncluded()) {
             Category privacy = new Category("Privacy", IconDrawable.SHIELD);
             if (Settings.isOpenLinksDirectlyIncluded()) {
                 privacy.toggle(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
@@ -273,6 +310,10 @@ public final class SettingsActivity extends Activity {
             if (Settings.isSanitizeShareLinksIncluded()) {
                 privacy.toggle(Settings.SANITIZE_SHARE_LINKS, true, "Clean share links",
                         "Remove tracking parameters (utm, trk, rcm, ...) when copying or sharing LinkedIn links.");
+            }
+            if (Settings.isAnonymousProfileViewingIncluded()) {
+                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, false, "Anonymous profile viewing",
+                        "Visit profiles without telling LinkedIn, while you still see who viewed yours. Experimental.");
             }
             if (Settings.isBlockTrackingIncluded()) {
                 privacy.toggle(Settings.BLOCK_TRACKING, false, "Block tracking",
@@ -334,12 +375,52 @@ public final class SettingsActivity extends Activity {
      * Colors the buttons of a dialog shown over LinkedIn's own screens, whose theme makes button text transparent.
      */
     static void tintButtons(AlertDialog dialog, Context context) {
-        boolean dark = (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
-                == Configuration.UI_MODE_NIGHT_YES;
+        boolean dark = hasLightText(dialog.getContext(), (context.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES);
         int color = MaterialYou.settingsAccent(dark, dark ? ACCENT_DARK : ACCENT_LIGHT);
-        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
-            if (dialog.getButton(which) != null) dialog.getButton(which).setTextColor(color);
+        // Some phone makers draw dialog buttons as filled pills in their own accent color, which hides accent
+        // colored text. The dialog gets a background of its own and the buttons become plain text buttons, so
+        // they are readable on every phone.
+        if (dialog.getWindow() != null) {
+            GradientDrawable panel = new GradientDrawable();
+            panel.setColor(dark ? 0xFF1E1F22 : 0xFFFFFFFF);
+            panel.setCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24,
+                    context.getResources().getDisplayMetrics()));
+            dialog.getWindow().setBackgroundDrawable(panel);
         }
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
+            android.widget.Button button = dialog.getButton(which);
+            if (button == null) continue;
+            button.setBackgroundColor(0x00000000);
+            button.setTextColor(color);
+            button.setAllCaps(false);
+            button.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+    }
+
+    /**
+     * Whether the dialog's theme draws light text, so it needs a dark panel. LinkedIn's screens can be light while
+     * the phone is in dark mode, so the panel follows the text color of the theme rather than the phone's mode.
+     */
+    private static boolean hasLightText(Context context, boolean fallback) {
+        TypedValue value = new TypedValue();
+        if (!context.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true)) return fallback;
+        int color;
+        if (value.resourceId != 0) {
+            android.content.res.ColorStateList list = context.getColorStateList(value.resourceId);
+            color = list.getDefaultColor();
+        } else if (value.type >= TypedValue.TYPE_FIRST_COLOR_INT && value.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            color = value.data;
+        } else {
+            return fallback;
+        }
+        double luminance = (0.299 * ((color >> 16) & 0xFF) + 0.587 * ((color >> 8) & 0xFF) + 0.114 * (color & 0xFF)) / 255;
+        return luminance > 0.5;
+    }
+
+    private AlertDialog tint(AlertDialog dialog) {
+        tintButtons(dialog, this);
+        return dialog;
     }
 
     static void open(Context context) {
@@ -735,6 +816,11 @@ public final class SettingsActivity extends Activity {
                 {"Feed filters", Settings.isFeedFiltersIncluded()},
                 {"Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()},
                 {"Copy text", Settings.isCopyTextIncluded()},
+                {"Keep feed on reopen", Settings.isKeepFeedIncluded()},
+                {"Post menu items", Settings.isPostMenuIncluded()},
+                {"Tap to hide in viewers", Settings.isViewerTapToHideIncluded()},
+                {"Swipe between feeds", Settings.isSwipeFeedsIncluded()},
+                {"Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()},
                 {"Download media", Settings.isDownloadMediaIncluded()},
                 {"Messaging", Settings.isMessagingIncluded()},
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},
@@ -775,8 +861,6 @@ public final class SettingsActivity extends Activity {
         LinearLayout box = cardBox("Credits", I18n.f("The people and projects behind %1$s.", BRAND));
         box.addView(creditCard(IconDrawable.PEOPLE, AUTHOR, I18n.f("Creator of %1$s", BRAND),
                 "github.com/lokesh-sparrow", "https://github.com/lokesh-sparrow"));
-        box.addView(creditCard(IconDrawable.CODE, "Michii Patches", I18n.f("Based on %1$s", "Michii Patches"),
-                "github.com/heyymichii/michii-patches", "https://github.com/heyymichii/michii-patches"));
         box.addView(creditCard(IconDrawable.CODE, "Morphe", "Patcher, Morphe Manager, and the patch template",
                 "morphe.software", MORPHE_WEBSITE));
         box.addView(creditCard(IconDrawable.INFO, "LinkedIn",
@@ -928,7 +1012,7 @@ public final class SettingsActivity extends Activity {
 
     private void chooseLanguage() {
         String[] codes = languageCodes();
-        new AlertDialog.Builder(this, dialogTheme())
+        tint(new AlertDialog.Builder(this, dialogTheme())
                 .setTitle(I18n.tr("Language"))
                 .setSingleChoiceItems(languageNames(), languageIndex(), (dialog, which) -> {
                     Settings.setString(Settings.LANGUAGE, codes[which]);
@@ -937,7 +1021,7 @@ public final class SettingsActivity extends Activity {
                     recreate();
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
-                .show();
+                .show());
     }
 
     // endregion
@@ -969,6 +1053,29 @@ public final class SettingsActivity extends Activity {
         }
     }
 
+    private void editMutedWords() {
+        EditText input = new EditText(this);
+        input.setHint(I18n.tr("One word or phrase per line, for example:\nthrilled to announce\nhiring"));
+        input.setMinLines(4);
+        input.setGravity(Gravity.TOP);
+        input.setText(Settings.mutedWords());
+        LinearLayout box = new LinearLayout(this);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input, matchWidth());
+
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Muted words"))
+                .setMessage(I18n.tr("Posts containing any of these, as whole words, are hidden from your feed. "
+                        + "Upper and lower case don't matter."))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    Settings.setMutedWords(input.getText().toString().trim());
+                    refresh();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
     private void importSettings() {
         EditText input = new EditText(this);
         input.setHint(I18n.tr("Paste a settings backup here"));
@@ -983,7 +1090,7 @@ public final class SettingsActivity extends Activity {
         box.setPadding(dp(24), dp(8), dp(24), 0);
         box.addView(input, matchWidth());
 
-        new AlertDialog.Builder(this, dialogTheme())
+        tint(new AlertDialog.Builder(this, dialogTheme())
                 .setTitle(I18n.tr("Import settings"))
                 .setView(box)
                 .setPositiveButton(I18n.tr("Import"), (dialog, which) -> {
@@ -997,11 +1104,11 @@ public final class SettingsActivity extends Activity {
                     }
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
-                .show();
+                .show());
     }
 
     private void resetSettings() {
-        new AlertDialog.Builder(this, dialogTheme())
+        tint(new AlertDialog.Builder(this, dialogTheme())
                 .setTitle(I18n.tr("Reset to defaults?"))
                 .setMessage(I18n.f("All %1$s settings will be reset, including the download location.", BRAND))
                 .setPositiveButton(I18n.tr("Reset"), (dialog, which) -> {
@@ -1011,7 +1118,7 @@ public final class SettingsActivity extends Activity {
                     showRestartBanner();
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
-                .show();
+                .show());
     }
 
     // endregion
@@ -1024,7 +1131,7 @@ public final class SettingsActivity extends Activity {
         int checked = 0;
         for (int i = 0; i < dirs.length; i++) if (dirs[i].equals(current)) checked = i;
 
-        new AlertDialog.Builder(this, dialogTheme())
+        tint(new AlertDialog.Builder(this, dialogTheme())
                 .setTitle(I18n.tr("Main folder"))
                 .setSingleChoiceItems(dirs, checked, (dialog, which) -> {
                     Settings.setString(Settings.DOWNLOAD_BASE_DIR, dirs[which]);
@@ -1032,7 +1139,7 @@ public final class SettingsActivity extends Activity {
                     dialog.dismiss();
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
-                .show();
+                .show());
     }
 
     private void editFolder() {
@@ -1053,7 +1160,7 @@ public final class SettingsActivity extends Activity {
         box.addView(input);
         box.addView(help);
 
-        new AlertDialog.Builder(this, dialogTheme())
+        tint(new AlertDialog.Builder(this, dialogTheme())
                 .setTitle(I18n.tr("Subfolder name"))
                 .setView(box)
                 .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
@@ -1065,7 +1172,7 @@ public final class SettingsActivity extends Activity {
                     refresh();
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
-                .show();
+                .show());
     }
 
     // endregion

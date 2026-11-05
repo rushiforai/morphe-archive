@@ -1,7 +1,13 @@
-# Surface video + trigger experiment (2026-10-25)
+# Surface video + trigger experiment (retired 2026-10-27)
 
-One default-off experimental patch tests the standard-codec presentation path on
-exact Steam Link **2.0.20/5001712**, without ASTC and without quad conversion.
+**Retired and removed at the owner's request.** The user reported that it did
+not produce high resolution. Static investigation found and corrected the
+layer/frame-`next` pass-through bug, but no post-correction headset evidence
+exists. This record retains the historical rationale only; the selectable patch,
+native source, tests, helper and manifest are removed.
+
+The original experiment tested the standard-codec presentation path on exact
+Steam Link **2.0.20/5001712**, without ASTC and without quad conversion.
 
 ## 2026-10-25 — first runtime blocker found and fixed
 
@@ -33,10 +39,10 @@ and appends the terminal trigger that the retired Surface-video experiment lacke
 
 ## Artifacts
 
-| File | Size | SHA-256 |
+| File (historical, removed from source) | Size | SHA-256 |
 |---|---:|---|
-| `patches/src/main/resources/steamlink/androidxr/libgxr_surface_video_trigger.so` | 407,104 | `1e223bfec56fc3e39355a5fda25464fc54d45887d98e8591884b1f4d80c8b384` |
-| `patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json` | 392 | `328d54a019fb1263a8fc76f3b35a3e23bcaa1ec66725b3d52775b62d3fe1b8fa` |
+| `libgxr_surface_video_trigger.so` | 407,104 | `1e223bfec56fc3e39355a5fda25464fc54d45887d98e8591884b1f4d80c8b384` |
+| `XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json` | 392 | `328d54a019fb1263a8fc76f3b35a3e23bcaa1ec66725b3d52775b62d3fe1b8fa` |
 
 Build ID: `surface-video-trigger-2proj-v1.0-20261025`.
 
@@ -47,8 +53,8 @@ Build ID: `surface-video-trigger-2proj-v1.0-20261025`.
 | Source/static inspection | Complete: non-ASTC `ProvideSurfaceWindow` Surface path and Steam Link `AImageReader` path |
 | Host integration tests | PASS: frame preparation, all-or-original readiness, pose/FOV/alpha/rect preservation, image ownership and timeout ordering |
 | Kotlin/unit tests | PASS: `:patches:test` 217 executed, 16 skipped, 0 failed |
-| Compilation/packaging | PASS: helper and manifest present in `patches-2.3.0-dev.1.mpp` |
-| Headset/runtime | **Pending.** No frame has been presented through this layer yet. |
+| Compilation/packaging | PASS at the time: helper and manifest were present in `patches-2.3.0-dev.1.mpp` |
+| Headset/runtime | **Failed:** the owner reported no high resolution. The 1:1 copy preserved Valve's source extent and the trigger was conditional on all four copies. |
 
 ## Runtime check
 

@@ -9,6 +9,8 @@ import app.morphe.patcher.string
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
+import app.template.patches.shared.hevalcontrols.HevalFeature
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private const val FEATURE_STATE = "Lcom/truecaller/featuretoggles/FeatureState;"
@@ -51,8 +53,24 @@ internal fun BytecodePatchContext.requireFeatureToggleRead(key: String) {
  * Makes every feature-toggle resolver return [value] for the toggle [key], whatever the server,
  * the local override or the default state says. Each call adds a self-contained check at the start
  * of each resolver, so patches that override different keys work together in any order.
+ *
+ * With a Heval Controls [featureId], the override applies only while that feature is on: a
+ * matching key asks `HevalSettings.isEnabled(featureId)` and, when it answers false, resolves the
+ * toggle as stock. Other keys never reach the gate, so the hot resolver path stays as cheap as it
+ * was.
  */
-internal fun BytecodePatchContext.overrideFeatureToggle(key: String, value: Boolean) {
+internal fun BytecodePatchContext.overrideFeatureToggle(key: String, value: Boolean, featureId: String? = null) {
+    if (featureId != null) require(HevalFeature.ID_REGEX.matches(featureId)) { "Invalid Patch settings feature id: $featureId" }
+    // const-string, /range invoke and move-result take any v0; the gate goes between the key match
+    // and the forced value.
+    val gate = featureId?.let { id ->
+        """
+            const-string v0, "$id"
+            invoke-static/range {v0 .. v0}, $HEVAL_SETTINGS_CLASS->isEnabled(Ljava/lang/String;)Z
+            move-result v0
+            if-eqz v0, :resolve_toggle
+        """
+    }.orEmpty()
     for (resolver in featureToggleResolvers()) {
         // v0 must be a local, not this/key/state (a thin wrapper without locals would be clobbered).
         if (resolver.implementation!!.registerCount <= 3) {
@@ -66,6 +84,7 @@ internal fun BytecodePatchContext.overrideFeatureToggle(key: String, value: Bool
                 invoke-virtual {v0, p1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v0
                 if-eqz v0, :resolve_toggle
+            """ + gate + """
                 const/4 v0, ${if (value) "0x1" else "0x0"}
                 return v0
             """,
@@ -75,9 +94,9 @@ internal fun BytecodePatchContext.overrideFeatureToggle(key: String, value: Bool
 }
 
 /** [requireFeatureToggleRead] then [overrideFeatureToggle] for each of [keys]. */
-internal fun BytecodePatchContext.overrideReadFeatureToggles(keys: List<String>, value: Boolean) {
+internal fun BytecodePatchContext.overrideReadFeatureToggles(keys: List<String>, value: Boolean, featureId: String? = null) {
     for (key in keys) {
         requireFeatureToggleRead(key)
-        overrideFeatureToggle(key, value)
+        overrideFeatureToggle(key, value, featureId)
     }
 }

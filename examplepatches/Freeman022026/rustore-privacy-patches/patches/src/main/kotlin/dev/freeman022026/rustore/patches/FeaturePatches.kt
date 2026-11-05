@@ -2,18 +2,43 @@ package dev.freeman022026.rustore.patches
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
+private const val UNIT_RESULT = """
+    sget-object v0, Lsu0/e0;->a:Lsu0/e0;
+    return-object v0
+"""
+
+private const val FALSE_RESULT = """
+    sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+    return-object v0
+"""
+
+/**
+ * Inserts code after App.onCreate's super call, where dependency injection has
+ * finished and WorkManager can be initialized. Only p0 and v0-v2 may be used.
+ */
+private fun MutableMethod.addAfterApplicationSuperOnCreate(smali: String) {
+    val superCalls = implementation!!.instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.INVOKE_SUPER &&
+            (instruction as? ReferenceInstruction)?.reference?.toString() == APPLICATION_SUPER_ON_CREATE
+    }
+    require(superCalls.size == 1) {
+        "Expected one Application super.onCreate call, found ${superCalls.size}"
+    }
+    addInstructions(superCalls.single().index + 1, smali)
+}
+
 @Suppress("unused")
 val disableAdvertisementsPatch = bytecodePatch(
     name = "Disable advertisements",
-    description = "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, and keeps advertising consent disabled.",
+    description = "Removes ad providers, sanitizes ad identifiers, returns an empty ad list, blocks promo tracking pixels, and keeps advertising consent disabled.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
@@ -33,10 +58,12 @@ val disableAdvertisementsPatch = bytecodePatch(
         rawAdvertisementRepositoryGetFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Lvt0/x;->a:Lvt0/x;
+                sget-object v0, Ltu0/x;->a:Ltu0/x;
                 return-object v0
             """
         )
+        // Promo cards arrive inside showcase sections; their show, click and install pixels go here.
+        promoTrackingUrlFingerprint.method.addInstructions(0, UNIT_RESULT)
         advertisementIdsConstructorFingerprint.method.addInstructions(
             0,
             """
@@ -83,7 +110,7 @@ val excludeGooglePlayAppsFromUpdateChecksPatch = bytecodePatch(
 @Suppress("unused")
 val disableAnalyticsAndTrackersPatch = bytecodePatch(
     name = "Disable analytics and trackers",
-    description = "Disables audited analytics transports and replaces the stable request device identifier.",
+    description = "Disables audited analytics transports, including VK Push metrics, and replaces the stable request device identifier.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
@@ -96,16 +123,24 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             mediaScopeTrackFingerprint,
             inAppStoryInitializeFingerprint
         ).forEach { fingerprint ->
-            fingerprint.method.addInstructions(
-                0,
-                """
-                    sget-object v0, Lut0/e0;->a:Lut0/e0;
-                    return-object v0
-                """
-            )
+            fingerprint.method.addInstructions(0, UNIT_RESULT)
         }
         // Also discard queued events from installations predating this patch.
         metricsEventSendFingerprint.method.addInstruction(0, "return-void")
+
+        // VK Push metrics: stop queuing events and drop batches already queued.
+        pushMetricsEventFingerprint.method.addInstruction(0, "return-void")
+        pushMetricsBatchSendFingerprint.method.addInstruction(0, "return-void")
+        applicationOnCreateFingerprint.method.addAfterApplicationSuperOnCreate(
+            """
+                const-string v1, "jobscheduler"
+                invoke-virtual {p0, v1}, Landroid/content/Context;->getSystemService(Ljava/lang/String;)Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Landroid/app/job/JobScheduler;
+                const v1, $PUSH_METRICS_JOB_ID
+                invoke-virtual {v0, v1}, Landroid/app/job/JobScheduler;->cancel(I)V
+            """
+        )
         requestDeviceIdFingerprint.method.addInstructions(
             0,
             """
@@ -116,28 +151,18 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
         listOf(appMetricaActivateFingerprint, myTrackerInitializeFingerprint).forEach { fingerprint ->
             fingerprint.method.addInstruction(0, "return-void")
         }
-        mainActivityOnNewIntentFingerprint.method.apply {
-            val matchingIndexes = implementation!!.instructions.withIndex()
-                .filter { (_, instruction) ->
-                    (instruction as? ReferenceInstruction)?.reference?.toString() ==
-                        REPORT_APP_OPEN_REFERENCE
-                }
-                .map { it.index }
-            require(matchingIndexes.size == 1) {
-                "Expected one AppMetrica reportAppOpen call, found ${matchingIndexes.size}"
-            }
-            removeInstructions(matchingIndexes.single(), 1)
-        }
 
         altCraftSendFingerprint.method.addInstruction(0, "return-void")
-        altCraftScheduleFingerprint.method.addInstructions(
-            0,
-            """
-                const-string v0, "AltCraftFlushEventsWorker"
-                invoke-virtual {p0, v0}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                return-void
-            """
-        )
+        listOf(altCraftScheduleFingerprint, altCraftFrequentScheduleFingerprint).forEach { fingerprint ->
+            fingerprint.method.addInstructions(
+                0,
+                """
+                    const-string v0, "AltCraftFlushEventsWorker"
+                    invoke-virtual {p0, v0}, $WORK_MANAGER_CANCEL_UNIQUE
+                    return-void
+                """
+            )
+        }
         altCraftWorkerFingerprint.method.addInstructions(
             0,
             """
@@ -151,7 +176,7 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             0,
             """
                 const-string v0, "RadarFlushSnapshotsWorker"
-                invoke-virtual {p0, v0}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
+                invoke-virtual {p0, v0}, $WORK_MANAGER_CANCEL_UNIQUE
                 return-void
             """
         )
@@ -238,10 +263,25 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
                 $disablePersistedPushServices
             """
         )
+        // The schedulers below now reach WorkManager through a suspending provider, so
+        // work persisted by an earlier official install is cancelled here instead.
+        val cancelUniqueWork = cancelledUniqueWorkNames.joinToString("\n") { name ->
+            """
+                const-string v1, "$name"
+                invoke-virtual {v0, v1}, $WORK_MANAGER_CANCEL_UNIQUE
+            """
+        }
+        applicationOnCreateFingerprint.method.addAfterApplicationSuperOnCreate(
+            """
+                invoke-static {p0}, $WORK_MANAGER_GET_INSTANCE
+                move-result-object v0
+                $cancelUniqueWork
+            """
+        )
         autoUpdateForegroundRestrictionFingerprint.method.apply {
             val foregroundRead = implementation!!.instructions.withIndex().single { (_, instruction) ->
                 instruction.opcode == Opcode.IGET_BOOLEAN &&
-                    (instruction as? ReferenceInstruction)?.reference?.toString() == "Lxs2/b;->c:Z"
+                    (instruction as? ReferenceInstruction)?.reference?.toString() == "Lsx2/b;->c:Z"
             }
             val register = (foregroundRead.value as OneRegisterInstruction).registerA
             // Keep the existing update-permission and status checks.
@@ -266,23 +306,14 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             }.addInstructions(0, workerSuccess)
         }
 
-        tracerDiskUsageInitializerFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p1
-                invoke-static {v0}, Lub/r0;->m(Landroid/content/Context;)Lub/r0;
-                move-result-object v0
-                const-string v1, "tracer.disk.usage.worker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                return-void
-            """
-        )
+        // Its persisted worker is cancelled with the other unique work after App.onCreate.
+        tracerDiskUsageInitializerFingerprint.method.addInstruction(0, "return-void")
         tracerSampleUploadFingerprint.method.addInstruction(0, "return-void")
 
         omicronNetworkRequestFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Lt31/e;->ERROR:Lt31/e;
+                sget-object v0, Lt41/e;->ERROR:Lt41/e;
                 return-object v0
             """
         )
@@ -303,122 +334,20 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             """
         )
 
-        installIdentifierInitializerFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/install/identifier/impl/presentation/a;->d:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "InstallIdentifierSyncWorker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                const-string v1, "tracer.disk.usage.worker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                sget-object v0, Lut0/e0;->a:Lut0/e0;
-                return-object v0
-            """
-        )
-        usageStatsInitializerFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/usagestats/impl/presentation/a;->b:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "UsageStatsCollectorWorker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                sget-object v0, Lut0/e0;->a:Lut0/e0;
-                return-object v0
-            """
-        )
-        cancelSubscriptionInitializerFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/payments/subscription/update/impl/presentation/a;->b:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "CancelSubscriptionSyncWorker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                sget-object v0, Lut0/e0;->a:Lut0/e0;
-                return-object v0
-            """
-        )
-        remoteAnalyticsInitializerFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Ll62/d;->a:Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;
-                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "SendAnalyticsEventPeriodicWorker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                const-string v1, "SendAnalyticsEventWorker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                sget-object v0, Lut0/e0;->a:Lut0/e0;
-                return-object v0
-            """
-        )
-        remoteAnalyticsSchedulerFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "SendAnalyticsEventWorker"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                sget-object v0, Lut0/e0;->a:Lut0/e0;
-                return-object v0
-            """
-        )
-
-        launcherIconScheduleFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Ldm1/i;->a:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "LauncherIconUpdate"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                return-void
-            """
-        )
-        startDestinationScheduleFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Lq52/e;->a:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "PeriodicUpdateStartDestination"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                return-void
-            """
-        )
-        tabsOrderScheduleFingerprint.method.addInstructions(
-            0,
-            """
-                move-object/from16 v0, p0
-                iget-object v0, v0, Lw52/g;->a:Lst0/a;
-                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
-                move-result-object v0
-                check-cast v0, Ltb/k0;
-                const-string v1, "NavigationTabsOrderUpdate"
-                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
-                return-void
-            """
-        )
-        publisherTrackingScheduleFingerprint.method.addInstruction(0, "return-void")
+        // Initializers and schedulers no longer enqueue work; App.onCreate cancels leftovers.
+        listOf(
+            installIdentifierInitializerFingerprint,
+            usageStatsInitializerFingerprint,
+            cancelSubscriptionInitializerFingerprint,
+            remoteAnalyticsSchedulerFingerprint,
+            remoteAnalyticsPeriodicSchedulerFingerprint,
+            launcherIconScheduleFingerprint,
+            startDestinationScheduleFingerprint,
+            tabsOrderScheduleFingerprint,
+            publisherTrackingScheduleFingerprint
+        ).forEach { fingerprint ->
+            fingerprint.method.addInstructions(0, UNIT_RESULT)
+        }
 
         listOf(analyticsDispatchFingerprint, analyticsUserIdFingerprint).forEach { fingerprint ->
             fingerprint.method.addInstruction(0, "return-void")
@@ -432,7 +361,7 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             }.addInstructions(
                 0,
                 """
-                    sget-object v0, Lut0/e0;->a:Lut0/e0;
+                    sget-object v0, Lsu0/e0;->a:Lsu0/e0;
                     return-object v0
                 """
             )
@@ -539,7 +468,7 @@ val blockRemoteNetworkPolicyPatch = bytecodePatch(
         networkPolicyConstructorFingerprint.method.addInstructions(
             0,
             """
-                invoke-static {}, Ljp0/o;->a()Ljp0/d;
+                invoke-static {}, Lzp0/m;->a()Lzp0/c;
                 move-result-object p2
             """
         )
@@ -550,5 +479,53 @@ val blockRemoteNetworkPolicyPatch = bytecodePatch(
                 return-object v0
             """
         )
+    }
+}
+
+@Suppress("unused")
+val disableReviewPromptsPatch = bytecodePatch(
+    name = "Disable review prompts",
+    description = "Hides app rating prompts and stops sending installed catalog apps to the rating-status service.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        // An empty placement list means the prompt never loads or queries rating status.
+        reviewPromptPlacementsFingerprint.method.addInstructions(
+            0,
+            """
+                sget-object v0, Ltu0/x;->a:Ltu0/x;
+                return-object v0
+            """
+        )
+    }
+}
+
+@Suppress("unused")
+val disableAdLinkAutoInstallPatch = bytecodePatch(
+    name = "Disable ad-link auto-install",
+    description = "Requires a tap to install apps opened from ad links instead of starting the install automatically.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        directAutoInstallEnabledFingerprint.method.addInstructions(0, FALSE_RESULT)
+    }
+}
+
+@Suppress("unused")
+val disableTvInstallPatch = bytecodePatch(
+    name = "Disable TV install",
+    description = "Removes local network and multicast access and disables scanning the network for TVs to install apps over ADB.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+    dependsOn(tvInstallManifestPatch)
+
+    execute {
+        remoteTvInstallEnabledFingerprint.method.addInstructions(0, FALSE_RESULT)
+        remoteTvInstallDiscoveryFingerprint.method.addInstruction(0, "return-void")
     }
 }

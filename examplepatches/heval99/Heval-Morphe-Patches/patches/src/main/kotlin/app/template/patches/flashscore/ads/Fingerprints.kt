@@ -27,6 +27,14 @@ internal object VideoMediaToStringFingerprint : Fingerprint(
     filters = listOf(string(", vmapResponse=", StringComparisonType.CONTAINS)),
 )
 
+// The app's interstitial manager (R8-renamed, neb in 26.11.4). Its constructor opens the display
+// counter preferences under these two keys, which nothing else uses.
+internal object InterstitialManagerConstructorFingerprint : Fingerprint(
+    name = "<init>",
+    returnType = "V",
+    strings = listOf("ads_interstitial_display_date", "ads_interstitial_display_count"),
+)
+
 // Its constructor (streams, drm, vmapResponse). The player only creates the IMA ads loader when
 // vmapResponse is non-null, so a null VMAP means no pre-roll or mid-roll is ever requested.
 internal object VideoMediaConstructorFingerprint : Fingerprint(

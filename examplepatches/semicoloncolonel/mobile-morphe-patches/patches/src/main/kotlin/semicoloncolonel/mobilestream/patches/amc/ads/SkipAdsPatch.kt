@@ -13,8 +13,7 @@ import semicoloncolonel.mobilestream.patches.amc.shared.Constants
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Plays AMC+ videos without Brightcove's server-side ad insertion, which also removes " +
-        "the true[X] and Brightline interactive ads. Experimental.",
+    description = "Removes the ad breaks in AMC+ videos, including the interactive ads.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -22,8 +22,7 @@ internal object TelemetryWorkerFingerprint : Fingerprint(
 @Suppress("unused")
 val blockSecurityTelemetryPatch = bytecodePatch(
     name = "Block Advanced Security telemetry",
-    description = "Stops Advanced Security from uploading the websites it checked and your network " +
-        "changes. Threat filtering on the phone keeps working.",
+    description = "Stops Advanced Security from uploading the websites it checked and your network changes.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

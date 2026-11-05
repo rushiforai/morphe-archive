@@ -58,8 +58,7 @@ private fun MethodReference.isUriParse() =
 @Suppress("unused")
 val stripAffiliateLinksPatch = bytecodePatch(
     name = "Strip affiliate links",
-    description = "Opens DealSeek deals at the store's own page. It skips DealSeek's click " +
-        "tracking and the affiliate redirects, and removes affiliate tags such as Amazon's.",
+    description = "Opens each deal at the store's own page, without click tracking or affiliate tags.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

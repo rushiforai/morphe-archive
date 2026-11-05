@@ -24,7 +24,7 @@
 //      every later handle. One-shot, fail-safe.
 //
 // Exact builds only (pinned anchors): 2.0.20/5001712, 2.0.20/5001812,
-// 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 and 2.0.24/5002395.
+// 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395 and 2.0.24/5002527.
 // Build: see Build-Native.ps1. Nothing here runs unless the layer is loaded.
 
 #include <android/log.h>
@@ -63,7 +63,7 @@ using gxr::PatchAv1SeqHeaders;
 using gxr::Sniffed;
 
 constexpr const char* kLayerName = "XR_APILAYER_local_GalaxyXR_codecs_support";
-constexpr const char* kBuild = "codecs-support-v10-20261024";
+constexpr const char* kBuild = "codecs-support-v11-20261103";
 constexpr const char* kDisableEnv = "GXR_DISABLE_CODECS_SUPPORT";
 constexpr const char* kSceneSoname = "libvrlink_scene.so";
 constexpr const char* kMediaNdkSoname = "libmediandk.so";
@@ -124,9 +124,18 @@ const GotProfile kProfile5002395 = {
     {0x231b58, 0x231b60, 0x231b68, 0x231b70, 0x231b90, 0x231b98, 0x231ba0,
      0x231bc8, 0x231bd0, 0x231be8, 0x231bf0, 0x231bf8, 0x231c48, 0x231c58, 0x231c60},
 };
+// 2.0.24/5002527 (libvrlink_scene.so 2333472 bytes, sha256 cfa9a908...ea03). Slots are the
+// .rela.plt JUMP_SLOT offsets of the 15 AMedia* imports; anchor = QSVLCodecNDK::Init + 0xc
+// (the call to AMediaCodec_createDecoderByType is at Init + 0x4c, as in 5002395).
+const GotProfile kProfile5002527 = {
+    "2.0.24/5002527", 0xfe22c,
+    "b3f5a532ab84606e6107901a6e94c97fd6f5c9329b2f4e257851fd0adb7e00ff",
+    {0x239670, 0x239678, 0x239680, 0x239688, 0x2396a8, 0x2396b0, 0x2396b8,
+     0x2396e0, 0x2396e8, 0x239700, 0x239708, 0x239710, 0x239778, 0x239788, 0x239790},
+};
 const GotProfile* const kProfiles[] = {
     &kProfile5001712, &kProfile5001812, &kProfile5001968, &kProfile5002244, &kProfile5002363,
-    &kProfile5002395,
+    &kProfile5002395, &kProfile5002527,
 };
 constexpr size_t kProfileCount = sizeof(kProfiles) / sizeof(kProfiles[0]);
 

@@ -125,6 +125,20 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   ids shifted: nav_premium 0x7f0b0330, nav_tokens 0337, nav_buypro 0322, nav_porndb 032f,
   nav_search_pro 0332, nav_tabs 0335; the WebView-nag anchor `0x7f16017b` (style
   MobileDialog) is still the const right before the `if-lez`.
+  **The TV UI is Compose now**: `MainActivity` starts `tv.tvcompose.TvComposeActivity`
+  on leanback, and the legacy leanback activities (`SitesActivityTV`, `VideoActivityTV`,
+  `ct2`, `k23`, the `pq`-based `tv/fragments/*`) are unreachable dead code — every TV-side
+  anchor that targets them (ad-tile filter in `pq.h`, account gate `ct2.g1`) no longer
+  runs on TV. The Compose account gate is `rn.y(Lbo4;ZZ)V` (dialog) / `rn.n(Z)V`
+  (login); TV feed lists come from `SiteUIState.getVideoList()` via the `ps4` view model.
+- **RemoveSearchAdTilesPatch (feed half, issue #7)**: 6.7.2's Compose feed reappeared
+  with the ad-tracker tiles.
+  The same `getQuality() == 0` test now also runs at the top of
+  `SiteUIState.getVideoList()` on `contentList` in place, so every consumer (phone lists,
+  TV Compose rows) is clean; the `instance-of VideoInformation` guard keeps the
+  AlbumInformation/ImageInformation entries (they convert with quality 0) intact.
+  Verified on the phone AVD: the blank ad card at the end of a PornHub feed is gone,
+  real videos unaffected. The TV feed itself can't be checked without an account.
 - **4-bit register trap**: an injected instruction that names a p-register can overflow
   4-bit register fields when the host method has many locals (`e66.z0` has `.locals 18`,
   so p0 = v18 → "Invalid register: v18" and the patcher reports the useless

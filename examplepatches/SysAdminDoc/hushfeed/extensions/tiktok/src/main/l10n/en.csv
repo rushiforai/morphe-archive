@@ -140,6 +140,7 @@ A forced value applies to this copy of TikTok whichever account is signed in. It
 A long press on Comment plays the video at the hold speed instead of opening the emoji row. It needs Long press on TikTok default and Seek from the edges off.,A long press on Comment plays the video at the hold speed instead of opening the emoji row. It needs Long press on TikTok default and Seek from the edges off.
 A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.,A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.
 A long press on Share plays the video at the hold speed instead of opening the quick share row. It needs Long press on TikTok default and Seek from the edges off.,A long press on Share plays the video at the hold speed instead of opening the quick share row. It needs Long press on TikTok default and Seek from the edges off.
+"A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.","A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default."
 A long press on a video you opened from search opens the same menu as on For You. It needs Long press on TikTok default.,A long press on a video you opened from search opens the same menu as on For You. It needs Long press on TikTok default.
 "A long press on a video you opened from someone's profile opens the same menu as on For You, not the small share sheet. It needs Long press on TikTok default.","A long press on a video you opened from someone's profile opens the same menu as on For You, not the small share sheet. It needs Long press on TikTok default."
 A message is already on its way,A message is already on its way
@@ -403,6 +404,7 @@ Comments beside the video,Comments beside the video
 Comments range,Comments range
 Compact,Compact
 Compact comment header,Compact comment header
+Compact long-press menu everywhere,Compact long-press menu everywhere
 Compare gate reads with their previous values.,Compare gate reads with their previous values.
 Config,Config
 Config (Settings Manager),Config (Settings Manager)
@@ -676,6 +678,7 @@ Forgetting saved videos,Forgetting saved videos
 Forgotten. Tap to put them back.,Forgotten. Tap to put them back.
 Found %1$s in your chats.,Found %1$s in your chats.
 Frame saved to %1$s,Frame saved to %1$s
+Freeze TikTok's experiments,Freeze TikTok's experiments
 Friends,Friends
 Friends tab name,Friends tab name
 "Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.","Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger."
@@ -808,6 +811,7 @@ Hide stories,Hide stories
 Hide stories from the feed.,Hide stories from the feed.
 Hide stories tray,Hide stories tray
 Hide story views,Hide story views
+Hide streak pop-ups,Hide streak pop-ups
 Hide subscriber-only videos,Hide subscriber-only videos
 Hide suggested accounts,Hide suggested accounts
 Hide suggested replies,Hide suggested replies
@@ -978,6 +982,7 @@ Includes all diagnostic events.,Includes all diagnostic events.
 Includes these events: %1$s,Includes these events: %1$s
 Inserted cards,Inserted cards
 "Install one, then come back here.","Install one, then come back here."
+Instead of these settings. The list has a button that brings you back here.,Instead of these settings. The list has a button that brings you back here.
 Joined,Joined
 Joined %s,Joined %s
 Keep Clear display across videos,Keep Clear display across videos
@@ -1122,7 +1127,9 @@ Logging until %1$s. Tap to stop now.,Logging until %1$s. Tap to stop now.
 "Logging, hook status and reports","Logging, hook status and reports"
 "Logs for 15 minutes, then stops on its own. Restarting TikTok doesn't move the end, and the switch above stays as you set it.","Logs for 15 minutes, then stops on its own. Restarting TikTok doesn't move the end, and the switch above stays as you set it."
 Long press,Long press
+Long press on For You opens my watch history,Long press on For You opens my watch history
 Long-press Home for Hushfeed settings,Long-press Home for Hushfeed settings
+Long-press Inbox for read receipts,Long-press Inbox for read receipts
 Long-press Profile for Watch history,Long-press Profile for Watch history
 "Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID. On a LIVE profile card, long-press the name, username or bio to copy it, or tap the copy mark by the username.","Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID. On a LIVE profile card, long-press the name, username or bio to copy it, or tap the copy mark by the username."
 Long-press menu on every post,Long-press menu on every post
@@ -1424,6 +1431,7 @@ Press and hold a comment to find Block this commenter in its menu. Their comment
 Press and hold a profile picture to save the full size original to your photo destination.,Press and hold a profile picture to save the full size original to your photo destination.
 "Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.","Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over."
 Press and hold the Home tab to open these settings. A tap on Home works as before.,Press and hold the Home tab to open these settings. A tap on Home works as before.
+"Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press.","Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press."
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.","Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts."
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.,Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.
 Preview a translation from a received text message's menu. The original message stays unchanged.,Preview a translation from a received text message's menu. The original message stays unchanged.
@@ -1472,6 +1480,8 @@ Putting the settings back to their defaults,Putting the settings back to their d
 Quality,Quality
 "Quality, files, subtitles and hand-off","Quality, files, subtitles and hand-off"
 "Quality, speed and auto-advance","Quality, speed and auto-advance"
+Read receipts hidden,Read receipts hidden
+Read receipts shown,Read receipts shown
 Read-only list. Accounts won't be opened or unblocked.,Read-only list. Accounts won't be opened or unblocked.
 Reading,Reading
 Reading the font file,Reading the font file
@@ -1886,7 +1896,6 @@ Sticker,Sticker
 Sticker added to Saved,Sticker added to Saved
 Sticker destination,Sticker destination
 Sticker saved to %1$s,Sticker saved to %1$s
-"Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count."
 "Stickers can't be saved to the folder in that file, so your sticker folder was kept","Stickers can't be saved to the folder in that file, so your sticker folder was kept"
 Stickers: %1$s,Stickers: %1$s
 Still here. Nothing is waiting.,Still here. Nothing is waiting.
@@ -1917,6 +1926,7 @@ Stop the bubble that asks you to share a video with friends after you like it.,S
 Stop the full-screen ad TikTok can show while it starts up.,Stop the full-screen ad TikTok can show while it starts up.
 "Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.","Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through."
 Stop the short vibrations TikTok plays on its own taps and gestures. Your keyboard and your phone's own haptics stay as they are.,Stop the short vibrations TikTok plays on its own taps and gestures. Your keyboard and your phone's own haptics stay as they are.
+Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.
 "Stop the two background tasks TikTok uses to check for updates, one of them when your phone starts. Some in-app update prompts may stop. Play Store updates still work.","Stop the two background tasks TikTok uses to check for updates, one of them when your phone starts. Some in-app update prompts may stop. Play Store updates still work."
 Stop video looping,Stop video looping
 Stop videos at the end instead of replaying them.,Stop videos at the end instead of replaying them.
@@ -2190,6 +2200,7 @@ TikTok's messages didn't start in time. It tries again at %1$s.,TikTok's message
 "TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being."
 TikTok's own name,TikTok's own name
 TikTok's own value,TikTok's own value
+"TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.","TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes."
 TikTok's size,TikTok's size
 TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.
 TikTok's total: %1$s. Filtered accounts: %2$s.,TikTok's total: %1$s. Filtered accounts: %2$s.
@@ -2371,6 +2382,7 @@ Window width needed to enable the layout. Restart TikTok to apply this.,Window w
 "Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.","Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts."
 "With Hide LIVE videos on, these creators' LIVEs stay when TikTok sends them. Separate handles or user IDs with commas.","With Hide LIVE videos on, these creators' LIVEs stay when TikTok sends them. Separate handles or user IDs with commas."
 "With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.","With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark."
+"With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count."
 "With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100.","With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100."
 "Word rules only, not every feed filter:","Word rules only, not every feed filter:"
 "Words, countries and languages","Words, countries and languages"

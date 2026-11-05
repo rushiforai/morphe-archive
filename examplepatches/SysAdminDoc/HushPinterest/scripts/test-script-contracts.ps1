@@ -1645,7 +1645,7 @@ function Get-ReleaseFileText([string]$Relative) {
         }
         'CHANGELOG.md' {
             ([regex]'(?m)^## ').Replace([System.IO.File]::ReadAllText((Join-Path $Root 'CHANGELOG.md')),
-                ("## $seedVersion (2026-09-29)`n`n* **Pinterest:** The first release, $(@($catalog.patches).Count) patches " +
+                ("## $seedVersion (2026-09-29)`n`n* The first release, $(@($catalog.patches).Count) patches " +
                     "for Pinterest $($seedTarget.PackageVersion).`n`n## "), 1)
         }
     }
@@ -1810,7 +1810,7 @@ try {
             }
             Set-FactsFile 'CHANGELOG.md' {
                 param($text) ([regex]'(?m)^## ').Replace($text,
-                    "## $nextVersion (2026-09-26)`n`n* **Pinterest:** Moves the patches to Pinterest $movedBuild.`n`n## ", 1)
+                    "## $nextVersion (2026-09-26)`n`n* Moves the patches to Pinterest $movedBuild.`n`n## ", 1)
             }
             # The badge moves with the source; the sentence naming the latest release waits for it.
             Set-FactsFile 'README.md' {
@@ -1980,7 +1980,7 @@ try {
     # the first ### line, on both paths.
     Set-FactsFile 'patches-bundle.json' {
         param($text) $text -replace '("description":\s*"(?:[^"\\]|\\.)*)"',
-            '$1\n\n### What''s new\n\n* **Pinterest:** Builds before Pinterest 9.9.9 kept 3 patches."'
+            '$1\n\n### What''s new\n\n* Builds before Pinterest 9.9.9 kept 3 patches."'
     }
     try {
         Assert-True ((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw | ConvertFrom-Json).description -match
@@ -2726,12 +2726,12 @@ try {
         # underline, not a conflict, and passes.
         Assert-Throws { Push-ListingChange {
                 Set-Content -LiteralPath (Join-Path $listingRepo 'CHANGELOG.md') -Encoding ASCII -Value @(
-                    '## Unreleased', '', '<<<<<<< HEAD', '* **Pinterest:** one side.', '||||||| base', '=======',
-                    '* **Pinterest:** the other side.', '>>>>>>> 0123abc (the other side)') } } `
+                    '## Unreleased', '', '<<<<<<< HEAD', '* one side.', '||||||| base', '=======',
+                    '* the other side.', '>>>>>>> 0123abc (the other side)') } } `
             '*unresolved merge conflict*CHANGELOG.md:3:<<<<<<< HEAD*' 'A push carrying an unresolved merge conflict went out.'
         $ran = Push-ListingChange {
             Set-Content -LiteralPath (Join-Path $listingRepo 'CHANGELOG.md') -Encoding ASCII -Value @(
-                '## Unreleased', '', '* **Pinterest:** one side.', '* **Pinterest:** the other side.')
+                '## Unreleased', '', '* one side.', '* the other side.')
             New-Item -ItemType Directory -Path (Join-Path $listingRepo 'docs') -Force | Out-Null
             Set-Content -LiteralPath (Join-Path $listingRepo 'docs/heading.md') -Encoding ASCII -Value @('A heading', '=======', '', 'Text.')
         }
@@ -3662,7 +3662,8 @@ Write-Host '[scripts] changelog history contracts passed'
 
 # --- Test-ChangelogManagerEntry --------------------------------------------------------------
 #
-# Morphe Manager skips a heading with no date and flags an app only for bullets scoped to it.
+# Morphe Manager skips a heading with no date. A bullet with no label is a change to the app (the
+# repo patches one app), and one that still opens with the app's own label counts the same.
 # Every heading from 0.23.0 to 0.40.0 was bare and Manager's list stopped at 0.22.0, while the
 # history check above passed them all. Each refusal below is the readable entry with one thing
 # taken away, and the real CHANGELOG is the control.
@@ -3678,12 +3679,12 @@ A sentence about the release.
 
 ### Settings
 
-* **Pinterest:** one change.
+* one change.
 * **Pinterest:** another change.
 
 ### On the video
 
-* **Pinterest:** a third.
+* a third.
 
 ## 0.41.0
 
@@ -3701,10 +3702,13 @@ $undated = Test-ChangelogManagerEntry -Current ($readable -replace '## 0\.42\.0 
 Assert-True (-not $undated.Valid) 'An undated heading, which Manager skips, was accepted.'
 Assert-True ($undated.Reason -like '*no date*') "The undated heading was refused for the wrong reason: $($undated.Reason)"
 
-$unscoped = Test-ChangelogManagerEntry -Current ($readable -replace '\* \*\*Pinterest:\*\* another', '* another') `
+$unlabeled = Test-ChangelogManagerEntry -Current ($readable -replace '\* \*\*Pinterest:\*\* another', '* another') `
     -ExpectedVersion '0.42.0'
-Assert-True (-not $unscoped.Valid) 'A bullet Manager does not scope to Pinterest was accepted.'
-Assert-True ($unscoped.Reason -like 'Line 12 *') "The unscoped bullet was refused for the wrong reason: $($unscoped.Reason)"
+Assert-True ($unlabeled.Valid -and $unlabeled.Bullets -eq 3) `
+    "Unlabeled bullets were refused or not counted as Pinterest changes: $($unlabeled.Reason), $($unlabeled.Bullets) bullets"
+$labeledOnly = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`n* **Pinterest:** only this.`n" -ExpectedVersion '0.42.0'
+Assert-True ($labeledOnly.Valid -and $labeledOnly.Bullets -eq 1) `
+    "A bullet still carrying the app label was refused or not counted: $($labeledOnly.Reason)"
 
 $wrapped = Test-ChangelogManagerEntry -Current ($readable -replace 'one change\.', "one`n  change.") `
     -ExpectedVersion '0.42.0'
@@ -3714,7 +3718,7 @@ Assert-True ($wrapped.Reason -like '*continues the bullet*') "The wrapped bullet
 $noBullets = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`nOnly prose.`n" -ExpectedVersion '0.42.0'
 Assert-True (-not $noBullets.Valid) 'An entry with no scoped bullet, which gets no update badge, was accepted.'
 
-$otherScope = Test-ChangelogManagerEntry -Current ($readable -replace '\*\*Pinterest:\*\* a third', '**Instagram:** a third') `
+$otherScope = Test-ChangelogManagerEntry -Current ($readable -replace '\* a third', '* **Instagram:** a third') `
     -ExpectedVersion '0.42.0'
 Assert-True (-not $otherScope.Valid) 'A bullet scoped to another app was accepted.'
 
@@ -3722,14 +3726,14 @@ Assert-True (-not $otherScope.Valid) 'A bullet scoped to another app was accepte
 # under Unreleased carries them. Manager shows a line only to the app it's scoped to, so it shows
 # these to nobody, which is what they're for: allowed, and not counted as Pinterest changes. The
 # release check refused every one, so a release had to drop them or relabel them for users.
-$withTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Pinterest:\*\* a third\.)',
+$withTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* a third\.)',
     "`$1`n* **Tooling:** a development-only change.") -ExpectedVersion '0.42.0'
 Assert-True ($withTooling.Valid -and $withTooling.Bullets -eq 3) `
     "A Tooling bullet in the released entry was refused or counted: $($withTooling.Reason), $($withTooling.Bullets) bullets"
 $toolingOnly = Test-ChangelogManagerEntry -Current "## 0.42.0 (2026-09-20)`n`n* **Tooling:** only this.`n" -ExpectedVersion '0.42.0'
-Assert-True (-not $toolingOnly.Valid -and $toolingOnly.Reason -like '*no "* **Pinterest:** " bullet*') `
+Assert-True (-not $toolingOnly.Valid -and $toolingOnly.Reason -like '*no bullet about Pinterest*') `
     "An entry with Tooling bullets alone, which gets no update badge, was not refused for that: $($toolingOnly.Reason)"
-$wrappedTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* \*\*Pinterest:\*\* a third\.)',
+$wrappedTooling = Test-ChangelogManagerEntry -Current ($readable -replace '(\* a third\.)',
     "`$1`n* **Tooling:** a development-only`n  change.") -ExpectedVersion '0.42.0'
 Assert-True ($wrappedTooling.Reason -like '*continues the bullet*') `
     "A wrapped Tooling bullet was not held to one line like the others: $($wrappedTooling.Reason)"
@@ -6267,7 +6271,7 @@ try {
     Edit-ReleaseFile 'patches-list.json' { param($text) $text.Replace('"v' + $releaseVersionHere + '"', '"v' + $laterVersion + '"') }
     Edit-ReleaseFile 'CHANGELOG.md' {
         param($text) ([regex]'(?m)^## ').Replace($text,
-            "## $laterVersion (2026-09-26)`n`n* **Pinterest:** Needs Morphe Manager $laterFloor or newer.`n`n## ", 1)
+            "## $laterVersion (2026-09-26)`n`n* Needs Morphe Manager $laterFloor or newer.`n`n## ", 1)
     }
     Edit-ReleaseFile 'gradle/libs.versions.toml' {
         param($text) $text -replace '(?m)^(\s*manager-floor\s*=\s*")[^"]+', "`${1}$laterFloor"

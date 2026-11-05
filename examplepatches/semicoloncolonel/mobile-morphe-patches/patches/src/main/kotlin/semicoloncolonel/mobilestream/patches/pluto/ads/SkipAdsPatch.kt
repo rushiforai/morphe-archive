@@ -26,10 +26,7 @@ private const val MPD_FILTER = "Lsemicoloncolonel/mobilestream/extension/pluto/a
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes on-demand (VOD) ads: the ad video is cut from the stream, and ad markers, ad " +
-        "beacons and pause ads are removed. A resume point saved before ads were removed is " +
-        "moved to match. Live TV ads are part of the broadcast and are not removed. If a " +
-        "stream cannot be rewritten, it plays unchanged.",
+    description = "Removes the ads, ad markers, and pause ads from on-demand videos.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

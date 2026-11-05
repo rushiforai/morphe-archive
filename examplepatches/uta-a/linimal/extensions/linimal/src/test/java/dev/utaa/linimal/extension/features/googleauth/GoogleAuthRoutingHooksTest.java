@@ -35,6 +35,15 @@ public final class GoogleAuthRoutingHooksTest {
         assertEquals(Routing.ORIGINAL, GoogleAuthRoutingHooks.routing(true, null));
     }
 
+    /** bind の失敗は、MicroG-RE の GetToken へ向けたときだけ通知します。 */
+    @Test
+    public void onlyBindFailuresToMicrogGetTokenAreReported() {
+        assertTrue(GoogleAuthRoutingHooks.isMicrogGetToken(MICROG, GET_TOKEN));
+        assertFalse(GoogleAuthRoutingHooks.isMicrogGetToken(GMS, GET_TOKEN));
+        assertFalse(GoogleAuthRoutingHooks.isMicrogGetToken(MICROG, "com.google.android.gms.auth.Other"));
+        assertFalse(GoogleAuthRoutingHooks.isMicrogGetToken(null, null));
+    }
+
     @Test
     public void onlyTheGmsGetTokenComponentIsRouted() {
         assertEquals(MICROG, GoogleAuthRoutingHooks.routedPackage(true, GMS, GET_TOKEN));

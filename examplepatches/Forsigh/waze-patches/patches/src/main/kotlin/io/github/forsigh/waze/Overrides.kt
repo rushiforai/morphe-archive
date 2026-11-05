@@ -23,4 +23,11 @@ internal object Overrides {
 
     /** `CONFIG_VALUE_*` String keys and the value to force. */
     val strings = LinkedHashMap<String, String>()
+
+    /**
+     * `CONFIG_VALUE_*` Boolean keys written into Waze's native config store instead of the Java
+     * getter. Anything the native layer decides (camera sounds, alert policy) never calls the
+     * getter, so a forced return value there is invisible to it.
+     */
+    val nativeBooleans = LinkedHashMap<String, Boolean>()
 }

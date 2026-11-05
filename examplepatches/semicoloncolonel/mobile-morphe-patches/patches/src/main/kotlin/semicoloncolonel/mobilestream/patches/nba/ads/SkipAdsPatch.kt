@@ -84,8 +84,7 @@ internal object AdMapFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the ads before and during NBA videos, games and NBA TV, including videos " +
-        "inside news articles. Experimental.",
+    description = "Removes the ads before and during videos, games, and NBA TV.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

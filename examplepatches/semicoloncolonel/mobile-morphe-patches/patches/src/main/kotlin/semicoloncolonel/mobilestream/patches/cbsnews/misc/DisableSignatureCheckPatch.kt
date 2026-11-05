@@ -30,8 +30,7 @@ internal object RootErrorDialogFingerprint : Fingerprint(
 
 val disableSignatureCheckPatch = bytecodePatch(
     name = "Disable signature check",
-    description = "Lets the patched app start. CBS News erases its own data and closes when it is not " +
-        "signed by CBS, and every patched app is signed differently. It also skips the block on rooted phones.",
+    description = "Lets the patched app start, since CBS News closes when it is not signed by CBS.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -1,0 +1,13 @@
+# 共有NGのキャッシュ無効でも遅い：判定順の追加修正
+
+利用者がdev.12の変換結果再利用を0で無効にしても「変わりません」と回答。キャッシュが主因・解決策という仮説は支持されない。既存設定や機能を削除せず、この報告を次の調査に反映する。ADB devicesは接続端末なしで、実症状のプロファイル計測は今回未実施。
+
+SharedNgIndexでは板別bucketのidentityが正規表現→ID完全一致→名前通常文字列→ワッチョイだったため、完全一致だけでtrueになるレスにも先に正規表現を実行していた。板別regexより全板literalを先にできるよう判定を分離し、両scopeのliteral identity→literal本文→両scopeのregex identity/bodyの順にした。ワッチョイ抽出はexpression identity内で1回だけ遅延実行する。通常本文ワードがなければNFKC/空白正規化を行わず、regexへ従来どおりraw本文を渡す。NG条件を1つでも満たすというboolean判定は維持し、標準NG/連鎖/保存データは変更しない。正規表現タイムアウトでfalseになるときに、他の通常条件でtrueになるケースも維持。
+
+これは本文Inputを作る前のHTML変換そのものをなくす変更ではなく、全レスInput準備・正規表現非一致の負荷は残る。regex多数の端末上の影響や指定スレの主因は未特定。191/226/242共通extensionのみ、bytecodeフック追加/変更なし。
+
+既存host index10306/regex17/個別除外263成功。中間build2m26s、最終通常Lint付きbuild/buildAndroid2m28s成功（build/shared-ng-identity-order-final-build.log）。最終候補build/haiagaru-shared-ng-match-order.mpp。端末起動/本文/画像/設定/実速度/クラッシュ未確認、導入/GAS変更/投稿/公開なし。
+
+利用者が実機へのインストールを指定。最初の指定jp.co.airfrt.android.chmate.haiagartuの後「既存アプリと同じになるように」と訂正。実機730eae72/XIG05の実packageはjp.co.airfrt.android.chMate.haiagartu、191 dev/versionCode2100000000/label Haiagaruで大文字Mを維持する。既存base.apkを読み取り専用でpullしSHA256 df2c71fa8be090be6f838716908610e7f154f53f00fd9eb021864dd1ed99a6bc。apksigner通常検証はAPI21のV1 MANIFEST欠落で失敗、min-sdk-version24指定ではV2証明書確認成功。既存cert bc78368b1426256afede71c43e87582e1481a56fe2ee45021d2ccc0fe9b6e7d5、PC署名cert0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eedと異なる。既存更新は未実施。ユーザーへMorphe鍵の書出し/別packageを確認中。既存のアンインストール/データ消去はしない。
+
+追記: 提供p12は開けず未使用。その後利用者が「一回インストールしてみて」と指定し、PC署名候補でinstall-rを1回試行したところSuccess。既存更新不可とした事前断定を訂正する。署名相違でもこの端末で受理された理由は未特定。導入APKの全byte hash一致、firstInstallTime維持、HomeActivity cold起動Status ok、導入後対象fatalなし。実スレでの性能未確認。詳細docs/android-installations.md。

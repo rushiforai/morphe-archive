@@ -1,3 +1,15 @@
+## [1.5.6](https://github.com/dieroboter/morphe-patches/compare/v1.5.5...v1.5.6) (2026-11-04)
+
+### Updated App Support
+
+* File Manager 3.8.5 support, drop 3.8.3 ([d9f5125](https://github.com/dieroboter/morphe-patches/commit/d9f5125fe3070c294b951189b85db90ec4e1ac10))
+
+## [1.5.6-dev.1](https://github.com/dieroboter/morphe-patches/compare/v1.5.5...v1.5.6-dev.1) (2026-11-04)
+
+### Updated App Support
+
+* File Manager 3.8.5 support, drop 3.8.3 ([d9f5125](https://github.com/dieroboter/morphe-patches/commit/d9f5125fe3070c294b951189b85db90ec4e1ac10))
+
 ## [1.5.5](https://github.com/dieroboter/morphe-patches/compare/v1.5.4...v1.5.5) (2026-11-02)
 
 ### Updated App Support

@@ -963,7 +963,7 @@ function Test-ChangelogHere {
     $manager = Test-ChangelogManagerEntry -Current $current -ExpectedVersion $releaseVersion
     if (-not $manager.Valid) { throw "Morphe Manager cannot show this release: $($manager.Reason)" }
     Write-Host ("[release] Morphe Manager can read the $releaseVersion entry: dated " +
-        "$($manager.Date), $($manager.Bullets) bullets scoped Pinterest")
+        "$($manager.Date), $($manager.Bullets) bullets about Pinterest")
 
     $described = @(Get-ChangelogVersions -Text $current)
     if ($null -eq $previous) {

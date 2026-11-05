@@ -93,7 +93,7 @@ class LuckyClickSmokeTest {
         assumeTrue(apk.exists(), "skipping: base.apk not present at ${apk.path}")
 
         val classes = applyPatches(
-            apk = apk, workDir = workDir, pkg = PKG, version = "4.8",
+            apk = apk, workDir = workDir, pkg = PKG, version = "2026/10/22",
             patchNames = setOf("Disable license check", "Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

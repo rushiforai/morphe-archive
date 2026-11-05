@@ -17,11 +17,11 @@ Morphe can reapply bundle updates to its saved APK. A new RuStore version requir
 ## Supported version
 
 <!-- PATCHES_START -->
-Current bundle: [v1.2.0](https://github.com/Freeman022026/rustore-privacy-patches/releases/tag/v1.2.0) on `main`.
+Current bundle: [v1.3.0](https://github.com/Freeman022026/rustore-privacy-patches/releases/tag/v1.3.0) on `main`.
 
-Supported RuStore versions: `1.111.0.3`
+Supported RuStore versions: `1.113.2.0`
 
-15 selectable patches.
+18 selectable patches.
 <!-- PATCHES_END -->
 
 The repository distributes patch bundles only. It does not redistribute RuStore APKs.

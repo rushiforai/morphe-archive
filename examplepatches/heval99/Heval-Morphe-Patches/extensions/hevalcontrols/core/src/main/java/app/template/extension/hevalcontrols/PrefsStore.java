@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /** {@link Store} on the private SharedPreferences file {@code heval_controls}. */
 final class PrefsStore implements Store, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -34,6 +36,7 @@ final class PrefsStore implements Store, SharedPreferences.OnSharedPreferenceCha
                 Object value = entry.getValue();
                 if (value instanceof Boolean) editor.putBoolean(entry.getKey(), (Boolean) value);
                 else if (value instanceof String) editor.putString(entry.getKey(), (String) value);
+                else if (value instanceof Set) editor.putStringSet(entry.getKey(), stringSet((Set<?>) value));
                 else if (value == null) editor.remove(entry.getKey());
                 else throw new IllegalArgumentException("Unsupported value type");
             }
@@ -41,6 +44,16 @@ final class PrefsStore implements Store, SharedPreferences.OnSharedPreferenceCha
         // commit(), not apply(): a restart (process kill) or the crash guard must never lose a
         // write still queued by apply().
         return editor.commit();
+    }
+
+    /** A copy holding only the String elements: SharedPreferences must not keep the caller's set. */
+    private static Set<String> stringSet(Set<?> values) {
+        Set<String> copy = new HashSet<>();
+        for (Object value : values) {
+            if (value instanceof String) copy.add((String) value);
+            else throw new IllegalArgumentException("Unsupported set element type");
+        }
+        return copy;
     }
 
     @Override

@@ -72,6 +72,15 @@ internal val CONTROLLER_POSE_TIME_SCENES = listOf(
         send = PoseTimeRegion(0xf5ff4, 0x550, "4f30c94895e96d10ce06abc3a96f05892871894d8e893dd0eb7d3765a3db0bb4"),
         clock = PoseTimeRegion(0x15e2b8, 0x40, "7279ef642ad5b65f5784bded4d9a42ef1f120796a2f2ac87fbe39f6fc62885d4"),
     ),
+    // 5002527 (scene 2,333,472 bytes): independently derived from the decoded original library.
+    // GetControllerState and SendPoses are the 5002395 code with shifted member offsets; the
+    // vendor clock is GetCurrentTimeUS. Their regions do not overlap the other patches' sites.
+    PoseTimeScene(
+        "2.0.24", 5002527,
+        state = PoseTimeRegion(0x1089fc, 0xa9c, "dd7e1fba6febd230f02e2c984e47794c8cb79e69c17a4ab732611b41758d0d84"),
+        send = PoseTimeRegion(0x180fd0, 0x550, "2e64ad90ea27bf4e97e136b401a6105544e85156bc15c21903ed0889f707ea2d"),
+        clock = PoseTimeRegion(0x15f564, 0x40, "4547aa2bd450d51f88a68233e13530a81775c11c76173e423545ba10922152ae"),
+    ),
 )
 
 // Layers that change where VRLink's controller poses come from or when they are predicted for;
@@ -173,6 +182,7 @@ val controllerPoseTimePatch = rawResourcePatch(
 
     execute {
         // Morphe dependencies do not re-check compatibility before execution.
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE) return@execute
         controllerPoseTimeScene(packageMetadata.versionName, packageMetadata.versionCode) ?: return@execute
         val conflict = conflictingLayer { get(it).exists() }
         if (conflict != null) throw PatchException("Remove the $conflict APK layer before selecting Controller pose time")
@@ -187,6 +197,7 @@ val controllerPoseTimePatch = rawResourcePatch(
     }
 
     finalize {
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE) return@finalize
         val scene = controllerPoseTimeScene(packageMetadata.versionName, packageMetadata.versionCode)
             ?: return@finalize
         // All execute blocks have run: also reject conflicting patches selected later, and scene

@@ -96,6 +96,7 @@ public final class TwitchEmotes {
             if (channel != null) chatChannel = channel;
             int mask = enabledMask();
             if (mask != 0 && channel != null) ensure(String.valueOf(channel), mask);
+            if (channel != null) TwitchSevenTvBadges.onChannel(String.valueOf(channel));
         } catch (RuntimeException e) {
             Logger.d("emotes: prefetch failed: " + e);
         }

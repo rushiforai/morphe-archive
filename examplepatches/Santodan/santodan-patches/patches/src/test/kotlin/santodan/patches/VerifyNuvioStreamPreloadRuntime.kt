@@ -12,7 +12,8 @@ private class RuntimeProfile { @JvmField val f = MutableStateFlow(1) }
 private class RuntimeProvider(private val value: Any) { fun get(): Any = value }
 private class RuntimeComponent(profile: RuntimeProfile, repository: RuntimeRepository) {
     @JvmField val B = RuntimeProvider(profile)
-    @JvmField val e3 = RuntimeProvider(repository)
+    @JvmField val g3 = RuntimeProvider(repository)
+    @JvmField val e3 = Any() // Beta.9's field now belongs to another provider.
 }
 private class RuntimeProgress(val contentType: String, val videoId: String, val season: Int?, val episode: Int?)
 private class RuntimeCard(@JvmField val r: RuntimeProgress, @JvmField val s: Any? = null)
@@ -24,19 +25,26 @@ private class RuntimeAddonStreams(val streams: List<String>)
 private class RuntimePlayerNext(@JvmField val a: String, @JvmField val b: Int, @JvmField val c: Int,
                                @JvmField val h: Boolean = true, @JvmField val i: Boolean? = true,
                                @JvmField val g: String? = "2026-01-01")
-private class RuntimePlayerState(@JvmField val C0: String, @JvmField val v1: RuntimePlayerNext?,
+private class RuntimePlayerState(@JvmField val F0: String, @JvmField val y1: RuntimePlayerNext?,
                                 @JvmField val a: Boolean = true, @JvmField val b: Boolean = false,
                                 @JvmField val c: Boolean = false, @JvmField val d: Any? = null,
-                                @JvmField val j1: String? = null, @JvmField val g: String = "")
+                                @JvmField val m1: String? = null, @JvmField val g: String = "")
 private class RuntimePlayerController { @JvmField val T: String = "SERIES" }
 private class RuntimePlayerModel(private val flow: MutableStateFlow<RuntimePlayerState>) {
     @JvmField val Y = RuntimePlayerController()
     fun e(): StateFlow<RuntimePlayerState> = flow
     fun f(): Unit = error("Void player action must never be invoked to read state")
 }
-private class RuntimePluginRequest(@JvmField val i: RuntimeRepository, @JvmField val j: String,
-                                  @JvmField val k: String, @JvmField val l: Int?, @JvmField val m: Int?)
+private class RuntimePluginRequest(@JvmField val j: RuntimeRepository, @JvmField val k: String,
+                                  @JvmField val l: String, @JvmField val m: Int?, @JvmField val n: Int?)
 private class RuntimeRepository(private val profile: RuntimeProfile, private val scope: CoroutineScope) {
+    companion object {
+        @JvmStatic fun l(owner: RuntimeRepository, type: String, id: String, season: Int?, episode: Int?,
+                         refresh: Boolean, group: String?, first: Boolean, second: Boolean, mask: Int): Flow<Any> {
+            check(!refresh && group == null && !first && !second && mask == 208)
+            return owner.l(type, id, season, episode, false)
+        }
+    }
     @JvmField val l = MutableStateFlow(false)
     val wrongSearchCalls = AtomicInteger()
     fun j(type: String, id: String, season: Int?, episode: Int?, continuation: kotlin.coroutines.Continuation<Any>): Any {
@@ -65,7 +73,7 @@ private class RuntimeRepository(private val profile: RuntimeProfile, private val
                 localSearches.add(id)
                 delay(30)
                 seen.add(id)
-                b9.q(listOf(RuntimeAddonStreams(listOf("source-$id"))))
+                b9.r(listOf(RuntimeAddonStreams(listOf("source-$id"))))
             }
         }
         emit(session.await())
@@ -91,7 +99,7 @@ fun main() = runBlocking {
         waitFor { "tt1:2:3" in repository.seen }
         check(repository.networkCalls.get() == 1)
         val playbackSources = withContext(Dispatchers.Default) { repository.l("series", "tt1:2:3", 2, 3, false).first() }
-        check(((playbackSources as b9.q).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-tt1:2:3"))
+        check(((playbackSources as b9.r).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-tt1:2:3"))
         check(repository.networkCalls.get() == 1)
         prefs.edit().putBoolean("details", true).apply()
         val state = MutableStateFlow(RuntimeState(RuntimeMeta("movie", "ttmovie"), RuntimeNext(null, null, null)))
@@ -145,7 +153,7 @@ fun main() = runBlocking {
         val nextSources = withContext(Dispatchers.Default) {
             repository.l("series", "ttnext:1:2", 1, 2, NuvioStreamPreload.nextEpisodePickerRefresh(true)).first()
         }
-        check(((nextSources as b9.q).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-ttnext:1:2"))
+        check(((nextSources as b9.r).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-ttnext:1:2"))
         check(repository.networkCalls.get() == 5)
         check(NuvioStreamPreload.nextEpisodePluginPause(RuntimePluginRequest(repository, "unrelated", "series", 1, 2)).first())
         NuvioStreamPreload.stopNextEpisode(playerModel)

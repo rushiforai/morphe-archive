@@ -44,6 +44,9 @@ import java.util.logging.Logger
 // Required: a missing anchor, an ambiguity or an unknown layout fails the patch.
 
 private const val SEND_TO_CAR_LINKS_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/SendToCarLinks;"
+private const val CAR_NAME_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/CarName;"
+// Maps' name for a car whose make and model it does not know (DiLink reports neither).
+private const val FALLBACK_VEHICLE_NAME = "Vehicle 1"
 private const val LINK_TARGET_INTERFACE = "Lapp/morphe/extension/mapsautomotive/patches/SendToCarLinks\$Target;"
 private const val OPEN_MAPS_LINK = "morpheOpenMapsLink"
 private const val CLEAR_SENT_TRIP = "morpheClearSentTrip"
@@ -98,7 +101,8 @@ private val pushReceiverPatch = resourcePatch {
 val sendToCarPatch = bytecodePatch(
     name = "Send to car",
     description = "Lets phone Maps send a trip to Maps Car through MicroG-RE (push routes, the notification " +
-        "service identity and maps.app.goo.gl links).",
+        "service identity and maps.app.goo.gl links). Adds a Settings row for the car's name in phone Maps " +
+        "(default \"Vehicle 1\").",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -108,6 +112,8 @@ val sendToCarPatch = bytecodePatch(
         routePushStrings()
         useOriginalPackageForChime()
         expandSendToCarLinks()
+        useCarName()
+        IncludedFeatures.settingsRows += CAR_NAME_CLASS
         IncludedFeatures.features += "send_to_car"
     }
 }
@@ -290,6 +296,77 @@ private fun BytecodePatchContext.expandSendToCarLinks() {
     sendToCarLogger.info(
         "Send to car links: $site at $call (getDynamicLink $getter, pattern $pattern), " +
             "listener ${block.listener}, continuation $url + $open, sent-trip clear $tripHelper + $clearTrip",
+    )
+}
+
+// Phone Maps names this car (its vehicle chip and the Send to car list) with the name Maps puts into its
+// vehicle-info upload to the account: built from the car's make and model, else "Vehicle 1". The one
+// write of that name into the upload's proto passes through CarName.vehicleName, which gives the name
+// chosen in the Settings row. The method is the only one with that literal; before it, it reads the
+// make and model (two no-argument String calls on one interface) and the proto's default instance;
+// after it, it writes one String field of that proto.
+private fun BytecodePatchContext.useCarName() {
+    requireExtensionMethod(CAR_NAME_CLASS, "vehicleName", listOf(STRING), STRING)
+    val sites = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PREFIX)) return@classDefForEach
+        classDef.methods.forEach { method ->
+            if (method.implementation?.instructions?.any { it.stringLiteral() == FALLBACK_VEHICLE_NAME } == true) sites += method
+        }
+    }
+    val site = sites.singleOrNull()
+        ?: throw PatchException("Expected one method with \"$FALLBACK_VEHICLE_NAME\", found ${sites.joinToString()}")
+
+    val mutable = mutableMethodOf(site)
+    val code = mutable.implementation!!.instructions
+    val literals = code.indices.filter { code[it].stringLiteral() == FALLBACK_VEHICLE_NAME }
+    val literal = literals.singleOrNull()
+        ?: throw PatchException("Expected one \"$FALLBACK_VEHICLE_NAME\" in $site, found ${literals.size}")
+
+    val vehicleReads = code.take(literal).filter { it.opcode == Opcode.INVOKE_INTERFACE }
+        .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+        .filter { it.parameterTypes.isEmpty() && it.returnType == STRING }
+    if (vehicleReads.size != 2 || vehicleReads[0].definingClass != vehicleReads[1].definingClass ||
+        vehicleReads[0].name == vehicleReads[1].name
+    ) throw PatchException("Expected the make and model reads before \"$FALLBACK_VEHICLE_NAME\" in $site, found ${vehicleReads.map { it.key() }}")
+
+    // The proto's default instance, read and asked for its builder right away (no-argument call on it).
+    val protos = (0 until literal).filter { index ->
+        val read = code[index]
+        val field = (read as? ReferenceInstruction)?.reference as? FieldReference
+        val next = code.getOrNull(index + 1) as? FiveRegisterInstruction
+        read.opcode == Opcode.SGET_OBJECT && field != null && field.type == field.definingClass &&
+            next?.opcode == Opcode.INVOKE_VIRTUAL && next.registerCount == 1 && next.registerC == read.registerA()
+    }.map { ((code[it] as ReferenceInstruction).reference as FieldReference).type }.toSet()
+    val writes = code.indices.filter { index ->
+        index > literal && code[index].opcode == Opcode.IPUT_OBJECT &&
+            ((code[index] as ReferenceInstruction).reference as FieldReference).let { it.type == STRING && it.definingClass in protos }
+    }
+    val write = writes.singleOrNull()
+        ?: throw PatchException("Expected one vehicle name write after \"$FALLBACK_VEHICLE_NAME\" in $site, found ${writes.size}")
+    // Inserted code before a branch target would be skipped by that branch.
+    if (code[write].location.labels.isNotEmpty()) throw PatchException("The vehicle name write in $site is a branch target")
+    val field = (code[write] as ReferenceInstruction).reference as FieldReference
+    val register = (code[write] as TwoRegisterInstruction).registerA
+    // The write stores the name: the register the literal was loaded into, unchanged on every path from
+    // the literal to the write.
+    if (code[literal].registerA() != register) {
+        throw PatchException("The vehicle name write in $site stores v$register, not the name's v${code[literal].registerA()}")
+    }
+    if (!mutable.reachesUnchanged(literal + 1, write, register)) {
+        throw PatchException("\"$FALLBACK_VEHICLE_NAME\" in v$register does not reach the vehicle name write $write unchanged in $site")
+    }
+
+    mutable.addInstructions(
+        write,
+        """
+            invoke-static/range { v$register .. v$register }, $CAR_NAME_CLASS->vehicleName($STRING)$STRING
+            move-result-object v$register
+        """.trimIndent(),
+    )
+    sendToCarLogger.info(
+        "Car name: $site writes ${field.key()} from v$register at $write through CarName.vehicleName " +
+            "(\"$FALLBACK_VEHICLE_NAME\" at $literal, make/model ${vehicleReads.joinToString { it.key() }})",
     )
 }
 
@@ -593,6 +670,34 @@ private fun MutableMethod.deadFrom(start: Int, registers: Set<Int>): Boolean {
                 if (!name.startsWith("goto")) work += index + 1 to left
             }
             else -> work += index + 1 to left
+        }
+    }
+    return true
+}
+
+// Whether every path from [start] reaches [target] before anything writes [register] (bounded walk; a
+// switch, a try range, a return or throw, or too many steps count as "no").
+private fun MutableMethod.reachesUnchanged(start: Int, target: Int, register: Int): Boolean {
+    val implementation = implementation!!
+    val code = implementation.instructions
+    val tries = implementation.tryBlocks.map { it.start.location.index until it.end.location.index }
+    val seen = mutableSetOf<Int>()
+    val work = ArrayDeque(listOf(start))
+    var steps = 0
+    while (work.isNotEmpty()) {
+        val index = work.removeLast()
+        if (index == target || !seen.add(index)) continue
+        if (++steps > 1000 || index !in code.indices || tries.any { index in it }) return false
+        val instruction = code[index]
+        if (instruction.writesRegister(register)) return false
+        val name = instruction.opcode.name
+        when {
+            name.startsWith("return") || instruction.opcode == Opcode.THROW || name.endsWith("switch") -> return false
+            instruction is BuilderOffsetInstruction -> {
+                work += instruction.target.location.index
+                if (!name.startsWith("goto")) work += index + 1
+            }
+            else -> work += index + 1
         }
     }
     return true

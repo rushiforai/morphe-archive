@@ -7,18 +7,6 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-// A remote-config value (R8-renamed, r1o in 26.10.2). Every config switch the app reads is one of
-// these: its constructor takes (context, key enum, ..., default supplier, parser) and opens the
-// per-user override preferences "USER_PREFS_CONFIG_KEY-<user>". The second parameter is the key
-// enum (i63 in 26.10.2), whose constants carry the stable names (ODDS_ENABLE, ...). The file name
-// prefix is concatenated with the user, so it is matched by prefix: patcher 2.0 compares raw
-// `strings` with the whole constant.
-internal object RemoteConfigValueConstructorFingerprint : Fingerprint(
-    name = "<init>",
-    returnType = "V",
-    filters = listOf(string("USER_PREFS_CONFIG_KEY-", StringComparisonType.STARTS_WITH)),
-)
-
 // The sponsored (bookmaker) strip widget's data class (R8-renamed, j3l in 26.10.2), found through
 // its data-class toString(). The class-name prefix starts the concatenation, so it is matched by
 // prefix: patcher 2.0 compares raw `strings` with the whole constant.

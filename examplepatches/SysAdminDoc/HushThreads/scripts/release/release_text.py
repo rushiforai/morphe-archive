@@ -24,12 +24,15 @@ from typing import NoReturn
 
 ROOT = Path(__file__).resolve().parents[2]
 APP = "Threads"
-# The scopes a released section may use, in the order the GitHub notes list them. Morphe Manager
-# shows a bullet only to the app it names, so Docs and Tooling bullets reach nobody there.
+# The scopes a released section may use, in the order the GitHub notes list them. A bullet with
+# no label is a Threads change, because this repo patches one app and a "Threads:" label only
+# repeated it. A bullet that still carries "**Threads:**" counts the same and loses the label at
+# the cut. Docs and Tooling bullets are development and documentation notes that Manager lists
+# for nobody.
 SCOPES = ("Threads", "Docs", "Tooling")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 DASHES = ("\u2014", "\u2013")
-BULLET = re.compile(r"^\* \*\*(?P<scope>[^*]+?):\*\* (?P<text>\S.*)$")
+BULLET = re.compile(r"^\* (?:\*\*(?P<scope>[^*]+?):\*\* )?(?P<text>\S.*)$")
 MANAGER_NAMED = re.compile(r"\bMorphe Manager(?:\]\([^)\s]*\))?\s+(\d+(?:\.\d+)+)\s+or newer\b")
 # The release check test sends a User-Agent naming the version, so the cut moves it with the rest.
 USER_AGENT_TEST = "extensions/threads/src/test/java/app/morphe/extension/hushthreads/settings/ReleaseTransportTest.java"
@@ -84,7 +87,10 @@ def section_span(text: str, heading: str) -> tuple[int, int, int] | None:
 
 
 def bullets(body: str, where: str) -> list[tuple[str, str]]:
-    """Each `* **Scope:** text` line as (scope, text), refusing anything Manager would misread."""
+    """Each `* text` or `* **Scope:** text` line as (scope, text), refusing anything Manager would misread.
+
+    No label means the app and so does the app's own label, so both come back as (APP, text).
+    """
     items = []
     for line in body.split("\n"):
         if not line.strip():
@@ -93,8 +99,8 @@ def bullets(body: str, where: str) -> list[tuple[str, str]]:
         if not match:
             if line.lstrip().startswith(("- ", "+ ")):
                 fail(f"{where}: Manager reads '* ' bullets only, so rewrite this one: {line[:80]}")
-            fail(f"{where}: every line has to be a one-line '* **Scope:** ' bullet, so join or rescope: {line[:80]}")
-        scope = match.group("scope")
+            fail(f"{where}: every line has to be a one-line '* ' bullet, so join it onto one line: {line[:80]}")
+        scope = match.group("scope") or APP
         if scope not in SCOPES:
             fail(f"{where}: {scope} isn't one of the scopes {', '.join(SCOPES)}: {line[:80]}")
         if any(dash in line for dash in DASHES):
@@ -192,7 +198,7 @@ def dated_section(version: str) -> list[tuple[str, str]]:
         fail(f"CHANGELOG has no dated {version} heading. Run -Stage prepare first")
     items = bullets(changelog[span[1]:span[2]], version)
     if not any(scope == APP for scope, _ in items):
-        fail(f"the {version} section has no **{APP}:** bullet, so Manager would show no update")
+        fail(f"the {version} section has no {APP} change, only Docs and Tooling bullets, so Manager would show no update")
     return items
 
 
@@ -218,9 +224,11 @@ def cut(args) -> None:
     if not items:
         fail("Unreleased has no bullets")
     if not any(scope == APP for scope, _ in items):
-        fail(f"Unreleased has no **{APP}:** bullet, so Manager would show no update")
+        fail(f"Unreleased has no {APP} change, only Docs and Tooling bullets, so Manager would show no update")
     heading = f"## {version} ({date})"
-    edits = {"CHANGELOG.md": changelog[:start] + heading + "\n" + changelog[body:]}
+    # A bullet that still opens with "**Threads:** " loses the label here, so released text never has it.
+    kept = re.sub(rf"(?m)^\* \*\*{APP}:\*\* ", "* ", changelog[body:end]) + changelog[end:]
+    edits = {"CHANGELOG.md": changelog[:start] + heading + "\n" + kept}
     edits["gradle.properties"] = swap(read(here("gradle.properties")),
                                       rf"^(\s*version\s*=\s*){re.escape(old)}(\s*)$", rf"\g<1>{version}\g<2>",
                                       "gradle.properties version")
@@ -314,7 +322,7 @@ def changelog_groups(version: str) -> str:
     patched with, so the description carries the bullets Manager would list. Docs and Tooling
     bullets reach nobody there and stay out. The facts readers stop at this heading.
     """
-    lines = [f"* **{APP}:** {text}" for scope, text in dated_section(version) if scope == APP]
+    lines = [f"* {text}" for scope, text in dated_section(version) if scope == APP]
     return "### Changes\n\n" + "\n".join(lines)
 
 

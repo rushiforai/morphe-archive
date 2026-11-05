@@ -319,9 +319,9 @@ class GboardExtendedDictionaryPatchContractTest {
     }
 
     @Test
-    fun `settings row is registered before backup and has both locales`() {
+    fun `settings row is registered in the More group before backup and has both locales`() {
         val registry = Files.readString(
-            repositoryRoot.resolve(SETTINGS_REGISTRY_PATH),
+            repositoryRoot.resolve(MORE_GROUP_PATH),
             StandardCharsets.UTF_8,
         )
         val homepage = registry.indexOf("new GboardSettingsHomepageSettingsFeature()")
@@ -351,9 +351,9 @@ class GboardExtendedDictionaryPatchContractTest {
         const val GATEWAY_PATH =
             "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/" +
                 "extendeddictionary/GboardPersonalDictionaryReflectionGateway.java"
-        const val SETTINGS_REGISTRY_PATH =
+        const val MORE_GROUP_PATH =
             "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/settings/" +
-                "GboardPatchesSettingsFeatureRegistry.java"
+                "GboardMoreSettingsGroupFeature.java"
         const val SETTINGS_TEXT_PATH =
             "extensions/extension/src/main/settings-text/gboard_settings_text.xml"
     }

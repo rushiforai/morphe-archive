@@ -1,16 +1,24 @@
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 private const val PKG = "com.foobnix.pdf.reader"
-private const val APP_CONFIG = "Lcom/foobnix/pdf/info/AppsConfig;"
-private const val ADS = "Lcom/foobnix/pdf/info/ADS;"
 
 class LibreraSmokeTest {
 
     @TempDir
     lateinit var workDir: File
+
+    private fun Method.strings() = instructions().mapNotNull {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
+    }
 
     @Test
     fun `Disable ads forces the ad gate off and the reward window open`() {
@@ -25,21 +33,34 @@ class LibreraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "9.4.20",
+            version = "10.0.22",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
+        val methods = classes.flatMap { c -> c.methods.map { c to it } }
 
-        fun klass(type: String) = classes.firstOrNull { it.type == type }
-            ?: error("$type not found in emitted dexes")
+        // AppsConfig.isShowAdsInApp(Context) is R8-renamed since 10.0; found like the fingerprint
+        // by its "no-ads old device" log line and the Pro app package check.
+        val adGates = methods.filter { (_, m) ->
+            m.returnType == "Z" && m.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;") &&
+                m.strings().any { it.startsWith("no-ads old device") } &&
+                "com.foobnix.pro.pdf.reader" in m.strings()
+        }
+        assertEquals(1, adGates.size, "expected one isShowAdsInApp, found ${adGates.map { it.first.type }}")
+        val (adGateClass, adGate) = adGates.single()
+        assertForcedBoolean(adGate, expected = false, label = "isShowAdsInApp (${adGateClass.type}.${adGate.name})")
 
-        assertForcedBoolean(
-            klass(APP_CONFIG).method("isShowAdsInApp", listOf("Landroid/content/Context;")),
-            expected = false, label = "AppsConfig.isShowAdsInApp(Context)",
+        // Every isRewardActivated()Z copy: ADS's own (static since 10.0) and the one R8 inlined
+        // into AdsFragmentActivity.
+        val rewardGates = methods.filter { (_, m) ->
+            m.returnType == "Z" && m.parameterTypes.isEmpty() && "isRewardActivated" in m.strings()
+        }
+        assertTrue(
+            rewardGates.any { (_, m) -> AccessFlags.STATIC.isSet(m.accessFlags) },
+            "ADS.isRewardActivated (static ()Z) not found among ${rewardGates.map { "${it.first.type}.${it.second.name}" }}"
         )
-        assertForcedBoolean(
-            klass(ADS).method("isRewardActivated", emptyList()),
-            expected = true, label = "ADS.isRewardActivated()",
-        )
+        rewardGates.forEach { (c, m) ->
+            assertForcedBoolean(m, expected = true, label = "isRewardActivated (${c.type}.${m.name})")
+        }
     }
 }

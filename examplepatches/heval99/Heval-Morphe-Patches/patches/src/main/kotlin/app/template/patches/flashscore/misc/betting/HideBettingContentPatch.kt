@@ -1,26 +1,23 @@
 package app.template.patches.flashscore.misc.betting
 
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.template.patches.flashscore.shared.ForcedConfigValue
+import app.template.patches.flashscore.shared.forceRemoteConfigValues
 import app.template.patches.shared.Constants.COMPATIBILITY_FLASHSCORE
 import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.addInstructionsWithLabelsChecked
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
-import java.util.logging.Logger
 
 private const val BETTING_HELPER_NAME = "morpheBettingGet"
 private const val TABS_HELPER_NAME = "morpheWithoutOddsTab"
@@ -29,42 +26,26 @@ private const val TABS_HELPER_NAME = "morpheWithoutOddsTab"
 private const val ODDS_TAB = "ODDS"
 private const val SET = "Ljava/util/Set;"
 
-// What the helper returns instead of the remote value. The types match each key's parser:
-// booleans are "1"/"0" parsed to Boolean, URLs are plain Strings, sport lists are List<Integer>.
-private enum class Forced(val smali: String) {
-    FALSE("sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;"),
-    TRUE("sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"),
-    EMPTY_STRING("const-string v0, \"\""),
-    EMPTY_LIST(
-        """
-            invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
-            move-result-object v0
-        """.trimIndent()
-    ),
-}
-
 // The app's own odds kill switches (used for geo blocks and underage users), by enum constant
 // name. Enum names survive R8: Enum.name() is backed by the constructor's string argument.
 private const val ODDS_ENABLE = "ODDS_ENABLE"
 private val FORCED_KEYS = linkedMapOf(
-    ODDS_ENABLE to Forced.FALSE,
-    "DETAIL_ODDS_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_COMPARISON_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_AFFILIATE_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_BETSLIP_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_PREMATCH_BUTTON_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_POSTMATCH_BUTTON_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_LIVE_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_LIVE_BET_BUTTON_ENABLE" to Forced.FALSE,
-    "DETAIL_ODDS_SUMMARY_REDIRECT_TO_ODDS" to Forced.FALSE,
-    "DETAIL_SUMMARY_GAMBLING_TEXT_ENABLED" to Forced.FALSE,
-    "DETAIL_BROADCASTING_BOOKMAKERS_DISABLE" to Forced.TRUE,
-    "DETAIL_ODDS_SUMMARY_IMAGES_DISABLED" to Forced.TRUE,
-    "BONUS_PROMO_GIFT_ICON_URL" to Forced.EMPTY_STRING,
-    "LEAGUE_DETAIL_HEADER_STRIP_SPORTS_ENABLED" to Forced.EMPTY_LIST,
+    ODDS_ENABLE to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_COMPARISON_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_AFFILIATE_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_BETSLIP_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_PREMATCH_BUTTON_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_POSTMATCH_BUTTON_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_LIVE_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_LIVE_BET_BUTTON_ENABLE" to ForcedConfigValue.FALSE,
+    "DETAIL_ODDS_SUMMARY_REDIRECT_TO_ODDS" to ForcedConfigValue.FALSE,
+    "DETAIL_SUMMARY_GAMBLING_TEXT_ENABLED" to ForcedConfigValue.FALSE,
+    "DETAIL_BROADCASTING_BOOKMAKERS_DISABLE" to ForcedConfigValue.TRUE,
+    "DETAIL_ODDS_SUMMARY_IMAGES_DISABLED" to ForcedConfigValue.TRUE,
+    "BONUS_PROMO_GIFT_ICON_URL" to ForcedConfigValue.EMPTY_STRING,
+    "LEAGUE_DETAIL_HEADER_STRIP_SPORTS_ENABLED" to ForcedConfigValue.EMPTY_LIST,
 )
-
-private val logger = Logger.getLogger("HideBettingContent")
 
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 
@@ -77,52 +58,6 @@ private fun MutableMethod.replaceArrayListParameters() {
         """.trimIndent()
     }
     addInstructionsChecked(0, smali)
-}
-
-/**
- * Resolves the enum constant [name] of [enumType] to its static field by following its
- * `<clinit>`: `const-string vN, NAME` -> `invoke-direct {vI, vN, ...}, <init>` -> `sput-object vI`.
- * Returns `Lenum;->field:Lenum;`, or null when the constant is not there.
- */
-private fun BytecodePatchContext.enumConstantField(enumType: String, name: String): String? {
-    val clinit = classDefBy(enumType).methods.singleOrNull { it.name == "<clinit>" } ?: return null
-    val insns = clinit.implementation?.instructions?.toList() ?: return null
-
-    val nameIndex = insns.indexOfFirst {
-        (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
-            ((it as ReferenceInstruction).reference as StringReference).string == name
-    }
-    if (nameIndex < 0) return null
-    val nameRegister = (insns[nameIndex] as OneRegisterInstruction).registerA
-
-    // The constructor call that takes this name as its first argument (Enum(String name, ...)).
-    var instanceRegister = -1
-    var initIndex = -1
-    for (i in nameIndex + 1 until insns.size) {
-        val insn = insns[i]
-        val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference ?: continue
-        if (ref.definingClass != enumType || ref.name != "<init>") continue
-        val (thisRegister, firstArgument) = when (insn) {
-            is FiveRegisterInstruction -> insn.registerC to insn.registerD
-            is RegisterRangeInstruction -> insn.startRegister to insn.startRegister + 1
-            else -> continue
-        }
-        if (firstArgument != nameRegister) continue
-        instanceRegister = thisRegister
-        initIndex = i
-        break
-    }
-    if (initIndex < 0) return null
-
-    for (i in initIndex + 1 until insns.size) {
-        val insn = insns[i]
-        if (insn.opcode != Opcode.SPUT_OBJECT) continue
-        val field = (insn as ReferenceInstruction).reference as FieldReference
-        if ((insn as OneRegisterInstruction).registerA != instanceRegister) continue
-        if (field.definingClass != enumType || field.type != enumType) continue
-        return "${field.definingClass}->${field.name}:${field.type}"
-    }
-    return null
 }
 
 @Suppress("unused")
@@ -140,105 +75,16 @@ val hideBettingContentPatch = bytecodePatch(
     execute {
         // ── 1. Remote config: answer the betting keys with the "odds off" values ───────────
         //
-        //  The value class's get() only returns its holder's get(). A new static helper checks
-        //  the key by identity against the resolved enum constants and returns the forced value,
-        //  else does exactly what get() did. get() has no spare register (.locals 0), so it calls
-        //  the helper and returns its result, rather than testing a "no override" sentinel.
-        //  R8 inlines get() at some call sites (holder field + holder get() read directly; in
-        //  26.10.2 inside the config factory lambdas and two change listeners). Those reads
-        //  bypass the helper; in 26.10.2 none of them is for a forced key (checked by hand).
-        //  FlashscoreSmokeTest catches such a read only right after the forced key's instance
-        //  is built, so recheck by hand when updating the app.
-        val valueConstructor = RemoteConfigValueConstructorFingerprint.method
-        val valueClass = RemoteConfigValueConstructorFingerprint.classDef
-        val keyType = valueConstructor.parameterTypes.getOrNull(1)?.toString()
-            ?: throw PatchException("Remote-config value constructor has no key parameter")
-        val keyField = valueClass.fields.singleOrNull {
-            it.type == keyType && !AccessFlags.STATIC.isSet(it.accessFlags)
-        } ?: throw PatchException("${valueClass.type} has no single $keyType key field")
-
-        val get = valueClass.methods.singleOrNull {
-            it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty() &&
-                !AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null
-        } ?: throw PatchException("${valueClass.type} has no single ()Object getter")
-
-        // The original body: iget-object holder; invoke holder.get(); move-result; return.
-        val original = get.implementation!!.instructions.toList()
-        val holderField = (original.getOrNull(0) as? ReferenceInstruction)?.reference as? FieldReference
-        val holderGet = (original.getOrNull(1) as? ReferenceInstruction)?.reference as? MethodReference
-        if (original.size != 4 || original[0].opcode != Opcode.IGET_OBJECT || holderField == null ||
-            holderField.definingClass != valueClass.type || holderGet == null ||
-            original[1].opcode !in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_INTERFACE) ||
-            original[2].opcode != Opcode.MOVE_RESULT_OBJECT || original[3].opcode != Opcode.RETURN_OBJECT
-        ) {
-            throw PatchException("${valueClass.type}.${get.name}() is not the expected holder getter")
-        }
-        // The helper calls the holder's get() with the holder as its only register.
-        if (holderGet.parameterTypes.isNotEmpty()) {
-            throw PatchException("${valueClass.type}.${get.name}() calls $holderGet with arguments")
-        }
-        val invokeHolder = if (original[1].opcode == Opcode.INVOKE_INTERFACE) "invoke-interface" else "invoke-virtual"
-        val holderGetRef = "${holderGet.definingClass}->${holderGet.name}(" +
-            holderGet.parameterTypes.joinToString("") + ")${holderGet.returnType}"
-
-        // ODDS_ENABLE is the master switch: without it the patch does nothing useful.
-        val resolved = FORCED_KEYS.mapNotNull { (name, forced) ->
-            val field = enumConstantField(keyType, name)
-            if (field == null) {
-                if (name == ODDS_ENABLE) throw PatchException("$keyType has no $ODDS_ENABLE constant")
-                logger.warning("Hide betting content: $keyType has no $name constant, skipping it")
-                null
-            } else {
-                Triple(name, field, forced)
-            }
-        }
-
-        val groups = resolved.groupBy({ it.third }, { it.second })
-        val checks = groups.entries.joinToString("\n") { (forced, fields) ->
-            fields.joinToString("\n") { field ->
-                """
-                    sget-object v1, $field
-                    if-eq v0, v1, :forced_${forced.name.lowercase()}
-                """.trimIndent()
-            }
-        }
-        val answers = groups.keys.joinToString("\n") { forced ->
-            ":forced_${forced.name.lowercase()}\n${forced.smali}\nreturn-object v0"
-        }
-
-        // v0 = key, v1 = scratch, p0 (v2) = the value object.
-        val helper = ImmutableMethod(
-            valueClass.type,
-            BETTING_HELPER_NAME,
-            listOf(ImmutableMethodParameter(valueClass.type, null, null)),
-            "Ljava/lang/Object;",
-            AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-            null,
-            null,
-            MutableMethodImplementation(3),
-        ).toMutable().apply {
-            addInstructionsWithLabelsChecked(
-                0,
-                """
-                    iget-object v0, p0, ${valueClass.type}->${keyField.name}:$keyType
-                    $checks
-                    iget-object v0, p0, ${valueClass.type}->${holderField.name}:${holderField.type}
-                    $invokeHolder {v0}, $holderGetRef
-                    move-result-object v0
-                    return-object v0
-                    $answers
-                """.trimIndent(),
-            )
-        }
-        valueClass.methods.add(helper)
-
-        get.addInstructionsChecked(
-            0,
-            """
-                invoke-static {p0}, ${valueClass.type}->$BETTING_HELPER_NAME(${valueClass.type})Ljava/lang/Object;
-                move-result-object p0
-                return-object p0
-            """.trimIndent(),
+        //  The config value class's get() goes through a helper that answers these keys (see
+        //  forceRemoteConfigValues; Disable ads chains its own helper the same way). In 26.10.2
+        //  and 26.11.4 no forced key is read through an R8-inlined holder get() (checked by
+        //  FlashscoreSmokeTest). ODDS_ENABLE is the master switch: without it the patch does
+        //  nothing useful.
+        forceRemoteConfigValues(
+            patchName = "Hide betting content",
+            helperName = BETTING_HELPER_NAME,
+            forced = FORCED_KEYS,
+            required = setOf(ODDS_ENABLE),
         )
 
         // ── 2. Sponsored strip: never carries any bookmaker item ───────────────────────────

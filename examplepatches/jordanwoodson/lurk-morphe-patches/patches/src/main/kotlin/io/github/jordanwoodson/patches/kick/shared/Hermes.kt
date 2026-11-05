@@ -830,7 +830,7 @@ internal class HermesBundle(input: ByteArray) {
     }
 
     companion object {
-        const val SOURCE_SHA256 = "46ff7cd5b249c28ea9fdf7063e7113818abb83c159525fbed488db112927109e"
+        const val SOURCE_SHA256 = "2395d1821cbbd742e5b5e5907767ee6e0068649f8665b06508a02890aabad501"
 
         /** [HermesEdit.functionId] of an edit outside function bytecode: a literal value or a string. */
         const val DATA = -1

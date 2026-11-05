@@ -1,2 +1,2 @@
 # Chrome DevTools connection used by the offline Kick chat-page check.
-websockets==15.0.1
+websockets==17.3

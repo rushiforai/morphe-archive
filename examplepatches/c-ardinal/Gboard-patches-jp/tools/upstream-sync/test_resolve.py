@@ -58,6 +58,21 @@ class ChangelogTest(unittest.TestCase):
             + resolve.ZH_PLACEHOLDER_BULLET + "\n\n### 🐛 修復\n\n* **Gboard:** 修復 B。",
         )
 
+    def test_skipped_upstream_releases_are_merged_into_the_new_section(self):
+        upstream = (
+            "## [2.0.1](x) (2026-01-03)\n\n### 🐛 Bug Fixes\n\n* fix C.\n\n### 🐛 修復\n\n* 修復 C。\n\n"
+            "## [2.0.1-dev.1](x) (2026-01-03)\n\n### 🐛 Bug Fixes\n\n* dev only.\n\n"
+            + UPSTREAM
+        )
+        sections = resolve.split_sections(upstream)[1]
+        body = resolve.new_section_body(sections, "2.0.1", False, previous="1.0.0")
+        self.assertEqual(
+            body,
+            "### ✨ New Features\n\n* **Gboard:** add A.\n\n### 🐛 Bug Fixes\n\n* fix C.\n* **Gboard:** fix B."
+            "\n\n### ✨ 新功能\n\n* **Gboard:** 新增 A。\n\n### 🐛 修復\n\n* 修復 C。\n* **Gboard:** 修復 B。",
+        )
+        self.assertEqual(resolve.last_fork_base(FORK), "1.0.0")
+
     def test_missing_feature_headings_are_created(self):
         body = "### 🐛 Bug Fixes\n\n* fix.\n\n### 🐛 修復\n\n* 修復。"
         body = resolve.append_bullet(body, resolve.EN_FEATURES, "* en")

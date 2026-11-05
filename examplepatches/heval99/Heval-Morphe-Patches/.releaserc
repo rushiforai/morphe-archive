@@ -20,20 +20,6 @@
         }
     ],
     [
-        "@semantic-release/release-notes-generator", {
-        "preset": "conventionalcommits",
-        "presetConfig": {
-            "types": [
-                { "type": "fix", "section": "🐛 Bug Fixes", "hidden": false },
-                { "type": "feat", "section": "✨ New Features", "hidden": false },
-                { "type": "bump", "section": "🚀 Updated App Support", "hidden": false },
-                { "type": "perf", "section": "🔧 Improvements",  "hidden": false },
-                { "type": "build", "hidden": true }
-            ]
-        }
-        }
-    ],
-    [
       "@MorpheApp/changelog", {
         "releaseJson": {
           "path": "patches-bundle.json",
@@ -46,6 +32,7 @@
     [
       "@semantic-release/exec",
       {
+        "generateNotesCmd": "python3 .github/scripts/generate_release_notes.py --build --repo \"$GITHUB_REPOSITORY\" --version \"${nextRelease.version}\" --previous-tag \"${lastRelease.gitTag}\"",
         "prepareCmd": "./gradlew generatePatchesList && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md",
         "publishCmd": "cd patches/build/libs && ls *.mpp | grep -v -e sources -e javadoc | xargs sha256sum > ../../../SHA256SUMS.txt"
       }

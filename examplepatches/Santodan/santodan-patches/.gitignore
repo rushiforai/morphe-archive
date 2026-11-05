@@ -141,3 +141,6 @@ local.properties
 
 # Killo COde
 .kilo/
+
+# Local shared agent skills and inspection evidence.
+Skills/

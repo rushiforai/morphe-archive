@@ -5,14 +5,22 @@ import java.security.MessageDigest
 import java.util.Locale
 
 internal const val VD_SDR_FOVEA_SUFFIX_SIZE = 296
+// 2.0.24/5002527 masked suffix: the same alpha program plus the vInnerFade edge control.
+internal const val VD_SDR_FOVEA_SUFFIX_SIZE_INNER_FADE = 411
 internal const val VD_SDR_OPAQUE_SUFFIX_SIZE = 29
 private const val STOCK_MASKED_HASH = "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"
+private const val STOCK_MASKED_HASH_INNER_FADE = "86efda0fc6d87db53627ab0b0f20ec0b7dff6b5a45d580107aab1f148e372707"
 private const val STOCK_OPAQUE_HASH = "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"
 
 internal data class VdSdrFoveaGuard(val offset: Int, val size: Int, val sha256: String)
+
 internal data class VdSdrFoveaLayout(
     val version: String, val code: String, val size: Int, val stockHash: String,
     val maskedSuffix: Int, val opaqueSuffix: Int, val guards: List<VdSdrFoveaGuard>,
+    val maskedSize: Int = VD_SDR_FOVEA_SUFFIX_SIZE,
+    val shaderSize: Int = VIDEO_SHADER_SIZE,
+    // 2.0.24/5002527: Valve's vInnerFade uniform edge control (stock location 14) is in the masked suffix.
+    val innerFade: Boolean = false,
 )
 
 // Independently measured from the exact decoded inputs: constructor assigns separate
@@ -54,6 +62,21 @@ internal val VD_SDR_FOVEA_LAYOUTS = listOf(
             VdSdrFoveaGuard(0xf25a0, 504, "d5cc0e42e225f17baa7493436f0304542aaf8edee7316bc350b9d8e740b7025a"),
             VdSdrFoveaGuard(0xf2ca0, 616, "eff4c2efcb12c806084d3cfaf1ffc0d50837e27c602ae6ed0285641942f94b88"),
         )),
+    // Independently measured from decoded 2.0.24/5002527: SRGBCorrectionPass constructor
+    // (0xf5d7c, 508 bytes) builds the base/fovea Shader pair from the static strings, and
+    // RenderSpecific (0xf6480, 780 bytes) binds them at this+0x20/+0x28 and now also sets
+    // the vInnerFade vec4 (location 14) for the fovea program only. The prefix block is
+    // 1206 bytes and the masked suffix 411 bytes; the opaque suffix is unchanged.
+    VdSdrFoveaLayout("2.0.24", "5002527", 2333472,
+        "cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03", 0x9f70a, 0x9b2c0,
+        listOf(
+            VdSdrFoveaGuard(0xf5d7c, 508, "b1aec7ee0a018e8f3199a7a8818fc01cb78660fef3ff86352eff0bea441c4c75"),
+            VdSdrFoveaGuard(0xf6480, 780, "214c231734c06be0e71f0ff4c50dbde24ddadc3a9b4c8fcc27d2fb662b767c05"),
+        ),
+        maskedSize = VD_SDR_FOVEA_SUFFIX_SIZE_INNER_FADE,
+        shaderSize = VIDEO_SHADER_SIZE_INNER_FADE,
+        innerFade = true,
+    ),
 )
 
 private val STOCK_MASKED_SUFFIX = (
@@ -82,30 +105,65 @@ private val NEUTRAL_MASKED_SUFFIX = (
     ByteArray(VD_SDR_FOVEA_SUFFIX_SIZE) { ' '.code.toByte() }.also { source.copyInto(it) }
 }
 
-internal fun vdSdrFoveaSuffix(mode: FoveaMode, fovealGamma: Float = 1f): ByteArray {
+// 2.0.24/5002527 stock masked suffix (411 bytes, NUL-bounded): identical alpha program
+// plus Valve's vInnerFade edge control and an alpha clamp. Pinned by SHA-256 below.
+private val STOCK_MASKED_SUFFIX_INNER_FADE = (
+    "\n            vec2 placeInSection = fract(uvmask * vec2( 1.0, 4.0 ));\n" +
+    "            vec2 distCenter = abs( placeInSection - 0.5 );\n" +
+    "\t\t\tdistCenter = max( 0.5 - max( 0.5 - distCenter - vInnerFade.xy, 0.0 ) * vInnerFade.zw, 0.0 );\n" +
+    "\t\t\tfloat powv = 10.0;\n" +
+    "\t\t\tfloat edgecurve = 1.5;\n" +
+    "\t\t\tcolor.a = pow( clamp( 1.05 - (pow( distCenter.y*2.0, powv ) + pow( distCenter.x*2.0, powv )) * 1.06, 0.0, 1.0 ), edgecurve );\n" +
+    "    }\n    "
+).toByteArray(Charsets.US_ASCII)
+
+// Same neutral external-RGB program as NEUTRAL_MASKED_SUFFIX, keeping every statement of
+// Valve's inner-fade alpha (387 source bytes padded to the 411-byte slot).
+private val NEUTRAL_MASKED_SUFFIX_INNER_FADE = (
+    "\ncolor.rgb=clamp(_valve1_d2020d709*texture(tex0,uv).rgb,0.,1.)*fFadeAmount;\n" +
+    "vec2 placeInSection=fract(uvmask*vec2(1.0,4.0));\n" +
+    "vec2 distCenter=abs(placeInSection-0.5);\n" +
+    "distCenter=max(0.5-max(0.5-distCenter-vInnerFade.xy,0.0)*vInnerFade.zw,0.0);\n" +
+    "float powv=10.0;float edgecurve=1.5;\n" +
+    "color.a=pow(clamp(1.05-(pow(distCenter.y*2.0,powv)+pow(distCenter.x*2.0,powv))*1.06,0.0,1.0),edgecurve);\n}\n"
+).toByteArray(Charsets.US_ASCII).let { source ->
+    check(source.size <= VD_SDR_FOVEA_SUFFIX_SIZE_INNER_FADE)
+    ByteArray(VD_SDR_FOVEA_SUFFIX_SIZE_INNER_FADE) { ' '.code.toByte() }.also { source.copyInto(it) }
+}
+
+internal fun vdSdrFoveaSuffix(mode: FoveaMode, fovealGamma: Float = 1f, innerFade: Boolean = false): ByteArray {
     if (!fovealGamma.isFinite() || fovealGamma !in 1f..1.30f) {
         throw PatchException("Foveal gamma adjustment must be between 1.00 and 1.30")
     }
     val exponent = String.format(Locale.US, "%.2f", fovealGamma)
+    val slot = if (innerFade) VD_SDR_FOVEA_SUFFIX_SIZE_INNER_FADE else VD_SDR_FOVEA_SUFFIX_SIZE
     // Neutral must retain the exact existing shaders, including whitespace and padding.
     if (exponent == "1.00") {
-        return (if (mode == FoveaMode.OFF) STOCK_MASKED_SUFFIX else NEUTRAL_MASKED_SUFFIX).copyOf()
+        return (if (innerFade) {
+            if (mode == FoveaMode.OFF) STOCK_MASKED_SUFFIX_INNER_FADE else NEUTRAL_MASKED_SUFFIX_INNER_FADE
+        } else if (mode == FoveaMode.OFF) STOCK_MASKED_SUFFIX else NEUTRAL_MASKED_SUFFIX).copyOf()
     }
     // c is the clamped, calibrated RGB from paddedVideoShader, before fade. The VD
     // modes instead retain their matrix-corrected sample. Apply the additional
     // exponent before fade and before the optional blue-noise wrapper quantizes RGB.
     val rgb = if (mode == FoveaMode.OFF) "c" else
         "clamp(_valve1_d2020d709*texture(tex0,uv).rgb,0.,1.)"
+    // The inner-fade build keeps its extra statement and alpha clamp verbatim.
+    val edge = if (innerFade) "gd=max(0.5-max(0.5-gd-vInnerFade.xy,0.0)*vInnerFade.zw,0.0);\n" else ""
+    val alpha = if (innerFade)
+        "color.a=pow(clamp(1.05-(pow(gd.y*2.0,powv)+pow(gd.x*2.0,powv))*1.06,0.0,1.0),edgecurve);\n}\n"
+    else "color.a=pow(1.05-(pow(gd.y*2.0,powv)+pow(gd.x*2.0,powv))*1.06,edgecurve);\n}\n"
     val source = ("\ncolor.rgb=pow($rgb,vec3($exponent))*fFadeAmount;\n" +
         // Only identifiers/whitespace are shortened. Preserve every alpha operation,
         // literal and operand order, including Valve's existing edge behavior.
         "vec2 gp=fract(uvmask*vec2(1.0,4.0));\n" +
         "vec2 gd=abs(gp-0.5);\n" +
+        edge +
         "float powv=10.0;float edgecurve=1.5;\n" +
-        "color.a=pow(1.05-(pow(gd.y*2.0,powv)+pow(gd.x*2.0,powv))*1.06,edgecurve);\n}\n")
+        alpha)
         .toByteArray(Charsets.US_ASCII)
-    check(source.size <= VD_SDR_FOVEA_SUFFIX_SIZE) { "Foveal gamma suffix exceeds native slot" }
-    return ByteArray(VD_SDR_FOVEA_SUFFIX_SIZE) { ' '.code.toByte() }.also { source.copyInto(it) }
+    check(source.size <= slot) { "Foveal gamma suffix exceeds native slot" }
+    return ByteArray(slot) { ' '.code.toByte() }.also { source.copyInto(it) }
 }
 
 // Recognize only complete outputs owned by this helper. This supports all slider
@@ -116,8 +174,15 @@ private val KNOWN_MASKED_SUFFIXES by lazy {
     }
 }
 
+private val KNOWN_MASKED_SUFFIXES_INNER_FADE by lazy {
+    listOf(STOCK_MASKED_SUFFIX_INNER_FADE, NEUTRAL_MASKED_SUFFIX_INNER_FADE) + (101..130).flatMap { value ->
+        listOf(FoveaMode.OFF, FoveaMode.INPUT_10BIT).map { vdSdrFoveaSuffix(it, value / 100f, innerFade = true) }
+    }
+}
+
 internal fun isGammaAdjustedFoveaSuffix(suffix: ByteArray): Boolean =
-    (101..130).any { suffix.contentEquals(vdSdrFoveaSuffix(FoveaMode.OFF, it / 100f)) }
+    (101..130).any { suffix.contentEquals(vdSdrFoveaSuffix(FoveaMode.OFF, it / 100f)) } ||
+        (101..130).any { suffix.contentEquals(vdSdrFoveaSuffix(FoveaMode.OFF, it / 100f, innerFade = true)) }
 
 private fun vdSdrHash(bytes: ByteArray): String =
     MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
@@ -138,25 +203,29 @@ internal fun applyVdSdrFovea(
 ): ByteArray {
     val layout = VD_SDR_FOVEA_LAYOUTS.singleOrNull { it.version == version && it.code == code }
         ?: return input.copyOf()
-    val replacement = vdSdrFoveaSuffix(mode, fovealGamma)
+    val innerFade = layout.innerFade
+    val replacement = vdSdrFoveaSuffix(mode, fovealGamma, innerFade)
     fun requireLayout(condition: Boolean, message: String) {
         if (!condition) throw PatchException("VD SDR fovea $version/$code: $message")
     }
     requireLayout(input.size == layout.size, "unexpected native size ${input.size}; expected ${layout.size}")
     if (fovealGamma > 1f) {
-        val prefix = findVideoShader(input)
-        requireLayout(isOledCalibrationShader(input.copyOfRange(prefix, prefix + VIDEO_SHADER_SIZE)),
+        val prefix = findVideoShader(input, layout.shaderSize)
+        requireLayout(isOledCalibrationShader(input.copyOfRange(prefix, prefix + layout.shaderSize)),
             "foveal gamma requires the exact OLED sRGB8 calibration prefix")
     }
-    requireLayout(STOCK_MASKED_SUFFIX.size == VD_SDR_FOVEA_SUFFIX_SIZE &&
-        vdSdrHash(STOCK_MASKED_SUFFIX) == STOCK_MASKED_HASH, "canonical suffix integrity failure")
-    for ((offset, size) in listOf(layout.maskedSuffix to VD_SDR_FOVEA_SUFFIX_SIZE,
+    val stockSuffix = if (innerFade) STOCK_MASKED_SUFFIX_INNER_FADE else STOCK_MASKED_SUFFIX
+    requireLayout(stockSuffix.size == layout.maskedSize &&
+        vdSdrHash(stockSuffix) == (if (innerFade) STOCK_MASKED_HASH_INNER_FADE else STOCK_MASKED_HASH),
+        "canonical suffix integrity failure")
+    for ((offset, size) in listOf(layout.maskedSuffix to layout.maskedSize,
         layout.opaqueSuffix to VD_SDR_OPAQUE_SUFFIX_SIZE)) {
         requireLayout(input[offset - 1] == 0.toByte() && input[offset + size] == 0.toByte(),
             "C-string boundary mismatch at 0x${offset.toString(16)}")
     }
-    val current = input.copyOfRange(layout.maskedSuffix, layout.maskedSuffix + VD_SDR_FOVEA_SUFFIX_SIZE)
-    requireLayout(KNOWN_MASKED_SUFFIXES.any { current.contentEquals(it) },
+    val current = input.copyOfRange(layout.maskedSuffix, layout.maskedSuffix + layout.maskedSize)
+    val known = if (innerFade) KNOWN_MASKED_SUFFIXES_INNER_FADE else KNOWN_MASKED_SUFFIXES
+    requireLayout(known.any { current.contentEquals(it) },
         "unrecognized masked suffix at 0x${layout.maskedSuffix.toString(16)}")
     requireLayout(vdSdrHash(input.copyOfRange(layout.opaqueSuffix,
         layout.opaqueSuffix + VD_SDR_OPAQUE_SUFFIX_SIZE)) == STOCK_OPAQUE_HASH, "opaque suffix changed")

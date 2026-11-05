@@ -21,7 +21,7 @@ final class SharedNg {
     private static volatile List<SharedNgRules.Rule> rules=Collections.emptyList();
     private static volatile Set<String> exceptions=Collections.emptySet();
     private static volatile boolean enabled,busy;
-    private static volatile int threshold=5;
+    private static volatile int threshold=1;
     private static volatile long nextSync;
     private static volatile String status="未同期";
     private static final java.util.concurrent.atomic.AtomicBoolean syncQueued=new java.util.concurrent.atomic.AtomicBoolean();
@@ -32,15 +32,16 @@ final class SharedNg {
     private static final Object SOURCE_LOCK=new Object();
     private static long sourceGeneration;
     static SharedPreferences prefs(){return context.getSharedPreferences(PREFS,0);}
+    static Set<String> ignoredReporters(){return new HashSet<>(context.getSharedPreferences(SharedNgReporterBlocks.PREFS,0).getStringSet("ignored",Collections.emptySet()));}
     static void initialize(Context c){if(context!=null)return;context=c.getApplicationContext();if(prefs().contains("githubFeed")||prefs().contains("feedEndpoint"))prefs().edit().remove("githubFeed").remove("feedEndpoint").putLong("cursor",0).apply();prefs().edit().remove("filterLevel").apply();reload();PersonalNgSubmissions.initialize(context);IO.execute(()->{
         try{loadCache();}catch(FileNotFoundException absent){/* First launch has no cache. */}catch(Exception e){status="キャッシュを読み込めません";}
         if(rules.isEmpty())prefs().edit().putLong("cursor",0).apply();flushReports();sync(false);
     });}
-    static void reload(){if(context==null)return;SharedPreferences p=prefs();enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",5);if(threshold<1)threshold=5;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
+    static void reload(){if(context==null)return;SharedPreferences p=prefs();enabled=p.getBoolean("enabled",false);threshold=p.getInt("threshold",1);if(threshold<1)threshold=1;exceptions=new HashSet<>(p.getStringSet("exceptions",Collections.emptySet()));new android.os.Handler(android.os.Looper.getMainLooper()).post(ProgrammableNgController::sharedNgChanged);}
     static boolean enabled(){return enabled;}
     static void showResponseExclusions(Activity activity, ProgrammableNgScript.Input input) {
         if (!enabled) return;
-        List<SharedNgRules.Rule> source = rules;
+        List<SharedNgRules.Rule> source = SharedNgReporterPolicy.apply(rules,ignoredReporters());
         Set<String> ignored = new HashSet<>(exceptions);
         Set<String> excluded = new HashSet<>(prefs().getStringSet("excludedBoards", Collections.emptySet()));
         int votes = threshold, kinds = 0;
@@ -60,9 +61,9 @@ final class SharedNg {
                 }
                 SharedNgExceptions content = new SharedNgExceptions(activity, matched,
                         prefs().getStringSet("exceptions", Collections.emptySet()));
-                new HaiagaruDialog.Builder(activity).setTitle(SharedNgResponseExclusion.TITLE)
-                        .setMessage("除外する条件にチェックを入れて保存してください。この端末で、その条件を適用しなくなります。変更後はスレを開き直してください。個人NGや他の条件でも隠れている場合は残ります。")
-                        .setView(content).setPositiveButton("保存", (dialog, which) -> {
+                SharedNgExceptions.showDialog(activity, SharedNgResponseExclusion.TITLE,
+                        "除外する条件にチェックを入れて保存してください。この端末で、その条件を適用しなくなります。変更後はスレを開き直してください。個人NGや他の条件でも隠れている場合は残ります。",
+                        content, () -> {
                             Set<String> next = new HashSet<>(prefs().getStringSet("exceptions", Collections.emptySet()));
                             Set<String> selected = content.selection();
                             for (SharedNgRules.Rule rule : matched) {
@@ -70,24 +71,26 @@ final class SharedNg {
                             }
                             prefs().edit().putStringSet("exceptions", next).apply(); reload();
                             Toast.makeText(activity, "共有NGの除外設定を保存しました。スレを開き直してください", Toast.LENGTH_LONG).show();
-                        }).setNegativeButton("キャンセル", null).show();
+                        });
             });
         });
     }
     private static final class MatchPlan {
-        final List<SharedNgRules.Rule> source;final Set<String> ignored,excluded;final int votes,kinds;final SharedNgIndex index;
-        MatchPlan(List<SharedNgRules.Rule> source,Set<String> ignored,Set<String> excluded,int votes,int kinds){
+        final List<SharedNgRules.Rule> source;final Set<String> ignored,excluded,reporters;final int votes,kinds;final SharedNgIndex index;
+        MatchPlan(List<SharedNgRules.Rule> source,Set<String> ignored,Set<String> excluded,int votes,int kinds,Set<String> reporters){
             this.source=source;this.ignored=ignored;this.excluded=new HashSet<>(excluded);this.votes=votes;this.kinds=kinds;
-            index=new SharedNgIndex(source,votes,ignored,this.excluded,kinds);
+            this.reporters=new HashSet<>(reporters);
+            index=new SharedNgIndex(SharedNgReporterPolicy.apply(source,reporters),votes,ignored,this.excluded,kinds);
         }
     }
     private static SharedNgIndex index(){
         SharedPreferences p=prefs();int kinds=0;
         for(int i=0;i<SharedNgIndex.KINDS.length;i++)if(p.getBoolean("kind."+SharedNgIndex.KINDS[i],true))kinds|=1<<i;
         Set<String> excluded=p.getStringSet("excludedBoards",Collections.emptySet());
+        Set<String> reporters=ignoredReporters();
         List<SharedNgRules.Rule> source=rules;Set<String> ignored=exceptions;int votes=threshold;MatchPlan plan=matchPlan;
-        if(plan==null||plan.source!=source||plan.ignored!=ignored||plan.votes!=votes||plan.kinds!=kinds||!plan.excluded.equals(excluded)){
-            plan=new MatchPlan(source,ignored,excluded,votes,kinds);matchPlan=plan;
+        if(plan==null||plan.source!=source||plan.ignored!=ignored||plan.votes!=votes||plan.kinds!=kinds||!plan.excluded.equals(excluded)||!plan.reporters.equals(reporters)){
+            plan=new MatchPlan(source,ignored,excluded,votes,kinds,reporters);matchPlan=plan;
         }
         return plan.index;
     }
@@ -102,6 +105,27 @@ final class SharedNg {
         }
         schedule();return out;
     }
+    /** Shared conditions are per response. Avoid script Input/HTML preparation for unchanged content. */
+    static Set<Integer> matchNativeRows(List<?> responses,String boardUrl)throws ReflectiveOperationException{
+        SharedNgIndex active=index();String board=SharedNgRules.board(boardUrl);
+        Set<Integer> matched=new HashSet<>();
+        for(Object response:responses){
+            String number,id,name,body;
+            switch(response.getClass().getSimpleName()){
+                case "processAdDisplayErrorPostbackForUserError":number="o";id="h";name="n";body="c";break;
+                case "BouncyCastleSocketAdapterCompanion":number="l";id="j";name="m";body="d";break;
+                case "KeJ11":number="o";id="g";name="n";body="h";break;
+                default:return null; // Retain the existing full-input path for other profiles.
+            }
+            Object responseId=NativeFields.find(response.getClass(),id).get(response);
+            String rawName=(String)NativeFields.find(response.getClass(),name).get(response);
+            String rawBody=(String)NativeFields.find(response.getClass(),body).get(response);
+            if(active.matchesHtml(board,responseId==null?"":responseId.toString(),rawName,rawBody,ProgrammableNgController::plain))
+                matched.add(((Number)NativeFields.find(response.getClass(),number).get(response)).intValue());
+        }
+        schedule();if(!enabled)return Collections.emptySet();
+        return active==index()?matched:null; // Settings/feed changed during evaluation: use the fresh path.
+    }
     static String string(ProgrammableNgScript.Input input,String key){Object v=input.values.get(key);return v==null?"":v.toString();}
     static void schedule(){
         if(context==null||!enabled||busy||System.currentTimeMillis()<nextSync||!syncQueued.compareAndSet(false,true))return;
@@ -109,7 +133,7 @@ final class SharedNg {
         catch(RejectedExecutionException unavailable){syncQueued.set(false);}
     }
     static String configuredEndpoint(){String url=prefs().getString("endpoint","");return url==null||url.trim().isEmpty()?DEFAULT_ENDPOINT:url;}
-    static String feedEndpoint(){return endpoint()+"?action=reviewed&reporter=1&globalIdentity=1&regex=1&matchModes=1";}
+    static String feedEndpoint(){return endpoint()+"?action=reviewed&reporter=1&globalIdentity=1&regex=1&matchModes=1&contributors=1";}
     static String endpoint(){String url=configuredEndpoint();if(!url.matches("https://script\\.google\\.com/macros/s/[A-Za-z0-9_-]+/exec"))throw new IllegalArgumentException("GASの /exec URLを指定してください");return url;}
     static void changeEndpoint(String next){synchronized(SOURCE_LOCK){
         if(next.equals(configuredEndpoint()))return;
@@ -155,10 +179,11 @@ final class SharedNg {
     static List<SharedNgRules.Rule> decode(JSONArray rows)throws JSONException{if(rows.length()>10000)throw new JSONException("条件が多すぎます");List<SharedNgRules.Rule> out=new ArrayList<>();Set<String> seen=new HashSet<>();
         for(int i=0;i<rows.length();i++){
             JSONObject r=rows.getJSONObject(i);String id=r.getString("id");if(!seen.add(id))throw new JSONException("重複ID");
-            try{out.add(new SharedNgRules.Rule(id,r.getString("board"),r.getString("kind"),r.getString("value"),r.getString("period"),r.getInt("votes"),r.optBoolean("revoked"),r.optInt("minLevel",1),r.optInt("minVotes",0),r.optBoolean("regex",false)));}
+            List<String> contributors=new ArrayList<>();JSONArray ids=r.optJSONArray("contributors");if(ids!=null){if(ids.length()>10000)throw new JSONException("報告者情報が多すぎます");for(int n=0;n<ids.length();n++)contributors.add(ids.getString(n));}
+            try{out.add(new SharedNgRules.Rule(id,r.getString("board"),r.getString("kind"),r.getString("value"),r.getString("period"),r.getInt("votes"),r.optBoolean("revoked"),r.optInt("minLevel",1),r.optInt("minVotes",0),r.optBoolean("regex",false),contributors));}
             catch(java.util.regex.PatternSyntaxException|StackOverflowError invalid){if(!r.optBoolean("regex",false))throw invalid;}
         }return Collections.unmodifiableList(out);}
-    static JSONObject encode(SharedNgRules.Rule r)throws JSONException{return new JSONObject().put("id",r.id).put("board",r.board).put("kind",r.kind).put("value",r.value).put("period",r.period).put("votes",r.votes).put("revoked",r.revoked).put("regex",r.regex).put("minLevel",r.minLevel).put("minVotes",r.minVotes);}
+    static JSONObject encode(SharedNgRules.Rule r)throws JSONException{return new JSONObject().put("id",r.id).put("board",r.board).put("kind",r.kind).put("value",r.value).put("period",r.period).put("votes",r.votes).put("revoked",r.revoked).put("regex",r.regex).put("minLevel",r.minLevel).put("minVotes",r.minVotes).put("contributors",new JSONArray(r.contributors));}
     static android.util.AtomicFile cacheFile(){return new android.util.AtomicFile(new File(context.getFilesDir(),"shared-ng-cache-v2.json.gz"));}
     /** Stream cached conditions so a large rule set is never duplicated as one JSON string. */
     static void loadCache()throws Exception{
@@ -170,15 +195,17 @@ final class SharedNg {
                 else if(key.equals("rules")){reader.beginArray();while(reader.hasNext()){
                     if(loaded.size()>=10000)throw new IOException("保存済み共有NGが上限を超えています");
                     String id="",board="",kind="",value="",period="";int votes=0,minLevel=1,minVotes=0;boolean revoked=false,regex=false;
+                    List<String> contributors=new ArrayList<>();
                     reader.beginObject();while(reader.hasNext()){switch(reader.nextName()){
                         case "id":id=reader.nextString();break;case "board":board=reader.nextString();break;case "kind":kind=reader.nextString();break;case "value":value=reader.nextString();break;case "period":period=reader.nextString();break;
+                        case "contributors":reader.beginArray();while(reader.hasNext()){if(contributors.size()>=10000)throw new IOException("報告者情報が多すぎます");contributors.add(reader.nextString());}reader.endArray();break;
                         case "minLevel":minLevel=reader.nextInt();break;case "minVotes":minVotes=reader.nextInt();break;case "votes":votes=reader.nextInt();break;case "revoked":revoked=reader.nextBoolean();break;case "regex":regex=reader.nextBoolean();break;default:reader.skipValue();}}
-                    reader.endObject();SharedNgRules.Rule rule=new SharedNgRules.Rule(id,board,kind,value,period,votes,revoked,minLevel,minVotes,regex);if(!ids.add(id))throw new IOException("保存済み共有NGに重複があります");loaded.add(rule);
+                    reader.endObject();SharedNgRules.Rule rule=new SharedNgRules.Rule(id,board,kind,value,period,votes,revoked,minLevel,minVotes,regex,contributors);if(!ids.add(id))throw new IOException("保存済み共有NGに重複があります");loaded.add(rule);
                 }reader.endArray();}else reader.skipValue();
             }reader.endObject();
         }
         if(format!=2)throw new IOException("共有NGキャッシュの形式が不正です");
-        synchronized(SOURCE_LOCK){if(source.equals(feedEndpoint())||source.equals(endpoint()+"?action=reviewed&reporter=1&globalIdentity=1"))rules=Collections.unmodifiableList(loaded);}
+        synchronized(SOURCE_LOCK){if(source.equals(feedEndpoint())||source.equals(feedEndpoint().replace("&contributors=1",""))||source.equals(endpoint()+"?action=reviewed&reporter=1&globalIdentity=1"))rules=Collections.unmodifiableList(loaded);}
     }
     static void saveCache(List<SharedNgRules.Rule> data,String endpoint)throws Exception{
         android.util.AtomicFile file=cacheFile();FileOutputStream stream=file.startWrite();
@@ -186,7 +213,7 @@ final class SharedNg {
             java.util.zip.GZIPOutputStream zipped=new java.util.zip.GZIPOutputStream(stream);
             android.util.JsonWriter writer=new android.util.JsonWriter(new OutputStreamWriter(zipped,StandardCharsets.UTF_8));
             writer.beginObject().name("format").value(2).name("endpoint").value(endpoint).name("rules").beginArray();
-            for(SharedNgRules.Rule r:data)writer.beginObject().name("id").value(r.id).name("board").value(r.board).name("kind").value(r.kind).name("value").value(r.value).name("period").value(r.period).name("votes").value(r.votes).name("revoked").value(r.revoked).name("regex").value(r.regex).name("minLevel").value(r.minLevel).name("minVotes").value(r.minVotes).endObject();
+            for(SharedNgRules.Rule r:data){writer.beginObject().name("id").value(r.id).name("board").value(r.board).name("kind").value(r.kind).name("value").value(r.value).name("period").value(r.period).name("votes").value(r.votes).name("revoked").value(r.revoked).name("regex").value(r.regex).name("minLevel").value(r.minLevel).name("minVotes").value(r.minVotes).name("contributors").beginArray();for(String reporter:r.contributors)writer.value(reporter);writer.endArray().endObject();}
             writer.endArray().endObject();writer.flush();zipped.finish();file.finishWrite(stream);
         }catch(Exception e){file.failWrite(stream);throw e;}
     }
@@ -218,7 +245,7 @@ final class SharedNg {
         }
         JSONArray personal=new JSONArray();Set<String> expected=new HashSet<>();
         for(int i=0;i<reports.length();i++){JSONObject old=reports.getJSONObject(i);String operation=PersonalNgSubmissions.hash(source+"\n"+old.toString());expected.add(operation);personal.put(new JSONObject(old.toString()).put("operationId",operation).put("action","upsert").put("flags",16).put("regex",false));}
-        JSONObject response=request("POST",source,new JSONObject().put("version",2).put("action","personal").put("device",deviceHash()).put("reports",personal));
+        JSONObject response=request("POST",source,PersonalNgSubmissions.requestIdentity("personal").put("reports",personal));
         if(!response.optBoolean("ok"))throw new IOException(response.optString("error","報告失敗"));
         Set<String> ackIds=new HashSet<>();JSONArray ack=response.getJSONArray("ack");for(int i=0;i<ack.length();i++)ackIds.add(ack.getString(i));
         Set<String> acknowledged=new HashSet<>();for(int i:sent){JSONObject row=queue.getJSONObject(i);if(ackIds.contains(PersonalNgSubmissions.hash(source+"\n"+row.getJSONObject("report").toString())))acknowledged.add(row.toString());}
@@ -260,6 +287,8 @@ final class SharedNg {
         for(int i=0;i<kinds.length;i++){final String kind=kinds[i];Switch choice=new Switch(a);choice.setText(kindLabels[i]+"を共有NGの対象にする");choice.setChecked(prefs().getBoolean("kind."+kind,true));choice.setOnCheckedChangeListener((b,onValue)->{prefs().edit().putBoolean("kind."+kind,onValue).apply();reload();});box.addView(choice);}
         Button boards=new Button(a);boards.setText("対象掲示板を選ぶ（取得済みの共有条件）");box.addView(boards);boards.setOnClickListener(v->{Set<String> set=new TreeSet<>();for(SharedNgRules.Rule r:rules)set.add(r.board);String[] items=set.toArray(new String[0]);String[] labels=new String[items.length];for(int i=0;i<items.length;i++)labels[i]=SharedNgRules.boardLabel(items[i]);Set<String> excluded=new HashSet<>(prefs().getStringSet("excludedBoards",Collections.emptySet()));boolean[] checked=new boolean[items.length];for(int i=0;i<items.length;i++)checked[i]=!excluded.contains(items[i]);new HaiagaruDialog.Builder(a).setTitle("共有NGを適用する掲示板").setMultiChoiceItems(labels,checked,(d,n,b)->checked[n]=b).setPositiveButton("保存",(d,w)->{for(int i=0;i<items.length;i++)if(checked[i])excluded.remove(items[i]);else excluded.add(items[i]);prefs().edit().putStringSet("excludedBoards",excluded).apply();reload();}).setNegativeButton("戻る",null).show();});
         TextView state=new TextView(a);state.setText(status);box.addView(state);
+        NgPlainTextCacheSettings.add(box,a);
+        Button reporters=new Button(a);reporters.setText("除外するレポーター（今後の報告にも適用）");box.addView(reporters);reporters.setOnClickListener(v->SharedNgReporterBlocks.show(a,rules));
         Button update=new Button(a);update.setText("共有NGを同期");box.addView(update);update.setOnClickListener(v->{update.setEnabled(false);state.setText("同期中…");IO.execute(()->{sync(true);a.runOnUiThread(()->{state.setText(status);update.setEnabled(true);});});});
         Button report=new Button(a);report.setText("選んだ投稿から共有NGを報告");box.addView(report);report.setOnClickListener(v->report(a));
         Button list=new Button(a);list.setText("受信した条件・個別解除");box.addView(list);list.setOnClickListener(v->SharedNgExceptions.show(a,rules));

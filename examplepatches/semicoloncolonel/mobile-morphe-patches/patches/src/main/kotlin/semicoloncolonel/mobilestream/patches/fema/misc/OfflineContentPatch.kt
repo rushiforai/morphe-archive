@@ -145,8 +145,7 @@ private fun shortcut(id: String, label: String, action: String) = """
 @Suppress("unused")
 val offlineContentPatch = bytecodePatch(
     name = "Save content for offline use",
-    description = "Keeps the Prepare guides, disaster declarations, FAQ, and their images readable without a " +
-        "connection. Long-press the app icon to save everything or refresh what is saved.",
+    description = "Keeps the Prepare guides, disaster declarations, and FAQ readable without a connection.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

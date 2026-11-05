@@ -15,10 +15,18 @@ private const val SHIZUKU_PACKAGE = "moe.shizuku.privileged.api"
 private const val SHIZUKU_PERMISSION = "moe.shizuku.manager.permission.API_V23"
 private const val SHIZUKU_V3_SUPPORT = "moe.shizuku.client.V3_SUPPORT"
 
+// Controller patches edit nothing for any other app: Morphe runs dependencies without re-checking
+// compatibility, so every mutation also checks this exact package.
+internal const val CONTROLLER_STEAM_LINK_PACKAGE = "com.valvesoftware.steamlinkvr"
+
 // The bridge touches no Steam Link code, so it is not tied to one native layout.
 internal fun isShizukuBridgeBuild(version: String, versionCode: String): Boolean =
     isLegacyXrFoundationSteamLinkBuild(version, versionCode) ||
         isNativeXrSteamLinkBuild(version, versionCode)
+
+/** Package plus exact build: the guard for every Shizuku-backed controller mutation. */
+internal fun isShizukuBridgeTarget(packageName: String, version: String, versionCode: String): Boolean =
+    packageName == CONTROLLER_STEAM_LINK_PACKAGE && isShizukuBridgeBuild(version, versionCode)
 
 internal fun shizukuBridgeResource(name: String): ByteArray =
     (object {}.javaClass.getResourceAsStream("/$name")
@@ -77,12 +85,18 @@ internal val shizukuBridgeExtensionPatch = bytecodePatch {
 
 internal val shizukuBridgeManifestPatch = resourcePatch {
     execute {
-        if (isShizukuBridgeBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+        if (isShizukuBridgeTarget(
+                packageMetadata.packageName, packageMetadata.versionName, packageMetadata.versionCode,
+            )
+        ) {
             ensureIdsXml(get("res/values/ids.xml"))
         }
     }
     finalize {
-        if (!isShizukuBridgeBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+        if (!isShizukuBridgeTarget(
+                packageMetadata.packageName, packageMetadata.versionName, packageMetadata.versionCode,
+            )
+        ) {
             return@finalize
         }
         document("AndroidManifest.xml").use { document ->

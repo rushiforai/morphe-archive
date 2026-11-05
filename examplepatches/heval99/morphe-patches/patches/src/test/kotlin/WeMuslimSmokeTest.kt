@@ -61,7 +61,7 @@ class WeMuslimSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "3.5.4",
+            version = "3.5.5",
             patchNames = setOf(
                 "Fix native encryption check",
                 "Disable ads",

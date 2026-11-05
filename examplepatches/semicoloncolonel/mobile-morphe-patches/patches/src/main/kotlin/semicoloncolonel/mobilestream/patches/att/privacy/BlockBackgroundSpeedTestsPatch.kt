@@ -28,9 +28,7 @@ internal object BackgroundJobStartFingerprint : Fingerprint(
 @Suppress("unused")
 val blockBackgroundSpeedTestsPatch = bytecodePatch(
     name = "Block background network reports",
-    description = "Stops Ookla's background reports, which measure your signal and network with your " +
-        "location while you are not using the app. The speed test you start still works. " +
-        "Experimental.",
+    description = "Stops Ookla's background reports of your signal, network, and location.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

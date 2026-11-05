@@ -4,8 +4,10 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -71,12 +73,13 @@ class BraveSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.98.62",
+            version = "1.98.63",
             patchNames = setOf(
                 "Brave Origin",
                 "Disable telemetry",
                 "Disable ads",
                 "Hide promotional prompts",
+                DNS_FILTER,
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -393,6 +396,61 @@ class BraveSmokeTest {
             expected = 0,
             label = "VPN callout card",
         )
+
+        // ── DNS filter ───────────────────────────────────────────────────────────────────
+        // Default options: secure mode with the default resolver; then automatic (fallback)
+        // mode with another resolver.
+        assertDohPoliciesInjected(classes, "secure", DEFAULT_DOH_URL)
+        assertDohPoliciesInjected(applyDnsFilterFallback(apk, workDir, PKG, "1.98.63"), "automatic", OTHER_DOH_URL)
+    }
+
+    /**
+     * PolicyProvider.notifySettingsAvailable(Bundle), found like the patch (shape + log prefix),
+     * starts with: copy the bundle to v0, skip to the original code when it is null, then
+     * putString DnsOverHttpsMode = [mode] and DnsOverHttpsTemplates = [url] on it.
+     */
+    private fun assertDohPoliciesInjected(classes: List<ClassDef>, mode: String, url: String) {
+        val notify = classes.flatMap { it.methods }.singleOrNull { method ->
+            method.returnType == "V" && method.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;") &&
+                method.instructions().any { insn ->
+                    val ref = (insn as? ReferenceInstruction)?.reference
+                    ref is StringReference && ref.string.startsWith("#notifySettingsAvailable()")
+                }
+        } ?: error("expected one PolicyProvider.notifySettingsAvailable(Bundle)")
+        val insns = notify.instructions()
+        val head = insns.take(8)
+        assertTrue(
+            head.map { it.opcode } == listOf(
+                Opcode.MOVE_OBJECT_FROM16, Opcode.IF_EQZ,
+                Opcode.CONST_STRING, Opcode.CONST_STRING, Opcode.INVOKE_VIRTUAL,
+                Opcode.CONST_STRING, Opcode.CONST_STRING, Opcode.INVOKE_VIRTUAL,
+            ),
+            "notifySettingsAvailable does not start with the DoH policy injection: ${head.map { it.opcode }}",
+        )
+        val bundle = (head[0] as OneRegisterInstruction).registerA
+        assertTrue(
+            (head[0] as TwoRegisterInstruction).registerB ==
+                notify.implementation!!.registerCount - 1,
+            "notifySettingsAvailable does not copy its Bundle parameter",
+        )
+        // The null check jumps over the injection, straight to the original first instruction.
+        val skip = (head[1] as OffsetInstruction).codeOffset
+        val units = insns.runningFold(0) { offset, insn -> offset + insn.codeUnits }
+        assertTrue(
+            (head[1] as OneRegisterInstruction).registerA == bundle && units[1] + skip == units[8],
+            "notifySettingsAvailable's null check does not skip exactly the injected code",
+        )
+        for ((callIndex, expected) in listOf(4 to ("DnsOverHttpsMode" to mode), 7 to ("DnsOverHttpsTemplates" to url))) {
+            val call = head[callIndex] as FiveRegisterInstruction
+            val ref = (head[callIndex] as ReferenceInstruction).reference as MethodReference
+            assertTrue(
+                ref.definingClass == "Landroid/os/BaseBundle;" && ref.name == "putString" && call.registerC == bundle &&
+                    head[callIndex - 2].referencesString(expected.first) && head[callIndex - 1].referencesString(expected.second) &&
+                    (head[callIndex - 2] as OneRegisterInstruction).registerA == call.registerD &&
+                    (head[callIndex - 1] as OneRegisterInstruction).registerA == call.registerE,
+                "notifySettingsAvailable does not put ${expected.first} = ${expected.second}",
+            )
+        }
     }
 
     private fun Instruction.isPrefSetBoolean(): Boolean {

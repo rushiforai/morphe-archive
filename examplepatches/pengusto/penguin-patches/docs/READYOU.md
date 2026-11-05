@@ -48,6 +48,8 @@ the three imported feeds and their flags survived the ART update and same-key
 removal/reapply of the patch. Full evidence:
 [APK comparison and Manager receipts](../tests/readyou/evidence/2026-10-29/README.md).
 
+The published v1.4.0 remote source was also refreshed in Manager, hash-verified, selected, applied, exported and installed; saved feed/account records and settings stayed identical. The local candidate source was disabled for this public-source test.
+
 Screenshots appear directly in the generated README preview. Public source and
 patch are independent deliverables: the upstream PR remains under maintainer
 review; the Penguin release is recorded by the generated catalogue.

@@ -1,38 +1,44 @@
 name: Sync edited release notes
 
+# Never rewrite a published release automatically on a branch push.
 on:
-  push:
-    branches: [main, dev]
-    paths: ['.github/release-notes/*.md']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to edit (example: v1.10.1)'
+        required: true
+        type: string
+      confirmation:
+        description: 'Type UPDATE to explicitly authorize changing this release body'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   sync:
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'UPDATE'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - name: Update existing release bodies
+      - name: Update one explicitly selected release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          BEFORE_SHA: ${{ github.event.before }}
+          TAG: ${{ inputs.tag }}
+        shell: bash
         run: |
-          git diff --name-only --diff-filter=AM "$BEFORE_SHA" "$GITHUB_SHA" -- .github/release-notes/ | while IFS= read -r note; do
-            [[ "$note" == *.md ]] || continue
-            tag="$(basename "$note" .md)"
-            # New releases are published separately by semantic-release.
-            gh release view "$tag" --json body -q .body > /tmp/current-release-body || continue
-            # A version heading in the note also overrides the displayed date.
-            if head -n 1 "$note" | grep -q '^## '; then
-              cp "$note" /tmp/edited-release-body
-            else
-              head -n 1 /tmp/current-release-body > /tmp/edited-release-body
-              printf '\n' >> /tmp/edited-release-body
-              cat "$note" >> /tmp/edited-release-body
-            fi
-            gh release edit "$tag" --notes-file /tmp/edited-release-body
-          done
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-dev\.[0-9]+)?$ ]] || { echo "Invalid tag"; exit 1; }
+          note=".github/release-notes/${TAG}.md"
+          [[ -s "$note" ]] || { echo "Missing release note: $note"; exit 1; }
+          gh release view "$TAG" --json body -q .body > /tmp/current-release-body
+          if head -n 1 "$note" | grep -q '^## '; then
+            cp "$note" /tmp/edited-release-body
+          else
+            head -n 1 /tmp/current-release-body > /tmp/edited-release-body
+            printf '\n' >> /tmp/edited-release-body
+            cat "$note" >> /tmp/edited-release-body
+          fi
+          gh release edit "$TAG" --notes-file /tmp/edited-release-body

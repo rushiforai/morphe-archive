@@ -25,14 +25,14 @@ Hushfeed is a set of [Morphe](https://github.com/MorpheApp/morphe-manager) patch
 
 Most switches start off, so a freshly patched TikTok looks and works the way it ships until you turn something on. What changed in each version is in the [changelog](CHANGELOG.md).
 
-**[Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed)** | [Download the latest bundle](https://github.com/SysAdminDoc/hushfeed/releases/latest) | [Browse the 145 source patches](#patches)
+**[Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed)** | [Download the latest bundle](https://github.com/SysAdminDoc/hushfeed/releases/latest) | [Browse the 146 source patches](#patches)
 
 > [!IMPORTANT]
 > Hushfeed targets the global TikTok package, `com.zhiliaoapp.musically`, version [47.6.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-6-3-release/tiktok-47-6-3-2-android-apk-download/). Patch that exact build, as the bundle or the APK ([step 1](#install) says which). See [Supported target](#supported-target) for the build details.
 
 Hushfeed v0.80.0 contains 143 patches for TikTok 47.6.3. New in this one: TikTok moves to 47.6.3 and PineDrama has its own patches in HushPine now. TikTok can lock the feed during hours you pick, keep saves off mobile data and turn the bottom bar into a floating glass pill, and messages someone unsends can stay in the chat. It needs Morphe Manager 2.3.0 or newer.
 
-The main branch contains 145 patches: the 143 in v0.80.0, Hide read receipts and Keep the next videos in full screen.
+The main branch contains 146 patches: the 143 in v0.80.0, Hide read receipts, Keep the next videos in full screen and Freeze TikTok's experiments.
 
 ## What it changes
 
@@ -57,7 +57,7 @@ The block, hide, sound and Not interested buttons Hushfeed can put on a video:
    On Android 11 and newer, Morphe Manager checks that TikTok's own key signed the file and warns you if it didn't. That warning means the file was changed after TikTok published it, so download it again.
 2. Use Morphe Manager 2.3.0 or newer. Hushfeed bundles after v0.79.0 are built against patcher 2.1.0, which Manager 2.3.0 was the first to ship, and older Managers won't load them. morphe-desktop 1.20.0 or newer works from a computer. Give it 2 GB of memory (`java -Xmx2g -jar morphe-desktop-1.20.0-all.jar patch ...`), because with every patch picked it runs out at 1 GB, which is Java's default on a computer with 4 GB of RAM. Universal ReVanced Manager can't import a Morphe bundle at all ([its issue #733](https://github.com/Jman-Github/Universal-ReVanced-Manager/issues/733)).
 3. Add Hushfeed as a source. On the phone, open [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download the `.mpp` file from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle. It's a patch bundle, not a TikTok APK.
-4. Pick the patches. Simple mode in Morphe Manager selects 126 of the 145 Hushfeed patches. The other 19 need Expert mode in Manager settings, and [Patches](#patches) says why each one stays out. Manager 2.3.0 shows all 145 Hushfeed patches in eleven categories you can expand or collapse. Leave **Use embedded VM** on under **Settings > Patcher**, since it lets the patcher use whatever memory the phone can spare.
+4. Pick the patches. Simple mode in Morphe Manager selects 127 of the 146 Hushfeed patches. The other 19 need Expert mode in Manager settings, and [Patches](#patches) says why each one stays out. Manager 2.3.0 shows all 146 Hushfeed patches in eleven categories you can expand or collapse. Leave **Use embedded VM** on under **Settings > Patcher**, since it lets the patcher use whatever memory the phone can spare.
 5. Patch the original file from step 1. Hushfeed stops with an error on an APK it has already patched. Keep the manager's existing signing key, because an update only installs over your copy, with your login intact, when it's signed with the same key.
 6. Install the patched APK. If TikTok from Google Play is still on the phone, uninstall it first. Android won't put the patched app over it because they're signed with different keys. Uninstalling erases TikTok's data on the phone, so you'll log in again, and drafts you haven't posted go with it. Then open TikTok and go to **Settings and privacy**. Hushfeed is the first row, and [Settings](#settings) has two quicker ways in.
 
@@ -125,7 +125,7 @@ Unreleased settings use flat rows with the same controls in dark and light mode.
 
 ## Patches
 
-Simple mode in Morphe Manager selects 126 of these patches. Each row says what the patch does, whether its switch starts on or off, and where to find it. The other 19 stay out of the default selection, and you pick them in Expert mode:
+Simple mode in Morphe Manager selects 127 of these patches. Each row says what the patch does, whether its switch starts on or off, and where to find it. The other 19 stay out of the default selection, and you pick them in Expert mode:
 
 - Change app name, Custom launcher icon, Hide Play Store update offer, Look like the store app and Run beside the store app change the app's name, icon, signature, package or version code.
 - Accent color, AMOLED dark theme, Block P2P video relay, Remove content credential and card scanner assets, Remove creation tools, Remove LIVE extras, Remove unused language packs and Remove voice tools change TikTok's files while patching. Only a fresh patch takes that back.
@@ -183,6 +183,7 @@ Simple mode in Morphe Manager selects 126 of these patches. Each row says what t
 | `Fix Google login` | Makes Sign in with Google work in the patched app, where it would otherwise fail. Works as soon as you patch it in, with no switch. |
 | `Foldable split comment view` | On a folding phone or tablet, shows comments beside the video instead of over it when the screen is wide enough. Starts off. Turn it on in Hushfeed settings > App. |
 | `Follow diagnostics` | Tells you when TikTok quietly turned down a follow, and why, since the app shows it as if it worked. With diagnostic logging on, the details go in the report too. Works as soon as you patch it in, with no switch. |
+| `Freeze TikTok's experiments` | Lets you keep the settings TikTok's servers sent it so far. TikTok tests new layouts and features on people by sending new ones all the time, and with this on it ignores them. Starts off. Turn it on in Hushfeed settings > App. |
 | `Ghost mode` | Stops TikTok telling people you viewed their story or profile, or that you're typing. What TikTok already recorded stays. Each of the three has its own switch under it, and a separate one hides your online status. Starts off. Turn it on in Hushfeed settings > Privacy. |
 | `Hide already seen videos` | Remembers the videos you've watched and hides them when the feed sends them again, so you only see new ones. It can also keep a watch history you can search and reopen videos from. Both stay on your phone. Starts off. Turn them on in Hushfeed settings > Feed filter. |
 | `Hide CAPTCHA popups` | Skips the puzzle TikTok shows while you're just browsing. A puzzle right after you like, follow, comment or repost still shows, and so do sign-in, SMS and two-step checks. Starts off. Turn it on in Hushfeed settings > Feed screen, then restart TikTok. |
@@ -428,7 +429,7 @@ Hushfeed has no server of its own and collects nothing. Everything it adds runs 
 
 It goes online by itself for one job. When you save a video, a photo, a sound, subtitles, a sticker or a profile picture, it downloads that file over HTTPS from the address TikTok's own data holds for it. It won't fetch from an address on your own network, and those downloads connect directly even when Network proxy is on. Copy the full link for short links, which is off unless you turn it on, uses the same path to see where a vt.tiktok.com, vm.tiktok.com or tiktok.com/t/ link leads. Network proxy, once you turn it on, also checks that your proxy answers when TikTok starts and when it comes back to the screen. If your proxy has a password, TikTok signs in through a small relay on the phone's own loopback address, and another app on the phone could reach that relay while TikTok is open, though it never sees the password. Anything else, like translating a comment or blocking a creator, goes through TikTok's own code to TikTok's servers.
 
-The only web addresses written into Hushfeed's code are github.com for this project, ko-fi.com for the Support Hushfeed row, which opens in your browser only when you tap it, gitlab.com and gnu.org for licence texts, git.iem.at and central.sonatype.com for the source links in the MP3 encoder's notice, tiktok.com for the share links TikTok itself uses, and music.youtube.com for the Find the sound on YouTube Music gesture. A test fails the build if another one turns up.
+The only web addresses written into Hushfeed's code are github.com for this project, ko-fi.com for the Support Hushfeed row, which opens in your browser only when you tap it, gitlab.com, gnu.org and apache.org for licence texts, git.iem.at and central.sonatype.com for the source links in the MP3 encoder's notice, tiktok.com for the share links TikTok itself uses, and music.youtube.com for the Find the sound on YouTube Music gesture. A test fails the build if another one turns up.
 
 The diagnostic report and a feed capture stay on your phone until you copy or save them. They leave out web addresses, login tokens and cookies, device ids, the ids of videos, comments and messages, and creator names and handles. The report does name the Hushfeed settings you've changed, so a bug report shows which switches are on, but never the words, names or addresses you typed into one. Read one through before you share it anyway.
 

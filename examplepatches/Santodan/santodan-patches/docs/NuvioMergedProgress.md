@@ -71,7 +71,7 @@ pause/resume safeguard remains. Profile-local projection work uses Default/IO.
 
 Latest input remains original `com.nuvio.tv` 1.1.0-beta.8/code1071, SHA256
 `7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8`.
-Original DEX evidence is in `../.inspect-nuvio-beta8/local-overlay-store-contracts.txt`,
+Original DEX evidence is in `../Skills/inspection-evidence/.inspect-nuvio-beta8/local-overlay-store-contracts.txt`,
 `local-overlay-repository-contracts.txt` and `local-overlay-provider-api.txt`.
 Only beta.8 gains hooks. Exact fingerprinted native local preferences methods are:
 
@@ -108,7 +108,7 @@ read triggers. Original native library-provider isolation remains checked.
 The command above passed on 2026-10-25 (`BUILD SUCCESSFUL`, 1m10s); all runtime,
 original-DEX and standalone/combined packaged checks passed, with no new cross-DEX
 findings beyond the original 36 optional-library findings. Evidence:
-`../.inspect-nuvio-beta8/playback-overlay-complete-verification.log`.
+`../Skills/inspection-evidence/.inspect-nuvio-beta8/playback-overlay-complete-verification.log`.
 The new overlay verifier is also included in `verifyNuvioLatest` for future runs.
 
 Device validation still required: threshold completion/partial exits to details and
@@ -151,7 +151,7 @@ playback progress, or tracker writes. Local membership additions are persisted.
 Remote freshness still depends on a successful provider update; the cache does not
 invent watched entries that were never synced.
 
-Original DEX evidence: ../.inspect-nuvio-beta8/cached-episode-model-contract.txt.
+Original DEX evidence: ../Skills/inspection-evidence/.inspect-nuvio-beta8/cached-episode-model-contract.txt.
 WatchProgress's public 26-argument constructor and SOURCE_REMOTE_HISTORY String
 field are verified against the original beta.8 APK. Host checks exercise cached
 markers, ongoing progress, removal of watched entries, immutable prior snapshots
@@ -179,7 +179,7 @@ claimed resolved without a device retest.
 
 Latest input: original com.nuvio.tv 1.1.0-beta.8/code1071, SHA256
 7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8.
-Evidence: ../.inspect-nuvio-beta8/playback-home-job-contracts.txt,
+Evidence: ../Skills/inspection-evidence/.inspect-nuvio-beta8/playback-home-job-contracts.txt,
 playback-home-coroutine-contracts.txt and playback-home-pipeline-contracts.txt.
 Native static Lxa/s3;->b(Lxa/s3;)V has 14 registers and fingerprint
 c91895ea981a1f76696b7f0330b625787b3a08630e274a9e6bc53a2b2f6ddf81.
@@ -268,7 +268,7 @@ only the usual `patches/build/libs/patches-0.13.0.mpp`; box timing and live epis
 updates still require device testing.
 Final canonical rebuild completed at 09:33:19. The completion-label adjustment
 was rebuilt and runtime/packaged verification passed again in
-`.inspect-nuvio-beta8/quick-startup-separation-final.log`.
+`Skills/inspection-evidence/.inspect-nuvio-beta8/quick-startup-separation-final.log`.
 
 ## Provider failure isolation (beta.8, 2026-10-24)
 
@@ -315,7 +315,7 @@ insufficient. After collecting the seed flow (which starts native hydration), th
 merge now waits for the canonical watched-show loaded flag within the existing
 45-second provider deadline. A successfully loaded empty account remains valid.
 
-Original beta.8 DEX evidence: `.inspect-nuvio-beta8/trakt-ready-contracts.txt`,
+Original beta.8 DEX evidence: `Skills/inspection-evidence/.inspect-nuvio-beta8/trakt-ready-contracts.txt`,
 `Lba/pc;->a:Lba/jb;`, `Lba/jb;->T:Z`. Native static f(), fingerprint
 a09333ae5d18eeebbec1a32ba12d457bcbbbdf98a177c95d06c7252f020d99a4,
 installs the watched maps u/v/w (instructions 666-668), seed flow q (669-670),
@@ -384,7 +384,7 @@ was previously also masked out by the native row's default-argument bit 32.
 Latest original: ../OriginalApps/NuvioTV-1.1.0-beta8.apk, com.nuvio.tv,
 1.1.0-beta.8/code1071, SHA256
 7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8.
-Original DEX evidence under ../.inspect-nuvio-beta8:
+Original DEX evidence under ../Skills/inspection-evidence/.inspect-nuvio-beta8:
 sync-cancel-banner-contracts.txt and sync-info-row-contracts.txt. The existing
 Lmb/a;->b(... )V fingerprint is
 50512aec1d322f8645869c4d99221fdccfb518d08abfdd302b73198a0d49ef9b,
@@ -466,7 +466,7 @@ also logs HTTP 429. These fixes address concrete startup omissions and count
 publication races; resolution of the ANR and remote rate limiting needs device
 retesting. Do not describe the ANR as a proven fixed Java crash.
 
-Original DEX evidence is in `.inspect-nuvio-beta8/startup-library-contracts.txt`,
+Original DEX evidence is in `Skills/inspection-evidence/.inspect-nuvio-beta8/startup-library-contracts.txt`,
 `library-provider-contracts.txt`, and `library-refresh-implementations.txt` under
 the workspace root. All three native library implementations actually suspend
 until their backing refresh returns. Remaining runtime verification covers a
@@ -853,7 +853,7 @@ menu retains the result. Progress counts sync stages, not network bytes.
 
 Original beta.8 evidence is in `native-sync-progress-contracts.txt`,
 `native-banner-host-contracts.txt`, `native-banner-mount-contracts.txt`, and
-`provider-incremental-contracts.txt` under `E:/Morphe/.inspect-nuvio-beta8/`.
+`provider-incremental-contracts.txt` under `E:/Morphe/Skills/inspection-evidence/.inspect-nuvio-beta8/`.
 Root `q8.l.invoke` fingerprint is
 `b9bcb00e932f362e8bd4d632b937371b65ebae2e4f019c0064c69f9db0ebaf86`:
 its sole native host call uses v2..v11 (ten arguments). Native banner
@@ -897,7 +897,7 @@ library findings. Signature and ZIP alignment passed; package is
 Signer SHA-256 matches the existing app:
 `c6f46fdf215e35e421ce61153b7fa671a485c3e266ccf03eabfe1d59c900a0d5`.
 APK SHA-256 is `407836e46297f21d593b0653eaa138fdb6f9d043aa17b4eaf1455d6840811052`.
-Evidence is under `E:/Morphe/.inspect-nuvio-beta8/native-banner-quick-sync-*`;
+Evidence is under `E:/Morphe/Skills/inspection-evidence/.inspect-nuvio-beta8/native-banner-quick-sync-*`;
 `native-banner-patched-tail.txt` confirms scope cleanup before the nullable
 restart-scope branch. The build has not been installed or device-tested. The
 previous unvalidated cache needs one guarded full refresh before quick startup

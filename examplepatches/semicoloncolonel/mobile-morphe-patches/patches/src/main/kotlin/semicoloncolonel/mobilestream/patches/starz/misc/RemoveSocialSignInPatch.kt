@@ -16,8 +16,7 @@ private val clientIds = setOf("google_signin_client_id", "apple_signin_client_id
 @Suppress("unused")
 val removeSocialSignInPatch = resourcePatch(
     name = "Remove social sign-in",
-    description = "Removes the Sign in with Google and Sign in with Apple options from the app. Email " +
-        "and TV-provider sign-in still work.",
+    description = "Removes the Sign in with Google and Sign in with Apple options.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

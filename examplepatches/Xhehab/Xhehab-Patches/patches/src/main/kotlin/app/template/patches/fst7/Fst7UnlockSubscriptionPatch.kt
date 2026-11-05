@@ -9,6 +9,15 @@ import java.security.MessageDigest
 
 private const val FST7_HERMES_BUNDLE_PATH = "assets/index.android.bundle"
 
+// Hermes string table IDs shift between builds, so the `noPaywall` string ID
+// bytes are wildcards. The surrounding instructions remain stable.
+private val FST7_NO_PAYWALL_SIGNATURE = intArrayOf(
+    0x36, 0x02, 0x02, 0x02, 0x8a,
+    0x37, 0x02, 0x02, 0x03, -1, -1,
+    0x91, 0xed, 0x01, 0x00, 0x00, 0x02,
+    0x77, 0x0b, 0x77
+)
+
 private val fst7SuppressPaywallResourcePatch = rawResourcePatch {
     execute {
         val bundle = get(FST7_HERMES_BUNDLE_PATH)
@@ -21,13 +30,7 @@ private val fst7SuppressPaywallResourcePatch = rawResourcePatch {
 
         // checkSubscription reads config.home.noPaywall, then jumps to the built-in
         // setShouldShowPaywall(false) return path when the value is true.
-        val signature = bytesOf(
-            0x36, 0x02, 0x02, 0x02, 0x8a,
-            0x37, 0x02, 0x02, 0x03, 0x3b, 0x97,
-            0x91, 0xed, 0x01, 0x00, 0x00, 0x02,
-            0x77, 0x0b, 0x77
-        )
-        val match = bytes.findUnique(signature, "FST-7 checkSubscription noPaywall branch")
+        val match = bytes.findUnique(FST7_NO_PAYWALL_SIGNATURE, "FST-7 checkSubscription noPaywall branch")
 
         // Replace only `GetById r2, r2, ..., "noPaywall"` with repeated
         // `LoadConstTrue r2` instructions to preserve the original 6-byte size.
@@ -124,13 +127,14 @@ private fun ByteArray.toLittleEndianInt(): Int =
         ((this[2].toInt() and 0xff) shl 16) or
         ((this[3].toInt() and 0xff) shl 24)
 
-private fun ByteArray.findUnique(pattern: ByteArray, name: String): Int {
+private fun ByteArray.findUnique(pattern: IntArray, name: String): Int {
     var found: Int? = null
     val last = size - pattern.size
 
     outer@ for (index in 0..last) {
         for (patternIndex in pattern.indices) {
-            if (this[index + patternIndex] != pattern[patternIndex]) continue@outer
+            val expected = pattern[patternIndex]
+            if (expected >= 0 && (this[index + patternIndex].toInt() and 0xff) != expected) continue@outer
         }
 
         if (found != null) {

@@ -1,3 +1,25 @@
+## [1.11.3](https://github.com/amfakh/fakh-patches/compare/v1.11.2...v1.11.3) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** Expand posts now shows posts expanded by default, and tapping the text collapses them again ([c10d2cc](https://github.com/amfakh/fakh-patches/commit/c10d2ccaba74c8b6f67b9e3eb6062f2e94dbe58e))
+
+## [1.11.2](https://github.com/amfakh/fakh-patches/compare/v1.11.1...v1.11.2) (2026-11-04)
+
+### ✨ New Features
+
+* **LinkedIn:** add Expand posts, a switch in Fakh Patches that shows the full text of posts without tapping "more" ([6518865](https://github.com/amfakh/fakh-patches/commit/651886501a48740c5aadd4f66a1671c524af7e8d))
+
+## [1.11.1](https://github.com/amfakh/fakh-patches/compare/v1.11.0...v1.11.1) (2026-11-04)
+
+### ✨ New Features
+
+* **LinkedIn:** support 4.1.1269, next to 4.1.1264 and 4.1.1267 ([336a29a](https://github.com/amfakh/fakh-patches/commit/336a29a0e782adb0ba0cd9e4fc35d333821bbcca))
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** the highlighted comments of a hidden post no longer stay behind in the feed now and then ([e9c1804](https://github.com/amfakh/fakh-patches/commit/e9c18045ed80c87549b663c926767405c6283e83))
+
 ## [1.11.0](https://github.com/amfakh/fakh-patches/compare/v1.10.0...v1.11.0) (2026-11-04)
 
 ### ✨ New Features

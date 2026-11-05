@@ -15,14 +15,14 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## Patches list
 
 <!-- PATCHES_START -->
-> **[v1.5.5](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
+> **[v1.5.6](https://github.com/dieroboter/morphe-patches/releases/tag/v1.5.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
 <details>
 <summary>File Manager&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **Supported versions:**
 
-| 3.8.3 |
+| 3.8.5 |
 | :---: |
 
 | Patch | Description | Options |

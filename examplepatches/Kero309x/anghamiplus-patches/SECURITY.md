@@ -1,6 +1,6 @@
 # Security Policy
 
-This policy covers the Anghami Plus Patches bundle itself: the patch sources, the build configuration and the release artifacts published from this repository. It does not cover the Anghami application, its servers, or third-party services.
+This policy covers the Kero309x Patches bundle itself: the patch sources, the build configuration and the release artifacts published from this repository. It does not cover the target application, its servers, or third-party services.
 
 ---
 
@@ -20,7 +20,7 @@ Only the latest release of the patch bundle receives security fixes. If you are 
 If you find a security problem, for example code in a patch that could harm a user's device or data, a flaw in the release or build pipeline, or a way to make a patched build behave unexpectedly:
 
 1. **Do not open a public issue.** Public reports give other people time to abuse the problem before it can be fixed.
-2. Report it privately through the repository's [security advisories](https://github.com/Kero309x/anghamiplus-patches/security/advisories/new), or by email to **keroslayer56@gmail.com** if you cannot use GitHub.
+2. Report it privately through the repository's [security advisories](https://github.com/Kero309x/Kero309x-patches/security/advisories/new), or by email to **keroslayer56@gmail.com** if you cannot use GitHub.
 3. Include as much of the following as you can:
    * the affected version of the patch bundle;
    * the patch or file involved;
@@ -43,5 +43,5 @@ The maintainer will acknowledge your report, confirm the affected versions, and 
 The following are not handled as security vulnerabilities here:
 
 * Requests to bypass, defeat or work around server-side entitlement, licensing or DRM systems.
-* Problems that exist in the unpatched Anghami application, or in its backend services.
+* Problems that exist in the unpatched target application, or in its backend services.
 * Issues that only affect a build you modified yourself, or that come from an APK patched by somebody else.

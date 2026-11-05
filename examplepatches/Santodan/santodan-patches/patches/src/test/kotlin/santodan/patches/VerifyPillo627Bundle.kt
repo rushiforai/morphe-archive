@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -35,6 +36,35 @@ private fun premiumInstructionShape(i: Instruction): List<Any?> = buildList {
     if (i is OffsetInstruction) add(i.codeOffset)
 }
 
+/** Follow the actual callback's DEX branches; record its native side effects. */
+private fun profileCallbackEffects(method: com.android.tools.smali.dexlib2.iface.Method, premium: Boolean, adfree: Boolean): List<String> {
+    val ins = PilloHybridNotificationPatch.instructions(method)
+    val registers = intArrayOf(0, if (premium) 1 else 0, if (adfree) 1 else 0)
+    val addresses = ins.runningFold(0) { address, i -> address + i.codeUnits }
+    val effects = mutableListOf<String>()
+    var pc = 0
+    repeat(30) {
+        val i = ins[pc]
+        when (i.opcode) {
+            Opcode.CONST_4 -> registers[(i as OneRegisterInstruction).registerA] = (i as NarrowLiteralInstruction).narrowLiteral
+            Opcode.IF_EQZ, Opcode.IF_NEZ -> {
+                val zero = registers[(i as OneRegisterInstruction).registerA] == 0
+                if (zero == (i.opcode == Opcode.IF_EQZ)) {
+                    pc = addresses.indexOf(addresses[pc] + (i as OffsetInstruction).codeOffset)
+                    check(pc in ins.indices)
+                    return@repeat
+                }
+            }
+            Opcode.INVOKE_DIRECT, Opcode.INVOKE_VIRTUAL -> effects += ((i as ReferenceInstruction).reference as MethodReference).name
+            Opcode.IGET_OBJECT, Opcode.SGET_OBJECT -> Unit
+            Opcode.RETURN_OBJECT -> return effects
+            else -> error("Unexpected profile callback opcode: ${i.opcode}")
+        }
+        pc++
+    }
+    error("Callback did not return")
+}
+
 /** Applies every 0.6.27 selection to original DEX and audits the serialized result. */
 fun main(args: Array<String>) = runBlocking {
     val apk = File(args[0])
@@ -48,6 +78,29 @@ fun main(args: Array<String>) = runBlocking {
     Pillo627Contracts.summary(originals)
     Pillo627Contracts.progress(originals)
     val premium = PilloPremiumPatch.validate(originals)
+    val profileCallback = PilloPremiumPatch.validateProfileCallback(originals)
+    check(profileCallbackEffects(profileCallback, false, false) == listOf("resetDailyInterruptSetting", "setWatchNotificationEnabled"))
+    check(profileCallbackEffects(profileCallback, true, false) == listOf("enableMultiDependents"))
+    val patchedCallback = MutableMethod(profileCallback)
+    PilloPremiumPatch.applyProfileCallback(patchedCallback)
+    for (premiumResult in listOf(false, true)) for (adfreeResult in listOf(false, true)) {
+        // Refreshes preserve either user choice, including an intentional disable.
+        for (directLogging in listOf(false, true)) {
+            var chosen = directLogging
+            repeat(3) {
+                val effects = profileCallbackEffects(patchedCallback, premiumResult, adfreeResult)
+                if ("resetDailyInterruptSetting" in effects) chosen = false
+                check(effects == listOf("enableMultiDependents") && chosen == directLogging)
+            }
+        }
+    }
+    check(runCatching { PilloPremiumPatch.applyProfileCallback(patchedCallback) }.isFailure)
+    check(runCatching { PilloPremiumPatch.validateProfileCallback(emptyList()) }.isFailure)
+    check(runCatching { PilloPremiumPatch.validateProfileCallback(originals + originals.single { it.type == PilloPremiumPatch.OWNER }) }.isFailure)
+    val changedCallback = MutableMethod(profileCallback).apply {
+        implementation!!.replaceInstruction(5, BuilderInstruction11n(Opcode.CONST_4, 1, 1))
+    }
+    check(runCatching { PilloPremiumPatch.applyProfileCallback(changedCallback) }.isFailure)
     check(runCatching { PilloPremiumPatch.validate(originals.filterNot { it.type == PilloPremiumPatch.OWNER }) }.isFailure)
     check(runCatching { PilloPremiumPatch.validate(originals + originals.single { it.type == PilloPremiumPatch.OWNER }) }.isFailure)
     for (setter in premium) {
@@ -143,11 +196,22 @@ fun main(args: Array<String>) = runBlocking {
                     check(runCatching { PilloPremiumPatch.validateSetter(method) }.isFailure)
                 }
                 val nativeProvider = originals.single { it.type == provider.type }
-                for (method in provider.methods.filter { it.name !in PilloPremiumPatch.SETTERS }) {
+                val callback = provider.methods.single { it.name == PilloPremiumPatch.PROFILE_CALLBACK }
+                val callbackIns = PilloHybridNotificationPatch.instructions(callback)
+                check(callbackIns.size == PilloHybridNotificationPatch.instructions(profileCallback).size + 1)
+                check(callback.implementation!!.registerCount == profileCallback.implementation!!.registerCount)
+                check(callbackIns.first().opcode == Opcode.CONST_4
+                    && (callbackIns.first() as OneRegisterInstruction).registerA == 1
+                    && (callbackIns.first() as NarrowLiteralInstruction).narrowLiteral == 1)
+                check(callbackIns.drop(1).map(::premiumInstructionShape) == PilloHybridNotificationPatch.instructions(profileCallback).map(::premiumInstructionShape))
+                for (p in listOf(false, true)) for (a in listOf(false, true))
+                    check(profileCallbackEffects(callback, p, a) == listOf("enableMultiDependents"))
+                check(runCatching { PilloPremiumPatch.validateProfileCallbackMethod(callback) }.isFailure)
+                for (method in provider.methods.filter { it.name !in PilloPremiumPatch.SETTERS && it.name != PilloPremiumPatch.PROFILE_CALLBACK }) {
                     val before = nativeProvider.methods.single { it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType }
                     check(PilloHybridNotificationPatch.instructions(method).map(::premiumInstructionShape) == PilloHybridNotificationPatch.instructions(before).map(::premiumInstructionShape))
                 }
-                println("PASS: serialized premium/ad-free setters force the captured boolean; native launch and coroutine paths retained")
+                println("PASS: serialized premium setters and profile callback agree; repeated raw billing results cannot reset notification choices; other native provider methods retained")
             }
             if (selection.size == names.size) {
                 // Rebuild exclusively from this version's original base; configuration splits stay separate.

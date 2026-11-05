@@ -2,6 +2,7 @@ package io.github.jordanwoodson.patches.twitch.overlay
 
 import app.morphe.patcher.Fingerprint
 import io.github.jordanwoodson.patches.twitch.shared.addInstructions
+import io.github.jordanwoodson.patches.twitch.shared.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -181,7 +182,10 @@ private fun BytecodePatchContext.overlayLifecycle(feeder: String) {
         }) throw PatchException("Twitch: viewer stream branch scratch registers changed")
     val a = 2
     val b = 3
-    observer.addInstructions(insert,"""
+    // A snippet with a label of its own must go in through addInstructionsWithLabels: plain addInstructions keeps
+    // the label's address relative to the snippet, which is only right at index 0 (issue 49: the verifier
+    // rejected this method, so every dual-format stream crashed the app).
+    observer.addInstructionsWithLabels(insert,"""
         iget-object v$a, v0, $owner
         move-object v$b, v1
         if-eqz v$b, :lurk_overlay_no_channel

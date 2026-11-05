@@ -31,7 +31,7 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 | Fox One | Skip ads¹, Disable Pairip license check, Block analytics & tracking¹ ² | `1.24.0` | 10/30/26 |
 | HBO Max | Skip ads, Remove social sign-in, Block analytics & tracking¹ ² | `7.14.0.530` | 10/30/26 |
 | Hulu | Skip ads¹, Block analytics & tracking¹ ² | `6.34.0+18552420-google` | 10/31/26 |
-| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking² | `26.43.10` | 11/01/26 |
+| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking² | `26.43.10`, Android TV `26.43.8` | 11/04/26 |
 | MGM+ | Skip ads¹, Skip pre-roll promo¹, Skip lion intro, Disable MGM+ AI², Remove social sign-in, Block analytics & tracking¹ ² | `240.0.2026240000` | 10/30/26 |
 | Moviebase | GmsCore support, Disable Pairip license check, Block ads, Hide Premium upsell, Block analytics & tracking² | `7.7.0` | 11/02/26 |
 | NBA | Skip ads¹, Disable Ask NBA AI¹ ², Block analytics & tracking¹ ² | `1.2.0` | 10/31/26 |
@@ -43,7 +43,8 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 | Prime Video | Skip ads, Rename shared permissions, Disable AI¹ ², Block analytics & tracking¹ ² | `3.0.477.1447` | 11/01/26 |
 | Starz | Skip launch video, Skip pre-roll promo¹, Remove social sign-in, Block analytics & tracking¹ ² | `6.11.0` | 10/31/26 |
 | Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking¹ ² | `10.43.1` | 10/30/26 |
-| YouTube TV | GmsCore support, Skip ads¹, Change app name, Block telemetry², Hide prompts and promos² | `10.44.0` | 11/02/26 |
+| Xumo Play | Skip ads, Mask live ad breaks¹, Block analytics & tracking¹ ² | `4.6.21` | 11/04/26 |
+| YouTube TV | GmsCore support, Skip ads¹, Mask live ad breaks¹ ², Change app name, Block telemetry², Hide prompts and promos², Hide membership upsell² | `10.44.0` | 11/04/26 |
 
 ### News
 
@@ -68,7 +69,7 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 | MyTSA | Block analytics & tracking² | `5.1.0` | 11/02/26 |
 | National Forests & Grasslands | Disable Pairip license check, Block analytics & tracking² | `1.3.0` | 11/02/26 |
 | NPS | Block analytics & tracking², Block Bluetooth scanning² | `2.15.0` | 11/02/26 |
-| Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking², Show hidden details² | `2.2.67` | 11/02/26 |
+| Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking², Show hidden details² | `2.2.67` | 11/04/26 |
 | White House | Disable Pairip license check, Remove microphone access, Hide social feeds², Hide promotions², Block analytics & tracking², Route traffic through a proxy² | `47.7.8` | 11/02/26 |
 
 ### Shopping
@@ -124,13 +125,16 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 - PBS: sponsor messages before and during videos.
 - Pluto TV: on-demand ads. Live breaks are covered by Mask live ad breaks.
 - Prime Video: every ad break. Titles play in the older player, so features of the newer one, such as X-Ray, are not available.
-- YouTube TV: ads inserted into on-demand videos and DVR recordings, and overlay and pause ads.
+- Xumo Play: pre-roll and mid-roll ads in on-demand videos. Live breaks are covered by Mask live ad breaks.
+- YouTube TV: ads inserted into on-demand videos and DVR recordings, and overlay and pause ads. With Mask live ad breaks, the ads YouTube TV inserts into live breaks are covered instead.
 
 </details>
 
-**Block ads** (JustWatch, Moviebase, T-Mobile Play, and Visible) removes the ads and stops the ad networks from starting. On Visible, it also stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications.
+**Block ads** (JustWatch, Moviebase, T-Mobile Play, and Visible) removes the ads and stops the ad networks from starting. The JustWatch Android TV app shows only video ads, before and during free streams, and those are removed. On Visible, it also stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications.
 
-**Mask live ad breaks** (ABC News and Pluto TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break.
+**Mask live ad breaks** (ABC News, Pluto TV, Xumo Play, and YouTube TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break. On YouTube TV, it covers the ads YouTube TV adds to a live break, and the network's own commercials around them still play.
+
+To turn off Mask live ad breaks on Pluto TV without patching again, create a file named `slate_off` in `Android/data/tv.pluto.android/files`. A file named `pluto_slate_mode` that contains `black` or `mute` keeps only the cover or only the muting.
 
 | Patch | App | What it does |
 |-------|-----|--------------|
@@ -147,6 +151,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 | Hide marketing pop-ups | The Washington Post, The Wall Street Journal | In-app marketing messages, such as subscription offers, and the subscribe banner on The Washington Post's home page. |
 | Hide pop-ups and rating prompts | Fox Local | The rate-the-app prompt, the rating card in the feeds, and marketing pop-ups. |
 | Hide prompts and promos | YouTube TV | The rate-the-app dialog, promo banners, the app tour, the highlights autoplay prompt, and the "Watch on YouTube" dialog. The last three are hidden only on a fresh install or after you clear the app's data. |
+| Hide membership upsell | YouTube TV | The "Add to membership" shelf on the home screen, which promotes paid add-on networks. The shelf is removed from the feed, so no empty space is left behind. |
 | Hide surveys | CBS News | Qualtrics surveys and the rate-the-app prompt they can lead to. |
 | Hide surveys and rating prompt | NBC News | Iterate surveys and the rate-the-app prompt. |
 | Hide rating prompt | Recreation.gov | The rate-the-app prompt after checkout. |
@@ -227,10 +232,11 @@ The White House patches let you remove only the parts of the app you do not want
 - The New York Times: AppsFlyer, Chartbeat, comScore, Datadog, and Iterate surveys.
 - The Wall Street Journal: Adobe Analytics, AppsFlyer, Braze, comScore, LiveRamp, Parse.ly, Permutive, and Snowplow.
 - The Washington Post: AppsFlyer, Chartbeat, comScore, Permutive, Iterable, and Airship analytics.
-- Tubi: Adjust, Branch, Braze, Nielsen, Conviva, NPAW/Youbora, Mux, and Tubi's own analytics.
+- Tubi: Adjust, Branch, Braze, Nielsen, Conviva, NPAW/Youbora, Mux, and Tubi's own analytics. Recommendations may be less personalized.
 - Visible: Tealium and Swrve, with its marketing notifications and in-app promotions.
 - White House: the Firebase events that record what you read, watch, and search for, and the app's access to your advertising ID.
 - Xfinity: Comcast's own event tracking, Datadog, Medallia surveys, and Branch.
+- Xumo Play: Xumo's own viewing and impression beacons, Adobe Analytics, Braze, and Kochava.
 
 </details>
 
@@ -242,7 +248,7 @@ The White House patches let you remove only the parts of the app you do not want
 | Block background network reports | myAT&T | Stops Ookla's background reports of your signal and location. The speed test you start still works. |
 | Block Advanced Security telemetry | Xfinity | Stops the uploads of the websites Advanced Security checked and your network changes. Threat filtering keeps working. |
 | Block TV discovery | T-Mobile Play | Stops Vizbee, which scans your home network for TVs. Sending video to a TV from the app stops working. |
-| Opt out of data sale & sharing | CBS News, CNN, Fox Local, Fox News, MS NOW, NBC News | Sets the privacy choice to "do not sell or share" and sends ad partners the US Privacy opt-out signal. You can change it in the app's privacy settings, except on CBS News and CNN. |
+| Opt out of data sale & sharing | CBS News, CNN, Fox Local, Fox News, MS NOW, NBC News | Sets the privacy choice to "do not sell or share" and sends ad partners the US Privacy opt-out signal. On Fox News, it also opts out of Nielsen measurement. You can change it in the app's privacy settings, except on CBS News and CNN. |
 | Remove microphone access | White House | Removes the microphone permission, which no feature uses. |
 | Skip location on open | Recreation.gov | Stops the precise location check at every launch. Nearby search and permit check-in still use location. |
 | Route traffic through a proxy | White House | Sends the app's traffic through the proxy you set, such as Orbot for Tor. The app cannot connect while the proxy is off, and web pages inside the app do not use it. |
@@ -259,7 +265,7 @@ These are off by default and shared across apps:
 | Block Bluetooth scanning | Shopping apps, T-Life, and NPS | Stops scans for devices and beacons. In-store maps, CVS kiosk check-in, Amazon smart-home setup, park beacon content, and accessory pairing stop working. |
 | Hide cell tower info | Shopping apps | Hides the cell towers your phone sees, which can place you within a few blocks. |
 | Block background location | Shopping apps and T-Life | Removes background location access. Store-arrival features and pickup check-in can stop working. |
-| Disable auto-updates | Every app except The Washington Post, White House, Mint Mobile, T-Mobile Play, and YouTube TV | Stops the Play Store from replacing the patched app with the official one. It is always on with Tubi's Skip ads. |
+| Disable auto-updates | Every app except The Washington Post, White House, Mint Mobile, T-Mobile Play, and YouTube TV | Stops the Play Store from replacing the patched app with the official one. To update, patch the newer version. It is always on with Tubi's Skip ads. |
 
 ### Sign-in and startup
 
@@ -285,14 +291,15 @@ These are off by default and shared across apps:
 
 **Save content for offline use** (FEMA) keeps the Prepare guides, disaster declarations, FAQ, and the images you have viewed readable without a connection. Long-press the app icon for **Save all**, which downloads every guide in English and Spanish (about 150 MB), or **Refresh**, which updates the saved pages. Saved content is replaced only after the new copy downloads completely.
 
-**Show hidden details** (Recreation.gov) shows details the app receives but does not display: lottery application and award counts, the per-account limit, and result dates, when each ticket time slot stops selling, booking window rules, the deadline to confirm a lottery win, and when venue booking opens or closes.
+**Show hidden details** (Recreation.gov) shows details the app receives but does not display: the ticket-lottery application and award counts and the per-account limit (in a dialog you dismiss, since that screen has no text to add them to), when each ticket time slot stops selling, booking window rules, the deadline to confirm a lottery win, and when venue booking opens or closes. The lottery's results date is left out because the app already shows it.
 
-**Enable developer menu** (Fox News) opens the hidden developer menu with a long-press on the Fox logo at the bottom of Settings. Some of its settings point the app at test servers.
+**Enable developer menu** (Fox News) opens the hidden developer menu with a long-press on the Fox logo at the bottom of Settings. Reopen the app after you change a feature flag. Some of its settings point the app at test servers.
 
 ## Known issues
 
 | App | Issue | Cause or workaround |
 |-----|-------|---------------------|
+| HBO Max | On TV, a resumed episode can show "Couldn't Play Content" (error 39999) when it reaches a mid-roll ad break. | Start the episode from the beginning. |
 | Best Buy | On some phones, every screen has a white tint and the app can take a minute to start. | The official app does the same on these phones, so the patches do not cause it. This is under review. |
 | Moviebase | The Activity and Members tabs do not load. | Moviebase's community server accepts only requests that pass Google's Play Integrity check, which a patched app cannot pass. |
 | Walmart | Sign-in codes are not sent by text. | A DNS filter such as Control D is blocking `drfdisvc.walmart.com`. Allow it and `h-walmart.online-metrix.net`, which Walmart uses for fraud checks at sign-in. |

@@ -31,7 +31,7 @@ internal object TaboolaInitFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAdsPatch = bytecodePatch(
     name = "Block ads",
-    description = "Removes the ads from T-Mobile Play's feeds and stops the ad networks from loading.",
+    description = "Removes the ads from the feeds and stops the ad networks from loading.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -82,8 +82,7 @@ internal object SetPlayingVideoFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes ads from the app: ad slots in sections and articles, the full-screen video " +
-        "ad, and ads before videos. Experimental.",
+    description = "Removes the ads in sections, articles, and videos, and the full-screen video ad.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

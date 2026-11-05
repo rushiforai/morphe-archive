@@ -35,6 +35,7 @@ import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
 import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as PrimeVideo
 import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
+import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
 import semicoloncolonel.mobilestream.patches.verizon.shared.Constants as Verizon
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
@@ -63,10 +64,7 @@ private const val VERSION_BUMP = 10_000_000L
 @Suppress("unused")
 val disableAutoUpdatesPatch = resourcePatch(
     name = "Disable auto-updates",
-    description = "Stops the Play Store from silently replacing the patched app with the " +
-        "official version, which would bring the ads back. It raises the app's version " +
-        "number far ahead of the Store's, so the Store sees it as up to date. You can still " +
-        "update on purpose by patching a newer version.",
+    description = "Stops the Play Store from replacing the patched app with the official version.",
     default = false,
 ) {
     compatibleWith(
@@ -110,6 +108,7 @@ val disableAutoUpdatesPatch = resourcePatch(
         Xfinity.COMPATIBILITY,
         Att.COMPATIBILITY,
         Verizon.COMPATIBILITY,
+        Xumo.COMPATIBILITY,
     )
 
     execute {

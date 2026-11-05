@@ -94,16 +94,16 @@ fun main(args: Array<String>) {
         "io.sentry.d2" to """package io.sentry; public class d2 {public java.util.ArrayList b=new java.util.ArrayList(); public d2(int i){}
             public void o(float x,float y){b.add("move");} public void m(float x,float y){b.add("line");} public void e(){b.add("close");} }""",
         "a.PlayIcon" to """package a; public class PlayIcon {public static k2.e B(){return new k2.e("play");}}""",
-        "a.b" to """package a; public class b {public static k2.e q(){return new k2.e("info");}public static k2.e u(){return new k2.e("play");}}""",
+        "c6.a" to """package c6; public class a {public static k2.e k(){return new k2.e("report");}}""",
         "d7.a" to """package d7; public class a {public static k2.e v(){return new k2.e("next");}}""",
         "x4.l" to """package x4; public class l {public static k2.e e(){return new k2.e("audio");}}""",
         "u6.g" to """package u6; public class g {public static k2.e V(){return new k2.e("sources");}}""",
-        "io.sentry.config.a" to """package io.sentry.config;public class a {public static k2.e o(){return new k2.e("party");}}""",
-        "c6.a" to """package c6; public class a {public static k2.e d; public static k2.e q(){return new k2.e("party");} public static k2.e j(){return new k2.e("report");}}""",
-        "u9.c4" to """package u9; public class c4 {public static k2.e b;public static k2.e h(){return new k2.e("external");}}""",
-        "u9.h7" to """package u9; public class h7 {public static k2.e a;}""",
-        "u9.s5" to """package u9; public class s5 {public static k2.e n(){return new k2.e("speed");}}""",
-        "u9.h2" to """package u9; public class h2 {public static k2.e c;}""",
+        "u9.a6" to """package u9;public class a6 {public static k2.e o(){return new k2.e("party");}public static k2.e p(){return new k2.e("speed");}}""",
+        "io.sentry.config.a" to """package io.sentry.config; public class a {public static k2.e d; public static k2.e q(){return new k2.e("party");} public static k2.e j(){return new k2.e("report");}}""",
+        "u9.f2" to """package u9; public class f2 {public static k2.e b;public static k2.e i(){return new k2.e("external");}}""",
+        "a.b" to """package a; public class b {public static k2.e a;public static k2.e m(){return new k2.e("info");}public static k2.e r(){return new k2.e("play");}}""",
+        "u9.t7" to """package u9; public class t7 {public static k2.e n(){return new k2.e("speed");}}""",
+        "u9.p2" to """package u9; public class p2 {public static k2.e c;}""",
         "na.y1" to """package na; public class y1 {public static void z(kotlin.jvm.functions.Function0 close,String title,String subtitle,float width,
             int color,boolean full,boolean scroll,Object shape,Object background,float a,float b,float c,float d,Object header,r1.s body,Object composer,int f,int g,int defaults){
                 if(defaults!=10192||c!=16f||d!=8f)throw new AssertionError("Dialog spacing");
@@ -125,7 +125,7 @@ fun main(args: Array<String>) {
             public static void action(String title){actions.get(title).invoke();} public static void select(String id){if(rows.containsKey(id))rows.get(id).invoke();else choose.invoke(id);}
             public static boolean key(String id,int action,int code,int repeat,long down,long time,boolean canceled){return (Boolean)modifiers.get(id).key.invoke(new p2.b(new android.view.KeyEvent(action,code,repeat,down,time,canceled)));}
         }""",
-        "bb.hk" to """package bb; public class hk {
+        "bb.mk" to """package bb; public class mk {
             public static java.util.List<Object[]> rendered=new java.util.ArrayList<>(); public static boolean fail;
             public static void c(Object icon,Object painter,Object label,Object click,Object focus,Object up,boolean enabled,Object down,Object focused,long tint,Object composer,int flags,int defaults){
                 if(fail)throw new IllegalStateException("render failure"); rendered.add(new Object[]{label,focus,click,up,defaults});}
@@ -134,7 +134,7 @@ fun main(args: Array<String>) {
         "fixture.Player" to """package fixture; import software.santodan.extension.nuviobuttons.NuvioPlaybackButtons;
             public class Player {
                 public static h1.k0 composer=new h1.k0(); public static boolean expanded,subtitles=true,report=true,intro,chapters,engine;
-                public static void run(){bb.hk.rendered.clear();
+                public static void run(){bb.mk.rendered.clear();
                     NuvioPlaybackButtons.play(null,null,"play","play-click","play-focus","up",true,"down","focused",0L,composer,0,0);
                     if(subtitles)NuvioPlaybackButtons.subtitles(null,null,"subtitles","sub-click",null,"up",true,"down","focused",0L,composer,0,16);
                     if(chapters)NuvioPlaybackButtons.chapters(null,null,"chapters","chapters-click",null,"up",true,"down","focused",0L,composer,0,16);
@@ -142,7 +142,7 @@ fun main(args: Array<String>) {
                     NuvioPlaybackButtons.more(expanded,null,null,null,null,new Object(),composer,0);
                     if(intro) {
                         Object[] args={"intro-icon",null,"introdb","intro-click",null,"up",true,"down","focused",0L,composer,0,530};
-                        if(!NuvioPlaybackButtons.collectIntroDb(args)) bb.hk.c(args[0],args[1],args[2],args[3],args[4],args[5],true,args[7],args[8],0L,composer,0,530);
+                        if(!NuvioPlaybackButtons.collectIntroDb(args)) bb.mk.c(args[0],args[1],args[2],args[3],args[4],args[5],true,args[7],args[8],0L,composer,0,530);
                     }
                     NuvioPlaybackButtons.finish(null,null,"more","toggle",null,"up",true,"down","focused",0L,composer,0,16);
                 }
@@ -183,7 +183,7 @@ fun main(args: Array<String>) {
     isolated.use { loader ->
         val runtime = loader.loadClass("software.santodan.extension.nuviobuttons.NuvioPlaybackButtons")
         val player = loader.loadClass("fixture.Player")
-        val native = loader.loadClass("bb.hk")
+        val native = loader.loadClass("bb.mk")
         val ui = loader.loadClass("gb.gd")
         val layout = runtime.getDeclaredField("layout").apply { isAccessible = true }
         val frames = runtime.getDeclaredField("frames").apply { isAccessible = true }.get(null) as ThreadLocal<*>

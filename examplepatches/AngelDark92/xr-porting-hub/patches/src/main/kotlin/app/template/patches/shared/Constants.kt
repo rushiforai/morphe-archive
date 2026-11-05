@@ -17,14 +17,25 @@ object Constants {
         SteamLinkBuild("2.0.21", 5001968),
         SteamLinkBuild("2.0.22", 5002244),
     )
+    // 2.0.24/5002527 is the newest native build. It is appended last, so `.last()` consumers
+    // (catalog generation) see it. Patches that were not adapted to it must not consume the
+    // broad native lists; they use the explicit *_THROUGH_5002395 lists below.
+    private val STEAM_LINK_5002527 = SteamLinkBuild("2.0.24", 5002527)
     private val NATIVE_XR_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.23", 5002363),
         SteamLinkBuild("2.0.24", 5002395),
+        STEAM_LINK_5002527,
     )
+    // Native builds as they were before 5002527: the exact scope of every patch that has not
+    // been adapted and verified on the new base (identity driver, OpenXR BOOST, ...).
+    private val NATIVE_XR_STEAM_LINK_BUILDS_THROUGH_5002395 =
+        NATIVE_XR_STEAM_LINK_BUILDS.filterNot { it == STEAM_LINK_5002527 }
     private val FULL_FACEBRIDGE_STEAM_LINK_BUILDS = LEGACY_STEAM_LINK_BUILDS
+    // Tongue transport only; the full face layer (FULL_FACEBRIDGE) never reaches a native build.
     private val MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.23", 5002363),
         SteamLinkBuild("2.0.24", 5002395),
+        STEAM_LINK_5002527,
     )
     private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
@@ -128,11 +139,16 @@ object Constants {
     val COMPATIBILITIES_STEAM_LINK =
         COMPATIBILITIES_STEAM_LINK_LEGACY + COMPATIBILITIES_STEAM_LINK_NATIVE_XR
 
+    // Scope of patches that were never adapted to the newer builds: 5002527 is excluded too.
+    val COMPATIBILITIES_STEAM_LINK_THROUGH_5002395 =
+        (LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS_THROUGH_5002395)
+            .map(::steamLinkBuildCompatibility)
+
     // Historical legacy-only scope: adding a newer native base must not re-enable these patches.
     val COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST =
         COMPATIBILITIES_STEAM_LINK.filterNot { compatibility ->
             compatibility.targets.any { target ->
-                MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS.any { build ->
+                NATIVE_XR_STEAM_LINK_BUILDS.any { build ->
                     target.version == build.version && target.versionCodes?.values?.contains(build.versionCode) == true
                 }
             }
@@ -197,6 +213,10 @@ object Constants {
     val COMPATIBILITIES_STEAM_LINK_LEGACY_EXPERIMENTAL = experimentalCompatibilities(LEGACY_STEAM_LINK_BUILDS)
 
     val COMPATIBILITIES_STEAM_LINK_NATIVE_XR_EXPERIMENTAL = experimentalCompatibilities(NATIVE_XR_STEAM_LINK_BUILDS)
+
+    // Experimental scope of patches not adapted to 5002527 (e.g. OpenXR BOOST).
+    val COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL_THROUGH_5002395 =
+        experimentalCompatibilities(LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS_THROUGH_5002395)
 
     // ---------------------------------------------------------------------
     // 4XVR (cn.vr4p.oculus4xvrplayerov) — exact single-build Galaxy XR adaptation.

@@ -4,7 +4,7 @@
  * https://github.com/hoo-dles/morphe-patches
  *
  * Ported from the 8.8.8 Nova Launcher patch in rushiranpise/morphe-patches and the 8.8.6
- * patch in hoo-dles/morphe-patches (both GPLv3), re-resolved for 8.9.5.
+ * patch in hoo-dles/morphe-patches (both GPLv3), re-resolved for 8.9.6.
  */
 
 package dev.hyzor.patches.nova.premium

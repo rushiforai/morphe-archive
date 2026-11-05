@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
+import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.misc.telemetry.forceAnalyticsDeactivated
 
 // The concrete AppsFlyer implementation (AFa1tSDK in 26.10.12) subclasses the public
@@ -91,5 +92,32 @@ val disableTelemetryPatch = bytecodePatch(
             if (implementation == null) throw PatchException("isPerformanceMonitoringEnabled has no body")
             returnEarly(false)
         }
+
+        // 6. Firebase In-App Messaging (2026-11-03): its data-collection getter answers false, so
+        // FIAM never fetches campaigns and never logs impressions or clicks. Block marketing
+        // notifications only gates the display, so with this step the campaigns never arrive at
+        // all, whatever that switch says.
+        InAppMessagingDataCollectionFingerprint.method.apply {
+            if (implementation == null) throw PatchException("FIAM data-collection getter has no body")
+            returnEarly(false)
+        }
+
+        // 7. EmojiCompat start-up (2026-11-03): its androidx.startup Initializer returns at once,
+        // so no package-manager query for the emoji font provider runs at start-up and no font is
+        // downloaded. Every EmojiCompat user in the app is androidx code (AppCompat text views,
+        // Compose text, emoji2 views) that checks EmojiCompat.isConfigured() first and then
+        // draws emoji with the system font, which is the documented result of removing this
+        // initializer.
+        mutableClassDefBy(EMOJI_COMPAT_INITIALIZER).methods.singleOrNull {
+            it.name == "create" && it.returnType == "Ljava/lang/Object;" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;") &&
+                it.implementation != null
+        }?.addInstructionsChecked(
+            0,
+            """
+                sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+                return-object v0
+            """,
+        ) ?: throw PatchException("EmojiCompatInitializer has no create(Context)Object with a body")
     }
 }

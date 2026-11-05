@@ -1,14 +1,17 @@
 package app.template.patches.truecaller.misc.haptics
 
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.template.patches.shared.Constants.COMPATIBILITY_TRUECALLER
-import app.template.patches.shared.addInstructionsChecked
+import app.template.patches.shared.hevalcontrols.HevalFeature
+import app.template.patches.shared.hevalcontrols.addHevalSkip
+import app.template.patches.shared.hevalcontrols.addHevalValueHelper
+import app.template.patches.shared.hevalcontrols.featurePatch
+import app.template.patches.shared.hevalcontrols.filterThroughHevalHelper
 import app.template.patches.shared.requireNoBranchTargetAt
+import app.template.patches.truecaller.controls.TruecallerControlsCategory
+import app.template.patches.truecaller.controls.truecallerControls
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
@@ -39,104 +42,119 @@ private val FUNCTION_REFERENCE_CONSTRUCTOR = listOf(
     "I", "Ljava/lang/Object;", "Ljava/lang/Class;", "Ljava/lang/String;", "Ljava/lang/String;", "I", "B",
 )
 
+private const val FEATURE = "truecaller.disable_call_button_haptics"
+
+// A Heval Controls feature: the haptic dispatches are skipped, and the drag progress the vibration
+// check sees is zeroed, only while it is on; while it is off every dispatch and the progress are
+// stock. Each is read when the call screen acts, so no restart is needed.
 @Suppress("unused")
-val disableCallButtonHapticsPatch = bytecodePatch(
-    name = "Disable call button haptics",
-    description = "Stops the vibration when you answer or decline a call.",
+val disableCallButtonHapticsPatch = truecallerControls.featurePatch(
+    HevalFeature(
+        id = FEATURE,
+        name = "Disable call button haptics",
+        description = "Stops the vibration when you answer or decline a call.",
+        category = TruecallerControlsCategory.CALL_SCREEN,
+    ),
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_TRUECALLER)
-
-    execute {
-        // 1. The haptic played when a call is answered or declined. Every call UI action handler
-        // dispatches a haptic event (new HapticEvent(CallUIHaptic.X), then a void dispatch call)
-        // and then reports an analytics action. The handlers that report ACCEPT or REJECT
-        // (full screen, details view and PiP) lose the dispatch; hang-up (HANGUP, KEYPAD_END_CALL)
-        // plays the same REJECT haptic and keeps it, as do all other buttons.
-        // Collect first: mutating classes while iterating them is not allowed.
-        val handlerClasses = mutableListOf<ClassDef>()
-        classDefForEach { classDef ->
-            if (classDef.methods.any { method -> method.implementation?.instructions?.any { it.answerDeclineAction() != null } == true }) {
-                handlerClasses += classDef
-            }
+    // 1. The haptic played when a call is answered or declined. Every call UI action handler
+    // dispatches a haptic event (new HapticEvent(CallUIHaptic.X), then a void dispatch call)
+    // and then reports an analytics action. The handlers that report ACCEPT or REJECT
+    // (full screen, details view and PiP) jump over the dispatch while the feature is on (the
+    // event is still built); hang-up (HANGUP, KEYPAD_END_CALL) plays the same REJECT haptic and
+    // keeps it, as do all other buttons.
+    // Collect first: mutating classes while iterating them is not allowed.
+    val handlerClasses = mutableListOf<ClassDef>()
+    classDefForEach { classDef ->
+        if (classDef.methods.any { method -> method.implementation?.instructions?.any { it.answerDeclineAction() != null } == true }) {
+            handlerClasses += classDef
         }
-        val covered = mutableSetOf<Pair<String, String>>()
-        for (classDef in handlerClasses) {
-            for (method in mutableClassDefBy(classDef).methods) {
-                val instructions = method.implementation?.instructions?.toList() ?: continue
-                val dispatches = sortedSetOf<Int>(reverseOrder())
-                instructions.forEachIndexed { index, instruction ->
-                    val action = instruction.answerDeclineAction() ?: return@forEachIndexed
-                    val haptic = instructions.hapticBefore(index) ?: return@forEachIndexed
-                    val played = (instructions[haptic] as ReferenceInstruction).field().name
-                    if (played != ANSWER_DECLINE_ACTIONS.getValue(action)) {
-                        throw PatchException("${method.label()}: ${action.second} plays CallUIHaptic.$played, expected ${ANSWER_DECLINE_ACTIONS.getValue(action)}")
-                    }
-                    dispatches += method.hapticDispatch(instructions, haptic)
-                    covered += action
+    }
+    val covered = mutableSetOf<Pair<String, String>>()
+    for (classDef in handlerClasses) {
+        for (method in mutableClassDefBy(classDef).methods) {
+            val instructions = method.implementation?.instructions?.toList() ?: continue
+            val dispatches = sortedSetOf<Int>(reverseOrder())
+            instructions.forEachIndexed { index, instruction ->
+                val action = instruction.answerDeclineAction() ?: return@forEachIndexed
+                val haptic = instructions.hapticBefore(index) ?: return@forEachIndexed
+                val played = (instructions[haptic] as ReferenceInstruction).field().name
+                if (played != ANSWER_DECLINE_ACTIONS.getValue(action)) {
+                    throw PatchException("${method.label()}: ${action.second} plays CallUIHaptic.$played, expected ${ANSWER_DECLINE_ACTIONS.getValue(action)}")
                 }
-                dispatches.forEach { method.removeInstruction(it) }
+                dispatches += method.hapticDispatch(instructions, haptic)
+                covered += action
             }
+            // From the last dispatch backwards, so the earlier indices stay valid. The dispatch
+            // itself falls through to the skip target, so the free-register search covers it.
+            dispatches.forEach { method.addHevalSkip(FEATURE, it, it + 1) }
         }
-        val missing = ANSWER_DECLINE_ACTIONS.keys - covered
-        if (missing.isNotEmpty()) {
-            throw PatchException("No haptic dispatch found for ${missing.map { "${it.first}${it.second}" }}")
-        }
+    }
+    val missing = ANSWER_DECLINE_ACTIONS.keys - covered
+    if (missing.isNotEmpty()) {
+        throw PatchException("No haptic dispatch found for ${missing.map { "${it.first}${it.second}" }}")
+    }
 
-        val composable = IncomingCallSwipeHandlersFingerprint.method
+    val composable = IncomingCallSwipeHandlersFingerprint.method
 
-        // 2. The click when a swipe button starts moving: the dragging state handler dispatches
-        // CallUIHaptic.CLICK behind "if (state != IDLE)". The dispatch is dropped.
-        run {
-            val (method, block) = swipeHandlerCase(composable, DRAGGING_STATE_HANDLER)
-            val instructions = method.instructions.toList()
-            val idle = block.firstOrNull { index ->
-                instructions[index].opcode == Opcode.SGET_OBJECT &&
-                    (instructions[index] as ReferenceInstruction).field().let { it.definingClass == SWIPE_DRAGGING_STATE && it.name == "IDLE" }
-            } ?: throw PatchException("${method.label()}: the $DRAGGING_STATE_HANDLER case does not read IDLE")
-            val idleRegister = (instructions[idle] as OneRegisterInstruction).registerA
-            val guard = instructions[idle + 1]
-            if ((guard.opcode != Opcode.IF_EQ && guard.opcode != Opcode.IF_NE) ||
-                idleRegister !in (guard as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) }
-            ) {
-                throw PatchException("${method.label()}: IDLE is not compared right after it is read; got ${guard.opcode}")
-            }
-            val haptic = (idle + 2..block.last).firstOrNull { index -> instructions[index].isHaptic() }
-                ?: throw PatchException("${method.label()}: no haptic after the IDLE check")
-            val played = (instructions[haptic] as ReferenceInstruction).field().name
-            if (played != "CLICK") throw PatchException("${method.label()}: the drag start plays CallUIHaptic.$played, expected CLICK")
-            val dispatch = method.hapticDispatch(instructions, haptic)
-            if ((guard as BuilderOffsetInstruction).target.location.index <= dispatch) {
-                throw PatchException("${method.label()}: the IDLE check does not skip the drag start haptic")
-            }
-            method.removeInstruction(dispatch)
+    // 2. The click when a swipe button starts moving: the dragging state handler dispatches
+    // CallUIHaptic.CLICK behind "if (state != IDLE)". The dispatch is skipped while the feature
+    // is on.
+    run {
+        val (method, block) = swipeHandlerCase(composable, DRAGGING_STATE_HANDLER)
+        val instructions = method.instructions.toList()
+        val idle = block.firstOrNull { index ->
+            instructions[index].opcode == Opcode.SGET_OBJECT &&
+                (instructions[index] as ReferenceInstruction).field().let { it.definingClass == SWIPE_DRAGGING_STATE && it.name == "IDLE" }
+        } ?: throw PatchException("${method.label()}: the $DRAGGING_STATE_HANDLER case does not read IDLE")
+        val idleRegister = (instructions[idle] as OneRegisterInstruction).registerA
+        val guard = instructions[idle + 1]
+        if ((guard.opcode != Opcode.IF_EQ && guard.opcode != Opcode.IF_NE) ||
+            idleRegister !in (guard as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) }
+        ) {
+            throw PatchException("${method.label()}: IDLE is not compared right after it is read; got ${guard.opcode}")
         }
+        val haptic = (idle + 2..block.last).firstOrNull { index -> instructions[index].isHaptic() }
+            ?: throw PatchException("${method.label()}: no haptic after the IDLE check")
+        val played = (instructions[haptic] as ReferenceInstruction).field().name
+        if (played != "CLICK") throw PatchException("${method.label()}: the drag start plays CallUIHaptic.$played, expected CLICK")
+        val dispatch = method.hapticDispatch(instructions, haptic)
+        if ((guard as BuilderOffsetInstruction).target.location.index <= dispatch) {
+            throw PatchException("${method.label()}: the IDLE check does not skip the drag start haptic")
+        }
+        method.addHevalSkip(FEATURE, dispatch, dispatch + 1)
+    }
 
-        // 3. The looping vibration while a swipe button is dragged: the progress handler starts a
-        // vibrator job once progress > 0.1f and stops it at or below that. The progress is set to
-        // 0 right before the compare, so the handler always takes the stop path.
-        run {
-            val (method, block) = swipeHandlerCase(composable, DRAGGING_PROGRESS_HANDLER)
-            val instructions = method.instructions.toList()
-            val threshold = block.firstOrNull { index ->
-                instructions[index].opcode == Opcode.CONST &&
-                    (instructions[index] as NarrowLiteralInstruction).narrowLiteral == VIBRATION_THRESHOLD_BITS
-            } ?: throw PatchException("${method.label()}: the $DRAGGING_PROGRESS_HANDLER case does not load 0.1f")
-            val thresholdRegister = (instructions[threshold] as OneRegisterInstruction).registerA
-            val compare = threshold + 1
-            val cmp = instructions[compare] as? ThreeRegisterInstruction
-            if ((instructions[compare].opcode != Opcode.CMPG_FLOAT && instructions[compare].opcode != Opcode.CMPL_FLOAT) || cmp == null) {
-                throw PatchException("${method.label()}: 0.1f is not compared right after it is loaded; got ${instructions[compare].opcode}")
-            }
-            val progress = when (thresholdRegister) {
-                cmp.registerC -> cmp.registerB
-                cmp.registerB -> cmp.registerC
-                else -> throw PatchException("${method.label()}: the float compare does not use 0.1f")
-            }
-            method.requireNoBranchTargetAt(compare, "zeroing the drag progress")
-            val zero = if (progress < 16) "const/4 v$progress, 0x0" else "const/16 v$progress, 0x0"
-            method.addInstructionsChecked(compare, zero)
+    // 3. The looping vibration while a swipe button is dragged: the progress handler starts a
+    // vibrator job once progress > 0.1f and stops it at or below that. Right before the compare
+    // the progress goes through a new (F)F helper that answers 0 while the feature is on, so
+    // the handler always takes the stop path, and passes it through while it is off.
+    run {
+        val (method, block) = swipeHandlerCase(composable, DRAGGING_PROGRESS_HANDLER)
+        val instructions = method.instructions.toList()
+        val threshold = block.firstOrNull { index ->
+            instructions[index].opcode == Opcode.CONST &&
+                (instructions[index] as NarrowLiteralInstruction).narrowLiteral == VIBRATION_THRESHOLD_BITS
+        } ?: throw PatchException("${method.label()}: the $DRAGGING_PROGRESS_HANDLER case does not load 0.1f")
+        val thresholdRegister = (instructions[threshold] as OneRegisterInstruction).registerA
+        val compare = threshold + 1
+        val cmp = instructions[compare] as? ThreeRegisterInstruction
+        if ((instructions[compare].opcode != Opcode.CMPG_FLOAT && instructions[compare].opcode != Opcode.CMPL_FLOAT) || cmp == null) {
+            throw PatchException("${method.label()}: 0.1f is not compared right after it is loaded; got ${instructions[compare].opcode}")
         }
+        val progress = when (thresholdRegister) {
+            cmp.registerC -> cmp.registerB
+            cmp.registerB -> cmp.registerC
+            else -> throw PatchException("${method.label()}: the float compare does not use 0.1f")
+        }
+        method.requireNoBranchTargetAt(compare, "zeroing the drag progress")
+        val zero = mutableClassDefBy(method.definingClass).addHevalValueHelper(FEATURE, "morpheCallButtonDragProgress", "F") { v ->
+            """
+                const/4 $v, 0x0
+                return $v
+            """
+        }
+        method.filterThroughHevalHelper(compare, progress, zero)
     }
 }
 
@@ -202,7 +220,8 @@ private fun MutableMethod.hapticDispatch(instructions: List<BuilderInstruction>,
 /**
  * The switch case of the R8-merged lambda that the incoming call screen [composable] passes as the
  * function reference named [handler]: the lambda's invoke method and the instruction range of the
- * case, from its switch target to its first return or throw.
+ * case, from its switch target to its first return or throw. A case R8 outlined into a private
+ * method of the lambda gives that method and its range up to its first return or throw instead.
  */
 private fun BytecodePatchContext.swipeHandlerCase(
     composable: MutableMethod,
@@ -253,10 +272,34 @@ private fun BytecodePatchContext.swipeHandlerCase(
     val payload = (body[switch] as BuilderOffsetInstruction).target.location.instruction as? BuilderSwitchPayload
         ?: throw PatchException("${invoke.label()}: the case switch has no payload")
     val start = payload.switchElements.firstOrNull { it.key == case }?.target?.location?.index ?: (switch + 1)
-    val end = (start until body.size).firstOrNull { index ->
-        body[index].opcode.let { it == Opcode.RETURN_OBJECT || it == Opcode.RETURN_VOID || it == Opcode.THROW }
-    } ?: throw PatchException("${invoke.label()}: case $case never returns")
-    return invoke to (start..end)
+    val end = body.firstReturnFrom(start) ?: throw PatchException("${invoke.label()}: case $case never returns")
+
+    // R8 may outline a case into a private method of the lambda (26.43.5: the
+    // onDraggingProgressChanged case is only invoke-direct {this, arg}, b(Object)Object;
+    // move-result-object; return-object). Follow that delegate, so the case body is its body.
+    val delegate = body[start].takeIf { end == start + 2 }?.let { call ->
+        val target = (call as? ReferenceInstruction)?.reference as? MethodReference
+        val result = body[start + 1] as? OneRegisterInstruction
+        val returned = body[end] as? OneRegisterInstruction
+        target.takeIf {
+            (call.opcode == Opcode.INVOKE_DIRECT || call.opcode == Opcode.INVOKE_DIRECT_RANGE) &&
+                target?.definingClass == lambda.type && target.name != "<init>" &&
+                body[start + 1].opcode == Opcode.MOVE_RESULT_OBJECT && body[end].opcode == Opcode.RETURN_OBJECT &&
+                result?.registerA == returned?.registerA
+        }
+    } ?: return invoke to (start..end)
+    val outlined = lambda.methods.singleOrNull { method ->
+        method.name == delegate.name && method.returnType == delegate.returnType &&
+            method.parameterTypes.map(CharSequence::toString) == delegate.parameterTypes.map(CharSequence::toString) &&
+            method.implementation != null
+    } ?: throw PatchException("${invoke.label()}: case $case delegates to $delegate, which ${lambda.type} does not implement")
+    val outlinedEnd = outlined.instructions.toList().firstReturnFrom(0)
+        ?: throw PatchException("${outlined.label()}: the outlined case $case never returns")
+    return outlined to (0..outlinedEnd)
+}
+
+private fun List<Instruction>.firstReturnFrom(start: Int): Int? = (start until size).firstOrNull { index ->
+    this[index].opcode.let { it == Opcode.RETURN_OBJECT || it == Opcode.RETURN_VOID || it == Opcode.THROW }
 }
 
 private fun Instruction.argumentRegisters(): List<Int>? = when (this) {

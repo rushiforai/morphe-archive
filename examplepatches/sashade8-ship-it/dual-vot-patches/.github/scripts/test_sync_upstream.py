@@ -1,5 +1,6 @@
 import importlib.util
 import io
+import re
 import struct
 import sys
 import unittest
@@ -17,6 +18,56 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev2110_streaming_keeps_reuse_and_uncached_dual_api(self):
+        conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev2110-conflicts.txt").read_text(
+            encoding="utf-8"
+        )
+        merged = sync_upstream.merge_streaming_data_request_dev2110(conflict)
+        self.assertIn("clientOrder, false, false));", merged)
+        self.assertIn("clientOrderToUse, false, false);", merged)
+        self.assertIn("clientOrder, true, false);", merged)
+        self.assertIn("includeVideoDetails, clientOrder, isDownload, directStreamsOnly));", merged)
+        direct = merged[merged.index("    public static StreamingDataRequest fetchDirectStreamRequest("):
+                        merged.index("    public static void fetchRequestIfNeeded(")]
+        self.assertIn("boolean isInline,", direct)  # Existing Yandex caller stays compatible.
+        self.assertIn("new StreamingDataRequest(videoId, fetchHeaders, false,", direct)
+        self.assertIn("DIRECT_STREAM_CLIENT_ORDER, false, true);", direct)
+        self.assertNotIn("cache.", direct)
+        self.assertEqual(merged.count("boolean isInline"), 1)
+        self.assertNotIn("<<<<<<<", merged)
+        # Retain all new lifecycle code, including account/reload/age invalidation.
+        sides = re.findall(r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n",
+                           conflict, re.DOTALL | re.MULTILINE)
+        self.assertIn(sides[3][1].replace("clientOrderToUse, false);",
+                                        "clientOrderToUse, false, false);"), merged)
+        for ours, theirs in sides:
+            for side in (ours, theirs):
+                with self.subTest(side=side[:60]), self.assertRaises(sync_upstream.SyncError):
+                    sync_upstream.merge_streaming_data_request_dev2110(
+                        conflict.replace(side, side + "unreviewed change\n", 1))
+        for invalid in ("", conflict + conflict, conflict + "<<<<<<< extra\n"):
+            with self.subTest(invalid=invalid[:60]), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_dev2110(invalid)
+
+    def test_dev2110_resolver_dispatches_only_exact_blobs(self):
+        conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev2110-conflicts.txt").read_text(
+            encoding="utf-8"
+        )
+        path = sync_upstream.STREAMING_DATA_REQUEST_PATH
+        destination = mock.Mock()
+        destination.read_text.return_value = conflict
+        root = mock.Mock()
+        root.__truediv__ = mock.Mock(return_value=destination)
+        with (mock.patch.object(sync_upstream, "ROOT", root),
+              mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+              mock.patch.object(sync_upstream, "output_of",
+                                side_effect=sync_upstream.STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS),
+              mock.patch.object(sync_upstream, "run") as run):
+            sync_upstream.resolve_streaming_data_request_conflict()
+            destination.write_text.assert_called_once_with(
+                sync_upstream.merge_streaming_data_request_dev2110(conflict), encoding="utf-8", newline="")
+            run.assert_called_once_with("git", "add", "--", path)
+
     def test_dev217_streaming_keeps_player_client_and_dual_audio_contract(self):
         conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev217-conflicts.txt").read_text(
             encoding="utf-8"
@@ -168,6 +219,8 @@ class SyncUpstreamTests(unittest.TestCase):
 
     def test_dev210_unknown_inputs_remain_unresolved(self):
         cases = (
+            (sync_upstream.STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS,
+             sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
             (sync_upstream.STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS,
              sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
             (sync_upstream.STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,

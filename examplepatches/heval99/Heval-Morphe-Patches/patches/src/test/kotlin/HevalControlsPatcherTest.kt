@@ -3,6 +3,7 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
 import app.template.patches.shared.hevalcontrols.HevalFeature
+import app.template.patches.shared.hevalcontrols.HevalListFeature
 import app.template.patches.shared.hevalcontrols.HevalRegistryCodec
 import app.template.patches.shared.hevalcontrols.featurePatch
 import app.template.patches.shared.hevalcontrols.hevalControlsPatch
@@ -39,9 +40,17 @@ class HevalControlsPatcherTest {
     private val feature = HevalFeature(
         id = "test.gate",
         name = "Test gate",
-        description = "Gated at runtime by the Heval Controls test.",
+        description = "Gated at runtime by the Patch settings test.",
         category = "Test",
         default = false,
+    )
+
+    /** A list setting, registered through the host from the same feature patch. */
+    private val listFeature = HevalListFeature(
+        id = "test.hidden_items",
+        name = "Hidden items",
+        description = "Items picked here are hidden by the Patch settings test.",
+        category = "Test",
     )
 
     /** The method the feature patch gated, found the same way in both runs. */
@@ -71,6 +80,8 @@ class HevalControlsPatcherTest {
             val method = mutableClassDefBy(type).methods.first { it.name == name && it.isGateable() }
             gated = "$type->$name"
             method.hevalReturnEarly(feature.id, true)
+            // Registered before the feature itself (featurePatch registers after its block).
+            host.register(listFeature)
         }
 
         return applyPatches(
@@ -78,7 +89,7 @@ class HevalControlsPatcherTest {
             workDir = workDir.resolve(run),
             pkg = PKG,
             version = "1.4.5",
-            patchNames = setOf("Heval Controls", feature.name),
+            patchNames = setOf("Patch settings", feature.name),
             allPatches = setOf(host.patch, featurePatch),
         )
     }
@@ -91,12 +102,16 @@ class HevalControlsPatcherTest {
         // The extension classes are merged into the emitted dex.
         listOf(
             "HevalSettings;", "Registry;", "RegistryCodec;", "CrashGuard;", "InitProvider;", "PrefsStore;",
-            "ui/HevalControlsActivity;", "ui/Views;", "ui/Palette;", "ui/Diagnostics;",
+            "ui/HevalControlsActivity;", "ui/ListPicker;", "ui/OptionImageLoader;", "ui/Views;", "ui/Palette;", "ui/Diagnostics;",
         ).forEach { assertTrue("$EXTENSION$it" in byType, "$EXTENSION$it is not in the patched dex") }
 
         // Registry getters were rewritten.
         val registry = byType.getValue("${EXTENSION}Registry;")
-        assertEquals(HevalRegistryCodec.encode(listOf(feature)), registry.constString("encoded"))
+        val encoded = registry.constString("encoded")
+        assertEquals(HevalRegistryCodec.encode(listOf(listFeature, feature)), encoded)
+        // The list record carries the kind field; the switch record does not.
+        assertTrue(encoded.lines().any { it.startsWith("${listFeature.id}\t") && it.endsWith("\tlist") }, encoded)
+        assertTrue(encoded.lines().single { it.startsWith("${feature.id}\t") }.split('\t').size == 8, encoded)
         assertEquals("1.4.5 (57)", registry.constString("patchedAppVersion"))
         assertTrue(registry.constString("bundleVersion").isNotBlank())
 
@@ -121,11 +136,12 @@ class HevalControlsPatcherTest {
         assertEquals("1000", provider.getAttribute("android:initOrder"))
         val activity = elements("activity").single { it.getAttribute("android:name").endsWith(".ui.HevalControlsActivity") }
         assertEquals("false", activity.getAttribute("android:exported"))
+        assertEquals("Patch settings", activity.getAttribute("android:label"))
         assertTrue(elements("activity-alias").none { it.getAttribute("android:targetActivity").contains("hevalcontrols") })
 
         // A second run in the same JVM writes the same registry (the host starts empty each run).
         val again = patch("second").associateBy { it.type }.getValue("${EXTENSION}Registry;")
-        assertEquals(HevalRegistryCodec.encode(listOf(feature)), again.constString("encoded"))
+        assertEquals(HevalRegistryCodec.encode(listOf(listFeature, feature)), again.constString("encoded"))
     }
 
     private fun Method.isGateable(allowGated: Boolean = false): Boolean {

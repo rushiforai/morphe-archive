@@ -118,8 +118,8 @@ public final class VerifyMonet {
     public static void main(String[] args) throws Exception {
         List<ClassDef> classes = read(args[0]);
         Method match = MonetPremiumPatch.findUnique(classes);
-        require(match.toString().equals("La/dl5;->a()Z"), "Unexpected 1.1.0 hook");
-        require(match.getAccessFlags() == 1, "1.1.0 public/non-final contract changed");
+        require(match.toString().equals("La/ov5;->a()Z"), "Unexpected 1.1.1 hook");
+        require(match.getAccessFlags() == 1, "1.1.1 public/non-final contract changed");
         System.out.println("Unique original hook: " + match);
         reject(Collections.emptyList());
         ClassDef owner = classes.stream().filter(c -> c.getType().equals(match.getDefiningClass())).findFirst().orElseThrow();
@@ -138,7 +138,7 @@ public final class VerifyMonet {
             "Z", 1, Set.of(), Set.of(), new ImmutableMethodImplementation(4, wrongBranch, List.of(), List.of()));
         reject(replace(classes, owner, match, wrongSemantics));
         var unanchored = new ArrayList<>(classes);
-        unanchored.removeIf(c -> c.getType().equals("La/f50;"));
+        unanchored.removeIf(c -> c.getType().equals("La/u60;"));
         reject(unanchored);
         var duplicate = new ArrayList<>(classes); duplicate.add(owner); reject(duplicate);
         var mutable = new MutableClass(owner);
@@ -164,6 +164,6 @@ public final class VerifyMonet {
             for (Method m : reloaded.getMethods()) if (m.equals(match)) { verifyBehavior(match, m); found = true; }
             require(found, "Serialized hook missing");
         }
-        System.out.println("PASS: 1.1.0 all DEX searched; final/non-final, relocated registers, wider goto and NOP layout accepted; static/wrong-semantics/unanchored/missing-refresh/missing/ambiguous/changed/already-patched rejection; only one literal changed; all 16 entitlement states; DEX write/reload");
+        System.out.println("PASS: 1.1.1 all DEX searched; final/non-final, relocated registers, wider goto and NOP layout accepted; static/wrong-semantics/unanchored/missing-refresh/missing/ambiguous/changed/already-patched rejection; only one literal changed; all 16 entitlement states; DEX write/reload");
     }
 }

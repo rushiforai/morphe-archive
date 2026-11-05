@@ -2,7 +2,7 @@
 
 Google Maps Automotive on a BYD DiLink 3 head unit (Android 10) with [MicroG-RE 7.3.0](https://github.com/MorpheApp/MicroG-RE/releases/tag/7.3.0).
 
-[Test APK](https://tryy.cc/byd), PIN: 344993
+[Test Files](https://tryy.cc/byd), PIN: 344993
 
 ![Maps Car in split screen on a BYD Dolphin: route preview to Nakhon Ratchasima showing "Arrive with 29%", next to MicroG-RE 7.2.2](docs/gmaps-cars-byd.webp)
 
@@ -11,27 +11,30 @@ The patched app, **Maps Car** (`app.morphe.android.apps.maps.automotive`), insta
 ## Features
 
 - **UI density** in Settings, so the car layout fits split screen. Until you choose one, it is 200 dpi on the Dolphin's screen (1920×1080) and the system density on other screens.
-- **BYD battery (EV)** in Settings: Maps shows the battery on arrival from the car's own reading. Read-only.
-- **Send to car** from phone Google Maps on the same Google account.
+- **Driver side** in Settings: left-hand or right-hand drive. Maps puts its cards on the driver's side and the map buttons on the other side. Auto keeps Maps' own choice, which is left-hand drive on DiLink 3.
+- **3D buildings** in the map layers: Google hides this Maps option in this app. Turn the buildings on or off in the layer menu.
+- **BYD battery (EV)** in Settings: Maps shows the battery on arrival from the car's own reading. Read-only. In the same dialog, choose the battery level Maps plans to arrive with at charging stops and at the destination (Auto uses Google's level).
+- **Send to car** from phone Google Maps on the same Google account. In Settings you can change the car's name in phone Maps (default "Vehicle 1").
 - **BYD navigation volume**: Spoken directions follow the car's navigation volume, not the media volume.
 - **Problem report and safe mode**: A red Report Maps Car app icon to send a report, and switches to turn single features off.
 
-BYD battery, Send to car, the BYD location flicker fix and BYD navigation volume are separate patches, on by default. You can leave them out in Morphe Desktop; only the default set is tested.
+BYD battery, Send to car, the BYD location flicker fix, BYD navigation volume and 3D buildings are separate patches, on by default. You can leave them out in Morphe Desktop; only the default set is tested.
 
 ## Patches list
 
 <!-- PATCHES_START -->
-[v0.1.3](https://github.com/fangkampanat/google-maps-automotive-patches/releases/tag/v0.1.3) · 5 patches
+[v0.1.4](https://github.com/fangkampanat/google-maps-automotive-patches/releases/tag/v0.1.4) · 6 patches
 
 Eligible versions: Any version.
 
 | Patch | Description |
 | --- | --- |
-| BYD battery (EV) | Feeds the BYD battery into Maps' EV routing (battery on arrival, chargers). On by default on the tested BYD Dolphin, off with an "untested" notice on other BYD models; a Settings row turns it on or off. |
+| 3D buildings | Adds Maps' own 3D buildings to the map layers. Google hides them in this app. |
+| BYD battery (EV) | Feeds the BYD battery into Maps' EV routing (battery on arrival, chargers). On by default on the tested BYD Dolphin, off with an "untested" notice on other BYD models; a Settings row turns it on or off and sets the battery to arrive with at charging stops and at the destination. |
 | BYD location flicker fix | Holds back BYD's brief location off/on flips for up to 3 s, so Maps does not flash its location lockout. |
 | BYD navigation volume | Plays Maps' spoken directions on BYD's navigation volume instead of the media volume. |
-| Google Maps Automotive for MicroG-RE | Runs Google Maps for Android Automotive on Android 10 as "Maps Car" with MicroG-RE 7.3.0. Adds a UI density setting, a problem report and a safe mode. |
-| Send to car | Lets phone Maps send a trip to Maps Car through MicroG-RE (push routes, the notification service identity and maps.app.goo.gl links). |
+| Google Maps Automotive for MicroG-RE | Runs Google Maps for Android Automotive on Android 10 as "Maps Car" with MicroG-RE 7.3.0. Adds UI density and driver side settings, a problem report and a safe mode. |
+| Send to car | Lets phone Maps send a trip to Maps Car through MicroG-RE (push routes, the notification service identity and maps.app.goo.gl links). Adds a Settings row for the car's name in phone Maps (default "Vehicle 1"). |
 
 <!-- PATCHES_END -->
 
@@ -63,7 +66,7 @@ Other BYD models, DiLink 5 and Android 11 or newer are untested. On other BYD mo
    https://github.com/fangkampanat/google-maps-automotive-patches
    ```
 
-3. Drop the original APK onto **Drop APK here**, click **PATCH WITH DEFAULTS** and install the result on the head unit.
+3. Drop the original APK onto **Drop APK here**, click **PATCH WITH DEFAULTS** and install the result on the head unit. Don't patch from a synced folder such as Google Drive, or Maps Car won't open.
 4. Start **Maps Car**.
 
 ## Reporting problems

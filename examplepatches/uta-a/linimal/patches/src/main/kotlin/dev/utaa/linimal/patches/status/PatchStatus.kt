@@ -233,6 +233,7 @@ enum class PatchId(val value: String, val featureId: FeatureId) {
     GOOGLE_AUTH_TOKEN_ROUTING("linimal.patch.google-auth-token-routing", FeatureId.GOOGLE_DRIVE_BACKUP),
     GOOGLE_AUTH_ACCOUNT_PICKER_ROUTING("linimal.patch.google-auth-account-picker-routing", FeatureId.GOOGLE_DRIVE_BACKUP),
     GOOGLE_AUTH_SIGN_IN_ROUTING("linimal.patch.google-auth-sign-in-routing", FeatureId.GOOGLE_DRIVE_BACKUP),
+    GOOGLE_AUTH_FAILURE_DIAGNOSTICS("linimal.patch.google-auth-failure-diagnostics", FeatureId.GOOGLE_DRIVE_BACKUP),
     NO_OP_PROBE("linimal.patch.no-op-probe", FeatureId.PROBE),
     LINIMAL("linimal.patch.linimal", FeatureId.LINIMAL),
 }

@@ -16,20 +16,14 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import dev.hyzor.patches.chesscom.misc.settings.settingsPatch
 import dev.hyzor.patches.chesscom.shared.Constants
-import dev.hyzor.patches.chesscom.shared.getterForLabel
 import dev.hyzor.patches.chesscom.shared.markFeaturePatched
 import dev.hyzor.patches.chesscom.upsell.NavigateFingerprint
 import dev.hyzor.patches.chesscom.upsell.ShowDialogDirectionFingerprint
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS = "${Constants.EXTENSION_PACKAGE}/gamereview/GameReviewExtension;"
 private const val GAME_REVIEW = "${Constants.EXTENSION_PACKAGE}/gamereview/GameReview;"
 private const val CHOOSER = "${Constants.EXTENSION_PACKAGE}/gamereview/ReviewChooser;"
-
-private const val LICHESS_MARKS = "chesscom/lichessreview"
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private val LICHESS_SCREENS = listOf(
@@ -37,9 +31,9 @@ private val LICHESS_SCREENS = listOf(
     "dev.hyzor.extension.chesscom.gamereview.LichessActivity",
 )
 
-/** Lichess's move marks (?! ? ?? badges in its colors, and its words) and its pages. */
-private val lichessMarksResourcePatch = resourcePatch(
-    description = "Adds Lichess's move badges, colors and words, and the Lichess login and analysis pages, for Lichess reviews.",
+/** The Lichess login and analysis pages. */
+private val lichessScreensResourcePatch = resourcePatch(
+    description = "Adds the Lichess login and analysis pages, for Lichess reviews.",
 ) {
     execute {
         document("AndroidManifest.xml").use { document ->
@@ -60,36 +54,6 @@ private val lichessMarksResourcePatch = resourcePatch(
                 )
             }
         }
-        listOf("inaccuracy", "mistake", "blunder", "quiet").forEach { name ->
-            val badge = object {}.javaClass.classLoader?.getResourceAsStream("$LICHESS_MARKS/morphe_lichess_$name.xml")
-                ?: throw PatchException("The $name badge is missing from the patches")
-            badge.use { input -> get("res/drawable/morphe_lichess_$name.xml").outputStream().use { input.copyTo(it) } }
-        }
-        document("res/values/colors.xml").use { document ->
-            mapOf("inaccuracy" to "#FF56B4E9", "mistake" to "#FFE69F00", "blunder" to "#FFDF5353").forEach { (name, color) ->
-                document.documentElement.appendChild(
-                    document.createElement("color").apply {
-                        setAttribute("name", "morphe_lichess_$name")
-                        textContent = color
-                    },
-                )
-            }
-        }
-        document("res/values/strings.xml").use { document ->
-            mapOf(
-                "morphe_lichess_inaccuracy_phrase" to "?! Inaccuracy.",
-                "morphe_lichess_mistake_phrase" to "? Mistake.",
-                "morphe_lichess_blunder_phrase" to "?? Blunder.",
-                "morphe_lichess_quiet" to "",
-            ).forEach { (name, text) ->
-                document.documentElement.appendChild(
-                    document.createElement("string").apply {
-                        setAttribute("name", name)
-                        textContent = text
-                    },
-                )
-            }
-        }
     }
 }
 
@@ -98,14 +62,13 @@ val gameReviewPatch = bytecodePatch(
     name = "Unlimited Game Review",
     description = "Game Review asks who reviews the game: chess.com, Lichess's servers (online, with your " +
         "Lichess account) or, with the Stockfish analysis patch, Stockfish on your phone (offline, no daily " +
-        "limit). The phone and Lichess " +
-        "judge moves the Lichess way (?! inaccuracies, ? mistakes, ?? blunders, accuracy and centipawn " +
-        "loss) in chess.com's own review screen, and the phone marks the moves Lichess leaves unmarked " +
-        "Best, Excellent or Good, as chess.com does. Finished games only; a live game on screen is never analysed.",
+        "limit). A Lichess or phone review is scored the Lichess way (accuracy, centipawn loss, and " +
+        "inaccuracies, mistakes and blunders) and shown in chess.com's own review screen. Finished games " +
+        "only; a live game on screen is never analysed.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
-    dependsOn(settingsPatch, lichessMarksResourcePatch)
+    dependsOn(settingsPatch, lichessScreensResourcePatch)
 
     execute {
         markFeaturePatched("gameReviewPatched")
@@ -124,88 +87,6 @@ val gameReviewPatch = bytecodePatch(
                 """,
                 ExternalLabel("morphe_review_chooser", fingerprint.method.getInstruction(0)),
             )
-        }
-
-        // A Lichess-style review shows Lichess's move types, plus chess.com's Book and Miss and, from
-        // Local Stockfish, Best, Excellent and Good: the overview's other summary rows and the
-        // board's other badges are not drawn. The rows stay in the data, as the overview looks
-        // each one up and fails on a missing one.
-        val classification = "Lcom/chess/compengine/AnalysisMoveClassification;"
-        val overview = mutableClassDefByOrNull("Lcom/chess/gamereview/ui/GameReviewOverviewScreenKt;")
-        // 4.10.23 rewrote the overview; its rows and badges are skipped there.
-        if (overview != null) {
-        val overviewModel = "Lcom/chess/gamereview/ui/u1;"
-        val tallyRow = overview.methods.singleOrNull { method ->
-            AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-                method.parameterTypes.map { it.toString() }.let {
-                    it.size == 5 && it[0] == overviewModel && it[2] == classification
-                }
-        } ?: throw PatchException("The review's summary rows were not found")
-        val badges = mutableClassDefBy("Lcom/chess/gamereview/ui/chessboard/d;").methods.filter { method ->
-            method.returnType == "V" && method.parameterTypes.map { it.toString() }.let {
-                it.size >= 3 && it[0] == "Landroid/graphics/Canvas;" && it[2] == classification
-            }
-        }
-        if (badges.size != 2) throw PatchException("Expected two badge painters, found ${badges.size}")
-        (badges.map { it to "p3" } + (tallyRow to "p2")).forEach { (method, register) ->
-            method.addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static/range { $register .. $register }, $GAME_REVIEW->shows(Ljava/lang/Object;)Z
-                    move-result v0
-                    if-nez v0, :morphe_shown
-                    return-void
-                """,
-                ExternalLabel("morphe_shown", method.getInstruction(0)),
-            )
-        }
-
-        // Lichess shows all of its marks at once: the summary's rows are always unfolded.
-        mutableClassDefBy(overviewModel).getterForLabel(", isMoveTallyExpanded=").apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $GAME_REVIEW->lichessStyle()Z
-                    move-result v0
-                    if-eqz v0, :morphe_folded
-                    return v0
-                """,
-                ExternalLabel("morphe_folded", getInstruction(0)),
-            )
-        }
-        }
-
-        // In a Lichess-style review chess.com's mark lookups (color, phrase, icon per move type) answer
-        // with Lichess's own; everywhere else they answer as before.
-        // 4.10.23 inlines the mark resources; the Lichess mark overrides are skipped there.
-        // 4.10.18 has the color class the mark lookup reads; 4.10.23 inlines the mark resources.
-        // When the lookup class is there its shape must match, which a silent runCatching would hide.
-        if (mutableClassDefByOrNull("Lcom/chess/colors/a;") != null) {
-            val marks = mutableClassDefBy("Lcom/chess/features/analysis/d;").methods.filter { method ->
-                AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "I" &&
-                    method.parameterTypes.map { it.toString() } == listOf(classification)
-            }
-            fun mark(reads: String, name: String? = null) = marks.singleOrNull { method ->
-                (name == null || method.name == name) && method.implementation?.instructions?.any {
-                    ((it as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == reads
-                } == true
-            } ?: throw PatchException("The review's $reads mark lookup was not found")
-            mapOf(
-                mark("Lcom/chess/colors/a;") to "lichessColor",
-                mark("Lcom/chess/palette/drawables/a;") to "lichessIcon",
-                mark("Lcom/chess/appstrings/c;", "b") to "lichessPhrase",
-            ).forEach { (method, lookup) ->
-                method.addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static/range { p0 .. p0 }, $GAME_REVIEW->$lookup(Ljava/lang/Object;)I
-                        move-result v0
-                        if-eqz v0, :morphe_chess_mark
-                        return v0
-                    """,
-                    ExternalLabel("morphe_chess_mark", method.getInstruction(0)),
-                )
-            }
         }
 
         // The five quota/permission flags Game Review's UI reads before it will render full

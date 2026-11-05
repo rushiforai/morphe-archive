@@ -33,8 +33,7 @@ internal object BannerAdShowFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes ads from the app: no ad slot requests an ad, and each slot is hidden. " +
-        "Experimental.",
+    description = "Removes the ads from the app and hides each ad slot.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

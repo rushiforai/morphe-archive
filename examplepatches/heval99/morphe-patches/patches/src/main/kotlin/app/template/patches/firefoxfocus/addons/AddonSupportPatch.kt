@@ -3,14 +3,11 @@ package app.template.patches.firefoxfocus.addons
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.firefoxfocus.misc.shared.registers
 import app.template.patches.shared.Constants.COMPATIBILITY_FIREFOX_FOCUS
+import app.template.patches.shared.addInstructionsAtControlFlowLabelChecked
 import app.template.patches.shared.addInstructionsChecked
-import app.template.patches.shared.requireNoBranchTargetAt
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val PATCH_NAME = "Add-on support"
 
@@ -49,79 +46,60 @@ val addonSupportPatch = bytecodePatch(
             """,
         )
 
-        // 3. Browser menu: every WebExtensionBrowserMenuBuilder constructor gets
-        // showAddonsInMenu = true (Focus's main menu passes false) and our "Extensions Manager"
-        // action (Focus passes the no-op default). This adds AC's Extensions submenu (each
-        // add-on's browser action) and the manager item. In 158.0 R8 merged the constructors into
-        // <init>(List, BrowserStore, I) with a 0x80 default mask for showAddonsInMenu; every
-        // constructor that writes either field is patched. The fields are rewritten right after
-        // the original write, so a branch that jumps onto the original iput cannot skip ours.
-        val builder = mutableClassDefBy(MENU_BUILDER)
-        var showWrites = 0
-        var callbackWrites = 0
-        builder.methods.filter { it.name == "<init>" && it.implementation != null }.forEach { constructor ->
-            val writes = constructor.instructions.withIndex().mapNotNull { (index, instruction) ->
-                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
-                    ?: return@mapNotNull null
-                if (field.definingClass != MENU_BUILDER) return@mapNotNull null
-                when {
-                    instruction.opcode == Opcode.IPUT_BOOLEAN && field.name == SHOW_ADDONS_IN_MENU &&
-                        field.type == "Z" -> index to true
-                    instruction.opcode == Opcode.IPUT_OBJECT && field.name == ON_ADDONS_MANAGER_TAPPED &&
-                        field.type == FUNCTION0 -> index to false
-                    else -> null
-                }
-            }
-            // The forced value goes into the iput's own value register, so the original value must
-            // be dead after the write (158.0: v1 and v2, followed only by return-void), and a jump
-            // onto the instruction after the iput would skip it. Both are checked on the stock code,
-            // before anything is inserted.
-            val constructorName = "${constructor.definingClass}-><init>(${constructor.parameterTypes.joinToString("")})"
-            val stock = constructor.instructions.toList()
-            for ((index, _) in writes) {
-                val field = ((stock[index] as ReferenceInstruction).reference as FieldReference).name
-                val register = (stock[index] as TwoRegisterInstruction).registerA
-                if (stock.drop(index + 1).any { register in it.registers() }) {
-                    throw PatchException("$constructorName uses v$register after the $field write")
-                }
-                constructor.requireNoBranchTargetAt(index + 1, "forcing $field")
-            }
-            // Last first, so the earlier indices stay valid.
-            writes.sortedByDescending { it.first }.forEach { (index, isShowFlag) ->
-                // iput is format 22c: both registers already fit 4 bits.
-                val iput = constructor.instructions[index] as TwoRegisterInstruction
-                val value = "v${iput.registerA}"
-                val instance = "v${iput.registerB}"
-                if (isShowFlag) {
-                    constructor.addInstructionsChecked(
-                        index + 1,
-                        """
-                            const/4 $value, 0x1
-                            iput-boolean $value, $instance, $MENU_BUILDER->$SHOW_ADDONS_IN_MENU:Z
-                        """,
-                    )
-                    showWrites++
-                } else {
-                    constructor.addInstructionsChecked(
-                        index + 1,
-                        """
-                            invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->managerCallback()$FUNCTION0
-                            move-result-object $value
-                            iput-object $value, $instance, $MENU_BUILDER->$ON_ADDONS_MANAGER_TAPPED:$FUNCTION0
-                        """,
-                    )
-                    callbackWrites++
-                }
+        // 3. Browser menu: Focus 159 builds it with Android Components' Compose menu, which has no
+        // add-on support (WebExtensionBrowserMenuBuilder, patched up to 158, is gone). Before
+        // BrowserMenu.menuGroupsFor returns its group list, addMenuItems(list, state) adds a row in
+        // front of Settings: each enabled add-on's browser action and "Extensions" (the manager).
+        // menuGroupsFor builds the first menu and every update on a BrowserState change.
+        val menuGroupsFor = BrowserMenuGroupsFingerprint.method
+        if (menuGroupsFor.returnType != "Ljava/util/ArrayList;" && menuGroupsFor.returnType != "Ljava/util/List;") {
+            throw PatchException("$PATCH_NAME: BrowserMenu.menuGroupsFor returns ${menuGroupsFor.returnType}, not a List")
+        }
+        val menuImplementation = menuGroupsFor.implementation!!
+        // p0 = this, p1 = the BrowserState, p2 = the reporter icon. The hook reads p1 at the return,
+        // so no instruction may write it (159.0.1 copies it once and never reuses the register).
+        val stateRegister = menuImplementation.registerCount - 2
+        menuGroupsFor.instructions.forEachIndexed { index, instruction ->
+            if (!instruction.opcode.setsRegister() || instruction !is OneRegisterInstruction) return@forEachIndexed
+            val written = instruction.registerA
+            if (written == stateRegister || (instruction.opcode.setsWideRegister() && written + 1 == stateRegister)) {
+                throw PatchException("$PATCH_NAME: BrowserMenu.menuGroupsFor overwrites p1 (v$stateRegister) at $index")
             }
         }
-        if (showWrites == 0 || callbackWrites == 0) {
-            throw PatchException(
-                "$PATCH_NAME: no $MENU_BUILDER constructor writes both $SHOW_ADDONS_IN_MENU " +
-                    "($showWrites) and $ON_ADDONS_MANAGER_TAPPED ($callbackWrites)",
+        val returns = menuGroupsFor.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN_OBJECT }
+            .map { it.index }
+        if (returns.isEmpty()) throw PatchException("$PATCH_NAME: BrowserMenu.menuGroupsFor has no return-object")
+        // Last first, so the earlier indices stay valid. The return is the loop exit's branch
+        // target, so the hook takes over its labels.
+        returns.sortedDescending().forEach { index ->
+            val result = (menuGroupsFor.instructions[index] as OneRegisterInstruction).registerA
+            // At a return-object every register but the result is dead: any two neighbours that
+            // are neither the result nor p1 carry the range call's arguments.
+            val scratch = (0 until menuImplementation.registerCount - 1).first {
+                it != result && it + 1 != result && it != stateRegister && it + 1 != stateRegister
+            }
+            menuGroupsFor.addInstructionsAtControlFlowLabelChecked(
+                index,
+                """
+                    move-object/from16 v$scratch, v$result
+                    move-object/from16 v${scratch + 1}, p1
+                    invoke-static/range { v$scratch .. v${scratch + 1} }, $EXTENSION_CLASS_DESCRIPTOR->addMenuItems(Ljava/util/List;Ljava/lang/Object;)V
+                """,
             )
         }
 
-        // 4. Browser action popups: AC creates the private popup session but only hands it to a
+        // 4. Menu taps: MenuMiddleware.invoke(store, next, action) hands the action (p3) to
+        // onMenuAction first. Our entries are MenuItemTapped events with an item Focus does not
+        // know, so Focus only dismisses the menu, and the extension runs the entry after that.
+        MenuMiddlewareInvokeFingerprint.method.addInstructionsChecked(
+            0,
+            """
+                invoke-static/range { p3 .. p3 }, $EXTENSION_CLASS_DESCRIPTOR->onMenuAction(Ljava/lang/Object;)V
+            """,
+        )
+
+        // 5. Browser action popups: AC creates the private popup session but only hands it to a
         // store action Focus never reads. Attach a listener to the session result (p1) that shows
         // it in a GeckoView dialog; the original body still sets the popup flag and loads the URL.
         ActionOpenPopupFingerprint.method.addInstructionsChecked(

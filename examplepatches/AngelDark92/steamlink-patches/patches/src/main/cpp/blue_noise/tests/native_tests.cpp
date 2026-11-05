@@ -23,7 +23,7 @@ struct ShaderState {
 };
 struct ProgramState {
     std::vector<GLuint> shaders;
-    std::map<GLint, GLint> uniforms{{2, 0}, {14, 0}, {15, 0}};
+    std::map<GLint, GLint> uniforms{{2, 0}, {SL_NOISE_LOCATION, 0}, {SL_ENABLE_LOCATION, 0}};
     bool linked = false;
     int links = 0;
 };
@@ -64,6 +64,8 @@ struct State {
     bool failTerminate = false;
     bool badUniformLocation = false;
     bool extraSampler = false;
+    bool innerFade = false;          // host program also declares Valve's vInnerFade vec4
+    GLint innerFadeLocation = 14;
     GLenum extraSamplerType = GL_SAMPLER_2D;
     bool callerMapped = true;
     const char* callerLibrary = "/apk/lib/arm64/libvrlink_scene.so";
@@ -109,13 +111,13 @@ void glLinkProgram(GLuint program) {
     ++p.links;
     p.linked = !(state.failModifiedLink && modified(program));
     for (GLuint shader : p.shaders) p.linked &= state.shaders[shader].compiled;
-    p.uniforms = {{2, 0}, {14, 0}, {15, 0}};
+    p.uniforms = {{2, 0}, {SL_NOISE_LOCATION, 0}, {SL_ENABLE_LOCATION, 0}};
 }
 void glGetProgramiv(GLuint program, GLenum parameter, GLint* value) {
     const auto& p = state.programs[program];
     if (parameter == GL_ATTACHED_SHADERS) *value = static_cast<GLint>(p.shaders.size());
     else if (parameter == GL_LINK_STATUS) *value = p.linked;
-    else if (parameter == GL_ACTIVE_UNIFORMS) *value = state.extraSampler ? 4 : 3;
+    else if (parameter == GL_ACTIVE_UNIFORMS) *value = 3 + (state.extraSampler ? 1 : 0) + (state.innerFade ? 1 : 0);
     else *value = 0;
 }
 void glGetAttachedShaders(GLuint program, GLsizei maximum, GLsizei* count, GLuint* shaders) {
@@ -136,8 +138,8 @@ GLboolean glIsShader(GLuint shader) {
 void glDeleteProgram(GLuint program) { state.programs.erase(program); }
 void glDrawArrays(GLenum, GLint, GLsizei) {
     auto& p = state.programs[state.program];
-    const auto unit = p.uniforms[14];
-    state.draws.push_back({state.program, p.uniforms[15], unit,
+    const auto unit = p.uniforms[SL_NOISE_LOCATION];
+    state.draws.push_back({state.program, p.uniforms[SL_ENABLE_LOCATION], unit,
         unit >= 0 && unit < 16 ? state.textureBindings[unit] : 0,
         unit >= 0 && unit < 16 ? state.samplers[unit] : 0, state.enabled.count(GL_DITHER) != 0});
 }
@@ -160,17 +162,22 @@ void glGetIntegerv(GLenum parameter, GLint* value) {
 }
 GLint glGetUniformLocation(GLuint, const GLchar* name) {
     if (std::strcmp(name, "tex0") == 0) return 2;
-    if (std::strcmp(name, "SL_blueNoise") == 0) return state.badUniformLocation ? 8 : 14;
-    if (std::strcmp(name, "SL_enabled") == 0) return 15;
+    if (std::strcmp(name, "SL_blueNoise") == 0) return state.badUniformLocation ? 8 : SL_NOISE_LOCATION;
+    if (std::strcmp(name, "SL_enabled") == 0) return SL_ENABLE_LOCATION;
+    if (std::strcmp(name, "vInnerFade") == 0) return state.innerFade ? state.innerFadeLocation : -1;
     return -1;
 }
 void glGetActiveUniform(GLuint, GLuint index, GLsizei capacity, GLsizei* length,
                         GLint* size, GLenum* type, GLchar* name) {
-    const char* names[] = {"tex0", "SL_blueNoise", "SL_enabled", "unexpected"};
-    const GLenum types[] = {GL_SAMPLER_EXTERNAL_OES, GL_SAMPLER_2D, GL_BOOL, state.extraSamplerType};
-    *length = std::min(capacity - 1, static_cast<GLsizei>(std::strlen(names[index])));
-    std::memcpy(name, names[index], *length); name[*length] = '\0';
-    *size = 1; *type = types[index];
+    const char* names[] = {"tex0", "SL_blueNoise", "SL_enabled", "unexpected", "vInnerFade"};
+    const GLenum types[] = {GL_SAMPLER_EXTERNAL_OES, GL_SAMPLER_2D, GL_BOOL, state.extraSamplerType, GL_FLOAT_VEC4};
+    std::vector<unsigned> order{0, 1, 2};
+    if (state.extraSampler) order.push_back(3);
+    if (state.innerFade) order.push_back(4);
+    const unsigned slot = order.at(index);
+    *length = std::min(capacity - 1, static_cast<GLsizei>(std::strlen(names[slot])));
+    std::memcpy(name, names[slot], *length); name[*length] = '\0';
+    *size = 1; *type = types[slot];
 }
 void glGetUniformiv(GLuint program, GLint location, GLint* value) { *value = state.programs[program].uniforms[location]; }
 void glUniform1i(GLint location, GLint value) { state.programs[state.program].uniforms[location] = value; }
@@ -482,7 +489,7 @@ void uploadAndDrawRestore() {
     CHECK(parameters.at(GL_TEXTURE_MAG_FILTER) == GL_NEAREST);
     CHECK(parameters.at(GL_TEXTURE_WRAP_S) == GL_REPEAT && parameters.at(GL_TEXTURE_WRAP_T) == GL_REPEAT);
     CHECK(parameters.at(GL_TEXTURE_BASE_LEVEL) == 0 && parameters.at(GL_TEXTURE_MAX_LEVEL) == 0);
-    CHECK(fake::state.programs[20].uniforms[14] != fake::state.programs[20].uniforms[2]);
+    CHECK(fake::state.programs[20].uniforms[SL_NOISE_LOCATION] != fake::state.programs[20].uniforms[2]);
     draw();
     const auto& record = fake::state.draws.back();
     CHECK(record.enabled == 1 && record.noiseUnit == 7 && record.texture == group()->texture);
@@ -492,7 +499,7 @@ void uploadAndDrawRestore() {
     CHECK(fake::state.samplers == samplersBefore);
     CHECK(fake::state.activeUnit == 3);
     CHECK(fake::state.program == 20);
-    CHECK(fake::state.programs[20].uniforms[15] == 0);
+    CHECK(fake::state.programs[20].uniforms[SL_ENABLE_LOCATION] == 0);
     fake::glDisable(GL_DITHER); draw(); CHECK(fake::state.enabled.count(GL_DITHER) == 0);
     fake::state.programs[20].uniforms[2] = 7; draw();
     CHECK(fake::state.draws.back().noiseUnit == 6);
@@ -590,6 +597,34 @@ void propertyDisableOnShaderReload() {
     CHECK(fake::state.shaders.at(10).source == foveal);
     draw(); CHECK(fake::state.draws.back().enabled == 0);
 }
+void hostInnerFadeUniformContract() {
+    // Valve's vInnerFade vec4 (2.0.24/5002527) sits at stock location 14 and must never be
+    // moved, aliased or overwritten. Default 14/15 build: host uniforms must stay <= 13, so the
+    // program falls back unmodified. Inner-fade variant build: slots 16/17, host <= 15.
+    for (const GLint where : {14, 16}) {
+        reset(); makeContext();
+        fake::state.innerFade = true; fake::state.innerFadeLocation = where;
+        prepare();
+        const bool accepted = where <= SL_MAX_HOST_LOCATION;
+        CHECK(fake::state.programs.at(20).linked);
+        CHECK((group()->programs.count(20) == 1) == accepted);
+        CHECK((fake::state.shaders.at(10).source == foveal) == !accepted);
+        if (accepted) {
+            CHECK(where != SL_NOISE_LOCATION && where != SL_ENABLE_LOCATION);
+            fake::state.programs[20].uniforms[where] = 0x5a5a;
+            draw();
+            CHECK(fake::state.draws.back().enabled == 1);
+            fake::state.programs[20].uniforms[2] = 7; draw();
+            CHECK(fake::state.programs[20].uniforms[where] == 0x5a5a);
+            CHECK(fake::state.programs[20].uniforms[SL_ENABLE_LOCATION] == 0);
+        }
+    }
+    std::string out;
+    CHECK(sl_blue_noise::rewrite(foveal, out));
+    CHECK(out.find("layout(location=" SL_STRINGIFY(SL_NOISE_LOCATION) ") uniform highp sampler2D SL_blueNoise;") != std::string::npos);
+    CHECK(out.find("layout(location=" SL_STRINGIFY(SL_ENABLE_LOCATION) ") uniform bool SL_enabled;") != std::string::npos);
+    if (SL_NOISE_LOCATION != 14 && SL_ENABLE_LOCATION != 14) CHECK(out.find("location=14)") == std::string::npos);
+}
 }
 
 int main() {
@@ -604,6 +639,7 @@ int main() {
         {"fovea/background/both exact draw isolation", layerIsolationAndBoth},
         {"ambiguous hashes and mixed-layer link fallback", ambiguousLayerFallback},
         {"background compile/link/resource/framebuffer fallback", backgroundFallback},
+        {"host vInnerFade uniform preserved or program restored", hostInnerFadeUniformContract},
     };
     int failures = 0;
     for (const auto& test : tests) {

@@ -19,7 +19,8 @@
 // one entry (marked below). Added: androidx.credentials' framework provider is reported as
 // unavailable so Credential Manager uses its Play services provider (and so MicroG RE), and
 // (2026-10-12) its Google ID requests take the BeginSignIn flow instead of the Identity
-// Credentials API, which MicroG RE 7.2.1 does not serve.
+// Credentials API, which MicroG RE 7.2.1 does not serve. (2026-11-03) An optional scoped
+// ("login-only") mode, see GmsCoreScope.kt; without a scope the patch is unchanged.
 
 package app.template.patches.shared.misc.gms
 
@@ -36,6 +37,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.returnEarly
 import app.template.patches.shared.addInstructionChecked
 import app.template.patches.shared.misc.gms.GmsCoreConstants.ACTIONS
@@ -97,6 +99,10 @@ private val SIGNATURE_SHA1_REGEX = Regex("^[0-9a-f]{40}$")
  *        for apps whose clone cannot install next to the stock app.
  * @param extraDescription An app-specific sentence appended to the patch description, for example
  *        which of the app's features need it.
+ * @param scope When set, only the Google Play services this scope names move to MicroG RE and steps
+ *        2 and 3 above are replaced by [GmsCoreScope]'s; no c2dm renames either. Null (default)
+ *        keeps the whole-app behaviour.
+ * @param description Replaces the whole patch description (then [extraDescription] is not used).
  * @param executeBlock Additional app-specific bytecode changes.
  */
 fun gmsCoreSupportPatch(
@@ -109,12 +115,17 @@ fun gmsCoreSupportPatch(
     dependencies: Set<Patch<*>> = emptySet(),
     allowClone: Boolean = true,
     extraDescription: String? = null,
+    scope: GmsCoreScope? = null,
+    description: String? = null,
     executeBlock: BytecodePatchContext.() -> Unit = {},
 ): BytecodePatch {
     require(PACKAGE_NAME_REGEX.matches(fromPackageName)) { "Invalid package name: $fromPackageName" }
     require(SIGNATURE_SHA1_REGEX.matches(spoofedPackageSignature)) {
         "Signature must be a lowercase hex SHA-1 without colons: $spoofedPackageSignature"
     }
+    // A clone renames the app's own permissions and authorities everywhere in the dex, which the
+    // scoped string rewrite would only do inside its scope.
+    require(scope == null || !allowClone) { "The scoped GmsCore mode does not support the clone option" }
 
     val packageNameOption = if (!allowClone) null else stringOption(
         key = "packageName",
@@ -139,12 +150,13 @@ fun gmsCoreSupportPatch(
         spoofedPackageSignature,
         packageNameOption,
         renamedManifestStrings,
+        rewriteC2dm = scope == null,
     )
 
     return bytecodePatch(
         name = "GmsCore support",
-        description = "Makes Google sign-in and Google services work. Requires MicroG RE." +
-            (extraDescription?.let { " $it" } ?: ""),
+        description = description ?: ("Makes Google sign-in and Google services work. Requires MicroG RE." +
+            (extraDescription?.let { " $it" } ?: "")),
         default = default,
     ) {
         compatibleWith(compatibility)
@@ -182,6 +194,28 @@ fun gmsCoreSupportPatch(
             val mainActivityOnCreate = mainActivityOnCreateFingerprint.method
             val earlyReturnMethods = earlyReturnFingerprints.map { it.method }
 
+            if (scope != null) {
+                // Login-only: Google Play services stays the provider for everything outside the
+                // scope, so its availability check stays real (it checks Google Play services,
+                // which is installed) and androidx.credentials is not rerouted. A Credential
+                // Manager sign-in would need the Identity clients in the scope, so refuse it.
+                if (classDefByOrNull(PLAY_SERVICES_CREDENTIAL_PROVIDER) != null) {
+                    throw PatchException("The scoped GmsCore mode does not route androidx.credentials sign-in")
+                }
+                earlyReturnMethods.forEach { it.returnEarlyForGmsCore() }
+                // Both resolve before the rewrite, which renames the anchors they match on.
+                val inScope = gmsCoreScopeFilter(scope)
+                routeScopedGmsClients(scope.serviceActions)
+                rewriteGmsStrings(renamedManifestStrings, inScope)
+                mainActivityOnCreate.addInstructionChecked(
+                    0,
+                    "invoke-static/range { p0 .. p0 }, $GMS_CORE_EXTENSION_CLASS->" +
+                        "checkGmsCore(Landroid/app/Activity;)V",
+                )
+                executeBlock()
+                return@execute
+            }
+
             // Optional: only apps bundling play-services-basement have these (see Fingerprints.kt).
             // When absent there is nothing to force, so methodOrNull is correct here. But if the
             // library is present and the fingerprint misses, every GMS API would report
@@ -217,20 +251,7 @@ fun gmsCoreSupportPatch(
             disableFrameworkCredentialProvider()
             routeGoogleIdRequestsToBeginSignIn()
 
-            earlyReturnMethods.forEach { method ->
-                // Rule 2: an abstract match would crash returnEarly with an NPE.
-                if (method.implementation == null) {
-                    throw PatchException("${method.definingClass}->${method.name} has no body to return early from")
-                }
-                when (method.returnType) {
-                    "V" -> method.returnEarly()
-                    "Z" -> method.returnEarly(false)
-                    else -> throw PatchException(
-                        "${method.definingClass}->${method.name} returns ${method.returnType}; " +
-                            "early return supports only void and boolean methods",
-                    )
-                }
-            }
+            earlyReturnMethods.forEach { it.returnEarlyForGmsCore() }
 
             rewriteGmsStrings(renamedManifestStrings)
 
@@ -243,6 +264,21 @@ fun gmsCoreSupportPatch(
 
             executeBlock()
         }
+    }
+}
+
+/** An app-specific earlyReturnFingerprints match: void methods do nothing, boolean ones answer false. */
+private fun MutableMethod.returnEarlyForGmsCore() {
+    // Rule 2: an abstract match would crash returnEarly with an NPE.
+    if (implementation == null) {
+        throw PatchException("$definingClass->$name has no body to return early from")
+    }
+    when (returnType) {
+        "V" -> returnEarly()
+        "Z" -> returnEarly(false)
+        else -> throw PatchException(
+            "$definingClass->$name returns $returnType; early return supports only void and boolean methods",
+        )
     }
 }
 
@@ -393,9 +429,13 @@ internal fun gmsContentUriReplacement(value: String): String? {
 
 /**
  * One pass over every method: replaces each `const-string` / `const-string/jumbo` whose value has
- * a GmsCore replacement, keeping the register and opcode.
+ * a GmsCore replacement, keeping the register and opcode. With [inScope] (scoped mode) only the
+ * methods it accepts are rewritten, and a scope that rewrites nothing fails.
  */
-private fun BytecodePatchContext.rewriteGmsStrings(extra: Map<String, String>) {
+private fun BytecodePatchContext.rewriteGmsStrings(
+    extra: Map<String, String>,
+    inScope: ((ClassDef, Method) -> Boolean)? = null,
+) {
     val replacements = gmsStringReplacements(extra)
     fun replacementFor(instruction: Instruction): String? {
         if (instruction.opcode != Opcode.CONST_STRING && instruction.opcode != Opcode.CONST_STRING_JUMBO) return null
@@ -407,13 +447,17 @@ private fun BytecodePatchContext.rewriteGmsStrings(extra: Map<String, String>) {
     val targets = mutableListOf<ClassDef>()
     classDefForEach { classDef ->
         val matches = classDef.methods.any { method ->
-            method.implementation?.instructions?.any { replacementFor(it) != null } == true
+            (inScope == null || inScope(classDef, method)) &&
+                method.implementation?.instructions?.any { replacementFor(it) != null } == true
         }
         if (matches) targets += classDef
     }
+    if (inScope != null && targets.isEmpty()) throw PatchException("The GmsCore scope holds no GmsCore string")
 
     for (classDef in targets) {
-        for (method in mutableClassDefBy(classDef).methods) {
+        val mutableClass = mutableClassDefBy(classDef)
+        for (method in mutableClass.methods) {
+            if (inScope != null && !inScope(mutableClass, method)) continue
             val instructions = method.implementation?.instructions ?: continue
             val edits = instructions.mapIndexedNotNull { index, instruction ->
                 replacementFor(instruction)?.let { Triple(index, instruction, it) }
@@ -442,6 +486,8 @@ private fun gmsCoreSupportResourcePatch(
     spoofedPackageSignature: String,
     packageNameOption: Option<String>?,
     renamedManifestStrings: MutableMap<String, String>,
+    // False in the scoped mode: push (FCM) keeps using Google Play services.
+    rewriteC2dm: Boolean,
 ) = resourcePatch {
     execute {
         // No option (allowClone = false): always keep the original package.
@@ -457,7 +503,7 @@ private fun gmsCoreSupportResourcePatch(
                 renamedManifestStrings += document.changePackageName(fromPackageName, toPackageName)
             }
 
-            document.rewriteGmsManifestReferences()
+            if (rewriteC2dm) document.rewriteGmsManifestReferences()
             document.addGmsCorePackageQueries()
             document.addSpoofingMetadata(fromPackageName, spoofedPackageSignature)
         }

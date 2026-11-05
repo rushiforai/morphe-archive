@@ -190,6 +190,7 @@ TwitchInterface.homeTabs
 
 # if default_tab
 TwitchInterface.startDestination
+TwitchInterface.feedTab
 
 # if amoled_black
 TwitchTheme.init
@@ -254,6 +255,7 @@ TwitchPlayer.lowLatency
 TwitchPlayer.onPlay
 TwitchPlayer.onStop
 TwitchPlayer.pauseRegistry
+TwitchStreamSettings.sleepTimerRow
 
 # if vod_chapters
 TwitchVod.bindChapters

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The features patched into this APK. The "Heval Controls" patch rewrites the three getters below
+ * The features patched into this APK. The "Patch settings" patch rewrites the three getters below
  * at patch time ({@code returnEarly}), so the list always matches what was really patched.
  */
 @SuppressWarnings("unused")

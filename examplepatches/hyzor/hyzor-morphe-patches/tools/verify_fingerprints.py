@@ -39,9 +39,9 @@ TARGETS = {
         ("Lcom/urbandroid/common/util/PreferencesUtils;", "isUnlockAcked"):
             ("Z", True, "Enable Premium", "disables the Play Billing re-query"),
         ("Lcom/urbandroid/sleep/TrialFilter;", "isOurSignature"):
-            ("Z", False, "Enable Premium", "unknown-signature warning strip"),
+            ("Z", True, "Enable Premium", "unknown-signature warning strip"),
         ("Lcom/urbandroid/sleep/TrialFilter;", "isUnknownSource"):
-            ("Z", False, "Enable Premium", "pirate icon / AI assistant block"),
+            ("Z", True, "Enable Premium", "pirate icon / AI assistant block"),
         ("Lcom/urbandroid/common/util/PreferencesUtils;", "isCloudPremiumStatus"):
             ("Z", False, "Enable Cloud Premium", "cloud subscription flag"),
         ("Lcom/urbandroid/common/util/PreferencesUtils;", "isCloudPremiumStatusUnknown"):

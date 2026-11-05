@@ -23,7 +23,7 @@ class VerifyCategoryBundle {
             var helpers = Map.of(
                 "extension.mpe",Set.of("Lorg/libsdl/app/GxrSdlBridge;"),
                 "minimal-extension.mpe",Set.of("Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;",
-                    "Lcom/valvesoftware/steamlink/GxrOverlayBridge;","Lcom/valvesoftware/steamlink/GxrResolutionProbe;"),
+                    "Lcom/valvesoftware/steamlink/GxrOverlayBridge;"),
                 "battery-extension.mpe",Set.of("Lcom/valvesoftware/steamlink/GxrBatterySettings;"));
             for (var entry : helpers.entrySet()) {
                 try (var input = new BufferedInputStream(zip.getInputStream(zip.getEntry("extensions/"+entry.getKey())))) {

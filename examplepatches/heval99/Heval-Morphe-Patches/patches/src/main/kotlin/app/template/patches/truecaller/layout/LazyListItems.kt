@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.template.patches.shared.addInstructionsWithLabelsChecked
+import app.template.patches.shared.hevalcontrols.addHevalSkip
 import app.template.patches.shared.requireNoBranchTargetAt
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
@@ -32,8 +33,16 @@ private val CONDITIONAL_BRANCHES = setOf(
  * branch, so the item is never added. The branch's registers keep their values for any later reader,
  * and the builder's other items are untouched. [checkGuard] gets the instructions and the branch
  * index and throws when the branch is not the expected one.
+ *
+ * With a Heval Controls [featureId], the jump is gated instead: while that feature is on the
+ * builder jumps past the item (`if-nez isEnabled, :skip_item`), while it is off it falls through
+ * to the stock branch.
  */
-internal fun MutableMethod.skipLazyListItem(key: String, checkGuard: (List<BuilderInstruction>, Int) -> Unit) {
+internal fun MutableMethod.skipLazyListItem(
+    key: String,
+    featureId: String? = null,
+    checkGuard: (List<BuilderInstruction>, Int) -> Unit,
+) {
     val label = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
     val code = implementation ?: throw PatchException("$label has no implementation")
     val instructions = code.instructions.toList()
@@ -85,9 +94,14 @@ internal fun MutableMethod.skipLazyListItem(key: String, checkGuard: (List<Build
 
     checkGuard(instructions, guard)
 
-    // 4. Always jump past the item.
+    // 4. Jump past the item: always, or while the feature is on. The guard itself branches to the
+    // target, so the free-register search for the gate covers the skip path too.
     requireNoBranchTargetAt(guard, "skipping the \"$key\" item")
-    addInstructionsWithLabelsChecked(guard, "goto :skip_item", ExternalLabel("skip_item", getInstruction(target)))
+    if (featureId != null) {
+        addHevalSkip(featureId, guard, target)
+    } else {
+        addInstructionsWithLabelsChecked(guard, "goto :skip_item", ExternalLabel("skip_item", getInstruction(target)))
+    }
 }
 
 private fun Instruction.argumentRegisters(): List<Int>? = when (this) {

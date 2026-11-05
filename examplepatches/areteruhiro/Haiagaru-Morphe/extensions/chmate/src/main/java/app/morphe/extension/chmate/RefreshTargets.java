@@ -15,7 +15,7 @@ public final class RefreshTargets {
     private static final Map<Object,Boolean> workers=new WeakHashMap<>();
     private static long queuedAt=-3000;
     static SharedPreferences prefs(Context context){return context.getSharedPreferences("io.github.areteruhiro.chmate.haiagaru.ui-config",0);}
-    private static Set<String> selected(Context context){return new HashSet<>(prefs(context).getStringSet(KEY,Collections.emptySet()));}
+    static Set<String> selected(Context context){return new HashSet<>(prefs(context).getStringSet(KEY,Collections.emptySet()));}
     private static String identity(String board,long id){return board+"\n"+id;}
     private static String version(Context context)throws Exception{return context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName;}
 
@@ -46,17 +46,27 @@ public final class RefreshTargets {
         return info.getClass().getMethod(version.contains("226")?"e":"b",info.getClass()).invoke(null,info);
     }
     public static void refresh(Object fragment,int action){
-        if(action!=5)return;
+        // Pull-to-refresh and the native re-fetch command use a resource ID,
+        // whereas toolbar/gesture refresh uses action 5.
+        if(action!=5&&action!=2131362342&&action!=2131296861&&action!=0x7f090244)return;
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return;
+        if(action!=5)try{
+            String version=version(activity);
+            int expected=version.contains("191")?2131362342:version.contains("226")?2131296861:0x7f090244;
+            if(action!=expected)return;
+        }catch(Exception unavailable){return;}
+        enqueue(activity);
+    }
+    public static void enqueue(Context context){
         synchronized(RefreshTargets.class){
-            if(selected(activity).isEmpty()||SystemClock.elapsedRealtime()-queuedAt<3000)return;
+            if(selected(context).isEmpty()||SystemClock.elapsedRealtime()-queuedAt<3000)return;
             queuedAt=SystemClock.elapsedRealtime();
         }
         try{
-            String version=version(activity);
+            String version=version(context);
             String owner=version.contains("191")?"o.mdExternalSyntheticLambda0":version.contains("226")?"o.settings":"o.TTRewardVideoActivity8";
-            Class.forName(owner,false,fragment.getClass().getClassLoader()).getDeclaredMethod("haiagaruRefreshTargets",Context.class,boolean.class)
-                    .invoke(null,activity.getApplicationContext(),true);
+            Class.forName(owner,false,context.getClassLoader()).getDeclaredMethod("haiagaruRefreshTargets",Context.class,boolean.class)
+                    .invoke(null,context.getApplicationContext(),true);
         }catch(Exception error){Log.w("Haiagaru","Registered thread refresh unavailable",error);}
     }
     // Replaced with an exact native WorkManager Data getter for each supported version.

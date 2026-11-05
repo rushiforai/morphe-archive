@@ -72,8 +72,10 @@ import app.morphe.extension.facebook.navigation.TranslucentBars;
 import app.morphe.extension.facebook.notifications.PushDiagnostics;
 import app.morphe.extension.facebook.reels.BurnInGuard;
 import app.morphe.extension.facebook.reels.FeedVideoAlone;
+import app.morphe.extension.facebook.reels.GrayReels;
 import app.morphe.extension.facebook.reels.ViewerTopBar;
 import app.morphe.extension.facebook.stories.StorySeenButton;
+import app.morphe.extension.facebook.stories.StoryTaps;
 import app.morphe.extension.facebook.theme.AccentResources;
 import app.morphe.extension.facebook.theme.AmoledResources;
 import app.morphe.extension.facebook.theme.MaterialYouTheme;
@@ -190,10 +192,13 @@ public final class SettingsEntry {
             // Open feed videos on their own, a Clean up Reels switch: which screen is in front.
             // And the top bar of the full-screen player, another (#311): looked through after each layout.
             // And Burn-in guard (#288): the activity in front, for a video filling the screen.
+            // And Show Reels in gray: the same screen, grayed while it shows, when Turn off HDR
+            // brightness can move its video into the window (its row shows only then too).
             if (SettingsStatus.reelDeclutter()) {
                 FeedVideoAlone.watch(context);
                 ViewerTopBar.watch(context);
                 BurnInGuard.install(context);
+                if (SettingsStatus.turnOffHdrBrightness()) GrayReels.install(context);
             }
             // An Audience Network component an earlier install turned on goes back off (#168).
             if (SettingsStatus.audienceNetwork()) AudienceNetwork.keepOff(context);
@@ -781,6 +786,7 @@ public final class SettingsEntry {
             // Only with Download any video in the build, whose switch it is an option of.
             if (SettingsStatus.videoDownload()) ClipboardLink.onResumed(activity);
             if (SettingsStatus.storySeen()) StorySeenButton.activityResumed(activity);
+            if (SettingsStatus.storyTaps()) StoryTaps.activityResumed(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);
             SavedShortcut.refresh(activity);
@@ -795,6 +801,7 @@ public final class SettingsEntry {
             SavedFileActions.onPaused(activity);
             ClipboardLink.onPaused(activity);
             StorySeenButton.activityPaused(activity);
+            if (SettingsStatus.storyTaps()) StoryTaps.activityPaused(activity);
             ScreenTransitions.activityPaused(activity);
             ScreenLog.paused(activity);
             if (resumed != null && resumed.get() == activity) resumed = null;

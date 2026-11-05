@@ -116,7 +116,7 @@ See-through bars	Barras transparentes
 # context: description of that switch; the feed is the list of posts on Home, and blurred means frosted like glass
 The top bar and the tab bar turn see-through, so the feed shows through them as you scroll. On Android 12 and newer the feed behind them is blurred.	La barra superior y la barra de pestañas se vuelven transparentes, así el feed se ve a través de ellas mientras te desplazas. En Android 12 y versiones posteriores, el feed que queda detrás se ve difuminado.
 Rounded tab bar	Barra de pestañas redondeada
-With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen.	Con la barra de pestañas abajo, sus extremos se vuelven redondos y queda un poco más pequeña, justo encima del borde inferior de la pantalla.
+With the tab bar at the bottom, it gets round ends and sits a little smaller, just above the bottom of the screen, with a soft highlight behind the tab you're on.	Con la barra de pestañas abajo, sus extremos se vuelven redondos y queda un poco más pequeña, justo encima del borde inferior de la pantalla, con un resalte suave detrás de la pestaña en la que estás.
 # context: switch title under Appearance; it keeps Facebook's dark mode on whatever Facebook's own Dark mode setting says
 Force dark mode	Forzar modo oscuro
 # context: description of that switch; on some tablets Facebook's own Settings page has no Dark mode row
@@ -1237,6 +1237,12 @@ With Stop Story auto-advance on, a finished story plays again from the start ins
 Save photo in post menus	Guardar foto en los menús de publicaciones
 # context: summary of the Save photo in post menus switch; "Save any photo" is the label of the switch above it and "Save photo" is the menu item, so use their translations
 With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.	Con Guardar cualquier foto activado, una publicación con fotos también muestra Guardar foto en su menú de tres puntos. Si tiene varias, se guardan una tras otra.
+Search photo	Buscar foto
+Search photo with	Buscar foto con
+Search photo in post menus	Buscar foto en los menús de publicaciones
+With Save any photo on, a post with one photo gets Search photo in its three-dot menu. It hands the photo to the app you pick, such as Google Lens, to look up what's in it or copy its text.	Con Guardar cualquier foto activado, una publicación con una sola foto tiene Buscar foto en su menú de tres puntos. Pasa la foto a la app que elijas, como Google Lens, para saber qué hay en ella o copiar su texto.
+No app on this phone can search with a photo	Ninguna app de este teléfono puede buscar con una foto
+Couldn't get this photo. Try again in a moment.	No se pudo obtener esta foto. Vuelve a intentarlo en un momento.
 # context: menu item in a post's three-dot menu that saves the post's one photo to the phone
 Save photo	Guardar foto
 # context: primary save row for a Story that reshares a Reel
@@ -1363,6 +1369,11 @@ Hide reposts	Ocultar publicaciones compartidas
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Oculta las publicaciones que comparten otra publicación, con o sin texto propio. Las publicaciones originales se quedan. Apagado por defecto, porque aún no se ha probado en un feed real.
 Hide posts from Pages	Ocultar publicaciones de páginas
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Oculta las publicaciones escritas por páginas, también las que sigues. Las publicaciones de amigos y grupos se quedan, y también la publicación de una página que comparte un amigo.
+Hide posts in other languages	Ocultar publicaciones en otros idiomas
+Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Oculta las publicaciones y los reels de la pestaña Reels en un idioma que no conservas, según lo que el propio teléfono calcula del texto de cada publicación o de la descripción de cada reel. Lo que no tiene claro se queda, y nada sale del teléfono.
+Languages to keep	Idiomas que se quedan
+None picked, so posts in %s stay.	No elegiste ninguno, así que se quedan las publicaciones en %s.
+Kept: %s	Se quedan: %s
 # context: switch title in Privacy: asks for the phone's own screen lock before Facebook shows
 Lock Facebook	Bloquear Facebook
 Save crashes to Downloads	Guardar fallos en Descargas
@@ -1739,6 +1750,14 @@ With Pinch to zoom on, the photo or story stays zoomed when you let go, and a st
 Double tap to zoom	Tocar dos veces para hacer zoom
 # context: summary of that switch; "Pinch to zoom" is the label of the switch two rows above it, so use its translation; a story is the full-screen picture or video someone shares for a day
 With Pinch to zoom on, double tap a photo on a profile to zoom in where you tapped, and double tap again to put it back. A single tap still opens the photo, a moment later.	Con Pellizcar para hacer zoom activado, toca dos veces una foto de un perfil para ampliar donde tocaste, y toca dos veces otra vez para devolverla. Un solo toque sigue abriendo la foto, un momento después.
+# context: a switch under Pinch to zoom; with it on, the rest of the screen gets darker behind a zoomed photo or story
+Dim around a zoom	Oscurecer alrededor del zoom
+# context: that switch's summary; "Pinch to zoom" is the label of the switch above it, so use its translation; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	Con Pellizcar para hacer zoom activado, la pantalla alrededor de una foto o historia se oscurece mientras amplías. Desactívalo para dejar el resto de la pantalla como está.
+# context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
+Keep videos playing while zoomed	Seguir reproduciendo videos con zoom
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
+With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	Con Pellizcar para hacer zoom activado, un video al que le haces zoom en un perfil o una página sigue reproduciéndose. Si también activas Mantener el zoom, mantén presionado el zoom para pausar el video, y otra vez para reproducirlo. Las historias se quedan quietas mientras haces zoom.
 No ads downloaded in advance	Sin anuncios descargados por adelantado
 No ad tracking	Sin seguimiento de anuncios
 No Facebook ads in other apps	Sin anuncios de Facebook en otras apps
@@ -2042,7 +2061,7 @@ The app holding that picture is taking too long, so Hushfacebook stopped waiting
 # context: toast when a tap on Home header picture comes while the last stalled app still holds a worker
 The app holding the last picture still hasn't answered. Try again later.	La app de la última imagen aún no ha respondido. Inténtalo más tarde.
 Inline feed video controls	Controles de video en el feed
-Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Live videos and ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Añade un botón de reproducción y pausa a los videos del feed. Toca el video para abrirlo a pantalla completa. Los videos en directo y los anuncios conservan sus propios controles. Si “Toca para reproducir” también está activado, el ajuste de reproducción automática de Facebook se queda como lo elegiste para que el botón pueda aparecer, y los videos siguen esperando a que los toques.
+Adds a play/pause button to feed videos. Tap the video itself to open it full screen. Ads keep their own controls. With Tap to play on too, Facebook's own Autoplay setting stays as you set it so the button can show, and videos still wait for your tap.	Añade un botón de reproducción y pausa a los videos del feed. Toca el video para abrirlo a pantalla completa. Los anuncios conservan sus propios controles. Si “Toca para reproducir” también está activado, el ajuste de reproducción automática de Facebook se queda como lo elegiste para que el botón pueda aparecer, y los videos siguen esperando a que los toques.
 Play feed video	Reproducir video del feed
 Pause feed video	Pausar video del feed
 Support	Ayuda
@@ -2129,6 +2148,13 @@ Reels order will be set to %1$s.	El orden de los reels será %1$s.
 Cast button on feed videos	Botón de enviar en videos del feed
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Añade un botón de enviar a los videos del feed. Pasa el video a una app de transmisión que tengas, como Web Video Caster, que lo envía a tu TV. Facebook ya no tiene transmisión propia.
 Cast this video	Enviar este video
+Full player button on feed videos	Botón de reproductor completo en videos del feed
+Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Añade un botón a los videos del feed que abre el video en el reproductor completo de Facebook, con todos sus controles. Los videos en directo también lo tienen. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
+# context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
+Open full screen videos centered	Abrir los videos a pantalla completa centrados
+# context: that switch's summary; the arrow is the small button under the video that opens and closes the details and comments panel
+Videos you open full screen, from a comment or a link, start with their details and comments folded away, so the video sits in the middle of the screen. The arrow under it still brings them back.	Los videos que abres a pantalla completa, desde un comentario o un enlace, empiezan con los detalles y los comentarios plegados, así que el video queda en el centro de la pantalla. La flecha de abajo los vuelve a mostrar.
+Open in the full player	Abrir en el reproductor completo
 Seek bar on feed videos	Barra de progreso en videos del feed
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Muestra una barra en la parte inferior de un video del feed. Arrástrala y suéltala para saltar a ese punto. Los videos en vivo y los anuncios conservan sus propios controles. Si “Toca para reproducir” está activado, también necesita “Controles de video en el feed”.
 Feed video position	Posición del video del feed
@@ -2287,6 +2313,10 @@ After the time you pick on Home, Feeds, Video and Reels, they're covered for a b
 Break after	Descanso tras
 # context: a row under Take breaks that opens a list of times; it's how long a break lasts
 Break length	Duración del descanso
+# context: a switch under Take breaks; with it on, watching 20 different reels also starts a break
+Also after 20 reels	También tras 20 reels
+# context: that switch's summary; a reel is one of Facebook's short videos, and it counts toward the 20 once it has played for 3 seconds
+A break also starts once you've watched 20 reels, if that comes first. A reel counts once it's played for 3 seconds, and ads and live videos don't count.	También empieza un descanso cuando hayas visto 20 reels, si eso llega antes. Un reel cuenta cuando se ha reproducido 3 segundos, y los anuncios y los videos en directo no cuentan.
 # context: a choice in those lists
 10 minutes	10 minutos
 # context: a choice in those lists
@@ -2378,6 +2408,9 @@ After %1$d seconds	Después de %1$d segundos
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Seguir atenuado al tocar
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Cuando la Protección contra quemado atenúa los botones, siguen atenuados en Reels toques o deslices lo que sea, también en el siguiente reel. Siguen funcionando. Al salir de Reels vuelven.
+# context: Reels: switch that shows the Reels screen and its video in black and white
+Show Reels in gray	Mostrar Reels en gris
+Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Los Reels y sus botones se ven en blanco y negro, así es más fácil dejarlos. Tu feed, historias, fotos y chats mantienen sus colores. Empieza desde el siguiente reel, y Reels gasta un poco más de batería.
 # context: settings import preview; %1$s is a Burn-in guard choice such as Dim when idle
 Burn-in guard will be set to %1$s.	La Protección contra quemado quedará en %1$s.
 Burn-in guard will dim the Reels screen as soon as you stop touching it.	La Protección contra quemado atenuará la pantalla de Reels en cuanto dejes de tocarla.
@@ -2417,6 +2450,9 @@ Block button on comments	Botón de bloquear en comentarios
 The thumbs-down on a comment becomes Block. One tap opens Facebook's own block screen for that person.	El pulgar abajo de un comentario pasa a ser Bloquear. Un toque abre la pantalla de bloqueo de Facebook para esa persona.
 Block	Bloquear
 Couldn't open Block for this comment.	No se pudo abrir Bloquear para este comentario.
+Block button on reaction lists	Botón de bloquear en las listas de reacciones
+In the list of people who reacted to a post, the button on each row, like Add friend or Message, becomes Block. One tap opens Facebook's own block screen.	En la lista de personas que reaccionaron a una publicación, el botón de cada fila, como Agregar amigo o Mensaje, pasa a ser Bloquear. Un toque abre la pantalla de bloqueo de Facebook.
+Couldn't open Block for this person.	No se pudo abrir Bloquear para esta persona.
 this person	esta persona
 Most viewed on profile Reels	Más vistos en Reels del perfil
 A profile's Reels tab lists its most viewed reels first instead of the newest. Off keeps Facebook's order. Only the reels the tab has loaded are sorted, and a reel with no view count stays after the rest.	La pestaña Reels de un perfil muestra primero los reels más vistos en lugar de los más nuevos. Desactivado mantiene el orden de Facebook. Solo se ordenan los reels que la pestaña ya cargó, y un reel sin número de vistas queda después del resto.
@@ -2480,3 +2516,19 @@ A post you scrolled past shows up one more time, and scrolling past it again hid
 There's no Facebook link in what you shared.	No hay ningún enlace de Facebook en lo que compartiste.
 Open in Facebook from the share menu	Open in Facebook en el menú Compartir
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Comparte un enlace de Facebook desde el navegador de Messenger o cualquier otra app y elige Open in Facebook para abrirlo aquí.
+GmsCore support	Compatibilidad con GmsCore
+Version %1$s for Facebook %2$s	Versión %1$s para Facebook %2$s
+Show all settings as a list	Mostrar todos los ajustes en una lista
+Show settings by category	Mostrar ajustes por categoría
+Story play button	Botón de reproducir en historias
+Double tap for next story	Tocar dos veces para la siguiente historia
+A tap in the middle of a story shows a play and pause button, like Reels. Taps on the sides still change stories.	Al tocar el centro de una historia aparece un botón de reproducir y pausar, como en Reels. Los toques en los lados siguen cambiando de historia.
+Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Las historias solo cambian con un doble toque, el lado izquierdo a la anterior y cualquier otro lugar a la siguiente. Un toque pausa o reanuda la historia, o muestra el botón de reproducir si está activado.
+Pause story	Pausar historia
+Play story	Reproducir historia
+Hide song and effect credits	Ocultar créditos de canción y efecto
+Hide reply suggestions	Ocultar sugerencias de respuesta
+Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Quita los créditos de canción y efecto de la línea bajo el nombre de quien publicó la historia. Se aplica desde la próxima historia que abras.
+Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Quita la fila de respuestas sugeridas de la parte inferior de una historia. El cuadro de respuesta se queda. Se aplica desde la próxima historia que abras.
+Progress bar at the bottom	Barra de progreso abajo
+Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Muestra una barra fina en la parte inferior de una historia que se llena mientras se reproduce, como la de Reels.

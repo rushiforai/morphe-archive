@@ -14,6 +14,7 @@ public final class PilloPremiumPatch {
     public static final String NAME = "Pillo - Premium and ad-free";
     static final String OWNER = "Lxyz/rtrvr/pillo/data/subscription/SubscriptionStateProvider;";
     static final List<String> SETTERS = List.of("setIsPremiumState", "setIsAdfreeState");
+    static final String PROFILE_CALLBACK = "_init_$lambda$0";
     private PilloPremiumPatch() {}
 
     public static BytecodePatch getPilloPremiumPatch() {
@@ -27,6 +28,7 @@ public final class PilloPremiumPatch {
                         || !"0.6.27".equals(context.getPackageMetadata().getVersionName()))
                         throw unsupported("Expected original xyz.rtrvr.pillo 0.6.27");
                     List<Method> matched = validate(Pillo627.classes(context));
+                    Method callback = validateProfileCallback(Pillo627.classes(context));
                     List<MutableMethod> mutable = new ArrayList<>();
                     for (Method method : matched) {
                         var candidates = context.mutableClassDefBy(OWNER).getMethods().stream()
@@ -35,8 +37,13 @@ public final class PilloPremiumPatch {
                         validateSetter(candidates.get(0));
                         mutable.add(candidates.get(0));
                     }
-                    // Both native setters are proved before either one changes.
+                    MutableMethod mutableCallback = context.mutableClassDefBy(OWNER).getMethods().stream()
+                        .filter(m -> m.equals(callback)).findFirst().orElseThrow();
+                    validateProfileCallbackMethod(mutableCallback);
+                    // Prove every hook before mutation. The listener receives the raw billing
+                    // result independently of the setters and otherwise resets user settings.
                     for (MutableMethod method : mutable) apply(method);
+                    applyProfileCallback(mutableCallback);
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
@@ -88,6 +95,67 @@ public final class PilloPremiumPatch {
     }
     static boolean reference(Instruction i, String expected) {
         return i instanceof ReferenceInstruction && ((ReferenceInstruction)i).getReference().toString().equals(expected);
+    }
+    static Method validateProfileCallback(List<? extends ClassDef> classes) {
+        List<Method> matches = new ArrayList<>();
+        for (ClassDef c : classes) if (OWNER.equals(c.getType()))
+            for (Method m : c.getMethods()) if (PROFILE_CALLBACK.equals(m.getName())) matches.add(m);
+        if (matches.size() != 1) throw unsupported("Missing or ambiguous profile callback");
+        Method method = matches.get(0);
+        validateProfileCallbackMethod(method);
+        return method;
+    }
+    static void validateProfileCallbackMethod(Method method) {
+        if (!OWNER.equals(method.getDefiningClass()) || !PROFILE_CALLBACK.equals(method.getName())
+            || !PilloHybridNotificationPatch.signature(method, "Lkotlin/Unit;", OWNER, "Z", "Z")
+            || method.getAccessFlags() != 26 || method.getImplementation() == null
+            || method.getImplementation().getRegisterCount() != 3
+            || !method.getImplementation().getTryBlocks().isEmpty())
+            throw unsupported("Profile callback signature changed");
+        var ins = PilloHybridNotificationPatch.instructions(method);
+        String prefs = "Lxyz/rtrvr/pillo/data/persistence/preferences/Preferences;";
+        if (ins.size() != 9 || !branchTo(ins, 0, Opcode.IF_EQZ, 1, 2)
+            || !instanceCall(ins.get(1), "enableMultiDependents", "Ljw/q1;", 0)
+            || !branchTo(ins, 2, Opcode.IF_NEZ, 1, 7)
+            || !instanceCall(ins.get(3), "resetDailyInterruptSetting", "Ljw/q1;", 0)
+            || ins.get(4).getOpcode() != Opcode.IGET_OBJECT
+            || !reference(ins.get(4), OWNER + "->preferences:" + prefs)
+            || !(ins.get(4) instanceof TwoRegisterInstruction)
+            || ((TwoRegisterInstruction)ins.get(4)).getRegisterA() != 0
+            || ((TwoRegisterInstruction)ins.get(4)).getRegisterB() != 0
+            || ins.get(5).getOpcode() != Opcode.CONST_4
+            || ((OneRegisterInstruction)ins.get(5)).getRegisterA() != 1
+            || ((NarrowLiteralInstruction)ins.get(5)).getNarrowLiteral() != 0
+            || !PilloHybridNotificationPatch.calls(ins.get(6), prefs, "setWatchNotificationEnabled", "V", "Z")
+            || ins.get(6).getOpcode() != Opcode.INVOKE_VIRTUAL
+            || !(ins.get(6) instanceof FiveRegisterInstruction)
+            || ((FiveRegisterInstruction)ins.get(6)).getRegisterCount() != 2
+            || ((FiveRegisterInstruction)ins.get(6)).getRegisterC() != 0
+            || ((FiveRegisterInstruction)ins.get(6)).getRegisterD() != 1
+            || ins.get(7).getOpcode() != Opcode.SGET_OBJECT
+            || !reference(ins.get(7), "Lkotlin/Unit;->a:Lkotlin/Unit;")
+            || ((OneRegisterInstruction)ins.get(7)).getRegisterA() != 0
+            || ins.get(8).getOpcode() != Opcode.RETURN_OBJECT
+            || ((OneRegisterInstruction)ins.get(8)).getRegisterA() != 0)
+            throw unsupported("Profile callback reset layout changed or already patched");
+    }
+    private static boolean instanceCall(Instruction i, String name, String result, int receiver) {
+        return i.getOpcode() == Opcode.INVOKE_DIRECT
+            && PilloHybridNotificationPatch.calls(i, OWNER, name, result)
+            && i instanceof FiveRegisterInstruction && ((FiveRegisterInstruction)i).getRegisterCount() == 1
+            && ((FiveRegisterInstruction)i).getRegisterC() == receiver;
+    }
+    private static boolean branchTo(List<Instruction> ins, int index, Opcode opcode, int register, int target) {
+        Instruction i = ins.get(index);
+        if (i.getOpcode() != opcode || !(i instanceof OneRegisterInstruction)
+            || ((OneRegisterInstruction)i).getRegisterA() != register || !(i instanceof OffsetInstruction)) return false;
+        int distance = 0;
+        for (int n = index; n < target; n++) distance += ins.get(n).getCodeUnits();
+        return ((OffsetInstruction)i).getCodeOffset() == distance;
+    }
+    static void applyProfileCallback(MutableMethod method) {
+        validateProfileCallbackMethod(method);
+        method.getImplementation().addInstruction(0, new BuilderInstruction11n(Opcode.CONST_4, 1, 1));
     }
     static void validateSetter(Method method) {
         if (!OWNER.equals(method.getDefiningClass()) || !SETTERS.contains(method.getName())

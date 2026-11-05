@@ -42,7 +42,7 @@ requests. The injected URI bridge directly invokes native
 `FileProvider->c(Context,String):Lb4/a` and `Lb4/a;->c(File):Uri`. Both methods
 and public asset fields `f:String` and `g:Long` are checked against original
 DEX. Original compiled `res/8K.xml` explicitly shares `files/updates/`.
-Evidence under `../.inspect-nuvio-beta8/`: `download-contracts.txt`,
+Evidence under `../Skills/inspection-evidence/.inspect-nuvio-beta8/`: `download-contracts.txt`,
 `download-callback-contracts.txt`, `provider-contracts.txt` and
 `update-extension-contracts.txt`.
 
@@ -121,7 +121,7 @@ the selected clone package's authority. Renaming only the manifest provider left
 the native fallback referencing a provider which does not belong to the clone.
 It works with the updater patch in either order and with side-by-side alone.
 
-Original beta.8 evidence is in `../.inspect-nuvio-beta8/installer-contracts.txt`
+Original beta.8 evidence is in `../Skills/inspection-evidence/.inspect-nuvio-beta8/installer-contracts.txt`
 and `installer-lambda-contract.txt`: installer `Lkb/c;->b(Context,File,ZZ)V`,
 receiver `UpdateInstallResultReceiver->onReceive(Context,Intent)V` and install
 action `Lcom/nuvio/tv/data/local/gc;->invokeSuspend(Object)Object`. Original
@@ -190,7 +190,7 @@ Android requirements: [How app updates work](https://developer.android.com/googl
 Original: `../OriginalApps/NuvioTV-1.1.0-beta8.apk`, SHA-256
 `7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8`.
 Original manifest confirms `com.nuvio.tv`, `1.1.0-beta.8`, `1071`.
-Inspection: `../.inspect-nuvio-beta8/updater-contracts.txt`, derived from original
+Inspection: `../Skills/inspection-evidence/.inspect-nuvio-beta8/updater-contracts.txt`, derived from original
 DEX using dexlib2. Progress and foreground installer routing use the independent
 `nuvio-apk-updates` extension.
 
@@ -205,7 +205,7 @@ Seven native local-version constants also change in place: `Lkb/q0;->a` and `b`
 (static default channel), and `Lkb/q;->a` and `d` (instance cached-download
 cleanup/restoration), and static `UpdateJobService->a` (background update
 comparison). The background job contract is recorded in
-`../.inspect-nuvio-beta8/update-job-contracts.txt`. The updater's `Lkb/r0;` semantic parser/comparator,
+`../Skills/inspection-evidence/.inspect-nuvio-beta8/update-job-contracts.txt`. The updater's `Lkb/r0;` semantic parser/comparator,
 `Lkb/a;->a(List):GitHubAssetDto` asset selection, `Lkb/b;` downloader and
 installation handoff are retained. The visible general app version remains
 the original NuvioTV version; updater comparisons use the patch option.
@@ -255,7 +255,7 @@ verification confirms the expected unsigned output. The artifact has not been
 signed, installed or tested on the TV.
 
 Current bundle: `patches/build/libs/patches-0.14.0.mpp`. Logs under
-`../.inspect-nuvio-beta8/`: `update-progress-final.log`,
+`../Skills/inspection-evidence/.inspect-nuvio-beta8/`: `update-progress-final.log`,
 `update-progress-hooks-final.log`, `update-progress-rebuild.log`,
 `update-progress-result.json` and `update-progress-apk-verification.log`.
 
@@ -264,7 +264,7 @@ The separately signed release APK,
 updater/installer/playback checks. Its SHA-256 matches the APK already attached
 to v0.14.0, so the release repair retains that signed asset while replacing the
 MPP and matching metadata. Existing custom release notes are preserved.
-Signed-APK verification log: `../.inspect-nuvio-beta8/release014-signed-verification.log`.
+Signed-APK verification log: `../Skills/inspection-evidence/.inspect-nuvio-beta8/release014-signed-verification.log`.
 
 ### 2026-10-23 updater and installer repairs
 
@@ -283,7 +283,7 @@ Desktop 1.19.0 with all fifteen patches. Its inspected updater strings are
 It is unsigned and has not been installed or tested on a device. Runtime
 startup/installation behavior still requires testing on the affected TV.
 
-Logs: `../.inspect-nuvio-beta8/updater-repair-final.log`,
+Logs: `../Skills/inspection-evidence/.inspect-nuvio-beta8/updater-repair-final.log`,
 `updater-repair-rebuild.log`, `updater-repair-rebuild-result.json` and
 `updater-repair-apk-final.log`.
 
@@ -303,7 +303,7 @@ verification reports a missing signature manifest, as expected for `--unsigned`.
 
 - Bundle: `patches/build/libs/patches-0.12.0.mpp`.
 - Unsigned validation APK: `../Apps/NuvioTV/NuvioTV-1.1.0-beta.8-apk-updates-unsigned.apk`.
-- Logs: `../.inspect-nuvio-beta8/apk-updates-verification.log`,
+- Logs: `../Skills/inspection-evidence/.inspect-nuvio-beta8/apk-updates-verification.log`,
   `apk-updates-final.log`, `apk-updates-rebuilt-verification.log` and
   `apk-updates-rebuild.log`.
 

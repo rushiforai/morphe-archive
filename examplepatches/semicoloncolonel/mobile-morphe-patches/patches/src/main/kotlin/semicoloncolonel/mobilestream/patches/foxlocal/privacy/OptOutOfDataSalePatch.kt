@@ -56,8 +56,7 @@ private fun MutableMethod.optOutByDefault() {
 @Suppress("unused")
 val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
-    description = "Starts the FOX LOCAL app opted out of the sale and sharing of your data and of targeted ads. " +
-        "You can still change the choice in the app's privacy settings.",
+    description = "Starts the app opted out of the sale and sharing of your data.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

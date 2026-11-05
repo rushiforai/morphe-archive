@@ -16,8 +16,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 @Suppress("unused")
 val skipLocationOnOpenPatch = bytecodePatch(
     name = "Skip location on open",
-    description = "Stops the app from reading your precise location every time you open it. " +
-        "Nearby search and permit check-in still use location when you use them.",
+    description = "Stops the app from reading your precise location every time you open it.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

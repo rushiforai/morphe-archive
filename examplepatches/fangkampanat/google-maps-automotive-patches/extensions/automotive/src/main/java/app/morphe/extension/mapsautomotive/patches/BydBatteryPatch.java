@@ -196,6 +196,11 @@ public final class BydBatteryPatch {
         }
     }
 
+    /** Whether BYD battery feeds Maps in this process (on in Settings, its switch on, a BYD car, the main process). */
+    static boolean isActive() {
+        return active;
+    }
+
     /** Injection point: each read of Maps' demo_ev_connector_types preference. */
     public static String connectorTypes(String original) {
         return active ? CONNECTORS : original;
@@ -598,12 +603,15 @@ public final class BydBatteryPatch {
         private final Activity host;
         private final Context themed;
         private final int primary, secondary, accent;
-        private final LinearLayout content, battery, load, usage, bandTable, levelTable;
+        private final LinearLayout content, battery, load, arrival, usage, bandTable, levelTable;
         private final Switch toggle;
         private final View batteryDivider, detailsDivider;
-        private final TextView status, intro, percent, energy, batteryNote, loadCaption, usageHeader, usageLine,
+        private final TextView status, intro, percent, energy, batteryNote, loadCaption, arrivalCaption, usageHeader, usageLine,
                 usageCaption, detailsToggle, details;
         private final TextView[] chips = new TextView[LOADS_KG.length];
+        private final TextView[] chargingStopChips = new TextView[ArrivalBattery.CHARGING_STOP_CHOICES.length];
+        private final TextView[] destinationChips = new TextView[ArrivalBattery.DESTINATION_CHOICES.length];
+        private int paintedChargingStop = -1, paintedDestination = -1;
         // The average over all speeds, then city, mixed, highway and above 90% SOC.
         private final Row[] rows = new Row[5];
         // Per 1% of SOC: above 90%, then 90% and below.
@@ -693,6 +701,13 @@ public final class BydBatteryPatch {
             loadCaption = text(14, secondary, false);
             load.addView(loadCaption);
 
+            // Battery on arrival: the levels Maps plans its charging stops for, one tap per choice.
+            arrival = section(thai ? "แบตเมื่อไปถึง" : "Battery on arrival");
+            arrivalChips(ArrivalBattery.CHARGING_STOP, chargingStopChips, thai ? "ที่จุดชาร์จ อย่างน้อย" : "At charging stops, at least");
+            arrivalChips(ArrivalBattery.DESTINATION, destinationChips, thai ? "ที่ปลายทาง อย่างน้อย" : "At the destination, at least");
+            arrivalCaption = text(14, secondary, false);
+            arrival.addView(arrivalCaption);
+
             // Consumption.
             usage = section("");
             usageHeader = (TextView) usage.getChildAt(0);
@@ -778,7 +793,7 @@ public final class BydBatteryPatch {
                         : (thai ? "Maps Car ไม่พบระบบรถ BYD จึงไม่ได้ส่งข้อมูลแบตให้ Maps ปิดได้ถ้าไม่ใช่รถ BYD"
                         : "Maps Car found no BYD vehicle system, so Maps gets no battery data. Turn this off on other cars."));
                 show(intro, true);
-                for (View view : new View[]{batteryDivider, battery, load, usage, detailsDivider, detailsToggle, details}) {
+                for (View view : new View[]{batteryDivider, battery, load, arrival, usage, detailsDivider, detailsToggle, details}) {
                     show(view, false);
                 }
                 return;
@@ -832,6 +847,19 @@ public final class BydBatteryPatch {
                         : (thai ? "น้ำหนักที่ Maps ใช้ " : "Maps uses ") + grouped(massKg(file)) + kg
                         + (thai ? " (ตาราง BYD " : " (BYD's table ") + grouped(file.fileMassKg) + " + " + loadKg + ")");
             }
+
+            show(arrival, true);
+            int chargingStop = ArrivalBattery.stored(host, ArrivalBattery.CHARGING_STOP);
+            int destination = ArrivalBattery.stored(host, ArrivalBattery.DESTINATION);
+            if (paintedChargingStop != chargingStop) {
+                paintedChargingStop = chargingStop;
+                paintChoices(chargingStopChips, ArrivalBattery.CHARGING_STOP_CHOICES, chargingStop);
+            }
+            if (paintedDestination != destination) {
+                paintedDestination = destination;
+                paintChoices(destinationChips, ArrivalBattery.DESTINATION_CHOICES, destination);
+            }
+            arrivalCaption.setText(arrivalCaption(thai));
 
             // The table is chosen with the first reading; until then nothing is known about the model.
             show(usage, energyFileChecked);
@@ -902,21 +930,68 @@ public final class BydBatteryPatch {
 
         private void paintChips() {
             paintedLoad = loadKg;
+            for (int i = 0; i < chips.length; i++) styleChip(chips[i], LOADS_KG[i] == loadKg);
+        }
+
+        private void styleChip(TextView chip, boolean selected) {
             int ripple = withAlpha(primary, 0x29);
-            for (int i = 0; i < chips.length; i++) {
-                boolean selected = LOADS_KG[i] == loadKg;
-                GradientDrawable shape = new GradientDrawable();
-                shape.setCornerRadius(px(10));
-                shape.setColor(selected ? withAlpha(accent, 0x38) : Color.TRANSPARENT);
-                shape.setStroke(px(selected ? 2 : 1), selected ? accent : withAlpha(secondary, 0x80));
-                // A transparent chip would mask the ripple to its outline, so the mask is solid.
-                GradientDrawable mask = new GradientDrawable();
-                mask.setCornerRadius(px(10));
-                mask.setColor(Color.WHITE);
-                chips[i].setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), shape, mask));
-                chips[i].setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
-                chips[i].setSelected(selected);
+            GradientDrawable shape = new GradientDrawable();
+            shape.setCornerRadius(px(10));
+            shape.setColor(selected ? withAlpha(accent, 0x38) : Color.TRANSPARENT);
+            shape.setStroke(px(selected ? 2 : 1), selected ? accent : withAlpha(secondary, 0x80));
+            // A transparent chip would mask the ripple to its outline, so the mask is solid.
+            GradientDrawable mask = new GradientDrawable();
+            mask.setCornerRadius(px(10));
+            mask.setColor(Color.WHITE);
+            chip.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), shape, mask));
+            chip.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+            chip.setSelected(selected);
+        }
+
+        // A label and one chip per choice of [level] (Auto, then the percentages), added to the arrival section.
+        private void arrivalChips(String level, TextView[] levelChips, String label) {
+            TextView caption = text(15, primary, false);
+            caption.setText(label);
+            caption.setPadding(0, px(4), 0, 0);
+            arrival.addView(caption);
+            int[] choices = ArrivalBattery.choices(level);
+            LinearLayout chipRow = horizontal();
+            for (int i = 0; i < choices.length; i++) {
+                int choice = choices[i];
+                TextView chip = text(15, primary, false);
+                chip.setGravity(Gravity.CENTER);
+                chip.setMinHeight(px(48));
+                chip.setPadding(px(4), px(4), px(4), px(4));
+                chip.setText(choice == ArrivalBattery.AUTO ? (thai ? "อัตโนมัติ" : "Auto") : choice + "%");
+                chip.setOnClickListener(view -> selectArrival(level, choice));
+                LinearLayout.LayoutParams params = weight(choice == ArrivalBattery.AUTO ? 1.6f : 1);
+                params.setMargins(i == 0 ? 0 : px(4), px(4), i == choices.length - 1 ? 0 : px(4), px(4));
+                chipRow.addView(chip, params);
+                levelChips[i] = chip;
             }
+            arrival.addView(chipRow);
+        }
+
+        private void selectArrival(String level, int choice) {
+            if (ArrivalBattery.stored(host, level) == choice) return;
+            ArrivalBattery.choose(host, level, choice);
+            update();
+        }
+
+        private void paintChoices(TextView[] levelChips, int[] choices, int selected) {
+            for (int i = 0; i < levelChips.length; i++) styleChip(levelChips[i], choices[i] == selected);
+        }
+
+        // What the choices do, and Google's levels once Maps used them.
+        private String arrivalCaption(boolean thai) {
+            int chargingStop = ArrivalBattery.googleDefault(ArrivalBattery.CHARGING_STOP);
+            int destination = ArrivalBattery.googleDefault(ArrivalBattery.DESTINATION);
+            String google = chargingStop < 0 && destination < 0 ? ""
+                    : (thai ? " (จุดชาร์จ " : " (charging stops ") + (chargingStop < 0 ? "–" : chargingStop + "%")
+                    + (thai ? " · ปลายทาง " : ", destination ") + (destination < 0 ? "–" : destination + "%") + ")";
+            return thai
+                    ? "Maps วางจุดแวะชาร์จให้ถึงด้วยแบตอย่างน้อยเท่านี้ อัตโนมัติ = ค่าของ Google" + google
+                    : "Maps plans charging stops so the car arrives with at least this much. Auto = Google's level" + google + ".";
         }
 
         private CharSequence detailsText(BydVehicleEnergyFile file, BydVehicleModel.Status model, long sampledAt, boolean thai) {
@@ -1456,6 +1531,7 @@ public final class BydBatteryPatch {
                 .put("outside_c", sampled && outsideC != BydOutsideTemperature.UNAVAILABLE ? outsideC : JSONObject.NULL)
                 .put("last_reading_age_s", sampled ? (now - sampledAt) / 1000 : JSONObject.NULL)
                 .put("last_maps_read_age_s", on && readAt != 0 ? (now - readAt) / 1000 : JSONObject.NULL)
-                .put("learned_kwh_100km", Double.isNaN(learned) ? JSONObject.NULL : learned);
+                .put("learned_kwh_100km", Double.isNaN(learned) ? JSONObject.NULL : learned)
+                .put("arrival", ArrivalBattery.report(context));
     }
 }

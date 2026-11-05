@@ -258,6 +258,42 @@ internal object BusinessHomeScreenStateToStringFingerprint : Fingerprint(
     strings = listOf(string(", importantSenders=", StringComparisonType.CONTAINS)),
 )
 
+internal const val PROFILE_MENU_ITEM = "Lcom/truecaller/usershome/presentaion/ui/components/menuitems/MenuItem;"
+
+// toString() of a profile menu row's state (MenuItemUiState, zrr in 26.42.5), a Kotlin data class
+// (item: MenuItem, trailingText, isVisible). The users home view model (UsersHomeActivity) builds one
+// per MenuItem of its premium and other lists and keeps only the visible ones.
+internal object MenuItemUiStateToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("MenuItemUiState(item=", StringComparisonType.STARTS_WITH)),
+    strings = listOf(string(", isVisible=", StringComparisonType.CONTAINS)),
+)
+
+// toString() of the profile menu's list state (MenuItemsViewState, esr in 26.42.5): groups, a list of
+// row lists. The menu draws a section divider after every group but the last one.
+internal object MenuItemsViewStateToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(string("MenuItemsViewState(groups=", StringComparisonType.STARTS_WITH)),
+)
+
+// toString() of the "Enabled" state of the users home screen's optional rows (fmj in 26.42.5; the
+// "Disabled" object is its sibling under the same interface): iconRes, titleRes, subtitleViewState,
+// trailingContent and showNewBadge. The Premium banner at the top of the profile menu is one of them.
+internal object MenuRowEnabledToStringFingerprint : Fingerprint(
+    name = "toString",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    strings = listOf(
+        string("Enabled(iconRes=", StringComparisonType.EQUALS),
+        string(", titleRes=", StringComparisonType.EQUALS),
+        string(", subtitleViewState=", StringComparisonType.EQUALS),
+    ),
+)
+
 // The incoming call buttons composable (iis.d in 26.42.5): a Box that places the decline and the
 // answer swipe buttons (test tags "rejectCallButton" / "answerCallButton", in that order), each
 // aligned the same way and pushed sideways by an offset(x) of -/+ width / 3.5. Each button is
@@ -270,4 +306,20 @@ internal object IncomingCallButtonsFingerprint : Fingerprint(
         string("answerCallButton"),
     ),
     custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
+)
+
+// The incoming call notification builder (static m5m.x in 26.42.5): picks the "incoming_calls" or
+// "phone_calls" channel, builds the "Answer" and "Decline" PendingIntents, then asks a ()Z check
+// (Android 12+, the featureCallStyleNotifications experiment, maker and device not excluded)
+// whether to build a system call style notification or Truecaller's own RemoteViews layout. The
+// last filter is that check.
+internal object IncomingCallNotificationFingerprint : Fingerprint(
+    isStatic = true,
+    returnType = "V",
+    filters = listOf(
+        string("incoming_calls"),
+        string("Answer"),
+        string("Decline"),
+        methodCall(opcode = Opcode.INVOKE_VIRTUAL, parameters = listOf(), returnType = "Z"),
+    ),
 )

@@ -31,6 +31,19 @@ public final class SharedNgIndexTest {
         var high=new SharedNgRules.Rule("c".repeat(64),"5ch/all","id","HighLevel","",1,false,5,1);
         check(new SharedNgIndex(List.of(high),1,Set.of(),Set.of(),127).matches("5ch/all","HighLevel","",""));
         check(!new SharedNgIndex(List.of(high),2,Set.of(),Set.of(),127).matches("5ch/all","HighLevel","",""));
+        List<SharedNgRules.Rule> many=new ArrayList<>();
+        for(int i=0;i<100;i++)for(String kind:List.of("keyword","name","trip")){
+            many.add(new SharedNgRules.Rule(String.format("%064x",1000+many.size()),i%2==0?"5ch/all":"*",kind,"条件"+i+"末尾","",2,false));
+        }
+        SharedNgIndex bulk=new SharedNgIndex(many,1,Set.of(),Set.of(),255);
+        for(int i=0;i<100;i++){
+            check(bulk.matches("5ch/all","","","prefix 条件"+i+"末尾 suffix"));
+            check(bulk.matches("5ch/all","","名前 条件"+i+"末尾","neutral"));
+            check(bulk.matches("edge/all","","","条件"+i+"末尾")== (i%2!=0));
+        }
+        check(!bulk.matches("5ch/all","","neutral","条件999末尾"));
+        check(!new SharedNgIndex(many,3,Set.of(),Set.of(),255).matches("5ch/all","","条件1末尾","条件2末尾"));
+        check(!new SharedNgIndex(many,1,Set.of(),Set.of("*","5ch/all"),255).matches("5ch/all","","条件1末尾","条件2末尾"));
         System.out.println("PASS shared NG index equivalence and no-strength "+checks);
     }
 }

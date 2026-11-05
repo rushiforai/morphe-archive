@@ -1,3 +1,19 @@
+## [0.16.4](https://github.com/Santodan/santodan-patches/compare/v0.16.3...v0.16.4) (2026-11-04)
+
+### 🚀 Updated App Support
+
+* **monet:** support Monet 1.1.1 ([da8228f](https://github.com/Santodan/santodan-patches/commit/da8228ff00fab6cfb648d517be0835a23086221f))
+
+## [0.16.3](https://github.com/Santodan/santodan-patches/compare/v0.16.2...v0.16.3) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **pillo:** preserve notification settings on subscription refresh ([d3b6be7](https://github.com/Santodan/santodan-patches/commit/d3b6be72a35503965bf9935beace12692a1e65a4))
+
+### 🚀 Updated App Support
+
+* **nuviotv:** support 1.1.0-beta.10 [skip ci] ([d67dd7f](https://github.com/Santodan/santodan-patches/commit/d67dd7f778c8bf7707abed40ba76e350badf47b8))
+
 ## [0.16.2](https://github.com/Santodan/santodan-patches/compare/v0.16.1...v0.16.2) (2026-10-31)
 
 ### 🚀 Updated App Support

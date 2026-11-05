@@ -38,8 +38,7 @@ private val FEEDS = listOf(
 @Suppress("unused")
 val hideSocialFeedsPatch = bytecodePatch(
     name = "Hide social feeds",
-    description = "Hides the feeds you choose in the patch options: Truth Social, X, Instagram, " +
-        "Facebook, LinkedIn, TikTok, YouTube, or the Wire.",
+    description = "Hides the social feeds you choose in the patch options.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -4,6 +4,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.template.patches.shared.hevalcontrols.addHevalValueHelper
+import app.template.patches.shared.hevalcontrols.filterThroughHevalHelper
 import app.template.patches.truecaller.shared.toStringFields
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -19,10 +21,22 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * (CategoriesSettingsState). Every constructor of that state stores false for [flag] (for example
  * "isWatchItemVisible"), so the row and its divider stay GONE and no gap is left. Each call adds
  * its own store, so row patches work together in any order.
+ *
+ * With a Heval Controls [featureId], the stored value goes through a new static (Z)Z helper on the
+ * state class instead, which answers false while that feature is on and passes the stock value
+ * through while it is off. The state is built each time the Settings screen opens.
  */
-internal fun BytecodePatchContext.hideSettingsCategory(flag: String) {
+internal fun BytecodePatchContext.hideSettingsCategory(flag: String, featureId: String? = null) {
     val stateClass = CategoriesSettingsStateToStringFingerprint.classDef
     val field = settingsStateField(CategoriesSettingsStateToStringFingerprint.method, stateClass.type, flag)
+    val helper = featureId?.let { id ->
+        mutableClassDefBy(stateClass).addHevalValueHelper(id, "morpheHide_$flag", "Z") { v ->
+            """
+                const/4 $v, 0x0
+                return $v
+            """
+        }
+    }
 
     var stores = 0
     for (constructor in stateClass.methods.filter { it.name == "<init>" && it.implementation != null }) {
@@ -35,7 +49,11 @@ internal fun BytecodePatchContext.hideSettingsCategory(flag: String) {
         // From the last store backwards, so the earlier indices stay valid.
         for (index in indices.reversed()) {
             val register = (instructions[index] as TwoRegisterInstruction).registerA
-            constructor.addInstructionsAtControlFlowLabel(index, "const/16 v$register, 0x0")
+            if (helper != null) {
+                constructor.filterThroughHevalHelper(index, register, helper)
+            } else {
+                constructor.addInstructionsAtControlFlowLabel(index, "const/16 v$register, 0x0")
+            }
             stores++
         }
     }

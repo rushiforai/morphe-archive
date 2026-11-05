@@ -5,11 +5,58 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.polishapps.patches.shared.Constants.COMPATIBILITY_YANOSIK
+import app.polishapps.patches.shared.Constants.YANOSIK_26_10_0
+import app.polishapps.patches.shared.Constants.YANOSIK_26_9_0
 import app.polishapps.patches.shared.methodFingerprint
 import app.polishapps.patches.shared.prependReturn
+import app.polishapps.patches.shared.targetsFor
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+
+/** Obfuscated classes used by this patch. The 26.9.0 names are the ones used in the comments below. */
+private data class TelemetryTargets(
+    /** Base class of Yanosik's background services, with `onCreateAsync` / `onDestroyAsync`. */
+    val serviceBase: String,
+    /** Firebase Analytics client. */
+    val analyticsClient: String,
+    /** Bundled measurement engine config, with `i0()` for `firebase_analytics_collection_deactivated`. */
+    val measurementConfig: String,
+    /** Crashlytics data collection arbiter, with `i()`. */
+    val crashlyticsArbiter: String,
+    /** Firebase Sessions local override, with `a()` for `firebase_sessions_enabled`. */
+    val sessionsConfig: String,
+    /** WorkManager `ListenableWorker` and the types used to finish a job early. */
+    val listenableWorker: String,
+    val workerFuture: String,
+    val workerResultFuture: String,
+    val workerSuccessResult: String,
+)
+
+private val targetsByVersion = mapOf(
+    YANOSIK_26_9_0 to TelemetryTargets(
+        serviceBase = "Lz5;",
+        analyticsClient = "Lfnn;",
+        measurementConfig = "Lyen;",
+        crashlyticsArbiter = "Low4;",
+        sessionsConfig = "Lbva;",
+        listenableWorker = "Lmsa;",
+        workerFuture = "Lgsa;",
+        workerResultFuture = "Lb2i;",
+        workerSuccessResult = "Lksa;",
+    ),
+    YANOSIK_26_10_0 to TelemetryTargets(
+        serviceBase = "La6;",
+        analyticsClient = "Lb3o;",
+        measurementConfig = "Ltun;",
+        crashlyticsArbiter = "Ley4;",
+        sessionsConfig = "Lyxa;",
+        listenableWorker = "Lova;",
+        workerFuture = "Liva;",
+        workerResultFuture = "Ljai;",
+        workerSuccessResult = "Lmva;",
+    ),
+)
 
 /**
  * Background services (subclasses of `Lz5;`) whose only job is collecting and uploading telemetry.
@@ -45,7 +92,7 @@ private val telemetryServices = listOf(
  * are the location provider, POI service, navigation, map, authentication, Firebase Cloud Messaging or
  * Firebase Remote Config. Remote Config supplies feature flags, and FCM depends on Firebase Installations.
  *
- * These targets are pinned to Yanosik 26.9.0; obfuscated names change per release.
+ * Obfuscated names change per release; see [targetsByVersion].
  */
 @Suppress("unused")
 val blockTelemetryPatch = bytecodePatch(
@@ -57,16 +104,20 @@ val blockTelemetryPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YANOSIK)
 
     execute {
+        val targets = targetsFor(targetsByVersion)
+        val serviceBase = targets.serviceBase
+        val analyticsClientClass = targets.analyticsClient
+
         telemetryServices.forEach { service ->
             methodFingerprint(service, "onCreateAsync", returnType = "V").method.prependReturn(
                 """
-                    invoke-super {p0}, Lz5;->onCreateAsync()V
+                    invoke-super {p0}, $serviceBase->onCreateAsync()V
                     return-void
                 """,
             )
             methodFingerprint(service, "onDestroyAsync", returnType = "V").method.prependReturn(
                 """
-                    invoke-super {p0}, Lz5;->onDestroyAsync()V
+                    invoke-super {p0}, $serviceBase->onDestroyAsync()V
                     return-void
                 """,
             )
@@ -77,7 +128,7 @@ val blockTelemetryPatch = bytecodePatch(
         // result. Setting it before the `nln` init task also stops the measurement module being loaded
         // from Google Play services, which reads the manifest and would ignore a bytecode-only flag.
         val analyticsClient = methodFingerprint(
-            "Lfnn;",
+            analyticsClientClass,
             "<init>",
             parameters = listOf("Landroid/content/Context;", "Landroid/os/Bundle;"),
             returnType = "V",
@@ -85,24 +136,24 @@ val blockTelemetryPatch = bytecodePatch(
         val listAssignment = analyticsClient.instructions.toList().indexOfFirst { instruction ->
             instruction.opcode == Opcode.IPUT_OBJECT &&
                 ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let { field ->
-                    field.definingClass == "Lfnn;" && field.name == "c"
+                    field.definingClass == analyticsClientClass && field.name == "c"
                 } == true
         }
         if (listAssignment < 0) {
-            throw PatchException("fnn.<init>: field assignment anchor not found")
+            throw PatchException("$analyticsClientClass.<init>: field assignment anchor not found")
         }
         analyticsClient.addInstructions(
             listAssignment + 1,
             """
                 const/4 v2, 0x1
-                iput-boolean v2, p0, Lfnn;->e:Z
+                iput-boolean v2, p0, $analyticsClientClass->e:Z
                 return-void
             """,
         )
 
         // Bundled measurement engine: report `firebase_analytics_collection_deactivated` as true, in case
         // it is started by its manifest receiver or service rather than by the client above.
-        methodFingerprint("Lyen;", "i0", returnType = "Z").method.prependReturn(
+        methodFingerprint(targets.measurementConfig, "i0", returnType = "Z").method.prependReturn(
             """
                 const/4 p0, 0x1
                 return p0
@@ -111,7 +162,7 @@ val blockTelemetryPatch = bytecodePatch(
 
         // Crashlytics data collection arbiter: automatic collection is off, so reports are not uploaded.
         // Its only other readers are Firebase Sessions, which also stops sending events.
-        methodFingerprint("Low4;", "i", returnType = "Z").method.prependReturn(
+        methodFingerprint(targets.crashlyticsArbiter, "i", returnType = "Z").method.prependReturn(
             """
                 const/4 p0, 0x0
                 return p0
@@ -130,7 +181,7 @@ val blockTelemetryPatch = bytecodePatch(
         }
 
         // Firebase Sessions: local `firebase_sessions_enabled` override is false.
-        methodFingerprint("Lbva;", "a", returnType = "Ljava/lang/Boolean;").method.prependReturn(
+        methodFingerprint(targets.sessionsConfig, "a", returnType = "Ljava/lang/Boolean;").method.prependReturn(
             """
                 sget-object p0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
                 return-object p0
@@ -179,14 +230,16 @@ val blockTelemetryPatch = bytecodePatch(
             "BeaconSampleDozeSendingWorker" to "e",
         ).forEach { (worker, resultField) ->
             val workerClass = "Lme/notinote/sdk/service/synchronize/workers/$worker;"
-            methodFingerprint(workerClass, "c", returnType = "Lgsa;").method.prependReturn(
+            val future = targets.workerResultFuture
+            val success = targets.workerSuccessResult
+            methodFingerprint(workerClass, "c", returnType = targets.workerFuture).method.prependReturn(
                 """
-                    iget-object v1, p0, $workerClass->$resultField:Lb2i;
-                    new-instance v0, Lksa;
-                    invoke-direct {v0}, Lksa;-><init>()V
-                    invoke-virtual {v1, v0}, Lb2i;->g(Ljava/lang/Object;)Z
+                    iget-object v1, p0, $workerClass->$resultField:$future
+                    new-instance v0, $success
+                    invoke-direct {v0}, $success-><init>()V
+                    invoke-virtual {v1, v0}, $future->g(Ljava/lang/Object;)Z
                     const/4 v2, 0x1
-                    invoke-virtual {p0, v2}, Lmsa;->d(I)V
+                    invoke-virtual {p0, v2}, ${targets.listenableWorker}->d(I)V
                     return-object v1
                 """,
             )

@@ -16,21 +16,25 @@ public final class FavoriteThreads {
 
     public static synchronized void selected(Object home, int mode) {
         selected.put(home, Math.abs(mode) == TAB);
+        HomeRefreshTargets.selected(home,mode);
     }
-    public static int nativeMode(int mode) { return Math.abs(mode) == TAB ? 102 : mode; }
+    public static int nativeMode(int mode) { return Math.abs(mode) == TAB || Math.abs(mode)==HomeRefreshTargets.TAB ? 102 : mode; }
     public static List<?> filterFor(Object home, List<?> rows) {
+        if(HomeRefreshTargets.active(home))return HomeRefreshTargets.filter(rows);
         synchronized (FavoriteThreads.class) {
             return Boolean.TRUE.equals(selected.get(home)) ? filter(rows) : rows;
         }
     }
     public static Object legacyRows(Object home, Object rows) {
+        boolean targets=HomeRefreshTargets.active(home);
         synchronized (FavoriteThreads.class) {
-            if (!Boolean.TRUE.equals(selected.get(home)) || !(rows instanceof List)) return rows;
+            if ((!targets&&!Boolean.TRUE.equals(selected.get(home))) || !(rows instanceof List)) return rows;
         }
-        try { return rows.getClass().getConstructor(List.class).newInstance(filter((List<?>) rows)); }
+        try { return rows.getClass().getConstructor(List.class).newInstance(targets?HomeRefreshTargets.filter((List<?>)rows):filter((List<?>) rows)); }
         catch (Exception error) { throw new IllegalStateException("Favorite thread list binding changed", error); }
     }
     public static int titleResource(Object home, int original) {
+        if(HomeRefreshTargets.active(home))return HomeRefreshTargets.titleResource(original);
         synchronized (FavoriteThreads.class) {
             if (!Boolean.TRUE.equals(selected.get(home))) return original;
         }
@@ -40,6 +44,7 @@ public final class FavoriteThreads {
         return id == 0 ? original : id;
     }
     public static String title(Object home, String original) {
+        if(HomeRefreshTargets.active(home))return "対象スレ";
         synchronized (FavoriteThreads.class) {
             return Boolean.TRUE.equals(selected.get(home)) ? "★スレ" : original;
         }
@@ -75,7 +80,7 @@ public final class FavoriteThreads {
     }
 
     public static boolean refresh(Object fragment, int action) {
-        if (action == TAB) {
+        if (action == TAB || action==HomeRefreshTargets.TAB) {
             try {
                 String name = fragment.getClass().getName();
                 if (!name.equals("o.r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk") &&
@@ -84,7 +89,7 @@ public final class FavoriteThreads {
                 java.lang.reflect.Method method = fragment.getClass().getDeclaredMethod(
                         name.contains("ui.home") ? "d" : "a", int.class);
                 method.setAccessible(true);
-                method.invoke(fragment, TAB);
+                method.invoke(fragment, action);
                 return true;
             } catch (Exception error) {
                 Log.w("Haiagaru", "Favorite thread tab unavailable", error);
@@ -92,6 +97,11 @@ public final class FavoriteThreads {
             }
         }
         if (action != 5) return false;
+        if(HomeRefreshTargets.active(fragment)){
+            Context context=Haiagaru.toolbarActivity(fragment);
+            if(context!=null)RefreshTargets.enqueue(context);
+            return true;
+        }
         boolean active;
         synchronized (FavoriteThreads.class) {
             active = Boolean.TRUE.equals(selected.get(fragment));

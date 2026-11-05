@@ -7,7 +7,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 
 /**
  * Keeps recent destinations out of the app without touching how they are stored.
@@ -45,7 +46,19 @@ val noRecentDestinationsPatch = bytecodePatch(
     description = "Keeps the places you navigated to out of every recent list. Waze still stores them.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_WAZE)
+    // The read bridge only exists in these three builds; older Waze keeps its history elsewhere and
+    // this row would fail rather than do nothing. Morphe hides it there instead of offering a dead row.
+    compatibleWith(
+        Compatibility(
+            name = "Waze",
+            packageName = "com.waze",
+            targets = listOf(
+                AppTarget(version = "5.26.5.0"),
+                AppTarget(version = "5.26.90.901"),
+                AppTarget(version = "5.27.0.1"),
+            ),
+        ),
+    )
     category("Privacy & Updates")
 
     execute {

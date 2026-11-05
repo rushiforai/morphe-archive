@@ -11,7 +11,7 @@ import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants
 @Suppress("unused")
 val removeMicrophoneAccessPatch = resourcePatch(
     name = "Remove microphone access",
-    description = "Removes the app's microphone permission, which no feature in the app uses.",
+    description = "Removes the app's microphone permission, which no feature uses.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

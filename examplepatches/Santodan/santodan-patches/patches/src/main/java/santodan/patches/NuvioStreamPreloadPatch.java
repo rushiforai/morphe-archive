@@ -74,15 +74,16 @@ final class NuvioStreamPreloadPatch {
     }
 
     static void validateSearch(MutableClass owner) {
-        MutableMethod method = NuvioRemainingEpisodesPatch.unique(owner, "l", 5);
+        MutableMethod method = NuvioRemainingEpisodesPatch.unique(owner, "l", 10);
         if (!owner.getType().equals(NuvioNative.STREAM_REPOSITORY_TYPE) || !method.getParameterTypes().equals(List.of(
-                "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/Integer;", "Ljava/lang/Integer;", "Z")) ||
-            !method.getReturnType().equals("Lkotlinx/coroutines/flow/Flow;") || (method.getAccessFlags() & 8) != 0)
-            throw NuvioRemainingEpisodesPatch.unsupported("Stream search must be ba.d5.l(String,String,Integer,Integer,boolean):Flow");
+                owner.getType(), "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/Integer;", "Ljava/lang/Integer;", "Z", "Ljava/lang/String;", "Z", "Z", "I")) ||
+            !method.toString().equals(NuvioNative.REF_STREAM_SEARCH) || (method.getAccessFlags() & 8) == 0 ||
+            !NuvioPlaybackButtonsPatch.fingerprint(method).equals(NuvioNative.HASH_STREAM_SEARCH))
+            throw NuvioRemainingEpisodesPatch.unsupported("Native default stream search signature/body changed");
     }
 
     static void validateDetailResolver(MutableClass owner) {
-        MutableMethod method = NuvioRemainingEpisodesPatch.unique(owner, "D", 3);
+        MutableMethod method = NuvioRemainingEpisodesPatch.unique(owner, NuvioNative.DETAIL_RESOLVER_METHOD, 3);
         if (!owner.getType().equals(NuvioNative.DETAIL_RESOLVER_TYPE) || !method.getParameterTypes().equals(List.of(
                 "Lcom/nuvio/tv/domain/model/Meta;", "Lcom/nuvio/tv/domain/model/NextToWatch;", "Ljava/util/List;")) ||
             !method.getReturnType().equals("Lcom/nuvio/tv/domain/model/Video;") || (method.getAccessFlags() & 8) == 0)
@@ -159,7 +160,7 @@ final class NuvioStreamPreloadPatch {
     static void hookNextEpisodePicker(MutableClass owner) {
         MutableMethod target = NuvioRemainingEpisodesPatch.unique(owner, "invokeSuspend", 1);
         List<Instruction> instructions = NuvioRemainingEpisodesPatch.instructions(target);
-        String picker = NuvioNative.PLAYER_ROUTES_TYPE + ("->E(") + NuvioNative.PLAYER_CONTROLLER_TYPE
+        String picker = NuvioNative.PLAYER_ROUTES_TYPE + ("->G(") + NuvioNative.PLAYER_CONTROLLER_TYPE
             + "Lcom/nuvio/tv/domain/model/Video;Z)V";
         List<Integer> calls = new ArrayList<>();
         for (int i = 0; i < instructions.size(); i++) {
@@ -189,8 +190,8 @@ final class NuvioStreamPreloadPatch {
     static void hookNextEpisodeRoutesBeta7(MutableClass owner) {
         if (!NuvioNative.PLAYER_ROUTES_TYPE.equals(owner.getType()))
             throw NuvioRemainingEpisodesPatch.unsupported("Unexpected beta7 next-episode routes");
-        MutableMethod picker = NuvioRemainingEpisodesPatch.unique(owner, "E", 3);
-        MutableMethod threshold = NuvioRemainingEpisodesPatch.unique(owner, "x", 1);
+        MutableMethod picker = NuvioRemainingEpisodesPatch.unique(owner, "G", 3);
+        MutableMethod threshold = NuvioRemainingEpisodesPatch.unique(owner, "y", 1);
         if (!picker.getParameterTypes().equals(List.of(NuvioNative.PLAYER_CONTROLLER_TYPE, "Lcom/nuvio/tv/domain/model/Video;", "Z"))
             || !threshold.getParameterTypes().equals(List.of(NuvioNative.PLAYER_CONTROLLER_TYPE))
             || !picker.getReturnType().equals("V") || !threshold.getReturnType().equals("V")
@@ -205,7 +206,7 @@ final class NuvioStreamPreloadPatch {
             if (NuvioRemainingEpisodesPatch.calls(instruction, EXTENSION, "useNativeNextEpisodeThresholdPreload"))
                 throw NuvioRemainingEpisodesPatch.unsupported("Next-episode threshold hook already installed");
         long delegates = pickerInstructions.stream().filter(i ->
-            NuvioRemainingEpisodesPatch.calls(i, NuvioNative.PLAYER_ROUTES_TYPE, "q")).count();
+            NuvioRemainingEpisodesPatch.calls(i, NuvioNative.PLAYER_ROUTES_TYPE, "r")).count();
         long triggeredReads = thresholdInstructions.stream().filter(i -> i.getOpcode() == Opcode.IGET_BOOLEAN
             && i instanceof ReferenceInstruction && ((ReferenceInstruction) i).getReference().toString()
                 .equals(NuvioNative.PLAYER_CONTROLLER_TYPE + ("->s2:Z"))).count();

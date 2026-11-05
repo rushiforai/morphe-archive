@@ -9,7 +9,7 @@ fun main(args: Array<String>) {
     val stock = File(args[0]).readBytes()
     val bundle = HermesBundle(stock)
     val subscribeStock = bundle.function("SubscribeButton").body
-    check(subscribeStock.size == 1426)
+    check(subscribeStock.size == 1656)
     bundle.hideClipDiscoveryTabs()
     bundle.hideBitsInterface()
     bundle.hideSubscriptionInterface()
@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
 
     val subscribe = bundle.function("SubscribeButton")
     val body = patched.copyOfRange(subscribe.offset, subscribe.offset + subscribe.body.size)
-    // Independently execute both injected result guards, on cache misses and cache hits.
+    // Independently execute the three injected result guards, on cache misses and cache hits.
     // Registers hold arbitrary reference identity so this detects lost subscribed elements.
     fun guard(pcStart: Int, source: Int, subscribed: Boolean, cacheHit: Boolean): Any? {
         val element = Any()
@@ -51,13 +51,15 @@ fun main(args: Array<String>) {
         error("Guard did not return")
     }
     for (subscribed in listOf(false, true)) for (cacheHit in listOf(false, true)) {
-        guard(0x42b, 9, subscribed, cacheHit)
-        guard(0x57f, 5, subscribed, cacheHit)
+        guard(0x46e, 16, subscribed, cacheHit)
+        guard(0x5c2, 14, subscribed, cacheHit)
+        guard(0x665, 5, subscribed, cacheHit)
     }
-    // Both existing cache-hit branches now land after the element-copy instruction.
+    // All three existing cache-hit branches now land after the element-copy instruction.
     fun signed32(at: Int) = (0..3).fold(0) { value, index -> value or ((body[at + index].toInt() and 255) shl (index * 8)) }
-    check(0x3ad + signed32(0x3ae) == 0x42e)
-    check(0x51a + body[0x51b].toInt() == 0x582)
+    check(0x3e5 + signed32(0x3e6) == 0x471)
+    check(0x55d + body[0x55e].toInt() == 0x5c5)
+    check(0x60b + body[0x60c].toInt() == 0x668)
     // The original hook setup and subscription status read remain intact.
     check(body.copyOfRange(0, 0x2f).contentEquals(subscribeStock.copyOfRange(0, 0x2f)))
     check(bundle.edits.none { edit -> bundle.functions[edit.functionId].name in setOf("CheerPart", "onSubscriptionEvent", "onSubscriptionGiftEvent", "onFirstCheerEvent", "feedNavMedium") })
@@ -71,5 +73,5 @@ fun main(args: Array<String>) {
         verifyClipNavigation(bundle, actual, stock)
         println("PASS: actual APK asset contains every UI transform and passes the caller probe")
     }
-    println("PASS: UI Hermes transforms, eight subscribed output/cache cases, hook preservation and exact restoration")
+    println("PASS: UI Hermes transforms, twelve subscribed output/cache cases, hook preservation and exact restoration")
 }

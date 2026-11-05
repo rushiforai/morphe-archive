@@ -414,6 +414,8 @@ final class ReportBuilder {
                 .put("density_choice_dpi", orNull(UiDensityPatch.storedDensityDpi(context)))
                 .put("density_default_dpi", UiDensityPatch.defaultDensityDpi(context))
                 .put("density_applied_dpi", screen.densityDpi > 0 ? screen.densityDpi : JSONObject.NULL)
+                .put("driver_side", DriverSide.report(context))
+                .put("buildings_3d", SafeMode.included(SafeMode.BUILDINGS_3D) ? Buildings3d.report() : JSONObject.NULL)
                 .put("window", window);
     }
 

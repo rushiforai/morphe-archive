@@ -44,9 +44,7 @@ internal object PairipValidateResponseFingerprint : Fingerprint(
 @Suppress("unused")
 val disablePairipLicenseCheckPatch = bytecodePatch(
     name = "Disable Pairip license check",
-    description = "Lets the re-signed app start: Google's Pairip license check otherwise blocks " +
-        "any copy not installed from the Play Store. Client-side only; it does not bypass Play " +
-        "Integrity attestation.",
+    description = "Lets the patched app start by skipping Google's Pairip license check.",
 ) {
     compatibleWith(
         FoxOne.COMPATIBILITY,

@@ -58,7 +58,7 @@ val showAllCamerasPatch = bytecodePatch(
                     "CONFIG_VALUE_AVERAGE_SPEED_CAMERA_RECOMMENDED_SPEED_ENABLED",
                 )
         }
-        if (radarSound == true) recordBoolean("cam", true, "CONFIG_VALUE_ALERTS_PLAY_SPEED_CAMERA_SOUND_BELOW_SPEED_LIMIT")
+        if (radarSound == true) recordNativeBoolean("cam", true, "CONFIG_VALUE_ALERTS_PLAY_SPEED_CAMERA_SOUND_BELOW_SPEED_LIMIT")
         if (extraTypes == true) {
             recordBoolean(
                     "cam", true,

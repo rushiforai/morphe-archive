@@ -15,10 +15,16 @@ private val SHADER_EXTENSION =
     "#extension GL_OES_EGL_image_external_essl3 : enable".toByteArray(Charsets.US_ASCII)
 private val SHADER_VERSION = "#version 300 es\n".toByteArray(Charsets.US_ASCII)
 internal const val VIDEO_SHADER_SIZE = 1087
+// 2.0.24/5002527 adds the `vInnerFade` uniform declaration (location 14) to the shared
+// common prefix, so its NUL-terminated prefix block is 1206 bytes (the static initializer
+// memcpy length is 0x4b6). Every earlier base keeps 1087. The stock uniform is never moved:
+// Blue-noise dithering uses a separate helper payload with slots 16/17 for this base.
+internal const val VIDEO_SHADER_SIZE_INNER_FADE = 1206
 internal const val VIDEO_LIBRARY_SIZE_5001712 = 2_221_072
 internal const val VIDEO_LIBRARY_SIZE_5002244 = 2_251_920
 internal const val VIDEO_LIBRARY_SIZE_5002363 = 2_292_008
 internal const val VIDEO_LIBRARY_SIZE_5002395 = 2_301_432
+internal const val VIDEO_LIBRARY_SIZE_5002527 = 2_333_472
 private const val VIDEO_LIBRARY_SHA256_5001712 =
     "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"
 private const val VIDEO_LIBRARY_SHA256_5002244 =
@@ -27,6 +33,8 @@ private const val VIDEO_LIBRARY_SHA256_5002363 =
     "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"
 private const val VIDEO_LIBRARY_SHA256_5002395 =
     "5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b"
+private const val VIDEO_LIBRARY_SHA256_5002527 =
+    "cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03"
 
 private val SRGB8_INSTRUCTION = byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52)
 private val RGB10_A2_INSTRUCTION = byteArrayOf(0x29, 0x0b, 0x90.toByte(), 0x52)
@@ -47,6 +55,10 @@ internal val SWAPCHAIN_FORMAT_OFFSETS_5001712 = intArrayOf(0x10a9c4, 0x10aa34)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002244 = intArrayOf(0x10826c, 0x1082dc, 0x10834c)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002363 = intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
 internal val SWAPCHAIN_FORMAT_OFFSETS_5002395 = intArrayOf(0x10da98, 0x10db08, 0x10db78)
+// 5002527 creates two swapchains per eye (base and fovea quads) and no underside
+// swapchain: SetupSwapchains calls XRQCreateSwapchain at 0x10d640 and 0x10d6b8, each
+// preceded by `mov w9,#0x8c43` at these offsets.
+internal val SWAPCHAIN_FORMAT_OFFSETS_5002527 = intArrayOf(0x10d630, 0x10d6a8)
 
 private data class VideoLibraryLayout(
     val versionName: String,
@@ -54,6 +66,9 @@ private data class VideoLibraryLayout(
     val fileSize: Int,
     val stockSha256: String,
     val swapchainFormatOffsets: IntArray,
+    val shaderSize: Int = VIDEO_SHADER_SIZE,
+    // True when the common prefix declares the vInnerFade uniform at location 14.
+    val innerFade: Boolean = false,
 )
 
 private val VIDEO_LIBRARY_LAYOUTS = listOf(
@@ -87,6 +102,15 @@ private val VIDEO_LIBRARY_LAYOUTS = listOf(
         VIDEO_LIBRARY_SIZE_5002395,
         VIDEO_LIBRARY_SHA256_5002395,
         SWAPCHAIN_FORMAT_OFFSETS_5002395,
+    ),
+    VideoLibraryLayout(
+        "2.0.24",
+        5002527,
+        VIDEO_LIBRARY_SIZE_5002527,
+        VIDEO_LIBRARY_SHA256_5002527,
+        SWAPCHAIN_FORMAT_OFFSETS_5002527,
+        shaderSize = VIDEO_SHADER_SIZE_INNER_FADE,
+        innerFade = true,
     ),
 )
 
@@ -180,7 +204,11 @@ internal fun paddedVideoShader(
     outputPrecision: VideoOutputPrecision,
     dither: VideoDitherMode = VideoDitherMode.OFF,
     foveaGate: Boolean = false,
+    // 2.0.24/5002527 only: keep Valve's `vInnerFade` uniform (location 14) declared because
+    // its foveal alpha suffix reads it, and use the larger 1206-byte block.
+    innerFade: Boolean = false,
 ): ByteArray {
+    val shaderSize = if (innerFade) VIDEO_SHADER_SIZE_INNER_FADE else VIDEO_SHADER_SIZE
     val gammaValue = String.format(Locale.US, "%.2f", gamma)
     val saturationValue = String.format(Locale.US, "%.2f", saturation)
     val (ditherScale, ditherGuard, outputConversion) = when (outputPrecision) {
@@ -200,6 +228,14 @@ internal fun paddedVideoShader(
             .replace("vec3 q=OUTPUT_CONVERSION;", "vec3 q=c;")
             .replace("color.rgb=clamp(q+n,0.,1.)*fFadeAmount;",
                 "q=clamp(q+n,0.,1.);color.rgb=$convertedQ*fFadeAmount;")
+    }
+    if (innerFade) {
+        val uniformAnchor = "layout(location=6) uniform vec4 UniDitherOffsets;\n"
+        require(uniformAnchor in template) { "Inner-fade anchor missing from the video shader template" }
+        template = template.replace(
+            uniformAnchor,
+            uniformAnchor + "layout(location=14) uniform vec4 vInnerFade;\n",
+        )
     }
     if (foveaGate) {
         // Legacy pixel weight in both layers: insert the compact uvmask-derived weight
@@ -224,22 +260,26 @@ internal fun paddedVideoShader(
         .replace("DITHER_GUARD_VALUE", if (dither == VideoDitherMode.OFF) ditherGuard else ".0157")
         .replace("OUTPUT_CONVERSION", outputConversion)
         .toByteArray(Charsets.US_ASCII)
-    if (src.size > VIDEO_SHADER_SIZE) {
-        throw PatchException("Calibration shader exceeds $VIDEO_SHADER_SIZE bytes (${src.size})")
+    if (src.size > shaderSize) {
+        throw PatchException("Calibration shader exceeds $shaderSize bytes (${src.size})")
     }
-    return src.copyOf(VIDEO_SHADER_SIZE).apply {
-        for (i in src.size until VIDEO_SHADER_SIZE) this[i] = ' '.code.toByte()
+    return src.copyOf(shaderSize).apply {
+        for (i in src.size until shaderSize) this[i] = ' '.code.toByte()
     }
 }
 
 internal fun isOledCalibrationShader(prefix: ByteArray): Boolean {
+    // The 1206-byte block is the 5002527 prefix, which also declares vInnerFade at stock location 14.
+    val innerFade = prefix.size == VIDEO_SHADER_SIZE_INNER_FADE
     val text = prefix.toString(Charsets.US_ASCII)
     val gamma = Regex("c=pow\\(clamp\\(c,0\\.,1\\.\\),vec3\\(([0-9]+\\.[0-9]{2})\\)\\);").find(text)
         ?.groupValues?.get(1)?.toFloatOrNull() ?: return false
     val saturation = Regex("c=clamp\\(mix\\(vec3\\(y\\),c,([0-9]+\\.[0-9]{2})\\),0\\.,1\\.\\);").find(text)
         ?.groupValues?.get(1)?.toFloatOrNull() ?: return false
     return gamma in .5f..2.5f && saturation in 0f..3f &&
-        prefix.contentEquals(paddedVideoShader(gamma, saturation, VideoOutputPrecision.SRGB8_HIGHP))
+        prefix.contentEquals(
+            paddedVideoShader(gamma, saturation, VideoOutputPrecision.SRGB8_HIGHP, innerFade = innerFade),
+        )
 }
 
 private fun ByteArray.indicesOfSubarray(pattern: ByteArray): List<Int> {
@@ -252,7 +292,7 @@ private fun ByteArray.indicesOfSubarray(pattern: ByteArray): List<Int> {
     return matches
 }
 
-internal fun findVideoShader(bytes: ByteArray): Int {
+internal fun findVideoShader(bytes: ByteArray, shaderSize: Int = VIDEO_SHADER_SIZE): Int {
     val extensionMatches = bytes.indicesOfSubarray(SHADER_EXTENSION)
     if (extensionMatches.size != 1) {
         throw PatchException("Expected one video GLSL extension marker, found ${extensionMatches.size}")
@@ -263,10 +303,10 @@ internal fun findVideoShader(bytes: ByteArray): Int {
         pos + SHADER_VERSION.size <= bytes.size &&
             bytes.copyOfRange(pos, pos + SHADER_VERSION.size).contentEquals(SHADER_VERSION)
     } ?: throw PatchException("Video GLSL version directive not found before extension marker")
-    if (shaderPos + VIDEO_SHADER_SIZE >= bytes.size || bytes[shaderPos + VIDEO_SHADER_SIZE] != 0.toByte()) {
+    if (shaderPos + shaderSize >= bytes.size || bytes[shaderPos + shaderSize] != 0.toByte()) {
         throw PatchException(
             "Video GLSL block at 0x${shaderPos.toString(16)} lacks expected " +
-                "$VIDEO_SHADER_SIZE-byte NUL boundary",
+                "$shaderSize-byte NUL boundary",
         )
     }
     return shaderPos
@@ -431,7 +471,7 @@ val oledCalibrationPatch = rawResourcePatch(
                     "expected ${layout.fileSize}",
             )
         }
-        val shaderPos = findVideoShader(bytes)
+        val shaderPos = findVideoShader(bytes, layout.shaderSize)
         val (selectedGamma, selectedSaturation) = when (profile) {
             "initial" -> 1.06f to 1.12f
             "final-balanced" -> 1.20f to 1.45f
@@ -445,7 +485,8 @@ val oledCalibrationPatch = rawResourcePatch(
         val foveaMode = if (foveaVdLike == true) FoveaMode.INPUT_10BIT else FoveaMode.OFF
         val precision = VideoOutputPrecision.SRGB8_HIGHP
         val shaderPatched = bytes.copyOf().apply {
-            paddedVideoShader(selectedGamma, selectedSaturation, precision).copyInto(this, shaderPos)
+            paddedVideoShader(selectedGamma, selectedSaturation, precision, innerFade = layout.innerFade)
+                .copyInto(this, shaderPos)
         }
         file.writeBytes(
             applyVdSdrFovea(

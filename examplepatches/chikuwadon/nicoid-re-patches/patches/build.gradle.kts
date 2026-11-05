@@ -274,25 +274,12 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
     classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory })
     mainClass.set("e.e.a.HistorySortRulesTest")
 }
-val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
-    dependsOn(verifyInvocationContracts, verifyPopupCallbacks, verifyDialogArguments, verifyListClickRouting, verifyMaintenancePayload, verifyExplicitQueues, verifySettingsIntegrity, verifySeriesQueue, verifyCacheMode, verifyPlaybackMenu, verifyHistorySort, verifyHistoryMetadata, verifyHistorySortOptions, verifyOtherSettingsOrder, verifyCrashDiagnostics)
-    doLast {
-        val dex = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex").get().asFile
-        check(dex.isFile && dex.readBytes().take(4).toByteArray().contentEquals(byteArrayOf(0x64, 0x65, 0x78, 0x0a))) {
-            "Merged nicoid helper DEX is missing or invalid"
-        }
-        val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
-        val dexText = String(dex.readBytes(), Charsets.ISO_8859_1)
-        check(dexText.contains("v$version")) { "Patch version is missing from the compiled settings helper" }
-        listOf("setMeasureBasedOnAspectRatioEnabled", "CENTER_CROP", "@chikuwadon",
-            "nvapi.nicovideo.jp/v2/search/video", "selectContentType", "shortUrl", "controlsTapped", "postDelayed").forEach { marker ->
-            check(dexText.contains(marker)) { "Compiled helpers are missing expected Shorts/settings behavior: $marker" }
-        }
-        listOf("DynamicTheme", "ModernDebug").forEach { marker ->
-            check(dexText.contains(marker)) { "Merged helpers are missing the existing support class: $marker" }
-        }
-        dex.copyTo(rootProject.file("patches/src/main/resources/nicoid/helpers.mpe"), overwrite = true)
-    }
+val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
+    val revision = rootProject.file("porting/revisions/v1.10.1")
+    val payloads = rootProject.file("patches/src/main/resources/nicoid")
+    inputs.dir(revision)
+    outputs.files(payloads.resolve("helpers.mpe"), payloads.resolve("method-delta.dex"))
+    commandLine("bash", revision.resolve("build-payloads.sh"), payloads)
 }
 
 tasks {

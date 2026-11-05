@@ -111,7 +111,7 @@ currently emit messages.
 Original: `../OriginalApps/NuvioTV-1.1.0-beta7.apk`, SHA-256
 `a35eb5033615018f50f5205dc51f52e526b3b606f7e563943201dfbd7366d1f2`.
 The original manifest confirms package/version. All five original DEX files were
-searched; inspection notes are under `../.inspect-nuvio-beta7/preferred-*.txt`.
+searched; inspection notes are under `../Skills/inspection-evidence/.inspect-nuvio-beta7/preferred-*.txt`.
 Only beta.7 support is added.
 
 - Instance `Lba/m4;-><init>(I,List,Z,List,Z,List,DebridSettings)V` owns the

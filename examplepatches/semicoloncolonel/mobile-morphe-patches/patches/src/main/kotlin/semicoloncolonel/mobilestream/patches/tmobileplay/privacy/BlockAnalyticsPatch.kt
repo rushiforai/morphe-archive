@@ -24,8 +24,7 @@ private const val APPTENTIVE = "Lapptentive/com/android/feedback/Apptentive;"
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops T-Mobile Play's usage events, Firebase Analytics, and Apptentive surveys. " +
-        "Sign-in and the feeds are left alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

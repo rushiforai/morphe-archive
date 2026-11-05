@@ -32,6 +32,17 @@ internal fun BytecodePatchContext.patchRefreshTargets(version:String){
     }
     check(keys==1&&names==1)
     scheduler.methods.add(copy)
+    // Only the original one-shot patrol entry gets this hook. The selected-work
+    // copy above must not enqueue itself; periodic native work is untouched.
+    native.addInstructions(0,"invoke-static/range {p0 .. p0}, $TARGETS->enqueue(Landroid/content/Context;)V")
+    if(old){
+        // 191 handles pull/re-fetch in the concrete fragment before its base
+        // toolbar dispatcher (where the existing extension hook lives).
+        val dispatch=mutableClassDefBy("Lo/pa;").methods.single{
+            it.parameterTypes==listOf("I","Ljava/lang/Object;")&&it.returnType=="Z"
+        }
+        dispatch.addInstructions(0,"invoke-static/range {p0 .. p1}, $TARGETS->refresh(Ljava/lang/Object;I)V")
+    }
     val worker=mutableClassDefBy("Ljp/syoboi/a2chMate/autocheck/AutoCheckWork;")
     val ctor=worker.methods.single{it.name=="<init>"}
     val instructions=ctor.implementation!!.instructions.toList()

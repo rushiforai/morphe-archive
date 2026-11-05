@@ -1,5 +1,73 @@
 # 主開発先と統合状況
 
+2026-11-04 共有NG再利用/SAF候補を実機191更新: 利用者の導入指定、730eae72/XIG05の既存jp.co.airfrt.android.chMate.haiagartuへ同一署名install-r Success（22:02:24 JST）。台帳と端末旧APK署名一致、native NG hook検査PASS、導入後APK hash一致、HomeActivity cold起動ok、新規対象fatalなし。APK SHA256 11a058d42ef655e4f21a1977db8b45c8de7b8b70478867562172538f08fefe2b、MPP d4428ce794f1b1ef457038ba9f52b13417ce4cbd070cec26de2e636b38729000。firstInstallTime保持/アンインストール・データ消去なし。SAF実選択/共有NG表示・速度未確認、公開なし。台帳とdocs/incremental-shared-ng-saf-20261104.md。
+
+2026-11-04 再表示共有NGの入力/判定再利用・SAF保存先再選択（未公開）: 利用者の新着だけ判定と任意フォルダ変更要望。shared-only経路で191/226/242 raw入力をimmutable index専用のcontent cacheへ、同条件/同内容のHTML/Input作成を省略。最大4096件/キー400万文字、条件/除外更新でindex置換、本文変更/追加分は再評価、regex非一致はtimeout可能性のため再評価。標準/プログラムNG連鎖は維持し必要時preview準備。host追加3017/index10306/regex17/除外263成功、通常Lint最終build3m4s、MPP CRC/cache/SAF extra同梱成功。自動backupは固定先なし、前回URIを渡さない再選択ボタン・無効grantのhint除外・primary直下ラベル・tree確認を追加。候補build/haiagaru-incremental-ng-saf.mpp。Android判定/SAF保存取消/速度未確認、APK生成/導入/公開なし。docs/incremental-shared-ng-saf-20261104.md。
+
+2026-11-04 検証用プレ1.23.0-dev.12公開・配布検証完了: 実装d6c5f61、Semantic Release CI41827274812のRelease/Attest success、生成5cdb378をdevへFF。2026-11-04 21:19:47 JST、name=1.23.0-dev.12（検証用）/draft=false/prerelease=true。公開6asset size/digest/SHA256・MPP/ZIP CRC・NgPlainTextCacheSettings/容量key/前版検索・URL・AA同梱、作業環境パス不在確認。MPP SHA256 9946d955a96b9e77d8bceef0def998f8e73c6d73988df37cc4a1cfe833b3f6d6。dev両feedはdev.12、master/main両feedは正式1.22.1維持。任意3ZIPはdev.9と同一。静的/検証用方針で端末の基本動作・設定操作・速度未確認を公開冒頭明記。公開MPP再適用/端末導入/GAS変更なし。build/release-1.23.0-dev.12-verify/verification.json、docs/shared-ng-input-preparation-20261104.md参照。
+
+2026-11-04 共有NGテキスト再利用の上限設定（未公開）: 利用者の任意指定要望でオンライン共有NGへ再利用設定を追加。件数/容量（入力+変換結果のUTF16文字数）を0〜最大int、初期512/1000000。どちらか0で無効、保存で即configure/LRU縮小・初期値入力復帰・キャンセル無変更。programmable-ng prefsで既存backup設定カテゴリ対象、呼出しごとのprefs読込なし。host5020成功（上限0/再有効化/縮小/最大int/変換中無効）。Android設定操作/backup往復/速度は未検証。docs/shared-ng-input-preparation-20261104.md参照。
+
+2026-11-04 共有NG有効時のHTML入力準備を追加最適化（未公開）: 利用者のgreta.5ch.io/poverty/1793682328でdev.11でも重い報告。全レスのHTML→plainを最大512件/入出力合計100万UTF16文字の内容キーcacheへ（変換中lockなし、NG判定結果は保存しない）。226はflag確認時responseDataで本文/名前再変換していたため既存l番号だけ取得へ変更、hookの型確認済み。共通変換は191/226/242。cache5014・index10306・regex17・除外263成功。通常Lint build2m21s、MPP CRC/cache同梱成功。候補build/haiagaru-shared-ng-input-preparation.mpp。端末Html/実スレ/起動描画/速度・改善未確認、APK生成/導入/公開/GAS変更なし。docs/shared-ng-input-preparation-20261104.md。
+
+2026-11-04 検証用プレ1.23.0-dev.11公開・配布検証完了: 共有NG大量文字列検索f28f244とURL遷移432052bを既存Semantic Release CI41823578007で公開、Release/Attest success、生成01ce123をdevへFF。前回タグpushのGitHub障害から回復し、API name=1.23.0-dev.11（検証用）/draft=false/prerelease=true、2026-11-04 20:51:17 JST公開。公開6asset size/digest/SHA256・MPP/ZIP CRC・NgLiteralMatcher/URL経路helper/AA class&hook同梱・作業環境パス不在を確認。MPP SHA256 8a4a7201b4647f8c0a0cb3b3ad40b8619fed33370ace207b84225e6542e3d472。dev両feedはdev.11、master/main両feedは正式1.22.1維持。任意3ZIPはdev.9と同一。静的/検証用指定に従い端末の基本動作/クラッシュ/実速度未確認を公開冒頭明記。公開MPP再適用/端末導入/GAS変更なし。build/release-1.23.0-dev.11-verify/verification.json参照。
+
+2026-11-04 NG多数スレの共有通常文字列検索を最適化（未公開）: NGWord数だけ全文contains走査する経路へNgLiteralMatcherを追加。8語以上はUTF16 Aho-Corasick、少数/200000文字超は従来検索。名前/tripも共通適用。board/票/除外/失効/正規表現/標準NG/連鎖の意味は保持、191/226/242共通extensionのみ。literal等価95552・index10306・regex17・個別除外263成功。ホスト合成2000条件/非一致5500UTF16/1000回は2225.991→19.9041ms（Androidや遷移時間ではない）。通常Lint build2m21s、MPP CRC/matcher同梱成功。候補build/haiagaru-shared-ng-many-rules.mpp。端末動作/実速度/標準NG多数の主因は未確認、導入/公開/GAS変更なし。docs/shared-ng-many-rules-20261104.md。
+
+2026-11-04 スレURL修正プレ公開はGitHub障害で未完了: 実装432052bをdevへpushし既存Release CI41818640185実行、Semantic Releaseのgit push --tagsでGitHub Internal Server Errorによりdev.11タグ作成失敗。生成branch commit3e96489は取得済み。再実行attempt2は古いheadからpublishなしでcompile検証中、最新devからworkflow_dispatchしたCI41820222878でも11:23:39 UTCに同じタグpushのInternal Server Errorで失敗。生成98861c4をFF取得。dev.11 Release/APIとtagは404、asset検証未実施。CI生成feed/versionはdev.11を指すため配布可能と判断しない。生成ファイル/タグを手動編集せず保持。ログbuild/thread-navigation-release-failure.log・thread-navigation-release-dispatch-failure.log。コードbuild成功/host87と公開失敗は別。GitHub復旧後に最新devから既存release.ymlを再実行し、release/assets/feedを検証する必要がある。
+
+2026-11-04 本文中スレURL遷移の90日判定を修正（未公開）: 191報告URL egg.5ch.io/android/1784210927 は約110日前で、残っていた90日超の遷移前DAT取得/itest書換え条件に一致。現行hostは年齢で前置取得せずnative画面先行へ、既存DAT workerのarchive fallback保持。閉鎖旧サーバー/2ch.net・Talk/VIPの復旧は維持。191/226/242共通extensionのみ、新規hookなし。host87成功、通常Lint build2m30s、MPP CRC/helper同梱成功。候補build/haiagaru-thread-link-navigation.mpp SHA256 3c7236f905ad3d770f7e4054dc2eac09a801719d2a860ebb8a3065cd25c50edd。APK生成/端末導入/リンクタップ実時間/公開/GAS変更なし、実端末での主因確定・改善は未確認。docs/thread-link-navigation-20261104.md参照。
+
+2026-11-04 検証用プレ1.23.0-dev.10公開・配布検証完了: 実装2cfe5d3、Semantic Release CI41813804375のRelease/Attest success、生成347c58bをdevへFF。API name=1.23.0-dev.10（検証用）、draft=false/prerelease=true。公開6asset size/digest/SHA256・ZIP/MPP CRC・AA最適化class/hook同梱確認、作業環境パス残存なし。MPP SHA256 8b4b57e1af16e4d0c1549a4b4ecb8c6b9b24bede2da6a0dd41f007a7a6903a29。dev両feedはdev.10、master/main両feedは正式1.22.1維持。任意3ZIPは公開dev.9と同一。静的/検証用公開指定に従い、端末起動/本文/画像/設定切替/速度未確認・遅延主因未特定を公開冒頭明記。公開MPP再適用/実機導入/GAS変更なし。詳細docs/unread-initial-display-work-20261104.md・build/release-1.23.0-dev.10-verify/verification.json。
+
+2026-11-04 未読最適化226/242追加確認（未公開）: 両版の未パッチ本体AA判定も191と同一文字範囲/比率と確認し、固定ownerへ同じ最適化を追加。3版ともnullのみ保持したnativeへ委譲。通常Lint build1m11s、最終3版適用/署名/元命令・register/null分岐検査成功。原本bytecode限定評価は各70326件一致、Java参照296911+null再成功。最終MPP 7f33fe3d952958748119cc22f565afe695f878ec31cb75e9d0037d149b6914df、CRC正常。追加症状は「初期設定は開くまで、最低限構成は開いた後」「本文待ち/操作のどちらかは不明」であり主因未特定。端末導入・実描画/速度・公開なし。docs/unread-initial-display-work-20261104.md参照。
+
+2026-11-04 未読多数スレの本文表示前処理を静的最適化（未公開候補）: 利用者がfilter拡張OFFでも遅いと補足し本体最適化を許可。原因断定せず、countsOFFで全レスURL分類/件数用HTML変換、件数/人気popup/directすべてOFFでnative人気snapshotコピーを省略。modern snapshotに無効時raw通過、ONで再構築・遅延集計。191本体AA判定へ同一結果の早期確定、元命令保持。人気host7/AA等価296911+null成功、通常Lint build2m14s、191最終適用/署名/元命令・wrapper register検査成功。候補MPP 930c13adaba1462d7bdc06424391474d17dd7f8d48bb6409cf7e8e39e47e3b77。226/242最終適用・端末の速度/描画/切替/導入・公開は未実施。詳細docs/unread-initial-display-work-20261104.md。
+
+2026-11-04 検証用プレ1.23.0-dev.9公開・配布検証完了。実装966f66e、Semantic Release CI41801477930/Attest success、生成c2a78ebをdevへFF。API name=1.23.0-dev.9（検証用）、draft=false/prerelease=true。公開6asset size/digest/SHA256・CRCと除外tag/本文cache修復ラベル同梱確認。MPP SHA256 9ca0276515379f619be52ae67042c7d57e6fa937f4229cf7400149f83757bf82。dev両feedはdev.9、master/main両feedは正式1.22.1維持。ユーザーの静的/検証用指定に従い、最終端末導入・実ZIP往復・板移行/常設filter/cache修復/速度未検証を冒頭明記。先行共有NG3版操作試験とは区別。実機/GAS/投稿変更なし。詳細docs/pinned-filter-board-backup-20261104.md・build/release-1.23.0-dev.9-verify/verification.json。
+
+2026-11-04 常設filter/既復元cache手動修復/板お気に入り/native設定backup（未公開候補）: 表示復帰/overlay detachedを描画前に検出し250ms制限で復旧、必要時のみbringToFront。設定に本文cache整合修復（履歴退避・worker・再起動後巡回、本文自動取得なし）。snapshotにboards追加/通常復元で既存flag/orderのみ/不足分同期既存優先。標準prefs許可リスト固定の3版ownerを特定、package変更に一致する保存名へ定数1個置換。共有NG先行修正保持。通常Lint最終build3m14s/CRC正常、最終MPP build/haiagaru-backup-filter-fixes.mpp SHA256 d921a3e5d964c15c01812322c7ba7ed4533fa703d4935100f378d535e76b5388。先行candidate3版適用・native設定名定数以外命令/register/offset保持成功、最終候補APK導入/ZIP復元/症状解消未確認。詳細docs/pinned-filter-board-backup-20261104.md。
+
+2026-11-04 共有NG除外の標準一覧へ変更（未公開候補）: dev.8でもcheck不可の追加報告。2入口をnative AlertDialog/ListView/CheckedTextViewへ、ID基準選択/bind checked/clear再構築でCompose変換を回避。通常Lint build2m21s・3版適用/署名照合更新。親検証menu実タップ→本番handle/dialog、チェック右端/文字の実表示/保存、12条件検索/隠れ保持/再表示成功。検索15/UA21各版、新規app crashなし。設定/static/network復元・AVDデータ保持停止。実スレ長押し起点とは区別。UAは14/15/16を本番設定で再確認、4.0.3は移行判定のみ。実機未接続、利用版/画面質問中。詳細docs/shared-ng-native-choice-20261104.md・導入台帳。
+
+2026-11-04 検証用プレ1.23.0-dev.8公開・配布検証完了。実装7c78146、Semantic Release CI41787507505/Attest success、生成2edac33をdevへFF。API release name=1.23.0-dev.8（検証用）、draft=false/prerelease=true。利用者の静的修正・検証用公開指定に基づき、build/host97成功と実DB/表示/crash/速度未検証を冒頭へ明記。公開6asset size/digest/SHA256・CRC・RestoredThreadCache同梱確認。MPP SHA256 c2daef1db7bf4d69733daebbeb7af05972664d0e833440a2b6bbc5e2998426a6。dev両feedはdev.8、master/main両feedは正式1.22.1を維持。公開MPP再適用・端末導入なし。詳細docs/thread-open-restore-static-20261104.md・build/release-1.23.0-dev.8-verify/verification.json。
+
+2026-11-04 静的修正候補を検証用プレ公開へ: 利用者が「プレリリースして（検証用）として」と明示。端末検証省略の静的修正指定は維持。公開title/headerへ検証用、host97/build成功と実DB/表示/crash/速度未検証を明記。.releaserc既存github pluginのreleaseNameTemplateで今回dev.8だけ検証用suffix。既存Semantic Release CIで公開し、正式1.22.1維持。詳細docs/thread-open-restore-static-20261104.md。
+
+2026-11-04 スレ取得遅延の静的修正候補（未公開）: 利用者が静的に一回修正を指定。提供ZIP組合せ45 DAT欠落/正res_count、39件が191 native巡回省略の数値条件に一致。復元完了後に対象行のDAT欠落/空のみres_count=0へ整合、既読/サーバー数/マーク保持。ZIPはDAT展開後に遅延実施、JSON/不足分同期も対応。URL正規表現の再コンパイル/同一ループの設定再読込を削減。host97成功、通常Lint build2m13s/MPP CRC成功、ローカル候補build/haiagaru-thread-open-static.mpp SHA256 0d28771daeab8b3fec9a0471bdadbdfd4e8600f6499f6524d5fcad3178fe1847。修正後の端末計測/導入/公開はしない。詳細docs/thread-open-restore-static-20261104.md。
+
+2026-11-04 プレ版1.23.0-dev.7公開・配布検証完了。実装ca057c7、Semantic Release CI41782635101/Attest success、生成bf6a23bをdevへFF。draft=false/prerelease=true。公開6asset size/digest/SHA256・CRCと標準Android14 UA文字列同梱を確認。MPP SHA256 96c066a6bd73f78a207cc653374b8740977febbdbb753de0a6906600f68cba5a。dev両feedは1.23.0-dev.7、master/main両feedは正式1.22.1を維持。旧出荷4.0.3のみ移行、15/16/独自UA/ON-OFF保持。3版各21項目/host19成功、新規app crashなし。設定/ネットワーク復元・AVDデータ保持停止。実機/GAS/投稿なし。詳細docs/ua-android14-20261104.md・build/release-1.23.0-dev.7-verify/verification.json。
+
+2026-11-04 標準テンプレート更新（プレ公開準備）: BrowserUaTemplatesの4.0.3を14へ、旧出荷文字列だけresolve移行。15/16/独自UA/ON-OFF保持。新規bytecodeフックなし。通常Lint build2m19s/host nativeidentity19、3版適用・署名照合更新と各21項目成功。起動/設定menu/移行/HTTPヘッダー保持、新規app crashなし。設定/ネットワーク復元・AVDデータ保持停止。詳細docs/ua-android14-20261104.md、導入台帳。次に既存Semantic Releaseでdevプレ公開。
+
+2026-11-04 プレ版1.23.0-dev.6公開・配布検証完了。実装2560d34、Semantic Release CI41780370219/Attest success、生成47d9882をdevへFF。draft=false/prerelease=true、公開6asset size/digest/SHA256・CRC、ChoiceList/ThreadWatchManagement/期限フィールド同梱を確認。MPP SHA256 96db5182d471879b2b994c81b5c6004cbef862ec111aeadff157587007625f28。dev両feedは1.23.0-dev.6、master/main両feedは正式1.22.1を維持。VPN任意ZIPは1.21.1と同一。3版で実checkbox/文字チェック表示・保存、検索15/履歴48、通知22/設定9/返信11/backup40/native order10、監視一覧実タップ10操作成功。元命令保持・host115、新規app crashなし。設定/権限/表示/ネットワーク復元・AVDデータ保持停止。実機/GAS/投稿は変更なし。長押し通し試験は自動承認拒否のため未実施、直接本番dialogで検証。詳細docs/shared-ng-redraw-watch-management-20261104.md・build/release-1.23.0-dev.6-verify/verification.json。
+
+2026-11-04 共有NG再描画・通知監視管理・ツールバー保存順（プレ公開準備）: 内部true/実表示falseを191で再現、Dialog revisionを子描画へ伝達しChoiceListを条件ID基準へ。個別通知優先/監視一覧/新規初期7日期限/保守的dat落ち停止/期限backup追加、共有IDなしでも保存順適用。通常Lint build2m27s・3版署名照合更新。各版通知22/設定9/返信11/backup40/native order10・監視実タップ10操作成功。共有NGcheckbox/文字の実表示と保存・検索15/履歴48成功、native元命令保持、host115、新規app crashなし。権限/設定/ネットワーク復元・AVDデータ保持停止。詳細docs/shared-ng-redraw-watch-management-20261104.md。長押し通し起動は自動承認拒否のため未確認、直接本番dialogで検証。次に既存Semantic Releaseでdevプレ公開。
+
+2026-11-04 プレ版1.23.0-dev.5公開・配布検証完了。実装10e18d9、Semantic Release CI41763130598/Attest success、生成96fc798をdevへFF。draft=false/prerelease=true、6asset size/SHA256/digest・CRC・設定キーと対象クラス同梱確認。MPP SHA256 3cd96dd81c3b92e442d727a1dcb5e3f38ec9377e22d44f7bdb2e0af40ce37f9a。dev両feedは1.23.0-dev.5、master/main両feedは正式1.22.1を維持。VPN任意ZIPは1.21.1と同一。証跡build/release-1.23.0-dev.5-verify/verification.json。3版の共有NG実タップcheckbox/文字各切替保存成功、検索9/履歴48成功。実機症状全体の再現は未確認と区別。AVD設定復元/データ保持停止、GAS/投稿/正式Release変更なし。
+
+2026-11-04 履歴対象初期OFF・共有NGチェック直接操作（プレ公開準備）: defaultfalse読込/設定へ統一し保存済み選択保持。Compose ListViewチェック自体へperformItemClick callback追加、行タップとの二重反転なし。旧191/242は文字タップ成功・checkbox semanticsなし、ユーザー症状の全体再現とは区別。最終3版で実response dialogのcheckbox/文字タップ各OFF→ON→OFF/本番保存成功、検索9/履歴48各成功、新規app crashなし。通常Lint build2m20s/3版署名照合更新。docs/shared-ng-direct-checkbox-default-off-20261104.md・導入台帳。AVDデータ保持停止。次に既存CIでプレ公開。
+
+2026-11-04 プレ版1.23.0-dev.4公開・検証完了。実装0b0704c、Semantic Release CI41760677393/Attest success、生成履歴をdevへFF。draft=false/prerelease=true。公開6asset size/digest/SHA256・CRC、showRefreshTargetsInHistoryPopup設定キー/既存対象クラスの同梱を確認。MPP SHA256 d1751efa4f065ae64060b422356e09a55dd584bc6198cac86aacd3211f67f904。dev両feedは1.23.0-dev.4、master/main両feedは正式1.22.1を維持。VPN任意ZIPは既存1.21.1と同一。証跡build/release-1.23.0-dev.4-verify/verification.json。各版47項目成功・AVDデータ保持停止。実機/GAS/投稿/正式Release変更なし。
+
+2026-11-04 履歴対象タブ表示のオプション（プレ公開準備）: showRefreshTargetsInHistoryPopup初期trueを表示・操作と設定profileへ追加。OFFで対象cell全体をGONE、選択中ならスレへ復帰、ONで再表示。登録/更新/HOME対象は維持。通常Lint build2m37s、3版署名照合更新・各47成功、nativeHOME43/51/66メソッド全保持、新規app crashなし。原本build/local-development-records/history-target-option-installations.json、詳細docs/history-target-popup-option-20261104.md。AVD設定を戻しデータ保持停止、次に既存Semantic Releaseでプレ公開。
+
+2026-11-04 プレ版1.23.0-dev.3公開・配布検証完了。実装6dbc55f、Semantic Release CI41757579447/Attest success、生成1c9bf55をdevへFF。draft=false/prerelease=true。公開6asset size/digest/SHA256・CRC、HomeRefreshTargets/Tabs/対象ラベル/更新enqueue同梱・廃止Shizuku不在を確認。公開MPP SHA256 046cbc53a39e7b768ee0d78dc406b536a386d5747ebdcda2d4d8f033f239064f。VPN任意ZIPは既存1.21.1と同一。dev両feedは1.23.0-dev.3、master/main両feedは正式1.22.1を維持。証跡build/release-1.23.0-dev.3-verify/verification.json。HOME対象/★実表示比較3版と履歴各33項目成功、AVDデータ保持で停止済み。実機/GAS/投稿/正式Releaseは変更なし。
+
+2026-11-04 HOME対象スレ/履歴下部・選択表示 検証完了・プレ公開準備。HOME109を既存★108と同じsorterで抽出、登録集合共用。履歴下部のaccent下線/太字/文字色。191catalogアプリloader修正。最終Lint付きbuild32s・3版適用導入、履歴各33/HOME191/226各16・24214＋実表示XMLの対象/★独立比較成功、native43/51/66メソッド命令/branch/register保持、新規app crashなし。DB fixture試験は自動承認拒否で未実行、メモリ入力で完了。242は試験の結果stateへの直接入力を取り違えた一時p2候補を破棄し、正しいp1/native codeのまま再検証。詳細docs/home-refresh-targets-bottom-tabs-20261104.mdと導入台帳。次に既存Semantic Releaseでプレ公開。
+
+2026-11-04 履歴下部配置・選択表示・HOME対象スレ（作業中、未公開）: 利用者追加指示により履歴の5タブを下部へ、選択中はテーマ色の下線/文字色/太字。HOMEの★スレと同じカタログへ対象スレ109を追加、既存FavoriteThreadsフックを共用し102 snapshotから同じ登録集合で抽出、★表示は独立。HOME対象タブの更新は登録だけの本文取得。通常パッチbuild2m23s成功、3版へ適用済み、build/history-bottom-tabs.mppとhistory-bottom-tabs-{191,226,242}.apk。実行時検証はこれから。PC仮想メモリ不足でAVD/署名検査JVMが停止し、AVDをデータ保持・低メモリ・softwareGPUで再起動中。未検証のまま公開しない。scripts/home-refresh-targets-runtime.js（in-memory native row試験）と更新した履歴41項目の試験を準備。現在の公開版はプレ1.23.0-dev.2/正式1.22.1。
+
+2026-11-04 プレ版1.23.0-dev.2公開・配布検証完了。実装a0624fc、Semantic Release CI41745383637/Attest success、CI生成e0e9dddをdevへFF。Release draft=false/prerelease=true。配布6assetのsize/SHA256/digest・MPP/ZIP CRCと新Tabsクラス／enqueueフック／5ラベル同梱、廃止Shizuku不在、VPN任意ZIPが既存1.21.1と同一を確認。MPP SHA256 7599f447cf1c5e73bbfc8f4db35484690644735752f0c17a7f881ee3e258cc16。dev両feedは1.23.0-dev.2、master/main両feedは正式1.22.1を維持。証跡build/release-1.23.0-dev.2-verify/verification.json。検証AVDはWiFi ON/mobile OFFへ戻し、データ保持で停止。今回の実機/GAS/投稿/正式Release変更なし。
+
+2026-11-04 更新対象操作連動・履歴対象タブ（次プレ版候補）: 191具体dispatcherの入口と3版のnative更新ID、標準one-shot巡回schedulerへ連動。選択コピーへの再帰なし・3秒/KEEP重複抑制を保持。履歴はスレ／対象／板／書き込み／画像で同popup内の対象一覧へ。配布用通常Lint付きbuild38s成功、3版適用・署名照合更新。各版popup34・更新11・worker5成功、元命令/register保持、対象app新規crashなし。初期PCメモリ不足/root debug lint失敗、Frida型/enum/nonnullと監視位置の失敗は修正・再検証して区別。先行242タイトル欄の実画面未確認は残す。詳細docs/refresh-target-triggers-tabs-20261104.md、導入台帳。次に既存Semantic Release CIでプレ公開・asset/feed検証を行う。
+
+2026-11-04 プレ版1.23.0-dev.1公開・配布検証完了。Semantic Release CI41673167082 success、生成d44616aをdevへFF。Releaseはdraft=false/prerelease=true、配布6assetのsize/SHA256/digest・MPP/ZIP CRC・DEX・廃止Shizuku不在を確認。VPN任意ZIPは既存1.21.1と同一。dev両feedは1.23.0-dev.1、master/main両feedは正式1.22.1のまま。証跡build/release-1.23.0-dev.1-verify/verification.json。追加利用者要望（スワイプ・ジェスチャー更新対象連動、履歴の対象タブ）を次プレ版へ実装・検証中。
+
+2026-11-04 検索結果日時除外・更新対象履歴（プレ公開準備）: native検索結果タスクの独自日時判定を既存投影へ接続。旧191で本文非一致まで火検索に出る症状を再現、最終191／226／242各48項目成功。実履歴ポップアップの更新対象一覧・native URL復元・選択起動各21項目成功。4m6s通常Lint build成功、3版隔離更新。242タイトル操作のチェックを不透明パネルへまとめたが、報告画面の再確認は未完了（添付429、単独native sheet表示不可、追加診断表示試験が自動承認審査blocked by policy／詳細なしで拒否）。プレ版の残確認として明記。docs/search-results-refresh-history-20261104.md・台帳参照。
+
+2026-11-04 正式版1.22.1公開完了: 修正38dd511をdevからmasterへ通常merge e0bca27。既存Release CI41659758330のRelease／Attest成功、生成コミットをdevへFF取得。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.22.1 、draft=false／prerelease=false。公開6資材のGitHub SHA256 digest／サイズ全一致、ZIP／MPP CRC正常。MPP SHA256 eff72e08ac3789471e5828133d0ccf163f0f8abf10e0b022bfd86f2e6b5101c2、classes.dexあり、Shizuku資材なし。追加VPN ZIP2本は1.21.1とバイト一致。master／main／devの通常・pre JSON計6本は1.22.1・同一MPP URL。最終候補3版のカタログ等各12＋検索9と実タップ／本番保存成功。実機191は原因診断と一時表示補正6欄成功、最終APK実機更新／公式MPPからの再適用は未実施。build/release-1.22.1-verify/verification.json参照。
+
 2026-11-03 共有NG条件確認・除外チェック・したらばトリップ（公開準備完了）: 短い名称とnativeツールバーカタログ／表示・順番設定へ接続。チェック二重反転を修正。実機191のnative名前末尾U+0001がトリップへ混入する原因を確認、表示Identity一時補正で6欄強調成功、保存設定／DAT変更なし。77単体、最終3版各12項目＋実ComposeタップOFF→ON→OFF／本番保存成功、元命令／レジスター保持、crash空、通常Lint build4m27s。最終候補の実機更新なし。docs/shared-ng-toolbar-trip-controls-20261103.md・台帳参照。
 
 2026-11-03 正式版1.22.0公開完了: devからmasterへ通常merge39c10b0、既存Release CI41653052226のRelease／Attest成功。生成1be9ecfをdevへFF取得。https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.22.0 、draft=false／prerelease=false。公開6資材SHA256／サイズ一致・CRC正常、MPP 0a52610aff5e1e772d6a8ac967cf2b840d23ab733265bab753be5b945b74af0e。VPN ZIP2本は1.21.1とバイト一致、MPP内Shizuku資材なし。master／main／devの通常・pre更新JSON計6本は1.22.0と同じMPP URL。完成候補各125項目＋例外試験成功、実機導入なし。build/release-1.22.0-verify/verification.json参照。
@@ -947,3 +1015,56 @@ CI生成履歴をmaster/devへff取込、devへ戻した。検証AVDはデータ
 
 2026-11-03 通知・保存設定の移行、公開メタデータ整理（未公開）
 通知登録/間隔/確認済み件数を設定バックアップへ追加、通常復元/旧ZIP保持/双方向同期/Job再予約に対応。ローカル保存選択、自動バックアップON/保存先候補も保存、SAF権限待ちは書込停止・UI説明・再選択初期URI。191/242各通知40・設定23、242本文17とUI確認成功。通常build3m3s、MPPa740c9107937c79e7e916620a4c8154a66d86f113999510c22e192e0c62538d1。VPN JNIの作業パス・module置換メタデータを除去して再ビルド、Goテスト/API17class同一/ELF16KiB/JNI起動成功、公開文書20件を一般化しローカル指示は公開対象外。過去履歴/既存Releaseは改変しない。docs/portable-backup-settings-20261103.md、public-build-metadata-20261103.md、導入台帳。NG登録済み操作の新要望は調査を別途継続。公式Release/feed変更なし。
+
+2026-11-04 実機スレ表示遅延の調査継続（未公開）
+730eae72/XIG05/191の起動前FridaはART SIGSEGVで中断、停止後に通常起動へ復帰。標準method profilerはnot profileable、2回のatraceは上書きがあり速度値の根拠にしない。GC/major faultを観測したが主因未特定。利用者指定によりplainTextCacheEntries/Characters各999999999を維持。共有NGの正常regex非一致まで再判定される箇所を修正し、実timeoutのみ再試行。host3020/index10306/regex17/exclusion263成功、低メモリbuild56秒成功。詳細docs/thread-open-live-profiling-20261104.md。実機速度改善・ANR解消は未確認、公開なし。
+
+上記regex再利用候補を22:40:29 JSTに実機の同一署名packageへinstall-r更新成功。実APK SHA一致、native hook検査PASS、起動ok、新PID crash buffer空。利用者から「かなり早くなりました」と改善報告あり。設定維持、定量速度/初回と再表示の内訳/226・242実速度は未測定。APK/MPP/certはandroid-installations.mdに記録。公開なし。
+
+
+2026-11-05 通常プレリリース公開候補
+共有NG初回の必要文字列guard/HTML準備省略と正常regex非一致の再利用、レポーター単位の現在・将来の報告除外/解除/設定backup、報告数初期1（保存済み維持）、けんも板18コマンド、191最小構成の接続再利用抑止/高速IPfallback/進捗集約ON。ユーザー向け公開説明に識別子生成方式の変更は記載しない指示を維持。最終通常Lint/R8 build/shared-ng-minimal-191-final-build.log成功3m52s、MPP f4e8a11834fed916e604b5865ef4e3c6cf9961114fa0702c61176db1fee86136。host判定371723/再利用3024/index10306/regex17/条件除外263/レポーター20/けんも候補成功、server473成功。GAS v15の新旧capability互換GET成功。前候補の3版NG native hook検査と226実機12操作確認成功。Frida計測クラッシュは隔離して成功扱いせず標準Instrumentationへ切替。エミュレータはAPI36をデータ保持で起動後、PCメモリのため停止。利用者がエミュレータ設定変更の検証省略と先行配布を明示したため、最終191/226/242の起動/本文/画像・設定UIの再検証を省略し公開説明に確認範囲を記す。重大な通常操作の新規クラッシュは確認されていない。したらばのDNS一時エラーは利用者が解消を報告、追加修正なし。Semantic Releaseのdev pushで通常プレリリースを作成する。タグ/配布物の手動作成なし。
+
+
+2026-11-05 保存用スレの二重切替を廃止（プレリリース候補）
+保存用スレ選択ダイアログの「レス保存機能：オン／オフ」とその書込処理を削除。ResponseMenuSettings.visibleと保存確認・確定処理で旧responseArchiveEnabledを参照しないようにし、既存のOFF値が残る端末でもツールバーの各トグルに従う。既存の保存データ・設定値は削除せず、3版共通Javaのみ変更しnative hookは変更なし。通常一覧と保存先選択の作成/管理/次100件のindex分岐を静的確認。利用者が実機確認不要を明示したため今回の端末操作確認は省略。ビルドと公開配布物の検証後に公開結果を追記する。
+
+通常Lint/R8 build/response-archive-toolbar-final-build.log成功2m50s。MPP 83bb4c5b12bd341f9b16fe46abe370d8eab74cbc0764bcb4d8a591b5adef9388。ZIP CRC正常、配布DEXから旧ダイアログラベル消失・保存用スレ処理同梱を確認。引数のPowerShell解釈による初回build失敗は引用を修正後に再実行して成功。git diff --check成功。
+
+2026-11-05 通常プレリリース1.23.0-dev.14公開完了
+Semantic Release CI41857102039 success。実装5e2787e1、統合7fec8f15、生成043e78b9。中断された前CIのdev.13生成履歴をmerge保持し、タグ/Releaseの手動作成なし。公開MPP SHA256 5452b3be1eeefa6363f1d26dbd6a174d99127c148af1e1fca9f354b20d24baf3、GitHub digest一致・CRC正常・旧レス保存機能ラベル不在・新規共有NG関連クラス同梱・dev両feedのversion/asset一致。prerelease=true/draft=false/通常タイトル、公開説明に識別子生成方式の記載なし。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.23.0-dev.14 。
+
+けんも板の通知追加要望を調査。既存の汎用test/read.cgi対象判定・スレタイボタン・subject/DAT取得がkenmo.orgにも適用され追加実装不要。指定1793798226でlive GETのsubject/DAT各200・Shift_JIS、既存parserで237件/タイトル/直近3件を読み取り成功（新着実通知の端末試験ではない）。Dalvik/Java/Monazilla各UAも200。Python標準UAは403のため対応UAへ変更。指定URL正規化・fromParts・subject/DAT/板root除外を回帰テストへ追加しThreadWatchRules66成功。利用者指定により端末操作確認省略。
+
+
+2026-11-05 242サムネイルの開始callback消去を修正（プレリリース候補）
+詳細thumbnail-third-loading242-20261105.md。既存2guard後のAsyncTask onPreExecuteから3回目のbitmap消去が残存。固定クラスの1invokeのみguardへ変更、register/元完了命令保持検査成功。Lint/R8 build3分成功。emulator-5580で修正前消去1項目、修正後106項目成功。元動画と同じ自然連続点滅/最終目視/実機は未確認。System UI ANRと試験側の初期失敗、追加画面操作の自動承認拒否（具体理由なし）を詳細へ記録。MPP 4aa26499fb00f76e6ea9928ea8127e6dc9a250f08c496e2c5bab238f0cd9eb2f、APK b0519ab3c229d587f9fe409c6422ad443eea2fabf3ec29befaaa77726b1d4a36。
+
+2026-11-05 公開処理待機
+修正commit0f6e2140をorigin/devへpush済み。Semantic Release CI41864064857はqueued、GitHub公式statusでActions degraded_performance / Incident with Actions and Pages investigatingを確認。公開成功/版番号は未確定。ジョブ開始後はCIが公開を実施するため、手動タグ/Release/assets作成なしで継続可能。次回は同runの結果を確認し、成功後に実Release assetのdigest/CRC/3番目のcallback保護同梱/feedを検証する。今回ローカルの重大な未解決クラッシュはなく、エミュレータのSystem UI ANRと広い画面試験未確認は前記の通り。AVDはデータ保持で停止済み。
+
+2026-11-05 通常プレリリース1.23.0-dev.15公開確認
+上記queued表示は実際の処理状況と不一致。git fetchで生成commit c3bfda0f/tag1.23.0-dev.15、GitHub Releaseと配布assetの作成を確認。APIはなおqueuedを返すためCI successと断言せず、公開実体を検証。公開MPP SHA256 d2df76115f763ddb99c7b3c86ac317a3e22b69317da5af5d3627aeb36cb619ab、GitHub digest一致・CRC正常・3番目callback用検査文字列同梱・dev両feedのversion/URL一致。prerelease=true/draft=false/通常タイトル。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.23.0-dev.15 。前記の実機/自然発生/最終目視の未確認は維持。
+
+
+2026-11-05 正式版候補: 全版サムネイル保持・アーカイブ選択復元・Shizuku復元
+利用者が242/dev.15で解消を報告。191/226でも自動再取得と通常同URLbindの先行消去を特定し固定クラスへ限定guard/bridgeを追加、各39メソッドの元命令/レジスター保持・242の3guard/完了callback検査成功。標準Instrumentationで191/226各110・242106項目成功。詳細thumbnail-all-versions-20261105.md。
+ローカルbackup/アーカイブ設定へフォルダ/ZIP取り込み追加。DAT/IDXと構造を保持し対象個別/全選択、確認して同名ファイルを上書き。全読込/CRC検査後に反映しIOException時は旧内容をrollback。元/未選択を保持。末尾ZIP階層/コロン付きタイトルの処理はhost36項目で確認。
+任意Shizukuパッチを旧版から復元・minSDK24/API13以上。移行元package選択、共有files/2chMateのroot項目を個別/全選択、AtomicFile上書き。読み取り専用source・canonical境界検査、targetのUID修復も現在アプリ領域に限定。通常構成には含めない。
+API36/emulator-5580、226でShizuku選択APKの起動・合成SAFとZIPの復元8・合成AIDLサービスの選択上書き9項目成功。実Shizuku認証/別アプリ実データ全移行は未確認。191の最初の未初期化theme、226のabstract theme生成失敗は試験側修正後に再成功。過去bootanimation PID570のnative abortをcrash bufferで観測したが、今回ChMateの新規fatalはなし。AVDはデータ保持で停止、実機操作/実ユーザーデータ移行なし。
+利用者がクラッシュ等の最低限確認後の公開を明示したため広い再試験を省略。最終2つの純粋ZIPパス処理と、破棄Activityへの完了Dialog抑止は36host項目/ソース/最終MPP文字列で追加検証し、APK3版の重複再生成を省略。公開説明には実Shizuku未確認を明記。
+最終通常Lint/R8 build/official-migration-release-build.log成功2m57s、91tasks。MPP 21910c46ebd2953347d472b3bc72c2bd9a1fd515098984bc725c3684d772ee5a、CRC/新機能/任意Shizuku/完了guard同梱確認。端末試験MPP 38c864bb5955a1b9569a6c70671feddc7e471a3276bae81506bcab52b00691f8 と区別。既存Semantic Releaseでdev→master正式公開へ進む。
+
+2026-11-05 1.23.0正式公開・配布検証完了
+実装a91d8816、master統合6cb72386、Semantic Release CI41941761473 success、生成ef83352c・tag1.23.0。手動tag/Release/assets操作なし。公開MPP SHA256 f5cfd046acb7bf11b6b3a6652f13802313f965124cb1a014549c024b1c76a5e4、GitHub digest一致・CRC正常。新アーカイブ移行3class、任意Shizuku/API setter/完了guard、191/226/242サムネイルフック同梱を検査。draft=false/prerelease=false/latest1.23.0、通常title。bodyに利用者指示の識別子生成方式の記載なし。
+既存backmergeでmaster→dev/mainを確認。GitHub contents APIで3branch×両feed計6件が正式1.23.0と同MPP URLを参照。build/official1230-public/release.json・verification.json・feeds.json。CI生成履歴をff取込、devへ復帰。実機インストールなし、AVDはデータ保持停止。
+正式URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.23.0 。
+
+2026-11-05 検索Backとサムネイル再生マークを修正（未公開）
+191/242の検索入力用Back callback更新を、スレ画面overrideから親へdelegateする1命令を追加。226はprivate updaterのため変更なし。3版の通常bindで保持bitmapのnative GIFマークを消さず、URL変更時は旧GIFマークを消去して別画像へ持ち越さない。動画用nativeマーク・元完了/手動再取得は保持。Lint/R8 build3m37s成功、3版適用/元命令・register保持検査成功。API36/emulator-5580の標準Instrumentationで旧版の欠落を確認後、191123/226121/242121項目成功、crash buffer空。実スレ起動コマンドは自動承認レビューで拒否（詳細理由なし）、合成試験へ限定し実機・キーボード連続操作の目視未確認。詳細search-back-playback-overlay-20261105.md、導入台帳。MPP2a508401850fb4f5ea5c06359637a53cc5c668cc9fe1fbe4986d7217ba1443af。Release/feed変更なし。AVDはデータ保持停止。
+
+2026-11-05 外部板の認証メニューを初期ON（未公開）
+showExternalBoardAuthMenuの未設定時既定値を、投稿設定のSwitchとpreparePostingMenuの両方でtrueへ変更。他のメニュー設定の初期値と保存済みON/OFFは保持。:extensions:chmate:compileReleaseJavaWithJavac成功55秒、git diff --check成功。既存共通Javaの既定値のみ変更しnative hook/端末データ変更なし。MPP再生成・端末導入・公開なし。なお先の検索/再生マークの利用者報告は発生版不明・実症状未確認との補足あり。合成試験で確認した経路と報告症状の因果は未確定として扱う。
+
+2026-11-05 1.23.1公式公開候補
+利用者が公式公開を明示。検索Back/サムネイルマーク修正と外部板認証メニュー初期ONを含め、既存.releasercの公開説明を今回の差分・確認範囲へ更新。最終通常Lint/R8 :patches:build/:patches:buildAndroid成功2m36s・91 tasks、MPP CRCと新native helper/設定key同梱検査成功。検索/サムネイルは直前の3版native命令・register保持/標準Instrumentation365項目/新規crash空の確認を使用。最後の初期値2行はJavaコンパイルと今回最終buildで検査し端末再導入は省略。実機・実スレでの連続操作と利用者症状との因果は未確認として公開説明に記載。公式CIでdev→master、手動tag/Release/assets/feed編集なし。

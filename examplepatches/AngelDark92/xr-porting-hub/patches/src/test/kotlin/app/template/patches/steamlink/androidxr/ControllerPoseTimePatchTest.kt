@@ -24,7 +24,9 @@ class ControllerPoseTimePatchTest {
 
         assertContentEquals(byteArrayOf(0x7f, 0x45, 0x4c, 0x46), library.copyOfRange(0, 4))
         // extensions/controller-pose-time-layer, NDK 27.2.12479018, arm64-v8a, Release.
-        assertEquals("116b27b6b9b36483887b368e12f3fdcb5d8c6ff57520a329844a02ebd0214b2b", sha256(library))
+        // The same source plus the 2.0.24/5002527 scene profile; the unmodified source rebuilt
+        // bit-identically to the previous 116b27b6... payload with this toolchain first.
+        assertEquals("351f216d332e0e25ed4b5b66943ea40ba438f17c277588b1205e3fb2a1d865cf", sha256(library))
         val text = String(library, Charsets.ISO_8859_1)
         assertTrue("xrNegotiateLoaderApiLayerInterface" in text)
         assertTrue("/system/lib64/libopenxr_android.so" in text)
@@ -87,7 +89,7 @@ class ControllerPoseTimePatchTest {
             setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
                 "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
-                "2.0.24" to 5002395,
+                "2.0.24" to 5002395, "2.0.24" to 5002527,
             ),
             compatibilities.flatMap { it.targets }.map { it.version to it.versionCodes!!.values.toSet().single() }.toSet(),
         )
@@ -104,6 +106,9 @@ class ControllerPoseTimePatchTest {
         assertNotNull(controllerPoseTimeScene("2.0.22", "5002244"))
         assertNotNull(controllerPoseTimeScene("2.0.23", "5002363"))
         assertNotNull(controllerPoseTimeScene("2.0.24", "5002395"))
+        assertNotNull(controllerPoseTimeScene("2.0.24", "5002527"))
+        listOf("2.0.24" to "5002526", "2.0.24" to "5002528", "2.0.23" to "5002527", "2.0.25" to "5002527")
+            .forEach { (version, code) -> assertNull(controllerPoseTimeScene(version, code), "$version/$code") }
         listOf("2.0.20" to "5002363", "2.0.23" to "5001712", "2.0.23" to "5002364",
             "2.0.24" to "5002363", "2.0.24" to "5002394")
             .forEach { (version, code) -> assertNull(controllerPoseTimeScene(version, code), "$version/$code") }

@@ -12,12 +12,10 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import dev.hyzor.patches.chesscom.misc.settings.settingsPatch
 import dev.hyzor.patches.chesscom.shared.Constants
 import dev.hyzor.patches.chesscom.shared.markFeaturePatched
-import dev.hyzor.patches.chesscom.shared.getterForLabel
 import dev.hyzor.patches.chesscom.shared.returnString
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
-import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -28,6 +26,13 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PUZZLES = "${Constants.EXTENSION_PACKAGE}/lichesspuzzle/LichessPuzzles;"
+private const val SETTINGS_COMBINE =
+    "Lcom/chess/features/settings/puzzles/PuzzlesSettingsViewModel\$special\$\$inlined\$combine\$1\$1\$1;"
+// The Classic puzzle layout: the state the rating box reads, its rating graph and the
+// graph's points. The constructor parameter lists identify them, not the short names.
+private const val CLASSIC_STATE = "Lcom/chess/features/puzzles/rated/ui/h0\$a;"
+private const val RATING_HISTORY = "Lcom/chess/features/puzzles/rated/ui/l;"
+private const val RATING_POINT = "Lcom/chess/features/puzzles/rated/ui/m;"
 private const val PUZZLES_TAB = "Lcom/chess/features/puzzles/home/ui/HomePuzzlePathRootContentKt;"
 private const val BUTTON_SIZE = "Lcom/chess/palette/core/style/ButtonSize;"
 private const val MENU_LISTENER = "Lcom/chess/palette/components/menu/a;"
@@ -35,33 +40,23 @@ private const val BIG_BUTTON_CLICK =
     "Lcom/chess/palette/components/menu/PathRootMenuKt\$PathRootMenu\$4\$6\$4\$primaryCtaButton\$1\$1\$1;"
 private const val PUZZLES_MENU_SCREEN = "Lcom/chess/features/puzzles/home/"
 private const val MODE = "Lcom/chess/navigationinterface/PathPuzzlesMode;"
-private const val REPOSITORY = "Lcom/chess/internal/puzzles/RatedPuzzleRepositoryImpl;"
 private const val SOURCE = "Lcom/chess/features/puzzles/db/model/ProblemSource;"
 private const val SOLUTION = "Lcom/chess/features/puzzles/db/model/m;"
 private const val TACTICS_PROBLEM = "Lcom/chess/net/model/TacticsProblem;"
 private const val PATH_RESULT = "Lchesscom/puzzles/v1/PuzzlePathResult;"
 private const val RATING = "Lchesscom/puzzles/v1/Rating;"
-private const val SETTINGS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$l0;"
+private const val API_EXCEPTION = "Lcom/chess/net/errors/ApiException;"
+private const val SETTINGS_LOADED = "Lcom/chess/features/puzzles/rated/t\$l0;"
 private const val PUZZLE_SETTINGS = "Lcom/chess/features/puzzles/rated/api/PuzzleSettings;"
-private const val PATH_STATS = "Lcom/chess/features/path/ui/v4;"
+private const val PATH_STATS = "Lcom/chess/features/path/ui/o2;"
 private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
-private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$q0;"
+private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/t\$q0;"
 private const val VIEW_MODEL = "Lcom/chess/features/puzzles/rated/RatedPuzzlesGameViewModel;"
 private const val PATH_REPOSITORY = "Lcom/chess/features/path/data/PathProgressRepositoryImpl;"
 private const val PUZZLE_SERVICE = "Lcom/chess/features/puzzles/api/h;"
-private const val GUEST_STORE = "Lcom/chess/internal/puzzles/r2;"
-private const val HOME_PUZZLES_VM = "Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuViewModel;"
-private const val HOME_PUZZLES_REFRESH =
-    "Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuViewModel\$refreshData\$2;"
-private const val HOME_PUZZLES_RESUME =
-    "Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuViewModel\$refreshDailyPuzzleFab\$2;"
-private const val HUB_STATE = "Lcom/chess/features/puzzles/home/ui/y1;"
-private const val HUB_PATH = "Lcom/chess/features/puzzles/home/ui/z1;"
-private const val HUB_USER = "Lcom/chess/features/puzzles/home/ui/a2;"
-// 4.10.23 renamed the hub state types: o0 (state), q0 (path), p0 (user).
-private const val HUB_STATE_41023 = "Lcom/chess/features/puzzles/home/ui/o0;"
-private const val HUB_PATH_41023 = "Lcom/chess/features/puzzles/home/ui/q0;"
-private const val HUB_USER_41023 = "Lcom/chess/features/puzzles/home/ui/p0;"
+private const val HUB_STATE = "Lcom/chess/features/puzzles/home/ui/o0;"
+private const val HUB_PATH = "Lcom/chess/features/puzzles/home/ui/q0;"
+private const val HUB_USER = "Lcom/chess/features/puzzles/home/ui/p0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
@@ -135,10 +130,10 @@ val lichessPuzzlesPatch = bytecodePatch(
             }
             return found
         }
-        // 4.10.18 has the menu screen listener; 4.10.23 moved it to home/ui.
-        val listeners = findListeners("Lcom/chess/features/puzzles/home/menu/HomePuzzlesMenuScreenKt\$")
-            .takeIf { it.size == 1 } ?: findListeners(PUZZLES_MENU_SCREEN)
-        val listener = mutableClassDefBy(listeners.singleOrNull() ?: throw PatchException("Puzzles tab listeners: $listeners"))
+        val listeners = findListeners(PUZZLES_MENU_SCREEN)
+        val listener = mutableClassDefBy(
+            listeners.singleOrNull() ?: throw PatchException("The Puzzles tab listener was not found: $listeners"),
+        )
         val solvePuzzles = listener.methods.single { it.name == click && it.parameterTypes.isEmpty() && it.returnType == "V" }
         val solveCode = solvePuzzles.implementation!!.instructions.toList()
         val navigate = solveCode.firstNotNullOfOrNull { instruction ->
@@ -154,8 +149,7 @@ val lichessPuzzlesPatch = bytecodePatch(
             }?.definingClass
         } ?: throw PatchException("Solve Puzzles' screen was not found")
         // The click is handled in Java: the listener's router and activity are found with their
-        // public fields at runtime, so the two versions' different listener layouts (4.10.18 keeps
-        // them on the listener, 4.10.23 delegates to a holder) do not need separate smali.
+        // public fields at runtime, so the listener's own layout does not need separate smali.
         val guestMode = enumField(MODE, "GUEST")
         solvePuzzles.addInstructionsWithLabels(
             0,
@@ -200,11 +194,9 @@ val lichessPuzzlesPatch = bytecodePatch(
 
         val guestSource = enumField(SOURCE, "RATED_GUEST")
 
-        // The repository: guest puzzles are Lichess's, and their results are scored here. Chess.com's
-        // guest refill shows how puzzles are converted and stored.
-        // 4.10.23 merged RatedPuzzleRepositoryImpl into an obfuscated class; the one that
-        // converts guest tactics problems is the repository.
-        val repository = mutableClassDefByOrNull(REPOSITORY) ?: mutableClassDefBy(classDefByOrNull { classDef ->
+        // The repository is obfuscated: the class that converts guest tactics problems into rows,
+        // as chess.com's own guest refill does, is the one to hook.
+        val repository = mutableClassDefBy(classDefByOrNull { classDef ->
             classDef.type.startsWith("Lcom/chess/internal/puzzles/") &&
                 classDef.methods.any { method ->
                     val instructions = method.implementation?.instructions ?: return@any false
@@ -249,69 +241,23 @@ val lichessPuzzlesPatch = bytecodePatch(
         name("converterMethod", converter.name)
         name("daoField", repository.fields.single { it.type == daoInsert.definingClass }.name)
         name("daoInsert", daoInsert.name)
-        // Chess.com's own guest puzzles (a signed-out user has them) share the guest queue with ours
-        // and come first, oldest first: a session clears the queue with the puzzle database's own
-        // "delete every puzzle of a source" before it stores its first Lichess puzzles.
-        var clear: Pair<String, String>? = null
-        classDefForEach { classDef ->
-            if (clear != null) return@classDefForEach
-            classDef.methods.firstOrNull { method ->
-                method.returnType == "V" && method.parameterTypes.map(CharSequence::toString) == listOf(SOURCE) &&
-                    method.implementation?.instructions?.any { instruction ->
-                        ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string ==
-                            "DELETE FROM tactics_problem WHERE source = ?"
-                    } == true
-            }?.let { clear = classDef.type to it.name }
-        }
-        // 4.10.23 runs the delete in a coroutine lambda, so it cannot be found this way; the seeded
-        // puzzles still work there (the queue holds none of chess.com's own guest puzzles).
-        val clearFound = clear
-        if (clearFound != null) {
-            val (clearClass, clearMethod) = clearFound
-            // The repository's field holding that database: a type the class or one it extends implements.
-            val clearTypes = generateSequence(clearClass) { type -> classDefByOrNull { it.type == type }?.superclass }
-                .flatMap { type -> sequenceOf(type) + (classDefByOrNull { it.type == type }?.interfaces?.asSequence() ?: emptySequence()) }
-                .toSet()
-            name("puzzleDbField", repository.fields.singleOrNull { it.type in clearTypes }?.name
-                ?: throw PatchException("The repository's puzzle database was not found"))
-            name("puzzleDbClear", clearMethod)
-        }
-        // The puzzle screen's guest puzzles: the refill above is only called by Home for real guests.
-        val guestPuzzles = repository.methods.singleOrNull { method ->
-            method.parameterTypes.isEmpty() && method.returnType != "V" &&
-                method.implementation?.instructions?.any { instruction ->
-                    instruction.opcode == Opcode.SGET_OBJECT && instruction.fieldReference?.let {
-                        it.definingClass == SOURCE && it.name == guestSource
-                    } == true
-                } == true
-        }
-        var modernGuestFlow = false
-        if (guestPuzzles != null) {
-            guestPuzzles.addInstructions(0, "invoke-static/range { p0 .. p0 }, $PUZZLES->onGuestPuzzles(Ljava/lang/Object;)V")
-        } else {
-            // 4.10.18 keeps the repository class; 4.10.23 merges it into an obfuscated class and
-            // inlines the guest flow into the view model, so the refill hook never runs on a
-            // fresh account. Seed the guest store from the view model there instead.
-            val guestFlow =
-                "Lcom/chess/internal/puzzles/RatedPuzzleRepositoryImpl\$nextGuestProblem\$\$inlined\$flatMapLatest\$1;"
-            val repositoryType = mutableClassDefByOrNull(guestFlow)
-                ?.fields?.firstOrNull { it.name == "this\$0" }?.type
-            if (repositoryType != null && repositoryType != "Lcom/chess/internal/puzzles/RatedPuzzleRepositoryImpl;") {
-                modernGuestFlow = true
-                name("guestRepositoryClass", repositoryType.javaName())
-                mutableClassDefBy(VIEW_MODEL).methods.filter { it.name == "<init>" }.forEach { constructor ->
-                    constructor.implementation!!.instructions.withIndex()
-                        .filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }.sortedDescending()
-                        .forEach { index ->
-                            constructor.addInstructions(
-                                index,
-                                "invoke-static/range { p0 .. p0 }, $PUZZLES->onGuestPuzzlesFrom(Ljava/lang/Object;)V",
-                            )
-                        }
+        // The refill above is only called by Home for real guests, and the guest flow itself is
+        // inlined into the view model, so seed the store from the view model instead.
+        val guestFlow =
+            "Lcom/chess/internal/puzzles/RatedPuzzleRepositoryImpl\$nextGuestProblem\$\$inlined\$flatMapLatest\$1;"
+        val repositoryType = mutableClassDefByOrNull(guestFlow)
+            ?.fields?.firstOrNull { it.name == "this\$0" }?.type
+            ?: throw PatchException("The guest puzzle repository was not found")
+        name("guestRepositoryClass", repositoryType.javaName())
+        mutableClassDefBy(VIEW_MODEL).methods.filter { it.name == "<init>" }.forEach { constructor ->
+            constructor.implementation!!.instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }.sortedDescending()
+                .forEach { index ->
+                    constructor.addInstructions(
+                        index,
+                        "invoke-static/range { p0 .. p0 }, $PUZZLES->onGuestPuzzlesFrom(Ljava/lang/Object;)V",
+                    )
                 }
-            } else {
-                refill.addInstructions(0, "invoke-static/range { p0 .. p0 }, $PUZZLES->onGuestPuzzles(Ljava/lang/Object;)V")
-            }
         }
 
         // A Lichess session supplies puzzles, solutions and rating locally; skip server calls.
@@ -360,27 +306,9 @@ val lichessPuzzlesPatch = bytecodePatch(
             it.parameterTypes.size == 1 && it.returnType == "Ljava/lang/Object;"
         }.forEach { it.skipIf("onPuzzleScreen") }
 
-        // The hub only refreshes its daily puzzle on resume; also refresh its path.
-        fun MutableMethod.createsType(type: String) = implementation?.instructions?.any { instruction ->
-            ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type == type
-        } == true
-        val homePuzzles = mutableClassDefBy(HOME_PUZZLES_VM)
-        val refreshData = homePuzzles.methods.singleOrNull { method ->
-            method.parameterTypes.isEmpty() && method.returnType == "V" && method.createsType(HOME_PUZZLES_REFRESH)
-        }
-        val refreshOnResume = homePuzzles.methods.singleOrNull { method ->
-            method.parameterTypes.isEmpty() && method.returnType == "V" && method.createsType(HOME_PUZZLES_RESUME)
-        }
-        // 4.10.23 inlines the refresh into the view model's constructor; the hub's resume already
-        // refreshes what it needs there.
-        if (refreshData != null && refreshOnResume != null) {
-            refreshOnResume.addInstructions(0, "invoke-direct { p0 }, $HOME_PUZZLES_VM->${refreshData.name}()V")
-        }
-
         // Keep the hub's map and XP on the pre-session values while Lichess closes: the guest
-        // path and user data would otherwise jump the map to puzzle 1. 4.10.18 keeps the state
-        // in y1 with (user, path) at 5/6; 4.10.23 renamed it o0 and added a parameter before
-        // them, so path and user sit at 5/6 the other way round.
+        // path and user data would otherwise jump the map to puzzle 1. The state carries
+        // (…, path, user, …) at positions 5 and 6.
         fun hookHubState(
             stateType: String,
             pathType: String,
@@ -408,13 +336,7 @@ val lichessPuzzlesPatch = bytecodePatch(
                 """,
             )
         }
-        when {
-            mutableClassDefByOrNull(HUB_STATE) != null ->
-                hookHubState(HUB_STATE, HUB_PATH, HUB_USER, arity = 12, pathIndex = 6, userIndex = 5)
-            mutableClassDefByOrNull(HUB_STATE_41023) != null ->
-                hookHubState(HUB_STATE_41023, HUB_PATH_41023, HUB_USER_41023, arity = 13, pathIndex = 5, userIndex = 6)
-            else -> throw PatchException("The puzzles hub state was not found for this version")
-        }
+        hookHubState(HUB_STATE, HUB_PATH, HUB_USER, arity = 13, pathIndex = 5, userIndex = 6)
 
         val score: MutableMethod = repository.methods.singleOrNull { method ->
             method.parameterTypes.size == 4 && method.parameterTypes[0].toString() == "Ljava/util/List;" &&
@@ -423,28 +345,20 @@ val lichessPuzzlesPatch = bytecodePatch(
         val scoreCode = score.implementation!!.instructions.toList()
         fun constructed(parameters: List<String>) = scoreCode.firstNotNullOfOrNull { instruction ->
             instruction.methodReference?.takeIf { reference ->
-                reference.name == "<init>" && reference.parameterTypes.size == parameters.size &&
-                    reference.parameterTypes.map(CharSequence::toString).zip(parameters).all { (actual, expected) ->
-                        actual == expected ||
-                            (expected == "Ljava/lang/Throwable;" && actual.endsWith("ApiException;"))
-                    }
+                reference.name == "<init>" &&
+                    reference.parameterTypes.map(CharSequence::toString) == parameters
             }?.definingClass
         } ?: throw PatchException("Nothing in the scoring is made from $parameters")
         name("resultClass", constructed(listOf(SOLUTION, "Ljava/lang/Object;")).javaName())
-        name("scoreClass", constructed(listOf(PATH_RESULT, RATING, "Ljava/lang/Throwable;")).javaName())
+        name("scoreClass", constructed(listOf(PATH_RESULT, RATING, API_EXCEPTION)).javaName())
         val logged = scoreCode.indexOfFirst {
             ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "Scoring puzzle "
         }
         // "Scoring puzzle " + solution.problemId() + " exceeded ...": the id is read just before.
-        // 4.10.18 reads the id through a getter; 4.10.23 through a public field.
         val problemId = scoreCode.take(logged.coerceAtLeast(0)).lastOrNull { instruction ->
-            instruction.methodReference?.let {
-                it.definingClass == SOLUTION && it.returnType == "J" && it.parameterTypes.isEmpty()
-            } == true || instruction.fieldReference?.let {
-                it.definingClass == SOLUTION && it.type == "J"
-            } == true
+            instruction.fieldReference?.let { it.definingClass == SOLUTION && it.type == "J" } == true
         }?.takeIf { logged >= 0 } ?: throw PatchException("The solution's problem id was not found")
-        name("problemIdGetter", problemId.methodReference?.name ?: problemId.fieldReference!!.name)
+        name("problemIdField", problemId.fieldReference!!.name)
         score.addInstructionsWithLabels(
             0,
             """
@@ -472,13 +386,9 @@ val lichessPuzzlesPatch = bytecodePatch(
             """,
             ExternalLabel("morphe_no_session", getInstruction(0)),
         )
-        // Wait for the background Lichess insert instead of ending the guest flow.
-        mutableClassDefByOrNull(GUEST_STORE)?.methods
-            ?.singleOrNull { it.parameterTypes.isEmpty() && it.returnType == "Z" }
-            ?.whileSession("const/4 v0, 0x0\nreturn v0")
-        // 4.10.23 reads the same flag inline in the puzzle flow instead of a store method. A
-        // fresh account has it false, so the guest screen ends before the Lichess puzzles
-        // arrive; treat it as started while a session is active.
+        // The puzzle flow reads "is_guest_mode_started" inline. A fresh account has it false, so
+        // the guest screen ends before the Lichess puzzles arrive; treat it as started while a
+        // session is active.
         //
         // The methods are found on the immutable classes, and only the classes that get a hook are
         // made mutable: making one mutable rewrites that class into a new DEX file, so doing it while
@@ -521,83 +431,64 @@ val lichessPuzzlesPatch = bytecodePatch(
                 }
             }
         }
-        if (guestStartedHooks == 0 && modernGuestFlow) throw PatchException("The guest started check was not found")
+        if (guestStartedHooks == 0) throw PatchException("The guest started check was not found")
         val regularMode = enumField(MODE, "REGULAR")
         mutableClassDefBy(MODE).methods.single { it.parameterTypes.isEmpty() && it.returnType == "Z" }
             .whileSession("const/4 v0, 0x0\nreturn v0")
-        val settingsLoaded = mutableClassDefByOrNull(SETTINGS_LOADED)
-            ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$l0;")
-        // 4.10.18 has a mode getter; 4.10.23 inlines it, so set the constructor's mode instead.
-        val modeGetter = runCatching { settingsLoaded.getterForLabel(", mode=") }.getOrNull()
-        if (modeGetter != null) {
-            modeGetter.whileSession("sget-object v0, $MODE->$regularMode:$MODE\nreturn-object v0")
-        } else {
-            settingsLoaded.methods.first { method ->
-                method.name == "<init>" && method.parameterTypes.any { it.toString() == MODE }
-            }.apply {
-                val mode = parameterTypes.indexOfFirst { it.toString() == MODE }
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static { }, $PUZZLES->session()Z
-                        move-result v0
-                        if-eqz v0, :morphe_mode
-                        sget-object p${mode + 1}, $MODE->$regularMode:$MODE
-                    """,
-                    ExternalLabel("morphe_mode", getInstruction(0)),
-                )
-            }
+        val settingsLoaded = mutableClassDefBy(SETTINGS_LOADED)
+        // The mode getter is inlined, so set the constructor's mode instead.
+        settingsLoaded.methods.first { method ->
+            method.name == "<init>" && method.parameterTypes.any { it.toString() == MODE }
+        }.apply {
+            val mode = parameterTypes.indexOfFirst { it.toString() == MODE }
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $PUZZLES->session()Z
+                    move-result v0
+                    if-eqz v0, :morphe_mode
+                    sget-object p${mode + 1}, $MODE->$regularMode:$MODE
+                """,
+                ExternalLabel("morphe_mode", getInstruction(0)),
+            )
         }
         val puzzleSettings = mutableClassDefBy(PUZZLE_SETTINGS)
-        val collectPoints = runCatching { puzzleSettings.getterForLabel("PuzzleSettings(collectPoints=") }.getOrNull()
-        if (collectPoints != null) {
-            collectPoints.whileSession("const/4 v0, 0x0\nreturn v0")
-        } else {
-            puzzleSettings.methods.first { method ->
-                method.name == "<init>" && method.parameterTypes.size == 7 &&
-                    method.parameterTypes.count { it.toString() == "Z" } == 6
-            }.apply {
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static { }, $PUZZLES->session()Z
-                        move-result v0
-                        if-eqz v0, :morphe_points
-                        const/4 p1, 0x0
-                    """,
-                    ExternalLabel("morphe_points", getInstruction(0)),
-                )
-            }
+        puzzleSettings.methods.first { method ->
+            method.name == "<init>" && method.parameterTypes.size == 7 &&
+                method.parameterTypes.count { it.toString() == "Z" } == 6
+        }.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $PUZZLES->session()Z
+                    move-result v0
+                    if-eqz v0, :morphe_points
+                    const/4 p1, 0x0
+                """,
+                ExternalLabel("morphe_points", getInstruction(0)),
+            )
         }
-        val ratingValue = "invoke-static { }, $PUZZLES->rating()I\nmove-result v0\nreturn v0"
-        val pathStats = mutableClassDefByOrNull(PATH_STATS)
-            ?: mutableClassDefBy("Lcom/chess/features/path/ui/o2;")
-        val userRating = runCatching { pathStats.getterForLabel(", userRating=") }.getOrNull()
-        if (userRating != null) {
-            userRating.whileSession(ratingValue)
-        } else {
-            // 4.10.23 inlines the getter; userRating is the second constructor parameter.
-            pathStats.methods.first { method ->
-                method.name == "<init>" && method.parameterTypes.size == 12 &&
-                    method.parameterTypes[1].toString() == "I"
-            }.apply {
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static { }, $PUZZLES->session()Z
-                        move-result v0
-                        if-eqz v0, :morphe_rating
-                        invoke-static { }, $PUZZLES->rating()I
-                        move-result p2
-                    """,
-                    ExternalLabel("morphe_rating", getInstruction(0)),
-                )
-            }
+        val pathStats = mutableClassDefBy(PATH_STATS)
+        // The getter is inlined; userRating is the second constructor parameter.
+        pathStats.methods.first { method ->
+            method.name == "<init>" && method.parameterTypes.size == 12 &&
+                method.parameterTypes[1].toString() == "I"
+        }.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $PUZZLES->session()Z
+                    move-result v0
+                    if-eqz v0, :morphe_rating
+                    invoke-static { }, $PUZZLES->rating()I
+                    move-result p2
+                """,
+                ExternalLabel("morphe_rating", getInstruction(0)),
+            )
         }
 
         // The Classic layout needs path stats, which guest mode never loads.
-        val statsLoaded = mutableClassDefByOrNull(STATS_LOADED)
-            ?: mutableClassDefBy("Lcom/chess/features/puzzles/rated/t\$q0;")
+        val statsLoaded = mutableClassDefBy(STATS_LOADED)
         val withStats = statsLoaded.methods.singleOrNull { method ->
             method.returnType == pathStats.type && method.parameterTypes.map { it.toString() } == listOf(pathStats.type)
         } ?: throw PatchException("The puzzle screen's stats were not found")
@@ -615,54 +506,84 @@ val lichessPuzzlesPatch = bytecodePatch(
             ExternalLabel("morphe_stats", withStats.getInstruction(0)),
         )
         val ratingStatsClass = mutableClassDefBy(RATING_STATS)
-        val currentRating = runCatching { ratingStatsClass.getterForLabel(", current=") }.getOrNull()
-        if (currentRating != null) {
-            currentRating.whileSession(ratingValue)
-        } else {
-            // 4.10.23 stores the current rating as a long and inlines the getter.
-            ratingStatsClass.methods.first { method ->
-                method.name == "<init>" && method.parameterTypes.size == 9 &&
-                    method.parameterTypes[0].toString() == "J"
-            }.apply {
-                addInstructions(
-                    0,
-                    """
-                        invoke-static { p1, p2 }, $PUZZLES->currentRating(J)J
-                        move-result-wide p1
-                    """,
-                )
-            }
+        // The current getter is inlined. The constructor is (JIIIIIJII): the first long is
+        // user_id, the first int is current, so hook the int, not the long.
+        ratingStatsClass.methods.first { method ->
+            method.name == "<init>" && method.parameterTypes.size == 9 &&
+                method.parameterTypes[0].toString() == "J" &&
+                method.parameterTypes[1].toString() == "I"
+        }.apply {
+            addInstructions(
+                0,
+                "invoke-static { p3 }, $PUZZLES->currentRating(I)I\nmove-result p3",
+            )
         }
-        // The rating chip also needs stats, which guest mode gives as flowOf(null).
-        val ratingStats = mutableClassDefBy(VIEW_MODEL).methods.singleOrNull { method ->
-            method.parameterTypes.isEmpty() && method.annotations.any { annotation ->
-                annotation.type == "Ldalvik/annotation/Signature;" && annotation.elements.any { element ->
-                    (element.value as? ArrayEncodedValue)?.value?.any { (it as? StringEncodedValue)?.value == RATING_STATS } == true
-                }
-            }
-        }
-        // 4.10.23 no longer annotates the rating-stats getter; its chip falls back to guest mode.
-        if (ratingStats != null) {
-        val flowOf = ratingStats.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
-            instruction.methodReference?.takeIf {
-                instruction.opcode == Opcode.INVOKE_STATIC && it.returnType == ratingStats.returnType &&
-                    it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;")
-            }
-        } ?: throw PatchException("The rating stats' flowOf was not found")
-        ratingStats.addInstructionsWithLabels(
+        // The stats event carries the rating summary. Guest stats have none (the flow emits
+        // null), so the Classic rating box is never built even though path stats were filled
+        // above. Supply an empty summary during a session; its constructor above sets current.
+        val statsEvent = statsLoaded.methods.singleOrNull { method ->
+            method.name == "<init>" && method.parameterTypes.size == 3 &&
+                method.parameterTypes[1].toString() == RATING_STATS
+        } ?: throw PatchException("The puzzle stats event was not found")
+        statsEvent.addInstructions(
             0,
             """
-                invoke-static { }, $PUZZLES->session()Z
-                move-result v0
-                if-eqz v0, :morphe_rating_stats
-                new-instance v0, $RATING_STATS
-                invoke-direct { v0 }, $RATING_STATS-><init>()V
-                invoke-static { v0 }, $flowOf
-                move-result-object v0
-                return-object v0
+                invoke-static { p2 }, $PUZZLES->ratingStats(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object p2
+                check-cast p2, $RATING_STATS
             """,
-            ExternalLabel("morphe_rating_stats", ratingStats.getInstruction(0)),
         )
+        // The Classic box's rating comes from the path stats captured when the session started,
+        // and its graph from chess.com's rating history. Show the live Lichess rating instead
+        // (the queue fix makes the screen serve Lichess puzzles), and drop the foreign graph.
+        val classicState = mutableClassDefBy(CLASSIC_STATE).methods.singleOrNull { method ->
+            // (timer, rating, ratingChange, ratingHistory): the hook reads p2, so only the two
+            // ints after the timer and the graph's type have to be what it expects.
+            val parameters = method.parameterTypes.map(CharSequence::toString)
+            method.name == "<init>" && parameters.size == 4 &&
+                parameters[1] == "I" && parameters[2] == "I" && parameters[3] == RATING_HISTORY
+        } ?: throw PatchException("The Classic puzzle layout's state was not found")
+        classicState.addInstructions(0, "invoke-static { p2 }, $PUZZLES->displayRating(I)I\nmove-result p2")
+        val ratingGraph = mutableClassDefBy(RATING_HISTORY).methods.singleOrNull { method ->
+            method.name == "<init>" && method.parameterTypes.map(CharSequence::toString) ==
+                listOf(RATING_POINT, "Ljava/util/List;", "I")
+        } ?: throw PatchException("The puzzle rating graph's constructor was not found")
+        ratingGraph.addInstructions(
+            0,
+            """
+                invoke-static { p1 }, $PUZZLES->liveRatingPoint(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object p1
+                check-cast p1, $RATING_POINT
+                invoke-static { p2 }, $PUZZLES->ratingHistory(Ljava/util/List;)Ljava/util/List;
+                move-result-object p2
+            """,
+        )
+        // "Always Show Rating" only drives the Path layout and the submitted rated mode, and a
+        // Lichess session forces the Classic layout with points off, so the row would do nothing
+        // in the puzzle screen's dialog. Drop it from the list while the session is on screen.
+        mutableClassDefByOrNull(SETTINGS_COMBINE)?.let { settings ->
+            fun Instruction.handsOffSettingsList(): Boolean {
+                val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+                return opcode == Opcode.INVOKE_INTERFACE &&
+                    reference.definingClass == "Lcom/google/android/vb6;" && reference.name == "j"
+            }
+            val emit = settings.methods.firstOrNull { method ->
+                method.returnType == "Ljava/lang/Object;" &&
+                    method.implementation?.instructions?.any { it.handsOffSettingsList() } == true
+            } ?: return@let
+            val handoff = emit.implementation!!.instructions.indexOfFirst { it.handsOffSettingsList() }
+            if (handoff < 0) return@let
+            // The settings list is the hand-off's last argument: three register operands, the
+            // list in the third. A different shape leaves this cosmetic filter out rather than
+            // hooking a register that may hold something else.
+            val invoke = emit.getInstruction(handoff) as? FiveRegisterInstruction ?: return@let
+            if (invoke.registerCount != 3) return@let
+            val list = "v${invoke.registerE}"
+            emit.addInstructions(
+                handoff,
+                "invoke-static/range { $list .. $list }, $PUZZLES->withoutUnusedSettings(Ljava/util/List;)Ljava/util/List;\n" +
+                    "move-result-object $list",
+            )
         }
         // The Puzzles tab's menu is PathRootMenuState(expanded, big button text, button above it,
         // buttons, ...). The button above is empty unless there is a next lesson. Ours takes the big

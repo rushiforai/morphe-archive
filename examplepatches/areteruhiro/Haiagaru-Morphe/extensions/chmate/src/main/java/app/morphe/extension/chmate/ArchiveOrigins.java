@@ -87,6 +87,7 @@ public final class ArchiveOrigins {
     private static void ui(Activity a, Runnable r) { a.runOnUiThread(() -> { if (!a.isFinishing() && !a.isDestroyed()) r.run(); }); }
     public static void addSettings(LinearLayout root, Activity a) {
         ThreadArchiveOrder.addSettings(root,a);
+        NativeArchiveFolderImport.addButton(root,a);
         Button button = new Button(a); button.setText("アーカイブの元スレURLを確認"); button.setOnClickListener(v -> show(a)); root.addView(button);
     }
     public static void show(Activity a) { work(a, () -> browse(a, archiveRoot(a), 0)); }

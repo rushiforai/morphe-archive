@@ -32,7 +32,7 @@ class SmartWodSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.46.9",
+            version = "1.47.1",
             patchNames = setOf("Disable ads", "Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -85,14 +85,15 @@ class SmartWodSmokeTest {
             assertReturnsEarlyVoid(mobileAds.method(name), label = "MobileAds.$name")
         }
 
-        // 3. Every concrete load overload returns immediately (counts as of GMA 23.6.0).
+        // 3. Every concrete load overload returns immediately (counts as of SmartWOD 1.47.1: its
+        //    newer GMA dropped the two AppOpenAd.load overloads that took an orientation int).
         val expectedLoads = mapOf(
             "BaseAdView" to 1,
             "AdLoader" to 3,
             "interstitial/InterstitialAd" to 1,
             "rewarded/RewardedAd" to 2,
             "rewardedinterstitial/RewardedInterstitialAd" to 2,
-            "appopen/AppOpenAd" to 3,
+            "appopen/AppOpenAd" to 1,
             "admanager/AdManagerAdView" to 1,
             "admanager/AdManagerInterstitialAd" to 1,
         )

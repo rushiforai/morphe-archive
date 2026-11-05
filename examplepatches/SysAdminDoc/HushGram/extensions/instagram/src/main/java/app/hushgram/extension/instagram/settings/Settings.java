@@ -122,6 +122,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_category_pages", TRUE);
 
     /**
+     * The categories as two-column tiles instead of rows (#494). A tile opens its section in place,
+     * below the tiles, as a row does. Only means something while {@link #CATEGORY_PAGES} is on.
+     * Off to start. A page-look choice, so Pause doesn't turn it off.
+     */
+    public static final BooleanSetting CATEGORY_GRID =
+            new BooleanSetting("hushgram_settings_category_grid", FALSE);
+
+    /**
      * Each switch's description behind an "i" at the end of its title, for a shorter page (#130).
      * Off to start. A settings-page choice, read saved even during Pause ({@link DescriptionInfo}).
      */
@@ -581,6 +589,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_read_without_seen_receipt", FALSE);
 
     /**
+     * An eye in a chat's header, beside the call buttons, that gives that chat on that account a
+     * seen receipt choice of its own: follow {@link #READ_WITHOUT_SEEN_RECEIPT}, hold, or send (#13).
+     * The choices themselves stay in their own file, never in an export. Read each time a receipt
+     * is held or a chat comes to the front, so a change applies to the next one. Off to start, and
+     * off, every chat follows the switch whatever it chose.
+     */
+    public static final BooleanSetting SEEN_PER_CHAT =
+            new BooleanSetting("hushgram_seen_per_chat", FALSE);
+
+    /**
      * Under {@link #READ_WITHOUT_SEEN_RECEIPT}: a chat opened while its receipt is held stays unread
      * in your messages until Mark as read lets that receipt go (#184). Read each time Instagram
      * records a chat seen, so a change applies the next time a chat opens. On to start, so a held
@@ -588,7 +606,7 @@ public class Settings extends BaseSettings {
      * stays read here until a newer message comes in, even after the inbox refreshes (#186).
      */
     public static final BooleanSetting KEEP_CHATS_UNREAD =
-            new BooleanSetting("hushgram_keep_chats_unread", TRUE, parent(READ_WITHOUT_SEEN_RECEIPT));
+            new BooleanSetting("hushgram_keep_chats_unread", TRUE, parentsAny(READ_WITHOUT_SEEN_RECEIPT, SEEN_PER_CHAT));
 
     /**
      * Under {@link #READ_WITHOUT_SEEN_RECEIPT}: sending a message in a chat whose receipt was held
@@ -596,7 +614,7 @@ public class Settings extends BaseSettings {
      * message is sent, so a change applies to the next one. Off to start.
      */
     public static final BooleanSetting MARK_SEEN_ON_REPLY =
-            new BooleanSetting("hushgram_mark_seen_on_reply", FALSE, parent(READ_WITHOUT_SEEN_RECEIPT));
+            new BooleanSetting("hushgram_mark_seen_on_reply", FALSE, parentsAny(READ_WITHOUT_SEEN_RECEIPT, SEEN_PER_CHAT));
 
     /**
      * Under {@link #READ_WITHOUT_SEEN_RECEIPT}: a check mark in a chat's header, beside the call
@@ -605,7 +623,7 @@ public class Settings extends BaseSettings {
      * held, so a change applies the next time a chat opens. On to start.
      */
     public static final BooleanSetting MARK_READ_IN_CHAT =
-            new BooleanSetting("hushgram_mark_read_in_chat", TRUE, parent(READ_WITHOUT_SEEN_RECEIPT));
+            new BooleanSetting("hushgram_mark_read_in_chat", TRUE, parentsAny(READ_WITHOUT_SEEN_RECEIPT, SEEN_PER_CHAT));
 
     /**
      * The typing indicator a chat shows the other person while you write
@@ -1807,10 +1825,11 @@ public class Settings extends BaseSettings {
     /**
      * Show if a profile follows you as a chip under the profile's counts, which also says Following
      * each other ({@link app.hushgram.extension.instagram.profile.FriendshipStatus}), instead of the
-     * gray label by the name. Off to start. Read each time Instagram binds a profile's name.
+     * gray label by the name. Off to start, and greyed while {@link #SHOW_FRIENDSHIP_STATUS} is off,
+     * since no chip shows then. Read each time Instagram binds a profile's name.
      */
     public static final BooleanSetting FRIENDSHIP_STATUS_CHIP =
-            new BooleanSetting("hushgram_friendship_status_chip", FALSE);
+            new BooleanSetting("hushgram_friendship_status_chip", FALSE, parent(SHOW_FRIENDSHIP_STATUS));
 
     /**
      * Where the chip goes and how big it is (#157): under the counts at its usual size, or small and
@@ -1846,12 +1865,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_track_unfollowers", FALSE);
 
     /**
-     * Notify me of unfollowers (#492): a notification when a Followers list you scrolled to the end is
-     * missing people the one before had ({@link app.hushgram.extension.instagram.profile.FollowerAlert}).
-     * Works with Recent unfollowers. Off to start.
+     * Under {@link #TRACK_UNFOLLOWERS}, Notify me of unfollowers (#492): a notification when a Followers
+     * list you scrolled to the end is missing people the one before had
+     * ({@link app.hushgram.extension.instagram.profile.FollowerAlert}). Only Recent unfollowers compares
+     * the lists, so it rests while that's off. Off to start.
      */
     public static final BooleanSetting NOTIFY_UNFOLLOWS =
-            new BooleanSetting("hushgram_notify_unfollows", FALSE);
+            new BooleanSetting("hushgram_notify_unfollows", FALSE, parent(TRACK_UNFOLLOWERS));
 
     /**
      * Suggested for you and the Discover people button on profiles
@@ -2066,6 +2086,25 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_caption_word_home", FALSE, parent(HIDE_CAPTION_WORD_REELS));
 
     /**
+     * Reels whose caption is in a language not listed in {@link #REELS_KEPT_LANGUAGES}
+     * ({@link app.hushgram.extension.instagram.reels.CaptionLanguage}). Read as each page of reels
+     * arrives. Off to start (#495).
+     */
+    public static final BooleanSetting HIDE_OTHER_LANGUAGE_REELS =
+            new BooleanSetting("hushgram_hide_other_language_reels", FALSE);
+
+    /**
+     * The languages {@link #HIDE_OTHER_LANGUAGE_REELS} keeps: codes or names split at commas and
+     * new lines. Empty means the phone's own languages. A value control, not a switch.
+     */
+    public static final StringSetting REELS_KEPT_LANGUAGES =
+            new StringSetting("hushgram_reels_kept_languages", "", parent(HIDE_OTHER_LANGUAGE_REELS));
+
+    /** {@link #HIDE_OTHER_LANGUAGE_REELS} on Home's posts too. Off to start (#495). */
+    public static final BooleanSetting HIDE_OTHER_LANGUAGE_HOME =
+            new BooleanSetting("hushgram_hide_other_language_home", FALSE, parent(HIDE_OTHER_LANGUAGE_REELS));
+
+    /**
      * Reels in the Reels tab with fewer views than {@link #MIN_REEL_VIEWS} or fewer likes than
      * {@link #MIN_REEL_LIKES}, unless their author is followed
      * ({@link app.hushgram.extension.instagram.reels.LowViewReels}). Read as each page of
@@ -2148,10 +2187,11 @@ public class Settings extends BaseSettings {
     /**
      * A button next to the three dots on a profile opens a menu of the profile actions switched on
      * above ({@link app.hushgram.extension.instagram.download.ProfileExtras}). The three-dot menu
-     * keeps its rows. Off until enabled.
+     * keeps its rows. Off until enabled, and greyed until one of those actions is on.
      */
     public static final BooleanSetting PROFILE_EXTRAS_BUTTON =
-            new BooleanSetting("hushgram_profile_extras_button", FALSE);
+            new BooleanSetting("hushgram_profile_extras_button", FALSE,
+                    parentsAny(SAVE_PROFILE_PICTURES, VIEW_PROFILE_PICTURES, COPY_PROFILE_TEXT));
 
     /**
      * An (i) on a profile, next to the three dots, opens Instagram's About this account for that
@@ -3079,6 +3119,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STOP_VIDEO_LOOPING =
             new BooleanSetting("hushgram_stop_video_looping", FALSE);
+
+    /**
+     * A feed video or reel playing with sound keeps playing when you leave Instagram or turn the
+     * screen off, with a media notification to pause or stop it
+     * ({@link app.hushgram.extension.instagram.media.BackgroundPlay}). Read as you leave, so a
+     * change counts from the next time. Off to start.
+     */
+    public static final BooleanSetting KEEP_PLAYING_IN_BACKGROUND =
+            new BooleanSetting("hushgram_keep_playing_in_background", FALSE);
 
     /**
      * Videos, reels and video stories start at the quality in {@link #PLAYBACK_QUALITY}, through

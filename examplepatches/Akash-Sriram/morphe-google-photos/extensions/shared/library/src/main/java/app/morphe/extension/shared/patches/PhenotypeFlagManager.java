@@ -1493,7 +1493,7 @@ public final class PhenotypeFlagManager {
             if (!customKeysSet.isEmpty()) {
                 List<String> sortedKeys = new ArrayList<>(customKeysSet);
                 Collections.sort(sortedKeys);
-                String headerTitle = "Custom Overrides (" + sortedKeys.size() + ")";
+                String headerTitle = "Custom Flags (" + sortedKeys.size() + ")";
                 customItems.add(new DisplayItem(headerTitle));
                 for (String k : sortedKeys) {
                     Object v = sanitizeValue(k, all.get(k));
@@ -1539,7 +1539,7 @@ public final class PhenotypeFlagManager {
             } else {
                 emptyContainer.setVisibility(View.GONE);
                 if (selectedTab == TAB_CUSTOM) {
-                    tvSub.setText(customKeysSet.size() + " Custom Overrides");
+                    tvSub.setText(customKeysSet.size() + " Custom Flags");
                 } else if (currentFilterQuery.isEmpty()) {
                     tvSub.setText(totalFlagsCount + " Flags Configured");
                 } else {
@@ -1627,7 +1627,7 @@ public final class PhenotypeFlagManager {
 
         private void appendSectionToRows(DisplayItem header, List<DisplayItem> section) {
             displayedRows.add(new DisplayRow(header, null));
-            boolean isExpanded = (header.headerTitle != null && header.headerTitle.startsWith("Custom Overrides"))
+            boolean isExpanded = (header.headerTitle != null && header.headerTitle.startsWith("Custom Flags"))
                     || (currentFilterQuery.isEmpty()
                         ? expandedCategories.contains(header.headerTitle)
                         : !searchCollapsedCategories.contains(header.headerTitle));
@@ -1655,7 +1655,7 @@ public final class PhenotypeFlagManager {
             layout.setPadding(mPad, (int) (4 * density), mPad, (int) (12 * density));
 
             TextView tvMsg = new TextView(activity);
-            tvMsg.setText("Are you sure you want to remove all " + customKeysSet.size() + " custom overrides?\n\nCurated Morphe flags will remain intact.");
+            tvMsg.setText("Are you sure you want to remove all " + customKeysSet.size() + " custom flags?\n\nCurated Morphe flags will remain intact.");
             tvMsg.setTextSize(13);
             tvMsg.setTextColor(theme.textPrimary);
             tvMsg.setLineSpacing(0, 1.25f);
@@ -1772,9 +1772,9 @@ public final class PhenotypeFlagManager {
                 hHolder.tvTitle.setTextColor(theme.textPrimary);
                 hHolder.tvTrigger.setTextColor(theme.textSecondary);
 
-                // Handle Custom Overrides Header (with Clear All button)
-                if (item.headerTitle != null && item.headerTitle.startsWith("Custom Overrides")) {
-                    hHolder.tvTitle.setText("Custom Overrides (" + customKeysSet.size() + ")");
+                // Handle Custom Flags Header (with Clear All button)
+                if (item.headerTitle != null && item.headerTitle.startsWith("Custom Flags")) {
+                    hHolder.tvTitle.setText("Custom Flags (" + customKeysSet.size() + ")");
                     hHolder.tvBadge.setVisibility(View.GONE);
                     hHolder.ivChevron.setVisibility(View.GONE);
                     hHolder.tvTrigger.setVisibility(View.GONE);
@@ -2276,20 +2276,28 @@ public final class PhenotypeFlagManager {
         searchBox.addView(inputWrapper);
         root.addView(searchBox);
 
-        // 2.5 Dynamic Tab Bar (Morphe Flags vs Custom Overrides)
+        // 2.5 Dynamic Tab Bar (Morphe Flags vs Custom Flags)
         LinearLayout tabBar = new LinearLayout(activity);
         tabBar.setOrientation(LinearLayout.HORIZONTAL);
         tabBar.setGravity(Gravity.CENTER_VERTICAL);
         tabBar.setPadding(tbPad, (int) (2 * density), tbPad, (int) (6 * density));
         tabBar.setVisibility(View.GONE);
 
+        int tPadH = (int) (8 * density);
+        int tPadV = (int) (7 * density);
+
         TextView tabCurated = new TextView(activity);
         tabCurated.setText("Morphe Flags");
         tabCurated.setTextSize(13);
         tabCurated.setTypeface(null, Typeface.BOLD);
         tabCurated.setGravity(Gravity.CENTER);
-        int tPadH = (int) (14 * density);
-        int tPadV = (int) (7 * density);
+        tabCurated.setIncludeFontPadding(false);
+        tabCurated.setSingleLine(true);
+        tabCurated.setMaxLines(1);
+        tabCurated.setEllipsize(TextUtils.TruncateAt.END);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            tabCurated.setAutoSizeTextTypeUniformWithConfiguration(9, 13, 1, TypedValue.COMPLEX_UNIT_SP);
+        }
         tabCurated.setPadding(tPadH, tPadV, tPadH, tPadV);
         LinearLayout.LayoutParams tcLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         tcLp.setMargins(0, 0, (int) (4 * density), 0);
@@ -2298,10 +2306,17 @@ public final class PhenotypeFlagManager {
         tabCurated.setFocusable(true);
 
         TextView tabCustom = new TextView(activity);
-        tabCustom.setText("Custom Overrides");
+        tabCustom.setText("Custom Flags");
         tabCustom.setTextSize(13);
         tabCustom.setTypeface(null, Typeface.BOLD);
         tabCustom.setGravity(Gravity.CENTER);
+        tabCustom.setIncludeFontPadding(false);
+        tabCustom.setSingleLine(true);
+        tabCustom.setMaxLines(1);
+        tabCustom.setEllipsize(TextUtils.TruncateAt.END);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            tabCustom.setAutoSizeTextTypeUniformWithConfiguration(9, 13, 1, TypedValue.COMPLEX_UNIT_SP);
+        }
         tabCustom.setPadding(tPadH, tPadV, tPadH, tPadV);
         LinearLayout.LayoutParams tcustLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         tcustLp.setMargins((int) (4 * density), 0, 0, 0);
@@ -2423,7 +2438,7 @@ public final class PhenotypeFlagManager {
             String filterQuery = adapter.getCurrentFilterQuery();
             String title = isCustom ? "Enable " + count + " Custom Flags?" : "Enable " + count + " Flags?";
             String msg = filterQuery.isEmpty()
-                    ? "Are you sure you want to enable all " + count + (isCustom ? " custom overrides?" : " Morphe flags?")
+                    ? "Are you sure you want to enable all " + count + (isCustom ? " custom flags?" : " Morphe flags?")
                     : "Are you sure you want to enable " + count + " flags matching \"" + filterQuery + "\"?";
 
             LinearLayout msgLayout = new LinearLayout(activity);
@@ -2483,7 +2498,7 @@ public final class PhenotypeFlagManager {
             String filterQuery = adapter.getCurrentFilterQuery();
             String title = isCustom ? "Disable " + count + " Custom Flags?" : "Disable " + count + " Flags?";
             String msg = filterQuery.isEmpty()
-                    ? "Are you sure you want to disable all " + count + (isCustom ? " custom overrides?" : " Morphe flags?")
+                    ? "Are you sure you want to disable all " + count + (isCustom ? " custom flags?" : " Morphe flags?")
                     : "Are you sure you want to disable " + count + " flags matching \"" + filterQuery + "\"?";
 
             LinearLayout msgLayout = new LinearLayout(activity);
@@ -2565,7 +2580,7 @@ public final class PhenotypeFlagManager {
             } else {
                 tabBar.setVisibility(View.VISIBLE);
                 tabCurated.setText("Morphe Flags (" + curatedCount + ")");
-                tabCustom.setText("Custom Overrides (" + customCount + ")");
+                tabCustom.setText("Custom Flags (" + customCount + ")");
                 if (selTab == FlagAdapter.TAB_CURATED) {
                     tabCurated.setBackground(createRoundedDrawable(theme.primary, 14 * density));
                     tabCurated.setTextColor(theme.onPrimary);

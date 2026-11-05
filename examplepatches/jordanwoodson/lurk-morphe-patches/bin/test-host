@@ -9,9 +9,11 @@ checks=(
     tests/twitch/verify_playback_links.py
     tests/twitch/verify_fill_screen.py
     tests/twitch/test_async.py
+    tests/twitch/test_playlist_proxy.py
     tests/twitch/test_vod_requests.py
     tests/twitch/test_privacy_consent.py
     tests/twitch/test_providers.py
+    tests/twitch/test_seventv_badges.py
     tests/twitch/test_rn_chat.py
     tests/shared/test_sleep_timer.py
     tests/shared/test_settings.py

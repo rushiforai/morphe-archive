@@ -12,3 +12,5 @@ Pillo's hybrid notification patch supports 0.6.27, with existing 0.6.19/0.6.20 s
 
 
 **Premium and ad-free** supports only Pillo 0.6.27. Select **Pillo - Premium and ad-free** instead of the external **Unlock Premium** patch, whose fingerprint no longer matches this app version. See [0.6.27 compatibility and restore notes](docs/Pillo627.md).
+
+The premium patch also prevents subscription refreshes from resetting the notification settings. If **mark as taken** was already disabled by an earlier build, enable it again after applying the updated premium patch. Your choice to disable it remains respected.

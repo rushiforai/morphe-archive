@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/RikoDEV/morphed-pl/compare/v1.3.0...v1.3.1) (2026-11-04)
+
+### 🚀 Updated App Support
+
+* support Yanosik 26.10.0 ([947697d](https://github.com/RikoDEV/morphed-pl/commit/947697df364543a85c830c22da6caed49afe001a))
+
 ## [1.3.0](https://github.com/RikoDEV/morphed-pl/compare/v1.2.2...v1.3.0) (2026-11-02)
 
 ### ✨ New Features

@@ -38,12 +38,12 @@ public final class DisableReelsPatch {
     private static final String TAG = "DisableReels";
 
     static final BooleanSetting HIDE_IN_FEED = new BooleanSetting("reels_hide_in_feed",
-            "Home feed", "Reel posts and suggested reels carousels.", true, true);
+            "Home feed", "Reel posts and suggested reels carousels.", true, false);
     static final BooleanSetting HIDE_IN_EXPLORE = new BooleanSetting("reels_hide_in_explore",
-            "Explore", "Grid sections that contain a reel.", true, true);
+            "Explore", "Grid sections that contain a reel.", true, false);
     static final BooleanSetting NO_SCROLLING = new BooleanSetting("reels_no_scrolling",
             "Stop scrolling", "A reel opened from a message or profile plays alone, no swiping to the next one.",
-            false, true);
+            false, false);
     static final BooleanSetting BLOCK_PLAYER = new BooleanSetting("reels_block_player",
             "Block Reels player", "Reels don't open at all, including ones sent in messages.", false, false);
 

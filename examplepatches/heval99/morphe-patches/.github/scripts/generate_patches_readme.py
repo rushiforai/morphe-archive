@@ -140,6 +140,24 @@ def swatch(color):
     return f'<img src="https://img.shields.io/badge/-%20-{hex_color}?style=flat-square" height="14" alt="">'
 
 
+# App icons fetched by fetch_app_icons.py, found from the repo root (this file's parents) so the
+# result does not depend on the working directory. README.md sits at the repo root, so the
+# relative path below resolves on GitHub.
+ICONS_DIR = Path(__file__).resolve().parents[2] / "assets" / "icons"
+
+
+def icon_img(pkg, size):
+    """The app's icon from assets/icons, or an empty string when there is none."""
+    if (ICONS_DIR / f"{pkg}.png").is_file():
+        return f'<img src="assets/icons/{pkg}.png" width="{size}" height="{size}" alt="">'
+    return ""
+
+
+def app_badge(pkg, color):
+    """Overview table's first column: the app icon, else the colour swatch."""
+    return icon_img(pkg, 20) or swatch(color)
+
+
 def cell(text):
     """Make text safe for a single markdown table cell."""
     return (text or "").replace("|", "\\|").replace("\r", " ").replace("\n", " ").strip()
@@ -239,7 +257,7 @@ def build_content():
             if len(versions) > 1:
                 latest += f" <sub>+{len(versions) - 1} older</sub>"
             lines.append(
-                f"| {swatch(color)} | **{cell(entry['name'])}** | {icons} {len(patches)} "
+                f"| {app_badge(pkg, color)} | **{cell(entry['name'])}** | {icons} {len(patches)} "
                 f"| {latest} | {apk_type or 'APK'} | {play_link(pkg, missing_on_play)} |"
             )
 
@@ -252,9 +270,10 @@ def build_content():
             patches = sorted(entry["patches"].values(), key=lambda x: x["name"])
             versions, _, _ = app_info(pkg)
             version_list = ", ".join(f"`{v}`" for v in reversed(versions)) or "any version"
+            icon = icon_img(pkg, 16)
             lines += [
                 "<details>",
-                f"<summary><b>{entry['name']}</b> &nbsp;·&nbsp; {len(patches)} "
+                f"<summary>{icon + ' ' if icon else ''}<b>{entry['name']}</b> &nbsp;·&nbsp; {len(patches)} "
                 f"patch{'es' if len(patches) != 1 else ''} &nbsp;·&nbsp; <code>{pkg}</code></summary>",
                 "",
                 f"Verified on: {version_list}",

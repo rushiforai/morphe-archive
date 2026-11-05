@@ -15,7 +15,7 @@ object Constants {
     /** SHA-256 of the official Vicky Bonick signing certificate used by 1DM 20.0 (30257). */
     private const val ONEDM_SIGNER_SHA256 = "9f48b6b2741fe7e4f78ea7375f469e99086c07f45a6c7f38407f0483d2451ce7"
 
-    /** SHA-256 of the official signing certificate used by CRICFy TV 7.3 (53). */
+    /** SHA-256 of the official signing certificate used by CRICFy TV 7.4 (54). */
     private const val CRICFY_SIGNER_SHA256 = "f2cd86fcbc92461a3300cec47b6f74d20f0c89dd7162ecc333b3dd2c16e79841"
 
     /** SHA-256 of the official signing certificate used by CricZ TV 7.3 (10). */
@@ -30,6 +30,9 @@ object Constants {
     /** SHA-256 of the official signing certificate used by SK Tech TV 2.7 (17).
      *  Identical to CRICZ_SIGNER_SHA256 — same developer key. */
     private const val SK_TECH_SIGNER_SHA256 = "9ff349c0c047abd68e169980484b43926b6ff2d251a430fe44e3ae3e2930e1d2"
+
+    /** SHA-256 of the official signing certificate used by Playfy TV 1.7 (8). */
+    private const val PLAYFY_TV_SIGNER_SHA256 = "38cde288f060fa8f476ab6811ff215767c35117bf6248fd8ad157cd4566898cc"
 
     val COMPATIBILITY_ONEDM = Compatibility(
         name = "1DM",
@@ -54,12 +57,6 @@ object Constants {
         appIconColor = 0xEE4326,
         signatures = setOf(CRICFY_SIGNER_SHA256),
         targets = listOf(
-            AppTarget(
-                version = "7.3",
-                versionCode = 53,
-                minSdk = 24,
-                description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 7.0+), build 53"
-            ),
             AppTarget(
                 version = "7.4",
                 versionCode = 54,
@@ -129,6 +126,22 @@ object Constants {
                 versionCode = 17,
                 minSdk = 23,
                 description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 17"
+            )
+        )
+    )
+
+    val COMPATIBILITY_PLAYFY_TV = Compatibility(
+        name = "Playfy TV",
+        packageName = "com.playfy.tv",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x5E35B1,
+        signatures = setOf(PLAYFY_TV_SIGNER_SHA256),
+        targets = listOf(
+            AppTarget(
+                version = "1.7",
+                versionCode = 8,
+                minSdk = 21,
+                description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 5.0+), build 8"
             )
         )
     )

@@ -1,5 +1,10 @@
 # Monet premium
 
+Latest supported input: **Monet 1.1.1** (135), retaining existing 1.1.0/1.0.97
+support. See [the 1.1.1 contracts, verification and startup investigation](Monet111.md).
+Unversioned verification tasks select 1.1.1. The version-specific sections below
+record historical evidence.
+
 For separate Nuvio catalog rows on **1.1.0** (existing 1.0.97 support retained), see [MonetCatalogChannels.md](MonetCatalogChannels.md).
 The user-confirmed integration puts catalogs inside **NuVioTV > Content**, uses
 NuVio's installed icon and refreshes independently of Recommendations. That
@@ -60,7 +65,7 @@ not fabricate a Play purchase or server entitlement. No runtime extension is nee
   That constructor calls the evaluator, boxes its result and seeds `La/ct6;`,
   exposed through `La/kt5;`. `La/dl5;->c(Z)V` reevaluates on license changes;
   `La/f50;->s(Ljava/util/List;Z)V` reevaluates on billing updates.
-- Raw original-DEX evidence: `../.inspect-monet-1.1.0/{billing,state,callers}.txt`.
+- Raw original-DEX evidence: `../Skills/inspection-evidence/.inspect-monet-1.1.0/{billing,state,callers}.txt`.
   No runtime extension or fabricated receipt/server entitlement is introduced.
 
 ## Experimental resilience and limits
@@ -132,7 +137,7 @@ and reconstructs the full output class set to detect cross-DEX duplication/loss.
 Latest bundle: `patches/build/libs/patches-0.15.0.mpp`. Original-DEX and packaged
 application checks passed for both alternatives; Desktop 1.19.1 imports all 33
 patches across 8 apps. `verifyAndroidBundle` confirms Android DEX in the actual MPP.
-Logs are under `../.inspect-monet-1.1.0/`. No release version was changed.
+Logs are under `../Skills/inspection-evidence/.inspect-monet-1.1.0/`. No release version was changed.
 
 Desktop 1.19.1 also rebuilt each alternative successfully with `--exclusive --unsigned`:
 
@@ -168,7 +173,7 @@ Both rebuilt APKs retain all 8,514 classes without duplicates, pass all sixteen
 premium-state cases, preserve all 673 non-DEX/non-signature file contents, and
 pass `zipalign -c -v 4`. `apksigner verify` reports the expected missing
 `META-INF/MANIFEST.MF`: these validation outputs are deliberately unsigned.
-Build and Desktop reports are under `../.inspect-monet-1.0.97/`.
+Build and Desktop reports are under `../Skills/inspection-evidence/.inspect-monet-1.0.97/`.
 
 Device checks remain necessary: cold startup with no previous purchase, premium
 customization, a billing reconnect/refresh, process restart and license refresh.

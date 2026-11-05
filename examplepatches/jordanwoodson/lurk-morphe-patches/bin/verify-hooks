@@ -2,8 +2,9 @@
 # Check that a patched APK's app code still calls every extension method the app's patches inject.
 # Usage: bin/verify-hooks <app> <patched.apk>
 # Reads tests/<app>/expected-hooks.txt (one Class.method per line, # starts a comment) and runs
-# tests/verify_extension_calls.py on it. An injected call can vanish without an error (a non-range
-# invoke above v15), so run this after patching a new app version or adding a hook. Needs ANDROID_HOME.
+# tests/verify_extension_calls.py on it, then tests/verify_branch_targets.py. An injected call can vanish
+# without an error (a non-range invoke above v15) and a mislabelled branch is only caught by ART's verifier,
+# so run this after patching a new app version or adding a hook. Needs ANDROID_HOME.
 source "$(dirname "$0")/lib/common.sh"
 
 slug="${1:-}" apk="${2:-}"
@@ -18,9 +19,14 @@ fi
 hooks=()
 while IFS= read -r line; do
     line="${line%%#*}"
-    line="${line//[[:space:]]/}"
-    [[ -n "$line" ]] && hooks+=("$line")
+    # Rumble's lines start with the setting keys that make a hook expected ("<keys>  Class.method"); the
+    # hook is the last word. A build with every patch is expected to have them all.
+    read -r -a words <<<"$line"
+    (( ${#words[@]} )) && hooks+=("${words[-1]}")
 done <"$list"
 (( ${#hooks[@]} )) || die "tests/$slug/expected-hooks.txt lists no Class.method lines"
 note "checking ${#hooks[@]} hooks from tests/$slug/expected-hooks.txt"
-exec python3 -I "$ROOT/tests/verify_extension_calls.py" "$apk" "${hooks[@]}"
+python3 -I "$ROOT/tests/verify_extension_calls.py" "$apk" "${hooks[@]}" || status=$?
+note "checking the branches of every hooked method"
+python3 -I "$ROOT/tests/verify_branch_targets.py" "$apk" || status=$?
+exit "${status:-0}"

@@ -23,7 +23,7 @@ public final class NuvioUpdateFlowPatch {
         MutableMethod download = NuvioUpdateInstaller.unique(repository, "b");
         if (!download.toString().equals("Llb/q;->b(Lmb/a;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;") ||
             (download.getAccessFlags() & 8) != 0) throw new IllegalStateException("Download signature changed");
-        hash(download, "03fb2d18bee8a3ade75ad821e8ec82a80445b6aab0eff9ee1a6cfaf17642bb21");
+        hash(download, "8c8c88cc5f81f53fe5b7b31c35284d71bbdd49ac34f6fd69e7dc327afaa30217");
         MutableMethod stream = NuvioUpdateInstaller.unique(downloader, "a");
         if (!stream.toString().equals("Llb/b;->a(Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;") ||
             (stream.getAccessFlags() & 8) != 0) throw new IllegalStateException("Transfer signature changed");
@@ -32,7 +32,7 @@ public final class NuvioUpdateFlowPatch {
         MutableMethod plain = new MutableMethod(session);
         if (!NuvioUpdateInstaller.isZero(plain.getImplementation().getInstructions().get(0), 15)) throw new IllegalStateException("Metadata suppression missing");
         plain.getImplementation().removeInstruction(0);
-        hash(plain, "61ccf26f3106e55a9eb8fbe82a6592a3fa0b05d29cb1af3862451ac644f04454");
+        hash(plain, "cbe2d1dfb7628f7a44724177e93183d4bd68f6aae60be34ae6db10ccba964d40");
         MutableMethod uri = NuvioUpdateInstaller.unique(bridge, "contentUri");
         if (!uri.toString().equals(INSTALL_UI + "->contentUri(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;") ||
             (uri.getAccessFlags() & 8) == 0 || uri.getImplementation().getRegisterCount() != 3 ||

@@ -5,6 +5,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'shared'))
 from host_java import run, STUBS
+from json_double import JSON_DOUBLE
 
 PLATFORM = {
     'android/graphics/Bitmap.java': '''package android.graphics; public class Bitmap {
@@ -47,11 +48,11 @@ PLATFORM = {
 
 if __name__ == '__main__':
     run('TwitchProvidersProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java',
-        'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java'],
+        'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
         Path(__file__).with_name('TwitchProvidersProbe.java').read_text(),
         sys.argv[1:] or ['unicode', 'multiline', 'queued-disable', 'badges-disable', 'pronouns-disable', 'rn-dispose', 'rn-native-demand', 'rn-badges-dispose',
             'rn-pronouns-dispose', 'rn-frame-passive', 'rn-passive', 'cache-bound', 'demand-reacquire', 'queue-rejection',
-            'describe'], extra=PLATFORM)
+            'describe'], extra=PLATFORM | JSON_DOUBLE)
 
     # Completion ordering uses tokenized HTTP bodies and a drawing boundary; cache/scheduling code is production.
     completion=dict(PLATFORM)
@@ -70,6 +71,6 @@ if __name__ == '__main__':
     '''
     completion['android/graphics/Bitmap.java']=completion['android/graphics/Bitmap.java'].replace('throw new AssertionError("unexpected image rendering");','return new Bitmap();')
     run('PronounCompletionProbe', ['twitch/TwitchEmotes.java', 'twitch/TwitchThirdParty.java',
-        'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java'],
+        'twitch/TwitchBadges.java', 'twitch/TwitchPronouns.java', 'twitch/TwitchSevenTvBadges.java'],
         Path(__file__).with_name('PronounCompletionProbe.java').read_text(),
-        ['user-live','names-live','user-retired','names-retired','user-off','names-off','user-native'],extra=completion)
+        ['user-live','names-live','user-retired','names-retired','user-off','names-off','user-native'],extra=completion | JSON_DOUBLE)

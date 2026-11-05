@@ -2,7 +2,6 @@ package app.template.patches.steamlink.androidxr
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.isModernTongueBridgeSteamLinkBuild
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -11,11 +10,26 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
 
 private const val BATTERY_HELPER = "Lcom/valvesoftware/steamlink/GxrBatterySettings;"
 
+// Exact native-XR pairs whose SteamLink.onCreate carries the call site. The set is local so the
+// battery hook never follows another patch's build list: 5002363 and 5002395 keep their original
+// scope, and 2.0.24/5002527 is added after its decoded onCreate matched 5002395 exactly (same
+// invoke-super, no try ranges, .locals 2, one scratch-safe insertion point right after the super call).
+internal val NATIVE_BATTERY_SETTINGS_BUILDS = setOf(
+    "2.0.23" to "5002363",
+    "2.0.24" to "5002395",
+    "2.0.24" to "5002527",
+)
+
+internal fun isNativeBatterySettingsBuild(version: String, versionCode: String): Boolean =
+    (version to versionCode) in NATIVE_BATTERY_SETTINGS_BUILDS
+
 internal val nativeBatterySettingsPatch = bytecodePatch {
     dependsOn(androidXrBatteryUiExtensionPatch)
 
     execute {
-        if (!isModernTongueBridgeSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE ||
+            !isNativeBatterySettingsBuild(packageMetadata.versionName, packageMetadata.versionCode)
+        ) {
             return@execute
         }
 

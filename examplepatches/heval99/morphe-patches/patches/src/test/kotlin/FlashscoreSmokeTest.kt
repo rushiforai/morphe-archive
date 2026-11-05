@@ -1,3 +1,4 @@
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
@@ -36,6 +37,8 @@ private const val CRASHLYTICS_KEY = "firebase_crashlytics_collection_enabled"
 private const val CRASHLYTICS_WRAPPER_MARKER = "FirebaseCrashlytics component is not present."
 
 private const val BETTING_HELPER = "morpheBettingGet"
+private const val ADS_HELPER = "morpheAdsGet"
+private val INTERSTITIAL_PREF_KEYS = listOf("ads_interstitial_display_date", "ads_interstitial_display_count")
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val TABS_HELPER = "morpheWithoutOddsTab"
 private const val SET = "Ljava/util/Set;"
@@ -66,6 +69,12 @@ private val BETTING_KEYS = mapOf(
     "DETAIL_ODDS_SUMMARY_IMAGES_DISABLED" to "TRUE",
     "BONUS_PROMO_GIFT_ICON_URL" to "EMPTY_STRING",
     "LEAGUE_DETAIL_HEADER_STRIP_SPORTS_ENABLED" to "EMPTY_LIST",
+)
+
+// Disable ads: the app's own ads kill switches.
+private val ADS_KEYS = mapOf(
+    "ADS_ENABLED" to "FALSE",
+    "ADS_AMAZON_ENABLED" to "FALSE",
 )
 
 class FlashscoreSmokeTest {
@@ -192,7 +201,7 @@ class FlashscoreSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.10.2",
+            version = "26.11.4",
             patchNames = FLASHSCORE_PATCHES,
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -201,40 +210,34 @@ class FlashscoreSmokeTest {
 
         fun klass(type: String) = byType[type] ?: error("$type not found in emitted dexes\n$diagnostics")
 
-        // Disable ads: SDK initialization is a no-op.
-        val mobileAds = klass(SDK + "MobileAds;")
-        val initialize = mobileAds.methods.first {
-            it.name == "initialize" && it.parameterTypes.size == 2
-        }
-        assertReturnsEarlyVoid(initialize, label = "MobileAds.initialize(Context, InitializationConfig)")
-        // Rule 9: the next-gen setters that throw without init return at once, on MobileAds and
-        // on its Companion (which the Kotlin statics delegate to).
-        for (type in listOf(SDK + "MobileAds;", SDK + "MobileAds\$Companion;")) {
-            for ((name, parameters) in listOf(
-                "setRequestConfiguration" to listOf(SDK + "common/RequestConfiguration;"),
-                "setUserMutedApp" to listOf("Z"),
-                "setUserControlledAppVolume" to listOf("F"),
-            )) {
-                assertReturnsEarlyVoid(
-                    klass(type).method(name, parameters),
-                    label = "${type.substringAfterLast('/')}.$name(${parameters.joinToString()})",
-                )
+        // Disable ads. Since 26.11.4 the next-gen Ads SDK is R8-repackaged (ads_mobile_sdk.*), so
+        // nothing is hooked by SDK name: ADS_ENABLED / ADS_AMAZON_ENABLED are checked with the
+        // remote-config helpers below. The SDK's public classes must stay gone, or the old
+        // SDK-level hooks would be needed again.
+        assertTrue(
+            byType[SDK + "MobileAds;"] == null && byType[SDK + "interstitial/InterstitialAd;"] == null,
+            "the next-gen Ads SDK keeps its public class names again; restore the SDK-level hooks\n$diagnostics"
+        )
+
+        // The interstitial manager (ctor opens the display-counter prefs) has no ad unit id: its
+        // only ()String getter returns "" at once.
+        val interstitialManager = classes.singleOrNull { cls ->
+            cls.methods.any {
+                it.name == "<init>" && it.strings().containsAll(INTERSTITIAL_PREF_KEYS)
             }
+        } ?: error("no single class opening $INTERSTITIAL_PREF_KEYS in its constructor\n$diagnostics")
+        val unitId = interstitialManager.methods.single {
+            it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty() && it.implementation != null &&
+                !AccessFlags.STATIC.isSet(it.accessFlags)
         }
-
-        // Preloading reports failure and never hands out an ad.
-        val preloader = klass(SDK + "banner/BannerAdPreloader;")
-        val start = preloader.methods.first {
-            it.name == "start" && it.parameterTypes.size == 2 && it.returnType == "Z"
-        }
-        assertForcedBoolean(start, expected = false, label = "BannerAdPreloader.start(String, PreloadConfiguration)")
-
-        // Direct interstitial loads are a no-op.
-        val interstitial = klass(SDK + "interstitial/InterstitialAd;")
-        val load = interstitial.methods.first {
-            it.name == "load" && it.returnType == "V"
-        }
-        assertReturnsEarlyVoid(load, label = "InterstitialAd.load(request, callback)")
+        val unitIdInsns = unitId.instructions()
+        val emptyId = (unitIdInsns.firstOrNull() as? ReferenceInstruction)?.reference as? StringReference
+        assertTrue(
+            unitIdInsns.firstOrNull()?.opcode == Opcode.CONST_STRING && emptyId?.string == "" &&
+                unitIdInsns.getOrNull(1)?.opcode == Opcode.RETURN_OBJECT &&
+                (unitIdInsns[1] as OneRegisterInstruction).registerA == (unitIdInsns[0] as OneRegisterInstruction).registerA,
+            "${interstitialManager.type}.${unitId.name}() does not return \"\" first\n$diagnostics"
+        )
 
         // AdvertZone's load entry point hides the slot, runs the (I)V collapse helper and returns.
         val advertZone = klass(ADVERT_ZONE)
@@ -359,11 +362,42 @@ class FlashscoreSmokeTest {
             "${getBool.definingClass}.${getBool.name} prologue does not return false\n$diagnostics"
         )
 
-        // Block marketing popups: the remote dialog reports "not shown".
-        val remoteDialog = classes.flatMap { it.methods }.single {
-            it.returnType == "Z" && it.params() == listOf(EVENT_LIST_ACTIVITY) && "btnGoUrl" in it.strings()
+        // Block marketing popups: since 26.11.4 the remote dialog is inlined into
+        // EventListActivity.onResume. Found like the patch finds it: the parsed model is stored on
+        // the helper (ctor "dialogSupport") after the "btnGoUrl" read, then read back for the null
+        // check that guards the dialog; that read is overwritten with null at once.
+        val dialogHelper = classes.single { cls ->
+            cls.methods.any { it.name == "<init>" && it.hasStringContaining("dialogSupport") }
+        }.type
+        val onResume = klass(EVENT_LIST_ACTIVITY).method("onResume", emptyList())
+        val resumeInsns = onResume.instructions()
+        fun Instruction.field() = (this as? ReferenceInstruction)?.reference as? FieldReference
+        val urlIndex = resumeInsns.indexOfFirst {
+            ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "btnGoUrl"
         }
-        assertForcedBoolean(remoteDialog, expected = false, label = "remote dialog ${remoteDialog.definingClass}.${remoteDialog.name}", diagnostics)
+        assertTrue(urlIndex >= 0, "EventListActivity.onResume no longer reads \"btnGoUrl\"\n$diagnostics")
+        val modelStore = (urlIndex + 1 until resumeInsns.size).first {
+            resumeInsns[it].opcode == Opcode.IPUT_OBJECT && resumeInsns[it].field()?.definingClass == dialogHelper
+        }
+        val model = resumeInsns[modelStore].field()!!
+        val modelRead = (modelStore + 1 until resumeInsns.size).first {
+            resumeInsns[it].opcode == Opcode.IGET_OBJECT && resumeInsns[it].field() == model
+        }
+        val modelRegister = (resumeInsns[modelRead] as TwoRegisterInstruction).registerA
+        val nulled = resumeInsns[modelRead + 1]
+        assertTrue(
+            (nulled.opcode == Opcode.CONST_4 || nulled.opcode == Opcode.CONST_16) &&
+                (nulled as NarrowLiteralInstruction).narrowLiteral == 0 &&
+                (nulled as OneRegisterInstruction).registerA == modelRegister,
+            "onResume does not null the remote dialog model ($model) after reading it; found ${nulled.opcode}\n$diagnostics"
+        )
+        assertTrue(
+            resumeInsns.subList(modelRead + 2, modelRead + 5).any {
+                (it.opcode == Opcode.IF_NEZ || it.opcode == Opcode.IF_EQZ) &&
+                    (it as OneRegisterInstruction).registerA == modelRegister
+            },
+            "the nulled remote dialog model is not null-checked right after\n$diagnostics"
+        )
 
         // Every Firebase In-App Messaging display implementation returns at once.
         val fiamDisplays = classes.filter { FIAM_DISPLAY in it.interfaces }
@@ -392,7 +426,9 @@ class FlashscoreSmokeTest {
 
         val original = originalClasses(apk).associateBy { it.type }
 
-        // Hide betting content: the remote-config value's get() returns the helper's result.
+        // Disable ads + Hide betting content: the remote-config value's get() returns the result of
+        // a chain of override helpers, one per patch (in patch order, which is not pinned): each
+        // falls through to the next, the last one to the holder.
         val configValue = classes.singleOrNull { cls ->
             cls.methods.any { it.name == "<init>" && it.hasStringStartingWith("USER_PREFS_CONFIG_KEY-") }
         } ?: error("no single class with 'USER_PREFS_CONFIG_KEY-' in a constructor\n$diagnostics")
@@ -400,47 +436,78 @@ class FlashscoreSmokeTest {
             it.name == "<init>" && it.hasStringStartingWith("USER_PREFS_CONFIG_KEY-")
         }.params()[1]
         val configGet = configValue.methods.single {
-            it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty() && it.implementation != null
+            it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty() && it.implementation != null &&
+                !AccessFlags.STATIC.isSet(it.accessFlags)
         }
-        assertReturnsMethodCall(configGet, configValue.type, BETTING_HELPER, label = "${configValue.type}.${configGet.name}()", diagnostics)
+        fun Instruction.helperCall(): MethodReference? =
+            ((this as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
+                opcode == Opcode.INVOKE_STATIC && it.definingClass == configValue.type && it.name.startsWith("morphe")
+            }
+        val helpers = mutableListOf<Method>()
+        var nextHelper = configGet.instructions().firstOrNull()?.helperCall()
+        while (nextHelper != null) {
+            val name = nextHelper.name
+            assertTrue(helpers.none { it.name == name }, "the config helper chain loops at $name\n$diagnostics")
+            val helper = configValue.methods.single { it.name == name }
+            helpers += helper
+            nextHelper = helper.instructions().firstNotNullOfOrNull { it.helperCall() }
+        }
+        assertTrue(
+            helpers.map { it.name }.toSet() == setOf(ADS_HELPER, BETTING_HELPER),
+            "${configValue.type}.${configGet.name}() helper chain is ${helpers.map { it.name }}, expected $ADS_HELPER and $BETTING_HELPER\n$diagnostics"
+        )
+        assertReturnsMethodCall(configGet, configValue.type, helpers.first().name, label = "${configValue.type}.${configGet.name}()", diagnostics)
 
-        // The helper compares the key against the resolved enum constants and answers with the
-        // forced value; otherwise it reads the holder exactly like the original get() did.
-        val helper = configValue.methods.single { it.name == BETTING_HELPER }
-        val helperInsns = helper.instructions()
+        // Each helper compares the key against the resolved enum constants and answers with the
+        // forced value.
         val keyEnum = klass(keyType)
-        for ((name, expected) in BETTING_KEYS) {
-            val field = keyEnum.enumConstantField(name)
-                ?: error("$keyType has no $name constant\n$diagnostics")
-            val load = helperInsns.indexOfFirst {
-                it.opcode == Opcode.SGET_OBJECT && (it as ReferenceInstruction).reference == field
+        for ((helperName, keys) in listOf(BETTING_HELPER to BETTING_KEYS, ADS_HELPER to ADS_KEYS)) {
+            val helperInsns = helpers.single { it.name == helperName }.instructions()
+            for ((name, expected) in keys) {
+                val field = keyEnum.enumConstantField(name)
+                    ?: error("$keyType has no $name constant\n$diagnostics")
+                val load = helperInsns.indexOfFirst {
+                    it.opcode == Opcode.SGET_OBJECT && (it as ReferenceInstruction).reference == field
+                }
+                assertTrue(load >= 0, "$helperName never loads $name ($field)\n$diagnostics")
+                assertTrue(
+                    helperInsns.getOrNull(load + 1)?.opcode == Opcode.IF_EQ,
+                    "$helperName does not compare the key with $name\n$diagnostics"
+                )
+                val answer = helperInsns.branchTarget(load + 1)
+                val answerRef = (answer as? ReferenceInstruction)?.reference
+                val forced = when {
+                    answerRef is FieldReference && answerRef.definingClass == "Ljava/lang/Boolean;" -> answerRef.name
+                    answerRef is StringReference && answerRef.string.isEmpty() -> "EMPTY_STRING"
+                    answerRef is MethodReference && answerRef.definingClass == "Ljava/util/Collections;" &&
+                        answerRef.name == "emptyList" -> "EMPTY_LIST"
+                    else -> "$answer $answerRef"
+                }
+                assertTrue(forced == expected, "$helperName answers $name with $forced, expected $expected\n$diagnostics")
             }
-            assertTrue(load >= 0, "$BETTING_HELPER never loads $name ($field)\n$diagnostics")
-            assertTrue(
-                helperInsns.getOrNull(load + 1)?.opcode == Opcode.IF_EQ,
-                "$BETTING_HELPER does not compare the key with $name\n$diagnostics"
-            )
-            val answer = helperInsns.branchTarget(load + 1)
-            val answerRef = (answer as? ReferenceInstruction)?.reference
-            val forced = when {
-                answerRef is FieldReference && answerRef.definingClass == "Ljava/lang/Boolean;" -> answerRef.name
-                answerRef is StringReference && answerRef.string.isEmpty() -> "EMPTY_STRING"
-                answerRef is MethodReference && answerRef.definingClass == "Ljava/util/Collections;" &&
-                    answerRef.name == "emptyList" -> "EMPTY_LIST"
-                else -> "$answer $answerRef"
-            }
-            assertTrue(forced == expected, "$BETTING_HELPER answers $name with $forced, expected $expected\n$diagnostics")
         }
+        // Every helper but the last hands any other key to the next helper and returns its result.
+        for ((helper, next) in helpers.zipWithNext()) {
+            val insns = helper.instructions()
+            val call = insns.indexOfFirst { it.helperCall()?.name == next.name }
+            assertTrue(
+                call > 0 && insns.getOrNull(call + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+                    insns.getOrNull(call + 2)?.opcode == Opcode.RETURN_OBJECT,
+                "${helper.name} does not fall through to ${next.name}\n$diagnostics"
+            )
+        }
+        // The last one reads the holder exactly like the original get() did.
         val originalGet = original.getValue(configValue.type).methods.single {
             it.returnType == "Ljava/lang/Object;" && it.parameterTypes.isEmpty() && it.implementation != null
         }.instructions()
         val holderRead = (originalGet.first() as ReferenceInstruction).reference
         val holderGet = (originalGet[1] as ReferenceInstruction).reference
-        val fallThrough = helperInsns.indexOfFirst { (it as? ReferenceInstruction)?.reference == holderRead }
+        val lastInsns = helpers.last().instructions()
+        val fallThrough = lastInsns.indexOfFirst { (it as? ReferenceInstruction)?.reference == holderRead }
         assertTrue(
-            fallThrough > 0 && (helperInsns.getOrNull(fallThrough + 1) as? ReferenceInstruction)?.reference == holderGet &&
-                helperInsns.getOrNull(fallThrough + 3)?.opcode == Opcode.RETURN_OBJECT,
-            "$BETTING_HELPER does not fall through to $holderRead + $holderGet\n$diagnostics"
+            fallThrough > 0 && (lastInsns.getOrNull(fallThrough + 1) as? ReferenceInstruction)?.reference == holderGet &&
+                lastInsns.getOrNull(fallThrough + 3)?.opcode == Opcode.RETURN_OBJECT,
+            "${helpers.last().name} does not fall through to $holderRead + $holderGet\n$diagnostics"
         )
 
         // No forced key is read past the helper. R8 inlines get() at some call sites as
@@ -449,7 +516,7 @@ class FlashscoreSmokeTest {
         // the value class with that key constant as its key argument, or the value class's own
         // constructor) is followed through its straight-line code: it must not be read through the
         // holder there, nor handed to a class that does such inlined reads (e.g. a listener).
-        val forcedKeyFields = BETTING_KEYS.keys.map { keyEnum.enumConstantField(it)!! }.toSet()
+        val forcedKeyFields = (BETTING_KEYS.keys + ADS_KEYS.keys).map { keyEnum.enumConstantField(it)!! }.toSet()
         fun Instruction.isHolderRead() =
             opcode == Opcode.IGET_OBJECT && (this as ReferenceInstruction).reference == holderRead
         val inlinedReaders = classes.filter { it.type != configValue.type }.flatMap { cls ->

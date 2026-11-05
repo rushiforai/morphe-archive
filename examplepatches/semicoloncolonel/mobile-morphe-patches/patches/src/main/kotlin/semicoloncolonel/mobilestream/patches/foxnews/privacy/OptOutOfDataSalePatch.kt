@@ -40,9 +40,7 @@ internal object KetchIsUserOptedOutFingerprint : Fingerprint(
 @Suppress("unused")
 val optOutOfDataSalePatch = bytecodePatch(
     name = "Opt out of data sale & sharing",
-    description = "Starts the app opted out of the sale and sharing of your data (the US Privacy \"do " +
-        "not sell\" signal), and opted out of Nielsen measurement. You can still change the " +
-        "choice in the app's privacy settings.",
+    description = "Starts the app opted out of the sale and sharing of your data.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

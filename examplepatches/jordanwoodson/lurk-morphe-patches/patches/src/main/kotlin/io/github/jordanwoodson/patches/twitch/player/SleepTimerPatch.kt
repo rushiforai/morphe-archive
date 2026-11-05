@@ -15,17 +15,21 @@ import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.shared.settings.requireLocals
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
+import io.github.jordanwoodson.patches.shared.Locators
 import io.github.jordanwoodson.patches.shared.invokeStatic
 import io.github.jordanwoodson.patches.shared.parameterRegister
 import io.github.jordanwoodson.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
 import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
+
+private const val STREAM_SETTINGS = "Lio/github/jordanwoodson/extension/shared/twitch/TwitchStreamSettings;"
 
 @Suppress("unused")
 val sleepTimerPatch = bytecodePatch(
     name = "Sleep timer",
     description = "Pauses playback a chosen time after it last started or resumed, through Twitch's own pause " +
         "for native, portal and React Native players, and says so in a short notice. Choose the time in Lurk " +
-        "settings; it is off until then.",
+        "settings or in the player's settings sheet (the gear), which gets a Sleep timer row under Background " +
+        "audio; it is off until then.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchSettingsPatch)
@@ -79,8 +83,24 @@ val sleepTimerPatch = bytecodePatch(
             invoke-interface { p0 }, $pause
         """)
 
+        // The player's settings sheet (the gear) gets a Sleep timer row after Background audio, so the time can
+        // be changed without leaving the stream (issue 52). The sheet's view holder looks its rows up in its
+        // constructor; the row is added once that is done, with the sheet (p2, untouched until the end).
+        StreamSettingsViewFingerprint.twitchMatch("stream settings sheet").let { match ->
+            Locators.record("twitch.sleep_timer.stream_settings_view", match.classDef.type)
+            match.method.apply {
+                val code = implementation!!.instructions.toList()
+                val end = code.indices.filter { code[it].opcode == Opcode.RETURN_VOID }.singleOrNull()
+                    ?: throw PatchException("Twitch: the stream settings sheet constructor doesn't return once")
+                val sheet = parameterRegister(2)
+                requireUnwritten(sheet, end, "the stream settings sheet view")
+                addInstructions(end, invokeStatic("$STREAM_SETTINGS->sleepTimerRow(Landroid/view/View;)V", sheet))
+            }
+        }
+
         twitchSettings.add(ChoiceSetting("sleep_timer", "Sleep timer",
-            "Pauses playback this long after it last started or resumed, including background audio.",
+            "Pauses playback this long after it last started or resumed, including background audio. Also " +
+                "in the player's settings sheet (the gear).",
             Section.PLAYBACK, "0", listOf("Off" to "0", "15 minutes" to "15",
                 "30 minutes" to "30", "45 minutes" to "45", "1 hour" to "60", "1.5 hours" to "90",
                 "2 hours" to "120")))

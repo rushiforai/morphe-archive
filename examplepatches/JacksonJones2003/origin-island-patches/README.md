@@ -21,7 +21,7 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.13.2](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.13.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -40,7 +40,7 @@ risk. See the [license](LICENSE) for details.
 </details>
 
 <details open>
-<summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -50,6 +50,7 @@ risk. See the [license](LICENSE) for details.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Jovi voice requests](#jovi-voice-requests) | Lets the Jovi voice assistant play songs asked for by voice. Only works in a second copy of YouTube Music installed next to it under the package of QQ Music with the Clone app patch. |  |
 | [Lyrics in player](#lyrics-in-player) | Shows the line of the lyrics that is sung between the cover and the title in the player. Requires the Third-party lyrics patch. |  |
 | [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island like songs, switch between repeat and shuffle, show the playlist, the playlists of the library and the downloads, and show the lyrics of the Third-party lyrics patch. | • Package name |
 | [Pause on fold](#pause-on-fold) | Pauses what plays when a foldable phone is closed. |  |
@@ -118,12 +119,26 @@ started, while YouTube Music loads the library.
 
 ### A copy under a package the card knows
 
+> **You need two YouTube Music apps for this.** Keep YouTube Music installed under its own
+> package, patched, for Gemini, Android Auto and your library, and install a second, patched
+> copy next to it under another package for the card. The copy cannot replace YouTube Music:
+> Gemini only sends songs to YouTube Music under its own package.
+
 The card only lists the apps of a list of its own to pick from while nothing plays, and
-YouTube Music is not one of them. A second, patched copy of YouTube Music that is installed
-under the package of one that is, such as `com.luna.music`, can be picked there. To make one,
-patch YouTube Music with the **Package name** option of the **Origin Island music card** patch
-set to Luna Music. It installs next to YouTube Music, and cannot be installed next to the real
-Luna Music. For such a copy the patch does the following:
+YouTube Music is not one of them. A copy of YouTube Music under the package of one that is can
+be picked there:
+
+- `cn.missevan`: the card has no name of its own for it, so it shows the copy as YouTube Music
+- `com.luna.music`: the card shows the copy as Qi Shui Yin Yue, its name for Luna Music
+
+To make the copy, patch YouTube Music again with the package in the **Package name** option of
+the **Clone app** patch of the Morphe patches. With the Morphe patches, set this one there:
+Clone app sets the package of the app after the other patches, and the Google sign-in patch
+takes it from Clone app. Leave the **Package name** option of **Origin Island music card** on
+**Keep**; it is for building the copy without the Morphe patches. The copy cannot be installed
+next to the app the card knows the package for.
+
+For such a copy the patch does the following:
 
 - the card opens the copy to have it play, and the copy then resumes what it last played
   and moves out of view again
@@ -133,6 +148,9 @@ Luna Music. For such a copy the patch does the following:
 
 The card only offers the lists of an app it has no list support built in for while that
 app plays, so the playlist button of a copy stays disabled until something plays.
+
+Pressing play on the card while YouTube Music or the copy is closed starts it, and has it
+resume what it last played, as the play button of a headset does.
 
 ### How it works
 
@@ -344,6 +362,53 @@ The download list comes from the tree Apple Music keeps for Android Auto, which 
 and which it plays from the media ids. The tree has no list of favorites, so these are asked of the
 library the way Apple Music does for its own suggestions. Loading can take longer than the card waits,
 so the lists are loaded when the card connects and are kept.
+
+## Jovi voice requests (YouTube Music)
+
+> **You need two YouTube Music apps for this.** Keep YouTube Music installed under its own
+> package, patched, and install a second, patched copy next to it under the package of QQ Music
+> (`com.tencent.qqmusic`). Jovi only sends songs to a few music apps it knows by their package,
+> so this only works in the copy. With the copy for the music card as well, that is three:
+> YouTube Music, the copy for the card and the copy for Jovi.
+
+Lets the Jovi voice assistant of vivo play a song asked for by voice, such as
+"play In the Air Tonight by Phil Collins on QQ Music", in a copy of YouTube Music.
+
+### Using it
+
+1. Add this patch source to Morphe Manager, next to the official Morphe patches.
+2. Patch YouTube Music in Expert mode with **Jovi voice requests**, which turns on **Origin Island
+   music card** as well, and set the **Package name** option of the **Clone app** patch to
+   `com.tencent.qqmusic`. Leave the **Package name** option of Origin Island music card on **Keep**.
+3. Install the copy next to YouTube Music, open it, and sign in. The copy plays the songs
+   itself, so it has its own sign-in, cache and downloads.
+4. Allow the copy to start by itself in its battery or app settings. vivo does not let other apps
+   start an app that is closed unless it is allowed to, so Jovi cannot reach the copy otherwise.
+
+vivo can warn about the copy as it is installed, since it has the package of QQ Music without its
+signature; keep the app to use it. The real QQ Music cannot be installed next to the copy.
+
+While the copy plays, the music card and Origin Island show it as they show QQ Music: the card asks
+the copy for the song, its cover, whether it plays and how far, its lyrics, the playlist, the
+favorites and downloads lists, the heart and the play mode, which the copy answers from YouTube
+Music. The playlist is the queue, the favorites list has the playlists of the library, and the
+download list has the downloads of YouTube Music under its own package if it is patched as well,
+which then plays them, or otherwise the downloads of the copy.
+
+Jovi puts the singer and the name of the song together without a space, so a space is put back
+where a lowercase letter is followed by a capital one. What Jovi heard is what is searched for.
+
+### How it works
+
+Jovi asks QQ Music for songs through the interface QQ Music has for other apps: it binds a
+service of QQ Music, says hi, searches for what was asked for, plays a song of the results by
+its id, and waits to be told that it plays. The patch gives YouTube Music that service, which
+only answers in a copy under the package of QQ Music. It answers that no authorization is
+needed, answers a search with what was asked for as the only song, and has YouTube Music play
+that from a search, as it does for a voice assistant. YouTube Music only plays from a search
+for clients it knows, which it tells from the controller of each command to its session, so
+commands of the copy itself are taken as commands of Android Auto. Jovi is told once the song
+plays, with the events of the interface.
 
 ## Comments under the video (YouTube)
 

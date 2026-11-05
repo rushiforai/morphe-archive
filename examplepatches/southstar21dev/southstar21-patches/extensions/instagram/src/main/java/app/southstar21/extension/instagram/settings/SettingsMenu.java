@@ -209,12 +209,20 @@ public final class SettingsMenu {
     private View buildPatchList() {
         LinearLayout list = pageList();
 
-        TextView title = text("Patches", 32, textPrimary, true);
-        title.setPadding(dp(4), dp(4), dp(4), 0);
-        list.addView(title);
+        // southstar21.dev logo, centered, in the brand kit's colours for this theme.
+        ImageView logo = new ImageView(activity);
+        logo.setImageDrawable(new Logo(dark));
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        logo.setContentDescription("southstar21.dev");
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(26));
+        logoParams.setMargins(dp(12), dp(8), dp(12), 0);
+        list.addView(logo, logoParams);
         TextView subtitle = text("southstar21 Patches for Instagram", 15, textSecondary, false);
-        subtitle.setPadding(dp(4), dp(2), dp(4), dp(8));
-        list.addView(subtitle);
+        subtitle.setGravity(Gravity.CENTER);
+        subtitle.setPadding(dp(4), dp(10), dp(4), dp(8));
+        list.addView(subtitle, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
 
         List<PatchSettings> patches = Settings.includedPatches();
         if (patches.isEmpty()) {

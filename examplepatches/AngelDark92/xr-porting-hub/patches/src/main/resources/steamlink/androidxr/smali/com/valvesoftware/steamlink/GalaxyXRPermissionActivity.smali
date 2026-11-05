@@ -23,7 +23,7 @@
 .method private continueAfterPermissions()V
     .locals 4
 
-    invoke-static {p0}, Lcom/valvesoftware/steamlink/GxrResolutionProbe;->shouldRequestOverlay(Landroid/content/Context;)Z
+    invoke-static {p0}, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->isEnabled(Landroid/content/Context;)Z
 
     move-result v0
 
@@ -60,7 +60,7 @@
     return-void
 
     :ensure
-    invoke-static {p0}, Lcom/valvesoftware/steamlink/GxrResolutionProbe;->onOverlayPermissionReady(Landroid/content/Context;)Z
+    invoke-static {p0}, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->ensureOverlay(Landroid/content/Context;)Z
 
     move-result v0
 
@@ -213,7 +213,7 @@
 
     iput-boolean v0, p0, Lcom/valvesoftware/steamlink/GalaxyXRPermissionActivity;->mSettingsPauseObserved:Z
 
-    invoke-static {p0}, Lcom/valvesoftware/steamlink/GxrResolutionProbe;->onOverlayPermissionReady(Landroid/content/Context;)Z
+    invoke-static {p0}, Lcom/valvesoftware/steamlink/GxrOverlayBridge;->ensureOverlay(Landroid/content/Context;)Z
 
     move-result v0
 

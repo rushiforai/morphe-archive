@@ -36,7 +36,7 @@ for the read-only update report and the `verifyNuvioLatest` verification command
 Original: `../OriginalApps/NuvioTV-1.1.0-beta8.apk`.
 SHA-256: `7aeae6f64e9128be2c7545c50061376839e20a88d47722ac220ba40be7c182f8`.
 The package and version were read with Android SDK aapt. All six original DEX
-files were extracted to `../.inspect-nuvio-beta8/`; normalized comparisons,
+files were extracted to `../Skills/inspection-evidence/.inspect-nuvio-beta8/`; normalized comparisons,
 method candidates, instruction/register dumps and verification logs are there.
 
 ## Proven native contracts
@@ -122,8 +122,8 @@ manifest); the CLI was explicitly run with `--unsigned`.
 
 - Bundle: `patches/build/libs/patches-0.12.0.mpp`.
 - Unsigned APK: `../Apps/NuvioTV/NuvioTV-1.1.0-beta.8-menu-fix-unsigned.apk`.
-- CLI report: `../.inspect-nuvio-beta8/rebuild-result.json`.
-- Verification logs: `../.inspect-nuvio-beta8/bundle-final.log`,
+- CLI report: `../Skills/inspection-evidence/.inspect-nuvio-beta8/rebuild-result.json`.
+- Verification logs: `../Skills/inspection-evidence/.inspect-nuvio-beta8/bundle-final.log`,
   `final-verification.log`, and `settings-store-final.log`.
 
 The APK was rebuilt, but was not signed, installed, or tested on a device.
@@ -145,7 +145,7 @@ The corrected `patches-0.12.0.mpp` passed `:patches:buildAndroid` and
 `:patches:verifyNuvioLatest`. The CLI applied all 14 patches without failures
 and rebuilt `../Apps/NuvioTV/NuvioTV-1.1.0-beta.8-menu-fix-unsigned.apk`.
 The output passes APK DEX verification and alignment. Logs are in
-`../.inspect-nuvio-beta8/menu-fix-latest.log`, `menu-fix-apk-verification.log`
+`../Skills/inspection-evidence/.inspect-nuvio-beta8/menu-fix-latest.log`, `menu-fix-apk-verification.log`
 and `menu-fix-result.json`. Device confirmation remains pending.
 
 ## Device log: playback stutter
@@ -195,7 +195,7 @@ patches. Its identity is `com.nuvio.santodan`, beta.8 / 1071; alignment passed,
 all 108 native libraries match the original, and `apksigner verify` confirms the
 expected unsigned state. It was not signed, installed, or tested on a device.
 Build, bundle, APK verification and CLI logs use the `playback-stutter-` prefix
-under `../.inspect-nuvio-beta8/`.
+under `../Skills/inspection-evidence/.inspect-nuvio-beta8/`.
 
 ## Follow-up: merge history restoration during playback
 
@@ -253,7 +253,7 @@ findings. Alignment passed; all 108 native libraries match the original. Manifes
 identity remains `com.nuvio.santodan`, beta.8 / 1071. Signature verification reports
 the expected missing signature for the deliberately unsigned output. SHA-256:
 `1a04a83bdf30282d9b10dff8e5aa39e740b5c737d0c14d7a1cb331359f1d5b80`.
-Logs use `../.inspect-nuvio-beta8/merge-playback-*.log`. The APK was rebuilt, but
+Logs use `../Skills/inspection-evidence/.inspect-nuvio-beta8/merge-playback-*.log`. The APK was rebuilt, but
 was not signed, installed, or tested on a device.
 
 ## Follow-up: first sync timeout and stale Continue Watching
@@ -304,7 +304,7 @@ libraries. Package/version remain `com.nuvio.santodan`, beta.8 / 1071.
 SHA-256: `c83a5b5181427be401455e68b6bce798330cc413d4e59010beaf15c6943cce0a`.
 It is unsigned (signature verification reports the expected missing manifest),
 was not installed, and has not been tested on a device. Logs use
-`../.inspect-nuvio-beta8/merge-sync-followup-*.log`.
+`../Skills/inspection-evidence/.inspect-nuvio-beta8/merge-sync-followup-*.log`.
 
 ## Playback cooldown and startup seek guard
 
@@ -367,7 +367,7 @@ library findings. ZIP alignment passed; package is `com.nuvio.santodan`, code
 unsigned and has not been installed or tested on a device.
 
 Build, bundle, CLI result, and APK verification evidence is under
-`E:/Morphe/.inspect-nuvio-beta8/player-stability-*`. APK SHA-256:
+`E:/Morphe/Skills/inspection-evidence/.inspect-nuvio-beta8/player-stability-*`. APK SHA-256:
 `fac752515a3fa032294b6b703dea782c8be7e8044ab4875dfac0afe38a801eaf`.
 
 
@@ -381,7 +381,7 @@ Restore audit: rebuilding all 16 patches from the restored bundle against the
 original beta.8 APK produced the exact same ZIP entry set and uncompressed bytes
 as `player-stability-fix-unsigned.apk`, including all 21 DEX files. All embedded
 runtime extensions also match the preserved pre-experiment source bundle.
-Comparison evidence is `.inspect-nuvio-beta8/stability-restore-comparison.json`
+Comparison evidence is `Skills/inspection-evidence/.inspect-nuvio-beta8/stability-restore-comparison.json`
 under the workspace root. Fixed-name copies of the APK and bundle are available
 under `E:/Morphe/Apps/NuvioTV/` as
 `NuvioTV-1.1.0-beta.8-player-stability-restored-unsigned.apk` and

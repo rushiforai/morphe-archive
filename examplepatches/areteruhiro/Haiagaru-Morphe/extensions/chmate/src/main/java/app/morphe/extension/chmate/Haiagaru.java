@@ -480,7 +480,8 @@ public final class Haiagaru {
         return addToolbarChoice(toolbarModel, MARK_ALL_READ_TOOLBAR_ID, "haiagaru_mark_all_read");
     }
     public static Object addFavoriteThreadsTab(Object toolbarModel) {
-        return addToolbarChoice(toolbarModel, FavoriteThreads.TAB, "haiagaru_favorite_threads");
+        Object result=addToolbarChoice(toolbarModel, FavoriteThreads.TAB, "haiagaru_favorite_threads");
+        return addToolbarChoice(result,HomeRefreshTargets.TAB,"haiagaru_refresh_target_threads");
     }
 
     public static boolean keepQuickFilterPosition() {
@@ -523,8 +524,9 @@ public final class Haiagaru {
             int iconId = context.getResources().getIdentifier(
                     resourceName, "drawable", context.getPackageName());
             if (titleId == 0 || iconId == 0) return toolbarModel;
-            int summaryId=actionId==FavoriteThreads.TAB?context.getResources().getIdentifier(
-                    "haiagaru_favorite_threads_description","string",context.getPackageName()):titleId;
+            boolean homeTab=actionId==FavoriteThreads.TAB||actionId==HomeRefreshTargets.TAB;
+            int summaryId=homeTab?context.getResources().getIdentifier(
+                    actionId==HomeRefreshTargets.TAB?"haiagaru_refresh_target_threads_description":"haiagaru_favorite_threads_description","string",context.getPackageName()):titleId;
             if(summaryId==0)summaryId=titleId;
             if (toolbarModel instanceof List) {
                 List<?> source = (List<?>) toolbarModel;
@@ -532,10 +534,10 @@ public final class Haiagaru {
                 @SuppressWarnings("unchecked")
                 List<Object> buttons = (List<Object>) source;
                 Class<?> itemClass = Class.forName("o.r8lambda98incQ33GAiiY2082BMi9yDa3l0",
-                        false, toolbarModel.getClass().getClassLoader());
+                        false, context.getClassLoader());
                 Object item = itemClass.getConstructor(int.class, int.class, int.class,
                         int.class, boolean.class).newInstance(
-                        actionId, actionId == FavoriteThreads.TAB ? 0 : iconId, titleId, summaryId, MinimalSetup.toolbarDefault(actionId));
+                        actionId, homeTab ? 0 : iconId, titleId, summaryId, MinimalSetup.toolbarDefault(actionId));
                 buttons.add(item);
                 return toolbarModel;
             }
@@ -557,7 +559,7 @@ public final class Haiagaru {
                     "jp.syoboi.a2chMate.feature.toolbar.ToolbarButtonSpec", false, loader);
             Object item = specClass.getConstructor(int.class, int.class, int.class,
                     int.class, boolean.class).newInstance(
-                    actionId, actionId == FavoriteThreads.TAB ? 0 : iconId, titleId, summaryId, MinimalSetup.toolbarDefault(actionId));
+                    actionId, homeTab ? 0 : iconId, titleId, summaryId, MinimalSetup.toolbarDefault(actionId));
             // Modern ToolbarDefault keeps a mutable button list. Extending that
             // list preserves its position and configuration objects; rebuilding
             // the model can silently lose the new choice on some versions.
@@ -2488,7 +2490,7 @@ public final class Haiagaru {
             intent.removeExtra("haiagaru.archive.retry");
         }
         boolean shouldImport = talkThread
-                || (isAutomaticDatEnabled(activity) && (vipThread || isArchivedThreadUrl(original)));
+                || (isAutomaticDatEnabled(activity) && (vipThread || isLegacyServerThreadUrl(original)));
         if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
             Log.i(LOG_TAG, "Handling thread through the local DAT cache: " + original);
@@ -2530,7 +2532,7 @@ public final class Haiagaru {
         String rewritten = talkThread || vipThread ? original : rewriteLegacyThreadUrl(original);
         boolean archiveRetry = bundle.getBoolean("haiagaru.archive.retry", false);
         boolean shouldImport = talkThread
-                || (isAutomaticDatEnabled(activity) && (vipThread || isArchivedThreadUrl(original)));
+                || (isAutomaticDatEnabled(activity) && (vipThread || isLegacyServerThreadUrl(original)));
         if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
             Log.i(LOG_TAG, "Handling tablet thread through the local DAT cache: " + original);
@@ -2543,7 +2545,7 @@ public final class Haiagaru {
         return false;
     }
 
-    private static boolean isArchivedThreadUrl(String value) {
+    private static boolean isLegacyServerThreadUrl(String value) {
         try {
             Uri uri = Uri.parse(value);
             String host = uri.getHost();
@@ -2552,7 +2554,7 @@ public final class Haiagaru {
             java.util.regex.Matcher matcher = LEGACY_THREAD_READ_PATH.matcher(path);
             if (!matcher.matches()) matcher = LEGACY_THREAD_DAT_PATH.matcher(path);
             return matcher.matches()
-                    && isArchivedThreadCandidate(host.toLowerCase(Locale.ROOT), matcher.group(2));
+                    && ArchiveThreadLinks.requiresLegacyServerRecovery(host);
         } catch (Throwable ignored) {
             return false;
         }
@@ -2573,7 +2575,7 @@ public final class Haiagaru {
             if (!matcher.matches()) return normalized;
 
             String normalizedHost = host.toLowerCase(Locale.ROOT);
-            if (!isArchivedThreadCandidate(normalizedHost, matcher.group(2))) {
+            if (!ArchiveThreadLinks.requiresLegacyServerRecovery(normalizedHost)) {
                 return normalized;
             }
 
@@ -2597,45 +2599,6 @@ public final class Haiagaru {
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to rewrite legacy thread URL", error);
             return normalized;
-        }
-    }
-
-    private static boolean isArchivedThreadCandidate(String host, String threadKey) {
-        if (host.equals("2ch.net") || host.endsWith(".2ch.net")) return true;
-        if (!(host.endsWith(".5ch.net") || host.endsWith(".5ch.io"))) return false;
-
-        int dot = host.indexOf('.');
-        String server = dot > 0 ? host.substring(0, dot) : host;
-        switch (server) {
-            case "ai":
-            case "anago":
-            case "awabi":
-            case "daily":
-            case "fox":
-            case "hayabusa":
-            case "hayabusa2":
-            case "hayabusa3":
-            case "hayabusa5":
-            case "hayabusa6":
-            case "hello":
-            case "hope":
-            case "kanae":
-            case "maguro":
-            case "mastiff":
-            case "peace":
-            case "potato":
-            case "raptor":
-            case "wktk":
-                return true;
-            default:
-                try {
-                    long createdAtSeconds = Long.parseLong(threadKey);
-                    long ninetyDaysAgoSeconds = System.currentTimeMillis() / 1000L
-                            - 90L * 24L * 60L * 60L;
-                    return createdAtSeconds < ninetyDaysAgoSeconds;
-                } catch (NumberFormatException ignored) {
-                    return false;
-                }
         }
     }
 
@@ -3660,6 +3623,9 @@ public final class Haiagaru {
         QuickFilterOptions.addSettings(layout,activity);
         QuickFilterOptions.addToolbarEntry(layout,activity);
         HomeSelectionBar.addSettings(layout,activity);
+        Switch historyRefreshTargets=addSwitch(layout,activity,
+                text("履歴ポップアップに「対象」タブを表示", "Show refresh targets in the history popup"),
+                preferences.getBoolean(RefreshTargetHistory.VISIBLE_KEY,false));
         Switch compactFilters = null;
         if (QuickFilterToolbar.supported(activity)) {
             compactFilters = addSwitch(layout, activity,
@@ -3727,6 +3693,7 @@ public final class Haiagaru {
         live.toggle(deleteReadLongPress, DeleteReadThreads.LONG_PRESS_KEY);
         live.toggle(hideNgThreadGroupSwitch,"hideNgThreadGroup");
         live.toggle(hideDroppedThreadsSwitch,HiddenDroppedThreads.KEY);
+        live.toggle(historyRefreshTargets,RefreshTargetHistory.VISIBLE_KEY);
         Switch excludeHiddenNgUnread=addSwitch(layout,activity,"非表示NGのレスを未読件数に含めない",preferences.getBoolean(HiddenNgUnread.KEY,false));
         live.toggle(excludeHiddenNgUnread,HiddenNgUnread.KEY);
         TextView unreadNgHelp=new TextView(activity);unreadNgHelp.setText("既読位置は変えず、取得してNG判定できた非表示レスだけを件数から除きます。未取得・未判定のレスは除きません。変更後はスレを開き直してください。");layout.addView(unreadNgHelp);
@@ -3770,7 +3737,8 @@ public final class Haiagaru {
                 {"showExternalBoardAuthMenu", text("メニューに「外部板の認証ページ」を表示", "Show external board authentication in the menu")}
         };
         for (String[] option : menuOptions) {
-            Switch toggle = addSwitch(layout, activity, option[1], preferences.getBoolean(option[0], false));
+            Switch toggle = addSwitch(layout, activity, option[1],
+                    preferences.getBoolean(option[0], "showExternalBoardAuthMenu".equals(option[0])));
             live.toggle(toggle, option[0]);
         }
         TextView menuDescription = new TextView(activity);
@@ -4685,6 +4653,13 @@ public final class Haiagaru {
                 "local/optional MEGA backup",
                 () -> HaiagaruMegaSync.addSettingsButton(layout, activity)
         );
+        addOptionalSettingsSection("package data migration",()->{
+            try{Class.forName("app.morphe.extension.chmate.PackageDataMigration")
+                    .getDeclaredMethod("addControl",Activity.class,LinearLayout.class).invoke(null,activity,layout);}
+            catch(ClassNotFoundException ignored){}
+            catch(ReflectiveOperationException error){Log.w(LOG_TAG,"Unable to add migration controls",error);}
+        });
+        RestoredThreadCache.addSettings(layout, activity);
 
 
         return layout;
@@ -5478,7 +5453,7 @@ public final class Haiagaru {
             menu.removeItem(itemId);
             return false;
         }
-        boolean visible = preferences(context).getBoolean(key, false);
+        boolean visible = preferences(context).getBoolean(key, "showExternalBoardAuthMenu".equals(key));
         MenuItem existing = menu.findItem(itemId);
         if (existing != null) existing.setVisible(visible);
         return visible && existing == null;

@@ -252,8 +252,8 @@ final class HaiagaruBackupArchive {
         }
         int core = selected & 63 & (backup.zipped ? ~FILE_FLAGS : -1);
         if (core != 0) {
-            if (merge) HaiagaruSyncSnapshot.mergeMissing(context, backup.snapshot, core);
-            else HaiagaruSyncSnapshot.restore(context, backup.snapshot, core);
+            if (merge) HaiagaruSyncSnapshot.mergeMissing(context, backup.snapshot, core, false);
+            else HaiagaruSyncSnapshot.restore(context, backup.snapshot, core, false);
         }
         if (backup.zipped) try (ZipFile zip = new ZipFile(backup.file)) {
             List<Root> roots = roots(context);
@@ -295,6 +295,8 @@ final class HaiagaruBackupArchive {
             }
         }
         HaiagaruBackupSecrets.restore(context, backup.snapshot, selected, merge);
+        if ((selected & HaiagaruSyncSnapshot.BOOKMARKS) != 0)
+            RestoredThreadCache.reconcile(context, backup.snapshot.optJSONArray("bookmarks"));
     }
 
     static long copy(InputStream input, OutputStream output) throws IOException {

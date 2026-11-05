@@ -21,9 +21,8 @@ import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 
 private const val ANALYSIS = "${Constants.EXTENSION_PACKAGE}/stockfish/Analysis;"
-private const val BOARD_STATE = "Lcom/chess/chessboard/vm/movesinput/CBViewModelStateImpl;"
-/** 4.10.23's board state: position in field a. */
-private const val BOARD_STATE_41023 = "Lcom/chess/chessboard/vm/movesinput/y;"
+/** The board's state: a plain data class with the position in field a. */
+private const val BOARD_STATE = "Lcom/chess/chessboard/vm/movesinput/y;"
 private const val OLD_BOARD = "Lcom/chess/chessboard/view/ChessBoardView;"
 private const val V2_BOARD = "Lcom/chess/chessboard/v2/ChessBoardView;"
 
@@ -310,9 +309,7 @@ val stockfishPatch = bytecodePatch(
     execute {
         markFeaturePatched("stockfishPatched")
 
-        val state = mutableClassDefByOrNull(BOARD_STATE)
-        val positionType = (state
-            ?: mutableClassDefBy(V2_BOARD)).methods.single {
+        val positionType = mutableClassDefBy(V2_BOARD).methods.single {
             it.name == "getPosition" && it.parameterTypes.isEmpty()
         }.returnType
 
@@ -324,19 +321,12 @@ val stockfishPatch = bytecodePatch(
         }.singleOrNull() ?: throw PatchException("The position's FEN getter was not found")
         mutableClassDefBy(ANALYSIS).methods.first { it.name == "fenMethod" }.returnString(fen.name)
 
-        // Every new position reaches the analysis: through the older board's view state, and the
+        // Every new position reaches the analysis: the board on screen takes its state, and the
         // newer v2 board's own setter (archived games).
-        if (state != null) {
-            state.methods.single {
-                it.name != "<init>" && it.returnType == "V" && it.parameterTypes.map { type -> type.toString() } == listOf(positionType)
-            }.addInstructions(0, "invoke-static/range { p1 .. p1 }, $ANALYSIS->onPosition(Ljava/lang/Object;)V")
-        } else {
-            // 4.10.23: the board's state is a plain data class, so hook the board that shows it.
-            mutableClassDefBy(OLD_BOARD).methods.single {
-                it.name == "setPosition" && it.returnType == "V" &&
-                    it.parameterTypes.map { type -> type.toString() } == listOf(BOARD_STATE_41023)
-            }.addInstructions(0, "invoke-static/range { p1 .. p1 }, $ANALYSIS->onBoardState(Ljava/lang/Object;)V")
-        }
+        mutableClassDefBy(OLD_BOARD).methods.single {
+            it.name == "setPosition" && it.returnType == "V" &&
+                it.parameterTypes.map { type -> type.toString() } == listOf(BOARD_STATE)
+        }.addInstructions(0, "invoke-static/range { p1 .. p1 }, $ANALYSIS->onBoardState(Ljava/lang/Object;)V")
         mutableClassDefBy(V2_BOARD).methods.single {
             it.name == "setPosition" && it.parameterTypes.map { type -> type.toString() } == listOf(positionType)
         }.addInstructions(0, "invoke-static/range { p1 .. p1 }, $ANALYSIS->onPosition(Ljava/lang/Object;)V")

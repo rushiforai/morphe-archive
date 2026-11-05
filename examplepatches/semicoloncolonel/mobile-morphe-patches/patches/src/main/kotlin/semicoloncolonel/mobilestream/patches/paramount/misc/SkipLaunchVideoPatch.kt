@@ -9,8 +9,7 @@ import semicoloncolonel.mobilestream.patches.shared.misc.forceSplashVideoOff
 @Suppress("unused")
 val skipLaunchVideoPatch = bytecodePatch(
     name = "Skip launch video",
-    description = "Opens the app without the branded intro video that plays on launch; it shows the " +
-        "static logo instead and continues.",
+    description = "Opens the app with the static logo instead of the branded intro video.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -17,3 +17,23 @@ internal object ShouldShowAdsFingerprint : Fingerprint(
         string("Ads disabled: user is in sanctioned country", StringComparisonType.STARTS_WITH),
     ),
 )
+
+/**
+ * The ad SDKs' startup providers, declared in the merged manifest (so R8 keeps the names) and run
+ * on every cold start before Application.onCreate, whether or not ads are ever shown: Meta
+ * Audience Network's AudienceNetworkContentProvider (initialises its dynamic loader) and Liftoff
+ * Vungle's VungleProvider (starts its SDK). 2026-11-03, 240.
+ */
+internal object AudienceNetworkProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/ads/AudienceNetworkContentProvider;",
+    name = "onCreate",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+internal object VungleProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/vungle/ads/VungleProvider;",
+    name = "onCreate",
+    returnType = "Z",
+    parameters = listOf(),
+)

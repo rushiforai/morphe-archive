@@ -6,6 +6,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -47,7 +48,7 @@ class YahooSportsSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "12.26.1",
+            version = "12.27.0",
             patchNames = setOf("Disable ads", "Hide betting promotions"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -99,8 +100,18 @@ class YahooSportsSmokeTest {
             assertForcedBoolean(it, expected = false, label = "${manager.type}.${it.name}()")
         }
 
-        // Disable ads 3: SapiMediaItem.getAdTagUri() returns null.
-        val adTag = classes.byType(SAPI_MEDIA_ITEM).method("getAdTagUri", emptyList())
+        // Disable ads 3: SapiMediaItem.getAdTagUri() returns null. 12.27.0 renames it (X2), so it
+        // is found like the patch finds it: the only no-arg String method reading the adTagUri
+        // field (the original read stays behind the injected return).
+        val adTag = classes.byType(SAPI_MEDIA_ITEM).methods.singleOrNull { method ->
+            method.returnType == "Ljava/lang/String;" && method.parameterTypes.isEmpty() &&
+                method.instructions().any { insn ->
+                    insn.opcode == Opcode.IGET_OBJECT &&
+                        ((insn as ReferenceInstruction).reference as? FieldReference)?.let {
+                            it.definingClass == SAPI_MEDIA_ITEM && it.name == "adTagUri"
+                        } == true
+                }
+        } ?: error("SapiMediaItem has no single no-arg String getter of adTagUri")
         val adTagInsns = adTag.instructions()
         val nullConst = adTagInsns.getOrNull(0)
         val ret = adTagInsns.getOrNull(1)

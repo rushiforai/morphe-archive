@@ -99,7 +99,6 @@ public final class ResponseMenuSettings {
     }
     static boolean visible(int id) {
         Context context = Haiagaru.applicationContextForExtension();
-        if((id==0x7e484a01||id==0x7e484a03)&&!FeatureSwitches.enabled("responseArchiveEnabled",true))return false;
         String key=longPressKey(id);
         if(context!=null){
             android.content.SharedPreferences prefs=context.getSharedPreferences("haiagaru_response_actions",0);

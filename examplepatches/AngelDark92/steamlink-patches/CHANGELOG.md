@@ -1,3 +1,44 @@
+## [2.6.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.5.0...v2.6.0) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* Refactor patches: Remove swapchain enlarge and atlas surface patches ([449512d](https://github.com/AngelDark92/xr-porting-hub/commit/449512d293c9a2c00c9373b2800010eac1c49af3))
+* retire and remove the GXR spacewarp layer ([a2ba13d](https://github.com/AngelDark92/xr-porting-hub/commit/a2ba13d7f6a51149b12cf862449a26b1445069e5))
+
+### ✨ New Features
+
+* Add StockQuadCompositionPatchTest for validating stock quad composition patch functionality ([0db8d35](https://github.com/AngelDark92/xr-porting-hub/commit/0db8d3561c27ecc7ef0b4fb8f1b0259292e1376a))
+* Add unit tests for HybridCodec and ResolutionLayer patches ([ec77494](https://github.com/AngelDark92/xr-porting-hub/commit/ec7749441acc16c22ff4d117dc969326f63367d9))
+* added support for 5002527 (beta) ([cd37edd](https://github.com/AngelDark92/xr-porting-hub/commit/cd37eddf05339b0ef7d7cfc03fee852a96fc8183))
+
+## [2.6.0-dev.4](https://github.com/AngelDark92/xr-porting-hub/compare/v2.6.0-dev.3...v2.6.0-dev.4) (2026-11-03)
+
+### ✨ New Features
+
+* added support for 5002527 (beta) ([cd37edd](https://github.com/AngelDark92/xr-porting-hub/commit/cd37eddf05339b0ef7d7cfc03fee852a96fc8183))
+
+## [2.6.0-dev.3](https://github.com/AngelDark92/xr-porting-hub/compare/v2.6.0-dev.2...v2.6.0-dev.3) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* Refactor patches: Remove swapchain enlarge and atlas surface patches ([449512d](https://github.com/AngelDark92/xr-porting-hub/commit/449512d293c9a2c00c9373b2800010eac1c49af3))
+
+## [2.6.0-dev.2](https://github.com/AngelDark92/xr-porting-hub/compare/v2.6.0-dev.1...v2.6.0-dev.2) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* retire and remove the GXR spacewarp layer ([a2ba13d](https://github.com/AngelDark92/xr-porting-hub/commit/a2ba13d7f6a51149b12cf862449a26b1445069e5))
+
+### ✨ New Features
+
+* Add StockQuadCompositionPatchTest for validating stock quad composition patch functionality ([0db8d35](https://github.com/AngelDark92/xr-porting-hub/commit/0db8d3561c27ecc7ef0b4fb8f1b0259292e1376a))
+
+## [2.6.0-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.5.0...v2.6.0-dev.1) (2026-11-01)
+
+### ✨ New Features
+
+* Add unit tests for HybridCodec and ResolutionLayer patches ([ec77494](https://github.com/AngelDark92/xr-porting-hub/commit/ec7749441acc16c22ff4d117dc969326f63367d9))
+
 ## [2.5.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.4.0...v2.5.0) (2026-10-26)
 
 ### ✨ New Features

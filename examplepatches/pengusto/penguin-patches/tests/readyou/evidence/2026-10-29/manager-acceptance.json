@@ -36,5 +36,13 @@
     "removalReapply": true,
     "settingsSha256": "314eabc3d7b7cea8c68660cbfb1a0d2a64b85c891f8eb8ea101a3ca8a7966e34"
   },
-  "upstreamPR": "https://github.com/ReadYouApp/ReadYou/pull/1345"
+  "upstreamPR": "https://github.com/ReadYouApp/ReadYou/pull/1345",
+  "publishedSource": {
+    "version": "1.4.0",
+    "bundleSha256": "d8f366debd90dd88ed008410b74f09ae20875c21967fe71d32ad6a6c973f9e76",
+    "selection": "normal remote source; local candidate disabled",
+    "applyExportInstall": true,
+    "stateUnchanged": true,
+    "exportSha256": "2f6ecf2625e63f78fbb38eacd632c676b8f688da595415af7a1c8c12102d3bf7"
+  }
 }

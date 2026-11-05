@@ -1,12 +1,23 @@
+import app.morphe.patcher.patch.ApkArchitecture
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.shared.hevalcontrols.HEVAL_SETTINGS_CLASS
 import app.template.patches.shared.hevalcontrols.HevalFeature
+import app.template.patches.shared.hevalcontrols.HevalFeatureKind
+import app.template.patches.shared.hevalcontrols.HevalListFeature
 import app.template.patches.shared.hevalcontrols.HevalRegistryCodec
 import app.template.patches.shared.hevalcontrols.addHevalControlsComponents
 import app.template.patches.shared.hevalcontrols.addHevalGate
+import app.template.patches.shared.hevalcontrols.addHevalSkip
+import app.template.patches.shared.hevalcontrols.addHevalStockPath
+import app.template.patches.shared.hevalcontrols.addHevalValueHelper
+import app.template.patches.shared.hevalcontrols.filterThroughHevalHelper
 import app.template.patches.shared.hevalcontrols.hevalReturnEarly
 import app.template.patches.shared.hevalcontrols.hevalReturnNull
+import app.template.patches.truecaller.controls.truecallerHevalControlsPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -16,6 +27,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -62,6 +74,45 @@ class HevalControlsTest {
         assertTrue(fixture.isFile, "missing ${fixture.path}")
         // core.autocrlf may check the fixture out with CRLF; the encoder (and the dex) use LF.
         assertEquals(fixture.readText(Charsets.UTF_8).replace("\r\n", "\n"), HevalRegistryCodec.encode(fixtureFeatures))
+    }
+
+    @Test
+    fun listEncoderMatchesTheListFixtureSharedWithTheJavaDecoder() {
+        val features = listOf(
+            HevalFeature("demo.hide_ads", "Hide ads", "Removes banner and feed ads.", "Ads"),
+            HevalListFeature(
+                "demo.hidden_countries", "Hidden countries",
+                "Leagues from the picked countries are hidden.", "Leagues", restartRequired = true,
+            ),
+            HevalListFeature("demo.hidden_teams", "Hidden teams", "Needs ads off.", "Teams", dependencies = listOf("demo.hide_ads")),
+        )
+        val fixture = File(repoRoot(), "extensions/hevalcontrols/core/src/test/resources/registry-v1-lists.txt")
+        assertTrue(fixture.isFile, "missing ${fixture.path}")
+        assertEquals(fixture.readText(Charsets.UTF_8).replace("\r\n", "\n"), HevalRegistryCodec.encode(features))
+    }
+
+    @Test
+    fun switchRecordsKeepTheirEightFields() {
+        // Codec compatibility: adding list settings must not change how switches are written, so
+        // feature ids and registries encoded before 2026-11-03 decode the same.
+        val switches = HevalRegistryCodec.encode(fixtureFeatures).lines().drop(1).filter { it.isNotEmpty() }
+        switches.forEach { assertEquals(8, it.split('\t').size, it) }
+        val list = HevalRegistryCodec.encode(listOf(HevalListFeature("demo.list", "List", "", "X"))).lines()[1]
+        assertEquals(listOf("demo.list", "List", "", "X", "0", "0", "0", "", "list"), list.split('\t'))
+    }
+
+    @Test
+    fun listFeatureValidation() {
+        val list = HevalListFeature("demo.countries", "Hidden countries", "", "Leagues")
+        assertEquals(HevalFeatureKind.LIST, list.kind)
+        assertEquals(false, list.default)
+        assertEquals(false, list.buildTimeOnly)
+        assertEquals(HevalFeatureKind.SWITCH, HevalFeature("demo.a", "A", "", "X").kind)
+        assertThrows<IllegalArgumentException> { HevalFeature("demo.a", "A", "", "X", kind = HevalFeatureKind.LIST) }
+        assertThrows<IllegalArgumentException> {
+            HevalFeature("demo.a", "A", "", "X", default = false, buildTimeOnly = true, kind = HevalFeatureKind.LIST)
+        }
+        assertThrows<IllegalArgumentException> { HevalListFeature("Bad-Id", "A", "", "X") }
     }
 
     @Test
@@ -113,11 +164,27 @@ class HevalControlsTest {
         val activity = document.getElementsByTagName("activity").item(0) as Element
         assertEquals("app.template.extension.hevalcontrols.ui.HevalControlsActivity", activity.getAttribute("android:name"))
         assertEquals("false", activity.getAttribute("android:exported"))
+        assertEquals("Patch settings", activity.getAttribute("android:label"))
         assertEquals(0, document.getElementsByTagName("activity-alias").length)
         assertEquals(0, document.getElementsByTagName("intent-filter").length)
 
         // Patching an already patched APK is refused.
         assertThrows<PatchException> { document.addHevalControlsComponents() }
+    }
+
+    @Test
+    fun hostIsAvailableOnEveryInstaller() {
+        // The converted feature patches depend on the host: an UNAVAILABLE host (Root Mount, which
+        // keeps the stock manifest) would take every one of them away.
+        val availability = truecallerHevalControlsPatch.availability ?: return
+        InstallerType.entries.forEach { installer ->
+            ApkArchitecture.entries.forEach { architecture ->
+                assertTrue(
+                    availability.resolve(installer, architecture) != PatchAvailability.UNAVAILABLE,
+                    "Patch settings is unavailable for $installer / $architecture",
+                )
+            }
+        }
     }
 
     @Test
@@ -229,6 +296,86 @@ class HevalControlsTest {
             ),
             method.implementation!!.instructions.map { it.opcode },
         )
+    }
+
+    @Test
+    fun stockPathRunsWhileTheFeatureIsOff() {
+        // A generated helper: the patched behaviour is the body; while off it returns at once.
+        val method = method("V", registers = 2, ImmutableInstruction11n(Opcode.CONST_4, 0, 1), ImmutableInstruction10x(Opcode.RETURN_VOID))
+        method.addHevalStockPath("demo.helper") { "return-void" }
+        val instructions = method.implementation!!.instructions.toList()
+        assertEquals(
+            listOf(
+                Opcode.CONST_STRING, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_NEZ,
+                Opcode.RETURN_VOID, Opcode.CONST_4, Opcode.RETURN_VOID,
+            ),
+            instructions.map { it.opcode },
+        )
+        assertEquals("demo.helper", ((instructions[0] as ReferenceInstruction).reference as StringReference).string)
+        // On: jump over the stock path into the original code.
+        assertEquals(instructions[5], branchTarget(method, 3))
+
+        // A stock path that would fall through into the patched code is refused.
+        val other = method("V", registers = 2, ImmutableInstruction10x(Opcode.RETURN_VOID))
+        assertThrows<PatchException> { other.addHevalStockPath("demo.helper") { "const/4 v0, 0x0" } }
+    }
+
+    @Test
+    fun skipGateJumpsOverTheSkippedCodeWhileOn() {
+        // invoke-static {}, f()V (the call to skip); const/4 v1, 1; return-void
+        val method = method("V", registers = 4, invoke("V"), ImmutableInstruction11n(Opcode.CONST_4, 1, 1), ImmutableInstruction10x(Opcode.RETURN_VOID))
+        method.addHevalSkip("demo.skip", index = 0, target = 1, register = 2)
+        val instructions = method.implementation!!.instructions.toList()
+        assertEquals(
+            listOf(
+                Opcode.CONST_STRING, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_NEZ,
+                Opcode.INVOKE_STATIC, Opcode.CONST_4, Opcode.RETURN_VOID,
+            ),
+            instructions.map { it.opcode },
+        )
+        assertEquals("demo.skip", ((instructions[0] as ReferenceInstruction).reference as StringReference).string)
+        assertEquals(2, (instructions[3] as OneRegisterInstruction).registerA)
+        // On: over the call; off: the call runs (fall-through).
+        assertEquals(instructions[5], branchTarget(method, 3))
+
+        // The target must come after the index.
+        assertThrows<PatchException> { method.addHevalSkip("demo.skip", index = 5, target = 4, register = 2) }
+        assertThrows<PatchException> { method.addHevalSkip("demo.skip", index = 0, target = 99, register = 2) }
+    }
+
+    @Test
+    fun valueHelperPassesTheStockValueThroughWhileOff() {
+        val cls = MutableClass(
+            ImmutableClassDef("Lcom/example/Feed;", AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null, null),
+        )
+        val forceFalse = cls.addHevalValueHelper("demo.flag", "morpheFlag", "Z") { v -> "const/4 $v, 0x0\nreturn $v" }
+        assertEquals("Lcom/example/Feed;->morpheFlag(Z)Z", forceFalse.toString())
+        // A second call reuses the helper.
+        cls.addHevalValueHelper("demo.flag", "morpheFlag", "Z") { error("not rebuilt") }
+        val helper = cls.methods.single { it.name == "morpheFlag" }
+        assertTrue(AccessFlags.STATIC.isSet(helper.accessFlags))
+        val body = helper.implementation!!.instructions.toList()
+        assertEquals(
+            listOf(
+                Opcode.CONST_STRING, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
+                Opcode.CONST_4, Opcode.RETURN, Opcode.RETURN,
+            ),
+            body.map { it.opcode },
+        )
+        // Off: return p0 (v1), the stock value.
+        assertEquals(body[6], branchTarget(helper, 3))
+        assertEquals(1, (body[6] as OneRegisterInstruction).registerA)
+        assertThrows<PatchException> { cls.addHevalValueHelper("demo.flag", "morpheWide", "J") { "return-wide p0" } }
+
+        // const/4 v1, 1; return v1  ->  const/4 v1, 1; invoke-static/range {v1 .. v1}, helper; move-result v1; return v1
+        val site = method("Z", registers = 3, ImmutableInstruction11n(Opcode.CONST_4, 1, 1), ImmutableInstruction11x(Opcode.RETURN, 1))
+        site.filterThroughHevalHelper(1, 1, forceFalse)
+        val instructions = site.implementation!!.instructions.toList()
+        assertEquals(listOf(Opcode.CONST_4, Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.RETURN), instructions.map { it.opcode })
+        assertEquals(forceFalse.toString(), (instructions[1] as ReferenceInstruction).reference.toString())
+        assertEquals(1, (instructions[1] as RegisterRangeInstruction).startRegister)
+        assertEquals(1, (instructions[2] as OneRegisterInstruction).registerA)
+        assertThrows<PatchException> { site.filterThroughHevalHelper(1, 3, forceFalse) }
     }
 
     /** `invoke-static {}, Lcom/example/Feed;->f()<returnType>`. */

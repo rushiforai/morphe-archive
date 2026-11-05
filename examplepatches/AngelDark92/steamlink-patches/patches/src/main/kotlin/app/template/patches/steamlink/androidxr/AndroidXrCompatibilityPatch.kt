@@ -414,7 +414,7 @@ internal fun upsertVrLinkUnmanagedFullSpace(doc: Document, app: Element): Boolea
  * config, and XR_EXT_hand_interaction routing must remain authoritative.
  */
 internal val xrPermissionSettingsBootstrapPatch = resourcePatch {
-    dependsOn(androidXrMinimalUiExtensionPatch, xrResolutionProbePatch)
+    dependsOn(androidXrMinimalUiExtensionPatch)
 
     execute {
         if (!isEarlierStartupSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@execute
@@ -505,7 +505,6 @@ val xrLauncherBootstrapPatch = resourcePatch(
         xrPermissionSettingsBootstrapPatch,
         xrStartupSplashUiPatch,
         androidXrMinimalUiExtensionPatch,
-        xrResolutionProbePatch,
     )
 
     finalize {

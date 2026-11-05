@@ -44,7 +44,7 @@ if a.compile_only: raise SystemExit(0)
 smali=root/'patches/src/main/resources/steamlink/androidxr/smali'
 for name,inputs in {
     'extension.mpe':['org/libsdl/app/GxrSdlBridge.smali'],
-    'minimal-extension.mpe':['com/valvesoftware/steamlink/GalaxyXRPermissionActivity.smali','com/valvesoftware/steamlink/GxrOverlayBridge.smali','com/valvesoftware/steamlink/GxrResolutionProbe.smali'],
+    'minimal-extension.mpe':['com/valvesoftware/steamlink/GalaxyXRPermissionActivity.smali','com/valvesoftware/steamlink/GxrOverlayBridge.smali'],
     'battery-extension.mpe':['com/valvesoftware/steamlink/GxrBatterySettings.smali'],
 }.items():
     run([java,'-cp',cp,'com.android.tools.smali.smali.Main','a','-a','33','-o',str(resources/'extensions'/name),*[str(smali/p) for p in inputs]],name)

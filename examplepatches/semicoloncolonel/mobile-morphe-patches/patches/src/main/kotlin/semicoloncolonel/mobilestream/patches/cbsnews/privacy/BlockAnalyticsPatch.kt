@@ -28,8 +28,7 @@ internal object TrackingManagerInitFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Adobe Analytics, comScore, Nielsen, Mux, New Relic, Flurry, Kochava, Moat, and " +
-        "Firebase Analytics. Articles, videos, live streams, weather, and push notifications are left alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

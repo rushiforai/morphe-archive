@@ -1,0 +1,623 @@
+From 36443ba0cf1a11bec50b0972744770d8bf02e7c4 Mon Sep 17 00:00:00 2001
+From: Pengusto <106893073+pengusto@users.noreply.github.com>
+Date: Sat, 24 Oct 2026 23:14:06 +0200
+Subject: [PATCH] feat: added dedicated zoomable article image viewer
+
+---
+ .../ui/compose/images/ImageViewerTest.kt      | 143 +++++++++++
+ .../ui/compose/feedarticle/ReaderView.kt      |   5 +-
+ .../ui/compose/html/LinearArticleContent.kt   |  38 ++-
+ .../feeder/ui/compose/images/ImageViewer.kt   | 243 ++++++++++++++++++
+ app/src/main/res/values/strings.xml           |   8 +
+ .../ui/compose/images/ImageSourceTest.kt      |  32 +++
+ .../ui/compose/images/ImageTransformTest.kt   |  45 ++++
+ 7 files changed, 500 insertions(+), 14 deletions(-)
+ create mode 100644 app/src/androidTest/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewerTest.kt
+ create mode 100644 app/src/main/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewer.kt
+ create mode 100644 app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageSourceTest.kt
+ create mode 100644 app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageTransformTest.kt
+
+diff --git a/app/src/androidTest/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewerTest.kt b/app/src/androidTest/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewerTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..3a0d328e98d2f0e2b7a4be78d47cdb54f7d4a32a
+--- /dev/null
++++ b/app/src/androidTest/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewerTest.kt
+@@ -0,0 +1,143 @@
++package com.nononsenseapps.feeder.ui.compose.images
++
++import android.graphics.Bitmap
++import androidx.activity.ComponentActivity
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.material3.MaterialTheme
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.graphics.asAndroidBitmap
++import androidx.compose.ui.test.assertIsDisplayed
++import androidx.compose.ui.test.captureToImage
++import androidx.compose.ui.test.doubleClick
++import androidx.compose.ui.test.hasStateDescription
++import androidx.compose.ui.test.junit4.createAndroidComposeRule
++import androidx.compose.ui.test.onNodeWithContentDescription
++import androidx.compose.ui.test.onNodeWithText
++import androidx.compose.ui.test.onRoot
++import androidx.compose.ui.test.performClick
++import androidx.compose.ui.test.performTouchInput
++import androidx.compose.ui.test.pinch
++import androidx.compose.ui.test.swipe
++import com.nononsenseapps.feeder.model.html.LinearImage
++import com.nononsenseapps.feeder.model.html.LinearImageSource
++import com.nononsenseapps.feeder.ui.compose.html.LinearImageContent
++import org.junit.Rule
++import org.junit.Test
++import java.io.File
++import kotlin.test.assertEquals
++
++class ImageViewerTest {
++    @get:Rule
++    val rule = createAndroidComposeRule<ComponentActivity>()
++
++    private fun fixture(): String {
++        val file = File(rule.activity.cacheDir, "viewer-test.png")
++        val bitmap = Bitmap.createBitmap(800, 800, Bitmap.Config.ARGB_8888)
++        val canvas = android.graphics.Canvas(bitmap)
++        canvas.drawColor(android.graphics.Color.WHITE)
++        val paint =
++            android.graphics.Paint().apply {
++                color = android.graphics.Color.rgb(20, 80, 160)
++                textSize = 42f
++            }
++        for (i in 0..7) {
++            canvas.drawLine(i * 100f, 0f, i * 100f, 800f, paint)
++            canvas.drawLine(0f, i * 100f, 800f, i * 100f, paint)
++            canvas.drawText("Detail ${i + 1}", 30f, i * 100f + 60f, paint)
++        }
++        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
++        bitmap.recycle()
++        return file.toURI().toString()
++    }
++
++    @Test
++    fun imageOpensZoomsResetsAndCloses() {
++        val url = fixture()
++        rule.setContent {
++            MaterialTheme {
++                Box(Modifier.fillMaxSize()) {
++                    LinearImageContent(LinearImage(emptySet(), listOf(LinearImageSource(url, 800, 800, null, null)), null, null), emptyMap(), { _, _ -> })
++                }
++            }
++        }
++        rule.onNodeWithContentDescription("Zoom in").assertDoesNotExist()
++        rule
++            .onNode(
++                androidx.compose.ui.test
++                    .hasClickAction(),
++            ).performClick()
++        rule.onNodeWithContentDescription("Close image").assertIsDisplayed()
++        rule.waitUntil(10_000) {
++            runCatching {
++                rule.onNodeWithContentDescription("Zoom in").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Disabled]
++                false
++            }.getOrDefault(true)
++        }
++        rule.onRoot().captureToImage().asAndroidBitmap().let { bitmap ->
++            File(rule.activity.filesDir, "image-viewer-fit.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
++        }
++        rule.onNodeWithContentDescription("Zoom in").performClick()
++        rule.onNode(hasStateDescription("200%")).assertExists()
++        rule.onNode(hasStateDescription("200%")).performTouchInput { swipe(center, center + Offset(80f, 50f)) }
++        rule.onNodeWithContentDescription("Reset zoom").performClick()
++        rule.onNode(hasStateDescription("100%")).assertExists()
++        rule.onNode(hasStateDescription("100%")).performTouchInput { doubleClick(center) }
++        rule.onNode(hasStateDescription("300%")).assertExists()
++        rule.onRoot().captureToImage().asAndroidBitmap().let { bitmap ->
++            File(rule.activity.filesDir, "image-viewer-zoom.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
++        }
++        rule.onNodeWithContentDescription("Reset zoom").performClick()
++        rule.onNode(hasStateDescription("100%")).performTouchInput {
++            pinch(center - Offset(40f, 0f), center + Offset(40f, 0f), center - Offset(160f, 0f), center + Offset(160f, 0f))
++        }
++        rule.onNode(hasStateDescription("100%")).assertDoesNotExist()
++        rule.onNodeWithContentDescription("Close image").performClick()
++        rule.onNodeWithContentDescription("Close image").assertDoesNotExist()
++    }
++
++    @Test
++    fun linkedImageKeepsFragmentCallbackAndOffersViewer() {
++        val url = fixture()
++        var opened: Pair<String, Int?>? = null
++        rule.setContent {
++            MaterialTheme {
++                LinearImageContent(LinearImage(emptySet(), listOf(LinearImageSource(url, 800, 800, null, null)), null, "https://example.com/#note"), mapOf("note" to 7), { link, index ->
++                    opened =
++                        link to index
++                })
++            }
++        }
++        rule
++            .onNode(
++                androidx.compose.ui.test
++                    .hasClickAction(),
++            ).performClick()
++        rule.onNodeWithText("View image").assertIsDisplayed()
++        rule.onNodeWithText("Open link").performClick()
++        rule.runOnIdle { assertEquals("https://example.com/#note" to 7, opened) }
++        rule
++            .onNode(
++                androidx.compose.ui.test
++                    .hasClickAction(),
++            ).performClick()
++        rule.onNodeWithText("View image").performClick()
++        rule.onNodeWithContentDescription("Close image").assertIsDisplayed()
++    }
++
++    @Test
++    fun brokenImageOffersRetryAndDismissal() {
++        rule.setContent { MaterialTheme { ImageViewer("file:///does-not-exist.png", null, {}) } }
++        rule.waitUntil(10_000) {
++            rule
++                .onAllNodes(
++                    androidx.compose.ui.test
++                        .hasText("Retry"),
++                ).fetchSemanticsNodes()
++                .isNotEmpty()
++        }
++        rule.onNodeWithText("Retry").performClick()
++        rule.onNodeWithContentDescription("Close image").assertIsDisplayed()
++    }
++}
+diff --git a/app/src/main/java/com/nononsenseapps/feeder/ui/compose/feedarticle/ReaderView.kt b/app/src/main/java/com/nononsenseapps/feeder/ui/compose/feedarticle/ReaderView.kt
+index c1fd6a4d204788d30ee2418bf140433755adcd1e..28d3ee7b20d5ebc7e381a95e10b5ddbcdce3ff60 100644
+--- a/app/src/main/java/com/nononsenseapps/feeder/ui/compose/feedarticle/ReaderView.kt
++++ b/app/src/main/java/com/nononsenseapps/feeder/ui/compose/feedarticle/ReaderView.kt
+@@ -74,6 +74,7 @@ import com.nononsenseapps.feeder.model.ThumbnailImage
+ import com.nononsenseapps.feeder.ui.compose.coil.RestrainedCropScaling
+ import com.nononsenseapps.feeder.ui.compose.coil.rememberTintedVectorPainter
+ import com.nononsenseapps.feeder.ui.compose.components.safeSemantics
++import com.nononsenseapps.feeder.ui.compose.images.rememberImageViewer
+ import com.nononsenseapps.feeder.ui.compose.text.WithBidiDeterminedLayoutDirection
+ import com.nononsenseapps.feeder.ui.compose.text.WithTooltipIfNotBlank
+ import com.nononsenseapps.feeder.ui.compose.text.rememberMaxImageWidth
+@@ -369,6 +370,7 @@ fun ReaderView(
+                 }
+ 
+                 if (image != null && shouldShowHeaderImage(showHeaderImage, image, contentImageUrls)) {
++                    val openImage = rememberImageViewer(image.url, enclosure.name)
+                     val imageWidth: Int =
+                         if (image.width?.let { it < 640 } == true) {
+                             // Zero or too small, do not show
+@@ -388,7 +390,8 @@ fun ReaderView(
+                                 modifier =
+                                     Modifier
+                                         .clip(RectangleShape)
+-                                        .width(dimens.maxReaderWidth),
++                                        .width(dimens.maxReaderWidth)
++                                        .clickable(onClickLabel = stringResource(R.string.view_image), onClick = openImage),
+                             ) {
+                                 WithTooltipIfNotBlank(tooltip = stringResource(id = R.string.article_image)) {
+                                     val maxImageWidth by rememberMaxImageWidth()
+diff --git a/app/src/main/java/com/nononsenseapps/feeder/ui/compose/html/LinearArticleContent.kt b/app/src/main/java/com/nononsenseapps/feeder/ui/compose/html/LinearArticleContent.kt
+index a52acde438131766bae18622e86fe1ff2ba414f1..1612db25b48a233828e564e8fd9a964d9c233d41 100644
+--- a/app/src/main/java/com/nononsenseapps/feeder/ui/compose/html/LinearArticleContent.kt
++++ b/app/src/main/java/com/nononsenseapps/feeder/ui/compose/html/LinearArticleContent.kt
+@@ -104,6 +104,7 @@ import com.nononsenseapps.feeder.model.html.LinearVideo
+ import com.nononsenseapps.feeder.ui.compose.coil.RestrainedFillWidthScaling
+ import com.nononsenseapps.feeder.ui.compose.coil.RestrainedFitScaling
+ import com.nononsenseapps.feeder.ui.compose.coil.rememberTintedVectorPainter
++import com.nononsenseapps.feeder.ui.compose.images.rememberImageViewer
+ import com.nononsenseapps.feeder.ui.compose.layouts.Table
+ import com.nononsenseapps.feeder.ui.compose.layouts.TableCell
+ import com.nononsenseapps.feeder.ui.compose.layouts.TableData
+@@ -514,6 +515,19 @@ fun LinearImageContent(
+     }
+ 
+     val dimens = LocalDimens.current
++    val viewerImage = linearImage.getViewerImageSource()
++    val openImage =
++        rememberImageViewer(
++            imageUrl = viewerImage?.imgUri ?: return,
++            description = linearImage.caption?.text,
++            onOpenLink =
++                linearImage.link?.let { link ->
++                    {
++                        val hashSplit = link.split("#")
++                        onLinkClick(link, if (hashSplit.size > 1) idToIndex[hashSplit.last()] else null)
++                    }
++                },
++        )
+     Column(
+         verticalArrangement = Arrangement.spacedBy(8.dp),
+         horizontalAlignment = Alignment.CenterHorizontally,
+@@ -525,19 +539,8 @@ fun LinearImageContent(
+                 modifier =
+                     Modifier
+                         .clip(RectangleShape)
+-                        .clickable(
+-                            enabled = linearImage.link != null,
+-                        ) {
+-                            linearImage.link?.let {
+-                                val hashSplit = it.split("#")
+-                                val index =
+-                                    when {
+-                                        hashSplit.size > 1 -> idToIndex[hashSplit.last()]
+-                                        else -> null
+-                                    }
+-                                onLinkClick(it, index)
+-                            }
+-                        }.fillMaxWidth(),
++                        .clickable(onClickLabel = stringResource(R.string.view_image), onClick = openImage)
++                        .fillMaxWidth(),
+             ) {
+                 val maxImageWidth by rememberMaxImageWidth()
+                 val pixelDensity = LocalDensity.current.density
+@@ -1609,3 +1612,12 @@ fun LinearTable.toTableData(): TableData =
+                     )
+                 }.toList(),
+     )
++
++// Prefer declared resolutions over an unknown fallback when opening the dedicated viewer.
++internal fun LinearImage.getViewerImageSource(): LinearImageSource? {
++    val sized = sources.filter { it.widthPx != null || it.screenWidth != null }
++    if (sized.isNotEmpty()) {
++        return sized.minByOrNull { abs((it.widthPx ?: it.screenWidth!!).toFloat() / 2500f - 1f) }
++    }
++    return sources.maxByOrNull { it.pixelDensity ?: 1f }
++}
+diff --git a/app/src/main/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewer.kt b/app/src/main/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewer.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..0018fdcd9daa43a6e4af4a9695e2009fa4fe8204
+--- /dev/null
++++ b/app/src/main/java/com/nononsenseapps/feeder/ui/compose/images/ImageViewer.kt
+@@ -0,0 +1,243 @@
++package com.nononsenseapps.feeder.ui.compose.images
++
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.gestures.detectTransformGestures
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.navigationBarsPadding
++import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.layout.size
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.outlined.Close
++import androidx.compose.material.icons.outlined.RestartAlt
++import androidx.compose.material.icons.outlined.ZoomIn
++import androidx.compose.material.icons.outlined.ZoomOut
++import androidx.compose.material3.AlertDialog
++import androidx.compose.material3.CircularProgressIndicator
++import androidx.compose.material3.ExperimentalMaterial3Api
++import androidx.compose.material3.Icon
++import androidx.compose.material3.IconButton
++import androidx.compose.material3.Scaffold
++import androidx.compose.material3.Text
++import androidx.compose.material3.TextButton
++import androidx.compose.material3.TopAppBar
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.key
++import androidx.compose.runtime.mutableIntStateOf
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clipToBounds
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import androidx.compose.ui.graphics.graphicsLayer
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.layout.ContentScale
++import androidx.compose.ui.layout.onSizeChanged
++import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.res.stringResource
++import androidx.compose.ui.semantics.semantics
++import androidx.compose.ui.semantics.stateDescription
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.window.Dialog
++import androidx.compose.ui.window.DialogProperties
++import coil3.compose.SubcomposeAsyncImage
++import coil3.request.ImageRequest
++import coil3.request.crossfade
++import coil3.size.Precision
++import coil3.size.Scale
++import com.nononsenseapps.feeder.R
++
++/** Keeps the linked-image choice local, preserving the reader's original link callback. */
++@Composable
++fun rememberImageViewer(
++    imageUrl: String,
++    description: String?,
++    onOpenLink: (() -> Unit)? = null,
++): () -> Unit {
++    var showChoice by remember(imageUrl) { mutableStateOf(false) }
++    var showViewer by remember(imageUrl) { mutableStateOf(false) }
++    if (showChoice) {
++        AlertDialog(
++            onDismissRequest = { showChoice = false },
++            title = { Text(stringResource(R.string.article_image)) },
++            confirmButton = {
++                TextButton(onClick = {
++                    showChoice = false
++                    showViewer = true
++                }) { Text(stringResource(R.string.view_image)) }
++            },
++            dismissButton = {
++                TextButton(onClick = {
++                    showChoice = false
++                    onOpenLink?.invoke()
++                }) { Text(stringResource(R.string.open_image_link)) }
++            },
++        )
++    }
++    if (showViewer) {
++        ImageViewer(imageUrl, description, onDismiss = { showViewer = false })
++    }
++    return {
++        if (onOpenLink == null) showViewer = true else showChoice = true
++    }
++}
++
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++internal fun ImageViewer(
++    imageUrl: String,
++    description: String?,
++    onDismiss: () -> Unit,
++) {
++    var transform by remember(imageUrl) { mutableStateOf(ImageTransform()) }
++    var viewport by remember { mutableStateOf(Size.Zero) }
++    var imageSize by remember(imageUrl) { mutableStateOf(Size.Zero) }
++    var attempt by remember(imageUrl) { mutableIntStateOf(0) }
++    val context = LocalContext.current
++    val request =
++        remember(imageUrl, attempt, context) {
++            ImageRequest
++                .Builder(context)
++                .data(imageUrl)
++                // Reuse the application's loader, cache and network policy, including its decode cap.
++                .size(2500, 2500)
++                .scale(Scale.FIT)
++                .precision(Precision.INEXACT)
++                .crossfade(false)
++                .build()
++        }
++
++    fun zoom(factor: Float) {
++        transform = transform.transformed(factor, Offset.Zero, Offset(viewport.width / 2, viewport.height / 2), viewport, imageSize)
++    }
++    Dialog(
++        onDismissRequest = onDismiss,
++        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
++    ) {
++        Scaffold(
++            topBar = {
++                TopAppBar(
++                    title = { Text(stringResource(R.string.article_image)) },
++                    navigationIcon = {
++                        IconButton(onClick = onDismiss) {
++                            Icon(Icons.Outlined.Close, stringResource(R.string.image_close))
++                        }
++                    },
++                )
++            },
++            bottomBar = {
++                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(8.dp)) {
++                    IconButton(onClick = { zoom(0.5f) }, enabled = imageSize != Size.Zero && transform.scale > 1f) {
++                        Icon(Icons.Outlined.ZoomOut, stringResource(R.string.image_zoom_out))
++                    }
++                    IconButton(onClick = { transform = ImageTransform() }, enabled = imageSize != Size.Zero) {
++                        Icon(Icons.Outlined.RestartAlt, stringResource(R.string.image_reset_zoom))
++                    }
++                    IconButton(onClick = { zoom(2f) }, enabled = imageSize != Size.Zero && transform.scale < 8f) {
++                        Icon(Icons.Outlined.ZoomIn, stringResource(R.string.image_zoom_in))
++                    }
++                }
++            },
++        ) { padding ->
++            Box(
++                contentAlignment = Alignment.Center,
++                modifier =
++                    Modifier
++                        .fillMaxSize()
++                        .padding(padding)
++                        .clipToBounds()
++                        .onSizeChanged {
++                            viewport = Size(it.width.toFloat(), it.height.toFloat())
++                            transform = transform.transformed(1f, Offset.Zero, Offset.Zero, viewport, imageSize)
++                        }.semantics { stateDescription = "${(transform.scale * 100).toInt()}%" }
++                        .pointerInput(imageUrl, viewport, imageSize) {
++                            detectTransformGestures { centroid, pan, zoom, _ ->
++                                transform = transform.transformed(zoom, pan, centroid, viewport, imageSize)
++                            }
++                        }.pointerInput(imageUrl, viewport, imageSize) {
++                            detectTapGestures(onDoubleTap = { position ->
++                                transform =
++                                    if (transform.scale > 1f) {
++                                        ImageTransform()
++                                    } else {
++                                        transform.transformed(3f, Offset.Zero, position, viewport, imageSize)
++                                    }
++                            })
++                        },
++            ) {
++                key(attempt) {
++                    SubcomposeAsyncImage(
++                        model = request,
++                        contentDescription = description ?: stringResource(R.string.article_image),
++                        contentScale = ContentScale.Fit,
++                        modifier = Modifier.fillMaxSize(),
++                        loading = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(Modifier.size(48.dp)) } },
++                        error = {
++                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
++                                Text(stringResource(R.string.image_load_failed))
++                                TextButton(onClick = { attempt++ }) { Text(stringResource(R.string.image_retry)) }
++                            }
++                        },
++                        onSuccess = { state ->
++                            imageSize =
++                                Size(
++                                    state.result.image.width
++                                        .toFloat(),
++                                    state.result.image.height
++                                        .toFloat(),
++                                )
++                        },
++                        success = { state ->
++                            Image(
++                                painter = state.painter,
++                                contentDescription = description ?: stringResource(R.string.article_image),
++                                contentScale = ContentScale.Fit,
++                                modifier =
++                                    Modifier.fillMaxSize().graphicsLayer {
++                                        scaleX = transform.scale
++                                        scaleY = transform.scale
++                                        translationX = transform.offset.x
++                                        translationY = transform.offset.y
++                                    },
++                            )
++                        },
++                    )
++                }
++            }
++        }
++    }
++}
++
++/** Image coordinates stay under the gesture centroid; bounds use the fitted image, not its letterbox. */
++internal data class ImageTransform(
++    val scale: Float = 1f,
++    val offset: Offset = Offset.Zero,
++) {
++    fun transformed(
++        zoom: Float,
++        pan: Offset,
++        centroid: Offset,
++        viewport: Size,
++        image: Size,
++    ): ImageTransform {
++        if (viewport.width <= 0 || viewport.height <= 0 || image.width <= 0 || image.height <= 0) return ImageTransform()
++        val nextScale = (scale * zoom).coerceIn(1f, 8f)
++        if (nextScale == 1f) return ImageTransform()
++        val ratio = nextScale / scale
++        val center = Offset(viewport.width / 2, viewport.height / 2)
++        val nextOffset = offset * ratio + (centroid - center) * (1 - ratio) + pan
++        val fit = minOf(viewport.width / image.width, viewport.height / image.height)
++        val maxX = ((image.width * fit * nextScale - viewport.width) / 2).coerceAtLeast(0f)
++        val maxY = ((image.height * fit * nextScale - viewport.height) / 2).coerceAtLeast(0f)
++        return ImageTransform(nextScale, Offset(nextOffset.x.coerceIn(-maxX, maxX), nextOffset.y.coerceIn(-maxY, maxY)))
++    }
++}
+diff --git a/app/src/main/res/values/strings.xml b/app/src/main/res/values/strings.xml
+index 533bf9034bf4130d3458ca7c43cb1b7acfa9d3df..ddd698ee8faed23baae050c3f46c25362691e80b 100644
+--- a/app/src/main/res/values/strings.xml
++++ b/app/src/main/res/values/strings.xml
+@@ -424,4 +424,12 @@
+   <string name="widget_title">Feeder</string>
+   <string name="widget_refreshing">Refreshing</string>
+   <string name="force_single_column">Force single column</string>
++    <string name="view_image">View image</string>
++    <string name="open_image_link">Open link</string>
++    <string name="image_zoom_in">Zoom in</string>
++    <string name="image_zoom_out">Zoom out</string>
++    <string name="image_reset_zoom">Reset zoom</string>
++    <string name="image_load_failed">Could not load image</string>
++    <string name="image_retry">Retry</string>
++    <string name="image_close">Close image</string>
+ </resources>
+diff --git a/app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageSourceTest.kt b/app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageSourceTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..242735fbf952975751a905066dc7010c53472867
+--- /dev/null
++++ b/app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageSourceTest.kt
+@@ -0,0 +1,32 @@
++package com.nononsenseapps.feeder.ui.compose.images
++
++import com.nononsenseapps.feeder.model.html.LinearImage
++import com.nononsenseapps.feeder.model.html.LinearImageSource
++import com.nononsenseapps.feeder.ui.compose.html.getViewerImageSource
++import kotlin.test.Test
++import kotlin.test.assertEquals
++
++class ImageSourceTest {
++    private fun source(
++        url: String,
++        width: Int? = null,
++        density: Float? = null,
++    ) = LinearImageSource(url, width, null, density, null)
++
++    private fun image(vararg sources: LinearImageSource) = LinearImage(emptySet(), sources.toList(), null, null)
++
++    @Test
++    fun declaredResolutionWinsOverUnknownFallback() {
++        assertEquals("large", image(source("fallback"), source("small", 400), source("large", 2400)).getViewerImageSource()?.imgUri)
++    }
++
++    @Test
++    fun densitySourcesUseHighestResolution() {
++        assertEquals("3x", image(source("1x", density = 1f), source("3x", density = 3f)).getViewerImageSource()?.imgUri)
++    }
++
++    @Test
++    fun emptySourcesAreSafe() {
++        assertEquals(null, image().getViewerImageSource())
++    }
++}
+diff --git a/app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageTransformTest.kt b/app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageTransformTest.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..03dfcfd8b80f27061496b4b577220d413cf6886e
+--- /dev/null
++++ b/app/src/test/java/com/nononsenseapps/feeder/ui/compose/images/ImageTransformTest.kt
+@@ -0,0 +1,45 @@
++package com.nononsenseapps.feeder.ui.compose.images
++
++import androidx.compose.ui.geometry.Offset
++import androidx.compose.ui.geometry.Size
++import kotlin.test.Test
++import kotlin.test.assertEquals
++
++class ImageTransformTest {
++    private val viewport = Size(100f, 100f)
++    private val landscape = Size(200f, 100f)
++
++    @Test
++    fun fitImageCannotBePannedOutOfView() {
++        assertEquals(ImageTransform(), ImageTransform().transformed(1f, Offset(500f, -500f), Offset.Zero, viewport, landscape))
++    }
++
++    @Test
++    fun zoomIsBoundedAndResetRemovesPan() {
++        val zoomed = ImageTransform().transformed(100f, Offset(500f, -500f), Offset(50f, 50f), viewport, landscape)
++        assertEquals(ImageTransform(8f, Offset(350f, -150f)), zoomed)
++        assertEquals(ImageTransform(), zoomed.transformed(0.001f, Offset.Zero, Offset.Zero, viewport, landscape))
++    }
++
++    @Test
++    fun zoomKeepsTappedPointUnderFinger() {
++        val result = ImageTransform().transformed(3f, Offset.Zero, Offset(75f, 50f), viewport, landscape)
++        assertEquals(ImageTransform(3f, Offset(-50f, 0f)), result)
++    }
++
++    @Test
++    fun panningUsesImageBoundsWithoutLetterboxing() {
++        assertEquals(ImageTransform(2f, Offset(50f, 0f)), ImageTransform().transformed(2f, Offset(80f, 80f), Offset(50f, 50f), viewport, landscape))
++    }
++
++    @Test
++    fun resizeClampsExistingPan() {
++        val result = ImageTransform(3f, Offset(100f, 100f)).transformed(1f, Offset.Zero, Offset.Zero, Size(200f, 100f), landscape)
++        assertEquals(ImageTransform(3f, Offset(100f, 100f)), result)
++    }
++
++    @Test
++    fun unloadedImageDoesNotAccumulateGestures() {
++        assertEquals(ImageTransform(), ImageTransform().transformed(3f, Offset(20f, 20f), Offset.Zero, viewport, Size.Zero))
++    }
++}
+-- 
+2.54.0 (Apple Git-157)
+

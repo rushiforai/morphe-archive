@@ -177,8 +177,11 @@ update prompts). Code that runs inside the app is plain Java in `extensions/shar
 from injected smali; `Logger.d(...)` (tag `lurk`) is the quickest way to confirm a hook fires,
 once Lurk settings > Advanced > Debug logging is on. `Logger.i`, `w` and `blocked` always write.
 
-Two things that bite: Morphe silently drops a non-range `invoke-*` whose register is above
-v15 (use `/range` forms and check with `dexdump`), and the extension must not pull the Kotlin
+Three things that bite: Morphe silently drops a non-range `invoke-*` whose register is above
+v15 (use `/range` forms and check with `dexdump`); a snippet that defines a label of its own must go in
+through `addInstructionsWithLabels`, since plain `addInstructions` keeps the label's address relative to
+the snippet, which only works at index 0 (`bin/verify-hooks` runs `tests/verify_branch_targets.py` to
+catch the result, a class ART's verifier rejects); and the extension must not pull the Kotlin
 standard library into the patched app (`extensions/shared/build.gradle.kts` excludes it).
 
 ### Rules that keep patches working across versions
@@ -259,7 +262,8 @@ bash bin/test-twitch-privacy "$MORPHE_WORK/out/twitch-31.8.0-patched.apk"
   stubs and run it on the JVM. Each docstring gives the usage. They honor `MORPHE_WORK` and
   `JAVA_HOME`.
 - `bin/verify-hooks <app> <patched.apk>` checks that app code calls every extension method listed in
-  `tests/<app>/expected-hooks.txt` (one `Class.method` per line, `#` starts a comment), through
+  `tests/<app>/expected-hooks.txt` (one `Class.method` per line, after Rumble's setting keys; `#` starts a
+  comment), through
   `tests/verify_extension_calls.py <patched.apk> Class.method ...`, which also takes names directly.
   Run it after adding a hook or patching a new app version: an injected call can vanish without an
   error (see [Writing a patch](#writing-a-patch)). Add the hook to the app's list in the same change.
@@ -289,7 +293,8 @@ bin/verify-hooks twitch "$MORPHE_WORK/out/twitch-31.8.0-patched.apk"
   pattern** (an edit found its byte pattern no times or more than once), **fingerprint, class or
   bytecode match**, and anything **other**. A patch that failed because a patch it depends on did is
   listed under that patch's cause. It also lists the class names the on-device probes in
-  `tests/<app>/` use that the current version defines and the new one doesn't: those probes were pinned
+  `tests/<app>/` use that the current version (once `Constants.kt` names the new one, the stored version
+  before it) defines and the new one doesn't: those probes were pinned
   to R8's names and need the new ones (a name that still exists may now be a different class). The log,
   Morphe's `result.json` and the summary land in `$MORPHE_WORK/bump/<app>-<version>/`. It doesn't
   change `Constants.kt`.

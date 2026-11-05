@@ -36,6 +36,7 @@ public final class SettingsProfiles {
         booleanKey(VideoViewerSettings.INLINE_GIF);defaultValue(VideoViewerSettings.INLINE_GIF,false);
         booleanKey(ImageViewerRotationButton.MENU_KEY);defaultValue(ImageViewerRotationButton.MENU_KEY,true);
         booleanKey(UpdateConnectionHeaders.KEY);defaultValue(UpdateConnectionHeaders.KEY,true);
+        for(String key:new String[]{"fast191UpdateConnect","optimize191UpdateProgress"}){booleanKey(key);defaultValue(key,true);}
         numberKey(CachedSearchOrder.KEY,0,4);defaultValue(CachedSearchOrder.KEY,0);
         for(String k:new String[]{EdgeLevelNg.OBSERVED}){booleanKey(k);defaultValue(k,false);}
         booleanKey("edgeLevelAutoSync");defaultValue("edgeLevelAutoSync",true);
@@ -115,7 +116,7 @@ public final class SettingsProfiles {
         "siteCardsEnabled","siteCardImages",XPostPreviewPosition.ENABLED,"patrolImagesEnabled","patrolImageFilterEnabled","responseArchiveEnabled","directBodySelection",
         "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters","compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",
         "wacchoiLongPressSearch","wacchoiLongPressSuffixSearch","wacchoiLongPressPrefixSearch","wacchoiLongPressSuffixNg","wacchoiLongPressPrefixNg","responseExtraTools","wacchoiSearchHistory","showEdgeSearch","showZzzSearch","readThreadsFirstNewOnly","automaticFoldMode",
-        "groupBrowsingHistoryByBoard","imageVpnEnabled","hideDroppedHomeThreads","hideDroppedDrafts","hideDroppedSent","nativeToolTabs","nativeToolTabSettings","nativeToolTabEddi",
+        "groupBrowsingHistoryByBoard","showRefreshTargetsInHistoryPopup","imageVpnEnabled","hideDroppedHomeThreads","hideDroppedDrafts","hideDroppedSent","nativeToolTabs","nativeToolTabSettings","nativeToolTabEddi",
         "nativeToolTabSearch","nativeToolTabChecker","nativeToolTabHissi","nativeToolTabWacchoi",NativeToolTabChMateGestures.KEY,"floatingQuickFilterButton","hissiViewerCompactHeader",
         ThreadRefreshOptions.KEY
     };
@@ -237,7 +238,7 @@ public final class SettingsProfiles {
         Map<String,Object> out=new LinkedHashMap<>();for(Map.Entry<String,Rule> e:RULES.entrySet())if(e.getValue().accepts(false))out.put(e.getKey(),false);
         for(String key:new String[]{"edgeReporterId","edgeReporterBoardList","dedicatedViewerEnabled","kyodemoEnhancedViewer","automaticDat",
                 "hideAd","videoViewerEnabled","videoYoutubeEnabled","urlImageFetchEnabled","videoFrameThumbnailsEnabled","wacchoiSearchEnabled","showEdgeSearch",
-                ThreadRefreshOptions.KEY})out.put(key,true);
+                ThreadRefreshOptions.KEY,UpdateConnectionHeaders.KEY,"fast191UpdateConnect","optimize191UpdateProgress"})out.put(key,true);
         out.put("urlVideoFetchMode",0);return out;
     }
 }

@@ -42,9 +42,7 @@ internal object ShouldUseXpPlayerFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Plays every Prime Video title in the app's older player and gives it Amazon's own " +
-        "empty ad plan, so no ad break is scheduled. The newer player's features, such as its " +
-        "X-Ray views, are not available. The stream request is not changed.",
+    description = "Plays every title with an empty ad plan, so no ad break is scheduled.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

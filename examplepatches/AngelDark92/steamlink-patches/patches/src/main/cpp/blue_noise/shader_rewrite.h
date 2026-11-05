@@ -1,6 +1,25 @@
 #pragma once
 #include "sha256.h"
 
+// Helper-owned uniform slots. Every pre-5002527 base keeps the historical 14/15 pair with
+// host uniforms limited to locations 0..13 (the default build is byte-identical to the
+// tracked payload). The 2.0.24/5002527 video program declares Valve's vInnerFade at
+// location 14, so its variant payload is compiled with -DSL_NOISE_LOCATION=16
+// -DSL_ENABLE_LOCATION=17 -DSL_MAX_HOST_LOCATION=15 and never touches the stock uniform.
+#ifndef SL_NOISE_LOCATION
+#define SL_NOISE_LOCATION 14
+#endif
+#ifndef SL_ENABLE_LOCATION
+#define SL_ENABLE_LOCATION 15
+#endif
+#ifndef SL_MAX_HOST_LOCATION
+#define SL_MAX_HOST_LOCATION 13
+#endif
+#define SL_STRINGIFY_VALUE(x) #x
+#define SL_STRINGIFY(x) SL_STRINGIFY_VALUE(x)
+static_assert(SL_NOISE_LOCATION > SL_MAX_HOST_LOCATION && SL_ENABLE_LOCATION > SL_MAX_HOST_LOCATION &&
+              SL_NOISE_LOCATION != SL_ENABLE_LOCATION, "helper uniform slots must not overlap host uniforms");
+
 namespace sl_blue_noise {
 // Patched per APK by the production Kotlin installer. Writable prevents compiler folding.
 inline char configured_shader_hash[] = "SLBN_CONFIGURED_HASH_____________________________________________";
@@ -34,8 +53,8 @@ inline Layer rewrite(std::string_view original, std::string& output,
     replace("precision mediump float;", "precision highp float;");
     replace("uniform samplerExternalOES tex0;", "uniform highp samplerExternalOES tex0;");
     output += R"GLSL(
-layout(location=14) uniform highp sampler2D SL_blueNoise;
-layout(location=15) uniform bool SL_enabled;
+layout(location=)GLSL" SL_STRINGIFY(SL_NOISE_LOCATION) R"GLSL() uniform highp sampler2D SL_blueNoise;
+layout(location=)GLSL" SL_STRINGIFY(SL_ENABLE_LOCATION) R"GLSL() uniform bool SL_enabled;
 void main() {
     SL_originalMain();
     if (SL_enabled) {

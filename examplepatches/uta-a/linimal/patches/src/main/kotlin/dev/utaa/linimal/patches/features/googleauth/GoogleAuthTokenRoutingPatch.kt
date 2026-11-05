@@ -52,7 +52,7 @@ private val authServiceClientGateFingerprint = Fingerprint(
  * `GoogleAuthUtil` が `GetToken` などの component を bind して呼び出す処理。
  * `static Object (Context, ComponentName, <callback>)` で、bind 失敗時のログ文字列を持ちます。
  */
-private val authServiceBindFingerprint = Fingerprint(
+internal val authServiceBindFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = OBJECT,
     parameters = listOf(CONTEXT, COMPONENT_NAME, "L"),

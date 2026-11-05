@@ -2,8 +2,17 @@ package app.polishapps.patches.yanosik.androidauto
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.polishapps.patches.shared.Constants.COMPATIBILITY_YANOSIK
+import app.polishapps.patches.shared.Constants.YANOSIK_26_10_0
+import app.polishapps.patches.shared.Constants.YANOSIK_26_9_0
 import app.polishapps.patches.shared.methodFingerprint
 import app.polishapps.patches.shared.replaceBody
+import app.polishapps.patches.shared.targetsFor
+
+/** The Car App Library `HostValidator` class, by Yanosik version. */
+private val hostValidatorByVersion = mapOf(
+    YANOSIK_26_9_0 to "Ln49;",
+    YANOSIK_26_10_0 to "Lw79;",
+)
 
 /**
  * Bypasses the Car App Library host certificate validation so Yanosik works on Android Auto.
@@ -15,7 +24,7 @@ import app.polishapps.patches.shared.replaceBody
  * certificate is not in the shipped allowlist, fails that check and the app does not work on
  * Android Auto.
  *
- * `n49.e` is the "Validator disabled, all hosts allowed" instance the library itself uses when the
+ * `HostValidator.e` (`n49.e` in 26.9.0) is the "Validator disabled, all hosts allowed" instance the library itself uses when the
  * app is debuggable, so returning it skips the certificate checks entirely.
  */
 @Suppress("unused")
@@ -27,13 +36,15 @@ val bypassAndroidAutoCertificateChecksPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YANOSIK)
 
     execute {
+        val hostValidator = targetsFor(hostValidatorByVersion)
+
         methodFingerprint(
             "Lpl/neptis/features/androidauto/nav/AutoService;",
             "a",
-            returnType = "Ln49;",
+            returnType = hostValidator,
         ).method.replaceBody(
             """
-                sget-object p0, Ln49;->e:Ln49;
+                sget-object p0, $hostValidator->e:$hostValidator
                 return-object p0
             """,
         )

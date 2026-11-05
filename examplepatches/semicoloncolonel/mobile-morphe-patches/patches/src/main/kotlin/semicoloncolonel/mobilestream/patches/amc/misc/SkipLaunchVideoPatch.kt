@@ -50,8 +50,7 @@ internal object SplashVideoCompleteFingerprint : Fingerprint(
 @Suppress("unused")
 val skipLaunchVideoPatch = bytecodePatch(
     name = "Skip launch video",
-    description = "Opens the app without the AMC+ logo video that plays on launch, so it reaches the " +
-        "home screen about five seconds sooner.",
+    description = "Opens the app without the AMC+ logo video.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

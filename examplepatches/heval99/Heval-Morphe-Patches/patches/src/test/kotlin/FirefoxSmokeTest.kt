@@ -29,6 +29,8 @@ private const val PRIORITY_LEVEL = "Lorg/mozilla/gecko/process/ServiceAllocator\
 private const val GECKO_PROCESS_TYPE = "Lorg/mozilla/gecko/process/GeckoProcessType;"
 private const val ONBOARDING_CARD_TYPE = "Lorg/mozilla/fenix/nimbus/OnboardingCardType;"
 private const val CUSTOM_EXTENSION_COLLECTION = "customExtensionCollectionFeature"
+private const val DOH_SETTINGS_MODE = "Lmozilla/components/concept/engine/Engine\$DohSettingsMode;"
+private const val SETTINGS_FRAGMENT = "Lorg/mozilla/fenix/settings/SettingsFragment;"
 
 class FirefoxSmokeTest {
 
@@ -81,7 +83,7 @@ class FirefoxSmokeTest {
     }
 
     @Test
-    fun `Firefox telemetry, sponsored content, about-config, secret settings, prompts and background tabs are patched`() {
+    fun `Firefox telemetry, sponsored content, about-config, secret settings, prompts, background tabs and DNS are patched`() {
         val root = repoRoot()
         val apk = File(root, "apks/firefox/base.apk")
 
@@ -93,7 +95,7 @@ class FirefoxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "158.0.2",
+            version = "159.0",
             patchNames = setOf(
                 "Disable telemetry",
                 "Hide sponsored content",
@@ -101,6 +103,7 @@ class FirefoxSmokeTest {
                 "Unlock secret settings",
                 "Hide promotional prompts",
                 "Keep background tabs loaded",
+                DNS_FILTER,
             ),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -307,5 +310,40 @@ class FirefoxSmokeTest {
             "setPriorityLevel does not take the helper's level",
         )
         assertForcedBoolean(settings.method("getTabReloadCoverEnabled", emptyList()), true, "Settings.getTabReloadCoverEnabled")
+
+        // ── DNS filter ─────────────────────────────────────────────────────────────────────
+        // Default options: GeckoView TRR only (3) with the default resolver, the stored choice
+        // reads as Max protection and the Settings entry is hidden.
+        assertGeckoViewDnsForced(classes, DEFAULT_DOH_URL, trrMode = 3)
+        assertReturnsStatic(settings.method("getDohSettingsMode", emptyList()), DOH_SETTINGS_MODE, "MAX", "Settings.getDohSettingsMode")
+        assertDohEntryHidden(classes.first { it.type == SETTINGS_FRAGMENT })
+
+        // Fallback mode and another resolver: TRR first (2) and Increased protection.
+        val fallback = applyDnsFilterFallback(apk, workDir, PKG, "159.0")
+        assertGeckoViewDnsForced(fallback, OTHER_DOH_URL, trrMode = 2)
+        assertReturnsStatic(
+            fallback.first { it.type == SETTINGS }.method("getDohSettingsMode", emptyList()),
+            DOH_SETTINGS_MODE,
+            "INCREASED",
+            "Settings.getDohSettingsMode (fallback)",
+        )
+        assertDohEntryHidden(fallback.first { it.type == SETTINGS_FRAGMENT })
+    }
+
+    /** SettingsFragment.onResume: the showDohEntryPoint value is overwritten with false right before setVisible(Z). */
+    private fun assertDohEntryHidden(fragment: ClassDef) {
+        val onResume = fragment.method("onResume", emptyList())
+        val insns = onResume.instructions()
+        val read = insns.indices.single { i ->
+            insns[i].opcode == Opcode.IGET_OBJECT && insns[i].fieldRef()?.let { it.definingClass == SETTINGS && it.name == "showDohEntryPoint\$delegate" } == true
+        }
+        val setVisible = (read + 1 until insns.size).first { insns[it].methodRef()?.name == "setVisible" }
+        val forced = insns[setVisible - 1]
+        val visible = (insns[setVisible] as FiveRegisterInstruction).registerD
+        assertTrue(
+            (forced.opcode == Opcode.CONST_4 || forced.opcode == Opcode.CONST_16) && forced.literal() == 0 && forced.registerA() == visible &&
+                insns[setVisible - 2].opcode == Opcode.MOVE_RESULT && insns[setVisible - 2].registerA() == visible,
+            "SettingsFragment.onResume does not force the DoH entry's visibility to false: ${insns.subList(setVisible - 2, setVisible + 1).map { it.opcode }}",
+        )
     }
 }

@@ -1,9 +1,11 @@
 package app.morphe.patches.googlephotos.branding
 
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
+import org.w3c.dom.Element
 
 private const val BRANDING_DIR = "app/morphe/patches/googlephotos/branding"
 
@@ -39,14 +41,63 @@ private val monochromeAsset = listOf(
 
 @Suppress("unused")
 val customBrandingPatch = resourcePatch(
-    name = "Custom Morphe branding",
-    description = "Replaces the Google Photos icon and in-app logos with Morphe branding " +
+    name = "Custom branding",
+    description = "Replaces the Google Photos app name, launcher icon, and in-app logos with custom branding " +
             "(violet / teal / indigo / slate pinwheel, hand-drawn style).",
     default = false, // opt-in only
 ) {
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
 
+    val appNameOption = stringOption(
+        key = "app-name",
+        default = "Morphe Google Photos",
+        title = "Application name",
+        description = "The application name displayed on the launcher and system.",
+        required = false,
+    )
+
     execute {
+        // Replace application name across all base and localized strings
+        val appName = appNameOption.value?.takeIf { it.isNotBlank() } ?: appNameOption.default
+        if (appName != null) {
+            decode(
+                "res/values/strings*.xml",
+                "res/values-*/strings*.xml",
+            )
+
+            val targetStringNames = setOf(
+                "photos_launchericon_label",
+                "photos_theme_google_photos",
+            )
+
+            val resDirectory = get("res")
+            if (resDirectory.isDirectory) {
+                resDirectory.walkTopDown()
+                    .onEnter { dir -> dir == resDirectory || dir.name.startsWith("values", ignoreCase = true) }
+                    .filter { file ->
+                        file.isFile &&
+                        file.name.startsWith("strings", ignoreCase = true) &&
+                        file.name.endsWith(".xml", ignoreCase = true)
+                    }
+                    .forEach { file ->
+                        val source = file.readText()
+                        if (targetStringNames.none { it in source }) return@forEach
+
+                        val resourcePath = "res/${file.relativeTo(resDirectory).invariantSeparatorsPath}"
+                        document(resourcePath).use { document ->
+                            val strings = document.getElementsByTagName("string")
+                            for (i in 0 until strings.length) {
+                                val element = strings.item(i) as? Element ?: continue
+                                val name = element.getAttribute("name")
+                                if (name in targetStringNames) {
+                                    element.textContent = appName
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+
         // Replace mipmap launcher icons (square + adaptive foreground)
         densities.forEach { density ->
             copyResources(

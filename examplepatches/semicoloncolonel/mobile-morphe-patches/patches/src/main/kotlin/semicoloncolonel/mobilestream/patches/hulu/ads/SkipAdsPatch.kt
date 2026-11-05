@@ -50,8 +50,7 @@ private fun MethodReference.isPlaylistCall(name: String) =
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the ads stitched into on-demand videos, so titles play without ad breaks. " +
-        "Live TV is not changed. Experimental.",
+    description = "Removes the ads stitched into on-demand videos.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -6,17 +6,9 @@ import app.morphe.util.returnEarly
 import app.template.patches.duplila.misc.license.disableLicenseCheckPatch
 import app.template.patches.shared.Constants.COMPATIBILITY_DUPLILA
 import com.android.tools.smali.dexlib2.AccessFlags
-
-private const val MOBILE_ADS = GMA + "MobileAds;"
-
-// The banner composable: BannerView(Modifier, canShowAds, Composer, changed, default).
-private val BANNER_VIEW_PARAMETERS = listOf(
-    "Landroidx/compose/ui/Modifier;",
-    "Z",
-    "Landroidx/compose/runtime/Composer;",
-    "I",
-    "I",
-)
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 // Duplila's only ad is a Google Mobile Ads banner under the device list, shown to free users once
 // UMP consent allows ads. Enable Premium already removes it through the app's own premium branch;
@@ -41,48 +33,35 @@ val disableAdsPatch = bytecodePatch(
         ConsentFlowFingerprint.method.returnEarly()
 
         // 2. The banner composable emits nothing, so no AdView and no "Cannot show ads" filler
-        // row (shown when canShowAds is false) are left under the device list. It returns before
-        // startRestartGroup, so the caller's groups stay balanced.
-        val bannerClass = BannerAdViewFactoryFingerprint.classDef
-        val bannerViews = bannerClass.methods.filter {
-            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
-                it.implementation != null &&
-                it.parameterTypes.map(CharSequence::toString) == BANNER_VIEW_PARAMETERS
-        }
-        if (bannerViews.size != 1) {
-            throw PatchException(
-                "Disable ads: expected one banner composable in ${bannerClass.type}, found ${bannerViews.size}"
-            )
-        }
-        bannerViews.single().returnEarly()
+        // row (shown when canShowAds is false) are left under the device list. It is also the
+        // only place that starts Google Mobile Ads (MobileAds.initialize is inlined into its
+        // LaunchedEffect) and builds the AdView. It returns before startRestartGroup, so the
+        // caller's groups stay balanced.
+        BannerViewFingerprint.method.returnEarly()
 
-        // 3. Backstop at the SDK: never initialize Google Mobile Ads, and neuter every MobileAds
-        // static that needs it (setAppVolume, setAppMuted, openDebugMenu, ... throw
-        // "MobileAds.initialize() must be called prior to ..." otherwise). The banner calls
-        // setRequestConfiguration and initialize; both are covered. putPublisherFirstPartyIdEnabled
-        // answers false.
-        val mobileAds = mutableClassDefByOrNull(MOBILE_ADS)?.methods
-            ?: throw PatchException("Disable ads: $MOBILE_ADS not found")
-        val staticVoids = mobileAds.filter {
-            AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
-                it.implementation != null && it.name != "<clinit>"
+        // 3. Backstop at the SDK: BaseAdView.loadAd(AdRequest) is a no-op. The GMA classes are
+        // R8-renamed, so loadAd is found as the BaseAdView method that creates the
+        // "BaseAdView.loadAd" runnable, and BaseAdView as that runnable's ViewGroup field.
+        // MobileAds.initialize is left alone: it no longer exists as a method (so rule 9 has
+        // nothing to neuter) and its only inlined copy sits behind step 2.
+        val loadRunnable = BaseAdViewLoadRunnableFingerprint.classDef
+        val baseAdViewTypes = loadRunnable.fields.map { it.type }.filter {
+            classDefByOrNull(it)?.superclass == "Landroid/view/ViewGroup;"
         }
-        for (required in listOf("initialize", "setRequestConfiguration")) {
-            if (staticVoids.none { it.name == required }) {
-                throw PatchException("Disable ads: no concrete static void $MOBILE_ADS->$required")
-            }
+        val baseAdViewType = baseAdViewTypes.singleOrNull() ?: throw PatchException(
+            "Disable ads: expected one BaseAdView field in ${loadRunnable.type}, found $baseAdViewTypes"
+        )
+        val loads = mutableClassDefBy(baseAdViewType).methods.filter { method ->
+            method.returnType == "V" && method.parameterTypes.size == 1 &&
+                !AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.implementation?.instructions?.any {
+                    it.opcode == Opcode.NEW_INSTANCE &&
+                        ((it as ReferenceInstruction).reference as? TypeReference)?.type == loadRunnable.type
+                } == true
         }
-        staticVoids.forEach { it.returnEarly() }
-        mobileAds.filter {
-            it.name == "putPublisherFirstPartyIdEnabled" && it.returnType == "Z" &&
-                it.implementation != null
-        }.forEach { it.returnEarly(false) }
-
-        // Banner loads: AdView has no loadAd of its own, it inherits BaseAdView.loadAd.
-        val loads = mutableClassDefBy("${GMA}BaseAdView;").methods.filter {
-            it.name == "loadAd" && it.returnType == "V" && it.implementation != null
+        if (loads.size != 1) {
+            throw PatchException("Disable ads: expected one loadAd in $baseAdViewType, found ${loads.size}")
         }
-        if (loads.isEmpty()) throw PatchException("Disable ads: no concrete BaseAdView.loadAd")
-        loads.forEach { it.returnEarly() }
+        loads.single().returnEarly()
     }
 }

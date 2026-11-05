@@ -6,11 +6,11 @@ import json
 import tempfile
 from pathlib import Path
 
-from rustore_upstream import inventory_diff, promote, readable_packages, verify_auto_update_guard, verify_device_identifier_stub, verify_google_ad_id_stub, verify_instruction_prefix, push_service_cleanup_prefix
+from rustore_upstream import APPLICATION_SUPER_ON_CREATE, inventory_diff, promote, readable_packages, startup_cancellation_blocks, verify_after_super_on_create, verify_auto_update_guard, verify_device_identifier_stub, verify_google_ad_id_stub, verify_instruction_prefix, push_service_cleanup_prefix
 
 
 def main() -> None:
-    unit_stub = ["sget-object v0, Lut0/e0;->a:Lut0/e0;", "return-object v0"]
+    unit_stub = ["sget-object v0, Lsu0/e0;->a:Lsu0/e0;", "return-object v0"]
     for expected in (unit_stub, ["return-void"], push_service_cleanup_prefix()):
         code = (".method public test\n.registers 4\n"
                 ".annotation system Ldalvik/annotation/Signature;\n"
@@ -63,14 +63,14 @@ def main() -> None:
         pass
     else:
         raise AssertionError("Active network policy loader passed")
-    guard = '''invoke-static {p1}, Lck1/l;->a(Lbk1/c;)Z
+    guard = '''invoke-static {p1}, Lwl1/l;->a(Lvl1/c;)Z
 move-result v0
 if-eqz v0, :blocked
-iget-boolean v0, p1, Lbk1/c;->f:Z
+iget-boolean v0, p1, Lvl1/c;->f:Z
 if-eqz v0, :blocked
-iget-boolean p1, p1, Lbk1/c;->g:Z
+iget-boolean p1, p1, Lvl1/c;->g:Z
 if-eqz p1, :blocked
-iget-object p1, p0, Lck1/l;->u:Lxs2/b;
+iget-object p1, p0, Lwl1/l;->v:Lsx2/b;
 const/4 p1, 0x0
 if-nez p1, :blocked
 const/4 p1, 0x1
@@ -80,14 +80,30 @@ const/4 p1, 0x0
 return p1'''
     verify_auto_update_guard(guard)
     for broken in ("const/4 v0, 0x0\nreturn v0\n" + guard,
-                   guard.replace("const/4 p1, 0x0", "iget-boolean p1, p1, Lxs2/b;->c:Z", 1),
-                   guard.replace("iget-boolean p1, p1, Lbk1/c;->g:Z", "const/4 p1, 0x1")):
+                   guard.replace("const/4 p1, 0x0", "iget-boolean p1, p1, Lsx2/b;->c:Z", 1),
+                   guard.replace("iget-boolean p1, p1, Lvl1/c;->g:Z", "const/4 p1, 0x1")):
         try:
             verify_auto_update_guard(broken)
         except RuntimeError:
             pass
         else:
             raise AssertionError("Broken auto-update gate passed")
+    work, job = startup_cancellation_blocks()
+    head = "move-object/from16 v6, p0\n" + APPLICATION_SUPER_ON_CREATE + "\n"
+    tail = "\nsget v0, Landroid/os/Build$VERSION;->SDK_INT:I"
+    joined = "\n".join
+    for first, second in ((work, job), (job, work)):
+        verify_after_super_on_create(head + joined(first + second) + tail, [work, job])
+    for broken in (head + joined(work) + tail,
+                   head + "nop\n" + joined(work + job) + tail,
+                   head + joined(work[:-1] + job) + tail,
+                   joined(work + job) + "\n" + APPLICATION_SUPER_ON_CREATE):
+        try:
+            verify_after_super_on_create(broken, [work, job])
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("Incomplete startup cancellation passed")
     baseline = {
         "apk_sha256": "audited-apk",
         "native_libraries": {

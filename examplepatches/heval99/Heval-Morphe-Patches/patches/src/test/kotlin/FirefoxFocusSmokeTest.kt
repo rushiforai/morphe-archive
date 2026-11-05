@@ -68,7 +68,7 @@ class FirefoxFocusSmokeTest {
     }
 
     @Test
-    fun `Firefox Focus patches enable about config, stop the usage ping, Nimbus fetches, the rating prompt and promotions`() {
+    fun `Firefox Focus patches enable about config, stop the usage ping, Nimbus fetches, the rating prompt and promotions, and pin DNS`() {
         val root = repoRoot()
         val apk = File(root, "apks/firefox-focus/base.apk")
 
@@ -80,29 +80,35 @@ class FirefoxFocusSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "158.0.2",
-            patchNames = setOf("Enable about:config", "Disable telemetry", "Disable rating prompts", "Hide promotional prompts"),
+            version = "159.0.1",
+            patchNames = setOf("Enable about:config", "Disable telemetry", "Disable rating prompts", "Hide promotional prompts", DNS_FILTER),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
         val byType = classes.associateBy { it.type }
         fun classDef(type: String): ClassDef = byType[type] ?: error("$type not found in emitted dexes")
 
-        // Enable about:config: GeckoRuntime.create(Context, GeckoRuntimeSettings) starts with
-        // settings.setAboutConfigEnabled(true).
+        // Enable about:config: GeckoRuntime.create(Context, GeckoRuntimeSettings) calls
+        // settings.setAboutConfigEnabled(true) before its own code. DNS filter inserts at the same
+        // entry, so the call is found by reference.
         val create = classDef(GECKO_RUNTIME).method("create", listOf("Landroid/content/Context;", GECKO_RUNTIME_SETTINGS))
         val createInsns = create.instructions()
-        val literal = createInsns[0]
+        val aboutConfigCall = createInsns.indexOfFirst { it.methodRef()?.name == "setAboutConfigEnabled" }
+        assertTrue(
+            aboutConfigCall in 1 until createInsns.indexOfFirst { it.methodRef()?.name == "assertOnUiThread" },
+            "GeckoRuntime.create does not call setAboutConfigEnabled before assertOnUiThread",
+        )
+        val literal = createInsns[aboutConfigCall - 1]
         assertTrue(
             literal.opcode == Opcode.CONST_4 && (literal as NarrowLiteralInstruction).narrowLiteral == 1,
-            "GeckoRuntime.create does not start with const/4 1: ${literal.opcode}",
+            "setAboutConfigEnabled is not preceded by const/4 1: ${literal.opcode}",
         )
-        val setter = createInsns[1].methodRef()
+        val setter = createInsns[aboutConfigCall].methodRef()
         assertTrue(
-            createInsns[1].opcode == Opcode.INVOKE_VIRTUAL && setter?.definingClass == GECKO_RUNTIME_SETTINGS &&
+            createInsns[aboutConfigCall].opcode == Opcode.INVOKE_VIRTUAL && setter?.definingClass == GECKO_RUNTIME_SETTINGS &&
                 setter.name == "setAboutConfigEnabled" && setter.parameterTypes.map(CharSequence::toString) == listOf("Z"),
-            "GeckoRuntime.create does not call setAboutConfigEnabled(Z) second: $setter",
+            "GeckoRuntime.create does not call setAboutConfigEnabled(Z): $setter",
         )
-        val invoke = createInsns[1] as FiveRegisterInstruction
+        val invoke = createInsns[aboutConfigCall] as FiveRegisterInstruction
         val p1 = create.implementation!!.registerCount - 1
         assertEquals(listOf(p1, (literal as OneRegisterInstruction).registerA), listOf(invoke.registerC, invoke.registerD), "setAboutConfigEnabled registers")
         assertTrue(
@@ -190,5 +196,10 @@ class FirefoxFocusSmokeTest {
             },
             "no method that shows the search widget dialog reads the flag: ${promoReaders.map { it.label() }}",
         )
+
+        // DNS filter: GeckoView is pinned to the default resolver in TRR-only mode (3), and with
+        // the other options to the chosen resolver in TRR-first mode (2).
+        assertGeckoViewDnsForced(classes, DEFAULT_DOH_URL, trrMode = 3)
+        assertGeckoViewDnsForced(applyDnsFilterFallback(apk, workDir, PKG, "159.0.1"), OTHER_DOH_URL, trrMode = 2)
     }
 }

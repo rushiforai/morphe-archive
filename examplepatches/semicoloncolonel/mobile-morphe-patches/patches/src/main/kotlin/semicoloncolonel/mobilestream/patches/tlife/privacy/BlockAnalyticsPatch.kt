@@ -29,9 +29,7 @@ private const val AMPLITUDE = "Lcom/amplitude/core/Amplitude;"
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Adobe, MoEngage, Amplitude, Splunk, Luciq, Branch, and Firebase Analytics. " +
-        "Marketing notifications and in-app promotions from MoEngage stop too. Sign-in, " +
-        "billing, and Tuesdays are left alone.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

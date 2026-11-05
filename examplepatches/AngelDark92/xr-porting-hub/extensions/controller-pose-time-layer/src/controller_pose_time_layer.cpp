@@ -103,6 +103,11 @@ constexpr SceneProfile SCENES[] = {
         {0xf5ff4, 0x550, "4f30c94895e96d10ce06abc3a96f05892871894d8e893dd0eb7d3765a3db0bb4"},
         {0x15e2b8, 0x40, "7279ef642ad5b65f5784bded4d9a42ef1f120796a2f2ac87fbe39f6fc62885d4"},
         0x232038, 0x1629cc, 0x2316b8},
+    {"2.0.24/5002527",
+        {0x1089fc, 0xa9c, "dd7e1fba6febd230f02e2c984e47794c8cb79e69c17a4ab732611b41758d0d84"},
+        {0x180fd0, 0x550, "2e64ad90ea27bf4e97e136b401a6105544e85156bc15c21903ed0889f707ea2d"},
+        {0x15f564, 0x40, "4547aa2bd450d51f88a68233e13530a81775c11c76173e423545ba10922152ae"},
+        0x239b78, 0x163d8c, 0x239588},
 };
 
 // Other controller layers change where VRLink's poses come from or when they are predicted for.

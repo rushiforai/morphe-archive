@@ -85,8 +85,10 @@ val shareAsImagePatch = bytecodePatch(
             val context = (before.last { isCastTo(it, "Landroid/content/Context;") } as OneRegisterInstruction).registerA
             val app = (before.last { isCastTo(it, entry.type) } as OneRegisterInstruction).registerA
             val card = (cardCast as OneRegisterInstruction).registerA
+            // From 12.40 the pending card is a state class rather than the state interface.
             val cleared = instructions.first { instruction ->
-                instruction.location.index > cardIndex && instruction.opcode == Opcode.INVOKE_INTERFACE &&
+                instruction.location.index > cardIndex &&
+                    (instruction.opcode == Opcode.INVOKE_INTERFACE || instruction.opcode == Opcode.INVOKE_VIRTUAL) &&
                     instruction.getReference<MethodReference>()?.name == "setValue"
             }.location.index
             if (cleared - cardIndex > 4) throw PatchException("The share card callback does not clear the pending card")

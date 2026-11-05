@@ -46,7 +46,7 @@ move less-used controls into More.
 Input: `../OriginalApps/NuvioTV-1.1.0-beta7.apk`, SHA-256
 `a35eb5033615018f50f5205dc51f52e526b3b606f7e563943201dfbd7366d1f2`.
 Manifest metadata confirms package/version/code. Original DEX and focused baksmali
-output are in `../.inspect-nuvio-beta7/` and `playback-smali/`.
+output are in `../Skills/inspection-evidence/.inspect-nuvio-beta7/` and `playback-smali/`.
 
 - `Lva/bd;->invoke(Object,Object)Object` is an instance Function2, 49 registers.
   It contains nine unique `Lva/yd;->b` range calls: eight main controls and the More
@@ -168,7 +168,7 @@ by the task arguments shown above. No system execution policy was changed.
 The rebuild command was:
 
 ```powershell
-java -Xmx3g -jar ../morphe-desktop-1.18.1-all.jar patch ../OriginalApps/NuvioTV-1.1.0-beta7.apk -p=patches/build/libs/patches-0.11.2.mpp "--enable=NuvioTV - Customize playback buttons" --exclusive --unsigned --out=../Apps/NuvioTV/NuvioTV-1.1.0-beta.7-playback-buttons-unsigned.apk --temporary-files-path=../.inspect-nuvio-beta7/rebuild-playback-buttons --result-file=../.inspect-nuvio-beta7/rebuild-playback-buttons-result.json
+java -Xmx3g -jar ../morphe-desktop-1.18.1-all.jar patch ../OriginalApps/NuvioTV-1.1.0-beta7.apk -p=patches/build/libs/patches-0.11.2.mpp "--enable=NuvioTV - Customize playback buttons" --exclusive --unsigned --out=../Apps/NuvioTV/NuvioTV-1.1.0-beta.7-playback-buttons-unsigned.apk --temporary-files-path=../Skills/inspection-evidence/.inspect-nuvio-beta7/rebuild-playback-buttons --result-file=../Skills/inspection-evidence/.inspect-nuvio-beta7/rebuild-playback-buttons-result.json
 ```
 
 ## IntroDB, sorting and icon verification — 2026-10-22

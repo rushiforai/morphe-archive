@@ -24,8 +24,7 @@ private fun Element.isLauncher(): Boolean {
 @Suppress("unused")
 val changeAppNamePatch = resourcePatch(
     name = "Change app name",
-    description = "Renames the app on the home screen, so the patched app is easy to tell apart from " +
-        "the stock app.",
+    description = "Renames the app on the home screen, so it is easy to tell apart.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

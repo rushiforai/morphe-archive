@@ -21,12 +21,13 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val removeAdsProxyAndRestrictionsPatch = bytecodePatch(
     name = "Remove ads, proxy & restrictions",
-    description = "Stops background bandwidth sharing and removes ads, sponsor popups, and forced updates.",
+    description = "Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.4.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRICFY_TV)
 
     dependsOn(nativeIntegrityAndDebloatPatch)
+    dependsOn(hidePlayerAppLogoPatch)
 
     val hidePromoMarquee by booleanOption(
         key = "hidePromoMarquee",

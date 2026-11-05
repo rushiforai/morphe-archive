@@ -34,11 +34,11 @@ val enablePremiumPatch = bytecodePatch(
 
         // Re-signing makes checkOurSignature() fail, which paints an "unknown signature"
         // warning strip over the trial UI. Claim our own signature instead.
-        IsOurSignatureFingerprint.methodOrNull?.returnEarly(true)
+        IsOurSignatureFingerprint.method.returnEarly(true)
 
         // A sideloaded build has no installer package, so TrialFilter marks it as
         // "unknown source": pirate icon in the drawer, and the AI assistant refuses to
         // start. Present as a store install.
-        IsUnknownSourceFingerprint.methodOrNull?.returnEarly(false)
+        IsUnknownSourceFingerprint.method.returnEarly(false)
     }
 }

@@ -2,7 +2,6 @@ package dev.hyzor.patches.chesscom.home
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -41,85 +40,67 @@ val customTabsPatch = bytecodePatch(
 
         val stateClass = mutableClassDefBy(NavigationBarStateToStringFingerprint.originalClassDef)
 
-        // 4.10.18: NavigationBarState.tabs() returns [Play, middle tabs..., More].
-        val tabsMethod = stateClass.methods.singleOrNull {
-            it.returnType == "Ljava/util/List;" && it.parameterTypes.isEmpty()
+        // The state keeps only the middle tabs; the app adds Play and More.
+        stateClass.methods.single {
+            it.name == "<init>" &&
+                it.parameterTypes.map { type -> type.toString() } ==
+                listOf("I", "I", "Ljava/util/List;", "Z")
+        }.apply {
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p3 .. p3 }, $HOME_TABS->middleTabs(Ljava/util/List;)Ljava/util/List;
+                    move-result-object p3
+                """,
+            )
         }
-        if (tabsMethod != null) {
-            tabsMethod.apply {
-                val returnIndex = instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
-                val register = getInstruction<OneRegisterInstruction>(returnIndex).registerA
-                addInstructions(
-                    returnIndex,
-                    """
-                        invoke-static/range { v$register .. v$register }, $HOME_TABS->tabs(Ljava/util/List;)Ljava/util/List;
-                        move-result-object v$register
-                    """,
-                )
+        // The bar composable prepends Play and Puzzles itself and appends More after this
+        // call; finalTabs puts the saved order back and drops the tabs that are off.
+        val homeScreen = "Lcom/chess/home/ui/HomeScreen;"
+        // The methods are found on the immutable classes, and only the classes that get a hook are
+        // made mutable: making one mutable rewrites that class into a new DEX file, so doing it to
+        // every class of the app (this scan visits all of them) costs hundreds of MB while patching.
+        val barBuilders = mutableListOf<Pair<String, Method>>()
+        classDefForEach { classDef ->
+            classDef.methods.forEach { method ->
+                val instructions = method.implementation?.instructions ?: return@forEach
+                if (instructions.any { instruction ->
+                        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == homeScreen
+                    }
+                ) {
+                    barBuilders += classDef.type to method
+                }
             }
-        } else {
-            // 4.10.23: the state keeps only the middle tabs; the app adds Play and More.
-            stateClass.methods.single {
-                it.name == "<init>" &&
-                    it.parameterTypes.map { type -> type.toString() } ==
-                    listOf("I", "I", "Ljava/util/List;", "Z")
+        }
+        var tabListHooks = 0
+        barBuilders.forEach { (type, builder) ->
+            mutableClassDefBy(type).methods.first { method ->
+                method.name == builder.name && method.parameterTypes == builder.parameterTypes &&
+                    method.returnType == builder.returnType
             }.apply {
-                addInstructions(
-                    0,
-                    """
-                        invoke-static/range { p3 .. p3 }, $HOME_TABS->middleTabs(Ljava/util/List;)Ljava/util/List;
-                        move-result-object p3
-                    """,
-                )
-            }
-            // The bar composable prepends Play and Puzzles itself and appends More after this
-            // call; finalTabs puts the saved order back and drops the tabs that are off.
-            val homeScreen = "Lcom/chess/home/ui/HomeScreen;"
-            // The methods are found on the immutable classes, and only the classes that get a hook are
-            // made mutable: making one mutable rewrites that class into a new DEX file, so doing it to
-            // every class of the app (this scan visits all of them) costs hundreds of MB while patching.
-            val barBuilders = mutableListOf<Pair<String, Method>>()
-            classDefForEach { classDef ->
-                classDef.methods.forEach { method ->
-                    val instructions = method.implementation?.instructions ?: return@forEach
-                    if (instructions.any { instruction ->
-                            ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == homeScreen
-                        }
-                    ) {
-                        barBuilders += classDef.type to method
+                val snapshot = instructions.toList()
+                val inserts = snapshot.indices.filter { index ->
+                    val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
+                    reference?.definingClass == "Lcom/google/android/vl0;" && reference.name == "q0" &&
+                        snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+                }
+                inserts.sortedDescending().forEach { index ->
+                    val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
+                    if (reference?.returnType !in setOf("Ljava/util/ArrayList;", "Ljava/util/List;")) {
+                        throw PatchException("The bottom bar list builder does not return a list")
                     }
+                    val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
+                    addInstructions(
+                        index + 2,
+                        """
+                            invoke-static/range { v$register .. v$register }, $HOME_TABS->finalTabs(Ljava/util/List;)Ljava/util/List;
+                            move-result-object v$register
+                        """,
+                    )
+                    tabListHooks++
                 }
             }
-            var tabListHooks = 0
-            barBuilders.forEach { (type, builder) ->
-                mutableClassDefBy(type).methods.first { method ->
-                    method.name == builder.name && method.parameterTypes == builder.parameterTypes &&
-                        method.returnType == builder.returnType
-                }.apply {
-                    val snapshot = instructions.toList()
-                    val inserts = snapshot.indices.filter { index ->
-                        val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                        reference?.definingClass == "Lcom/google/android/vl0;" && reference.name == "q0" &&
-                            snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
-                    }
-                    inserts.sortedDescending().forEach { index ->
-                        val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                        if (reference?.returnType !in setOf("Ljava/util/ArrayList;", "Ljava/util/List;")) {
-                            throw PatchException("The bottom bar list builder does not return a list")
-                        }
-                        val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
-                        addInstructions(
-                            index + 2,
-                            """
-                                invoke-static/range { v$register .. v$register }, $HOME_TABS->finalTabs(Ljava/util/List;)Ljava/util/List;
-                                move-result-object v$register
-                            """,
-                        )
-                        tabListHooks++
-                    }
-                }
-            }
-            if (tabListHooks == 0) throw PatchException("The bottom bar tab list was not found")
         }
+        if (tabListHooks == 0) throw PatchException("The bottom bar tab list was not found")
     }
 }

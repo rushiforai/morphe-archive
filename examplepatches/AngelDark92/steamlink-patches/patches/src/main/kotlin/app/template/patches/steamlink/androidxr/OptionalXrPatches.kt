@@ -8,15 +8,37 @@ import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST
+import app.template.patches.shared.Constants.isEarlierStartupSteamLinkBuild
 import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
 import app.template.patches.shared.buildLabel
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 
+// Morphe runs dependencies without re-checking compatibility: the manifest edit must stay inert on
+// any other package and on any build this patch does not list (legacy bases plus the native pairs).
+internal fun isUnrestrictedBatteryTarget(packageName: String, version: String, versionCode: String): Boolean =
+    packageName == CONTROLLER_STEAM_LINK_PACKAGE &&
+        (isEarlierStartupSteamLinkBuild(version, versionCode) ||
+            isNativeBatterySettingsBuild(version, versionCode))
+
 private val unrestrictedBatteryManifestPatch = resourcePatch {
-    execute { ensureIdsXml(get("res/values/ids.xml")) }
+    execute {
+        if (!isUnrestrictedBatteryTarget(
+                packageMetadata.packageName, packageMetadata.versionName, packageMetadata.versionCode,
+            )
+        ) {
+            return@execute
+        }
+        ensureIdsXml(get("res/values/ids.xml"))
+    }
     finalize {
+        if (!isUnrestrictedBatteryTarget(
+                packageMetadata.packageName, packageMetadata.versionName, packageMetadata.versionCode,
+            )
+        ) {
+            return@finalize
+        }
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
             val app = manifest.getElementsByTagName("application").item(0) as Element
@@ -112,6 +134,7 @@ private val activeProjectionModes = listOf(
         ANDROID_SURFACE_TRIGGER_LIBRARY,
         ANDROID_SURFACE_TRIGGER_MANIFEST,
     ),
+    ProjectionModeResources(STOCK_QUAD_MODE, STOCK_QUAD_LIBRARY, STOCK_QUAD_MANIFEST),
 )
 
 internal fun projectionModesConflict(existingMode: String, requestedMode: String): Boolean =
@@ -119,7 +142,10 @@ internal fun projectionModesConflict(existingMode: String, requestedMode: String
         activeProjectionModes.any { it.mode == existingMode }
 
 private val retiredProjectionModes = setOf(
+    // Surface-video was shipped under both the generic v1 name and the trigger-payload name.
+    // Keep both so reapplication cleans whichever name a previous patch left behind.
     "surface_video_v1", // Tried on 2026-09-11; low-resolution output. Cleanup only.
+    "surface_video_trigger_v1",
     "foveal_canvas", // Retired 2026-10-24; did not solve high resolution. Cleanup only.
     "android_surface_fovea_v1", // Tried on 2026-09-07; user reported it did not work.
     "android_surface_underside_projection_v1",
@@ -143,7 +169,9 @@ private val retiredProjectionModes = setOf(
     "single_projection_native_probe_v1",
 )
 private val retiredProjectionLibraries = setOf(
+    // Surface-video helper was also shipped as the trigger payload; clean both names.
     "libgxr_surface_video.so",
+    "libgxr_surface_video_trigger.so",
     "libgxr_asf.so",
     "libgxr_ast_underside.so",
     "libgxr_ast_warmup_omit.so",
@@ -155,6 +183,15 @@ private val retiredProjectionLibraries = setOf(
     "libgxr_nqvd.so",
     "libgxr_pst.so",
     "libgxr_nspp.so",
+    // Retired swapchain-enlarge / atlas-surface layers and hybrid codec helper. Cleanup only.
+    "libgxr_swapchain_enlarge.so",
+    "libgxr_atlas_surface.so",
+    "libgxr_hybrid_codec.so",
+)
+private val retiredProjectionManifests = setOf(
+    "XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json",
+    "XR_APILAYER_local_GalaxyXR_swapchain_enlarge_v1.json",
+    "XR_APILAYER_local_GalaxyXR_atlas_surface_v1.json",
 )
 
 private fun ByteArray.containsAscii(value: String): Boolean {
@@ -194,31 +231,12 @@ internal fun androidSurfaceTriggerBuildIdForBuild(
     ANDROID_SURFACE_TRIGGER_BUILD_ID
 }
 
-internal fun installProjectionModeResources(
-    libDir: File,
-    layerDir: File,
-    requested: ProjectionModeResources,
-    helperBytes: ByteArray,
-) {
-    activeProjectionModes.filterNot { it.mode == requested.mode }.forEach { sibling ->
-        val siblingManifestExists = sibling.manifest?.let { File(layerDir, it).exists() } == true
-        if (File(libDir, sibling.library).exists() || siblingManifestExists) {
-            throw PatchException(
-                "Galaxy XR resolution modes are mutually exclusive: " +
-                    "${requested.mode} conflicts with ${sibling.mode}",
-            )
-        }
-    }
-
-    // The Surface-video experiment appends its own terminal trigger. Reject either
-    // patch order so Alpha-0 can never leave a three-layer Surface-video frame behind.
-    if (File(libDir, SURFACE_VIDEO_TRIGGER_LIBRARY).exists() ||
-        File(layerDir, SURFACE_VIDEO_TRIGGER_MANIFEST).exists()) {
-        throw PatchException(
-            "Surface video + trigger is mutually exclusive with Alpha-0 high-resolution trigger",
-        )
-    }
-
+/**
+ * Deletes every retired projection-mode file from [libDir] and [layerDir].
+ * Throws [PatchException] if a retired file exists and cannot be deleted, so callers never
+ * stage new resources on top of stale layers.
+ */
+internal fun removeRetiredProjectionResources(libDir: File, layerDir: File) {
     retiredProjectionModes.forEach { mode ->
         listOf(
             File(libDir, "libgxr_$mode.so"),
@@ -235,6 +253,31 @@ internal fun installProjectionModeResources(
             throw PatchException("Could not remove retired XR projection resource: ${retiredFile.path}")
         }
     }
+    retiredProjectionManifests.forEach { manifest ->
+        val retiredFile = File(layerDir, manifest)
+        if (retiredFile.exists() && !retiredFile.delete()) {
+            throw PatchException("Could not remove retired XR projection resource: ${retiredFile.path}")
+        }
+    }
+}
+
+internal fun installProjectionModeResources(
+    libDir: File,
+    layerDir: File,
+    requested: ProjectionModeResources,
+    helperBytes: ByteArray,
+) {
+    activeProjectionModes.filterNot { it.mode == requested.mode }.forEach { sibling ->
+        val siblingManifestExists = sibling.manifest?.let { File(layerDir, it).exists() } == true
+        if (File(libDir, sibling.library).exists() || siblingManifestExists) {
+            throw PatchException(
+                "Galaxy XR resolution modes are mutually exclusive: " +
+                    "${requested.mode} conflicts with ${sibling.mode}",
+            )
+        }
+    }
+
+    removeRetiredProjectionResources(libDir, layerDir)
 
     File(libDir, requested.library).writeBytes(helperBytes)
     requested.manifest?.let { manifest ->

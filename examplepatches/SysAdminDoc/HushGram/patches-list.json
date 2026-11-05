@@ -2091,7 +2091,7 @@
     },
     {
       "name": "Hide reels by caption words",
-      "description": "Leaves out reels whose caption holds a word or phrase from your list, and Home's posts too with Also on Home. Starts off. Turn it on and type the words in HushGram settings > Reels.",
+      "description": "Leaves out reels whose caption holds a word or phrase from your list, or is in a language you don't keep, and Home's posts too with Also on Home. Starts off. Turn it on and type the words or languages in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -3278,6 +3278,47 @@
       "options": []
     },
     {
+      "name": "Keep playing in the background",
+      "description": "A video or reel playing with sound keeps going when you leave Instagram or turn the screen off, with a notification to pause or stop it. Starts off. Turn it on in HushGram settings > Playback.",
+      "category": "Playback",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "454.0.0.54.77"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "454.0.0.54.77",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386014758,
+                "ARMEABI_V7A": 386014757,
+                "X86": 386014759,
+                "X86_64": 386014760
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Keep stories playing while zooming",
       "description": "Keeps a story playing while you pinch to zoom it, instead of pausing it. A story you hold still first stays paused. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Stories",
@@ -3679,7 +3720,7 @@
     },
     {
       "name": "Open links in external browser",
-      "description": "Opens web links you tap in your usual browser instead of Instagram's built-in one, without Instagram's click tracker. Instagram pages and ads still open in the app. On by default. Turn it off in HushGram settings > Ads and privacy.",
+      "description": "Opens web links you tap in your usual browser instead of Instagram's built-in one, without Instagram's click tracker. Ads and Meta's own sites (Instagram, Facebook, Messenger, Threads) still open in the app. On by default. Turn it off in HushGram settings > Ads and privacy.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -3961,7 +4002,7 @@
     },
     {
       "name": "Read messages without the seen receipt",
-      "description": "Opening a chat no longer tells people you've seen their messages. You still see when they've seen yours. Mark as read, or the check mark at the top of a chat, still tells them. Ghost mode turns it on too. Starts off. Turn it on in HushGram settings > Messages.",
+      "description": "Opening a chat no longer tells people you've seen their messages. You still see when they've seen yours. Mark as read, or the check mark at the top of a chat, still tells them. With `Choose Seen in each chat` on, an eye at the top of each chat holds or sends Seen in that chat alone, whichever way the main switch is. Ghost mode turns it on too. Starts off. Turn it on in HushGram settings > Messages.",
       "category": "Ghost mode",
       "use": true,
       "dependencies": [

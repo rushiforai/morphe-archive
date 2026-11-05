@@ -124,6 +124,26 @@ private val HMD_LAYOUTS = listOf(
             VelocityPatch(0x0010340CL, 48),
         ),
     ),
+    // Independently decoded 2.0.24/5002527 (scene 2,333,472 bytes): GetPose is
+    // _ZN13QSVLDeviceHmd7GetPoseER10XRQContextR12PackedPose_t at 0x102b28. The
+    // timestamp load follows the XRQGetTimeNow call at 0x102b8c and feeds
+    // XRQLocateReferenceSpace; the six velocity stores write X19+28..48. These
+    // addresses come from this build's own disassembly, not the 5002395 offsets.
+    HmdLayout(
+        versionName = "2.0.24",
+        versionCode = 5002527,
+        fileSize = 2_333_472,
+        stockSha256 = "cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03",
+        hookVaddr = 0x00102B90L,
+        velocityPatches = listOf(
+            VelocityPatch(0x00102E04L, 28),
+            VelocityPatch(0x00102E08L, 32),
+            VelocityPatch(0x00102E0CL, 36),
+            VelocityPatch(0x00102E18L, 40),
+            VelocityPatch(0x00102E1CL, 44),
+            VelocityPatch(0x00102E28L, 48),
+        ),
+    ),
 )
 
 private const val PT_LOAD = 1
@@ -359,7 +379,7 @@ internal fun patchVisualDelay(
         )
     }
     verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
-    val guardedTransitions = layout.versionCode in setOf(5001812, 5001968, 5002363, 5002395)
+    val guardedTransitions = layout.versionCode in setOf(5001812, 5001968, 5002363, 5002395, 5002527)
     if (guardedTransitions && offsetMs !in 0L..4000L) {
         throw PatchException("Visual Delay offset must be within 0..4000 ms")
     }

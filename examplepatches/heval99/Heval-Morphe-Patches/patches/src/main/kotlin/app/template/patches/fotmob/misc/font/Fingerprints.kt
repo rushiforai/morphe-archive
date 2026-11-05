@@ -40,6 +40,30 @@ internal object AppFontFlagFingerprint : Fingerprint(
 )
 
 /**
+ * Jetpack Compose's API 28+ platform typeface factory (PlatformTypefacesApi28
+ * createAndroidTypefaceApi28(String?, FontWeight, FontStyle); 240: n07.a). FontFamily.Default
+ * (null name) and the generic families end here: null + normal weight returns Typeface.DEFAULT,
+ * null + bold DEFAULT_BOLD, otherwise Typeface.create(name or DEFAULT, weight, italic). Library
+ * shape only: static, (String, <FontWeight>, int)Typeface, reading DEFAULT and DEFAULT_BOLD and
+ * calling both Typeface.create(String, int) and Typeface.create(Typeface, int, boolean).
+ */
+internal object ComposePlatformTypefaceFingerprint : Fingerprint(
+    returnType = TYPEFACE,
+    filters = listOf(
+        fieldAccess(definingClass = TYPEFACE, name = "DEFAULT", opcode = Opcode.SGET_OBJECT),
+        fieldAccess(definingClass = TYPEFACE, name = "DEFAULT_BOLD", opcode = Opcode.SGET_OBJECT),
+        methodCall(definingClass = TYPEFACE, name = "create", parameters = listOf("Ljava/lang/String;", "I"), returnType = TYPEFACE),
+        methodCall(definingClass = TYPEFACE, name = "create", parameters = listOf(TYPEFACE, "I", "Z"), returnType = TYPEFACE),
+    ),
+    custom = { method, _ ->
+        AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.parameterTypes.size == 3 &&
+            method.parameterTypes[0].toString() == "Ljava/lang/String;" &&
+            method.parameterTypes[2].toString() == "I"
+    },
+)
+
+/**
  * The Typeface loader every code-set View font goes through (240: pae.k, 16 callers): on API 26+
  * it loads the font resource and applies the style, otherwise (or when that fails) it returns
  * `Typeface.create(familyName, style)` with the system family name its caller passes

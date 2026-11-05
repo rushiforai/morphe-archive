@@ -16,6 +16,7 @@ import app.originisland.patches.shared.mediasession.MediaBrowserServiceOnGetRoot
 import app.originisland.patches.shared.mediasession.MediaBrowserServiceOnLoadChildrenFingerprint
 import app.originisland.patches.shared.mediasession.MediaBrowserServiceOnLoadChildrenWithOptionsFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionCallbackOnCustomActionFingerprint
+import app.originisland.patches.shared.mediasession.MediaSessionCallbackOnPlayFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionCallbackOnPlayFromMediaIdFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionCallbackOnSetRatingFingerprint
 import app.originisland.patches.shared.mediasession.MediaSessionConstructorFingerprint
@@ -53,6 +54,11 @@ private const val KEEP_PACKAGE = "Keep"
  */
 private const val LUNA_MUSIC_PACKAGE = "com.luna.music"
 
+/**
+ * A package of that list the card has no name of its own for, so it shows the name of the app.
+ */
+private const val OWN_NAME_PACKAGE = "cn.missevan"
+
 private lateinit var packageNameOption: Option<String>
 
 private val musicCardServiceResourcePatch = resourcePatch {
@@ -61,9 +67,10 @@ private val musicCardServiceResourcePatch = resourcePatch {
         val packageName = packageNameOption.value!!
         if (packageName == KEEP_PACKAGE) return@finalize
 
+        var oldPackageName = ""
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
-            val oldPackageName = manifest.getAttribute("package")
+            oldPackageName = manifest.getAttribute("package")
             fun renamed(name: String) =
                 if (name.startsWith("$oldPackageName.")) name.replaceFirst(oldPackageName, packageName) else name
 
@@ -82,6 +89,15 @@ private val musicCardServiceResourcePatch = resourcePatch {
                 (0 until permissions.length).map { permissions.item(it) as Element }.forEach { permission ->
                     permission.setAttribute("android:name", renamed(permission.getAttribute("android:name")))
                 }
+            }
+        }
+
+        // Settings of the app and of other patches open screens of the app by its package.
+        val targetPackage = "android:targetPackage=\"$oldPackageName\""
+        get("res").walkTopDown().filter { it.isFile && it.extension == "xml" }.forEach { file ->
+            val text = file.readText()
+            if (text.contains(targetPackage)) {
+                file.writeText(text.replace(targetPackage, "android:targetPackage=\"$packageName\""))
             }
         }
     }
@@ -137,7 +153,8 @@ val originIslandMusicCardPatch = bytecodePatch(
         default = KEEP_PACKAGE,
         values = mapOf(
             "Keep the package of YouTube Music" to KEEP_PACKAGE,
-            "Luna Music, to be offered by the card while nothing plays" to LUNA_MUSIC_PACKAGE
+            "Offered by the card as YouTube Music while nothing plays" to OWN_NAME_PACKAGE,
+            "Offered by the card as Qi Shui Yin Yue while nothing plays" to LUNA_MUSIC_PACKAGE
         ),
         title = "Package name",
         description = "The package to install this copy of YouTube Music under.",
@@ -280,6 +297,25 @@ val originIslandMusicCardPatch = bytecodePatch(
             0,
             "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->onActivityResume(Landroid/app/Activity;)V"
         )
+
+        // The card asks a closed app to play, which has nothing loaded to play yet.
+        MediaSessionCallbackOnPlayFingerprint.matchAll().forEach { match ->
+            if (match.method.definingClass.startsWith("Lapp/originisland/extension/")) return@forEach
+            match.method.apply {
+                // The method has no registers of its own, so the callback is given back to go on.
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { p0 }, $EXTENSION_CLASS->onPlay(Ljava/lang/Object;)Ljava/lang/Object;
+                        move-result-object p0
+                        if-nez p0, :app
+                        return-void
+                        :app
+                        check-cast p0, $definingClass
+                    """
+                )
+            }
+        }
 
         MediaSessionCallbackOnSetRatingFingerprint.matchAll().forEach { match ->
             match.method.addInstructions(

@@ -6,19 +6,50 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Morphe Patches bug report
+        # Morphe Patches Bug Report
 
-        Before creating a new bug report, please keep the following in mind:
-
+        Before creating a new bug report, please ensure:
+        - You are using the latest **[Morphe MicroG-RE](https://github.com/MorpheApp/MicroG-RE/releases)**. Official ReVanced GmsCore is **not supported** and causes map crashes (Issue #67).
         - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/Akash-Sriram/morphe-google-photos/issues?q=is%3Aissue).
-  - type: textarea
+
+  - type: dropdown
+    id: gmscore_source
     attributes:
-      label: Bug description
+      label: MicroG / GmsCore Build
       description: |
-        - List app version patched, and the patches version shown in Settings > About
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
+        What microG / GmsCore build is installed on your device?
+        Morphe Google Photos requires **Morphe MicroG-RE** for proper map and service support.
+      options:
+        - "Morphe MicroG-RE (from https://github.com/MorpheApp/MicroG-RE/releases) [Supported]"
+        - "ReVanced GmsCore (Unsupported - causes map crashes #67)"
+        - "Upstream microG / Other variant"
+        - "Rooted / Native Google Play Services (No MicroG)"
     validations:
-        required: true
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Device & Version Information
+      description: Please list your device model, Android OS version, Photos app version, and Morphe patches version.
+      placeholder: "Device: Galaxy S24 / POCO F1 | Android OS: 15 / 16 / 17 | Photos: 7.99.0 | Morphe Patches: 1.17.9"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description & Steps to reproduce
+      description: |
+        - Detailed explanation of what happened vs what was expected.
+        - Steps to reproduce the bug:
+          1. Open the app
+          2. Go to '...'
+          3. Scroll down / tap '...'
+          4. See crash or error
+    validations:
+      required: true
+
   - type: textarea
     id: screenshots
     attributes:
@@ -31,7 +62,9 @@ body:
           `<details><summary>Screenshots</summary>...<img width="300" src="...">...</details>`
       placeholder: |
         <!-- Tip: When pasting images, resize with: <img width="300" src="..."> -->
+
   - type: textarea
+    id: logs
     attributes:
       label: Error logs
       description: |
@@ -40,12 +73,15 @@ body:
         - **Option 2 (Terminal/ADB)**: Run `adb logcat -d -s AndroidRuntime:E DEBUG:*` to capture clean crash exceptions.
         - **Notice**: If your log is longer than 25 lines, please attach the `.log` or `.txt` file instead of pasting an uncollapsed wall of text.
       render: shell
+
   - type: checkboxes
     id: acknowledgements
     attributes:
       label: Acknowledgements
       description: Your bug report will be closed if you don't follow the checklist below.
       options:
+        - label: I am using the latest [Morphe MicroG-RE](https://github.com/MorpheApp/MicroG-RE/releases) (or verified the issue is not caused by unsupported GmsCore builds).
+          required: true
         - label: I have checked all open and closed bug reports and this is not a duplicate.
           required: true
         - label: All requested information has been provided properly.

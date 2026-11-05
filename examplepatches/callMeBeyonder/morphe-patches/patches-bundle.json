@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-04T05:05:15",
-  "description": "## [1.5.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-04)\n\n### 🐛 Bug Fixes\n\n* **healthifyme:** disable Facebook automatic app events ([0ffa80b](https://github.com/callMeBeyonder/morphe-patches/commit/0ffa80bf4f7d0f2ef92d3b8dd379a21882d1e09e))",
-  "download_url": "https://github.com/callMeBeyonder/morphe-patches/releases/download/v1.5.1/patches-1.5.1.mpp",
+  "created_at": "2026-11-04T05:41:22",
+  "description": "## [1.5.2](https://github.com/callMeBeyonder/morphe-patches/compare/v1.5.1...v1.5.2) (2026-11-04)\n\n### 🚀 Updated App Support\n\n* **healthifyme:** support v31.6 ([8d53267](https://github.com/callMeBeyonder/morphe-patches/commit/8d53267944933a77aa6fefa6fd5f2b832aab9e87))",
+  "download_url": "https://github.com/callMeBeyonder/morphe-patches/releases/download/v1.5.2/patches-1.5.2.mpp",
   "signature_download_url": "",
-  "version": "1.5.1"
+  "version": "1.5.2"
 }

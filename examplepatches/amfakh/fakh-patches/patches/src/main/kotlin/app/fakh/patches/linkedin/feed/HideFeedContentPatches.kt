@@ -40,6 +40,18 @@ val hidePromotedJobsPatch = bytecodePatch(
 }
 
 @Suppress("unused")
+val expandPostsPatch = bytecodePatch(
+    name = "Expand posts",
+    description = "Adds an option (off by default, turned on in Fakh Patches) to show posts expanded by default. Tapping the text collapses them.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feed")
+    dependsOn(sduiComponentFilterPatch)
+    execute { markIncluded("isExpandPostsIncluded") }
+}
+
+@Suppress("unused")
 val feedFiltersPatch = bytecodePatch(
     name = "Feed filters",
     description = "Adds optional filters (off by default, turned on in Fakh Patches): focus mode, " +

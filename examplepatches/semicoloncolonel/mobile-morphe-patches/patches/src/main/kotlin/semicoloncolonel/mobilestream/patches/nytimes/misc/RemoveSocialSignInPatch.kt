@@ -31,8 +31,7 @@ internal object SubauthConfigToStringFingerprint : Fingerprint(
 @Suppress("unused")
 val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in",
-    description = "Removes the Continue with Google and Continue with Facebook options from " +
-        "The New York Times app. Email sign-in still works.",
+    description = "Removes the Continue with Google and Continue with Facebook sign-in options.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -15,9 +15,7 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 @Suppress("unused")
 val hideWifiNetworksPatch = bytecodePatch(
     name = "Hide Wi-Fi networks",
-    description = "Hides nearby Wi-Fi networks and the name of the network you are on from T-Life. Do " +
-        "not enable this if you use Secure Wi-Fi or manage T-Mobile Home Internet in T-Life, " +
-        "since both need to see Wi-Fi networks.",
+    description = "Hides nearby Wi-Fi networks and the name of your network from T-Life.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
@@ -30,8 +28,7 @@ val hideWifiNetworksPatch = bytecodePatch(
 @Suppress("unused")
 val blockBluetoothScanningPatch = bytecodePatch(
     name = "Block Bluetooth scanning",
-    description = "Stops T-Life from scanning for Bluetooth devices and beacons, and hides your paired " +
-        "devices.",
+    description = "Stops T-Life from scanning for Bluetooth devices and beacons, and hides your paired devices.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
@@ -46,9 +43,7 @@ val blockBluetoothScanningPatch = bytecodePatch(
 @Suppress("unused")
 val blockBackgroundLocationPatch = resourcePatch(
     name = "Block background location",
-    description = "Removes T-Life's ability to get your location while it is closed or in the " +
-        "background. Location while you use the app still works if you allow it. May affect " +
-        "store check-in.",
+    description = "Removes T-Life's access to your location while it is closed or in the background.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

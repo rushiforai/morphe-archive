@@ -13,8 +13,7 @@ import semicoloncolonel.mobilestream.patches.shared.privacy.rewriteCalls
 @Suppress("unused")
 val blockBluetoothScanningPatch = bytecodePatch(
     name = "Block Bluetooth scanning",
-    description = "Stops NPS from scanning for Bluetooth beacons in parks, which can tell the app where " +
-        "in a park you are. Content tied to a beacon at a park site does not show.",
+    description = "Stops the app from scanning for Bluetooth beacons in parks.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

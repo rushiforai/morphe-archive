@@ -270,6 +270,34 @@ public final class Settings {
         return values;
     }
 
+    /**
+     * Sets the choice {@code key} to {@code value} from app UI that Lurk adds (the player's Sleep timer row).
+     * Only a registered choice and one of its values are written; anything else is refused.
+     */
+    public static boolean setChoice(String key, String value) {
+        Registry.Entry entry = registry().get(key);
+        if (entry == null || !Registry.CHOICE.equals(entry.type) || value == null) return false;
+        for (String allowed : entry.choiceValues) {
+            if (allowed.equals(value)) {
+                putString(key, value);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The labels of the choice {@code key}, in order; empty for any other key. */
+    public static String[] choiceLabels(String key) {
+        Registry.Entry entry = registry().get(key);
+        return entry == null || !Registry.CHOICE.equals(entry.type) ? new String[0] : entry.choiceLabels.clone();
+    }
+
+    /** The values of the choice {@code key}, matching {@link #choiceLabels}; empty for any other key. */
+    public static String[] choiceValues(String key) {
+        Registry.Entry entry = registry().get(key);
+        return entry == null || !Registry.CHOICE.equals(entry.type) ? new String[0] : entry.choiceValues.clone();
+    }
+
     static void putBoolean(String key, boolean value) {
         SharedPreferences preferences = preferences();
         if (preferences != null) preferences.edit().putBoolean(key, value).apply();

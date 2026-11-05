@@ -190,8 +190,10 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
 
     @OptIn(ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
     @Composable private fun DialogContent() {
-        @Suppress("UNUSED_VARIABLE") val refresh = revision
-        val version = rememberModelRevision(spec.view, spec.customTitle, nativeList, *actions.values.toTypedArray())
+        // A click can change a detached model without changing its structural
+        // fingerprint (for example ListView checked state). Pass that revision
+        // into ModelContent too, otherwise Compose may skip the unchanged View.
+        val version = revision + rememberModelRevision(spec.view, spec.customTitle, nativeList, *actions.values.toTypedArray())
         val adapterModel = nativeList.adapter
         DisposableEffect(adapterModel) {
             val observer = object : android.database.DataSetObserver() {

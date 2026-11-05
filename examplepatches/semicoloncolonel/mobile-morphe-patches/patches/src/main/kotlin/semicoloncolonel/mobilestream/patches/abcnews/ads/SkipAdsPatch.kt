@@ -84,8 +84,7 @@ private fun MutableMethod.answerEmptyPod() {
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes the ads in on-demand videos, the ads in the feeds, and the Taboola banner in articles. " +
-        "Ads in the live streams are part of the broadcast and still play. Experimental.",
+    description = "Removes the ads in on-demand videos, the feeds, and articles.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

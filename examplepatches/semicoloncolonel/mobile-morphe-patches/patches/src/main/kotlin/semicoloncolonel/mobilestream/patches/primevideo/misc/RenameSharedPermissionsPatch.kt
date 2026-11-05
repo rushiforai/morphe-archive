@@ -85,9 +85,7 @@ private fun Instruction.renamedString(): String? {
 @Suppress("unused")
 val renameSharedPermissionsPatch = bytecodePatch(
     name = "Rename shared permissions",
-    description = "Renames the Amazon sign-in permissions that Prime Video shares with other " +
-        "Amazon apps, so the patched app does not block installing Amazon Shopping and other " +
-        "Amazon apps from the Play Store.",
+    description = "Renames shared Amazon permissions, so other Amazon apps can still install.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

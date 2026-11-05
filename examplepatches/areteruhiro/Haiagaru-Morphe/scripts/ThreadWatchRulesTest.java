@@ -9,6 +9,13 @@ public final class ThreadWatchRulesTest {
         check(edge.subject.equals("https://bbs.eddibb.cc/liveedge/subject.txt"));
         check(ThreadWatchRules.target("https://egg.5ch.io/test/read.cgi/android/1793113633/l50")!=null);
         check(ThreadWatchRules.target("https://mercury.bbspink.com/test/read.cgi/test/1793113633/")!=null);
+        ThreadWatchRules.Target kenmo=ThreadWatchRules.target("https://kenmo.org/test/read.cgi/poverty/1793798226/");
+        check(kenmo!=null&&!kenmo.shitaraba);
+        check(kenmo.subject.equals("https://kenmo.org/poverty/subject.txt"));
+        check(kenmo.dat.equals("https://kenmo.org/poverty/dat/1793798226.dat"));
+        check(ThreadWatchRules.fromParts("kenmo.org","poverty",1793798226L).url.equals(kenmo.url));
+        check(ThreadWatchRules.target(kenmo.url+"234").url.equals(kenmo.url));
+        check(ThreadWatchRules.target("https://kenmo.org/test/read.cgi/")==null);
         for(String invalid:new String[]{"javascript:alert(1)","https://user@host/test/read.cgi/a/1793113633/","https://host:123/test/read.cgi/a/1793113633/","https://host/test/bbs.cgi","https://host/test/read.cgi/../1793113633/","https://host/test/read.cgi/a/notanid/",null})check(ThreadWatchRules.target(invalid)==null);
         java.util.Map<String,Integer> counts=ThreadWatchRules.counts("1793457978.dat<>title (with brackets) (83)\r\n1793113633.dat<>test (1000)\n1793113634.dat<>bad (abc)\n");
         check(counts.size()==2&&counts.get("1793457978")==83&&counts.get("1793113633")==1000);

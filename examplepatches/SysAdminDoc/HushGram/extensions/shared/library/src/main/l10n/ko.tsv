@@ -9,7 +9,7 @@
 A diagnostic report is already being saved.	진단 보고서를 이미 저장하고 있습니다
 A file named %1$s in %2$s paused HushGram.	%2$s에 있는 %1$s 파일 때문에 HushGram이 일시 정지되었습니다
 About	정보
-Add the source to saved photos	저장한 사진에 출처 추가
+Add the source to saved photos and videos	저장한 사진과 동영상에 출처 추가
 Ads and privacy	광고 및 개인정보 보호
 Asks Android to run Instagram at your screen's fastest refresh rate, at the same resolution. Some phones keep their own limit for apps, and battery saver can still lower it.	화면의 가장 높은 주사율, 같은 해상도로 Instagram을 실행하도록 Android에 요청합니다. 일부 휴대전화는 앱에 자체 제한을 두며, 절전 모드가 주사율을 낮출 수도 있습니다.
 Back	뒤로
@@ -94,7 +94,10 @@ Joining the picture and sound	사진과 소리가 결합하는 중
 Licenses	라이선스
 Link expired. Reopen the item and try again.	링크가 만료되었습니다. 항목을 다시 열고 다시 시도하세요.
 Nobody outside Meta knows what gets an account suspended. A patched Instagram can't pass Google's check that it came from the Play Store, and no patch changes that. If you'd rather not risk your account, try a spare one first. Installing updates over the top with the same signing key keeps Instagram's data and your sign-in. On a rooted phone, a Root Mount install keeps the sign-in you already have.	Meta 밖에서는 아무도 어떤 행동이 계정 정지로 이어지는지 모릅니다. 패치된 Instagram은 Play 스토어에서 받은 앱인지 확인하는 Google의 검사를 통과할 수 없고, 어떤 패치로도 바꿀 수 없습니다. 계정이 위험해지는 것이 싫다면 먼저 보조 계정으로 시도해 보세요. 같은 서명 키로 위에 업데이트를 설치하면 Instagram 데이터와 로그인이 유지됩니다. 루팅된 휴대폰에서는 Root Mount 설치가 지금 로그인된 상태를 그대로 유지합니다.
-No app on this phone can open the link. The address is %1$s.	이 링크를 열 수 있는 앱이 없습니다. 주소는 %1$s입니다
+# context: a toast when Source code and issues or the Ko-fi row finds no browser; the next toast shows the address
+No app can open this link.	이 링크를 열 수 있는 앱이 없습니다.
+# context: a toast when Report a problem finds no browser; the next toast shows the GitHub address
+No app can open the bug report.	버그 신고를 열 수 있는 앱이 없습니다.
 Not saved: that isn't an Instagram photo or video	저장되지 않음: Instagram 사진 또는 동영상이 아님
 Not saved: the file is over 512 MB	저장되지 않음: 파일 크기가 512MB를 초과함
 OK	확인
@@ -127,10 +130,10 @@ Removes tracking tags from links you copy or share, and opens bio links without 
 Tap to hide this.	탭하여 이것을 숨기세요
 Couldn't hide this notice. Try again.	이 알림을 숨길 수 없습니다. 다시 시도하세요
 Tap to turn it back on.	탭하여 이것을 다시 활성화하세요
-The diagnostic report couldn't be saved yet. Try again in a moment.	아직 진단 보고서를 저장할 수 없습니다. 잠시 후 다시 시도하세요
-The diagnostic report couldn't be saved. Try again.	진단 보고서를 저장할 수 없습니다. 다시 시도하세요
+The report isn't saved yet. Try again in a moment.	아직 진단 보고서를 저장할 수 없습니다. 잠시 후 다시 시도하세요
+Couldn't save the diagnostic report. Try again.	진단 보고서를 저장할 수 없습니다. 다시 시도하세요
 The file %1$s couldn't be removed. Delete it from %2$s to turn HushGram back on.	%1$s 파일을 삭제할 수 없습니다. HushGram을 다시 활성화하려면 %2$s에서 해당 파일을 삭제하세요
-The setting couldn't finish updating. Its saved value is shown.	설정 업데이트를 완료하지 못하였습니다. 저장된 값이 표시됩니다
+Couldn't finish that change. Showing what's saved.	설정 업데이트를 완료하지 못하였습니다. 저장된 값이 표시됩니다
 There's no diagnostic data to clear.	삭제할 진단 데이터가 없습니다
 There's no diagnostic data to put back.	복원할 진단 데이터가 없습니다
 Try again, or go back to Instagram.	다시 시도하거나 Instagram으로 돌아가세요
@@ -138,7 +141,7 @@ Updates	업데이트
 Version	버전
 Version %1$s for Instagram %2$s	Instagram %2$s용 버전 %1$s
 While you view anonymously, a story you've watched turns gray and moves to the end of the row, on this phone only. Instagram still isn't told you watched it.	스토리를 몰래 보는 동안 이미 본 스토리가 회색으로 바뀌고 줄의 맨 끝으로 이동합니다. 이 변화는 이 휴대폰에서만 보이며, Instagram에는 여전히 시청 사실이 전달되지 않습니다
-Writes the account that posted, the post date and a link to the post into a saved photo's details, the EXIF a gallery or exiftool reads. JPEG photos only, and only what the save knows. The picture itself is unchanged.	저장한 사진의 세부 정보, 즉 갤러리나 exiftool이 읽는 EXIF에 게시한 계정과 게시 날짜, 게시물 링크를 기록합니다. JPEG 사진만 해당하며, 저장이 아는 정보만 기록합니다. 사진 자체는 바뀌지 않습니다.
+Writes the account that posted, the post date and a link to the post into a saved photo or video, in the EXIF or MP4 tags a gallery or exiftool reads. JPEG photos and MP4 videos only, and only what the save knows. The picture and the sound are unchanged.	저장한 사진이나 동영상의 EXIF 또는 MP4 태그, 즉 갤러리나 exiftool이 읽는 정보에 게시한 계정과 게시 날짜, 게시물 링크를 기록합니다. JPEG 사진과 MP4 동영상만 해당하며, 저장이 아는 정보만 기록합니다. 이미지와 소리는 바뀌지 않습니다.
 You	나
 You paused HushGram.	HushGram이 일시 정지되었습니다
 the re-signed build fix	다시 서명된 빌드 수정
@@ -187,7 +190,7 @@ Never save AV1 video	AV1 동영상 저장 안 함
 # context: Downloads settings: a switch that passes HDR pictures over for apps that show HDR with a yellow or green cast (#352)
 Never save HDR video	HDR 동영상 저장 안 함
 For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram has at full size only in HDR is saved at its largest standard size instead.	Messenger처럼 HDR을 노랗거나 녹색으로 보여주는 앱을 위한 설정입니다. Instagram에 전체 크기가 HDR로만 있는 동영상은 가장 큰 일반 크기로 저장됩니다.
-Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes stay smaller.	다른 앱에서 열 수 있는 동영상을 원본 크기로 저장합니다. Instagram에 VP9 또는 AV1로만 있는 동영상은 작게 저장하는 대신 휴대폰에서 H.264로 변환합니다. 더 느리며, 3분이 넘는 동영상은 작게 저장됩니다.
+Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes or in HDR stay smaller.	다른 앱에서 열 수 있는 동영상을 원본 크기로 저장합니다. Instagram에 VP9 또는 AV1로만 있는 동영상은 작게 저장하는 대신 휴대폰에서 H.264로 변환합니다. 더 느리며, 3분이 넘거나 HDR인 동영상은 작게 저장됩니다.
 Converting to H.264	H.264로 변환하는 중
 Download quality	다운로드 화질
 Best	최상
@@ -196,8 +199,8 @@ Each video saves at the best quality Instagram offers for it.	각 동영상은 I
 Each video saves at its lowest quality, for the smallest file.	각 동영상은 가장 작은 파일 크기를 위해 최저 품질로 저장됩니다
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	각 동영상은 %1$s 또는 그보다 낮은 화질 중 가장 가까운 화질로 저장됩니다. 그 정도로 낮은 품질이 없는 동영상은 그보다 높은 화질 중 가장 가까운 화질로 저장됩니다
 Save folder	폴더 저장
-Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	Movies 및 Pictures 폴더 아래에 사용할 폴더 이름을 입력하세요. 사용할 수 없는 문자는 밑줄로 변경됩니다. 비워 두면 기본 폴더인 %1$s를 사용합니다 SD 카드나 다른 위치에는 폴더 선택을(를) 사용하세요.
-Use Choose a folder for a path or an SD card.	경로나 SD 카드는 폴더 선택을(를) 사용하세요.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s. For an SD card or anywhere else, use Choose a folder.	Movies 및 Pictures 폴더 아래에 사용할 폴더 이름을 입력하세요. 사용할 수 없는 문자는 밑줄로 변경됩니다. 비워 두면 기본 폴더인 %1$s를 사용합니다. SD 카드나 다른 위치에는 ‘폴더 선택’을 사용하세요.
+Use Choose a folder for a path or an SD card.	경로나 SD 카드에는 ‘폴더 선택’을 사용하세요.
 Save	저장
 Folder name	폴더 이름
 Folder set to %1$s.	폴더가 %1$s로 설정되었습니다
@@ -211,7 +214,8 @@ Cancel saving this video	이 동영상 저장 취소
 Cancel saving this photo	이 사진 저장 취소
 Download on reels	릴스 다운로드 메뉴 추가
 Adds Download to every reel's more menu, saved at your download quality. Off or paused, Instagram's own menu returns.	모든 릴스의 더보기 메뉴에 다운로드를 추가하며, 설정한 다운로드 화질로 저장할 수 있습니다. 이 기능을 비활성화하거나 HushGram을 일시 정지하면 Instagram의 원래 메뉴가 다시 표시됩니다
-Videos are named %1$s. Photos are always named %2$s followed by the date and time.	동영상 파일 이름은 %1$s로 지정됩니다. 사진은 항상 %2$s 뒤에 날짜와 시간이 붙은 이름으로 저장됩니다
+Videos are named %1$s. Photos are named %2$s followed by the date and time.	동영상 파일 이름은 %1$s로 지정됩니다. 사진은 %2$s 뒤에 날짜와 시간이 붙은 이름으로 저장됩니다
+With Name saves by account and post time on, only a save that doesn't know who posted or when is named this way.	‘계정과 게시 시간으로 저장 파일 이름 짓기’를 켜면 게시한 사람이나 시간을 모르는 저장 파일에만 이 이름이 붙습니다.
 Download	다운로드
 Download as video	동영상으로 다운로드
 Download as photo	사진으로 다운로드
@@ -283,7 +287,7 @@ Stop Reels scrolling	릴스 스크롤 정지
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	릴스에서 넘겨도 다음 릴스로 이동하지 않고, 아래로 당겨도 새 릴스를 불러오지 않습니다. 연 릴스는 계속 재생됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	릴스를 2배속으로 고정하면 (릴스 가장자리를 길게 탭한 다음 아래로 밀기), 다음 릴스도 2배속으로 재생됩니다. 일반 속도로 돌아가려면 잠금 표시를 밀어서 해제하거나, 가장자리를 길게 누른 후 손을 떼세요
 Open links in external browser	외부 브라우저에서 링크 열기
-Web links you tap open in your usual browser, without Instagram's click tracker. Instagram pages and ads still open in the app.	탭한 웹 링크가 Instagram의 클릭 추적 없이 평소 쓰는 브라우저에서 열립니다. Instagram 페이지와 광고는 계속 앱에서 열립니다.
+Web links you tap open in your usual browser, without Instagram's click tracker. Ads and Meta's own sites (Instagram, Facebook, Messenger, Threads) still open in the app.	탭한 웹 링크가 Instagram의 클릭 추적 없이 평소 쓰는 브라우저에서 열립니다. 광고와 Meta의 사이트(Instagram, Facebook, Messenger, Threads)는 계속 앱에서 열립니다.
 Feed	피드
 Hide suggested accounts	추천 계정 숨기기
 Hide paid partnership Reels	유료 광고 파트너십 릴스 숨기기
@@ -383,7 +387,7 @@ Layout	레이아웃
 Remove the empty space at the bottom	하단에서 빈 공간 제거
 Removes the empty gap under Instagram's tab bar that appears when your phone hides its navigation bar or Instagram is in a pop-up window. Restart Instagram to see the change.	휴대폰이 탐색 막대를 숨기거나 Instagram이 팝업 창에 있을 때 하단바 아래에 생기는 빈 공간을 없앱니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Only accounts you follow	나를 팔로우하는 계정만
-Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	홈 상단의 선택지에서 추천을 없애서 팔로잉이나 즐겨찾기에 머물게 합니다. Start Home on Following이 필요합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Removes For you from the choices at the top of Home, so it stays on Following or Favorites. Needs Start Home on Following. Restart Instagram to see the change.	홈 상단의 선택지에서 추천을 없애서 팔로잉이나 즐겨찾기에 머물게 합니다. ‘팔로잉에서 홈 시작’이 필요합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Instagram logo on Home	홈의 Instagram 로고
 Keeps Instagram's logo at the top of Home in place of the feed's name. Tap it to switch feeds. Restart Instagram to see the change.	홈 상단에 피드 이름 대신 Instagram 로고를 유지합니다. 탭하면 피드를 바꿀 수 있습니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Profiles	프로필
@@ -420,7 +424,7 @@ Leaves out reels with a Paid partnership label, and reels Instagram marks as boo
 Turn on Start Home on Following to use this choice.	이 옵션을 사용하려면 ‘팔로잉에서 홈 시작’을 활성화하세요
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	이 슬라이더를 사용하려면 ‘%1$s’을(를) 활성화하세요.
-Turn on Story ring size to use this choice.	이 옵션을 사용하려면 ‘스토리 링 크기’을 활성화하세요
+Turn on Story ring size to use this choice.	이 옵션을 사용하려면 ‘스토리 링 사이즈’를 활성화하세요
 Turn on Default playback quality to use this choice.	이 옵션을 사용하려면 ‘기본 재생 화질’을 활성화하세요
 Updating remembered positions...	저장된 위치를 업데이트하는 중...
 Undo cleared positions	위치 지우기 실행 취소
@@ -430,7 +434,7 @@ HushGram remembers where you stopped in up to 200 videos for 30 days. Tap to cle
 Remembered playback positions restored.	저장된 재생 위치가 복원되었습니다
 Undo has expired.	실행 취소가 만료되었습니다
 You cleared the remembered playback positions.	저장된 재생 위치를 삭제하였습니다
-Couldn't update the remembered playback positions.	저장된 재생 위치를 업데이트할 수 없습니다
+Couldn't update remembered playback positions.	저장된 재생 위치를 업데이트할 수 없습니다
 Settings backup	설정 백업
 Export HushGram settings	HushGram 설정 내보내기
 Choose a file for your installed patches' settings. Accounts and history stay on this device.	설치된 패치의 설정이 들어 있는 파일을 선택하세요. 계정과 기록은 이 기기에 그대로 유지됩니다
@@ -439,8 +443,8 @@ Choose a settings file. All valid choices apply together, and ones this version 
 Undo settings import	설정 가져오기 실행 취소
 Undo is available until %1$s. Restarting Instagram discards Undo.	%1$s까지 실행 취소할 수 있습니다. Instagram을 다시 시작하면 실행 취소할 수 없습니다
 No settings import to undo.	실행 취소할 설정 가져오기가 없습니다
-This phone has no file picker. Your settings haven't changed.	이 휴대폰에는 파일 선택기가 없습니다. 설정은 바뀌지 않았습니다.
-Couldn't use that settings file. Your settings haven't changed.	해당 설정 파일을 사용할 수 없습니다. 설정은 변경되지 않았습니다
+There's no file picker. Your settings haven't changed.	이 휴대폰에는 파일 선택기가 없습니다. 설정은 바뀌지 않았습니다.
+Couldn't use that file. Your settings haven't changed.	해당 설정 파일을 사용할 수 없습니다. 설정은 변경되지 않았습니다
 HushGram settings exported.	HushGram 설정을 내보냈습니다
 Couldn't export HushGram settings. Try another file.	HushGram 설정을 내보낼 수 없습니다. 다른 파일을 사용해 보세요
 Settings restored.	설정이 복원되었습니다
@@ -491,7 +495,7 @@ Marked as seen. Tap again to undo.	읽음으로 표시하였습니다. 다시 �
 Marked as seen and sent	읽음으로 표시하고 전송함
 View DM photos and videos anonymously	DM 사진 및 동영상 몰래보기
 Stops people seeing that you opened their view once photos and videos. They still disappear after you view them. This is a test feature and starts off.	다른 사람이 한 번 보기 사진과 동영상을 내가 열었다는 것을 알지 못하게 합니다. 본 후에는 그대로 사라집니다. 테스트 기능이며 꺼진 상태로 시작합니다.
-Restored %1$d settings. Kept %2$d newer choices.	%1$d 개의 설정을 복원하였습니다. 이후에 변경한 선택 %2$d 개의 설정는 유지하였습니다.
+Restored %1$d settings. Kept %2$d newer choices.	%1$d개의 설정을 복원했습니다. 더 최근에 바꾼 선택 %2$d개는 유지했습니다.
 Preparing diagnostic report...	진단 보고서를 준비하는 중...
 Saving diagnostic report...	진단 보고서를 저장하는 중...
 Diagnostic report saved.	진단 보고서가 저장되었습니다.
@@ -518,7 +522,7 @@ Adds a white round handle to the seek bar that you can drag. Ads keep their own 
 Bigger seek bar on reels	릴스 탐색 바 크게
 Makes the seek bar thicker, with a round white handle and the time above it, over a soft dark fade so it shows on any video. Drag it to seek. It also keeps the bar on short reels.	탐색 바를 더 두껍게 만들고, 둥근 흰색 핸들과 위쪽 시간 표시를 넣고, 어떤 영상에서도 보이도록 부드러운 어두운 그라데이션을 깝니다. 드래그해서 이동하세요. 짧은 릴스에서도 바를 유지합니다.
 Seek bar like DM videos	DM 동영상 같은 탐색 바
-Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar is on too, this look wins. It also keeps the bar on short reels.	릴스에 채팅 속 동영상의 탐색 바를 씁니다. 재생되면서 흰색으로 바뀌는 얇은 회색 선에 크고 둥근 흰색 핸들이 붙습니다. 시간은 위쪽에 표시됩니다. 드래그해서 이동하세요. 릴스 탐색 바 크게도 켜져 있으면 이 스타일이 적용됩니다. 짧은 릴스에서도 바를 유지합니다.
+Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	릴스에 채팅 속 동영상의 탐색 바를 씁니다. 재생되면서 흰색으로 바뀌는 얇은 회색 선에 크고 둥근 흰색 핸들이 붙습니다. 시간은 위쪽에 표시됩니다. 드래그해서 이동하세요. 릴스 탐색 바 크게도 켜져 있으면 이 스타일이 적용됩니다. 짧은 릴스에서도 바를 유지합니다.
 Blur the bars around a reel	릴스 주변 막대 흐리게 처리
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	화면을 가득 채우지 않는 릴스는 검은 막대 대신 위아래에 자신의 흐릿한 복사본을 보여주고, 탭 바 아래의 띠와 시계 뒤의 영역에도 릴스가 흐릿하게 보입니다. 복사본은 릴스 전체 보기를 켰을 때처럼 릴스 주위에 빈 공간이 있을 때만 보입니다. 변경 후에는 릴스를 다시 여세요.
 A sideways swipe no longer moves you between Home, Reels and the other main tabs. Tap the tab bar instead. Stop swipe to create covers the camera.	옆으로 스와이프해도 더 이상 홈, 릴스, 다른 기본 탭 사이를 이동하지 않습니다. 대신 탭 바를 누르세요. 카메라는 스와이프하여 만들기 정지가 막아 줍니다.
@@ -557,8 +561,8 @@ New message	새 메시지
 Notifications	알림
 Puts every notification from Instagram in one group that shows how many it holds, so they don't fill your notification shade. Tapping one still opens it.	Instagram의 모든 알림을 개수가 표시되는 하나의 그룹에 넣어 알림 창을 채우지 않게 합니다. 알림을 누르면 그대로 열립니다.
 Right away	바로
-Set a screen lock on your phone so HushGram can lock Instagram.	HushGram이 Instagram을 잠글 수 있도록 휴대폰에 화면 잠금을 설정하세요.
-Set a screen lock on your phone so HushGram can lock your messages.	HushGram이 메시지를 잠글 수 있도록 휴대폰에 화면 잠금을 설정하세요.
+Set a phone screen lock so HushGram can lock Instagram.	HushGram이 Instagram을 잠글 수 있도록 휴대폰에 화면 잠금을 설정하세요.
+Set a phone screen lock so HushGram can lock messages.	HushGram이 메시지를 잠글 수 있도록 휴대폰에 화면 잠금을 설정하세요.
 Hides the cards between posts that ask you to rate what you saw.	본 내용을 평가해 달라고 요청하는 게시물 사이의 카드를 숨깁니다.
 Hides the rows of products to shop and live shopping that Instagram puts between posts, and the shop tiles in Explore. Posts with tagged products don't show the shopping bag.	Instagram이 게시물 사이에 넣는 쇼핑 상품 목록과 라이브 쇼핑, 그리고 탐색의 쇼핑 타일을 숨깁니다. 제품이 태그된 게시물에 쇼핑백이 표시되지 않습니다.
 Unlock	잠금 해제
@@ -567,8 +571,8 @@ Unlock your messages	메시지 잠금 해제
 Your inbox and chats stay covered until your fingerprint, face or screen lock says it's you. Message notifications say only that a message came.	지문, 얼굴 또는 화면 잠금으로 본인임이 확인될 때까지 받은 메시지함과 채팅이 가려집니다. 메시지 알림에는 메시지가 왔다는 것만 표시됩니다.
 Your messages are locked	메시지가 잠겨 있습니다
 Allow screenshots	스크린샷 허용
-Couldn't change every Ghost mode switch. Check them below.	고스트 모드 스위치를 모두 바꾸지 못했습니다. 아래에서 확인하세요.
-Couldn't change every Ghost mode switch. Open HushGram settings to check them.	고스트 모드 스위치를 모두 바꾸지 못했습니다. HushGram 설정에서 확인하세요.
+Ghost mode partly changed. Check the switches below.	고스트 모드 스위치를 모두 바꾸지 못했습니다. 아래에서 확인하세요.
+Ghost mode partly changed. Check HushGram settings.	고스트 모드 스위치를 모두 바꾸지 못했습니다. HushGram 설정에서 확인하세요.
 Don't report screenshots	스크린샷 알리지 않기
 Ghost mode	고스트 모드
 Ghost mode is off, and so is each of its switches.	고스트 모드가 꺼졌고 각 스위치도 모두 꺼졌습니다.
@@ -613,11 +617,11 @@ Tells Instagram your phone is at %1$s.	Instagram에 내 휴대폰이 %1$s에 있
 Tells Instagram your phone is at the place set below, for the location sticker, nearby places and maps. Photos keep their own places.	Instagram에 내 휴대폰이 아래에 설정한 장소에 있다고 알립니다. 위치 스티커, 근처 장소, 지도에 적용되며 사진은 자체 위치를 유지합니다.
 No place set. Until there is one, Instagram is told 0, 0 while Spoof location is on.	설정된 장소가 없습니다. 장소를 정할 때까지 위치 위장이 켜져 있으면 Instagram에는 0, 0으로 알립니다.
 Only on mobile data	모바일 데이터에서만
-Loads smaller photos and starts videos, reels and stories at the lowest quality. Grid thumbnails stay as they are. It takes priority over Full resolution photos and the quality above.	더 작은 사진을 불러오고 동영상, 릴스, 스토리를 가장 낮은 화질로 시작합니다. 격자 미리보기는 그대로입니다. Full resolution photos와 위의 화질보다 우선합니다.
+Loads smaller photos and starts videos, reels and stories at the lowest quality. Grid thumbnails stay as they are. It takes priority over Full resolution photos and the quality above.	더 작은 사진을 불러오고 동영상, 릴스, 스토리를 가장 낮은 화질로 시작합니다. 격자 미리보기는 그대로입니다. ‘원본 해상도 사진’과 위의 화질보다 우선합니다.
 Place	장소
 Send downloads to another app	다운로드를 다른 앱으로 보내기
 Send to	보낼 앱
-Sent to another app. To save here instead, turn off Send downloads to another app under Downloads.	다른 앱으로 보냈습니다. 여기에 저장하려면 다운로드에서 다운로드를 다른 앱으로 보내기를 끄세요.
+Sent to another app. Change this in Downloads.	다른 앱으로 보냈습니다. 다운로드에서 바꿀 수 있습니다.
 Spoof location	위치 위장
 Stop after a set number of reels	정한 개수의 릴스 후 멈추기
 # context: Reels settings: two sliders under Stop after a set number of reels (#405). The first picks how many reels play before swiping stops, %1$d is 5 to 100; the second how long Instagram stays in the background before swiping comes back, %1$d is 5 to 120 minutes
@@ -635,8 +639,8 @@ Home, Reels and Explore open again when the countdown ends. Messages and your pr
 # context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
 Time for a break. Home, Reels and Explore open again in %1$s.	쉬는 시간입니다. 홈, 릴스, 탐색은 %1$s 후에 다시 열립니다.
 Storage	저장공간
-That isn't a place. Type a latitude and a longitude with a comma between them.	올바른 장소가 아닙니다. 위도와 경도를 쉼표로 구분해 입력하세요.
-That's %1$d reels. Swiping in Reels is off until Instagram has been in the background for %2$d minutes.	릴스 %1$d개를 봤습니다. Instagram이 %2$d분 동안 백그라운드에 있을 때까지 릴스 스와이프가 꺼집니다.
+That isn't a place. Type latitude, longitude.	올바른 장소가 아닙니다. 위도와 경도를 쉼표로 구분해 입력하세요.
+%1$d reels. Swipe again after %2$d minutes away.	릴스 %1$d개. %2$d분 동안 나가 있으면 다시 넘길 수 있습니다.
 The latitude and the longitude in degrees, with a comma between them, like 40.758, -73.9855. North and east are positive, south and west negative. A map app shows both when you press and hold a spot.	위도와 경도를 도 단위로, 쉼표로 구분해 입력합니다. 예: 40.758, -73.9855. 북쪽과 동쪽은 양수, 남쪽과 서쪽은 음수입니다. 지도 앱에서 한 지점을 길게 누르면 둘 다 표시됩니다.
 Turn off HDR brightness boosts	HDR 밝기 강조 끄기
 What you open from search stays out of Recent, in the app and on Instagram's side. Searches already there stay until you clear them.	검색에서 연 항목은 앱에서도 Instagram 쪽에서도 최근 항목에 남지 않습니다. 이미 있는 검색은 지울 때까지 남아 있습니다.
@@ -691,7 +695,7 @@ Sharing domain	공유 도메인
 Start a video call?	영상 통화를 시작할까요?
 Start a voice call?	음성 통화를 시작할까요?
 Tapping a call button in a chat asks first, so a stray tap doesn't ring anyone. Call starts it, Cancel doesn't.	채팅에서 통화 버튼을 누르면 먼저 물어보므로 실수로 눌러도 아무에게도 전화가 걸리지 않습니다. 통화를 누르면 시작되고, 취소를 누르면 시작되지 않습니다.
-That isn't a domain. Type one like example.com, or leave it blank.	올바른 도메인이 아닙니다. example.com처럼 입력하거나 비워 두세요.
+That isn't a domain. Try one like example.com.	올바른 도메인이 아닙니다. example.com처럼 입력하거나 비워 두세요.
 The heart plays %1$s when you double tap a post.	게시물을 두 번 탭하면 하트가 %1$s 애니메이션을 재생합니다.
 The heart that pops up when you double tap a post plays the animation you pick below. They're animations Instagram made for its Rings creators.	게시물을 두 번 탭하면 나타나는 하트가 아래에서 고른 애니메이션으로 재생됩니다. Instagram이 Rings 크리에이터를 위해 만든 애니메이션입니다.
 Turn on Change the like animation to use this choice.	이 선택을 사용하려면 좋아요 애니메이션 바꾸기를 켜세요.
@@ -763,6 +767,7 @@ Small, under the picture	작게, 사진 아래
 The chip sits under the posts, followers and following counts.	칩이 게시물, 팔로워, 팔로잉 수 아래에 표시됩니다.
 A smaller chip, centered under the profile picture. A profile with no room there gets the small chip under the counts.	더 작은 칩을 프로필 사진 아래 가운데에 표시합니다. 그곳에 자리가 없는 프로필은 작은 칩을 숫자 아래에 표시합니다.
 Turn on Show it as a chip to use this choice.	이 옵션을 사용하려면 ‘칩으로 표시’를 켜세요
+Turn on Show if a profile follows you to use this choice.	이 옵션을 사용하려면 ‘프로필이 나를 팔로우하는지 표시’를 켜세요
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	프로필의 다시 게시한 항목에서 연 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
 Hide the comment bar on all reels	모든 릴스의 댓글 창 숨기기
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	릴스 탭을 포함한 모든 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
@@ -794,9 +799,9 @@ No accounts are hidden yet. Add a username to take that account's posts out of H
 Add a username	사용자 이름 추가
 Hide their posts	게시물 숨기기
 Posts from @%1$s are hidden	@%1$s 님의 게시물을 숨겼습니다
-Posts from @%1$s are hidden from Home and Following	@%1$s 님의 게시물을 홈과 팔로잉에서 숨겼습니다
+@%1$s is hidden in Home and Following	@%1$s 님의 게시물을 홈과 팔로잉에서 숨겼습니다
 Posts from @%1$s show again	@%1$s 님의 게시물을 다시 표시합니다
-A username is up to 30 letters, numbers, dots and underscores	사용자 이름은 영문자, 숫자, 마침표, 밑줄로 30자까지입니다
+Up to 30 letters, numbers, dots and underscores	사용자 이름은 영문자, 숫자, 마침표, 밑줄로 30자까지입니다
 # context: a row in a post's menu that puts the post's author on Hidden accounts
 Hide posts from this account	이 계정의 게시물 숨기기
 Couldn't hide this account	이 계정을 숨길 수 없습니다
@@ -841,7 +846,7 @@ Puts a download icon under Save beside a reel, so one tap saves it the way Downl
 Nothing to download on this post	이 게시물에는 다운로드할 항목이 없습니다
 # context: Downloads switch; a hold with two or three fingers on a feed post or a reel saves it
 Hold to download	길게 눌러 다운로드
-Hold two fingers still on a feed post's picture or video, or on a reel, and it saves what's under them, the same as Download in the menu. Instagram's one-finger long press stays as it was. Needs Download feed videos or photos, and Download on reels for reels.	피드 게시물의 사진이나 동영상, 또는 릴스 위에 두 손가락을 가만히 대고 있으면 그 아래 항목이 메뉴의 다운로드와 똑같이 저장됩니다. Instagram의 한 손가락 길게 누르기는 그대로입니다. 피드 동영상 다운로드 메뉴 추가 또는 피드 사진 다운로드가 필요하며, 릴스에는 릴스 다운로드 메뉴 추가도 필요합니다.
+Hold two fingers still on a feed post's picture or video, or on a reel, and it saves what's under them, the same as Download in the menu. Fingers below can make it three. Instagram's one-finger long press stays as it was. Needs Download feed videos or photos, and Download on reels for reels.	피드 게시물의 사진이나 동영상, 또는 릴스 위에 두 손가락을 가만히 대고 있으면 그 아래 항목이 메뉴의 다운로드와 똑같이 저장됩니다. 아래 손가락 수에서 세 손가락으로 바꿀 수 있습니다. Instagram의 한 손가락 길게 누르기는 그대로입니다. 피드 동영상 다운로드 메뉴 추가 또는 피드 사진 다운로드가 필요하며, 릴스에는 릴스 다운로드 메뉴 추가도 필요합니다.
 # context: Downloads list under Hold to download; how many fingers the hold takes
 Fingers	손가락 수
 # context: Downloads list under Hold to download; how long the fingers stay down before it saves
@@ -887,7 +892,7 @@ Full tick	최대 틱
 This chat is locked	이 채팅은 잠겨 있습니다
 Unlock this chat	이 채팅 잠금 해제
 Locked chats	잠긴 채팅
-Lock single chats. A locked chat asks for your fingerprint, face or screen lock each time you open it, and its notifications say only that a message came.	채팅을 하나씩 잠급니다. 잠긴 채팅은 열 때마다 지문, 얼굴 또는 화면 잠금을 요구하고, 알림에는 메시지가 왔다는 내용만 표시됩니다.
+Lock single chats. A locked chat opens only once you unlock it the way Unlock with says, and its notifications say only that a message came.	채팅을 하나씩 잠급니다. 잠긴 채팅은 ‘잠금 해제 방법’에서 정한 방식으로 잠금을 해제해야 열리고, 알림에는 메시지가 왔다는 내용만 표시됩니다.
 Open a chat in Instagram, then come back here to lock it.	Instagram에서 채팅을 연 다음 여기로 돌아와 잠그세요.
 %1$s (opened last)	%1$s (마지막으로 연 채팅)
 %1$s is locked	%1$s 잠김
@@ -909,8 +914,8 @@ Open a chat in Instagram, then come back here to pin it.	Instagram에서 채팅�
 Pick the playback quality with a tab long press	탭을 길게 탭하여 재생 화질 선택
 Tab long presses keep Instagram's own action. Choose one to pick the playback quality instead.	탭을 길게 탭하면 Instagram의 기본 동작이 실행됩니다. 재생 화질을 대신 선택할 탭을 하나 고르세요.
 Long press %1$s to pick the playback quality instead of that tab's usual action. Normal taps and other tabs stay the same. Needs Default playback quality on. If the same tab opens HushGram, that comes first.	%1$s 탭을 길게 탭하면 해당 탭의 기본 동작 대신 재생 화질을 선택합니다. 일반 탭과 다른 탭은 그대로입니다. 기본 재생 화질이 켜져 있어야 합니다. 같은 탭이 HushGram을 여는 경우 그쪽이 우선합니다.
-Playback quality: %1$s. The next video you open uses it.	재생 화질: %1$s. 다음에 여는 동영상부터 적용됩니다.
-Couldn't save the playback quality. Open HushGram settings to set it.	재생 화질을 저장하지 못했습니다. HushGram 설정에서 직접 지정하세요.
+Playback quality: %1$s. The next video uses it.	재생 화질: %1$s. 다음에 여는 동영상부터 적용됩니다.
+Couldn't save the quality. Set it in HushGram settings.	재생 화질을 저장하지 못했습니다. HushGram 설정에서 직접 지정하세요.
 Support HushGram	HushGram 후원하기
 Hide the Home tab	홈 탭 숨기기
 Takes Home off the tab bar. Your Start tab opens wherever Home would, so pick one other than Home that's on the bar, or Home stays. Restart Instagram to see the change.	하단바에서 홈 탭을 제거합니다. 홈이 열릴 자리에 시작 탭이 열리므로 홈이 아니면서 하단바에 있는 시작 탭을 고르세요. 그렇지 않으면 홈이 남습니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
@@ -931,7 +936,7 @@ Adds a magnifier at the top of Home that opens Search, like the Search tab does.
 Messages button on Home's header	홈 상단의 메시지 버튼
 Adds a Messages button at the top of Home when Instagram moved Messages to your tab bar. A tap opens your messages like the tab does. Restart Instagram to see the change.	Instagram이 메시지를 탭 바로 옮긴 경우 홈 상단에 메시지 버튼을 추가합니다. 탭하면 메시지 탭처럼 메시지가 열립니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 # context: toasts when the Messages button on Home's header can't open Messages because it isn't on the swiping tab bar
-To open Messages here, turn on Show the Messages tab and restart.	여기서 메시지를 열려면 메시지 탭 표시를 켜고 다시 시작하세요.
+Turn on Show the Messages tab and restart.	여기서 메시지를 열려면 메시지 탭 표시를 켜고 다시 시작하세요.
 Restart Instagram to put Messages on your tab bar.	메시지를 탭 바에 표시하려면 Instagram을 다시 시작하세요.
 Center the logo on Home's header	홈 상단의 로고 가운데 정렬
 Puts Instagram's logo in the middle of the top of Home, even with header buttons hidden or added. A feed's name shown there is centered too. Restart Instagram to see the change.	헤더 버튼을 숨기거나 추가해도 Instagram 로고를 홈 상단 가운데에 둡니다. 그 자리에 표시되는 피드 이름도 가운데에 놓입니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
@@ -939,8 +944,8 @@ Center the name on profiles	프로필에서 이름 가운데 정렬
 Puts the username in the middle of the bar at the top of a profile, yours and other people's. The buttons stay where they are.	내 프로필과 다른 사람 프로필 위쪽 바에서 사용자 이름을 가운데에 둡니다. 버튼은 그대로 있습니다.
 Center titles on other screens	다른 화면에서 제목 가운데 정렬
 Puts the title in the middle of the bar at the top of other screens, like notifications, as far as the buttons beside it allow. The buttons stay where they are.	알림 같은 다른 화면 위쪽 바에서 제목을 옆 버튼이 허락하는 만큼 가운데에 둡니다. 버튼은 그대로 있습니다.
-Search isn't on your tab bar, so this button can't open it here.	검색이 하단바에 없어서 이 버튼으로 여기서 열 수 없습니다.
-To open Search here, turn off Hide the Search tab and restart.	여기서 검색을 열려면 검색 탭 숨기기를 끄고 다시 시작하세요.
+This button needs Search on your tab bar.	검색이 하단바에 없어서 이 버튼으로 여기서 열 수 없습니다.
+Turn off Hide the Search tab and restart.	여기서 검색을 열려면 검색 탭 숨기기를 끄고 다시 시작하세요.
 Restart Instagram to bring Search back to your tab bar.	검색을 하단바에 다시 표시하려면 Instagram을 다시 시작하세요.
 Tab order	탭 순서
 The tab bar keeps Instagram's order.	하단바는 Instagram의 순서를 유지합니다.
@@ -979,6 +984,8 @@ Queued. It starts once the post before it is saved.	대기 중입니다. 앞의 
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
 Not saved: %1$d posts are already waiting	저장 안 됨: 이미 게시물 %1$d개가 대기 중입니다
 Show all settings as a list	모든 설정을 목록으로 보기
+Show categories as a grid	카테고리를 격자로 보기
+Show categories as rows	카테고리를 목록으로 보기
 Show settings by category	카테고리별로 설정 보기
 Tab bar height	탭 바 높이
 Standard	기본
@@ -1135,13 +1142,15 @@ A carousel post's page sits a little in from the edges, with the start of the ne
 Large	크게
 Small	작게
 # context: a toast shown once when safe mode has paused HushGram on its own after crashes at start
-HushGram paused itself because Instagram kept crashing as it started. Its switches stay off until you turn it back on in HushGram settings.	Instagram이 시작할 때 계속 충돌해서 HushGram이 스스로 일시 정지되었습니다. HushGram 설정에서 다시 켤 때까지 스위치는 꺼진 상태로 유지됩니다.
+Instagram kept crashing, so HushGram paused itself.	Instagram이 계속 멈춰서 HushGram이 일시 중지되었습니다.
+# context: the second toast after safe mode paused HushGram, saying where to turn it back on
+Turn it back on in HushGram settings.	HushGram 설정에서 다시 켜세요.
 # context: a toast when a save couldn't reach Instagram's servers or the connection dropped
 Download failed. Check your connection and try again.	다운로드에 실패했습니다. 연결을 확인하고 다시 시도하세요.
 # context: a toast when a save arrived incomplete or couldn't be written to the phone
 Download didn't finish. Check your connection and free storage, then try again.	다운로드가 완료되지 않았습니다. 연결과 남은 저장 공간을 확인한 뒤 다시 시도하세요.
 Some changes apply when Instagram restarts. Tap to restart it now.	일부 변경 사항은 Instagram을 다시 시작하면 적용됩니다. 지금 다시 시작하려면 탭하세요.
-A save or an export is still running. Restart once it's done.	저장 또는 내보내기가 아직 진행 중입니다. 완료된 후 다시 시작하세요.
+Still saving or exporting. Restart once it's done.	저장 또는 내보내기가 아직 진행 중입니다. 완료된 후 다시 시작하세요.
 Couldn't restart Instagram. Close it and open it again.	Instagram을 다시 시작할 수 없습니다. 닫았다가 다시 여세요.
 Already saved. Download again within 30 seconds for a copy.	이미 저장되었습니다. 사본은 30초 안에 다시 다운로드하세요.
 Already saved %1$d. Download again within 30 seconds for those.	%1$d개는 이미 저장되어 있습니다. 30초 안에 다시 다운로드하면 저장됩니다.
@@ -1168,10 +1177,10 @@ Instagram's own font. You can also pick your phone's font or a .ttf or .otf file
 Instagram's text uses your phone's font. Restart Instagram to see a change.	Instagram의 텍스트에 휴대전화 글꼴을 사용합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Instagram's text uses the font file you picked. Pick it again to change the file. Restart Instagram to see a change.	Instagram의 텍스트에 선택한 글꼴 파일을 사용합니다. 파일을 바꾸려면 다시 선택하세요. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 # context: toasts after a font file is picked in the Font list
-That file isn't a font HushGram can use. Your font hasn't changed.	이 파일은 HushGram이 사용할 수 있는 글꼴이 아닙니다. 글꼴은 바뀌지 않았습니다.
+That file isn't a usable font. Yours didn't change.	이 파일은 HushGram이 사용할 수 있는 글꼴이 아닙니다. 글꼴은 바뀌지 않았습니다.
 Font saved. Restart Instagram to see it.	글꼴을 저장했습니다. 보려면 Instagram을 다시 시작하세요.
 # context: toast when Instagram starts and the picked font file won't load
-Couldn't load your font file, so Instagram's font shows. Pick it again in HushGram settings > Layout.	글꼴 파일을 불러오지 못해 Instagram 글꼴이 표시됩니다. HushGram 설정 > 레이아웃에서 다시 선택하세요.
+Couldn't load your font. Pick it again in Layout.	글꼴을 불러오지 못했습니다. 레이아웃에서 다시 고르세요.
 # context: Reels switch title; it leaves out reels that carry Instagram's own AI label
 Hide AI-labeled reels	AI 라벨이 있는 릴스 숨기기
 # context: the line under the Hide AI-labeled reels switch
@@ -1305,6 +1314,8 @@ Takes the voice and video call buttons off the top of a chat. The name keeps its
 Buttons in the message box	메시지 입력창의 버튼
 Every button in the message box shows. Untick the ones you don't use. The text box and Send always stay.	메시지 입력창의 모든 버튼이 표시됩니다. 쓰지 않는 버튼은 선택을 해제하세요. 텍스트 입력란과 보내기는 항상 남습니다.
 Left off the message box: %1$s. The text box and Send stay.	메시지 입력창에서 뺀 버튼: %1$s. 텍스트 입력란과 보내기는 남습니다.
+Gallery and Voice message are in the plus menu while Gallery and microphone in the plus menu is on. The text box and Send always stay.	‘플러스 메뉴에 갤러리와 마이크 넣기’가 켜져 있는 동안 갤러리와 음성 메시지는 플러스 메뉴에 있습니다. 텍스트 입력란과 보내기는 항상 남습니다.
+Left off the message box: %1$s. Gallery and Voice message are in the plus menu while Gallery and microphone in the plus menu is on. The text box and Send stay.	메시지 입력창에서 뺀 버튼: %1$s. ‘플러스 메뉴에 갤러리와 마이크 넣기’가 켜져 있는 동안 갤러리와 음성 메시지는 플러스 메뉴에 있습니다. 텍스트 입력란과 보내기는 남습니다.
 Gallery	갤러리
 Stickers	스티커
 Voice message	음성 메시지
@@ -1345,15 +1356,15 @@ Add .ttf or .otf files from your phone. Uncheck one to take it out.	휴대폰에
 No fonts added yet. Add a .ttf or .otf file and it shows up in the story text editor alongside Instagram's fonts.	아직 추가한 글꼴이 없습니다. .ttf 또는 .otf 파일을 추가하면 스토리 텍스트 편집기에 Instagram 글꼴과 함께 나타납니다.
 Add a font file	글꼴 파일 추가
 Removed from your story fonts	내 스토리 글꼴에서 제거했습니다
-That file isn't a font HushGram can use. Nothing was added.	이 파일은 HushGram이 사용할 수 있는 글꼴이 아닙니다. 아무것도 추가되지 않았습니다.
-Added %1$s. Pick it in the story text editor alongside Instagram's fonts.	%1$s 추가됨. 스토리 텍스트 편집기에서 Instagram 글꼴과 함께 고를 수 있습니다.
+That file isn't a usable font. Nothing was added.	이 파일은 HushGram이 사용할 수 있는 글꼴이 아닙니다. 아무것도 추가되지 않았습니다.
+Added %1$s. Pick it in the story text editor.	%1$s 추가됨. 스토리 텍스트 편집기에서 Instagram 글꼴과 함께 고를 수 있습니다.
 # context: Logo and titles at the start, a Tab bar switch under Center titles on other screens; the opposite of the three Center switches (#310)
 Logo and titles at the start	로고와 제목을 앞쪽에
 Puts Instagram's logo and every bar's title at the start of the bar, where Instagram used to show them. Turn it on if Instagram centers them for you. It wins over the centering switches above. Restart Instagram to see the change on Home.	Instagram 로고와 각 바의 제목을 예전처럼 바의 앞쪽에 둡니다. Instagram이 가운데에 두어 보여 줄 때 켜세요. 위의 가운데 정렬 스위치보다 우선합니다. 홈에서 변경 사항을 보려면 Instagram을 다시 시작하세요.
 # context: Emoji font in story text, a switch under Stories after Your story fonts; turning it on opens the phone's file picker for an emoji font file (.ttf), used only for emoji typed in Instagram's story text editor (#275)
 Emoji font in story text	스토리 텍스트의 이모지 글꼴
 Emoji you type in story text draw from an emoji font file you pick. Turning it on asks for the file. Off, Instagram's emoji come back.	스토리 텍스트에 입력하는 이모지를 직접 고른 이모지 글꼴 파일로 그립니다. 켜면 파일을 고르라고 합니다. 끄면 Instagram 이모지로 돌아갑니다.
-That file isn't a font HushGram can use. Story emoji haven't changed.	HushGram에서 쓸 수 있는 글꼴 파일이 아닙니다. 스토리 이모지는 바뀌지 않았습니다.
+That file isn't a usable font. Emoji didn't change.	HushGram에서 쓸 수 있는 글꼴 파일이 아닙니다. 스토리 이모지는 바뀌지 않았습니다.
 Emoji font saved. Emoji in story text draw in it.	이모지 글꼴을 저장했습니다. 이제 스토리 텍스트의 이모지가 이 글꼴로 보입니다.
 Rows in Instagram's settings	Instagram 설정의 항목
 Every row of Instagram's Settings and activity shows. Untick the ones you don't use.	Instagram 설정 및 활동의 항목이 모두 표시됩니다. 쓰지 않는 항목은 체크를 해제하세요.
@@ -1381,7 +1392,7 @@ Photos and videos go to %1$s. Tap to pick another folder.	사진과 동영상이
 HushGram can't reach %1$s anymore, so saves go to Movies and Pictures. Pick the folder again.	HushGram이 더 이상 %1$s에 접근할 수 없어서 저장한 항목이 Movies와 Pictures에 들어갑니다. 폴더를 다시 선택하세요.
 Use Movies and Pictures	Movies와 Pictures 사용
 Stop using the folder you picked. Saves go back to Movies and Pictures.	선택한 폴더를 더 이상 사용하지 않습니다. 저장한 항목이 다시 Movies와 Pictures에 들어갑니다.
-Couldn't use that folder. Saves still go where they did.	그 폴더를 사용할 수 없습니다. 저장한 항목은 원래 위치에 계속 저장됩니다.
+Couldn't use that folder. Saves go where they did.	그 폴더를 사용할 수 없습니다. 저장한 항목은 원래 위치에 계속 저장됩니다.
 Saves go to Movies and Pictures again.	저장한 항목이 다시 Movies와 Pictures에 들어갑니다.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s에서 이 항목을 저장하지 못해 Movies와 Pictures에 저장했습니다.
 Start reels with sound	릴스를 소리와 함께 시작
@@ -1417,7 +1428,7 @@ Shows your feed blurred under Home's top bar, like frosted glass.	홈 상단 바
 Keep the Reels top bar	릴스 상단 바 고정
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	릴스를 넘길 때 릴스 제목, 친구 탭과 옆의 버튼을 밀어 올리지 않고 맨 위에 그대로 둡니다.
 Keep a viewing history	본 기록 남기기
-Remembers the posts, reels, stories and profiles that come up on screen, newest first, on this phone only. Nothing is sent anywhere, and nothing is read about other accounts. Turn it off and it stops at once. Clear it below.	화면에 나온 게시물, 릴스, 스토리, 프로필을 이 휴대폰에만 최신순으로 기억합니다. 어디로도 전송하지 않으며 다른 계정의 정보도 읽지 않습니다. 끄면 즉시 기록을 멈춥니다. 아래에서 기록을 지울 수 있습니다.
+Remembers the posts, reels, stories and profiles that come up on screen, and who posted them, newest first, on this phone only. Nothing is sent anywhere, and nothing more is asked of Instagram. Turn it off and it stops at once. Clear it below.	화면에 나온 게시물, 릴스, 스토리, 프로필과 올린 사람을 이 휴대폰에만 최신순으로 기억합니다. 어디로도 전송하지 않으며 Instagram에 더 요청하는 것도 없습니다. 끄면 즉시 기록을 멈춥니다. 아래에서 기록을 지울 수 있습니다.
 Viewing history	본 기록
 Nothing here yet. With Keep a viewing history on, what you look at shows up here.	아직 아무것도 없습니다. 본 기록 남기기를 켜면 보신 항목이 여기에 표시됩니다.
 Post	게시물
@@ -1534,7 +1545,7 @@ Preview of the tab bar	탭 바 미리보기
 Keep stories playing while zooming	확대하는 동안 스토리 계속 재생
 A story keeps playing while you pinch to zoom it. Hold it still first and it stays paused while you zoom.	두 손가락으로 스토리를 확대하는 동안에도 계속 재생됩니다. 먼저 길게 눌러 두면 확대하는 동안 일시정지 상태로 유지됩니다.
 Follower history	팔로워 기록
-Nothing logged yet. Each time you scroll your own Followers list to the end, changes since the last time are added here.	아직 기록된 내용이 없습니다. 내 팔로워 목록을 끝까지 스크롤할 때마다 지난번 이후의 변경 사항이 여기에 추가됩니다.
+Nothing logged yet. With Recent unfollowers on, each time you scroll your own Followers list to the end, changes since the last time are added here.	아직 기록된 내용이 없습니다. 최근 언팔로우를 켠 상태에서 내 팔로워 목록을 끝까지 스크롤할 때마다 지난번 이후의 변경 사항이 여기에 추가됩니다.
 %1$s unfollowed you, %2$s	%1$s 님이 팔로우를 취소했습니다, %2$s
 %1$s followed you again, %2$s	%1$s 님이 다시 팔로우했습니다, %2$s
 %1$s started following you, %2$s	%1$s 님이 팔로우하기 시작했습니다, %2$s
@@ -1599,10 +1610,20 @@ Mark as read	읽음으로 표시
 Nothing to mark as read	읽음으로 표시할 항목이 없습니다
 Mark as read button in chats	채팅의 읽음으로 표시 버튼
 A check mark shows at the top of a chat while it hasn't told the other person you've seen it. Tap it and they see Seen.	상대방에게 아직 봤다고 알리지 않은 동안 채팅 상단에 체크 표시가 나타납니다. 누르면 상대방에게 읽음이 표시됩니다.
+# context: a switch on the Messages page and the eye it adds to a chat's header (#13). "Seen" is Instagram's own read receipt label in a chat. A tap on the eye opens a menu with the three rows after the summary; the toasts and the eye's spoken label say what the chat does now.
+Choose Seen in each chat	채팅마다 읽음 선택
+An eye at the top of each chat holds or sends Seen in that chat alone, whatever Read messages without the seen receipt says. Changing it doesn't send anything by itself.	각 채팅 상단의 눈 아이콘으로 읽음 표시 없이 메시지 읽기 설정과 상관없이 그 채팅에서만 읽음을 보류하거나 보냅니다. 바꿔도 그 자체로는 아무것도 보내지 않습니다.
+Use the HushGram setting	HushGram 설정 따르기
+Hold Seen in this chat	이 채팅에서 읽음 보류
+Send Seen in this chat	이 채팅에서 읽음 보내기
+Seen held in this chat	이 채팅에서 읽음을 보류합니다
+Seen goes out in this chat	이 채팅에서 읽음을 보냅니다
+This chat uses the setting	이 채팅은 설정을 따릅니다
+Couldn't save the choice	선택을 저장할 수 없습니다
 Red story mentions	빨간색 스토리 멘션
 Draws the mention pill's text in red instead of white, so it stands out on bright stories.	멘션 알약의 글자를 흰색 대신 빨간색으로 표시해서 밝은 스토리에서도 눈에 띄게 합니다.
 Only received reels	받은 릴스만
-Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	채팅의 릴스를 넘길 때 내가 보낸 릴스는 건너뛰고 상대방이 공유한 릴스만 보여줍니다. 채팅의 릴스 넘기기를 켜 두면 작동합니다.
+Swiping through a chat's reels skips the ones you sent there, so it only goes through the reels the other person shared. Works with Swipe through a chat's reels on.	채팅의 릴스를 넘길 때 내가 보낸 릴스는 건너뛰고 상대방이 공유한 릴스만 보여줍니다. ‘채팅의 릴스 넘겨보기’를 켜 두면 작동합니다.
 # context: Messages settings (#489), and the banner over a reel opened from a chat when the other person wrote after it; a tap goes back to the chat
 Messages after a reel	릴스 다음 메시지
 While you swipe through a chat's reels, a banner says when the other person sent a message after the reel on screen. Tap it to go back to the chat at that message. Works with Swipe through a chat's reels on.	채팅의 릴스를 넘겨볼 때 화면의 릴스 다음에 상대방이 보낸 메시지가 있으면 배너로 알려 줍니다. 배너를 누르면 채팅의 그 메시지로 돌아갑니다. 채팅의 릴스 넘겨보기가 켜져 있을 때 작동합니다.
@@ -1732,3 +1753,22 @@ After you scroll your own Followers list to the end, posts a notification naming
 About this account	이 계정 정보
 About this account button	이 계정 정보 버튼
 Puts an (i) next to the three dots on a profile that opens Instagram's About this account for that account. Instagram took its own away.	프로필의 점 세 개 옆에 (i)를 넣어 해당 계정의 Instagram 이 계정 정보를 엽니다. Instagram이 기본 버튼을 없앴습니다.
+# context: Reels switch Hide reels in other languages, its Languages to keep row (codes like en or names like Hindi), that row's summary (%1$s is the kept language names, %2$s the pieces not recognized) and the Also on Home switch under it
+Hide reels in other languages	다른 언어의 릴스 숨기기
+Leaves out reels in the Reels tab whose caption is in a language you didn't list below. A caption too short to tell, or a reel you open yourself, still shows.	아래에 적지 않은 언어로 된 설명이 달린 릴스를 릴스 탭에서 제외합니다. 너무 짧아서 판단할 수 없는 설명이나 직접 연 릴스는 그대로 표시됩니다.
+Languages to keep	유지할 언어
+Language codes or names, with a comma or a new line between them, like en, Hindi or Español. Leave it empty to keep your phone's languages.	쉼표나 줄바꿈으로 구분한 언어 코드 또는 이름입니다. 예: en, Hindi, Español. 비워 두면 휴대폰의 언어를 유지합니다.
+Leaves out posts on Home whose caption is in another language too. Pull down on Home to refresh after changing it.	홈에서도 설명이 다른 언어로 된 게시물을 제외합니다. 바꾼 뒤에는 홈에서 아래로 당겨 새로고침하세요.
+Keeps %1$s	%1$s 유지
+Keeps your phone's languages: %1$s	휴대폰의 언어 유지: %1$s
+Keeps %1$s. Didn't recognize: %2$s	%1$s 유지. 인식하지 못함: %2$s
+Didn't recognize: %1$s	인식하지 못함: %1$s
+# context: Playback settings switch and the background playback notification, its channel and its buttons (#497)
+Keep playing in the background	백그라운드에서 계속 재생
+A video or reel playing with sound keeps going when you leave Instagram or turn the screen off. A notification lets you pause or stop it.	소리와 함께 재생 중인 동영상이나 릴스는 Instagram을 나가거나 화면을 꺼도 계속 재생됩니다. 알림에서 일시정지하거나 중지할 수 있습니다.
+Background playback	백그라운드 재생
+The video playing while Instagram is in the background, with buttons to pause or stop it	Instagram이 백그라운드에 있는 동안 재생 중인 동영상과 일시정지 및 중지 버튼
+Playing in the background	백그라운드에서 재생 중
+Paused in the background	백그라운드에서 일시정지됨
+Play	재생
+Stop	중지

@@ -79,7 +79,7 @@ class ControllerVelocityFramePatchTest {
             setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
                 "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
-                "2.0.24" to 5002395,
+                "2.0.24" to 5002395, "2.0.24" to 5002527,
             ),
             compatibilities.map { it.targets.single() }.map { it.version to it.versionCodes!!.values.toSet().single() }.toSet(),
             controllerVelocityFramePatch.name,
@@ -99,8 +99,11 @@ class ControllerVelocityFramePatchTest {
         assertFalse(isControllerVelocityFrameLegacyBuild("2.0.23", "5002363"))
         assertTrue(isControllerVelocityFrameNativeBuild("2.0.24", "5002395"))
         assertFalse(isControllerVelocityFrameLegacyBuild("2.0.24", "5002395"))
+        // 5002527 reports the angular velocity local to the streamed pose, like 5002395.
+        assertTrue(isControllerVelocityFrameNativeBuild("2.0.24", "5002527"))
+        assertFalse(isControllerVelocityFrameLegacyBuild("2.0.24", "5002527"))
         listOf("2.0.20" to "5002363", "2.0.23" to "5002322", "2.0.23" to "5002364",
-            "2.0.24" to "5002363")
+            "2.0.24" to "5002363", "2.0.24" to "5002526", "2.0.23" to "5002527")
             .forEach { (version, versionCode) ->
                 assertFalse(isControllerVelocityFrameBuild(version, versionCode), "$version/$versionCode")
             }

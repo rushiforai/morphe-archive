@@ -11,14 +11,16 @@ final class PreviewUrls {
             +"(?:(?:https?|ttps?|tps?)://|//)?(?:"+LABEL+"\\.)+[a-z]{2,63}"
             +"(?::[0-9]{1,5})?(?:[/?#][^\\s<>\"'()（）]*)?(?![A-Za-z0-9_.-])",Pattern.CASE_INSENSITIVE);
     private static final Pattern IDS=Pattern.compile("(?<![\\p{L}\\p{N}_])ID[ \\t]*[:：][ \\t]*[A-Za-z0-9+/_!.-]+",Pattern.CASE_INSENSITIVE);
+    private static final Pattern TRAILING_PUNCTUATION=Pattern.compile("[.,、。]+$");
+    private static final Pattern HTTP_SCHEME=Pattern.compile("(?i)^https?://.*");
     static String normalize(String value){
         if(value==null)return null;
-        String url=value.trim().replace("&amp;","&").replaceAll("[.,、。]+$","");
+        String url=TRAILING_PUNCTUATION.matcher(value.trim().replace("&amp;","&")).replaceAll("");
         if(url.regionMatches(true,0,"ttps://",0,7)||url.regionMatches(true,0,"tps://",0,6)
                 ||url.regionMatches(true,0,"ttp://",0,6)||url.regionMatches(true,0,"tp://",0,5))
             url="https://"+url.substring(url.indexOf("://")+3);
         else if(url.startsWith("//"))url="https:"+url;
-        else if(!url.matches("(?i)^https?://.*")){
+        else if(!HTTP_SCHEME.matcher(url).matches()){
             if(!LINKS.matcher(url).matches()||url.contains("://"))return null;
             url="https://"+url;
         }

@@ -3,7 +3,7 @@ package app.template.patches.steamlink.identity
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
+import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_THROUGH_5002395
 import app.template.patches.shared.PatchCategories
 import app.template.patches.shared.buildLabel
 
@@ -231,11 +231,12 @@ internal fun patchControllerConfigForVendorDriver(
 val galaxyXrVendorDriverPatch = rawResourcePatch(
     name = "Galaxy XR SteamVR driver (galaxyxr)",
     description = "Sets Galaxy XR names in SteamVR; needs the PC-side Galaxy XR VRLink Setup. " +
-        buildLabel(COMPATIBILITIES_STEAM_LINK),
+        buildLabel(COMPATIBILITIES_STEAM_LINK_THROUGH_5002395),
     default = false,
 ) {
     category(PatchCategories.APP_AND_DEVICE_IDENTITY)
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
+    // Not adapted to 2.0.24/5002527: keeps its previous scope instead of following the registry.
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_THROUGH_5002395.toTypedArray())
     // Runs after the legacy Device identity payload so its Galaxy entries are rewritten to the
     // galaxyxr vendor paths. The identity body is exact-pair guarded and stays a no-op on the
     // native build, where Valve's own identity remains authoritative.

@@ -36,10 +36,7 @@ private const val HELP_CENTER_AI_CONFIG = "Lcom/cvs/unified/helpcenter/vm/HelpCe
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off AI in the CVS app: AI search in the help center, which also stops the app " +
-        "from downloading Google's on-device AI model, AI insights, AI summaries of visits, " +
-        "lab results and claims, and proactive AI on pharmacy orders. The original visit, lab " +
-        "and claim details still show. Experimental.",
+    description = "Turns off AI search, insights, and summaries, and proactive AI on pharmacy orders.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

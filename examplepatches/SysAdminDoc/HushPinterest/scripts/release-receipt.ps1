@@ -1057,9 +1057,11 @@ function Test-ChangelogManagerEntry {
     .DESCRIPTION
         Manager fetches this file from main and reads it with its own parser (ChangelogParser,
         Manager 1.30.0). A heading only counts when it ends in a date, "## 0.41.0 (2026-09-18)",
-        and an app only gets its update badge when a bullet is scoped to it, "* **Pinterest:** ...".
-        Scoped lines are kept one line at a time, so a bullet wrapped onto a second line loses
-        the rest. Every heading from 0.23.0 to 0.40.0 was bare, Manager's list stopped at 0.22.0
+        and an app only gets its update badge when the section has a bullet for it. This repo
+        patches one app, so a bullet with no label is a Pinterest change ("* Hide ads now covers ..."),
+        and Manager 2.2.0 and newer show it for a single-app source. A bullet that still opens
+        with "* **Pinterest:** " counts as well. Bullets are kept one line at a time, so a bullet
+        wrapped onto a second line loses the rest. Every heading from 0.23.0 to 0.40.0 was bare, Manager's list stopped at 0.22.0
         and every update showed nothing, and no gate noticed, because Test-ChangelogVersions
         reads its own heading pattern, which the bare headings matched.
 
@@ -1112,11 +1114,11 @@ function Test-ChangelogManagerEntry {
                 $previousWasBullet = $true
                 continue
             }
-            if (-not $scope.Success -or -not ($scope.Groups[1].Value -eq $App -or
+            # No label is a change to the app. The app's own label is the same thing, spelled out.
+            if ($scope.Success -and -not ($scope.Groups[1].Value -eq $App -or
                     $scope.Groups[1].Value.StartsWith("$App - "))) {
-                return Fail ("Line $($i + 1) is a $ExpectedVersion bullet Morphe Manager does not " +
-                    "scope to $App, so it is not counted as a $App change. Start it with " +
-                    """* **${App}:** "": $line")
+                return Fail ("Line $($i + 1) is a $ExpectedVersion bullet with a label other than " +
+                    "Tooling or $App, so it is not counted as a $App change. Drop the label: $line")
             }
             $bullets++
             $previousWasBullet = $true
@@ -1129,8 +1131,8 @@ function Test-ChangelogManagerEntry {
         $previousWasBullet = $false
     }
     if ($bullets -eq 0) {
-        return Fail ("The $ExpectedVersion entry has no ""* **${App}:** "" bullet, so Morphe " +
-            "Manager shows no update for $App.")
+        return Fail ("The $ExpectedVersion entry has no bullet about $App (one without a " +
+            """**Tooling:**"" label), so Morphe Manager shows no update for $App.")
     }
 
     return [pscustomobject]@{ Valid = $true; Reason = 'ok'; Date = $heading.Groups[3].Value; Bullets = $bullets }

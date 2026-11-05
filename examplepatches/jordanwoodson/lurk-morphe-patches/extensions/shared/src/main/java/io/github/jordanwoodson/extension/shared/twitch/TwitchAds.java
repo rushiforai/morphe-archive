@@ -30,8 +30,11 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
@@ -48,6 +51,8 @@ public final class TwitchAds {
     private static final String PROXY = "playlist_proxy";
     private static final String AD_HOST = "edge.ads.twitch.tv";
     private static final String USHER_HOST = "usher.ttvnw.net";
+    private static final Pattern LIVE_CHANNEL = Pattern.compile(
+            "/api/(?:v2/)?channel/hls/([A-Za-z0-9_]+)\\.m3u8");
 
     private TwitchAds() {
     }
@@ -474,6 +479,13 @@ public final class TwitchAds {
             String path = uri.getEncodedPath();
             if (!isHost(url, USHER_HOST) || path == null
                     || !(path.startsWith("/api/channel/hls/") || path.startsWith("/api/v2/channel/hls/"))) return url;
+            if (template.contains("{channel}")) {
+                // Channel-only proxies obtain their own playback token. Never forward the signed
+                // Twitch query, including through a second placeholder for the full URL.
+                Matcher channel = LIVE_CHANNEL.matcher(path);
+                if (template.contains("{url}") || !channel.matches()) return url;
+                return template.replace("{channel}", channel.group(1).toLowerCase(Locale.ROOT));
+            }
             if (template.contains("{url}")) return template.replace("{url}", URLEncoder.encode(url, "UTF-8"));
             String base = template.endsWith("/") ? template.substring(0, template.length() - 1) : template;
             String query = uri.getEncodedQuery();

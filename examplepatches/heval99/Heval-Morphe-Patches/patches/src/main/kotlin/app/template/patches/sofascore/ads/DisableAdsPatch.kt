@@ -2,9 +2,12 @@ package app.template.patches.sofascore.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.returnEarly
 import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
+import app.template.patches.shared.addInstructionsChecked
 import app.template.patches.shared.misc.ads.neutraliseMobileAdsStatics
 import app.template.patches.sofascore.shared.forceCallResult
 import app.template.patches.sofascore.shared.modalPredicate
@@ -75,6 +78,13 @@ val disableAdsPatch = bytecodePatch(
         // ad-free flags above and by PREF_AD_ADAPTER_INITIALISED, which stays false without init,
         // so no extra GMA load hooks are needed.
         AdSdkStartupFingerprint.method.apply {
+            // The consent method sits in ReleaseApp (26.10.19) or, since 26.10.26, in its
+            // R8-renamed abstract superclass; anything outside that chain is a wrong match.
+            val appClasses = generateSequence(RELEASE_APP_CLASS) { classDefByOrNull(it)?.superclass }
+                .takeWhile { it != "Landroid/app/Application;" }.toSet()
+            if (definingClass !in appClasses) {
+                throw PatchException("Disable ads: consent method $definingClass->$name is not in ReleaseApp's hierarchy")
+            }
             val starts = implementation!!.instructions.withIndex().filter { (_, insn) ->
                 val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
                 insn.opcode == Opcode.INVOKE_VIRTUAL &&
@@ -90,5 +100,44 @@ val disableAdsPatch = bytecodePatch(
             removeInstructions(starts.single().index, 1)
         }
         neutraliseMobileAdsStatics("initialize", "openDebugMenu", "setAppVolume", "setAppMuted")
+
+        // Skip the ad SDK work the manifest starts before Application.onCreate (2026-11-03). In
+        // bytecode, not by removing the manifest entries: this patch has no resource pass, and
+        // adding one only for this would re-encode the resource table (rule 12) when Disable ads
+        // is applied alone. The provider objects are still created, but their onCreate bodies
+        // (lifecycle tracking that loads each SDK's classes) and Unity's initializer no longer
+        // run. An SDK the app dropped has nothing to skip; a present class with no such method
+        // fails the patch.
+        skipAdSdkStartupComponents()
     }
+}
+
+private fun BytecodePatchContext.skipAdSdkStartupComponents() {
+    val providers = AD_SDK_LIFECYCLE_PROVIDERS.mapNotNull { type ->
+        val classDef = mutableClassDefByOrNull(type) ?: return@mapNotNull null
+        classDef.methods.singleOrNull {
+            it.name == "onCreate" && it.returnType == "Z" && it.parameterTypes.isEmpty() && it.implementation != null
+        } ?: throw PatchException("Disable ads: $type has no onCreate()Z with a body")
+    }
+    val unity = mutableClassDefByOrNull(UNITY_ADS_INITIALIZER)?.let { classDef ->
+        classDef.methods.singleOrNull {
+            it.name == "create" && it.returnType == "Ljava/lang/Object;" &&
+                it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;") &&
+                it.implementation != null
+        } ?: throw PatchException("Disable ads: $UNITY_ADS_INITIALIZER has no create(Context)Object with a body")
+    }
+    if (providers.isEmpty() && unity == null) {
+        throw PatchException("Disable ads: none of the ad SDK start-up components was found")
+    }
+
+    // A provider that reports success (true) without doing anything.
+    providers.forEach { it.returnEarly(true) }
+    // The Initializer result is only stored by androidx.startup; nothing asks for it.
+    unity?.addInstructionsChecked(
+        0,
+        """
+            sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+            return-object v0
+        """,
+    )
 }

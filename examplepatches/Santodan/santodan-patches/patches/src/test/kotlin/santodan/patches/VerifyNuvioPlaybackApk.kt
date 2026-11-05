@@ -89,7 +89,7 @@ fun main(args: Array<String>) {
                                     body[4].opcode == com.android.tools.smali.dexlib2.Opcode.IGET_OBJECT)
                                 check((body[4] as ReferenceInstruction).reference.toString() == NuvioAccessPatch.FIELDS.getValue(method.name))
                             }
-                            if (index == 1 && extension == NuvioPlaybackButtonsPatch.EXTENSION && owner.type == "Lbb/ai;" && method.name == "invoke") {
+                            if (index == 1 && extension == NuvioPlaybackButtonsPatch.EXTENSION && owner.type == "Lbb/ei;" && method.name == "invoke") {
                                 val code = method.implementation?.instructions?.toList() ?: emptyList()
                                 val intro = code.indexOfFirst { NuvioPlaybackButtonsPatch.reference(it) == NuvioIntroDbPatch.RENDER }
                                 if (intro >= 0) check(code.getOrNull(intro + 1)?.let { NuvioPlaybackButtonsPatch.reference(it) }

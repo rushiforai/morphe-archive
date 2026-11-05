@@ -26,6 +26,10 @@ private data class ControllerVelocityFrameBuild(
 private val CONTROLLER_VELOCITY_FRAME_BUILDS = listOf(
     ControllerVelocityFrameBuild("2.0.23", 5002363, angularWorld = false),
     ControllerVelocityFrameBuild("2.0.24", 5002395, angularWorld = false),
+    // 5002527: GetControllerState/GetControllerStates/SendPoses are instruction-for-instruction the
+    // 5002395 code (same PLT call sequence, only member offsets shifted); same pose action name and
+    // controller_config.json, so the local angular-velocity frame carries over. Not run on a headset.
+    ControllerVelocityFrameBuild("2.0.24", 5002527, angularWorld = false),
     ControllerVelocityFrameBuild("2.0.20", 5001712, angularWorld = true),
     ControllerVelocityFrameBuild("2.0.20", 5001812, angularWorld = true),
     ControllerVelocityFrameBuild("2.0.21", 5001968, angularWorld = true),
@@ -70,6 +74,7 @@ val controllerVelocityFramePatch = rawResourcePatch(
 
     execute {
         // Morphe dependencies do not re-check compatibility before execution.
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE) return@execute
         val build = CONTROLLER_VELOCITY_FRAME_BUILDS.singleOrNull {
             it.version == packageMetadata.versionName &&
                 it.versionCode.toString() == packageMetadata.versionCode

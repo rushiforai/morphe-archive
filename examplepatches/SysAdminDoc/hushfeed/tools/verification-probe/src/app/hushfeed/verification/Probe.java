@@ -133,6 +133,17 @@ public final class Probe extends Instrumentation {
                         context.registerReceiver(receiver, filter, SENDER_PERMISSION, null);
                     }
                     Log.i(TAG, "ready");
+                    // A broadcast sent after ready lands after TikTok has already set up its top
+                    // tabs, so the toppager watch can be asked for ahead of the launch instead:
+                    // adb shell setprop debug.hushfeed.toppager <seconds>, and 0 to stop.
+                    String watch = (String) Class.forName("android.os.SystemProperties")
+                            .getMethod("get", String.class, String.class)
+                            .invoke(null, "debug.hushfeed.toppager", "0");
+                    long seconds = watch.matches("\\d{1,3}") ? Long.parseLong(watch) : 0L;
+                    if (seconds > 0) {
+                        ((Commands) receiver).watchTopPager(seconds * 1000L);
+                        Log.i(TAG, "ok toppager watching " + seconds + " s from ready");
+                    }
                 } catch (Throwable error) {
                     Log.e(TAG, "probe could not start", error);
                 }
@@ -1401,10 +1412,35 @@ public final class Probe extends Instrumentation {
                         String clicked = "";
                         if (click) {
                             android.view.View target = found;
+                            android.view.View row = null;
                             while (target != null && !target.isClickable()) {
+                                row = target;
                                 target = target.getParent() instanceof android.view.View ? (android.view.View) target.getParent() : null;
                             }
-                            clicked = target == null ? " clicked=no clickable ancestor" : " clicked=" + target.performClick();
+                            if (target instanceof android.widget.AbsListView && row != null) {
+                                // A row of a ListView (the Hushfeed settings list) isn't clickable
+                                // itself: the list takes the tap and calls its item listener, and
+                                // performClick on the list answers false without picking a row.
+                                // A Spinner is clickable too but opens its own dropdown, so it
+                                // keeps performClick below. The answer leads with the result so
+                                // the audit's clicked=true patterns read list rows too.
+                                android.widget.AbsListView list = (android.widget.AbsListView) target;
+                                int position = list.getPositionForView(row);
+                                android.widget.Adapter adapter = list.getAdapter();
+                                if (position == android.widget.AdapterView.INVALID_POSITION) {
+                                    clicked = " clicked=false row not in its list";
+                                } else if (adapter instanceof android.widget.ListAdapter
+                                        && !((android.widget.ListAdapter) adapter).isEnabled(position)) {
+                                    // A greyed-out row: a finger on it does nothing, while
+                                    // performItemClick would still run the listener.
+                                    clicked = " clicked=false item=" + position + " disabled";
+                                } else {
+                                    clicked = " clicked=" + list.performItemClick(row, position, list.getItemIdAtPosition(position))
+                                            + " item=" + position;
+                                }
+                            } else {
+                                clicked = target == null ? " clicked=no clickable ancestor" : " clicked=" + target.performClick();
+                            }
                         }
                         if (holdMs > 0) {
                             android.view.View root = found.getRootView();
@@ -1990,6 +2026,92 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok pagerstate" + out);
                         break;
                     }
+                    case "toppager-show": {
+                        // Tells each For You page with a list panel that it's shown, the way Hox
+                        // does when a page registers under its shown container's current node:
+                        // onNodeShow with the container's tag set. Logs the list panel's hint
+                        // before and after, to see whether a page Hox never showed starts its
+                        // players once shown (issue #322).
+                        listPanelFragments.clear();
+                        topPagerReport(false);
+                        Class<?> hox = loader.loadClass("com.bytedance.hox.Hox");
+                        Method hoxOf = null;
+                        for (Method method : hox.getDeclaredMethods()) {
+                            if (method.getName().equals("H23") && method.getParameterTypes().length == 1
+                                    && java.lang.reflect.Modifier.isStatic(method.getModifiers())) hoxOf = method;
+                        }
+                        Method parentOf = hox.getDeclaredMethod("O23", String.class);
+                        parentOf.setAccessible(true);
+                        hoxOf.setAccessible(true);
+                        int shownCount = 0;
+                        for (Object fragment : listPanelFragments) {
+                            if (!fragment.getClass().getName().equals("com.ss.android.ugc.aweme.feed.ui.FeedRecommendFragment")) continue;
+                            String before = listPanelHints(fragment);
+                            Object tree = hoxOf.invoke(null, callNoArg(fragment, "getActivity"));
+                            Object parent = parentOf.invoke(tree, "For You");
+                            android.os.Bundle bundle = new android.os.Bundle();
+                            bundle.putBoolean(String.valueOf(parent), true);
+                            fragment.getClass().getMethod("onNodeShow", android.os.Bundle.class).invoke(fragment, bundle);
+                            Log.i(TAG, "toppager-show " + ref(fragment) + " under " + parent + " before" + before
+                                    + " after" + listPanelHints(fragment));
+                            shownCount++;
+                        }
+                        Log.i(TAG, "ok toppager-show " + shownCount);
+                        break;
+                    }
+                    case "toppager-switch": {
+                        // Asks Hox to switch to For You the way the home pager does on a page
+                        // change (HomeViewPagerAssem.l30): toPage and fromStart MainFragment. Hox
+                        // returns early when its current leaf already has that tag (issue #322).
+                        listPanelFragments.clear();
+                        topPagerReport(false);
+                        Class<?> hox = loader.loadClass("com.bytedance.hox.Hox");
+                        Method hoxOf = null;
+                        for (Method method : hox.getDeclaredMethods()) {
+                            if (method.getName().equals("H23") && method.getParameterTypes().length == 1
+                                    && java.lang.reflect.Modifier.isStatic(method.getModifiers())) hoxOf = method;
+                        }
+                        hoxOf.setAccessible(true);
+                        Method switchTo = hox.getDeclaredMethod("b33", android.os.Bundle.class, String.class, boolean.class);
+                        switchTo.setAccessible(true);
+                        int switched = 0;
+                        for (Object fragment : listPanelFragments) {
+                            if (!fragment.getClass().getName().equals("com.ss.android.ugc.aweme.feed.ui.FeedRecommendFragment")) continue;
+                            String before = listPanelHints(fragment);
+                            Object tree = hoxOf.invoke(null, callNoArg(fragment, "getActivity"));
+                            String leafBefore = hoxLeaf(tree);
+                            android.os.Bundle bundle = new android.os.Bundle();
+                            bundle.putString("toPage", "For You");
+                            bundle.putString("fromStart", "MainFragment");
+                            switchTo.invoke(tree, bundle, "For You", false);
+                            Log.i(TAG, "toppager-switch " + ref(fragment) + " leaf " + leafBefore + " -> " + hoxLeaf(tree)
+                                    + " before" + before + " after" + listPanelHints(fragment));
+                            switched++;
+                        }
+                        Log.i(TAG, "ok toppager-switch " + switched);
+                        break;
+                    }
+                    case "toppager": {
+                        // TikTok's top tab pager, for the feed that starts no video after the top
+                        // tab refill (issue #322): the pager's current item, laid-out items and
+                        // pages, its adapter's page models by tag, the fragment classes it counts
+                        // as its own, and each fragment its manager holds with that fragment's
+                        // view and own fields. -e watch <seconds>, sent right after am instrument
+                        // and before TikTok's activity starts, logs that state each time it
+                        // changes, so a page torn down and built again at a cold start shows.
+                        // Without it, one report that also asks the adapter's position answers
+                        // and Hox's page class for each tag. Tags, types and class names only.
+                        String watch = intent.getStringExtra("watch");
+                        if (watch == null) {
+                            java.util.List<String> lines = topPagerReport(true);
+                            for (String line : lines) logLong("toppager ", line);
+                            Log.i(TAG, "ok toppager " + lines.size());
+                        } else {
+                            watchTopPager(Long.parseLong(watch) * 1000L);
+                            Log.i(TAG, "ok toppager watching " + watch + " s");
+                        }
+                        break;
+                    }
                     case "captionstate": {
                         // The caption strip (dln) and its text (dlu) in one read. A caption line is
                         // on screen only while it is spoken, and separate reads kept landing after
@@ -2159,6 +2281,71 @@ public final class Probe extends Instrumentation {
                         if (bId == 0) out.append(' ').append(bName).append("=missing");
                         Log.i(TAG, "ok overlap a=" + aName + " b=" + bName + " shownA=" + aRects.size()
                                 + " shownB=" + bRects.size() + " crossing=" + crossing + out);
+                        break;
+                    }
+                    case "fill": {
+                        // Where each shown feed player's picture is drawn inside it (#218): every
+                        // SurfaceView or TextureView child mapped through its own matrix (scale,
+                        // pivot and translation), which is the frame SurfaceFlinger gives the layer.
+                        // A player with no surface is its own picture and is mapped in its parent.
+                        // covers=true when every picture reaches both edges of its space.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        android.content.res.Resources resources = activity.getResources();
+                        int playerId = resources.getIdentifier("player_view", "id", activity.getPackageName());
+                        if (playerId == 0) throw new IllegalStateException("player_view=missing");
+                        android.util.DisplayMetrics metrics = resources.getDisplayMetrics();
+                        android.graphics.Rect screen = new android.graphics.Rect(0, 0, metrics.widthPixels, metrics.heightPixels);
+                        StringBuilder out = new StringBuilder();
+                        int players = 0;
+                        int pictures = 0;
+                        boolean covers = true;
+                        java.util.ArrayDeque<android.view.View> pending = new java.util.ArrayDeque<>(windowRoots());
+                        while (!pending.isEmpty()) {
+                            android.view.View view = pending.removeFirst();
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
+                            }
+                            if (view.getId() != playerId || !view.isShown() || !(view instanceof android.view.ViewGroup)
+                                    || view.getWindowVisibility() != android.view.View.VISIBLE || view.getHeight() <= 0) continue;
+                            int[] where = new int[2];
+                            view.getLocationOnScreen(where);
+                            if (!android.graphics.Rect.intersects(screen, new android.graphics.Rect(where[0], where[1],
+                                    where[0] + view.getWidth(), where[1] + view.getHeight()))) continue;
+                            players++;
+                            android.view.ViewGroup player = (android.view.ViewGroup) view;
+                            java.util.List<android.view.View> inside = new java.util.ArrayList<>();
+                            for (int i = 0; i < player.getChildCount(); i++) {
+                                android.view.View child = player.getChildAt(i);
+                                if (child.getVisibility() == android.view.View.VISIBLE && child.getHeight() > 0
+                                        && (child instanceof android.view.SurfaceView || child instanceof android.view.TextureView)) {
+                                    inside.add(child);
+                                }
+                            }
+                            boolean own = inside.isEmpty();
+                            if (own) inside.add(player);
+                            int space = own ? (player.getParent() instanceof android.view.View
+                                    ? ((android.view.View) player.getParent()).getHeight() : player.getHeight()) : player.getHeight();
+                            for (android.view.View picture : inside) {
+                                android.graphics.RectF drawn = new android.graphics.RectF(0, 0, picture.getWidth(), picture.getHeight());
+                                picture.getMatrix().mapRect(drawn);
+                                drawn.offset(picture.getLeft(), picture.getTop());
+                                boolean whole = drawn.top <= 0.5f && drawn.bottom >= space - 0.5f;
+                                covers &= whole;
+                                pictures++;
+                                out.append(" [").append(own ? "player" : picture.getClass().getSimpleName())
+                                        .append(" in=").append(space)
+                                        .append(" top=").append(Math.round(drawn.top)).append(" bottom=").append(Math.round(drawn.bottom))
+                                        .append(" scale=").append(picture.getScaleY())
+                                        .append(" pivotY=").append(picture.getPivotY())
+                                        .append(" ty=").append(picture.getTranslationY())
+                                        .append(" covers=").append(whole).append(']');
+                            }
+                        }
+                        Log.i(TAG, "ok fill players=" + players + " pictures=" + pictures
+                                + " covers=" + (pictures > 0 && covers) + out);
                         break;
                     }
                     case "fadestate": {
@@ -3438,13 +3625,51 @@ public final class Probe extends Instrumentation {
             // single pixel: the deepest view that gives the colour while its children don't is
             // the one painting it, background or onDraw. A hardware bitmap can't be drawn this
             // way and says so.
-            out.append(" draws=").append(drawnAt(view, x - where[0], y - where[1]));
+            // Both draws below render in the view's scrolled content space, so the point moves
+            // with its scroll (0 for TikTok's frames, not for a ScrollView).
+            int contentX = x - where[0] + view.getScrollX();
+            int contentY = y - where[1] + view.getScrollY();
+            out.append(" draws=").append(drawnAt(view, contentX, contentY));
             out.append('\n');
             if (view instanceof android.view.ViewGroup) {
                 android.view.ViewGroup group = (android.view.ViewGroup) view;
                 for (int i = 0; i < group.getChildCount(); i++) {
-                    describeBackgroundsAt(group.getChildAt(i), x, y, depth + 1, out, resources);
+                    android.view.View child = group.getChildAt(i);
+                    describeBackgroundsAt(child, x, y, depth + 1, out, resources);
+                    // A child whose bounds miss the point can still paint it: a scale or a
+                    // translation moves its drawing, and an unclipped parent lets it draw past its
+                    // edge. Drawn the way its parent draws it, transform and clip included.
+                    int[] at = new int[2];
+                    child.getLocationOnScreen(at);
+                    boolean inside = x >= at[0] && y >= at[1] && x < at[0] + child.getWidth() && y < at[1] + child.getHeight();
+                    if (inside || !child.isShown()) continue;
+                    String paints = drawnThrough(group, child, contentX, contentY);
+                    if ("0".equals(paints)) continue;
+                    out.append(depth + 1).append(' ').append(child.getClass().getName())
+                            .append(" id=").append(idName(child, resources))
+                            .append(" at=").append(at[0]).append(',').append(at[1])
+                            .append(" size=").append(child.getWidth()).append('x').append(child.getHeight())
+                            .append(" bg=").append(describeDrawable(child.getBackground(), 0))
+                            .append(" outside draws=").append(paints).append('\n');
                 }
+            }
+        }
+
+        /** The colour {@code child} paints at a point in {@code group}'s coordinates when the group draws it. */
+        private static String drawnThrough(android.view.ViewGroup group, android.view.View child, int x, int y) {
+            try {
+                java.lang.reflect.Method drawChild = android.view.ViewGroup.class.getDeclaredMethod("drawChild",
+                        android.graphics.Canvas.class, android.view.View.class, long.class);
+                drawChild.setAccessible(true);
+                android.graphics.Bitmap pixel = android.graphics.Bitmap.createBitmap(1, 1, android.graphics.Bitmap.Config.ARGB_8888);
+                android.graphics.Canvas canvas = new android.graphics.Canvas(pixel);
+                canvas.translate(-x, -y);
+                drawChild.invoke(group, canvas, child, group.getDrawingTime());
+                int color = pixel.getPixel(0, 0);
+                pixel.recycle();
+                return Integer.toHexString(color);
+            } catch (Throwable error) {
+                return error.getClass().getSimpleName();
             }
         }
 
@@ -3813,10 +4038,13 @@ public final class Probe extends Instrumentation {
                 android.view.View child = parent.getChildAt(i);
                 out.append(" child ").append(depth).append('.').append(i).append(' ')
                         .append(child.getClass().getSimpleName()).append(" id=")
-                        .append(idName(child, resources)).append(" size=")
+                        .append(idName(child, resources)).append(" vis=").append(child.getVisibility()).append(" size=")
                         .append(child.getWidth()).append('x').append(child.getHeight())
                         // A video surface carries no id, and See-through status bar grows it.
-                        .append(" top=").append(child.getTop()).append(" scale=").append(child.getScaleY());
+                        .append(" top=").append(child.getTop()).append(" scale=").append(child.getScaleY())
+                        // A scaled surface grows about its pivot; a moved one shows where it went.
+                        .append(" pivot=").append(child.getPivotX()).append(',').append(child.getPivotY())
+                        .append(" shift=").append(child.getTranslationX()).append(',').append(child.getTranslationY());
                 appendLayoutInfo(child, out);
                 out.append('\n');
                 if (depth < 2 && child instanceof android.view.ViewGroup) {
@@ -3941,6 +4169,844 @@ public final class Probe extends Instrumentation {
                 return (java.util.List<android.view.View>) value;
             }
             throw new IllegalStateException("WindowManagerGlobal returned no root list");
+        }
+
+        /** Per view class, its field holding a PagerAdapter, or none. Looked up once a class. */
+        private final java.util.Map<Class<?>, Field[]> adapterFields = new java.util.HashMap<>();
+
+        /**
+         * The toppager watch: the report read on the main thread every 20 ms. The first read is
+         * logged whole; after that only the lines that came (+) and went (-), with the uptime.
+         */
+        private void watchTopPager(long millis) {
+            android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+            long end = android.os.SystemClock.uptimeMillis() + millis;
+            java.util.List<String>[] last = new java.util.List[1];
+            Runnable[] tick = new Runnable[1];
+            tick[0] = () -> {
+                java.util.List<String> now;
+                try {
+                    now = topPagerReport(false);
+                } catch (Throwable throwable) {
+                    now = java.util.Collections.singletonList("unreadable " + throwable);
+                }
+                long at = android.os.SystemClock.uptimeMillis();
+                if (last[0] == null) {
+                    for (String line : now) logLong("toppager@" + at + "   ", line);
+                } else if (!now.equals(last[0])) {
+                    for (String line : now) if (!last[0].contains(line)) logLong("toppager@" + at + " + ", line);
+                    for (String line : last[0]) if (!now.contains(line)) logLong("toppager@" + at + " - ", line);
+                }
+                last[0] = now;
+                if (android.os.SystemClock.uptimeMillis() < end) main.postDelayed(tick[0], 20L);
+                else Log.i(TAG, "toppager watch done");
+            };
+            main.post(tick[0]);
+        }
+
+        /**
+         * The toppager lines: every pager whose adapter keeps a fragment manager, which on TikTok's
+         * home is the top tab pager. Deep adds the answers that call into TikTok (the adapter's
+         * position method, its class gate, Hox), which the watch leaves out so it only reads fields.
+         */
+        private java.util.List<String> topPagerReport(boolean deep) throws Exception {
+            Class<?> fragmentType = loader.loadClass("androidx.fragment.app.Fragment");
+            Class<?> managerType = loader.loadClass("androidx.fragment.app.FragmentManager");
+            Class<?> adapterType = loader.loadClass("androidx.viewpager.widget.PagerAdapter");
+            java.util.List<String> lines = new java.util.ArrayList<>();
+            java.util.List<android.view.View> feeds = new java.util.ArrayList<>();
+            java.util.List<android.view.View> named = new java.util.ArrayList<>();
+            java.util.Map<android.view.View, Object> pagers = new java.util.LinkedHashMap<>();
+            java.util.ArrayDeque<android.view.View> queue =
+                    new java.util.ArrayDeque<>(new java.util.ArrayList<>(windowRoots()));
+            while (!queue.isEmpty()) {
+                android.view.View view = queue.removeFirst();
+                if (view.getClass().getName().endsWith("VerticalViewPager")) {
+                    feeds.add(view);
+                } else {
+                    Object adapter = pagerAdapter(view, adapterType);
+                    if (adapter != null) pagers.put(view, adapter);
+                    else if ("viewpager".equals(idName(view, view.getResources()))) named.add(view);
+                }
+                if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                }
+            }
+            if (pagers.isEmpty()) lines.add("no pager with a fragment adapter");
+            // A view named viewpager the lookup passed over: its classes and what its object
+            // fields hold, so the next build can look in the right place.
+            for (android.view.View view : named) {
+                StringBuilder line = new StringBuilder("unmatched viewpager ").append(ref(view));
+                for (Class<?> c = view.getClass(); c != null && c != android.view.ViewGroup.class
+                        && c != android.view.View.class; c = c.getSuperclass()) {
+                    line.append(" | ").append(c.getName()).append(" < ").append(c.getSuperclass().getName());
+                    for (Field field : c.getDeclaredFields()) {
+                        if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                        try {
+                            field.setAccessible(true);
+                            Object value = field.get(view);
+                            if (value == null) continue;
+                            line.append(' ').append(field.getName()).append(':').append(field.getType().getName())
+                                    .append('=').append(value.getClass().getName());
+                            for (Class<?> up = value.getClass().getSuperclass(); up != null && up != Object.class; up = up.getSuperclass()) {
+                                line.append('<').append(up.getName());
+                            }
+                        } catch (IllegalAccessException | RuntimeException unreadable) {
+                            line.append(' ').append(field.getName()).append("=?");
+                        }
+                    }
+                }
+                lines.add(line.toString());
+            }
+            for (android.view.View feed : feeds) {
+                lines.add("feed " + ref(feed) + " shown=" + feed.isShown() + " attached=" + feed.isAttachedToWindow());
+            }
+            java.util.List<Object> roots = new java.util.ArrayList<>(feeds);
+            for (java.util.Map.Entry<android.view.View, Object> entry : pagers.entrySet()) {
+                android.view.View pager = entry.getKey();
+                Object adapter = entry.getValue();
+                lines.add("pager " + ref(pager) + " shown=" + pager.isShown() + " current="
+                        + callNoArg(pager, "getCurrentItem") + " width=" + pager.getWidth()
+                        + " adapter=" + ref(adapter) + " count=" + callNoArg(adapter, "getCount"));
+                // The pager's counters sit in the class whose field holds the adapter.
+                Class<?> base = pager.getClass();
+                for (Field field : adapterFields.get(pager.getClass())) {
+                    if (field.get(pager) == adapter) base = field.getDeclaringClass();
+                }
+                lines.add(" pager ints" + ownFields(pager, base, true));
+                for (Object item : itemRecords(pager)) lines.add(" item" + ownFields(item, item.getClass(), false));
+                android.view.ViewGroup group = (android.view.ViewGroup) pager;
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    android.view.View child = group.getChildAt(i);
+                    lines.add(" child " + i + " " + where(child, pager, feeds));
+                }
+                // The adapter's own fields: its page models by tag and type, the fragment classes
+                // it counts as its own, its manager and the rest by class and handle.
+                java.util.List<?> models = java.util.Collections.emptyList();
+                Object manager = null;
+                for (Class<?> c = adapter.getClass(); c != null && c != adapterType; c = c.getSuperclass()) {
+                    for (Field field : c.getDeclaredFields()) {
+                        if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                        field.setAccessible(true);
+                        Object value = field.get(adapter);
+                        StringBuilder line = new StringBuilder(" adapter ").append(c.getSimpleName()).append('#')
+                                .append(field.getName());
+                        if (value instanceof java.util.Collection) {
+                            java.util.List<?> items = new java.util.ArrayList<>((java.util.Collection<?>) value);
+                            line.append(' ').append(ref(value)).append(" size=").append(items.size()).append(':');
+                            boolean tagged = !items.isEmpty();
+                            for (Object item : items) {
+                                Object tag = item instanceof Class ? null : callNoArg(item, "tag");
+                                if (item instanceof Class) {
+                                    line.append(' ').append(((Class<?>) item).getName());
+                                    tagged = false;
+                                } else if (tag != null && !"?".equals(tag)) {
+                                    line.append(' ').append(tag).append('/').append(callNoArg(item, "type"))
+                                            .append('@').append(Integer.toHexString(System.identityHashCode(item)));
+                                } else {
+                                    line.append(' ').append(ref(item));
+                                    tagged = false;
+                                }
+                            }
+                            if (tagged && models.isEmpty()) models = items;
+                        } else if (field.getType().isPrimitive()) {
+                            line.append(' ').append(value);
+                        } else {
+                            line.append(' ').append(ref(value));
+                            boolean managed = managerType.isInstance(value);
+                            for (Class<?> up = value == null ? null : value.getClass().getSuperclass();
+                                    up != null && up != Object.class; up = up.getSuperclass()) {
+                                line.append('<').append(up.getName());
+                                managed |= up.getName().endsWith("FragmentManager");
+                            }
+                            if (managed && manager == null) manager = value;
+                        }
+                        lines.add(line.toString());
+                    }
+                }
+                java.util.Map<Object, String> fragments = manager == null
+                        ? java.util.Collections.emptyMap() : reachableFragments(manager, fragmentType);
+                roots.addAll(fragments.keySet());
+                for (java.util.Map.Entry<Object, String> found : fragments.entrySet()) {
+                    Object fragment = found.getKey();
+                    StringBuilder line = new StringBuilder(" fragment ").append(ref(fragment))
+                            .append(" via ").append(found.getValue());
+                    for (Field field : fragmentType.getDeclaredFields()) {
+                        if (field.getType() != android.view.View.class
+                                || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                        field.setAccessible(true);
+                        line.append(" view ").append(field.getName()).append('=')
+                                .append(where((android.view.View) field.get(fragment), pager, feeds));
+                    }
+                    lines.add(line.toString());
+                    lines.add("  fields" + ownFields(fragment, fragmentType, false));
+                    String shown = listPanelHints(fragment);
+                    if (!shown.isEmpty()) {
+                        lines.add("  list panel" + shown);
+                        if (!listPanelFragments.contains(fragment)) listPanelFragments.add(fragment);
+                    }
+                }
+                if (!deep) continue;
+                for (Object fragment : fragments.keySet()) {
+                    StringBuilder answers = new StringBuilder(" position ").append(ref(fragment));
+                    for (Method method : adapter.getClass().getDeclaredMethods()) {
+                        Class<?>[] params = method.getParameterTypes();
+                        if (method.getReturnType() != int.class || params.length != 1 || params[0] != Object.class) continue;
+                        method.setAccessible(true);
+                        try {
+                            answers.append(' ').append(method.getName()).append('=').append(method.invoke(adapter, fragment));
+                        } catch (ReflectiveOperationException | RuntimeException failed) {
+                            answers.append(' ').append(method.getName()).append("=failed ").append(failed.getClass().getSimpleName());
+                        }
+                    }
+                    lines.add(answers.toString());
+                }
+                try {
+                    lines.add(" class gate 05LR.LIZ=" + loader.loadClass("X.05LR").getMethod("LIZ").invoke(null));
+                } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                    lines.add(" class gate unreadable " + unreadable);
+                }
+                try {
+                    Class<?> hox = loader.loadClass("com.bytedance.hox.Hox");
+                    Field companionField = hox.getDeclaredField("LLJL");
+                    companionField.setAccessible(true);
+                    Object companion = companionField.get(null);
+                    Object owner = null;
+                    for (Class<?> c = adapter.getClass(); c != null && owner == null; c = c.getSuperclass()) {
+                        try {
+                            Field field = c.getDeclaredField("LLJJJJ");
+                            field.setAccessible(true);
+                            owner = field.get(adapter);
+                        } catch (NoSuchFieldException absent) {
+                            // Not declared at this level.
+                        }
+                    }
+                    Method forOwner = null;
+                    for (Method method : companion.getClass().getDeclaredMethods()) {
+                        if (method.getName().equals("LIZ") && method.getParameterTypes().length == 1
+                                && owner != null && method.getParameterTypes()[0].isInstance(owner)) forOwner = method;
+                    }
+                    if (forOwner == null) {
+                        StringBuilder offered = new StringBuilder();
+                        for (Method method : companion.getClass().getDeclaredMethods()) {
+                            offered.append(' ').append(method.getName())
+                                    .append(java.util.Arrays.toString(method.getParameterTypes()));
+                        }
+                        throw new IllegalStateException("no Hox lookup for " + ref(owner) + "; offered" + offered);
+                    }
+                    forOwner.setAccessible(true);
+                    Object tree = forOwner.invoke(companion, owner);
+                    lines.add(" hox tree " + ref(tree) + describe(tree, 2));
+                    Method pageClass = hox.getDeclaredMethod("L23", String.class);
+                    pageClass.setAccessible(true);
+                    for (Object model : models) {
+                        Object tag = callNoArg(model, "tag");
+                        Object type = pageClass.invoke(tree, String.valueOf(tag));
+                        StringBuilder line = new StringBuilder(" hox ").append(tag).append(" -> ")
+                                .append(type == null ? "null" : ((Class<?>) type).getName());
+                        for (Object fragment : fragments.keySet()) {
+                            if (type != null && ((Class<?>) type).isInstance(fragment)) line.append(" fits ").append(ref(fragment));
+                        }
+                        lines.add(line.toString());
+                    }
+                    Method nodeOf = hox.getDeclaredMethod("N23", String.class);
+                    nodeOf.setAccessible(true);
+                    for (Object model : models) {
+                        Object tag = callNoArg(model, "tag");
+                        lines.add(" hox node " + tag + hoxNode(nodeOf.invoke(tree, String.valueOf(tag))));
+                    }
+                    lines.add(" hox leaf " + hoxLeaf(tree));
+                } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                    lines.add(" hox unreadable " + unreadable);
+                }
+            }
+            // Each feed page's visibility component, with its started and visible flags, which
+            // decide whether that feed starts players. A page fragment's root panel comes from
+            // TikTok's own lookup (06ev.LIZJ, the one its page resume and pause use), and the walk
+            // starts there; without a panel it starts from the fragments, feeds and activity. The
+            // Assem parts it passes are counted, so a walk that misses shows where the trail ends.
+            // Deep looks them up again; the watch reads the components the last deep report found.
+            if (deep) {
+                long started = android.os.SystemClock.uptimeMillis();
+                // The page panel builds its visibility component only while this experiment is on.
+                try {
+                    Method sequenceOn = loader.loadClass("X.06Yf").getDeclaredMethod("LIZ");
+                    sequenceOn.setAccessible(true);
+                    lines.add("generic feed sequence " + sequenceOn.invoke(null));
+                } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                    lines.add("generic feed sequence unreadable " + unreadable);
+                }
+                java.util.List<Object> panels = new java.util.ArrayList<>();
+                try {
+                    Method panelOf = loader.loadClass("X.06ev").getDeclaredMethod("LIZJ", fragmentType);
+                    panelOf.setAccessible(true);
+                    for (Object root : roots) {
+                        if (!fragmentType.isInstance(root)) continue;
+                        Object panel = panelOf.invoke(null, root);
+                        lines.add("panel of " + ref(root) + " -> " + ref(panel));
+                        if (panel == null) continue;
+                        panels.add(panel);
+                        for (Class<?> c = panel.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                            lines.add("  panel fields " + c.getName() + partFields(panel, c));
+                        }
+                    }
+                } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                    lines.add("panel lookup unreadable " + unreadable);
+                }
+                java.util.List<Object> walkRoots = new java.util.ArrayList<>(panels.isEmpty() ? roots : panels);
+                if (panels.isEmpty()) {
+                    for (Object fragment : roots) {
+                        Object activity = callNoArg(fragment, "getActivity");
+                        if (activity instanceof android.app.Activity && !walkRoots.contains(activity)) walkRoots.add(activity);
+                    }
+                }
+                String[] names = {
+                        "com.ss.android.ugc.feed.platform.panel.visibility.FeedPageVisibilityComponent",
+                        "com.ss.android.ugc.feed.platform.panel.RootPanelComponent",
+                        "com.bytedance.assem.arch.core.AssemSupervisor",
+                        "com.bytedance.assem.arch.core.UIAssem" };
+                Class<?>[] wanted = new Class<?>[names.length];
+                for (int i = 0; i < names.length; i++) wanted[i] = loader.loadClass(names[i]);
+                java.util.List<java.util.List<Object[]>> found = new java.util.ArrayList<>();
+                int visited = findInstances(walkRoots, wanted, 28, 500000, found);
+                visibilityComponents.clear();
+                visibilityComponents.addAll(found.get(0));
+                lines.add("visibility search " + visited + " objects from " + walkRoots.size() + " roots in "
+                        + (android.os.SystemClock.uptimeMillis() - started) + " ms, keyed tags "
+                        + (keyedTags == null ? "closed" : "open"));
+                for (int i = 1; i < names.length; i++) {
+                    lines.add("visibility found " + found.get(i).size() + " " + names[i]);
+                    for (int j = 0; j < Math.min(3, found.get(i).size()); j++) lines.add("  via " + found.get(i).get(j)[1]);
+                }
+            }
+            for (Object[] found : visibilityComponents) {
+                Object component = found[0];
+                StringBuilder line = new StringBuilder("visibility ").append(ref(component));
+                try {
+                    Field stateField = component.getClass().getDeclaredField("LLJJIII");
+                    stateField.setAccessible(true);
+                    Object state = stateField.get(component);
+                    line.append(" state=").append(ref(state)).append(ownFields(state, state.getClass(), false));
+                    Field listenersField = state.getClass().getDeclaredField("LIZ");
+                    listenersField.setAccessible(true);
+                    java.util.List<?> listeners = new java.util.ArrayList<>((java.util.Collection<?>) listenersField.get(state));
+                    line.append(" listeners ").append(listeners.size()).append(':');
+                    for (Object listener : listeners) line.append(' ').append(listener == null ? "null" : listener.getClass().getName());
+                } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                    line.append(" unreadable ").append(unreadable).append(ownFields(component, component.getClass(), false));
+                }
+                lines.add(line.toString());
+                lines.add(" via " + found[1]);
+            }
+            return lines;
+        }
+
+        /** The visibility components the last deep report found, each with the field path it was found by. */
+        private final java.util.List<Object[]> visibilityComponents = new java.util.ArrayList<>();
+
+        /** Per class, its own and inherited instance fields that hold objects, made readable once. */
+        private static final java.util.Map<Class<?>, Field[]> walkFields = new java.util.HashMap<>();
+
+        /** A view's tags set by key, where libraries hang their own parts on a view; null when Android keeps the field closed. */
+        private static final Field keyedTags = keyedTagsField();
+
+        private static Field keyedTagsField() {
+            try {
+                Field field = android.view.View.class.getDeclaredField("mKeyedTags");
+                field.setAccessible(true);
+                return field;
+            } catch (ReflectiveOperationException | RuntimeException closed) {
+                return null;
+            }
+        }
+
+        /**
+         * Every object of these classes within so many steps of the roots, by fields, list and map
+         * entries, arrays, references and androidx's iterable maps, each with the field path it
+         * was found by, into one list per class. The walk goes on through what it finds, except
+         * through the first class. A view is opened by its tags, layout params, children and the
+         * fields of its classes outside android, since a feed's pages keep their parts on their
+         * views. Contexts other than an activity, threads and classes are not opened, nor are
+         * java's, android's or coroutine machinery's own fields, and the walk stops after this
+         * many objects. Each step keeps its parent and label, not its path, so a wide walk stays
+         * small. Answers how many objects it read.
+         */
+        private static int findInstances(java.util.List<Object> roots, Class<?>[] wanted, int maxDepth, int maxObjects,
+                java.util.List<java.util.List<Object[]>> found) {
+            for (int i = 0; i < wanted.length; i++) found.add(new java.util.ArrayList<>());
+            java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+            java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+            for (Object root : roots) queue.add(new Object[] { root, null, root.getClass().getSimpleName(), 0 });
+            while (!queue.isEmpty() && seen.size() < maxObjects) {
+                Object[] node = queue.poll();
+                Object value = node[0];
+                if (!seen.add(value)) continue;
+                boolean target = false;
+                for (int i = 0; i < wanted.length; i++) {
+                    if (!wanted[i].isInstance(value)) continue;
+                    found.get(i).add(new Object[] { value, pathOf(node) });
+                    target |= i == 0;
+                }
+                if (target || (Integer) node[3] >= maxDepth
+                        || (value instanceof Context && !(value instanceof android.app.Activity))
+                        || value instanceof Class || value instanceof CharSequence || value instanceof Number
+                        || value instanceof Boolean || value instanceof Enum || value instanceof Thread
+                        || value instanceof ClassLoader) continue;
+                try {
+                    walkInto(value, node, queue);
+                } catch (RuntimeException unreadable) {
+                    // A collection changing under the walk, or one that can't be read: not a route.
+                }
+            }
+            return seen.size();
+        }
+
+        private static String pathOf(Object[] node) {
+            java.util.ArrayDeque<Object> labels = new java.util.ArrayDeque<>();
+            for (Object[] at = node; at != null; at = (Object[]) at[1]) labels.addFirst(at[2]);
+            StringBuilder out = new StringBuilder();
+            for (Object label : labels) {
+                if (label instanceof Field) out.append('.').append(((Field) label).getName());
+                else if (label instanceof Integer) out.append('[').append(label).append(']');
+                else out.append(label);
+            }
+            return out.toString();
+        }
+
+        private static void push(java.util.ArrayDeque<Object[]> queue, Object value, Object[] parent, Object label) {
+            if (value != null) queue.add(new Object[] { value, parent, label, (Integer) parent[3] + 1 });
+        }
+
+        /** Queues what one object holds, for findInstances. Lists and maps are iterated, never copied, since Android's ArrayMap can't copy its entries. */
+        private static void walkInto(Object value, Object[] node, java.util.ArrayDeque<Object[]> queue) {
+            String name = value.getClass().getName();
+            if (value instanceof android.view.View) {
+                android.view.View view = (android.view.View) value;
+                push(queue, view.getTag(), node, ".tag");
+                push(queue, view.getLayoutParams(), node, ".params");
+                if (keyedTags != null) {
+                    try {
+                        push(queue, keyedTags.get(view), node, ".keyedTags");
+                    } catch (IllegalAccessException closed) {
+                        // Not a route.
+                    }
+                }
+                if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int i = 0; i < group.getChildCount(); i++) push(queue, group.getChildAt(i), node, "/" + i);
+                }
+            }
+            if (value instanceof java.util.Collection) {
+                int i = 0;
+                for (Object item : (java.util.Collection<?>) value) {
+                    if (i >= 4096) break;
+                    push(queue, item, node, i++);
+                }
+            } else if (value instanceof java.util.Map) {
+                int i = 0;
+                for (java.util.Map.Entry<?, ?> entry : ((java.util.Map<?, ?>) value).entrySet()) {
+                    if (i++ >= 4096) break;
+                    push(queue, entry.getKey(), node, "{key}");
+                    push(queue, entry.getValue(), node, "{}");
+                }
+            } else if (value instanceof android.util.SparseArray) {
+                android.util.SparseArray<?> array = (android.util.SparseArray<?>) value;
+                for (int i = 0; i < array.size(); i++) push(queue, array.valueAt(i), node, i);
+            } else if (value instanceof java.lang.ref.Reference) {
+                push(queue, ((java.lang.ref.Reference<?>) value).get(), node, ".get()");
+            } else if (value instanceof java.util.concurrent.atomic.AtomicReference) {
+                push(queue, ((java.util.concurrent.atomic.AtomicReference<?>) value).get(), node, ".get()");
+            } else if (value.getClass().isArray()) {
+                if (!value.getClass().getComponentType().isPrimitive()) {
+                    Object[] items = (Object[]) value;
+                    for (int i = 0; i < items.length; i++) push(queue, items[i], node, i);
+                }
+            } else if (value instanceof Iterable && name.startsWith("androidx.")) {
+                int i = 0;
+                for (Object item : (Iterable<?>) value) {
+                    if (i >= 512) break;
+                    push(queue, item, node, i++);
+                }
+            } else if (!name.startsWith("java.") && !name.startsWith("javax.") && !name.startsWith("android.")
+                    && !name.startsWith("dalvik.") && !name.startsWith("libcore.") && !name.startsWith("kotlinx.coroutines.")) {
+                for (Field field : walkFields(value.getClass())) {
+                    try {
+                        push(queue, field.get(value), node, field);
+                    } catch (IllegalAccessException | RuntimeException unreadable) {
+                        // Not a route.
+                    }
+                }
+            }
+        }
+
+        private static Field[] walkFields(Class<?> type) {
+            Field[] known = walkFields.get(type);
+            if (known != null) return known;
+            java.util.List<Field> fields = new java.util.ArrayList<>();
+            for (Class<?> c = type; c != null && !c.getName().startsWith("java.")
+                    && !c.getName().startsWith("android."); c = c.getSuperclass()) {
+                for (Field field : c.getDeclaredFields()) {
+                    if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                    try {
+                        field.setAccessible(true);
+                        fields.add(field);
+                    } catch (RuntimeException closed) {
+                        // Not a route.
+                    }
+                }
+            }
+            known = fields.toArray(new Field[0]);
+            walkFields.put(type, known);
+            return known;
+        }
+
+        private Object pagerAdapter(android.view.View view, Class<?> adapterType) {
+            // Every adapter-typed field, since a subclass can declare one of its own that stays
+            // empty (TikTok's top tab pager does) while the base class's holds the adapter.
+            Field[] known = adapterFields.get(view.getClass());
+            if (known == null) {
+                java.util.List<Field> found = new java.util.ArrayList<>();
+                for (Class<?> c = view.getClass(); c != null && c != android.view.ViewGroup.class
+                        && c != android.view.View.class; c = c.getSuperclass()) {
+                    for (Field field : c.getDeclaredFields()) {
+                        if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                                && adapterType.isAssignableFrom(field.getType())) {
+                            field.setAccessible(true);
+                            found.add(field);
+                        }
+                    }
+                }
+                known = found.toArray(new Field[0]);
+                adapterFields.put(view.getClass(), known);
+            }
+            for (Field field : known) {
+                try {
+                    Object adapter = field.get(view);
+                    if (adapter != null) return adapter;
+                } catch (IllegalAccessException unreadable) {
+                    // The next one.
+                }
+            }
+            return null;
+        }
+
+        /**
+         * An object's own fields, for Hox's node tree: numbers and flags as they are, short text
+         * as it is and longer text by length, maps by key, lists by size and entry, and other
+         * objects by handle, opened this many levels down. Classes from java and android, and
+         * fragments, views and contexts, whose fields hold what the user sees, are not opened.
+         */
+        private static String describe(Object target, int depth) {
+            StringBuilder out = new StringBuilder();
+            for (Class<?> c = target.getClass(); c != null && !c.getName().startsWith("java.")
+                    && !c.getName().startsWith("android."); c = c.getSuperclass()) {
+                for (Field field : c.getDeclaredFields()) {
+                    if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                    Object value;
+                    try {
+                        field.setAccessible(true);
+                        value = field.get(target);
+                    } catch (IllegalAccessException | RuntimeException unreadable) {
+                        out.append(' ').append(field.getName()).append("=?");
+                        continue;
+                    }
+                    out.append(' ').append(field.getName()).append('=');
+                    if (value instanceof CharSequence) {
+                        out.append(capped(value));
+                    } else if (value == null || field.getType().isPrimitive()
+                            || value instanceof Number || value instanceof Boolean || value instanceof Enum) {
+                        out.append(value);
+                    } else if (value instanceof java.util.Map) {
+                        out.append('{');
+                        for (java.util.Map.Entry<?, ?> entry : new java.util.ArrayList<>(((java.util.Map<?, ?>) value).entrySet())) {
+                            out.append(' ').append(entry.getKey() instanceof CharSequence ? capped(entry.getKey()) : ref(entry.getKey()))
+                                    .append("->").append(ref(entry.getValue()));
+                            if (depth > 0 && opens(entry.getValue())) {
+                                out.append(" (").append(describe(entry.getValue(), depth - 1)).append(" )");
+                            }
+                        }
+                        out.append(" }");
+                    } else if (value instanceof java.util.Collection) {
+                        java.util.List<?> items = new java.util.ArrayList<>((java.util.Collection<?>) value);
+                        out.append('[').append(items.size()).append(':');
+                        for (Object item : items) {
+                            out.append(' ').append(item instanceof CharSequence ? capped(item) : ref(item));
+                            if (depth > 0 && opens(item)) {
+                                out.append(" (").append(describe(item, depth - 1)).append(" )");
+                            }
+                        }
+                        out.append(" ]");
+                    } else {
+                        out.append(ref(value));
+                    }
+                }
+            }
+            return out.toString();
+        }
+
+        private static boolean opens(Object value) {
+            if (value == null || value instanceof android.view.View || value instanceof Context) return false;
+            for (Class<?> c = value.getClass(); c != null; c = c.getSuperclass()) {
+                if (c.getName().equals("androidx.fragment.app.Fragment")) return false;
+            }
+            String name = value.getClass().getName();
+            return !name.startsWith("java.") && !name.startsWith("android.");
+        }
+
+        /** Text of up to 40 characters as it is, longer text by its length alone. */
+        private static String capped(Object text) {
+            String value = String.valueOf(text);
+            return value.length() <= 40 ? value : "<text " + value.length() + ">";
+        }
+
+        /** Logs a line in pieces of at most 3000 characters, since logcat cuts an entry at about 4 KB. */
+        private static void logLong(String prefix, String line) {
+            int start = 0;
+            do {
+                Log.i(TAG, prefix + (start == 0 ? "" : "... ") + line.substring(start, Math.min(line.length(), start + 3000)));
+                start += 3000;
+            } while (start < line.length());
+        }
+
+        /** The pager's records of the pages it laid out: its one list whose entries hold an object and a position. */
+        private static java.util.List<?> itemRecords(android.view.View pager) throws IllegalAccessException {
+            for (Class<?> c = pager.getClass(); c != null && c != android.view.ViewGroup.class; c = c.getSuperclass()) {
+                for (Field field : c.getDeclaredFields()) {
+                    if (field.getType() != java.util.ArrayList.class
+                            || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                    field.setAccessible(true);
+                    java.util.List<?> list = (java.util.List<?>) field.get(pager);
+                    if (list == null || list.isEmpty()) continue;
+                    Object first = list.get(0);
+                    if (first == null || first instanceof android.view.View) continue;
+                    boolean object = false, position = false;
+                    for (Field part : first.getClass().getDeclaredFields()) {
+                        if (part.getType() == Object.class) object = true;
+                        if (part.getType() == int.class) position = true;
+                    }
+                    if (object && position) return new java.util.ArrayList<>(list);
+                }
+            }
+            return java.util.Collections.emptyList();
+        }
+
+        /**
+         * Every fragment within four fields, lists or maps of a fragment manager, with the field
+         * path it was found by. Detached pages leave the manager's added list but stay in its map
+         * of active ones, one level further down, so the walk goes that deep.
+         */
+        private static java.util.Map<Object, String> reachableFragments(Object manager, Class<?> fragmentType) {
+            java.util.Map<Object, String> found = new java.util.IdentityHashMap<>();
+            java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+            java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+            queue.add(new Object[] { manager, "manager", 0 });
+            while (!queue.isEmpty() && found.size() < 32) {
+                Object[] next = queue.poll();
+                Object value = next[0];
+                String path = (String) next[1];
+                int depth = (Integer) next[2];
+                if (value == null || !seen.add(value)) continue;
+                if (fragmentType.isInstance(value)) {
+                    found.put(value, path);
+                    continue;
+                }
+                if (depth >= 4 || value instanceof android.view.View || value instanceof Context
+                        || value instanceof Class || value instanceof CharSequence) continue;
+                if (value instanceof java.util.Collection) {
+                    int i = 0;
+                    for (Object item : new java.util.ArrayList<>((java.util.Collection<?>) value)) {
+                        queue.add(new Object[] { item, path + "[" + i++ + "]", depth + 1 });
+                    }
+                    continue;
+                }
+                if (value instanceof java.util.Map) {
+                    for (Object item : new java.util.ArrayList<>(((java.util.Map<?, ?>) value).values())) {
+                        queue.add(new Object[] { item, path + "{}", depth + 1 });
+                    }
+                    continue;
+                }
+                if (value.getClass().isArray()) {
+                    if (!value.getClass().getComponentType().isPrimitive()) {
+                        Object[] items = (Object[]) value;
+                        for (int i = 0; i < items.length; i++) queue.add(new Object[] { items[i], path + "[" + i + "]", depth + 1 });
+                    }
+                    continue;
+                }
+                for (Class<?> c = value.getClass(); c != null && !c.getName().startsWith("java.")
+                        && !c.getName().startsWith("android."); c = c.getSuperclass()) {
+                    for (Field field : c.getDeclaredFields()) {
+                        if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                        try {
+                            field.setAccessible(true);
+                            queue.add(new Object[] { field.get(value), path + "." + field.getName(), depth + 1 });
+                        } catch (IllegalAccessException | RuntimeException unreadable) {
+                            // Not a route.
+                        }
+                    }
+                }
+            }
+            return found;
+        }
+
+        /**
+         * The fields one class declares on an object: numbers, flags, enums and text as they are,
+         * other objects by class and handle. Ints alone when asked, for a pager's counters.
+         */
+        private static String ownFields(Object target, Class<?> declaring, boolean intsOnly) {
+            StringBuilder out = new StringBuilder();
+            for (Field field : declaring.getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                if (intsOnly && field.getType() != int.class) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(target);
+                    boolean plain = field.getType().isPrimitive() || value instanceof CharSequence
+                            || value instanceof Number || value instanceof Boolean || value instanceof Enum;
+                    out.append(' ').append(field.getName()).append('=').append(plain ? String.valueOf(value) : ref(value));
+                } catch (IllegalAccessException | RuntimeException unreadable) {
+                    out.append(' ').append(field.getName()).append("=?");
+                }
+            }
+            return out.toString();
+        }
+
+        /** The feed fragments the last report found holding a list panel, for toppager-show. */
+        private final java.util.List<Object> listPanelFragments = new java.util.ArrayList<>();
+
+        /**
+         * A Hox node's show state: its show listeners, and its container's tag, shown flag, index
+         * and current child. Hox tells a page it's shown when the page registers under a node that
+         * is its shown container's current child, or when the container switches to that node.
+         */
+        private static String hoxNode(Object node) throws ReflectiveOperationException {
+            if (node == null) return " none";
+            Class<?> nodeType = node.getClass();
+            while (nodeType != null && !nodeType.getName().equals("X.05F6")) nodeType = nodeType.getSuperclass();
+            if (nodeType == null) return " " + ref(node) + " not a node";
+            Field listenersField = nodeType.getDeclaredField("LLJJIII");
+            Field containerField = nodeType.getDeclaredField("LL");
+            listenersField.setAccessible(true);
+            containerField.setAccessible(true);
+            StringBuilder out = new StringBuilder(" ").append(ref(node)).append(" listeners");
+            for (Object listener : (Iterable<?>) listenersField.get(node)) out.append(' ').append(ref(listener));
+            Object container = containerField.get(node);
+            out.append(" container ").append(ref(container));
+            Class<?> containerType = container == null ? null : container.getClass();
+            while (containerType != null && !containerType.getName().equals("X.05HC")) containerType = containerType.getSuperclass();
+            if (containerType == null) return out.toString();
+            Field shown = containerType.getDeclaredField("LLJJJJJIL");
+            Field index = containerType.getDeclaredField("LLJJJ");
+            Field current = containerType.getDeclaredField("LLJJJJ");
+            shown.setAccessible(true);
+            index.setAccessible(true);
+            current.setAccessible(true);
+            Object currentNode = current.get(container);
+            out.append(" tag=").append(callNoArg(container, "tag")).append(" shown=").append(shown.getBoolean(container))
+                    .append(" index=").append(index.getInt(container)).append(" current=").append(ref(currentNode))
+                    .append(currentNode == node ? " (this node)" : " (another node)");
+            return out.toString();
+        }
+
+        /** The tag and identity of Hox's current leaf, the node b33 compares a switch's target with. */
+        private static String hoxLeaf(Object tree) {
+            try {
+                Field rootField = tree.getClass().getDeclaredField("LLJJIJI");
+                rootField.setAccessible(true);
+                Object root = rootField.get(tree);
+                if (root == null) return "no root";
+                for (Method leafOf : tree.getClass().getDeclaredMethods()) {
+                    if (!leafOf.getName().equals("J23") || leafOf.getParameterTypes().length != 1) continue;
+                    leafOf.setAccessible(true);
+                    Object leaf = leafOf.invoke(null, root);
+                    return leaf == null ? "none" : callNoArg(leaf, "tag") + "=" + ref(leaf);
+                }
+                return "no J23";
+            } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                return "unreadable " + unreadable;
+            }
+        }
+
+        /**
+         * Each of a feed fragment's fields holding TikTok's older list panel (X.04fn), with that
+         * panel's visible hint. The page's node show sets it and its node hide clears it, and the
+         * list's players follow it, so a page left hidden shows here as false.
+         */
+        private String listPanelHints(Object fragment) {
+            StringBuilder out = new StringBuilder();
+            try {
+                Class<?> panelType = loader.loadClass("X.04fn");
+                Field hint = panelType.getDeclaredField("mUserVisibleHint");
+                hint.setAccessible(true);
+                for (Class<?> c = fragment.getClass(); c != null && !c.getName().startsWith("androidx."); c = c.getSuperclass()) {
+                    for (Field field : c.getDeclaredFields()) {
+                        if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                                || !panelType.isAssignableFrom(field.getType())) continue;
+                        field.setAccessible(true);
+                        Object panel = field.get(fragment);
+                        out.append(' ').append(field.getName()).append('=').append(ref(panel));
+                        if (panel != null) out.append(" hint=").append(hint.getBoolean(panel));
+                    }
+                }
+            } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                out.append(" unreadable ").append(unreadable);
+            }
+            return out.toString();
+        }
+
+        /** A feed part's own fields like ownFields, but text by length only, since a part can hold a video's id or caption. */
+        private static String partFields(Object target, Class<?> declaring) {
+            StringBuilder out = new StringBuilder();
+            for (Field field : declaring.getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(target);
+                    String shown = value instanceof CharSequence ? "<text " + ((CharSequence) value).length() + ">"
+                            : field.getType().isPrimitive() || value instanceof Boolean || value instanceof Enum
+                            ? String.valueOf(value) : ref(value);
+                    out.append(' ').append(field.getName()).append('=').append(shown);
+                } catch (IllegalAccessException | RuntimeException unreadable) {
+                    out.append(' ').append(field.getName()).append("=?");
+                }
+            }
+            return out.toString();
+        }
+
+        /** A view by handle and where it sits: a page of the pager, attached elsewhere or not at all, and the feed it holds. */
+        private static String where(android.view.View view, android.view.View pager, java.util.List<android.view.View> feeds) {
+            if (view == null) return "none";
+            StringBuilder out = new StringBuilder(ref(view));
+            if (view.getParent() == pager) {
+                out.append(" page left=").append(view.getLeft()).append(" width=").append(view.getWidth());
+            } else {
+                out.append(view.isAttachedToWindow() ? " attached elsewhere" : " detached");
+            }
+            out.append(" shown=").append(view.isShown());
+            for (android.view.View feed : feeds) {
+                for (android.view.ViewParent up = feed.getParent(); up != null; up = up.getParent()) {
+                    if (up == view) {
+                        out.append(" holds feed ").append(ref(feed));
+                        break;
+                    }
+                }
+            }
+            return out.toString();
+        }
+
+        private static Object callNoArg(Object target, String name) {
+            if (target == null) return null;
+            try {
+                Method method = target.getClass().getMethod(name);
+                method.setAccessible(true);
+                return method.invoke(target);
+            } catch (ReflectiveOperationException | RuntimeException missing) {
+                return "?";
+            }
+        }
+
+        private static String ref(Object value) {
+            return value == null ? "null" : value.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(value));
         }
 
         /**

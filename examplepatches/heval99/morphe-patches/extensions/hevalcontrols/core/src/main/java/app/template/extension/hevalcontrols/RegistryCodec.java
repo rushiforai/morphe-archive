@@ -20,8 +20,14 @@ import java.util.Set;
  * </pre>
  * One record per line. Booleans are {@code 0} or {@code 1}; deps are comma-separated ids (may be
  * empty). In text fields a backslash escapes {@code \\}, {@code \t}, {@code \n} and {@code \r}, so
- * a raw tab or line feed is always a separator. Fields after the eighth are ignored, so a
- * version-1 reader keeps working when a later bundle appends fields.
+ * a raw tab or line feed is always a separator.
+ *
+ * <p>An optional ninth field is the feature kind (added 2026-11-03 for list settings):
+ * {@code list} for a "pick items to hide" list ({@link Feature#KIND_LIST}); empty, missing or any
+ * other value is a switch. The encoder writes it only for list features, so a registry of switches
+ * is byte-for-byte what it was before, and the version stays 1. A list record with
+ * buildTimeOnly {@code 1} is malformed and skipped; its default is always off. Fields after the
+ * ninth are ignored, so a version-1 reader keeps working when a later bundle appends fields.
  *
  * <p>The decoder never throws: a malformed record is skipped, an unknown header version yields an
  * empty, unsupported registry (every hook then answers stock).
@@ -30,6 +36,8 @@ public final class RegistryCodec {
     public static final String HEADER_PREFIX = "hevalcontrols-registry:";
     public static final int VERSION = 1;
     private static final int FIELDS_V1 = 8;
+    /** Index of the optional kind field. */
+    private static final int KIND_FIELD = 8;
 
     /** Result of {@link #decode(String)}. */
     public static final class Result {
@@ -98,6 +106,8 @@ public final class RegistryCodec {
         int defaultOn = flag(fields[4]), restart = flag(fields[5]), buildTime = flag(fields[6]);
         if (id == null || name == null || description == null || category == null) return null;
         if (defaultOn < 0 || restart < 0 || buildTime < 0 || !Feature.isValidId(id)) return null;
+        boolean list = fields.length > KIND_FIELD && Feature.KIND_LIST.equals(fields[KIND_FIELD]);
+        if (list && buildTime == 1) return null;
 
         List<String> dependencies = new ArrayList<>();
         if (!fields[7].isEmpty()) {
@@ -108,7 +118,8 @@ public final class RegistryCodec {
                 }
             }
         }
-        return new Feature(id, name, description, category, defaultOn == 1, restart == 1, buildTime == 1, dependencies);
+        return new Feature(id, name, description, category, defaultOn == 1, restart == 1, buildTime == 1, dependencies,
+                list ? Feature.KIND_LIST : Feature.KIND_SWITCH);
     }
 
     private static int flag(String field) {

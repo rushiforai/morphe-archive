@@ -1,12 +1,16 @@
 package semicoloncolonel.mobilestream.extension.recgov;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Application;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -21,8 +25,12 @@ import java.util.Set;
  * "Show hidden details" for Recreation.gov.
  *
  * The app receives these values with its normal requests but never shows
- * them. Each helper adds them to text the app already shows from the same
- * data. Nothing is requested, and nothing about booking changes.
+ * them. Most helpers append the detail to text the app already shows from the
+ * same data. The ticket-lottery applicant and award counts are the exception:
+ * that screen carries no text to append to, so they are shown in a dialog that
+ * stays until the user dismisses it. The lottery's results date is left out
+ * because the app already shows it. Nothing is requested, and nothing about
+ * booking changes.
  */
 @SuppressWarnings("unused")
 public final class HiddenDetails {
@@ -170,46 +178,97 @@ public final class HiddenDetails {
         return text;
     }
 
-    /** A ticket lottery screen's state was created: shows the lottery's numbers once. */
+    private static String count(Object value) {
+        if (!(value instanceof Number)) {
+            return null;
+        }
+        return NumberFormat.getIntegerInstance(Locale.US).format(((Number) value).longValue());
+    }
+
+    /** The resumed Activity, found through ActivityThread so no extra app hook is needed. */
+    private static Activity currentActivity() {
+        try {
+            Class<?> threadClass = Class.forName("android.app.ActivityThread");
+            Object thread = threadClass.getMethod("currentActivityThread").invoke(null);
+            Field activitiesField = threadClass.getDeclaredField("mActivities");
+            activitiesField.setAccessible(true);
+            Object activities = activitiesField.get(thread);
+            if (!(activities instanceof Map)) {
+                return null;
+            }
+            for (Object record : ((Map<?, ?>) activities).values()) {
+                Field pausedField = record.getClass().getDeclaredField("paused");
+                pausedField.setAccessible(true);
+                if (!pausedField.getBoolean(record)) {
+                    Field activityField = record.getClass().getDeclaredField("activity");
+                    activityField.setAccessible(true);
+                    Object activity = activityField.get(record);
+                    if (activity instanceof Activity) {
+                        return (Activity) activity;
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "current activity: " + t);
+        }
+        return null;
+    }
+
+    /**
+     * A ticket lottery screen's state was created: shows the lottery's hidden
+     * applicant and ticket counts. These four numbers are received but shown
+     * nowhere in the app; the results-available date is left out because the
+     * screen already shows it. Shown once per lottery as a dialog that stays up
+     * until dismissed and has room for every line, not a vanishing toast.
+     */
     public static void showLottery(Object lottery) {
         try {
             Object id = get(lottery, "getLotteryInstanceId");
             if (lottery == null || !shownLotteries.add(id == null ? lottery : id)) {
                 return;
             }
-            Object applications = get(lottery, "getTotalApplicationCount");
-            Object tickets = get(lottery, "getTotalApplicationTicketCount");
-            Object awarded = get(lottery, "getFulfilledTicketCount");
-            Object perAccount = get(lottery, "getMaxReservationsPerAccount");
-            String results = format((Date) get(lottery, "getResultsAvailableTime"));
-            StringBuilder text = new StringBuilder("Lottery");
+            String applications = count(get(lottery, "getTotalApplicationCount"));
+            String tickets = count(get(lottery, "getTotalApplicationTicketCount"));
+            String awarded = count(get(lottery, "getFulfilledTicketCount"));
+            String perAccount = count(get(lottery, "getMaxReservationsPerAccount"));
+
+            StringBuilder body = new StringBuilder();
             if (applications != null) {
-                text.append(": ").append(applications).append(" applications");
-                if (tickets != null) {
-                    text.append(" for ").append(tickets).append(" tickets");
-                }
+                body.append("Applications: ").append(applications).append('\n');
+            }
+            if (tickets != null) {
+                body.append("Tickets requested: ").append(tickets).append('\n');
             }
             if (awarded != null) {
-                text.append(", ").append(awarded).append(" tickets awarded");
+                body.append("Tickets awarded: ").append(awarded).append('\n');
             }
             if (perAccount != null) {
-                text.append(", limit ").append(perAccount).append(" per account");
+                body.append("Limit per account: ").append(perAccount).append('\n');
             }
-            if (results != null) {
-                text.append(". Results ").append(results);
-            }
-            if (text.length() == "Lottery".length()) {
+            if (body.length() == 0) {
                 return;
             }
-            final String message = text.toString();
-            Log.i(TAG, message);
+            final String message = body.toString().trim();
+            Log.i(TAG, "lottery: " + message.replace('\n', ' '));
+
             new Handler(Looper.getMainLooper()).post(() -> {
                 try {
+                    Activity activity = currentActivity();
+                    if (activity != null && !activity.isFinishing()) {
+                        new AlertDialog.Builder(activity)
+                                .setTitle("Lottery details")
+                                .setMessage(message)
+                                .setCancelable(false)
+                                .setPositiveButton("Close", null)
+                                .show();
+                        return;
+                    }
+                    // No activity to host a dialog: fall back to a toast.
                     Application app = (Application) Class.forName("android.app.ActivityThread")
                             .getMethod("currentApplication").invoke(null);
-                    Toast.makeText(app, message, Toast.LENGTH_LONG).show();
+                    Toast.makeText(app, "Lottery — " + message.replace("\n", ", "), Toast.LENGTH_LONG).show();
                 } catch (Throwable t) {
-                    Log.w(TAG, "lottery toast: " + t);
+                    Log.w(TAG, "lottery dialog: " + t);
                 }
             });
         } catch (Throwable t) {

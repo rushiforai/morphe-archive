@@ -361,3 +361,47 @@ fun patchedApkClasses(apk: File): List<ClassDef> {
     )
     return classes
 }
+
+/**
+ * Picker icons of a Heval Controls list setting (2026-11-03): [init] hands [provider]'s INSTANCE to
+ * HevalSettings.setOptionIconProvider, [provider] implements HevalSettings.OptionIconProvider (or,
+ * with [images], OptionImageProvider, which extends it), and the core (OptionIcons,
+ * HevalSettings.optionIcon / optionImageUrl), the picker that draws the icons and, with [images],
+ * the image loader were merged.
+ */
+fun assertOptionIconsWired(byType: Map<String, ClassDef>, init: Method, provider: String, images: Boolean = false) {
+    val settings = "Lapp/template/extension/hevalcontrols/HevalSettings;"
+    val iconInterface = "Lapp/template/extension/hevalcontrols/HevalSettings\$OptionIconProvider;"
+    val imageInterface = "Lapp/template/extension/hevalcontrols/HevalSettings\$OptionImageProvider;"
+    val providerInterface = if (images) imageInterface else iconInterface
+    val icons = byType[provider] ?: error("$provider not found in the emitted dexes")
+    assertTrue(providerInterface in icons.interfaces, "$provider does not implement $providerInterface")
+    if (images) {
+        val image = byType[imageInterface] ?: error("$imageInterface not found in the emitted dexes")
+        assertTrue(iconInterface in image.interfaces, "$imageInterface does not extend $iconInterface")
+        assertTrue(icons.methods.any { it.name == "imageUrlFor" && it.implementation != null },
+            "$provider has no imageUrlFor")
+    }
+    assertTrue(byType.containsKey("Lapp/template/extension/hevalcontrols/OptionIcons;"), "OptionIcons was not merged")
+    fun Instruction.call() = ((this as? ReferenceInstruction)?.reference as? MethodReference)
+    val insns = init.instructions()
+    val register = insns.indexOfFirst {
+        it.call()?.let { r -> r.definingClass == settings && r.name == "setOptionIconProvider" } == true
+    }
+    assertTrue(register > 0, "${init.definingClass}->${init.name} does not call HevalSettings.setOptionIconProvider")
+    assertTrue(insns.subList(0, register).any {
+        it.opcode == Opcode.SGET_OBJECT && ((it as ReferenceInstruction).reference as FieldReference).definingClass == provider
+    }, "${init.definingClass}->${init.name} does not pass $provider's instance")
+    val picker = byType.filterKeys { it.startsWith("Lapp/template/extension/hevalcontrols/ui/ListPicker") }.values
+    val pickerCalls = picker.flatMap { it.methods }.flatMap { it.instructions() }.mapNotNull { it.call() }
+    assertTrue(pickerCalls.any { it.definingClass == settings && it.name == "optionIcon" },
+        "ListPicker does not ask HevalSettings.optionIcon")
+    if (images) {
+        assertTrue(pickerCalls.any { it.definingClass == settings && it.name == "optionImageUrl" },
+            "ListPicker does not ask HevalSettings.optionImageUrl")
+        val loader = "Lapp/template/extension/hevalcontrols/ui/OptionImageLoader;"
+        assertTrue(byType.containsKey(loader), "$loader was not merged")
+        assertTrue(pickerCalls.any { it.definingClass == loader && it.name == "bind" },
+            "ListPicker does not hand the image URL to OptionImageLoader.bind")
+    }
+}

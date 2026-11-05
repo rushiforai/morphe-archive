@@ -1,5 +1,10 @@
 # GXR spacewarp 2.0.24/5002395 profile
 
+> **Retired 2026-11-01:** the GXR spacewarp layer described here was deleted. This
+> record is historical evidence only; its build and check commands reference files
+> that no longer exist. See the
+> [retirement record](../steamlink-spacewarp-retirement/README.md).
+
 Checked 2026-10-26 against the retained decoded tree
 `android-steamlinkvr-release-base-2.0.24-5002395`. Static and host-side
 evidence only; no headset, ADB, SteamVR or install run was performed.

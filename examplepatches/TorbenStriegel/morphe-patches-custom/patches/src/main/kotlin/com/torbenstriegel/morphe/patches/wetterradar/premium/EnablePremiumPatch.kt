@@ -12,8 +12,18 @@ val enablePremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_WETTERRADAR)
 
     execute {
+        // Select the matching pair together: R8 reuses old names for unrelated methods.
+        val newAccessLevel = AccessLevel202621Fingerprint.methodOrNull
+        val fusedAccess = if (newAccessLevel != null) {
+            FusedAccessCombine202621Fingerprint.method
+        } else {
+            FusedAccessCombineFingerprint.method
+        }
+        val accessLevel = newAccessLevel ?: AccessLevelFingerprint.method
+        val subscriptionField = if (newAccessLevel != null) "Lt6;->b:Lt6;" else "Lo6;->b:Lo6;"
+
         // The isPro flow is consumed by every feature and ad gate — force it to true.
-        FusedAccessCombineFingerprint.method.addInstructions(
+        fusedAccess.addInstructions(
             0,
             """
                 const/4 v0, 0x1
@@ -24,10 +34,10 @@ val enablePremiumPatch = bytecodePatch(
         )
 
         // Report SUBSCRIPTION as the AccessLevel so no paywall/upgrade UI is shown.
-        AccessLevelFingerprint.method.addInstructions(
+        accessLevel.addInstructions(
             0,
             """
-                sget-object v0, Lo6;->b:Lo6;
+                sget-object v0, $subscriptionField
                 return-object v0
             """.trimIndent()
         )

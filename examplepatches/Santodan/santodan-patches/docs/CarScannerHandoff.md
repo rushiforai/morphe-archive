@@ -22,17 +22,17 @@ independent gates, and purchase/restore behavior have not all been verified.
   Extracted inspection store was compared byte-for-byte with that ZIP entry.
 - Store SHA-256: `ab629a592cf8cd9ac886119e543489520d2cbb3391adf96218b590fc50482d4b`.
 - Valid managed images and hashes are in
-  `E:\Morphe\.inspect-carscanner-2.1.50\managed-verified\provenance.json`.
+  `E:\Morphe\Skills\inspection-evidence\.inspect-carscanner-2.1.50\managed-verified\provenance.json`.
 - Earlier files under `step04-managed` are invalid PE images: they were sliced
   from compressed XALZ blocks without LZ4 decompression. Preserve them as prior
   evidence, but do not use them for metadata or IL analysis.
-- The new bounded decoder is `../.inspect-carscanner-2.1.50/decompress-managed.py`.
+- The new bounded decoder is `../Skills/inspection-evidence/.inspect-carscanner-2.1.50/decompress-managed.py`.
   It uses only Python's standard library and does not alter the original.
-- Metadata/IL reader: `../.inspect-carscanner-2.1.50/metadata-reader/` (net10.0,
+- Metadata/IL reader: `../Skills/inspection-evidence/.inspect-carscanner-2.1.50/metadata-reader/` (net10.0,
   no package dependencies). Dumps: `droid-il.txt` and `shared-il.txt` in the
   inspection directory. PowerShell redirection produced UTF-16 files.
 - Focused UTF-8 extracts and caller/writer inventory:
-  `../.inspect-carscanner-2.1.50/entitlement-evidence.txt`.
+  `../Skills/inspection-evidence/.inspect-carscanner-2.1.50/entitlement-evidence.txt`.
   All three extracted DEX files were compared byte-for-byte with the original.
   The APK's assembly-store/AOT entries are only under `lib/arm64-v8a/`.
 

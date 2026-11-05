@@ -33,9 +33,11 @@ need it rather than skipping them.
 | `tests/twitch/verify_playback_links.py` | Twitch's playback and share-link helpers. |
 | `tests/twitch/verify_fill_screen.py` | Twitch's *Fill screen* on a view-tree double of the landscape theatre with a display cutout: the container's cutout padding, the scaled video, the views kept clear of the cutout, and everything given back next to the chat, in portrait, in picture-in-picture, for vertical videos and when the player leaves; Android 10's window cutout mode and the React Native player's resize mode. |
 | `tests/twitch/test_async.py` | The backup stream behind *Avoid stitched ads* against a slow local HTTP server: deadlines, cancellation, ad fallback, oversized and trickling responses, stale results. |
+| `tests/twitch/test_playlist_proxy.py` | Playlist proxy channel-only URLs and token omission, malformed paths, existing bare/encoded-URL modes, and off/empty settings. |
 | `tests/twitch/test_vod_requests.py` | *VOD chapters* requests: shared loads, retries, bounded queues and waiters, player and owner changes, switching off. |
 | `tests/twitch/test_privacy_consent.py` | Twitch's privacy and consent helper. |
 | `tests/twitch/test_providers.py` | Third-party emote, badge and pronoun providers: scheduling, ownership, both response orders. |
+| `tests/twitch/test_seventv_badges.py` | *7TV badges*: cosmetic and entitlement events into the badge pipeline (native models, React Native snapshots, Emote and badge info, deletes, the holder bound, the switch off), and the WebSocket client against a local server: handshake, masking, 2- and 8-byte lengths, ping, fragmentation, resubscribing to another channel, close, and no connection while off or without a channel. |
 | `tests/twitch/test_rn_chat.py` | The compiled React Native chat helpers, the chat overlay's context and the landscape chat column's opacity. |
 | `tests/shared/test_settings.py` | The real `Settings`, `Registry` and settings screen helpers against each app's registered settings (`tests/shared/registry/`): JSON round trip, parent ordering, defaults, restart flags, stored and wrongly typed values, the unreadable-registry fallback. |
 | `tests/shared/test_sleep_timer.py` | *Sleep timer* in Kick and Twitch on a virtual clock: expiry, resuming, stop and release, races at dispatch. |
@@ -69,8 +71,13 @@ they honor `MORPHE_WORK` and `JAVA_HOME`. Decode a patched APK for them with
 `java -jar tools/apktool_*.jar d -f -p "$MORPHE_WORK/apktool-framework" -o <dir> <patched.apk>`.
 
 - `bin/verify-hooks <app> <patched.apk>` checks that app code calls every extension method listed in
-  `tests/<app>/expected-hooks.txt`, through `tests/verify_extension_calls.py`. Run it after adding a
-  hook or patching a new app version: Morphe can drop an injected call without an error.
+  `tests/<app>/expected-hooks.txt` (the last word of each line, so Rumble's setting keys before it are
+  skipped), through `tests/verify_extension_calls.py`, and then, through
+  `tests/verify_branch_targets.py`, that every branch of every hooked method lands on an instruction.
+  Run it after adding a hook or patching a new app version: Morphe can drop an injected call without an
+  error, and a snippet with a label of its own added through plain `addInstructions` at an index other
+  than 0 gets a branch into the middle of an instruction, which only ART's verifier reports, by
+  rejecting the class (issue 49).
 - `bin/bump <app> <version>` patches a new app version with every patch and sorts what fails by cause,
   including class names the probes here use that the new version no longer has.
 
@@ -144,9 +151,9 @@ subset. The probes read the obfuscated names they need from the APK's `assets/lu
   `SearchProbe`, `UpdateProbe`: the chat hooks, keyword filter, exact counts, home sections and bottom bar,
   player settings, Unlock Premium's getter, Default video quality, search history and Block update prompts.
 - `RefreshProbe`: the *Refresh stream* hooks: video-load registration, the error panel's tap handler, the
-  reload bridge and the stock player's reload, with ExoPlayer, Compose and the player state supplied.
-  Reloads keep the source and position without saving a quality; null sources, the switch off, a missing
-  player and stock quality changes are controls, and the callback is restored after exceptions.
+  reload bridge and the stock player's reload, with ExoPlayer, Compose state, the Composer and the player's
+  logger supplied as doubles found by type. Reloads keep the source and position; null sources, the switch
+  off and a missing player are controls, and the stock catch and escaping failures reach the caller as such.
 
 After the probes, `bin/test-rumble` runs `tests/rumble/verify_compose.py` (every Compose trace label the
 patches match must exist in the APK, and App Info must have exactly three rows, which the hidden settings

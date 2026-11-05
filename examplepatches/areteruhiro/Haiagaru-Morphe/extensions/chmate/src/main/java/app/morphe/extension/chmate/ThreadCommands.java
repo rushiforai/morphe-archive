@@ -101,6 +101,7 @@ public final class ThreadCommands {
     private static String serviceName(String profile) {
         switch (profile) {
             case "5ch": return "5ch"; case "edge": return "エッヂ"; case "open2ch": return "おーぷん2ch";
+            case "kenmo": return "けんも板";
             case "shitaraba": return "したらば"; case "afternoontea": return "AfternoonTea"; default: return "カスタム";
         }
     }
@@ -122,6 +123,7 @@ public final class ThreadCommands {
         switch (profile) {
             case "5ch": message = "!extendは板設定BBS_USE_VIPQ2が2以上の場合に使用します。どんぐりの0は必要レベルで、編集できます。1/2は大砲可、3/4は不可。名前欄用は本文に入りません。!donguriは大砲不可のスレでも攻撃対象になる場合があります。\nhttps://donguri.wikiru.jp/?command"; break;
             case "edge": message = "!metadent:v: はレベル、vv: は識別文字列、vvv: は両方を表示。スレ立て本文用です。\nhttps://github.com/edginer/eddiner/blob/main/src/routes/bbs_cgi.rs"; break;
+            case "kenmo": message = "スレ立て本文に入れてスレ設定を変更します。IDは日付、ワッチョイは毎週日曜日で切り替わります。!chidはスレ固有、!longid／!longslipは月内固定です。!ipはIPアドレスを公開します。!piyoはクッキー作成から72時間の段階表示です。!reauth:60の60は再認証の間隔（秒）、!max:1000の1000は最大レス数の編集用初期値です。必要な数値へ編集してください。\nhttps://kenmo.org/commands"; break;
             case "open2ch": message = "!jienはスレ立て本文用。!aku／!kaijoはスレ主・副主等のレス本文用で、対象レス番号を指定します。事前アク禁の引継ぎは本文コマンドではなくWebの次スレ作成フォームで行います。\nhttps://onj-shadowverse.game-info.wiki/d/%21aku\nhttps://w.atwiki.jp/openj3/pages/533.html"; break;
             case "shitaraba": message = "本文に入れる共通のスレ設定コマンドは確認できていません。管理画面の設定と本文コマンドは別です。自由入力はその板で公開された仕様を確認して使ってください。\nhttps://rentalbbs.shitaraba.com/rule/help/"; break;
             case "afternoontea": message = "共通の本文コマンド仕様は確認できていません。板のお知らせ・ローカルルールを確認してください。\nhttps://afternoontea.st/"; break;

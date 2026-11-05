@@ -23,12 +23,12 @@ Every HushPinterest release, newest first.
 
 * **Tooling:** The gate runs the quick checks first.
 
-* **Pinterest:** Hide ads now covers the shopping row.
+* Hide ads now covers the shopping row.
 * **Pinterest:** Download board saves more pins.
 
 ## 0.0.6 (2026-10-10)
 
-* **Pinterest:** HushPinterest now patches Pinterest 14.38.0 only.
+* HushPinterest now patches Pinterest 14.38.0 only.
 """
 
 README = """# HushPinterest
@@ -110,24 +110,24 @@ class ReleaseTextTest(unittest.TestCase):
 
     # --- cut -------------------------------------------------------------------------------------
 
-    def test_cut_dates_the_section_with_pinterest_first_and_keeps_the_rest(self):
+    def test_cut_dates_the_section_with_pinterest_first_drops_a_leftover_label_and_keeps_the_rest(self):
         self.cut()
         text = self.text("CHANGELOG.md")
         self.assertNotIn("## Unreleased", text)
         self.assertIn(
             "## 0.0.7 (2026-10-11)\n\n"
-            "* **Pinterest:** Hide ads now covers the shopping row.\n"
-            "* **Pinterest:** Download board saves more pins.\n"
+            "* Hide ads now covers the shopping row.\n"
+            "* Download board saves more pins.\n"
             "* **Tooling:** The gate runs the quick checks first.\n\n"
             "## 0.0.6 (2026-10-10)\n", text)
         self.assertTrue(text.startswith("# Changelog\n\nEvery HushPinterest release, newest first.\n\n## 0.0.7"))
-        self.assertTrue(text.endswith("* **Pinterest:** HushPinterest now patches Pinterest 14.38.0 only.\n"))
+        self.assertTrue(text.endswith("* HushPinterest now patches Pinterest 14.38.0 only.\n"))
 
     def test_cut_keeps_crlf_line_ends(self):
         self.put("CHANGELOG.md", CHANGELOG, "\r\n")
         self.cut()
         raw = self.text("CHANGELOG.md")
-        self.assertIn("## 0.0.7 (2026-10-11)\r\n\r\n* **Pinterest:**", raw)
+        self.assertIn("## 0.0.7 (2026-10-11)\r\n\r\n* Hide ads", raw)
         self.assertNotIn("\n", raw.replace("\r\n", ""))
 
     def test_cut_refuses_scopes_a_release_cannot_carry_and_names_them(self):
@@ -139,22 +139,22 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("**Source:** Manager shows the icon.", err)
         self.assertIn("**Docs:** The reference docs describe 14.39.0.", err)
-        self.assertIn("only **Pinterest:** and **Tooling:**", err)
+        self.assertIn("only plain bullets and **Tooling:**", err)
         self.assertEqual(self.text("CHANGELOG.md"), broken)
 
     def test_cut_refuses_what_manager_would_drop_or_skip(self):
         cases = {
             "a continuation line": CHANGELOG.replace("shopping row.", "shopping row.\n  and the related pins."),
-            "a bullet with no scope": CHANGELOG.replace("* **Pinterest:** Download", "* Download"),
-            "no Pinterest bullet": CHANGELOG.replace("* **Pinterest:** Hide", "* **Tooling:** Hide").replace(
+            "an empty bullet": CHANGELOG.replace("* **Tooling:** The gate runs the quick checks first.", "* "),
+            "no Pinterest bullet": CHANGELOG.replace("* Hide", "* **Tooling:** Hide").replace(
                 "* **Pinterest:** Download", "* **Tooling:** Download"),
             "an em dash": CHANGELOG.replace("more pins.", "more pins \u2014 up to 500."),
             "an empty section": CHANGELOG.split("* **Tooling:**")[0] + "## 0.0.6 (2026-10-10)\n",
         }
         expected = {
             "a continuation line": "isn't a bullet of its own",
-            "a bullet with no scope": "no scope",
-            "no Pinterest bullet": "no **Pinterest:** bullet",
+            "an empty bullet": "has an empty bullet",
+            "no Pinterest bullet": "no bullet about the app",
             "an em dash": "em or en dashes",
             "an empty section": "no bullets",
         }
@@ -176,6 +176,13 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertIn("no ## Unreleased", err)
         code, err = self.run_tool("cut", "--version", "0.7")
         self.assertIn("isn't X.Y.Z", err)
+
+    def test_check_counts_unlabeled_and_app_labeled_bullets_as_app_changes(self):
+        # Two bullets about the app, one unlabeled and one still carrying the label, plus one Tooling.
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(release_text.main(["--root", str(self.root), "check", "--unreleased"]), 0)
+        self.assertIn("3 bullets, 2 Pinterest and 1 Tooling", out.getvalue())
 
     def test_check_reads_without_writing(self):
         before = self.text("CHANGELOG.md")
@@ -257,8 +264,8 @@ class ReleaseTextTest(unittest.TestCase):
         # Then what Manager lists for the release a phone is on: every Pinterest bullet, word for
         # word, and no Tooling one.
         self.assertEqual(changes, "What's new\n\n"
-                                  "* **Pinterest:** Hide ads now covers the shopping row.\n"
-                                  "* **Pinterest:** Download board saves more pins.")
+                                  "* Hide ads now covers the shopping row.\n"
+                                  "* Download board saves more pins.")
         readme = self.text("README.md")
         self.assertIn("The latest release is [v0.0.7](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.7), "
                       "with 3 patches. Add this repo to Morphe Manager.", readme)
@@ -302,7 +309,7 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertEqual(code, 0, err)
         facts, changes = json.loads(self.text("patches-bundle.json"))["description"].split("\n\n### ", 1)
         self.assertNotIn("14.38.0", facts)
-        self.assertIn("* **Pinterest:** Download board saves more pins, as on Pinterest 14.38.0 with 90 patches.", changes)
+        self.assertIn("* Download board saves more pins, as on Pinterest 14.38.0 with 90 patches.", changes)
 
     def test_index_refuses_and_changes_nothing(self):
         self.cut()
@@ -311,7 +318,7 @@ class ReleaseTextTest(unittest.TestCase):
             (lambda: self.index(summary="It brings 4 patches."), "says 4 patches"),
             (lambda: self.index(summary="Also tested on Pinterest 14.38.0."), "names Pinterest 14.38.0"),
             (lambda: self.index(summary="Faster \u2014 and smaller."), "em or en dash"),
-            (lambda: self.index(summary="Faster.\n\n### Also\n\n* **Pinterest:** More."), "has a ### line"),
+            (lambda: self.index(summary="Faster.\n\n### Also\n\n* More."), "has a ### line"),
             (lambda: self.index(runtime=0), "can't be zero"),
         ]
         for action, expected in cases:

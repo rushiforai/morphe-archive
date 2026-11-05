@@ -25,7 +25,7 @@ never a stream identity or playback session.
 Input: `../OriginalApps/NuvioTV-1.1.0-beta7.apk`, SHA-256
 `a35eb5033615018f50f5205dc51f52e526b3b606f7e563943201dfbd7366d1f2`.
 The manifest confirms package, version name and version code. Extracted original
-DEX inspection is under `../.inspect-nuvio-beta7/` (`current-source-picker.txt`,
+DEX inspection is under `../Skills/inspection-evidence/.inspect-nuvio-beta7/` (`current-source-picker.txt`,
 `current-source-item.txt`, `current-stream-card.txt`, `current-episode-item.txt`).
 
 - Static `Lva/lh;->a(Lva/re;Lc2/a0;Function0;Function0;Function1;Function1;Function0;Lx1/q;Lh1/o;I)V`

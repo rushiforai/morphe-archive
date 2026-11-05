@@ -12,6 +12,8 @@ Importing new history ended Undo for the earlier clear. You can clear the import
 %1$d settings in that file can't be restored here and were skipped	Bu fayldakı %1$d ayar burada bərpa edilə bilmir və ötürüldü
 Import watch history	İzləmə tarixçəsini idxal et
 Keep the language picked in TikTok	TikTok-da seçilən dili saxla
+Freeze TikTok's experiments	TikTok-un təcrübələrini dondur
+TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.	TikTok-un serverləri ona daim yeni ayarlar göndərir, yeni görünüşləri və funksiyaları insanlar üzərində belə sınayır. Bu açıq olanda TikTok indiki ayarlarını saxlayır və yenilərinə məhəl qoymur. TikTok-da nəsə işləməyi dayandırsa, düzəlişləri ala bilməsi üçün bunu söndür.
 Nothing is playing to speed up	Sürətləndirmək üçün oxunan heç nə yoxdur
 One language code, like en or es. Comments and captions TikTok translates come out in this language instead of the app's. Leave it empty to keep TikTok's choice.	Bir dil kodu, məsələn en və ya es. TikTok-un tərcümə etdiyi şərhlər və başlıqlar tətbiqin dili əvəzinə bu dildə çıxır. TikTok-un seçimini saxlamaq üçün boş buraxın.
 MP3 (.mp3), plays anywhere	MP3 (.mp3), hər yerdə işləyir
@@ -1753,7 +1755,7 @@ Play sounds TikTok pulled	TikTok-un çıxardığı səsləri oynat
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	Səsi müəllif hüququna görə və ya bölgənizdə çıxarıldığı üçün TikTok-un səssizləşdirdiyi videolarda səsi oynadır. TikTok yenə də səsin əlçatan olmadığını göstərə bilər.
 Match region fields in requests	Sorğulardakı region sahələrini uyğunlaşdır
 Keep the For You feed on your real SIM	Sənin üçün lentini əsl SIM-də saxla
-Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	Stiker axtarışı və TikTok-un qalanı yuxarıdakı SIM-i görməyə davam edir, Sənin üçün isə telefonunuzun öz SIM ölkəsi və operatoru ilə video istəyir. IP ünvanınız və hesab tarixçəniz yenə də nəzərə alınır.
+With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	SIM dəyişdirildikdə TikTok artıq izlədiyiniz videoları təkrar-təkrar göstərə bilər. Bunu dayandırmaq üçün açın. Stiker axtarışı və TikTok-un qalanı yuxarıdakı SIM-i görməyə davam edir, Sənin üçün isə telefonunuzun öz SIM ölkəsi və operatoru ilə video istəyir. IP ünvanınız və hesab tarixçəniz yenə də nəzərə alınır.
 Show exact LIVE viewer counts	Dəqiq LIVE izləyici sayını göstər
 A LIVE room shows how many people are watching as a rounded number like 1.2K. This shows the exact count instead.	LIVE otağı kimin baxdığını 1.2K kimi yuvarlaqlaşdırılmış rəqəmlə göstərir. Bu, əvəzinə dəqiq sayı göstərir.
 Offer LIVE quality in more rooms	Daha çox LIVE otağında keyfiyyət seçimi təklif et
@@ -2451,3 +2453,13 @@ Hide typing	Yazmanı gizlət
 People you chat with won't see that you're typing. Needs Ghost mode on.	Söhbət etdiyiniz insanlar yazdığınızı görməyəcək. Xəyal rejimi açıq olmalıdır.
 Show all settings as a list	Bütün ayarları siyahı şəklində göstərin
 Show settings by category	Ayarları kateqoriyalar üzrə göstərin
+Long-press Inbox for read receipts	Gələnlər qutusunu uzun basaraq oxundu bildirişləri
+Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press.	Gələnlər qutusu tabını basıb saxlayaraq “Oxundu bildirişlərini gizlət” funksiyasını aça və ya söndürə bilərsiniz. Mesaj hansının olduğunu göstərir. Gələnlər qutusuna toxunmaq əvvəlki kimi işləyir. Gələnlər qutusunu basıb saxlamaq sizdə artıq nəsə edirsə, bu funksiya həmin basışı götürür.
+Read receipts hidden	Oxundu bildirişləri gizlədildi
+Read receipts shown	Oxundu bildirişləri göstərilir
+Compact long-press menu everywhere	Hər yerdə yığcam uzun basma menyusu
+A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	Videoya uzun basmaq For You-da da TikTok-un kiçik paylaşma panelini açır, yaradıcının videolarında olan eyni paneli. Yuxarıdakı iki tam menyu seçimindən üstündür. “Uzun basma” TikTok defoltunda olmalıdır.
+Hide streak pop-ups	Seriya bildirişlərini gizlət
+Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	TikTok-un üzərinə sürüşən seriya bildirişlərini və söhbətlərə əlavə etdiyi seriya mesajlarını və məsləhətlərini dayandırır.
+Long press on For You opens my watch history	«Sənin üçün» üzərində uzun basma baxış tarixçəmi açır
+Instead of these settings. The list has a button that brings you back here.	Bu ayarların yerinə. Siyahıda səni bura qaytaran düymə var.

@@ -21,20 +21,23 @@ final class ButtonsIcons {
         } else if (id.equals("subtitles") || id.equals("episodes") || id.equals("aspect")) {
             result = inlineIcon(loader, id);
         } else {
-            String owner, method;
+            String reference;
             switch (id) {
-                case "play": owner = NuvioNative.ICON_MEDIA_NAME; method = "u"; break;
-                case "next": owner = NuvioNative.ICON_NEXT_NAME; method = "v"; break;
-                case "audio": owner = NuvioNative.ICON_AUDIO_NAME; method = "e"; break;
-                case "sources": case "engine": owner = NuvioNative.RESOURCE_HELPER_NAME; method = "V"; break;
-                case "party": owner = NuvioNative.ICON_PARTY_ROUNDED_NAME; method = "o"; break;
-                case "speed": owner = NuvioNative.ICON_SPEED_NAME; method = "n"; break;
-                case "external": owner = NuvioNative.ICON_EXTERNAL_NAME; method = "h"; break;
-                case "info": owner = NuvioNative.ICON_MEDIA_NAME; method = "q"; break;
-                case "report": owner = NuvioNative.ICON_PARTY_NAME; method = "j"; break;
+                case "play": reference = NuvioNative.REF_ICON_MEDIA_Q; break;
+                case "next": reference = NuvioNative.REF_ICON_NEXT_R; break;
+                case "audio": reference = NuvioNative.REF_ICON_AUDIO_L; break;
+                case "sources": case "engine": reference = NuvioNative.REF_RESOURCE_HELPER_U; break;
+                case "party": reference = NuvioNative.REF_ICON_PARTY_Q; break;
+                case "speed": reference = NuvioNative.REF_ICON_SPEED_M; break;
+                case "external": reference = NuvioNative.REF_ICON_EXTERNAL_F; break;
+                case "info": reference = NuvioNative.REF_ICON_MEDIA_P; break;
+                case "report": reference = NuvioNative.REF_ICON_PARTY_O; break;
                 case "chapters": return inlineIcon(loader, "chapters");
                 default: throw new IllegalArgumentException(id);
             }
+            int arrow = reference.indexOf(";->");
+            String owner = reference.substring(1, arrow).replace('/', '.');
+            String method = reference.substring(arrow + 3, reference.indexOf('('));
             result = NuvioPlaybackButtons.method(loader.loadClass(owner), method, 0).invoke(null);
         }
         cached.put(id, result);

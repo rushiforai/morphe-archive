@@ -58,7 +58,7 @@ import dev.hyzor.extension.chesscom.theme.Amoled;
 public final class MorpheSettingsActivity extends Activity {
     public static final String EXTRA_PAGE = "morphe_page";
 
-    private static final String TITLE = "Noam's Patches";
+    private static final String TITLE = "Noam's Patches · hyzor";
     private static final int TEXT = 0xFFFFFFFF;
     private static final int TEXT_SECONDARY = 0xFFB4B2B0;
     /** Features that take effect when the app starts. */
@@ -515,8 +515,7 @@ public final class MorpheSettingsActivity extends Activity {
             ? "Your game is imported to Lichess (no account needed) and opens on Lichess's own analysis "
                 + "board inside the app, where Lichess's engine looks at it in your phone's browser."
             : "Lichess's servers analyse your game for your Lichess account and the review shows in "
-                + "chess.com's own screen, with Lichess's marks. You log in to Lichess once. Lichess "
-                + "allows 40 analyses a day."));
+                + "chess.com's own screen. You log in to Lichess once. Lichess allows 40 analyses a day."));
     }
 
     /** How hard Local Stockfish looks: each depth is a budget Lichess's own servers use. */
@@ -656,7 +655,7 @@ public final class MorpheSettingsActivity extends Activity {
                 reviewDepthChoice();
             } else {
                 list.addView(lead("Game Review asks who reviews each game: chess.com or Lichess (online). Lichess's "
-                    + "reviews show in chess.com's own screen, with Lichess's marks."));
+                    + "reviews show in chess.com's own screen."));
             }
             lichessMethodChoice();
             list.addView(caption("You can change these any time in More → Noam's Patches → Game Review."));

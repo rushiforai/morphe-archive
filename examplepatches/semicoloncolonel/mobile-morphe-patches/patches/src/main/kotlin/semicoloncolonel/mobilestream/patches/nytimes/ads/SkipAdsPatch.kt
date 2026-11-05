@@ -37,8 +37,7 @@ private fun MethodReference.smali() =
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Removes ads from the app's sections, feeds and slideshows: every ad slot is given " +
-        "the app's own empty-ad state, so no ad is requested. Experimental.",
+    description = "Removes the ads from the app's sections, feeds, and slideshows.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

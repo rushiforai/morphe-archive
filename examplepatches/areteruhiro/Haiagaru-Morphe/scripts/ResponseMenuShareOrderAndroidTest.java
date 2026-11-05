@@ -56,7 +56,7 @@ public final class ResponseMenuShareOrderAndroidTest {
             }
         }
         List<Integer> initial=ids(menu);apply(menu,new JSONObject());check(ids(menu).equals(initial),"missing settings preserves native order");
-        apply(menu,saved(51,50));check(ids(menu).equals(initial),"no saved share leaves old behavior");
+        apply(menu,saved(51,50));check(ids(menu).subList(0,2).equals(Arrays.asList(51,50)),"saved order applies without shares");
         JSONObject order=saved(74,51,0x7e484a01,72,70,50,0x7e484b01,73,71);
         String before=order.toString();apply(menu,order);
         check(ids(menu).equals(Arrays.asList(74,51,0x7e484a01,72,70,50,0x7e484b01,73,71,999,998)),"share slots interleave native and added items");

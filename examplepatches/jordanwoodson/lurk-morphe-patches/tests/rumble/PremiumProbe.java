@@ -30,8 +30,8 @@ public final class PremiumProbe {
         Method premiumGetter = ProbeSupport.method("rumble.unlock_premium.profile_premium",
                 "Lcom/rumble/network/dto/profile/UserProfile;->l()Z");
         Method mapper = ProbeSupport.method("rumble.unlock_premium.profile_mapper",
-                "Lwe/a;->t(Lcom/rumble/network/dto/profile/UserProfile;Ljava/lang/String;Ljava/lang/String;"
-                        + "Ljava/lang/String;)Llf/h;");
+                "LBe/a;->t(Lcom/rumble/network/dto/profile/UserProfile;Ljava/lang/String;Ljava/lang/String;"
+                        + "Ljava/lang/String;)Lrf/h;");
         Method premiumData = ProbeSupport.bySignature(profileClass, Class.forName(PROFILE + "PremiumData"));
         for (boolean serverPremium : new boolean[] {false, true}) {
             ProbeSupport.set(profile, "isPremium", serverPremium);

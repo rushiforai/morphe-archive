@@ -21,6 +21,12 @@ class ConstantsTest {
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002322"))
         assertTrue(Constants.isNativeXrSteamLinkBuild("2.0.23", "5002363"))
         assertTrue(Constants.isNativeXrSteamLinkBuild("2.0.24", "5002395"))
+        assertTrue(Constants.isNativeXrSteamLinkBuild("2.0.24", "5002527"))
+        listOf("2.0.24" to "5002526", "2.0.24" to "5002528", "2.0.23" to "5002527", "2.0.25" to "5002527",
+            "2.0.22" to "5002527").forEach { (version, code) ->
+            assertFalse(Constants.isNativeXrSteamLinkBuild(version, code), "$version/$code")
+            assertFalse(Constants.isModernTongueBridgeSteamLinkBuild(version, code), "$version/$code")
+        }
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.24", "5002363"))
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.24", "5002394"))
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002363"))
@@ -36,6 +42,8 @@ class ConstantsTest {
         ).forEach { (version, code) ->
             assertTrue(Constants.isHighResolutionSteamLinkBuild(version, code), "$version/$code")
         }
+        // 5002527 stays out of the high-resolution (Alpha-0 / stock quad) scope: not adapted there.
+        assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.24", "5002527"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.22", "5002363"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.23", "5002364"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.24", "5002363"))
@@ -59,33 +67,62 @@ class ConstantsTest {
             assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", versionCode.toString()), "$versionCode")
         }
         assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.23", "5002363"))
+        assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.24", "5002527"))
         assertFalse(Constants.isEarlierStartupSteamLinkBuild("2.0.23", "5002363"))
+        assertFalse(Constants.isEarlierStartupSteamLinkBuild("2.0.24", "5002527"))
         assertFalse(Constants.isEarlierStartupSteamLinkBuild("2.0.22", "5002322"))
+        // The full face layer is legacy only: no native build, 5002527 included, ever joins it.
+        listOf("2.0.23" to "5002363", "2.0.24" to "5002395", "2.0.24" to "5002527").forEach { (version, code) ->
+            assertFalse(Constants.isFullFacebridgeSteamLinkBuild(version, code), "$version/$code")
+        }
+        assertFalse(Constants.isTwoProjectionSteamLinkBuild("2.0.24", "5002527"))
+        assertFalse(Constants.isLegacyRecommendedSteamLinkBuild("2.0.24", "5002527"))
 
         assertEquals(
-            listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527),
             Constants.COMPATIBILITIES_STEAM_LINK.versionCodes(),
         )
         assertEquals(
-            listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527),
             Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.versionCodes(),
+        )
+        // Patches not adapted to 5002527 keep exactly their previous scope.
+        assertEquals(
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
+            Constants.COMPATIBILITIES_STEAM_LINK_THROUGH_5002395.versionCodes(),
+        )
+        assertEquals(
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
+            Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL_THROUGH_5002395.versionCodes(),
+        )
+        assertEquals(
+            listOf(5001712, 5001812, 5001968, 5002244),
+            Constants.COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.versionCodes(),
         )
         assertEquals(
             listOf(5001712, 5001812, 5001968, 5002244),
             Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_EXPERIMENTAL.versionCodes(),
         )
-        assertEquals(listOf(5002363, 5002395), Constants.COMPATIBILITIES_STEAM_LINK_NATIVE_XR_EXPERIMENTAL.versionCodes())
+        assertEquals(
+            listOf(5002363, 5002395, 5002527),
+            Constants.COMPATIBILITIES_STEAM_LINK_NATIVE_XR_EXPERIMENTAL.versionCodes(),
+        )
+        assertEquals(
+            listOf("2.0.23" to 5002363, "2.0.24" to 5002395, "2.0.24" to 5002527),
+            Constants.COMPATIBILITIES_STEAM_LINK_NATIVE_XR.targets(),
+        )
         assertEquals(listOf("2.0.23" to 5002363), Constants.COMPATIBILITIES_STEAM_LINK_5002363.targets())
         assertEquals(
             listOf(5001712, 5001812, 5001968, 5002244),
             Constants.COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE.versionCodes(),
         )
         assertEquals(
-            listOf("2.0.23" to 5002363, "2.0.24" to 5002395),
+            listOf("2.0.23" to 5002363, "2.0.24" to 5002395, "2.0.24" to 5002527),
             Constants.COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE.targets(),
         )
         assertTrue(Constants.isModernTongueBridgeSteamLinkBuild("2.0.23", "5002363"))
         assertTrue(Constants.isModernTongueBridgeSteamLinkBuild("2.0.24", "5002395"))
+        assertTrue(Constants.isModernTongueBridgeSteamLinkBuild("2.0.24", "5002527"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.24", "5002363"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002363"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.23", "5002322"))

@@ -19,9 +19,10 @@ import io.github.jordanwoodson.patches.twitch.shared.Constants.COMPATIBILITY_TWI
 
 internal const val LAYOUT_CLASS = "Lio/github/jordanwoodson/extension/shared/twitch/TwitchLayout;"
 
-// isTablet once (the form factor), is_tablet three times (cast dialogs), following_drawer_use_sidebar twice
-// (the main screen's onCreate and onConfigurationChanged).
-private val EXPECTED_READS = mapOf("isTablet" to 1, "is_tablet" to 3, "following_drawer_use_sidebar" to 2)
+// isTablet twice (the form factor, and the Ultralight player's eligibility, which leaves tablets on the native
+// player), is_tablet three times (cast dialogs), following_drawer_use_sidebar twice (the main screen's onCreate
+// and onConfigurationChanged).
+private val EXPECTED_READS = mapOf("isTablet" to 2, "is_tablet" to 3, "following_drawer_use_sidebar" to 2)
 
 @Suppress("unused")
 val tabletLayoutPatch = bytecodePatch(

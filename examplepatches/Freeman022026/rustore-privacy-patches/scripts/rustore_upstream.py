@@ -52,6 +52,8 @@ FORBIDDEN_PERMISSIONS = {
     "android.permission.WRITE_EXTERNAL_STORAGE",
     "com.huawei.appmarket.service.commondata.permission.GET_COMMON_DATA",
     "android.permission.BIND_VPN_SERVICE",
+    "android.permission.ACCESS_LOCAL_NETWORK",
+    "android.permission.CHANGE_WIFI_MULTICAST_STATE",
 }
 FORBIDDEN_MANIFEST_ANCHORS = {
     "android.net.VpnService",
@@ -96,9 +98,9 @@ DISABLED_COMPONENT_PREFIXES = {
 }
 
 DEVICE_IDENTIFIER_STUBS = {
-    "vt2.g": "a()Ljava/lang/String;",
-    "b51.ol": "a()Ljava/lang/String;",
-    "x20.c": "a(Landroid/content/Context;)Ljava/lang/String;",
+    "ty2.g": "a()Ljava/lang/String;",
+    "b61.r1": "a()Ljava/lang/String;",
+    "y20.b": "a(Landroid/content/Context;)Ljava/lang/String;",
 }
 
 INVALID_COMPONENT_PREFIXES = ("xav.", "xid.", "xo.", "xom.", "xu.")
@@ -331,12 +333,17 @@ def audit_patched(args: argparse.Namespace) -> None:
         str(args.apk),
     )
     verify_google_ad_id_stub(ad_code)
-    unit_stub = ["sget-object v0, Lut0/e0;->a:Lut0/e0;", "return-object v0"]
+    unit_stub = ["sget-object v0, Lsu0/e0;->a:Lsu0/e0;", "return-object v0"]
+    false_stub = ["sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;", "return-object v0"]
+    empty_list_stub = ["sget-object v0, Ltu0/x;->a:Ltu0/x;", "return-object v0"]
     telemetry_stubs = {
-        "z41.d0": ("invoke()Ljava/lang/Object;", unit_stub),
-        "z41.o0": ("a(Ljava/util/List;)V", ["return-void"]),
-        "nn1.d": ("a(Lau0/d;)Ljava/lang/Object;", unit_stub),
-        "sp2.l": ("b(Lau0/d;)Ljava/lang/Object;", unit_stub),
+        "z51.p0": ("invoke()Ljava/lang/Object;", unit_stub),
+        "z51.w0": ("a(Ljava/util/List;)V", ["return-void"]),
+        "ip1.d": ("a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        "nt2.j": ("b(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        "yb0.g": ("a(Lsb0/c;)V", ["return-void"]),
+        "yc0.b": ("a(Ljava/util/List;)V", ["return-void"]),
+        "w12.i": ("a(Ljava/lang/String;Lyu0/d;)Ljava/lang/Object;", unit_stub),
     }
     for class_name, (method, expected) in telemetry_stubs.items():
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
@@ -348,57 +355,101 @@ def audit_patched(args: argparse.Namespace) -> None:
         verify_device_identifier_stub(code, class_name)
     # Both the download and cached/legacy policy restoration must be blocked.
     policy_code = run(
-        str(args.apkanalyzer), "dex", "code", "--class", "jp0.l",
+        str(args.apkanalyzer), "dex", "code", "--class", "zp0.k",
         "--method", "a(Landroid/content/Context;)Ljava/lang/String;", str(args.apk),
     )
     verify_instruction_prefix(policy_code, ["const/4 v0, 0x0", "return-object v0"],
                               "Remote network policy loader")
-    policy_class = run(str(args.apkanalyzer), "dex", "code", "--class", "jp0.n", str(args.apk))
+    policy_class = run(str(args.apkanalyzer), "dex", "code", "--class", "zp0.l", str(args.apk))
     constructor = re.search(
-        r"(?ms)^\.method [^\n]* <init>\(Landroid/content/Context;Ljp0/d;Z\)V\n.*?^\.end method",
+        r"(?ms)^\.method [^\n]* <init>\(Landroid/content/Context;Lzp0/c;Z\)V\n.*?^\.end method",
         policy_class,
     )
     if constructor is None:
         raise RuntimeError("Network policy constructor not found")
     verify_instruction_prefix(constructor.group(), [
-        "invoke-static {}, Ljp0/o;->a()Ljp0/d;", "move-result-object p2",
+        "invoke-static {}, Lzp0/m;->a()Lzp0/c;", "move-result-object p2",
     ], "Embedded network policy")
-    guard_code = run(str(args.apkanalyzer), "dex", "code", "--class", "ck1.l",
-                     "--method", "b(Lbk1/c;)Z", str(args.apk))
+    guard_code = run(str(args.apkanalyzer), "dex", "code", "--class", "wl1.l",
+                     "--method", "b(Lvl1/c;)Z", str(args.apk))
     verify_auto_update_guard(guard_code)
     entry_stubs = {
-        "j81.f0": (
-            "a(Ljava/util/List;Le81/c;Ljava/util/List;Lb81/d;Ljava/util/Set;Ljava/util/UUID;ZZLau0/d;)Ljava/lang/Object;",
-            ["sget-object v0, Lvt0/x;->a:Lvt0/x;", "return-object v0"],
+        "j91.u0": (
+            "a(Ljava/util/List;Le91/c;Ljava/util/List;Lb91/d;Ljava/util/Set;Ljava/util/UUID;ZZLyu0/d;)Ljava/lang/Object;",
+            empty_list_stub,
         ),
-        "t31.b": ("a(Lj31/c;Lt31/a;Ll31/d;)Lt31/e;",
-                  ["sget-object v0, Lt31/e;->ERROR:Lt31/e;", "return-object v0"]),
+        "t41.b": ("b(Lj41/c;Lt41/a;Ll41/d;)Lt41/e;",
+                  ["sget-object v0, Lt41/e;->ERROR:Lt41/e;", "return-object v0"]),
         "ru.ok.tracer.disk.usage.DiskUsage": (
-            "initialize$tracer_disk_usage_release(Landroid/content/Context;)V",
-            ["move-object/from16 v0, p1",
-             "invoke-static {v0}, Lub/r0;->m(Landroid/content/Context;)Lub/r0;",
-             "move-result-object v0", 'const-string v1, "tracer.disk.usage.worker"',
-             "invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;", "return-void"],
+            "initialize$tracer_disk_usage_release(Landroid/content/Context;)V", ["return-void"],
         ),
-        "dm1.i": ("a()V", [
-            "move-object/from16 v0, p0", "iget-object v0, v0, Ldm1/i;->a:Lst0/a;",
-            "invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;", "move-result-object v0",
-            "check-cast v0, Ltb/k0;", 'const-string v1, "LauncherIconUpdate"',
-            "invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;", "return-void",
-        ]),
-        "yo1.t5": ("z0()V", ["return-void"]),
-        "kh1.j": (
-            "d(Lkotlin/jvm/functions/Function0;Lk2/j;Lkh1/m;Landroidx/compose/runtime/a;I)V",
+        "yn1.k": ("b(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        "ru.vk.store.feature.install.identifier.impl.presentation.a": (
+            "a(Lyu0/d;)Ljava/lang/Object;", unit_stub,
+        ),
+        "ru.vk.store.feature.storeapp.analytics.remote.impl.presentation.b": (
+            "b(Lyu0/d;)Ljava/lang/Object;", unit_stub,
+        ),
+        "ru.vk.store.lib.analytics.system.altcraft.presentation.AltCraftFlushEventsWorker$a": (
+            "b(Lub/i0;)V",
+            ['const-string v0, "AltCraftFlushEventsWorker"',
+             "invoke-virtual {p0, v0}, Lub/i0;->a(Ljava/lang/String;)Lub/z;", "return-void"],
+        ),
+        "yq1.b5": ("K0()V", ["return-void"]),
+        "bj1.j": (
+            "d(Lkotlin/jvm/functions/Function0;Lk2/j;Lbj1/m;Landroidx/compose/runtime/a;I)V",
             ["return-void"],
         ),
+        "ru.vk.store.feature.storeapp.review.prompt.impl.domain.ReviewPromptRemoteConfig": (
+            "placements(Lwu0/e;)Ljava/lang/Object;", empty_list_stub,
+        ),
+        "ru.vk.store.feature.storeapp.details.direct.impl.domain.StoreAppDetailsDirectRemoteConfig": (
+            "isAutoInstallEnabled(Lwu0/e;)Ljava/lang/Object;", false_stub,
+        ),
+        "ru.vk.store.feature.rustore.tv.install.impl.domain.RemoteTvInstallConfig": (
+            "featureEnabled(Lwu0/e;)Ljava/lang/Object;", false_stub,
+        ),
+        "h52.j": ("P7()V", ["return-void"]),
     }
     for class_name, (method, expected) in entry_stubs.items():
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
                    "--method", method, str(args.apk))
         verify_instruction_prefix(code, expected, class_name)
+    altcraft = "ru.vk.store.lib.analytics.system.altcraft.presentation.AltCraftFlushEventsWorker$a"
+    radar = "ru.vk.store.lib.analytics.system.radar.presentation.RadarFlushSnapshotWorker$a"
+    remote_analytics = "ru.vk.store.feature.storeapp.analytics.remote.impl.presentation.b"
+    cancel_stub = "invoke-virtual {p0, v0}, Lub/i0;->a(Ljava/lang/String;)Lub/z;"
+    scheduler_stubs = [
+        ("ru.vk.store.feature.usagestats.impl.presentation.a", "a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        ("ru.vk.store.feature.payments.subscription.update.impl.presentation.a",
+         "a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        (remote_analytics, "a(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        ("j82.f", "a(JLby0/c;Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        ("p82.i", "b(Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        ("ru.vk.store.feature.storeapp.recommendation.start.trackingUrl.impl.data.a",
+         "b(Ljava/lang/String;Ljava/lang/String;Lyu0/d;)Ljava/lang/Object;", unit_stub),
+        (altcraft, "a(Lub/i0;J)V",
+         ['const-string v0, "AltCraftFlushEventsWorker"', cancel_stub, "return-void"]),
+        (radar, "a(Lub/i0;J)V",
+         ['const-string v0, "RadarFlushSnapshotsWorker"', cancel_stub, "return-void"]),
+        ("zd0.e", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", unit_stub),
+        ("ib0.k", "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", unit_stub),
+    ]
+    for class_name, method, expected in scheduler_stubs:
+        code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
+                   "--method", method, str(args.apk))
+        verify_instruction_prefix(code, expected, f"{class_name}.{method}")
+    # Upstream removed the deep-link open report in 1.113; fail if it returns.
+    main_activity = run(str(args.apkanalyzer), "dex", "code", "--class",
+                        "ru.vk.store.app.MainActivity", str(args.apk))
+    if ".class public final Lru/vk/store/app/MainActivity;" not in main_activity:
+        raise RuntimeError("MainActivity bytecode could not be read")
+    if APP_OPEN_REPORT in main_activity:
+        raise RuntimeError("AppMetrica app-open report returned to MainActivity")
     startup_code = run(str(args.apkanalyzer), "dex", "code", "--class", "ru.vk.store.App",
                        "--method", "onCreate()V", str(args.apk))
     verify_instruction_prefix(startup_code, push_service_cleanup_prefix(), "Push service cleanup")
+    verify_after_super_on_create(startup_code, startup_cancellation_blocks())
     badging = run(str(args.aapt), "dump", "badging", str(args.apk))
     permissions = set(re.findall(r"uses-permission: name='([^']+)'", badging))
     missing = sorted(REQUIRED_PERMISSIONS - permissions)
@@ -488,7 +539,12 @@ def audit_patched(args: argparse.Namespace) -> None:
                 "remote_and_cached_network_policy_blocked": True,
                 "auto_update_status_checks_preserved": True,
                 "additional_entry_points_audited": sorted(entry_stubs),
+                "schedulers_and_initializers_audited": sorted(
+                    f"{class_name}.{method.split('(')[0]}" for class_name, method, _ in scheduler_stubs
+                ),
+                "app_open_report_absent": True,
                 "persisted_push_services_disabled_at_startup": True,
+                "persisted_work_and_push_metrics_job_cancelled_at_startup": True,
             },
             indent=2,
         )
@@ -531,14 +587,14 @@ def verify_auto_update_guard(code: str) -> None:
         raise RuntimeError("Auto-update status branches changed")
     code = code.replace(targets[0], ":blocked")
     verify_instruction_prefix(code, [
-        "invoke-static {p1}, Lck1/l;->a(Lbk1/c;)Z",
+        "invoke-static {p1}, Lwl1/l;->a(Lvl1/c;)Z",
         "move-result v0",
         "if-eqz v0, :blocked",
-        "iget-boolean v0, p1, Lbk1/c;->f:Z",
+        "iget-boolean v0, p1, Lvl1/c;->f:Z",
         "if-eqz v0, :blocked",
-        "iget-boolean p1, p1, Lbk1/c;->g:Z",
+        "iget-boolean p1, p1, Lvl1/c;->g:Z",
         "if-eqz p1, :blocked",
-        "iget-object p1, p0, Lck1/l;->u:Lxs2/b;",
+        "iget-object p1, p0, Lwl1/l;->v:Lsx2/b;",
         "const/4 p1, 0x0",
         "if-nez p1, :blocked",
         "const/4 p1, 0x1",
@@ -565,6 +621,64 @@ def push_service_cleanup_prefix() -> list[str]:
             "invoke-virtual {v0, v1, v3, v4}, Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V",
         ])
     return expected
+
+
+CANCELLED_UNIQUE_WORK_NAMES = (
+    "InstallIdentifierSyncWorker",
+    "tracer.disk.usage.worker",
+    "UsageStatsCollectorWorker",
+    "CancelSubscriptionSyncWorker",
+    "SendAnalyticsEventPeriodicWorker",
+    "SendAnalyticsEventWorker",
+    "LauncherIconUpdate",
+    "PeriodicUpdateStartDestination",
+    "NavigationTabsOrderUpdate",
+)
+APPLICATION_SUPER_ON_CREATE = "invoke-super {p0}, Lz71/n;->onCreate()V"
+APP_OPEN_REPORT = "Lio/appmetrica/analytics/AppMetrica;->reportAppOpen("
+PUSH_METRICS_JOB_ID_HEX = "0x546aab5"
+
+
+def startup_cancellation_blocks() -> list[list[str]]:
+    work = ["invoke-static {p0}, Lvb/u0;->l(Landroid/content/Context;)Lvb/u0;", "move-result-object v0"]
+    for name in CANCELLED_UNIQUE_WORK_NAMES:
+        work.extend([
+            f'const-string v1, "{name}"',
+            "invoke-virtual {v0, v1}, Lub/i0;->a(Ljava/lang/String;)Lub/z;",
+        ])
+    push_metrics_job = [
+        'const-string v1, "jobscheduler"',
+        "invoke-virtual {p0, v1}, Landroid/content/Context;->getSystemService(Ljava/lang/String;)Ljava/lang/Object;",
+        "move-result-object v0",
+        "check-cast v0, Landroid/app/job/JobScheduler;",
+        f"const v1, {PUSH_METRICS_JOB_ID_HEX}",
+        "invoke-virtual {v0, v1}, Landroid/app/job/JobScheduler;->cancel(I)V",
+    ]
+    return [work, push_metrics_job]
+
+
+def verify_after_super_on_create(code: str, blocks: list[list[str]]) -> None:
+    """Every block must run, uninterrupted, directly after App.onCreate's super call."""
+    code = re.sub(r"(?ms)^\s*\.annotation\b.*?^\s*\.end annotation\s*$", "", code)
+    instructions = [
+        line.strip() for line in code.splitlines()
+        if line.strip() and not line.strip().startswith((".", ":", "#"))
+    ]
+    if instructions.count(APPLICATION_SUPER_ON_CREATE) != 1:
+        raise RuntimeError("Application super.onCreate call changed")
+    start = instructions.index(APPLICATION_SUPER_ON_CREATE) + 1
+    expected_length = sum(len(block) for block in blocks)
+    window = instructions[start:start + expected_length]
+    position = 0
+    remaining = list(blocks)
+    while remaining:
+        for block in remaining:
+            if window[position:position + len(block)] == block:
+                position += len(block)
+                remaining.remove(block)
+                break
+        else:
+            raise RuntimeError("Startup work cancellation audit failed")
 
 
 def promote(args: argparse.Namespace) -> None:

@@ -1,3 +1,21 @@
+## [3.3.7](https://github.com/Xhehab/Xhehab-Patches/compare/v3.3.6...v3.3.7) (2026-11-04)
+
+### 🚀 Updated App Support
+
+* FST-7 v4.0.1 ([404acbf](https://github.com/Xhehab/Xhehab-Patches/commit/404acbfcb5fb535de8e16bfed681550a3bcdd172))
+
+## [3.3.6](https://github.com/Xhehab/Xhehab-Patches/compare/v3.3.5...v3.3.6) (2026-11-04)
+
+### 🚀 Updated App Support
+
+* RP Hypertrophy v1.9.0 and STNDRD v4.1.63 ([903de94](https://github.com/Xhehab/Xhehab-Patches/commit/903de943512a077d7229df1be0404bd0a8cbcb12))
+
+## [3.3.5](https://github.com/Xhehab/Xhehab-Patches/compare/v3.3.4...v3.3.5) (2026-11-04)
+
+### 🚀 Updated App Support
+
+* Boostcamp v267 ([25f153c](https://github.com/Xhehab/Xhehab-Patches/commit/25f153c1868f6253afb3e5c9aba955e03129a2af))
+
 ## [3.3.4](https://github.com/Xhehab/Xhehab-Patches/compare/v3.3.3...v3.3.4) (2026-10-22)
 
 ### 🚀 Updated App Support

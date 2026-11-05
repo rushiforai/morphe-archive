@@ -13,19 +13,21 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/TorbenStriegel/morphe-patches-custom/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.8.0](https://github.com/TorbenStriegel/morphe-patches-custom/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 OneFootball&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 OneFootball&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 15.145.0 |
-| :---: |
+| 15.145.0 | 15.148.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable ads](#disable-ads) | Disables banner, interstitial, native, app-open and rewarded ads. |  |
+| [Hide match FanShop promotions](#hide-match-fanshop-promotions) | Hides the FanShop product carousel on the match overview. |  |
+| [Hide match betting odds](#hide-match-betting-odds) | Disables bookmaker betting cards and odds on the match overview while retaining match predictions. |  |
 
 </details>
 
@@ -35,8 +37,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 2026.19 |
-| :---: |
+| 2026.19 | 2026.21 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -61,18 +63,17 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 SAI Split APKs Installer&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Park4Night&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.4.2 |
+| 7.1.62 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Remove Play Store redirect](#remove-play-store-redirect) | Removes the PairIP license check that redirects to the Play Store and exits on sideloaded installs. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks SAI Split APKs Installer premium (backups, themes) by forcing the "SAI Premium" entitlement state to active. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks Park4Night premium (Pro) access, removing all feature gates for offline maps, advanced filters, and publisher content. |  |
 
 </details>
 
@@ -92,13 +93,28 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
+<summary>📦 Chargeprice&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.4.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium features](#unlock-premium-features) | Unlocks Chargeprice premium features (ad-free, price filters, route planner, favourites, ...) without needing to log in or purchase a subscription. |  |
+
+</details>
+
+<details open>
 <summary>📦 ntv&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 8.5.7.1 |
-| :---: |
+| 8.5.7.1 | 8.6.0.1 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

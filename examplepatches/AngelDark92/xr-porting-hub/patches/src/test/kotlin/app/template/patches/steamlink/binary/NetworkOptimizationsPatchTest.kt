@@ -2,6 +2,7 @@ package app.template.patches.steamlink.binary
 
 import app.morphe.patcher.patch.PatchException
 import app.template.patches.shared.PatchCategories
+import app.template.patches.shared.assertPatchDescriptionContract
 import org.junit.Assume.assumeTrue
 import java.io.File
 import java.security.MessageDigest
@@ -11,7 +12,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Real decoded-byte audit for the restored five-build Network Optimizations port. */
+/** Exact recommendation scope and decoded-byte audits for all six preserved implementations. */
 class NetworkOptimizationsPatchTest {
     private data class Base(val version: String, val code: String, val sceneSize: Int, val mainSize: Int)
 
@@ -25,13 +26,34 @@ class NetworkOptimizationsPatchTest {
     )
 
     @Test
-    fun `metadata covers every supported Steam Link build`() {
+    fun `only exact 2_0_20 bases recommend network optimizations`() {
         assertEquals("Network Optimizations", networkOptimizationsPatch.name)
         assertTrue(networkOptimizationsPatch.default)
-        assertEquals(PatchCategories.STREAMING_AND_NETWORK, networkOptimizationsPatch.category)
-        bases.forEach { assertTrue(networkOptimizationsPatch.supports(it.version, it.code.toInt()), it.code) }
-        listOf("2.0.22" to 5002322, "2.0.23" to 5002364, "2.0.20" to 5001740)
-            .forEach { (version, code) -> assertFalse(networkOptimizationsPatch.supports(version, code)) }
+        assertEquals("Network Optimizations (optional)", optionalNetworkOptimizationsPatch.name)
+        assertFalse(optionalNetworkOptimizationsPatch.default)
+        listOf(networkOptimizationsPatch, optionalNetworkOptimizationsPatch).forEach { patch ->
+            assertEquals(PatchCategories.STREAMING_AND_NETWORK, patch.category)
+            assertTrue(patch.dependencies.isEmpty(), "No dependency may bypass the exact execution guard")
+            assertPatchDescriptionContract(patch)
+            bases.forEach { base ->
+                val expected = (base.version == "2.0.20") == patch.default
+                assertEquals(expected, patch.supports(base.version, base.code.toInt()), base.code)
+                assertEquals(expected, isNetworkOptimizationsTarget(
+                    "com.valvesoftware.steamlinkvr", base.version, base.code, patch.default), base.code)
+            }
+            listOf("2.0.22" to 5002322, "2.0.23" to 5002364, "2.0.20" to 5001740,
+                "2.0.24" to 5002527, "2.0.25" to 5002527, "2.0.20" to 5002395)
+                .forEach { (version, code) ->
+                    assertFalse(patch.supports(version, code))
+                    assertFalse(isNetworkOptimizationsTarget(
+                        "com.valvesoftware.steamlinkvr", version, code.toString(), patch.default))
+                }
+            bases.forEach { base ->
+                listOf("cn.vr4p.oculus4xvrplayerov", "other.package").forEach { packageName ->
+                    assertFalse(isNetworkOptimizationsTarget(packageName, base.version, base.code, patch.default))
+                }
+            }
+        }
     }
 
     @Test

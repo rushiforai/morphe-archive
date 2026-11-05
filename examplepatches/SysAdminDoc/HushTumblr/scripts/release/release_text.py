@@ -10,12 +10,15 @@ Every command checks its inputs first and changes nothing when a check fails. --
 of them at another checkout, which is how the unit tests run them. scripts/release/release.ps1
 runs them in stage order.
 
-A release section of the CHANGELOG may only hold "* **Tumblr:** " and "* **Tooling:** "
-bullets, one line each: Morphe Manager's reader shows Tumblr lines as the update, skips
-Tooling lines, and refuses anything else. The notes carry every bullet of the section, Tumblr
-ones under "What's new" and Tooling ones under "Behind the scenes", between the intro and the
-tail written by hand for that release. The index description carries the same scoped bullets
-under level-three headings, so Manager can show the current release's changes too.
+A release section of the CHANGELOG may only hold plain bullets and "* **Tooling:** " bullets,
+one line each. HushTumblr patches one app, so a bullet with no label is a change to Tumblr and
+needs no "Tumblr:" in front of it. A bullet that still opens with "* **Tumblr:** " is accepted as the
+same thing and the label is dropped when the section is cut, so it never reaches the CHANGELOG
+release section, the GitHub notes or the index. Morphe Manager's reader shows unlabeled lines as
+the update, skips Tooling lines, and refuses any other label. The notes carry every bullet of the
+section, the Tumblr ones under "What's new" and Tooling ones under "Behind the scenes", between the
+intro and the tail written by hand for that release. The index description carries the same
+bullets under level-three headings, so Manager can show the current release's changes too.
 """
 
 import argparse
@@ -28,7 +31,8 @@ from pathlib import Path
 from typing import NoReturn
 
 ROOT = Path(__file__).resolve().parents[2]
-SCOPES = ("Tumblr", "Tooling")
+APP = "Tumblr"
+SCOPES = (APP, "Tooling")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 CREATED = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$")
@@ -90,25 +94,33 @@ def release_bullets(body: str, label: str) -> list[Bullet]:
         if not line.startswith("* "):
             fail(f"{label} has a line that isn't a bullet of its own, and Morphe Manager would drop it. "
                  f"Join it onto the bullet above: {line[:80]}")
+        if not line[2:].strip():
+            fail(f"{label} has an empty bullet: {line[:80]}")
         match = BULLET.match(line)
         if not match:
-            fail(f"{label} has a bullet with no scope. Start it with * **Tumblr:** or * **Tooling:**: {line[:80]}")
-        bullet = Bullet(line, match.group("scope"), match.group("text"))
+            # No label: a change to the app, written as it stands.
+            bullet = Bullet(line, APP, line[2:].strip())
+        elif match.group("scope") == APP:
+            # The app's own label says nothing here, so the bullet is kept without it.
+            bullet = Bullet("* " + match.group("text"), APP, match.group("text"))
+        else:
+            bullet = Bullet(line, match.group("scope"), match.group("text"))
         if bullet.scope not in SCOPES:
             refused.append(f"**{bullet.scope}:** {bullet.text[:60]}")
         if any(dash in line for dash in DASHES):
             dashed.append(line[:60])
         bullets.append(bullet)
     if refused:
-        fail(f"{label} has bullets a release can't carry: a release section takes only **Tumblr:** and "
-             f"**Tooling:** bullets, since Morphe Manager's reader refuses any other scope. Rescope these or "
-             f"move them out of the section: " + "; ".join(refused))
+        fail(f"{label} has bullets a release can't carry: a release section takes only plain bullets "
+             f"and **Tooling:** bullets, since Morphe Manager's reader refuses any other scope. Remove the "
+             f"label or move these out of the section: " + "; ".join(refused))
     if dashed:
         fail(f"{label} has em or en dashes. Rewrite these: " + "; ".join(dashed))
     if not bullets:
         fail(f"{label} has no bullets, so there is nothing to release.")
-    if not any(b.scope == "Tumblr" for b in bullets):
-        fail(f"{label} has no **Tumblr:** bullet, so Morphe Manager would show this release as no update.")
+    if not any(b.scope == APP for b in bullets):
+        fail(f"{label} has no bullet about the app (one without a **Tooling:** label), so Morphe Manager "
+             "would show this release as no update.")
     return bullets
 
 

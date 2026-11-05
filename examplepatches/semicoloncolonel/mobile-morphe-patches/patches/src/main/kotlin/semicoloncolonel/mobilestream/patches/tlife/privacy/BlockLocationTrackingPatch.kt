@@ -15,8 +15,7 @@ import semicoloncolonel.mobilestream.patches.tlife.shared.Constants
 @Suppress("unused")
 val blockLocationTrackingPatch = bytecodePatch(
     name = "Block location tracking",
-    description = "Stops Radar, which sends your location to Radar's servers every 30 seconds " +
-        "while T-Life runs. May affect store check-in and location-based offers.",
+    description = "Stops Radar, which sends your location to its servers every 30 seconds.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

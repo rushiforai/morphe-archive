@@ -259,7 +259,14 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                             },
                             onLongClick = { view.onItemLongClickListener?.onItemLongClick(view, row, index, adapter.getItemId(index)); changed() })) {
                         Column(Modifier.padding(12.dp)) {
-                            if (view.choiceMode != ListView.CHOICE_MODE_NONE) Checkbox(view.isItemChecked(index), onCheckedChange = null)
+                            if (view.choiceMode != ListView.CHOICE_MODE_NONE) Checkbox(
+                                view.isItemChecked(index),
+                                enabled = selectable,
+                                onCheckedChange = {
+                                    // The indicator is an action too, including accessibility clicks.
+                                    // Delegate once to ListView so its state and listener stay in sync.
+                                    view.performItemClick(row, index, adapter.getItemId(index)); changed()
+                                })
                             if (row is TextView) Text(row.text.toString(), style = MaterialTheme.typography.bodyMedium)
                             else ModelContent(row, revision, changed = changed)
                             if (row !is TextView && row !is ViewGroup && label.isNotBlank()) Text(label)

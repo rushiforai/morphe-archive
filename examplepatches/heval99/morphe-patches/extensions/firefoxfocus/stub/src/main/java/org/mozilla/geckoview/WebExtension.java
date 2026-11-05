@@ -18,6 +18,7 @@ public class WebExtension {
         public final boolean allowedInPrivateBrowsing;
         public final String optionsPageUrl;
         public final String baseUrl;
+        public final Image icon;
 
         private MetaData() {
             throw new RuntimeException("Stub!");

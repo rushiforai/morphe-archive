@@ -80,8 +80,7 @@ internal object ArticleAtpQuestionsFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off the app's AI features: Ask The Post AI and its tab, AI article summaries, and the Ask " +
-        "The Post questions shown on articles. Experimental.",
+    description = "Turns off Ask The Post AI, its tab, and AI article summaries.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

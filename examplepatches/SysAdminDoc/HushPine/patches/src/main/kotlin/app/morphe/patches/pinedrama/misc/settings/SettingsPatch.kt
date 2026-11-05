@@ -16,6 +16,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.pinedrama.misc.extension.sharedExtensionPatch
+import app.morphe.patches.pinedrama.misc.language.installLanguageSwitchFix
 import app.morphe.patches.pinedrama.shared.requireLocals
 import app.morphe.patches.pinedrama.shared.requireRegisters
 import app.morphe.util.findFreeRegister
@@ -362,6 +363,9 @@ val settingsPatch = bytecodePatch(
             LaunchCrashKeepListFingerprint.method,
             LaunchCrashKeepListFingerprint.classDef.methods,
         )
+
+        // PineDrama's App language page does nothing on Done in a patched copy otherwise (#296).
+        installLanguageSwitchFix()
 
         val initializeSettingsMethodDescriptor =
             "$SETTINGS_EXTENSION_CLASS_DESCRIPTOR->initialize(" +

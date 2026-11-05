@@ -41,8 +41,7 @@ internal object ShowVzGptFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Hides Verizon's AI assistant, its voice mode, and the floating button that opens them. " +
-        "Experimental.",
+    description = "Hides Verizon's AI assistant, its voice mode, and its floating button.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

@@ -1,0 +1,81 @@
+name: Verify main source and patch build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    name: Verify source and compile MPP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify version, metadata and immutable release sources
+        run: python3 porting/tests/VerifyReleaseBaseline.py
+      - name: Build and run Gradle verification
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean :patches:buildAndroid --no-daemon
+      - name: Verify MPP was produced
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          bundles=(patches/build/libs/*.mpp)
+          test "${#bundles[@]}" -ge 1
+          for bundle in "${bundles[@]}"; do
+            test -s "$bundle"
+            echo "Verified generated MPP: $bundle"
+          done
+
+  audit:
+    name: Report build-tool dependency vulnerabilities
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - name: Audit locked build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          node .github/scripts/patch-bundled-undici.cjs
+          node --input-type=module -e "await import('semantic-release'); console.log('Release CLI import successful')"
+          # npm audit reads the upstream lockfile. It will report npm's bundled
+          # dependency until npm publishes a corrected tarball, even though the
+          # runtime copy above has been replaced with the pinned fixed package.
+          npm audit --json > /tmp/nicoid-npm-audit.json || true
+          python3 - <<'PY'
+          import json, os
+          with open("/tmp/nicoid-npm-audit.json", encoding="utf-8") as f:
+              data = json.load(f)
+          counts = data.get("metadata", {}).get("vulnerabilities", {})
+          text = "Build-tool npm audit (not an APK runtime audit): " + ", ".join(
+              f"{key}={counts.get(key, 0)}"
+              for key in ("critical", "high", "moderate", "low")
+          )
+          print(text)
+          for name, info in sorted(data.get("vulnerabilities", {}).items()):
+              if info.get("severity") in ("critical", "high"):
+                  print(f"Security advisory: {name}: {info.get('severity')}, "
+                        f"affected={info.get('range')}, fixAvailable={info.get('fixAvailable')}")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("## Build-tool dependency audit\n\n" + text + "\n\n")
+          PY

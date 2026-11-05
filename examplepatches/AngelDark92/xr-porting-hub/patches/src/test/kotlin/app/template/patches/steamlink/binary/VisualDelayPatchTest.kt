@@ -8,6 +8,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class VisualDelayPatchTest {
     @Test
@@ -106,6 +107,108 @@ class VisualDelayPatchTest {
                 assertContentEquals(patched.copyOfRange(0, cave + 4), transitioned.copyOfRange(0, cave + 4))
                 assertContentEquals(patched.copyOfRange(cave + 16, patched.size), transitioned.copyOfRange(cave + 16, transitioned.size))
             }
+        }
+    }
+
+    @Test
+    fun `5002527 requires exact metadata and rejects unexpected size`() {
+        val stock = syntheticElf(layout5002527)
+        val patched = patchVisualDelay(stock, 60, layout5002527.versionName, layout5002527.versionCode.toString())
+        assertFalse(stock.contentEquals(patched))
+        assertContentEquals(patched, patchVisualDelay(patched, 60, layout5002527.versionName, layout5002527.versionCode.toString()))
+        // Neighbouring builds and wrong version names never select this layout.
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.23", "5002527"))
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.24", "5002526"))
+        assertContentEquals(stock, patchVisualDelay(stock, 60, "2.0.24", "5002528"))
+        assertFailsWith<PatchException> {
+            patchVisualDelay(ByteArray(128), 60, "2.0.24", "5002527")
+        }
+        // The size-only legacy contract must never select the new base.
+        assertContentEquals(stock, patchVisualDelay(stock, 60))
+    }
+
+    @Test
+    fun `5002527 timestamp transitions change only canonical trampoline body`() {
+        val stock = syntheticElf(layout5002527)
+        val cave = stock.size - 0x800
+        val offsets = listOf(0L, 1L, 60L, 1000L, 4000L)
+        for (from in offsets) {
+            val patched = patchVisualDelay(stock, from, "2.0.24", "5002527")
+            assertFalse(stock.contentEquals(patched))
+            for (to in offsets) {
+                val transitioned = patchVisualDelay(patched, to, "2.0.24", "5002527")
+                assertContentEquals(
+                    patchVisualDelay(stock, to, "2.0.24", "5002527"), transitioned,
+                    "$from -> $to",
+                )
+                assertContentEquals(patched.copyOfRange(0, cave + 4), transitioned.copyOfRange(0, cave + 4))
+                assertContentEquals(patched.copyOfRange(cave + 16, patched.size), transitioned.copyOfRange(cave + 16, transitioned.size))
+            }
+        }
+    }
+
+    @Test
+    fun `5002527 refuses altered trampoline hook or velocities and out of range offsets`() {
+        val stock = syntheticElf(layout5002527)
+        val patched = patchVisualDelay(stock, 60, "2.0.24", "5002527")
+        val cave = stock.size - 0x800
+        val corruptOffsets = (0 until 20).map { cave + it } +
+            layout5002527.hookOffset + layout5002527.velocityStores.map { it.first }
+        for (offset in corruptOffsets) {
+            val malformed = patched.copyOf().apply { this[offset] = (this[offset].toInt() xor 0x80).toByte() }
+            val snapshot = malformed.copyOf()
+            assertFailsWith<PatchException>("offset=$offset") {
+                patchVisualDelay(malformed, 1000, "2.0.24", "5002527")
+            }
+            assertContentEquals(snapshot, malformed)
+        }
+        // A stock library whose hook or any one velocity store is not the audited instruction.
+        for (offset in listOf(layout5002527.hookOffset) + layout5002527.velocityStores.map { it.first }) {
+            val changed = stock.copyOf().apply { this[offset] = (this[offset].toInt() xor 0x80).toByte() }
+            val snapshot = changed.copyOf()
+            assertFailsWith<PatchException>("stock offset=$offset") {
+                patchVisualDelay(changed, 60, "2.0.24", "5002527")
+            }
+            assertContentEquals(snapshot, changed)
+        }
+        for (offset in listOf(-1L, 4001L)) assertFailsWith<PatchException> {
+            patchVisualDelay(stock, offset, "2.0.24", "5002527")
+        }
+    }
+
+    @Test
+    fun `5002527 real decoded renderer changes only the hook cave mapping and six velocity stores`() {
+        val file = decodedScene("2.0.24", "5002527")
+        assumeTrue("BLOCKED: decoded 2.0.24/5002527 scene is absent", file != null)
+        val stock = file!!.readBytes()
+        assertEquals(2_333_472, stock.size)
+        assertEquals("cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03", sha256(stock))
+        // Independent expectation: stock instruction words at the audited addresses.
+        assertContentEquals(byteArrayOf(0xe2.toByte(), 0x07, 0x40, 0xf9.toByte()), stock.copyOfRange(0x102b90, 0x102b94))
+        val patched = patchVisualDelay(stock, 60, "2.0.24", "5002527")
+        assertContentEquals(patched, patchVisualDelay(patched, 60, "2.0.24", "5002527"))
+        val changed = stock.indices.filter { stock[it] != patched[it] }
+        val phoff = stock.readU64LE(32).toInt()
+        val noteHeader = (0 until stock.readU16LE(56)).map { phoff + it * 56 }.single { stock.readU32LE(it) == 4 }
+        val allowed = buildList {
+            add(0x102b90 until 0x102b94)
+            layout5002527.velocityStores.forEach { add(it.first until it.first + 4) }
+            add(0x2392e8 until 0x2392e8 + 20) // .comment trampoline
+            add(noteHeader until noteHeader + 56) // PT_NOTE repurposed as the executable mapping
+        }
+        assertTrue(changed.isNotEmpty())
+        assertTrue(changed.all { index -> allowed.any { index in it } }, "Out-of-scope byte changed")
+        assertEquals(1, patched.readU32LE(noteHeader), "PT_NOTE repurposed as PT_LOAD")
+        layout5002527.velocityStores.forEach { (offset, byteOffset, _) ->
+            assertContentEquals(strWzrX19(byteOffset), patched.copyOfRange(offset, offset + 4))
+        }
+        for (offset in listOf(0L, 1L, 60L, 4000L)) {
+            val transitioned = patchVisualDelay(patched, offset, "2.0.24", "5002527")
+            assertContentEquals(patchVisualDelay(stock, offset, "2.0.24", "5002527"), transitioned, "-> $offset")
+        }
+        // Prior pairs fail closed on this library: their exact sizes differ.
+        for ((version, code) in listOf("2.0.23" to "5002363", "2.0.24" to "5002395")) {
+            assertFailsWith<PatchException>(code) { patchVisualDelay(stock, 60, version, code) }
         }
     }
 
@@ -249,6 +352,21 @@ class VisualDelayPatchTest {
         }
     }
 
+    private fun ByteArray.readU16LE(offset: Int): Int =
+        (this[offset].toInt() and 0xFF) or ((this[offset + 1].toInt() and 0xFF) shl 8)
+
+    private fun sha256(bytes: ByteArray): String =
+        java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
+    // Gradle runs tests from patches/, so locate the repository root explicitly; absent
+    // inputs skip the real-base audit and never substitute synthetic bytes for it.
+    private fun decodedScene(version: String, code: String): File? {
+        val root = generateSequence(File(System.getProperty("user.dir")).canonicalFile) { it.parentFile }
+            .firstOrNull { File(it, "patches/src/main/kotlin").isDirectory } ?: return null
+        return File(root, "android-steamlinkvr-release-base-$version-$code/lib/arm64-v8a/libvrlink_scene.so")
+            .takeIf { it.isFile }
+    }
+
     private fun strWzrX19(byteOffset: Int): ByteArray {
         val word = 0xB9000000.toInt() or ((byteOffset / 4) shl 10) or (19 shl 5) or 31
         return ByteArray(4).apply { writeU32LE(0, word) }
@@ -286,6 +404,7 @@ class VisualDelayPatchTest {
             Triple("2.0.22", "5002244", 2_251_920),
             Triple("2.0.23", "5002363", 2_292_008),
             Triple("2.0.24", "5002395", 2_301_432),
+            Triple("2.0.24", "5002527", 2_333_472),
         )
         bases.forEach { (version, code, size) ->
             val file = File("android-steamlinkvr-release-base-$version-$code/lib/arm64-v8a/libvrlink_scene.so")
@@ -326,9 +445,19 @@ class VisualDelayPatchTest {
             ),
         )
 
+        val layout5002527 = TestLayout(
+            5002527, "2.0.24", 2_333_472, 0x102b90,
+            listOf(
+                Triple(0x102e04, 28, false), Triple(0x102e08, 32, false),
+                Triple(0x102e0c, 36, false), Triple(0x102e18, 40, false),
+                Triple(0x102e1c, 44, false), Triple(0x102e28, 48, false),
+            ),
+        )
+
         val nativeLayouts = listOf(
             layout5002363,
             layout5002395,
+            layout5002527,
             TestLayout(
                 5001712, "2.0.20",
                 2_221_072,

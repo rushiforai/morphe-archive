@@ -7,6 +7,14 @@ public final class PopularNativeRows {
     private static final List<Snapshot> snapshots=new ArrayList<>();
     private static final ThreadLocal<Integer> modernThreshold=new ThreadLocal<>();
     private static final ThreadLocal<Boolean> modernFlat=new ThreadLocal<>();
+    static boolean captureRequired() {
+        android.content.Context context=Haiagaru.applicationContextForExtension();
+        if(context==null)return false;
+        android.content.SharedPreferences prefs=context.getSharedPreferences(WacchoiSearchOptions.PREFS,0);
+        boolean popup=prefs.getBoolean("popularReplyPopup",false);
+        return prefs.getBoolean("quickFilterCounts",false)||popup
+                ||prefs.getBoolean("popularReplyDirect",popup);
+    }
     static final class Snapshot {
         final Object first;final List<?> rows;final boolean flat;final int threshold;
         final Object[] responses;final int[] layout;
@@ -46,6 +54,7 @@ public final class PopularNativeRows {
         String n=row.getClass().getName();return ((Number)field(row,n.equals("o.r8lambdakfayx3RllpZib32UTPpeXfQjw")?"i":n.equals("o.setSocketokhttp")?"h":"j")).intValue();
     }
     private static void save(List<?> rows,boolean flat,int threshold) {
+        if(!captureRequired())return;
         try {
             Snapshot s=new Snapshot(rows,flat,threshold);if(s.first==null)return;
             synchronized(snapshots){

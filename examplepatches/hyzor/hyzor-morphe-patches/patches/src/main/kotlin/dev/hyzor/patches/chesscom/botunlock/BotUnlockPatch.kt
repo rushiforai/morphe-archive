@@ -29,36 +29,6 @@ val botUnlockPatch = bytecodePatch(
     execute {
         markFeaturePatched("botUnlockPatched")
 
-        // Bot.PersonalityBot.i() -> boolean (canPlay). Removed (inlined) in 4.10.23.
-        BotPersonalityBotGetCanPlayFingerprint.matchOrNull()?.method?.apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $BOT_UNLOCK->enabled()Z
-                    move-result v0
-                    if-eqz v0, :original
-                    const/4 v0, 0x1
-                    return v0
-                """,
-                ExternalLabel("original", getInstruction(0)),
-            )
-        }
-
-        // Bot.PersonalityBot.E() -> boolean (requiresAccountActivation). Removed in 4.10.23.
-        BotPersonalityBotGetRequiresActivationFingerprint.matchOrNull()?.method?.apply {
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $BOT_UNLOCK->enabled()Z
-                    move-result v0
-                    if-eqz v0, :original
-                    const/4 v0, 0x0
-                    return v0
-                """,
-                ExternalLabel("original", getInstruction(0)),
-            )
-        }
-
         // BotPersonality (proto).getCan_play() -> Boolean (boxed)
         ProtoBotPersonalityGetCanPlayFingerprint.method.apply {
             addInstructionsWithLabels(

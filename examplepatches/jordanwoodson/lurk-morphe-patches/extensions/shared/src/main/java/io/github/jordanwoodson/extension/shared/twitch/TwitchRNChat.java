@@ -17,7 +17,7 @@ import java.util.function.BooleanSupplier;
 public final class TwitchRNChat {
     private static final String ASSET = "lurk-twitch-chat";
     private static final String[] KEYS = {"chat_timestamps", "chat_show_deleted", "chat_keywords", "chat_appearance",
-        "emotes_7tv", "emotes_bttv", "emotes_ffz", "badges_ffz", "badges_chatterino", "badges_pronouns"};
+        "emotes_7tv", "emotes_bttv", "emotes_ffz", "badges_ffz", "badges_chatterino", "badges_pronouns", "badges_7tv"};
     private static Object previousLists;
     private static String previousConfig;
     private static int[] previousValues;
@@ -131,6 +131,7 @@ public final class TwitchRNChat {
         scope.rows.put(id,new Lease(room,user,userId,roomInterest,userInterest));
         TwitchEmotes.requestRn(room,roomInterest);
         TwitchBadges.requestRn(scope.all);
+        TwitchSevenTvBadges.requestRn(room,roomInterest);
         TwitchPronouns.requestRn(user,userInterest);
         return "{\"active\":true}";
     }

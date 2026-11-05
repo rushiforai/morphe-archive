@@ -1,6 +1,6 @@
 # Sleep as Android
 
-Package `com.urbandroid.sleep`, supported targets `20261006` and `20260616`.
+Package `com.urbandroid.sleep`, supported target `20261006`.
 Source: [`patches/src/main/kotlin/dev/hyzor/patches/sleep/`](../../patches/src/main/kotlin/dev/hyzor/patches/sleep/).
 
 | Patch | Default | What it does |
@@ -9,8 +9,6 @@ Source: [`patches/src/main/kotlin/dev/hyzor/patches/sleep/`](../../patches/src/m
 | Enable Cloud Premium | off | Reports the Sleep Cloud subscription as active (client-side only). |
 
 `20261006` is the build the fingerprints and register counts were verified against.
-`20260616` is the build the patches were originally written for; the two extra hooks are
-resolved with `methodOrNull`, so they degrade to a no-op on builds that lack them.
 
 ## How the app decides you are premium
 

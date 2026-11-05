@@ -124,21 +124,8 @@ private fun app.morphe.patcher.patch.ResourcePatchContext.resRoot(): java.io.Fil
     get("res") ?: throw PatchException("Change Waze icon: res directory missing - unsupported Waze build")
 
 /** Finds `name` with any extension, preferring the XML form, and returns its archive path. */
-private fun app.morphe.patcher.patch.ResourcePatchContext.findResource(name: String): String? {
-    val root = resRoot()
-    var xml: String? = null
-    var any: String? = null
-    root.walkTopDown().forEach { file ->
-        if (!file.isFile || file.name.substringBeforeLast('.') != name) return@forEach
-        val path = file.relativeTo(root.parentFile).path.replace('\\', '/')
-        if (file.name.endsWith(".xml")) {
-            if (xml == null) xml = path
-        } else if (any == null) {
-            any = path
-        }
-    }
-    return xml ?: any
-}
+private fun app.morphe.patcher.patch.ResourcePatchContext.findResource(name: String): String? =
+    listDecodableFiles("res/**").firstOrNull { it.substringAfterLast('/') == "$name.xml" }
 
 /** The launcher icon Waze's manifest points at, read from the manifest rather than assumed. */
 private fun app.morphe.patcher.patch.ResourcePatchContext.launcherIconPath(): String {

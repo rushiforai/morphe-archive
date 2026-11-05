@@ -21,7 +21,7 @@ private val cloneCompatibility = Compatibility(
         packageName = ORIGINAL_PACKAGE,
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(AppTarget(version = "26.08.01"), AppTarget(version = "26.10.02")),
+        targets = listOf(AppTarget(version = "26.10.02")),
     )
 private val cloneIdentities = linkedMapOf<String, String>()
 private object CloneMainProcess : Fingerprint(

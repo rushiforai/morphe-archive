@@ -16,3 +16,16 @@ object PreventScreenshotFingerprint : Fingerprint(
         "Lcom/facebook/react/bridge/Promise;"
     )
 )
+
+/**
+ * `RNDeviceModule.getConstants()` (react-native-device-info).
+ * Reads `PackageInfo.versionName` and exposes it to JavaScript as `RNDeviceInfo.appVersion`,
+ * which `DeviceInfo.getVersion()` sends in the `X-App-Version` header of every API request.
+ */
+object DeviceInfoConstantsFingerprint : Fingerprint(
+    definingClass = "Lcom/learnium/RNDeviceInfo/RNDeviceModule;",
+    name = "getConstants",
+    returnType = "Ljava/util/Map;",
+    parameters = emptyList(),
+    strings = listOf("appVersion", "buildNumber")
+)

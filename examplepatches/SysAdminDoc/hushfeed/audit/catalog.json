@@ -124,7 +124,10 @@
    },
    {
     "id": "accent-visible",
-    "what": "Review: TikTok's main red buttons and red text show the accent chosen in the patch options (or the wallpaper color on Android 12+ with Follow the wallpaper).",
+    "what": "Review: on a build patched with the Blue accent, TikTok's main red buttons and red text show Blue #2D7FF9.",
+    "buildOptions": [
+     "Accent color|accentColor=#2D7FF9"
+    ],
     "steps": [
      {
       "open": "feed"
@@ -134,7 +137,7 @@
      },
      {
       "shot": "accent-feed",
-      "review": "Feed: red buttons and red text show the chosen color instead of TikTok red #FE2C55. Warnings stay red, and the patch leaves the follow plus under the avatar red; the patch doesn't claim the Inbox unread badge either. Failing looks like the stock red on primary buttons."
+      "review": "Feed: red buttons and red text show Blue #2D7FF9 instead of TikTok red #FE2C55. Warnings stay red, and the patch leaves the follow plus under the avatar red; the patch doesn't claim the Inbox unread badge either. Failing looks like the stock red on primary buttons."
      },
      {
       "open": "profile"
@@ -144,13 +147,13 @@
      },
      {
       "shot": "accent-profile",
-      "review": "Own profile: the Upload / Follow style buttons and links use the accent, not TikTok red."
+      "review": "Own profile: the Upload / Follow style buttons and links use Blue #2D7FF9, not TikTok red."
      }
     ],
     "auto": false
    }
   ],
-  "notes": "The lane file lists TikTok original #FE2C55 (no change), Blue #2D7FF9, Green #1DA153, Purple #8B5CF6, Orange #F26411, Teal #0F9E8E or a typed code, plus Follow the wallpaper. With the default option the patch changes nothing visible, so the review needs a build made with a non-default color. Icons with the red drawn into a PNG are recolored for solid colors only; the follow plus under an avatar and soft see-through reds are documented as unchanged."
+  "notes": "The lane file lists TikTok original #FE2C55 (no change), Blue #2D7FF9, Green #1DA153, Purple #8B5CF6, Orange #F26411, Teal #0F9E8E or a typed code, plus Follow the wallpaper. With the default option the patch changes nothing visible, so accent-visible names the Blue option in buildOptions and runs only on a build patched with it (scripts/patch-for-device.ps1 -Option 'Accent color|accentColor=#2D7FF9'), into tiktok-<version>-options.json. Icons with the red drawn into a PNG are recolored for solid colors only; the follow plus under an avatar and soft see-through reds are documented as unchanged."
  },
  {
   "name": "Advanced downloads",
@@ -1100,6 +1103,13 @@
       "open": "feed"
      },
      {
+      "probe": "videoinfo",
+      "expect": "photo=false durationMs=([3-9]\\d{3}|[1-3]\\d{4})\\b(?!.*\\bad=true\\b)(?=.*\\blive=false\\b)",
+      "waitMs": 1500,
+      "retrySwipe": 8,
+      "precondition": true
+     },
+     {
       "probe": "startwatch",
       "extras": {
        "seconds": "45"
@@ -1142,7 +1152,7 @@
     "auto": true
    }
   ],
-  "notes": "The watcher reads the visible native feed pager and its existing player. It never creates a global player or emits video labels. A loop, stopped-at-end heuristic, or source-bound advance must follow stable native progress before the check is conclusive. A longer clip, unavailable owner or unfocused window stays inconclusive. Use a public video that can finish inside the 45-second window. Search results and the native Auto scroll panel are separate checks."
+  "notes": "The watcher reads the visible native feed pager and its existing player. It never creates a global player or emits video labels. A loop, stopped-at-end heuristic, or source-bound advance must follow stable native progress before the check is conclusive. A longer clip, unavailable owner or unfocused window stays inconclusive. Use a public video that can finish inside the 45-second window: the advance check swipes up to 8 times to a plain video of 3 to 40 seconds before its watch starts, since on 47.6.3 the watch started on whatever video followed the restart and never established its observation (2026-11-04). Search results and the native Auto scroll panel are separate checks."
  },
  {
   "name": "Block P2P video relay",
@@ -1906,6 +1916,21 @@
     "auto": true
    },
    {
+    "id": "manifest-label-option",
+    "what": "On a build patched with the app name Hush, the application label and the launcher entry say Hush, not the default Hushfeed.",
+    "buildOptions": [
+     "Change app name|appName=Hush"
+    ],
+    "steps": [
+     {
+      "apk": "manifest",
+      "expect": "android:label\\(0x01010001\\)=\\\"Hush\\\"",
+      "expectNot": "android:label\\(0x01010001\\)=\\\"Hushfeed\\\""
+     }
+    ],
+    "auto": true
+   },
+   {
     "id": "home-label",
     "what": "Review: Android's App info page names the app with the chosen name, and inside the app it still says TikTok.",
     "steps": [
@@ -1926,7 +1951,7 @@
     "auto": false
    }
   ],
-  "notes": "The expected name is the patch option the build was made with (appName, default Hushfeed, 50 characters at most); adjust the regex if the build used another. The manifest check runs against the patched APK with aapt2, no device. 'Inside the app it still says TikTok' is by design: only android:label changes."
+  "notes": "The expected name is the patch option the build was made with (appName, default Hushfeed, 50 characters at most): manifest-label reads the default on a plain build, and manifest-label-option names Hush in buildOptions, so it runs only on a build patched with it (scripts/patch-for-device.ps1 -Option 'Change app name|appName=Hush'), into tiktok-<version>-options.json. The manifest check runs against the patched APK with aapt2, no device. 'Inside the app it still says TikTok' is by design: only android:label changes."
  },
  {
   "name": "Comment publish diagnostics",
@@ -2408,8 +2433,8 @@
      },
      {
       "probe": "videoinfo",
-      "expect": "likes=over1000",
-      "retrySwipe": 8,
+      "expect": "comments=(?:1000orFewer|over1000)",
+      "retrySwipe": 12,
       "precondition": true
      },
      {
@@ -2434,8 +2459,8 @@
      },
      {
       "probe": "videoinfo",
-      "expect": "likes=over1000",
-      "retrySwipe": 8,
+      "expect": "comments=(?:1000orFewer|over1000)",
+      "retrySwipe": 12,
       "precondition": true
      },
      {
@@ -2498,12 +2523,13 @@
    },
    {
     "id": "hooks-bound",
-    "what": "The comment hooks found their anchors (HookStatus 'comments' and 'comment links' bound, no missing view id).",
+    "what": "The comment row hooks found their anchors (HookStatus 'comments' bound, no missing view id). That family records when a row's thumbs down or like count is looked up, so Thumbs down blocks the commenter is on; nothing is tapped. 'comment links' records only on a comment holding a web address, so it isn't asked for here.",
     "steps": [
      {
       "set": {
        "comment_links": "true",
-       "comment_search": "true"
+       "comment_search": "true",
+       "block_from_comment": "true"
       }
      },
      {
@@ -2537,7 +2563,8 @@
      {
       "set": {
        "comment_links": "false",
-       "comment_search": "false"
+       "comment_search": "false",
+       "block_from_comment": "false"
       }
      }
     ],
@@ -2975,6 +3002,24 @@
     "auto": true
    },
    {
+    "id": "icon-style-option",
+    "what": "On a build patched with the Black on white style, the launcher icon's background layer is filled white and its note black.",
+    "buildOptions": [
+     "Custom launcher icon|iconStyle=black-on-white"
+    ],
+    "steps": [
+     {
+      "apk": "icon-xml",
+      "expect": "(?s)^\\s*E: background\\b(?:(?!^\\s*E: (?:foreground|monochrome)\\b).)*fillColor\\(0x01010404\\)=#ffffffff"
+     },
+     {
+      "apk": "icon-xml",
+      "expect": "(?s)^\\s*E: foreground\\b(?:(?!^\\s*E: (?:background|monochrome)\\b).)*fillColor\\(0x01010404\\)=#ff000000"
+     }
+    ],
+    "auto": true
+   },
+   {
     "id": "icon-visible",
     "what": "Review: Android's App info page shows the icon in the chosen style (TikTok colors, black, white on black or black on white, or the picture).",
     "steps": [
@@ -2995,7 +3040,7 @@
     "auto": false
    }
   ],
-  "notes": "Options: iconStyle tiktok (default), black, white-on-black, black-on-white, material-you (hushfeed_launcher_background and hushfeed_launcher_glyph colors: white on black in values, system_neutral2_700 on system_accent1_100 in values-v31, system_accent1_100 on system_neutral1_800 in values-night-v31); iconBackground an optional #RRGGBB that replaces any style's background, picture included; iconPicture an optional 432-1024 pixel square PNG (then no themed icon). The resources dump only proves an icon resource exists; which style the build used is visible by eye. Themed icons need Android 13+ and the launcher's themed-icons switch on (Samsung One UI has it under Wallpaper and style). The App info page shows the full-color icon; the themed (wallpaper-tinted) look only shows on the home screen with the launcher's themed icons on, and the monochrome layer check covers what it draws."
+  "notes": "Options: iconStyle tiktok (default), black, white-on-black, black-on-white, material-you (hushfeed_launcher_background and hushfeed_launcher_glyph colors: white on black in values, system_neutral2_700 on system_accent1_100 in values-v31, system_accent1_100 on system_neutral1_800 in values-night-v31); iconBackground an optional #RRGGBB that replaces any style's background, picture included; iconPicture an optional 432-1024 pixel square PNG (then no themed icon). The monochrome check only proves the themed layer exists. icon-style-option names Black on white in buildOptions, so it runs only on a build patched with it (scripts/patch-for-device.ps1 -Option 'Custom launcher icon|iconStyle=black-on-white'), and reads the inline vectors the style draws into the background and foreground layers: every path white behind, the note black in front. Themed icons need Android 13+ and the launcher's themed-icons switch on (Samsung One UI has it under Wallpaper and style). The App info page shows the full-color icon; the themed (wallpaper-tinted) look only shows on the home screen with the launcher's themed icons on, and the monochrome layer check covers what it draws."
  },
  {
   "name": "Custom offline videos limit",
@@ -5117,8 +5162,22 @@
       "wait": 2500
      },
      {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.shared.diagnostics.FeedFilterCounters",
+       "method": "sessionRemoved"
+      },
+      "expect": "^ok call sessionRemoved -> [1-9]",
+      "precondition": true,
+      "retrySwipe": 8,
+      "waitMs": 1500
+     },
+     {
+      "wait": 2000
+     },
+     {
       "shot": "filter-count-pill",
-      "review": "A small pill over the feed shows how many videos were filtered out. A feed where nothing was removed shows no pill, so a quiet session is inconclusive."
+      "review": "The session has removed at least one video by now, so a small pill under the top tabs shows how many were filtered out. No pill is a fail."
      },
      {
       "set": {
@@ -5192,6 +5251,12 @@
     "default": true,
     "type": "bool",
     "row": "Long-press Home for Hushfeed settings"
+   },
+   {
+    "key": "inbox_tab_flips_read_receipts",
+    "default": false,
+    "type": "bool",
+    "row": "Long-press Inbox for read receipts"
    },
    {
     "key": "keep_for_you_on_tab_tap",
@@ -8533,6 +8598,12 @@
     "default": false,
     "type": "bool",
     "row": "Hide the comment bar on opened videos"
+   },
+   {
+    "key": "see_through_bottom_bar",
+    "default": false,
+    "type": "bool",
+    "row": "See-through bottom bar"
    }
   ],
   "surface": "feed",
@@ -8939,7 +9010,7 @@
      },
      {
       "tap": {
-       "id": "id/f2g$"
+       "id": "id/cover$"
       }
      },
      {
@@ -9012,6 +9083,55 @@
     "auto": true
    },
    {
+    "id": "see-through-fills-to-bottom",
+    "what": "See-through bottom bar grows the playing video until it reaches the bottom of its player, so the tabs sit on the picture and not on black, and switching it off gives back TikTok's own size.",
+    "steps": [
+     {
+      "set": {
+       "see_through_bottom_bar": "true"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 2500
+     },
+     {
+      "probe": "fill",
+      "expect": "ok fill players=\\d+ pictures=\\d+ covers=true",
+      "retrySwipe": 2
+     },
+     {
+      "shot": "see-through-bottom-on",
+      "review": "The band above the tabs shows the video, not black."
+     },
+     {
+      "set": {
+       "see_through_bottom_bar": "false"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 2500
+     },
+     {
+      "probe": "fill",
+      "expect": "scale=1\\.0 ",
+      "expectNot": "scale=1\\.[0-9]*[1-9]"
+     }
+    ],
+    "auto": true
+   },
+   {
     "id": "registered",
     "what": "The patch registered its three switches in the APK.",
     "steps": [
@@ -9031,7 +9151,7 @@
     "auto": true
    }
   ],
-  "notes": "Nineteen switches in one patch; the checks above cover the ones with a view id or a HookStatus line. Not automated: Hide surveys (f98) and location labels / effect tags only exist on videos that carry them (naturally served; Roadmap_Blocked lists the visual-search and survey surfaces as unserved), and Hide full screen button needs a landscape video. Both are covered only by the registered check and the hookdetails 'overlay' family. View ids are 47.1.4 names read from VideoOverlayHider's id lists (obfuscated, they change every TikTok build). A hider acts on layout passes, so each 'on' phase swipes once and waits before it reads. 'morphe_debug' is the Log diagnostics setting; the Music disc log line only prints with it on. The right column list rows (hide_rail_*) have no row title of their own, they are items in the Right column checklist. Some videos have no music line (TikTok puts a search suggestion bar there and collapses ey3), so the music check first swipes to a video that shows one, and the hidden state it asks for is o7p GONE under a visible ey3 (2026-10-16; o97 under exn on 47.1.4). Keep the music disc still records 'held the disc' only when TikTok's music_animation_close_exp would let the disc turn; an account that gets 1 or 3 (the S22's gets 3, which the spin phase's log line names) is already held, so its hold phase shows installed alone (2026-10-16). music-line-hidden is inconclusive on 47.1.4 when TikTok shows no music line at all: on 2026-10-16 every video in eight swipes had `exn` (the music line's parent) gone and `o97` at 0x0 with the switch off, and the caption ran into a Search bar where the line used to be. That says nothing about the patch; rerun it on another day. opened-video-like-count-clear opens the first video on the official @tiktok profile and asks the probe's overlap action whether the like count row (g9h) crosses the progress row (video_seek_bar) where they're drawn; the heart's count sits beside g9f rather than inside it, as it sat beside g85 on 47.1.4, which is what put it on the time before the rail's lift counted it (2026-10-16, #145)."
+  "notes": "Nineteen switches in one patch; the checks above cover the ones with a view id or a HookStatus line. Not automated: Hide surveys (f98) and location labels / effect tags only exist on videos that carry them (naturally served; Roadmap_Blocked lists the visual-search and survey surfaces as unserved), and Hide full screen button needs a landscape video. Both are covered only by the registered check and the hookdetails 'overlay' family. View ids are 47.1.4 names read from VideoOverlayHider's id lists (obfuscated, they change every TikTok build). A hider acts on layout passes, so each 'on' phase swipes once and waits before it reads. 'morphe_debug' is the Log diagnostics setting; the Music disc log line only prints with it on. The right column list rows (hide_rail_*) have no row title of their own, they are items in the Right column checklist. Some videos have no music line (TikTok puts a search suggestion bar there and collapses ey3), so the music check first swipes to a video that shows one, and the hidden state it asks for is o7p GONE under a visible ey3 (2026-10-16; o97 under exn on 47.1.4). Keep the music disc still records 'held the disc' only when TikTok's music_animation_close_exp would let the disc turn; an account that gets 1 or 3 (the S22's gets 3, which the spin phase's log line names) is already held, so its hold phase shows installed alone (2026-10-16). music-line-hidden is inconclusive on 47.1.4 when TikTok shows no music line at all: on 2026-10-16 every video in eight swipes had `exn` (the music line's parent) gone and `o97` at 0x0 with the switch off, and the caption ran into a Search bar where the line used to be. That says nothing about the patch; rerun it on another day. opened-video-like-count-clear opens the first video on the official @tiktok profile and asks the probe's overlap action whether the like count row (g9h) crosses the progress row (video_seek_bar) where they're drawn; the heart's count sits beside g9f rather than inside it, as it sat beside g85 on 47.1.4, which is what put it on the time before the rail's lift counted it (2026-10-16, #145). see-through-fills-to-bottom reads the probe's fill action, which maps each surface through its own matrix the way SurfaceFlinger frames the layer; a view's getTop alone misses TikTok's translation, and on 47.6.3 the S22's surface sat 70.5 px high, so the picture stopped 70 px short of the tabs with every view measurement saying it fit (2026-11-05, #218)."
  },
  {
   "name": "Hold-and-slide 2x lock",
@@ -9934,6 +10054,73 @@
   "notes": "The visible bug (issue #61) shows only after a phone reboot with a language picked in TikTok that differs from the phone's, which the audit does not change. If TikTok has no language picked (the test account follows the phone), the line is 'nothing picked in TikTok, <locale> from the phone stays'. The line is written in Application.onCreate, so it depends on the log buffer being ready that early; if it is missing, the dex check still proves the hook. EarlySwitch reads the saved file, so set (probe) writes it before the restart."
  },
  {
+  "name": "Freeze TikTok's experiments",
+  "category": "Settings",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/remoteconfig/FreezeRemoteConfigPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/misc/RemoteConfigFreeze.java"
+  ],
+  "settings": [
+   {
+    "key": "freeze_remote_config",
+    "default": false,
+    "type": "bool",
+    "row": "Freeze TikTok's experiments"
+   }
+  ],
+  "surface": "app-start",
+  "checks": [
+   {
+    "id": "store-held",
+    "what": "With the switch on, a server settings store after a restart is held, or on a phone that never stored one with the patch in, that whole start goes through once.",
+    "steps": [
+     {
+      "set": {
+       "freeze_remote_config": "true"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 8000
+     },
+     {
+      "probe": "report",
+      "expect": "Freeze TikTok's experiments: (skipped a store|nothing stored yet)"
+     },
+     {
+      "set": {
+       "freeze_remote_config": "false"
+      }
+     }
+    ],
+    "auto": true
+   },
+   {
+    "id": "injected",
+    "what": "The patched dex carries the store switch and the patch registered itself. (The dex-string steps show the extension class or constant is shipped, the whole extension is kept in the dex; the registered-switch step is what shows the patch ran.)",
+    "steps": [
+     {
+      "apk": "dex-string",
+      "expect": "holdsStore"
+     },
+     {
+      "probe": "report",
+      "expect": "registered_switches:[^\\n]*\\bremoteConfigFreeze\\b"
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "TikTok asks for its A/B settings at each start, so the store line shows within seconds of the feed opening; a phone whose first start with the freeze on is this one prints 'nothing stored yet' and every later start prints 'skipped a store'. The feed must still load with the switch on: a held store is a parse of a response that already arrived, so nothing retries. The Feature Gate Recorder is the manual check that values stay put across restarts."
+ },
+ {
   "name": "Keep the screen's refresh rate",
   "category": "Playback",
   "default": true,
@@ -10066,7 +10253,7 @@
     "steps": [
      {
       "probe": "report",
-      "expect": "registered_switches:[^\n]*\bhideReadReceipts\b"
+      "expect": "registered_switches:[^\\n]*\\bhideReadReceipts\\b"
      },
      {
       "apk": "dex-string",
@@ -10616,6 +10803,12 @@
     "default": false,
     "type": "bool",
     "row": "Full long-press menu in search results"
+   },
+   {
+    "key": "long_press_compact_menu",
+    "default": false,
+    "type": "bool",
+    "row": "Compact long-press menu everywhere"
    },
    {
     "key": "long_press_full_menu_on_profiles",
@@ -11218,6 +11411,12 @@
     "default": false,
     "type": "bool",
     "row": "Hide message streaks"
+   },
+   {
+    "key": "hide_streak_popups",
+    "default": false,
+    "type": "bool",
+    "row": "Hide streak pop-ups"
    },
    {
     "key": "turn_off_push_notifications",
@@ -13420,6 +13619,11 @@
     "what": "A section row opens its page: Inbox lists its Hide new followers row.",
     "steps": [
      {
+      "set": {
+       "settings_as_list": "false"
+      }
+     },
+     {
       "open": "settings"
      },
      {
@@ -13439,7 +13643,8 @@
        "text": "Hide new followers"
       },
       "expect": "ok findtext found",
-      "retrySwipe": 4
+      "retrySwipe": 4,
+      "slowSwipe": true
      },
      {
       "back": true

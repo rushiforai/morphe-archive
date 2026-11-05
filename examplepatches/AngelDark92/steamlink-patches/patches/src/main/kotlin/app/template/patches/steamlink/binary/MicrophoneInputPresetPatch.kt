@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK
+import app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild
 import app.template.patches.shared.Constants.isNativeXrSteamLinkBuild
 import app.template.patches.shared.buildLabel
 
@@ -42,7 +43,41 @@ private val NATIVE_MICROPHONE_LAYOUTS = mapOf(
     // SHA-256: 5fab23a7eac1429c93520bdd4d7c579b75a6d55525a755379d15388272571a4b.
     // Symbol-derived QSVLClientAudioNdk::Init -> AAudioStreamBuilder_setInputPreset.
     "5002395" to NativeMicrophoneLayout(2_301_432, 0xF5710),
+    // SHA-256: cfa9a9081afe9f011d50088642b11c04c8c386f393231d434621121e2c65ea03.
+    // The only AAudioStreamBuilder_setInputPreset caller is the input-stream half of
+    // QSVLClientAudioNdk::OpenStreams(int) (0xf8d88, size 908; Init moved to 0xf8c98 and no
+    // longer opens streams). Call at 0xf9040; `ldr x0, [sp, #0x10]` at 0xf9038, preset MOV at
+    // 0xf903c follows setDirection(1)=input and setChannelCount(1) in the same builder.
+    "5002527" to NativeMicrophoneLayout(2_333_472, 0xF903C),
 )
+
+// Whole-function identity for layouts that need more than the prefix+MOV signature. The
+// preset MOV is normalised to the stock `mov w1, #7` before hashing, so all four preset
+// outcomes (and reapplication) verify against the same stock function.
+private data class MicrophoneFunctionIdentity(val offset: Int, val size: Int, val stockMovSite: Int, val sha256: String)
+
+private val NATIVE_MICROPHONE_FUNCTIONS = mapOf(
+    "5002527" to MicrophoneFunctionIdentity(
+        0xF8D88, 908, 0xF903C,
+        "1687a5e83bf1b081b254d7c9edc4e50db04cc13d7f6ee0ab78ac38b0fae5cccd",
+    ),
+)
+
+private fun verifyMicrophoneFunction(bytes: ByteArray, versionCode: String) {
+    val identity = NATIVE_MICROPHONE_FUNCTIONS[versionCode] ?: return
+    val function = bytes.copyOfRange(identity.offset, identity.offset + identity.size)
+    movW1Immediate(7).copyInto(function, identity.stockMovSite - identity.offset)
+    val digest = java.security.MessageDigest.getInstance("SHA-256").digest(function)
+        .joinToString("") { "%02x".format(it) }
+    if (digest != identity.sha256) {
+        throw PatchException(
+            "Native microphone function identity mismatch for Steam Link $versionCode at " +
+                "0x${identity.offset.toString(16)}",
+        )
+    }
+}
+
+private const val STEAM_LINK_PACKAGE_NAME = "com.valvesoftware.steamlinkvr"
 
 private fun hasExactMicrophoneLayout(version: String, code: String): Boolean =
     isNativeXrSteamLinkBuild(version, code) ||
@@ -79,6 +114,7 @@ internal fun patchNativeMicrophonePreset(
         throw PatchException("Unsupported native microphone library size=${bytes.size}; expected ${layout.librarySize}")
     }
     verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
+    verifyMicrophoneFunction(bytes, versionCode)
     if (!bytes.matchesAt(layout.instructionOffset - INPUT_PRESET_PREFIX.size, INPUT_PRESET_PREFIX) ||
         SUPPORTED_PRESETS.values.none { bytes.matchesAt(layout.instructionOffset, movW1Immediate(it)) }
     ) {
@@ -113,6 +149,13 @@ val microphoneInputPresetPatch = rawResourcePatch(
     )
 
     execute {
+        // Dependencies and forced runs bypass Morphe compatibility: an excluded package or exact
+        // pair must return before any file is requested or read. Exact-layout builds patch via
+        // their layout; the remaining legacy registry builds (e.g. 5001712) use the scanner below.
+        if (packageMetadata.packageName != STEAM_LINK_PACKAGE_NAME ||
+            !(hasExactMicrophoneLayout(packageMetadata.versionName, packageMetadata.versionCode) ||
+                isLegacyXrFoundationSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode))
+        ) return@execute
         val file = get("lib/arm64-v8a/libvrlink_scene.so")
         val selected = SUPPORTED_PRESETS[preset]
             ?: throw PatchException("Unknown microphone input preset: $preset")

@@ -1,3 +1,30 @@
+## 1.10.1 (2026-11-04)
+
+### ✨ New Features
+
+* **nicoid:** Add a playback queue with options to play next, reorder, and remove videos.
+* **nicoid:** Show watch progress on video thumbnails, with an option to turn it off.
+* **nicoid:** Add settings to show, hide, and reorder video menu items.
+* **nicoid:** Add custom colors for the accent, top bar, background, and text.
+* **nicoid:** Add a setting for the number of videos retained in local watch history.
+* **nicoid:** Add an option to open the last selected tab at startup.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the Shorts screen turning black after pressing the like button. ([#98](https://github.com/chikuwadon/nicoid-re-patches/issues/98))
+* **nicoid:** Fix the final video in a playback queue retaining an incorrectly sized image when the popup player is resized after playback ends.
+
+### 🔧 Improvements
+
+* **nicoid:** Allow settings categories to be collapsed and expanded.
+* **nicoid:** Add an option to enable or disable tab-switching animations.
+* **nicoid:** Keep the screen in place once gesture input is recognized, and restore its original position when a registered gesture is completed. ([#109](https://github.com/chikuwadon/nicoid-re-patches/issues/109))
+* **nicoid:** Add icons for search, ranking, local watch history, and account watch history tabs.
+* **nicoid:** Shorten uploaded-video tab titles and display the uploader’s icon.
+* **nicoid:** Show saved download sizes alongside their status and allow deletion by long-pressing.
+* **nicoid:** Display a cache indicator in video lists.
+* **nicoid:** Reduce unnecessary video-list and thumbnail updates.
+
 ## 1.10.0 (2026-11-01)
 
 ### ✨ New Features

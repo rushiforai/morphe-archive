@@ -41,7 +41,7 @@ public final class NuvioPreferredAddonPatch {
                 builder.execute(context -> {
                     if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                         !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                        throw new IllegalStateException("Preferred add-on requires NuvioTV 1.1.0-beta.9");
+                        throw new IllegalStateException("Preferred add-on requires NuvioTV 1.1.0-beta.10");
                     validateContracts(type -> new MutableClass(context.classDefBy(type)));
                     MutableClass snapshot = context.mutableClassDefBy(NuvioNative.ADDON_SNAPSHOT_TYPE);
                     MutableClass selector = context.mutableClassDefBy(NuvioNative.ADDON_SELECTOR_TYPE);
@@ -110,7 +110,7 @@ public final class NuvioPreferredAddonPatch {
         return result.toString();
     }
     static void validateMethod(String key, MutableMethod method) {
-        String tries = key.equals("select") ? "358:13[null:372,]" : key.equals("regex") ? "31:13[null:45,]" : "";
+        String tries = key.equals("select") ? "309:13[null:323,]" : key.equals("regex") ? "31:13[null:45,]" : "";
         boolean isStatic = !key.equals("snapshot") && !key.equals("load");
         if (!method.toString().equals(SIGNATURES.get(key)) || ((method.getAccessFlags() & 8) != 0) != isStatic ||
             method.getImplementation() == null || !tryLayout(method).equals(tries) ||

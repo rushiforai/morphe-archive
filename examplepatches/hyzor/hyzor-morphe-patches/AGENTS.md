@@ -23,12 +23,12 @@ conventions the repository follows.
 
 | App | Package | Targets | Sources |
 |---|---|---|---|
-| Sleep as Android | `com.urbandroid.sleep` | `20261006`, `20260616` | `patches/.../sleep/` |
+| Sleep as Android | `com.urbandroid.sleep` | `20261006` | `patches/.../sleep/` |
 | SnoreLab | `com.snorelab.app` | `2.33.5.7814` | `patches/.../snorelab/` |
 | NYT Games | `com.nytimes.crossword` | `6.48.0` | `patches/.../nytgames/` |
-| Chess.com | `com.chess` | `4.10.18`, `4.10.23` | `patches/.../chesscom/` + `extensions/chesscom/` |
+| Chess.com | `com.chess` | `4.10.23` | `patches/.../chesscom/` + `extensions/chesscom/` |
 | Duolingo | `com.duolingo` | `6.104.3` | `patches/.../duolingo/` |
-| Nova Launcher | `com.teslacoilsw.launcher` | `8.9.5` | `patches/.../nova/` |
+| Nova Launcher | `com.teslacoilsw.launcher` | `8.9.6` | `patches/.../nova/` |
 
 ## Repository map
 
@@ -175,9 +175,9 @@ Rules that matter in this repo:
 - A fingerprint must match **exactly one** method. Duplicate matches only fail when Morphe
   is run with `--validate` (or when you use `matchSingle()`), so a duplicate can otherwise
   patch the wrong method silently. Use `--validate` when testing.
-- When a hook is optional across versions, resolve it with `methodOrNull` and degrade to a
-  no-op rather than failing the whole patch (see Sleep as Android's optional signature and
-  cloud hooks, which are missing from some targets).
+- When a hook is genuinely optional, resolve it with `methodOrNull` and degrade to a no-op
+  rather than failing the whole patch (Sleep as Android's cloud-state sentinel hook does this).
+  Prefer `.method` for hooks every supported target must have.
 - `tools/verify_fingerprints.py` checks the class/method anchors without Gradle or Morphe.
   It is a fast pre-check, not a replacement for building and applying the bundle.
 
@@ -269,6 +269,12 @@ Morphe signs the output with its own key. Consequences you will meet:
 
 ### Supporting a new app version
 
+The default policy is **one solidly supported version per app**. When a newer build arrives,
+port the existing patches to it and drop the old target instead of carrying both: every extra
+target multiplies the fingerprint, build and device-verification work for little benefit once
+the new build is ready. Keep a previous target only with a concrete reason — for example, when
+jumping to a beta or alpha build, where keeping the last stable target gives users a fallback.
+
 1. Run `python3 tools/verify_fingerprints.py new.apk` and note every `MISS`.
 2. Re-resolve the broken fingerprints against the new APK; update `Fingerprints.kt` and its
    comments.
@@ -281,8 +287,7 @@ Morphe signs the output with its own key. Consequences you will meet:
 6. Update the supported-versions table at the top of the README and the app page in
    `docs/apps/`.
 7. Commit with `bump(<app>): support <version>` — `bump:` maps to the release's
-   “Updated App Support” section. Keep older targets working unless you deliberately drop
-   them.
+   “Updated App Support” section. Drop the previous target unless the exception above applies.
 
 Never bump a version in `Constants.kt` before the fingerprints are verified: Morphe will
 show the version as compatible while the patch fails or patches the wrong method.
@@ -380,6 +385,9 @@ force-stop the app so the next test starts cold.
   block between `<!-- PATCHES_START … -->` and `<!-- PATCHES_END -->`, or `CHANGELOG.md`
   (all produced by the release CI).
 - The README table of supported apps *is* hand-maintained; update it when versions change.
+- Support one version per app by default: port the patches forward when a new build lands and
+  drop the old target, unless there is a specific reason to keep both (see
+  [Supporting a new app version](#supporting-a-new-app-version)).
 
 ## Git and releases
 

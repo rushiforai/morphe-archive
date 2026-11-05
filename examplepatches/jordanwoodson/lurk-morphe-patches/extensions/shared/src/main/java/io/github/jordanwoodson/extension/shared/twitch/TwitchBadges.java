@@ -23,9 +23,10 @@ import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
 
 /**
- * Third-party chat badges (FrankerFaceZ, Chatterino) and pronouns (pronouns.alejo.io) on native chat lines,
+ * Third-party chat badges (FrankerFaceZ, Chatterino, 7TV) and pronouns (pronouns.alejo.io) on native chat lines,
  * each opt-in. FrankerFaceZ and Chatterino publish one list of all their badge holders, which is downloaded in
- * the background, kept in memory for an hour and looked up locally. Pronouns need a lookup per chatter; see
+ * the background, kept in memory for an hour and looked up locally. 7TV pushes its chatters' badges per channel
+ * over an event connection; see {@link TwitchSevenTvBadges}. Pronouns need a lookup per chatter; see
  * {@link TwitchPronouns}.
  */
 @SuppressWarnings({"unused", "rawtypes", "unchecked"})
@@ -65,14 +66,17 @@ public final class TwitchBadges {
             boolean ffz = Settings.isEnabled(KEY_FFZ);
             boolean chatterino = Settings.isEnabled(KEY_CHATTERINO);
             boolean pronouns = Settings.isEnabled(KEY_PRONOUNS);
-            if (!ffz && !chatterino && !pronouns) return badges;
+            boolean sevenTv = Settings.isEnabled(TwitchSevenTvBadges.KEY);
+            if (!ffz && !chatterino && !pronouns && !sevenTv) return badges;
             if (ffz) FFZ.ensure(TwitchBadges::loadFfz);
             if (chatterino) CHATTERINO.ensure(TwitchBadges::loadChatterino);
+            if (sevenTv) TwitchSevenTvBadges.ensure();
             List out = null;
-            long id = ffz || chatterino ? userId(user) : 0;
+            long id = ffz || chatterino || sevenTv ? userId(user) : 0;
             if (id > 0) {
                 if (ffz) out = add(out, badges, FFZ.badges, id, badgeClass);
                 if (chatterino) out = add(out, badges, CHATTERINO.badges, id, badgeClass);
+                if (sevenTv) out = TwitchSevenTvBadges.add(out, badges, id, badgeClass);
             }
             if (pronouns) {
                 String[] pronoun = TwitchPronouns.badge(login(user));
@@ -106,6 +110,10 @@ public final class TwitchBadges {
                 if (Arrays.binarySearch(badge.users,id) >= 0 && out.size() < 32) out.add(new String[]{badge.name,badge.url});
             }
         }
+        if (TwitchSevenTvBadges.enabled()) {
+            String[] badge = TwitchSevenTvBadges.cachedRn(id);
+            if (badge != null && out.size() < 32) out.add(badge);
+        }
         return out;
     }
 
@@ -123,7 +131,7 @@ public final class TwitchBadges {
         for (Badge badge : PRONOUN_MODELS.values()) {
             if (badge.url.equals(url)) return new String[]{"Pronouns from pronouns.alejo.io", badge.title};
         }
-        return null;
+        return TwitchSevenTvBadges.describe(url);
     }
 
     private static List add(List out, List badges, Badge[] provider, long id, Class<?> badgeClass)
@@ -422,7 +430,7 @@ public final class TwitchBadges {
     }
 
     /** A badge: Twitch-style name, image URL, its holders' user IDs (sorted) and the title its service gives it. */
-    private static final class Badge {
+    static final class Badge {
         final String name;
         final String url;
         final long[] users;

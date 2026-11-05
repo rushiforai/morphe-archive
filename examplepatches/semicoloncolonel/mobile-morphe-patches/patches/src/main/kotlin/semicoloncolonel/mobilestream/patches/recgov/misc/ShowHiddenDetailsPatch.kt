@@ -16,10 +16,10 @@ import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 
 // Recreation.gov 2.2.67 receives several details it never shows. Each one
 // is added to text the app already shows from the same data:
-//   Ticket lottery: applications, tickets requested and awarded, the limit
-//     per account, and the results date, shown once as a message when the
-//     lottery's screen state is created. No text on that screen carries the
-//     lottery object.
+//   Ticket lottery: applications, tickets requested and awarded, and the
+//     limit per account, shown once in a dialog when the lottery's screen
+//     state is created. The results date is left to the app, which already
+//     shows it; no text on that screen carries these counts.
 //   Ticket time slots: when sales for the slot close, after "N tickets
 //     Available". The slot list is built from the day's availability, whose
 //     booking windows are remembered first.
@@ -54,9 +54,7 @@ private fun MutableMethod.filterReturnedText(helper: String) {
 @Suppress("unused")
 val showHiddenDetailsPatch = bytecodePatch(
     name = "Show hidden details",
-    description = "Shows details the app receives but hides: ticket lottery applicant and ticket counts " +
-        "and results dates, when ticket sales close for each time slot, facility booking " +
-        "window rules, your lottery confirmation deadlines, and venue booking times.",
+    description = "Shows ticket lottery, ticket sales, and booking details the app receives but hides.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

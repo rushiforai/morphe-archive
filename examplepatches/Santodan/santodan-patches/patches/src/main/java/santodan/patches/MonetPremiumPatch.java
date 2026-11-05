@@ -23,22 +23,22 @@ public final class MonetPremiumPatch {
     @SuppressWarnings({"unchecked", "deprecation"})
     private static BytecodePatch create(boolean experimental) {
         return PatchKt.bytecodePatch(experimental ? EXPERIMENTAL : NAME,
-            experimental ? "Original premium unlock from Doom's Patches, verified on Monet 1.1.0. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names or final flags. Future layouts may still be unsupported. Select only one Monet premium patch."
-                : "Original premium unlock from Doom's Patches, updated here for Monet 1.1.0. Unlock local premium features. Select only one Monet premium patch.",
+            experimental ? "Original premium unlock from Doom's Patches, verified on Monet 1.1.1. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names or final flags. Future layouts may still be unsupported. Select only one Monet premium patch."
+                : "Original premium unlock from Doom's Patches, updated here for Monet 1.1.1. Unlock local premium features. Select only one Monet premium patch.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "Monet", null, ApkFileType.APK,
                     null, null, experimental ? Collections.singletonList(new AppTarget(null, null, true, 26, null))
                         : Arrays.asList(new AppTarget("1.0.97", null, false, 26, null),
-                            new AppTarget("1.1.0", null, false, 26, null)), FormFactor.TV, false));
+                            new AppTarget("1.1.0", null, false, 26, null), new AppTarget("1.1.1", null, false, 26, null)), FormFactor.TV, false));
                 builder.execute(context -> {
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
-                        || !experimental && !Set.of("1.0.97", "1.1.0").contains(context.getPackageMetadata().getVersionName()))
+                        || !experimental && !Set.of("1.0.97", "1.1.0", "1.1.1").contains(context.getPackageMetadata().getVersionName()))
                         throw unsupported("Unexpected package/version");
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
                     Method match = findUnique(classes);
                     String version = context.getPackageMetadata().getVersionName();
-                    String reviewed = "1.1.0".equals(version) ? "La/dl5;->a()Z" : "La/sa5;->a()Z";
+                    String reviewed = "1.1.1".equals(version) ? "La/ov5;->a()Z" : "1.1.0".equals(version) ? "La/dl5;->a()Z" : "La/sa5;->a()Z";
                     if (!experimental && !reviewed.equals(match.toString()))
                         throw unsupported(version + " evaluator differs from the reviewed contract");
                     MutableMethod target = context.mutableClassDefBy(match.getDefiningClass()).getMethods().stream()

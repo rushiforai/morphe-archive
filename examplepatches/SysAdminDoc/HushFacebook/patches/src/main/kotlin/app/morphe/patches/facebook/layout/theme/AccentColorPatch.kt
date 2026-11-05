@@ -15,6 +15,7 @@ import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.classDefForEachReferencing
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -34,8 +35,8 @@ private const val COLOUR_SPAN = "Landroid/text/style/ForegroundColorSpan;"
  * An accent colour for Facebook's blue (links, buttons, switches). It rides route one of the
  * themes: the Mig dark scheme and the FDS colour resolvers, hooked the way AMOLED and Material You
  * hook them. Route five ([accentResourcePatch]) lists the colour resources behind the FDS tokens for
- * the extension, which answers for them as each activity is created, for what Facebook inflates from
- * layout XML. Route six is its one anchor of its own: Bloks, whose box fills (the profile's Add to
+ * the extension, which answers for them as Facebook starts and as each activity is created, for what
+ * Facebook inflates from layout XML ([loadAccentTables]). Route six is its one anchor of its own: Bloks, whose box fills (the profile's Add to
  * story button) and text colours (a profile's bio link) Facebook's server sends as hex colours
  * ([hookBloksFills], [hookBloksText]). Route seven shares the themes' React Native hooks
  * ([hookReactColours]) for the colours a screen's JavaScript sets. The extension
@@ -59,6 +60,7 @@ val accentColorPatch = bytecodePatch(
     execute {
         enableStatus("accentColor")
         fillResourceBlues(accentResourceBlues)
+        loadAccentTables()
         hookBloksFills()
         hookBloksText()
         // Route seven: the React Native hooks the themes share, which leave hooks already in place.
@@ -119,8 +121,9 @@ internal fun isBoxBuilder(method: Method, border: Method): Boolean {
 internal fun BytecodePatchContext.hookBloksText() {
     val reader = themedColourReader(BoxDecorationBorderFingerprint.method)
     val builders = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    // By the reader's class, which the builder calls (#216).
+    classDefForEachReferencing(types = listOf(reader.definingClass)) { classDef ->
+        if (classDef.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEachReferencing
         classDef.methods.filter { isBloksTextBuilder(it, reader) }.mapTo(builders) { classDef.type to it }
     }
     val (owner, builder) = builders.singleOrNull() ?: throw PatchException(

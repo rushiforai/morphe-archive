@@ -172,9 +172,7 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
 @Suppress("unused")
 val gmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore support",
-    description = "Lets the re-signed app sign in with a Google account through GmsCore (microG) " +
-        "instead of Google Play services. With Clone app on, it installs beside the stock app. " +
-        "Requires ReVanced GmsCore or MicroG-RE.",
+    description = "Signs in with Google through GmsCore instead of Google Play services.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

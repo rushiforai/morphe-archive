@@ -92,7 +92,7 @@ class GuardianSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "6.239.23439",
+            version = "6.241.23504",
             patchNames = setOf("Disable article limit", "Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -150,8 +150,8 @@ class GuardianSmokeTest {
         assertTrue(replaced.size == 1, "$stateLabel has ${replaced.size} patched None returns, expected one")
         assertNoneReturned(stateInsns, replaced.single(), none, stateLabel)
 
-        // Disable ads 1: the GMA load method reports a LoadAdError to the AdManagerAdView's
-        // listener and returns before any ad request.
+        // Disable ads 1: the GMA load method reports a load error to the AdManagerAdView's
+        // listener and returns before any ad request (GMA or Amazon APS).
         val loadAds = allMethods.filter { (_, method) ->
             method.returnType == "V" && method.parameterTypes.size == 2 &&
                 method.parameterTypes[1].toString() == AD_MANAGER_AD_VIEW &&
@@ -188,14 +188,23 @@ class GuardianSmokeTest {
                 (adInsns[2] as OneRegisterInstruction).registerA == listener,
             "$adLabel does not null-check the listener; found ${adInsns.getOrNull(1)?.opcode}, ${adInsns.getOrNull(2)?.opcode}"
         )
+        // R8 renames GMA's LoadAdError and AdListener since 6.240, so both come from the app's own
+        // "No consent given for google ads" failure, as the patch reads them.
+        val noConsent = adInsns.indexOfFirst { it.stringRef() == "No consent given for google ads" }
+        val errorType = (noConsent - 1 downTo maxOf(0, noConsent - 6))
+            .map { adInsns[it] }.firstOrNull { it.opcode == Opcode.NEW_INSTANCE }?.typeRef()
+            ?: error("$adLabel: the consent failure creates no error object")
+        val listenerType = getListener!!.methodRef()!!.returnType
         val failIndex = adInsns.indexOfFirst {
-            it.methodRef()?.let { ref -> ref.definingClass == "${GMA}AdListener;" && ref.name == "onAdFailedToLoad" } == true
+            it.methodRef()?.let { ref ->
+                ref.definingClass == listenerType && ref.returnType == "V" && ref.parameters() == listOf(errorType)
+            } == true
         }
         val errorInit = adInsns.getOrNull(failIndex - 1)?.methodRef()
         assertTrue(
             failIndex in 3..12 && (adInsns[failIndex] as FiveRegisterInstruction).registerC == listener &&
-                errorInit?.definingClass == "${GMA}LoadAdError;" && errorInit.name == "<init>",
-            "$adLabel does not report a new LoadAdError to onAdFailedToLoad in its prologue (index $failIndex)"
+                errorInit?.definingClass == errorType && errorInit.name == "<init>",
+            "$adLabel does not report a new $errorType to $listenerType in its prologue (index $failIndex)"
         )
         val returnIndex = failIndex + 1
         assertTrue(

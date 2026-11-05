@@ -103,17 +103,18 @@ public final class ReportPatch {
      * its launcher shows one entry per app, showed this one instead of Maps Car (issue #3) and keeps
      * what it read at install, so the entry must be off from the install. Maps' Settings row and the
      * crash notification still open the report there. Set at each start, so a later build can change it.
+     * On a background thread, so any error is caught: the entry then keeps its state.
      */
     private static void setLauncherEntry(Context context) {
-        boolean on = !BydBatteryPatch.tsAdapterCar();
         try {
+            boolean on = !BydBatteryPatch.tsAdapterCar();
             PackageManager manager = context.getPackageManager();
             ComponentName entry = new ComponentName(context, LAUNCHER_ENTRY);
             int state = on ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
             if (manager.getComponentEnabledSetting(entry) == state) return;
             manager.setComponentEnabledSetting(entry, state, PackageManager.DONT_KILL_APP);
             ReportLog.i(TAG, "Report Maps Car launcher entry " + (on ? "on" : "off (TS car adapter, one entry per app)"));
-        } catch (RuntimeException error) {
+        } catch (Throwable error) {
             ReportLog.w(TAG, "launcher entry not set", error);
         }
     }
@@ -142,7 +143,7 @@ public final class ReportPatch {
                         : "Maps Car closed unexpectedly last time. Open " + reportPlace(false) + " to send a report.";
             }
             if (text != null) Toast.makeText(context, text, Toast.LENGTH_LONG).show();
-        } catch (RuntimeException error) {
+        } catch (Throwable error) {
             ReportLog.w(TAG, "start notice not shown", error);
         }
     }
@@ -340,6 +341,8 @@ public final class ReportPatch {
     private static String featureName(String feature, boolean thai) {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ขนาดการแสดงผล (UI density)" : "UI density";
+            case SafeMode.DRIVER_SIDE: return thai ? "ฝั่งพวงมาลัย (Driver side)" : "Driver side";
+            case SafeMode.BUILDINGS_3D: return thai ? "อาคาร 3 มิติ (3D buildings)" : "3D buildings";
             case SafeMode.BYD_BATTERY: return thai ? "แบตเตอรี่รถ BYD (EV)" : "BYD battery (EV)";
             case SafeMode.SEND_TO_CAR: return "Send to car";
             case SafeMode.LOCATION_LOCKOUT_DELAY: return thai ? "แก้ตำแหน่งกะพริบของ BYD" : "BYD location flicker fix";
@@ -353,8 +356,10 @@ public final class ReportPatch {
     private static String featureOff(String feature, boolean thai) {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ใช้ขนาดของระบบ" : "the system density";
+            case SafeMode.DRIVER_SIDE: return thai ? "Maps เลือกฝั่งการ์ดเอง (บน DiLink 3 อยู่ซ้าย)" : "Maps picks the cards' side (left on DiLink 3)";
+            case SafeMode.BUILDINGS_3D: return thai ? "ชั้นแผนที่ไม่มีอาคาร 3 มิติ" : "no 3D buildings in the map layers";
             case SafeMode.BYD_BATTERY: return thai ? "ไม่ส่งแบตเตอรี่ให้ Maps ไม่มีหน้าจอ EV" : "no battery for Maps, no EV screens";
-            case SafeMode.SEND_TO_CAR: return thai ? "รับทริปจากมือถือไม่ได้" : "trips from the phone do not arrive";
+            case SafeMode.SEND_TO_CAR: return thai ? "รับทริปจากมือถือไม่ได้ และมือถือเห็นชื่อรถของ Maps" : "trips from the phone do not arrive, and phone Maps shows Maps' car name";
             case SafeMode.LOCATION_LOCKOUT_DELAY: return thai ? "หน้าจอตำแหน่งปิดกะพริบเมื่อ GPS ของ BYD หลุด" : "the location lockout flashes when BYD's GPS drops";
             case SafeMode.BYD_NAVIGATION_VOLUME: return thai ? "เสียงนำทางใช้ระดับเสียงเพลง" : "voice guidance follows the media volume";
             case SafeMode.TTS_WARMUP: return thai ? "เสียงนำทางแรกอาจเป็นเสียงสำรอง" : "the first prompt may use the canned voice";

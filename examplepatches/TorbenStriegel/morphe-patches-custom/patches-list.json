@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.6.0",
+  "version": "1.8.0",
   "patches": [
     {
       "name": "Disable ads",
@@ -23,6 +23,18 @@
                 "ARMEABI_V7A": 1044999406,
                 "X86_64": 1044999406,
                 "X86": 1044999406
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "15.148.0",
+              "versionCodes": {
+                "ARM64_V8A": 1045029590,
+                "ARMEABI_V7A": 1045029590,
+                "X86_64": 1045029590,
+                "X86": 1045029590
               },
               "isExperimental": false,
               "minSdk": null,
@@ -50,6 +62,104 @@
             {
               "version": "2026.19",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2026.21",
+              "versionCodes": {
+                "ARM64_V8A": 2324828,
+                "ARMEABI_V7A": 2324828,
+                "X86_64": 2324828,
+                "X86": 2324828
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide match FanShop promotions",
+      "description": "Hides the FanShop product carousel on the match overview.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "de.motain.iliga",
+          "name": "OneFootball",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00C853",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "15.145.0",
+              "versionCodes": {
+                "ARM64_V8A": 1044999406,
+                "ARMEABI_V7A": 1044999406,
+                "X86_64": 1044999406,
+                "X86": 1044999406
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "15.148.0",
+              "versionCodes": {
+                "ARM64_V8A": 1045029590,
+                "ARMEABI_V7A": 1045029590,
+                "X86_64": 1045029590,
+                "X86": 1045029590
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide match betting odds",
+      "description": "Disables bookmaker betting cards and odds on the match overview while retaining match predictions.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "de.motain.iliga",
+          "name": "OneFootball",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00C853",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "15.145.0",
+              "versionCodes": {
+                "ARM64_V8A": 1044999406,
+                "ARMEABI_V7A": 1044999406,
+                "X86_64": 1044999406,
+                "X86": 1044999406
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "15.148.0",
+              "versionCodes": {
+                "ARM64_V8A": 1045029590,
+                "ARMEABI_V7A": 1045029590,
+                "X86_64": 1045029590,
+                "X86": 1045029590
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -92,32 +202,6 @@
       "category": null,
       "compatiblePackages": [
         {
-          "packageName": "com.mtv.sai",
-          "name": "SAI Split APKs Installer",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#1976D2",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "2.4.2",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Remove Play Store redirect",
-      "description": "Removes the PairIP license check that redirects to the Play Store and exits on sideloaded installs.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
           "packageName": "com.isarinteractive.skat.android.ad",
           "name": "Skat",
           "description": null,
@@ -139,21 +223,26 @@
     },
     {
       "name": "Unlock Premium",
-      "description": "Unlocks SAI Split APKs Installer premium (backups, themes) by forcing the \"SAI Premium\" entitlement state to active.",
+      "description": "Unlocks Park4Night premium (Pro) access, removing all feature gates for offline maps, advanced filters, and publisher content.",
       "default": true,
       "category": null,
       "compatiblePackages": [
         {
-          "packageName": "com.mtv.sai",
-          "name": "SAI Split APKs Installer",
+          "packageName": "fr.tramb.park4night",
+          "name": "Park4Night",
           "description": null,
           "apkFileType": "XAPK",
-          "appIconColor": "#1976D2",
+          "appIconColor": "#4CAF50",
           "signatures": null,
           "targets": [
             {
-              "version": "2.4.2",
-              "versionCodes": null,
+              "version": "7.1.62",
+              "versionCodes": {
+                "ARM64_V8A": 378,
+                "ARMEABI_V7A": 378,
+                "X86_64": 378,
+                "X86": 378
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null
@@ -195,6 +284,37 @@
       "options": []
     },
     {
+      "name": "Unlock Premium features",
+      "description": "Unlocks Chargeprice premium features (ad-free, price filters, route planner, favourites, ...) without needing to log in or purchase a subscription.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "fr.chargeprice.app",
+          "name": "Chargeprice",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#007AFF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "4.4.0",
+              "versionCodes": {
+                "ARM64_V8A": 44000000,
+                "ARMEABI_V7A": 44000000,
+                "X86_64": 44000000,
+                "X86": 44000000
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Unlock ntv Plus",
       "description": "Unlocks ntv Plus premium features (ad-free, premium content) by forcing the subscription state to active.",
       "default": true,
@@ -215,6 +335,18 @@
                 "ARMEABI_V7A": 586,
                 "X86_64": 586,
                 "X86": 586
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "8.6.0.1",
+              "versionCodes": {
+                "ARM64_V8A": 589,
+                "ARMEABI_V7A": 589,
+                "X86_64": 589,
+                "X86": 589
               },
               "isExperimental": false,
               "minSdk": null,

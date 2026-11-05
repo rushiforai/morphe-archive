@@ -10,7 +10,7 @@ package dev.hyzor.patches.chesscom.coach
 import app.morphe.patcher.Fingerprint
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Play Coach daily quota (Chess.com 4.10.18)
+// Play Coach daily quota
 //
 // com.chess.features.versusbots.coach.CoachGamesQuotaServiceImpl implements the quota
 // interface com.chess.features.versusbots.api.i:
@@ -51,10 +51,6 @@ internal object CoachQuotaConsumeFingerprint : Fingerprint(
     definingClass = QUOTA_SERVICE,
     returnType = "Ljava/lang/Object;",
     custom = { method, _ ->
-        // 4.10.18: (Coach, String, Continuation). 4.10.23: (String, Continuation).
-        (method.parameterTypes.size == 3 &&
-            method.parameterTypes[0] == "Lcom/chess/coach/Coach;" &&
-            method.parameterTypes[1] == "Ljava/lang/String;") ||
-            (method.parameterTypes.size == 2 && method.parameterTypes[0] == "Ljava/lang/String;")
+        method.parameterTypes.size == 2 && method.parameterTypes[0] == "Ljava/lang/String;"
     },
 )

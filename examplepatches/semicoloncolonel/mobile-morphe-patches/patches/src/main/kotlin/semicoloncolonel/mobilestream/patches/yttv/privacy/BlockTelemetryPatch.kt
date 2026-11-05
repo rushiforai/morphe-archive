@@ -76,9 +76,7 @@ internal object LogEventRequestFingerprint : Fingerprint(
 @Suppress("unused")
 val blockTelemetryPatch = bytecodePatch(
     name = "Block telemetry",
-    description = "Stops YouTube TV's quality reports, interaction logging, view tracking, ad " +
-        "measurement, and Firebase Analytics. Playback, watch history, and location checks are " +
-        "left alone.",
+    description = "Stops quality reports, interaction logging, view tracking, ad measurement, and Firebase Analytics.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

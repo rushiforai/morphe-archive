@@ -23,15 +23,15 @@ KingInstaller as a fallback).
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.47](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.47)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;33 patches total
+> **[v0.30.51](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.51)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;34 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;33 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;34 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 | 5.26.5.0 | 5.26.90.901 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 | 5.26.5.0 | 5.26.90.901 | 5.27.0.1 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -39,6 +39,7 @@ KingInstaller as a fallback).
 | **Alert distances** | How early alerts sound, plus a speed-bump switch and per-alert distances. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts |
 | **Allow high refresh rate** | Runs above 60 Hz, up to your screen's limit. | • Target refresh rate (Hz) |
 | **Auto zoom** | Keeps your auto-zoom choice from being reset. | • Auto-zoom mode |
+| **Bigger alert pins** | Grows the alert pins on the map, phone and car screen alike. | • Pin size |
 | **Brief voice guidance** | Shorter spoken directions. |  |
 | **Cameras & hazards** | Shows every camera and road hazard, with switches for the extra kinds. | • Average-speed zones<br>• Camera chime below the limit<br>• The other camera types<br>• Crosswalk hazards |
 | **Car alerts as notifications** | Shows car alerts as notifications. |  |

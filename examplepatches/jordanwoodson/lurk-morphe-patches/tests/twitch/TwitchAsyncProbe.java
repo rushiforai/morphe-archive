@@ -78,9 +78,10 @@ public class TwitchAsyncProbe {
             return;
         }
         if(scenario.equals("proxy")){
-            // Playlist proxy: masters come from the proxy's host (in place of usher, or with the usher URL in
-            // the query), so no stream is tracked and every playlist passes unchanged.
+            // Playlist proxy: masters come from the proxy's host (including channel-only URLs), so no
+            // stream is tracked and every playlist passes unchanged.
             for(String url:new String[]{"https://proxy.example/api/channel/hls/a.m3u8?token=t",
+                    "https://proxy.example/live/a",
                     "https://proxy.example/playlist?url="+URLEncoder.encode("https://usher.ttvnw.net/api/channel/hls/a.m3u8","UTF-8")}){
                 check(!(Boolean)call(TYPE,"isUsherMaster",url),"proxied master taken for usher: "+url);
                 Request req=new Request(){public String getUrl(){return url;}};

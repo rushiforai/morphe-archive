@@ -35,12 +35,7 @@ private val PLAYER_HOSTS = listOf(
 @Suppress("unused")
 val maskLiveAdsPatch = bytecodePatch(
     name = "Mask live ad breaks",
-    description = "Live TV ads are part of the broadcast and cannot be cut out. During a live " +
-        "break this covers the video with a black screen and mutes the audio, then restores " +
-        "both when the show returns. Detection uses Pluto's own ad tags, which appear only " +
-        "while an ad plays. To turn it off without re-patching, create a file named slate_off " +
-        "in Android/data/tv.pluto.android/files; a file named pluto_slate_mode containing " +
-        "black or mute picks cover-only or mute-only.",
+    description = "Covers live ad breaks with a \"We'll be right back!\" screen and mutes them.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

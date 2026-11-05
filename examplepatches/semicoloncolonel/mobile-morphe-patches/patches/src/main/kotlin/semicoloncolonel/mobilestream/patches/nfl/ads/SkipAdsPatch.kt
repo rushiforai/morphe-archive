@@ -34,8 +34,7 @@ internal object SourceAdapterParseFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Stops the video ads the NFL app adds before and during clips and highlights. Ads " +
-        "stitched into a live stream still play. Experimental.",
+    description = "Stops the video ads before and during clips and highlights.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

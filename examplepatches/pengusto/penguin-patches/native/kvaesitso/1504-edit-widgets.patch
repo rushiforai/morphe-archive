@@ -1,0 +1,235 @@
+diff --git a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/LauncherScaffold.kt b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/LauncherScaffold.kt
+index 1ebdd58..e064c9d 100644
+--- a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/LauncherScaffold.kt
++++ b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/LauncherScaffold.kt
+@@ -95,6 +95,7 @@ import androidx.lifecycle.repeatOnLifecycle
+ import androidx.lifecycle.viewmodel.compose.viewModel
+ import de.mm20.launcher2.ktx.isAtLeastApiLevel
+ import de.mm20.launcher2.preferences.SearchBarStyle
++import de.mm20.launcher2.preferences.ui.UiSettings
+ import de.mm20.launcher2.searchactions.actions.SearchAction
+ import de.mm20.launcher2.ui.component.SearchBarLevel
+ import de.mm20.launcher2.ui.ktx.toPixels
+@@ -107,6 +108,7 @@ import de.mm20.launcher2.ui.launcher.scaffold.animation.ScaffoldAnimationControl
+ import de.mm20.launcher2.ui.launcher.scaffold.animation.ZoomInScaffoldAnimationController
+ import de.mm20.launcher2.ui.launcher.scaffold.components.ScaffoldComponent
+ import de.mm20.launcher2.ui.launcher.scaffold.components.SearchComponent
++import de.mm20.launcher2.ui.launcher.scaffold.components.WidgetEditingComponent
+ import de.mm20.launcher2.ui.launcher.search.SearchVM
+ import de.mm20.launcher2.ui.launcher.search.filters.KeyboardFilterBar
+ import de.mm20.launcher2.ui.launcher.searchbar.LauncherSearchBar
+@@ -120,6 +122,7 @@ import kotlinx.coroutines.awaitCancellation
+ import kotlinx.coroutines.delay
+ import kotlinx.coroutines.launch
+ import kotlinx.coroutines.withContext
++import org.koin.compose.koinInject
+ import kotlin.math.absoluteValue
+ import kotlin.math.pow
+ import kotlin.math.roundToInt
+@@ -898,6 +901,39 @@ internal class LauncherScaffoldState(
+         }
+     }
+ 
++    private fun widgetEditingTarget(): Pair<WidgetEditingComponent, Gesture?>? {
++        if (isSettledOnSecondaryPage) {
++            (currentComponent as? WidgetEditingComponent)?.let {
++                return it to currentGesture
++            }
++        }
++        (config.homeComponent as? WidgetEditingComponent)?.let {
++            return it to null
++        }
++        for (gesture in Gesture.entries) {
++            val component = config[gesture]?.component as? WidgetEditingComponent ?: continue
++            return component to gesture
++        }
++        return null
++    }
++
++    val canEditWidgets: Boolean
++        get() = widgetEditingTarget() != null
++
++    suspend fun editWidgets() {
++        val (component, gesture) = widgetEditingTarget() ?: return
++        isSearchBarFocused = false
++        if (gesture == null) {
++            navigateBack()
++        } else if (!isSettledOnSecondaryPage || currentGesture != gesture) {
++            navigateBack()
++            if (gesture.orientation == null) performTapGesture(gesture)
++            else navigateToPage(gesture)
++        }
++        component.startWidgetEditing()
++        lock(hideSearchBar = true)
++    }
++
+     suspend fun reset() {
+         isSearchBarFocused = false
+         currentOffset3D = Offset3D.Zero
+@@ -983,6 +1019,8 @@ internal fun LauncherScaffold(
+         .let { if (config.showNavBar) it.union(WindowInsets.navigationBars) else it }
+ 
+     val searchVM = viewModel<SearchVM>()
++    val uiSettings: UiSettings = koinInject()
++    val widgetEditButton by uiSettings.widgetEditButton.collectAsState(null)
+     val searchActions = searchVM.searchActionResults
+     val highlightedResult by searchVM.bestMatch
+     val filters by searchVM.filters
+@@ -1379,6 +1417,9 @@ internal fun LauncherScaffold(
+                             else Alignment.BottomCenter
+                         ),
+                     searchBarOffset = { state.currentSearchBarOffset.roundToInt() },
++                    onEditWidgets = if (widgetEditButton == false && state.canEditWidgets) {
++                        { scope.launch { state.editWidgets() } }
++                    } else null,
+                     style = config.searchBarStyle,
+                     focused = state.isSearchBarFocused,
+                     actions = searchActions,
+@@ -1478,6 +1519,7 @@ private fun SecondaryPage(
+             config.swipeRight?.component,
+             config.doubleTap?.component,
+             config.longPress?.component,
++            config.homeButton?.component,
+             config.searchComponent,
+         )
+     }
+@@ -1695,4 +1737,4 @@ private fun Modifier.searchBarAnimation(
+ 
+     return this then (component?.searchBarModifier(state, modifier)
+         ?: modifier) then Modifier.padding(insets)
+-}
+\ No newline at end of file
++}
+diff --git a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/ClockAndWidgetsHomeComponent.kt b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/ClockAndWidgetsHomeComponent.kt
+index 985b17c..da792b8 100644
+--- a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/ClockAndWidgetsHomeComponent.kt
++++ b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/ClockAndWidgetsHomeComponent.kt
+@@ -47,8 +47,12 @@ import de.mm20.launcher2.ui.launcher.widgets.clock.ClockWidget
+ import kotlinx.coroutines.launch
+ import org.koin.compose.koinInject
+ 
+-internal object ClockAndWidgetsHomeComponent : ScaffoldComponent() {
++internal object ClockAndWidgetsHomeComponent : ScaffoldComponent(), WidgetEditingComponent {
+     private var editMode by mutableStateOf(false)
++
++    override fun startWidgetEditing() {
++        editMode = true
++    }
+     private val scrollState = ScrollState(0)
+ 
+     override val isAtTop: State<Boolean?> = derivedStateOf {
+diff --git a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetsComponent.kt b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetsComponent.kt
+index 3f644fe..c5f9a5a 100644
+--- a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetsComponent.kt
++++ b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetsComponent.kt
+@@ -45,7 +45,13 @@ import kotlinx.coroutines.launch
+ 
+ internal class WidgetsComponent(
+     private val target: WidgetScreenTarget
+-) : ScaffoldComponent() {
++) : ScaffoldComponent(), WidgetEditingComponent {
++
++    private var editRequested by mutableStateOf(false)
++
++    override fun startWidgetEditing() {
++        editRequested = true
++    }
+ 
+     companion object {
+         /**
+@@ -86,6 +92,13 @@ internal class WidgetsComponent(
+     ) {
+         var editMode by rememberSaveable { mutableStateOf(false) }
+ 
++        LaunchedEffect(editRequested) {
++            if (editRequested) {
++                editMode = true
++                editRequested = false
++            }
++        }
++
+         val scope = rememberCoroutineScope()
+         val topPadding by animateDpAsState(if (editMode) 64.dp else 0.dp)
+ 
+diff --git a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/LauncherSearchBar.kt b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/LauncherSearchBar.kt
+index 1c8f051..3713675 100644
+--- a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/LauncherSearchBar.kt
++++ b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/LauncherSearchBar.kt
+@@ -43,6 +43,7 @@ fun LauncherSearchBar(
+     focused: Boolean,
+     onFocusChange: (Boolean) -> Unit,
+     actions: List<SearchAction>,
++    onEditWidgets: (() -> Unit)? = null,
+     highlightedAction: SearchAction? = null,
+     isSearchOpen: Boolean = false,
+     darkColors: Boolean = false,
+@@ -134,7 +135,7 @@ fun LauncherSearchBar(
+                 }
+                 SearchBarMenu(searchBarValue = value, onInputClear = {
+                     searchVM.reset()
+-                })
++                }, onEditWidgets = onEditWidgets)
+             },
+             actions = {
+                 SearchBarActions(
+@@ -149,4 +150,4 @@ fun LauncherSearchBar(
+             onKeyboardActionGo = onKeyboardActionGo
+         )
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/SearchBarMenu.kt b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/SearchBarMenu.kt
+index 1b6cac4..b6a132b 100644
+--- a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/SearchBarMenu.kt
++++ b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/searchbar/SearchBarMenu.kt
+@@ -38,6 +38,7 @@ import de.mm20.launcher2.ui.settings.SettingsActivity
+ fun RowScope.SearchBarMenu(
+     searchBarValue: String,
+     onInputClear: () -> Unit,
++    onEditWidgets: (() -> Unit)? = null,
+ ) {
+     val context = LocalContext.current
+     var showOverflowMenu by remember { mutableStateOf(false) }
+@@ -69,8 +70,21 @@ fun RowScope.SearchBarMenu(
+                     .fillMaxWidth()
+                     .align(Alignment.Start)
+             ) {
++                if (onEditWidgets != null) {
++                    DropdownMenuItem(
++                        shape = MenuDefaults.leadingItemShape,
++                        onClick = {
++                            showOverflowMenu = false
++                            onEditWidgets()
++                        },
++                        text = { Text(stringResource(R.string.menu_edit_widgets)) },
++                        leadingIcon = {
++                            Icon(painterResource(R.drawable.edit_20px), contentDescription = null)
++                        }
++                    )
++                }
+                 DropdownMenuItem(
+-                    shape = MenuDefaults.leadingItemShape,
++                    shape = if (onEditWidgets == null) MenuDefaults.leadingItemShape else MenuDefaults.middleItemShape,
+                     onClick = {
+                         context.startActivity(
+                             Intent.createChooser(
+@@ -131,4 +145,4 @@ fun RowScope.SearchBarMenu(
+             }
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetEditingComponent.kt b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetEditingComponent.kt
+new file mode 100644
+index 0000000..8d6254a
+--- /dev/null
++++ b/app/ui/src/main/java/de/mm20/launcher2/ui/launcher/scaffold/components/WidgetEditingComponent.kt
+@@ -0,0 +1,6 @@
++package de.mm20.launcher2.ui.launcher.scaffold.components
++
++/** A widget page that can enter its existing editor without the edit button. */
++internal interface WidgetEditingComponent {
++    fun startWidgetEditing()
++}

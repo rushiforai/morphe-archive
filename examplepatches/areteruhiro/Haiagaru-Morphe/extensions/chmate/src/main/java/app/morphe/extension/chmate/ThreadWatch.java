@@ -79,18 +79,21 @@ public final class ThreadWatch {
     static void addSettingsButton(android.widget.LinearLayout box,Activity a){
         android.widget.Button button=new android.widget.Button(a);button.setText("スレの新着通知・書き込み後の自動監視");button.setAllCaps(false);box.addView(button);
         button.setOnClickListener(v->showDefaults(a));
+        ThreadWatchManagement.addButton(box,a);
     }
     static void showDefaults(Activity a){
         SharedPreferences p=RefreshTargets.prefs(a);
         android.widget.LinearLayout box=new android.widget.LinearLayout(a);box.setOrientation(1);
         android.widget.CheckBox auto=option(box,a,"書き込み後に自動でスレを監視する",p.getBoolean("watchAfterPosting",false));
-        android.widget.CheckBox replies=option(box,a,"自分の書き込みへの返信だけ通知する",p.getBoolean("watchAutoRepliesOnly",true));
-        android.widget.CheckBox stop=option(box,a,"自分への返信を通知したら定期確認を停止する",p.getBoolean("watchAutoStopAfterReply",false));
+        android.widget.CheckBox replies=option(box,a,"新規登録時：自分への返信だけ通知",p.getBoolean("watchAutoRepliesOnly",true));
+        android.widget.CheckBox stop=option(box,a,"新規登録時：返信通知後に確認を停止",p.getBoolean("watchAutoStopAfterReply",false));
+        int[] duration={ThreadWatchManagement.defaultDuration(a)};ThreadWatchManagement.durationButton(box,a,duration);
+        ThreadWatchManagement.addButton(box,a);
         Runnable enabled=()->{replies.setEnabled(auto.isChecked());stop.setEnabled(auto.isChecked());};enabled.run();auto.setOnCheckedChangeListener((v,b)->enabled.run());
         new HaiagaruDialog.Builder(a).setTitle("書き込み後の自動監視")
-            .setMessage("投稿が成功し、ChMateで自分の書き込みを確認できたスレを自動登録します。停止後も次の書き込みで監視を再開します。設定変更は次の自動登録から適用します。初期OFFです。")
+            .setMessage("投稿成功を確認したスレを自動登録します。以下は未登録スレの初期設定です。登録済みスレは『このスレの新着通知』の個別設定を優先し、上書きしません。停止後も次の書き込みで監視を再開し、個別の期限を更新します。初期OFFです。")
             .setView(box).setNeutralButton("確認間隔",(d,w)->showInterval(a)).setNegativeButton("キャンセル",null)
-            .setPositiveButton("保存",(d,w)->{p.edit().putBoolean("watchAfterPosting",auto.isChecked()).putBoolean("watchAutoRepliesOnly",replies.isChecked()).putBoolean("watchAutoStopAfterReply",stop.isChecked()).apply();if(auto.isChecked())permission(a);}).show();
+            .setPositiveButton("保存",(d,w)->{p.edit().putBoolean("watchAfterPosting",auto.isChecked()).putBoolean("watchAutoRepliesOnly",replies.isChecked()).putBoolean("watchAutoStopAfterReply",stop.isChecked()).apply();a.getSharedPreferences(PREFS+"_options",0).edit().putInt("durationMinutes",duration[0]).apply();if(auto.isChecked())permission(a);}).show();
     }
     private static void permission(Activity a){
         if(Build.VERSION.SDK_INT>=33&&a.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=PackageManager.PERMISSION_GRANTED)
@@ -105,9 +108,11 @@ public final class ThreadWatch {
             android.widget.LinearLayout box=new android.widget.LinearLayout(a);box.setOrientation(1);
             android.widget.CheckBox replies=option(box,a,"自分の書き込みへの返信だけ通知する",saved.optBoolean("repliesOnly",false));
             android.widget.CheckBox stop=option(box,a,"自分への返信を通知したら定期確認を停止する",saved.optBoolean("stopAfterReply",false));
+            int[] duration={registered?saved.optInt("durationMinutes",0):ThreadWatchManagement.defaultDuration(a)};
+            ThreadWatchManagement.durationButton(box,a,duration);
             android.widget.Button defaults=new android.widget.Button(a);defaults.setText("書き込み後の自動監視を設定");box.addView(defaults);defaults.setOnClickListener(v->showDefaults(a));
             HaiagaruDialog.Builder dialog=new HaiagaruDialog.Builder(a).setTitle("このスレの新着通知")
-                .setMessage((saved.optBoolean("paused",false)?"返信通知後に停止しています。":registered?"登録済みです。":"")+"約"+intervalLabel(interval(a))+"ごとに確認します。初回確認は通知しません。標準の返信通知と同じ返信は、先に通知した側だけで知らせます。返信判定にはこの端末の自分の書き込みマークを使用します。")
+                .setMessage((registered?ThreadWatchManagement.status(saved)+"。":"")+"このスレの個別設定を優先します。書き込み後の自動監視設定には上書きされません。保存・再開時に期限を更新します。約"+intervalLabel(interval(a))+"ごとに確認します。初回確認は通知しません。標準の返信通知と同じ返信は、先に通知した側だけで知らせます。返信判定にはこの端末の自分の書き込みマークを使用します。")
                 .setView(box).setNeutralButton("確認間隔を変更",(d,w)->showInterval(a))
                 .setPositiveButton(registered?"保存・監視を再開":"通知を登録",(d,w)->{
                     synchronized(LOCK){try{
@@ -115,6 +120,7 @@ public final class ThreadWatch {
                         JSONObject item=new JSONObject(prefs(a).getString(t.url,"{}"));
                         item.put("count",item.optInt("count",-1)).put("token",UUID.randomUUID().toString()).put("paused",false)
                             .put("repliesOnly",replies.isChecked()).put("stopAfterReply",stop.isChecked());
+                        ThreadWatchManagement.renew(item,duration[0]);
                         prefs(a).edit().putString(t.url,item.toString()).commit();
                     }catch(Exception error){return;}}
                     schedule(a);permission(a);
@@ -140,8 +146,10 @@ public final class ThreadWatch {
                 org.json.JSONArray own=item.optJSONArray("own");if(own==null)own=new org.json.JSONArray();
                 for(int i=0;i<own.length();i++)if(own.optInt(i)==number)return;
                 if(own.length()>=1000)own=new org.json.JSONArray();own.put(number);
-                item.put("own",own).put("count",Math.max(number,item.optInt("count",-1))).put("token",UUID.randomUUID().toString()).put("paused",false)
-                    .put("repliesOnly",options.getBoolean("watchAutoRepliesOnly",true)).put("stopAfterReply",options.getBoolean("watchAutoStopAfterReply",false));
+                boolean registered=prefs(c).contains(t.url);
+                item.put("own",own).put("count",Math.max(number,item.optInt("count",-1))).put("token",UUID.randomUUID().toString()).put("paused",false);
+                if(!registered)item.put("repliesOnly",options.getBoolean("watchAutoRepliesOnly",true)).put("stopAfterReply",options.getBoolean("watchAutoStopAfterReply",false));
+                ThreadWatchManagement.renew(item,registered?item.optInt("durationMinutes",0):ThreadWatchManagement.defaultDuration(c));
                 prefs(c).edit().putString(t.url,item.toString()).commit();
             }
             schedule(c);
@@ -149,7 +157,7 @@ public final class ThreadWatch {
     }
     static boolean hasActive(Context c){
         for(String url:prefs(c).getAll().keySet())try{
-            if(ThreadWatchRules.target(url)!=null&&!new JSONObject(prefs(c).getString(url,"{}")).optBoolean("paused",false))return true;
+            if(ThreadWatchRules.target(url)!=null&&ThreadWatchManagement.active(new JSONObject(prefs(c).getString(url,"{}")),System.currentTimeMillis()))return true;
         }catch(Exception ignored){}
         return false;
     }
@@ -183,7 +191,7 @@ public final class ThreadWatch {
         Map<String,List<String>> groups=new LinkedHashMap<>();
         for(String key:prefs(c).getAll().keySet()){
             ThreadWatchRules.Target t=ThreadWatchRules.target(key);
-            try{if(t!=null&&!new JSONObject(prefs(c).getString(key,"{}")).optBoolean("paused",false))groups.computeIfAbsent(t.subject,k->new ArrayList<>()).add(key);}catch(Exception ignored){}
+            try{if(t!=null&&ThreadWatchManagement.active(new JSONObject(prefs(c).getString(key,"{}")),System.currentTimeMillis()))groups.computeIfAbsent(t.subject,k->new ArrayList<>()).add(key);}catch(Exception ignored){}
         }
         for(Map.Entry<String,List<String>> group:groups.entrySet()){
             if(stopped.get())return;
@@ -196,9 +204,16 @@ public final class ThreadWatch {
                 Map<String,String> titles=ThreadWatchRules.titles(subject);
                 for(String key:group.getValue()){
                     if(stopped.get())return;
-                    ThreadWatchRules.Target t=ThreadWatchRules.target(key);Integer count=counts.get(t.id);if(count==null)continue;
+                    ThreadWatchRules.Target t=ThreadWatchRules.target(key);Integer count=counts.get(t.id);
+                    if(count==null){
+                        // An empty/error subject is not evidence of dat expiry. Require
+                        // repeated valid lists over time AND an explicit missing DAT.
+                        if(!counts.isEmpty())missing(c,t,tokens.get(key),stopped);
+                        continue;
+                    }
                     JSONObject captured;
                     synchronized(LOCK){captured=new JSONObject(prefs(c).getString(key,"{}"));}
+                    if(!ThreadWatchManagement.active(captured,System.currentTimeMillis()))continue;
                     int known=captured.optInt("count",-1),matching=0,firstMatch=0;boolean replySeen=false;
                     boolean repliesOnly=captured.optBoolean("repliesOnly",false),stopAfter=captured.optBoolean("stopAfterReply",false);
                     String preview="";
@@ -233,7 +248,9 @@ public final class ThreadWatch {
                     synchronized(LOCK){
                         if(stopped.get())return;
                         JSONObject item=new JSONObject(prefs(c).getString(key,"{}"));
-                        if(!tokens.containsKey(key)||!tokens.get(key).equals(item.optString("token"))||!prefs(c).contains(key)||item.optBoolean("paused",false))continue;
+                        if(!tokens.containsKey(key)||!tokens.get(key).equals(item.optString("token"))||!prefs(c).contains(key)||!ThreadWatchManagement.active(item,System.currentTimeMillis()))continue;
+                        item.put("missingChecks",0).put("missingSince",0);
+                        String title=titles.get(t.id);if(title!=null)item.put("title",title.substring(0,Math.min(title.length(),4096)));
                         int before=item.optInt("count",-1),delta=ThreadWatchRules.increase(before,count);
                         if(delta>0&&(!repliesOnly||matching>0)){
                             Set<Integer> seen=ThreadWatchNative.seen(c,key,candidates.keySet());
@@ -251,7 +268,7 @@ public final class ThreadWatch {
                             if(delivered==0){item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();continue;}
                             if(!notify(c,t,delivered,count,titles.get(t.id),preview,firstMatch>0?firstMatch:Math.max(1,count-delta+1),repliesOnly))continue;
                             if(candidates.isEmpty())ThreadWatchNative.recordRange(item,before+1,count);else ThreadWatchNative.record(item,candidates.keySet());
-                            if(stopAfter&&!Collections.disjoint(candidates.keySet(),directReplies))item.put("paused",true);
+                            if(stopAfter&&!Collections.disjoint(candidates.keySet(),directReplies))item.put("paused",true).put("pauseReason","reply");
                         }
                         item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();
                     }
@@ -259,13 +276,38 @@ public final class ThreadWatch {
             }catch(Exception error){android.util.Log.w("Haiagaru","Thread notification check unavailable ("+error.getClass().getSimpleName()+")");}
         }
     }
+    private static void missing(Context c,ThreadWatchRules.Target t,String token,AtomicBoolean stopped)throws Exception{
+        JSONObject snapshot;
+        synchronized(LOCK){
+            if(stopped.get()||token==null||!prefs(c).contains(t.url))return;
+            snapshot=new JSONObject(prefs(c).getString(t.url,"{}"));
+            if(!token.equals(snapshot.optString("token"))||!ThreadWatchManagement.active(snapshot,System.currentTimeMillis()))return;
+            int checks=Math.min(3,snapshot.optInt("missingChecks",0)+1);long since=snapshot.optLong("missingSince",0);
+            if(since==0)since=System.currentTimeMillis();
+            snapshot.put("missingChecks",checks).put("missingSince",since);
+            prefs(c).edit().putString(t.url,snapshot.toString()).commit();
+            if(checks<3||System.currentTimeMillis()-since<30*60_000L)return;
+        }
+        boolean gone=false;
+        try{fetch(t.dat,stopped);}catch(HttpStatus error){gone=error.code==404||error.code==410;}catch(IOException unavailable){return;}
+        if(!gone||stopped.get())return;
+        synchronized(LOCK){
+            if(!prefs(c).contains(t.url))return;
+            JSONObject item=new JSONObject(prefs(c).getString(t.url,"{}"));
+            if(!token.equals(item.optString("token"))||item.optInt("missingChecks",0)<3||!ThreadWatchManagement.active(item,System.currentTimeMillis()))return;
+            item.put("paused",true).put("pauseReason","missing");prefs(c).edit().putString(t.url,item.toString()).commit();
+        }
+    }
+    private static final class HttpStatus extends IOException{
+        final int code;HttpStatus(int code){super("HTTP "+code);this.code=code;}
+    }
     private static String fetch(String url,AtomicBoolean stopped)throws Exception{
         HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection();
         c.setConnectTimeout(8000);c.setReadTimeout(8000);c.setInstanceFollowRedirects(false);
         String ua=ViewingUserAgent.selected(url,"GET");if(ua!=null)c.setRequestProperty("User-Agent",ua);
         try{
             String cookie=ReadingAuth.clearance(url);if(cookie!=null)c.setRequestProperty("Cookie",cookie);
-            if(c.getResponseCode()!=200)throw new IOException("HTTP");
+            int status=c.getResponseCode();if(status!=200)throw new HttpStatus(status);
             try(InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){
                 byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){if(stopped.get())throw new InterruptedIOException();if(out.size()+n>4*1024*1024)throw new IOException("Size");out.write(b,0,n);}
                 String type=c.getContentType();java.util.regex.Matcher charset=java.util.regex.Pattern.compile("charset\\s*=\\s*[\"']?([^;\\s\"']+)",2).matcher(type==null?"":type);

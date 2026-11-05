@@ -31,7 +31,7 @@ class CodecsSupportPatchTest {
             setOf(
                 "2.0.20" to 5001712, "2.0.20" to 5001812,
                 "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363,
-                "2.0.24" to 5002395,
+                "2.0.24" to 5002395, "2.0.24" to 5002527,
             ),
             targets,
         )
@@ -40,6 +40,9 @@ class CodecsSupportPatchTest {
             "2.0.21" to "5001968", "2.0.22" to "5002244", "2.0.23" to "5002363",
             "2.0.24" to "5002395",
         ).forEach { (version, code) -> assertTrue(isCodecsSupportSteamLinkBuild(version, code)) }
+        assertTrue(isCodecsSupportSteamLinkBuild("2.0.24", "5002527"))
+        listOf("2.0.23" to "5002527", "2.0.24" to "5002526", "2.0.24" to "5002528")
+            .forEach { (version, code) -> assertFalse(isCodecsSupportSteamLinkBuild(version, code)) }
         listOf("2.0.20" to "5002363", "2.0.23" to "5002322",
             "2.0.24" to "5002363",
             "2.0.23" to "5002296", "2.0.23" to "5002313",
@@ -64,7 +67,7 @@ class CodecsSupportPatchTest {
         listOf(
             "2.0.20" to "5001712", "2.0.20" to "5001812",
             "2.0.21" to "5001968", "2.0.22" to "5002244", "2.0.23" to "5002363",
-            "2.0.24" to "5002395",
+            "2.0.24" to "5002395", "2.0.24" to "5002527",
         ).forEach { (version, code) ->
             val original = originalScene(version, code)
             validateCodecsSupportScene(original, version, code)
@@ -133,6 +136,73 @@ class CodecsSupportPatchTest {
             validateCodecsSupportPayload(helper, alteredManifest)
         }
     }
+
+    @Test
+    fun `bundled runtime carries every exact GOT profile and its anchors`() {
+        // Portable: inspects the tracked native payload, no decoded input needed.
+        val helper = projectionModeResource(CODECS_SUPPORT_LIBRARY)
+        val text = helper.toString(Charsets.ISO_8859_1)
+        listOf(
+            "2.0.20/5001712", "2.0.20/5001812", "2.0.21/5001968", "2.0.22/5002244",
+            "2.0.23/5002363", "2.0.24/5002395", "2.0.24/5002527",
+        ).forEach { build ->
+            assertTrue(text.contains(build), "runtime lacks profile $build")
+            val anchor = checkNotNull(codecsSupportAnchorSha256(build))
+            assertTrue(text.contains(anchor), "runtime anchor for $build differs from Kotlin contract")
+        }
+        // 5002527 slot table: 15 JUMP_SLOT offsets of the AMedia* imports, little-endian qwords.
+        val slots = longArrayOf(
+            0x239670, 0x239678, 0x239680, 0x239688, 0x2396a8, 0x2396b0, 0x2396b8,
+            0x2396e0, 0x2396e8, 0x239700, 0x239708, 0x239710, 0x239778, 0x239788, 0x239790,
+        )
+        val table = ByteArray(slots.size * 8)
+        slots.forEachIndexed { i, v -> repeat(8) { b -> table[i * 8 + b] = (v ushr (8 * b)).toByte() } }
+        assertTrue(indexOf(helper, table) >= 0, "runtime lacks the 5002527 GOT slot table")
+        // The prior 5002395 table is preserved verbatim.
+        val old = longArrayOf(
+            0x231b58, 0x231b60, 0x231b68, 0x231b70, 0x231b90, 0x231b98, 0x231ba0,
+            0x231bc8, 0x231bd0, 0x231be8, 0x231bf0, 0x231bf8, 0x231c48, 0x231c58, 0x231c60,
+        )
+        val oldTable = ByteArray(old.size * 8)
+        old.forEachIndexed { i, v -> repeat(8) { b -> oldTable[i * 8 + b] = (v ushr (8 * b)).toByte() } }
+        assertTrue(indexOf(helper, oldTable) >= 0, "runtime lost the 5002395 GOT slot table")
+    }
+
+    @Test
+    fun `5002527 scene contract rejects zeroed renderer without reading payload`() = withTemporaryRoot { root ->
+        val scene = sceneFile(root).apply { parentFile.mkdirs(); writeBytes(ByteArray(2_333_472)) }
+        assertFailsWith<PatchException> {
+            installCodecsSupportResources(root, "2.0.24", "5002527", byteArrayOf(1), byteArrayOf(2))
+        }
+        assertFalse(File(scene.parentFile, CODECS_SUPPORT_LIBRARY).exists())
+        assertFalse(File(root, "assets/openxr").exists())
+    }
+
+    @Test
+    fun `5002527 production install reapplies and leaves renderer untouched`() =
+        withFixtureRoot("2.0.24", "5002527") { root ->
+            val (helper, manifest) = payload()
+            val scene = sceneFile(root).readBytes()
+            assertTrue(installCodecsSupportResources(root, "2.0.24", "5002527", helper, manifest))
+            val installed = File(sceneFile(root).parentFile, CODECS_SUPPORT_LIBRARY)
+            assertContentEquals(helper, installed.readBytes())
+            val time = installed.lastModified()
+            assertTrue(installCodecsSupportResources(root, "2.0.24", "5002527", helper, manifest))
+            assertEquals(time, installed.lastModified())
+            assertContentEquals(scene, sceneFile(root).readBytes())
+        }
+
+    @Test
+    fun `5002527 telemetry option fails closed`() =
+        withFixtureRoot("2.0.24", "5002527") { root ->
+            val scene = sceneFile(root).readBytes()
+            assertFailsWith<PatchException> {
+                installCodecsSupportResources(root, "2.0.24", "5002527", enableTelemetry = true)
+            }
+            assertContentEquals(scene, sceneFile(root).readBytes())
+            assertFalse(File(sceneFile(root).parentFile, CODECS_SUPPORT_LIBRARY).exists())
+            assertFalse(File(root, "assets/gxr-telemetry").exists())
+        }
 
     @Test
     fun `default codec installation contains no telemetry on either exact base`() {
@@ -240,6 +310,13 @@ class CodecsSupportPatchTest {
             assertFalse(File(root, "assets/gxr-telemetry").exists())
         }
 
+    private fun indexOf(haystack: ByteArray, needle: ByteArray): Int {
+        for (i in 0..haystack.size - needle.size) {
+            if (needle.indices.all { haystack[i + it] == needle[it] }) return i
+        }
+        return -1
+    }
+
     private fun payload(): Pair<ByteArray, ByteArray> {
         // Canonical payloads are tracked build inputs, so absence/tampering must fail CI.
         return projectionModeResource(CODECS_SUPPORT_LIBRARY) to
@@ -252,6 +329,7 @@ class CodecsSupportPatchTest {
         "2.0.21/5001968" -> listOf(0xf9168, 0xf9b0c, 0xf915c)
         "2.0.22/5002244" -> listOf(0xfa4a8, 0xfae4c, 0xfa49c)
         "2.0.24/5002395" -> listOf(0xfe954, 0xff2f8, 0xfe948)
+        "2.0.24/5002527" -> listOf(0xfe22c, 0xfebd0, 0xfe220)
         else -> listOf(0xfd6fc, 0xfe0a0, 0xfd6f0)
     }
 

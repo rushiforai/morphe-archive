@@ -15,3 +15,5 @@ XIG05（serial 730eae72）、実アプリの191／Haiagaru1.22.0で、指定ト�
 追加の検索選択保持試験は各版9項目成功。最初の191／226への背景attachはFrida timeoutとなり、そのプロセスの復帰時にnative SIGSEGV（PC0x320／未知frame）が発生。試験の全体deoptimizeと再attachを併用したプロセスに限った事象で、製品Java例外はありません。未解決の製品回帰と同一視せず、計測プロセスを終了して新規起動・検索試験を再実行し成功。以後のFridaなし起動／画面切替を別途確認します。ログは `build/shared-ng-toolbar-trip-choice-instrumentation-crash.log` に保持。
 
 Fridaなしの新規起動（各COLD）と3版間の復帰（各HOT）成功。新規起動以降のcrashログは空。実機調査の区切り文字補正だけで表示6欄の強調が確認できたため、本修正に沿って公開する。
+
+2026-11-04: 正式版[1.22.1](https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.22.1)公開済み。公開資材6点と更新情報6本の検証成功。公式MPP SHA256 `eff72e08ac3789471e5828133d0ccf163f0f8abf10e0b022bfd86f2e6b5101c2`。

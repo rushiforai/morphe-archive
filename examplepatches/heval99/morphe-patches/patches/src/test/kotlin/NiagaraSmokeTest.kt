@@ -59,7 +59,7 @@ class NiagaraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "1.16.33",
+            version = "1.16.35",
             patchNames = setOf("Disable telemetry", "Enable Premium"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

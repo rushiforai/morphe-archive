@@ -25,7 +25,7 @@ public final class VerifyNuvioPreferredAddon {
                     for (var c : DexBackedDexFile.fromInputStream(null, input).getClasses()) check(classes.put(c.getType(), c) == null);
                 }
         }
-        MutableClass snapshot = new MutableClass(classes.get("Lba/o4;"));
+        MutableClass snapshot = new MutableClass(classes.get("Lba/w4;"));
         MutableClass selector = new MutableClass(classes.get("Ld9/v1;"));
         MutableClass loader = new MutableClass(classes.get("Lhb/w0;"));
         if (args.length > 2) {
@@ -89,7 +89,7 @@ public final class VerifyNuvioPreferredAddon {
         try (var input = new BufferedInputStream(new FileInputStream(output))) {
             for (var owner : DexBackedDexFile.fromInputStream(null, input).getClasses()) reloaded.put(owner.getType(), new MutableClass(owner));
         }
-        var mutated = new HashMap<>(NuvioPreferredAddonPatch.methods(reloaded.get("Lba/o4;"), reloaded.get("Ld9/v1;")));
+        var mutated = new HashMap<>(NuvioPreferredAddonPatch.methods(reloaded.get("Lba/w4;"), reloaded.get("Ld9/v1;")));
         mutated.putAll(NuvioPreferredAddonPatch.loaderMethods(reloaded.get("Lhb/w0;"), reloaded.get("Ld9/v1;")));
         for (var entry : mutated.entrySet()) {
             var method = entry.getValue();

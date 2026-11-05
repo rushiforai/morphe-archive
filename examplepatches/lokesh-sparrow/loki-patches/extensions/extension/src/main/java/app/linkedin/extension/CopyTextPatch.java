@@ -59,6 +59,7 @@ public final class CopyTextPatch {
     public static boolean onTouchEvent(View view, MotionEvent event) {
         try {
             if (dispatchingCancel || !Settings.copyText()) return false;
+            if (TextSelectionOverlay.isActive()) watchOverlayGesture(view, event);
             int action = event.getActionMasked();
             if (swallowGesture) {
                 if (event.getDownTime() == gestureDownTime) return true;
@@ -93,6 +94,47 @@ public final class CopyTextPatch {
             Diagnostics.error("copy text touch failed", t);
         }
         return false;
+    }
+
+    private static float overlayDownX;
+    private static float overlayDownY;
+    private static long overlayDownTime = -1;
+    private static boolean overlayScrolled;
+
+    /** While a Copy text overlay shows: a tap outside it closes it, a scroll hides it until the feed settles. */
+    private static void watchOverlayGesture(View view, MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                if (event.getDownTime() == overlayDownTime) return; // A nested Compose view, same touch.
+                overlayDownTime = event.getDownTime();
+                overlayDownX = event.getRawX();
+                overlayDownY = event.getRawY();
+                overlayScrolled = false;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (!overlayScrolled) {
+                    float slop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
+                    if (Math.abs(event.getRawX() - overlayDownX) > slop || Math.abs(event.getRawY() - overlayDownY) > slop) {
+                        overlayScrolled = true;
+                        TextSelectionOverlay.suspend();
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                if (overlayScrolled) {
+                    TextSelectionOverlay.resumeWhenSettled();
+                } else if (event.getEventTime() - event.getDownTime() < ViewConfiguration.getLongPressTimeout()) {
+                    // Only clears the selection: LinkedIn doesn't get this tap, so the post doesn't open.
+                    TextSelectionOverlay.dismissActive();
+                    event.setAction(MotionEvent.ACTION_CANCEL);
+                }
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                if (overlayScrolled) TextSelectionOverlay.resumeWhenSettled();
+                break;
+            default:
+                break;
+        }
     }
 
     private static void cancelLongPress() {
@@ -197,7 +239,7 @@ public final class CopyTextPatch {
      * Ids of the semantics nodes of a Compose view: the keys of
      * AndroidComposeViewAccessibilityDelegateCompat.getCurrentSemanticsNodes(), an IntObjectMap.
      */
-    private static int[] semanticsNodeIds(View view) throws ReflectiveOperationException {
+    static int[] semanticsNodeIds(View view) throws ReflectiveOperationException {
         if (delegateField == null) {
             delegateField = fieldOfType(view.getClass(), "AndroidComposeViewAccessibilityDelegateCompat");
             if (delegateField == null) return null;
@@ -227,6 +269,12 @@ public final class CopyTextPatch {
         int[] result = new int[count];
         System.arraycopy(ids, 0, result, 0, count);
         return result;
+    }
+
+    /** The accessibility node provider of a Compose view. */
+    static AccessibilityNodeProvider provider(View view) throws ReflectiveOperationException {
+        AccessibilityNodeProvider provider = view.getAccessibilityNodeProvider();
+        return provider != null ? provider : providerOfDelegate(view);
     }
 
     /** The node provider straight from Compose's delegate, for a view that has not handed it to Android. */
@@ -273,27 +321,43 @@ public final class CopyTextPatch {
 
     // region Sheet
 
-    private static void show(Context context, String text) {
+    /** The text in a sheet: scrollable and selectable, for long posts and text without a layout of its own. */
+    static void show(Context context, String text) {
         boolean night = (context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_YES;
-        int theme = night ? AlertDialog.THEME_DEVICE_DEFAULT_DARK : AlertDialog.THEME_DEVICE_DEFAULT_LIGHT;
-        AlertDialog.Builder builder = new AlertDialog.Builder(context, theme);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, night
+                ? android.R.style.Theme_DeviceDefault_Dialog_Alert : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert);
 
         TextView textView = new TextView(builder.getContext());
         textView.setText(text);
         textView.setTextIsSelectable(true);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        textView.setLineSpacing(0, 1.15f);
+        textView.setTextColor(night ? 0xFFE8EAED : 0xFF1F1F1F);
         int padding = Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24,
                 context.getResources().getDisplayMetrics()));
-        textView.setPadding(padding, padding / 2, padding, 0);
+        textView.setPadding(padding, padding / 3, padding, padding / 3);
         ScrollView scroll = new ScrollView(builder.getContext());
         scroll.addView(textView);
 
-        builder.setTitle(I18n.tr("Select text"))
+        AlertDialog dialog = builder.setTitle(I18n.tr("Select text"))
                 .setView(scroll)
-                .setPositiveButton(I18n.tr("Copy all"), (dialog, which) -> TextSelectionOverlay.copy(context, text))
+                .setPositiveButton(I18n.tr("Copy all"), (d, which) -> TextSelectionOverlay.copy(context, text))
                 .setNegativeButton(I18n.tr("Close"), null)
                 .show();
+        SettingsActivity.tintButtons(dialog, context);
+        // Long posts: the sheet takes most of the screen and the text scrolls inside it.
+        if (dialog.getWindow() != null) {
+            int height = context.getResources().getDisplayMetrics().heightPixels;
+            scroll.getLayoutParams().height = Math.min(scroll.getLayoutParams().height > 0
+                    ? scroll.getLayoutParams().height : Integer.MAX_VALUE, (int) (height * 0.6f));
+            textView.post(() -> {
+                if (textView.getHeight() < height * 0.6f) {
+                    scroll.getLayoutParams().height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+                }
+                scroll.requestLayout();
+            });
+        }
     }
 
     // endregion

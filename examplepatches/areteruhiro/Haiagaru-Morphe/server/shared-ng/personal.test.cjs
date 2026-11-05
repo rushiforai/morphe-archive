@@ -211,7 +211,7 @@ check(personal('7'.repeat(64),[reporterCondition]).ok,'reporter condition accept
 check(!personal('7'.repeat(64),[{...reporterCondition,operationId:crypto.randomBytes(32).toString('hex'),board:'5ch/all'}]).ok,'reporter cannot target another service');
 const globalCondition={...c,operationId:crypto.randomBytes(32).toString('hex'),kind:'id',value:'GlobalFixture01',board:'unknown.invalid/unresolved'};
 check(personal('7'.repeat(64),[globalCondition]).ok,'legacy unknown ID accepted');
-cache.delete('reviewed-feed-v9');const oldFeed=JSON.parse(context.doGet({parameter:{action:'reviewed'}}).text);
+cache.delete(context.ngReviewedCacheKey_());const oldFeed=JSON.parse(context.doGet({parameter:{action:'reviewed'}}).text);
 check(!oldFeed.rules.some(r=>r.kind==='reporter'||r.board==='*'&&['id','wacchoi','prefix','suffix'].includes(r.kind)),'old clients never receive incompatible conditions');
 const newFeed=JSON.parse(context.doGet({parameter:{action:'reviewed',reporter:'1',globalIdentity:'1'}}).text);
 check(newFeed.rules.some(r=>r.kind==='reporter'&&r.value==='ReporterFixture01'),'new client receives approved reporter ID');

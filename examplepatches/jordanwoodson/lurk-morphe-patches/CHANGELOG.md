@@ -1,3 +1,69 @@
+## [1.16.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.15.1...v1.16.0) (2026-11-04)
+
+### Kick
+
+#### 🚀 Updated App Support
+
+* support Kick 40.34.0 ([b4575af](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b4575afe6f12573f14c4b4b10e7cc6cff716ab27))
+
+### Rumble
+
+#### 🚀 Updated App Support
+
+* support Rumble 3.22.0 ([6b6b2fa](https://github.com/jordanwoodson/lurk-morphe-patches/commit/6b6b2fad5298d9d2a53f8560f20a70c723c05e07))
+
+### Twitch
+
+#### ✨ New Features
+
+* add 7TV badges ([dca6435](https://github.com/jordanwoodson/lurk-morphe-patches/commit/dca6435ee1e9ec89a3ffedfbad8eea6548bcad0e))
+* add a **Sleep timer** row to the player's settings sheet ([ae5d370](https://github.com/jordanwoodson/lurk-morphe-patches/commit/ae5d370cd56a0a13befcf14ebfce641746060614))
+* add a {channel} placeholder to **Playlist proxy** ([efe18d4](https://github.com/jordanwoodson/lurk-morphe-patches/commit/efe18d4cf14e3de82f1888eddfeeb294785b4468))
+
+#### 🚀 Updated App Support
+
+* support Twitch 31.9.0 ([b50dd0a](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b50dd0a60837b99bf2736049abd9ca5da45a196e))
+
+#### 🐛 Bug Fixes
+
+* open Following at launch in the React Native Home ([266cc51](https://github.com/jordanwoodson/lurk-morphe-patches/commit/266cc516fd5dea2230e72c00210f2a7e8da9bc02))
+* stop dual-format streams from crashing the app ([cb3e645](https://github.com/jordanwoodson/lurk-morphe-patches/commit/cb3e645aae2e340435a848733ce10ecd16b78f10))
+
+## [1.16.0-dev.2](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.0-dev.1...v1.16.0-dev.2) (2026-11-04)
+
+### Rumble
+
+#### 🚀 Updated App Support
+
+* support Rumble 3.22.0 ([6b6b2fa](https://github.com/jordanwoodson/lurk-morphe-patches/commit/6b6b2fad5298d9d2a53f8560f20a70c723c05e07))
+
+### Twitch
+
+#### 🚀 Updated App Support
+
+* support Twitch 31.9.0 ([b50dd0a](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b50dd0a60837b99bf2736049abd9ca5da45a196e))
+
+## [1.16.0-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.15.1...v1.16.0-dev.1) (2026-11-04)
+
+### Kick
+
+#### 🚀 Updated App Support
+
+* support Kick 40.34.0 ([b4575af](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b4575afe6f12573f14c4b4b10e7cc6cff716ab27))
+
+### Twitch
+
+#### ✨ New Features
+
+* add 7TV badges ([dca6435](https://github.com/jordanwoodson/lurk-morphe-patches/commit/dca6435ee1e9ec89a3ffedfbad8eea6548bcad0e))
+* add a **Sleep timer** row to the player's settings sheet ([ae5d370](https://github.com/jordanwoodson/lurk-morphe-patches/commit/ae5d370cd56a0a13befcf14ebfce641746060614))
+* add a {channel} placeholder to **Playlist proxy** ([efe18d4](https://github.com/jordanwoodson/lurk-morphe-patches/commit/efe18d4cf14e3de82f1888eddfeeb294785b4468))
+
+#### 🐛 Bug Fixes
+
+* open Following at launch in the React Native Home ([266cc51](https://github.com/jordanwoodson/lurk-morphe-patches/commit/266cc516fd5dea2230e72c00210f2a7e8da9bc02))
+* stop dual-format streams from crashing the app ([cb3e645](https://github.com/jordanwoodson/lurk-morphe-patches/commit/cb3e645aae2e340435a848733ce10ecd16b78f10))
+
 ## [1.15.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.15.0...v1.15.1) (2026-10-29)
 
 ### Kick

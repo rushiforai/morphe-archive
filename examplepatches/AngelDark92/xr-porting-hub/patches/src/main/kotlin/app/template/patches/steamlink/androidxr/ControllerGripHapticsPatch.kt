@@ -45,7 +45,9 @@ val controllerGripHapticsPatch = rawResourcePatch(
 
     execute {
         // Morphe dependencies do not re-check compatibility before execution.
-        if (!isControllerGripHapticsBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE ||
+            !isControllerGripHapticsBuild(packageMetadata.versionName, packageMetadata.versionCode)
+        ) {
             return@execute
         }
 

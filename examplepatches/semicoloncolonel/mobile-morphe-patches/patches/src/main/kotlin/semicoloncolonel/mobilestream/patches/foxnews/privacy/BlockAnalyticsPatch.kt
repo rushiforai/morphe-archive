@@ -48,9 +48,7 @@ internal object XidTrackAppLaunchFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops analytics and tracking: Adobe, AppsFlyer, Chartbeat, comScore, Nielsen, " +
-        "Firebase, and Fox's own ad telemetry and ad-ID graph. Sign-in, push notifications " +
-        "and video are left alone. Experimental.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

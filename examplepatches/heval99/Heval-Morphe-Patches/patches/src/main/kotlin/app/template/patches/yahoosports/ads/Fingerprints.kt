@@ -2,7 +2,9 @@ package app.template.patches.yahoosports.ads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.Opcode
 
 // Yahoo Sports keeps its view, controller and Verizon Media player class names; members and the
 // helper/config classes are R8-renamed. Every anchor below is a kept class name, a stable remote
@@ -41,9 +43,17 @@ internal object AdConfigManagerClinitFingerprint : Fingerprint(
 // SapiMediaItem.getAdTagUri(): the IMA VAST tag of a Yahoo video. MediaItem is an interface with a
 // default getAdTagUri, so the class is pinned. Every reader handles null: the player builds no
 // AdsConfiguration (so IMA never runs), the no-ad path reports "no ad", analytics logs "no ad tag".
+// 12.27.0 R8-renames SapiMediaItem's methods (getAdTagUri is X2()) but keeps its field names, so
+// the getter is found by shape: the only no-arg String method that reads the adTagUri field (the
+// other readers are the Parcel constructor, the setter and writeToParcel).
 internal object SapiMediaItemGetAdTagUriFingerprint : Fingerprint(
-    definingClass = "Lcom/verizondigitalmedia/mobile/client/android/sapiMediaItemProvider/data/SapiMediaItem;",
-    name = "getAdTagUri",
+    definingClass = SAPI_MEDIA_ITEM,
     returnType = "Ljava/lang/String;",
     parameters = listOf(),
+    filters = listOf(
+        fieldAccess(definingClass = SAPI_MEDIA_ITEM, name = "adTagUri", type = "Ljava/lang/String;", opcode = Opcode.IGET_OBJECT),
+    ),
 )
+
+private const val SAPI_MEDIA_ITEM =
+    "Lcom/verizondigitalmedia/mobile/client/android/sapiMediaItemProvider/data/SapiMediaItem;"

@@ -29,7 +29,7 @@ internal object AdsMediaSourceFactoryFingerprint : Fingerprint(
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
-    description = "Stops the sponsor messages that play before and during PBS videos. Experimental.",
+    description = "Stops the sponsor messages before and during videos.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

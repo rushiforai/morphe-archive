@@ -44,8 +44,7 @@ private fun Method.opensPaywallScreen() = parameterTypes.getOrNull(1)?.toString(
 @Suppress("unused")
 val hideUpsellPatch = bytecodePatch(
     name = "Hide Premium upsell",
-    description = "Stops the Premium screen that opens on its own at launch and after you sign in. " +
-        "Premium still opens from Settings and the app's own buttons.",
+    description = "Stops the Premium screen that opens on its own at launch and after sign-in.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

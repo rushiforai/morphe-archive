@@ -13,9 +13,9 @@ Click the button below, or add this repository URL to Morphe Manager manually: h
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/CharlesAttend/beeper-morphe-patch/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0](https://github.com/CharlesAttend/beeper-morphe-patch/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
-<summary>📦 Beeper&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Beeper&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **Package name:** `com.beeper.android`
@@ -28,6 +28,7 @@ Click the button below, or add this repository URL to Morphe Manager manually: h
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Hide transcribe button](#hide-transcribe-button) | Hides the transcribe button below voice messages in chats. Existing transcriptions and auto-transcribe are not changed. |  |
+| [Inbox order option](#inbox-order-option) | Adds an "Oldest first" item to the menu of the inbox title. When it is on, the main inbox shows the oldest chats first. Pinned chats and the other spaces keep their order. |  |
 
 </details>
 

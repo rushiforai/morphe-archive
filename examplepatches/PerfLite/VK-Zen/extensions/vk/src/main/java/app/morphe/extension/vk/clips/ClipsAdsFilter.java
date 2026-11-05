@@ -53,6 +53,226 @@ public class ClipsAdsFilter {
     }
 
     /**
+     * Guards ClipsOwnerSwipePagerAdapter$a.onInserted against IndexOutOfBoundsException.
+     * In VK 8.201, DiffUtil callback may notify onInserted(position, count) before or when
+     * differ.currentList is out of sync (position + count > list.size()).
+     * Accessing differ.currentList[i] throws IndexOutOfBoundsException and crashes the app.
+     */
+    public static boolean shouldHandleOnInserted(Object callback, int position, int count) {
+        if (position < 0 || count <= 0) return false;
+        try {
+            Object adapter = getAdapterFromCallback(callback);
+            List<?> list = getCurrentListFromAdapter(adapter);
+            if (list != null) {
+                int size = list.size();
+                if (position >= size || (position + count) > size) {
+                    Log.w(TAG, "Prevented IndexOutOfBoundsException in onInserted: position="
+                            + position + ", count=" + count + ", currentList.size=" + size);
+                    return false;
+                }
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in shouldHandleOnInserted guard", t);
+        }
+        return true;
+    }
+
+    /**
+     * Guards ClipsOwnerSwipePagerAdapter$a.onChanged against IndexOutOfBoundsException.
+     */
+    public static boolean shouldHandleOnChanged(Object callback, int position, int count) {
+        if (position < 0 || count <= 0) return false;
+        try {
+            Object adapter = getAdapterFromCallback(callback);
+            List<?> list = getCurrentListFromAdapter(adapter);
+            if (list != null) {
+                int size = list.size();
+                if (position >= size || (position + count) > size) {
+                    Log.w(TAG, "Prevented IndexOutOfBoundsException in onChanged: position="
+                            + position + ", count=" + count + ", currentList.size=" + size);
+                    return false;
+                }
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in shouldHandleOnChanged guard", t);
+        }
+        return true;
+    }
+
+    /**
+     * Guards ClipsOwnerSwipePagerAdapter$a.onRemoved against IndexOutOfBoundsException.
+     */
+    public static boolean shouldHandleOnRemoved(Object callback, int position, int count) {
+        if (position < 0 || count <= 0) return false;
+        try {
+            Object adapter = getAdapterFromCallback(callback);
+            if (adapter == null) return true;
+
+            List<?> list = getFragmentListFromAdapter(adapter);
+            if (list != null) {
+                int size = list.size();
+                if (position >= size || (position + count) > size) {
+                    Log.w(TAG, "Prevented IndexOutOfBoundsException in onRemoved: position="
+                            + position + ", count=" + count + ", fragmentList.size=" + size);
+                    return false;
+                }
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in shouldHandleOnRemoved guard", t);
+        }
+        return true;
+    }
+
+    /**
+     * Guards ClipsOwnerSwipePagerAdapter$a.onMoved against IndexOutOfBoundsException.
+     */
+    public static boolean shouldHandleOnMoved(Object callback, int fromPosition, int toPosition) {
+        if (fromPosition < 0 || toPosition < 0) return false;
+        try {
+            Object adapter = getAdapterFromCallback(callback);
+            if (adapter == null) return true;
+
+            List<?> list = getFragmentListFromAdapter(adapter);
+            if (list != null) {
+                int size = list.size();
+                if (fromPosition >= size || toPosition >= size) {
+                    Log.w(TAG, "Prevented IndexOutOfBoundsException in onMoved: from="
+                            + fromPosition + ", to=" + toPosition + ", fragmentList.size=" + size);
+                    return false;
+                }
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in shouldHandleOnMoved guard", t);
+        }
+        return true;
+    }
+
+    /**
+     * Safely removes item at position from UiTrackingFragmentStateAdapter's internal list.
+     * Prevents IndexOutOfBoundsException when position >= list.size().
+     */
+    public static void safeRemoveItem(Object adapter, int position) {
+        if (adapter == null || position < 0) return;
+        try {
+            Class<?> clazz = adapter.getClass();
+            while (clazz != null && clazz != Object.class) {
+                for (Field f : clazz.getDeclaredFields()) {
+                    if (List.class.isAssignableFrom(f.getType())) {
+                        f.setAccessible(true);
+                        Object val = f.get(adapter);
+                        if (val instanceof List) {
+                            List<?> list = (List<?>) val;
+                            if (position < list.size()) {
+                                list.remove(position);
+                            } else {
+                                Log.w(TAG, "Prevented IndexOutOfBoundsException in safeRemoveItem: position="
+                                        + position + ", list.size=" + list.size());
+                            }
+                            return;
+                        }
+                    }
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in safeRemoveItem", t);
+        }
+    }
+
+    private static List<?> getFragmentListFromAdapter(Object adapter) {
+        if (adapter == null) return null;
+        try {
+            Class<?> clazz = adapter.getClass();
+            while (clazz != null && clazz != Object.class) {
+                for (Field f : clazz.getDeclaredFields()) {
+                    if (List.class.isAssignableFrom(f.getType())) {
+                        f.setAccessible(true);
+                        Object val = f.get(adapter);
+                        if (val instanceof List) {
+                            return (List<?>) val;
+                        }
+                    }
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    private static Object getAdapterFromCallback(Object callback) {
+        if (callback == null) return null;
+        try {
+            // First try direct field 'b'
+            try {
+                Field f = callback.getClass().getDeclaredField("b");
+                f.setAccessible(true);
+                Object val = f.get(callback);
+                if (val != null) return val;
+            } catch (Throwable ignored) {}
+
+            // Fallback: search declared fields for RecyclerView.Adapter
+            for (Field f : callback.getClass().getDeclaredFields()) {
+                f.setAccessible(true);
+                Object val = f.get(callback);
+                if (val != null) {
+                    Class<?> c = val.getClass();
+                    while (c != null && c != Object.class) {
+                        if (c.getName().endsWith("RecyclerView$Adapter")
+                                || c.getName().contains("Adapter")) {
+                            return val;
+                        }
+                        c = c.getSuperclass();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    private static List<?> getCurrentListFromAdapter(Object adapter) {
+        if (adapter == null) return null;
+        try {
+            Class<?> clazz = adapter.getClass();
+            while (clazz != null && clazz != Object.class) {
+                for (Field f : clazz.getDeclaredFields()) {
+                    f.setAccessible(true);
+                    Object differ = f.get(adapter);
+                    if (differ == null) continue;
+
+                    String typeName = f.getType().getName();
+                    String differClassName = differ.getClass().getName();
+                    if (typeName.contains("AsyncListDiffer")
+                            || typeName.endsWith(".d")
+                            || differClassName.contains("AsyncListDiffer")
+                            || differClassName.endsWith(".d")) {
+                        // 1. Try getCurrentList()
+                        try {
+                            Method m = differ.getClass().getMethod("getCurrentList");
+                            Object res = m.invoke(differ);
+                            if (res instanceof List) {
+                                return (List<?>) res;
+                            }
+                        } catch (Throwable ignored) {}
+
+                        // 2. Try List fields on differ (mReadOnlyList / f)
+                        for (Field df : differ.getClass().getDeclaredFields()) {
+                            if (List.class.isAssignableFrom(df.getType())) {
+                                df.setAccessible(true);
+                                Object l = df.get(differ);
+                                if (l instanceof List) {
+                                    return (List<?>) l;
+                                }
+                            }
+                        }
+                    }
+                }
+                clazz = clazz.getSuperclass();
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    /**
      * Determines whether an item is an advertisement in clips.
      */
     public static boolean isClipAd(Object item) {

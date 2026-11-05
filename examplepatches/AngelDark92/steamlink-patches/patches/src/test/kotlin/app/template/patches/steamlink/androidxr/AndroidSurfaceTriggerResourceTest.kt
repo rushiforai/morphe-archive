@@ -296,6 +296,8 @@ class AndroidSurfaceTriggerResourceTest {
             "libgxr_foveal_canvas.so",
             "XR_APILAYER_local_GalaxyXR_foveal_canvas.json",
             "libgxr_surface_video.so",
+            "libgxr_surface_video_trigger.so",
+            "XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json",
             "libgxr_surface_video_5001712_0.so",
             "libgxr_surface_video_5001712_1.so",
             "libgxr_surface_video_5002322_0.so",
@@ -332,6 +334,11 @@ class AndroidSurfaceTriggerResourceTest {
             val oldLibrary = File(lib, "libgxr_surface_video.so").apply { writeText("retired") }
             val oldManifest = File(layers, "XR_APILAYER_local_GalaxyXR_surface_video_v1.json")
                 .apply { writeText("retired") }
+            val oldTriggerLibrary = File(lib, "libgxr_surface_video_trigger.so")
+                .apply { writeText("retired") }
+            val oldTriggerManifest = File(layers,
+                "XR_APILAYER_local_GalaxyXR_surface_video_trigger_v1.json")
+                .apply { writeText("retired") }
             val fovealLibrary = File(lib, "libgxr_foveal_canvas.so").apply { writeText("retired") }
             val fovealManifest = File(layers, "XR_APILAYER_local_GalaxyXR_foveal_canvas.json")
                 .apply { writeText("retired") }
@@ -341,6 +348,8 @@ class AndroidSurfaceTriggerResourceTest {
             repeat(2) { installProjectionModeResources(lib, layers, requested, byteArrayOf(1, 2, 3)) }
             assertFalse(oldLibrary.exists())
             assertFalse(oldManifest.exists())
+            assertFalse(oldTriggerLibrary.exists())
+            assertFalse(oldTriggerManifest.exists())
             assertFalse(fovealLibrary.exists())
             assertFalse(fovealManifest.exists())
             assertEquals("preserved", unrelated.readText())

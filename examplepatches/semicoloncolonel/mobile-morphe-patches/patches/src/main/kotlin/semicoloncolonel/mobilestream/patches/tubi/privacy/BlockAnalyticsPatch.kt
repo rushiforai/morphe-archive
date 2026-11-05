@@ -34,11 +34,7 @@ import semicoloncolonel.mobilestream.patches.tubi.shared.Constants
 @Suppress("unused")
 val blockAnalyticsPatch = bytecodePatch(
     name = "Block analytics & tracking",
-    description = "Stops Tubi's analytics and tracking: Adjust, Branch, Braze, Nielsen, Conviva, " +
-        "NPAW/Youbora, Mux, Firebase/Google Analytics, Meta app events, and Tubi's own " +
-        "analytics endpoint (which receives your advertiser ID, device ID and ZIP/location " +
-        "fields). Crash reporting, feature flags, sign-in and playback are left alone. " +
-        "Recommendations may be less personalised. Experimental.",
+    description = "Stops the app's analytics, ad measurement, and marketing services.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

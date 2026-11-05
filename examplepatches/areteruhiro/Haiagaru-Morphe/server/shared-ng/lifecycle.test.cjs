@@ -86,7 +86,7 @@ console.log('PASS '+checks+' typed review/automatic approval/regex/history-reten
 
 const large=JSON.stringify({rules:[{value:'𠮷'.repeat(40000)}]});
 context.ngReviewedCachePut_(large);check(context.ngReviewedCacheGet_()===large,'large Unicode snapshot survives chunk caching');
-const manifest=JSON.parse(cache.get('reviewed-feed-v9'));
+const manifest=JSON.parse(cache.get(context.ngReviewedCacheKey_()));
 cache.delete('reviewed-part:'+manifest.hash+':0');check(context.ngReviewedCacheGet_()===null,'evicted chunk invalidates snapshot');
 context.ngReviewedCachePut_(large);cache.set('reviewed-part:'+manifest.hash+':0','broken');check(context.ngReviewedCacheGet_()===null,'corrupt chunk invalidates snapshot');
 console.log('PASS '+checks+' including large-feed cache checks');
@@ -119,3 +119,29 @@ check(JSON.stringify(Array.from(sheets.values()).map(s=>s.rows))===legacyBefore,
 properties.delete('IGNORED_REPORTERS');
 check(JSON.parse(context.exportReviewedSharedNg()).rules.find(r=>r.value===blockedCondition.value).votes===2,'removing exclusion restores retained history');
 console.log('PASS '+checks+' including ignored-reporter checks');
+
+// Public contributor tokens never reveal the private reporter or device key.
+cache.clear();
+const provenance=feed({contributors:'1'}).rules.find(r=>r.value===blockedCondition.value);
+check(provenance.contributors.length===2&&new Set(provenance.contributors).size===2,'one public token per independent vote');
+check(provenance.contributors.every(id=>/^[a-f0-9]{64}$/.test(id))&&!provenance.contributors.includes(ignoredReporter),'domain-separated public contributor tokens');
+check(!feed().rules.some(r=>'contributors' in r),'legacy clients do not receive contributor metadata');
+const provenanceAgain=feed({contributors:'1'}).rules.find(r=>r.id===provenance.id);
+check(JSON.stringify(provenance.contributors)===JSON.stringify(provenanceAgain.contributors),'public tokens stable across repeated exports');
+const beforeIdentityHistory=JSON.stringify(all());
+function bind(device,deviceKey){return JSON.parse(context.doPost({postData:{contents:JSON.stringify({version:2,action:'identity',device,deviceKey})}}).text);}
+const stableKey='d'.repeat(64);
+check(bind(ignoredDevice,stableKey).ok,'legacy reporter binds to stable device key');
+const privateBinding=rows('ReporterDevices')[0];
+check(privateBinding[0]!==stableKey&&privateBinding[1]===ignoredReporter,'binding stores server-hashed key and preserves old reporter');
+check(bind('e'.repeat(64),stableKey).ok&&rows('ReporterDevices').length===1,'changed installation cannot replace existing device binding');
+check(JSON.stringify(all())===beforeIdentityHistory,'identity registration never adds NG history');
+properties.set('IGNORED_REPORTERS',ignoredReporter);
+const blockedBefore=JSON.stringify(all());
+const stableReport={version:2,action:'personal',device:'e'.repeat(64),deviceKey:stableKey,reports:[condition('keyword','安定識別試験の報告条件')]};
+const stableResponse=JSON.parse(context.doPost({postData:{contents:JSON.stringify(stableReport)}}).text);
+check(stableResponse.ok&&stableResponse.ack.length===1&&JSON.stringify(all())===blockedBefore,'existing BAN remains after installation token changes');
+properties.delete('IGNORED_REPORTERS');
+check(!bind('a'.repeat(64),'invalid').ok,'reject malformed stable identity');
+check(context.auditReviewedSharedNg().ok,'audit accepts public provenance without private metadata');
+console.log('PASS '+checks+' including public-contributor/device-binding checks');

@@ -71,9 +71,7 @@ private fun Instruction.weblabReplacement(): String? {
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off Amazon's AI shopping assistant (Rufus, now \"Alexa for shopping\") in the " +
-        "app's tabs, search, and camera lens, and the AI assistant in Amazon Pay. " +
-        "Experimental.",
+    description = "Turns off Rufus, Amazon's AI shopping assistant, and the AI assistant in Amazon Pay.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

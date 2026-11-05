@@ -1,3 +1,31 @@
+## [0.30.51](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.51) (2026-11-04)
+
+### Added
+
+* Bigger alert pins (experimental): pin size picker - Stock, 1.25x, 1.5x, 2x, 3x - applied to the three Godot alert scenes inside Waze's own map pack
+
+### Fixed
+
+* Cameras & hazards: the camera chime below the limit now writes into Waze's own config store after every sync, so the native alert path can see it
+* Hide recent destinations is offered only on the builds where its read bridge exists
+
+## [0.30.49](https://github.com/Forsigh/waze-patches/compare/v0.30.48...v0.30.49) (2026-11-04)
+
+### Added
+
+* Waze 5.27.0.1 is a supported target - all 33 rows apply and the anchors still resolve
+
+### Changed
+
+* Waze patches are built against Morphe patcher 2.2.0, so newer Morphe Manager builds stop flagging the bundle as built for an older patcher
+* Change Waze icon reads resources through the patcher's file list instead of walking a directory
+
+## [0.30.48](https://github.com/Forsigh/waze-patches/compare/v0.30.47...v0.30.48) (2026-11-04)
+
+### Changed
+
+* Waze patches are now built against Morphe patcher 2.2.0, so new Morphe Manager builds stop flagging the bundle as built for an older patcher
+
 ## [0.30.47](https://github.com/Forsigh/waze-patches/compare/v0.30.46...v0.30.47) (2026-11-02)
 
 ### Fixed

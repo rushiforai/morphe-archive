@@ -68,7 +68,7 @@ No desktop IP, pairing token, APK hash, or native telemetry enrollment is requir
 This section is generated from the patch catalog during releases.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.5.0](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
+> **[v2.6.0](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
 <details open>
 <summary>📦 4XVR&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -128,30 +128,30 @@ This section is generated from the patch catalog during releases.
 </details>
 
 <details open>
-<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;23 patches</summary>
+<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Steam Link 2.0.20/5001712 high-resolution target. | Steam Link 2.0.20/5001812 high-resolution target. | Steam Link 2.0.21/5001968 high-resolution target. | Steam Link 2.0.22/5002244 high-resolution target. | Steam Link 2.0.23/5002363 high-resolution target. | Steam Link 2.0.24/5002395 high-resolution target. | Steam Link 2.0.20/5001712 legacy base. | Steam Link 2.0.20/5001812 legacy base. | Steam Link 2.0.21/5001968 legacy base. | Steam Link 2.0.22/5002244 legacy base. | Steam Link 2.0.23/5002363 native Android XR. | Steam Link 2.0.24/5002395 native Android XR. |
+| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Steam Link 2.0.20/5001712 high-resolution target. | Steam Link 2.0.20/5001812 high-resolution target. | Steam Link 2.0.21/5001968 high-resolution target. | Steam Link 2.0.22/5002244 high-resolution target. | Steam Link 2.0.23/5002363 high-resolution target. | Steam Link 2.0.24/5002395 high-resolution target. | Steam Link 2.0.20/5001712 legacy base. | Steam Link 2.0.20/5001812 legacy base. | Steam Link 2.0.21/5001968 legacy base. | Steam Link 2.0.22/5002244 legacy base. | Steam Link 2.0.23/5002363 native Android XR. | Steam Link 2.0.24/5002395 native Android XR. | Steam Link 2.0.24/5002527 native Android XR. |
 
 #### Image quality
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
 | [Alpha-0 high-resolution trigger](#alpha-0-high-resolution-trigger) | Fully transparent high-resolution trigger quad that keeps Valve's native projection layout and formats untouched. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
-| [Blue-noise dithering](#blue-noise-dithering) | Adds fine grain that hides color steps; center and background can be toggled. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 | • Center of the view<br>• Background |
-| [OLED color calibration](#oled-color-calibration) | Tunes OLED color with gamma and saturation presets. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Headset verification pending. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 | • Calibration profile<br>• Gamma<br>• Saturation<br>• VD-like center mode<br>• Center gamma adjustment |
+| [Blue-noise dithering](#blue-noise-dithering) | Adds fine grain that hides color steps; center and background can be toggled. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Center of the view<br>• Background |
+| [OLED color calibration](#oled-color-calibration) | Tunes OLED color with gamma and saturation presets. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Headset verification pending. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Calibration profile<br>• Gamma<br>• Saturation<br>• VD-like center mode<br>• Center gamma adjustment |
 
 #### Tracking & audio
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [GXR face and tongue bridge](#gxr-face-and-tongue-bridge) | Installs the VRCFT face bridge on legacy builds; on 2.0.23/5002363 and 2.0.24/5002395 it only adds tongue transport. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Valve's own expressions and tongue-out keep working. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
-| [Microphone input preset](#microphone-input-preset) | Switches microphone capture mode; Voice Recognition tested best. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 | • Microphone mode |
-| [Visual Delay Fix](#visual-delay-fix) | Makes head movement appear sooner without touching controller motion. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 | • Head motion offset (ms) |
+| [GXR face and tongue bridge](#gxr-face-and-tongue-bridge) | Installs the VRCFT face bridge on legacy builds; native Android XR builds get tongue transport only. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Valve's own expressions and tongue-out keep working. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
+| [Microphone input preset](#microphone-input-preset) | Switches microphone capture mode; Voice Recognition tested best. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Microphone mode |
+| [Visual Delay Fix](#visual-delay-fix) | Makes head movement appear sooner without touching controller motion. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Head motion offset (ms) |
 | [XR Input Routing Config](#xr-input-routing-config) | Routes pointer and button input to the launcher UI. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244. | 5001712, 5001812, 5001968, 5002244 |  |
 
 #### Startup & permissions
@@ -161,7 +161,7 @@ This section is generated from the patch catalog during releases.
 | [Appear on top (legacy)](#appear-on-top-legacy) | Lets Steam Link draw its panel over other screens (legacy fallback). Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244. | 5001712, 5001812, 5001968, 5002244 |  |
 | [Startup permission requests (before 5002322)](#startup-permission-requests-before-5002322) | Requests hand, eye, face, microphone and Bluetooth permissions at startup. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244. | 5001712, 5001812, 5001968, 5002244 |  |
 | [Startup splash and XR launch mode (before 5002322)](#startup-splash-and-xr-launch-mode-before-5002322) | Adds the launch splash and full-space VR start mode. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244. | 5001712, 5001812, 5001968, 5002244 |  |
-| [Unrestricted battery usage](#unrestricted-battery-usage) | Opens Android's Battery usage page at startup so XR streaming can run unrestricted. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
+| [Unrestricted battery usage](#unrestricted-battery-usage) | Opens Android's Battery usage page at startup so XR streaming can run unrestricted. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
 
 #### App & device identity
 
@@ -187,31 +187,32 @@ This section is generated from the patch catalog during releases.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [Controller velocity frame](#controller-velocity-frame) | Fixes thrown-object directions by rotating controller speeds into the frame SteamVR expects. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Angular velocity is local to the streamed pose on 2.0.23/5002363 and in the base space on older builds; measured on 2.0.23/5002363. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
+| [Controller velocity frame](#controller-velocity-frame) | Fixes thrown-object directions by rotating controller speeds into the frame SteamVR expects. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Angular velocity is local to the streamed pose on 2.0.23/5002363 and in the base space on older builds; measured on 2.0.23/5002363. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
 
 #### Streaming & network
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [Network Optimizations](#network-optimizations) | Keeps streaming smooth after packet loss. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
+| [Network Optimizations](#network-optimizations) | Keeps streaming smooth after packet loss. Builds: 2.0.20 (5001712, 5001812). | 5001712, 5001812 |  |
+| [Network Optimizations (optional)](#network-optimizations-optional) | Keeps streaming smooth after packet loss. Builds: 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001968, 5002244, 5002363, 5002395 |  |
 
 </details>
 
 <details open>
-<summary>📦 Steam Link Experimental&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<summary>📦 Steam Link Experimental&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.20 (5001712) |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Experimental Steam Link 2.0.20/5001712. | Experimental Steam Link 2.0.20/5001812. | Experimental Steam Link 2.0.21/5001968. | Experimental Steam Link 2.0.22/5002244. | Experimental Steam Link 2.0.23/5002363. | Experimental Steam Link 2.0.24/5002395. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001712; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001812; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.21/5001968; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.22/5002244; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.23/5002363; measured on a Galaxy XR headset. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002395; measured on 2.0.23/5002363 only, not run on this base. | Steam Link 2.0.20/5001712 legacy base. |
+| 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) | 2.0.24 (5002527) | 2.0.20 (5001712) | 2.0.20 (5001812) | 2.0.21 (5001968) | 2.0.22 (5002244) | 2.0.23 (5002363) | 2.0.24 (5002395) |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Experimental Steam Link 2.0.20/5001712. | Experimental Steam Link 2.0.20/5001812. | Experimental Steam Link 2.0.21/5001968. | Experimental Steam Link 2.0.22/5002244. | Experimental Steam Link 2.0.23/5002363. | Experimental Steam Link 2.0.24/5002395. | Experimental Steam Link 2.0.24/5002527. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001712; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.20/5001812; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.21/5001968; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.22/5002244; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.23/5002363; measured on a Galaxy XR headset. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002395; measured on 2.0.23/5002363 only, not run on this base. | Controller pose extrapolation layer for exact Steam Link 2.0.24/5002527; measured on 2.0.23/5002363 only, not run on this base. | Steam Link 2.0.20/5001712 high-resolution target. | Steam Link 2.0.20/5001812 high-resolution target. | Steam Link 2.0.21/5001968 high-resolution target. | Steam Link 2.0.22/5002244 high-resolution target. | Steam Link 2.0.23/5002363 high-resolution target. | Steam Link 2.0.24/5002395 high-resolution target. |
 
 #### Image quality
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [Surface video + trigger (experimental)](#surface-video-trigger-experimental) | Presents Steam Link's rendered video through Android Surface swapchains and keeps the terminal trigger quad. Build: 2.0.20/5001712. Needs: deselect Alpha-0 high-resolution trigger. | 5001712 |  |
+| [Stock quad composition (experimental)](#stock-quad-composition-experimental) | Rebuilds Steam Link's projection layers as eye-aware stock-style quads in a separate OpenXR layer. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Needs: deselect Alpha-0 high-resolution trigger. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 
 #### App & device identity
 
@@ -223,22 +224,21 @@ This section is generated from the patch catalog during releases.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [Controller pose extrapolation](#controller-pose-extrapolation) | Predicts controller poses to the moment the app asks and smooths out jitter. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
-| [Controller pose time (experimental)](#controller-pose-time-experimental) | Dates each controller pose by its sample time; the runtime labels poses 28.82 ms late. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Needs: not with Controller pose extrapolation or the HAL pose patch. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 | • Pose time compensation (ms) |
+| [Controller pose extrapolation](#controller-pose-extrapolation) | Predicts controller poses to the moment the app asks and smooths out jitter. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
+| [Controller pose time (experimental)](#controller-pose-time-experimental) | Dates each controller pose by its sample time; the runtime labels poses 28.82 ms late. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Needs: not with Controller pose extrapolation or the HAL pose patch. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Pose time compensation (ms) |
 
 #### Controllers (Shizuku)
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [Controller grip haptics through Shizuku](#controller-grip-haptics-through-shizuku) | Sends controller vibration to the grip motor instead of the trigger. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. This needs Shizuku running with permission granted; without it vibration stays stock. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
-| [Controller tracking from the controller HAL through Shizuku](#controller-tracking-from-the-controller-hal-through-shizuku) | Reads controller poses from the headset HAL, removing about 35 ms of lag. This needs Shizuku; without it tracking stays stock. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Angular velocity is local to the grip pose on 2.0.23/5002363 and in the base space on older builds. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
+| [Controller grip haptics through Shizuku](#controller-grip-haptics-through-shizuku) | Sends controller vibration to the grip motor instead of the trigger. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. This needs Shizuku running with permission granted; without it vibration stays stock. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
+| [Controller tracking from the controller HAL through Shizuku](#controller-tracking-from-the-controller-hal-through-shizuku) | Reads controller poses from the headset HAL, removing about 35 ms of lag. This needs Shizuku; without it tracking stays stock. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Angular velocity is local to the grip pose on 2.0.23/5002363 and in the base space on older builds. Details: https://github.com/4uva4ek. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
 
 #### Streaming & network
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
-| [Codecs Support](#codecs-support) | Lets the headset decode H.264 or AV1 streams; HEVC is untouched. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Needs: the matching driver codec setting. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 | • Enable telemetry |
-| [GXR spacewarp layer (experimental)](#gxr-spacewarp-layer-experimental) | Synthesizes a frame when the stream misses a display tick; any failure stands down to stock. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Experimental; headset validation pending. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
+| [Codecs Support](#codecs-support) | Lets the headset decode H.264 or AV1 streams; HEVC is untouched. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Needs: the matching driver codec setting. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Enable telemetry |
 
 </details>
 

@@ -1,5 +1,10 @@
 # Monet unlimited displayed cards
 
+Latest supported input: **Monet 1.1.1** (135), retaining existing 1.1.0/1.0.97
+support. See [the 1.1.1 contracts, verification and startup investigation](Monet111.md).
+Unversioned verification tasks select 1.1.1. The version-specific sections below
+record historical evidence.
+
 Select **Monet - Unlimited displayed cards** for original Monet
 `com.klevico.monet` **1.1.0** (version code 134, Android 8.0+), retaining existing
 **1.0.97** support. It works independently or with either premium alternative.
@@ -77,7 +82,7 @@ The generic picker has an O(count) decorative preview loop. Its three card entry
 points (`fp3`, `fy3`, `zo2`) are fingerprinted too: all supply min=4/max=20 and
 disable that preview, so Max cannot cause a huge decorative render loop.
 
-Raw original DEX/resource evidence is under `../.inspect-monet-1.1.0/`, notably
+Raw original DEX/resource evidence is under `../Skills/inspection-evidence/.inspect-monet-1.1.0/`, notably
 `cards-contracts.log`, `cards-picker.txt`, `cards-button.txt`, `cards-footer.txt`,
 `cards-apply-text.txt`, `cards-schema.txt`, `cards-directions-addresses.txt`,
 `cards-open*.txt` and `resources.txt`.
@@ -134,7 +139,7 @@ the inspection directory. No user-reported device result for this port yet.
 Input: `../OriginalApps/monet-1.0.97.apk`. Manifest: `com.klevico.monet`, version
 `1.0.97`, code `131`, minimum SDK 26. SHA-256:
 `58bcdaeb7de6109434e013e796e367df6bdfcea3b9b17a01c15431c51d5556cf`.
-Inspection artifacts are under `../.inspect-monet-1.0.97/`: `cards-scan.txt`,
+Inspection artifacts are under `../Skills/inspection-evidence/.inspect-monet-1.0.97/`: `cards-scan.txt`,
 `native-picker-literals.txt`, `native-button-literals.txt`, `cards-schema.txt`,
 `cards-focus.txt`, `cards-state.txt` and `native-focus-directions.txt`.
 Full original instruction/register/reference/literal/branch fingerprints and

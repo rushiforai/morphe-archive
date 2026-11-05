@@ -2,62 +2,35 @@ package app.template.patches.flashscore.ads
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.util.returnEarly
+import app.template.patches.flashscore.shared.ForcedConfigValue
+import app.template.patches.flashscore.shared.forceRemoteConfigValues
 import app.template.patches.shared.Constants.COMPATIBILITY_FLASHSCORE
 import app.template.patches.shared.addInstructionsChecked
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-// Flashscore uses Google's next-generation Mobile Ads SDK
-// (com.google.android.libraries.ads.mobile.sdk). Its class and method names are stable
-// library API, so the patch works on the SDK surface instead of the obfuscated app code:
-//   - initialize/initializeAdapters stop the SDK from ever starting, and the setters that throw
-//     without init (setRequestConfiguration, setUserMutedApp, setUserControlledAppVolume) do nothing;
-//   - every *AdPreloader.start(...) reports failure, so nothing gets preloaded;
-//   - the ad classes' load()/loadAd() entry points become no-ops;
-//   - pollAd() yields nothing for anything that still tries to fetch a preloaded ad.
-// Two app-side hooks cover what does not go through the SDK:
-//   - AdvertZone (every ad slot, including its bookmaker WebView provider) collapses itself
-//     instead of loading, so no empty placeholder is left behind. The sponsored bookmaker
-//     strip, bonus strip and odds are not ad slots; Hide betting content covers them;
-//   - the video player never receives a VMAP response, so IMA video ads are never requested.
-private const val SDK = "Lcom/google/android/libraries/ads/mobile/sdk/"
-
-private val MOBILE_ADS_VOIDS = setOf(
-    "initialize",
-    "initializeAdapters",
-    "setRequestConfiguration",
-    "setUserMutedApp",
-    "setUserControlledAppVolume",
+// Since 26.11.4 R8 repackages Google's next-generation Mobile Ads SDK into ads_mobile_sdk.* (only
+// AdActivity and a few internal classes keep their names), so the SDK surface can no longer be
+// hooked by name (same as 365Scores 14.9.8). The patch works at the app layer instead, on
+// kept classes, stable config key names and stable preference keys:
+//   1. The ADS_ENABLED remote-config switch answers false. It is the app's own ads kill switch:
+//      AdvertZone, the zone id resolver, the embedded list/news ad components and the screens'
+//      ad states all read it. ADS_AMAZON_ENABLED (APS bidding) answers false too.
+//   2. AdvertZone (every ad slot, including its bookmaker WebView provider) collapses itself
+//      instead of loading, so no empty placeholder is left behind. The sponsored bookmaker
+//      strip, bonus strip and odds are not ad slots; Hide betting content covers them.
+//   3. The interstitial manager has no ad unit id, so it takes its own "no unit configured" exit
+//      and never loads or shows an interstitial (it does not read ADS_ENABLED).
+//   4. The video player never receives a VMAP response, so IMA video ads are never requested.
+// The SDK itself may still initialise (its app-side caller is an R8-merged lambda with no stable
+// anchor); with no ad requested it shows nothing.
+private const val ADS_HELPER_NAME = "morpheAdsGet"
+private const val ADS_ENABLED = "ADS_ENABLED"
+private val FORCED_KEYS = linkedMapOf(
+    ADS_ENABLED to ForcedConfigValue.FALSE,
+    "ADS_AMAZON_ENABLED" to ForcedConfigValue.FALSE,
 )
-
-private val PRELOADERS = listOf(
-    "banner/BannerAdPreloader",
-    "appopen/AppOpenAdPreloader",
-    "interstitial/InterstitialAdPreloader",
-    "nativead/NativeAdPreloader",
-    "rewarded/RewardedAdPreloader",
-    "rewardedinterstitial/RewardedInterstitialAdPreloader",
-    "swipeableinterstitial/SwipeableInterstitialAdPreloader",
-    "common/AdPreloader",
-)
-
-private val AD_CLASSES = listOf(
-    "banner/AdView",
-    "banner/BannerAd",
-    "appopen/AppOpenAd",
-    "interstitial/InterstitialAd",
-    "nativead/NativeAdLoader",
-    "rewarded/RewardedAd",
-    "rewardedinterstitial/RewardedInterstitialAd",
-    "swipeableinterstitial/SwipeableInterstitialAd",
-    "iconad/IconAd",
-)
-
-private fun BytecodePatchContext.methods(relative: String): Set<MutableMethod> =
-    mutableClassDefByOrNull(SDK + relative + ";")?.methods.orEmpty()
 
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
@@ -67,50 +40,15 @@ val disableAdsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_FLASHSCORE)
 
     execute {
-        // Never initialize the ads SDK. The next-gen SDK throws from almost every MobileAds call
-        // without init (AGENTS.md rule 9), so the void setters an app calls around init return
-        // at once too.
-        for (type in listOf("MobileAds", "MobileAds\$Companion")) {
-            methods(type)
-                .filter { it.implementation != null }
-                .filter { it.name in MOBILE_ADS_VOIDS && it.returnType == "V" }
-                .forEach { it.returnEarly() }
-        }
+        // 1. Remote config: ads off. Chains with Hide betting content's helper on the same get().
+        forceRemoteConfigValues(
+            patchName = "Disable ads",
+            helperName = ADS_HELPER_NAME,
+            forced = FORCED_KEYS,
+            required = setOf(ADS_ENABLED),
+        )
 
-        // Preloading never starts and never hands out an ad.
-        for (relative in PRELOADERS) {
-            for (type in listOf(relative, "$relative\$Companion")) {
-                methods(type)
-                    .filter { it.implementation != null }
-                    .filter { it.name == "start" && it.returnType == "Z" }
-                    .forEach { it.returnEarly(false) }
-                // returnEarly() only supports void methods; return null explicitly.
-                methods(type)
-                    .filter { it.implementation != null }
-                    .filter { it.name == "pollAd" }
-                    .forEach {
-                        it.addInstructionsChecked(
-                            0,
-                            """
-                                const/4 v0, 0x0
-                                return-object v0
-                            """.trimIndent()
-                        )
-                    }
-            }
-        }
-
-        // Direct loads (and the banner view's loadAd) become no-ops.
-        for (relative in AD_CLASSES) {
-            for (type in listOf(relative, "$relative\$Companion")) {
-                methods(type)
-                    .filter { it.implementation != null }
-                    .filter { (it.name == "load" || it.name == "loadAd") && it.returnType == "V" }
-                    .forEach { it.returnEarly() }
-            }
-        }
-
-        // AdvertZone: do what the app itself does when ads are disabled (GONE, then the
+        // 2. AdvertZone: do what the app itself does when ads are disabled (GONE, then the
         // (I)V helper that resets the min height and reports the visibility) and return
         // before any provider is picked. The helper is found by its setMinHeight call.
         val collapse = mutableClassDefBy(ADVERT_ZONE).methods.singleOrNull { method ->
@@ -134,7 +72,31 @@ val disableAdsPatch = bytecodePatch(
             """.trimIndent()
         )
 
-        // Video ads: drop the VMAP response before it is stored on the media item.
+        // 3. Interstitials: the manager's ad unit id getter (its only ()String method) answers "".
+        // Its load entry point checks that id's length first and returns when it is empty, which
+        // is required here so an empty id is a state the app handles.
+        val manager = InterstitialManagerConstructorFingerprint.classDef
+        val unitId = manager.methods.singleOrNull {
+            it.returnType == "Ljava/lang/String;" && it.parameterTypes.isEmpty() &&
+                !AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null
+        } ?: throw PatchException("${manager.type} has no single ()String ad unit id getter")
+        val guarded = manager.methods.any { method ->
+            val refs = method.implementation?.instructions
+                ?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+                ?.toList().orEmpty()
+            val call = refs.indexOfFirst { it.definingClass == manager.type && it.name == unitId.name && it.parameterTypes.isEmpty() }
+            call >= 0 && refs.getOrNull(call + 1)?.let { it.definingClass == "Ljava/lang/String;" && it.name == "length" } == true
+        }
+        if (!guarded) throw PatchException("${manager.type}: no method checks ${unitId.name}()'s length before loading")
+        unitId.addInstructionsChecked(
+            0,
+            """
+                const-string v0, ""
+                return-object v0
+            """.trimIndent()
+        )
+
+        // 4. Video ads: drop the VMAP response before it is stored on the media item.
         VideoMediaConstructorFingerprint.method.addInstructionsChecked(0, "const/4 p3, 0x0")
     }
 }

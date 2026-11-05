@@ -14,8 +14,9 @@ object Constants {
         // Original signing cert (apksigner "certificate SHA-256 digest"). bin/apk-add pins it.
         signatures = setOf("eca34178cd915ce443fa1d3900ae6a3b3a3b6532488543d22a39ecb844872b5d"),
         targets = listOf(
-            // apks/rumble/3.21.0 (APKMirror, versionCode 887).
-            AppTarget(version = "3.21.0"),
+            // apks/rumble/3.22.0: the Google Play release of 2026-11-04 (versionCode 913). APKMirror still lists
+            // 3.21.0.
+            AppTarget(version = "3.22.0"),
         ),
     )
 }

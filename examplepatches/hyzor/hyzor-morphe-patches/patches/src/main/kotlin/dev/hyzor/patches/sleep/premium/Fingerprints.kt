@@ -36,7 +36,6 @@ internal object IsTrialFingerprint : Fingerprint(
  *
  * Result of `checkOurSignature()`: false once the APK is re-signed, which makes
  * `AlarmClock#refreshTrialStatusForTabs` paint the "unknown signature" warning strip.
- * Not present on every old target, hence `methodOrNull` at the call site.
  */
 internal object IsOurSignatureFingerprint : Fingerprint(
     definingClass = TRIAL_FILTER,

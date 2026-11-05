@@ -1,33 +1,33 @@
 package app.template.patches.sofascore.misc.rating
 
-import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
-import app.template.patches.sofascore.shared.forceCallResult
-import app.template.patches.sofascore.shared.modalPredicate
+import app.morphe.patcher.patch.PatchException
+import app.template.patches.shared.hevalcontrols.HevalFeature
+import app.template.patches.shared.hevalcontrols.featurePatch
+import app.template.patches.sofascore.controls.SofascoreControlsCategory
+import app.template.patches.sofascore.controls.hasModal
+import app.template.patches.sofascore.controls.modalQueueHookPatch
+import app.template.patches.sofascore.controls.sofascoreControls
 
-// The rating dialog's name in the modal queue, and the "still ask for a review" preference its
-// eligibility predicate reads (default true; the dialog clears it once the user answers).
+// The rating dialog's name in the modal queue (SofascoreControls.modalFeature maps it to the
+// feature below).
 internal const val RATING_MODAL = "Rating Info"
-internal const val ASK_REVIEW_KEY = "ask_review_v3"
 
-@Suppress("unused")
-val disableRatingPromptsPatch = bytecodePatch(
+internal val DISABLE_RATING_PROMPTS = HevalFeature(
+    id = "sofascore.disable_rating_prompts",
     name = "Disable rating prompts",
     description = "Disables the rating prompt.",
-) {
-    compatibleWith(COMPATIBILITY_SOFASCORE)
+    category = SofascoreControlsCategory.POPUPS,
+)
 
-    execute {
-        // The predicate shows the dialog when the open counter passes 40, the install is old
-        // enough and "ask_review_v3" is still true. Reading that preference as false (as if the
-        // user had answered) keeps the dialog out of the modal queue, so nothing waits for its
-        // dismiss. The lambda class loads the key once, right before its getBoolean call.
-        modalPredicate(RATING_MODAL, ASK_REVIEW_KEY).forceCallResult(
-            "SharedPreferences.getBoolean(\"$ASK_REVIEW_KEY\")",
-            value = false,
-            afterString = ASK_REVIEW_KEY,
-        ) {
-            it.definingClass == "Landroid/content/SharedPreferences;" && it.name == "getBoolean"
-        }
-    }
+// A Heval Controls feature: on by default, like the always-on patch it replaced.
+@Suppress("unused")
+val disableRatingPromptsPatch = sofascoreControls.featurePatch(
+    DISABLE_RATING_PROMPTS,
+    dependencies = setOf(modalQueueHookPatch),
+) {
+    // The rating dialog is a startup modal: the queue's evaluator answers "not eligible" for
+    // "Rating Info" while the feature is on, so the dialog is never queued and the queue never
+    // waits for its dismiss. Off, the stock predicate (open counter, install age, "ask_review_v3")
+    // decides as before.
+    if (!hasModal(RATING_MODAL)) throw PatchException("No modal named \"$RATING_MODAL\"")
 }

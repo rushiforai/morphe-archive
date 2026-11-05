@@ -21,5 +21,16 @@ val disableAdsPatch = bytecodePatch(
             throw PatchException("FotMob shouldShowAds() has no implementation")
         }
         shouldShowAds.returnEarly(false)
+
+        // 2026-11-03 (startup): the Meta Audience Network and Vungle startup providers answer
+        // "created" at once, so neither SDK initialises on cold start. Nothing loads their ads
+        // once shouldShowAds() is false.
+        listOf(AudienceNetworkProviderFingerprint, VungleProviderFingerprint).forEach { fingerprint ->
+            val provider = fingerprint.method
+            if (provider.implementation == null) {
+                throw PatchException("${provider.definingClass}->onCreate has no implementation")
+            }
+            provider.returnEarly(true)
+        }
     }
 }

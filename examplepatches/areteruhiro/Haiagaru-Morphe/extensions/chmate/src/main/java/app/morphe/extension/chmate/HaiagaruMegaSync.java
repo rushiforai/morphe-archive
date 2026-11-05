@@ -345,6 +345,7 @@ final class HaiagaruMegaSync {
             activity.startActivity(intent);
         });
         content.addView(openLocal);
+        NativeArchiveFolderImport.addButton(content,activity);
 
         TextView localNote = new TextView(activity);
         localNote.setText("端末のファイル操作はMEGAログイン不要です。Cookieを含めると、"

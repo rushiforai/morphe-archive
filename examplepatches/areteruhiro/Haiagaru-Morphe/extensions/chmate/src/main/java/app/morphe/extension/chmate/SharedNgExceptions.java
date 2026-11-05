@@ -8,6 +8,7 @@ import java.util.*;
 
 /** Search affects the visible rows, never the pending exception selections. */
 final class SharedNgExceptions extends LinearLayout {
+    static final String VIEW_TAG = "haiagaru.shared-ng-exceptions";
     private final List<SharedNgRules.Rule> rules;
     private final Set<String> disabled;
     private final List<Integer> visible = new ArrayList<>();
@@ -18,6 +19,7 @@ final class SharedNgExceptions extends LinearLayout {
 
     SharedNgExceptions(Activity activity, List<SharedNgRules.Rule> source, Set<String> excluded) {
         super(activity);
+        setTag(VIEW_TAG);
         setOrientation(VERTICAL);
         rules = new ArrayList<>(source);
         disabled = new HashSet<>(excluded);
@@ -33,14 +35,26 @@ final class SharedNgExceptions extends LinearLayout {
         search.setContentDescription("共有NG条件の検索");
         addView(search);
         count = new TextView(activity); addView(count);
-        list = new ListView(activity);
+        list = new ChoiceList(activity);
         list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        adapter = new ArrayAdapter<>(activity, android.R.layout.simple_list_item_multiple_choice, new ArrayList<>());
+        adapter = new ArrayAdapter<String>(activity, android.R.layout.simple_list_item_multiple_choice, new ArrayList<>()) {
+            @Override public android.view.View getView(int position, android.view.View recycled, android.view.ViewGroup parent) {
+                CheckedTextView row = (CheckedTextView) super.getView(position, recycled, parent);
+                row.setChecked(list.isItemChecked(position));
+                return row;
+            }
+        };
         adapter.setNotifyOnChange(false);
-        list.setAdapter(adapter); addView(list);
-        list.setOnItemClickListener((parent, view, position, id) -> {
-            String key = rules.get(visible.get(position)).id;
-            if (list.isItemChecked(position)) disabled.add(key); else disabled.remove(key);
+        list.setAdapter(adapter);
+        int height = Math.round(Math.max(120, Math.min(320, activity.getResources().getConfiguration().screenHeightDp / 3))
+                * activity.getResources().getDisplayMetrics().density);
+        addView(list, new LayoutParams(LayoutParams.MATCH_PARENT, height));
+        Button reporters=new Button(activity);reporters.setText(SharedNgReporterBlocks.ACTION);addView(reporters);
+        reporters.setOnClickListener(v->{
+            if(visible.isEmpty())return;
+            if(visible.size()==1){SharedNgReporterBlocks.forRule(activity,rules.get(visible.get(0)));return;}
+            String[] choices=new String[visible.size()];for(int i=0;i<choices.length;i++)choices[i]=labels.get(visible.get(i));
+            new HaiagaruDialog.Builder(activity).setTitle("レポーターを確認する条件").setItems(choices,(d,n)->SharedNgReporterBlocks.forRule(activity,rules.get(visible.get(n)))).setNegativeButton("戻る",null).show();
         });
         search.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int length, int after) {}
@@ -48,6 +62,34 @@ final class SharedNgExceptions extends LinearLayout {
             public void afterTextChanged(Editable value) {}
         });
         filter("");
+    }
+
+    /** Keep selection by rule ID across native row recycling and search rebuilds. */
+    private final class ChoiceList extends ListView {
+        ChoiceList(Activity activity) { super(activity); }
+
+        @Override public void clearChoices() {
+            super.clearChoices();
+            for (int i = 0; i < visible.size(); i++)
+                super.setItemChecked(i, disabled.contains(rules.get(visible.get(i)).id));
+        }
+
+        @Override public boolean isItemChecked(int position) {
+            return position >= 0 && position < visible.size()
+                    && disabled.contains(rules.get(visible.get(position)).id);
+        }
+
+        @Override public boolean performItemClick(android.view.View view, int position, long id) {
+            if (!isEnabled() || position < 0 || position >= visible.size()
+                    || !adapter.isEnabled(position)) return false;
+            String key = rules.get(visible.get(position)).id;
+            boolean checked = !disabled.contains(key);
+            if (checked) disabled.add(key); else disabled.remove(key);
+            setItemChecked(position, checked);
+            adapter.notifyDataSetChanged();
+            sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CLICKED);
+            return true;
+        }
     }
 
     private static String normalize(String text) { return SharedNgRules.text(text).toLowerCase(Locale.ROOT); }
@@ -78,13 +120,24 @@ final class SharedNgExceptions extends LinearLayout {
 
     Set<String> selection() { return new HashSet<>(disabled); }
 
+    /** Keep the editor and its checked rows on the same native input/state path. */
+    static void showDialog(Activity activity, String title, String message, SharedNgExceptions content, Runnable save) {
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(activity).setTitle(title)
+                .setMessage(message).setView(content)
+                .setPositiveButton("保存", (ignored, which) -> save.run())
+                .setNegativeButton("キャンセル", null).create();
+        if (dialog.getWindow() != null) dialog.getWindow().setSoftInputMode(
+                android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+                        | android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+        dialog.show();
+    }
+
     static void show(Activity activity, List<SharedNgRules.Rule> source) {
         SharedNgExceptions content = new SharedNgExceptions(activity, source,
                 SharedNg.prefs().getStringSet("exceptions", Collections.emptySet()));
-        new HaiagaruDialog.Builder(activity).setTitle("チェックした条件を適用しない")
-                .setView(content).setPositiveButton("保存", (dialog, which) -> {
+        showDialog(activity, "チェックした条件を適用しない", null, content, () -> {
                     SharedNg.prefs().edit().putStringSet("exceptions", content.selection()).apply();
                     SharedNg.reload();
-                }).setNegativeButton("戻る", null).show();
+                });
     }
 }

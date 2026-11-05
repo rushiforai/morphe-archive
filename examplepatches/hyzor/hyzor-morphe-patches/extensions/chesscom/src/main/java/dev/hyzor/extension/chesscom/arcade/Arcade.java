@@ -81,11 +81,7 @@ public final class Arcade {
         return "";
     }
 
-    private static String dragCancelGetter() {
-        return "";
-    }
-
-    /** Captures the drag-cancel animation when the app builds its settings (4.10.23 has no getter). */
+    /** Captures the drag-cancel animation when the app builds its settings. */
     public static void onStandardAnimations(Object animations, Object dragCancel) {
         if (dragCancel != null) dragCancelAnimation = dragCancel;
     }
@@ -100,11 +96,7 @@ public final class Arcade {
             Object duration = fixedDuration(fixedDuration);
             Object move = easingCurve(easingCurve, fixedDuration, duration);
             if (move == null) throw new IllegalStateException("No usable easing curve constructor");
-            Object dragCancel = dragCancelAnimation;
-            if (dragCancel == null && !dragCancelGetter().isEmpty()) {
-                dragCancel = standardAnimations.getClass().getMethod(dragCancelGetter()).invoke(standardAnimations);
-            }
-            if (dragCancel == null) dragCancel = move;
+            Object dragCancel = dragCancelAnimation != null ? dragCancelAnimation : move;
             Class<?> animationType = easingCurve.getSuperclass();
             return standardAnimations.getClass().getConstructor(animationType, animationType).newInstance(move, dragCancel);
         } catch (Throwable throwable) {
@@ -113,24 +105,20 @@ public final class Arcade {
         }
     }
 
-    /** The fixed duration: (long) on 4.10.18, a no-arg holder with a settable millis field later. */
+    /** The fixed duration: a no-arg holder with a settable millis field. */
     private static Object fixedDuration(Class<?> fixedDuration) throws Exception {
-        try {
-            return fixedDuration.getConstructor(long.class).newInstance(MOVE_MS);
-        } catch (NoSuchMethodException missing) {
-            Object duration = fixedDuration.getDeclaredConstructor().newInstance();
-            for (Field field : fixedDuration.getDeclaredFields()) {
-                if (field.getType() != long.class || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
-                try {
-                    field.setAccessible(true);
-                    field.setLong(duration, MOVE_MS);
-                } catch (Throwable ignored) {
-                    // Keep the class's own default.
-                }
-                break;
+        Object duration = fixedDuration.getDeclaredConstructor().newInstance();
+        for (Field field : fixedDuration.getDeclaredFields()) {
+            if (field.getType() != long.class || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+            try {
+                field.setAccessible(true);
+                field.setLong(duration, MOVE_MS);
+            } catch (Throwable ignored) {
+                // Keep the class's own default.
             }
-            return duration;
+            break;
         }
+        return duration;
     }
 
     /** Builds the interpolated animation from whichever constructor this version has. */
@@ -172,11 +160,6 @@ public final class Arcade {
             }
         }
         return null;
-    }
-
-    /** The app's "Dynamic" style check: off while Arcade draws the effects. */
-    public static boolean dynamicAllowed() {
-        return !enabled();
     }
 
     /** Called once a board's piece view has its layers: adds the Arcade layers. */
@@ -262,12 +245,6 @@ public final class Arcade {
     public static void onDragStart(View piece) {
         ArcadeLayer[] layers = layers(piece);
         if (layers != null && enabled()) layers[0].startDrag(piece);
-    }
-
-    /** The player let go of a piece off the board or on an illegal square. */
-    public static void onDragEnd(View piece) {
-        ArcadeLayer[] layers = layers(piece);
-        if (layers != null) layers[0].endDrag();
     }
 
     /** The square under a dragged piece. Arcade outlines it itself, so the app's mark is hidden. */

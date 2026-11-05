@@ -9,6 +9,26 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 private const val HISTORY = "Lapp/morphe/extension/chmate/BrowsingHistory;"
 
 internal fun BytecodePatchContext.patchGroupedBrowsingHistory(version: String) {
+    // Decorate only the stock history popup before its content is measured.
+    val popupOwner=when(version){
+        "0.8.10.191 dev"->"Lo/r8lambdaXGaXuWPLiVQXXQ4i5OruQyr7jtc;"
+        "0.8.10.226 dev"->"Lo/TTWebsiteActivity;"
+        "0.8.10.242 dev"->"Lo/mapOfKeyValueArrays\$read;"
+        else->return
+    }
+    val popup=mutableClassDefBy(popupOwner).methods.single { method ->
+        method.implementation?.instructions?.any { instruction ->
+            val ref=(instruction as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+            ref?.definingClass=="Landroid/widget/PopupWindow;"&&ref.name=="showAsDropDown"
+        }==true
+    }
+    val content=popup.implementation!!.instructions.withIndex().last { (_,instruction) ->
+        val ref=(instruction as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+        ref?.definingClass=="Landroid/widget/PopupWindow;"&&ref.name=="getContentView"
+    }
+    val popupRegister=(content.value as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction).registerC
+    popup.addInstructions(content.index,"invoke-static {v$popupRegister}, Lapp/morphe/extension/chmate/RefreshTargetHistory;->attach(Landroid/widget/PopupWindow;)V")
+
     if (version == "0.8.10.242 dev") {
         // Home AdapterData, not initRenderFinish's recent-thread popup.
         val ctor = mutableClassDefBy("Lo/SafeParcelableClass;").methods.single {
@@ -62,5 +82,5 @@ internal fun BytecodePatchContext.patchGroupedBrowsingHistory(version: String) {
             adapterClass.methods.add(hook)
         }
     }
-    println("Board-grouped normal browsing history: $version (popup unchanged)")
+    println("Board-grouped normal browsing history: $version (refresh target popup entry added)")
 }

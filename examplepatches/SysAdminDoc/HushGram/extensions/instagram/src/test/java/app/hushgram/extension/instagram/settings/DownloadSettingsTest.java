@@ -427,7 +427,7 @@ public class DownloadSettingsTest {
             assertEquals("Convert to keep the full size", String.valueOf(convertRow.getTitle()));
             assertEquals("Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 "
                     + "is converted to H.264 on your phone instead of saved smaller. Slower, and videos over "
-                    + "3 minutes stay smaller.", String.valueOf(convertRow.getSummary()));
+                    + "3 minutes or in HDR stay smaller.", String.valueOf(convertRow.getSummary()));
 
             int noAv1 = indexOfKey(rows, Settings.DOWNLOAD_NO_AV1.key);
             assertEquals("the AV1 switch isn't right under the convert one (#379)", convert + 1, noAv1);
@@ -931,7 +931,7 @@ public class DownloadSettingsTest {
 
     /**
      * Skip what's already saved sits in the download naming rows, under Name saves by account and
-     * post time and the Add the source to saved photos row that follows it, with Clear download
+     * post time and the Add the source to saved photos and videos row that follows it, with Clear download
      * history directly under Skip. The switch starts off and goes in a settings file, the list it
      * keeps never does, and Clear forgets the list at once and says so (#150).
      */
@@ -1079,7 +1079,7 @@ public class DownloadSettingsTest {
             assertEquals("Download file name", String.valueOf(name.getTitle()));
             assertTrue(String.valueOf(name.getDialogMessage()).contains("{shortcode}"));
             // The photo prefix is HushGram's own, so the summary doesn't call it Instagram's.
-            assertEquals("Videos are named " + L10n.isolate("IG_VID_{date}") + ". Photos are always named "
+            assertEquals("Videos are named " + L10n.isolate("IG_VID_{date}") + ". Photos are named "
                     + L10n.isolate("IG_IMG_") + " followed by the date and time.", String.valueOf(name.getSummary()));
             String message = String.valueOf(name.getDialogMessage());
             assertTrue(message, message.contains(L10n.isolate("{date}")) && message.contains(L10n.isolate("{video_id}"))
@@ -1126,6 +1126,36 @@ public class DownloadSettingsTest {
             assertEquals("Videos and photos use " + L10n.isolate("{shortcode}")
                     + ". Unknown codes are left out.", name.getSummary().toString());
         }
+    }
+
+    /**
+     * With Name saves by account and post time on, the file name row says its names are only for the
+     * saves that switch can't name, and it drops that the moment the switch goes off.
+     */
+    @Test
+    public void theFileNameRowSaysNameByPostTakesTheSavesItCanName() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD, PatchFamily.VIDEO_DOWNLOAD);
+        String names = "Videos are named " + L10n.isolate("IG_VID_{date}") + ". Photos are named "
+                + L10n.isolate("IG_IMG_") + " followed by the date and time.";
+        String onlyLeftovers = " With Name saves by account and post time on, only a save that doesn't know who "
+                + "posted or when is named this way.";
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = pageIn(controller);
+            Preference name = page.findPreference(Settings.FILENAME_TEMPLATE.key);
+            SwitchPreference byPost = (SwitchPreference) page.findPreference(Settings.SAVE_NAME_BY_POST.key);
+            assertEquals(names, String.valueOf(name.getSummary()));
+
+            byPost.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(Settings.SAVE_NAME_BY_POST.savedValue());
+            assertEquals(names + onlyLeftovers, String.valueOf(name.getSummary()));
+
+            byPost.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertEquals(names, String.valueOf(name.getSummary()));
+        }
+        assertEquals("Videos and photos use " + L10n.isolate("{shortcode}") + ". Unknown codes are left out."
+                + onlyLeftovers, HushgramPreferenceFragment.fileNameSummary("{shortcode}", true));
     }
 
     /** The dialog's example is the name the save pipeline would give, and Cancel keeps the saved template. */

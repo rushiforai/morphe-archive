@@ -39,9 +39,7 @@ internal object SettingsConstructorFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable MGM+ AI",
-    description = "Turns off the \"MGM+ AI\" chat assistant (the \"Get Personalized Pick\" and " +
-        "\"Not sure what to watch?\" prompts, the AI chat, and the AI-picks rows on Home) by " +
-        "forcing its feature flags off, whatever the server sends. Nothing else changes.",
+    description = "Turns off the MGM+ AI chat assistant, its prompts, and the AI-picks rows.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

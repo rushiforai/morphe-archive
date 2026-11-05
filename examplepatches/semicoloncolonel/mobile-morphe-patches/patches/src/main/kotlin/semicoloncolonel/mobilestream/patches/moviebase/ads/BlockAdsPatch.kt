@@ -86,8 +86,7 @@ internal object KotlinUnitToStringFingerprint : Fingerprint(
 @Suppress("unused")
 val blockAdsPatch = bytecodePatch(
     name = "Block ads",
-    description = "Removes the banner, native, full-screen, and app-open ads, with no empty space left behind, " +
-        "and stops the ad networks from starting. Premium is not changed.",
+    description = "Removes the banner, native, full-screen, and app-open ads.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

@@ -1,3 +1,9 @@
+## [1.10.1](https://github.com/RjBiermann/brave-waffle/compare/v1.10.0...v1.10.1) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* filter ad tiles from the 6.7.2 Compose TV feed ([7b70278](https://github.com/RjBiermann/brave-waffle/commit/7b702784b0b624f185201c4a8bbefcc0833f0bd8)), closes [#7](https://github.com/RjBiermann/brave-waffle/issues/7)
+
 ## [1.10.0](https://github.com/RjBiermann/brave-waffle/compare/v1.9.0...v1.10.0) (2026-11-04)
 
 ### ✨ New Features

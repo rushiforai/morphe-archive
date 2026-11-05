@@ -480,6 +480,37 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/SettingsHeader.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "bb6775bf5f81ea821a078632305ece87bb328f30",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Ported from HushGram's settings header: the centred launcher icon, the name in the gradient title and the version line, at HushGram's sizes. HushGram's is a row of its list; here the three parts go straight into the settings screen's collapsing column over the list, the gradient is Facebook's blues lifted to 7:1 on the page, the icon is Hushfacebook's logo from the drawable SettingsLogo.kt adds (then the launcher icon, then the patched mark in the heading colour), and the version line names Facebook."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/settings/SettingsLogo.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "bb6775bf5f81ea821a078632305ece87bb328f30",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Ported from HushGram's app icon patch (AppIcons.kt: artFiles and the write loop of addAppIcons): pictures the patch carries in its own resources go into the decoded res folder's drawable-nodpi, after asking the decoder for the patch's names and refusing before any write when one is already there. Here it's one picture, Hushfacebook's logo for the settings header, added by a resource patch the settings patch depends on, with no aliases or adaptive icons."
+    },
+    {
+      "paths": [
+        "patches/src/main/resources/app/morphe/patches/facebook/misc/settings/settings_logo.png"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's own logo (assets/icons/icon-256.png), 256 px with clear corners, bundled so the settings header shows it on every patched build."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/hook/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/FeedTypeNames.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/DiscoverUnits.kt",
@@ -708,6 +739,28 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Home's stories row drawn as round pictures at a chosen size. Facebook 585 builds the row as Litho tiles in a list with no round variant, so the patch finds the row's render method by its trace string, reads the list view id it stores, and hands every pull to refresh wrapper a list factory returns to the extension, which clips each tile of that list to a circle and scales it."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryTaps.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/taps/StoryTapsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a play and pause button over a story and stories that change only on a double tap. Facebook 585's story tap controller is found by the string it writes into its trace, and its back and forward navigations by the enum constants they pass, so the extension is asked in front of each and can skip it. Facebook's gesture listener gets a double tap callback that hands the second tap's lift to its own single tap code. The pause is Facebook's own, made through the controller's pauser under the reason its play and pause toggle uses, and the button is a view the extension adds to the window."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryProgressBar.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryViewerCleanup.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/cleanup/StoryProgressHook.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/cleanup/StoryViewerCleanupPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: switches that take the song and effect credits off a story's subtitle line and the suggested replies off its bottom. Facebook 585 draws each as a Litho component that names itself in its class initializer, so the patch finds the one-credit line, the turning credit line and the reply suggestions by those names and asks the extension at the top of each render. On a yes the one-credit line and the suggestions draw nothing, as Facebook's own render already does for a story without them, and the turning line answers the plain subtitle its constructor kept, unless the flag render tests before its Trending or Suggested label is set. A third switch draws a progress bar along the bottom of a story: each listener that writes \"StoryViewerProgressBar.onProgressUpdated\" hands the extension its segments and its own progress argument right after it moves them, and the extension draws the bar in the overlay of the story's card."
     },
     {
       "paths": [
@@ -1408,6 +1461,8 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/MenuTop.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoMenuItem.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSave.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSearch.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSearchFiles.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/CommentGifAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/DownloadPhotoPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSaveAnchors.kt",
@@ -1416,7 +1471,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn; and Save GIF in a GIF comment's long-press sheet, built with the sheet's own Save photo row builder and icon from the comment's animated image. A save asks Meta's CDN for the biggest copy through the same resize call Facebook's own Save photo makes, and a picture the CDN sends as AVIF or WebP is written out as a JPEG."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn; and, behind a third switch, Search photo in the menu of a post holding one photo (#245, #248), which fetches the photo into a cache folder of its own and hands it to the app picked in Android's chooser through an unexported, read-only provider the patch declares; and Save GIF in a GIF comment's long-press sheet, built with the sheet's own Save photo row builder and icon from the comment's animated image. A save asks Meta's CDN for the biggest copy through the same resize call Facebook's own Save photo makes, and a picture the CDN sends as AVIF or WebP is written out as a JPEG."
     },
     {
       "paths": [

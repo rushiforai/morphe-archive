@@ -47,8 +47,7 @@ private const val KEY_GATE = """
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
     name = "Disable AI",
-    description = "Turns off Magic Apron, The Home Depot's AI project assistant, in the app and hides " +
-        "its chat button on the store's web pages inside the app. Experimental.",
+    description = "Turns off Magic Apron, The Home Depot's AI project assistant.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

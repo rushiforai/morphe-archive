@@ -16,6 +16,17 @@ installer-source spoof.
 
 ## Start here: creating or modifying a patch
 
+Shared local skills are in `E:\Morphe\Skills\morphe-*\SKILL.md`. Load the relevant
+inspection, implementation, runtime, or verification workflow from there. Retained
+app evidence is in `E:\Morphe\Skills\inspection-evidence`; use those paths directly.
+OpenCode and Kilo discover the Skills directory through their user configuration.
+
+Latest Monet target: **1.1.1** (code 135). Read [Monet111.md](docs/Monet111.md)
+for the premium/card/catalog migration, exact original evidence, latest verifier
+commands and startup-app investigation. The unversioned card/catalog tasks now
+run the `111` checks. Historical `110` contracts and fixtures remain unchanged.
+The following 1.1.0 notes describe the preceding port.
+
 For Monet **1.1.0** **Displayed Cards** above 20 (existing 1.0.97 support retained), see
 [MonetDisplayedCards.md](docs/MonetDisplayedCards.md). The optional **Monet - Unlimited
 displayed cards** patch adds ten-card steps and Max to the native themed picker,
@@ -81,7 +92,7 @@ This is the working guide for coding agents, including local models in LM Studio
 The app-specific sections below describe existing implementations; they are not
 instructions to expand their historical version support.
 
-For the latest NuvioTV **1.1.0-beta.9** (1072) port, read [NuvioBeta9.md](docs/NuvioBeta9.md). The active shared contract and `verifyNuvioLatest` target beta.9; historical beta.8 fixtures remain unchanged.
+For the latest NuvioTV **1.1.0-beta.10** (1073) port, read [NuvioBeta10.md](docs/NuvioBeta10.md). The active shared contract and `verifyNuvioLatest` target beta.10; historical fixtures remain unchanged.
 
 ### Scope and evidence
 
@@ -116,11 +127,12 @@ Paths below are relative to `E:\Morphe\santodan-patches` unless stated otherwise
 | `settings.gradle.kts`, `gradle/libs.versions.toml` | Current Morphe plugin and library versions |
 | `docs/` | Feature behavior and device checks |
 | `../OriginalApps/` | Original APK/APKM/XAPK inputs; some inputs also live in the workspace root |
-| `../.inspect-*` | Extracted/decompiled inspection artifacts; confirm each matches the selected original |
-| `../.morphe-template-reference/`, `../.morphe-patches-reference/` | Local API/example references; check against installed dependency versions |
+| `../Skills/inspection-evidence/.inspect-*` | Extracted/decompiled inspection artifacts; confirm each matches the selected original |
+| `../References/morphe-template/`, `../References/morphe-patches/`, `../References/rushiranpise/` | Local API/example references; check against installed dependency versions |
+| `../backups/workspaces/` | Historical backup/staging workspaces; use the main repository for active work |
 | `../Apps/` | Patched app outputs; do not use as original patch inputs |
 
-At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.9`,
+At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.10`,
 Pillo `0.6.27`, Reddit `2026.37.0`, MEO Android TV `5.7.0`, and Peafowl
 `GMS_27.5.1`. These are discovery hints, not a permanent version allowlist.
 Rescan inputs for each task. Apps without existing patches need their own inspection.
@@ -412,11 +424,21 @@ official installation. Device testing is still required for server-side behavior
 
 ## Pillo 0.6.27
 
+The premium patch must also normalize the premium argument in the independent
+`SubscriptionStateProvider._init_$lambda$0` profile listener. The raw billing
+result otherwise runs `resetDailyInterruptSetting` and clears direct logging
+(**mark as taken**) despite the forced setters. Validate both branches before
+inserting `const/4 v1, 1`; preserve manual choices. Original/serialized DEX checks
+in `verifyPillo627Bundle` cover repeated billing results and mutation scope.
+See the notification-reset evidence in `docs/Pillo627.md`; device confirmation
+of this fix is pending.
+
 All six Pillo patches support `xyz.rtrvr.pillo` **0.6.27**, version code **472**.
 The optional **Pillo - Premium and ad-free** replaces the external **Unlock
 Premium** patch whose old provider path/Job fingerprint fails on 0.6.27. Deselect
-that external patch when using this replacement. It changes only the two native
-setter boolean inputs, after validating their coroutine captures and persistence.
+that external patch when using this replacement. It changes the two native
+setter boolean inputs and the independent profile callback's premium argument,
+after validating their native contracts, coroutine captures and persistence.
 Read [Pillo627.md](docs/Pillo627.md) for current contracts, schema and runtime checks.
 `Pillo627*` Java contracts and `*627` runtime classes isolate the new R8/Compose ABI
 from historical implementations. The database identity changed; 0.6.27 local archives

@@ -2,6 +2,53 @@
 
 This directory is the historical record for approaches that did not produce permission-free, persistently high resolution. Do not stack these experiments into a new APK.
 
+## 2026-11-03 — Unneeded hybrid, swapchain and atlas experiments removed
+
+Hybrid codec helper, Swapchain enlarge and Atlas surface were independent
+experiments, not prerequisites of Stock quad composition or Alpha-0. At the
+owner's request their selectable patches, native code, payloads and tests were
+removed. Optional hybrid-loading/demux code was also removed from Codecs Support;
+standard codec support remains. Retired filenames remain cleanup-only to remove
+old payloads when re-patching. This is scope cleanup, not a new headset result.
+
+## 2026-11-03 — Surface video + trigger and lifecycle resolution probe removed
+
+The user requested removal of active high-resolution alternatives while keeping
+the working Alpha-0 fallback. The Surface-video experiment was reported not
+working. Its first pass-through blocker was corrected statically, but no later
+headset validation established acceptance or high resolution; the decoder-to-
+Surface causal claim remained a hypothesis. Its selectable patch, native source,
+tests and payloads are removed. Historical diagnostics are retained.
+
+The `GxrResolutionProbe` DEX lifecycle hook and its activation calls were also
+removed. This was a removable legacy hook, not a new runtime failure claim.
+Unrelated permission, launcher, codec and display-color patches remain.
+
+Stock 5002527 supplies a new static mechanism: four per-eye quads with eye-to-
+head offsets, 1.996 m geometry and preserved composition-settings chains. Its
+backport is a separate experimental layer, not the retired 1.0 m/head-only/
+chain-dropping approximation. Static layout verification and host tests do not
+prove headset acceptance or high resolution; no runtime claim is made yet.
+### Historical surface-video findings
+
+The default-off **Surface video + trigger (experimental)** patch copied Valve's already-rendered
+sRGB8 projection images 1:1 into Android Surface swapchains of the same size, re-pointed the two
+projection views at those images, and appended the 2x2 alpha-0 terminal quad on exact
+2.0.20/5001712. It did not produce high resolution.
+
+The copy preserved Valve's source extent, so it could not raise detail. The trigger was appended
+only after all four source views copied; any copy failure fell back to the original two-projection
+frame with no trigger. It also replaced Valve's normal projection swapchains, which is the opposite
+of the working Alpha-0 helper (`preservesValveProjectionLayers:true`,
+`androidSurfaceSwapchain:false`).
+
+The patch, native source, payload, manifest and tests are removed. Build ID
+`surface-video-trigger-2proj-v1.0-20261025`, hashes and logcat evidence remain in
+[diagnostics/steamlink-surface-video-trigger](../diagnostics/steamlink-surface-video-trigger/README.md).
+Do not re-add this copy bridge or another terminal-quad variant; the next attempt must render the
+atlas at the target extent or redirect the decoder output.
+
+
 ## 2026-10-25 — Fovea/quad composition arms: incomplete reproduction; removed
 
 Two default-off OpenXR API-layer arms converted Steam Link's fovea projection to per-eye quads, one keeping the background projection and one converting both projections to quads. Both produced low resolution on exact 2.0.20/5001712. The arms were not a faithful reproduction of the reference standard-codec path: they omitted the small trigger projection and reused Valve's projection swapchains instead of the decoder-to-runtime-Surface path used by HEVC, AV1 and H.264. The ASTC path was deliberately out of scope. The patches, native source, payloads and manifests are removed. Do not re-add another topology-only quad approximation; a future attempt must start from a decoder Surface-swapchain experiment and a captured `xrEndFrame` layer array.

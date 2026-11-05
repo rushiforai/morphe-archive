@@ -32,6 +32,11 @@ fi
     die "no apks/$slug/$version${file:+ (that file is another version)}: give the download, bin/bump $slug $version <file>"
 input="$(app_input "$slug" "$version")"
 current="$(sed -n 's/.*AppTarget(version = "\([^"]*\)".*/\1/p' "$constants" | head -1)"
+if [[ "$current" == "$version" ]]; then
+    # Constants.kt already names this version (a re-run after the bump): compare with the stored version before it.
+    current="$( { find "$APKS/$slug" -mindepth 1 -maxdepth 1 -type d -printf '%f\n'; echo "$version"; } |
+        sort -uV | grep -B1 -xF "$version" | head -1)"
+fi
 compare=()  # the version the patches target now, for the probe class names
 if [[ -n "$current" && "$current" != "$version" && -d "$APKS/$slug/$current" ]]; then
     compare=(--current "$(app_input "$slug" "$current")")

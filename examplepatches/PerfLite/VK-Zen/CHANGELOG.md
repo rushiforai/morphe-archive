@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1] - 2026-11-05
+
+### Исправления
+- **VK Клипы:** Исправлен вылет приложения при пролистывании клипов с рекламой (`IndexOutOfBoundsException` в `ClipsOwnerSwipePagerAdapter` и `UiTrackingFragmentStateAdapter`) по репорту #10 от @TepHuc.
+
 ## [1.2.0] - 2026-10-31
 
 ### Нововведения

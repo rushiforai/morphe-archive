@@ -48,12 +48,13 @@ import java.util.logging.Logger
 // Remaining API 30 call sites (CloseGuard, NumberFormatter percent, InstallSourceInfo) and
 // Car.createCar without android.car. No exit as the system user where an Android Automotive build
 // runs apps as user 0 (DiLink 5). UI density chosen in Maps' Settings instead of a patch option.
+// Driver side chosen in Maps' Settings: the side of Maps' cards and map buttons (DriverSidePatch.kt).
 // Cronet telemetry off (its logger uses the API 30 StatsEvent).
 // Report a problem (ReportPatch in the extension): a Settings row and its own screen outside Maps,
 // with safe mode and the feature switches (SafeMode), and a launcher icon of its own.
 // Separate patches that depend on this one: BYD battery (BydBatteryPatch.kt), Send to car
-// (SendToCarPatch.kt), the BYD location flicker fix (LocationLockoutPatch.kt) and the BYD navigation
-// volume (BydNavigationVolumePatch.kt).
+// (SendToCarPatch.kt), the BYD location flicker fix (LocationLockoutPatch.kt), the BYD navigation
+// volume (BydNavigationVolumePatch.kt) and 3D buildings (Buildings3dPatch.kt).
 
 internal const val ORIGINAL_PACKAGE_NAME = "com.google.android.apps.maps"
 internal const val PATCHED_PACKAGE_NAME = "app.morphe.android.apps.maps.automotive"
@@ -156,7 +157,7 @@ internal object IncludedFeatures {
 val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
     description = "Runs Google Maps for Android Automotive on Android 10 as \"$APP_LABEL\" with MicroG-RE 7.3.0. " +
-        "Adds a UI density setting, a problem report and a safe mode.",
+        "Adds UI density and driver side settings, a problem report and a safe mode.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -167,6 +168,7 @@ val automotiveMicroGPatch = bytecodePatch(
         // The separate patches execute after this one, which they depend on.
         IncludedFeatures.reset()
         IncludedFeatures.settingsRows += UI_DENSITY_CLASS
+        IncludedFeatures.settingsRows += DRIVER_SIDE_CLASS
         rewriteGmsCoreStrings()
         patchLocationServiceAction()
         patchExtensionRuntime()
@@ -185,6 +187,7 @@ val automotiveMicroGPatch = bytecodePatch(
         guardCarCreation()
         skipSystemUserExit()
         applyUiDensity()
+        useDriverSide()
     }
 
     finalize {
@@ -1002,7 +1005,7 @@ private fun BytecodePatchContext.writeIncludedFeatures(features: List<String>) {
             AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PRIVATE.isSet(it.accessFlags)
     } ?: throw PatchException("SafeMode lacks includedFeatures")
     val value = features.joinToString(",")
-    if (!value.matches(Regex("[a-z_,]*"))) throw PatchException("Unexpected feature names: $value")
+    if (!value.matches(Regex("[a-z0-9_,]*"))) throw PatchException("Unexpected feature names: $value")
     method.addInstructions(
         0,
         """

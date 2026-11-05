@@ -56,7 +56,9 @@ val controllerHalPosePatch = rawResourcePatch(
 
     execute {
         // Morphe dependencies do not re-check compatibility before execution.
-        if (!isControllerHalPoseBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+        if (packageMetadata.packageName != CONTROLLER_STEAM_LINK_PACKAGE ||
+            !isControllerHalPoseBuild(packageMetadata.versionName, packageMetadata.versionCode)
+        ) {
             return@execute
         }
 
