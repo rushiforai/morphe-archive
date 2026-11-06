@@ -39,10 +39,14 @@ import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
  * through {@link #filterKept} first, so the copy is the filtered one, and the base constructor it
  * goes on to hands that same list back untouched.
  *
- * <p>The rumblr model keeps its names, so the item's kind, its Sponsored label and how Tumblr is told
- * to show it are read by name. A carousel's own items are the one renamed getter, read through
- * {@link #carouselItems}. Anything that can't be read is kept: a filter that guesses could take a
- * post out.
+ * <p>The rumblr model keeps its names, so the item's kind, its Sponsored label, how Tumblr is told
+ * to show it and its dismiss menu are read by name. A carousel's own items are the one renamed
+ * getter, read through {@link #carouselItems}. Anything that can't be read is kept: a filter that
+ * guesses could take a post out.
+ *
+ * <p>A post Tumblr's staff feature carries the server's sparkle header icon, read through
+ * {@link HushPaidPost}, and a dismiss choice linking to the marketing-post dismissal. Hide Featured
+ * posts needs both and never reads the translated "Featured" label.
  *
  * <p>Suggestion cards often come after a {@code TITLE} item carrying their heading ("Check out these
  * blogs"). A heading goes with the item right after it, and one that ends a page goes too while a
@@ -133,6 +137,15 @@ public final class TimelineFilter {
     static final Set<String> WATCH_IT_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "VIDEO_HUB_CARD", "VIDEO_HUB_FEATURED", "VIDEO_HUB_FEATURED_BORDERED", "VIDEO_HUBS_CONTAINER",
             "VIDEO_HUBS_ROW")));
+
+    /** The header icon the server gives a post Tumblr's staff feature, a server value, not label text. */
+    static final String FEATURED_ICON = "sparkle";
+
+    /**
+     * Where the dismiss menu of a featured post sends "don't show me this", which only Tumblr's own
+     * marketing posts carry. The rest of the address is the API's, so only its end is compared.
+     */
+    static final String MARKETING_DISMISSAL = "/dismiss/marketing_post";
 
     /** Containers that hold other items. Each is judged by its first item. */
     static final Set<String> CAROUSEL_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -233,16 +246,20 @@ public final class TimelineFilter {
     }
 
     private static boolean isPostRemoval(String family) {
-        return PostRules.FAMILIES.contains(family) || FamilyNames.MUTE_ROOT_POSTS.equals(family);
+        return PostRules.FAMILIES.contains(family) || FamilyNames.MUTE_ROOT_POSTS.equals(family)
+                || FamilyNames.HIDE_FEATURED_POSTS.equals(family);
     }
 
     /** Which switches take items out of this page, read once a page. */
     static final class Rules {
         final boolean ads;
+        /** Whether Keep Blaze posts leaves paid Blaze posts in while {@link #ads} takes the rest. */
+        final boolean keepBlaze;
         final boolean blogs;
         final boolean communities;
         final boolean tags;
         final boolean watchIt;
+        final boolean featured;
         final boolean mutes;
         /** The post switches, or null when none is on. */
         @Nullable
@@ -257,13 +274,15 @@ public final class TimelineFilter {
         @Nullable
         private Boolean amongPosts;
 
-        private Rules(boolean ads, boolean blogs, boolean communities, boolean tags, boolean watchIt,
-                      boolean mutes, @Nullable PostRules posts) {
+        private Rules(boolean ads, boolean keepBlaze, boolean blogs, boolean communities, boolean tags, boolean watchIt,
+                      boolean featured, boolean mutes, @Nullable PostRules posts) {
             this.ads = ads;
+            this.keepBlaze = keepBlaze;
             this.blogs = blogs;
             this.communities = communities;
             this.tags = tags;
             this.watchIt = watchIt;
+            this.featured = featured;
             this.mutes = mutes;
             this.posts = posts;
         }
@@ -275,6 +294,7 @@ public final class TimelineFilter {
             try {
                 // Each family's patch marks its timeline capability once the hook is in.
                 boolean ads = on(PatchFamily.Capability.TIMELINE_ADS, reading, Settings.HIDE_ADS);
+                boolean keepBlaze = ads && Settings.KEEP_BLAZE_POSTS.get();
                 reading = FamilyNames.HIDE_SUGGESTED_BLOGS;
                 boolean blogs = on(PatchFamily.Capability.SUGGESTED_BLOG_CARDS, reading, Settings.HIDE_SUGGESTED_BLOGS);
                 reading = FamilyNames.HIDE_SUGGESTED_COMMUNITIES;
@@ -284,12 +304,14 @@ public final class TimelineFilter {
                 boolean tags = on(PatchFamily.Capability.SUGGESTED_TAG_CARDS, reading, Settings.HIDE_SUGGESTED_TAGS);
                 reading = FamilyNames.HIDE_WATCH_IT_ROWS;
                 boolean watchIt = on(PatchFamily.Capability.WATCH_IT_ROWS, reading, Settings.HIDE_WATCH_IT_ROWS);
+                reading = FamilyNames.HIDE_FEATURED_POSTS;
+                boolean featured = on(PatchFamily.Capability.FEATURED_POSTS, reading, Settings.HIDE_FEATURED_POSTS);
                 reading = FamilyNames.HIDE_REBLOGS;
                 PostRules posts = PostRules.now();
                 reading = FamilyNames.MUTE_ROOT_POSTS;
                 boolean mutes = RootPostMutes.active();
-                return ads || blogs || communities || tags || watchIt || mutes || posts != null
-                        ? new Rules(ads, blogs, communities, tags, watchIt, mutes, posts) : null;
+                return ads || blogs || communities || tags || watchIt || featured || mutes || posts != null
+                        ? new Rules(ads, keepBlaze, blogs, communities, tags, watchIt, featured, mutes, posts) : null;
             } catch (Throwable failure) {
                 HookStatus.threw(reading, "switch read", failure);
                 return null;
@@ -306,8 +328,10 @@ public final class TimelineFilter {
         /** The family a failure is reported under: the first switch that's on. */
         String owner() {
             if (ads) return FamilyNames.HIDE_ADS;
+            // A heading's read failure only matters to a card switch, so those come before Featured.
             String card = cardOwner();
             if (card != null) return card;
+            if (featured) return FamilyNames.HIDE_FEATURED_POSTS;
             return posts != null ? posts.owner() : mutes ? FamilyNames.MUTE_ROOT_POSTS : FamilyNames.HIDE_ADS;
         }
 
@@ -385,7 +409,21 @@ public final class TimelineFilter {
         @Nullable
         String removes(Object item) {
             if (DirectPosts.answers(item)) return null;
-            if (ads && isAd(item)) return FamilyNames.HIDE_ADS;
+            boolean keptBlaze = false;
+            if (ads && isAd(item)) {
+                if (!keepBlaze || !isPaidBlaze(item)) return FamilyNames.HIDE_ADS;
+                keptBlaze = true;
+            }
+            // A kept Blaze post still meets every other switch, and counts as kept only once they leave it in.
+            String family = removesPastAds(item);
+            if (keptBlaze && family == null) HookStatus.counted(FamilyNames.HIDE_ADS, "Blaze post kept");
+            return family;
+        }
+
+        /** The patch name of the first switch after Hide ads that takes [item] out, or null to keep it. */
+        @Nullable
+        private String removesPastAds(Object item) {
+            if (featured && isFeatured(item)) return FamilyNames.HIDE_FEATURED_POSTS;
             String card = cardOwner();
             String byCard = card == null ? null : cardFamily(item, this, card);
             if (byCard != null) return byCard;
@@ -449,7 +487,64 @@ public final class TimelineFilter {
         if (!post.hushPaidContextKnown()) return false;
         if (post.hushFollowed() || post.hushCanEdit()) return false;
         String icon = post.hushHeaderIcon();
-        return "blaze".equals(icon) || "money-alt".equals(icon);
+        return BLAZE_ICON.equals(icon) || "money-alt".equals(icon);
+    }
+
+    /** The server's header icon on a post someone paid to promote with Blaze. */
+    static final String BLAZE_ICON = "blaze";
+
+    /**
+     * True when [item], already taken for an ad, is a post whose header carries the server's
+     * {@link #BLAZE_ICON}, which Keep Blaze posts leaves in. Network ad kinds, a Sponsored label or
+     * paid placement without that icon, the "money-alt" icon and an organic post's is_blazed flag
+     * aren't this. One that can't be read isn't either.
+     */
+    static boolean isPaidBlaze(Object item) {
+        Model found = modelFor(item, FamilyNames.HIDE_ADS);
+        if (found == null) return false;
+        try {
+            Object payload = found.data.invoke(item);
+            return "POST".equals(found.kindOf(payload)) && payload instanceof HushPaidPost
+                    && BLAZE_ICON.equals(((HushPaidPost) payload).hushHeaderIcon());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_ADS, "timeline item", failure);
+            return false;
+        }
+    }
+
+    /**
+     * True when [item] is a post Tumblr's staff feature in a feed: its header carries the server's
+     * {@link #FEATURED_ICON} and its dismiss menu offers the {@link #MARKETING_DISMISSAL}. Neither
+     * alone is enough, and the "Featured" label is never read, since Tumblr translates it. Blaze
+     * and Sponsored icons aren't this, nor is any other post. One that can't be read is kept.
+     */
+    static boolean isFeatured(Object item) {
+        Model found = modelFor(item, FamilyNames.HIDE_FEATURED_POSTS);
+        if (found == null) return false;
+        try {
+            Object payload = found.data.invoke(item);
+            if (!(payload instanceof HushPaidPost)
+                    || !FEATURED_ICON.equals(((HushPaidPost) payload).hushHeaderIcon())) return false;
+            // The dismiss menu hangs off the timeline object, the post payload doesn't carry it.
+            Object dismissal = read(item, "getDismissal");
+            Object options = dismissal == null ? null : read(dismissal, "getOptions");
+            if (!(options instanceof List)) return false;
+            for (Object option : (List<?>) options) {
+                Object link = option == null ? null : read(option, "getLink");
+                Object href = link == null ? null : read(link, "getLink");
+                if (href instanceof String && isMarketingDismissal((String) href)) return true;
+            }
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_FEATURED_POSTS, "timeline item", failure);
+            return false;
+        }
+    }
+
+    /** Whether [href], with any query left off, ends in {@link #MARKETING_DISMISSAL}. */
+    static boolean isMarketingDismissal(String href) {
+        int query = href.indexOf('?');
+        return (query < 0 ? href : href.substring(0, query)).endsWith(MARKETING_DISMISSAL);
     }
 
     /**

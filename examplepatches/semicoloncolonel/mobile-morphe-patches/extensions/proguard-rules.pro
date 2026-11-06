@@ -121,7 +121,7 @@
 
 # YouTube TV — "Skip ads". onCuePointProvider() is called only from injected
 # smali in PlaybackControllerWrapper.
-# setController() is called from the same smali, and keepLiveDai() and the
+# setController() is called from the same smali, and disableDai(), keepLiveDai(), and the
 # name getters are overwritten by patches, so R8 must not fold their results.
 -keep class semicoloncolonel.mobilestream.extension.yttv.ads.YttvDaiDisabler {
     public static *;
@@ -187,3 +187,11 @@
 # YouTube TV — "Mask live ad breaks". cuepoints() is called only from injected
 # smali in the cue-point callback.
 -keep class semicoloncolonel.mobilestream.extension.yttv.ads.YttvLiveMask { public static *; }
+
+# Plex — "Hide sponsored content". filterBody() and filterBytes() are called only from injected
+# smali in the NitroResponse constructor.
+-keep class semicoloncolonel.mobilestream.extension.plex.PlexSponsoredFilter { public static *; }
+
+# YouTube TV — "Fix picture-in-picture". setParams() and enter() replace the
+# app's picture-in-picture calls in injected smali.
+-keep class semicoloncolonel.mobilestream.extension.yttv.YttvPictureInPicture { public static *; }

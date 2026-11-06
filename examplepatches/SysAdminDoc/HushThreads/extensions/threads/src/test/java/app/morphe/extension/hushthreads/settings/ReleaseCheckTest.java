@@ -604,9 +604,8 @@ public class ReleaseCheckTest {
             HushThreadsPreferenceFragment page = open(controller);
             Preference card = rows(page).get(0);
             Preference checkNow = page.findPreference(HushThreadsPreferenceFragment.CHECK_NOW);
-            String before = String.valueOf(card.getSummary());
-            assertEquals(2, before.split("\n", -1).length);
-            assertTrue(before, before.endsWith("\n" + L10n.f("Build %1$s", L10n.isolate("unknown"))));
+            // On, with nothing waiting and no release found, the card has nothing to say.
+            assertNull(card.getSummary());
 
             try {
                 checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow);
@@ -617,14 +616,14 @@ public class ReleaseCheckTest {
             ReleaseCheckForTests.settle();
 
             assertEquals(NEWER, String.valueOf(checkNow.getSummary()));
-            assertEquals(before + "\n" + NEWER, String.valueOf(card.getSummary()));
+            assertEquals(NEWER, String.valueOf(card.getSummary()));
         }
 
         // A screen opened later says so too, with no new try, and so does a paused one.
         github.onRequest = null;
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushThreadsPreferenceFragment page = open(controller);
-            assertTrue(String.valueOf(rows(page).get(0).getSummary()).endsWith("\n" + NEWER));
+            assertEquals(NEWER, String.valueOf(rows(page).get(0).getSummary()));
             assertEquals(NEWER, String.valueOf(page.findPreference(HushThreadsPreferenceFragment.CHECK_NOW).getSummary()));
         }
         PauseForTests.pause(HushThreadsPause.Reason.SWITCH);

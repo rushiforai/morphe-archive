@@ -109,7 +109,7 @@ def constants(path):
     return out
 # Reviewed source-quote wire policy. Hash the complete literal multiset, including counts.
 # Snapshots remain independently hash-pinned by provenance; no arbitrary literal change is allowed.
-PINNED_LITERAL_COUNTS_SHA256 = {'RebuildApi': '9c4bf64fd6fa5acfd6509d26d176c49f083d3dec0126a078e572137c6703c287', 'RebuildProtocol': 'adbc7a11c060a473688a5aff228cd1ffa5e9776810fcc2fd75cb800b3aade866'}
+PINNED_LITERAL_COUNTS_SHA256 = {'RebuildApi': '9c4bf64fd6fa5acfd6509d26d176c49f083d3dec0126a078e572137c6703c287', 'RebuildProtocol': '5c2cdaf2fe6ffcd39234b8982e62eb36873780df4d3d1aef313ec75da2007e09'}
 
 def literal_contract(name, original, current):
     counts = sorted(Counter(current).items())

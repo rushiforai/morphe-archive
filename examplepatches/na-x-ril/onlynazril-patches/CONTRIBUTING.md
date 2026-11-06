@@ -85,6 +85,10 @@ Other message rules:
 
 ## 3. Gates before a commit
 
+On NixOS the toolchain is one command: `nix develop`, or `direnv allow` once and the shell loads on
+entry. `flake.nix` pins Temurin 21, Node LTS, Python 3 and the helpers the gates use; the Gradle
+wrapper still owns Gradle, and the Android SDK still comes from `local.properties`.
+
 Run what applies, and keep the output in the commit body:
 
 | Changed | Command | What it proves |

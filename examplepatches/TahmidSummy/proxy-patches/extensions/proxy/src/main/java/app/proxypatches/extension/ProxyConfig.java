@@ -24,13 +24,6 @@ public final class ProxyConfig {
         return "https";
     }
 
-    /** Proxy username, or empty. */
-    public static String username() {
-        return "";
-    }
-
-    /** Proxy password, or empty. */
-    public static String password() {
-        return "";
-    }
+    // No username/password here on purpose: patch options are stored as plain text in the APK,
+    // which any app on the phone can read. The login is only entered in the app (ProxySettings).
 }

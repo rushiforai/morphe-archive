@@ -4873,6 +4873,12 @@ val haiagaruPatch = resourcePatch(
                 deleteRead.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
                 deleteRead.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "板のスレ一覧で使用。確認画面で対象をチェックして履歴・ログを削除します")
                 anchor.parentNode.insertBefore(deleteRead, entry.nextSibling)
+                val refreshTabs = settings.createElement("jp.syoboi.a2chMate.ui.setting.preference.gesture.GesturePreference")
+                refreshTabs.setAttributeNS("http://schemas.android.com/apk/res/android", "android:title", "開いているスレ・板を一括更新")
+                refreshTabs.setAttributeNS("http://schemas.android.com/apk/res/android", "android:key", "haiagaruGestureRefreshOpenTabs")
+                refreshTabs.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
+                refreshTabs.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "タブレット表示の両ペインのタブを更新します。未使用のジェスチャーを割り当ててください")
+                anchor.parentNode.insertBefore(refreshTabs, deleteRead.nextSibling)
             }
         }
         if (replaceImageNgTflite && imageNgLibraryFile.value.orEmpty().isNotBlank() && packageMetadata.versionName == "0.8.10.191 dev") {
@@ -5062,6 +5068,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_hissi_droid_plus" to "必死チェッカーDroid＋で開く",
             "haiagaru_auto_ng_exclusions" to "自動NG除外ID",
             "haiagaru_thread_watch" to "このスレの新着通知",
+            "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
         )) {
             for (values in listOf("values", "values-en")) {
                 document("res/$values/strings.xml").use { strings ->
@@ -5076,6 +5083,8 @@ val haiagaruPatch = resourcePatch(
                 it.createPublicId("drawable", name)
             }
             val iconPath = when (name) {
+                "haiagaru_refresh_open_tabs" ->
+                    "M3,3h8v2H5v6H3zM13,3h8v8h-2V5h-6zM3,13h2v6h6v2H3zM19,13h2v8h-8v-2h6zM16,8v4h-4l1.6,-1.6A3,3 0,1 0,15 13h2a5,5 0,1 1,-2.3,-4.2z"
                 "haiagaru_thread_watch" ->
                     "M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.9,2 2,2zM18,16v-5c0,-3.1 -1.6,-5.6 -4.5,-6.3V4c0,-0.8 -0.7,-1.5 -1.5,-1.5S10.5,3.2 10.5,4v0.7C7.6,5.4 6,7.9 6,11v5l-2,2v1h16v-1z"
                 "haiagaru_auto_ng_exclusions" ->

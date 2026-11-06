@@ -17,6 +17,7 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.ClearKeptMessagesPreference;
 import app.morphe.extension.tiktok.settings.preference.ClockTimePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.RebuildMessageSearchPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.SendStreakNowPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
@@ -74,6 +75,15 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(context, "Search loaded activity",
                     "Search Activity notifications already loaded on this screen. Loading more pauses while you search.",
                     Settings.INBOX_LOADED_SEARCH));
+            if (SettingsStatus.inboxFilterTabsEnabled) {
+                addPreference(new TogglePreference(context, "Show inbox filters",
+                        "Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok "
+                                + "gives creator accounts.",
+                        Settings.SHOW_INBOX_FILTERS));
+            }
+            if (SettingsStatus.messageSearchRebuildEnabled) {
+                addPreference(new RebuildMessageSearchPreference(context));
+            }
             addPreference(new SectionHeadingPreference(context, "Rows"));
             addPreference(new TogglePreference(
                     context,
@@ -251,6 +261,13 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                     "Hide the streak button in a chat and the reminder message that goes "
                             + "with it.",
                     Settings.HIDE_MESSAGE_STREAKS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide streak pop-ups",
+                    "Stop the streak alerts that slide in over TikTok and the streak "
+                            + "messages and tips it adds to your chats.",
+                    Settings.HIDE_STREAK_POPUPS
             ));
         }
         if (SettingsStatus.expandActivityListEnabled) {

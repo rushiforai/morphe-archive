@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@id/artwork_color_scheme_layer"
+        android:drawable="@drawable/layer_artwork_color_scheme" />
+    <item
+        android:id="@id/material_layer"
+        android:drawable="@drawable/layer_apple_material" />
+</layer-list>

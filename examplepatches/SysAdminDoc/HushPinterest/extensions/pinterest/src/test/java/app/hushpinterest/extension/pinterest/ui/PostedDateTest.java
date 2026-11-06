@@ -10,6 +10,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -64,15 +67,39 @@ public class PostedDateTest {
         HookStatus.clear();
     }
 
-    /** Pinterest's title module: a side-by-side layout holding the title row alone. */
+    /** The id Pinterest's resources give the title chevron, which the test app doesn't have. */
+    private static final int CHEVRON_ID = 0x7f0b1234;
+
+    /** Pinterest's context as far as the line goes: its resources know the chevron by name. */
+    private static Context pinterest() {
+        Context app = RuntimeEnvironment.getApplication();
+        Resources base = app.getResources();
+        @SuppressWarnings("deprecation")
+        Resources resources = new Resources(base.getAssets(), base.getDisplayMetrics(), base.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) {
+                return PostedDate.TITLE_CHEVRON.equals(name) && "id".equals(type) ? CHEVRON_ID : super.getIdentifier(name, type, owner);
+            }
+        };
+        return new ContextWrapper(app) {
+            @Override public Resources getResources() {
+                return resources;
+            }
+        };
+    }
+
+    /** Pinterest's title module: a side-by-side layout holding the title row alone, chevron and all. */
     private static LinearLayout module() {
-        LinearLayout module = new LinearLayout(RuntimeEnvironment.getApplication());
-        LinearLayout row = new LinearLayout(RuntimeEnvironment.getApplication());
+        Context pinterest = pinterest();
+        LinearLayout module = new LinearLayout(pinterest);
+        LinearLayout row = new LinearLayout(pinterest);
         row.setPaddingRelative(24, 0, 32, 0);
-        TextView title = new TextView(RuntimeEnvironment.getApplication());
+        TextView title = new TextView(pinterest);
         title.setText("Mountain lake at dawn");
         title.setTextColor(Color.RED);
         row.addView(title);
+        View chevron = new View(pinterest);
+        chevron.setId(CHEVRON_ID);
+        row.addView(chevron);
         module.addView(row);
         return module;
     }
@@ -209,5 +236,28 @@ public class PostedDateTest {
         assertEquals(1, frame.getChildCount());
 
         PostedDate.show(null, postedOn(OCT_12_2026));
+    }
+
+    // 14.43.0 runs the title module's update for the translation toggle's module too. That one is
+    // also a layout with one row and a text in it, but no chevron.
+    @Test public void theTranslationToggleSharingTheTitleModulesUpdateGetsNoLine() {
+        Settings.SHOW_POSTED_DATE.save(true);
+        Context pinterest = pinterest();
+        LinearLayout translation = new LinearLayout(pinterest);
+        translation.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout toggle = new LinearLayout(pinterest);
+        TextView label = new TextView(pinterest);
+        label.setText("See translation");
+        toggle.addView(label);
+        translation.addView(toggle);
+
+        PostedDate.show(translation, postedOn(OCT_12_2026));
+        assertEquals(1, translation.getChildCount());
+        assertNull(translation.findViewWithTag(PostedDate.LINE_TAG));
+        assertTrue(report(), report().contains("posted date skipped: module holds no title row"));
+
+        LinearLayout title = module();
+        PostedDate.show(title, postedOn(OCT_12_2026));
+        assertEquals("the title module next to it still gets its line", 2, title.getChildCount());
     }
 }

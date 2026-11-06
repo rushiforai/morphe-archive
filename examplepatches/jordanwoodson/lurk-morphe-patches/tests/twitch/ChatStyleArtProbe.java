@@ -17,17 +17,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Version-pinned integration test for Chat keywords, Chat appearance and Emote and badge info: Twitch 31.9.0's
+ * Version-pinned integration test for Chat keywords, Chat appearance and Emote and badge info: Twitch 31.8.0's
  * real chat line builder and chat image box (with the emitted hooks) and live message models, run on ART with a
  * fake settings store and a fake signed-in account. Each setting is checked on and off; off must give Twitch's own
- * line. The short class and field names below are Twitch 31.9.0's R8 output; the chat image box comes from the
+ * line. The short class and field names below are Twitch 31.8.0's R8 output; the chat image box comes from the
  * APK's locators (the first argument).
  */
 public final class ChatStyleArtProbe {
     private static final Map<String, Object> settings = new HashMap<>();
     private static final String KEYWORDS = "io.github.jordanwoodson.extension.shared.twitch.TwitchChatKeywords";
-    /** Twitch's chat line builder, from the APK's locators (va6 in 31.8.0, gb6 in 31.9.0). */
-    private static String LINE_BUILDER = "gb6";
     private static final String STYLE = "io.github.jordanwoodson.extension.shared.twitch.TwitchChatStyle";
     private static Object unsafe;
     private static Context context;
@@ -80,35 +78,35 @@ public final class ChatStyleArtProbe {
 
     /** A config (click configuration) for channel chat or a whisper thread. */
     private static Object config(String source) throws Exception {
-        return Class.forName("yb6").getConstructors()[0].newInstance(true, Class.forName("f1a0").getField(source).get(null), null);
+        return Class.forName("nb6").getConstructors()[0].newInstance(true, Class.forName("tz90").getField(source).get(null), null);
     }
 
     private static Object sender(String login) throws Exception {
         Class<?> tuid = Class.forName("tv.twitch.android.models.Tuid");
-        return Class.forName("zb6").getConstructor(tuid, String.class, String.class)
+        return Class.forName("ob6").getConstructor(tuid, String.class, String.class)
             .newInstance(null, login, Character.toUpperCase(login.charAt(0)) + login.substring(1));
     }
 
     private static List<Object> tokens(String text) throws Exception {
-        return Collections.singletonList(Class.forName("kxp").getConstructor(String.class).newInstance(text));
+        return Collections.singletonList(Class.forName("ywp").getConstructor(String.class).newInstance(text));
     }
 
     /** Twitch's line builder (va6.b) for one message; returns its span group (wa6). */
     private static Object line(String login, String text, String id, boolean action, String source) throws Exception {
         Method build = null;
-        for (Method method : Class.forName(LINE_BUILDER).getDeclaredMethods()) {
+        for (Method method : Class.forName("va6").getDeclaredMethods()) {
             if (method.getName().equals("b") && method.getParameterTypes().length == 21) build = method;
         }
         check(build != null, "No line builder");
-        Object style = staticField(action ? "e440" : "f440", "a");
+        Object style = staticField(action ? "d340" : "e340", "f");
         // Overlay mode (second to last): no reply header or readable-colour lookups.
-        Object builder = allocate(LINE_BUILDER);
+        Object builder = allocate("va6");
         Field colors = builder.getClass().getDeclaredField("e");
         colors.setAccessible(true);
-        Object readable = allocate("dbp");
+        Object readable = allocate("rap");
         Field contrast = readable.getClass().getDeclaredField("a");
         contrast.setAccessible(true);
-        contrast.set(readable, allocate("tow"));
+        contrast.set(readable, allocate("xnw"));
         colors.set(builder, readable);
         // A near-white sender colour: readable on the overlay's black, so no colour is computed.
         return build.invoke(null, builder, context, Collections.emptyList(), sender(login), 0xFFFEFEFE, tokens(text),
@@ -341,7 +339,7 @@ public final class ChatStyleArtProbe {
         reset();
         settings.put("chat_emote_info", true);
         String url = "https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/2";
-        Object model = Class.forName("atp").getConstructor(String.class, String.class).newInstance("subscriber", url);
+        Object model = Class.forName("nsp").getConstructor(String.class, String.class).newInstance("subscriber", url);
         Spanned badges = (Spanned) field(lineWithBadges(Collections.singletonList(model)), "b");
         Object badge = infoSpan(badges, 0);
         check(badge != null, "A badge gets a tap");
@@ -350,7 +348,7 @@ public final class ChatStyleArtProbe {
 
         // Twitch's badge registry reports set and version; the sheet names the badge from them.
         settings.put("chat_emote_info", true);
-        Object key = Class.forName("hh2").getConstructor(String.class, String.class).newInstance("subscriber", "12");
+        Object key = Class.forName("bh2").getConstructor(String.class, String.class).newInstance("subscriber", "12");
         Class.forName(INFO).getMethod("twitchChannelBadge", String.class, Object.class).invoke(null, url, key);
         Method describe = Class.forName(INFO).getDeclaredMethod("describe", boolean.class, String.class, String.class);
         describe.setAccessible(true);
@@ -388,19 +386,19 @@ public final class ChatStyleArtProbe {
     /** The real line builder with these badge view models, as in ChatStyleArtProbe#line. */
     private static Object lineWithBadges(List<Object> badges) throws Exception {
         Method build = null;
-        for (Method method : Class.forName(LINE_BUILDER).getDeclaredMethods()) {
+        for (Method method : Class.forName("va6").getDeclaredMethods()) {
             if (method.getName().equals("b") && method.getParameterTypes().length == 21) build = method;
         }
-        Object builder = allocate(LINE_BUILDER);
+        Object builder = allocate("va6");
         Field colors = builder.getClass().getDeclaredField("e");
         colors.setAccessible(true);
-        Object readable = allocate("dbp");
+        Object readable = allocate("rap");
         Field contrast = readable.getClass().getDeclaredField("a");
         contrast.setAccessible(true);
-        contrast.set(readable, allocate("tow"));
+        contrast.set(readable, allocate("xnw"));
         colors.set(builder, readable);
         return build.invoke(null, builder, context, badges, sender("viewer"), 0xFFFEFEFE, tokens("hi"),
-            false, false, false, "b1", null, staticField("f440", "a"), false, config("Chat"), null, null, null, null, null, true, 0);
+            false, false, false, "b1", null, staticField("e340", "f"), false, config("Chat"), null, null, null, null, null, true, 0);
     }
 
     private static android.content.Context viewContext() throws Exception {
@@ -440,7 +438,6 @@ public final class ChatStyleArtProbe {
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) ProbeLocators.load(args[0]);
-        LINE_BUILDER = ProbeLocators.type("twitch.match.chat_line_builder", "gb6");
         install();
         section("chat keywords: mentions, highlight and blocked words, blocked users, live drops", ChatStyleArtProbe::keywords);
         section("chat appearance: /me style, alternating rows, landscape width", ChatStyleArtProbe::appearance);

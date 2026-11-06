@@ -1,3 +1,13 @@
+## [1.3.2](https://github.com/amit-0i/myspoti-morphe-patches/compare/v1.3.1...v1.3.2) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **ui:** follow Classic Material You dynamic colors ([a2b2ee4](https://github.com/amit-0i/myspoti-morphe-patches/commit/a2b2ee43bf9b58722fbe2c70dd4f1800ce0e71a0))
+
+### 🚀 Updated App Support
+
+* **myspoti:** add MySpoti 2.4.0 compatibility ([34f594b](https://github.com/amit-0i/myspoti-morphe-patches/commit/34f594b375ed868ab7d1ebe4fd7ef336b43c0462))
+
 ## [1.3.1](https://github.com/amit-0i/myspoti-morphe-patches/compare/v1.3.0...v1.3.1) (2026-11-01)
 
 ### 🐛 Bug Fixes

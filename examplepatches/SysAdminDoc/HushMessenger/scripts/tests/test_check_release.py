@@ -1124,7 +1124,12 @@ class ReleaseChecks(unittest.TestCase):
         rebuild("2.1.0", CLIENT_LINE + "Morphe Manager (2.2.0 or newer) works on older phones.\n")
         with self.assertRaisesRegex(ValueError, "Morphe Manager"):
             release.verify(self.root)
-        for patcher, message in (("2.2.0", "add the first Manager and Desktop"), (None, "no Patcher-Version")):
+        rebuild("2.2.0", CLIENT_LINE)
+        with self.assertRaisesRegex(ValueError, r"Morphe Manager \(2\.4\.0 or newer\)"):
+            release.verify(self.root)
+        rebuild("2.2.0", "Use Morphe Manager (2.4.0 or newer), or Morphe Desktop 2.0.0 or newer.\n")
+        self.assertIn("Release metadata passed", release.verify(self.root))
+        for patcher, message in (("2.3.0", "add the first Manager and Desktop"), (None, "no Patcher-Version")):
             rebuild(patcher, CLIENT_LINE)
             with self.subTest(patcher=patcher), self.assertRaisesRegex(ValueError, message):
                 release.verify(self.root)

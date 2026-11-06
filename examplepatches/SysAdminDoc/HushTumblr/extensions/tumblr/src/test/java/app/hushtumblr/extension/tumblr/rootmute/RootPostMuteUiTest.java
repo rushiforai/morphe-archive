@@ -382,6 +382,47 @@ public class RootPostMuteUiTest {
         dialog.dismiss();
     }
 
+    /**
+     * A screen reader reads the notice from its polite live region, with no announcement event
+     * (Android 16 deprecates them), and the same failure a second time is read again.
+     */
+    @Test @Config(sdk = {26, 36})
+    public void aFailedUnmuteIsReadFromTheNoticeEachTimeWithoutAnAnnouncement() throws Exception {
+        AccessibilityManager manager = controller.get().getSystemService(AccessibilityManager.class);
+        Shadows.shadowOf(manager).setEnabled(true);
+        mute("11");
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        ShadowReplacingAtomicFile.refuseCommitFor = RootPostMutes.fileForTests;
+        clickFirstPost(dialog);
+        ShadowLooper.idleMainLooper(200, java.util.concurrent.TimeUnit.MILLISECONDS);
+        String said = notice(dialog).getText().toString();
+        int first = liveTextChanges(manager);
+        clickFirstPost(dialog);
+        ShadowLooper.idleMainLooper(200, java.util.concurrent.TimeUnit.MILLISECONDS);
+        ShadowReplacingAtomicFile.refuseCommitFor = null;
+        assertTrue(said, said.contains("Try again"));
+        assertEquals(said, notice(dialog).getText().toString());
+        assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, notice(dialog).getAccessibilityLiveRegion());
+        assertTrue("the first failure gave a screen reader nothing to read", first > 0);
+        assertTrue("the same failure again wasn't read", liveTextChanges(manager) > first);
+        for (android.view.accessibility.AccessibilityEvent event : Shadows.shadowOf(manager).getSentAccessibilityEvents()) {
+            assertNotEquals("announced: " + event.getText(),
+                    android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT, event.getEventType());
+        }
+        dialog.dismiss();
+    }
+
+    /** Text changes a live region sends from its own text view, the notice's here. */
+    private static int liveTextChanges(AccessibilityManager manager) {
+        int count = 0;
+        for (android.view.accessibility.AccessibilityEvent event : Shadows.shadowOf(manager).getSentAccessibilityEvents()) {
+            if (event.getEventType() == android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                    && (event.getContentChangeTypes() & android.view.accessibility.AccessibilityEvent.CONTENT_CHANGE_TYPE_TEXT) != 0
+                    && TextView.class.getName().contentEquals(event.getClassName())) count++;
+        }
+        return count;
+    }
+
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void uncertainClearRetainsUndoAndRefreshesReconciledOrUnreadRows() throws Exception {
         for (int reads : new int[]{1, 2}) {

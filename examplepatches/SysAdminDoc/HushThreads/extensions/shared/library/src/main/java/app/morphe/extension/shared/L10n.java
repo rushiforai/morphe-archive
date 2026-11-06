@@ -9,6 +9,8 @@
  * Modified for Hushfacebook (Facebook), 2026: moved into the shared library so the settings
  * code there reads the same tables, the pseudo-locales en-XA and ar-XB, list joining and
  * capitalization in the text's own language, and numbers formatted the phone's way.
+ *
+ * Modified for HushThreads, 2026: Traditional Chinese phones outside Taiwan find the zh-rTW table.
  */
 package app.morphe.extension.shared;
 
@@ -313,12 +315,28 @@ public final class L10n {
                 String regional = language + "-r" + country.toLowerCase(Locale.ROOT);
                 if (!tags.contains(regional)) tags.add(regional);
             }
+            // Android matches a resource by script as well as region, so a Hong Kong or Macau
+            // phone, or one set to Traditional Chinese with no region, reads a zh-rTW string. The
+            // table is found the same way, ahead of a bare "zh" that would be Simplified.
+            if ("zh".equals(language) && traditionalChinese(locale) && !tags.contains(TRADITIONAL_CHINESE)) {
+                tags.add(TRADITIONAL_CHINESE);
+            }
             if (!tags.contains(language)) tags.add(language);
         }
         if (tags.isEmpty()) {
             tags.add(Locale.getDefault().getLanguage().toLowerCase(Locale.ROOT));
         }
         return tags;
+    }
+
+    private static final String TRADITIONAL_CHINESE = "zh-rtw";
+
+    /** Whether a Chinese locale is written in Traditional script: named so, or a region that writes it. */
+    private static boolean traditionalChinese(Locale locale) {
+        String script = locale.getScript();
+        if (!script.isEmpty()) return "Hant".equalsIgnoreCase(script);
+        String country = locale.getCountry().toUpperCase(Locale.ROOT);
+        return country.equals("TW") || country.equals("HK") || country.equals("MO");
     }
 
     /**

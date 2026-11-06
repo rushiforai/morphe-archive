@@ -219,9 +219,24 @@ public class SettingsAccessibilityTest {
         assertTrue(info.getActionList().contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
         assertNotNull("the back icon is missing", back.getDrawable());
 
+        // The bar names the app, as on the other Hush packages, and never repeats a Settings eyebrow.
         View title = dialog.getView().findViewWithTag("hushthreads_page_title");
-        assertEquals("Settings", String.valueOf(((TextView) title).getText()));
+        assertEquals("HushThreads", String.valueOf(((TextView) title).getText()));
         assertTrue("the screen's title isn't a heading", node(title).isHeading());
+        assertTrue("Back and the title share one toolbar", back.getParent() == title.getParent());
+        List<View> views = new ArrayList<>();
+        views.add(dialog.getView());
+        for (int index = 0; index < views.size(); index++) {
+            View view = views.get(index);
+            if (view instanceof TextView) {
+                assertFalse("the toolbar must not repeat a Settings eyebrow",
+                        "Settings".contentEquals(((TextView) view).getText()));
+            }
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int child = 0; child < group.getChildCount(); child++) views.add(group.getChildAt(child));
+            }
+        }
     }
 
     @Test

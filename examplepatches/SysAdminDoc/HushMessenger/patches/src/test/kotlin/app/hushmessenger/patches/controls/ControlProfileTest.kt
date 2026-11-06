@@ -34,6 +34,8 @@ class ControlProfileTest {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), controlProfiles.keys)
         assertSame(PROFILE_347215348, BASE_PROFILE)
         for (code in listOf("347215348", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
+        // The armv7 build is the same release under other Redex names, so it gets its own profile, never the base one.
+        assertSame(PROFILE_347215341, controlProfileFor("347215341"))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
         assertSame(BASE_PROFILE, controlProfileFor("347215348", profiles))

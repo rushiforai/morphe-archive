@@ -13,7 +13,9 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Zurück
 Cancel	Abbrechen
 Clear diagnostic data	Diagnosedaten löschen
+Copy link	Link kopieren
 Copy quick report	Kurzbericht kopieren
+Couldn't copy the link. Try again.	Der Link konnte nicht kopiert werden. Versuch es noch einmal.
 Couldn't import the settings, and couldn't put back the ones you had. Check the settings on this screen.	Die Einstellungen ließen sich nicht importieren, und deine vorherigen ließen sich nicht wiederherstellen. Prüfe die Einstellungen auf diesem Bildschirm.
 Couldn't import the settings. Nothing was changed.	Die Einstellungen ließen sich nicht importieren. Es wurde nichts geändert.
 Couldn't open that file. Nothing was changed.	Diese Datei ließ sich nicht öffnen. Es wurde nichts geändert.
@@ -31,6 +33,7 @@ Clears the saved log and patch check results that a report would include.	Leert 
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
 Export diagnostic report	Diagnosebericht exportieren
 Export settings	Einstellungen exportieren
+Link copied	Link kopiert
 Turns off every HushTumblr switch except Debug logging the next time Tumblr starts. What you chose when you patched stays, and your choices are saved.	Schaltet beim nächsten Start von Tumblr jeden HushTumblr-Schalter außer der Debug-Protokollierung aus. Was du beim Patchen gewählt hast, bleibt, und deine Auswahl bleibt gespeichert.
 Save your settings to a file, including word lists and tab order. These choices apply to all accounts in this Tumblr app. Pause, Debug logging and release checks aren't included.	Speichert deine Einstellungen in einer Datei, einschließlich Wortlisten und Tab-Reihenfolge. Diese Auswahl gilt für alle Konten in dieser Tumblr-App. Pause, Debug-Protokollierung und die Suche nach neuen Versionen sind nicht enthalten.
 Settings exported. The app holding the file wouldn't let HushTumblr read it back, so it wasn't checked.	Einstellungen exportiert. Die App, in der die Datei liegt, ließ HushTumblr sie nicht zurücklesen, daher wurde sie nicht geprüft.
@@ -126,6 +129,7 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Links von Hand auswählen
 
 Restart Tumblr to apply this change	Starte Tumblr neu, um diese Änderung zu übernehmen
+Restart Tumblr to apply this change.	Starte Tumblr neu, um diese Änderung zu übernehmen.
 Restart Tumblr to apply %1$d changes	Starte Tumblr neu, um %1$d Änderungen zu übernehmen
 Tumblr closes and reopens on this page.	Tumblr schließt sich und öffnet sich wieder auf dieser Seite.
 Android verified this app for Tumblr's web addresses, so their links open here.	Android hat diese App für die Webadressen von Tumblr bestätigt, deshalb öffnen sich ihre Links hier.
@@ -222,9 +226,11 @@ Use the email on your Tumblr account and a Tumblr password. Google sign-in may n
 # context: the Feed page and its Hide ads switch.
 Feed	Feed
 Hide ads	Werbung ausblenden
-Takes ads and paid Blaze posts out of your dashboard and other feeds. Ad requests stop after Tumblr restarts.	Entfernt Werbung und bezahlte Blaze-Beiträge aus deinem Dashboard und anderen Feeds. Werbeanfragen enden, sobald Tumblr neu gestartet wurde.
+Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumblr restarts, it stops asking for ads and its ad networks don't start.	Entfernt Werbung und bezahlte Blaze-Beiträge aus deinem Dashboard und anderen Feeds. Sobald Tumblr neu gestartet wurde, fragt es keine Werbung mehr an und seine Werbenetzwerke starten nicht.
+Keep Blaze posts	Blaze-Beiträge behalten
+When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Behält Beiträge, für die jemand mit Blaze bezahlt hat, wenn Werbung ausgeblendet ist. Andere Werbung und Beitragsfilter gelten weiter.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement. Firebase and Google's analytics collection stay off until you patch again without it.	Beendet Tumblrs eigenes Tracking und die Werbemessung. Die Datenerfassung von Firebase und Google Analytics bleibt aus, bis du ohne diesen Patch neu patchst.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Beendet Tumblrs eigenes Tracking und die Werbemessung und lässt den Tracker von LiveRamp nicht starten. Die Datenerfassung von Firebase und Google Analytics bleibt aus, bis du ohne diesen Patch neu patchst.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Werbefrei-Banner ausblenden
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Blendet das Banner im Dashboard aus, das dich bittet, für werbefreies Surfen zu bezahlen.
@@ -251,6 +257,7 @@ Draws a thin line in the gap between posts, so it's easier to see where one ends
 App font	App-Schriftart
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Ersetzt Tumblrs eigene Schriftart durch die deines Telefons oder durch eine Schriftdatei, die du unten auswählst. Schriftarten, die der Autor eines Beitrags gewählt hat, bleiben unverändert.
 Choose a font file	Schriftdatei auswählen
+Choose another file	Andere Datei wählen
 Uses your phone's font. Tap to pick a .ttf or .otf file.	Nutzt die Schriftart deines Telefons. Tippe, um eine .ttf- oder .otf-Datei auszuwählen.
 Using %1$s. Tap to pick another.	%1$s wird verwendet. Tippe, um eine andere auszuwählen.
 Use the phone's font	Schriftart des Telefons nutzen
@@ -280,6 +287,9 @@ Hide suggested tags	Vorgeschlagene Tags ausblenden
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Entfernt die Tags, denen du laut Tumblr folgen sollst, samt ihren Überschriften aus deinem Dashboard und anderen Feeds.
 Hide Watch it rows	Watch-it-Reihen ausblenden
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Entfernt die Watch-it-Reihen und Video-Hub-Karten von Tumblr TV samt ihren Überschriften aus deinem Dashboard und anderen Feeds.
+# context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
+Hide Featured posts	Hervorgehobene Beiträge ausblenden
+Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Entfernt die Beiträge, die das Tumblr-Team unter der Überschrift Hervorgehoben zeigt, aus deinem Dashboard und anderen Feeds.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
 Posts	Beiträge
 Hide hashtags	Hashtags ausblenden
@@ -354,9 +364,10 @@ Explore	Entdecken
 Tumblr TV	Tumblr TV
 Communities	Communitys
 Account	Konto
-# context: with Hide note counts on, these stand in for "3 comments" on a community post's comment button and for "12 notes" at the top of a post's notes. Tumblr's own word is used when the app has one; these are the fallback. Use Tumblr's own words in your language.
+# context: with Hide note counts on, these stand in for "3 comments" on a community post's comment button and for "12 notes" at the top of a post's notes, and Like is what TalkBack reads for a comment's like button in place of "5 likes". Tumblr's own word is used when the app has one; these are the fallback. Use Tumblr's own words in your language.
 Comments	Kommentare
 Notes	Anmerkungen
+Like	Liken
 # context: the import preview of a settings file. The first is what an empty Words to hide list reads as; the second names Words to hide or Tab order when the file's value for it can't be used.
 None	Keine
 %1$s: the value in that file can't be used, so it'll be left out.	%1$s: Der Wert in dieser Datei ist nicht verwendbar und wird deshalb ausgelassen.
@@ -379,6 +390,10 @@ Keep tagged reblogs	Reblogs mit Tags behalten
 When reblogs are hidden, keep ones with tags. Other post filters still apply.	Behält Reblogs mit Tags, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
 Keep reblogs with added content	Reblogs mit eigenem Inhalt behalten
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Behält Reblogs, bei denen jemand etwas Eigenes hinzugefügt hat, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
+Hide your own reblogs	Eigene Reblogs ausblenden
+Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Entfernt die Reblogs, die du gemacht hast, aus deinem Dashboard und ähnlichen Feeds. Dein Blog zeigt sie weiterhin.
+Hide liked posts	Gelikte Beiträge ausblenden
+Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Entfernt Beiträge, die du schon geliked hast, aus deinem Dashboard und ähnlichen Feeds. Deine Likes und Blogs zeigen sie weiterhin.
 Match current post text	Aktuellen Beitragstext prüfen
 Match reblog trail text	Text der Reblog-Kette prüfen
 Match current post tags	Tags des aktuellen Beitrags prüfen
@@ -463,10 +478,38 @@ Changed %1$d settings	%1$d Einstellungen geändert
 Couldn't update muted posts. Try again.	Stummgeschaltete Posts konnten nicht aktualisiert werden. Versuch es erneut.
 # context: the Share video links switch on the Posts page, and its summary
 Share video links	Videolinks teilen
-Long-press a video in a post to share or copy its link.	Halte ein Video in einem Beitrag gedrückt, um seinen Link zu teilen oder zu kopieren.
+Long-press a video in a post to share or copy its link, or save it.	Halte ein Video in einem Beitrag gedrückt, um seinen Link zu teilen oder zu kopieren oder es zu speichern.
+# context: the Sharper images switch on the Posts page, and its summary
+Sharper images	Schärfere Bilder
+Loads images in posts at a higher resolution. Uses more data.	Lädt Bilder in Beiträgen in höherer Auflösung. Verbraucht mehr Daten.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Videolink teilen
 Copy video link	Videolink kopieren
 Video link	Videolink
 Video link copied	Videolink kopiert
 No app can share this link	Keine App kann diesen Link teilen
+Save video	Video speichern
+Saving to Downloads	Wird in Downloads gespeichert
+Video saved to Downloads	In Downloads gespeichert
+Couldn't save the video	Video nicht gespeichert
+ad networks at launch	Werbenetzwerke beim Start
+LiveRamp at launch	LiveRamp beim Start
+# context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
+Try it on a post	An einem Beitrag ausprobieren
+Nothing you type here is saved.	Was du hier eingibst, wird nicht gespeichert.
+Post text	Beitragstext
+Reblog trail text	Text der Reblog-Kette
+Tags	Tags
+Summary	Zusammenfassung
+Not matched while %1$s is off	Nicht geprüft, solange „%1$s“ aus ist
+Split tags with commas	Tags mit Kommas trennen
+Clear the example	Beispiel leeren
+No fields are selected to match, so the word filter keeps every post.	Es sind keine Felder zum Prüfen ausgewählt, deshalb behält der Wortfilter jeden Beitrag.
+There are no words to hide yet, so the word filter keeps every post.	Es gibt noch keine auszublendenden Wörter, deshalb behält der Wortfilter jeden Beitrag.
+Type part of a post above to see what the word filter does with it.	Gib oben einen Teil eines Beitrags ein, um zu sehen, was der Wortfilter damit macht.
+The word filter would hide this post for “%1$s” in %2$s.	Der Wortfilter würde diesen Beitrag wegen „%1$s“ im Feld %2$s ausblenden.
+The word filter would keep this post. “%1$s” in %2$s would hide it, but the allowed word “%3$s” in %4$s keeps it.	Der Wortfilter würde diesen Beitrag behalten. „%1$s“ im Feld %2$s würde ihn ausblenden, aber das erlaubte Wort „%3$s“ im Feld %4$s behält ihn.
+The word filter would keep this post. None of the words to hide are in the selected fields.	Der Wortfilter würde diesen Beitrag behalten. Keines der auszublendenden Wörter steht in den ausgewählten Feldern.
+Other filters can still hide it.	Andere Filter können ihn trotzdem ausblenden.
+Hide posts with these words is off, so the word filter hides nothing yet.	„Beiträge mit diesen Wörtern ausblenden“ ist aus, deshalb blendet der Wortfilter noch nichts aus.
+HushTumblr is paused, so the word filter hides nothing right now.	HushTumblr ist pausiert, deshalb blendet der Wortfilter gerade nichts aus.

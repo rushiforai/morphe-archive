@@ -54,9 +54,15 @@ final class PageSource {
     /** The adapter of every page of every search tab. */
     static final String SEARCH_RESULTS = "com.tumblr.rumblr.response.SearchResultsResponseJsonAdapter";
 
+    /**
+     * The adapter of the dashboard's pages, and of the other feeds that load like it. A blog's own
+     * posts, its likes and its blog search come through other adapters.
+     */
+    static final String DASHBOARD = "com.tumblr.rumblr.response.WrappedTimelineResponseJsonAdapter";
+
     /** The adapters of the responses that are feeds. */
     static final Set<String> FEEDS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            "com.tumblr.rumblr.response.WrappedTimelineResponseJsonAdapter",
+            DASHBOARD,
             "com.tumblr.rumblr.response.CommunityHubResponseJsonAdapter",
             "com.tumblr.rumblr.model.RelatedBlogsJsonAdapter",
             "com.tumblr.rumblr.response.timeline.TimelineResponseJsonAdapter",
@@ -67,6 +73,25 @@ final class PageSource {
     /** What the page being built on this thread right now was parsed for. Never throws. */
     static int now() {
         return of(new Throwable().getStackTrace());
+    }
+
+    /**
+     * Whether the page being built on this thread right now is a page of the dashboard, or of a feed
+     * that loads like it, and not of search results. Never throws.
+     */
+    static boolean onDashboard() {
+        return onDashboard(new Throwable().getStackTrace());
+    }
+
+    /** Whether a page built under [frames] is a dashboard page, see {@link #onDashboard()}. */
+    static boolean onDashboard(StackTraceElement[] frames) {
+        boolean dashboard = false;
+        for (StackTraceElement frame : frames) {
+            String owner = frame.getClassName();
+            if (SEARCH_RESULTS.equals(owner)) return false;
+            if (DASHBOARD.equals(owner)) dashboard = true;
+        }
+        return dashboard;
     }
 
     /**

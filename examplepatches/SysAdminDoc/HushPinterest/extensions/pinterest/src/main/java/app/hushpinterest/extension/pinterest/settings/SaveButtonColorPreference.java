@@ -129,7 +129,7 @@ public final class SaveButtonColorPreference extends Preference {
     static void save(String typed) {
         String cleaned = SaveButtonColorSetting.clean(typed);
         if (cleaned == null) {
-            Utils.showToastLong(L10n.t("That isn't a hex color, so nothing changed. Try one like #3366FF."));
+            Utils.showToastLong(L10n.t("Not a hex color, so nothing changed. Try one like #3366FF."));
             return;
         }
         try {
@@ -141,7 +141,7 @@ public final class SaveButtonColorPreference extends Preference {
         }
         refreshRows();
         Utils.showToastLong(cleaned.isEmpty()
-                ? L10n.t("The Save button is back to Pinterest's red on the next pin you open.")
+                ? L10n.t("The Save button goes back to Pinterest's red on your next pin.")
                 : L10n.f("The Save button turns %1$s on the next pin you open.", cleaned));
     }
 

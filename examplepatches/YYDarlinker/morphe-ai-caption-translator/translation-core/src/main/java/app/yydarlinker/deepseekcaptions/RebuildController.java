@@ -1473,7 +1473,7 @@ final class RebuildController {
     private static void fillHoles(
             Session s, Job job, RebuildPlanner.Block parent, RebuildProtocol.Plan plan,
             int expectedGeneration) {
-        int[] hole = RebuildWorkSet.largestHole(plan.holes);
+        int[] hole = RebuildWorkSet.largestHole(plan.holes, s.source);
         if (hole == null) return;
         RebuildSource requestSource = s.source;
         RebuildPlanner.Block range = RebuildReplyPreparation.holeBlock(parent, requestSource, hole);
@@ -1559,6 +1559,12 @@ final class RebuildController {
                     SystemClock.elapsedRealtime(), s.sourceOnly || s.terminal, s.generation);
             for (java.util.Iterator<RebuildWorkSet.HoleReservation> it = reservations.iterator(); it.hasNext();) {
                 RebuildWorkSet.HoleReservation reservation = it.next();
+                if (RebuildWorkSet.largestHole(reservation.plan.holes, s.source) == null) {
+                    s.work.queuedHoles.remove(reservation.index);
+                    s.work.pendingHoles.remove(reservation.index);
+                    it.remove();
+                    continue;
+                }
                 if (!modelEligible(s, reservation.index, SystemClock.elapsedRealtime())) {
                     s.work.queuedHoles.remove(reservation.index);
                     it.remove();
@@ -1797,6 +1803,8 @@ final class RebuildController {
         RebuildPlanner.Block parent = s.blocks.get(index);
         int[] range = RebuildReplyPreparation.pageRange(parent, source, time);
         if (range == null || !modelEligible(s, index, SystemClock.elapsedRealtime())) return null;
+        if (!RebuildWorkSet.needsSpeechRepair(s.work.slots[index].accepted, source, range[0], range[1]))
+            return null;
         int generation = s.generation;
         String key = generation + ":" + index + ":" + range[0] + "-" + range[1];
         if (!s.work.reservePage(index, key, range[0], range[1], SystemClock.elapsedRealtime())) return null;
@@ -1831,8 +1839,7 @@ final class RebuildController {
             if (!modelEligible(s, index, SystemClock.elapsedRealtime())
                     || s.work.slots[index].attempt != null
                     || s.work.slots[index].provisional != null
-                    || s.work.slots[index].accepted != null
-                            && RebuildWorkSet.covered(s.work.slots[index].accepted, from, to)) {
+                    || !RebuildWorkSet.needsSpeechRepair(s.work.slots[index].accepted, s.source, from, to)) {
                 s.work.releasePage(index, key);
                 return;
             }
@@ -1845,8 +1852,7 @@ final class RebuildController {
             if (s.source != requestSource || s.blocks.get(index) != parent || page == null
                     || !modelEligible(s, index, SystemClock.elapsedRealtime())
                     || s.work.slots[index].attempt != null || s.work.slots[index].provisional != null
-                    || s.work.slots[index].accepted != null
-                            && RebuildWorkSet.covered(s.work.slots[index].accepted, from, to)) {
+                    || !RebuildWorkSet.needsSpeechRepair(s.work.slots[index].accepted, requestSource, from, to)) {
                 s.work.releasePage(index, key);
                 return;
             }

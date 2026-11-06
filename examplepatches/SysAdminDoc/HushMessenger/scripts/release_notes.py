@@ -54,8 +54,8 @@ class NotesError(Exception):
     pass
 
 
-def spoken(items: list[str]) -> str:
-    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+def spoken(items: list[str], last: str = "and") -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + f" {last} " + items[-1]
 
 
 def read_section(changelog: str, version: str) -> str:
@@ -133,8 +133,8 @@ def read_patch_count(root: Path, version: str) -> int:
     return len(catalog["patches"])
 
 
-def read_builds(root: Path) -> tuple[int, int]:
-    """How many Messenger builds have a profile record, and how many families their hooks make."""
+def read_builds(root: Path) -> tuple[list[str], int]:
+    """The version codes of the Messenger builds with a profile record, and how many families their hooks make."""
     records = sorted((root / "scripts/profiles").glob("*.txt"))
     if not records:
         raise NotesError("scripts/profiles has no records")
@@ -142,7 +142,7 @@ def read_builds(root: Path) -> tuple[int, int]:
     for record in records:
         lines = record.read_text(encoding="utf-8").splitlines()
         families.add("\n".join(line for line in lines if not RECORD_FACTS.match(line)))
-    return len(records), len(families)
+    return [record.stem for record in records], len(families)
 
 
 def read_walk(path: Path) -> str:
@@ -177,7 +177,8 @@ def build_notes(root: Path, version: str, walk: Path) -> str:
     target, page = read_target(readme)
     manager = read_floor(readme, "Morphe Manager", r"Morphe Manager \((\d+(?:\.\d+)+) or newer\)")
     desktop = read_floor(readme, "Morphe Desktop", r"Morphe Desktop (\d+(?:\.\d+)+) or newer")
-    builds, families = read_builds(root)
+    codes, families = read_builds(root)
+    builds = len(codes)
 
     blocks = [read_summary(root, version)]
     for part in PARTS:
@@ -190,9 +191,12 @@ def build_notes(root: Path, version: str, walk: Path) -> str:
         blocks.append(spoken([f"#{number}" for number in reports]) + ".")
     blocks.append(f"Full history is in the [changelog]({REPO_URL}/blob/main/CHANGELOG.md).")
     blocks.append("### How to update")
-    # With one build on file there's nothing to choose between, and 586's one build isn't nodpi.
-    get_it = (f"Any build on [APKMirror's {target} page]({page}) works, and a `nodpi` one keeps the icons sharp."
-              if builds > 1 else f"Get it from [APKMirror's {target} page]({page}).")
+    # Name the codes, never "any build works": APKMirror kept adding 585 builds after 0.28.0 said that, and the
+    # newer nodpi ones it added were refused at patch time (#138, #145).
+    get_it = (f"Get build {codes[0]} from [APKMirror's {target} page]({page})." if builds == 1 else
+              f"On [APKMirror's {target} page]({page}), take a build whose version code is {spoken(codes, 'or')}. "
+              "APKMirror shows the code for each download, and a build posted there after this release may not "
+              "be supported yet.")
     blocks.append("\n".join([
         f"1. Update Messenger to {target} first. {get_it}",
         f"2. In Morphe Manager ({manager} or newer), open **Sources** and refresh HushMessenger. "

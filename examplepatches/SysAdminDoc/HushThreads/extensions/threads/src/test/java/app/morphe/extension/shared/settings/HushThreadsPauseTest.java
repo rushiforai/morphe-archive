@@ -20,6 +20,8 @@ import android.content.Context;
 import android.os.Looper;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.preference.JavaCrashReport;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,9 +34,13 @@ import org.robolectric.shadows.ShadowActivityManager;
 import org.robolectric.shadows.ShadowSystemClock;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/** Three crashed starts in a row, the marker file and the way back, for Pause HushThreads. */
+/** Three crashed starts in a row, the crash report, the marker file and the way back, for Pause HushThreads. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class HushThreadsPauseTest {
@@ -290,6 +296,234 @@ public class HushThreadsPauseTest {
 
     private static boolean stored(BooleanSetting setting) {
         return Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue);
+    }
+
+    /**
+     * The handlers after ours: each records what it was handed and the report kept by then, and
+     * returns, so a test lives on.
+     */
+    private static final class Delegate implements Thread.UncaughtExceptionHandler {
+        final List<Throwable> handed = new ArrayList<>();
+        final List<String> reports = new ArrayList<>();
+        /** Runs while this handler has the exception, as another thread's crash arriving then would. */
+        Runnable meanwhile;
+
+        @Override public void uncaughtException(Thread thread, Throwable throwable) {
+            handed.add(throwable);
+            reports.add(LogBufferManager.readCrashReport(Utils.getContext()));
+            Runnable then = meanwhile;
+            meanwhile = null;
+            if (then != null) then.run();
+        }
+    }
+
+    /**
+     * Sections standing in for the patches' switches and for Supported links. Each says its line
+     * while that holds one and nothing otherwise, so it stays out of every other test's report
+     * once registered.
+     */
+    private static volatile String switchLine;
+    private static volatile String linkLine;
+
+    private static final LogBufferManager.ReportSection SWITCHES = new LogBufferManager.ReportSection() {
+        @Override public String title() {
+            return "SWITCH PROBE";
+        }
+
+        @Override public List<String> lines() {
+            String line = switchLine;
+            return line == null ? Collections.emptyList() : Collections.singletonList(line);
+        }
+    };
+
+    private static final LogBufferManager.ReportSection LINKS = new LogBufferManager.ReportSection() {
+        @Override public String title() {
+            return "SUPPORTED LINKS";
+        }
+
+        @Override public List<String> lines() {
+            String line = linkLine;
+            return line == null ? Collections.emptyList() : Collections.singletonList(line);
+        }
+    };
+
+    @Test public void aCrashInTheFirstMinuteKeepsItsReportForTheNextExportAndHandsTheCrashOn() {
+        LogBufferManager.clearLogBuffer();
+        LogBufferManager.registerReportSection(SWITCHES);
+        LogBufferManager.registerReportSection(LINKS);
+        switchLine = "Hide suggested posts: on";
+        linkLine = "www.threads.com -> verified";
+        try {
+            start(null);
+            Delegate delegate = new Delegate();
+            Throwable crash = new IllegalStateException("feed went away", new java.io.IOException("socket closed"));
+            HushThreadsPause.crashMarkForTests(delegate).uncaughtException(Thread.currentThread(), crash);
+
+            assertEquals("the crash was not handed on", Collections.singletonList(crash), delegate.handed);
+            assertTrue("the safe mode count lost its mark", HushThreadsPause.read(record).trim().endsWith("crashed"));
+            String report = LogBufferManager.readCrashReport(context);
+            for (String part : new String[]{"complete: true\n", "app_version: ", "app_version_code: ",
+                    "patch_build: ", "thread: " + Thread.currentThread().getName() + "\n",
+                    "exception: java.lang.IllegalStateException\n", "java.lang.IllegalStateException: feed went away",
+                    "Caused by: java.io.IOException: socket closed", "[SWITCH PROBE]\nHide suggested posts: on\n"}) {
+                assertTrue("the report lost " + part + ": " + report, report.contains(part));
+            }
+            assertFalse("Supported links went into the crash report: " + report, report.contains("[SUPPORTED LINKS]"));
+
+            // The next start's export carries it, and still shows Supported links in its own place.
+            start(null);
+            String export = LogBufferManager.buildExportText();
+            assertTrue(export, export.contains("[LATEST JAVA CRASH]\n"));
+            assertTrue(export, export.contains("java.lang.IllegalStateException: feed went away"));
+            assertTrue(export, export.contains("[SUPPORTED LINKS]\nwww.threads.com -> verified\n"));
+        } finally {
+            switchLine = null;
+            linkLine = null;
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    @Test public void aCrashAfterTheFirstMinuteKeepsNoReportUnlessDebugLoggingIsOn() {
+        LogBufferManager.clearLogBuffer();
+        try {
+            start(null);
+            ShadowSystemClock.advanceBy(HushThreadsPause.START_WINDOW_MS + 1000, TimeUnit.MILLISECONDS);
+            Delegate delegate = new Delegate();
+            Thread.UncaughtExceptionHandler handler = HushThreadsPause.crashMarkForTests(delegate);
+            Throwable late = new IllegalStateException("late");
+            handler.uncaughtException(Thread.currentThread(), late);
+            assertEquals("a late crash kept a report", "", LogBufferManager.readCrashReport(context));
+            assertEquals(Collections.singletonList(late), delegate.handed);
+
+            BaseSettings.DEBUG.save(true);
+            Throwable debugged = new IllegalStateException("late, with Debug logging on");
+            handler.uncaughtException(Thread.currentThread(), debugged);
+            assertTrue("Debug logging kept no report of a late crash",
+                    LogBufferManager.readCrashReport(context).contains("late, with Debug logging on"));
+            assertEquals(Arrays.asList(late, debugged), delegate.handed);
+            assertFalse("a late crash marked the start", HushThreadsPause.read(record).trim().endsWith("crashed"));
+        } finally {
+            BaseSettings.DEBUG.save(false);
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    @Test public void anExceptionSwallowedOffTheMainThreadPutsTheReportBack() throws Exception {
+        LogBufferManager.clearLogBuffer();
+        try {
+            LogBufferManager.persistCrashReport(context, EARLIER);
+            start(null);
+            Thread worker = new Thread("worker");
+            Delegate delegate = new Delegate();
+            Throwable swallowed = new IllegalStateException("swallowed");
+            HushThreadsPause.crashMarkForTests(delegate).uncaughtException(worker, swallowed);
+            // Kept while Threads' handlers had it, as a crash that ends the process needs it to be.
+            assertTrue("nothing was kept: " + delegate.reports, delegate.reports.get(0).contains("swallowed"));
+            assertEquals(EARLIER, LogBufferManager.readCrashReport(context));
+
+            // On the main thread the app is frozen after it, so that report stays. The same exception
+            // handed in again is kept, since the first time gave its report back.
+            HushThreadsPause.crashMarkForTests(new Delegate()).uncaughtException(Thread.currentThread(), swallowed);
+            assertTrue(LogBufferManager.readCrashReport(context).contains("swallowed"));
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    private static final String EARLIER = "complete: true\nan earlier start's crash\n";
+
+    /** A second thread's exception while the first one's handlers run, both swallowed. */
+    @Test public void twoExceptionsSwallowedAtOnceLeaveTheEarlierReport() throws Exception {
+        LogBufferManager.clearLogBuffer();
+        try {
+            LogBufferManager.persistCrashReport(context, EARLIER);
+            start(null);
+            Delegate outer = new Delegate();
+            Delegate inner = new Delegate();
+            String[] between = new String[1];
+            outer.meanwhile = () -> {
+                HushThreadsPause.crashMarkForTests(inner)
+                        .uncaughtException(new Thread("second"), new IllegalStateException("second one"));
+                between[0] = LogBufferManager.readCrashReport(context);
+            };
+            HushThreadsPause.crashMarkForTests(outer)
+                    .uncaughtException(new Thread("first"), new IllegalStateException("first one"));
+
+            assertTrue(inner.reports.toString(), inner.reports.get(0).contains("second one"));
+            // The first can still end the process, so its report is the one back in place.
+            assertTrue("the second one's return lost the first: " + between[0], between[0].contains("first one"));
+            assertEquals(EARLIER, LogBufferManager.readCrashReport(context));
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    /**
+     * One thread's handlers return while another's still have its exception: that one can still end
+     * the process, so its report stays, and goes too if it's swallowed in turn.
+     */
+    @Test public void anExceptionSwallowedFirstLeavesTheOneStillBeingHandled() throws Exception {
+        LogBufferManager.clearLogBuffer();
+        try {
+            LogBufferManager.persistCrashReport(context, EARLIER);
+            start(null);
+            Thread first = new Thread("first");
+            Thread second = new Thread("second");
+            JavaCrashReport.Saved one = JavaCrashReport.save(first, new IllegalStateException("first one"));
+            JavaCrashReport.Saved two = JavaCrashReport.save(second, new IllegalStateException("second one"));
+            JavaCrashReport.survived(first, one);
+            assertTrue(LogBufferManager.readCrashReport(context).contains("second one"));
+            JavaCrashReport.survived(second, two);
+            assertEquals(EARLIER, LogBufferManager.readCrashReport(context));
+
+            // A main-thread exception stays, so one swallowed over it gives it back.
+            JavaCrashReport.Saved main = JavaCrashReport.save(Thread.currentThread(), new IllegalStateException("main thread"));
+            JavaCrashReport.Saved worker = JavaCrashReport.save(second, new IllegalStateException("worker"));
+            JavaCrashReport.survived(Thread.currentThread(), main);
+            JavaCrashReport.survived(second, worker);
+            assertTrue(LogBufferManager.readCrashReport(context).contains("main thread"));
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    /** Clear diagnostic data while the handlers have it: its Undo puts back the earlier crash. */
+    @Test public void aClearWhileTheHandlersRunUndoesToTheEarlierReport() throws Exception {
+        LogBufferManager.clearLogBuffer();
+        try {
+            LogBufferManager.persistCrashReport(context, EARLIER);
+            start(null);
+            Thread worker = new Thread("worker");
+            JavaCrashReport.Saved saved = JavaCrashReport.save(worker, new IllegalStateException("swallowed"));
+            LogBufferManager.clearLogBuffer();
+            JavaCrashReport.survived(worker, saved);
+            assertEquals("", LogBufferManager.readCrashReport(context));
+            assertEquals(LogBufferManager.UndoResult.RESTORED, LogBufferManager.undoClear());
+            assertEquals(EARLIER, LogBufferManager.readCrashReport(context));
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    @Test public void aReportThatCanNotBeBuiltStillHandsTheCrashOn() throws Exception {
+        LogBufferManager.clearLogBuffer();
+        try {
+            LogBufferManager.persistCrashReport(context, "complete: true\nan earlier start's crash\n");
+            start(null);
+            Delegate delegate = new Delegate();
+            Throwable unprintable = new IllegalStateException("unprintable") {
+                @Override public void printStackTrace(java.io.PrintWriter writer) {
+                    throw new IllegalStateException("no trace");
+                }
+            };
+            HushThreadsPause.crashMarkForTests(delegate).uncaughtException(Thread.currentThread(), unprintable);
+            // The earlier report standing shows the build threw before anything was written.
+            assertEquals("complete: true\nan earlier start's crash\n", LogBufferManager.readCrashReport(context));
+            assertEquals(Collections.singletonList(unprintable), delegate.handed);
+            assertTrue(HushThreadsPause.read(record).trim().endsWith("crashed"));
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
     }
 
     @Test public void theStreakFileSurvivesNonsense() {

@@ -35,6 +35,18 @@ review of the pull request is the final check.
 5. **Connect the patch.** Put the address plus `/report` in `gradle.properties` as `wordReportUrl=...` (this project: `https://wordfeud-word-report.jeroenimo02.workers.dev/report`) and release
    a new version. Builds without `wordReportUrl` do not report anything.
 
+## Rate limit (recommended)
+
+The worker allows at most 20 reports per IP address per hour when a KV namespace is bound as `REPORT_KV`
+(only a hashed IP prefix and a counter are stored, for two hours). Without it there is no limit. In the dashboard:
+
+1. Storage & Databases → **KV** → *Create namespace*, name it `wordfeud-report-limits`.
+2. Your worker → Settings → **Bindings** → *Add* → **KV namespace**: variable name `REPORT_KV`, namespace
+   `wordfeud-report-limits`. Deploy.
+3. Paste the current `src/index.js` again (Edit code → Deploy) if your copy is older than this README.
+
+(With `wrangler deploy` the `[[ratelimits]]` block in `wrangler.toml` works as well.)
+
 ## Trying it
 
 ```sh

@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "algorithm": "sha256",
+  "frozenFrom": "main@f3504db4428f8bf218d8396401816a34bf04e355",
+  "scope": "patch-source-lock",
+  "files": {
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/AntiDetector.kt": "884d6f7015f2aee9c66a74163736f2cf8f0f5defde495fbae083945410ef3c96",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/AntiRevoke.kt": "ec3f2bb4d4e57a11242a07b89ea549ca82991b4f4366334c1e53e896185044b4",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/AntiViewOnce.kt": "6aa15f9a3b871023fbf15a3864244b94f0f3d8ffc8aef3e042683f5441066c23",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/FreezeLastSeen.kt": "47dfca10812cd580ae0616df5b54ff5bf4838730b203d0101fa61766dab21720",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/HideReadReceipts.kt": "2dcac846e11d5a62e662d26f2c561524b834ef38e14c3818aa77a5094116793c",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/HideTypingIndicator.kt": "8c24d7d496c521c4c7d97ae779cc6905535eba040e6c8fa2bbf43e14a241cc7b",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/LoginFix.kt": "18129425be1854fad0b375f219c1ee82358d61959498d01551142e9d66c289e4",
+    "patches/src/main/kotlin/app/whatsappmorphe/patches/whatsapp/MediaQuality.kt": "d1c986345ff4291a6c418d3e5fe89d7096be09ef715cf3b89e60a031b3387089"
+  }
+}

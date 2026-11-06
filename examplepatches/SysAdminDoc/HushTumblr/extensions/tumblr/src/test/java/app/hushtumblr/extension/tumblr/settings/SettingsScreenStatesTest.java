@@ -114,7 +114,7 @@ public class SettingsScreenStatesTest {
             source.getOnPreferenceClickListener().onPreferenceClick(source);
             ShadowLooper.idleMainLooper();
 
-            String tip = String.valueOf(ShadowToast.getTextOfLatestToast());
+            String tip = SettingsFeedbackTest.message(source);
             assertTrue(tip, tip.contains("github.com/SysAdminDoc/HushTumblr"));
         }
     }

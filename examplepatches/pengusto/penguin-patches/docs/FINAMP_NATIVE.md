@@ -19,7 +19,7 @@ Other versions, F-Droid/recompiled binaries and earlier `Finamp Debug` APKs do
 not have declared compatibility. Repatch the original APK with all desired
 selections together; an already patched snapshot is deliberately rejected.
 
-## Seven independent selections
+## Eight independent selections
 
 | Patch name in Morphe | Behavior | Upstream contribution |
 | --- | --- | --- |
@@ -30,8 +30,9 @@ selections together; an already patched snapshot is deliberately rejected.
 | **Fix track alphabet navigation** | Uses consistent case when comparing Tracks titles with a selected alphabet letter; preserves existing paging | [PR #1835](https://github.com/finamp-app/finamp/pull/1835), [issue #1790](https://github.com/finamp-app/finamp/issues/1790) |
 | **Keep player output controls accessible** | Adds Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden; respects the gesture setting and avoids duplicate actions | [PR #1836](https://github.com/finamp-app/finamp/pull/1836) merged into `redesign` on 2026-10-31; [issue #1355](https://github.com/finamp-app/finamp/issues/1355) |
 | **Fix quick settings banner contrast** | Uses the matching foreground color for banner text with custom accents | Existing [`hotfix-1.0.2` fix](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8); duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) **closed on 2026-10-29**; [issue #1756](https://github.com/finamp-app/finamp/issues/1756) |
+| **Show album and track information** | Opens available Jellyfin descriptions for albums and tracks; normal downloads retain descriptions for offline use | [PR #1853](https://github.com/finamp-app/finamp/pull/1853), [issue #1852](https://github.com/finamp-app/finamp/issues/1852) |
 
-All seven are optional (`default=false`). Choose any subset of the seven in
+All eight are optional (`default=false`). Choose any subset of the eight in
 one Morphe run. The artist-order default promotes only album artists also
 credited on the song, then alphabetizes remaining credits. With no matching
 album artist, it retains song metadata order. It does not rewrite music tags or
@@ -39,14 +40,23 @@ server metadata, or create a per-song lead role that Jellyfin does not provide.
 
 **Upstream status checked 2026-10-31:** the title, offline-artist and player fixes
 are merged into `redesign`. The latest official release is
-[1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2). **All seven
-selections remain available for the original 1.0.1 APK only.** An upstream merge
+[1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2). **The seven
+previously shipped selections remain available for the original 1.0.1 APK only.** An upstream merge
 does not update that APK or establish compatibility with 1.0.2.
 [Exact upstream refs and release status](FINAMP.md#upstream-status-2026-10-31).
 
 The title patch retains the existing validity rule: an empty title is invalid;
 it does not introduce whitespace trimming or change which section types require
 a title. The performance patch does not cap the eventual playback queue.
+
+Album information appears above the track list when Jellyfin provides a
+description. Track information appears below the common actions in the track
+menu, separate from lyrics; it explains when no description is available.
+New downloads retain available descriptions for offline use. Existing downloads
+may need a full sync or repair because quick sync can skip unchanged items. The
+feature displays Jellyfin's `Overview`; it does not extract embedded music tags
+or guarantee that the server supplies a track description. See the
+[installed-APK candidate captures](../tests/finamp/evidence/2026-11-05-notes/README.md).
 
 The player patch follows the reviewed upstream source at
 [`0092a059`](https://github.com/pengusto/finamp/commit/0092a0593a9d69dfc461834d0e4e6c580d112379).
@@ -69,9 +79,9 @@ Same-key update/removal tests are distinct from changing signing certificates.
 ## Native implementation and source
 
 Flutter compiles this Dart logic into `libapp.so`. A shared raw-resource patch
-collects seven selection bits (1 title, 2 artists, 4 loading, 8 offline artist
-filtering, 16 Tracks alphabet, 32 player output, 64 banner contrast) and applies
-one precomposed delta for masks 1–127. The original APK's native and engine hashes are
+collects eight selection bits (1 title, 2 artists, 4 loading, 8 offline artist
+filtering, 16 Tracks alphabet, 32 player output, 64 banner contrast, 128 album
+and track information) and applies one precomposed delta for masks 1–255. The original APK's native and engine hashes are
 checked before the snapshot is replaced; the selected output is checked against
 its own SHA-256 and size. Unsupported input fails before an APK is published.
 
@@ -79,8 +89,8 @@ The original release source is
 [`65c1a78`](https://github.com/finamp-app/finamp/tree/65c1a78b1d04dd8525825ecdf2cf39c7442b51e9).
 The fixes are backported to that release rather than replacing it with current
 `redesign` or a debug app. The [source matrix](../tests/finamp/native-sources.json)
-pins each complete selection tree. A single public aggregate ref retains the
-128 source commits; verify it using the [rebuild guide](../tests/finamp/README.md#rebuild-native-payloads).
+pins each complete selection tree. Two public aggregate refs retain the original
+and extended selection sources; verify them using the [rebuild guide](../tests/finamp/README.md#rebuild-native-payloads).
 
 Build toolchain: Flutter **3.47.2**, Dart **3.13.2**, framework
 `d3b14c876900e553bc736ca19295fc09e3853e8e`, engine
@@ -90,7 +100,7 @@ version hash and feature flags also match. SDK-required dependency locks are
 recorded in every source tree; other app features are not pulled from later
 `redesign` commits.
 
-Real Morphe runs for all 127 combinations verify that every retained APK entry
+Real Morphe Desktop 1.18.1 runs for all 255 combinations verify that every retained APK entry
 except ARM64 `libapp.so` matches the original: DEX, manifest, engine, resources
 and Flutter assets remain byte-identical. Other CPU architectures are removed
 so they cannot silently run an unpatched snapshot. Snapshot files remain exactly

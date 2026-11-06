@@ -39,6 +39,8 @@ public final class SettingsStatus {
     public static boolean photoAltTextCaptions() { return false; }
     public static boolean galleryAltTextCaptions() { return false; }
     public static boolean shareVideoLinks() { return false; }
+    public static boolean sharperImages() { return false; }
+    public static boolean imageSizes() { return false; }
     public static boolean videoLinkPress() { return false; }
     public static boolean showPostTimestamps() { return false; }
     public static boolean nativePostTimestamps() { return false; }
@@ -50,12 +52,14 @@ public final class SettingsStatus {
     public static boolean hideAds() { return false; }
     public static boolean timelineAds() { return false; }
     public static boolean paidPostHeader() { return false; }
+    public static boolean adSdkStartup() { return false; }
     public static boolean disableAnalytics() { return false; }
     public static boolean hideAdvertisingId() { return false; }
     public static boolean advertisingId() { return false; }
     public static boolean removeAdTrackingPermissions() { return false; }
     public static boolean spoofSignature() { return false; }
     public static boolean analyticsFlags() { return false; }
+    public static boolean liveRampStartup() { return false; }
     public static boolean hideAdFreeBanner() { return false; }
     public static boolean adFreeBannerFlags() { return false; }
     public static boolean hideTumblrTv() { return false; }
@@ -87,6 +91,8 @@ public final class SettingsStatus {
     public static boolean suggestedTagCards() { return false; }
     public static boolean hideWatchItRows() { return false; }
     public static boolean watchItRows() { return false; }
+    public static boolean hideFeaturedPosts() { return false; }
+    public static boolean featuredPosts() { return false; }
     public static boolean hideHashtags() { return false; }
     public static boolean postTags() { return false; }
     public static boolean hideFollowButton() { return false; }
@@ -110,6 +116,10 @@ public final class SettingsStatus {
     public static boolean unreadDots() { return false; }
     public static boolean hideReblogs() { return false; }
     public static boolean reblogPosts() { return false; }
+    public static boolean hideOwnReblogs() { return false; }
+    public static boolean ownReblogPosts() { return false; }
+    public static boolean hideLikedPosts() { return false; }
+    public static boolean likedPosts() { return false; }
     public static boolean hideVideoPosts() { return false; }
     public static boolean videoPosts() { return false; }
     public static boolean hidePhotoPosts() { return false; }

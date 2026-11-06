@@ -20,6 +20,7 @@ import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.requireThisIntact
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.writeStub
+import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -40,6 +41,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableField
 
 internal const val SUGGESTED_USERS = "suggested_users"
 internal const val KICKSTART_USERS = "text_app_suggested_users_kickstart_unit"
+/** How the id of the row Threads builds on the phone after a follow starts, ahead of the followed post's id. */
+internal const val CHAINING_PREFIX = "suggested_users_chaining_"
 private const val PATCH = "Hide suggested users"
 private const val STRING = "Ljava/lang/String;"
 private const val RAW_FIELD = "hushthreadsSuggestedUsersRaw"
@@ -230,7 +233,68 @@ internal data class SuggestedTargets(
     val suggestedKind: FieldReference, val kickstartKind: FieldReference,
     val suggestedSlot: FieldReference, val kickstartSlot: FieldReference, val rawType: FieldReference,
     val content: FieldReference, val wrapper: MutableMethod, val capturedRaw: MutableField,
+    val chainingId: FieldReference,
 )
+
+/**
+ * The public String field holding the id of the row Threads builds on the phone after a follow.
+ * The row's placeholder and its filled-in version both come from builders that load
+ * [CHAINING_PREFIX] and hand the SUGGESTED_USERS kind to one item constructor, which stores its
+ * String in this field. Neither carries a server slot, so only this id tells the row apart.
+ */
+private fun BytecodePatchContext.chainingId(item: String, kinds: String, suggestedKind: FieldReference): FieldReference {
+    val constructors = mutableSetOf<String>()
+    val builders = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.forEach methods@{ method ->
+            val code = method.implementation?.instructions?.toList() ?: return@methods
+            if (code.none { it.getReference<StringReference>()?.string == CHAINING_PREFIX }) return@methods
+            val kindLoads = code.indices.filter { code[it].opcode == Opcode.SGET_OBJECT &&
+                code[it].getReference<FieldReference>()?.toString() == suggestedKind.toString() }
+            code.indices.forEach calls@{ at ->
+                val call = code[at].getReference<MethodReference>() ?: return@calls
+                if (code[at].opcode !in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) ||
+                    call.definingClass != item || call.name != "<init>") return@calls
+                val types = call.parameterTypes.map(CharSequence::toString)
+                if (types.count { it == kinds } != 1 || types.count { it == STRING } != 1) return@calls
+                val register = code[at].namedRegisters()[types.indexOf(kinds) + 1]
+                val loads = kindLoads.filter { Use(at, register) in method.valueUses(it) }
+                if (loads.isEmpty()) return@calls
+                val load = loads.singleOrPatchException("$PATCH: SUGGESTED_USERS load for the chaining row in $method")
+                method.requireValueSource("chaining row kind", Use(at, register),
+                    Use(load, (code[load] as OneRegisterInstruction).registerA))
+                constructors += call.toString()
+                builders += "$method@$at"
+            }
+        }
+    }
+    val reference = constructors.singleOrPatchException("$PATCH: chaining row constructor; builders: $builders")
+    val itemClass = mutableClassDefBy(item)
+    val constructor = itemClass.methods.filter { it.toString() == reference }
+        .singleOrPatchException("$PATCH: chaining row constructor declaration")
+    val types = constructor.parameterTypes.map(CharSequence::toString)
+    val parameter = constructor.parameterRegisterNumber(types.indexOf(STRING))
+    val self = constructor.implementation!!.registerCount - types.sumOf { if (it == "J" || it == "D") 2 else 1 } - 1
+    val body = constructor.body()
+    val field = constructor.valueUses(-1, parameter).mapNotNull { use ->
+        val instruction = body[use.index]
+        instruction.getReference<FieldReference>()?.takeIf { field ->
+            instruction.opcode == Opcode.IPUT_OBJECT && field.definingClass == item && field.type == STRING &&
+                (instruction as TwoRegisterInstruction).registerA == use.register && instruction.registerB == self
+        }
+    }.distinctBy { it.toString() }.singleOrPatchException("$PATCH: chaining row id field")
+    val stores = body.indices.filter { body[it].opcode == Opcode.IPUT_OBJECT &&
+        body[it].getReference<FieldReference>()?.toString() == field.toString() }
+    stores.forEach { store -> constructor.requireValueSource("chaining row id field",
+        Use(store, (body[store] as TwoRegisterInstruction).registerA), Use(-1, parameter)) }
+    constructor.requireThisIntact(PATCH, stores)
+    if (itemClass.fields.none { it.name == field.name && it.type == STRING &&
+            AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) }) {
+        throw PatchException("$PATCH: accessible chaining row id field $field")
+    }
+    return field
+}
 
 internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
     val media = mutableClassDefBy(FEED_ADS).methods.filter { it.name == "itemMedia" }.singleOrPatchException("$PATCH: FeedAds.itemMedia").body()
@@ -449,11 +513,12 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
     val capturedRaw = MutableField(ImmutableField(wrapperType, RAW_FIELD, model.type,
         AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, null))
     return SuggestedTargets(media, kind, suggestedKind, kickstartKind, suggestedSlot, kickstartSlot, rawType,
-        content, wrapper, capturedRaw)
+        content, wrapper, capturedRaw, chainingId(item.type, kinds.type, suggestedKind))
 }
 
 /**
- * Server cards only. Raw type checks refuse the vendor's generic SUGGESTED_USERS fallback. The same
+ * Server cards, plus the row Threads builds after a follow, told apart by its [CHAINING_PREFIX] id.
+ * Raw type checks refuse the vendor's generic SUGGESTED_USERS fallback. The same
  * switch keeps the Suggested for you accounts off profiles, see [profileSuggestionTargets], and a
  * second switch of its own takes Search's Follow suggestions carousel away, see
  * [searchSuggestionTargets].
@@ -487,6 +552,7 @@ val hideSuggestedUsersPatch = bytecodePatch(
         val rawType = targets.rawType
         val content = targets.content
         val capturedRaw = targets.capturedRaw
+        val chainingId = targets.chainingId
         val wrapperType = targets.wrapper.definingClass
         mutableClassDefBy(wrapperType).instanceFields.add(capturedRaw)
         targets.wrapper.body().indices.filter { targets.wrapper.body()[it].opcode == Opcode.RETURN_VOID }
@@ -512,6 +578,13 @@ val hideSuggestedUsersPatch = bytecodePatch(
             const-string v1, "$KICKSTART_USERS"
             goto :card
             :suggested
+            iget-object v0, p0, $chainingId
+            if-eqz v0, :server
+            const-string v1, "$CHAINING_PREFIX"
+            invoke-virtual { v0, v1 }, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
+            move-result v0
+            if-nez v0, :chaining
+            :server
             iget-object v0, p0, $suggestedSlot
             const-string v1, "$SUGGESTED_USERS"
             :card
@@ -528,6 +601,9 @@ val hideSuggestedUsersPatch = bytecodePatch(
             return v0
             :none
             const/4 v0, 0x0
+            return v0
+            :chaining
+            const/4 v0, 0x1
             return v0
         """)
         hookProfileSuggestions(profile)

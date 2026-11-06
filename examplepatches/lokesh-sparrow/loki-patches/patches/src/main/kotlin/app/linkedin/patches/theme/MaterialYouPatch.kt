@@ -849,3 +849,27 @@ private fun Instruction.secondArgument(): Int = when (this) {
     is RegisterRangeInstruction -> startRegister + 1
     else -> throw PatchException("Unexpected call $opcode")
 }
+
+/** The dark background colors of [colors], which AMOLED black turns black: containers and canvases, not the lighter tints. */
+private fun amoledColors(colors: Map<String, String>) =
+    colors.keys.filter { "dark" in it && "tint" !in it }.associateWith { "black" }
+
+@Suppress("unused")
+val amoledBlackBarsPatch = resourcePatch(
+    name = "AMOLED black bars",
+    description = "Makes the dark top bar, bottom bar, side menu and other screens drawn by the app pure black, " +
+        "next to the feed that the AMOLED black setting already covers. Needs Material You.",
+    default = false
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    // Runs after Material You, which sets these colors to the wallpaper's tinted dark surface.
+    dependsOn(materialYouPatch)
+
+    execute {
+        writeColors("values-v31", amoledColors(BACKGROUNDS))
+        writeColors("values-v34", amoledColors(BACKGROUNDS_V34))
+        val night = mapOf("color_splash_canvas_background" to "black", "color_status_bar" to "black")
+        writeColors("values-night-v31", night)
+        writeColors("values-night-v34", night)
+    }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "proteus-patches",
+  "version": "0.0.0-semantically-released",
+  "private": true,
+  "description": "Proteus Patches — a Morphe patch bundle for 230+ Android apps. Releases are versioned by semantic-release; this version field is never bumped.",
+  "devDependencies": {
+    "@cleyrop-org/semantic-release-backmerge": "^6.2.0",
+    "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#bundle",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "@semantic-release/release-notes-generator": "^14.1.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "gradle-semantic-release-plugin": "^1.10.3",
+    "semantic-release": "^25.0.9"
+  }
+}

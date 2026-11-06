@@ -31,7 +31,7 @@ Every switch starts off, so a freshly patched Messenger behaves like stock until
 
 ## Install
 
-1. **Get the APK.** The current release, v0.28.0, patches Messenger 585.0.0.53.94. Download it from [APKMirror's 585.0.0.53.94 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-585-0-0-53-94-release/). Every build listed there works, arm64 and armv7. Pick a `nodpi` one if your phone's type has it, since those keep the icons sharp.
+1. **Get the APK.** The current release, v0.28.0, patches Messenger 585.0.0.53.94. Download it from [APKMirror's 585.0.0.53.94 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-585-0-0-53-94-release/). APKMirror added more builds of that version after the release went out, and v0.28.0 only takes the seven it was checked against, so check the version code before you download. Most phones (arm64) should take `347015062`, the `nodpi` one. A 32-bit (armv7) phone takes `347014974` or `347014990`. The other arm64 builds that work are `347014996`, `347015064`, `347015065` and `347015067`.
 2. **Add the source.** Open the link above on your phone with Morphe Manager (2.3.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **71 patches**. If it shows an older version, tap its refresh button. Manager also shows **Signed by `4d8d c2b3 fbcd 3ab6`** on the card. That's this project's key, and [Verify a download](#verify-a-download) has more on it.
 3. **Patch Messenger.** The default selection includes every switch. Five patches start unselected because they change the app itself, with no switch to undo them: **Clone install under another package name**, **Spoof package version**, **Custom new-message sound**, **Custom launcher icon** and **GmsCore support**. To add one, turn on **Settings → Advanced → Expert mode** in Manager and use **Choose patches**.
 4. **Keep one source.** Don't add the remote source and a local copy together, and don't mix in Messenger patches from other sources.
@@ -40,11 +40,11 @@ Prefer a local source? Download [`patches-0.28.0.mpp`](https://github.com/SysAdm
 
 ## Settings
 
-Long-press Messenger's icon on your home screen and tap **Patch controls**. The **HushMessenger** row in Messenger's Menu tab and side menu opens the same screen, and so does the **HushMessenger settings** icon in your app drawer. **App > Hide app drawer icon** hides that icon without touching Messenger. Inside Messenger, a long press on the Messenger logo at the top of Chats or on the Menu tab's title opens settings too, even while changes are paused. The long-press shortcuts appear once Messenger has started, and a Root Mount install has no drawer icon. The App tab can switch off the Menu row, the icon shortcuts or the logo long press, but never the last way in that's still on.
+Long-press Messenger's icon on your home screen and tap **Patch controls**. The **HushMessenger** row in Messenger's Menu tab and side menu opens the same screen, and so does the **HushMessenger settings** icon (a white gear on blue) in your app drawer. **App > Hide app drawer icon** hides that icon without touching Messenger. Inside Messenger, a long press on the Messenger logo at the top of Chats or on the Menu tab's title opens settings too, even while changes are paused. The long-press shortcuts appear once Messenger has started, and a Root Mount install has no drawer icon. The App tab can switch off the Menu row, the icon shortcuts or the logo long press, but never the last way in that's still on.
 
 **Pause all changes** turns every switch off at once without forgetting your choices. Changes to the Meta AI and bottom tabs, bubbles, your font, **Restore old emoji drawer** and **Keep the search bar** need **Restart Messenger**. Inbox options show up with the next chat list Messenger builds. While a restart is waiting, a bar at the top of settings says how many and has the button, and after the restart settings open again on the page you left. The button is also on the App tab and in the icon's long-press menu. If Messenger crashes three times near startup, safe mode pauses the controls. Open settings and tap **Resume**. **App > Log out** signs you out the same way Messenger's own Log out does.
 
-The **Controls** tab opens on the HushMessenger logo, name and version, with the search box right under it. The switches sit in sections that fold up under their headers, or in one long list if you tap **Show all settings as a list**. Sections start closed, and the ones you open stay open. The search box finds every word you type, in any order, and opens whatever section a match sits in. A switch that's on shows when Messenger last checked it. The **App** tab has the restart button at the top, then **Quick setups** (Quiet, Privacy or Back to defaults in one tap), appearance, **Save choices to a file** and **Restore choices from a file**, and **Copy setup**, which copies your versions and switch states with no chats or account details in it. **Report a problem** opens a new GitHub issue with your versions, phone model and the switches that are on already filled in. Issues are public, so look it over before you send it. **Check for updates** is off by default. When it's on, it asks GitHub at most once an hour and sends nothing but the request.
+The **Controls** tab opens on the HushMessenger logo, name and version, with the search box right under it. The switches sit in sections that fold up under their headers, or in one long list if you tap **Show all settings as a list**. Sections start closed, and the ones you open stay open. The search box finds every word you type, in any order, and opens whatever section a match sits in. A switch that's on shows when Messenger last checked it. The **App** tab has the restart button at the top, then **Quick setups** (Quiet, Privacy, iPhone look or Back to defaults in one tap), appearance, **Save choices to a file** and **Restore choices from a file**, and **Copy setup**, which copies your versions and switch states with no chats or account details in it. **Report a problem** opens a new GitHub issue with your versions, phone model and the switches that are on already filled in. Issues are public, so look it over before you send it. **Check for updates** is off by default. When it's on, it asks GitHub at most once an hour and sends nothing but the request.
 
 These screenshots come from the code on this page, so they can be a step ahead of the release you have installed. Each pair shows the Controls tab, then the App tab with its ways in.
 
@@ -73,11 +73,13 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Preview chats on long press | Pressing and holding a chat opens Messenger's own preview of it, with the chat's menu underneath, so you can peek at a chat without opening it. Experimental. |
 | Hide Mark as read | Takes Mark as read out of the menu you get when you press and hold a chat, so you can't mark one read by accident. Mark as unread stays. |
 | Pin more chats | Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices. Experimental. |
+| Hide chosen chats | Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your list when new messages come in, search still finds it, and you can unhide it in HushMessenger settings. Hiding stays on this phone and doesn't silence anything, so mute the chat in Messenger if you want it quiet. Experimental. |
 | Hide People tab | Hides the People tab in the bottom bar. Restart Messenger to see it go. |
+| Show People tab | Brings the People tab back to the bottom bar, right after Chats, on accounts where Messenger dropped it. Restart Messenger to see it. |
 | Hide Notifications tab | Hides the Notifications tab in the bottom bar. Restart Messenger to see it go. |
 | Hide tab badges | Hides the red dots and counts on the bottom tabs and on the Facebook button at the top. The Keep switches under it bring back the ones you want. Takes effect after a restart. |
 | Hide Facebook shortcuts | Removes Facebook toolbar, profile and sharing shortcuts, and the "Also from Meta" and "Subscriptions" sections in the Menu tab. Keep the Profile button, right under it, leaves the chat details Profile button and the View profile button at the top of a new chat in place. |
-| Hide Meta AI | Hides the Meta AI button, tab and menu entries, the "Ask Meta AI" search button and the AI suggestions when you type @ in a chat. Existing AI chats stay. The tab changes after a restart. |
+| Hide Meta AI | Hides the Meta AI button, tab and menu entries, the "Ask Meta AI" search button, the AI suggestions when you type @ in a chat and the offer to summarize unread messages. Existing AI chats stay. The tab changes after a restart. |
 | Hide Chat Moments | Removes Chat Moments from the menu. |
 | Hide Reels badge | Hides the Reels notification badge. |
 | Hide AI sticker tools | Hides the generated-sticker tab, AI sticker suggestions and the Generate buttons in the sticker keyboard. |
@@ -102,6 +104,8 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Android Auto messages | Android Auto reads your Messenger messages out loud and sends the reply you speak, from its own messaging screen. Android Auto only lists apps from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Playing a message aloud marks the chat read, so the sender sees Seen even with Hide read receipts on. |
 | Search saved messages | Adds a button to a chat's search results that searches the messages saved on this phone. It helps with old chats Messenger's own search finds nothing in. It works in chats that aren't end-to-end encrypted, and it can only find what the phone has loaded, so scroll up in the chat first. |
 | Jump to the first message or a date | Long press a chat's name at the top of the chat and pick **The first message** or **A date**. Messenger only loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and **Cancel** stops it. It can only go as far back as Messenger can load. |
+| Customize message actions | Pick the order of the actions you get by holding a message and hide the ones you never use. Messages you sent and messages you got each have their own list, and it fills in as you hold messages. The first ones go in the row of buttons and the rest under More, in your order too. **Reset to Messenger's order** puts a list back. |
+| Allow landscape | Lets Messenger turn sideways with your phone, for a wider keyboard and bigger photos and videos. It follows your phone's auto-rotate setting. Calls, the camera, payments and a few other screens stay upright. Restart Messenger after you change it. Experimental. |
 | Record calls | Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first. Needs Android 10 or newer. |
 | Hide call buttons | Takes the audio and video call buttons out of a chat's top bar, so you can't tap one by accident. Calls still ring, and you can still join one that's going. |
 | Ask before a call | Tapping the audio or video call button in a chat asks first, so a stray tap doesn't ring anyone. **Call** starts it, **Cancel** doesn't. |
@@ -112,6 +116,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Keep unsent messages | Keeps messages on the older unsend routes and marks them "[unsent]". An encrypted chat can't keep the message itself, so its notification stays up instead. |
 | Allow screenshots | Lets you screenshot protected photos and media, view-once included, with no screenshot notice to the sender. |
 | Hide pictures on the Blocked list | The list of people you've blocked, under Privacy and safety, shows their names and Unblock without their profile pictures. |
+| Notify for restricted chats | Messages from people you've restricted notify you like any other chat, unless you've muted that chat. They still can't see when you're active or when you've read their messages. |
 | Use system emoji | Draws emoji with your phone's own set on Android 12 and newer. |
 | Send photos at original quality | With HD on, a JPEG photo up to 20 MB goes out at its full size instead of Messenger's smaller copy. Location and camera details are stripped, as Messenger does. |
 | Send videos without re-encoding | A video up to 25 MB goes out as it is. |
@@ -185,20 +190,29 @@ With **Hide read receipts** on, a chat you open stays unread on your phone, beca
 
 ## Supported Messenger builds
 
+This table is for the next release, which moves to Messenger 586.0.0.55.92. v0.28.0, the current one, still takes the 585.0.0.53.94 builds listed in step 1 under Install.
+
 | Field | Value |
 | --- | --- |
 | Package | `com.facebook.orca` |
 | Version | `586.0.0.55.92` |
-| Version code, arm64-v8a | `347215348` |
-| Screen density | 560-640 dpi on APKMirror |
+| Version codes, arm64-v8a | `347215257`, `347215330`, `347215343`, `347215344`, `347215348` |
+| Version code, armeabi-v7a | `347215341` |
+| Icons for every screen density | `347215257`, `347215343` |
+| Icons for one screen density | 120-160 dpi `347215344`. 360-480 dpi `347215330` and the armeabi-v7a build. 560-640 dpi `347215348` |
 | Minimum Android version | Android 9 (API 28) |
 | APKMirror download | [586.0.0.55.92](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-586-0-0-55-92-release/) |
 
-APKMirror lists one build for 586.0.0.55.92, for arm64 phones, and HushMessenger takes it. There's no armeabi-v7a build of 586. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.28.0 still takes 585.0.0.53.94 (armv7 too), v0.27.0 takes 584.1.0.61.98, v0.26.0 takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
+APKMirror lists three more arm64 builds of 586 (`347215273`, `347215275` and `347215277`). Meta compiled those a little differently, and they aren't supported yet, so pick one from the table. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.28.0 takes 585.0.0.53.94 (armv7 too), v0.27.0 takes 584.1.0.61.98, v0.26.0 takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
 
-SHA-256 of the stock APK the checks ran against:
+SHA-256 of the stock APKs the checks ran against:
 
 ```text
+347215257  d362ca4c12b3df2255cadfe16bad6e6b8e6f7dce28f678ef1c148c50343938a2
+347215330  503251702dc69d100feba9d56cfa28e96ec1c9ea974cf385bf88d6ee2ed037c1
+347215341  c2a2b65edf52bede0de5b1d5603f332813a7c404784ac8913801a29670190691
+347215343  d6335e5da25effadd6c8f03220750e0990bc17bcd2670275883bfd8dd3605edc
+347215344  2049f4d122994249ddb69d9dca718bd1aafebc7b0c3ccd24866f0a3e33f15e23
 347215348  ee4bee15fe07eecc933aacfb7ec8d8d3f8ace8f4d7ccf517c6bd1ff0b63aae7e
 ```
 

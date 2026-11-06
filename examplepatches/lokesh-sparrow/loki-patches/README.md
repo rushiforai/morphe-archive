@@ -37,11 +37,16 @@
 | ⬇️ **Downloads** | Photos and videos in full screen (one or **all** of a post), profile photos and banners, in the best quality |
 | 📄 **Documents as PDF** | Save a post's document or carousel as one PDF file |
 | 🧹 **Feed filters** | Focus mode, and hide suggested posts, celebrations, job cards, network activity, videos, AI suggestions and more |
-| 🕵️ **Anonymous profile viewing** | Visit profiles without showing up in their "Who viewed your profile", while you keep seeing yours (experimental) |
+| 🕵️ **Anonymous profile viewing** | Visit profiles without showing up in their "Who viewed your profile" (experimental) |
 | 👻 **Ghost mode** | Chat without the typing indicator or automatic read receipts |
 | 🔗 **Clean links** | Open outside links directly, strip tracking from links you share |
 | 🛡️ **Block tracking** | Stop most of LinkedIn's analytics |
 | 🎨 **Material You** | Your wallpaper's colors, and an optional flat feed without gaps |
+| ⚫ **AMOLED black bars** | Pure black top bar, bottom bar and side menu in dark mode (needs Material You) |
+| 👆 **Swipe between feeds** | Swipe left or right to switch For you and Network, and Grow and Catch up |
+| 🖼️ **Tap to hide in viewers** | Tap a document or video in full screen to hide its caption and buttons |
+| ⋯ **Post menu items** | Copy text, Download media and Save as PDF in a post's menu |
+| 🧭 **Hide bottom tabs** | Take My Network and Jobs out of the bottom bar |
 | 🔑 **Google sign-in** | "Continue with Google" through microG RE |
 
 ### Copy text
@@ -82,19 +87,20 @@ also search the options, back up and restore them, check for updates and pick th
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
+> **[v1.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
-<summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;20 patches</summary>
+<summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.1.1255.1 | 4.1.1259 | 4.1.1261 | 4.1.1267 |
-| :---: | :---: | :---: | :---: |
+| 4.1.1267 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Anonymous profile viewing](#anonymous-profile-viewing) | Adds an option (off by default, experimental) to visit profiles without sending the profile view event, while you keep seeing who viewed your own profile. |  |
+| [AMOLED black bars](#amoled-black-bars) | Makes the dark top bar, bottom bar, side menu and other screens drawn by the app pure black, next to the feed that the AMOLED black setting already covers. Needs Material You. |  |
+| [Anonymous profile viewing](#anonymous-profile-viewing) | Adds an option (off by default, experimental) to visit profiles without being listed in "Who viewed your profile": the analytics events of profile pages are not sent. |  |
 | [Block tracking](#block-tracking) | Adds an option (off by default) to stop sending most LinkedIn analytics events. |  |
 | [Copy text](#copy-text) | Long press a post, comment or any other text to select and copy it in place, like on Reddit. |  |
 | [Disable double-tap like](#disable-double-tap-like) | Stops double tapping a post or photo from liking it. |  |
@@ -103,6 +109,7 @@ also search the options, back up and restore them, check for updates and pick th
 | [GmsCore support](#gmscore-support) | Makes "Continue with Google" work in patched LinkedIn by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |  |
 | [Hide Premium upsells](#hide-premium-upsells) | Removes Premium and AI upsell cards and banners, including on profiles and the Me panel. |  |
 | [Hide ads](#hide-ads) | Removes promoted (sponsored) posts from the feed. |  |
+| [Hide bottom tabs](#hide-bottom-tabs) | Adds switches to take My Network and Jobs out of the bottom bar. |  |
 | [Hide promoted jobs](#hide-promoted-jobs) | Removes promoted job listings from the Jobs tab and job search. |  |
 | [Hide suggested posts](#hide-suggested-posts) | Removes "Suggested" posts from outside your network from the feed. |  |
 | [Keep feed on reopen](#keep-feed-on-reopen) | Keeps your place in the feed when you come back to LinkedIn, instead of reloading it. Pull down or tap the "New posts" button to load new posts. |  |
@@ -126,8 +133,9 @@ LinkedIn has its own settings for both, and Loki Patches leaves them to LinkedIn
 Autoplay videos → Never**, and **Settings → Visibility → Manage active status → No one**.
 
 **Is anonymous profile viewing reliable?**
-It's experimental. It stops the app from reporting your visit, and LinkedIn records profile views from that report,
-but the server could also count a visit on its own. If someone still sees you, please report it.
+It's experimental. It stops the app from sending the analytics events of profile pages, which is how LinkedIn
+counted visits in our tests on 4.1.1267. LinkedIn could change that in an update. If someone still sees you, please
+report it.
 
 **I can't find the Loki Patches settings.**
 The app icon shortcut appears after LinkedIn has been opened once, and some launchers don't show it, so use
@@ -167,7 +175,7 @@ content. Modifying an app may go against its terms of service; you use it at you
 ## License
 
 GPLv3, with the additional terms in [NOTICE](NOTICE). See [LICENSE](LICENSE). Inspired by and built on
-[Michii Patches](https://github.com/heyymichii/michii-patches) by heyymichii.
+[Michii Patches](https://github.com/heyymichii/michii-patches) by heyymichii. The microG RE check is adapted from [Hoo-dles' MicroG integration](https://github.com/hoo-dles/morphe-patches) (GPLv3).
 
 ---
 

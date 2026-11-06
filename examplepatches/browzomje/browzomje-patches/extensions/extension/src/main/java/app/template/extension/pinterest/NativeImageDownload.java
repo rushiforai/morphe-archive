@@ -34,17 +34,30 @@ public final class NativeImageDownload {
             WeakReference<Object> reference = PINS.get(request[0]);
             pin = reference == null ? null : reference.get();
         }
-        // No last-seen-pin fallback: preserve Pinterest's own path if this exact Pin is unavailable.
-        if (pin == null || PinImageMenu.bestImage(pin) == null) return false;
         if (Boolean.TRUE.equals(AdDetector.fieldValueBySerializedName(pin, "is_video"))) return false;
+
         Object image = PinImageMenu.bestImage(pin);
-        Object url = AdDetector.fieldValueBySerializedName(image, "url");
-        Object width = AdDetector.fieldValueBySerializedName(image, "width");
-        Object height = AdDetector.fieldValueBySerializedName(image, "height");
-        if (!(url instanceof String)) return false;
-        PinImageDownloader.download((Context) context, request[0], (String) url,
-                width instanceof Number ? ((Number) width).intValue() : 0,
-                height instanceof Number ? ((Number) height).intValue() : 0, () -> {
+        String primary = (String) AdDetector.fieldValueBySerializedName(image, "url");
+        String url = request[1];
+        int width = 0;
+        int height = 0;
+        // Some overflow paths omit the page URL or pass the cover image. Preserve a
+        // distinct explicit URL, for example from visual search on a different slide.
+        if (url == null || url.isEmpty() || sameImage(url, primary)) {
+            String selected = VisibleCarousel.selectedImage((Context) context, request[0]);
+            if (selected != null) {
+                url = selected;
+                MorpheLog.d(MorpheLog.BOARD, "download uses the visible carousel page");
+            } else if (url == null || url.isEmpty()) {
+                url = primary;
+                Object imageWidth = AdDetector.fieldValueBySerializedName(image, "width");
+                Object imageHeight = AdDetector.fieldValueBySerializedName(image, "height");
+                if (imageWidth instanceof Number) width = ((Number) imageWidth).intValue();
+                if (imageHeight instanceof Number) height = ((Number) imageHeight).intValue();
+            }
+        }
+        if (url == null || !url.startsWith("https://i.pinimg.com/")) return false;
+        PinImageDownloader.download((Context) context, request[0], url, width, height, () -> {
                     if (completion == null) return;
                     try {
                         java.lang.reflect.Method callback = completion.getClass().getMethod("invoke");
@@ -54,7 +67,16 @@ public final class NativeImageDownload {
                         MorpheLog.d(MorpheLog.BOARD, "native download completion callback unavailable");
                     }
                 });
-        MorpheLog.i(MorpheLog.BOARD, "native image pipeline handled for exact Pin " + request[0]);
+        MorpheLog.i(MorpheLog.BOARD, "native image request handled");
         return true;
     }
+
+    private static boolean sameImage(String first, String second) {
+        if (second == null || !first.startsWith("https://i.pinimg.com/")
+                || !second.startsWith("https://i.pinimg.com/")) return false;
+        String firstPath = android.net.Uri.parse(first).getLastPathSegment();
+        String secondPath = android.net.Uri.parse(second).getLastPathSegment();
+        return firstPath != null && firstPath.equals(secondPath);
+    }
+
 }

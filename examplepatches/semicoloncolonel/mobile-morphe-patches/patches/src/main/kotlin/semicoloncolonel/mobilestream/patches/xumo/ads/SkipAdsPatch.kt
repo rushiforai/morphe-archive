@@ -32,10 +32,9 @@ import semicoloncolonel.mobilestream.patches.xumo.shared.Constants
 // the ad-free branch is first-class app code the content never hangs waiting on
 // an ad-completion callback.
 //
-// NOT addressed: live channels that use FreeWheel server-side ad insertion
-// (SSAI), where ads are stitched into the stream and do not pass through the IMA
-// player. Those are not removable client-side, so live ads may remain. This
-// matches the scope of the Android TV patch.
+// NOT addressed: live channels, whose ads are stitched into the stream on the
+// server (AWS MediaTailor) and do not pass through the IMA player. Those cannot
+// be removed on the device; "Mask live ad breaks" covers and mutes them.
 // ─────────────────────────────────────────────────────────────────────────────
 private const val PLAYER_VIEW = "Lcom/xumo/xumo/player/XumoPlayerView;"
 private const val FIELD = "adsDisabled"

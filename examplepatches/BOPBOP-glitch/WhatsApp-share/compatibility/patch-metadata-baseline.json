@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "patches": [
+    {
+      "name": "Anti Detector",
+      "description": "Bypass root, emulator, and custom ROM detection.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "Anti Revoke",
+      "description": "Prevent others from deleting their messages or statuses.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "Anti View Once",
+      "description": "View ephemeral media without limits and allow screenshots.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "Freeze Last Seen",
+      "description": "Freeze the last seen time.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "HD Media",
+      "description": "Send images and videos without compression.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "Hide Read Receipts",
+      "description": "Read messages without sending blue ticks.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "Hide Typing",
+      "description": "Type without broadcasting the typing indicator.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    },
+    {
+      "name": "Login Fix",
+      "description": "Experimental login compatibility patch for a re-signed APK. Requires compatible microG-RE components. Enable only if registration/login fails.",
+      "default": false,
+      "category": null,
+      "dependencies": [],
+      "options": []
+    }
+  ]
+}

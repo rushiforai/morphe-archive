@@ -118,6 +118,28 @@ public final class Ads {
         return true;
     }
 
+    /** The consent vendor Pinterest names for Meta's Audience Network, an enum constant. */
+    static final String META_AUDIENCE_NETWORK = "META_AUDIENCE_NETWORK";
+
+    /**
+     * Injected at the start of Pinterest's third-party SDK consent check, handed the vendor it asks
+     * about. True only for Meta's Audience Network while the switch is on, and the check then answers
+     * that consent isn't given: Pinterest never starts Meta's ad SDK, sends an empty Meta bidder token
+     * and fails each Meta ad slot as "consent_revoked", the path it already takes when someone turns
+     * that consent off. Every other vendor gets Pinterest's own answer. Never throws.
+     */
+    public static boolean skipMetaConsent(@Nullable Object vendor) {
+        HookStatus.invoked(FamilyNames.HIDE_ADS);
+        try {
+            if (!(vendor instanceof Enum) || !META_AUDIENCE_NETWORK.equals(((Enum<?>) vendor).name()) || !active()) return false;
+            HookStatus.counted(FamilyNames.HIDE_ADS, "Meta ad SDK consent withheld");
+            return true;
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.HIDE_ADS, "Meta ad SDK consent", t);
+            return false;
+        }
+    }
+
     /**
      * Injected at the start of {@code setVisibility} in each view Pinterest only builds for an ad.
      * Returns GONE while the switch is on, so the view stays folded away however often Pinterest

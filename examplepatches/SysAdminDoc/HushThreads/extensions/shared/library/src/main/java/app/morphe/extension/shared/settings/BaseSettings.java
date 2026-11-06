@@ -79,12 +79,20 @@ public class BaseSettings {
     public static final BooleanSetting SETTINGS_SHORTCUT =
             new BooleanSetting("hushthreads_settings_shortcut", TRUE, false, false, null, null);
 
+    /** Whether the HushThreads row is in Threads' own settings. Another way in, kept like {@link #SETTINGS_SHORTCUT}. */
+    public static final BooleanSetting SETTINGS_ROW =
+            new BooleanSetting("hushthreads_settings_row", TRUE, false, false, null, null);
+
+    /** Whether a long press on the Threads logo opens the settings. Another way in, kept like {@link #SETTINGS_SHORTCUT}. */
+    public static final BooleanSetting SETTINGS_LOGO_PRESS =
+            new BooleanSetting("hushthreads_settings_logo_press", TRUE, false, false, null, null);
+
     static {
         // HushThreads's own state and its diagnostics, which keep working while it is paused.
         Setting.keepWhenPaused(DEBUG, DEBUG_LOG_FILTERS, CAPTURE_JAVA_CRASHES, DEBUG_STACKTRACE,
                 DEBUG_TOAST_ON_ERROR, CHECK_ENVIRONMENT_WARNINGS_ISSUED, MORPHE_LANGUAGE, SHOW_MENU_ICONS,
                 FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE, HIDE_QUICK_SETUPS,
-                SETTINGS_SHORTCUT);
+                SETTINGS_SHORTCUT, SETTINGS_ROW, SETTINGS_LOGO_PRESS);
 
         final long now = System.currentTimeMillis();
 

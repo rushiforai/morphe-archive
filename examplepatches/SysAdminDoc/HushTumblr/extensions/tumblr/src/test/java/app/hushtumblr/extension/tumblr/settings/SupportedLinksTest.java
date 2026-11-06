@@ -269,7 +269,7 @@ public class SupportedLinksTest {
         ShadowLooper.idleMainLooper();
         assertNull(shadowOf(controller.get()).getNextStartedActivity());
         assertEquals("Android's settings for this app didn't open. Open App info from Tumblr's icon, then Open by default.",
-                ShadowToast.getTextOfLatestToast());
+                SettingsFeedbackTest.message(row));
     }
 
     /**

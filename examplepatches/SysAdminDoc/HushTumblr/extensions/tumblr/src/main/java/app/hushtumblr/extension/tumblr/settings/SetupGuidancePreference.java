@@ -14,6 +14,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.DialogPreference;
@@ -26,12 +27,13 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.Logger;
-import app.hushtumblr.extension.shared.Utils;
 
 /** Optional guidance. Reading it changes no settings, accounts or stored app data. */
 @SuppressWarnings("deprecation")
@@ -43,6 +45,11 @@ public final class SetupGuidancePreference extends DialogPreference {
     private static final String DATA_HELP = "https://help.tumblr.com/knowledge-base/manage-account-and-privacy-data/";
     private final Activity host;
     private Session session;
+    /**
+     * What the last help button left to do. It outlives one opening only when Android rebuilds the
+     * screen with the guide open, and the settings page saves and restores it for that.
+     */
+    final SettingsFeedback feedback = new SettingsFeedback();
 
     public SetupGuidancePreference(Context context) {
         super(HushTumblrPreferenceFragment.themed(context));
@@ -76,19 +83,22 @@ public final class SetupGuidancePreference extends DialogPreference {
             Session opened = session;
             opened.dialog = (AlertDialog) getDialog();
             ScreenColors.dialog(opened.dialog);
+            setSummary(L10n.t(getContext(), "Optional help with sign-in, supported links, patch choices and backups."));
             opened.refreshLinks();
         } catch (RuntimeException failure) {
             Logger.printInfo(() -> "Setup guide could not open: " + failure.getClass().getSimpleName());
             if (session != null) session.close();
             session = null;
             if (getDialog() != null) getDialog().dismiss();
-            Utils.showToastLong(L10n.t(getContext(), "Couldn't open the setup guide. Try again."));
+            setSummary(L10n.t(getContext(), "Couldn't open the setup guide. Try again."));
         }
     }
 
     @Override protected void onDialogClosed(boolean positiveResult) {
         if (session != null) session.close();
         session = null;
+        // The next opening starts clean.
+        if (feedback.message() != null) feedback.clear();
         super.onDialogClosed(positiveResult);
     }
 
@@ -129,6 +139,9 @@ public final class SetupGuidancePreference extends DialogPreference {
         final LinearLayout content = new LinearLayout(getContext());
         final List<Button> actions = new ArrayList<>();
         final TextView links;
+        final LinearLayout feedbackRegion = new LinearLayout(getContext());
+        /** The button whose action is running, for its result to show right under it. */
+        View tapped;
         AlertDialog dialog;
         boolean closed;
 
@@ -172,6 +185,9 @@ public final class SetupGuidancePreference extends DialogPreference {
                 + "app and its data."));
             paragraph(L10n.t(getContext(), "Tumblr's data export is separate from Export settings. To get a copy of your personal data, sign in on Tumblr's website with the account you're already using and ask for it in Settings, under Privacy. Tumblr's apps can't make that request. Exporting a blog's posts is a different Tumblr feature with its own help article."));
             action(L10n.t(getContext(), "Tumblr data export help"), () -> openHelp(DATA_HELP));
+            feedbackRegion.setOrientation(LinearLayout.VERTICAL);
+            content.addView(feedbackRegion, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            feedback.bind(feedbackRegion, this::alive);
         }
 
         boolean alive() {
@@ -200,7 +216,25 @@ public final class SetupGuidancePreference extends DialogPreference {
                 }
             }
             Logger.printInfo(() -> "No settings page opened from setup guidance");
-            Utils.showToastLong(L10n.t(getContext(), "Android's settings for this app didn't open. Open App info from Tumblr's icon, then Open by default."));
+            report(L10n.t(getContext(), "Android's settings for this app didn't open. Open App info from Tumblr's icon, then Open by default."), null);
+        }
+
+        /**
+         * Shows [text] right under the button that was tapped and scrolls it into view. At the end
+         * of the scrolled guidance, large text left it out of sight below the buttons.
+         */
+        void report(String text, @Nullable String address) {
+            View under = tapped;
+            if (under != null && under.getParent() == content) {
+                content.removeView(feedbackRegion);
+                content.addView(feedbackRegion, content.indexOfChild(under) + 1, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            }
+            feedback.show(text, address);
+            feedbackRegion.post(() -> {
+                if (alive()) feedbackRegion.requestRectangleOnScreen(
+                        new Rect(0, 0, feedbackRegion.getWidth(), feedbackRegion.getHeight()), true);
+            });
         }
 
         void openHelp(String address) {
@@ -209,7 +243,7 @@ public final class SetupGuidancePreference extends DialogPreference {
                 host.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(address)).addCategory(Intent.CATEGORY_BROWSABLE));
             } catch (RuntimeException unavailable) {
                 Logger.printInfo(() -> "No app opened a setup help link");
-                Utils.showToastLong(L10n.f(getContext(), "No app on this phone can open the link. The address is %1$s.", L10n.isolate(address)));
+                report(L10n.f(getContext(), "No app on this phone can open the link. The address is %1$s.", L10n.isolate(address)), address);
             }
         }
 
@@ -259,7 +293,11 @@ public final class SetupGuidancePreference extends DialogPreference {
             size.bottomMargin = dp(8);
             content.addView(button, size);
             actions.add(button);
-            button.setOnClickListener(view -> { if (alive()) action.run(); });
+            button.setOnClickListener(view -> {
+                if (!alive()) return;
+                tapped = view;
+                action.run();
+            });
         }
 
         int dp(int value) {

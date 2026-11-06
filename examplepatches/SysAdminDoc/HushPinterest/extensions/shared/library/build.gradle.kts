@@ -7,7 +7,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // This library only ever runs inside Pinterest. 14.42.0 declares minSdk 29, so the floor matches
+        // This library only ever runs inside Pinterest. 14.43.0 declares minSdk 29, so the floor matches
         // the host's and the SDK_INT guards stay live.
         minSdk = 29
     }

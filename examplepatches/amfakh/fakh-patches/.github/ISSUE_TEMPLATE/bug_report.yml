@@ -1,0 +1,101 @@
+name: Bug report
+description: A patch fails to apply, a patched app crashes, or a feature does not work
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > **Before you report**
+        > - Use the [latest patches](https://github.com/amfakh/fakh-patches/releases/latest).
+        > - Use an app version listed in the [README](https://github.com/amfakh/fakh-patches#readme). Other versions might not be supported.
+        > - [Search existing issues](https://github.com/amfakh/fakh-patches/issues?q=is%3Aissue) to see if it was already reported.
+  - type: input
+    id: app
+    attributes:
+      label: App
+      placeholder: Smart Life
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      placeholder: 7.12.3
+    validations:
+      required: true
+  - type: input
+    id: apk-source
+    attributes:
+      label: Where did you download the app?
+      placeholder: APKMirror, APKPure
+    validations:
+      required: true
+  - type: input
+    id: patches-version
+    attributes:
+      label: Patches version
+      placeholder: 1.11.3
+    validations:
+      required: true
+  - type: input
+    id: patches-off
+    attributes:
+      label: Patches you changed
+      description: Leave this empty if you used the default selection.
+      placeholder: Turned off Disable analytics
+  - type: input
+    id: device
+    attributes:
+      label: Phone model and Android version
+      placeholder: Pixel 8, Android 16
+    validations:
+      required: true
+  - type: dropdown
+    id: unpatched
+    attributes:
+      label: Does the same thing happen in the unpatched app?
+      options:
+        - "Yes"
+        - "No"
+        - Not tested
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened
+      description: Where in the app it happens and what you expected.
+      placeholder: The video tab shows a blank screen instead of the feed. I expected the videos to load.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Go to the screen where it happens
+        3. Tap the button that fails
+  - type: textarea
+    id: proof
+    attributes:
+      label: Proof
+      description: Drag images or videos here.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        - Patching failed: in Morphe Manager, go to `Settings > System > About > Export debug logs` and paste the content here.
+        - The patched app crashes or misbehaves: run `adb logcat -d` on a computer (or in Termux with Wireless debugging) right after it happens and paste the output here. Export debug logs does not include the patched app.
+
+        If the log is very large, attach the file under Proof instead. Skip this if you can't get one.
+      render: shell
+  - type: textarea
+    id: solution
+    attributes:
+      label: Possible solution
+      description: If you have an idea of the cause or a fix.
+      placeholder: It only breaks with the Disable analytics patch on, so that patch may hide something the app needs.

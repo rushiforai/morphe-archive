@@ -1,5 +1,8 @@
 package app.fakh.extension.smartlife;
 
+import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -13,6 +16,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -52,11 +57,15 @@ public final class SignatureSpoof {
     private static Signature tuyaSmartSignature;
     private static boolean installed;
 
+    /** How many getPackageInfo reads are logged per process, so a chatty app does not flood the log. */
+    private static final int MAX_LOGGED_READS = 20;
+    private static int loggedReads;
+
     private SignatureSpoof() {
     }
 
     /** Installs the proxy once. Safe to call more than once and never throws into the caller. */
-    public static synchronized void install() {
+    public static synchronized void install(Context context) {
         if (installed) return;
         installed = true;
         try {
@@ -82,9 +91,79 @@ public final class SignatureSpoof {
             // Any ApplicationPackageManager the app creates after this reads sPackageManager, so it picks up
             // the proxy; install() runs before the app first touches its PackageManager.
             Log.w(TAG, "signature spoof installed");
+            logExitCaller();
+            logLastExits(context);
+            logSeenSignature(context);
         } catch (Throwable t) {
             Log.w(TAG, "signature spoof failed", t);
         }
+    }
+
+    /** Called instead of the app's integrity kill, which only runs once the native check has failed. */
+    public static void logIntegrityKill() {
+        Log.w(TAG, "native integrity check failed, kill skipped");
+    }
+
+    /**
+     * Logs the certificate the app gets from its own PackageManager. Unlike a read of the proxy this goes through
+     * the system's PackageInfo cache, so a value cached before install() shows up here as the real certificate.
+     */
+    private static void logSeenSignature(Context context) throws Exception {
+        String packageName = context.getPackageName();
+        Signature[] seen = context.getPackageManager()
+            .getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures;
+        boolean original = seen != null && seen.length > 0 && seen[0].equals(originalFor(packageName));
+        Log.w(TAG, "certificate seen by the app: " + (original ? "original " : "NOT original ") + describe(seen));
+    }
+
+    /**
+     * Logs which Java thread ends the process. A shutdown hook runs on System.exit only, so no line from this hook
+     * means the process ended from native code or by a signal.
+     */
+    private static void logExitCaller() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Log.w(TAG, "process exiting from Java");
+            for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
+                String stack = Arrays.toString(entry.getValue());
+                if (stack.contains("java.lang.Runtime.exit") || stack.contains("java.lang.Shutdown")) {
+                    Log.w(TAG, "exit caller " + entry.getKey().getName() + ": " + stack);
+                }
+            }
+        }));
+    }
+
+    /** Logs how the last runs of this app ended, as the system recorded it: self exit, signal, crash, and the status. */
+    private static void logLastExits(Context context) {
+        if (Build.VERSION.SDK_INT < 30) return;
+        for (ApplicationExitInfo exit : context.getSystemService(ActivityManager.class)
+            .getHistoricalProcessExitReasons(context.getPackageName(), 0, 3)) {
+            Log.w(TAG, "last exit: " + exit.getProcessName() + " reason=" + exit.getReason()
+                + " status=" + exit.getStatus() + " description=" + exit.getDescription());
+        }
+    }
+
+    /** The number of certificates in [signatures] and the SHA-1 of the first one. */
+    private static String describe(Signature[] signatures) {
+        if (signatures == null || signatures.length == 0) return "none";
+        try {
+            StringBuilder sha1 = new StringBuilder();
+            for (byte b : MessageDigest.getInstance("SHA-1").digest(signatures[0].toByteArray())) {
+                sha1.append(String.format("%02x", b));
+            }
+            return signatures.length + " sha1=" + sha1;
+        } catch (Exception e) {
+            return signatures.length + " sha1 unavailable";
+        }
+    }
+
+    /** Logs a certificate read of this app that reached the proxy, after the certificate was rewritten. */
+    private static synchronized void logRead(Object[] args, Object result) {
+        if (!(result instanceof PackageInfo) || loggedReads >= MAX_LOGGED_READS) return;
+        PackageInfo info = (PackageInfo) result;
+        if (originalFor(info.packageName) == null || info.signatures == null) return;
+        loggedReads++;
+        Log.w(TAG, "getPackageInfo flags=" + args[1] + " thread=" + Thread.currentThread().getName()
+            + " signatures=" + describe(info.signatures));
     }
 
     /** The original certificate of [packageName], or null when it is not one of the apps this patch is for. */
@@ -194,7 +273,8 @@ public final class SignatureSpoof {
                 throw e.getCause() != null ? e.getCause() : e;
             }
             if ("getPackageInfo".equals(method.getName())) {
-                return patch(result);
+                patch(result);
+                logRead(args, result);
             }
             return result;
         }

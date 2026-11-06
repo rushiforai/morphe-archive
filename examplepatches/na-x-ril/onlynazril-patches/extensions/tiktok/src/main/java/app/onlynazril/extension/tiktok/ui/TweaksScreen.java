@@ -5,7 +5,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -254,7 +253,7 @@ public final class TweaksScreen {
         column.addView(section(context, "About"));
         column.addView(description(
                 context,
-                "Tweaks for TikTok 47.0.3 and 47.1.4. "
+                "Tweaks for TikTok 47.7.1 and 47.7.2. "
                         + "The display name is read, never rewritten."));
         column.addView(diagnostics(context));
         column.addView(actions(context));
@@ -274,6 +273,7 @@ public final class TweaksScreen {
         view.setText(body() + "\nTap to copy");
         view.setTextSize(Tokens.ROW_SUMMARY_SP);
         view.setTextColor(Tokens.TEXT_SECONDARY);
+        view.setTypeface(Fonts.face(false));
         view.setLineSpacing(Tokens.dp(context, Tokens.SPACE_1), 1f);
         view.setPadding(
                 Tokens.dp(context, Tokens.SPACE_4),
@@ -335,7 +335,7 @@ public final class TweaksScreen {
         TextView title = new TextView(context);
         title.setText("Tweaks");
         title.setTextSize(Tokens.TITLE_SP);
-        title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        title.setTypeface(Fonts.face(true));
         title.setTextColor(Tokens.TEXT_PRIMARY);
         block.addView(title);
 
@@ -344,6 +344,7 @@ public final class TweaksScreen {
                 + "download, profile background, custom font");
         subtitle.setTextSize(Tokens.SUBTITLE_SP);
         subtitle.setTextColor(Tokens.TEXT_SECONDARY);
+        subtitle.setTypeface(Fonts.face(false));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.topMargin = Tokens.dp(context, Tokens.SPACE_1);
@@ -358,6 +359,7 @@ public final class TweaksScreen {
         view.setTextSize(Tokens.SECTION_SP);
         view.setLetterSpacing(0.14f);
         view.setTextColor(Tokens.TEXT_SECONDARY);
+        view.setTypeface(Fonts.face(false));
         view.setPadding(
                 Tokens.dp(context, Tokens.SPACE_4),
                 Tokens.dp(context, Tokens.SPACE_6),
@@ -371,6 +373,7 @@ public final class TweaksScreen {
         view.setText(text);
         view.setTextSize(Tokens.ROW_SUMMARY_SP);
         view.setTextColor(Tokens.TEXT_SECONDARY);
+        view.setTypeface(Fonts.face(false));
         view.setLineSpacing(Tokens.dp(context, Tokens.SPACE_1), 1f);
         view.setPadding(
                 Tokens.dp(context, Tokens.SPACE_4),

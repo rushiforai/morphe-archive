@@ -109,8 +109,11 @@ Implemented routes include public info, synthetic authentication/user/views,
 items/details/latest/counts, artists/album artists/genres, favorites, playback
 info/reports, primary artwork, lyrics, and direct audio. Normal Finamp playback
 uses `/Items/{id}/File`; `/Audio/{id}/Universal` and WAV stream aliases also work.
-Query results preserve full `TotalRecordCount` before pagination. `Fields` does
-not trim metadata. HLS/transcoding is 501; PlayOn WebSockets, playlist CRUD,
+Query results preserve full `TotalRecordCount` before pagination. The `notes`
+profile removes album and track `Overview` from list results unless `Fields`
+requests it; item details still include it. Other profiles do not trim metadata.
+The notes profile supplies synthetic album and track descriptions to exercise
+online display and download sync. HLS/transcoding is 501; PlayOn WebSockets, playlist CRUD,
 metadata writes/deletion, and real accounts are absent. `/socket` 404s are known
 non-blocking PlayOn noise. Unknown calls remain explicit in the request log.
 
@@ -235,6 +238,21 @@ Auxiliary-file hashing now checks a real stat size first, so remote cat diagnost
 cannot masquerade as file contents. The initial authoring-run mask-0 raw auxiliary
 probe was not verified and must not be used as an existence claim.
 
+
+## Album and track information profile
+
+Start the owned fixture with `android_acceptance.py start-fixture --profile notes`.
+After setting up the synthetic login, `notes_acceptance.py --stage before` and
+`--stage after` capture the original and same-key patched APK; `--stage offline`
+downloads the synthetic album if needed, removes the ADB fixture connection and
+checks both descriptions offline. Each invocation requires explicit `--apk`,
+`--sha256`, `--out`, `--adb` and `--apksigner` arguments. The default signer is
+the documented disposable test key. To test the separately signed Finamp CI
+debug package, also specify `--package com.unicornsonlsd.finamp.debug` and its
+verified `--signer-sha256`. These tests never target the user's physical device.
+`notes_lifecycle.py` runs the same-key original → patch → original → patch
+sequence and verifies the synthetic login and downloaded-file hashes after each
+step; use `--help` for the required explicit APK and native hashes.
 
 ## Alphabet-navigation profile
 

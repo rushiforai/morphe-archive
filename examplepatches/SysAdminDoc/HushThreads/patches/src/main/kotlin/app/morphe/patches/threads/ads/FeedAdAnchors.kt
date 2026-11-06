@@ -42,6 +42,41 @@ internal object FeedPageMergeFingerprint : Fingerprint(
 )
 
 /**
+ * For You's other cache, which Threads uses in place of the feed cache's handler when two of its
+ * flags are on. Its pages go into the spool's model pool and never reach [FEED_CACHE]'s merge. The
+ * name survives Redex.
+ */
+internal const val SPOOL_FEED_CACHE = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaSpoolFeedCacheHandler;"
+
+/**
+ * The spool cache's merge of one fetched For You page: a suspend function taking the page's items,
+ * the same feed items [FeedPageMergeFingerprint]'s page holds, as its sixth parameter. It's the
+ * one method of the class that takes a page with both callbacks, and it hands the page on to the
+ * spool's model pool.
+ */
+internal object SpoolFeedPageMergeFingerprint : Fingerprint(
+    definingClass = SPOOL_FEED_CACHE,
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(
+        "L", "L", "Ljava/lang/Integer;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;",
+        "L", "Lkotlin/jvm/functions/Function0;", "Lkotlin/jvm/functions/Function3;",
+    ),
+    filters = listOf(
+        methodCall(definingClass = "Lcom/instagram/barcelona/spool/core/modelpool/BcnSpoolModelPoolImpl;"),
+    ),
+)
+
+/**
+ * For You's local data source, the abstract class both For You handlers extend. Among its methods
+ * is the insert of one feed item at a position in a page the cache already holds, which is how
+ * Threads places an ad it got apart from a page fetch. The name survives Redex.
+ */
+internal const val FOR_YOU_LOCAL_SOURCE = "Lcom/instagram/barcelona/feed/data/cache/ForYouFeedLocalDataSource;"
+
+/** For You's handler over [FEED_CACHE], the one Threads uses unless the spool's flags are on. The name survives Redex. */
+internal const val FEED_CACHE_HANDLER = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCacheHandler;"
+
+/**
  * Threads' check of whether a post carries the "injected" block the server puts on an ad. A static
  * boolean method taking the post's fragment. It reads a field by a hash whose name the app doesn't
  * keep, then the "injected" field of that, and answers whether there is one. The first hash is

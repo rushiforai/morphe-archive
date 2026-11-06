@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     The Threads source ledger, sources/threads-sources.json: reading it, holding it to its rules,
-    and the census age a release is held to.
+    and how old its census is.
 
 .DESCRIPTION
     Dot-source this. The ledger names every patch source, Xposed module and archive found for
@@ -21,9 +21,9 @@
     - Every index people find patch sources through records whether HushThreads is listed there,
       when that was checked, or the dated submission.
 
-    scripts/audit-threads-sources.ps1 refreshes the ledger against those indexes and the forges.
-    validate-release-facts.ps1 refuses a release whose census is more than two weeks old. Nothing in
-    this file reads the network or any source's code.
+    scripts/audit-threads-sources.ps1 refreshes the ledger against those indexes and the forges. It's
+    a research tool, and no release waits on it. Nothing in this file reads the network or any
+    source's code.
 #>
 
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
@@ -42,7 +42,7 @@ function Get-SourceRelatedPackages {
 }
 
 function Get-SourceCensusMaxAgeDays {
-    # A release goes out on a census no older than this. Threads ships weekly and so do the busier
+    # The audit calls a census older than this stale. Threads ships weekly and so do the busier
     # sources, so two weeks is one missed cycle, not two.
     return 14
 }
@@ -536,7 +536,7 @@ function Test-SourceLedger {
 function Test-SourceCensus {
     <#
     .SYNOPSIS
-        Whether the census is recent enough for a release: at most Get-SourceCensusMaxAgeDays old,
+        Whether the census is current: at most Get-SourceCensusMaxAgeDays old,
         and not dated in the future.
     #>
     param([Parameter(Mandatory = $true)]$Ledger, [string]$Today)
@@ -559,54 +559,4 @@ function Test-SourceCensus {
             Reason = "the census is $age days old (checked $checkedText) and a release needs one from the last $limit days" }
     }
     return [pscustomobject]@{ Valid = $true; AgeDays = $age; CheckedAt = $checkedText; Reason = $null }
-}
-
-function Test-SourceListings {
-    <#
-    .SYNOPSIS
-        Whether every index records HushThreads as listed, or a dated submission to it.
-    #>
-    param([Parameter(Mandatory = $true)]$Ledger)
-    $pending = @(Get-SourceProperty $Ledger 'indexes' | Where-Object { $null -ne $_ } | Where-Object {
-        [string](Get-SourceProperty (Get-SourceProperty $_ 'hushthreads') 'status') -notin @('listed', 'submitted') } |
-        ForEach-Object { [string](Get-SourceProperty $_ 'name') })
-    return [pscustomobject]@{ Valid = ($pending.Count -eq 0); Pending = [string[]]$pending }
-}
-
-function Test-SourceReleaseGate {
-    <#
-    .SYNOPSIS
-        What a release is held to: a ledger that passes every rule, including a dated record of
-        whether each index lists HushThreads, and a census from the last two weeks. An index that
-        doesn't list it yet is named in the summary rather than holding the release: submitting
-        is a request made in public on someone else's project, and a release can't wait on it.
-    #>
-    param([Parameter(Mandatory = $true)][string]$Root, [string]$Today)
-
-    $path = Get-SourceLedgerPath -Root $Root
-    try {
-        $ledger = Read-SourceLedger -Path $path
-    } catch {
-        return [pscustomobject]@{ Valid = $false; Reason = $_.Exception.Message; Summary = $null }
-    }
-    $rules = Test-SourceLedger -Ledger $ledger -Root $Root -Today $Today
-    if (-not $rules.Valid) {
-        return [pscustomobject]@{ Valid = $false; Summary = $null
-            Reason = "the Threads source ledger breaks its rules: $(($rules.Problems | Select-Object -First 5) -join ' ')" }
-    }
-    $census = Test-SourceCensus -Ledger $ledger -Today $Today
-    if (-not $census.Valid) {
-        return [pscustomobject]@{ Valid = $false; Summary = $null
-            Reason = "$($census.Reason). Run scripts/audit-threads-sources.ps1, settle what it reports, and commit the ledger it stamps." }
-    }
-    $listings = Test-SourceListings -Ledger $ledger
-    $entries = @(Get-SourceProperty $ledger 'entries' | Where-Object { $null -ne $_ })
-    $lineages = @($entries | ForEach-Object { [string](Get-SourceProperty $_ 'lineage') } | Sort-Object -Unique)
-    $indexes = if ($listings.Valid) { 'every index lists HushThreads or has its submission' } else {
-        'HushThreads is not listed on ' + ($listings.Pending -join ', ') +
-            ' yet and has no submission recorded there (submit it, then record the URL and date)'
-    }
-    return [pscustomobject]@{ Valid = $true; Reason = $null
-        Summary = ("the Threads source census is $($census.AgeDays) day(s) old ($($census.CheckedAt)), " +
-            "$($entries.Count) sources in $($lineages.Count) lineages, and $indexes") }
 }

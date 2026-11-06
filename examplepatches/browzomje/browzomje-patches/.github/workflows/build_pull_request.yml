@@ -18,7 +18,19 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
+
+      - name: Pinterest JVM regressions
+        run: |
+          python3 -m venv "$RUNNER_TEMP/pinterest-tests"
+          "$RUNNER_TEMP/pinterest-tests/bin/python" -m pip install Pillow
+          export PINTEREST_JSON_JAR="$RUNNER_TEMP/pinterest-tests/json.jar"
+          curl --fail --silent --show-error --location \
+            https://repo.maven.apache.org/maven2/org/json/json/20240303/json-20240303.jar \
+            --output "$PINTEREST_JSON_JAR"
+          for test in tests/pinterest/test_*.py; do
+            "$RUNNER_TEMP/pinterest-tests/bin/python" "$test"
+          done
 
       - name: Cache Gradle
         uses: burrunan/gradle-cache-action@v3

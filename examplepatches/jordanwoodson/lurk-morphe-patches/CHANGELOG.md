@@ -1,3 +1,31 @@
+## [1.16.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.0...v1.16.1) (2026-11-05)
+
+### Rumble
+
+#### 🐛 Bug Fixes
+
+* target Rumble 3.21.0 again, which Morphe Manager can download ([8e9dd47](https://github.com/jordanwoodson/lurk-morphe-patches/commit/8e9dd4739a222898f3105332114228b8450a55a6))
+
+### Twitch
+
+#### 🐛 Bug Fixes
+
+* target Twitch 31.8.0 again, which Morphe Manager can download ([8eb02fc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/8eb02fc0584a4c2fb6d794f2352370e526325db5))
+
+## [1.16.1-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.0...v1.16.1-dev.1) (2026-11-05)
+
+### Rumble
+
+#### 🐛 Bug Fixes
+
+* target Rumble 3.21.0 again, which Morphe Manager can download ([8e9dd47](https://github.com/jordanwoodson/lurk-morphe-patches/commit/8e9dd4739a222898f3105332114228b8450a55a6))
+
+### Twitch
+
+#### 🐛 Bug Fixes
+
+* target Twitch 31.8.0 again, which Morphe Manager can download ([8eb02fc](https://github.com/jordanwoodson/lurk-morphe-patches/commit/8eb02fc0584a4c2fb6d794f2352370e526325db5))
+
 ## [1.16.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.15.1...v1.16.0) (2026-11-04)
 
 ### Kick

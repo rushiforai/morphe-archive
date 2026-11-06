@@ -3,14 +3,17 @@ import java.time.LocalDateTime
 
 group = "app.morphe"
 
+// gradle.properties; the extension's report screen links to it too, and its build script checks the form.
+val projectUrl = providers.gradleProperty("projectUrl").get().trim()
+
 patches {
     about {
         name = "Maps Automotive Patches"
         description = "Google Maps Automotive for MicroG-RE 7.3.0 on BYD DiLink 3 (Android 10), applied with Morphe Desktop"
-        source = "https://github.com/fangkampanat/google-maps-automotive-patches"
+        source = projectUrl
         author = "fangkampanat"
-        contact = "https://github.com/fangkampanat/google-maps-automotive-patches/issues"
-        website = "https://github.com/fangkampanat/google-maps-automotive-patches"
+        contact = "$projectUrl/issues"
+        website = projectUrl
         license = "GNU General Public License v3.0, with additional GPL section 7 requirements"
     }
 }
@@ -72,8 +75,7 @@ tasks {
             }
 
             val downloadUrl = bundle["download_url"] as? String
-            val expectedUrl = "https://github.com/fangkampanat/google-maps-automotive-patches/releases/download/" +
-                "v$expectedVersion/patches-$expectedVersion.mpp"
+            val expectedUrl = "$projectUrl/releases/download/v$expectedVersion/patches-$expectedVersion.mpp"
             if (downloadUrl != expectedUrl) {
                 throw GradleException("patches-bundle.json download_url \"$downloadUrl\" must be \"$expectedUrl\"")
             }

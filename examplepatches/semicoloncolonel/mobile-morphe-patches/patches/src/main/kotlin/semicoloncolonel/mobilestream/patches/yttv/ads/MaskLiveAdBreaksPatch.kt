@@ -58,6 +58,8 @@ val maskLiveAdBreaksPatch = bytecodePatch(
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
+    dependsOn(cuePointProviderHookPatch, streamTypePatch)
+
     extendWith("extensions/extension.mpe")
 
     execute {

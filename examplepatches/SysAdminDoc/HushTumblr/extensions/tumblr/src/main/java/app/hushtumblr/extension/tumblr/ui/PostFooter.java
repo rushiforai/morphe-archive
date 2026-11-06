@@ -51,7 +51,10 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * blanks the count Tumblr bolds in it along with it), and {@link #notesTitle} does the same for the
  * count at the top of a post's notes. Each reaction button writes its emoji and how many reacted,
  * and {@link #communityReactionsText} leaves just the emoji. The comment, reblog and like tabs on a
- * post's notes each show a count as well, which {@link #hideNotesTabCounts} leaves blank.
+ * post's notes each show a count as well, which {@link #hideNotesTabCounts} leaves blank, and each
+ * comment there writes its own reply and like counts through {@link #commentCount}. Those two
+ * buttons also tell TalkBack their counts, which {@link #commentRepliesDescription} and
+ * {@link #commentLikesDescription} keep it from saying.
  */
 public final class PostFooter {
     private PostFooter() {}
@@ -73,6 +76,9 @@ public final class PostFooter {
     static final String COMMENTS_LABEL = "comments";
     static final String NOTES_LABEL = "notification_channel_name_notes_v2";
 
+    /** Tumblr's own word for a like button, by its string name. */
+    static final String LIKE_LABEL = "alt_text_like_btn";
+
     /** The longest label taken from Tumblr; anything longer isn't the word wanted. */
     private static final int LONGEST_LABEL = 40;
 
@@ -85,13 +91,60 @@ public final class PostFooter {
      * switch off, paused, before HushTumblr has its settings, or when anything here fails.
      */
     public static int noteCount(int count) {
+        return countOrZero(count, "count hidden");
+    }
+
+    /**
+     * Injected first thing where a comment in a post's notes writes its reply count, and where it
+     * writes its like count. Zero while Hide note counts is on, which Tumblr shows as its "Reply"
+     * label and no like count, with both buttons kept. Tumblr hands the comment's own count in on
+     * every bind, so the count is back on the next bind with the switch off. The count itself with
+     * the switch off, paused, before HushTumblr has its settings, or when anything here fails.
+     */
+    public static int commentCount(int count) {
+        return countOrZero(count, "comment card count hidden");
+    }
+
+    /**
+     * Injected right after {@link #commentCount} where a comment writes its reply count, on the
+     * reply button. Tumblr sets that button's spoken description only for a count, so a card that
+     * showed one before would still say it once its count is hidden. Clears it while Hide note
+     * counts is on, and TalkBack reads the "Reply" label the button shows. Leaves it alone with the
+     * switch off, paused, before HushTumblr has its settings, or when anything here fails.
+     */
+    public static void commentRepliesDescription(@Nullable View view) {
+        if (view == null || !Utils.settingsReady()) return;
+        try {
+            if (!PatchFamily.Capability.NOTE_COUNTS.installed()) return;
+            HookStatus.invoked(FamilyNames.HIDE_NOTE_COUNTS);
+            if (!Settings.HIDE_NOTE_COUNTS.get() || view.getContentDescription() == null) return;
+            view.setContentDescription(null);
+            HookStatus.counted(FamilyNames.HIDE_NOTE_COUNTS, "comment reply description cleared");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_NOTE_COUNTS, "comment reply description", failure);
+        }
+    }
+
+    /**
+     * Injected where a comment's like button sets its spoken description, "3 likes" from the count
+     * {@link #commentCount} handed it, so "0 likes" while that count is hidden. Tumblr's own "Like"
+     * in its place while Hide note counts is on, so TalkBack says no number. The description itself
+     * otherwise. Never throws.
+     */
+    public static CharSequence commentLikesDescription(CharSequence text) {
+        String word = wordFor(text, LIKE_LABEL, () -> L10n.t("Like"), "comment like description swapped");
+        return word != null ? word : text;
+    }
+
+    /** Zero while Hide note counts is on, counted under {@code counted}, and {@code count} otherwise. Never throws. */
+    private static int countOrZero(int count, String counted) {
         // Tumblr builds footers while it starts, before HushTumblr may read a switch.
         if (!Utils.settingsReady()) return count;
         try {
             if (!PatchFamily.Capability.NOTE_COUNTS.installed()) return count;
             HookStatus.invoked(FamilyNames.HIDE_NOTE_COUNTS);
             if (count == 0 || !Settings.HIDE_NOTE_COUNTS.get()) return count;
-            HookStatus.counted(FamilyNames.HIDE_NOTE_COUNTS, "count hidden");
+            HookStatus.counted(FamilyNames.HIDE_NOTE_COUNTS, counted);
             return 0;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_NOTE_COUNTS, "switch read", failure);
@@ -181,7 +234,7 @@ public final class PostFooter {
 
     /** The word that goes in place of [text] while counts are hidden, or null to leave [text] alone. */
     @Nullable
-    private static String wordFor(String text, String label, Supplier<String> own, String counted) {
+    private static String wordFor(CharSequence text, String label, Supplier<String> own, String counted) {
         if (text == null || !Utils.settingsReady()) return null;
         try {
             if (!PatchFamily.Capability.NOTE_COUNTS.installed()) return null;

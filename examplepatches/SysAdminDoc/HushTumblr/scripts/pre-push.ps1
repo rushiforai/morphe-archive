@@ -882,6 +882,17 @@ try {
         if ($releaseGate) {
             Write-Step 'release push: building the bundle and patching every declared fixture with it'
             $tasks += ':patches:buildAndroid'
+            # The release build signs its bundle with this key (release.ps1), so the gate signs this
+            # one with it too. An Ed25519 signature is deterministic, so the two bundles come out byte
+            # for byte the same, and the applied records written here for this bundle's hash are the
+            # ones the release walk finds. This hook runs in a process of its own, so the key goes
+            # when it ends.
+            if ([string]::IsNullOrWhiteSpace($env:MORPHE_SIGNING_KEY)) {
+                $env:MORPHE_SIGNING_KEY = [Environment]::GetEnvironmentVariable('HUSHTUMBLR_BUNDLE_SIGNING_KEY', 'User')
+            }
+            if ([string]::IsNullOrWhiteSpace($env:MORPHE_SIGNING_KEY)) {
+                throw 'A release push signs the bundle, and HUSHTUMBLR_BUNDLE_SIGNING_KEY is not set. Set the User variable, then push again.'
+            }
         }
         # A quick pass first: everything but the fixture suite and the bundle, so a slip in a unit
         # test or a lint stops the push in minutes instead of behind :patches:fixtureTest (Hushfeed's

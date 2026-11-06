@@ -63,13 +63,16 @@ final class ReportStore {
         boolean shrunk;
         /** The newest crash file in the report, marked seen once the report is queued. */
         String crash;
+        /** The patch and app versions in the report, for its GitHub issue; null in entries from before 0.1.5. */
+        String patchesVersion, appVersion;
 
         JSONObject toJson() throws JSONException {
             JSONObject json = new JSONObject();
             json.put("key", key).put("state", state).put("created", created).put("next", next).put("attempts", attempts)
                     .put("bytes", bytes).put("shrunk", shrunk);
             json.putOpt("error", error).putOpt("id", id).putOpt("delete_token", deleteToken).putOpt("received_at", receivedAt)
-                    .putOpt("expires_at", expiresAt).putOpt("crash", crash);
+                    .putOpt("expires_at", expiresAt).putOpt("crash", crash).putOpt("patches_version", patchesVersion)
+                    .putOpt("app_version", appVersion);
             return json;
         }
 
@@ -88,6 +91,8 @@ final class ReportStore {
             entry.receivedAt = text(json, "received_at");
             entry.expiresAt = text(json, "expires_at");
             entry.crash = text(json, "crash");
+            entry.patchesVersion = text(json, "patches_version");
+            entry.appVersion = text(json, "app_version");
             return entry;
         }
 
@@ -495,8 +500,11 @@ final class ReportStore {
         return count;
     }
 
-    /** Queues the exact bytes the user agreed to send. Null when the queue is full or cannot be written. */
-    static synchronized Entry enqueue(Context context, byte[] body, String crash) {
+    /**
+     * Queues the exact bytes the user agreed to send, with the versions in them. Null when the queue is full or
+     * cannot be written.
+     */
+    static synchronized Entry enqueue(Context context, byte[] body, String crash, String patchesVersion, String appVersion) {
         lock(context);
         try {
             List<Entry> entries = readEntries(context);
@@ -509,6 +517,8 @@ final class ReportStore {
             entry.created = System.currentTimeMillis();
             entry.bytes = body.length;
             entry.crash = crash;
+            entry.patchesVersion = patchesVersion;
+            entry.appVersion = appVersion;
             try {
                 File dir = new File(root(context), QUEUE);
                 if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("no queue folder");

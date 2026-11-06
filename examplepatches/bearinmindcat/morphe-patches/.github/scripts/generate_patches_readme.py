@@ -53,13 +53,20 @@ VENDOR_GROUPS = [
     # OPPO's ColorOS, also OnePlus's OxygenOS and realme UI: apps carry the OnePlus or OPPO name.
     ("ColorOS Apps", ("oneplus ", "oppo ", "coloros ", "realme "),
      ("com.oneplus.", "net.oneplus.", "com.coloros.", "com.oplus.", "com.oppo."), ()),
+    # Home screen apps from every vendor get one dropdown of their own instead of sitting in their vendor's.
+    ("Launchers", "", (), ("com.sec.android.app.launcher", "com.hihonor.android.launcher", "com.android.launcher",
+                           "com.nothing.launcher", "net.oneplus.launcher")),
 ]
 
 
 def vendor_group(pkg):
-    """The vendor group an app is listed under, or None for a top-level app."""
+    """The vendor group an app is listed under, or None for a top-level app. A package named outright in a group
+    (the launchers) wins over a vendor's package prefix."""
     for group in VENDOR_GROUPS:
-        if pkg.startswith(group[2]) or pkg in group[3]:
+        if pkg in group[3]:
+            return group
+    for group in VENDOR_GROUPS:
+        if group[2] and pkg.startswith(group[2]):
             return group
     return None
 
@@ -112,6 +119,10 @@ APP_RENAMES = {
         '<img src="docs/icons/samsung-health-monitor.png" width="20" height="20" align="top"> Samsung Health Monitor',
         '<img src="docs/icons/samsung-health-monitor.png" width="20" height="20" align="top"> Samsung Health Monitor',
     ),
+    "com.sec.android.app.shealth": (
+        '<img src="docs/icons/samsung-health.png" width="20" height="20" align="top"> Samsung Health',
+        '<img src="docs/icons/samsung-health.png" width="20" height="20" align="top"> Samsung Health',
+    ),
     "com.samsung.android.video": (
         '<img src="docs/icons/samsung-video-player.png" width="20" height="20" align="top"> Samsung Video Player',
         '<img src="docs/icons/samsung-video-player.png" width="20" height="20" align="top"> Samsung Video Player',
@@ -144,6 +155,10 @@ APP_RENAMES = {
         '<img src="docs/icons/samsung-contacts.png" width="20" height="20" align="top"> Samsung Contacts',
         '<img src="docs/icons/samsung-contacts.png" width="20" height="20" align="top"> Samsung Contacts',
     ),
+    "com.samsung.android.dialer": (
+        '<img src="docs/icons/samsung-phone.png" width="20" height="20" align="top"> Samsung Phone',
+        '<img src="docs/icons/samsung-phone.png" width="20" height="20" align="top"> Samsung Phone',
+    ),
     "com.sec.android.app.clockpackage": (
         '<img src="docs/icons/samsung-clock.png" width="20" height="20" align="top"> Samsung Clock',
         '<img src="docs/icons/samsung-clock.png" width="20" height="20" align="top"> Samsung Clock',
@@ -155,6 +170,10 @@ APP_RENAMES = {
     "com.sec.android.app.voicenote": (
         '<img src="docs/icons/samsung-voice-recorder.png" width="20" height="20" align="top"> Samsung Voice Recorder',
         '<img src="docs/icons/samsung-voice-recorder.png" width="20" height="20" align="top"> Samsung Voice Recorder',
+    ),
+    "com.sec.android.app.launcher": (
+        '<img src="docs/icons/samsung-one-ui-home.png" width="20" height="20" align="top"> One UI Home',
+        '<img src="docs/icons/samsung-one-ui-home.png" width="20" height="20" align="top"> One UI Home',
     ),
     "com.miui.compass": (
         '<img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass',
@@ -200,6 +219,10 @@ APP_RENAMES = {
         '<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder',
         '<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder',
     ),
+    "com.nothing.launcher": (
+        '<img src="docs/icons/nothing-launcher.png" width="20" height="20" align="top"> Nothing Launcher',
+        '<img src="docs/icons/nothing-launcher.png" width="20" height="20" align="top"> Nothing Launcher',
+    ),
     "com.hihonor.calculator": (
         '<img src="docs/icons/honor-calculator.png" width="20" height="20" align="top"> Honor Calculator',
         '<img src="docs/icons/honor-calculator.png" width="20" height="20" align="top"> Honor Calculator',
@@ -231,6 +254,14 @@ APP_RENAMES = {
     "com.hihonor.notepad": (
         '<img src="docs/icons/honor-notes.png" width="20" height="20" align="top"> Honor Notes',
         '<img src="docs/icons/honor-notes.png" width="20" height="20" align="top"> Honor Notes',
+    ),
+    "com.hihonor.android.totemweather": (
+        '<img src="docs/icons/honor-weather.png" width="20" height="20" align="top"> Honor Weather',
+        '<img src="docs/icons/honor-weather.png" width="20" height="20" align="top"> Honor Weather',
+    ),
+    "com.hihonor.android.launcher": (
+        '<img src="docs/icons/honor-home.png" width="20" height="20" align="top"> Honor Home',
+        '<img src="docs/icons/honor-home.png" width="20" height="20" align="top"> Honor Home',
     ),
     "cn.nubia.gamelauncher": (
         '<img src="docs/icons/redmagic-game-space.png" width="20" height="20" align="top"> RedMagic Game Space',
@@ -285,6 +316,16 @@ APP_RENAMES = {
     "com.oneplus.soundrecorder": (
         '<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder',
         '<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder',
+    ),
+    # OnePlus System Launcher (ColorOS / OxygenOS 16 home screen, coloros-launcher)
+    "com.android.launcher": (
+        '<img src="docs/icons/coloros-launcher.png" width="20" height="20" align="top"> OnePlus System Launcher',
+        '<img src="docs/icons/coloros-launcher.png" width="20" height="20" align="top"> OnePlus System Launcher',
+    ),
+    # The old OxygenOS 11 launcher (2021), not ColorOS's System Launcher.
+    "net.oneplus.launcher": (
+        '<img src="docs/icons/oneplus-launcher.png" width="20" height="20" align="top"> OnePlus Launcher (OxygenOS 11)',
+        '<img src="docs/icons/oneplus-launcher.png" width="20" height="20" align="top"> OnePlus Launcher (OxygenOS 11)',
     ),
 }
 

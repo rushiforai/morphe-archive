@@ -1,0 +1,17 @@
+package app.zdrgon.patches.crossyroad.shared
+
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+
+object Constants {
+    val COMPATIBILITY_CROSSY_ROAD = Compatibility(
+        name = "Crossy Road",
+        packageName = "com.yodo1.crossyroad",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x7CB342,
+        targets = listOf(
+            AppTarget(version = "7.14.0")
+        )
+    )
+}

@@ -13,9 +13,12 @@ internal object Constants {
         apkFileType = ApkFileType.APK_REQUIRED,
         appIconColor = 0xFF0000,
         targets = listOf(
-            AppTarget(version = "9.36.50", minSdk = 26, isExperimental = true),
-            AppTarget(version = "9.35.54", minSdk = 26, isExperimental = true),
-            AppTarget(version = "9.34.52", minSdk = 26, isExperimental = true),
+            AppTarget(version = "9.43.51", minSdk = 26, isExperimental = true),
+            AppTarget(version = "9.42.52", minSdk = 26, isExperimental = true),
+            AppTarget(version = "9.41.52", minSdk = 26, isExperimental = true),
+            // First stable target, so the recommended version, as in the official patches.
+            AppTarget(version = "9.30.53", minSdk = 26),
+            AppTarget(version = "9.20.53", minSdk = 26),
             AppTarget(version = "9.15.51", minSdk = 26)
         )
     )

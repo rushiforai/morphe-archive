@@ -84,6 +84,8 @@ class ProfileSuggestionsFixtureTest {
         "512408625" to intArrayOf(558, 559, 1027, 266),
         "512408635" to intArrayOf(557, 558, 1025, 266),
         "512408636" to intArrayOf(558, 559, 1027, 266),
+        "512408645" to intArrayOf(557, 558, 1025, 266),
+        "512408647" to intArrayOf(560, 561, 1028, 267),
         "512408648" to intArrayOf(558, 559, 1027, 266),
     )
 

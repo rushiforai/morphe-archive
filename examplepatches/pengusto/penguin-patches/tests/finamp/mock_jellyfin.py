@@ -177,7 +177,7 @@ class Query:
 
 class Fixture:
     def __init__(self, *, mode="off", scope="artist", hold_timeout=120, data_dir=None, profile="credits"):
-        if profile not in ("credits", "navigation", "player"):
+        if profile not in ("credits", "navigation", "player", "notes"):
             raise ValueError("Unknown synthetic fixture profile")
         self.profile = profile
         self.lock = threading.RLock()
@@ -220,6 +220,8 @@ class Fixture:
         album.update({"AlbumArtist": "Z Lead", "AlbumArtists": album_credits, "Artists": list(ARTIST_NAMES),
                       "ArtistItems": credits, "Album": "Fixture Credits", "ChildCount": 8, "RecursiveItemCount": 8,
                       "RunTimeTicks": 8 * RUNTIME_TICKS, "UserData": user_data(ALBUM_ID, 1)})
+        if self.profile == "notes":
+            album["Overview"] = "Album background: a synthetic release note."
         items = [library, album]
         for name, item_id in ARTIST_IDS.items():
             artist = base(item_id, name, "MusicArtist")
@@ -250,6 +252,8 @@ class Fixture:
                           "Genres": [genre], "GenreItems": [{"Name": genre, "Id": GENRE_IDS[genre]}],
                           "DateCreated": "2026-01-%02dT12:00:00.0000000Z" % index,
                           "UserData": user_data(item_id, index)})
+            if self.profile == "notes":
+                track["Overview"] = "Track background: synthetic beat and sample credits." if index == 1 else None
             items.append(track)
         if self.profile == "navigation":
             # A second album leaves the existing credit/download fixture intact.
@@ -490,6 +494,9 @@ class Fixture:
             candidates.sort(key=sorters[key], reverse=order == "descending")
         total = len(candidates)
         start, limit = query.integer("StartIndex", 0), query.integer("Limit")
+        if self.profile == "notes" and "overview" not in {field.casefold() for field in query.csv("Fields")}:
+            for item in candidates:
+                item.pop("Overview", None)
         return {"Items": candidates[start:] if limit is None else candidates[start:start + limit],
                 "TotalRecordCount": total, "StartIndex": start}
 
@@ -785,7 +792,7 @@ def main(argv=None):
     parser.add_argument("--port", type=int, default=18961, help="HTTP port; 0 chooses a free port (default: 18961)")
     parser.add_argument("--data-dir", type=Path, help="explicit output directory for manifest.json, WAVs, requests.jsonl; default: memory only")
     parser.add_argument("--unbounded-mode", choices=("off", "hold", "reject"), default="off")
-    parser.add_argument("--profile", choices=("credits", "navigation", "player"), default="credits")
+    parser.add_argument("--profile", choices=("credits", "navigation", "player", "notes"), default="credits")
     parser.add_argument("--unbounded-scope", choices=("artist", "all"), default="artist")
     parser.add_argument("--hold-timeout", type=float, default=120, help="hold ceiling in seconds, 0.1..300 (default: 120)")
     args = parser.parse_args(argv)

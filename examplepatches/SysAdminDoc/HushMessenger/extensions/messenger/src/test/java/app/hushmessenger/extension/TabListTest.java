@@ -105,6 +105,77 @@ public class TabListTest {
         assertEquals("Pause keeps it after the restart", museBar(), Settings.visibleTabs(museBar()));
     }
 
+    /** The bar on accounts where the server leaves People out (#136): Chats, Meta AI, Notifications, Search, Menu. */
+    private static List<Tab> withoutPeople() { return new ArrayList<>(List.of(Tab.INBOX, Tab.AI, Tab.JEWEL, Tab.SEARCH, Tab.MORE)); }
+
+    @Test public void showPeopleTabPutsPeopleRightAfterChatsWhenMessengerLeftItOut() {
+        List<Tab> stock = withoutPeople();
+        assertSame("Off leaves Messenger's bar alone", stock, Settings.visibleTabs(stock));
+        assertNull(Settings.hookErrors.get(Settings.SHOW_PEOPLE_TAB));
+
+        restart();
+        Settings.preferences.edit().putBoolean(Settings.SHOW_PEOPLE_TAB, true).commit();
+        assertEquals(List.of(Tab.INBOX, Tab.PEOPLE, Tab.AI, Tab.JEWEL, Tab.SEARCH, Tab.MORE), Settings.visibleTabs(withoutPeople()));
+        assertTrue(Settings.lastActive(Settings.SHOW_PEOPLE_TAB) > 0);
+        assertTrue(Settings.hookErrors.isEmpty());
+
+        Settings.activeAt.clear();
+        List<Tab> full = bar();
+        assertSame("A bar that already has People keeps its own list", full, Settings.visibleTabs(full));
+        assertNull("Nothing was added, so it isn't a use", Settings.activeAt.get(Settings.SHOW_PEOPLE_TAB));
+
+        assertEquals("Other switches still take their tabs", List.of(Tab.INBOX, Tab.PEOPLE, Tab.SEARCH, Tab.MORE),
+            visibleWith(withoutPeople(), "tab_notifications", "meta_ai"));
+    }
+
+    private List<Tab> visibleWith(List<Tab> tabs, String... keys) {
+        restart();
+        var edit = Settings.preferences.edit();
+        for (String key : keys) edit.putBoolean(key, true);
+        edit.commit();
+        return Settings.visibleTabs(tabs);
+    }
+
+    @Test public void hidePeopleTabWinsOverShowPeopleTab() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_PEOPLE_TAB, true).putBoolean("tab_people", true).commit();
+        List<Tab> stock = withoutPeople();
+        assertSame(stock, Settings.visibleTabs(stock));
+        assertNull(Settings.activeAt.get(Settings.SHOW_PEOPLE_TAB));
+        assertNull("Hide had no People tab to take either", Settings.activeAt.get("tab_people"));
+        assertEquals(List.of(Tab.INBOX, Tab.AI, Tab.JEWEL, Tab.SEARCH, Tab.MORE), Settings.visibleTabs(bar()));
+    }
+
+    @Test public void showPeopleTabHoldsItsAnswerUntilARestart() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_PEOPLE_TAB, true).commit();
+        assertTrue(Settings.visibleTabs(withoutPeople()).contains(Tab.PEOPLE));
+        Settings.preferences.edit().putBoolean(Settings.SHOW_PEOPLE_TAB, false).commit();
+        assertTrue("The bar keeps the tab it counted first", Settings.visibleTabs(withoutPeople()).contains(Tab.PEOPLE));
+        assertEquals(Boolean.TRUE, Settings.heldUntilRestart(Settings.SHOW_PEOPLE_TAB));
+
+        restart();
+        assertFalse(Settings.visibleTabs(withoutPeople()).contains(Tab.PEOPLE));
+        Settings.preferences.edit().putBoolean(Settings.SHOW_PEOPLE_TAB, true).putBoolean("paused", true).commit();
+        restart();
+        assertFalse("Pause takes it away after the restart", Settings.visibleTabs(withoutPeople()).contains(Tab.PEOPLE));
+    }
+
+    /** Messenger's tab enum if a build drops its People constant. */
+    enum NoPeopleBar { INBOX, AI, MORE }
+
+    @Test public void withNoPeopleTabToAddTheBarStaysAsBuiltAndTheRowSaysSo() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_PEOPLE_TAB, true).commit();
+        List<NoPeopleBar> noConstant = new ArrayList<>(Arrays.asList(NoPeopleBar.values()));
+        assertSame(noConstant, Settings.visibleTabs(noConstant));
+        assertNotNull(Settings.hookErrors.get(Settings.SHOW_PEOPLE_TAB));
+        assertNull(Settings.activeAt.get(Settings.SHOW_PEOPLE_TAB));
+
+        Settings.hookErrors.clear();
+        List<Tab> noChats = new ArrayList<>(List.of(Tab.AI, Tab.JEWEL, Tab.MORE));
+        assertSame("No Chats tab to stand next to", noChats, Settings.visibleTabs(noChats));
+        assertEquals(List.of(Tab.AI, Tab.JEWEL, Tab.MORE), noChats);
+        assertNotNull(Settings.hookErrors.get(Settings.SHOW_PEOPLE_TAB));
+    }
+
     @Test public void somethingThatIsntATabConstantStays() {
         Settings.preferences.edit().putBoolean("tab_people", true).commit();
         List<Object> odd = new ArrayList<>(Arrays.asList("PEOPLE", null, Tab.PEOPLE));
@@ -129,6 +200,11 @@ public class TabListTest {
         Settings.preferences.edit().putBoolean("meta_ai", false).putBoolean("tab_people", true).putBoolean("tab_notifications", true).commit();
         Settings.visibleTabs(broken());
         assertEquals(new HashSet<>(List.of("tab_people", "tab_notifications")), Settings.hookErrors.keySet());
+
+        Settings.hookErrors.clear();
+        Settings.preferences.edit().clear().putBoolean(Settings.SHOW_PEOPLE_TAB, true).commit();
+        Settings.visibleTabs(broken());
+        assertEquals(Collections.singleton(Settings.SHOW_PEOPLE_TAB), Settings.hookErrors.keySet());
 
         Settings.hookErrors.clear();
         Settings.preferences.edit().clear().commit();

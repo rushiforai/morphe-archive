@@ -1,0 +1,7 @@
+.gradle/
+build/
+**/build/
+.idea/
+*.iml
+.envrc.local
+.DS_Store

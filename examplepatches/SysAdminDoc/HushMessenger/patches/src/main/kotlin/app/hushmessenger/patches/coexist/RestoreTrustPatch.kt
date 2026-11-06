@@ -5,6 +5,7 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.jumpTargets
 import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.Fingerprint
@@ -20,9 +21,11 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -139,8 +142,8 @@ val restoreTrustPatch = bytecodePatch(
 
         val threads = ThreadsLinkLauncherFingerprint.method
         val instagram = InstagramLinkLauncherFingerprint.method
-        threads.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG)
-        instagram.requireLinkPackage("Instagram", "com.instagram.android", INSTAGRAM_LINK_TAG)
+        threads.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG) { classDefByOrNull(it) }
+        instagram.requireLinkPackage("Instagram", "com.instagram.android", INSTAGRAM_LINK_TAG) { classDefByOrNull(it) }
         // Both launchers are checked before either changes.
         val sites = listOf(threads.linkLaunchSites("Threads"), instagram.linkLaunchSites("Instagram"))
 
@@ -150,13 +153,52 @@ val restoreTrustPatch = bytecodePatch(
     }
 }
 
-/** Stops the patch unless the launcher loads [pkg] as a literal before its [tag]. */
-internal fun Method.requireLinkPackage(app: String, pkg: String, tag: String) {
+/**
+ * Stops the patch unless the launcher loads [pkg] before its [tag]: as a literal, or as the answer of a Redex string pool
+ * looked up by a constant key straight ahead of it ([classOf] finds the pool). 586's armv7 Threads launcher takes its
+ * package from a pool.
+ */
+internal fun Method.requireLinkPackage(app: String, pkg: String, tag: String, classOf: (String) -> ClassDef? = { null }) {
     val code = implementation?.instructions?.toList().orEmpty()
-    fun loads(value: String) = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == value }
-    val named = loads(pkg)
-    val tagged = loads(tag)
+    val targets = jumpTargets()
+    fun literal(at: Int, value: String) = ((code[at] as? ReferenceInstruction)?.reference as? StringReference)?.string == value
+    fun pooled(at: Int): Boolean {
+        val lookup = code.getOrNull(at - 1) as? FiveRegisterInstruction ?: return false
+        val pool = (lookup as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+        if (code[at].opcode != Opcode.MOVE_RESULT_OBJECT || lookup.opcode != Opcode.INVOKE_STATIC || lookup.registerCount != 1) return false
+        val key = code.getOrNull(at - 2) as? NarrowLiteralInstruction ?: return false
+        if (code[at - 2].opcode !in LINK_POOL_KEYS || (key as OneRegisterInstruction).registerA != lookup.registerC ||
+            at - 1 in targets || at in targets) return false
+        val method = classOf(pool.definingClass)?.methods?.singleOrNull { it.hookId() == pool.toString() } ?: return false
+        return poolString(method, key.narrowLiteral) == pkg
+    }
+    val named = code.indices.firstOrNull { literal(it, pkg) || pooled(it) } ?: -1
+    val tagged = code.indices.firstOrNull { literal(it, tag) } ?: -1
     if (named < 0 || named > tagged) throw PatchException("Restore screens on re-signed builds: $app's link launcher doesn't load $pkg before its tag")
+}
+
+private val LINK_POOL_KEYS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
+
+/**
+ * What a Redex string pool answers for [key]: [pool] is a static `(I)String` method whose first instruction switches on
+ * its argument, and the case for [key] loads a constant and returns it. Null for any other method or case.
+ */
+internal fun poolString(pool: Method, key: Int): String? {
+    val registers = pool.implementation?.registerCount ?: return null
+    if (!AccessFlags.STATIC.isSet(pool.accessFlags) || pool.returnType != "Ljava/lang/String;" ||
+        pool.parameterTypes.map { it.toString() } != listOf("I")) return null
+    val code = pool.implementation!!.instructions.toList()
+    val switch = code.firstOrNull()?.takeIf { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH } ?: return null
+    if ((switch as OneRegisterInstruction).registerA != registers - 1) return null
+    val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+    val indexAt = code.indices.associateBy { addresses[it] }
+    val payload = indexAt[(switch as OffsetInstruction).codeOffset]?.let(code::get) as? SwitchPayload ?: return null
+    val at = payload.switchElements.singleOrNull { it.key == key }?.let { indexAt[it.offset] } ?: return null
+    val load = code[at]
+    val back = code.getOrNull(at + 1) as? OneRegisterInstruction ?: return null
+    if ((load.opcode != Opcode.CONST_STRING && load.opcode != Opcode.CONST_STRING_JUMBO) || code[at + 1].opcode != Opcode.RETURN_OBJECT ||
+        back.registerA != (load as OneRegisterInstruction).registerA) return null
+    return ((load as ReferenceInstruction).reference as StringReference).string
 }
 
 /** Where a link launcher hands its intent to the family launcher, and the three registers of that call. */

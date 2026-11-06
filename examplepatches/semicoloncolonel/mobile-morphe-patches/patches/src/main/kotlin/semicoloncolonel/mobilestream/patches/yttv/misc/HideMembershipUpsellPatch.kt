@@ -7,17 +7,19 @@ import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.yttv.shared.Constants
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hide the "Add to membership" home upsell shelf (OPT-IN, default OFF).
+// Hide the "Add to membership" upsell shelf (OPT-IN, default OFF).
 //
 // The home feed is a flat list of item models rendered by one controller
 // (identified at runtime: it binds each item's title through the header
 // presenter, and its items flow in through a diff-update method taking
-// (List, RecyclerView, BiPredicate) and an insert method taking (int, List)).
+// (List, RecyclerView, BiPredicate), an insert method taking (int, List), and
+// a replace method taking (List), which search results and other screens use).
 // Each shelf is split into a header item (carries the title), its card row, and
 // dividers. This filters those feed lists through the extension, which drops the
 // "Add to membership" header, the card row after it, and a trailing divider, so
-// the whole shelf disappears with no empty space left behind. The playback and
-// membership screens are untouched.
+// the whole shelf disappears with no empty space left behind. The same
+// controller draws search results, so the shelf is removed there too. The
+// playback and membership screens are untouched.
 // ─────────────────────────────────────────────────────────────────────────────
 private const val FILTER = "Lsemicoloncolonel/mobilestream/extension/yttv/MembershipUpsellFilter;"
 
@@ -46,7 +48,7 @@ private fun filterCall(register: String) =
 @Suppress("unused")
 val hideMembershipUpsellPatch = bytecodePatch(
     name = "Hide membership upsell",
-    description = "Hides the \"Add to membership\" shelf on the home screen.",
+    description = "Hides the \"Add to membership\" shelf on the home screen and in search results.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
@@ -69,5 +71,16 @@ val hideMembershipUpsellPatch = bytecodePatch(
             inserts++
         }
         if (inserts == 0) throw PatchException("Feed insert method (int, List) not found")
+
+        // Filter every public (List) replace in the same controller, such as
+        // the one search results use (first parameter).
+        var replaces = 0
+        mutableClassDefBy(controllerType).methods.forEach { method ->
+            if (method.returnType != "V" || method.accessFlags and 0x1 == 0) return@forEach
+            if (method.parameterTypes.map { it.toString() } != listOf("Ljava/util/List;")) return@forEach
+            method.addInstructions(0, filterCall("p1"))
+            replaces++
+        }
+        if (replaces == 0) throw PatchException("Feed replace method (List) not found")
     }
 }

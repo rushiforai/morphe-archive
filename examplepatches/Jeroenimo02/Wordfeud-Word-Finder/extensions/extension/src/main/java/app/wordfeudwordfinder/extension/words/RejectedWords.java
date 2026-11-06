@@ -1,5 +1,6 @@
 package app.wordfeudwordfinder.extension.words;
 
+import app.wordfeudwordfinder.extension.core.Tiles;
 import app.wordfeudwordfinder.extension.core.Storage;
 import app.wordfeudwordfinder.extension.solver.Move;
 import java.io.IOException;
@@ -37,8 +38,9 @@ public final class RejectedWords {
         return "rejected/" + rulesetId + ".txt";
     }
 
+    /** Upper case and spelled out (digraph tiles as CH, LL, RR), so server words and move words compare. */
     private static String norm(String w) {
-        return w == null ? "" : w.trim().toUpperCase(Locale.ROOT);
+        return w == null ? "" : Tiles.spell(w.trim()).toUpperCase(Locale.ROOT);
     }
 
     /**

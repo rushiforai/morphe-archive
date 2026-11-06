@@ -8,6 +8,7 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import com.ss.android.ugc.aweme.feed.model.Aweme;
@@ -30,6 +31,27 @@ public final class CardFilters {
         return Settings.HIDE_PLAYLIST_BAR.get();
     }
 
+    /** The export's line for the shop's Find bar: each ask, each one that would show, each one hidden. */
+    static final String SHOP_FIND_BAR_SOURCE = "ShopFindBar";
+
+    /**
+     * TikTok's answer to whether a video shows the shop's "Find &lt;product&gt;" bar along its
+     * bottom (#271), a shopping search for something in the video. It rides Hide TikTok Shop,
+     * like the shop buttons under captions. Only some accounts are served the bar, so every ask
+     * is counted: an export with asks and no bars says the account just isn't getting it.
+     */
+    public static boolean keepShopFindBar(boolean shows) {
+        try {
+            FeedFilterCounters.sawList(SHOP_FIND_BAR_SOURCE, shows ? 1 : 0);
+            if (!shows || !Settings.HIDE_SHOP.get()) return shows;
+            FeedFilterCounters.removed(SHOP_FIND_BAR_SOURCE, 1, "shopFindBar");
+            return false;
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Could not check the shop Find bar", failure);
+            return shows;
+        }
+    }
+
     /** The floating promotional event badge. */
     public static boolean shouldHideEventBadge() {
         return Settings.HIDE_EVENT_BADGE.get();
@@ -47,6 +69,16 @@ public final class CardFilters {
      */
     public static boolean shouldSkipLemon8PromoRequest() {
         return Settings.REMOVE_ADS.get();
+    }
+
+    /**
+     * The full-screen "Trending free dramas on PineDrama" card between drama episodes (#286) is
+     * never asked for. It is a mini drama promo and an inserted card, so any of the three
+     * switches that name those turns it off.
+     */
+    public static boolean shouldSkipPineDramaMidInsert() {
+        return Settings.HIDE_MINI_DRAMAS.get() || Settings.HIDE_SERIES.get()
+                || Settings.HIDE_INSERTED_CARDS.get();
     }
 
     /**

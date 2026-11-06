@@ -1,0 +1,77 @@
+name: Check Play Books version
+
+# Opens an issue when APKMirror has a Play Books build newer than every version the patches list.
+# "Newest" is the highest build number, not the most recent upload: Google keeps fixing the previous
+# line after rolling out the next one (2026.9.4.2 came out after 2026.9.18.0, both on Google Play).
+# GitHub notifies the repository owner about new issues (app, web and e-mail).
+# Google Play is not used: its page does not show the current version.
+
+on:
+  schedule:
+    - cron: "17 0 * * *" # Daily, 09:17 KST.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find the newest release
+        id: latest
+        run: |
+          curl -fsSL --retry 3 --max-time 60 -A "Mozilla/5.0" \
+            "https://www.apkmirror.com/apk/google-inc/google-play-books/feed/" > feed.xml
+          python3 - <<'PY'
+          import os, re, xml.etree.ElementTree as ET
+
+          # Release titles look like "Google Play Books & Audiobooks 2026.9.4.2 (386876) by Google LLC".
+          pattern = re.compile(r"(\d{4}\.\d+\.\d+\.\d+ \((\d+)\))")
+          releases = []
+          for item in ET.parse("feed.xml").getroot().iter("item"):
+              title = item.findtext("title") or ""
+              match = pattern.search(title)
+              if match and not re.search(r"\b(alpha|beta)\b", title, re.I):
+                  releases.append((int(match.group(2)), match.group(1), item.findtext("link") or ""))
+          if not releases:
+              raise SystemExit("No Play Books release found in the APKMirror feed")
+          code, version, link = max(releases)
+          print(f"Newest on APKMirror: {version} {link}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"version={version}\ncode={code}\nlink={link}\n")
+          PY
+
+      - name: Open an issue for a newer build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST: ${{ steps.latest.outputs.version }}
+          LATEST_CODE: ${{ steps.latest.outputs.code }}
+          LINK: ${{ steps.latest.outputs.link }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          constants=patches/src/main/kotlin/app/bookspiko/patches/books/shared/Constants.kt
+          supported=$(grep -oE 'versionCode = [0-9]+' "$constants" | grep -oE '[0-9]+' | sort -n | tail -1)
+          echo "Newest supported build: $supported, newest released: $LATEST_CODE"
+          if [ "$LATEST_CODE" -le "$supported" ]; then
+            echo "Up to date."
+            exit 0
+          fi
+          title="Play Books $LATEST released"
+          if gh issue list --state all --search "\"$title\" in:title" --json title -q '.[].title' | grep -qxF "$title"; then
+            echo "An issue for $LATEST already exists."
+            exit 0
+          fi
+          gh issue create --title "$title" --body "$(cat <<EOF
+          @$OWNER Play Books **$LATEST** is out ([APKMirror]($LINK)). The patches list builds up to $supported.
+
+          1. Patch the new APKM with the latest release and check sign-in, the reader font and Settings > Ebook reading > Custom font.
+          2. If everything works, add it to \`COMPATIBILITY_PLAY_BOOKS\` in \`$constants\` (or ask Claude to bump the version).
+          3. If a patch fails, its fingerprint name and reason are in the patcher output.
+          EOF
+          )"

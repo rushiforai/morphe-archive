@@ -5,6 +5,7 @@
   python scripts/release/release_text.py notes --version 0.0.13 --intro FILE --update FILE --out FILE
   python scripts/release/release_text.py index --version 0.0.13 --created 2026-10-09T17:03:42 --summary FILE
   python scripts/release/release_text.py description --version 0.0.13 --current FILE --out FILE
+  python scripts/release/release_text.py signed --version 0.0.13
 
 Each command checks its inputs and writes nothing when a check fails. scripts/release/release.ps1
 runs them stage by stage, and they can also run alone. scripts/validate-release-facts.ps1 stays the
@@ -14,7 +15,9 @@ judge of what they write: the stages run it after them.
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime
+import hashlib
 import json
 import re
 import sys
@@ -66,6 +69,124 @@ def key(version: str) -> tuple[int, ...]:
 def check_version(version: str) -> None:
     if not VERSION.match(version):
         fail(f"{version} isn't X.Y.Z")
+
+
+# Ed25519 verification (RFC 8032, 5.1.7) for the MorpheSig1 check. The standard library has no
+# Ed25519 and the release runs Python with -I, so no package can supply it. Points are in
+# extended coordinates (X, Y, Z, T).
+P = 2 ** 255 - 19
+L = 2 ** 252 + 27742317777372353535851937790883648493
+D = -121665 * pow(121666, P - 2, P) % P
+ROOT_OF_MINUS_ONE = pow(2, (P - 1) // 4, P)
+
+
+def point_add(a, b):
+    x1, y1, z1, t1 = a
+    x2, y2, z2, t2 = b
+    e, f, g, h = (y1 - x1) * (y2 - x2), (y1 + x1) * (y2 + x2), 2 * t1 * t2 * D, 2 * z1 * z2
+    e, f, g, h = f - e, h - g, h + g, f + e
+    return e * f % P, g * h % P, f * g % P, e * h % P
+
+
+def point_times(point, scalar: int):
+    result = (0, 1, 1, 0)
+    while scalar:
+        if scalar & 1:
+            result = point_add(result, point)
+        point = point_add(point, point)
+        scalar >>= 1
+    return result
+
+
+def point_encode(point) -> bytes:
+    x, y, z, _ = point
+    inverse = pow(z, P - 2, P)
+    x, y = x * inverse % P, y * inverse % P
+    return (y | (x & 1) << 255).to_bytes(32, "little")
+
+
+def point_decode(raw: bytes):
+    """The point a 32-byte encoding names, or None for bytes that name no point."""
+    y = int.from_bytes(raw, "little")
+    sign, y = y >> 255, y & ((1 << 255) - 1)
+    if y >= P:
+        return None
+    square = (y * y - 1) * pow(D * y * y + 1, P - 2, P) % P
+    x = pow(square, (P + 3) // 8, P)
+    if (x * x - square) % P:
+        x = x * ROOT_OF_MINUS_ONE % P
+    if (x * x - square) % P or (x == 0 and sign):
+        return None
+    if x & 1 != sign:
+        x = P - x
+    return x, y, 1, x * y % P
+
+
+BASE = point_decode((4 * pow(5, P - 2, P) % P).to_bytes(32, "little"))
+
+
+def ed25519_verify(public: bytes, message: bytes, signature: bytes) -> bool:
+    if len(public) != 32 or len(signature) != 64:
+        return False
+    key, nonce = point_decode(public), point_decode(signature[:32])
+    s = int.from_bytes(signature[32:], "little")
+    if key is None or nonce is None or s >= L:
+        return False
+    h = int.from_bytes(hashlib.sha512(signature[:32] + public + message).digest(), "little") % L
+    return point_encode(point_times(BASE, s)) == point_encode(point_add(nonce, point_times(key, h)))
+
+
+def bundle_signer(version: str, bundle: str | None = None) -> str:
+    """The published key, once it's checked that this key signed the release bundle as it is now.
+
+    `bundle` is the copy release.ps1 tags and publishes, held to the bundle.sha256 the build
+    wrote beside the original. Without it, the original in patches/build/release is read.
+
+    Morphe Manager pins the key named here when it first adds the source, and it refuses an
+    update signed by another key or by none. So the index only ever names the key in
+    morphe-signing.pub, and only for a bundle that key signed: the bundle still matches the
+    bundle.sha256 buildAndroid wrote, and its MorpheSig1 signature checks out over the bytes
+    PatchBundleSignature signs, the archive with an empty comment. A bundle changed after signing
+    that kept its comment fails here.
+    """
+    published = read(here("morphe-signing.pub")).strip()
+    if not re.fullmatch(r"[A-Za-z0-9+/]{43}=", published):
+        fail("morphe-signing.pub isn't a Base64 Ed25519 public key")
+    release = here("patches/build/release")
+    path = Path(bundle) if bundle else release / f"patches-{version}.mpp"
+    name = str(path) if bundle else f"patches/build/release/patches-{version}.mpp"
+    if not path.is_file():
+        fail(f"{name} is missing")
+    data = path.read_bytes()
+    recorded = read(release / "bundle.sha256").strip().lower()
+    if recorded != hashlib.sha256(data).hexdigest():
+        fail(f"{name} doesn't match the bundle.sha256 the build wrote, so it changed after the build")
+    # The end record is the last one whose comment reaches the end of the file, as signBundle finds it.
+    end = data.rfind(b"PK\x05\x06")
+    while end >= 0 and (end + 22 > len(data) or int.from_bytes(data[end + 20:end + 22], "little") != len(data) - end - 22):
+        end = data.rfind(b"PK\x05\x06", 0, end)
+    if end < 0:
+        fail(f"{name} isn't a zip")
+    fields = data[end + 22:].decode("ascii", "replace").split(" ")
+    if len(fields) != 3 or fields[0] != "MorpheSig1":
+        fail(f"{name} isn't signed. Build it again with HUSHTHREADS_BUNDLE_SIGNING_KEY set")
+    if fields[1] != published:
+        fail(f"{name} is signed by another key than morphe-signing.pub")
+    try:
+        signature = base64.b64decode(fields[2], validate=True)
+    except ValueError:  # binascii.Error, or a field that isn't ASCII
+        signature = b""
+    message = b"MorpheSig1" + hashlib.sha256(data[:end + 20] + b"\x00\x00").digest()
+    if not ed25519_verify(base64.b64decode(published), message, signature):
+        fail(f"{name}'s signature doesn't match its contents, so it changed after it was signed")
+    return published
+
+
+def signed(args) -> None:
+    """Stops a release whose bundle isn't signed by the published key, before anything is tagged."""
+    check_version(args.version)
+    key = bundle_signer(args.version, getattr(args, "bundle", None))
+    print(f"[release] patches-{args.version}.mpp matches bundle.sha256 and morphe-signing.pub's key ({key}) signed it")
 
 
 def swap(text: str, pattern: str, replacement: str, what: str, expected: int | None = 1) -> str:
@@ -369,7 +490,8 @@ def index(args) -> None:
     bundle = json.loads(read(bundle_path))
     url = swap(str(bundle.get("download_url") or ""), r"/releases/download/v\d+\.\d+\.\d+/patches-\d+\.\d+\.\d+\.mpp$",
                f"/releases/download/v{version}/patches-{version}.mpp", "patches-bundle.json download_url")
-    bundle.update({"created_at": args.created, "description": description, "download_url": url, "version": version})
+    bundle.update({"created_at": args.created, "description": description, "download_url": url,
+                   "public_key": bundle_signer(version), "version": version})
     form_path = here(".github/ISSUE_TEMPLATE/bug_report.yml")
     form = swap(read(form_path), r"^([ \t]*placeholder:[ \t]*)Version \d+\.\d+\.\d+ for Threads \S+[ \t]*$",
                 rf"\g<1>Version {version} for Threads {target}", "bug report form version placeholder")
@@ -441,6 +563,10 @@ def main() -> None:
     for name in ("--version", "--current", "--out"):
         command.add_argument(name, required=True)
     command.set_defaults(run=description)
+    command = commands.add_parser("signed")
+    command.add_argument("--version", required=True)
+    command.add_argument("--bundle")
+    command.set_defaults(run=signed)
     args = parser.parse_args()
     args.run(args)
 

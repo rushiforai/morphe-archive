@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "packageName": "com.whatsapp",
+  "policy": "compatibility-only",
+  "stableVersion": null,
+  "candidateVersion": "2.26.27.4",
+  "versions": [
+    {
+      "version": "2.26.27.4",
+      "apkFileType": "APK",
+      "declaredExperimental": true,
+      "status": "build-validated",
+      "stages": {
+        "bundleBuild": "passed",
+        "dexPresent": "passed",
+        "patchMetadata": "passed",
+        "patchTimeAgainstWhatsAppApk": "pending",
+        "install": "pending",
+        "launch": "pending",
+        "loginSession": "pending",
+        "sendReceive": "pending",
+        "restart": "pending"
+      },
+      "evidence": {
+        "workflowRun": "36522729590"
+      }
+    }
+  ]
+}

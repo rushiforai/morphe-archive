@@ -36,6 +36,45 @@ internal val FACTORY_PARAMETERS = listOf(
 internal const val FACTORY_RETURN = "Landroid/graphics/Typeface;"
 
 /**
+ * The Compose loader's first parameter: the Context. Its second is the
+ * app's obfuscated font request, so only the Context can be matched by
+ * name. On 47.0.3 the loader is `X.0lNf#LIZ(Context, X.0lNm)`, on
+ * 47.1.4 `X.05vZ#LIZ(Context, X.01fp)` - the same two-parameter shape
+ * on a class that reads the bundled faces, and the one Jetpack
+ * Compose asks (its `AndroidComposeView` builds the FontFamily
+ * resolver, which reaches the faces here rather than at the factory).
+ */
+internal const val COMPOSE_LOADER_CONTEXT = "Landroid/content/Context;"
+
+/**
+ * The asset loader's shape: the AssetManager and the path, static, and
+ * the body is what tells it apart - it creates the face with
+ * `Typeface.createFromAsset`. On 47.0.3 it is `X.0VKh#t4`, on 47.1.4
+ * `X.00kn#s4` (the name moves with the class), and every other
+ * `(AssetManager, String) -> Typeface` method in the bundle is the
+ * framework's or carries a different body. This is the one point Lynx
+ * asks for a bundled face (its own `TypefaceCache` calls it), so it is
+ * hooked with a path guard: the callers also read sticker and editor
+ * asset fonts, which must keep the app's own resolution.
+ */
+internal const val ASSET_LOADER_ASSET_MANAGER = "Landroid/content/res/AssetManager;"
+internal const val ASSET_LOADER_PATH = "Ljava/lang/String;"
+
+/**
+ * The WebView font interceptor's shape: a `WebResourceResponse` answered
+ * from a `WebView`, on a class that reads a bundled face. Hybrid (H5)
+ * pages are drawn by Chromium, so the app serves them the font bytes
+ * over the WebView client (`FontLoadManager$init$1#shouldInterceptRequest`
+ * on both checked versions - the two overloads are the deprecated
+ * `(WebView, String)` and the current `(WebView, WebResourceRequest)`).
+ * Hooking it answers the page with the imported file's bytes.
+ */
+internal const val WEB_FONT_VIEW = "Landroid/webkit/WebView;"
+internal const val WEB_FONT_URL = "Ljava/lang/String;"
+internal const val WEB_FONT_REQUEST = "Landroid/webkit/WebResourceRequest;"
+internal const val WEB_FONT_RESPONSE = "Landroid/webkit/WebResourceResponse;"
+
+/**
  * Where the font picker's answer comes back: the foundation
  * activity delivers every activity result through its own
  * onActivityResult, and the activities the Tweaks screen lives

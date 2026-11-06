@@ -15,7 +15,7 @@
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/latest) **2.2.0 or later**.
 2. On your phone, tap **Add to Morphe** above and add the source.
 3. Open **TickTick**, **Emby**, **Remote for Android TV**, **Pep Talk** or **Wanderlog** in Manager. Refresh Sources if it is missing; enable **Settings → Expert settings → Expert Mode** if needed for custom app selection.
-4. Select the unmodified **TickTick 8.2.4.0 APKM**, **Emby 3.5.72 APK**, **Remote for Android TV 6.1.0 APKM** or **Pep Talk 2.31.0 XAPK** or **Wanderlog 2.227 APKM**, choose the patches below, then patch and install.
+4. Select the unmodified **TickTick 8.2.4.0 APKM**, **Emby 3.5.72 APK**, **Remote for Android TV 6.1.0 APKM**, **Pep Talk 2.31.0 XAPK** or **Wanderlog 2.227/2.228 APKM**, choose the patches below, then patch and install.
 5. For updates, refresh this source and patch again using the **same Manager signing key** to preserve app data.
 
 Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX/BadFella-Patches/releases/latest) and add it in Manager's **Sources** screen.
@@ -25,15 +25,10 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.1.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
-
-**🎯 Supported versions:**
-
-| 8.2.4.0 |
-| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -48,11 +43,6 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 <summary>📦 Emby&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 3.5.72 |
-| :---: |
-
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Emby client unlock](#emby-client-unlock) | Enables local in-app feature gates using Kirlif's observed approach. Does not grant server Premiere entitlements. |  |
@@ -63,11 +53,6 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 <details open>
 <summary>📦 Pep Talk&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2.31.0 |
-| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -95,14 +80,9 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 <summary>📦 Wanderlog&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2.227 |
-| :---: |
-
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Wanderlog Pro features](#wanderlog-pro-features) | Enables local Pro feature checks, removes subscription prompts and auto-opening paywalls, hides the home Pro star, labels the profile button Pro Activated and brands the billing screen. Keeps the patched bundle in place by disabling Expo OTA updates. Does not grant server-run AI, downloads, flight tracking or a subscription. |  |
+| [Wanderlog Pro features](#wanderlog-pro-features) | Enables local Pro feature checks, removes subscription prompts and auto-opening paywalls, hides the home Pro star, labels the profile button Pro Activated and brands the billing screen. Makes the app theme follow the device dark-mode setting, because the app's own dark mode entry is Pro-only and the preference is set by Wanderlog's servers on subscription. Keeps the patched bundle in place by disabling Expo OTA updates. Does not grant server-run AI, downloads, flight tracking, Google Maps export or a subscription. |  |
 
 </details>
 

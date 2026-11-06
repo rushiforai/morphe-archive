@@ -14,8 +14,9 @@ from patch_matrix import check_contents
 
 FULL_SUITE = {'32-jvm', '64-jvm', '96-jvm', '127-jvm', '31-jvm', '127-art'}
 SUITES = {'ui-fixes': FULL_SUITE,
-          'artist-review': {'4-jvm', '12-jvm', '36-jvm', '127-jvm', '123-jvm', '4-art', '127-art'}}
-SUPPORTED_CASES = {f'{mask}-{runtime}{suffix}' for mask in range(1, 128)
+          'artist-review': {'4-jvm', '12-jvm', '36-jvm', '127-jvm', '123-jvm', '4-art', '127-art'},
+          'notes': {'128-jvm', '255-jvm', '255-art'}}
+SUPPORTED_CASES = {f'{mask}-{runtime}{suffix}' for mask in range(1, 256)
                    for runtime in ('jvm', 'art') for suffix in ('', '-recovery')}
 
 
@@ -57,8 +58,11 @@ def main():
                 raise ValueError('Compressed native library is incompatible with this manifest: ' + case)
         signature = subprocess.check_output([str(args.build_tools / 'apksigner'), 'verify', '--print-certs', str(apk)],
                                             env=environment, text=True)
-        certificates = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([0-9a-f]+)', signature)
-        if certificates != [signer]:
+        certificates = set(re.findall(
+            r'(?im)^(?:Signer #\d+|V\d+(?:\.\d+)? Signer):? certificate SHA-256 digest: ([0-9a-f]{64})$',
+            signature,
+        ))
+        if certificates != {signer}:
             raise ValueError('Unexpected Manager signer for ' + case)
         subprocess.run([str(args.build_tools / 'zipalign'), '-c', '-P', '16', '4', str(apk)],
                        check=True, capture_output=True)

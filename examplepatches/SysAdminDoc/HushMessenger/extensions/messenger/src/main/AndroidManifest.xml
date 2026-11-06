@@ -17,6 +17,7 @@
         <meta-data android:name="hush.feature.moments" android:value="true" />
         <meta-data android:name="hush.feature.reels_badge" android:value="true" />
         <meta-data android:name="hush.feature.tab_people" android:value="true" />
+        <meta-data android:name="hush.feature.tab_people_show" android:value="true" />
         <meta-data android:name="hush.feature.tab_notifications" android:value="true" />
         <meta-data android:name="hush.feature.tab_badges" android:value="true" />
         <meta-data android:name="hush.feature.chat_animation" android:value="true" />
@@ -36,6 +37,7 @@
         <meta-data android:name="hush.feature.original_video" android:value="true" />
         <meta-data android:name="hush.feature.xhe_audio" android:value="true" />
         <meta-data android:name="hush.feature.disappearing_swipe" android:value="true" />
+        <meta-data android:name="hush.feature.message_actions" android:value="true" />
         <meta-data android:name="hush.feature.recent_media" android:value="true" />
         <meta-data android:name="hush.feature.save_voice" android:value="true" />
         <meta-data android:name="hush.feature.save_voice_menu" android:value="true" />
@@ -48,6 +50,7 @@
         <meta-data android:name="hush.feature.car_messages" android:value="true" />
         <meta-data android:name="hush.feature.local_chat_search" android:value="true" />
         <meta-data android:name="hush.feature.chat_jump" android:value="true" />
+        <meta-data android:name="hush.feature.landscape" android:value="true" />
         <meta-data android:name="hush.feature.call_recording" android:value="true" />
         <meta-data android:name="hush.feature.hide_call_buttons" android:value="true" />
         <meta-data android:name="hush.feature.call_confirm" android:value="true" />
@@ -59,6 +62,7 @@
         <meta-data android:name="hush.feature.ad_events" android:value="true" />
         <meta-data android:name="hush.feature.mqtt_telemetry" android:value="true" />
         <meta-data android:name="hush.feature.pinned_chats" android:value="true" />
+        <meta-data android:name="hush.feature.hidden_chats" android:value="true" />
         <meta-data android:name="hush.feature.nearby_scans" android:value="true" />
         <meta-data android:name="hush.feature.phone_id_sync" android:value="true" />
         <meta-data android:name="hush.feature.message_log" android:value="true" />
@@ -69,6 +73,7 @@
         <meta-data android:name="hush.feature.anonymous_stories" android:value="true" />
         <meta-data android:name="hush.feature.save_stories" android:value="true" />
         <meta-data android:name="hush.feature.blocked_list_pictures" android:value="true" />
+        <meta-data android:name="hush.feature.restricted_notify" android:value="true" />
         <meta-data android:name="hush.feature.material_you" android:value="true" />
         <meta-data android:name="hush.feature.app_icons" android:value="true" />
         <meta-data android:name="hush.feature.app_themes" android:value="true" />

@@ -1,5 +1,6 @@
 package app.wordfeudwordfinder.extension.ui;
 
+import app.wordfeudwordfinder.extension.core.Tiles;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.text.TextUtils;
@@ -87,7 +88,7 @@ public final class MoveListAdapter extends BaseAdapter {
             v = buildRow(row);
         }
         Move m = moves.get(position);
-        row.word.setText(m.word);
+        row.word.setText(Tiles.spell(m.word));
         row.detail.setText(OverlayFormat.detail(lang, m));
         row.score.setText(OverlayFormat.scoreText(lang, m.score));
         v.setBackgroundColor(position == selected ? theme.surfaceSelected : theme.surface);

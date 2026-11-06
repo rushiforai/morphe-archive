@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JoFSlash Patches – Quora patches for Morphe</title>
+  <meta name="description" content="Community Morphe patches for the Quora Android app: remove ads and disable analytics.">
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --fg: #1d1b19;
+      --muted: #6b6560;
+      --line: #e6e1da;
+      --card: #ffffff;
+      --accent: #a8322c;
+      --code: #f1ede7;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141312;
+        --fg: #ece8e3;
+        --muted: #a29b94;
+        --line: #2c2926;
+        --card: #1c1a18;
+        --accent: #e0726b;
+        --code: #24211f;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 17px/1.6 ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 72px 24px 48px; }
+    .eyebrow {
+      font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--accent); font-weight: 600; margin: 0 0 12px;
+    }
+    h1 { font-size: clamp(34px, 6vw, 48px); line-height: 1.1; letter-spacing: -.02em; margin: 0 0 16px; }
+    .lead { font-size: 19px; color: var(--muted); margin: 0 0 32px; max-width: 34em; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .actions img { display: block; height: 52px; width: auto; }
+    .link-btn {
+      display: inline-flex; align-items: center; height: 52px; padding: 0 22px;
+      border: 1px solid var(--line); border-radius: 16px; color: var(--fg);
+      text-decoration: none; font-weight: 600; background: var(--card);
+    }
+    .link-btn:hover { border-color: var(--muted); }
+    .hint { font-size: 14px; color: var(--muted); margin: 0 0 56px; }
+    code {
+      font: 14px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      background: var(--code); padding: 2px 6px; border-radius: 6px; word-break: break-all;
+    }
+    h2 { font-size: 22px; letter-spacing: -.01em; margin: 0 0 16px; }
+    section { margin-bottom: 48px; }
+    .patch {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px 22px; margin-bottom: 12px;
+    }
+    .patch h3 { font-size: 17px; margin: 0 0 4px; }
+    .patch p { margin: 0; color: var(--muted); font-size: 16px; }
+    ol { padding-left: 22px; margin: 0; }
+    ol li { margin-bottom: 8px; }
+    a { color: var(--accent); }
+    .versions { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+    .versions li {
+      border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px;
+      font-size: 15px; background: var(--card);
+    }
+    footer {
+      border-top: 1px solid var(--line); padding-top: 24px;
+      font-size: 14px; color: var(--muted);
+    }
+    footer p { margin: 0 0 8px; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Morphe patch bundle</p>
+  <h1>Quora without the ads.</h1>
+  <p class="lead">
+    Community patches for the Quora Android app. Hide promoted answers and sponsored posts,
+    and stop the app from sending analytics.
+  </p>
+
+  <div class="actions">
+    <a href="https://morphe.software/add-source?github=JoFSlash/quora-patches" aria-label="Add to Morphe">
+      <img src="add-to-morphe.svg" alt="Add to Morphe" width="195" height="52">
+    </a>
+    <a class="link-btn" href="https://github.com/JoFSlash/quora-patches">Source on GitHub</a>
+  </div>
+  <p class="hint">
+    Or add this URL as a patch source in Morphe Manager:
+    <code>https://github.com/JoFSlash/quora-patches</code>
+  </p>
+
+  <section>
+    <h2>Patches</h2>
+    <div class="patch">
+      <h3>Remove ads</h3>
+      <p>Hides promoted answers, sponsored posts and Google ads in the feed and on question pages,
+        and blocks requests to ad servers.</p>
+    </div>
+    <div class="patch">
+      <h3>Disable analytics</h3>
+      <p>Turns off Firebase Analytics, Crashlytics, Firebase Performance and Facebook app events,
+        and stops the advertising ID from being collected.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Supported versions</h2>
+    <ul class="versions">
+      <li>Quora 3.2.42</li>
+      <li>Quora 3.2.30</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>How to install</h2>
+    <ol>
+      <li>Install <a href="https://morphe.software">Morphe Manager</a> from the official Morphe website.</li>
+      <li>Tap <strong>Add to Morphe</strong> above, or add the repository URL as a patch source.</li>
+      <li>Pick Quora, let Morphe download a supported version, and apply the patches.</li>
+      <li>Uninstall the Play Store version of Quora before installing the patched app.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Patching is done by <a href="https://morphe.software">Morphe</a>, the open-source patcher.
+      Learn more and get Morphe Manager at <a href="https://morphe.software">morphe.software</a>.</p>
+    <p>This bundle is maintained by JoFSlash and is not affiliated with Quora or with the Morphe project.
+      Licensed under <a href="https://github.com/JoFSlash/quora-patches/blob/main/LICENSE">GPLv3</a>.</p>
+  </footer>
+</main>
+</body>
+</html>

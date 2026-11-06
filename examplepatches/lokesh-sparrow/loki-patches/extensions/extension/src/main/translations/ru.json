@@ -93,8 +93,6 @@
   "Can't connect": "Не удаётся подключиться",
   "Check your internet connection, then open this page again.": "Проверьте подключение к интернету и снова откройте эту страницу.",
   "Official links": "Официальные ссылки",
-  "Donate (Trakteer)": "Поддержать (Trakteer)",
-  "Donate (Ko-fi)": "Поддержать (Ko-fi)",
   "Changelog": "Список изменений",
   "Report a bug": "Сообщить об ошибке",
   "Patch status": "Состояние патчей",
@@ -130,10 +128,6 @@
   "RESTART": "ПЕРЕЗАПУСТИТЬ",
   "What's new in %1$s %2$s": "Что нового в %1$s %2$s",
   "Settings": "Настройки",
-  "• Supports LinkedIn 4.1.1259\n• The settings now use your phone's language, and you can pick another one under Other → Language\n• Copy a diagnostic report under Other to paste into bug reports\n• The \"Michii Patches\" app icon shortcut now always appears, at the top\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• Поддержка LinkedIn 4.1.1259\n• Настройки теперь используют язык телефона; другой язык можно выбрать в разделе Прочее → Язык\n• Скопируйте диагностический отчёт в разделе Прочее, чтобы вставить его в сообщение об ошибке\n• Ярлык «Michii Patches» на значке приложения теперь всегда отображается первым\n\nОткройте настройки через панель «Я» → Michii Patches или нажмите и удерживайте значок LinkedIn → Michii Patches.",
-  "• The settings now use your phone's language (English, Indonesian, Spanish, Portuguese, French, German, Vietnamese, Thai, Turkish, Russian, or Japanese). You can pick another language under Other → Language.\n\nOpen the settings from the Me panel → Michii Patches, or long press the LinkedIn icon → Michii Patches.": "• Настройки теперь используют язык телефона (английский, индонезийский, испанский, португальский, французский, немецкий, вьетнамский, тайский, турецкий, русский или японский). Другой язык можно выбрать в разделе Прочее → Язык.\n\nОткройте настройки через панель «Я» → Michii Patches или нажмите и удерживайте значок LinkedIn → Michii Patches.",
-  "The first release of Michii Patches.\n\n• Hide ads, promoted jobs, suggested posts, and Premium promotions\n• Download photos, videos, profile photos, and banners, with a configurable save location\n• Feed filters: focus mode, celebrations, jobs, reposts, videos\n• Chat: hide sponsored messages, and ghost mode\n• Open links directly (including lnkd.in) and clean share links\n• Block tracking and disable double-tap like\n\nOpen the settings from the Me panel → Michii Patches.": "Первая версия Michii Patches.\n\n• Скрывает рекламу, продвигаемые вакансии, рекомендуемые публикации и рекламу Premium\n• Загружает фото, видео, фото профиля и обложки с настраиваемым местом сохранения\n• Фильтры ленты: режим фокуса, поздравления, вакансии, репосты, видео\n• Сообщения: скрытие спонсорских сообщений и режим призрака\n• Открывает ссылки напрямую (включая lnkd.in) и очищает ссылки при отправке\n• Блокирует отслеживание и отключает лайк двойным касанием\n\nОткройте настройки через панель «Я» → Michii Patches."
-,
   "Appearance": "Оформление",
   "Material You": "Material You",
   "Remove gaps and dividers": "Убрать промежутки и разделители",
@@ -144,8 +138,7 @@
   "Hide \"Recommended for you\"": "Скрыть «Рекомендации для вас»",
   "Suggestions of people and pages to follow in the feed.": "Предложения людей и страниц для подписки в ленте.",
   "Hide games": "Скрыть игры",
-  "LinkedIn's puzzle games in the Me panel, search, and feed.": "Игры-головоломки LinkedIn в панели «Я», поиске и ленте."
-,
+  "LinkedIn's puzzle games in the Me panel, search, and feed.": "Игры-головоломки LinkedIn в панели «Я», поиске и ленте.",
   "AMOLED black": "Чёрный AMOLED",
   "Pure black backgrounds and cards in dark mode, to save battery on AMOLED screens. Restart LinkedIn to apply.": "Полностью чёрный фон и карточки в тёмном режиме для экономии заряда на AMOLED-экранах. Перезапустите LinkedIn, чтобы применить."
 }

@@ -115,8 +115,13 @@ val finampQuickSettingsBannerPatch = finampFeature(
     "Fix quick settings banner contrast", "Use the banner's matching foreground color so its text stays readable with custom accents (#1756).", 64,
 )
 
+@Suppress("unused")
+val finampAlbumTrackInformationPatch = finampFeature(
+    "Show album and track information", "Show available Jellyfin album and track descriptions, including descriptions saved by download sync (#1852).", 128,
+)
+
 private fun ResourcePatchContext.applyFinampComposition(mask: Int) {
-    nativeCheck(mask in 1..127, "invalid selection mask $mask")
+    nativeCheck(mask in 1..255, "invalid selection mask $mask")
     nativeCheck(packageMetadata.packageName == FINAMP_PACKAGE && packageMetadata.versionName == FINAMP_VERSION,
         "unsupported app; use the original official Finamp 1.0.1 APK")
 
@@ -181,10 +186,10 @@ private fun loadManifest(): Properties {
             if (count == 0) {
                 val single = input.read()
                 if (single < 0) break
-                nativeCheck(output.size() < 64 * 1024, "manifest exceeds 64 KiB")
+                nativeCheck(output.size() < 128 * 1024, "manifest exceeds 128 KiB")
                 output.write(single)
             } else {
-                nativeCheck(output.size() + count <= 64 * 1024, "manifest exceeds 64 KiB")
+                nativeCheck(output.size() + count <= 128 * 1024, "manifest exceeds 128 KiB")
                 output.write(buffer, 0, count)
             }
         }

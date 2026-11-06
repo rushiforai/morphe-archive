@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -125,7 +124,7 @@ public final class Prompt {
             TextView heading = new TextView(context);
             heading.setText(title);
             heading.setTextSize(Tokens.PANEL_TITLE_SP);
-            heading.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+            heading.setTypeface(Fonts.face(true));
             heading.setTextColor(Tokens.TEXT_PRIMARY);
             heading.setGravity(Gravity.CENTER);
             heading.setLayoutParams(new LinearLayout.LayoutParams(
@@ -138,6 +137,7 @@ public final class Prompt {
             body.setText(message);
             body.setTextSize(Tokens.SUBTITLE_SP);
             body.setTextColor(Tokens.TEXT_SECONDARY);
+            body.setTypeface(Fonts.face(false));
             body.setGravity(Gravity.CENTER);
             body.setLineSpacing(Tokens.dp(context, Tokens.SPACE_1), 1f);
             LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(

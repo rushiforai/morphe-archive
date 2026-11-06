@@ -640,6 +640,28 @@ public class BadDexFixture {
     }
 
     /**
+     * An opened post's reply parser: the static method that reads the answer's reply list. Hooked,
+     * it hands that list to the extension's filter once; otherwise it returns as Threads wrote it.
+     */
+    private static ClassDef repliesParser(boolean hooked) {
+        List<Instruction> code = new ArrayList<>();
+        code.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        if (hooked) {
+            code.add(invoke(COMMENTS_FILTER_REF, 0));
+            code.add(op(Opcode.MOVE_RESULT_OBJECT, 0));
+        }
+        code.add(op(Opcode.RETURN_OBJECT, 0));
+        return featureClass(REPLIES_HOST, OBJECT, List.of(), define(REPLIES_HOST, "parse", OBJECT, true,
+                body(7, code.toArray(new Instruction[0])), REPLIES_RESPONSE, REPLIES_HOST, OBJECT, OBJECT, "Z", "Z"));
+    }
+
+    /** The extension's filter, which answers the list it was handed when nothing matches. */
+    private static ClassDef commentsFilter() {
+        return featureClass(COMMENTS_FILTER, OBJECT, List.of(), define(COMMENTS_FILTER, "filter", SHORTCUT_LIST, true,
+                body(1, op(Opcode.RETURN_OBJECT, 0)), SHORTCUT_LIST));
+    }
+
+    /**
      * SoLoader's init, and an instance method beside it holding the same two messages, which the
      * rule's static shape has to tell apart. Hooked, the flags reach the extension before anything else runs.
      */
@@ -778,6 +800,11 @@ public class BadDexFixture {
     private static final String SIGNER_RESULT = "Lfixture/SignerResult;";
     private static final ImmutableMethodReference PAGE_FILTER = method(FEATURE_ADS, "filter", SHORTCUT_LIST, SHORTCUT_LIST);
     private static final ImmutableMethodReference PERMALINK_FILTER = method(FEATURE_ADS, "permalinkAds", SHORTCUT_LIST, SHORTCUT_LIST);
+    /** Filter comments: the opened post's reply parser, and the extension's own filter. */
+    private static final String REPLIES_HOST = "Lcom/instagram/barcelona/permalink/data/BarcelonaPermalinkRepository;";
+    private static final String REPLIES_RESPONSE = "Lcom/instagram/api/schemas/TextAppRepliesResponseIntf;";
+    private static final String COMMENTS_FILTER = "Lapp/morphe/extension/hushthreads/comments/CommentFilter;";
+    private static final ImmutableMethodReference COMMENTS_FILTER_REF = method(COMMENTS_FILTER, "filter", SHORTCUT_LIST, SHORTCUT_LIST);
     private static final ImmutableMethodReference LINK_SANITIZER = method(FEATURE_LINKS, "sanitizeShared", "Ljava/lang/String;", "Ljava/lang/String;");
     private static final String FEATURE_USER = "Lcom/instagram/user/model/User;";
     private static final String FEATURE_REPOSITORY = "Lcom/instagram/barcelona/share/permalink/data/PermalinkRepository;";
@@ -803,6 +830,9 @@ public class BadDexFixture {
     private static final ImmutableMethodReference ITEM_KIND = method(FEATURE_ITEM, "kind", FEATURE_KIND);
     private static final ImmutableMethodReference RAW_CONSTRUCTOR = method(FEATURE_RAW, "<init>", "V", "Ljava/lang/String;", "Ljava/lang/String;");
     private static final ImmutableMethodReference STRING_EQUALS = method("Ljava/lang/String;", "equals", "Z", OBJECT);
+    private static final ImmutableMethodReference STRING_STARTS_WITH = method("Ljava/lang/String;", "startsWith", "Z", "Ljava/lang/String;");
+    private static final String CHAINING_WIRE = "suggested_users_chaining_";
+    private static final String FEATURE_CHAINING = "Lfixture/ChainingRow;";
     private static final ImmutableMethodReference MEDIA_AD = method(FEATURE_MEDIA, "sponsored", "Z");
     private static final ImmutableMethodReference INJECTED_AD = method("Lfixture/AdFlag;", "injected", "Z", OBJECT);
     private static final String FEATURE_RETURN = "Lapp/morphe/extension/hushthreads/feed/ReturnRefresh;";
@@ -1060,36 +1090,42 @@ public class BadDexFixture {
                 staticField(Opcode.SGET_OBJECT, 1, FEATURE_KIND, "suggested", FEATURE_KIND), new ImmutableInstruction22t(Opcode.IF_EQ, 0, 1, 1),
                 staticField(Opcode.SGET_OBJECT, 1, FEATURE_KIND, "kickstart", FEATURE_KIND), new ImmutableInstruction22t(Opcode.IF_NE, 0, 1, 1),
                 objectField(Opcode.IGET_OBJECT, 0, 4, FEATURE_ITEM, "kickstart", FEATURE_RAW), string(1, KICKSTART_WIRE), new ImmutableInstruction10t(Opcode.GOTO, 1),
+                // 15: a SUGGESTED_USERS row built on the phone after a follow, told apart by its id.
+                objectField(Opcode.IGET_OBJECT, 0, 4, FEATURE_ITEM, "chainingId", "Ljava/lang/String;"), ifEqz(0, 1), string(1, CHAINING_WIRE),
+                virtual(STRING_STARTS_WITH, 0, 1), op(Opcode.MOVE_RESULT, 0), new ImmutableInstruction21t(Opcode.IF_NEZ, 0, 1),
                 objectField(Opcode.IGET_OBJECT, 0, 4, FEATURE_ITEM, "suggested", FEATURE_RAW), string(1, SUGGESTED_WIRE), ifEqz(0, 1),
                 objectField(Opcode.IGET_OBJECT, 2, 4, FEATURE_ITEM, "active", FEATURE_WRAPPER),
                 new ImmutableInstruction22c(Opcode.INSTANCE_OF, 3, 2, new ImmutableTypeReference(FEATURE_WRAPPER)), ifEqz(3, 1),
                 type(Opcode.CHECK_CAST, 2, FEATURE_WRAPPER), objectField(Opcode.IGET_OBJECT, 2, 2, FEATURE_WRAPPER, RECORDED_RAW, FEATURE_RAW),
                 new ImmutableInstruction22t(Opcode.IF_NE, 0, 2, 1), objectField(Opcode.IGET_OBJECT, 0, 0, FEATURE_RAW, "type", "Ljava/lang/String;"),
                 virtual(STRING_EQUALS, 1, 0), op(Opcode.MOVE_RESULT, 0), op(Opcode.RETURN, 0),
-                new ImmutableInstruction11n(Opcode.CONST_4, 0, fault.equals("suggestion-false") ? 1 : 0), op(Opcode.RETURN, 0)));
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, fault.equals("suggestion-false") ? 1 : 0), op(Opcode.RETURN, 0),
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), op(Opcode.RETURN, 0)));
         if (fault.equals("suggestion-item-missing")) code.set(1, op(Opcode.NOP));
         if (fault.equals("suggestion-media-missing")) code.set(5, op(Opcode.NOP));
         if (fault.equals("suggestion-type-missing")) code.set(11, op(Opcode.NOP));
-        if (fault.equals("suggestion-null-missing")) code.set(17, op(Opcode.NOP));
-        if (fault.equals("suggestion-wrapper-missing")) code.set(20, op(Opcode.NOP));
-        if (fault.equals("suggestion-identity-missing")) code.set(23, op(Opcode.NOP));
-        if (!fault.equals("suggestion-item-missing")) featureBranch(code, 1, 28, Opcode.IF_EQZ, 0, 0);
-        if (!fault.equals("suggestion-media-missing")) featureBranch(code, 5, 28, fault.equals("suggestion-media-guard") ? Opcode.IF_EQZ : Opcode.IF_NEZ, 0, 0);
+        if (fault.equals("suggestion-null-missing")) code.set(23, op(Opcode.NOP));
+        if (fault.equals("suggestion-wrapper-missing")) code.set(26, op(Opcode.NOP));
+        if (fault.equals("suggestion-identity-missing")) code.set(29, op(Opcode.NOP));
+        if (!fault.equals("suggestion-item-missing")) featureBranch(code, 1, 34, Opcode.IF_EQZ, 0, 0);
+        if (!fault.equals("suggestion-media-missing")) featureBranch(code, 5, 34, fault.equals("suggestion-media-guard") ? Opcode.IF_EQZ : Opcode.IF_NEZ, 0, 0);
         featureBranch(code, 9, fault.equals("suggestion-branch") ? 12 : 15, Opcode.IF_EQ, 0, 1);
-        if (!fault.equals("suggestion-type-missing")) featureBranch(code, 11, 28, fault.equals("suggestion-type-guard") ? Opcode.IF_EQ : Opcode.IF_NE, 0, 1);
-        featureBranch(code, 14, 17, Opcode.GOTO, 0, 0);
-        if (!fault.equals("suggestion-null-missing")) featureBranch(code, 17, 28, fault.equals("suggestion-null-guard") ? Opcode.IF_NEZ : Opcode.IF_EQZ, 0, 0);
-        if (!fault.equals("suggestion-wrapper-missing")) featureBranch(code, 20, 28, Opcode.IF_EQZ, 3, 0);
-        if (!fault.equals("suggestion-identity-missing")) featureBranch(code, 23, 28, fault.equals("suggestion-identity-guard") ? Opcode.IF_EQ : Opcode.IF_NE, 0, 2);
+        if (!fault.equals("suggestion-type-missing")) featureBranch(code, 11, 34, fault.equals("suggestion-type-guard") ? Opcode.IF_EQ : Opcode.IF_NE, 0, 1);
+        featureBranch(code, 14, 23, Opcode.GOTO, 0, 0);
+        featureBranch(code, 16, 21, Opcode.IF_EQZ, 0, 0);
+        featureBranch(code, 20, 36, Opcode.IF_NEZ, 0, 0);
+        if (!fault.equals("suggestion-null-missing")) featureBranch(code, 23, 34, fault.equals("suggestion-null-guard") ? Opcode.IF_NEZ : Opcode.IF_EQZ, 0, 0);
+        if (!fault.equals("suggestion-wrapper-missing")) featureBranch(code, 26, 34, Opcode.IF_EQZ, 3, 0);
+        if (!fault.equals("suggestion-identity-missing")) featureBranch(code, 29, 34, fault.equals("suggestion-identity-guard") ? Opcode.IF_EQ : Opcode.IF_NE, 0, 2);
         if (fault.equals("suggestion-enum")) code.set(8, staticField(Opcode.SGET_OBJECT, 1, FEATURE_KIND, "other", FEATURE_KIND));
-        if (fault.equals("suggestion-slot")) code.set(15, objectField(Opcode.IGET_OBJECT, 0, 4, FEATURE_ITEM, "other", FEATURE_RAW));
+        if (fault.equals("suggestion-slot")) code.set(21, objectField(Opcode.IGET_OBJECT, 0, 4, FEATURE_ITEM, "other", FEATURE_RAW));
         if (fault.equals("suggestion-kickstart-slot")) code.set(12, objectField(Opcode.IGET_OBJECT, 0, 4, FEATURE_ITEM, "suggested", FEATURE_RAW));
-        if (fault.equals("suggestion-raw")) code.set(24, objectField(Opcode.IGET_OBJECT, 0, 0, FEATURE_RAW, "label", "Ljava/lang/String;"));
-        if (fault.equals("suggestion-wire")) code.set(16, string(1, "unknown_netego"));
+        if (fault.equals("suggestion-raw")) code.set(30, objectField(Opcode.IGET_OBJECT, 0, 0, FEATURE_RAW, "label", "Ljava/lang/String;"));
+        if (fault.equals("suggestion-wire")) code.set(22, string(1, "unknown_netego"));
         if (fault.equals("suggestion-kickstart-wire")) code.set(13, string(1, "unknown_netego"));
-        if (fault.equals("suggestion-register")) code.set(25, virtual(STRING_EQUALS, 0, 1));
-        if (fault.equals("suggestion-active-slot")) code.set(18, objectField(Opcode.IGET_OBJECT, 2, 4, FEATURE_ITEM, "otherActive", FEATURE_WRAPPER));
-        if (fault.equals("suggestion-owned-raw")) code.set(22, objectField(Opcode.IGET_OBJECT, 2, 2, FEATURE_WRAPPER, "wrongRaw", FEATURE_RAW));
+        if (fault.equals("suggestion-register")) code.set(31, virtual(STRING_EQUALS, 0, 1));
+        if (fault.equals("suggestion-active-slot")) code.set(24, objectField(Opcode.IGET_OBJECT, 2, 4, FEATURE_ITEM, "otherActive", FEATURE_WRAPPER));
+        if (fault.equals("suggestion-owned-raw")) code.set(28, objectField(Opcode.IGET_OBJECT, 2, 2, FEATURE_WRAPPER, "wrongRaw", FEATURE_RAW));
         if (fault.equals("suggestion-extra-call")) {
             code.add(invoke(method(FEATURE_ADS, "isSuggestedUserItem", "Z", OBJECT), 4));
             code.add(op(Opcode.MOVE_RESULT, 0));
@@ -3241,7 +3277,10 @@ public class BadDexFixture {
         boolean links = patched && selected.contains("sanitizeSharingLinks");
         boolean browser = patched && selected.contains("openLinksExternally");
         boolean analytics = patched && selected.contains("disableAnalytics");
+        boolean comments = patched && selected.contains("filterComments");
         boolean trust = patched && selected.contains("restoreTrust");
+        classes.add(repliesParser(comments));
+        if (patched) classes.add(commentsFilter());
         List<Instruction> merge = new ArrayList<>();
         if (feed && !fault.equals("feed-missing")) {
             merge.add(invoke(fault.equals("feed-replaced") ? method("Ljava/util/Collections;", "unmodifiableList", SHORTCUT_LIST, SHORTCUT_LIST) : PAGE_FILTER,
@@ -3279,12 +3318,23 @@ public class BadDexFixture {
                 body(3, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)), SHORTCUT_LIST, "I")));
         classes.add(featureClass(FEATURE_ITEM, OBJECT, List.of(featureField(FEATURE_ITEM, "kind", FEATURE_KIND),
                 featureField(FEATURE_ITEM, "suggested", FEATURE_RAW), featureField(FEATURE_ITEM, "kickstart", FEATURE_RAW), featureField(FEATURE_ITEM, "other", FEATURE_RAW),
-                featureField(FEATURE_ITEM, "active", FEATURE_WRAPPER), featureField(FEATURE_ITEM, "otherActive", FEATURE_WRAPPER)),
+                featureField(FEATURE_ITEM, "active", FEATURE_WRAPPER), featureField(FEATURE_ITEM, "otherActive", FEATURE_WRAPPER),
+                featureField(FEATURE_ITEM, "chainingId", "Ljava/lang/String;"), featureField(FEATURE_ITEM, "title", "Ljava/lang/String;")),
                 neverInline(define(FEATURE_ITEM, "media", FEATURE_MEDIA, false, body(2, new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)))),
                 define(FEATURE_ITEM, "kind", FEATURE_KIND, false, body(2, List.of(tryBlock(0, 4, 5)), string(0, "feedItemType"),
                         objectField(Opcode.IGET_OBJECT, 0, 1, FEATURE_ITEM, "kind", FEATURE_KIND), op(Opcode.RETURN_OBJECT, 0),
                         op(Opcode.MOVE_EXCEPTION, 0), new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0))),
-                define(FEATURE_ITEM, "<init>", "V", false, body(1, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID)))));
+                define(FEATURE_ITEM, "<init>", "V", false, body(1, direct(method(OBJECT, "<init>", "V"), 0), op(Opcode.RETURN_VOID))),
+                // The row built on the phone after a follow keeps its id in chainingId; title is a String decoy.
+                define(FEATURE_ITEM, "<init>", "V", false, body(4, direct(method(OBJECT, "<init>", "V"), 1),
+                        objectField(Opcode.IPUT_OBJECT, 2, 1, FEATURE_ITEM, "kind", FEATURE_KIND),
+                        objectField(Opcode.IPUT_OBJECT, 3, 1, FEATURE_ITEM, "chainingId", "Ljava/lang/String;"),
+                        string(0, "Suggested for you"), objectField(Opcode.IPUT_OBJECT, 0, 1, FEATURE_ITEM, "title", "Ljava/lang/String;"),
+                        op(Opcode.RETURN_VOID)), FEATURE_KIND, "Ljava/lang/String;")));
+        classes.add(featureClass(FEATURE_CHAINING, OBJECT, List.of(), define(FEATURE_CHAINING, "build", OBJECT, true, body(4,
+                string(0, CHAINING_WIRE), staticField(Opcode.SGET_OBJECT, 1, FEATURE_KIND, "suggested", FEATURE_KIND),
+                type(Opcode.NEW_INSTANCE, 2, FEATURE_ITEM), direct(method(FEATURE_ITEM, "<init>", "V", FEATURE_KIND, "Ljava/lang/String;"), 2, 1, 3),
+                op(Opcode.RETURN_OBJECT, 2)), "Ljava/lang/String;")));
         classes.addAll(suggestionStock());
         classes.add(featureClass("Lfixture/AdFlag;", OBJECT, List.of(), define("Lfixture/AdFlag;", "injected", "Z", true,
                 body(2, new ImmutableInstruction31i(Opcode.CONST, 0, 0x8669a9b0),
@@ -3483,7 +3533,7 @@ public class BadDexFixture {
 
         List<Method> flags = new ArrayList<>();
         for (String flag : List.of("hideAds", "hideSuggestedUsers", "sanitizeSharingLinks", "openLinksExternally", "disableAnalytics", "restoreTrust",
-                "returnRefresh", "disableVideoAutoplay", "pureBlack", "saveMedia")) {
+                "returnRefresh", "disableVideoAutoplay", "pureBlack", "saveMedia", "filterComments")) {
             if ((fault.equals("status-missing") || fault.equals("historical-missing-ad-status")) && flag.equals("hideAds")) continue;
             // The published bundles came before Open links in browser, Block background-return feed refresh, Disable video
             // autoplay, Pure black dark mode and Save photos and videos.
@@ -3721,7 +3771,7 @@ public class BadDexFixture {
 
         Map<String, List<ClassDef>> dexes = new LinkedHashMap<>();
         Set<String> allFeatures = Set.of("hideAds", "hideSuggestedUsers", "sanitizeSharingLinks", "openLinksExternally", "disableAnalytics", "restoreTrust",
-                "returnRefresh", "disableVideoAutoplay", "pureBlack", "saveMedia", "settingsRow");
+                "returnRefresh", "disableVideoAutoplay", "pureBlack", "saveMedia", "filterComments", "settingsRow");
         dexes.put("features-clean", featureBuild(false, Set.of(), 0, ""));
         dexes.put("features-good", featureBuild(true, allFeatures, 7, ""));
         dexes.put("features-omitted", featureBuild(true, Set.of(), 0, ""));

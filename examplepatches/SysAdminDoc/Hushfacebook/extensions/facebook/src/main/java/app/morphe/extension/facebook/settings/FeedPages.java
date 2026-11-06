@@ -275,6 +275,9 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_POST_JOIN_BUTTON,
                         L10n.t("Hides the Join button next to the group's name on posts from groups you haven't joined, "
                                 + "and the Join group bar under their videos. A change shows on the posts drawn after it.")));
+                feed.addPreference(toggle(context, Settings.HIDE_POST_X,
+                        L10n.t("Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. "
+                                + "A change shows on the posts drawn after it.")));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_COUNTS,
                         L10n.t("Takes the numbers off the Like, Comment and Share buttons under posts, so each shows "
                                 + "just its word. The buttons stay where they are. A change shows on the posts drawn after it.")));
@@ -741,8 +744,20 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.HIDE_STORY_REPLY_SUGGESTIONS,
                         L10n.t("Takes the row of suggested replies off the bottom of a story. The reply box stays. "
                                 + "Applies from the next story you open.")));
+                stories.addPreference(toggle(context, Settings.HIDE_STORY_SUBSCRIBE,
+                        L10n.t("Takes the Subscribe button off the top of a story. Applies from the next story you open.")));
                 stories.addPreference(toggle(context, Settings.STORY_PROGRESS_BAR,
                         L10n.t("Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.")));
+            }
+            if (build.contains(PatchFamily.TAP_TO_PLAY)) {
+                // Read as each story's video draws, so a change shows on the story that's open.
+                stories.addPreference(toggle(context, Settings.STORY_SEEK_BAR,
+                        L10n.t("Shows a bar along the bottom of a video story that you drag to move through it. The "
+                                + "story waits while you drag. Progress bar at the bottom makes way for it on video stories.")));
+                stories.addPreference(toggle(context, Settings.STORY_SEEK_BAR_FADE,
+                        L10n.t("With Seek bar on stories on, the bar fades a few seconds after the story starts or you "
+                                + "last touched it. A touch or a pause brings it back."))
+                        .needs(Settings.STORY_SEEK_BAR));
             }
             if (build.contains(PatchFamily.PINCH_TO_ZOOM)) {
                 // Asked as each second finger lands, so a change shows from the next pinch.

@@ -158,6 +158,7 @@ Promoted pins	Pins promovidos
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Remove os pins promovidos do seu feed inicial, da busca, dos pins relacionados e das pastas, e esconde os painéis que só têm anúncios.
 ad-only views	telas só de anúncios
 Google ad SDK start	início do SDK de anúncios do Google
+Meta ad SDK	SDK de anúncios da Meta
 promoted pins in lists	pins promovidos nas listas
 Privacy	Privacidade
 Pin actions	Ações do Pin
@@ -322,8 +323,8 @@ Fix push notifications	Corrigir notificações push
 Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.	Permite que um Pinterest com patches se cadastre para receber notificações push, o que ele não consegue fazer sozinho. Uma mudança vale na próxima vez que o Pinterest abrir.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Impede o Pinterest de sugerir que você compartilhe uma captura de tela. As capturas continuam funcionando. Reinicie o Pinterest para ver a mudança.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Oculta suas buscas recentes. Não apaga o histórico de busca da sua conta. A mudança aparece na próxima vez que a tela for atualizada.
-Hides Create in the bottom bar. The change shows the next time the bar updates.	Oculta Criar na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
-Hides Notifications in the bottom bar. The change shows the next time the bar updates.	Oculta Notificações na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
+Hides Create in the bottom bar and at the top of Home. The change shows the next time they update.	Oculta Criar na barra inferior e no topo do Início. A mudança aparece na próxima vez que eles forem atualizados.
+Hides Notifications in the bottom bar, and Notifications or Inbox at the top of Home. The change shows the next time they update.	Oculta Notificações na barra inferior, e Notificações ou Caixa de entrada no topo do Início. A mudança aparece na próxima vez que eles forem atualizados.
 Hides Search in the bottom bar. The change shows the next time the bar updates.	Oculta Pesquisar na barra inferior. A mudança aparece na próxima vez que a barra for atualizada.
 Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Oculta os botões de ícone pequenos no fim da barra superior. Voltar, botões de texto e controles da conta continuam. A mudança aparece na próxima vez que a barra for atualizada.
 Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Oculta Adicionar à colagem e Remixar colagem nos menus de pin que você abrir a partir de agora. Um menu já aberto não muda.
@@ -537,9 +538,9 @@ Paints the red Save button on a pin you open in a color you pick. It's Pinterest
 Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	O botão Salvar fica %1$s. Toque para mudar. A mudança aparece no próximo pin que você abrir.
 Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	Digite uma cor hex, como #3366FF, ou três dígitos, como #36F. Uma cor clara ganha texto escuro para o botão continuar legível.
 Couldn't open the Save button color. Try again.	Não foi possível abrir a cor do botão Salvar. Tente de novo.
-That isn't a hex color, so nothing changed. Try one like #3366FF.	Isso não é uma cor hex, então nada mudou. Tente uma como #3366FF.
+Not a hex color, so nothing changed. Try one like #3366FF.	Não é uma cor hex, então nada mudou. Tente uma como #3366FF.
 Couldn't save the Save button color. Try again.	Não foi possível salvar a cor do botão Salvar. Tente de novo.
-The Save button is back to Pinterest's red on the next pin you open.	O botão Salvar volta ao vermelho do Pinterest no próximo pin que você abrir.
+The Save button goes back to Pinterest's red on your next pin.	O botão Salvar volta ao vermelho do Pinterest no seu próximo pin.
 The Save button turns %1$s on the next pin you open.	O botão Salvar fica %1$s no próximo pin que você abrir.
 # context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Ocultar o rótulo Pesquisar imagem nos pins

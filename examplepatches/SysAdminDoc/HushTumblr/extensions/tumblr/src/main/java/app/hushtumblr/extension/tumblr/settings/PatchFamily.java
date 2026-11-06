@@ -47,7 +47,7 @@ import app.hushtumblr.extension.shared.settings.preference.LogBufferManager;
  * name the patch uses to switch that method on.
  */
 public enum PatchFamily {
-    HIDE_ADS(FamilyNames.HIDE_ADS, "hideAds", null, Settings.HIDE_ADS),
+    HIDE_ADS(FamilyNames.HIDE_ADS, "hideAds", null, Settings.HIDE_ADS, Settings.KEEP_BLAZE_POSTS),
     /**
      * Tumblr's tracking flags behind a switch, and analytics switches written into the manifest when
      * patching, which Pause can't reach.
@@ -79,6 +79,7 @@ public enum PatchFamily {
             Settings.HIDE_SUGGESTED_COMMUNITIES),
     HIDE_SUGGESTED_TAGS(FamilyNames.HIDE_SUGGESTED_TAGS, "hideSuggestedTags", null, Settings.HIDE_SUGGESTED_TAGS),
     HIDE_WATCH_IT_ROWS(FamilyNames.HIDE_WATCH_IT_ROWS, "hideWatchItRows", null, Settings.HIDE_WATCH_IT_ROWS),
+    HIDE_FEATURED_POSTS(FamilyNames.HIDE_FEATURED_POSTS, "hideFeaturedPosts", null, Settings.HIDE_FEATURED_POSTS),
     HIDE_HASHTAGS(FamilyNames.HIDE_HASHTAGS, "hideHashtags", null, Settings.HIDE_HASHTAGS),
     HIDE_FOLLOW_BUTTON(FamilyNames.HIDE_FOLLOW_BUTTON, "hideFollowButton", null, Settings.HIDE_FOLLOW_BUTTON),
     HIDE_TUMBLRMART(FamilyNames.HIDE_TUMBLRMART, "hideTumblrMart", null, Settings.HIDE_TUMBLRMART),
@@ -93,6 +94,8 @@ public enum PatchFamily {
             Settings.HIDE_COMMUNITIES_COUNT, Settings.HIDE_NOTIFICATIONS_COUNT),
     HIDE_REBLOGS(FamilyNames.HIDE_REBLOGS, "hideReblogs", null, Settings.HIDE_REBLOGS, Settings.KEEP_TAGGED_REBLOGS,
             Settings.KEEP_REBLOGS_WITH_CONTENT),
+    HIDE_OWN_REBLOGS(FamilyNames.HIDE_OWN_REBLOGS, "hideOwnReblogs", null, Settings.HIDE_OWN_REBLOGS),
+    HIDE_LIKED_POSTS(FamilyNames.HIDE_LIKED_POSTS, "hideLikedPosts", null, Settings.HIDE_LIKED_POSTS),
     HIDE_VIDEO_POSTS(FamilyNames.HIDE_VIDEO_POSTS, "hideVideoPosts", null, Settings.HIDE_VIDEO_POSTS),
     HIDE_PHOTO_POSTS(FamilyNames.HIDE_PHOTO_POSTS, "hidePhotoPosts", null, Settings.HIDE_PHOTO_POSTS),
     HIDE_TEXT_POSTS(FamilyNames.HIDE_TEXT_POSTS, "hideTextPosts", null, Settings.HIDE_TEXT_POSTS),
@@ -111,6 +114,7 @@ public enum PatchFamily {
     SHOW_POST_TIMESTAMPS(FamilyNames.SHOW_POST_TIMESTAMPS, "showPostTimestamps", null, Settings.SHOW_POST_TIMESTAMPS),
     VISIBLE_ALT_TEXT(FamilyNames.VISIBLE_ALT_TEXT, "visibleAltText", null, Settings.SHOW_IMAGE_DESCRIPTIONS),
     SHARE_VIDEO_LINKS(FamilyNames.SHARE_VIDEO_LINKS, "shareVideoLinks", null, Settings.SHARE_VIDEO_LINKS),
+    SHARPER_IMAGES(FamilyNames.SHARPER_IMAGES, "sharperImages", null, Settings.SHARPER_IMAGES),
     MUTE_ROOT_POSTS(FamilyNames.MUTE_ROOT_POSTS, "muteRootPosts", null, Settings.MUTE_ROOT_POSTS),
     SHOW_MUTUAL_MARKERS(FamilyNames.SHOW_MUTUAL_MARKERS, "showMutualMarkers", null, Settings.SHOW_MUTUAL_MARKERS),
     REVEAL_ALLOWED_MATURE_CONTENT(FamilyNames.REVEAL_ALLOWED_MATURE_CONTENT, "revealAllowedMatureContent", null,
@@ -138,6 +142,15 @@ public enum PatchFamily {
     public final List<BooleanSetting> switches;
 
     /**
+     * The switches that can each turn this patch on: every one of {@link #switches}, except for a
+     * patch whose later switches are options of its first, such as Keep Blaze posts under Hide ads.
+     */
+    public List<BooleanSetting> enablers() {
+        return this == HIDE_ADS || this == HIDE_REBLOGS || this == HIDE_POSTS_WITH_WORDS
+                ? switches.subList(0, 1) : switches;
+    }
+
+    /**
      * The switches of the settings entry itself, which no family owns: every build with this screen
      * carries them. Today that's the release check. Pause turns them off like a family's switches,
      * so the screen draws them above the Pause row with the rest.
@@ -161,7 +174,8 @@ public enum PatchFamily {
 
     /** The families the Feed page holds. The page and its home row both read this. */
     static final Set<PatchFamily> FEED_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_FILTERED_POSTS,
-            HIDE_POSTS_WITH_WORDS, HIDE_TEXT_POSTS, HIDE_PHOTO_POSTS, HIDE_VIDEO_POSTS, HIDE_REBLOGS, HIDE_WATCH_IT_ROWS,
+            HIDE_POSTS_WITH_WORDS, HIDE_TEXT_POSTS, HIDE_PHOTO_POSTS, HIDE_VIDEO_POSTS, HIDE_LIKED_POSTS, HIDE_OWN_REBLOGS,
+            HIDE_REBLOGS, HIDE_WATCH_IT_ROWS, HIDE_FEATURED_POSTS,
             HIDE_SUGGESTED_TAGS, HIDE_SUGGESTED_COMMUNITIES, HIDE_SUGGESTED_BLOGS, HIDE_AD_FREE_BANNER, HIDE_ADS,
             MUTE_ROOT_POSTS));
 
@@ -174,8 +188,8 @@ public enum PatchFamily {
     /** The families the Posts page holds. The page and its home row both read this. */
     static final Set<PatchFamily> POSTS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_SAVE_BUTTON,
             HIDE_SHARE_BUTTON, HIDE_COMMENT_BUTTON, HIDE_REBLOG_BUTTON, HIDE_LIKE_BUTTON, HIDE_NOTE_COUNTS, HIDE_FOLLOW_BUTTON,
-            HIDE_HASHTAGS, SHOW_POST_TIMESTAMPS, VISIBLE_ALT_TEXT, SHARE_VIDEO_LINKS, REVEAL_ALLOWED_MATURE_CONTENT,
-            SHOW_MUTUAL_MARKERS));
+            HIDE_HASHTAGS, SHOW_POST_TIMESTAMPS, VISIBLE_ALT_TEXT, SHARE_VIDEO_LINKS, SHARPER_IMAGES,
+            REVEAL_ALLOWED_MATURE_CONTENT, SHOW_MUTUAL_MARKERS));
 
     /** The families the Privacy page holds. The page and its home row both read this. */
     static final Set<PatchFamily> PRIVACY_PAGE = Collections.unmodifiableSet(EnumSet.of(DISABLE_ANALYTICS,
@@ -190,11 +204,14 @@ public enum PatchFamily {
         PHOTO_ALT_TEXT_CAPTIONS(VISIBLE_ALT_TEXT, "photoAltTextCaptions", "photo image descriptions"),
         GALLERY_ALT_TEXT_CAPTIONS(VISIBLE_ALT_TEXT, "galleryAltTextCaptions", "gallery image descriptions"),
         VIDEO_LINK_PRESS(SHARE_VIDEO_LINKS, "videoLinkPress", "Share video links"),
+        IMAGE_SIZES(SHARPER_IMAGES, "imageSizes", "Sharper images"),
         NATIVE_POST_TIMESTAMPS(SHOW_POST_TIMESTAMPS, "nativePostTimestamps", "Show post timestamps"),
         ACTIVITY_NOTIFICATION_LIST(FILTER_ACTIVITY_NOTIFICATIONS, "activityNotificationList", "Filter activity notifications"),
         PAID_POST_HEADER(HIDE_ADS, "paidPostHeader", "Hide ads"),
+        AD_SDK_STARTUP(HIDE_ADS, "adSdkStartup", "ad networks at launch"),
         ADVERTISING_ID(HIDE_ADVERTISING_ID, "advertisingId", "Hide advertising ID"),
         ANALYTICS_FLAGS(DISABLE_ANALYTICS, "analyticsFlags", "Disable analytics"),
+        LIVERAMP_STARTUP(DISABLE_ANALYTICS, "liveRampStartup", "LiveRamp at launch"),
         AD_FREE_BANNER_FLAGS(HIDE_AD_FREE_BANNER, "adFreeBannerFlags", "Hide the ad-free banner"),
         TUMBLR_TV_FLAGS(HIDE_TUMBLR_TV, "tumblrTvFlags", "Hide Tumblr TV"),
         COMMUNITIES_TAB_FLAGS(HIDE_COMMUNITIES_TAB, "communitiesTabFlags", "Hide the Communities tab"),
@@ -212,6 +229,7 @@ public enum PatchFamily {
                 "Hide suggested communities"),
         SUGGESTED_TAG_CARDS(HIDE_SUGGESTED_TAGS, "suggestedTagCards", "Hide suggested tags"),
         WATCH_IT_ROWS(HIDE_WATCH_IT_ROWS, "watchItRows", "Hide Watch it rows"),
+        FEATURED_POSTS(HIDE_FEATURED_POSTS, "featuredPosts", "Hide Featured posts"),
         POST_TAGS(HIDE_HASHTAGS, "postTags", "Hide hashtags"),
         FOLLOW_BUTTON(HIDE_FOLLOW_BUTTON, "followButton", "Hide the Follow button"),
         // Two hooks, so the coverage line names each part rather than the patch.
@@ -225,6 +243,8 @@ public enum PatchFamily {
         SAVE_BUTTON(HIDE_SAVE_BUTTON, "saveButton", "Hide the Save button"),
         UNREAD_DOTS(HIDE_UNREAD_DOTS, "unreadDots", "Hide unread dots"),
         REBLOG_POSTS(HIDE_REBLOGS, "reblogPosts", "Hide reblogs"),
+        OWN_REBLOG_POSTS(HIDE_OWN_REBLOGS, "ownReblogPosts", "Hide your own reblogs"),
+        LIKED_POSTS(HIDE_LIKED_POSTS, "likedPosts", "Hide liked posts"),
         VIDEO_POSTS(HIDE_VIDEO_POSTS, "videoPosts", "Hide video posts"),
         PHOTO_POSTS(HIDE_PHOTO_POSTS, "photoPosts", "Hide photo posts"),
         TEXT_POSTS(HIDE_TEXT_POSTS, "textPosts", "Hide text posts"),
@@ -397,9 +417,7 @@ public enum PatchFamily {
             return line.append("no switch, stays in while paused: ").append(effectiveStaysWhilePaused()).toString();
         }
         boolean anyOn = false;
-        if (this == HIDE_REBLOGS) anyOn = Settings.HIDE_REBLOGS.savedValue();
-        else if (this == HIDE_POSTS_WITH_WORDS) anyOn = Settings.HIDE_POSTS_WITH_WORDS.savedValue();
-        else for (BooleanSetting setting : switches) anyOn |= setting.savedValue();
+        for (BooleanSetting setting : enablers()) anyOn |= setting.savedValue();
         line.append(paused ? "disabled while paused (saved " : anyOn ? "on (" : "disabled by its switch (");
         for (int i = 0; i < switches.size(); i++) {
             if (i > 0) line.append(", ");

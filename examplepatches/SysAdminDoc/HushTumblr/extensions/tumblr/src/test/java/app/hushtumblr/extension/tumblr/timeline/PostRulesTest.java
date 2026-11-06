@@ -27,8 +27,11 @@ import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import app.hushtumblr.extension.shared.SettingsContextRule;
 import app.hushtumblr.extension.shared.diagnostics.HookStatus;
@@ -59,6 +62,8 @@ public class PostRulesTest {
         PatchFamilyForTests.capabilities(null);
         Settings.HIDE_ADS.resetToDefault();
         Settings.HIDE_REBLOGS.resetToDefault();
+        Settings.HIDE_OWN_REBLOGS.resetToDefault();
+        Settings.HIDE_LIKED_POSTS.resetToDefault();
         Settings.KEEP_TAGGED_REBLOGS.resetToDefault();
         Settings.KEEP_REBLOGS_WITH_CONTENT.resetToDefault();
         Settings.HIDE_VIDEO_POSTS.resetToDefault();
@@ -150,6 +155,110 @@ public class PostRulesTest {
         Settings.HIDE_REBLOGS.save(true);
         TimelineObject reblog = TimelineItems.reblogOf(Collections.singletonList(new TextBlock("first")));
         assertEquals(Arrays.asList(TEXT, PHOTO), shown(TEXT, reblog, PHOTO));
+    }
+
+    private static final TimelineObject YOUR_REBLOG =
+            TimelineItems.yourReblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("mine"));
+    private static final TimelineObject THEIR_REBLOG =
+            TimelineItems.reblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("theirs"));
+    private static final TimelineObject YOUR_POST = TimelineItems.yourPostWith(new TextBlock("my own"));
+
+    /**
+     * Hide your own reblogs starts off. Turned on, a reblog Tumblr says you can edit leaves a
+     * dashboard page, and someone else's reblog and a post you made yourself stay.
+     */
+    @Test
+    public void hideYourOwnReblogsTakesYourReblogsOffTheDashboard() {
+        List<Object> page = Arrays.asList(TEXT, YOUR_REBLOG, THEIR_REBLOG, YOUR_POST);
+        assertFalse(Settings.HIDE_OWN_REBLOGS.get());
+        assertSame(page, TimelineItems.onTheDashboard(page));
+        Settings.HIDE_OWN_REBLOGS.save(true);
+        HookStatus.clear();
+        assertEquals(Arrays.asList(TEXT, THEIR_REBLOG, YOUR_POST), TimelineItems.onTheDashboard(page));
+        String report = String.join(" | ", HookStatus.report());
+        assertTrue(report, report.contains(FamilyNames.HIDE_OWN_REBLOGS) && report.contains("post removed 1"));
+    }
+
+    /** Your blog, your likes, a search and a page from a response it doesn't know all keep your reblogs. */
+    @Test
+    public void yourReblogsStayEverywhereButTheDashboard() {
+        Settings.HIDE_OWN_REBLOGS.save(true);
+        List<Object> page = Arrays.asList(TEXT, YOUR_REBLOG, THEIR_REBLOG);
+        assertSame("your blog", page, TimelineItems.onABlog(page));
+        assertSame("likes", page, TimelineItems.inLikes(page));
+        assertSame("search", page, TimelineItems.inSearchResults(page));
+        assertSame("an unknown page", page, TimelineFilter.filter(page));
+    }
+
+    /** Without the hook in the build, or while paused, the switch takes nothing out. */
+    @Test
+    public void hideYourOwnReblogsNeedsItsHookAndStopsWhilePaused() {
+        Settings.HIDE_OWN_REBLOGS.save(true);
+        List<Object> page = Arrays.asList(TEXT, YOUR_REBLOG);
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.OWN_REBLOG_POSTS)));
+        assertSame("without the patch", page, TimelineItems.onTheDashboard(page));
+        PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+        assertEquals(Collections.singletonList(TEXT), TimelineItems.onTheDashboard(page));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        try {
+            assertSame("paused", page, TimelineItems.onTheDashboard(page));
+        } finally {
+            PauseForTests.resume();
+        }
+    }
+
+    private static final TimelineObject LIKED = TimelineItems.likedPostWith(new TextBlock("liked already"));
+
+    /**
+     * Hide liked posts starts off. Turned on, a post Tumblr sent already liked leaves a dashboard
+     * page, and the posts around it stay.
+     */
+    @Test
+    public void hideLikedPostsTakesLikedPostsOffTheDashboard() {
+        List<Object> page = Arrays.asList(TEXT, LIKED, PHOTO);
+        assertFalse(Settings.HIDE_LIKED_POSTS.get());
+        assertSame(page, TimelineItems.onTheDashboard(page));
+        Settings.HIDE_LIKED_POSTS.save(true);
+        HookStatus.clear();
+        assertEquals(Arrays.asList(TEXT, PHOTO), TimelineItems.onTheDashboard(page));
+        String line = "";
+        for (String each : HookStatus.report()) {
+            if (each.startsWith(FamilyNames.HIDE_LIKED_POSTS + ":")) line = each;
+        }
+        assertTrue(String.join(" | ", HookStatus.report()), line.contains("post removed 1"));
+    }
+
+    /** A blog, your likes, a search and a page from a response it doesn't know all keep liked posts. */
+    @Test
+    public void likedPostsStayEverywhereButTheDashboard() {
+        Settings.HIDE_LIKED_POSTS.save(true);
+        List<Object> page = Arrays.asList(TEXT, LIKED);
+        assertSame("a blog", page, TimelineItems.onABlog(page));
+        assertSame("likes", page, TimelineItems.inLikes(page));
+        assertSame("search", page, TimelineItems.inSearchResults(page));
+        assertSame("an unknown page", page, TimelineFilter.filter(page));
+    }
+
+    /**
+     * Without the bridge in the build, or while paused, the switch takes nothing out. A post the
+     * bridge didn't reach answers nothing about likes, so it's kept.
+     */
+    @Test
+    public void hideLikedPostsNeedsItsBridgeAndStopsWhilePaused() {
+        Settings.HIDE_LIKED_POSTS.save(true);
+        assertFalse("a model without the liked bridge", PostRules.isLiked(new Object()));
+        assertFalse("no model", PostRules.isLiked(null));
+        List<Object> page = Arrays.asList(TEXT, LIKED);
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.LIKED_POSTS)));
+        assertSame("without the patch", page, TimelineItems.onTheDashboard(page));
+        PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+        assertEquals(Collections.singletonList(TEXT), TimelineItems.onTheDashboard(page));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        try {
+            assertSame("paused", page, TimelineItems.onTheDashboard(page));
+        } finally {
+            PauseForTests.resume();
+        }
     }
 
     @Test
@@ -439,6 +548,130 @@ public class PostRulesTest {
         PostRules first = PostRules.now(), second = PostRules.now();
         assertSame(first.words, second.words);
         assertSame(first.allowedWords, second.allowedWords);
+    }
+
+    private static final Set<PostRules.WordField> EVERY_FIELD = EnumSet.allOf(PostRules.WordField.class);
+
+    private static Map<PostRules.WordField, String> example(String text, String trail, String tags, String summary) {
+        Map<PostRules.WordField, String> example = new EnumMap<>(PostRules.WordField.class);
+        example.put(PostRules.WordField.CURRENT_TEXT, text);
+        example.put(PostRules.WordField.REBLOG_TRAIL, trail);
+        example.put(PostRules.WordField.TAGS, tags);
+        example.put(PostRules.WordField.SUMMARY, summary);
+        return example;
+    }
+
+    @Test @Config(sdk = {26, 36, 37})
+    public void aPreviewNamesTheFieldAndWordThatHideAnExampleAsTheFeedReadsThem() {
+        String hidden = "Cat\n big news, café";
+        WordPreview tag = WordPreview.of(hidden, "", EVERY_FIELD, example("category", "", "#Cats, my cat pics", ""));
+        assertEquals(WordPreview.Outcome.HIDDEN, tag.outcome);
+        assertEquals(PostRules.WordField.TAGS, tag.hiddenIn);
+        assertEquals("cat", tag.hiddenBy);
+        WordPreview summary = WordPreview.of(hidden, "", EVERY_FIELD, example("", "", "", "BIG NEWS!"));
+        assertEquals(PostRules.WordField.SUMMARY, summary.hiddenIn);
+        assertEquals("big news", summary.hiddenBy);
+        WordPreview trail = WordPreview.of(hidden, "", EVERY_FIELD, example("", "a CAFÉ trip", "", ""));
+        assertEquals(PostRules.WordField.REBLOG_TRAIL, trail.hiddenIn);
+        assertEquals("café", trail.hiddenBy);
+        // Fields are read in the feed's order, so the post text names a word found in both.
+        WordPreview both = WordPreview.of(hidden, "", EVERY_FIELD, example("my cat", "", "big news", ""));
+        assertEquals(PostRules.WordField.CURRENT_TEXT, both.hiddenIn);
+        for (String kept : Arrays.asList("category", "bobcat", "cat_", "cat" + (char) 0x0338, "cafe", "big newsroom")) {
+            WordPreview preview = WordPreview.of(hidden, "", EVERY_FIELD, example(kept, kept, kept, kept));
+            assertEquals(kept, WordPreview.Outcome.KEPT, preview.outcome);
+            assertNull(preview.hiddenBy);
+        }
+        // The feed takes out the posts the preview says it hides, and keeps the rest.
+        Settings.HIDE_POSTS_WITH_WORDS.save(true);
+        TextSettings.HIDDEN_WORDS.save(hidden);
+        for (String text : Arrays.asList("my cat", "category", "a CAFÉ trip", "cafe", "BIG NEWS!", "big newsroom")) {
+            assertEquals(text, hides(hidden, example(text, "", "", "")),
+                    shown(TimelineItems.postWith(new TextBlock(text))).isEmpty());
+            assertEquals(text, hides(hidden, example("", text, "", "")),
+                    shown(TimelineItems.reblogOf(Collections.singletonList(new TextBlock(text)))).isEmpty());
+            assertEquals(text, hides(hidden, example("", "", text, "")), shown(TimelineItems.postTagged("", text)).isEmpty());
+            assertEquals(text, hides(hidden, example("", "", "", text)), shown(TimelineItems.postTagged(text)).isEmpty());
+        }
+        // Tags typed the way a post shows them, each after a #, are the tags Tumblr keeps, without it.
+        TextSettings.HIDDEN_WORDS.save("#nsfw");
+        assertFalse(hides("#nsfw", example("", "", "#art #nsfw", "")));
+        // Any kind of space before a # starts a tag, a no-break or ideographic one too.
+        for (char space : new char[]{(char) 0xA0, (char) 0x3000}) {
+            assertFalse(Integer.toHexString(space), hides("#nsfw", example("", "", "#art" + space + "#nsfw", "")));
+        }
+        assertEquals(1, shown(TimelineItems.postTagged("", "art", "nsfw")).size());
+        TextSettings.HIDDEN_WORDS.save("art nsfw");
+        assertFalse(hides("art nsfw", example("", "", "#art #nsfw", "")));
+        assertEquals(1, shown(TimelineItems.postTagged("", "art", "nsfw")).size());
+        TextSettings.HIDDEN_WORDS.save("nsfw");
+        assertTrue(hides("nsfw", example("", "", "#art #nsfw", "")));
+        assertTrue(shown(TimelineItems.postTagged("", "art", "nsfw")).isEmpty());
+        // A # inside a tag stays part of it.
+        TextSettings.HIDDEN_WORDS.save("c#");
+        assertTrue(hides("c#", example("", "", "#c# #art", "")));
+        assertTrue(shown(TimelineItems.postTagged("", "c#", "art")).isEmpty());
+    }
+
+    private static boolean hides(String hidden, Map<PostRules.WordField, String> example) {
+        return WordPreview.of(hidden, "", EVERY_FIELD, example).outcome == WordPreview.Outcome.HIDDEN;
+    }
+
+    @Test
+    public void aPreviewReadsOnlyTheSelectedFields() {
+        Map<PostRules.WordField, String> everywhere = example("cat", "cat", "cat", "cat");
+        for (PostRules.WordField only : PostRules.WordField.values()) {
+            WordPreview preview = WordPreview.of("cat", "", EnumSet.of(only), everywhere);
+            assertEquals(only.name(), WordPreview.Outcome.HIDDEN, preview.outcome);
+            assertEquals(only, preview.hiddenIn);
+            Set<PostRules.WordField> others = EnumSet.complementOf(EnumSet.of(only));
+            Map<PostRules.WordField, String> onlyThere = example("", "", "", "");
+            onlyThere.put(only, "cat");
+            assertEquals(only.name(), WordPreview.Outcome.EMPTY, WordPreview.of("cat", "", others, onlyThere).outcome);
+            onlyThere.put(others.iterator().next(), "dog");
+            assertEquals(only.name(), WordPreview.Outcome.KEPT, WordPreview.of("cat", "", others, onlyThere).outcome);
+        }
+        assertEquals(WordPreview.Outcome.NO_FIELDS,
+                WordPreview.of("cat", "", EnumSet.noneOf(PostRules.WordField.class), everywhere).outcome);
+        assertEquals(WordPreview.Outcome.NO_WORDS, WordPreview.of(" ,\n ", "", EVERY_FIELD, everywhere).outcome);
+        assertEquals(WordPreview.Outcome.NO_WORDS, WordPreview.of(null, "", EVERY_FIELD, everywhere).outcome);
+        assertEquals(WordPreview.Outcome.EMPTY, WordPreview.of("cat", "", EVERY_FIELD, example(" ", "", "\n", "")).outcome);
+    }
+
+    @Test @Config(sdk = {26, 36, 37})
+    public void anAllowedWordInASelectedFieldKeepsTheExampleAndIsNamed() {
+        WordPreview kept = WordPreview.of("cat", "CAFÉ, kitten", EVERY_FIELD, example("cat", "", "kitten", ""));
+        assertEquals(WordPreview.Outcome.ALLOWED, kept.outcome);
+        assertEquals(PostRules.WordField.CURRENT_TEXT, kept.hiddenIn);
+        assertEquals("cat", kept.hiddenBy);
+        assertEquals(PostRules.WordField.TAGS, kept.allowedIn);
+        assertEquals("kitten", kept.allowedBy);
+        // A decomposed E with a combining acute is the same allowed word as the one-character form.
+        WordPreview accent = WordPreview.of("cat", "caf" + (char) 0x00E9, EVERY_FIELD, example("cat CAFE" + (char) 0x0301, "", "", ""));
+        assertEquals(WordPreview.Outcome.ALLOWED, accent.outcome);
+        assertEquals("café", accent.allowedBy);
+        // Allowed words are whole words too, and read in the selected fields only.
+        assertEquals(WordPreview.Outcome.HIDDEN,
+                WordPreview.of("cat", "kitten", EVERY_FIELD, example("cat kittens", "", "", "")).outcome);
+        assertEquals(WordPreview.Outcome.HIDDEN, WordPreview.of("cat", "kitten",
+                EnumSet.of(PostRules.WordField.CURRENT_TEXT), example("cat", "", "kitten", "")).outcome);
+        // An allowed word alone doesn't make a match.
+        assertEquals(WordPreview.Outcome.KEPT,
+                WordPreview.of("cat", "kitten", EVERY_FIELD, example("kitten", "", "", "")).outcome);
+    }
+
+    @Test
+    public void aPreviewLeavesTheSavedListsCacheAlone() {
+        TextSettings.HIDDEN_WORDS.save("cat");
+        TextSettings.ALLOWED_WORDS.save("kitten");
+        Settings.HIDE_POSTS_WITH_WORDS.save(true);
+        PostRules before = PostRules.now();
+        WordPreview.of("dog, cat", "puppy", EVERY_FIELD, example("dog", "", "", ""));
+        PostRules after = PostRules.now();
+        assertSame(before.words, after.words);
+        assertSame(before.allowedWords, after.allowedWords);
+        assertEquals("cat", TextSettings.HIDDEN_WORDS.savedValue());
+        assertEquals("kitten", TextSettings.ALLOWED_WORDS.savedValue());
     }
 
     @Test

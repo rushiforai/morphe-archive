@@ -134,10 +134,12 @@ public class ChangedSettingsReportTest {
                 "download_sound_format", "download_sticker_format",
                 "download_video_quality", "feed_navigation_tabs", "feed_text_backdrop", "feed_text_color",
                 "glass_bar_height", "glass_blur_strength",
-                "glass_corners", "glass_haptic_style", "glass_opacity", "hold_speed", "live_min_max_followers",
+                "glass_corners", "glass_haptic_style", "glass_opacity", "hold_speed", "hold_speed_hud_style",
+                "hold_speed_slide_axis",
+                "live_auto_tap_rate", "live_min_max_followers",
                 "live_min_max_viewers", "live_record_quality", "live_record_source", "liked_grid_sort", "long_press_action", "min_max_comments", "min_max_favourites",
                 "min_max_likes", "min_max_shares", "min_max_views", "network_proxy_type",
-                "playback_quality", "playback_quality_metered", "profile_grid_sort", "seekbar_time_placement", "start_page",
+                "playback_quality", "playback_quality_metered", "profile_grid_sort", "seekbar_time_placement", "sound_grid_sort", "start_page",
                 "store_identity_installer", "subtitle_language", "swipe_left_action", "swipe_levels_left", "swipe_levels_right",
                 "touch_target_scale", "ytdlnis_download_type")), shown);
     }

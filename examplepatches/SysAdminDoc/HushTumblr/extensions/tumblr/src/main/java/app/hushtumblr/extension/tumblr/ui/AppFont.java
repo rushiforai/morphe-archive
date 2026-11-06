@@ -167,11 +167,20 @@ public final class AppFont {
         }
     }
 
-    /** The weight [drawn] has when it's one of [tumblrs], bold or italic on top or not, or 0. Android keeps one object per font and style. */
+    /**
+     * The weight [drawn] has when it's one of [tumblrs], bold or italic on top or not, or 0. Android keeps
+     * one object per font and style, and one per font, weight and slant. Tumblr's text styles set
+     * {@code android:textFontWeight} from Android 9 on, and a plain TextView applies it with
+     * {@code Typeface.create(font, weight, italic)}, so most of these rows hold that object, not the font.
+     */
     private static int weightAmong(Typeface[] tumblrs, Typeface drawn) {
         for (int at = 0; at < tumblrs.length; at++) {
             Typeface own = tumblrs[at];
-            if (own != null && (drawn == own || drawn == Typeface.create(own, drawn.getStyle()))) return WEIGHTS[at];
+            if (own == null) continue;
+            if (drawn == own || drawn == Typeface.create(own, drawn.getStyle())) return WEIGHTS[at];
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && drawn == Typeface.create(own, drawn.getWeight(), drawn.isItalic())) {
+                return drawn.getWeight();
+            }
         }
         return 0;
     }

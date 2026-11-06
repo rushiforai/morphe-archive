@@ -198,7 +198,8 @@ public class PatchFamilyTest {
         assertEquals("disableAnalytics", family.statusMethod);
         assertEquals(permanent, family.staysWhilePaused);
         assertEquals(Collections.singletonList(Settings.DISABLE_ANALYTICS), family.switches);
-        assertEquals(EnumSet.of(PatchFamily.Capability.ANALYTICS_FLAGS), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.ANALYTICS_FLAGS, PatchFamily.Capability.LIVERAMP_STARTUP),
+                family.expectedCapabilities());
         assertTrue("the Privacy page draws it", PatchFamily.PRIVACY_PAGE.contains(family));
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));
         // Every other family but the two manifest-only ones, which have patch-time edits of their own.
@@ -407,6 +408,20 @@ public class PatchFamilyTest {
         assertTrue(Settings.KEEP_TAGGED_REBLOGS.savedValue());
         assertTrue(Settings.KEEP_REBLOGS_WITH_CONTENT.savedValue());
         assertTrue(Settings.WORDS_REBLOG_TRAIL.savedValue());
+    }
+
+    /** Keep Blaze posts is an option of Hide ads: no patch of its own, and on alone it doesn't turn Hide ads on. */
+    @Test
+    public void keepBlazePostsCannotReportHideAdsOn() {
+        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.KEEP_BLAZE_POSTS), PatchFamily.HIDE_ADS.switches);
+        assertEquals(Collections.singletonList(Settings.HIDE_ADS), PatchFamily.HIDE_ADS.enablers());
+        Settings.HIDE_ADS.save(false);
+        Settings.KEEP_BLAZE_POSTS.save(true);
+        Set<PatchFamily> build = EnumSet.of(PatchFamily.HIDE_ADS);
+        assertEquals("Hide ads: disabled by its switch (hushtumblr_hide_ads=off, hushtumblr_keep_blaze_posts=on)",
+                PatchFamily.reportLines(build, false).get(0));
+        Settings.HIDE_ADS.save(true);
+        assertTrue(PatchFamily.reportLines(build, false).get(0).startsWith("Hide ads: on ("));
     }
 
     /** The reblog exceptions are options of Hide reblogs: no patch, status flag or hook of their own. */

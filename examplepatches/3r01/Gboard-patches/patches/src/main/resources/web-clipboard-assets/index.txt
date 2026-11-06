@@ -1,0 +1,10 @@
+assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2
+assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2
+assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2
+assets/geist-latin-wght-normal-BgDaEnEv.woff2
+assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2
+assets/index-CrrbJfwz.js
+assets/index-j-45Yer8.css
+favicon.svg
+icons.svg
+index.html

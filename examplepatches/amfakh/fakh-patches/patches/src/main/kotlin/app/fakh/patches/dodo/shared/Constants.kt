@@ -10,6 +10,6 @@ object Constants {
         packageName = "com.dundunstudio.autoplay",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xD32E38,
-        targets = listOf(AppTarget(version = "2.0.14", versionCode = 253)),
+        targets = listOf(AppTarget(version = "2.0.14", versionCode = 253), AppTarget(version = "2.0.17", versionCode = 256)),
     )
 }

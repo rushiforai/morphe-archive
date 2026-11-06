@@ -134,8 +134,6 @@ Agent i pageのSwitch
 
 - Agent i backend
 - model API
-- entitlement
-- subscription
 - authentication
 - conversation data
 - promptとresponse
@@ -350,7 +348,7 @@ Lj25/t;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
 Llx4/m0;->TARGET_LINE_AI_SERVICE
 ```
 
-subscription settingsのsource metadataは次のとおり。
+設定画面のsource metadataは次のとおり。
 
 ```text
 AiSubscriptionSettingsScreen.kt
@@ -359,11 +357,11 @@ LineUserAiAssistantSettingsCategory.kt
 
 ### Navigation
 
-Main Settings rowは `CATEGORY / TARGET_LINE_AI_SERVICE` のnavigation requestを渡す。destinationではsubscription管理、契約復元、privacy、service informationを表示する。
+Main Settings rowは `CATEGORY / TARGET_LINE_AI_SERVICE` のnavigation requestを渡す。destinationでは復元、privacy、service informationなどの設定を表示する。
 
 ### Suppression
 
-Main Settings catalogの両variantのvisible predicateだけをfalse化する。subscription state、billing、restore action、settings navigator、destinationを変更しない。
+Main Settings catalogの両variantのvisible predicateだけをfalse化する。billing、restore action、settings navigator、destinationを変更しない。
 
 static catalog targetは2件。runtime表示は最大1件。
 
@@ -558,7 +556,7 @@ Agent i product entryとしてのresourceとclick pathは確認できなかっ�
 - AiTalkSuggestionsChatSettingActivity
 - AiCharacterChatroomActivity
 - Agent i remote config consumers
-- subscription、billing、restore、entitlement
+- billing、restore
 - Room database
 - network、terms、policy URL
 - `SERVICE_TYPE_AGENT_I`
@@ -581,7 +579,7 @@ Agent i product entryとしてのresourceとclick pathは確認できなかっ�
 ## 実機で確認する事項
 
 - remote configにより各入口が実際に表示されるaccount
-- region、年齢、契約状態ごとの差分
+- region、年齢ごとの差分
 - surfaceごとのruntime cardinality
 - Home headerのrecomposition
 - Walletのtab往復とresume

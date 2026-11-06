@@ -1,0 +1,13 @@
+# /etc/hosts or Pi-hole format
+0.0.0.0 crashpad.chromium.org
+0.0.0.0 bcp.quetta.net
+0.0.0.0 test-bcp.quetta.net
+0.0.0.0 variations-test.quetta.net
+0.0.0.0 test-update.quetta.net
+0.0.0.0 test-sync.quetta.net
+0.0.0.0 sentry.thefrodo.com
+0.0.0.0 app-measurement.com
+0.0.0.0 google-analytics.com
+0.0.0.0 firebase-settings.crashlytics.com
+0.0.0.0 chromereporting-pa.googleapis.com
+0.0.0.0 pagead2.googlesyndication.com

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -87,7 +86,7 @@ public final class RangeDialog {
         TextView heading = new TextView(activity);
         heading.setText(title);
         heading.setTextSize(Tokens.PANEL_TITLE_SP);
-        heading.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        heading.setTypeface(Fonts.face(true));
         heading.setTextColor(Tokens.TEXT_PRIMARY);
         heading.setGravity(Gravity.CENTER);
         column.addView(heading);
@@ -96,6 +95,7 @@ public final class RangeDialog {
         hint.setText("Leave a field empty for no bound on that side.");
         hint.setTextSize(Tokens.SUBTITLE_SP);
         hint.setTextColor(Tokens.TEXT_SECONDARY);
+        hint.setTypeface(Fonts.face(false));
         hint.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams hintParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -146,6 +146,7 @@ public final class RangeDialog {
         field.setText(value);
         field.setTextSize(Tokens.ACTION_SP);
         field.setTextColor(Tokens.TEXT_PRIMARY);
+        field.setTypeface(Fonts.face(false));
         field.setHintTextColor(Tokens.TEXT_DISABLED);
         field.setGravity(Gravity.CENTER);
         field.setSingleLine(true);
@@ -165,6 +166,7 @@ public final class RangeDialog {
         view.setText("\u2013");
         view.setTextSize(Tokens.ACTION_SP);
         view.setTextColor(Tokens.TEXT_SECONDARY);
+        view.setTypeface(Fonts.face(false));
         view.setPadding(
                 Tokens.dp(context, Tokens.SPACE_2), 0,
                 Tokens.dp(context, Tokens.SPACE_2), 0);

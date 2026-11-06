@@ -36,6 +36,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -426,6 +427,80 @@ public class AmoledBlackTest {
         AmoledBlack.comments(light);
         light.layout(0, 0, 320, 480);
         assertEquals(ELEVATION, ((ColorDrawable) floating.getBackground()).getColor());
+    }
+
+    /**
+     * Seen on Pinterest 14.43.0 (#21): the quick replies above the reply box (the emoji and "Love
+     * it!" buttons) stayed #222226 on the black comments sheet. Each is a small Gestalt button whose
+     * gray is a background tint (set on the button and again on the ripple's shape), so the shape's
+     * own color never shows, and Pinterest adds them to their row after the screen is built.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theQuickRepliesAddedAfterTheCommentsAreBuiltTurnBlackAndOffGivesTheirGrayBack() {
+        Settings.BLACK_COMMENTS.save(true);
+        FrameLayout screen = sheet(true, "comments_feed", "comment_bottom_bar", "floating_comment_view",
+                "comment_reaction_header", "community_insight_comment_header", "comment_starters");
+        LinearLayout row = new LinearLayout(screen.getContext());
+        row.setId(6);
+        screen.addView(row);
+        View early = quickReply(true);
+        row.addView(early);
+        AmoledBlack.comments(screen);
+        assertEquals("a quick reply already in the row turns black with the sheet", Color.BLACK, shownTint(early));
+        View later = quickReply(true);
+        row.addView(later);
+        screen.layout(0, 0, 320, 480);
+        assertEquals("one added after the build turns black on the next layout", Color.BLACK, shownTint(later));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        screen.layout(0, 0, 320, 520);
+        assertEquals("Pause gives the gray back", REACTIONS, shownTint(later));
+        PauseForTests.resume();
+        screen.layout(0, 0, 320, 480);
+        assertEquals(Color.BLACK, shownTint(later));
+        Settings.BLACK_COMMENTS.save(false);
+        screen.layout(0, 0, 320, 520);
+        assertEquals("the switch off gives the gray back", REACTIONS, shownTint(early));
+        assertEquals(REACTIONS, shownTint(later));
+
+        Settings.BLACK_COMMENTS.save(true);
+        Settings.BLACK_PIN_MENU.save(true);
+        FrameLayout menu = sheet(true, "modal_header", "modal_container", "comment_starters");
+        LinearLayout menuRow = new LinearLayout(menu.getContext());
+        menuRow.setId(3);
+        menu.addView(menuRow);
+        View inMenu = quickReply(true);
+        menuRow.addView(inMenu);
+        AmoledBlack.pinMenu(menu);
+        menu.layout(0, 0, 320, 480);
+        assertEquals("a pin's menu doesn't paint a row of buttons", REACTIONS, shownTint(inMenu));
+        FrameLayout light = sheet(false, "comments_feed", "comment_bottom_bar", "floating_comment_view",
+                "comment_reaction_header", "community_insight_comment_header", "comment_starters");
+        LinearLayout lightRow = new LinearLayout(light.getContext());
+        lightRow.setId(6);
+        light.addView(lightRow);
+        View day = quickReply(false);
+        lightRow.addView(day);
+        AmoledBlack.comments(light);
+        light.layout(0, 0, 320, 480);
+        assertEquals("light mode is left alone", REACTIONS, shownTint(day));
+    }
+
+    /** A quick reply the way 14.43.0's GestaltButton colors one: a ripple over a shape, tinted on the button and on the shape. */
+    private static View quickReply(boolean night) {
+        LinearLayout chip = seeMoreCard(night, Color.WHITE);
+        ColorStateList gray = ColorStateList.valueOf(REACTIONS);
+        chip.setBackgroundTintList(gray);
+        ((LayerDrawable) chip.getBackground()).getDrawable(0).mutate().setTintList(gray);
+        return chip;
+    }
+
+    /** The color the chip's background draws in its middle, which is what a viewer sees. */
+    private static int shownTint(View chip) {
+        Drawable background = chip.getBackground();
+        background.setBounds(0, 0, 40, 40);
+        Bitmap drawn = Bitmap.createBitmap(40, 40, Bitmap.Config.ARGB_8888);
+        background.draw(new Canvas(drawn));
+        return drawn.getPixel(20, 20);
     }
 
     /**

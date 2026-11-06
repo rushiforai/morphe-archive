@@ -1,6 +1,8 @@
 package app.onlynazril.patches.tiktok.captcha
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.string
 
 /**
  * Anchors for the captcha patch.
@@ -25,7 +27,7 @@ internal object SecCaptchaPopupFingerprint : Fingerprint(
         "Landroidx/fragment/app/Fragment;",
         "Ljava/lang/String;",
     ),
-    strings = listOf("popCaptchaV2 - riskInfo ="),
+    strings = listOf(string("popCaptchaV2 - riskInfo =", StringComparisonType.STARTS_WITH)),
 )
 
 /**
@@ -37,7 +39,7 @@ internal object SecLegacyCaptchaPopupFingerprint : Fingerprint(
     name = "popCaptcha",
     returnType = "V",
     parameters = listOf("Landroid/app/Activity;", "I", "L"),
-    strings = listOf("popCaptcha - errorcode ="),
+    strings = listOf(string("popCaptcha - errorcode =", StringComparisonType.STARTS_WITH)),
 )
 
 /**

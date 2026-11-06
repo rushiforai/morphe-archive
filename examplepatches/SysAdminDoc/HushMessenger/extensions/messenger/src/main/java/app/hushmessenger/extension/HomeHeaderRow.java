@@ -87,6 +87,18 @@ final class HomeHeaderRow {
         refresh();
     }
 
+    /** Shows the saved words again after something other than typing changed them, such as a Quick setup or its Undo. */
+    void reload() {
+        if (words != null) {
+            String saved = Settings.preferences.getString(HomeHeader.TEXT, "");
+            if (!saved.contentEquals(words.getText())) words.setText(saved);
+            // Setting the field reads as typing, so drop the save that queued: the words came from the saved value.
+            typed = false;
+        }
+        handler.removeCallbacks(save);
+        refresh();
+    }
+
     void refresh() {
         page.updateRestartRow();
         if (status == null) return;

@@ -495,25 +495,29 @@ public final class UpdateChecker implements Runnable {
         whatsNewChecked = true;
         final String installed = realInstalledVersion(context);
         if (installed == null) return;
+        // Patch-only releases keep Instagram's version, so the patch bundle is part of
+        // "what changed" too: without it those updates would never show the card.
+        final String key = installed + "+" + BuildConfig.BUNDLE_VERSION;
         String seen = Config.getLastSeenVersion();
         if (seen == null) {
-            Config.setLastSeenVersion(installed);
+            Config.setLastSeenVersion(key);
             return;
         }
-        if (seen.equals(installed)) return;
-        new Thread(() -> loadNotes(context, "v" + installed.replace('.', '-'), installed, true),
+        if (seen.equals(key)) return;
+        new Thread(() -> loadNotes(context, "v" + installed.replace('.', '-'), installed, key),
                 "feurstagram-whatsnew").start();
     }
 
     /**
      * Fetch one release's notes by tag and show them.
      *
-     * @param markSeen record the version afterwards so this only ever runs once.
+     * @param seenKey  record this as seen afterwards so this only ever runs once (null
+     *                 to record nothing).
      *                 A missing release (a self-built APK, a version never
      *                 published) counts as done; a network failure does not, so
      *                 the next launch tries again.
      */
-    private static void loadNotes(Context context, String tag, String version, boolean markSeen) {
+    private static void loadNotes(Context context, String tag, String version, String seenKey) {
         Handler ui = new Handler(Looper.getMainLooper());
         try {
             String json = fetch(RELEASE_BY_TAG + tag);
@@ -521,10 +525,10 @@ public final class UpdateChecker implements Runnable {
             if (notes != null) {
                 ui.post(() -> showWhatsNew(context, version, notes));
             }
-            if (markSeen) Config.setLastSeenVersion(version);
+            if (seenKey != null) Config.setLastSeenVersion(seenKey);
         } catch (java.io.FileNotFoundException missing) {
             // No release published under that tag: nothing to show, ever.
-            if (markSeen) Config.setLastSeenVersion(version);
+            if (seenKey != null) Config.setLastSeenVersion(seenKey);
         } catch (Throwable t) {
             // Offline or rate-limited: leave it for the next launch.
         }

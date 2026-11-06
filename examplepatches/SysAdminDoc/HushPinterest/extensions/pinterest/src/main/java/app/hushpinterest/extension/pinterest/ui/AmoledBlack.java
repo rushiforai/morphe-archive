@@ -145,10 +145,13 @@ public final class AmoledBlack {
      * the bar that holds the reply box and the comment floating over the list each carry the gray.
      * So do the two reactions headers, the one above the list and the one laid over its top, which
      * Pinterest shows while the comments load and hides once they're in, in a gray of their own
-     * (#222226 on a video pin, #12).
+     * (#222226 on a video pin, #12). The quick replies above the reply box (the emoji and "Love it!"
+     * buttons) are small buttons in that same gray, a rounded shape under a ripple (14.43.0, #21).
+     * Pinterest adds them to their row after the screen is built and swaps them out as it likes,
+     * so each one is painted on the screen's layout passes.
      */
     public static void comments(View sheet) {
-        built(sheet, Settings.BLACK_COMMENTS, true, "comments",
+        built(sheet, Settings.BLACK_COMMENTS, true, "comment_starters", "comments",
                 "comments_feed", "comment_bottom_bar", "floating_comment_view", "comment_reaction_header",
                 "community_insight_comment_header");
     }
@@ -158,7 +161,7 @@ public final class AmoledBlack {
      * header and the scrolling list under it carry the gray.
      */
     public static void pinMenu(View sheet) {
-        built(sheet, Settings.BLACK_PIN_MENU, false, "pin menu", "modal_header", "modal_container");
+        built(sheet, Settings.BLACK_PIN_MENU, false, null, "pin menu", "modal_header", "modal_container");
     }
 
     /** Off or Pause gives a card its gray back while the menu is still open, on the card's next layout pass. */
@@ -187,13 +190,16 @@ public final class AmoledBlack {
         }
     }
 
-    /** Pinterest's ids are read by name each time a sheet is built, which is once per time it opens. */
-    private static void built(View sheet, BooleanSetting setting, boolean topBand, String what, String... fills) {
+    /**
+     * Pinterest's ids are read by name each time a sheet is built, which is once per time it opens.
+     * [chips] names a row whose every child is painted, see-through grays included, or is null.
+     */
+    private static void built(View sheet, BooleanSetting setting, boolean topBand, String chips, String what, String... fills) {
         try {
             if (sheet == null) return;
             int[] ids = new int[fills.length];
             for (int index = 0; index < fills.length; index++) ids[index] = id(sheet, fills[index]);
-            Sheet known = new Sheet(setting, topBand, ids);
+            Sheet known = new Sheet(setting, topBand, ids, chips == null ? 0 : id(sheet, chips));
             Sheet before = sheets.put(sheet, known);
             if (before == null) {
                 sheet.addOnLayoutChangeListener(REPAINT_SHEET);
@@ -211,6 +217,14 @@ public final class AmoledBlack {
         for (int id : known.fills) {
             View fill = id == 0 ? null : sheet.findViewById(id);
             if (fill != null) paintFill(fill, black, false);
+        }
+        View row = known.chips == 0 ? null : sheet.findViewById(known.chips);
+        if (row instanceof ViewGroup) {
+            ViewGroup chips = (ViewGroup) row;
+            for (int index = 0; index < chips.getChildCount(); index++) {
+                View chip = chips.getChildAt(index);
+                if (chip != null) paintFill(chip, black, true);
+            }
         }
         if (known.topBand) band(sheet, known, black);
         View root = sheet.getRootView();
@@ -356,8 +370,14 @@ public final class AmoledBlack {
     /**
      * A view that holds a sheet's gray, whether as its own fill or as a layer of one. A ripple is a
      * layer list too. [washes] also takes a layer's see-through gray, as [paint] does for a shape.
+     * A tint draws over every layer's own color (14.43.0's Gestalt buttons, #21), so it's the tint
+     * that changes then.
      */
     private static void paintFill(View fill, boolean black, boolean washes) {
+        if (fill.getBackgroundTintList() != null || tints.containsKey(fill)) {
+            tint(fill, black, washes);
+            return;
+        }
         Drawable background = fill.getBackground();
         if (background instanceof LayerDrawable) paint((LayerDrawable) background, black, washes);
         else paint(fill, black);
@@ -382,15 +402,18 @@ public final class AmoledBlack {
         /** Whether the band under the status bar turns black with the sheet. */
         final boolean topBand;
         final int[] fills;
+        /** The row whose children each carry the gray, 0 for none. */
+        final int chips;
         /** The strip behind the gesture handle in the window the sheet was last laid out in. */
         WeakReference<View> strip;
         /** The black band over the sheet's top padding while it's drawn, null otherwise. */
         ColorDrawable band;
 
-        Sheet(BooleanSetting setting, boolean topBand, int[] fills) {
+        Sheet(BooleanSetting setting, boolean topBand, int[] fills, int chips) {
             this.setting = setting;
             this.topBand = topBand;
             this.fills = fills;
+            this.chips = chips;
         }
     }
 
@@ -538,13 +561,20 @@ public final class AmoledBlack {
     }
 
     private static void tint(View view, boolean black) {
+        tint(view, black, false);
+    }
+
+    /** [washes] also takes a tint that is partly see-through, never one that is fully clear. */
+    private static void tint(View view, boolean black, boolean washes) {
         if (!black) {
             ColorStateList original = tints.remove(view);
             if (original != null) view.setBackgroundTintList(original);
             return;
         }
         ColorStateList tint = view.getBackgroundTintList();
-        if (tint == null || !opaque(tint.getDefaultColor()) || isBlack(tint)) return;
+        if (tint == null || isBlack(tint)) return;
+        int alpha = Color.alpha(tint.getDefaultColor());
+        if (washes ? alpha == 0 : alpha != 0xFF) return;
         tints.put(view, tint);
         view.setBackgroundTintList(ColorStateList.valueOf(Color.BLACK));
     }

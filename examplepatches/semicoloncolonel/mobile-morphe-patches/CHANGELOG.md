@@ -1,3 +1,29 @@
+## [1.0.11](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.10...v1.0.11) (2026-11-05)
+
+
+### Features
+
+* add Plex on Android TV, DealSeek and White House patches, and YouTube TV quality and picture-in-picture fixes ([4f44861](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/4f44861338a0473729178807822e582da9101f98))
+
+## [1.0.10](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.9...v1.0.10) (2026-11-05)
+
+
+### Bug Fixes
+
+* find Tubi's ad-break error result instead of naming it ([1baffdb](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/1baffdb5319de5c6a05a127d2bdee833922f4456))
+
+## [1.0.9](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.8...v1.0.9) (2026-11-05)
+
+
+### Bug Fixes
+
+* support the latest ESPN, Paramount+, Prime Video, Tubi, Mint Mobile, and JustWatch ([f3f0f3f](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/f3f0f3f8266e3de743f3eacad3ff008ba02f0abb))
+
+
+### Features
+
+* add Plex ([3603e62](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/3603e62aa65eb452dfeec3d102c3494c80c29f40))
+
 ## [1.0.8](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.7...v1.0.8) (2026-11-05)
 
 

@@ -1,0 +1,29 @@
+package app.whatsappmorphe.patches.whatsapp
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import app.whatsappmorphe.patches.shared.Constants.WHATSAPP
+
+private const val EXT = "Lapp/pichiwa/extension/extension/WExtension;"
+
+@Suppress("unused")
+val mediaQuality = bytecodePatch(
+    name = "HD Media",
+    description = "Send images and videos without compression.",
+    default = false
+) {
+    compatibleWith(WHATSAPP)
+
+    execute {
+        Fingerprint(
+            filters = listOf(string("ProcessVideoQuality(videoLimitMb="))
+        ).let { match ->
+            match.method.addInstructions(0, """
+                const/4 v0, 0x1
+                return v0
+            """)
+        }
+    }
+}

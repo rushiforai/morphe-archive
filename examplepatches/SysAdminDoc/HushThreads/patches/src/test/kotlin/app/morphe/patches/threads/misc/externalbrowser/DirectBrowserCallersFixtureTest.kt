@@ -58,19 +58,26 @@ private val arm64Names = BuildNames(
     parser = "LX/139;->A04(Ljava/lang/String;)Landroid/net/Uri;",
 )
 
-// The three arm64-v8a densities and x86_64 share their names; x86 and armeabi-v7a each have their own.
+private val x86Names = BuildNames(
+    web = "LX/14f;->A0H:LX/14f;",
+    parser = "LX/137;->A04(Ljava/lang/String;)Landroid/net/Uri;",
+)
+
+private val armv7Names = BuildNames(
+    web = "LX/14h;->A0H:LX/14h;",
+    parser = "LX/135;->A04(Ljava/lang/String;)Landroid/net/Uri;",
+)
+
+// The three arm64-v8a densities and x86_64 share their names; x86 and armeabi-v7a each have their
+// own. The 2026-11-03 armeabi-v7a and x86 variants differ from 635 and 622 only in the version code.
 private val builds = mapOf(
     "512408621" to arm64Names,
-    "512408622" to BuildNames(
-        web = "LX/14f;->A0H:LX/14f;",
-        parser = "LX/137;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
+    "512408622" to x86Names,
     "512408625" to arm64Names,
-    "512408635" to BuildNames(
-        web = "LX/14h;->A0H:LX/14h;",
-        parser = "LX/135;->A04(Ljava/lang/String;)Landroid/net/Uri;",
-    ),
+    "512408635" to armv7Names,
     "512408636" to arm64Names,
+    "512408645" to armv7Names,
+    "512408647" to x86Names,
     "512408648" to arm64Names,
 )
 

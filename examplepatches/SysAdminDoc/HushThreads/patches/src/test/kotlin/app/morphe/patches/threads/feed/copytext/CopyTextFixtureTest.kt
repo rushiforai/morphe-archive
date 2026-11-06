@@ -14,6 +14,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.util.ControlFlow
@@ -32,6 +33,9 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -174,6 +178,40 @@ class CopyTextFixtureTest {
             assertFalse(build.name, context.selectionFlag().method.body().any { it.calls(SELECTION) })
         }
     }
+
+    /**
+     * The hook's `iget-object` and call name 4-bit registers. A lambda that checks its override
+     * in v17 used to stop the run; the hook now reads the override through a copy and still
+     * answers into v17, the register Threads' own check reads.
+     */
+    @Test
+    fun `an override checked above v15 goes through a copy below it`() {
+        val method = MutableMethod(
+            ImmutableMethod(
+                "Lfixture/Row;", "invoke", emptyList(), "V", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null, null, ImmutableMethodImplementation(20, emptyList(), null, null),
+            ),
+        ).apply {
+            addInstructionsWithLabels(0, "const/4 v0, 0x0\nmove-object/from16 v17, v0\nif-eqz v17, :none\nreturn-void\n:none\nreturn-void")
+        }
+        val action = ImmutableFieldReference("Lfixture/Override;", "press", "Lkotlin/jvm/functions/Function0;")
+        val override = LongPressOverride(method, read = 1, guard = 2, register = 17, action = action, free = 1, low = 2)
+        method.addInstructionsWithLabels(2, override.hook(), ExternalLabel("threads", method.getInstruction(2)))
+        val body = method.body()
+
+        assertEquals("nothing left out", 5 + 6, body.size)
+        assertEquals(17, (body[2] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.MOVE_OBJECT_FROM16, body[3].opcode)
+        assertEquals(listOf(2, 17), (body[3] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertEquals(listOf(1, 2), (body[4] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        assertTrue(body[5].calls(LONG_PRESS))
+        assertEquals(listOf(2, 1), (body[5] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+        assertEquals(17, (body[6] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.CHECK_CAST, body[7].opcode)
+        assertEquals(17, (body[7] as OneRegisterInstruction).registerA)
+        assertEquals("Threads' own check comes after", Opcode.IF_EQZ, body[8].opcode)
+    }
+
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
     private fun Instruction.calls(method: String) = getReference<MethodReference>()?.toString() == method

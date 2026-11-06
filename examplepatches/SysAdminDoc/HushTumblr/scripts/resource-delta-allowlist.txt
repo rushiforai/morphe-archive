@@ -17,11 +17,11 @@
 
 [rebuild]
 rewritten 0x7f150580 style/TimelineView [default] item 0x0101007f hex 0x02000000 -> dec 0x02000000
-rewritten 0x7f140c74 string/sign_up_tos_description [default] "By tapping \"Next\":" with spans "b" 11-16 -> "By tapping Next:" with spans "b" 11-14
-renamed 0x7f0b0b5f id/scrollView is id/id_0x7f0b0b5f
-renamed 0x7f0b0b64 id/scrollview is id/id_0x7f0b0b64
-renamed 0x7f0b0b92 id/seekBar is id/id_0x7f0b0b92
-renamed 0x7f0b0b93 id/seekbar is id/id_0x7f0b0b93
+rewritten 0x7f140c6e string/sign_up_tos_description [default] "By tapping \"Next\":" with spans "b" 11-16 -> "By tapping Next:" with spans "b" 11-14
+renamed 0x7f0b0b4f id/scrollView is id/id_0x7f0b0b4f
+renamed 0x7f0b0b54 id/scrollview is id/id_0x7f0b0b54
+renamed 0x7f0b0b82 id/seekBar is id/id_0x7f0b0b82
+renamed 0x7f0b0b83 id/seekbar is id/id_0x7f0b0b83
 
 [Dark background color]
 added style/HushTumblrDarkBackground

@@ -96,6 +96,20 @@ public final class SettingsContextRule extends ExternalResource {
         // The restart row's real restart ends the process, which here is the whole test run.
         app.hushtumblr.extension.shared.settings.preference.ReopenSettingsAfterRestart
                 .setRestarterForTests(ignored -> { });
+        // A result that finished after a test closed its screen waits for the next screen, which
+        // would be another test's, and the last page built is another test's page too.
+        try {
+            Field unseen = app.hushtumblr.extension.tumblr.settings.HushTumblrPreferenceFragment
+                    .class.getDeclaredField("UNSEEN_RESULTS");
+            unseen.setAccessible(true);
+            ((java.util.Map<?, ?>) unseen.get(null)).clear();
+            Field live = app.hushtumblr.extension.tumblr.settings.HushTumblrPreferenceFragment
+                    .class.getDeclaredField("livePage");
+            live.setAccessible(true);
+            live.set(null, new java.lang.ref.WeakReference<>(null));
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Could not clear the unseen results", exception);
+        }
     }
 
     /**

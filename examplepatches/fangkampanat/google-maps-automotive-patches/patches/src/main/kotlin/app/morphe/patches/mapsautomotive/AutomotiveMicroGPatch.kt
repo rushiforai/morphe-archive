@@ -44,7 +44,7 @@ import java.util.logging.Logger
 // Manifest identity and minSdk, GmsCore routing, availability, extension context,
 // crash log files (adapted from morphe-patches-library v2.0.0 "Save crash log"),
 // API 30 outline redirection (ApiCompatPatch.kt).
-// Own app label, Google TTS warm-up (ported from the phone patch).
+// App name from the "App name" option (AppName.kt), Google TTS warm-up (ported from the phone patch).
 // Remaining API 30 call sites (CloseGuard, NumberFormatter percent, InstallSourceInfo) and
 // Car.createCar without android.car. No exit as the system user where an Android Automotive build
 // runs apps as user 0 (DiLink 5). UI density chosen in Maps' Settings instead of a patch option.
@@ -87,8 +87,9 @@ internal const val SAFE_MODE_CLASS = "Lapp/morphe/extension/mapsautomotive/patch
 private const val REPORT_ACTIVITY = "app.morphe.extension.mapsautomotive.patches.ReportActivity"
 private const val REPORT_LAUNCHER = "app.morphe.extension.mapsautomotive.patches.ReportLauncher"
 private const val REPORT_PROCESS = ":morphe_report"
-// "Report" first, so a launcher that shortens the label still tells it apart from Maps Car.
-private const val REPORT_LABEL = "Report Maps Car"
+// The report's launcher entry is this and the app name: "Report" first, so a launcher that shortens
+// the label still tells it apart from the app.
+private const val REPORT_LABEL_PREFIX = "Report "
 // The report's launcher icon and its layers, bundled under report-icon/ and added to the APK's
 // resources, so the entry does not show the Maps icon: a white speech bubble with a red "!" on red,
 // scaled into the 72dp a launcher shows. The files carry no XML comments: the patcher would encode
@@ -107,9 +108,7 @@ private const val LOCATION_SERVICE_ACTION =
 private const val TTS_WARMUP_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/NavigationTtsWarmup;"
 private const val TTS_ENGINE_PACKAGE = "com.google.android.tts"
 private const val WINDOW_REFRESH_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/WindowRefreshPatch;"
-// Phone Patched Maps on the same head unit is also "Google Maps" (and "Maps" in the open-with
-// chooser), so this build gets its own name.
-private const val APP_LABEL = "Maps Car"
+// The labels the app name replaces (AppName.kt).
 private const val APP_LABEL_RESOURCE = "@string/EGMM_MAPS_APP_NAME"
 private const val CHOOSER_LABEL_RESOURCE = "@string/MAPS_APP_NAME"
 private val logger = Logger.getLogger("app.morphe.patches.mapsautomotive.AutomotiveMicroGPatch")
@@ -134,9 +133,10 @@ internal val compatibility = Compatibility(
 
 internal val manifestPatch = resourcePatch {
     execute {
+        val appName = appLabel(appNameOption.value)
         addReportIcon()
         document("AndroidManifest.xml").use { document ->
-            patchManifest(document)
+            patchManifest(document, appName)
         }
     }
 }
@@ -156,13 +156,15 @@ internal object IncludedFeatures {
 @Suppress("unused")
 val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
-    description = "Runs Google Maps for Android Automotive on Android 10 as \"$APP_LABEL\" with MicroG-RE 7.3.0. " +
-        "Adds UI density and driver side settings, a problem report and a safe mode.",
+    description = "Runs Google Maps for Android Automotive on Android 10 with MicroG-RE 7.3.0, named " +
+        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density and driver side settings, " +
+        "a problem report and a safe mode.",
     default = true,
 ) {
     compatibleWith(compatibility)
     dependsOn(manifestPatch)
     extendWith("extensions/automotive.mpe")
+    appNameOption()
 
     execute {
         // The separate patches execute after this one, which they depend on.
@@ -197,7 +199,7 @@ val automotiveMicroGPatch = bytecodePatch(
     }
 }
 
-private fun patchManifest(document: Document) {
+private fun patchManifest(document: Document, appName: String) {
     val manifest = document.documentElement
     // Phone and AAOS Maps share a package name and the GUI may offer this patch for both.
     // Reject anything but the AAOS build before changing the manifest.
@@ -212,12 +214,12 @@ private fun patchManifest(document: Document) {
     validateAppOwnedPermissionRenames(document, appOwnedPermissionRenames)
     val movedComponents = moveToRenamedMainProcess(manifest)
     logger.info("Moved $movedComponents components from process $ORIGINAL_PACKAGE_NAME to $PATCHED_PACKAGE_NAME")
-    val renamedLabels = renameAppLabels(manifest)
-    logger.info("Set $renamedLabels app and chooser labels to \"$APP_LABEL\"")
+    val renamedLabels = renameAppLabels(manifest, appName)
+    logger.info("Set $renamedLabels app and chooser labels to \"$appName\"")
     ensureQueryPackage(document, manifest)
     ensureSpoofMetadata(document)
     disableCronetTelemetry(document)
-    addReportActivity(document, manifest)
+    addReportActivity(document, manifest, REPORT_LABEL_PREFIX + appName)
 }
 
 // Maps turns Cronet telemetry on in its manifest. Cronet's logger then writes android.util.StatsEvent
@@ -255,12 +257,12 @@ private fun ResourcePatchContext.addReportIcon() {
     logger.info("Added the report icon @mipmap/$REPORT_ICON (${REPORT_ICON_FILES.size} files)")
 }
 
-// The report screen and its launcher entry "Report Maps Car" with its own icon, reachable when Maps'
-// Settings or Maps itself crashes. The activity runs in its own process (injectExtensionContext skips
+// The report screen and its launcher entry, labelled [reportLabel] ("Report" and the app name), with its
+// own icon, reachable when Maps' Settings or Maps itself crashes. The activity runs in its own process (injectExtensionContext skips
 // Maps' start there) and its own task; launch mode and configuration changes are copied from
 // MapsActivity, so they are encoded as Maps' own are. Both carry the icon, so recents shows it too,
 // and roundIcon as well, for a launcher that prefers round icons.
-private fun addReportActivity(document: Document, manifest: Element) {
+private fun addReportActivity(document: Document, manifest: Element, reportLabel: String) {
     val application = manifest.directChildren("application").single()
     val components = application.directChildren("activity") + application.directChildren("activity-alias")
     val taken = components.map { it.getAttribute("android:name") }.filter { it == REPORT_ACTIVITY || it == REPORT_LAUNCHER }
@@ -281,12 +283,12 @@ private fun addReportActivity(document: Document, manifest: Element) {
             setAttribute("android:taskAffinity", "$PATCHED_PACKAGE_NAME.report")
             setAttribute("android:launchMode", launchMode)
             setAttribute("android:configChanges", configChanges)
-            setAttribute("android:label", REPORT_LABEL)
+            setAttribute("android:label", reportLabel)
             setAttribute("android:icon", "@mipmap/$REPORT_ICON")
             setAttribute("android:roundIcon", "@mipmap/$REPORT_ICON")
         },
     )
-    // An alias must follow its target activity. Off until Maps Car's first start turns it on
+    // An alias must follow its target activity. Off until the app's first start turns it on
     // (ReportPatch.setLauncherEntry): DiLink 5's launcher shows one entry per app and keeps the one
     // it read at install, so there it stays off.
     application.appendChild(
@@ -295,7 +297,7 @@ private fun addReportActivity(document: Document, manifest: Element) {
             setAttribute("android:targetActivity", REPORT_ACTIVITY)
             setAttribute("android:enabled", "false")
             setAttribute("android:exported", "true")
-            setAttribute("android:label", REPORT_LABEL)
+            setAttribute("android:label", reportLabel)
             setAttribute("android:icon", "@mipmap/$REPORT_ICON")
             setAttribute("android:roundIcon", "@mipmap/$REPORT_ICON")
             appendChild(
@@ -317,7 +319,7 @@ private fun addReportActivity(document: Document, manifest: Element) {
     }
     if (launchers != 1) throw PatchException("Expected one launcher entry for $REPORT_ACTIVITY, found $launchers")
     logger.info(
-        "Added $REPORT_ACTIVITY in $REPORT_PROCESS and the launcher entry \"$REPORT_LABEL\" with @mipmap/$REPORT_ICON " +
+        "Added $REPORT_ACTIVITY in $REPORT_PROCESS and the launcher entry \"$reportLabel\" with @mipmap/$REPORT_ICON " +
             "(launchMode $launchMode; the entry is off until the first start)",
     )
 }
@@ -384,7 +386,7 @@ private fun moveToRenamedMainProcess(node: Node): Int {
 
 // The application label (launcher, Settings, recents) and the open-with chooser labels of the
 // intent filters. A literal is used, so the name is the same in every locale.
-private fun renameAppLabels(manifest: Element): Int {
+private fun renameAppLabels(manifest: Element, appName: String): Int {
     val application = manifest.directChildren("application").single()
     val applicationLabel = application.getAttribute("android:label")
     if (applicationLabel != APP_LABEL_RESOURCE) {
@@ -396,7 +398,7 @@ private fun renameAppLabels(manifest: Element): Int {
         if (node is Element &&
             node.getAttribute("android:label").let { it == APP_LABEL_RESOURCE || it == CHOOSER_LABEL_RESOURCE }
         ) {
-            node.setAttribute("android:label", APP_LABEL)
+            node.setAttribute("android:label", appName)
             renamed++
         }
         val children = node.childNodes

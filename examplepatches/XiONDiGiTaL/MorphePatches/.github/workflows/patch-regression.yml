@@ -1,0 +1,196 @@
+name: Patch regression
+
+# Applies the freshly built bundle to the reference Tandem 6.38.0 APKM with Morphe's own patcher.
+# The patcher aborts on the first fingerprint that stops matching and on the first patch body that
+# throws, so this is the check that was missing when v1.0.0 and the first v1.0.1 shipped: both
+# bundles were released without ever being run against the APK.
+#
+# The reference APK is proprietary and is not committed here. Set the repository variable
+# TANDEM_APKM_URL to a copy you host yourself (a private release asset is enough) and, if that URL
+# needs one, TANDEM_APKM_TOKEN to a token that can read it. Everything else is pinned in this file.
+# Without TANDEM_APKM_URL the job still builds the bundle and says the apply check was skipped.
+# Fork pull requests skip the apply check by design: the token is not available to them.
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+env:
+  MORPHE_CLI_TAG: v2.0.0-dev.6
+  MORPHE_CLI_JAR: morphe-desktop-2.0.0-dev.6-all.jar
+  MORPHE_CLI_SHA256: b859f13fc78c02ed2f9a8386f73e27f3f56a54cab0aa0bde8f2ebec15a4906b0
+  REFERENCE_FILE: tandem-6.38.0.apkm
+  REFERENCE_SHA256_FILE: .github/fixtures/net.tandem-6.38.0.apkm.sha256
+
+jobs:
+  apply:
+    name: Apply bundle to Tandem 6.38.0
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build the bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Locate the built bundle
+        id: bundle
+        run: |
+          set -euo pipefail
+          mapfile -t bundles < <(ls -1 patches/build/libs/patches-*.mpp)
+          if [ "${#bundles[@]}" -ne 1 ]; then
+            echo "::error::Expected exactly one bundle in patches/build/libs, found ${#bundles[@]}."
+            exit 1
+          fi
+          echo "path=${bundles[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch the reference APKM
+        id: reference
+        if: >-
+          vars.TANDEM_APKM_URL != '' &&
+          (github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository)
+        env:
+          TANDEM_APKM_URL: ${{ vars.TANDEM_APKM_URL }}
+          TANDEM_APKM_TOKEN: ${{ secrets.TANDEM_APKM_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/reference"
+
+          # A token is only needed for a private location; a public URL works without one.
+          curl_args=(-fsSL --retry 3)
+          if [ -n "${TANDEM_APKM_TOKEN:-}" ]; then
+            curl_args+=(-H "Authorization: Bearer $TANDEM_APKM_TOKEN")
+            # Required by the GitHub API when downloading a release asset by its API URL.
+            curl_args+=(-H "Accept: application/octet-stream")
+          fi
+          curl "${curl_args[@]}" "$TANDEM_APKM_URL" -o "$RUNNER_TEMP/reference/$REFERENCE_FILE"
+
+          # Every fingerprint in this repository is an assertion about this exact build, so a
+          # different file is a configuration error rather than a newer version to patch.
+          cd "$RUNNER_TEMP/reference"
+          if ! sha256sum -c "$GITHUB_WORKSPACE/$REFERENCE_SHA256_FILE"; then
+            echo "::error::The downloaded file is not the reference Tandem 6.38.0 APKM pinned in $REFERENCE_SHA256_FILE."
+            exit 1
+          fi
+
+          echo "path=$RUNNER_TEMP/reference/$REFERENCE_FILE" >> "$GITHUB_OUTPUT"
+          echo "available=true" >> "$GITHUB_OUTPUT"
+
+      - name: Report a skipped apply check
+        if: steps.reference.outputs.available != 'true'
+        run: |
+          echo "::notice::The apply-to-APKM check was skipped: set the TANDEM_APKM_URL repository variable to a copy of the reference APKM to enable it."
+          echo "### Apply check skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "No \`TANDEM_APKM_URL\` variable (or this is a fork pull request), so the bundle was built but not applied." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Download Morphe's patcher
+        if: steps.reference.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/morphe"
+          curl -fsSL --retry 3 \
+            "https://github.com/MorpheApp/morphe-cli/releases/download/$MORPHE_CLI_TAG/$MORPHE_CLI_JAR" \
+            -o "$RUNNER_TEMP/morphe/$MORPHE_CLI_JAR"
+          echo "$MORPHE_CLI_SHA256  $RUNNER_TEMP/morphe/$MORPHE_CLI_JAR" | sha256sum -c -
+
+      - name: Apply every patch in the bundle
+        if: steps.reference.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci
+
+          # Patches that are on by default are applied by being enabled in the bundle, so a patch
+          # added to the sources cannot be left untested by a stale name list here.
+          # -e "Clone package": that patch is off by default (it changes which app gets installed),
+          #   but its ten dex literals are anchors too and have to be exercised on every push.
+          # --validate: also fail if an anchor matches more than one method, which is how a silent
+          #   rewrite of the wrong method would start.
+          java -jar "$RUNNER_TEMP/morphe/$MORPHE_CLI_JAR" patch \
+            -p "${{ steps.bundle.outputs.path }}" \
+            -e "Clone package" \
+            --validate \
+            -o "$RUNNER_TEMP/tandem-6.38.0-patched.apk" \
+            -r build/ci/report.json \
+            "${{ steps.reference.outputs.path }}" 2>&1 | tee build/ci/patch.log
+
+      - name: Check the reported result
+        if: steps.reference.outputs.available == 'true'
+        run: |
+          set -euo pipefail
+          if ! jq -e '
+            .success == true
+            and .packageName == "net.tandem"
+            and .packageVersion == "6.38.0"
+            and (.failedPatches | length) == 0
+            and (.appliedPatches | length) == 5
+            and (.appliedPatches | index("Clone package")) != null
+            and all(.stepResults[]; .success == true)
+          ' build/ci/report.json > /dev/null; then
+            echo "::error::Morphe reported a failed or incomplete run; the patch log is in the run artifact."
+            exit 1
+          fi
+          if [ ! -s "$RUNNER_TEMP/tandem-6.38.0-patched.apk" ]; then
+            echo "::error::Morphe reported success but produced no patched APK."
+            exit 1
+          fi
+
+          echo "### Bundle applies to Tandem 6.38.0" >> "$GITHUB_STEP_SUMMARY"
+          jq -r '"Applied " + (.appliedPatches | length | tostring) + " patches: " + (.appliedPatches | join(", "))' \
+            build/ci/report.json >> "$GITHUB_STEP_SUMMARY"
+
+      # The bundle that just proved it applies to the reference APK, so a release can ship exactly
+      # the bytes the check ran against instead of rebuilding them somewhere else.
+      - name: Upload the verified bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-bundle
+          path: ${{ steps.bundle.outputs.path }}
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Check the clone's application id in the patched APK
+        if: steps.reference.outputs.available == 'true'
+        env:
+          CLONE_ID: app.xiondigital.tandem
+        run: |
+          set -euo pipefail
+          # The report names the input package (net.tandem), so the rename has to be checked in the
+          # output: a manifest that kept the original id would install over the user's Tandem.
+          # The manifest is binary XML, and its string pool is UTF-16 here, so plain grep on the
+          # bytes would miss the id; both encodings are accepted rather than pinning one.
+          if ! unzip -p "$RUNNER_TEMP/tandem-6.38.0-patched.apk" AndroidManifest.xml \
+            | python3 -c 'import os, sys; d = sys.stdin.buffer.read(); i = os.environ["CLONE_ID"]; sys.exit(0 if i.encode("utf-16-le") in d or i.encode() in d else 1)'; then
+            echo "::error::The patched APK does not carry the clone's application id."
+            exit 1
+          fi
+
+          echo "Clone application id: \`$CLONE_ID\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the patch report
+        if: always() && steps.reference.outputs.available == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: patch-report
+          path: |
+            build/ci/report.json
+            build/ci/patch.log
+          retention-days: 7
+          if-no-files-found: warn

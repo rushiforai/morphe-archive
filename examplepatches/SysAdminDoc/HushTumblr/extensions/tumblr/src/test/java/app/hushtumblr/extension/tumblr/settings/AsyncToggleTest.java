@@ -2,6 +2,7 @@ package app.hushtumblr.extension.tumblr.settings;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -22,7 +23,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
-import org.robolectric.shadows.ShadowToast;
 
 import java.util.ArrayDeque;
 import java.util.EnumSet;
@@ -122,9 +122,19 @@ public class AsyncToggleTest {
             assertTrue(row.isChecked());
             assertTrue(row.isEnabled());
             assertEquals("The setting couldn't finish updating. Its saved value is shown.",
-                    ShadowToast.getTextOfLatestToast());
+                    SettingsFeedbackTest.message(row));
             settle();
         }
+        // Drawn under the switch, where it stays after any toast would have gone.
+        android.view.View shown = row.getView(null, new android.widget.FrameLayout(controller.get()));
+        android.widget.TextView said = shown.findViewWithTag(SettingsFeedback.MESSAGE_TAG);
+        assertEquals("The setting couldn't finish updating. Its saved value is shown.", said.getText().toString());
+        // The next flip that saves takes the failure away, and says the change waits for a restart.
+        assertFalse(change(row, false));
+        work.remove().run();
+        ShadowLooper.idleMainLooper();
+        assertFalse(Settings.HIDE_ADS.persistedValue());
+        assertEquals("Saved. Restart Tumblr to apply this change.", SettingsFeedbackTest.message(row));
     }
 
     @Test @Config(sdk = {30, 37})
@@ -137,7 +147,7 @@ public class AsyncToggleTest {
         assertTrue(row.isChecked());
         assertTrue(row.isEnabled());
         assertTrue(Settings.HIDE_ADS.persistedValue());
-        assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Couldn't start that. Try again in a moment.", SettingsFeedbackTest.message(row));
     }
 
     @Test public void anAvailabilityRefreshCannotEnableTheSwitchDuringItsSave() {
@@ -160,6 +170,48 @@ public class AsyncToggleTest {
         assertTrue(Settings.HIDE_TUMBLR_TV.persistedValue());
         assertTrue(AbstractPreferenceFragment.restartPending.contains(Settings.HIDE_TUMBLR_TV.key));
         assertFalse(page.isAdded());
+    }
+
+    @Test public void aSaveThatFailsAfterThePageClosesIsSaidUnderTheSwitchWhenSettingsOpensAgain() {
+        String failed = "The setting couldn't finish updating. Its saved value is shown.";
+        change(row(Settings.HIDE_ADS.key), false);
+        controller.get().getFragmentManager().beginTransaction().remove(page).commitNow();
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+            work.remove().run();
+        }
+        ShadowLooper.idleMainLooper();
+        assertEquals(failed, org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+
+        page = new HushTumblrPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+        assertTrue(row(Settings.HIDE_ADS.key).isChecked());
+        assertEquals(failed, SettingsFeedbackTest.message(row(Settings.HIDE_ADS.key)));
+
+        // Said once: the screen after that starts clean.
+        HushTumblrPreferenceFragment shown = page;
+        page = new HushTumblrPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction()
+                .remove(shown).add(android.R.id.content, page).commitNow();
+        assertNull(SettingsFeedbackTest.message(row(Settings.HIDE_ADS.key)));
+    }
+
+    /** A rotation mid-save rebuilds the page, and the failure belongs under the new page's switch. */
+    @Test public void aSaveThatFailsAfterThePageIsReplacedIsSaidUnderTheNewSwitch() {
+        String failed = "The setting couldn't finish updating. Its saved value is shown.";
+        change(row(Settings.HIDE_ADS.key), false);
+        HushTumblrPreferenceFragment oldPage = page;
+        page = new HushTumblrPreferenceFragment();
+        controller.get().getFragmentManager().beginTransaction()
+                .remove(oldPage).add(android.R.id.content, page).commitNow();
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE)) {
+            work.remove().run();
+        }
+        ShadowLooper.idleMainLooper();
+
+        assertTrue(row(Settings.HIDE_ADS.key).isChecked());
+        assertEquals(failed, SettingsFeedbackTest.message(row(Settings.HIDE_ADS.key)));
+        String toast = org.robolectric.shadows.ShadowToast.getTextOfLatestToast();
+        assertFalse("said in a toast over a screen that shows it", failed.equals(toast));
     }
 
     @Test public void aSaveFinishingAfterReplacementRefreshesTheNewPage() {

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.graphics.Rect;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -187,5 +188,72 @@ public class LiveRecordChipTest {
         LiveRecordChip.tapTargets(content, chip, area, (long) area.width() * area.height() / 4, found);
 
         assertEquals(List.of(new Rect(0, 0, 100, 100)), found);
+    }
+
+    private static View stackedButton(Activity activity, FrameLayout content, int rank, int width, int wantedTop) {
+        View view = new View(activity);
+        view.setOnClickListener(v -> { });
+        LiveRecordChip.markStacked(view, rank, wantedTop, 10);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, 40, Gravity.TOP | Gravity.END);
+        params.topMargin = wantedTop;
+        params.rightMargin = 10;
+        content.addView(view, params);
+        return view;
+    }
+
+    private static int top(View view) {
+        return ((FrameLayout.LayoutParams) view.getLayoutParams()).topMargin;
+    }
+
+    /**
+     * A room opening or the Discover panel sliding in puts something to tap under the Record chip.
+     * One pass moves the whole stack below it, each button under the new spot of the one above, with
+     * no layout in between. Moving each button against the others' last drawn spots put Auto tap and
+     * the block button on top of the Record chip until later ticks sorted them out.
+     */
+    @Test public void oneRestackMovesTheWholeStackBelowWhatTikTokDrawsWithoutOverlaps() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        FrameLayout content = new FrameLayout(activity);
+        // Robolectric's window is 320 by 470; the panel's avatar row sits over the Record chip's spot.
+        View avatars = new View(activity);
+        avatars.setOnClickListener(v -> { });
+        FrameLayout.LayoutParams row = new FrameLayout.LayoutParams(120, 50, Gravity.TOP | Gravity.END);
+        row.topMargin = 30;
+        content.addView(avatars, row);
+        View record = stackedButton(activity, content, LiveRecordChip.STACK_RECORD, 60, 40);
+        View autoTap = stackedButton(activity, content, LiveRecordChip.STACK_AUTO_TAP, 60, 90);
+        View block = stackedButton(activity, content, LiveRecordChip.STACK_BLOCK, 40, 90);
+        activity.setContentView(content, new ViewGroup.LayoutParams(320, 470));
+        content.measure(View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(470, View.MeasureSpec.EXACTLY));
+        content.layout(0, 0, 320, 470);
+        Rect area = new Rect();
+        assertTrue(content.getGlobalVisibleRect(area));
+        assertEquals(320, area.width());
+
+        LiveRecordChip.restack(content);
+
+        assertEquals("Record goes below the avatars", 90, top(record));
+        assertEquals("Auto tap goes below Record's new spot", 140, top(autoTap));
+        assertEquals("the block button goes below both", 190, top(block));
+
+        // Auto tap hidden by a screen recording keeps no room, so the block button takes its spot.
+        autoTap.setVisibility(View.INVISIBLE);
+        LiveRecordChip.restack(content);
+        assertEquals(90, top(record));
+        assertEquals(140, top(block));
+
+        // The panel closes and everything goes back up.
+        avatars.setVisibility(View.GONE);
+        autoTap.setVisibility(View.VISIBLE);
+        LiveRecordChip.restack(content);
+        assertEquals(40, top(record));
+        assertEquals(90, top(autoTap));
+        assertEquals(140, top(block));
+
+        // Auto tap's fingers still steer clear of every Hushfeed button.
+        List<Rect> forAutoTapFingers = new ArrayList<>();
+        LiveRecordChip.tapTargets(content, null, area, (long) area.width() * area.height() / 4, forAutoTapFingers);
+        assertEquals(3, forAutoTapFingers.size());
     }
 }

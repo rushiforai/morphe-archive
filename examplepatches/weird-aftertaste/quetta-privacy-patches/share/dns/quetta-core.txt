@@ -1,0 +1,13 @@
+# Quetta 2.2.0 - leftover telemetry/crash endpoints (safe tier: no feature loss)
+crashpad.chromium.org
+bcp.quetta.net
+test-bcp.quetta.net
+variations-test.quetta.net
+test-update.quetta.net
+test-sync.quetta.net
+sentry.thefrodo.com
+app-measurement.com
+google-analytics.com
+firebase-settings.crashlytics.com
+chromereporting-pa.googleapis.com
+pagead2.googlesyndication.com

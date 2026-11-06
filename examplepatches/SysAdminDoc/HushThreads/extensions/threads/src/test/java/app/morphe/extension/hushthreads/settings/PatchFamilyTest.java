@@ -251,11 +251,11 @@ public class PatchFamilyTest {
                 "Sanitize sharing links: disabled by its switch (hushthreads_sanitize_sharing_links=off)",
                 "Remove the advertising ID: no switch, stays in while paused: the removed advertising ID permission",
                 "not in this build: Hide suggested users, Block background-return feed refresh, Disable video autoplay, Max image quality, Disable swipe to Search, Open links in browser, "
-                        + "Disable analytics, Disable screenshot detection, Save photos and videos, Pure black dark mode, Hide the Instagram button, Hide ghost post bubbles, Restore screens on re-signed builds, Change version code, Remove share targets, Trust user-added certificates",
+                        + "Disable analytics, Disable screenshot detection, Save photos and videos, Pure black dark mode, Hide the Instagram button, Hide ghost post bubbles, Show exact post times, Filter comments, Restore screens on re-signed builds, Change version code, Remove share targets, Trust user-added certificates",
                 "left out of Manager's default selection: Hide suggested users, Block background-return feed refresh, "
                         + "Disable video autoplay, Max image quality, Disable swipe to Search, Open links in browser, Disable analytics, Disable "
                         + "screenshot detection, Save photos and videos, Pure black dark mode, Hide the Instagram button, "
-                        + "Hide ghost post bubbles, Restore screens on re-signed builds"),
+                        + "Hide ghost post bubbles, Show exact post times, Filter comments, Restore screens on re-signed builds"),
                 running);
         assertEquals("Restore screens on re-signed builds: no switch, stays in while paused: the re-signed build fix",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.RESTORE_TRUST), false).get(0));

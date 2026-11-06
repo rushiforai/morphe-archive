@@ -1947,7 +1947,15 @@ public class DexDiff {
         return b.append(" |maxreg=").append(maxReg).toString();
     }
 
-    /** Compiled contracts use the clean target, never a hook's own presence, to locate callers. */
+    /**
+     * Compiled contracts use the clean target, never a hook's own presence, to locate callers.
+     *
+     * <p>The index holds the classes*.dex at the APK's root alone, the app's own code and all the
+     * patcher reads. 14.43.0 added Facebook's Audience Network as assets/audience_network/classes.dex,
+     * which its SDK loads for itself at run time: 13 Intent.putExtra and one ClipData.newPlainText
+     * call there read as link tracking boundaries the patch had skipped. Every entry still counts in
+     * the body comparison, so a change to that dex is caught there.
+     */
     private static final class FeatureIndex {
         final Map<String, ClassDef> classes = new LinkedHashMap<>();
         final Map<String, Method> methods = new LinkedHashMap<>();
@@ -1958,7 +1966,7 @@ public class DexDiff {
 
         FeatureIndex(File apk) throws Exception {
             MultiDexContainer<? extends DexFile> container = DexFileFactory.loadDexContainer(apk, null);
-            for (String entry : container.getDexEntryNames()) for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
+            for (String entry : container.getDexEntryNames()) if (entry.matches("classes\\d*\\.dex")) for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
                 if (classes.putIfAbsent(cd.getType(), cd) != null) duplicates.add(cd.getType());
                 for (Method m : cd.getMethods()) {
                     String key = m.toString();
@@ -2931,6 +2939,20 @@ public class DexDiff {
                 }
                 // A build without the launch step keeps the capability off, and the patch only warns.
                 if (targets.isEmpty()) return false;
+            } else if (selector.equals("metaAds")) {
+                // The third-party consent check: an instance (vendor)Z whose vendor enum has a
+                // META_AUDIENCE_NETWORK constant of its own type. Ad model enums of that name are never asked.
+                Set<String> vendors = new HashSet<>();
+                for (ClassDef cd : clean.classes.values()) for (Field f : cd.getFields())
+                    if (f.getName().equals("META_AUDIENCE_NETWORK") && f.getType().equals(cd.getType())
+                            && AccessFlags.STATIC.isSet(f.getAccessFlags())) vendors.add(cd.getType());
+                for (Method m : clean.methods.values()) {
+                    if (m.getDefiningClass().startsWith(OWN) || AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null
+                            || !m.getReturnType().equals("Z") || m.getParameterTypes().size() != 1) continue;
+                    if (vendors.contains(m.getParameterTypes().get(0).toString())) targets.add(m);
+                }
+                // A build without Meta's ad SDK keeps the capability off, and the patch only warns.
+                if (targets.isEmpty()) return false;
             } else if (selector.equals("saveToast")) {
                 ClassDef container = clean.classes.get(TOAST_CONTAINER);
                 if (container != null) for (Method m : container.getMethods()) {
@@ -2989,8 +3011,9 @@ public class DexDiff {
                     sendableStubs();
                     return original != null;
                 }
-                if (selector.equals("assistant")) {
-                    falseGuard(m, hook);
+                if (selector.equals("assistant") || selector.equals("metaAds")) {
+                    // The consent check hands its vendor to the hook; the assistant check hands nothing.
+                    falseGuard(m, hook, selector.equals("metaAds") ? List.of(parameter(m, 0)) : List.of());
                     return original != null;
                 }
                 if (selector.equals("update")) {
@@ -3005,12 +3028,12 @@ public class DexDiff {
         }
 
         /** A guard on a host method that answers a question: when the hook says so it answers false, and nothing else runs. */
-        void falseGuard(Method m, String hook) {
+        void falseGuard(Method m, String hook, List<Integer> arguments) {
             List<Integer> sites = calls(m, hook, 1);
             if (sites.size() != 1) return;
             List<Instruction> body = instructions(m);
             Layout layout = new Layout(m.getImplementation());
-            if (sites.get(0) != 0 || body.size() < 6 || !arguments(body.get(0)).isEmpty()) {
+            if (sites.get(0) != 0 || body.size() < 6 || !arguments(body.get(0)).equals(arguments)) {
                 fail(hook + " has the wrong guarded placement or arguments in " + m);
                 return;
             }
@@ -3508,7 +3531,68 @@ public class DexDiff {
                 remove(r, at - 2, at + 1);
             }
             view(navigation.getType(), null, null, c.strings.get(1));
+            String controls = c.strings.get(0).substring(0, c.strings.get(0).indexOf("->"));
+            greetingRow(controls + "->greetingHeader(Landroid/view/View;)V");
             capability(c.callee, m != null && r != null && identities.size() == 1);
+        }
+
+        static final String GREETING_ROW_ID = "home_feed_greeting_header_icon_container";
+        static final String GREETING_BELL_ID = "home_feed_greeting_header_newshub_icon";
+
+        /**
+         * Hide navigation buttons hands Home's greeting header row, where 14.43.0 keeps Create and the
+         * bell on accounts whose bottom bar has neither, to [hook] right after the row's last addView
+         * (the bell frame's). The builder is the one void method reading both ids, found in the clean
+         * target. Nothing may branch to the hook: the branch for a missing row lands on the
+         * instruction after it. A target without the builder has nothing to check here.
+         */
+        void greetingRow(String hook) {
+            List<Method> builders = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null || !"V".equals(m.getReturnType())) continue;
+                boolean row = false, bell = false;
+                for (Instruction i : instructions(m)) { row |= readsId(i, GREETING_ROW_ID); bell |= readsId(i, GREETING_BELL_ID); }
+                if (row && bell) builders.add(m);
+            }
+            if (builders.isEmpty()) return;
+            Method was = unique(builders, "greeting header builder");
+            Method m = actual(was);
+            List<Integer> at = calls(m, hook, 1);
+            if (m == null || at.size() != 1) return;
+            int k = at.get(0);
+            List<Instruction> body = instructions(m), before = instructions(was);
+            int row = greetingRowRegister(body), cleanLast = lastRowAdd(before, greetingRowRegister(before));
+            if (row < 0 || row != greetingRowRegister(before) || cleanLast < 0 || k != lastRowAdd(body, row) + 1
+                    || k + 1 >= body.size() || cleanLast + 1 >= before.size() || !arguments(body.get(k)).equals(List.of(row))
+                    || !onlyFrom(m, k, k - 1) || body.get(k + 1).getOpcode() != before.get(cleanLast + 1).getOpcode()) {
+                fail(hook + " doesn't hand over the greeting header row right after its last button in " + m);
+                return;
+            }
+            remove(m, k, k + 1);
+        }
+
+        /** The register the row lookup is cast into: the row's id, findViewById, move-result-object, check-cast. */
+        static int greetingRowRegister(List<Instruction> body) {
+            int found = -1;
+            for (int k = 0; k + 3 < body.size(); k++) {
+                if (!readsId(body.get(k), GREETING_ROW_ID) || !methodNamed(body.get(k + 1), "findViewById", "(I)Landroid/view/View;")
+                        || body.get(k + 2).getOpcode() != Opcode.MOVE_RESULT_OBJECT || body.get(k + 3).getOpcode() != Opcode.CHECK_CAST
+                        || firstRegister(body.get(k + 2)) != firstRegister(body.get(k + 3))) continue;
+                if (found >= 0) return -1;
+                found = firstRegister(body.get(k + 3));
+            }
+            return found;
+        }
+
+        /** The last ViewGroup.addView(View) call on [row], or -1. */
+        static int lastRowAdd(List<Instruction> body, int row) {
+            int last = -1;
+            for (int k = 0; k < body.size(); k++) {
+                if (methodNamed(body.get(k), "addView", "(Landroid/view/View;)V")
+                        && "Landroid/view/ViewGroup;".equals(((MethodReference) reference(body.get(k))).getDefiningClass())
+                        && !arguments(body.get(k)).isEmpty() && arguments(body.get(k)).get(0) == row) last = k;
+            }
+            return last;
         }
 
         static boolean methodNamed(Instruction i, String name, String shape) {
@@ -3897,8 +3981,11 @@ public class DexDiff {
                 ClassDef parameter = clean.classes.get(method.getParameterTypes().get(0).toString());
                 if (parameter == null || !event.equals(parameter.getSuperclass())) continue;
                 List<Instruction> body = instructions(method);
+                // The event's pin through its getter, or (14.43.0 on, the getter inlined) straight from its field.
                 if (body.stream().anyMatch(i -> reference(i) instanceof MethodReference call && call.getDefiningClass().equals(event)
-                                && call.getReturnType().equals(model) && call.getParameterTypes().isEmpty())
+                                && call.getReturnType().equals(model) && call.getParameterTypes().isEmpty()
+                                || i.getOpcode() == Opcode.IGET_OBJECT && reference(i) instanceof FieldReference field
+                                && field.getDefiningClass().equals(event) && field.getType().equals(model))
                         && body.stream().anyMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && String.valueOf(reference(i)).equals(pin))
                         && body.stream().anyMatch(i -> String.valueOf(reference(i)).startsWith("Landroidx/compose/ui/platform/ComposeView;"))) dispatchers.add(method);
             }
@@ -3910,8 +3997,14 @@ public class DexDiff {
                 int at = sites.get(0);
                 Instruction first = body.get(0), built = at < 2 ? null : body.get(at - 1), builder = at < 2 ? null : body.get(at - 2);
                 Method building = builder == null ? null : clean.methods.get(String.valueOf(reference(builder)));
+                // 14.43.0 folded the older view menu into this dispatcher, and it builds a list of its
+                // own after the newer menu's ComposeView. The newer menu's is the one built before it.
+                int compose = -1;
+                for (int k = 0; k < body.size() && compose < 0; k++) if (body.get(k).getOpcode() == Opcode.NEW_INSTANCE
+                        && String.valueOf(reference(body.get(k))).equals("Landroidx/compose/ui/platform/ComposeView;")) compose = k;
+                final int composeAt = compose;
                 if (building == null || instructions(building).stream().noneMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && String.valueOf(reference(i)).equals(type))
-                        || !callSites(body, String.valueOf(reference(builder))).equals(List.of(at - 2)))
+                        || composeAt < at || !callSites(body, String.valueOf(reference(builder))).stream().filter(k -> k < composeAt).toList().equals(List.of(at - 2)))
                     fail(itemsHook + " doesn't follow the dispatcher's one option list");
                 else if (first.getOpcode() != Opcode.MOVE_OBJECT_FROM16 || ((TwoRegisterInstruction) first).getRegisterB() != parameter(shown, 0)
                         || !isMoveResult(built.getOpcode()) || !arguments(body.get(at)).equals(List.of(firstRegister(built), firstRegister(first)))
@@ -4966,39 +5059,35 @@ public class DexDiff {
         }
 
         static final String TOPIC_BINDER = "Presenter bound to BubblesListView must be of type BubblesListPresenter";
-        static final String TOPIC_ROW = "Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadAutoCompleteUpsellCell;";
 
         /**
          * Pinterest's topic suggestion row. The binder that logs the row's presenter error reads an
          * int field of its own class from this and packed-switches on it. Every arm the switch starts,
          * the fall-through or a case, begins by casting the binder's view parameter to an interface, and
-         * the row's arm casts it to the one TOPIC_ROW implements (the fall-through in 14.39.0, a case in
-         * 14.40.0). The row hook goes right after that cast with the view parameter, reached only from
-         * the cast. The row's view, the one class implementing that interface, gains an onMeasure
-         * passing itself and each spec through the measure hook before its superclass measures. Both
-         * are found in the clean target, never from the hooks.
+         * the row's arm is the one whose code reaches that log line (the fall-through in 14.39.0 and
+         * 14.43.0, a case in 14.40.0). The row hook goes right after that arm's cast with the view
+         * parameter, reached only from the cast. The row's view, the one class implementing the cast's
+         * interface, gains an onMeasure passing itself and each spec through the measure hook before
+         * its superclass measures. Both are found in the clean target, never from the hooks.
          */
         void topicSuggestions(Contract c) {
             String rowHook = c.strings.get(0), measureHook = c.strings.get(1);
             List<Method> binders = new ArrayList<>();
             for (Method m : clean.holding(TOPIC_BINDER)) if (topicBinder(m)) binders.add(m);
             Method binder = unique(binders, "topic row binder");
-            ClassDef rowClass = clean.classes.get(TOPIC_ROW);
-            if (rowClass == null) fail("the topic row view " + TOPIC_ROW + " is missing");
             boolean row = false, measured = false;
-            if (binder != null && rowClass != null) {
+            if (binder != null) {
                 List<Instruction> was = instructions(binder);
                 int view = parameter(binder, 0);
                 List<Integer> arms = new ArrayList<>();
-                for (int start : topicArms(binder)) {
+                for (int start : topicArmsReachingLog(binder)) {
                     Instruction cast = was.get(start);
-                    if (cast.getOpcode() == Opcode.CHECK_CAST && firstRegister(cast) == view
-                            && rowClass.getInterfaces().contains(String.valueOf(reference(cast)))) arms.add(start);
+                    if (cast.getOpcode() == Opcode.CHECK_CAST && firstRegister(cast) == view) arms.add(start);
                 }
                 String face = null;
                 int arm = -1;
                 if (arms.size() != 1 || writes(was.get(0), view) || writes(was.get(1), view)) {
-                    fail("the topic row binder " + binder + " has no one arm casting its untouched view parameter to the row's interface");
+                    fail("the topic row binder " + binder + " has no one arm reaching its log line that casts its untouched view parameter");
                 } else {
                     arm = arms.get(0);
                     face = String.valueOf(reference(was.get(arm)));
@@ -5018,10 +5107,6 @@ public class DexDiff {
                 if (face != null) for (ClassDef cd : clean.classes.values())
                     if (!cd.getType().startsWith(OWN) && cd.getInterfaces().contains(face)) implementers.add(cd);
                 ClassDef rowView = face == null ? null : uniqueClass(implementers, "topic row view");
-                if (rowView != null && !rowView.getType().equals(TOPIC_ROW)) {
-                    fail("the topic row's interface " + face + " is implemented by " + rowView.getType() + ", not " + TOPIC_ROW);
-                    rowView = null;
-                }
                 if (rowView != null) measured = rowMeasure(rowView, measureHook, "topic row");
             }
             capability(c.callee, row && measured);
@@ -5038,6 +5123,33 @@ public class DexDiff {
                 if (index >= 0 && !starts.contains(index)) starts.add(index);
             }
             return starts;
+        }
+
+        /**
+         * The arm starts whose code reaches the binder's TOPIC_BINDER log line, along branches, cases
+         * and handlers, stopping at a return, a throw or another arm's start.
+         */
+        List<Integer> topicArmsReachingLog(Method m) {
+            List<Instruction> body = instructions(m);
+            List<Integer> starts = topicArms(m);
+            FeatureFlow graph = new FeatureFlow(m);
+            List<Integer> reaching = new ArrayList<>();
+            for (int start : starts) {
+                BitSet seen = new BitSet();
+                Deque<Integer> work = new ArrayDeque<>(List.of(start));
+                while (!work.isEmpty()) {
+                    int k = work.poll();
+                    if (seen.get(k)) continue;
+                    seen.set(k);
+                    if (reference(body.get(k)) instanceof StringReference s && s.getString().equals(TOPIC_BINDER)) {
+                        reaching.add(start);
+                        break;
+                    }
+                    for (int next : graph.normal.get(k)) if (!starts.contains(next)) work.add(next);
+                    for (int next : graph.handlers.get(k)) if (!starts.contains(next)) work.add(next);
+                }
+            }
+            return reaching;
         }
 
         /**
@@ -6192,12 +6304,16 @@ public class DexDiff {
         /**
          * Each page of Home goes through the extension as soon as the callback holds it as the feed's own
          * type, and a stub reads the page's items. A build without the callback has nothing to claim.
+         * Home's callback hands the page to Home's own model; up to 14.42.0 it sat in that package, and
+         * 14.43.0 merged it into a shared lambda class elsewhere, so the call picks it, not the package.
          */
         void homePage(Contract c) {
-            String feed = c.strings.get(2);
+            String feed = c.strings.get(2), home = c.strings.get(1);
             List<Method> callbacks = new ArrayList<>();
-            for (ClassDef owner : clean.classes.values()) if (owner.getType().startsWith(c.strings.get(1)))
-                for (Method m : owner.getMethods()) if (m.getName().equals("invoke") && m.getImplementation() != null && handsBack(m, feed)) callbacks.add(m);
+            for (ClassDef owner : clean.classes.values()) if (!owner.getType().startsWith(OWN))
+                for (Method m : owner.getMethods()) if (m.getName().equals("invoke") && m.getImplementation() != null && handsBack(m, feed)
+                        && instructions(m).stream().anyMatch(i -> reference(i) instanceof MethodReference call && call.getDefiningClass().startsWith(home)
+                        && call.getParameterTypes().stream().anyMatch(p -> p.toString().equals(feed)))) callbacks.add(m);
             if (callbacks.isEmpty() || homeRequests().isEmpty()) { capability(c.callee, false); return; }
             boolean asked = homeFields();
             Method after = actual(unique(callbacks, "Home's page callback"));

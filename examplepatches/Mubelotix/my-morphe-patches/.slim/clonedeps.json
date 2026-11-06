@@ -1,0 +1,46 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-10-02T00:00:00.000Z",
+  "dependencies": [
+    {
+      "name": "morphe-patches-template",
+      "resolvedVersion": "main",
+      "repoUrl": "https://github.com/MorpheApp/morphe-patches-template.git",
+      "ref": "57538a3b85ccd3c9a24ed3cc06ec722787563879",
+      "path": ".slim/clonedeps/repos/MorpheApp__morphe-patches-template",
+      "reason": "Canonical Gradle project structure and release workflow for custom Morphe patches"
+    },
+    {
+      "name": "morphe-patcher",
+      "resolvedVersion": "main",
+      "repoUrl": "https://github.com/MorpheApp/morphe-patcher.git",
+      "ref": "524b9d8de5c2ec8f8cea0022cbce9a026d098679",
+      "path": ".slim/clonedeps/repos/MorpheApp__morphe-patcher",
+      "reason": "Patcher APIs, migration guide, and API implementation"
+    },
+    {
+      "name": "morphe-patches",
+      "resolvedVersion": "main",
+      "repoUrl": "https://github.com/MorpheApp/morphe-patches.git",
+      "ref": "92dd0ef86d12e1806152b454486269983b8db139",
+      "path": ".slim/clonedeps/repos/MorpheApp__morphe-patches",
+      "reason": "Real-world Morphe patch and extension examples"
+    },
+    {
+      "name": "morphe-documentation",
+      "resolvedVersion": "main",
+      "repoUrl": "https://github.com/MorpheApp/morphe-documentation.git",
+      "ref": "cdedd95c227ed6e6a2249ef307c34df7606b087c",
+      "path": ".slim/clonedeps/repos/MorpheApp__morphe-documentation",
+      "reason": "Official developer setup, patching, and distribution documentation"
+    },
+    {
+      "name": "morphe-patches-gradle-plugin",
+      "resolvedVersion": "main",
+      "repoUrl": "https://github.com/MorpheApp/morphe-patches-gradle-plugin.git",
+      "ref": "0a2c1971e2913a6ea5e8fd192d359765169a6a06",
+      "path": ".slim/clonedeps/repos/MorpheApp__morphe-patches-gradle-plugin",
+      "reason": "Gradle plugin implementation for understanding extension packaging and build tasks"
+    }
+  ]
+}

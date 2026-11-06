@@ -19,15 +19,20 @@ class BuildIdentityFixtureTest {
     @Test fun `packaged About status and reports still read the injected identity`() {
         val callers = mutableMapOf<String, MutableSet<String>>()
         val summaryClass = "Lapp/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment;"
+        val navigation = "Lapp/morphe/extension/hushthreads/settings/SettingsNavigation;"
+        var navigationUsesBuildLine = false
         for (payload in listOf("shared", "threads")) {
             val bytes = javaClass.classLoader.getResourceAsStream("extensions/$payload.mpe")!!.use { it.readBytes() }
             for (clazz in DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(bytes)).classes) {
                 for (method in clazz.methods) {
-                    if (method.implementation?.instructions?.any {
-                        val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
-                        ref?.definingClass == EXTENSION_CLASS_DESCRIPTOR && ref.name == "getPatchesBuildIdentity"
-                    } == true) {
-                        callers.getOrPut(clazz.type) { mutableSetOf() } += method.name
+                    for (instruction in method.implementation?.instructions?.toList().orEmpty()) {
+                        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                        if (ref.definingClass == EXTENSION_CLASS_DESCRIPTOR && ref.name == "getPatchesBuildIdentity") {
+                            callers.getOrPut(clazz.type) { mutableSetOf() } += method.name
+                        }
+                        if (clazz.type == navigation && ref.definingClass == summaryClass && ref.name == "overviewBuildDetails") {
+                            navigationUsesBuildLine = true
+                        }
                     }
                 }
             }
@@ -36,10 +41,12 @@ class BuildIdentityFixtureTest {
                 "Lapp/morphe/extension/shared/settings/preference/LogBufferManager;")) {
             assertTrue("Packaged identity reader is missing in $reader: $callers", reader in callers)
         }
-        // Navigation now renders the model's compact status. About and recovery own the identity.
         val settingsMethods = callers[summaryClass].orEmpty()
         assertTrue("About must read the complete identity", "initialize" in settingsMethods)
-        assertTrue("Recovery status must read the identity", "buildIdentitySummary" in settingsMethods)
+        // The build line under the main list shows in every state, paused included, through
+        // overviewBuildDetails (Hushfacebook 837bac40e). R8 may keep that method or inline it.
+        assertTrue("The build line lost its path to the injected identity: $callers", navigation in callers
+                || (navigationUsesBuildLine && "overviewBuildDetails" in settingsMethods))
     }
 
 }

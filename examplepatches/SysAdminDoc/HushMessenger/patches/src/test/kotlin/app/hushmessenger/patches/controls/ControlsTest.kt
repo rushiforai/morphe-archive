@@ -211,12 +211,16 @@ class ControlsTest {
         val activities = document.getElementsByTagName("activity")
         assertEquals("stock.permission", (activities.item(0) as org.w3c.dom.Element).getAttribute("android:permission"))
         val settings = activities.item(1) as org.w3c.dom.Element
-        assertEquals("HushMessenger settings", settings.getAttribute("android:label"))
+        // A string resource and the APK's own icon: a realme launcher showed plain text and Android's gear as Messenger's (#141).
+        assertEquals("@string/$SETTINGS_LABEL", settings.getAttribute("android:label"))
+        assertEquals("@drawable/$SETTINGS_ICON", settings.getAttribute("android:icon"))
         // Only the alias carries the launcher filter, so hiding it leaves the activity reachable.
         assertEquals(0, settings.getElementsByTagName("intent-filter").length)
         val alias = document.getElementsByTagName("activity-alias").item(0) as org.w3c.dom.Element
         assertEquals("app.hushmessenger.extension.SettingsLauncher", alias.getAttribute("android:name"))
         assertEquals("app.hushmessenger.extension.SettingsActivity", alias.getAttribute("android:targetActivity"))
+        assertEquals("@string/$SETTINGS_LABEL", alias.getAttribute("android:label"))
+        assertEquals("@drawable/$SETTINGS_ICON", alias.getAttribute("android:icon"))
         assertEquals("android.intent.category.LAUNCHER", (alias.getElementsByTagName("category").item(0) as org.w3c.dom.Element).getAttribute("android:name"))
         // A launcher match for the package has to reach Messenger itself, not this alias (#75).
         assertEquals("-1", (alias.getElementsByTagName("intent-filter").item(0) as org.w3c.dom.Element).getAttribute("android:priority"))

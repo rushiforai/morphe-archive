@@ -53,23 +53,26 @@ def pull_verified_export(ui, remote, destination, apksigner):
         raise RuntimeError('Manager export changed while being pulled')
     signature = subprocess.check_output(
         [str(apksigner), 'verify', '--print-certs', str(destination)], text=True)
-    certificates = re.findall(r'Signer #\d+ certificate SHA-256 digest: ([0-9a-f]{64})', signature)
+    certificates = set(re.findall(
+        r'(?im)^(?:Signer #\d+|V\d+(?:\.\d+)? Signer):? certificate SHA-256 digest: ([0-9a-f]{64})$',
+        signature,
+    ))
     if len(certificates) != 1:
         raise RuntimeError('Manager export must have one verified signer')
     return {'stable_export_bytes': size, 'signature_verified': True,
-            'signer_sha256': certificates[0]}
+            'signer_sha256': next(iter(certificates))}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adb', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=range(1, 128), required=True)
+    parser.add_argument('--mask', type=int, choices=range(1, 256), required=True)
     parser.add_argument('--out-root', type=Path, default=base.REPO_ROOT / '.scratch/finamp/manager-2.2.0')
     parser.add_argument('--remote-prefix', default='', help='Fresh alphanumeric filename prefix for shared-storage exports')
     parser.add_argument('--export-directory', choices=('/sdcard/Download', '/sdcard/Download/finamp-manager-test'),
                         default='/sdcard/Download/finamp-manager-test', help='Actual directory selected in Android Save; searching for a source can reset it to Downloads')
     parser.add_argument('--runtime', choices=('jvm', 'art'), required=True)
-    parser.add_argument('--available-mask', type=int, choices=(31, 63, 127), default=sum(NAMES),
+    parser.add_argument('--available-mask', type=int, choices=(31, 63, 127, 255), default=sum(NAMES),
                         help='Explicit historical/candidate source mask; the current full source is the default')
     parser.add_argument('--from-result', action='store_true')
     parser.add_argument('--recovery', action='store_true', help='Fresh export proving recovery after a rejected input')
@@ -123,8 +126,14 @@ def main():
         ui.tap('Patch', class_name='android.widget.TextView')
     wait_for('Fix section title validation')
     cache = '/data/user/0/app.morphe.manager/app_original-apks/com.unicornsonlsd.finamp_1.0.1_original.apk'
-    if ui.adb('shell', 'su', '0', 'sha256sum', cache).split()[0] != APK_SHA:
-        raise ValueError('Manager original-APK cache differs from the official verified input')
+    temporary = ui.adb('shell', 'su', '0', 'find', '/data/user/0/app.morphe.manager/app_ui_ephemeral',
+                       '-maxdepth', '1', '-type', 'f', '-name', 'temp_apk_*.apk').splitlines()
+    cached = ui.adb('shell', 'su', '0', 'ls', '-d', cache, check=False).strip()
+    inputs = temporary + ([cache] if cached == cache else [])
+    if not inputs or len(temporary) > 1 or any(
+        ui.adb('shell', 'su', '0', 'sha256sum', path).split()[0] != APK_SHA for path in inputs
+    ):
+        raise ValueError('Manager input does not uniquely match the official verified APK')
     selection_states = configure_selection(ui, names, args.mask)
     ui.capture(f'mask-{args.mask}-{args.runtime}{suffix}-selection')
     previous_runtime = runtime_lines()

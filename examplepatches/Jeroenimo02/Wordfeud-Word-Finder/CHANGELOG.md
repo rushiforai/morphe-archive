@@ -1,3 +1,39 @@
+## [1.2.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.1...v1.2.0) (2026-11-05)
+
+### ✨ New Features
+
+* betere Engelse lijsten, apart voor VS en internationaal ([ceb5fc7](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/ceb5fc73516fd1e0a639a64b73ea9b362757bd18))
+* gespeelde woorden die in de lijst ontbreken automatisch melden ([ffc0a47](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/ffc0a474e2319be39262fe3b652c7de275216ace))
+* Spaans, Portugees, Fins en Zweeds strikt; dubbelletter-tegels; kleinere woordgraaf ([6445023](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/6445023163ff837cfe2826b5442fad5f064ce0aa))
+
+### 🐛 Bug Fixes
+
+* releases botsen niet meer; Gradle-waarschuwingen; meldlimiet in Worker ([be3781c](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/be3781cb198e92bb1c6bb0989fa28e17e0f00b5d))
+* **wordlists:** fr: symbolen, eenheden en korte afkortingen uit de Franse lijst ([5635f27](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/5635f276f954328790bbbf8d04c5c12911ef25e8))
+
+## [1.2.0-dev.3](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.0-dev.2...v1.2.0-dev.3) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **wordlists:** fr: symbolen, eenheden en korte afkortingen uit de Franse lijst ([5635f27](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/5635f276f954328790bbbf8d04c5c12911ef25e8))
+
+## [1.2.0-dev.2](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.0-dev.1...v1.2.0-dev.2) (2026-11-05)
+
+### ✨ New Features
+
+* betere Engelse lijsten, apart voor VS en internationaal ([ceb5fc7](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/ceb5fc73516fd1e0a639a64b73ea9b362757bd18))
+* Spaans, Portugees, Fins en Zweeds strikt; dubbelletter-tegels; kleinere woordgraaf ([6445023](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/6445023163ff837cfe2826b5442fad5f064ce0aa))
+
+## [1.2.0-dev.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.1...v1.2.0-dev.1) (2026-11-05)
+
+### ✨ New Features
+
+* gespeelde woorden die in de lijst ontbreken automatisch melden ([ffc0a47](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/ffc0a474e2319be39262fe3b652c7de275216ace))
+
+### 🐛 Bug Fixes
+
+* releases botsen niet meer; Gradle-waarschuwingen; meldlimiet in Worker ([be3781c](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/be3781cb198e92bb1c6bb0989fa28e17e0f00b5d))
+
 ## [1.1.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.0...v1.1.1) (2026-11-04)
 
 ### 🐛 Bug Fixes

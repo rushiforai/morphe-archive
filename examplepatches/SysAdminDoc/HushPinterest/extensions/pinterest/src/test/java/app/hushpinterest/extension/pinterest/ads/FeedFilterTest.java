@@ -600,6 +600,31 @@ public class FeedFilterTest {
         assertEquals(spec, Ads.adViewMeasureSpec(spec));
     }
 
+    /** Pinterest's consent vendors, shaped like its enum: the check is asked about one at a time. */
+    private enum ConsentVendor { APPSFLYER, GOOGLE_MOBILE_ADS, META_AUDIENCE_NETWORK }
+
+    /**
+     * Pinterest 14.43.0 loads Meta's Audience Network for ad slots once its consent check says yes.
+     * With Hide ads on, the check is answered no for Meta alone, so Pinterest takes its own revoked
+     * consent path; every other vendor, and anything that isn't a vendor, gets Pinterest's answer.
+     */
+    @Test
+    public void hideAdsWithholdsConsentFromMetasAdSdkOnly() {
+        assertTrue(Ads.skipMetaConsent(ConsentVendor.META_AUDIENCE_NETWORK));
+        assertFalse(Ads.skipMetaConsent(ConsentVendor.GOOGLE_MOBILE_ADS));
+        assertFalse(Ads.skipMetaConsent(ConsentVendor.APPSFLYER));
+        assertFalse(Ads.skipMetaConsent("META_AUDIENCE_NETWORK"));
+        assertFalse(Ads.skipMetaConsent(null));
+        assertTrue(report(), report().contains("Meta ad SDK consent withheld"));
+
+        Settings.HIDE_ADS.save(false);
+        assertFalse(Ads.skipMetaConsent(ConsentVendor.META_AUDIENCE_NETWORK));
+
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(Ads.skipMetaConsent(ConsentVendor.META_AUDIENCE_NETWORK));
+    }
+
     @Test
     public void hideAdsTakesTheAdsOutOfAModuleThatStays() {
         Settings.HIDE_AI_PINS.save(false);

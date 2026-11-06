@@ -1,0 +1,128 @@
+name: Release
+
+# Every push to main publishes a release that Morphe Manager can install and update from:
+#   https://morphe.software/add-source?github=<owner>/<repo>
+# Manager reads patches-bundle.json from main, which points to the .mpp asset of the latest release.
+# The release commit carries [skip ci], so it does not trigger this workflow again.
+
+on:
+  push:
+    branches:
+      - main
+    # Only changes to the patch bundle publish a release.
+    paths:
+      - "patches/**"
+      - "extensions/**"
+      - "gradle/**"
+      - "*.gradle.kts"
+      - "gradle.properties"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Pick version
+        id: version
+        run: |
+          current=$(sed -n 's/^version *= *//p' gradle.properties)
+          version="$current"
+          # gradle.properties holds the last released version; the next release bumps its patch number.
+          if git rev-parse -q --verify "refs/tags/v$version" > /dev/null; then
+            IFS=. read -r major minor patch <<< "$current"
+            patch=$((patch + 1))
+            while git rev-parse -q --verify "refs/tags/v$major.$minor.$patch" > /dev/null; do
+              patch=$((patch + 1))
+            done
+            version="$major.$minor.$patch"
+          fi
+          sed -i "s/^version *= *.*/version = $version/" gradle.properties
+          previous=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$version (previous: ${previous:-none})"
+
+      - name: Build
+        env:
+          # Morphe's Gradle plugin and patcher are published to GitHub Packages.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean buildAndroid --no-daemon
+
+      - name: Check patch bundle
+        id: bundle
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          bundle="patches/build/libs/patches-$VERSION.mpp"
+          test -f "$bundle"
+          unzip -l "$bundle" | grep -q "extensions/playbooks.mpe"
+          unzip -l "$bundle" | grep -q "classes.dex"
+          echo "path=$bundle" >> "$GITHUB_OUTPUT"
+
+      - name: Write release notes and patches-bundle.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          range=${PREVIOUS:+$PREVIOUS..}HEAD
+          {
+            echo "## v$VERSION"
+            echo
+            git log "$range" --no-merges --max-count=50 \
+              --pretty="* %s ([%h](https://github.com/$REPOSITORY/commit/%H))" -- . ':!patches-bundle.json'
+          } > release-notes.md
+          jq -n \
+            --arg created_at "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --rawfile description release-notes.md \
+            --arg download_url "https://github.com/$REPOSITORY/releases/download/v$VERSION/patches-$VERSION.mpp" \
+            --arg version "$VERSION" \
+            '{created_at: $created_at, description: $description, download_url: $download_url, version: $version}' \
+            > patches-bundle.json
+          cat patches-bundle.json
+
+      - name: Commit and tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gradle.properties patches-bundle.json
+          git commit -m "chore: Release v$VERSION [skip ci]"
+          git tag "v$VERSION"
+          git push origin HEAD:main "v$VERSION"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUNDLE: ${{ steps.bundle.outputs.path }}
+        run: |
+          gh release create "v$VERSION" "$BUNDLE" \
+            --verify-tag \
+            --title "Books Piko v$VERSION" \
+            --notes-file release-notes.md

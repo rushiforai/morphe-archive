@@ -128,6 +128,8 @@ private fun proves(hook: String, method: Method, classes: List<ClassDef>): Boole
     (method as? MutableMethod ?: MutableMethod(method)).validateHook(hook)
     when (hook) {
         INBOX_REFRESH_HOOK, PIN_LIST -> resolveInboxRefresh(method, classOf)
+        HIDDEN_CHAT_LIST -> { resolveInboxRefresh(method, classOf); checkNotNull(hiddenChatNames(classOf)) }
+        HIDDEN_CHAT_ROW -> checkNotNull(method.hiddenRowBuilder(classOf))
         "emoji_typeface" -> method.emojiFontHolder(classOf)
     }
 }.isSuccess

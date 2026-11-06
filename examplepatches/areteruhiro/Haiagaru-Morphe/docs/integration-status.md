@@ -1068,3 +1068,27 @@ showExternalBoardAuthMenuの未設定時既定値を、投稿設定のSwitchとp
 
 2026-11-05 1.23.1公式公開候補
 利用者が公式公開を明示。検索Back/サムネイルマーク修正と外部板認証メニュー初期ONを含め、既存.releasercの公開説明を今回の差分・確認範囲へ更新。最終通常Lint/R8 :patches:build/:patches:buildAndroid成功2m36s・91 tasks、MPP CRCと新native helper/設定key同梱検査成功。検索/サムネイルは直前の3版native命令・register保持/標準Instrumentation365項目/新規crash空の確認を使用。最後の初期値2行はJavaコンパイルと今回最終buildで検査し端末再導入は省略。実機・実スレでの連続操作と利用者症状との因果は未確認として公開説明に記載。公式CIでdev→master、手動tag/Release/assets/feed編集なし。
+
+2026-11-05 1.23.1正式公開・検証完了
+実装5801a072/1776df81、公開説明f378f146、master統合007e2c0f、Semantic Release CI41965467361 success、生成/tag9637b924/1.23.1。draft=false/prerelease=false/latest1.23.1。公開MPP SHA256 c7ae9f5e948cfed9aa7ccff5702b98bf79dd023a48ae9320ea62ba3a8fe98b5e、GitHub digest一致・CRC正常、検索Back class/再生マークhelpers/認証表示設定同梱と今回公開説明を確認。master/dev/main各両feed計6件が1.23.1と正しいMPP URLを参照。既存CIのbackmergeをff取込しdevへ復帰。詳細build/official1231-public/{release.json,verification.json,feeds.json}。実機導入なし。ユーザー報告の発生版/症状と修正原因の同一性、実機・実スレ連続操作未確認は公開説明に記載済み。URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.23.1 。
+
+2026-11-05 NG追加ダイアログ廃止・UA選択表示・開いているタブ一括更新（未公開）
+登録済みNGの自動表示onResumeフックと追加操作ダイアログを削除し、標準NG編集を直接使用。ワッチョイ追加の操作ボタンも削除し重複時は入力欄へ案内、条件自体は変更/削除なし。UAは選択名・ON/OFF・全文と選択中ラジオ表示、カスタムを識別。LiveSettings保存/設定profile登録を維持。
+タブレット両paneのnative pagesを選択変更なしでsnapshot、スレDATと板subjectを分けた一回限りのnative WorkManager request。登録対象/favoritesを変更せず休止page/履歴なしの合成候補にも対応、同一板スレ重複除去・Dataサイズ検査・3秒抑制。ツールバー/Gesture設定/カスタムアイコン候補を追加。通常巡回は元命令/registerを保持、board-onlyは画像巡回ONでもDAT禁止、subjectが追加した別スレのDATも除外。固定版別クラス/APIを使用し全クラス走査なし。docs/open-tabs-refresh.md。
+最終Lint/R8 build/open-tabs-ua-ng-parsefix-build.log成功3m13s・91 tasks、3版原本適用成功。VerifyOpenTabsHooks全版成功、NativeUserAgentIdentityTest19成功。API36/emulator-5580の隔離reporter各packageへ同署名更新し標準Instrumentation各30、計90成功（open-tabs-core-runtime{191,226,242}.log）、最終crash buffer空。タブsnapshot/重複/subject統合/ネイティブbid/WorkManager Data保持/未履歴row/通常巡回不変/DAT対象限定/UA選択/NG hook除去/toolbar resourceを確認。実通信は発行せず、実際の一括取得・タブレット画面での連続操作・実機は未確認。公開なし。
+初回検証でHttpUrl parserをBBSUrlInfoとして使っていた誤りを発見し版別native BBS parserへ修正、最終90項目成功に旧失敗を含めない。追加Tablet UI試験はActivityが終了状態となりguard拒否、再試験中にADB応答停止。エミュレータプロセス停止/データ保持再起動後にcore-only再成功。任意-e tablet true試験を残すが成功扱いしない。試験packageでタブレット設定を一時変更、失敗時復元処理あり（中断された226の復元完了は未確認）。実機設定・実ユーザーデータ変更なし。先の並行build時ホストJVMメモリ不足はemulator停止/順次生成で解消。MPP91ecd109f05e40c6029953dad0246fae123fd2d52fb2b59ae2e776ef2bf8ce9b、CRC/新helper同梱/旧NG dialog class・label消失確認。導入台帳参照。
+
+
+2026-11-05 1.24.0公式公開候補・追加タブレット検証完了
+追加試験のActivity終了はテストpackageの初回StartActivity未完了が原因。初期設定を完了し、試験側の同期Activity待機を非同期起動/現在Activity取得へ修正。製品コード変更なし。API36/emulator-5580で191/226/242各33（core30+live tablet3）計99項目成功、実通信0。build/official1240-tablet191-final.log、official1240-tablet226-final.log、official1240-tablet242-async.log。最終official1240-final-crash.log空。AVDはデータ保持で正常停止。前記の失敗を成功件数に含めない。UAホスト19/native hook全版検査/最終ビルドは既記録を使用。実通信一括更新・実機連続操作未確認を公開説明に明記。既存Semantic Release CIからdev→masterの公式公開へ進む。
+
+
+2026-11-05 1.24.0公式公開・配布検証完了
+実装7e27850c、公開準備4c03d348、master統合fdc3f506、生成/tag1e6983db/1.24.0。Semantic Release CI42000783380は初回Gradle配布サーバーHTTP504で失敗、同CI再実行success。手動tag/Release/assets作成なし。draft=false/prerelease=false/latest1.24.0。公開MPP SHA256 20b0ad76118fce3b1b52d1aff7bc98e7cf5c170babbafd71d139a5a3298152fd、GitHub digest一致、CRC正常、新OpenTabsRefresh/UA helper/toolbar resource同梱、旧NG自動popup patchとタイトル不在。master/dev/main各両feed計6件が正式1.24.0と同MPP URLを参照。build/official1240-public/{release.json,verification.json,feeds.json}。最初の配信検査は端末文字コードcp932への説明全文printで停止したため、不要なprintを除き全検査を再実行して成功。既存backmergeをff取得しdevへ復帰、実機インストールなし。公開説明に実通信一括取得/実機連続操作の未確認範囲を記載済み。
+URL https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.24.0 。
+
+
+2026-11-05 確認間隔Cancelの親画面保持・開タブ一括更新のUI反映（公式公開候補）
+ThreadWatchの確認間隔ボタンを非終了操作へ変更し親Dialogを維持。Cancel/Backで元画面へ戻り未保存チェック/期限を保持、間隔保存後は個別監視の間隔説明を更新。OpenTabsRefreshは作成済み/attach済みFragmentへ各版固定の標準action5を直接dispatchしUI更新、成功分をWorkManager対象から除外。直接dispatch中のRefreshTargets.refreshを抑制して追加巡回を防止。未作成/未接続/未受付ページは従来のscope取得へfallback、背景スレのみsubject統合。native method自体は変更せず新bridgeのreceiver/action/sourceとregister4を検査、全クラス走査なし。
+最終Lint/R8 build/interval-live-tabs-final-build.log成功2m43s・91tasks。3版適用成功、VerifyLiveTabsHooks/VerifyOpenTabsHooks各全版成功。API36/emulator-5580でcore各33計99成功（interval-live-tabs{191,226,242}-runtime.log）。242実UIは自動監視/個別通知→確認間隔→Cancelの親復帰・未保存チェック維持・保存値不変の6項目成功（interval-navigation242-runtime-retry.log）。初回UI試験はエミュレータSystem UI ANRダイアログが遮り失敗、Wait後の再試験成功で区別。final-crash.log空。実通信一括取得と実機連続操作は未確認として公開説明に記載。AVDデータ保持正常停止、実機導入なし。
+MPP ba7d5e58004cb6f225d3bd674e2734dceb6665c320ee2ccb65d5ccd55055d55e、CRC正常。既存Semantic Releaseから公式公開する。

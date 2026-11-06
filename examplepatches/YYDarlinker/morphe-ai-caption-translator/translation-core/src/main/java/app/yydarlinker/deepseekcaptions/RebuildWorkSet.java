@@ -252,9 +252,15 @@ final class RebuildWorkSet {
     }
 
     static int[] largestHole(List<int[]> holes) {
+        return largestHole(holes, null);
+    }
+
+    static int[] largestHole(List<int[]> holes, RebuildSource source) {
         int[] best = null;
-        for (int[] hole : holes)
+        for (int[] hole : holes) {
+            if (source != null && !needsSpeechRepair(null, source, hole[0], hole[1])) continue;
             if (best == null || hole[1] - hole[0] > best[1] - best[0]) best = hole;
+        }
         return best;
     }
 
@@ -319,6 +325,13 @@ final class RebuildWorkSet {
     static boolean covered(RebuildProtocol.Plan plan, int from, int to) {
         for (RebuildProtocol.Event event : plan.events)
             if (event.from <= from && event.to >= to) return true;
+        return false;
+    }
+
+    static boolean needsSpeechRepair(RebuildProtocol.Plan plan, RebuildSource source, int from, int to) {
+        for (int i = from; i <= to; i++)
+            if (!RebuildSource.speakerMarkerOnly(source.words.get(i).text)
+                    && (plan == null || !covered(plan, i, i))) return true;
         return false;
     }
 

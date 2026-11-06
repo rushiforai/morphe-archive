@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "name": "compatibility-intelligence",
+  "scope": "analysis-only",
+  "patchBehaviorChanged": false,
+  "inspirations": [
+    {
+      "project": "WAEnhancer / LSPosed-style modules",
+      "idea": "separate runtime discovery from user-facing feature behavior"
+    },
+    {
+      "project": "WAPlusXposed-style mapping",
+      "idea": "prefer multiple independent structural signals over a single brittle symbol"
+    },
+    {
+      "project": "Morphe ecosystem sources",
+      "idea": "keep a stable repository endpoint while versioning release assets"
+    },
+    {
+      "project": "PichiWA",
+      "idea": "maintain a WhatsApp-specific compatibility surface and explicit experimental targets"
+    }
+  ],
+  "rules": [
+    "no automatic patch mutation",
+    "no automatic target guessing",
+    "no silent compatibility promotion",
+    "no change to patch defaults",
+    "all compatibility evidence is version-scoped"
+  ]
+}

@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.Utils;
@@ -67,6 +68,8 @@ final class SettingsNavigation extends BaseAdapter {
     /** The restart row's key. Like the other rows only this view draws, it stores nothing. */
     static final String RESTART = "action_restart_to_apply";
     static final String QUICK_SETUPS = "action_quick_setups";
+    /** The pause line under a page's rows while HushTumblr is paused. */
+    static final String PAGE_STATUS = "hushtumblr_page_status";
     /** The row on Pause, backup and diagnostics that hides or shows the Quick setups row again. Like the other rows only this view draws, it stores nothing. */
     static final String RESTORE_QUICK_SETUPS = "action_restore_quick_setups";
     /**
@@ -112,6 +115,37 @@ final class SettingsNavigation extends BaseAdapter {
     private final AbstractPreferenceFragment.RestartFeedbackPresenter restartFeedback;
     /** The page the last rebuild drew, so a row coming or going on that same page keeps the list's place. */
     private String rebuiltPage;
+    /**
+     * The row {@link #keepPlace} holds still, and its top, until the list next lays out. One switch
+     * flip rebuilds the page dozens of times before that layout, and each rebuild's
+     * notifyDataSetChanged puts the list back on the position it last laid out: after the restart
+     * row came or went above, that's the row next to this one, and the page jumped a row.
+     */
+    private Preference held;
+    private int heldTop;
+    /**
+     * Each row's height the last time it laid out with its own summary. A switch that's saving, or
+     * a backup row waiting on saves, shows a one-line summary for a moment. At the end of a page the
+     * shorter row let the list slide down to fill the space it left, and when the save finished the
+     * row grew back below, so the page stayed lower by the difference.
+     */
+    private final Map<Preference, Integer> restingHeights = new WeakHashMap<>();
+    /**
+     * The rows in the list made while showing their own summary. A scroll adds rows without a
+     * layout pass, so their heights are read from here before each rebuild.
+     */
+    private final Map<View, Preference> restingRows = new WeakHashMap<>();
+    /**
+     * Rows that lost the line under them (a restart note when the switch goes back, a failure when
+     * the next save works) with the list at its end, and the height each keeps until navigation.
+     * The shorter row let the list slide every row down to fill the space, so the tapped row moved.
+     */
+    private final Map<Preference, Integer> keptHeights = new WeakHashMap<>();
+    /** The line regions already looked at for {@link #keptHeights}. A rebind makes new ones. */
+    private final Map<View, Boolean> countedLines = new WeakHashMap<>();
+    /** The row each view in the list was made for. */
+    private final Map<View, Preference> madeRows = new WeakHashMap<>();
+    private final View.OnLayoutChangeListener laidOut = (v, l, t, r, b, oldL, oldT, oldR, oldB) -> held = null;
     private final Preference empty;
     /** The line a category or search page starts with while a pause applies to it. */
     private final Preference pageStatus;
@@ -129,6 +163,9 @@ final class SettingsNavigation extends BaseAdapter {
     private Preference refocus;
     private int homePosition;
     private int homeOffset;
+    /** The first row in view a key could land on when home was left, and its top; see showPlace. */
+    private int homeKeyPosition = -1;
+    private int homeKeyTop;
 
     private final DataSetObserver changes = new DataSetObserver() {
         @Override public void onChanged() { rebuild(); }
@@ -162,11 +199,17 @@ final class SettingsNavigation extends BaseAdapter {
         moreHeading.setTitle(L10n.t("More settings"));
         support = link(context, L10n.t("Support HushTumblr"), null, SettingsIcons.COFFEE);
         support.setKey(HushTumblrPreferenceFragment.SUPPORT);
-        support.setOnPreferenceClickListener(row -> { HushTumblrPreferenceFragment.openSupport(row.getContext()); return true; });
+        support.setOnPreferenceClickListener(row -> {
+            HushTumblrPreferenceFragment.openSupport(row.getContext(), ((HushTumblrPreferenceFragment.Row) row).feedback);
+            return true;
+        });
         report = link(context, L10n.t("Report a problem"),
                 L10n.t("Opens a GitHub report with your versions and settings filled in. Add what happened."), SettingsIcons.BUG);
         report.setKey(REPORT);
-        report.setOnPreferenceClickListener(row -> { ReportProblemForm.open(row.getContext(), screen); return true; });
+        report.setOnPreferenceClickListener(row -> {
+            ReportProblemForm.open(row.getContext(), screen, ((HushTumblrPreferenceFragment.Row) row).feedback);
+            return true;
+        });
         quickSetups = link(context, L10n.t("Quick setups"),
                 L10n.t("Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row."), SettingsIcons.TOOLS);
         quickSetups.setKey(QUICK_SETUPS);
@@ -182,9 +225,9 @@ final class SettingsNavigation extends BaseAdapter {
             restartWhenSaved(row.getContext(), route);
             return true;
         });
-        // The row appears as the switch flips. A screen reader hears the saved message as well,
-        // since the row can land above the part of the list in view.
-        restartFeedback = (shown, message) -> list.announceForAccessibility(message);
+        // The row appears as the switch flips, and can land above the part of the list in view, so
+        // the saved message goes under the row that was changed and is read from there once.
+        restartFeedback = (shown, key, message) -> page.restartOwed(key, String.valueOf(message));
         AbstractPreferenceFragment.setRestartFeedbackPresenter(restartFeedback);
         empty = new HushTumblrPreferenceFragment.Row(context);
         empty.setTitle(L10n.t("No matching settings"));
@@ -192,6 +235,8 @@ final class SettingsNavigation extends BaseAdapter {
         empty.setSelectable(false);
         empty.setPersistent(false);
         pageStatus = new HushTumblrPreferenceFragment.Row(context);
+        // Keyed so a Resume tapped here says what it left to do here, and keeps it on a rebuild.
+        pageStatus.setKey(PAGE_STATUS);
         pageStatus.setSelectable(false);
         pageStatus.setPersistent(false);
         Bundle state = saved == null ? null : saved.getBundle(STATE);
@@ -200,6 +245,10 @@ final class SettingsNavigation extends BaseAdapter {
             query = state.getString("query", "");
             homePosition = state.getInt("homePosition");
             homeOffset = state.getInt("homeOffset");
+            homeKeyPosition = state.getInt("homeKeyPosition", -1);
+            homeKeyTop = state.getInt("homeKeyTop");
+            Bundle results = state.getBundle("feedback");
+            for (HushTumblrPreferenceFragment.Row row : ownRows()) row.feedback.restore(results, row.getKey());
             // A route that names no page, such as "more" saved before More settings joined the
             // home page, opens home.
             if (selected() == null) route = "";
@@ -210,6 +259,7 @@ final class SettingsNavigation extends BaseAdapter {
             if (selected() == null) route = "";
         }
         source.registerDataSetObserver(changes);
+        list.addOnLayoutChangeListener(laidOut);
         list.setAdapter(this);
         // A long press on Quick setups takes it off the home page, and Pause, backup and diagnostics brings it back.
         list.setOnItemLongClickListener((parent, view, position, id) -> {
@@ -217,7 +267,12 @@ final class SettingsNavigation extends BaseAdapter {
             HIDE_QUICK_SETUPS.save(true);
             Preference restore = page.findPreference(RESTORE_QUICK_SETUPS);
             if (restore != null) restore.setSummary(HushTumblrPreferenceFragment.restoreQuickSetupsSummary());
-            Utils.showToastLong(L10n.f("Quick setups hidden. Bring it back from %1$s.", L10n.t("Pause, backup and diagnostics")));
+            // Said under the link it names, on the same page, until that link is opened or the row comes back.
+            String hint = L10n.f("Quick setups hidden. Bring it back from %1$s.", L10n.t("Pause, backup and diagnostics"));
+            HushTumblrPreferenceFragment.Row tools = sectionLink(TOOLS_PAGE);
+            if (tools != null) tools.feedback.show(hint);
+            // The restore row's summary keeps the way back written down either way.
+            else Utils.showToastLong(hint);
             rebuild();
             return true;
         });
@@ -243,7 +298,11 @@ final class SettingsNavigation extends BaseAdapter {
             // left for the rows that do something where they are.
             Preference link = link(screen.getContext(), title, detail, icon);
             link.setKey("section_" + id);
-            link.setOnPreferenceClickListener(ignored -> { navigate(id); return true; });
+            link.setOnPreferenceClickListener(ignored -> {
+                ((HushTumblrPreferenceFragment.Row) link).feedback.clear();
+                navigate(id);
+                return true;
+            });
             sections.add(new Section(id, (PreferenceCategory) candidate, link, primary));
             return;
         }
@@ -266,6 +325,37 @@ final class SettingsNavigation extends BaseAdapter {
         return row;
     }
 
+    /** The route of the page that holds the Quick setups restore row. */
+    static final String TOOLS_PAGE = "Pause, backup and diagnostics";
+
+    @androidx.annotation.Nullable
+    HushTumblrPreferenceFragment.Row sectionLink(String id) {
+        for (Section section : sections) if (section.id.equals(id)) return (HushTumblrPreferenceFragment.Row) section.link;
+        return null;
+    }
+
+    /** The row with [key] that this navigation draws itself, such as Quick setups, or null. */
+    HushTumblrPreferenceFragment.Row ownRow(String key) {
+        for (HushTumblrPreferenceFragment.Row row : ownRows()) if (key.equals(row.getKey())) return row;
+        return null;
+    }
+
+    private List<HushTumblrPreferenceFragment.Row> ownRows() {
+        List<HushTumblrPreferenceFragment.Row> rows = new ArrayList<>();
+        for (Preference row : new Preference[] {support, report, quickSetups, pageStatus, restart}) rows.add((HushTumblrPreferenceFragment.Row) row);
+        for (Section section : sections) rows.add((HushTumblrPreferenceFragment.Row) section.link);
+        return rows;
+    }
+
+    /**
+     * True when the row with [key] is on the page in view. Each page's rows stay built while
+     * another page shows, and a result under one of those would go unseen.
+     */
+    boolean shows(String key) {
+        for (Preference row : visible) if (key.equals(row.getKey())) return true;
+        return false;
+    }
+
     private Section selected() {
         for (Section section : sections) if (section.id.equals(route)) return section;
         return null;
@@ -285,6 +375,7 @@ final class SettingsNavigation extends BaseAdapter {
         refocus = null;
         rememberIndex();
         pageStatusHeight = 0;
+        keptHeights.clear();
         query = "";
         route = destination;
         if (selected() == null) route = "";
@@ -311,10 +402,12 @@ final class SettingsNavigation extends BaseAdapter {
         refocus = null;
         if (query.isEmpty()) rememberIndex();
         pageStatusHeight = 0;
+        keptHeights.clear();
         query = text;
         route = "";
         rebuild();
-        showAt(query.isEmpty() ? homePosition : 0, query.isEmpty() ? homeOffset : 0);
+        if (query.isEmpty()) showPlace(homePosition, homeOffset, homeKeyPosition, homeKeyTop);
+        else showAt(0, 0);
     }
 
     boolean back() {
@@ -326,11 +419,12 @@ final class SettingsNavigation extends BaseAdapter {
         if (route.isEmpty()) return false;
         Section section = selected();
         pageStatusHeight = 0;
+        keptHeights.clear();
         // Every page opens from home, so Back goes home, to the place the list was left.
         route = "";
         rebuild();
         host.showPage(title(), true, query, description());
-        showAt(homePosition, homeOffset);
+        showPlace(homePosition, homeOffset, homeKeyPosition, homeKeyTop);
         refocus = section != null ? section.link : null;
         if (refocus != null && screenReaderOn()) bringIntoView(refocus);
         return true;
@@ -371,7 +465,44 @@ final class SettingsNavigation extends BaseAdapter {
         // selection in touch mode. Rebind when changing pages; normal preference updates
         // still keep their current views and scroll position through notifyDataSetChanged.
         list.setAdapter(this);
+        // Without touch (a keyboard or D-pad) the list moves a selection to the first row a key
+        // can land on and puts that row at the top, so a page opened past its pause line. A new
+        // adapter already fills from the top, with that row selected under the line.
+        if (position == 0 && offset == 0 && !list.isInTouchMode()) return;
         list.setSelectionFromTop(position, offset);
+    }
+
+    /**
+     * Puts a list back at the place it was left: [position] at [offset], where [keyPosition] was
+     * the first row in view a key could land on and [keyTop] its top. Without touch,
+     * setSelectionFromTop moves to the first such row at or after [position] and pins that one at
+     * the offset, so a place left on a heading or the status card came back a row off. There that
+     * key row goes back where it was, and the rows above it fill in above it again. Only while
+     * it's still the first row a key lands on from [position], since a row can come or go while
+     * home isn't showing (the restart row, Quick setups), and only while its top still fits in
+     * the list, which can be shorter now than when it was left.
+     */
+    private void showPlace(int position, int offset, int keyPosition, int keyTop) {
+        boolean byKeyRow = !list.isInTouchMode() && (position != 0 || offset != 0)
+                && keyPosition > position && keyPosition < getCount() && isEnabled(keyPosition)
+                && keyTop < list.getHeight() - list.getListPaddingBottom();
+        for (int row = position; byKeyRow && row < keyPosition; row++) byKeyRow = !isEnabled(row);
+        if (byKeyRow) showAt(keyPosition, keyTop - list.getListPaddingTop());
+        else showAt(position, offset);
+    }
+
+    /** The first row in view a key can land on, or -1. */
+    private int keyRowInView() {
+        int first = list.getFirstVisiblePosition();
+        for (int i = 0; i < list.getChildCount(); i++) {
+            if (first + i < getCount() && isEnabled(first + i)) return first + i;
+        }
+        return -1;
+    }
+
+    private int topOf(int position) {
+        View row = position < 0 ? null : list.getChildAt(position - list.getFirstVisiblePosition());
+        return row == null ? 0 : row.getTop();
     }
 
     private void rememberIndex() {
@@ -380,6 +511,8 @@ final class SettingsNavigation extends BaseAdapter {
         if (route.isEmpty() && query.isEmpty()) {
             homePosition = list.getFirstVisiblePosition();
             homeOffset = offset;
+            homeKeyPosition = keyRowInView();
+            homeKeyTop = topOf(homeKeyPosition);
         }
     }
 
@@ -389,14 +522,20 @@ final class SettingsNavigation extends BaseAdapter {
         state.putString("query", query);
         state.putInt("homePosition", homePosition);
         state.putInt("homeOffset", homeOffset);
+        state.putInt("homeKeyPosition", homeKeyPosition);
+        state.putInt("homeKeyTop", homeKeyTop);
         state.putInt("position", list.getFirstVisiblePosition());
         View first = list.getChildAt(0);
         state.putInt("offset", first == null ? 0 : first.getTop());
+        Bundle results = new Bundle();
+        for (HushTumblrPreferenceFragment.Row row : ownRows()) row.feedback.save(results, row.getKey());
+        state.putBundle("feedback", results);
         out.putBundle(STATE, state);
     }
 
     void close() {
         source.unregisterDataSetObserver(changes);
+        list.removeOnLayoutChangeListener(laidOut);
         AbstractPreferenceFragment.clearRestartFeedbackPresenter(restartFeedback);
     }
 
@@ -430,6 +569,10 @@ final class SettingsNavigation extends BaseAdapter {
     }
 
     private void rebuild() {
+        // Quick setups is back, so the line saying where to bring it back from is done.
+        HushTumblrPreferenceFragment.Row tools = sectionLink(TOOLS_PAGE);
+        if (tools != null && tools.feedback.message() != null && !HIDE_QUICK_SETUPS.get()) tools.feedback.clear();
+        rememberRestingHeights();
         int restartWas = visible.indexOf(restart);
         boolean pageStatusWas = visible.contains(pageStatus);
         visible.clear();
@@ -485,6 +628,9 @@ final class SettingsNavigation extends BaseAdapter {
         }
         notifyDataSetChanged();
         keepPlace(restartWas, pageStatusWas);
+        // A result that came back while its row's page wasn't in view shows once that page is.
+        // Not from the constructor's first build, before the page knows this navigation.
+        if (page.navigation == this) page.showUnseenResults();
     }
 
     /**
@@ -507,18 +653,64 @@ final class SettingsNavigation extends BaseAdapter {
      * The restart row comes and goes above the rows in view when a switch is flipped. On the same
      * page, with nothing else above moving, the list moves with it, so the row that was tapped
      * stays where it was. A row added at the top of what's in view is left to push the list down,
-     * so it's seen.
+     * so it's seen. The row held stays held through every rebuild until the list lays out.
      */
     private void keepPlace(int restartWas, boolean pageStatusWas) {
         String pageWas = rebuiltPage;
         rebuiltPage = route + '\n' + query;
+        if (!rebuiltPage.equals(pageWas) || pageStatusWas != visible.contains(pageStatus) || list.getChildCount() == 0) {
+            held = null;
+            return;
+        }
         int restartNow = visible.indexOf(restart);
-        if (!rebuiltPage.equals(pageWas) || (restartWas < 0) == (restartNow < 0)
-                || pageStatusWas != visible.contains(pageStatus) || list.getChildCount() == 0) return;
-        int first = list.getFirstVisiblePosition();
-        int top = list.getChildAt(0).getTop();
-        if (restartNow >= 0 && restartNow < first) list.setSelectionFromTop(first + 1, top);
-        else if (restartWas >= 0 && restartWas < first) list.setSelectionFromTop(first - 1, top);
+        // While a row is held the list's children still show the rows before the first change,
+        // so their positions say nothing about this one.
+        if (held == null && (restartWas < 0) != (restartNow < 0)) {
+            int first = list.getFirstVisiblePosition();
+            int at = restartNow >= 0 && restartNow < first ? first + 1
+                    : restartWas >= 0 && restartWas < first ? first - 1 : -1;
+            if (at < 0 || at >= visible.size()) return;
+            held = visible.get(at);
+            heldTop = list.getChildAt(0).getTop();
+        }
+        if (held == null) return;
+        int at = visible.indexOf(held);
+        if (at < 0) held = null;
+        else list.setSelectionFromTop(at, heldTop - list.getPaddingTop());
+    }
+
+    private void rememberRestingHeights() {
+        for (int i = 0; i < list.getChildCount(); i++) {
+            View child = list.getChildAt(i);
+            Preference row = restingRows.get(child);
+            if (row != null && child.getHeight() > 0) restingHeights.put(row, child.getHeight());
+            // A line just taken away is hidden but keeps its height until the next layout, which
+            // is when its row would shrink.
+            View line = child.findViewWithTag(SettingsFeedback.REGION_TAG);
+            Preference item = madeRows.get(child);
+            if (item != null && line != null && line.getVisibility() == View.GONE && line.getHeight() > 0
+                    && countedLines.put(line, Boolean.TRUE) == null && leavesGapAtEnd(line.getHeight())) {
+                Integer kept = keptHeights.get(item);
+                keptHeights.put(item, Math.max(child.getHeight(), kept == null ? 0 : kept));
+            }
+        }
+    }
+
+    /**
+     * Whether the list is scrolled to its last row and would have space under it if [shrink] went.
+     * A page that fits whole doesn't scroll, so nothing above jumps when a row there shrinks.
+     */
+    private boolean leavesGapAtEnd(int shrink) {
+        int children = list.getChildCount();
+        if (children == 0 || list.getLastVisiblePosition() < list.getCount() - 1) return false;
+        boolean scrolled = list.getFirstVisiblePosition() > 0 || list.getChildAt(0).getTop() < list.getPaddingTop();
+        return scrolled && list.getChildAt(children - 1).getBottom() - shrink < list.getHeight() - list.getPaddingBottom();
+    }
+
+    /** Whether [row] shows a short line while saves run in place of its own summary. */
+    private static boolean showsBusyLine(Preference row) {
+        return row instanceof HushTumblrPreferenceFragment.Toggle && ((HushTumblrPreferenceFragment.Toggle) row).isSaving()
+                || row instanceof SettingsBackupPreference && ((SettingsBackupPreference) row).isBusy();
     }
 
     private int headings() {
@@ -616,6 +808,12 @@ final class SettingsNavigation extends BaseAdapter {
             row.setMinimumHeight(Math.max(row.getMinimumHeight(), pageStatusHeight));
             if (pageAction) bindAction(row, HushTumblrPause.isPaused(), HushTumblrPause.pausesNextStart(screen.getContext()), true);
         }
+        Integer resting = restingHeights.get(item);
+        if (!showsBusyLine(item)) restingRows.put(row, item);
+        else if (resting != null) row.setMinimumHeight(Math.max(row.getMinimumHeight(), resting));
+        Integer kept = keptHeights.get(item);
+        if (kept != null) row.setMinimumHeight(Math.max(row.getMinimumHeight(), kept));
+        madeRows.put(row, item);
         return row;
     }
 
@@ -656,24 +854,32 @@ final class SettingsNavigation extends BaseAdapter {
             if (!action.isEnabled() || HushTumblrPreferenceFragment.hasPendingEdits()) return;
             if (pageStatusAction) pageStatusHeight = Math.max(pageStatusHeight, row.getHeight());
             if (nextPaused) {
-                page.resumeFromOverview();
+                page.resumeFromOverview(status);
             } else {
                 // Toggle owns the durable worker save. Setting its visual check alone never saves.
                 // The framework's callChangeListener is protected, so the listener is called here.
                 Preference.OnPreferenceChangeListener save = pause.getOnPreferenceChangeListener();
-                if (pause instanceof SwitchPreference && save != null) save.onPreferenceChange(pause, !nextPaused);
+                if (pause instanceof SwitchPreference && save != null) {
+                    // What an earlier Resume left to do no longer applies once the pause changes again.
+                    page.clearStatusResults();
+                    save.onPreferenceChange(pause, !nextPaused);
+                }
             }
             rebuild();
         });
         // Keep the action below the copy at every text size, leaving the full column for status.
+        // A result under the row (what a Resume left to do) sits between the copy and the button,
+        // which would otherwise cover it.
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null && summary.getParent() instanceof android.widget.RelativeLayout) {
+            ViewGroup column = (ViewGroup) summary.getParent();
+            View result = column.findViewWithTag(SettingsFeedback.REGION_TAG);
             android.widget.RelativeLayout.LayoutParams place = new android.widget.RelativeLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            place.addRule(android.widget.RelativeLayout.BELOW, android.R.id.summary);
+            place.addRule(android.widget.RelativeLayout.BELOW,
+                    result != null && result.getId() != View.NO_ID ? result.getId() : android.R.id.summary);
             place.addRule(android.widget.RelativeLayout.ALIGN_PARENT_START);
             place.topMargin = dp(8);
-            ViewGroup column = (ViewGroup) summary.getParent();
             View earlier = column.findViewWithTag(STATUS_ACTION);
             if (earlier != null) column.removeView(earlier);
             action.setTag(STATUS_ACTION);

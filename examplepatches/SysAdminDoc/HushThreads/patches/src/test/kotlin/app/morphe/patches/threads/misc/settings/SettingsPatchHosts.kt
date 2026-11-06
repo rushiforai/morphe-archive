@@ -157,6 +157,9 @@ internal object SettingsPatchHosts {
         )
     }
 
-    /** Every class the settings patch hooks. */
-    fun all(): List<ClassDef> = appAndMainActivity() + settingsList()
+    /**
+     * Every class the settings patch hooks, and the logo's extension class. The patch only writes
+     * that one where the long press fits, but a build always carries it, so its answer can be read.
+     */
+    fun all(): List<ClassDef> = appAndMainActivity() + settingsList() + ExtensionDex.classDef(THREADS_LOGO)
 }

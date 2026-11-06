@@ -305,6 +305,9 @@ public class PausedHooksTest {
     /** Stands in for FDS's colour token enum: the theme goes by the constant's name. */
     private enum Surface { CARD_BACKGROUND }
 
+    /** Stands in for Facebook's story navigation reasons, which the last-card tap goes by. */
+    private enum NavigationReason { TAP_FORWARD }
+
     @After
     public void restore() {
         PauseForTests.resume();
@@ -426,6 +429,8 @@ public class PausedHooksTest {
                 () -> !NotificationFooter.show(true),
                 // The end of the feed is built without its Find friends card.
                 () -> FindFriendsCard.unit("card") == null,
+                // The bottom of Home says Hush hid the suggestions after it.
+                FeedGuardForTests::endOfHomeSaysWhy,
                 // The Groups tab's suggested groups card lays out as nothing.
                 SuggestedGroupsCard::hide,
                 // The search screen draws its For you section as an empty row.
@@ -512,6 +517,8 @@ public class PausedHooksTest {
         probes.put(PatchFamily.POST_PROMPTS, Arrays.asList(
                 () -> !PostPrompts.keep(true),
                 () -> !PostPrompts.showFollowLink(true),
+                // A header the X check says yes to is drawn as one without the X.
+                () -> !PostPrompts.showPostX(true),
                 PostPrompts::hidePostCounts,
                 // The reaction preview is left undrawn only while the patch runs.
                 PostPrompts::hideReactionPreview,
@@ -569,7 +576,9 @@ public class PausedHooksTest {
         probes.put(PatchFamily.SUGGESTED_STORIES, Arrays.asList(allStories(SuggestedStoriesForTests::hidesSuggestions),
                 allStories(SuggestedStoriesForTests::hidesPageStories), allStories(SuggestedStoriesForTests::hidesSeenStories),
                 SuggestedStoriesForTests::keepsOnlyWatchedStories));
-        probes.put(PatchFamily.STORY_AUTO_ADVANCE, Arrays.asList(StoryAdvance::waitForTap, StoryAdvance::loop));
+        // A forward tap on a bucket's last card gets the completion's reason (#380).
+        probes.put(PatchFamily.STORY_AUTO_ADVANCE, Arrays.asList(StoryAdvance::waitForTap, StoryAdvance::loop,
+                () -> StoryAdvance.lastCardTap(NavigationReason.TAP_FORWARD)));
         // The story viewer's report of the stories you viewed goes out whole, and with Mark as seen
         // on a marked card goes alone and the button follows the card on screen.
         probes.put(PatchFamily.STORY_SEEN, Arrays.asList(
@@ -668,6 +677,9 @@ public class PausedHooksTest {
                 // Its button takes the sticky way, and a reel taken out keeps it (#304).
                 () -> ReelCleanMode.stickyClean(false),
                 () -> ReelCleanMode.cleanButtonState(ReelCleanMode.markLeftClean(new Object[] {Boolean.FALSE})[0]) == Boolean.TRUE,
+                // And that kept button is laid over the details, not under them (#329).
+                () -> ReelCleanMode.cleanButtonState(ReelCleanMode.markLeftClean(new Object[] {Boolean.FALSE})[0]) == Boolean.TRUE
+                        && ReelCleanMode.floatCleanButton(),
                 ReelLoopForTests::stopsAReel,
                 // A video whose audio Facebook would pick in Spanish is asked for no language.
                 () -> !"es".equals(OriginalAudio.language("es")),
@@ -694,6 +706,8 @@ public class PausedHooksTest {
                     ReelDeclutter.noteAuthorPill(true);
                     return ReelDeclutter.authorPillSlot(new Object()) == null;
                 },
+                // And the fan-subscription pill some Pages get in that row's slots.
+                () -> ReelDeclutter.fanPillSlot(new Object()) == null,
                 // So is the speaker button under it.
                 () -> !ReelDeclutter.showsSoundButton(true),
                 // And the footer's speaker, when the footer builds it.

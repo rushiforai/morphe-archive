@@ -1,0 +1,38 @@
+group = "app.zdrgon"
+
+patches {
+    about {
+        name = "Zdrgon's Morphe Patches"
+        description = "Patches for Direct-to-Cell (DTC) satellite optimization and custom app modifications"
+        source = "git@github.com:Zdrgon/morphe-patches.git"
+        author = "Zdrgon"
+        contact = "na"
+        website = "https://github.com/Zdrgon/morphe-patches"
+        license = "GPLv3"
+    }
+}
+
+// Separate configuration so gson is available at runtime for the
+// generatePatchesList task but never bundled into the APK.
+val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+
+dependencies {
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
+}
+
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+
+        dependsOn(build)
+
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    // Used by gradle-semantic-release-plugin.
+    publish {
+        dependsOn("generatePatchesList")
+    }
+}

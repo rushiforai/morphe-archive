@@ -15,6 +15,7 @@ NAMES = {1: 'Fix section title validation', 2: 'Song artist order', 4: 'Load art
          8: 'Fix offline artist tracks', 16: 'Fix track alphabet navigation'}
 NAMES[32] = 'Keep player output controls accessible'
 NAMES[64] = 'Fix quick settings banner contrast'
+NAMES[128] = 'Show album and track information'
 
 
 def sha(data):
@@ -49,18 +50,36 @@ def check_contents(original, patched, expected_sha):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ['java', 'desktop', 'bundle', 'original-apk', 'native-report', 'output-dir']:
+    for name in ['java', 'desktop', 'bundle', 'original-apk', 'output-dir']:
         parser.add_argument('--' + name, type=Path, required=True)
+    native = parser.add_mutually_exclusive_group(required=True)
+    native.add_argument('--native-report', type=Path)
+    native.add_argument('--native-manifest', type=Path)
+    parser.add_argument('--masks', default=','.join(map(str, MASKS)),
+                        help='Comma-separated unique selection masks; defaults to all')
     parser.add_argument('--discard-verified-apks', action='store_true',
                         help='Keep receipts/hashes but discard each successful APK and its owned work directory')
     args = parser.parse_args()
     if sha(args.original_apk.read_bytes()) != APK_SHA:
         raise ValueError('Wrong official APK input')
-    report = json.loads(args.native_report.read_text())
+    masks = [int(value) for value in args.masks.split(',')]
+    if not masks or len(masks) != len(set(masks)) or any(mask not in MASKS for mask in masks):
+        raise ValueError('Select unique supported native masks')
+    if args.native_report:
+        report = json.loads(args.native_report.read_text())['masks']
+    else:
+        properties = {}
+        for line in args.native_manifest.read_text().splitlines():
+            if line and not line.startswith('#'):
+                key, value = line.split('=', 1)
+                if key in properties:
+                    raise ValueError('Duplicate native manifest key')
+                properties[key] = value
+        report = {str(mask): {'native_sha256': properties[f'abi.arm64-v8a.mask.{mask}.sha256']} for mask in masks}
     directory = args.output_dir.resolve()
     directory.mkdir(parents=True, exist_ok=True)
     results = {}
-    for mask in MASKS:
+    for mask in masks:
         output = directory / f'mask-{mask}-unsigned.apk'
         result_file = directory / f'mask-{mask}-patcher.json'
         if output.exists() or result_file.exists():
@@ -81,7 +100,7 @@ def main():
         steps = status.get('patchingSteps', status.get('stepResults'))
         if not steps or not all(step['success'] for step in steps):
             raise ValueError('Patcher step failed')
-        content = check_contents(args.original_apk, output, report['masks'][str(mask)]['native_sha256'])
+        content = check_contents(args.original_apk, output, report[str(mask)]['native_sha256'])
         results[str(mask)] = {'selected': selections, 'patcher_succeeded': True, **content,
                               'unsigned_apk': None if args.discard_verified_apks else str(output),
                               'unsigned_apk_sha256': sha(output.read_bytes()),

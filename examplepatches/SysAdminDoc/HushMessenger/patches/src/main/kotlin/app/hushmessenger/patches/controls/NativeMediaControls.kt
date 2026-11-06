@@ -22,10 +22,18 @@ internal const val GENERATE_AI_LABEL = 0x7f14055d
  * menu of custom, AI and music stickers, so it fronts the AI maker too.
  */
 internal const val GENERATE_MENU_LABEL = 0x7f141c4e
+/** "Generate" in 586's armv7 string pack, two resources past arm64's (0x7f141c4e is "Meta AI theme" there). */
+internal const val GENERATE_MENU_LABEL_ARMV7 = 0x7f141c50
 /** The viewer's onCreateDialog override, A1K in 586. */
 internal const val EPHEMERAL_DIALOG = "A1K"
+/** The same override in 586's armv7 build, with the same body. */
+internal const val EPHEMERAL_DIALOG_ARMV7 = "A1L"
+internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_ARMV7)
 /** The Quicksnap viewer's onCreateView frame in 586. */
 internal const val QUICKSNAP_REGISTERS = 39
+/** One register fewer in 586's armv7 build. */
+internal const val QUICKSNAP_REGISTERS_ARMV7 = 38
+internal val QUICKSNAP_FRAMES = setOf(QUICKSNAP_REGISTERS, QUICKSNAP_REGISTERS_ARMV7)
 private const val WINDOW = "Landroid/view/Window;"
 private const val SET_FLAGS = "$WINDOW->setFlags(II)V"
 private const val ADD_FLAGS = "$WINDOW->addFlags(I)V"
@@ -75,7 +83,7 @@ internal fun Method.screenshotViewerSites(): List<Int> {
     val allowedJumps: Set<Int>
     var jumpSources = emptySet<Int>()
     val valid = when {
-        definingClass == EPHEMERAL_VIEWER && name == EPHEMERAL_DIALOG &&
+        definingClass == EPHEMERAL_VIEWER && name in EPHEMERAL_DIALOGS &&
             parameterTypes.map { it.toString() } == listOf("Landroid/os/Bundle;") && returnType == "Landroid/app/Dialog;" -> {
             sites = listOf(9); allowedJumps = emptySet()
             tries.isEmpty() && implementation!!.registerCount == 5 && code.size == 15 && result(4, "Landroid/app/Dialog;", 2) && window(5, "Landroid/app/Dialog;", 2, 1, 10) &&
@@ -97,7 +105,7 @@ internal fun Method.screenshotViewerSites(): List<Int> {
             // Builds move the flag between 29 and 32 with their setup code, so the one window flag call is the site.
             val site = code.indices.singleOrNull { code[it].mediaRef() == ADD_FLAGS } ?: mediaFailure(this)
             sites = listOf(site); allowedJumps = emptySet()
-            site >= 6 && !coveredThrough(site) && implementation!!.registerCount == QUICKSNAP_REGISTERS &&
+            site >= 6 && !coveredThrough(site) && implementation!!.registerCount in QUICKSNAP_FRAMES &&
                 result(site - 6, "Landroid/app/Dialog;", 0) && nullCheck(site - 5, 0, site + 1) &&
                 window(site - 4, "Landroid/app/Dialog;", 0, 1, site + 1) && literal(site - 1, 0) && call(site, ADD_FLAGS, listOf(1, 0))
         }
@@ -129,6 +137,7 @@ internal fun MutableMethod.injectScreenshotViewer() {
 /**
  * The cell under 586's naming, the label it shows, how many renders offer that label, the same for its Generate menu label,
  * and how many instructions its own render has (24 registers). Four renders offer the AI label and one the menu label.
+ * Each ABI's DEX names the cell and its types differently, so each gets a row.
  */
 internal data class AiCell(
     val type: String, val superclass: String, val scope: String, val component: String,
@@ -139,6 +148,8 @@ internal data class AiCell(
 }
 internal val aiCells = listOf(
     AiCell("LX/REu;", "LX/1JA;", "LX/2Ca;", "LX/1Gk;"),
+    // 586's armv7 build: four fewer instructions in the render, and its own Generate label.
+    AiCell("LX/O19;", "LX/1JZ;", "LX/2Cz;", "LX/1H9;", size = 109, menu = GENERATE_MENU_LABEL_ARMV7),
 )
 internal const val AI_CELL_SIZE = 113
 internal const val AI_CELL_REGISTERS = 24

@@ -60,8 +60,17 @@ public final class LichessPuzzles {
     private static volatile Object sessionActivity;
     private static volatile Object sessionTarget;
     private static final java.util.List<Runnable> countWaiters = new java.util.ArrayList<>();
-    /** The Lichess puzzle screen is the activity in front. */
+    /** The Lichess puzzle screen is the activity in front. Read from other threads. */
     private static volatile boolean puzzleVisible;
+    /**
+     * The puzzle screen instance that put a puzzle in front, once Android has created it. Only the
+     * main-thread lifecycle callbacks below touch it. Null between {@link #beginSession()} and the
+     * screen's creation; the instance matters so a replaced screen's teardown cannot undo its
+     * replacement.
+     */
+    private static WeakReference<Activity> visiblePuzzle = new WeakReference<>(null);
+    /** A hub return waiting for the Next hand-off window to close; main thread only. */
+    private static Runnable pendingHubEnd;
     private static boolean watching;
     private static final String PUZZLE_SCREEN = "com.chess.features.puzzles.rated.RatedPuzzlesGameActivity";
     private static final String HOME_SCREEN = "com.chess.home.HomeActivity";
@@ -131,9 +140,11 @@ public final class LichessPuzzles {
 
     /** Enters the session only once the puzzle screen is actually opening. */
     private static void beginSession() {
+        // A pending hub return belongs to the session this one replaces.
+        cancelHubEnd();
         active = true;
         freshQueue = true;
-        puzzleVisible = true;
+        preparePuzzle();
         unfreezeAt = Long.MAX_VALUE;
         watchScreen();
     }
@@ -262,7 +273,10 @@ public final class LichessPuzzles {
 
     /** Ends the session before the hub resumes, not after the Lichess screen is destroyed. */
     private static void endSessionIfFinishing(Activity activity) {
-        if (isPuzzle(activity) && activity.isFinishing() && SystemClock.uptimeMillis() > keepAliveUntil) active = false;
+        if (isPuzzle(activity) && activity.isFinishing() && isVisiblePuzzle(activity)
+            && SystemClock.uptimeMillis() > keepAliveUntil) {
+            active = false;
+        }
     }
 
     private static boolean isPuzzle(Activity activity) {
@@ -273,9 +287,66 @@ public final class LichessPuzzles {
         return activity.getClass().getName().equals(HOME_SCREEN);
     }
 
+    private static boolean isVisiblePuzzle(Activity activity) {
+        return visiblePuzzle.get() == activity;
+    }
+
+    /**
+     * The session is active before its screen exists: mark a puzzle as on its way without an
+     * instance (the screen shows itself from {@code onActivityCreated}). Keeping the reference
+     * null until then means a stale instance can never be mistaken for the front one.
+     */
+    private static void preparePuzzle() {
+        visiblePuzzle = new WeakReference<>(null);
+        puzzleVisible = true;
+    }
+
+    private static void showPuzzle(Activity activity) {
+        visiblePuzzle = new WeakReference<>(activity);
+        puzzleVisible = true;
+    }
+
+    /** Hides the puzzle screen, unless its replacement is already the one in front. */
+    private static void hidePuzzle(Activity activity) {
+        if (!isVisiblePuzzle(activity)) return;
+        visiblePuzzle = new WeakReference<>(null);
+        puzzleVisible = false;
+    }
+
+    /** Ends a session that came back to the hub; used once the Next hand-off window has closed. */
+    private static void endSessionAtHub() {
+        pendingHubEnd = null;
+        Activity resumed = Utils.resumedActivity();
+        if (active && !puzzleVisible && resumed != null && isHub(resumed)
+            && SystemClock.uptimeMillis() >= keepAliveUntil) {
+            active = false;
+            Utils.log("Lichess session: ended at the hub");
+        }
+    }
+
+    /**
+     * The hub can resume inside the Next window while the replacement is still opening, so wait for
+     * the window to close before deciding. Without this, backing out just after Next would leave
+     * the session active for good, and later chess.com puzzle screens would be treated as Lichess.
+     */
+    private static void endSessionAtHubLater() {
+        cancelHubEnd();
+        pendingHubEnd = LichessPuzzles::endSessionAtHub;
+        MAIN.postDelayed(pendingHubEnd, Math.max(0, keepAliveUntil - SystemClock.uptimeMillis()));
+    }
+
+    private static void cancelHubEnd() {
+        if (pendingHubEnd == null) return;
+        MAIN.removeCallbacks(pendingHubEnd);
+        pendingHubEnd = null;
+    }
+
     private static void onPuzzlePaused(Activity activity) {
-        if (isPuzzle(activity) && !activity.isChangingConfigurations()) puzzleVisible = false;
+        if (!isPuzzle(activity)) return;
+        // Before the puzzle is hidden: whether it was the visible one decides if this ends the
+        // session. Next has already raised the keep-alive window, so its hand-off is exempt.
         endSessionIfFinishing(activity);
+        if (!activity.isChangingConfigurations()) hidePuzzle(activity);
     }
 
     /** Watches the Lichess screen's lifecycle. */
@@ -295,31 +366,47 @@ public final class LichessPuzzles {
 
             @Override
             public void onActivityDestroyed(Activity activity) {
-                if (isPuzzle(activity) && !activity.isChangingConfigurations()) {
-                    puzzleVisible = false;
+                if (!isPuzzle(activity) || activity.isChangingConfigurations()) return;
+                // Next starts the replacement before the old screen is destroyed: it has already
+                // shown itself, and this instance's teardown must not hide it (or end the session).
+                if (isVisiblePuzzle(activity)) {
+                    // A normal finish is already handled at pause; this covers a screen that was
+                    // created and torn down without being paused (an abandoned launch).
+                    hidePuzzle(activity);
                     if (SystemClock.uptimeMillis() > keepAliveUntil) active = false;
                 }
             }
 
             @Override
             public void onActivityCreated(Activity activity, Bundle state) {
-                if (isPuzzle(activity)) puzzleVisible = true;
+                if (isPuzzle(activity)) showPuzzle(activity);
             }
 
             @Override
             public void onActivityStarted(Activity activity) {
-                if (isPuzzle(activity)) puzzleVisible = true;
+                if (isPuzzle(activity)) showPuzzle(activity);
             }
 
             @Override
             public void onActivityResumed(Activity activity) {
-                puzzleVisible = isPuzzle(activity);
+                if (isPuzzle(activity)) {
+                    showPuzzle(activity);
+                } else {
+                    // Another screen is in front, so no puzzle screen is.
+                    visiblePuzzle = new WeakReference<>(null);
+                    puzzleVisible = false;
+                }
                 if (isHub(activity)) {
                     // Back at the hub means the session is over, so a chess.com puzzle started from
-                    // here never sees it. The window keeps the Next hand-off from ending it.
-                    if (active && SystemClock.uptimeMillis() > keepAliveUntil) {
-                        active = false;
-                        Utils.log("Lichess session: ended at the hub");
+                    // here never sees it. Inside the Next window the hub may resume before the
+                    // replacement exists, so wait for the window instead of ending the hand-off.
+                    if (active) {
+                        if (SystemClock.uptimeMillis() > keepAliveUntil) {
+                            active = false;
+                            Utils.log("Lichess session: ended at the hub");
+                        } else {
+                            endSessionAtHubLater();
+                        }
                     }
                     // The hub is back: hold the frozen state for its first refresh.
                     if (freezeActive && unfreezeAt == Long.MAX_VALUE) {

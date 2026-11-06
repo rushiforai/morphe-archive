@@ -26,25 +26,26 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 | AMC+ | Skip launch video, Skip ads¹, Block analytics & tracking¹ ² | `1.8.62.1` | 10/31/26 |
 | Apple TV | Skip ads¹, Block analytics & tracking¹ ² | `3.0.0` | 10/30/26 |
 | Disney+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `26.20.0+rc2-2026.10.28` | 11/02/26 |
-| ESPN | Skip ads¹, Block analytics & tracking¹ ² | `8.27.0` | 10/31/26 |
+| ESPN | Skip ads¹, Block analytics & tracking¹ ² | `8.29.0` | 11/04/26 |
 | Fandango at Home | Mask ads, Block analytics & tracking² | `10.24.r009.179279954` | 11/02/26 |
 | Fox One | Skip ads¹, Disable Pairip license check, Block analytics & tracking¹ ² | `1.24.0` | 10/30/26 |
 | HBO Max | Skip ads, Remove social sign-in, Block analytics & tracking¹ ² | `7.14.0.530` | 10/30/26 |
 | Hulu | Skip ads¹, Block analytics & tracking¹ ² | `6.34.0+18552420-google` | 10/31/26 |
-| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking² | `26.43.10`, Android TV `26.43.8` | 11/04/26 |
+| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking² | `26.44.2`, Android TV `26.43.8` | 11/04/26 |
 | MGM+ | Skip ads¹, Skip pre-roll promo¹, Skip lion intro, Disable MGM+ AI², Remove social sign-in, Block analytics & tracking¹ ² | `240.0.2026240000` | 10/30/26 |
 | Moviebase | GmsCore support, Disable Pairip license check, Block ads, Hide Premium upsell, Block analytics & tracking² | `7.7.0` | 11/02/26 |
 | NBA | Skip ads¹, Disable Ask NBA AI¹ ², Block analytics & tracking¹ ² | `1.2.0` | 10/31/26 |
 | NFL | Skip ads¹, Block analytics & tracking¹ ² | `61.0.18` | 10/31/26 |
-| Paramount+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `17.2.0` | 10/31/26 |
+| Paramount+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `17.3.0` | 11/04/26 |
 | PBS | Skip ads¹, Block analytics & tracking¹ ² | `5.27.0` | 10/30/26 |
 | Peacock | Skip ads¹, Disable Xfinity auto sign-in, Block analytics & tracking¹ ² | `7.10.20` | 10/30/26 |
+| Plex | Skip ads, Hide sponsored content, Block analytics & tracking² | `2026.22.0`, Android TV `2026.22.0` | 11/05/26 |
 | Pluto TV | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking¹ ² | `17.3.0` | 11/02/26 |
-| Prime Video | Skip ads, Rename shared permissions, Disable AI¹ ², Block analytics & tracking¹ ² | `3.0.477.1447` | 11/01/26 |
+| Prime Video | Skip ads, Rename shared permissions, Disable AI¹ ², Block analytics & tracking¹ ² | `3.0.480.457` | 11/04/26 |
 | Starz | Skip launch video, Skip pre-roll promo¹, Remove social sign-in, Block analytics & tracking¹ ² | `6.11.0` | 10/31/26 |
-| Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking¹ ² | `10.43.1` | 10/30/26 |
+| Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking¹ ² | `10.44.1` | 11/04/26 |
 | Xumo Play | Skip ads, Mask live ad breaks¹, Block analytics & tracking¹ ² | `4.6.21` | 11/04/26 |
-| YouTube TV | GmsCore support, Skip ads¹, Mask live ad breaks¹ ², Change app name, Block telemetry², Hide prompts and promos², Hide membership upsell² | `10.44.0` | 11/04/26 |
+| YouTube TV | GmsCore support, Skip ads¹, Mask live ad breaks¹ ², Start at high quality¹ ², Fix picture-in-picture¹, Change app name, Block telemetry², Hide prompts and promos², Hide membership upsell² | `10.44.0` | 11/05/26 |
 
 ### News
 
@@ -70,7 +71,7 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 | National Forests & Grasslands | Disable Pairip license check, Block analytics & tracking² | `1.3.0` | 11/02/26 |
 | NPS | Block analytics & tracking², Block Bluetooth scanning² | `2.15.0` | 11/02/26 |
 | Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking², Show hidden details² | `2.2.67` | 11/04/26 |
-| White House | Disable Pairip license check, Remove microphone access, Hide social feeds², Hide promotions², Block analytics & tracking², Route traffic through a proxy² | `47.7.8` | 11/02/26 |
+| White House | Skip launch video, Disable Pairip license check, Remove microphone access, Hide social feeds², Hide promotions², Block analytics & tracking², Route traffic through a proxy² | `47.7.8` | 11/05/26 |
 
 ### Shopping
 
@@ -79,7 +80,7 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 | Amazon Shopping | Hide sponsored listings¹, Disable AI¹ ² | `32.19.0.100` | 11/01/26 |
 | Best Buy | Hide sponsored listings¹, Disable AI¹ ² | `26.10.10` | 11/01/26 |
 | CVS | Disable AI¹ ² | `26.10.50` | 11/01/26 |
-| DealSeek | Strip affiliate links, Disable Pairip license check, Block analytics & tracking¹ ² | `1.64.0` | 11/01/26 |
+| DealSeek | Strip affiliate links, Hide pop-ups, Disable Pairip license check, Block analytics & tracking¹ ² | `1.64.0` | 11/05/26 |
 | Target | Hide sponsored listings¹, Disable AI¹ ² | `2026.43.0` | 11/01/26 |
 | The Home Depot | Disable AI¹ ² | `8.2.5` | 11/01/26 |
 | Walgreens | The shared privacy patches only | `118.0` | 11/01/26 |
@@ -89,7 +90,7 @@ YouTube TV and Moviebase sign in with Google through MicroG RE, so install it fi
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| Mint Mobile | Block analytics & tracking² | `2.3.40` | 11/01/26 |
+| Mint Mobile | Block analytics & tracking² | `2.3.41` | 11/04/26 |
 | My Verizon | Block session recording, Block analytics & tracking², Disable AI¹ ² | `22.2.5` | 11/02/26 |
 | myAT&T | Block session recording, Block background network reports¹, Block analytics & tracking², Disable AI² | `2026.10.1` | 11/01/26 |
 | T-Life | Block location tracking, Block session recording, Block analytics & tracking², Disable AI² | `12.3.1` | 11/01/26 |
@@ -123,6 +124,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 - NFL: ads in clips and highlights.
 - Paramount+: ads in videos. Live sports breaks show Paramount's "Commercial in Progress" card.
 - PBS: sponsor messages before and during videos.
+- Plex: ads in on-demand titles, and pause ads. Live TV is not changed.
 - Pluto TV: on-demand ads. Live breaks are covered by Mask live ad breaks.
 - Prime Video: every ad break. Titles play in the older player, so features of the newer one, such as X-Ray, are not available.
 - Xumo Play: pre-roll and mid-roll ads in on-demand videos. Live breaks are covered by Mask live ad breaks.
@@ -132,13 +134,14 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 
 **Block ads** (JustWatch, Moviebase, T-Mobile Play, and Visible) removes the ads and stops the ad networks from starting. The JustWatch Android TV app shows only video ads, before and during free streams, and those are removed. On Visible, it also stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications.
 
-**Mask live ad breaks** (ABC News, Pluto TV, Xumo Play, and YouTube TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break. On YouTube TV, it covers the ads YouTube TV adds to a live break, and the network's own commercials around them still play.
+**Mask live ad breaks** (ABC News, Pluto TV, Xumo Play, and YouTube TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break. On YouTube TV, it covers only the ads YouTube TV inserts into a live break. The commercials built into the channel's own broadcast are not covered and still play.
 
 To turn off Mask live ad breaks on Pluto TV without patching again, create a file named `slate_off` in `Android/data/tv.pluto.android/files`. A file named `pluto_slate_mode` that contains `black` or `mute` keeps only the cover or only the muting.
 
 | Patch | App | What it does |
 |-------|-----|--------------|
 | Hide sponsored listings | Amazon Shopping, Best Buy, Target | Removes sponsored products from search results, and on Amazon, from product pages. Best Buy's "Featured products" row still shows. |
+| Hide sponsored content | Plex | Removes sponsored titles from the rows on Home and Discover, the large sponsored card at the top of each screen, and promoted "Watch Now on" cards. The items are removed from the feed, so no empty space is left behind. |
 | Hide sponsored titles | JustWatch | Removes sponsored title cards and the sponsored trailers before videos. |
 | Strip affiliate links | DealSeek | Opens each deal at the store's own page, without DealSeek's click tracker or affiliate tags. Covers Amazon, Walmart, Best Buy, eBay, Wayfair, and Target. |
 
@@ -150,8 +153,9 @@ To turn off Mask live ad breaks on Pluto TV without patching again, create a fil
 | Hide upsell pop-ups | The New York Times | The full-screen subscription takeover and the promo banner at the top. |
 | Hide marketing pop-ups | The Washington Post, The Wall Street Journal | In-app marketing messages, such as subscription offers, and the subscribe banner on The Washington Post's home page. |
 | Hide pop-ups and rating prompts | Fox Local | The rate-the-app prompt, the rating card in the feeds, and marketing pop-ups. |
+| Hide pop-ups | DealSeek | The Trustpilot and Play Store review requests, the daily spin-the-wheel pop-up, and the survey that appears when you return from a deal. The app also stops downloading updates to its screens, so it stays on the version you patched. |
 | Hide prompts and promos | YouTube TV | The rate-the-app dialog, promo banners, the app tour, the highlights autoplay prompt, and the "Watch on YouTube" dialog. The last three are hidden only on a fresh install or after you clear the app's data. |
-| Hide membership upsell | YouTube TV | The "Add to membership" shelf on the home screen, which promotes paid add-on networks. The shelf is removed from the feed, so no empty space is left behind. |
+| Hide membership upsell | YouTube TV | The "Add to membership" shelf on the home screen and in search results, which promotes paid add-on networks. The shelf is removed from the feed, so no empty space is left behind. |
 | Hide surveys | CBS News | Qualtrics surveys and the rate-the-app prompt they can lead to. |
 | Hide surveys and rating prompt | NBC News | Iterate surveys and the rate-the-app prompt. |
 | Hide rating prompt | Recreation.gov | The rate-the-app prompt after checkout. |
@@ -223,6 +227,7 @@ The White House patches let you remove only the parts of the app you do not want
 - Paramount+: Braze, Conviva, Nielsen, comScore, Kochava, Adobe Analytics, New Relic, Tealium, and Branch.
 - PBS: AppsFlyer and Mux.
 - Peacock: Braze, Conviva, Nielsen, comScore, Adobe Analytics, New Relic, mParticle, and Branch.
+- Plex: Kochava, Plex's own analytics, Plex's ad measurement, and Statsig event logging.
 - Pluto TV: Kochava, comScore, Nielsen, Adobe Analytics, Conviva, New Relic, Salesforce Marketing Cloud, and Pluto's Tealium tag config.
 - Prime Video: Amazon's Minerva metrics.
 - Recreation.gov: the Firebase events that carry your reservation numbers and payment type, Crashlytics and Firebase Sessions, and Mapbox usage reports. It also keeps your account ID from LaunchDarkly, the app's feature-flag service.
@@ -275,7 +280,9 @@ These are off by default and shared across apps:
 | Change app name | YouTube TV | Names the app "YT TV+" by default, so it is easy to tell apart from the official app. |
 | Remove social sign-in | CNN, HBO Max, MGM+, Starz, The New York Times, Tubi | Removes Google, Facebook, and Apple sign-in. Email, TV-provider, and subscriber sign-in keep working. An account created with Google or Facebook needs a password reset to sign in by email. |
 | Disable Xfinity auto sign-in | Peacock | Stops automatic sign-in on an Xfinity home network. |
-| Skip launch video | AMC+, Disney+, Paramount+, Pluto TV, Starz | Opens the app without the intro video. |
+| Fix picture-in-picture | YouTube TV | Keeps the picture-in-picture window at the video's shape. Without it, the window can flicker between two sizes for several seconds after it shrinks. Needs Android 13 or later. |
+| Skip launch video | AMC+, Disney+, Paramount+, Pluto TV, Starz, White House | Opens the app without the intro video. |
+| Start at high quality | YouTube TV | Starts recordings and on-demand videos at high quality, without the flicker of stepping up from a low one. They start at 1080p, or at the resolution you choose in the patch options. Live channels still start low, because the player picks their quality itself. A slow connection can take longer to start. The patch cannot go above what your plan includes. Choose 2160p only if you have the 4K Plus add-on: without it, videos start low and step up as if the patch were off. |
 | Skip lion intro | MGM+ | Opens the app without the lion video. |
 | Skip pre-roll promo | MGM+, Starz | Skips the app's own promo before a title. |
 

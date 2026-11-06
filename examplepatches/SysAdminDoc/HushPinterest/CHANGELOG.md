@@ -4,8 +4,9 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
-* The patches now target Pinterest 14.42.0, version code 14428010. APKMirror has it as a plain APK for Android 10 or newer. Older Pinterest versions are refused.
-* The patches are now built on Morphe patcher 2.1.0, so you'll need Morphe Manager 2.3.0 or newer to apply them.
+* The patches now target Pinterest 14.43.0, version code 14438020. APKMirror has it as a plain APK for Android 10 or newer. Older Pinterest versions are refused.
+* The patches are now built on Morphe patcher 2.2.0, so you'll need Morphe Manager 2.4.0 or newer to apply them.
+* Hide ads now covers Meta's ad network as well. Pinterest 14.43.0 started filling some ad slots through Meta Audience Network, and with Hide ads on, Pinterest's own consent check answers no for Meta, so that SDK never starts. Export report lists it as `Meta ad SDK` under Hide ads coverage.
 * Long-press download now covers the newer list-style long-press menu too. Download shows up there and saves the pin you pressed, and the switches that hide Save, Send and Search image work on that menu as well.
 * With GmsCore support, Continue with Google no longer does nothing when microG-RE can't be reached. You get a message saying to install it, turn it on or open it, and the setup guide says to add your Google account there first. Export report has a new Google sign-in section (no account names, no tokens) so a failure can be traced.
 * Two new switches under Pin actions, both off to start. Save pins you download also saves a pin you download from its menu, and Download pins you save downloads whatever you save, from any screen.
@@ -14,11 +15,14 @@ Every HushPinterest release, newest first.
 * `Hide lens button on pins` now also hides the lens on pins with several pictures, which have a second lens of their own in the picture carousel. (#20)
 * `Hide Search image label on pins` now also turns off the glow Pinterest puts around the lens. (#19)
 * Hide closeup buttons has four new switches for the row under a pin's picture: like, comment, share and more, each on its own. Hiding more also hides the way into that pin's menu from there, Download pin included, and the row says so. They all start off and sit on the Interface page. (#22)
+* `Hide topic suggestions` works on Pinterest 14.43.0 again. It had latched onto a search suggestion cell instead of the "Ideas you might love" row, so the row kept showing under pins with the switch on. Now the row goes away with no gap, and it comes back when you turn the switch off or pause HushPinterest.
+* `Hide Create button` and `Hide Notifications button` now work on Pinterest 14.43.0 accounts that keep those buttons at the top of Home instead of in the bottom bar. The switches did nothing visible there before. The bell or Inbox button goes along with Notifications, and both come back when you turn their switch off or pause HushPinterest.
 * New `Hide Remix button on pins` switch takes the Remix button off pins that show it. The Cutout button next to it stays. It starts off. (#25)
 * New `Hide Visit site button on pins` switch takes away the Visit site button under pins that link to a website. It starts off. (#26)
 * New `Smaller Save button on pins` switch draws the red Save button on a pin you open at four fifths of its size, still at the end of its row. It starts off. (#24)
 * New `Save button color` row paints that Save button in any hex color you type, like #3366FF or #36F. Light colors get dark text so the button stays readable, and Clear brings back Pinterest's red. The color goes into exported settings files along with your switches. (#23)
 * `Black pin menu` now paints the See more and See less cards in a pin's menu black too. They used to stay gray on the black sheet. (#21)
+* `Black comments` turns the quick replies above the reply box (the emoji and "Love it!" buttons) black as well. They stayed gray on Pinterest 14.43.0. (#21)
 * `Black comments` no longer flashes a gray bar across the top of a video pin's comments while they load. (#12)
 * The settings code drops a `Set when you patched` section that never had a page to show, along with its five translations. Nothing changes on screen.
 * **Tooling:** Release walks now bind the bundle, stock build and patch selection to the signed APK installed on the test device. Publish rejects missing or mismatched evidence, unsupported app versions, invalid times and reported problems. A survey of an installed app without matching build evidence stays diagnostic only.

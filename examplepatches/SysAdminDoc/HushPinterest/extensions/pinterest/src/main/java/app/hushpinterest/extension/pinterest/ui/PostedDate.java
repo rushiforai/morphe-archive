@@ -22,6 +22,8 @@ import app.hushpinterest.extension.pinterest.ads.ModelFields;
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.L10n;
+import app.hushpinterest.extension.shared.ResourceType;
+import app.hushpinterest.extension.shared.ResourceUtils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
 
 /**
@@ -34,6 +36,9 @@ public final class PostedDate {
 
     /** Marks the one line this adds, so a module that takes another pin updates it instead of adding a second. */
     static final String LINE_TAG = "hushpinterest_posted_date";
+
+    /** The id Pinterest gives the title row's chevron, the one that opens the pin's description. */
+    static final String TITLE_CHEVRON = "closeup_metadata_expand_chevron";
 
     /** The pin's JSON name for the time it was posted. */
     static final String CREATED_AT = "created_at";
@@ -104,6 +109,12 @@ public final class PostedDate {
             return null;
         }
         View row = layout.getChildAt(0);
+        // 14.43.0 merged the title module with the translation toggle's module, so the same update
+        // runs for both. Only the title row carries the chevron that opens the description.
+        if (!holdsTitleChevron(row)) {
+            HookStatus.counted(FamilyNames.SHOW_POSTED_DATE, "posted date skipped: module holds no title row");
+            return null;
+        }
         TextView line = new TextView(layout.getContext());
         line.setTag(LINE_TAG);
         line.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
@@ -119,6 +130,11 @@ public final class PostedDate {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return line;
+    }
+
+    private static boolean holdsTitleChevron(View row) {
+        int id = ResourceUtils.getIdentifier(row.getContext(), ResourceType.ID, TITLE_CHEVRON);
+        return id != 0 && row.findViewById(id) != null;
     }
 
     /** The first text view in [view], depth first: the pin's title in the title row. */

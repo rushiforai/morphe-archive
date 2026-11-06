@@ -1,0 +1,63 @@
+LiquidMusic Patches
+===================
+
+LiquidMusic Patches are licensed under the GNU General Public License v3.0 (see LICENSE).
+They are an independent project, compatible with Morphe, and are not made or endorsed by
+Morphe or by Apple.
+
+
+Morphe patches template
+-----------------------
+
+The build setup, the release workflow and util/PatchListGenerator.kt come from the
+Morphe patches template (https://github.com/MorpheApp/morphe-patches-template),
+licensed under the GNU General Public License v3.0 with the following additional term:
+
+  7c. Project Name Restriction
+
+  This license does not grant permission to use the name "Morphe", or any
+  name, logo, or branding that is confusingly similar, as the name or
+  primary identifying mark of any modified version, fork, or derivative work.
+
+  Any redistribution or derivative work must adopt a distinct name and
+  branding that clearly differentiates it from the Morphe project and does
+  not cause confusion as to source or origin.
+
+  References to Morphe are permitted solely for descriptive compatibility
+  purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+  provided that such references:
+
+  - Are accurate, factual, and non-misleading;
+  - Do not suggest authorship by the Morphe project; and
+  - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+Backdrop (AndroidLiquidGlass)
+-----------------------------
+
+The AGSL shaders in extensions/liquidglass (GlassShaders.java) and the parameters of the
+glass effect are ported from Backdrop by Kyant (https://github.com/Kyant0/AndroidLiquidGlass).
+libs/backdrop and libs/backdrop-catalog contain copies of its source files, unchanged, from
+commit 65ab177e (see libs/README.md); only the Gradle build files around them are ours.
+LiquidBottomTabs, LiquidButton, LiquidSlider and LiquidToggle come from its catalog app.
+
+  Copyright 2025 Kyant
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+
+Apple Music
+-----------
+
+Apple Music is a trademark of Apple Inc. This repository does not contain or distribute
+any part of the Apple Music app. Patches are applied by the user to their own copy.

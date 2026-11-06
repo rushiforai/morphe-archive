@@ -134,3 +134,6 @@ local.properties
 
 # Local reverse-engineering notes — never commit
 MYOADAPT.md
+
+# Local APKs, patched builds and test logs
+apks/

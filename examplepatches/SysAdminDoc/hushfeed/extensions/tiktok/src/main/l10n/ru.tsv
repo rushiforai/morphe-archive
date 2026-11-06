@@ -469,6 +469,8 @@ Disable	Отключить
 Stop analytics and tracking	Останавливать аналитику и трекинг
 Long-press Home for Hushfeed settings	Долгое нажатие на Главная открывает настройки Hushfeed
 Press and hold the Home tab to open these settings. A tap on Home works as before.	Нажмите и удерживайте вкладку Главная, чтобы открыть эти настройки. Обычное нажатие на Главная работает как раньше.
+Search instead of Home	Поиск вместо Главной
+The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.	Вкладка Главная превращается в кнопку поиска. Её значок и название показывают Поиск, а нажатие открывает поиск TikTok вместо «Рекомендаций». TikTok открывается на Входящих или, если Входящие скрыты, на Профиле, поэтому лента не играет при запуске.
 Keep For You on a Home tap	Оставлять Рекомендации при нажатии на Главная
 Keep For You on a pull down	Оставлять Рекомендации при свайпе вниз
 Keep long press from quick sharing	Отключить быстрое «Поделиться» по долгому нажатию
@@ -576,6 +578,7 @@ Forget the %1$s seen videos.|few	Забыть %1$s просмотренных в
 Forget the %1$s seen videos.|many	Забыть %1$s просмотренных видео.
 Forget what has been counted today and end any hold. The budgets themselves are left alone.	Забыть то, что было засчитано сегодня, и снять любую паузу. Сами бюджеты не изменяются.
 Friends	Друзья
+Discover	Интересное
 Full comment sort options	Полный набор вариантов сортировки комментариев
 Full license	Полная лицензия
 Full report saved to %1$s	Полный отчёт сохранён в %1$s
@@ -1451,6 +1454,8 @@ Hide the Report button on videos	Скрывать кнопку «Пожалов�
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	Скрывать кнопку-флажок, которую TikTok показывает над фото автора в некоторых регионах. Пожаловаться на видео по-прежнему можно через меню «Поделиться».
 Hide search rewards	Скрывать поисковые награды
 Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.	Скрывать баннер с баллами под строкой поиска и счётчик монет, плавающий над результатами поиска, которые TikTok показывает в некоторых регионах. Поиск работает как раньше.
+Show only the search bar on Discover	Только строка поиска в «Интересном»
+On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.	На вкладке «Интересное», которую TikTok показывает в некоторых регионах, скрывает популярные хештеги, баннеры и вкладки под полем поиска. Поле поиска остаётся и работает как раньше.
 %1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.	%1$s скрыл всё, что прислал TikTok, %2$d раз подряд. Отключите это, если вы не этого хотели.
 Show the switch	Показывать переключатель
 this creator	этот автор
@@ -1518,11 +1523,19 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	Скрывать TikTok Shop в поиске
 Hide the Products block and product cards in search results.	Скрывать блок «Товары» и карточки товаров в результатах поиска.
 Hide TikTok's Auto scroll button	Скрывать кнопку автопрокрутки TikTok
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	Убирает собственную функцию автопрокрутки TikTok из панели видео и переключатель автопрокрутки рядом с видео на планшетах и раскрытых складных телефонах. Работает и при выключенном автоматическом переключении.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.	Убирает собственную функцию автопрокрутки TikTok из панели видео и метку автопрокрутки вверху видео. На планшетах и раскрытых складных телефонах также пропадает переключатель автопрокрутки рядом с видео. Работает и при выключенном автоматическом переключении.
 Hide the unread badges on the bottom tabs	Скрывать значки непрочитанного на нижних вкладках
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Скрывать красные счётчики и точки на всех нижних вкладках, включая «Входящие» и «Профиль», а также всплывающий значок над «Входящими» с числом новых лайков, подписчиков, комментариев и тех, кто в LIVE. Сами входящие по-прежнему показывают, что пришло.
 Speed while you hold the video	Скорость при удержании видео
 Slide to change the hold speed	Смена скорости удержания свайпом
+Hold speed bubble style	Вид пузыря скорости удержания
+Pill	Капсула
+Circle	Круг
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	Капсула: широкий пузырь с рядом точек под скоростью. Круг: маленький круглый циферблат с отметкой для каждой скорости по краю.
+Hold speed slide direction	Направление сдвига скорости удержания
+Sideways	В стороны
+Up and down	Вверх и вниз
+With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.	В режиме «В стороны» сдвигайте влево или вправо, чтобы менять скорость, и потяните вниз, чтобы закрепить её. В режиме «Вверх и вниз» сдвигайте вверх, чтобы ускорить, и вниз, чтобы замедлить, а в сторону, чтобы закрепить. Так даже удержание у края экрана достаёт до любой скорости.
 Hide mini dramas	Скрывать мини-драмы
 Hide TikTok's short drama episodes and the cards that promote them.	Скрывать короткие драма-эпизоды TikTok и карточки, которые их продвигают.
 Mini dramas	Мини-драмы
@@ -2459,6 +2472,8 @@ Most liked first	Сначала с наибольшим числом лайко�
 Least liked first	Сначала с наименьшим числом лайков
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Сортирует сетку профиля или раздела «Понравившиеся», закреплённые видео остаются первыми. Пока выбран порядок, сетка сама подгружает до 300 видео, чтобы порядок охватывал больше первого экрана. Кнопка в верхнем углу сетки меняет порядок прямо там.
 Sort loaded videos on Liked grids	Сортировать загруженные видео в сетках «Понравилось»
+Sort loaded videos on sound pages	Сортировать загруженные видео на страницах звуков
+Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	Так же сортирует видео на странице звука и подгружает до 300 из них, пока выбран порядок.
 Same as profile grids	Как в сетках профиля
 Sort this grid	Сортировка этой сетки
 Blur the video behind the bar	Размывать видео за панелью
@@ -2640,3 +2655,51 @@ Hide streak pop-ups	Скрыть всплывающие окна серий
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	Убирает уведомления о сериях, которые выезжают поверх TikTok, а также сообщения и подсказки о сериях в ваших чатах.
 Long press on For You opens my watch history	Долгое нажатие на «Рекомендации» открывает мою историю просмотров
 Instead of these settings. The list has a button that brings you back here.	Вместо этих настроек. В списке есть кнопка, которая вернёт вас сюда.
+Long press on Profile opens my watch history	Долгое нажатие на Профиль открывает мою историю просмотров
+Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.	Вместо истории просмотров TikTok. Обычное нажатие на Профиль работает как раньше. Если удержание Профиля у вас переключает аккаунты, эта настройка занимает это нажатие.
+Auto tap in LIVE rooms	Автонажатие в комнатах LIVE
+Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.	Добавляет в комнаты LIVE кнопку автонажатия. Нажмите её, чтобы касания шли по трансляции в ровном темпе, и нажмите снова, чтобы остановить. Она также останавливается, когда вы выходите из комнаты или листаете к другой, выходите из TikTok или блокируете экран.
+Auto tap speed	Скорость автонажатия
+2 taps a second	2 нажатия в секунду
+4 taps a second	4 нажатия в секунду
+6 taps a second	6 нажатий в секунду
+8 taps a second	8 нажатий в секунду
+Auto tap	Автонажатие
+Start tapping this LIVE	Начать нажатия в этом LIVE
+Stop tapping this LIVE	Остановить нажатия в этом LIVE
+Auto tap stopped	Автонажатие остановлено
+Clean up your account	Очистка аккаунта
+Remove all reposts	Удалить все репосты
+Deletes all reposts from your account sequentially.	Удаляет все репосты с аккаунта по одному.
+Remove all likes	Удалить все лайки
+Unlikes every video one after another.	Снимает лайк с каждого видео по очереди.
+Clear Favorites	Очистить Избранное
+Removes every video from Favorites one after another.	Убирает все видео из Избранного по очереди.
+Removing all reposts in %1$d	Удаление всех репостов через %1$d
+Removing all likes in %1$d	Удаление всех лайков через %1$d
+Clearing Favorites in %1$d	Очистка Избранного через %1$d
+Reposts removed: %1$d	Удалено репостов: %1$d
+Likes removed: %1$d	Снято лайков: %1$d
+Favorites removed: %1$d	Убрано из Избранного: %1$d
+Nothing to remove	Нечего удалять
+Done. %1$d removed.	Готово. Удалено: %1$d.
+Stopped. %1$d removed.	Остановлено. Удалено: %1$d.
+TikTok refused. %1$d removed.	TikTok отказал. Удалено: %1$d.
+Network error. %1$d removed.	Ошибка сети. Удалено: %1$d.
+Not available on this TikTok version	Недоступно в этой версии TikTok
+Sign in to TikTok first	Сначала войдите в TikTok
+A removal is already running	Удаление уже идёт
+Cancelled	Отменено
+Show inbox filters	Показывать фильтры входящих
+Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Добавляет над чатами вкладки «Основные», «Запросы», «Непрочитанные» и «Избранные», которые TikTok даёт аккаунтам авторов.
+Rebuild message search	Перестроить поиск по сообщениям
+Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.	Очищает поиск по сообщениям TikTok и заново добавляет каждое сообщение, сохранённое на этом телефоне, начиная с новых. Продолжает работу и после выхода из поиска.
+Rebuilding message search	Поиск по сообщениям перестраивается
+Stopped. Search carries on later.	Остановлено. Поиск продолжит позже.
+Couldn't stop it. Try again.	Не остановлено. Повторите.
+Couldn't rebuild search. Try again.	Поиск не перестроен. Повторите.
+Message search isn't on for this account	Поиск сообщений недоступен для этого аккаунта
+Offer Audio only in LIVE quality	Вариант «Только звук» в качестве LIVE
+Audio only	Только звук
+Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.	Добавляет «Только звук» в список качества видео LIVE. Эфир играет звук без картинки, что тратит намного меньше трафика, пока вы не выберете другое качество или не выйдете. Запись из потока по-прежнему сохраняет видео.
+Pick a video quality to record the screen	Выберите качество видео для записи экрана

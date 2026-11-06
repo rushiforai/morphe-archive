@@ -120,7 +120,8 @@ work; `bin/emu --port 5582 serial` prints its serial for `--install=` and `ANDRO
   template) into `$MORPHE_WORK/refs/` for API reference.
 - `bin/apk-info <file|app>` shows a file's package, version and signing cert, or an app's stored versions.
 - `bin/bump`, `bin/hermes-pin` and `bin/verify-hooks` move an app to a new version; see
-  [Version bumps](#version-bumps).
+  [Version bumps](#version-bumps). `bin/manager-link [app [version]]` shows where Morphe Manager's
+  download button sends people for a version (every app's target without arguments).
 
 ## Writing a patch
 
@@ -278,7 +279,15 @@ worth pinning, and say in the pull request what you ran.
 ## Version bumps
 
 Each patch is written for one version of its app (the `targets` in `shared/Constants.kt`). Moving an
-app to a new version is mostly finding what no longer matches:
+app to a new version is mostly finding what no longer matches.
+
+Only target a version APKMirror lists as stable. Manager's download button asks Morphe's API
+(`api.morphe.software/v2/web-search/<package>~<version>~<abi>`) and opens wherever it redirects, and the
+API finds versions through APKMirror: for a Google Play release APKMirror hasn't posted yet it picks a beta
+with the same number (Twitch 31.9.0 led to 31.9.0_BETA, a different build) or a web search (Rumble 3.22.0).
+`bin/manager-link <app> <version>` follows the same redirects and passes only on APKMirror's release page of
+that exact version (or an Uptodown build page); `bin/bump` runs it at the end. Until it passes, keep the
+bump on a branch.
 
 ```sh
 bin/bump twitch 31.8.0 ~/Downloads/<file>.apkm   # store it (bin/apk-add), patch, sort the failures
@@ -315,7 +324,7 @@ Two things `bin/bump` doesn't show: a patch whose code only runs with an option 
 the option (`-e "<patch>" -O key=value` after `--`); and `bin/hermes-pin` only rewrites `Hermes.kt`,
 while some tests pin the stock bundle's SHA-256 too (`grep` the old hash).
 
-When everything applies: run `bin/verify-hooks`, the probes and the app itself, update the version in
+When everything applies and `bin/manager-link` passes: run `bin/verify-hooks`, the probes and the app itself, update the version in
 `shared/Constants.kt`, the app's page under `docs/` and the APKMirror variant the README's Install
 section names, and commit as `bump(<app>): support <App> <version>`.
 
@@ -353,7 +362,8 @@ section names, and commit as `bump(<app>): support <App> <version>`.
   the patch list in `README.md` (written by `.github/scripts/generate_patches_readme.py`). Don't
   create releases or tags by hand.
 - When patches are tested on a new app version, update that version in the app's `targets` in
-  `shared/Constants.kt`; Manager links users to the version listed there.
+  `shared/Constants.kt`; Manager links users to the version listed there, so do it only once
+  `bin/manager-link <app> <version>` passes.
 
 ## Dependencies
 

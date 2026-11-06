@@ -214,7 +214,9 @@ internal fun collectLifecycle(patcher: Patcher): List<PatchResult> {
             else -> error("Unexpected collector method ${method.name}")
         }
     }
-    val flow = Patcher::class.java.getMethod("invoke").invoke(patcher)
+    // Patcher 2.2 takes a callback run as each patch starts; the lifecycle tests read only the results.
+    val onPatchStart: (Any?) -> Unit = {}
+    val flow = Patcher::class.java.getMethod("invoke", Function1::class.java).invoke(patcher, onPatchStart)
     val outcome = Class.forName("kotlinx.coroutines.flow.Flow")
         .getMethod("collect", collectorType, Continuation::class.java).invoke(flow, collector, continuation)
     if (outcome === COROUTINE_SUSPENDED) {

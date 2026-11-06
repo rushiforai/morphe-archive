@@ -104,7 +104,7 @@ MPL-2.0 (https://github.com/finamp-app/finamp). Native backports start from
 including the original license/notices and committed dependency lock, is public
 for each selectable combination at the revisions in tests/finamp/native-sources.json
 (https://github.com/pengusto/finamp). Source contributions: PR1830, PR1831,
-PR1832, PR1834, PR1835, PR1836 and PR1837 in finamp-app/finamp. See docs/FINAMP_NATIVE.md for
+PR1832, PR1834, PR1835, PR1836, PR1837 and PR1853 in finamp-app/finamp. See docs/FINAMP_NATIVE.md for
 toolchain pins, original-APK provenance and the verified output profile.
 
 Read You nested OPML import

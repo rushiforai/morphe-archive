@@ -150,6 +150,8 @@
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/HushDialogs.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/MutedWordsSetting.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/MutedWordsPreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SaveButtonColorSetting.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SaveButtonColorPreference.java",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/actions/**"
       ],
       "origin": "original",

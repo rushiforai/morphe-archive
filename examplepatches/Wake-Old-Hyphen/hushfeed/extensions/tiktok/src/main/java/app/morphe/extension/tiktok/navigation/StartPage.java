@@ -47,6 +47,7 @@ public final class StartPage {
     public static final String FOR_YOU = "for_you";
     public static final String FOLLOWING = "following";
     public static final String FRIENDS = "friends";
+    public static final String DISCOVER = "discover";
     public static final String INBOX = "inbox";
     public static final String PROFILE = "profile";
 
@@ -54,6 +55,8 @@ public final class StartPage {
     static final String HOME_TAG = "HOME";
     static final String FRIENDS_TAB_TAG = "FRIENDS_TAB";
     static final String FRIENDS_FEED_TAG = "FRIENDS_FEED";
+    /** The Discover bottom tab some regions get in place of Friends (DiscoverCompassTabProtocol). */
+    static final String DISCOVER_TAG = "DISCOVER";
     static final String INBOX_TAG = "NOTIFICATION";
     static final String PROFILE_TAG = "USER";
 
@@ -92,16 +95,22 @@ public final class StartPage {
             if (FeedLock.isVideoLink(intent)) FeedLock.noteLinkEntry();
             String choice = Settings.START_PAGE.get();
             boolean locking = FeedLock.isOn();
-            if (TIKTOK.equals(choice) && !(locking && HOME_TAG.equals(tag))) return tag;
+            // Home turned into a search button (#338) has no feed to open on either.
+            boolean searchHome = SearchInsteadOfHome.isOn();
+            if (TIKTOK.equals(choice) && !((locking || searchHome) && HOME_TAG.equals(tag))) return tag;
             if (!isLauncherStart(intent)) return tag;
             String target = TIKTOK.equals(choice) ? null : tagFor(choice);
             // With the feed lock on, a start that would land on a feed, or on a tab this phone
             // can't show, lands on Inbox, or on Profile for a phone with no Inbox to open, so the
-            // app doesn't open on a blank feed.
-            if (locking && (target == null || landsOnFeed(target))) {
+            // app doesn't open on a blank feed. With Home a search button, a start that would land
+            // on one of Home's feeds goes the same way, so no feed plays behind a tab that reads
+            // Search. A Friends bottom tab is a tab of its own and stays.
+            String landing = target == null ? tag : target;
+            if ((locking && (target == null || landsOnFeed(target)))
+                    || (searchHome && (HOME_TAG.equals(landing) || FRIENDS_FEED_TAG.equals(landing)))) {
                 choice = tagFor(INBOX) != null ? INBOX : PROFILE;
                 target = tagFor(choice);
-                HookStatus.bound(FAMILY, "feed lock start");
+                HookStatus.bound(FAMILY, locking ? "feed lock start" : "search home start");
             }
             if (target == null) return tag;
             String top = topTagFor(choice);
@@ -232,6 +241,14 @@ public final class StartPage {
                     Settings.BOTTOM_NAVIGATION_OBSERVED_TABS.get()).contains(BottomNavigationTabOptions.FRIENDS);
             if (bottom) return bottomTabShown(BottomNavigationTabOptions.FRIENDS) ? FRIENDS_TAB_TAG : null;
             return topTabShown(NavigationTabOptions.FRIENDS) ? FRIENDS_FEED_TAG : null;
+        }
+        if (DISCOVER.equals(choice)) {
+            // Only a bar that has shown a Discover tab gets it (#338); Hushfeed keeps such a tab
+            // under its raw tag, so the Bottom tabs page can still hide it.
+            String key = BottomNavigationTabOptions.normalizeRuntimeTag(DISCOVER_TAG);
+            boolean seen = BottomNavigationTabOptions.parseObservedKeys(
+                    Settings.BOTTOM_NAVIGATION_OBSERVED_TABS.get()).contains(key);
+            return seen && bottomTabShown(key) ? DISCOVER_TAG : null;
         }
         return null;
     }

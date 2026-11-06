@@ -144,7 +144,9 @@ private fun Method.findInstructionIndexFromToString(fieldName: String) : Int {
 context(patchContext: BytecodePatchContext)
 internal fun Method.findMethodFromToString(fieldName: String) : MutableMethod {
     val methodUsageIndex = findInstructionIndexFromToString(fieldName)
-    return patchContext.navigate(this).to(methodUsageIndex).stop()
+    return getInstruction<ReferenceInstruction>(methodUsageIndex)
+        .getReference<MethodReference>()!!
+        .getMutableMethod()
 }
 
 /**

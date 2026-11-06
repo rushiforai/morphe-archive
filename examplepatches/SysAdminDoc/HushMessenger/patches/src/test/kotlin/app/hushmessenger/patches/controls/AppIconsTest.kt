@@ -148,7 +148,7 @@ class AppIconsTest {
                 assertEquals(before, after.drop(5), code)
             }
         }
-        // One icon manager per naming. 586 ships one build, so one manager (585's arm64 builds shared 7m4, and each armv7 build had its own).
-        assertEquals(1, families.size)
+        // One icon manager per naming. 586's arm64 and armv7 builds are named apart, so each has its own manager.
+        assertEquals(2, families.size)
     }
 }

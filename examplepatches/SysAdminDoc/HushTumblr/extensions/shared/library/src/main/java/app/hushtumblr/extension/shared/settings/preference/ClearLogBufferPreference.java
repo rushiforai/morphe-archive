@@ -27,6 +27,7 @@ import android.os.Build;
 import android.preference.Preference;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -61,7 +62,7 @@ public class ClearLogBufferPreference extends Preference implements ImmediateAct
     {
         // A key so the settings search can index this row. Nothing in the settings
         // framework treats it as a setting: a key with no Setting behind it is skipped.
-        setKey("action_clear_diagnostic_data");
+        setKey(LogBufferManager.CLEAR_ROW_KEY);
         setPersistent(false);
         setOnPreferenceClickListener(pref -> {
             if (OWNER.get() != null) return true;
@@ -75,16 +76,17 @@ public class ClearLogBufferPreference extends Preference implements ImmediateAct
                     else LogBufferManager.clearLogBuffer();
                 } catch (RuntimeException error) {
                     Logger.printException(() -> "Failed to change diagnostic data", error);
-                    Utils.showToastLong(run.undo
+                    LogBufferManager.tell(LogBufferManager.CLEAR_ROW_KEY, run.undo
                             ? L10n.t("Couldn't put back the diagnostic data. Try again.")
-                            : L10n.t("Couldn't clear the diagnostic data. Try again."));
+                            : L10n.t("Couldn't clear the diagnostic data. Try again."), true, Toast.LENGTH_LONG);
                 } finally {
                     Utils.runOnMainThread(() -> finish(run));
                 }
             });
             if (!accepted) {
                 finish(run);
-                Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+                LogBufferManager.tell(LogBufferManager.CLEAR_ROW_KEY,
+                        L10n.t("Couldn't start that. Try again in a moment."), true, Toast.LENGTH_LONG);
             }
             return true;
         });

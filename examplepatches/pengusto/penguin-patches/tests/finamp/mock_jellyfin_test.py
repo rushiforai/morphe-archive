@@ -395,6 +395,20 @@ class FixtureHTTPTests(unittest.TestCase):
             self.skipTest("Local Finamp sources unavailable; HTTP tests remain standalone")
 
 
+class NotesProfileTests(unittest.TestCase):
+    def test_list_overviews_require_explicit_fields_but_item_details_retain_them(self):
+        fixture = mock.Fixture(profile="notes")
+        try:
+            for item_id in (mock.ALBUM_ID, mock.TRACK_IDS[0]):
+                without = fixture.snapshot(mock.Query("Ids=" + item_id))["Items"][0]
+                with_field = fixture.snapshot(mock.Query("Ids=" + item_id + "&Fields=Overview"))["Items"][0]
+                self.assertNotIn("Overview", without)
+                self.assertTrue(with_field["Overview"].startswith(("Album background:", "Track background:")))
+                self.assertEqual(fixture.items[item_id]["Overview"], with_field["Overview"])
+        finally:
+            fixture.close()
+
+
 class NavigationProfileTests(unittest.TestCase):
     def test_extra_album_preserves_credits_and_crosses_the_page_boundary(self):
         fixture = mock.Fixture(profile="navigation")

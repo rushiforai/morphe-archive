@@ -1,3 +1,15 @@
+## [1.3.1](https://github.com/TahmidSummy/proxy-patches/compare/v1.3.0...v1.3.1) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* Keep proxy logins out of the APK, stop a first-launch DNS leak, and avoid false proxy alerts ([a0f7bd0](https://github.com/TahmidSummy/proxy-patches/commit/a0f7bd0851f41c0756a3b0a37c5752bd0a3fa11e))
+
+## [1.3.0](https://github.com/TahmidSummy/proxy-patches/compare/v1.2.0...v1.3.0) (2026-11-06)
+
+### ✨ New Features
+
+* Write-only saved password, screenshot blocking, and proxy-down messages ([f555ddc](https://github.com/TahmidSummy/proxy-patches/commit/f555ddc798f478128ada4db359d934f50d191aa6))
+
 ## [1.2.0](https://github.com/TahmidSummy/proxy-patches/compare/v1.1.0...v1.2.0) (2026-11-04)
 
 ### ✨ New Features

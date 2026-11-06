@@ -22,6 +22,11 @@ internal val TEXT_STYLE_ENTRIES = listOf(
     "app.hushmessenger.extension.BoldText" to "Bold",
     "app.hushmessenger.extension.ItalicText" to "Italic",
 )
+/** The string resource each entry's label points at in the patched APK, so the menu never shows it as "Messenger" (#125). */
+internal val TEXT_STYLE_STRINGS = mapOf(
+    "app.hushmessenger.extension.BoldText" to BOLD_LABEL,
+    "app.hushmessenger.extension.ItalicText" to ITALIC_LABEL,
+)
 
 /** Litho's text input names this when changed text makes it measure again. No other EditText does, in any tested build. */
 internal const val TEXT_INPUT_REMEASURE = "updateState:TextInputComponent.remeasureForUpdatedText"
@@ -97,9 +102,9 @@ internal fun Document.addTextStyle() {
     application.child("activity", "name" to TEXT_STYLE_ACTIVITY, "exported" to "false", "excludeFromRecents" to "true",
         "theme" to "@android:style/Theme.Translucent.NoTitleBar")
     // An alias has to come after the activity it points at.
-    for ((name, label) in TEXT_STYLE_ENTRIES) {
+    for ((name, _) in TEXT_STYLE_ENTRIES) {
         val filter = application.child("activity-alias", "name" to name, "targetActivity" to TEXT_STYLE_ACTIVITY,
-            "label" to label, "exported" to "false", "enabled" to "false").child("intent-filter")
+            "label" to "@string/${TEXT_STYLE_STRINGS.getValue(name)}", "exported" to "false", "enabled" to "false").child("intent-filter")
         filter.child("action", "name" to "android.intent.action.PROCESS_TEXT")
         filter.child("category", "name" to "android.intent.category.DEFAULT")
         filter.child("data", "mimeType" to "text/plain")

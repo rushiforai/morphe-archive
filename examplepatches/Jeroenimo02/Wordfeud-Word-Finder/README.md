@@ -19,7 +19,7 @@ Supported app: `com.hbwares.wordfeud.free` **5.7.1**. Other versions are experim
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.1.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.2.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Wordfeud&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -48,7 +48,8 @@ download), and verified against a SHA-256 before use.
 
 | Ruleset id | Language | Source | License of the list |
 |---|---|---|---|
-| 0, 5 | English (US / international) | ENABLE word list, via [dolph/dictionary](https://github.com/dolph/dictionary). A free approximation of TWL and Collins: the server may reject words that are not in Wordfeud's own list | Public domain |
+| 0 | English (US) | ENABLE ([dolph/dictionary](https://github.com/dolph/dictionary)) + [Wordnik open word list](https://github.com/wordnik/wordlist): about 95% of NWL | Public domain + MIT (Copyright (c) 2020 Wordnik) |
+| 5 | English (international) | ENABLE + Wordnik + [Letterpress](https://github.com/lorenbrichter/Words) `en.txt`: about 98% of Collins Scrabble Words | Public domain + MIT + CC0 (as published) |
 | 1 | Norwegian (bokmål) | Norsk ordbank (Språkbanken / Språkrådet), via [Ondkloss/norwegian-wordlist](https://github.com/Ondkloss/norwegian-wordlist) | CC BY 4.0 |
 | 2 | Dutch | [OpenTaal](https://www.opentaal.org/), via [jensanjo/wordfeud-wordlists](https://github.com/jensanjo/wordfeud-wordlists) | Revised BSD and/or CC BY 3.0 |
 | 4 | Swedish | Den stora svenska ordlistan (Göran Andersson), via [mrcz/Wordfeud-Player](https://github.com/mrcz/Wordfeud-Player) | CC BY-SA 3.0 |
@@ -56,9 +57,13 @@ download), and verified against a SHA-256 before use.
 | 10 | Norwegian (nynorsk) | Norsk ordbank (Språkbanken / Språkrådet), via [Ondkloss/norwegian-wordlist](https://github.com/Ondkloss/norwegian-wordlist) | CC BY 4.0 |
 | 3 | Danish | [COR₁ 1.5.1.0](https://ordregister.dk/) (Det Centrale Ordregister, Dansk Sprognævn), the register behind Retskrivningsordbogen 5.1 | Free for any use (CC0 1.0) |
 | 7 | French | [Grammalecte](https://grammalecte.net/) lexicon of inflected forms v7.7 | MPL 2.0 |
+| 6 | Spanish | [lorenbrichter/Words](https://github.com/lorenbrichter/Words) `es.txt` (the Letterpress list; its content matches the FISE-2 Scrabble lexicon). CH, LL and RR are read as Wordfeud's digraph tiles | CC0 1.0 as published |
+| 8 | Swedish (strict) | [hising/svenska-ord.txt](https://github.com/hising/svenska-ord.txt): about 120,000 SAOL headwords, base forms only | Unlicense as published |
+| 11 | Finnish | [fginter/hunspell-fi](https://github.com/fginter/hunspell-fi) (TurkuNLP), via mhavo/suomen-kieliavut, all forms generated from the Hunspell dictionary | CC0 1.0 |
+| 12 | Portuguese | [jfoclpf/words-pt](https://github.com/jfoclpf/words-pt) (European Portuguese, Natura lists of Universidade do Minho) | GPL-3.0 |
 
-Rulesets 6 (Spanish), 8 (Swedish strict, most likely base forms only), 11 (Finnish) and 12 (Portuguese) have no open word list yet; the overlay
-reports `WL-NONE` for them. The derived lists keep the license of their source; see `wordlists/README.md`.
+Every Wordfeud ruleset (0-12) has a list. Words are at most 15 tiles long. Only the lists of rulesets you actually
+have games in are downloaded. The derived lists keep the license of their source; see `wordlists/README.md`.
 
 ## Error codes
 
@@ -83,7 +88,7 @@ Every message shows a short text and a code.
 - Using this patch may conflict with Wordfeud's terms of service. Possible consequences include a warning or a suspended account. You use it at your own risk.
 - Moves are sent outside the app's own UI, straight to the API, using your Wordfeud session cookie. The cookie never leaves the device except to `api.wordfeud.com`.
 - Network access is limited to `api.wordfeud.com`, the word lists in this repository and, when a release has a report address, the word report worker. There is no analytics or tracking.
-- **Word reports:** when the Wordfeud server rejects a word that is in our list, the patch sends that word to the project's report worker (`tools/report-worker`) once, in the background: only the ruleset number, the rejected words and the patch version, no user name, game, cookie or device id. The maintainer reviews the reported words before they are removed from the list for everyone.
+- **Word reports:** when the Wordfeud server rejects a word that is in our list, or when a word played in one of your games (by you or your opponent, so accepted by the server) is missing from our list, the patch sends that word to the project's report worker (`tools/report-worker`) once, in the background: only the report type (remove/add), the ruleset number, the words and the patch version, no user name, game, cookie or device id. The maintainer reviews the reported words before the list changes for everyone.
 
 ## Status and limitations
 

@@ -10,8 +10,14 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
+import java.security.KeyFactory
 import java.security.MessageDigest
+import java.security.Signature
+import java.security.spec.EdECPrivateKeySpec
+import java.security.spec.NamedParameterSpec
+import java.security.spec.X509EncodedKeySpec
 import java.time.Instant
+import java.util.Base64
 import java.util.UUID
 import java.util.jar.Manifest
 import java.util.zip.CRC32
@@ -154,6 +160,60 @@ fun snapshotInputTimes() = buildIdentityInputs.files.filter { it.isFile }.associ
     it.relativeTo(rootDir).invariantSeparatorsPath to Files.getLastModifiedTime(it.toPath())
 }
 val buildIdentityInputTimes = snapshotInputTimes()
+
+/**
+ * Signs the bundle with MorpheSig1, the signature morphe-patcher's PatchBundleSignature checks and
+ * Morphe Manager pins per source: Ed25519 over "MorpheSig1" and the SHA-256 of the archive with an
+ * empty comment, stored in the zip comment as "MorpheSig1 <public key> <signature>".
+ *
+ * <p>The plugin signs build/libs the same way, but pinBundleTimestamp rewrites the release copy
+ * after that, so the release copy is signed here, after the pin and before its checksum. The key
+ * is the Base64 raw private key in HUSHTHREADS_BUNDLE_SIGNING_KEY, the User variable
+ * scripts/release/release.ps1 imports, or else MORPHE_SIGNING_KEY. It's never a file in the
+ * tree. Without it the bundle stays unsigned, and the release index step refuses that. Any
+ * earlier comment is dropped before hashing, so a rerun never signs stale bytes, and Ed25519 is deterministic, so a rebuild
+ * gets the same bytes.
+ */
+fun signBundle(bundle: File, privateKey: String?, publicKey: String) {
+    val bytes = bundle.readBytes()
+    fun length(at: Int) = (bytes[at].toInt() and 0xFF) or ((bytes[at + 1].toInt() and 0xFF) shl 8)
+    // The end of central directory record is the last one whose comment reaches the end.
+    val end = (bytes.size - 22 downTo maxOf(0, bytes.size - 22 - 0xFFFF)).firstOrNull {
+        bytes[it] == 0x50.toByte() && bytes[it + 1] == 0x4b.toByte() && bytes[it + 2] == 5.toByte() &&
+            bytes[it + 3] == 6.toByte() && length(it + 20) == bytes.size - it - 22
+    } ?: throw GradleException("$bundle is not a zip archive")
+    val unsigned = bytes.copyOf(end + 22).also { it[end + 20] = 0; it[end + 21] = 0 }
+    if (privateKey.isNullOrBlank()) {
+        if (unsigned.size != bytes.size) bundle.writeBytes(unsigned)
+        return
+    }
+    val message = "MorpheSig1".toByteArray(Charsets.US_ASCII) + MessageDigest.getInstance("SHA-256").digest(unsigned)
+    val keys = KeyFactory.getInstance("Ed25519")
+    val seed = try {
+        Base64.getDecoder().decode(privateKey.trim())
+    } catch (_: IllegalArgumentException) {
+        throw GradleException("The bundle signing key is not Base64")
+    }
+    if (seed.size != 32) throw GradleException("The bundle signing key is not a raw Ed25519 key")
+    val signature = Signature.getInstance("Ed25519").run {
+        initSign(keys.generatePrivate(EdECPrivateKeySpec(NamedParameterSpec.ED25519, seed)))
+        update(message)
+        sign()
+    }
+    // A raw Ed25519 public key behind its fixed X.509 prefix, which Java's KeyFactory needs.
+    val x509 = byteArrayOf(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00) +
+        Base64.getDecoder().decode(publicKey)
+    val matches = Signature.getInstance("Ed25519").run {
+        initVerify(keys.generatePublic(X509EncodedKeySpec(x509)))
+        update(message)
+        verify(signature)
+    }
+    if (!matches) throw GradleException("The bundle signing key is not the key morphe-signing.pub publishes")
+    val comment = "MorpheSig1 $publicKey ${Base64.getEncoder().encodeToString(signature)}".toByteArray(Charsets.US_ASCII)
+    unsigned[end + 20] = (comment.size and 0xFF).toByte()
+    unsigned[end + 21] = (comment.size shr 8).toByte()
+    bundle.writeBytes(unsigned + comment)
+}
 
 /**
  * Rewrites the bundle with a pinned timestamp and its payload and source identity.
@@ -1038,6 +1098,10 @@ tasks {
     // test run did it again between the build and the index push. Nothing but buildAndroid
     // writes build/release. scripts/common.ps1 names the same path for every release script.
     val releaseBundleName = "patches-${project.version}.mpp"
+    // This repo's own variable first, then the plugin's shared one. Another repo's release sets
+    // MORPHE_SIGNING_KEY to its own key, and a shell that kept it would fail the key check here.
+    val bundleSigningKey = providers.environmentVariable("HUSHTHREADS_BUNDLE_SIGNING_KEY")
+        .orElse(providers.environmentVariable("MORPHE_SIGNING_KEY"))
     val verifyBundle = register<JavaExec>("verifyBundle") {
         group = "verification"
         description = "Check the Android bundle and its published patch list without rebuilding it"
@@ -1050,7 +1114,10 @@ tasks {
             ),
             rootProject.file("patches-list.json").absolutePath,
             project.version.toString(),
-            layout.buildDirectory.file("release/bundle.sha256").get().asFile.absolutePath
+            layout.buildDirectory.file("release/bundle.sha256").get().asFile.absolutePath,
+            rootProject.file("morphe-signing.pub").absolutePath,
+            // Whether buildAndroid had a key, never the key: with one, an unsigned bundle fails.
+            bundleSigningKey.map { it.isNotBlank() }.getOrElse(false).toString()
         )
     }
     // The extensions the bundle carries, found the way the Morphe plugin's patches plugin finds
@@ -1119,6 +1186,11 @@ tasks {
         val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")
         val releaseDirectory = layout.buildDirectory.dir("release")
         val pinnedEpoch = sourceDateEpoch
+        val signingKey = bundleSigningKey
+        val publicKeyFile = rootProject.layout.projectDirectory.file("morphe-signing.pub")
+        // Whether the bundle is signed changes the output, but the key itself is never an input.
+        inputs.property("bundleSigned", signingKey.map { it.isNotBlank() }.orElse(false))
+        inputs.file(publicKeyFile).withPropertyName("bundlePublicKey").withPathSensitivity(PathSensitivity.NONE)
         // Why the stamp is zero, when the tree is the reason, said where the stamp is written: the
         // release receipt refuses such a bundle, and only this build saw the tree it came from.
         val unheldChanges = if (sourceDateEpochFromEnvironment == null) uncommittedChanges else emptyList()
@@ -1137,6 +1209,8 @@ tasks {
             bundleFile.get().asFile.copyTo(releaseBundle)
             // Before the checksum, so what is recorded is what a rebuild will produce.
             pinBundleTimestamp(releaseBundle, pinnedEpoch, buildSourceSnapshot)
+            // Signed before the checksum too: the bundle a release publishes is the signed file.
+            signBundle(releaseBundle, signingKey.orNull, publicKeyFile.asFile.readText().trim())
             if (unheldChanges == null) {
                 logger.warn("git couldn't say whether the working tree matches HEAD, so $releaseBundleName is " +
                     "stamped 0 rather than a commit's time, and no release receipt will take it.")

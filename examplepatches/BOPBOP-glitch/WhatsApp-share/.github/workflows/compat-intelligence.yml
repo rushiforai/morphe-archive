@@ -1,0 +1,69 @@
+name: Compatibility Intelligence
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+    paths:
+      - "patches/src/main/kotlin/app/whatsappmorphe/patches/**"
+      - "compatibility/**"
+      - "scripts/build_compatibility_intelligence.py"
+      - "scripts/verify_compatibility.py"
+      - "gradle.properties"
+      - ".github/workflows/compat-intelligence.yml"
+
+jobs:
+  analyze:
+    name: Analyze frozen WhatsApp compatibility signals
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Read patch version
+        run: |
+          set -euxo pipefail
+          PATCH_VERSION="$(sed -n 's/^version *= *//p' gradle.properties | xargs)"
+          echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_ENV"
+
+      - name: Verify frozen behavior
+        run: python3 scripts/verify_compatibility.py --source-only
+
+      - name: Build compatibility intelligence
+        run: python3 scripts/build_compatibility_intelligence.py
+
+      - name: Validate intelligence outputs
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          import json
+          for path in (
+              "compatibility/fingerprint-inventory.json",
+              "compatibility/compatibility-intelligence.json",
+          ):
+              with open(path, encoding="utf-8") as f:
+                  data=json.load(f)
+              assert data["patchBehaviorChanged"] is False
+          with open("compatibility/fingerprint-inventory.json", encoding="utf-8") as f:
+              inventory=json.load(f)
+          assert len(inventory["patches"]) == 8, len(inventory["patches"])
+          names={p["name"] for p in inventory["patches"]}
+          assert len(names) == 8
+          print("Analyzed", len(names), "frozen patches")
+          PY
+
+      - name: Upload compatibility intelligence
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-intelligence-${{ env.PATCH_VERSION }}
+          path: |
+            compatibility/fingerprint-inventory.json
+            compatibility/compatibility-intelligence.json
+          if-no-files-found: error

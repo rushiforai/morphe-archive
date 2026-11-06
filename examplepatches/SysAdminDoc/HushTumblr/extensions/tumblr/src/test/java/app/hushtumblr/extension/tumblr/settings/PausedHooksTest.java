@@ -80,6 +80,7 @@ import app.hushtumblr.extension.tumblr.privacy.AdvertisingId;
 import app.hushtumblr.extension.tumblr.rootmute.HushAccountIdentity;
 import app.hushtumblr.extension.tumblr.rootmute.MatureAccountsForTests;
 import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
+import app.hushtumblr.extension.tumblr.timeline.HushPaidPost;
 import app.hushtumblr.extension.tumblr.timeline.HushPost;
 import app.hushtumblr.extension.tumblr.timeline.HushRootPost;
 import app.hushtumblr.extension.tumblr.timeline.HushTrail;
@@ -99,6 +100,8 @@ import app.hushtumblr.extension.tumblr.ui.AppFontForTests;
 import app.hushtumblr.extension.tumblr.ui.PostLines;
 import app.hushtumblr.extension.tumblr.ui.StoreButtons;
 import app.hushtumblr.extension.tumblr.ui.VideoLinks;
+import app.hushtumblr.extension.tumblr.ui.HushPhotoSize;
+import app.hushtumblr.extension.tumblr.ui.SharperImages;
 import app.hushtumblr.extension.tumblr.ui.HushImageContainer;
 import app.hushtumblr.extension.tumblr.ui.HushImageDescription;
 import app.hushtumblr.extension.shared.SettingsContextRule;
@@ -167,10 +170,12 @@ public class PausedHooksTest {
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
-        // A page with an ad comes back without it, and Tumblr's own ad requests are turned off.
+        // A page with an ad comes back without it, and Tumblr's own ad requests and its full-screen
+        // ad are turned off.
         probes.put(Settings.HIDE_ADS, Arrays.asList(
                 TimelineItems::aPageLosesItsAd,
-                () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("MAKE_ADX_REQUESTS"), true)));
+                () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("MAKE_ADX_REQUESTS"), true),
+                () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("MAKE_NIMBUS_INTERSTITIAL_CLIENT_AD_REQUESTS"), true)));
         // Both getters of Google's advertising ID info answer as if the ID were deleted.
         probes.put(Settings.HIDE_ADVERTISING_ID, Arrays.asList(
                 () -> !"real".equals(AdvertisingId.id("real")),
@@ -214,16 +219,23 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_SUGGESTED_TAGS, Collections.singletonList(TimelineItems::aPageLosesItsTagCarousel));
         // A page with a Watch it row comes back without it.
         probes.put(Settings.HIDE_WATCH_IT_ROWS, Collections.singletonList(TimelineItems::aPageLosesItsWatchItRow));
+        // A page with a post Tumblr's staff feature comes back without it.
+        probes.put(Settings.HIDE_FEATURED_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsFeaturedPost));
         // A post's tags are left out.
         probes.put(Settings.HIDE_HASHTAGS, Collections.singletonList(PostParts::hideTags));
         // A post header's Follow button is hidden.
         probes.put(Settings.HIDE_FOLLOW_BUTTON, Collections.singletonList(PostParts::hideFollowButton));
         // The Premium diamond is hidden.
         probes.put(Settings.HIDE_TUMBLRMART, Collections.singletonList(() -> StoreButtons.hideDiamond(null, null)));
-        // The like, reblog and comment counts under a post are blank, and a community reaction keeps
-        // its emoji without its count.
+        // The like, reblog and comment counts under a post are blank, a community reaction keeps its
+        // emoji without its count, and a comment in a post's notes loses its own counts, the ones
+        // its buttons tell TalkBack included.
+        Context context = Utils.getContext();
         probes.put(Settings.HIDE_NOTE_COUNTS, Arrays.asList(() -> PostFooter.noteCount(5) == 0,
-                () -> "😀".equals(PostFooter.communityReactionsText("😀 5", 5))));
+                () -> "😀".equals(PostFooter.communityReactionsText("😀 5", 5)),
+                () -> PostFooter.commentCount(5) == 0,
+                () -> !"5 likes".contentEquals(PostFooter.commentLikesDescription("5 likes")),
+                () -> replyDescriptionCleared(context)));
         // The footer under a post leaves out a button. Each answer is kept until Tumblr restarts, so
         // each probe asks as a fresh start would.
         probes.put(Settings.HIDE_LIKE_BUTTON,
@@ -243,6 +255,10 @@ public class PausedHooksTest {
                 Collections.singletonList(BottomBarForTests::hidesTheNotificationsCount));
         // A page with a reblog comes back without it.
         probes.put(Settings.HIDE_REBLOGS, Collections.singletonList(TimelineItems::aPageLosesItsReblog));
+        // A dashboard page with a reblog of your own comes back without it.
+        probes.put(Settings.HIDE_OWN_REBLOGS, Collections.singletonList(TimelineItems::aPageLosesYourReblog));
+        // A dashboard page with a post you'd already liked comes back without it.
+        probes.put(Settings.HIDE_LIKED_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsLikedPost));
         // A page with a video post comes back without it.
         probes.put(Settings.HIDE_VIDEO_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsVideoPost));
         // A page with a photo post comes back without it.
@@ -281,10 +297,11 @@ public class PausedHooksTest {
                     Collections.singletonList((HushActivityNotification) () -> type)).isEmpty()));
         }
         probes.put(Settings.SHOW_POST_TIMESTAMPS, Collections.singletonList(() -> PostTimestamps.show(false)));
-        Context context = Utils.getContext();
         probes.put(Settings.SHOW_IMAGE_DESCRIPTIONS, Arrays.asList(() -> caption(context, false), () -> caption(context, true)));
         // A long press on a video's controls opens the link menu instead of reaching Tumblr's listener.
         probes.put(Settings.SHARE_VIDEO_LINKS, Collections.singletonList(() -> videoLinkMenu(context)));
+        // Tumblr's 640 pick of an image becomes its listed 1280 copy.
+        probes.put(Settings.SHARPER_IMAGES, Collections.singletonList(PausedHooksTest::sharperPick));
         probes.put(Settings.MUTE_ROOT_POSTS, Collections.singletonList(() -> mutedRoot(context)));
         probes.put(Settings.REVEAL_ALLOWED_MATURE_CONTENT, Collections.singletonList(PausedHooksTest::matureCover));
         probes.put(Settings.SHOW_MUTUAL_MARKERS, Collections.singletonList(() -> mutualMarker(context)));
@@ -292,7 +309,8 @@ public class PausedHooksTest {
     }
 
     private static List<BooleanSetting> dependentSwitches() {
-        return Arrays.asList(Settings.KEEP_TAGGED_REBLOGS, Settings.KEEP_REBLOGS_WITH_CONTENT, Settings.WORDS_CURRENT_TEXT,
+        return Arrays.asList(Settings.KEEP_BLAZE_POSTS, Settings.KEEP_TAGGED_REBLOGS, Settings.KEEP_REBLOGS_WITH_CONTENT,
+                Settings.WORDS_CURRENT_TEXT,
                 Settings.WORDS_REBLOG_TRAIL, Settings.WORDS_TAGS, Settings.WORDS_SUMMARY);
     }
 
@@ -320,12 +338,32 @@ public class PausedHooksTest {
         return parent.getChildCount() == 2;
     }
 
+    private static boolean replyDescriptionCleared(Context context) {
+        View replies = new View(context);
+        replies.setContentDescription("5 replies");
+        PostFooter.commentRepliesDescription(replies);
+        return replies.getContentDescription() == null;
+    }
+
     private static boolean videoLinkMenu(Context context) {
         FrameLayout container = new FrameLayout(context);
         View controls = new View(context);
         container.addView(controls);
         VideoLinks.bind(container, "https://va.media.tumblr.com/tumblr_probe.mp4");
         return VideoLinks.press(pressed -> false).onLongClick(controls);
+    }
+
+    private static boolean sharperPick() {
+        HushPhotoSize picked = photoSize(640, 960);
+        return SharperImages.pick(Arrays.asList(photoSize(1280, 1920), picked), picked, 640) != picked;
+    }
+
+    private static HushPhotoSize photoSize(int width, int height) {
+        return new HushPhotoSize() {
+            @Override public String getUrl() { return "https://64.media.tumblr.com/probe/s" + width + "x" + height + "/probe.jpg"; }
+            @Override public int getWidth() { return width; }
+            @Override public int getHeight() { return height; }
+        };
     }
 
     private static boolean mutedRoot(Context context) {
@@ -554,8 +592,10 @@ public class PausedHooksTest {
         TextSettings.HIDDEN_WORDS.save(TimelineItems.PROBE_WORD);
         TextSettings.ALLOWED_WORDS.save("");
         for (BooleanSetting option : dependentSwitches()) {
-            boolean retention = option == Settings.KEEP_TAGGED_REBLOGS || option == Settings.KEEP_REBLOGS_WITH_CONTENT;
-            BooleanSetting parent = retention ? Settings.HIDE_REBLOGS : Settings.HIDE_POSTS_WITH_WORDS;
+            boolean retention = option == Settings.KEEP_TAGGED_REBLOGS || option == Settings.KEEP_REBLOGS_WITH_CONTENT
+                    || option == Settings.KEEP_BLAZE_POSTS;
+            BooleanSetting parent = option == Settings.KEEP_BLAZE_POSTS ? Settings.HIDE_ADS
+                    : retention ? Settings.HIDE_REBLOGS : Settings.HIDE_POSTS_WITH_WORDS;
             List<?> page = Collections.singletonList(new TimelineObject(new OptionPost(option), false));
             parent.save(true);
             assertEquals(option.key + " off", retention ? Collections.emptyList() : page, TimelineFilter.filter(page));
@@ -579,9 +619,14 @@ public class PausedHooksTest {
         }
     }
 
-    private static final class OptionPost implements Timelineable, HushPost {
+    private static final class OptionPost implements Timelineable, HushPost, HushPaidPost {
         final BooleanSetting option;
         OptionPost(BooleanSetting option) { this.option = option; }
+        /** Keep Blaze posts' post is one paid for with Blaze, from a blog you don't follow. */
+        @Override public String hushHeaderIcon() { return option == Settings.KEEP_BLAZE_POSTS ? "blaze" : null; }
+        @Override public boolean hushFollowed() { return false; }
+        @Override public boolean hushCanEdit() { return false; }
+        @Override public boolean hushPaidContextKnown() { return true; }
         @Override public String getId() { return "pause-option"; }
         @Override public TimelineObjectType getTimelineObjectType() { return TimelineObjectType.POST; }
         @Override public List<?> hushContent() {

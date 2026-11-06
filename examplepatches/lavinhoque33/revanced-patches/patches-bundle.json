@@ -1,0 +1,6 @@
+{
+  "created_at": "2026-11-04T07:07:11",
+  "description": "## Bug Fixes\n\n### YouTube\n- **Feed card layout, video previews:** A video that plays inside a card in the feed is visible again. The card colour was painted over the video, so you saw only a flat colour with the mute and CC buttons on it. The card keeps its dynamic colour under the title and channel row.\n- **Feed card layout, Shorts shelf:** The autoplaying Short in the Shorts shelf no longer shows as an empty dark box.\n- **Feed card layout, action icons:** The like, comment and save icons keep their colour. A dark tint from another card could stay on an icon when the app reused its view.\n\n## Compatibility\n- YouTube: **21.39.525, 21.13.164, 20.05.46**.\n- YouTube Music: **9.40.51, 9.15.51, 8.30.54**.\n\n[Full changelog](https://github.com/lavinhoque33/revanced-patches/compare/v1.29.0...v1.29.1)",
+  "download_url": "https://github.com/lavinhoque33/revanced-patches/releases/download/v1.29.1/patches-1.29.1.mpp",
+  "version": "1.29.1"
+}

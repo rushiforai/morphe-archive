@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/morphe_reddit_adaptive_background" />
+    <foreground android:drawable="@drawable/morphe_reddit_adaptive_foreground" />
+    <monochrome android:drawable="@drawable/morphe_reddit_adaptive_monochrome" />
+</adaptive-icon>

@@ -1,0 +1,34 @@
+| # | Activity (classe) | screenOrientation | configChanges | resizeable | launchMode | exported |
+|---|---|---|---|---|---|---|
+| 1 | `com.apple.android.music.connect.activity.ConnectPostDetailPageActivity` | behind | screenSize\|orientation | - | singleTop | - |
+| 2 | `com.apple.android.music.social.activities.SocialWebActivity` | behind | screenSize\|orientation | - | standard | - |
+| 3 | `com.apple.android.music.settings.activity.AccountSettingsSubscriptionActivity` | behind | screenSize\|orientation | - | standard | - |
+| 4 | `com.apple.android.music.common.activity.ChoosePictureActivity` | behind | screenSize\|orientation | - | standard | - |
+| 5 | `com.apple.android.music.common.activity.StaticHtmlActivity` | behind | screenSize\|orientation | - | standard | - |
+| 6 | `com.apple.android.music.settings.activity.ManageDownloadedContentActivity` | behind | - | - | standard | - |
+| 7 | `com.apple.android.music.player2.FullScreenVideoActivity` | n/d | fontScale\|fontWeightAdjustment\|grammaticalGender\|layoutDirection\|density\|smallestScreenSize\|screenSize\|uiMode\|screenLayout\|orientation\|navigation\|keyboardHidden\|keyboard\|locale\|mnc\|mcc | - | singleTask | - |
+| 8 | `com.apple.android.music.equalizer.EQActivity` | behind | screenSize\|orientation | - | standard | - |
+| 9 | `com.apple.android.music.common.MainActivity` | n/d | - | - | singleTask | true |
+| 10 | `com.apple.android.music.commerce.activities.SonosAuthActivity` | n/d | smallestScreenSize\|screenSize\|uiMode\|screenLayout\|orientation\|keyboardHidden | - | standard | true |
+| 11 | `com.apple.android.music.navigation.deeplink.SdkAuthActivity` | n/d | smallestScreenSize\|screenSize\|uiMode\|screenLayout\|orientation\|keyboardHidden | - | standard | true |
+| 12 | `com.apple.android.music.commerce.activities.ChromeTabsActivity` | n/d | - | - | singleTop | true |
+| 13 | `com.apple.android.music.common.activity.ConsumptionOnlyActivity` | behind | - | - | standard | - |
+| 14 | `com.apple.android.music.widget.nowplaying.AppleMusicWidgetConfigActivity` | n/d | screenSize\|orientation | - | standard | true |
+| 15 | `com.apple.android.music.widget.charts.ChartsWidgetConfigActivity` | n/d | screenSize\|orientation | - | standard | true |
+| 16 | `com.apple.android.music.widget.recentlyplayed.RecentlyPlayedWidgetConfigActivity` | n/d | screenSize\|orientation | - | standard | true |
+| 17 | `com.apple.android.music.widget.RecommendationsWidgetConfigActivity` | n/d | screenSize\|orientation | - | standard | true |
+| 18 | `com.apple.android.music.widget.radio.RadioWidgetConfigActivity` | n/d | screenSize\|orientation | - | standard | true |
+| 19 | `com.apple.android.music.widget.pins.PinsWidgetConfigActivity` | n/d | screenSize\|orientation | - | standard | true |
+| 20 | `com.apple.android.music.mli.MLIChromeTabActivity` | portrait | - | - | singleTop | true |
+| 21 | `androidx.glance.appwidget.action.ActionTrampolineActivity` | n/d | - | - | standard | false |
+| 22 | `androidx.glance.appwidget.action.InvisibleActionTrampolineActivity` | n/d | - | - | singleInstance | false |
+| 23 | `androidx.car.app.CarAppPermissionActivity` | n/d | - | - | standard | false |
+| 24 | `com.android.billingclient.api.ProxyBillingActivity` | n/d | screenSize\|screenLayout\|orientation\|keyboardHidden\|keyboard | - | standard | false |
+| 25 | `com.android.billingclient.api.ProxyBillingActivityV2` | n/d | screenSize\|screenLayout\|orientation\|keyboardHidden\|keyboard | - | standard | false |
+| 26 | `androidx.credentials.playservices.HiddenActivity` | n/d | screenSize\|screenLayout\|orientation\|keyboardHidden | - | standard | false |
+| 27 | `androidx.credentials.playservices.IdentityCredentialApiHiddenActivity` | n/d | screenSize\|screenLayout\|orientation\|keyboardHidden | - | standard | false |
+| 28 | `com.google.android.gms.auth.api.signin.internal.SignInHubActivity` | n/d | - | - | standard | false |
+| 29 | `com.google.android.play.agesignals.AgeSharingConsentWrapperActivity` | n/d | - | - | standard | false |
+| 30 | `com.google.android.gms.common.api.GoogleApiActivity` | n/d | - | - | standard | false |
+| 31 | `androidx.compose.ui.tooling.PreviewActivity` | n/d | - | - | standard | true |
+| 32 | `com.google.android.play.core.common.PlayCoreDialogWrapperActivity` | n/d | - | - | standard | false |

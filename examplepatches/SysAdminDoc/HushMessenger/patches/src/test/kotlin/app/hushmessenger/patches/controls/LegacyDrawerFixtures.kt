@@ -25,6 +25,8 @@ private fun drawerMapping(refreshOwner: String) = when (refreshOwner) {
     "LX/9rv;" -> DrawerFixtureMapping("LX/CTJ;", "Ax4", "LX/HRf;", "LX/HRe;", "LX/Cfq;", "LX/Imx;", "LX/HNS;", "LX/1hJ;", "LX/0R2;")
     "LX/91b;" -> DrawerFixtureMapping("LX/9wI;", "BVS", "LX/QMT;", "LX/QMR;", "LX/Hn4;", "LX/IzX;", "LX/QMW;", "LX/1ox;", "LX/0R2;",
         inlineIcon = true, qrRow = true)
+    "LX/92V;" -> DrawerFixtureMapping("LX/9xs;", "BVb", "LX/QGT;", "LX/QGR;", "LX/HsE;", "LX/J3u;", "LX/QGW;", "LX/1pM;", "LX/0R2;",
+        inlineIcon = true, qrRow = true)
     else -> error("Unrecorded drawer mapping: $refreshOwner")
 }
 

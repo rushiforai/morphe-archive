@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   push:
 
+# One release run per branch at a time: merging several pull requests in a row otherwise starts parallel runs that
+# race each other (tag push or back-merge into dev fails). A newer queued run replaces an older queued one.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Release

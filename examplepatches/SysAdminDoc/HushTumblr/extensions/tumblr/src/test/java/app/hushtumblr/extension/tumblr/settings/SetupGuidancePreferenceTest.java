@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.SettingsContextRule;
@@ -228,7 +229,11 @@ public class SetupGuidancePreferenceTest {
                 ShadowToast.reset();
                 button(guide, help[0]).performClick();
                 ShadowLooper.idleMainLooper();
-                assertTrue(ShadowToast.getTextOfLatestToast().contains(help[1]));
+                assertTrue("The recovery address must remain in the guide", copy(guide).contains(help[1]));
+                button(guide, "Copy link").performClick();
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                        controller.get().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                assertEquals(help[1], clipboard.getPrimaryClip().getItemAt(0).getText());
                 assertTrue(guide.isShowing());
             }
         }
@@ -236,9 +241,72 @@ public class SetupGuidancePreferenceTest {
         GuideActivity.refused.add(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         button(guide, "Open link settings").performClick();
         ShadowLooper.idleMainLooper();
-        assertEquals("Android's settings for this app didn't open. Open App info from Tumblr's icon, then Open by default.", ShadowToast.getTextOfLatestToast());
+        assertTrue(copy(guide).contains("Android's settings for this app didn't open. Open App info from Tumblr's icon, then Open by default."));
         assertTrue(guide.isShowing());
         assertNull(shadowOf(controller.get()).getNextStartedActivity());
+    }
+
+    /** At double text size, a help link that can't open says so right under its button, scrolled into view. */
+    @Test public void aFailedHelpLinkSaysSoUnderItsButtonAndComesIntoView() {
+        RuntimeEnvironment.setFontScale(2f);
+        show();
+        AlertDialog guide = open();
+        ScrollView scroll = scroll(guide);
+        LinearLayout content = (LinearLayout) scroll.getChildAt(0);
+        Button help = button(guide, "Tumblr password help");
+        assertSame(content, help.getParent());
+        lay(scroll);
+        // Whatever size the dialog's own window gives the scroll is the one the result scrolls in.
+        ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+        // The button sits on the bottom edge, so anything under it starts off screen.
+        scroll.scrollTo(0, content.getTop() + help.getBottom() - scroll.getHeight());
+        assertEquals(content.getTop() + help.getBottom(), scroll.getScrollY() + scroll.getHeight());
+
+        GuideActivity.browserFailure = new ActivityNotFoundException();
+        help.performClick();
+        // The scroll is posted, so it runs after the window lays the new text out, as on a phone.
+        ShadowLooper.idleMainLooper(100, TimeUnit.MILLISECONDS);
+        View region = content.getChildAt(content.indexOfChild(help) + 1);
+        TextView said = region.findViewWithTag(SettingsFeedback.MESSAGE_TAG);
+        assertNotNull("the result isn't under the button tapped", said);
+        assertTrue(said.getText().toString().startsWith("No app on this phone can open the link."));
+        assertEquals(View.VISIBLE, region.getVisibility());
+        assertTrue(copy(guide).contains("https://help.tumblr.com/knowledge-base/resetting-your-password/"));
+        int top = content.getTop() + region.getTop();
+        int bottom = content.getTop() + region.getBottom();
+        String where = " (result " + top + ".." + bottom + ", shown " + scroll.getScrollY() + ".."
+                + (scroll.getScrollY() + scroll.getHeight()) + ")";
+        assertTrue(region.getHeight() > 0);
+        assertTrue("the result starts off screen" + where,
+                top >= scroll.getScrollY() && top < scroll.getScrollY() + scroll.getHeight());
+        if (region.getHeight() <= scroll.getHeight()) {
+            assertTrue("the result runs off screen" + where, bottom <= scroll.getScrollY() + scroll.getHeight());
+        }
+    }
+
+    /** What the last button left to do stays with an open guide, and the next opening starts clean. */
+    @Test public void aGuideResultLastsUntilTheGuideClosesAndTheNextOpeningStartsClean() {
+        show();
+        AlertDialog guide = open();
+        GuideActivity.browserFailure = new ActivityNotFoundException();
+        button(guide, "Tumblr password help").performClick();
+        ShadowLooper.idleMainLooper();
+        assertNotNull("the guide's result isn't kept with the row for a rebuilt screen", page.row.feedback.message());
+
+        guide.dismiss();
+        ShadowLooper.idleMainLooper();
+        assertNull(page.row.feedback.message());
+        AlertDialog next = open();
+        assertFalse("an old result came back on a new opening",
+                copy(next).contains("No app on this phone can open the link."));
+    }
+
+    private void lay(ScrollView scroll) {
+        int width = dp(320);
+        int height = dp(400);
+        scroll.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY));
+        scroll.layout(0, 0, width, height);
     }
 
     @Test public void dismissedGuidesDiscardActionsAndOldCallbacksCannotActOnANewOpening() {
@@ -282,7 +350,7 @@ public class SetupGuidancePreferenceTest {
         GuideActivity.failWindow = true;
         click();
         ShadowLooper.idleMainLooper();
-        assertEquals("Couldn't open the setup guide. Try again.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Couldn't open the setup guide. Try again.", page.row.getSummary());
         assertNull(page.row.getDialog());
         GuideActivity.failWindow = false;
         assertTrue(open().isShowing());

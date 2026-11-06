@@ -2,7 +2,7 @@
 """Rebuild pinned Finamp ARM64 snapshots and generate verified Morphe deltas.
 
 Requires bsdiff4==1.2.6 in this Python environment. The original APK is never
-modified. A dedicated local clone under --work-dir is used for the builds.
+modified. An explicitly supplied dedicated source worktree is used for builds.
 """
 import argparse
 import hashlib
@@ -24,7 +24,7 @@ ENGINE_SHA = 'd70bbedc2b157630f90123a32ca894a6fa1816ec10cda9f335bada0692b376ee'
 FLUTTER_REV = 'd3b14c876900e553bc736ca19295fc09e3853e8e'
 ENGINE_REV = 'a804b261645ef8c13eb3d5c44a5c2fb0340c5539'
 SNAPSHOT = re.compile(rb'\xf5\xf5\xdc\xdc.{16}([0-9a-f]{32})([^\x00]*)\x00', re.S)
-MASKS = range(1, 128)
+MASKS = range(1, 256)
 
 PRODUCTION = ROOT / 'patches/src/main/resources/finamp/1.0.1'
 
@@ -73,7 +73,7 @@ def verify_receipts(receipts, matrix, output, original, test_logs=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ['source-repo', 'source-matrix', 'flutter', 'original-apk', 'strip', 'work-dir']:
+    for name in ['source-repo', 'source-worktree', 'source-matrix', 'flutter', 'original-apk', 'strip', 'work-dir']:
         parser.add_argument('--' + name, type=Path, required=True)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--masks', default=','.join(map(str, MASKS)))
@@ -83,7 +83,7 @@ def main():
     args = parser.parse_args()
     masks = [int(value) for value in args.masks.split(',')]
     if not masks or len(set(masks)) != len(masks) or any(mask not in MASKS for mask in masks):
-        raise ValueError('Select unique source masks 1..127')
+        raise ValueError('Select unique source masks 1..255')
     output = payload_output(masks, args.output, args.work_dir.resolve())
     flutter = args.flutter.resolve()
     versions = json.loads(run([str(flutter), '--version', '--machine']))
@@ -104,17 +104,13 @@ def main():
         raise ValueError('Unsupported source matrix')
     work = args.work_dir.resolve()
     work.mkdir(parents=True, exist_ok=True)
-    source = work / 'source'
     source_repo = args.source_repo.resolve()
-    owner = work / 'build-source-owner.json'
-    if not source.exists():
-        run(['git', 'clone', '--quiet', '--shared', '--no-checkout', str(source_repo), str(source)])
-        owner.write_text(json.dumps({'source_repo': str(source_repo)}) + '\n')
-    elif not owner.exists() or json.loads(owner.read_text())['source_repo'] != str(source_repo):
-        raise ValueError('Refusing to modify an unrecognized build source checkout')
-    if not (source / '.git/index').exists():
-        # A --no-checkout clone has an intentionally empty index, not user edits.
-        run(['git', 'checkout', '--quiet', '--detach', matrix['masks'][str(masks[0])]['commit']], cwd=source)
+    source = args.source_worktree.resolve()
+    if (source_repo / '.worktrees').resolve() not in source.parents:
+        raise ValueError('Use a dedicated worktree below the source repository .worktrees directory')
+    common = lambda directory: run(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=directory)
+    if common(source) != common(source_repo) or run(['git', 'branch', '--show-current'], cwd=source):
+        raise ValueError('Source must be a detached worktree of the requested source repository')
     output.mkdir(parents=True, exist_ok=True)
     libraries = work / 'libraries'
     libraries.mkdir(exist_ok=True)
@@ -168,7 +164,10 @@ def main():
         header = SNAPSHOT.search(new)
         if header is None or header.groups() != original_header.groups():
             raise ValueError(f'Incompatible snapshot version/features for mask {mask}')
-        if (b'Song artist order' in new) != bool(mask & 2) or (b'Invalid artist track count' in new) != bool(mask & 4):
+        if ((b'Song artist order' in new) != bool(mask & 2)
+                or (b'Invalid artist track count' in new) != bool(mask & 4)
+                or any((marker in new) != bool(mask & 128)
+                       for marker in (b'Album information', b'Track information'))):
             raise ValueError(f'Compiled feature markers do not match mask {mask}')
         if run(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=source):
             raise ValueError('Build changed committed source or dependency lock')

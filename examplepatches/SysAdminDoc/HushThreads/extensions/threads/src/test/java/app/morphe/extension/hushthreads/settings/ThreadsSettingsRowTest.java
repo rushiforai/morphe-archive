@@ -7,6 +7,7 @@ package app.morphe.extension.hushthreads.settings;
 import static org.junit.Assert.assertEquals;
 
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.settings.BaseSettings;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -34,5 +35,16 @@ public class ThreadsSettingsRowTest {
 
         ThreadsSettingsRow.add(new Object());
         assertEquals("with a context it's looked up, and this app has none of Threads' icons", 0, ThreadsSettingsRow.icon);
+    }
+
+    /** With its switch off the row isn't drawn: the draw stops before it looks for an icon (HushFacebook#146). */
+    @Test public void theRowsSwitchOffLeavesItOutOfThreadsSettings() {
+        BaseSettings.SETTINGS_ROW.save(false);
+        ThreadsSettingsRow.add(new Object());
+        assertEquals("the row was drawn with its switch off", -1, ThreadsSettingsRow.icon);
+
+        BaseSettings.SETTINGS_ROW.save(true);
+        ThreadsSettingsRow.add(new Object());
+        assertEquals("on, the row is drawn again", 0, ThreadsSettingsRow.icon);
     }
 }

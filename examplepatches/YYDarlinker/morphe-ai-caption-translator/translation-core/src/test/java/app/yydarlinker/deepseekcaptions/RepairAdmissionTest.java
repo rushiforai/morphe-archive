@@ -534,6 +534,73 @@ public class RepairAdmissionTest {
     }
 
 
+    @Test public void omittedSpeakerMarkerPublishesWithoutAnyHoleOrRepairRequest() throws Exception {
+        source=RebuildContractTest.source(">> We open early and close late.",500);block=RebuildContractTest.block(source);
+        RebuildController.Session s=session();
+        String raw=RebuildContractTest.reply(block,new JSONArray().put(new JSONObject()
+                .put("source",source.text(1,block.to)).put("text","我们很早开门，很晚关门。")));
+        respond(new MockResponse().setBody(new JSONObject().put("choices",new JSONArray().put(new JSONObject()
+                .put("finish_reason","stop").put("message",new JSONObject().put("content",raw)))).toString()));
+        ordinary(s);
+        assertEquals(1,server.getRequestCount());assertEquals(1,attempts.get());
+        assertNotNull(s.work.slots[0].accepted);assertTrue(s.work.slots[0].accepted.holes.isEmpty());
+        assertEquals(0,s.work.slots[0].slowRetries);assertEquals(0,s.work.slots[0].pageRepairCount);
+    }
+    @Test public void sourceOnlyMiddleGapRepairsOnlyTheGapAndKeepsBothNeighbours() throws Exception {
+        source=RebuildContractTest.source("Morning doors open. Noon doors close. Evening lights shine.",500);
+        block=RebuildContractTest.block(source);RebuildController.Session s=session();
+        String raw=RebuildContractTest.reply(block,new JSONArray()
+                .put(new JSONObject().put("source",source.text(0,2)).put("text","早上开门。"))
+                .put(new JSONObject().put("source",source.text(6,8)).put("text","晚上亮灯。")));
+        RebuildProtocol.Plan p=RebuildProtocol.parseBestEffort(raw,source,block,language);
+        s.work.slots[0].accepted=p;s.work.slots[0].state=RebuildController.READY;
+        assertArrayEquals(new int[]{3,5},p.holes.get(0));respond(success(3,5));hole(s);
+        assertEquals(1,server.getRequestCount());RebuildProtocol.Plan merged=s.work.slots[0].accepted;
+        assertTrue(merged.holes.isEmpty());assertEquals(3,merged.events.size());
+        assertSame(p.events.get(0),merged.events.get(0));assertSame(p.events.get(1),merged.events.get(2));
+        JSONObject payload=new JSONObject(server.takeRequest().getBody().readUtf8());
+        String body=payload.getJSONArray("messages").getJSONObject(payload.getJSONArray("messages").length()-1).getString("content");
+        assertEquals("b0_3_5",new JSONObject(body).getString("block"));
+        hole(s);assertEquals(1,server.getRequestCount());
+    }
+    @Test public void explicitOrMissingSpeakerMarkerDoesNotSpendHoleOrPageQuota() throws Exception {
+        source=RebuildContractTest.source(">> We open early.",500);block=RebuildContractTest.block(source);
+        String raw=RebuildContractTest.reply(block,new JSONArray()
+                .put(new JSONObject().put("source",">>").put("text",""))
+                .put(new JSONObject().put("source",source.text(1,block.to)).put("text","我们很早开门。")));
+        RebuildProtocol.Plan complete=RebuildProtocol.parseBound(raw,source,block,language);
+        assertTrue(complete.holes.isEmpty());assertEquals("",complete.events.get(0).text);
+        RebuildController.Session s=session();
+        RebuildProtocol.Plan p=new RebuildProtocol.Plan(Collections.singletonList(complete.events.get(1)),raw,
+                Collections.emptyList(),0,true,Collections.singletonList(new int[]{0,0}));
+        s.work.slots[0].accepted=p;s.work.slots[0].state=RebuildController.READY;
+        hole(s);page(s,200);assertEquals(0,server.getRequestCount());assertEquals(0,s.work.slots[0].slowRetries);
+        assertEquals(0,s.work.slots[0].pageRepairCount);assertTrue(s.work.pageRepairs.isEmpty());
+    }
+    @Test public void queuedPageRechecksCoveredSpeechAndSeparateSpeakerTokensBeforeSending() throws Exception {
+        List<RebuildSource.Word> words=new ArrayList<>();
+        words.add(new RebuildSource.Word(">>",0,500,0,RebuildSource.Precision.NATIVE));
+        words.add(new RebuildSource.Word(">>",500,1000,0,RebuildSource.Precision.NATIVE));
+        for(RebuildSource.Word word:RebuildContractTest.source("We open. We close.",500).words)
+            words.add(new RebuildSource.Word(word.text,word.start+1000,word.end+1000,0,word.precision));
+        source=new RebuildSource(words);block=RebuildContractTest.block(source);
+        assertEquals(">>>>",source.text(0,1));
+        assertNull(RebuildWorkSet.largestHole(Collections.singletonList(new int[]{0,1}),source));
+        assertArrayEquals(new int[]{4,4},RebuildWorkSet.largestHole(Arrays.asList(new int[]{0,1},new int[]{4,4}),source));
+        RebuildController.Session s=session();s.work.slots[0].state=RebuildController.FAILED;
+        CountDownLatch release=holdLane();
+        try {
+            enqueuePage(s,1500);assertEquals(1,s.work.queuedPages.size());
+            List<RebuildProtocol.Event> speech=Arrays.asList(new RebuildProtocol.Event(2,3,1000,2000,"我们开门。"),
+                    new RebuildProtocol.Event(4,5,2000,3000,"我们关门。"));
+            synchronized(s){s.work.slots[0].accepted=new RebuildProtocol.Plan(speech,"{}",Collections.emptyList(),0,true,
+                    Collections.singletonList(new int[]{0,1}));s.work.slots[0].state=RebuildController.READY;}
+        } finally {release.countDown();}
+        drain();assertEquals(0,server.getRequestCount());assertEquals(0,s.work.slots[0].pageRepairCount);
+        assertTrue(s.work.queuedPages.isEmpty());assertTrue(s.work.pageRepairs.isEmpty());
+        hole(s);assertEquals(0,s.work.slots[0].slowRetries);
+    }
+
     RebuildProtocol.Plan d7Partial(RebuildController.Session s) throws Exception {
         RebuildProtocol.Plan p=RebuildProtocol.parseBestEffort(D7CoverageRegressionTest.contradictory(source,block),source,block,language);
         assertTrue(p.partial);s.work.slots[0].accepted=p;s.work.slots[0].state=RebuildController.READY;return p;

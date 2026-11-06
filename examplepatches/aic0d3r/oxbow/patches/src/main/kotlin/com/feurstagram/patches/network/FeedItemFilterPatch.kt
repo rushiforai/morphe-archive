@@ -53,7 +53,8 @@ private const val MEDIA_TYPE = "Lcom/instagram/feed/media/Media;"
 // strings are unique to it; the per-field dispatcher it calls (hash-only, no
 // strings, field numbers reshuffled every release) is found from inside it,
 // and calling it is also what singles the entry point out from helpers that
-// share the two strings (Instagram 450 had eleven of them).
+// share the two strings (Instagram 450 had eleven of them). Instagram 454.0.0.54.77
+// is back on this path.
 internal object MediaParseFromJsonFingerprint : Fingerprint(
     returnType = MEDIA_TYPE,
     strings = listOf(
@@ -75,19 +76,24 @@ internal object MediaParseWrapperFingerprint : Fingerprint(
     },
 )
 
-// Instagram 453 inlined the codec into the one parser method that carries the two error
-// strings: it hashes the field name itself instead of calling a codec.
+// Instagram 453 folded the codec back into the parser itself: the (parser, Z)
+// entry point reads each field name and hashes it inline, and calls itself for
+// carousel children. The hash call is what tells it apart from the other
+// helpers sharing the two error strings.
 internal object MediaParseInlineFingerprint : Fingerprint(
     returnType = MEDIA_TYPE,
     strings = listOf("Media:null_pointer_exception", "Media:array_out_of_bounds_exception"),
     custom = { method, _ ->
-        method.implementation?.instructions?.any {
-            ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { r ->
-                r.definingClass == "Ljava/lang/String;" && r.name == "hashCode"
-            } == true
-        } == true
+        method.parameterTypes.size == 2 && method.parameterTypes[1].toString() == "Z" &&
+            method.implementation?.instructions?.any { it.isStringHash() } == true
     },
 )
+
+private fun Instruction.isStringHash(): Boolean {
+    val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return opcode == Opcode.INVOKE_VIRTUAL && reference.definingClass == "Ljava/lang/String;" &&
+        reference.name == "hashCode"
+}
 
 private fun Instruction.isMediaCodecCall(wrapper: Method): Boolean {
     if (opcode != Opcode.INVOKE_VIRTUAL) return false
@@ -100,18 +106,20 @@ private fun Instruction.isMediaCodecCall(wrapper: Method): Boolean {
 
 /** Both codec paths read the field name just before its hash dispatch. */
 private fun MutableMethod.hookMediaFieldHash() {
-    val hash = instructions.firstOrNull {
-        val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
-        it.opcode == Opcode.INVOKE_VIRTUAL && reference?.definingClass == "Ljava/lang/String;" &&
-            reference.name == "hashCode"
-    } ?: throw PatchException("Media codec has no field-name hash dispatch")
+    val hash = instructions.firstOrNull { it.isStringHash() } ?: throw PatchException("Media codec has no field-name hash dispatch")
     val keyRegister = (hash as FiveRegisterInstruction).registerC
     val keyLoad = instructions.take(hash.location.index).lastOrNull {
         it.opcode == Opcode.MOVE_RESULT_OBJECT &&
             (it as OneRegisterInstruction).registerA == keyRegister
     } ?: throw PatchException("Media codec field-name load changed")
-    if (hash.location.index - keyLoad.location.index > 3) {
+    // Instagram 454 null-checks the name and reads the next token in between:
+    // allow a few instructions, as long as none of them overwrites the name.
+    val between = instructions.subList(keyLoad.location.index + 1, hash.location.index)
+    if (between.size > 6) {
         throw PatchException("Media codec field-name load is too far from hash dispatch")
+    }
+    if (between.any { it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == keyRegister }) {
+        throw PatchException("Media codec field name is overwritten before its hash dispatch")
     }
     addInstructions(
         keyLoad.location.index + 1,

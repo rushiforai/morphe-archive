@@ -340,6 +340,16 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                             new String[]{"profile", "off", "newest", "oldest", "longest", "shortest", "most_viewed",
                                     "least_viewed", "most_liked", "least_liked"}));
                 }
+                if (SettingsStatus.soundGridSortEnabled) {
+                    addPreference(new ChoicePreference(context, "Sort loaded videos on sound pages",
+                            Settings.SOUND_GRID_SORT,
+                            new String[]{"Original order", "Newest first", "Oldest first", "Longest first",
+                                    "Shortest first", "Most viewed first", "Least viewed first",
+                                    "Most liked first", "Least liked first"},
+                            new String[]{"off", "newest", "oldest", "longest", "shortest", "most_viewed",
+                                    "least_viewed", "most_liked", "least_liked"})
+                            .withNote("Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on."));
+                }
             }
         }
         if (SettingsStatus.authorRegionEnabled) {
@@ -924,6 +934,11 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "A long press on a video you opened from search opens the same menu as on For You. "
                             + "It needs Long press on TikTok default.",
                     Settings.LONG_PRESS_FULL_MENU_IN_SEARCH));
+            addPreference(new TogglePreference(context, "Compact long-press menu everywhere",
+                    "A long press on a video opens TikTok's small share sheet on For You too, the same one a "
+                            + "creator's videos get. It wins over the two full-menu switches above. It needs "
+                            + "Long press on TikTok default.",
+                    Settings.LONG_PRESS_COMPACT_MENU));
             addPreference(new TogglePreference(context, "Seek from the edges",
                     "Press and hold the left or right third of the screen to jump back or forward. "
                             + "The middle third keeps the Long press action.", Settings.EDGE_SEEK));

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Check where Morphe Manager's download button sends people for an app version.
+# Usage: bin/manager-link [app [version]] [--abi=ABI]
+#   app      twitch, kick, rumble; without one, every app's target version is checked
+#   version  defaults to the target in the app's Constants.kt
+#   --abi    the phone ABI Manager reports (default arm64-v8a)
+# Manager asks Morphe's API for <package>~<version>~<abi> and opens wherever its redirects end. The API
+# finds versions through APKMirror, so a version APKMirror doesn't list as stable (a Google Play release
+# it hasn't posted yet) lands on a beta with the same number, or on a web search. A link is right when it
+# ends on APKMirror's release page of exactly that version, or on an Uptodown build page (whose version
+# this can't read). Exits 1 when a link is wrong: don't target that version yet.
+source "$(dirname "$0")/lib/common.sh"
+
+API="https://api.morphe.software/v2/web-search"
+slug="" version="" abi="arm64-v8a"
+for arg in "$@"; do
+    case "$arg" in
+        --abi=*) abi="${arg#--abi=}" ;;
+        -*) die "unknown option $arg" ;;
+        *) if [[ -z "$slug" ]]; then slug="$arg"; elif [[ -z "$version" ]]; then version="$arg"; else die "too many arguments"; fi ;;
+    esac
+done
+
+target_version() { sed -n 's/.*AppTarget(version = "\([^"]*\)".*/\1/p' "$(app_constants "$1")" | head -1; }
+
+# The URL the API's redirects end on, stopping once they leave the API (APKMirror refuses scripts, and
+# where the API points is what decides the page).
+resolve() {
+    local url="$API/$1" next hop
+    for hop in 1 2 3 4 5 6; do
+        next="$(curl -s -o /dev/null -I --max-time 15 -A "lurk-morphe-patches/manager-link" \
+            -w '%{redirect_url}' "$url")" || return 1
+        [[ -n "$next" ]] || break
+        url="$next"
+        [[ "$url" == "$API"* || "$url" == https://api.morphe.software/* ]] || break
+    done
+    echo "$url"
+}
+
+check() {
+    local slug="$1" version="$2" package url host path dashed
+    package="$(app_package "$slug")"
+    [[ -n "$package" ]] || die "no package name in $(app_constants "$slug")"
+    url="$(resolve "$package~$version~$abi")" || { echo "$slug $version: Morphe's API didn't answer"; return 1; }
+    host="$(sed -E 's#^https?://([^/]+).*#\1#' <<<"$url" | tr 'A-Z' 'a-z')"
+    path="${url#*://"$host"}"
+    dashed="${version//./-}"
+    if [[ "$host" == *apkmirror.com && "$path" == *"-$dashed-release/"* ]]; then
+        echo "ok    $slug $version: APKMirror's $version release ($url)"
+    elif [[ "$host" == *uptodown.com && "${path%/}" == *-x ]]; then
+        echo "ok    $slug $version: an Uptodown build page, version not checked ($url)"
+    elif [[ "$host" == *apkmirror.com ]]; then
+        echo "WRONG $slug $version: APKMirror page of another build ($url)"
+        return 1
+    else
+        echo "WRONG $slug $version: no download page, Manager opens $url"
+        return 1
+    fi
+}
+
+status=0
+if [[ -n "$slug" ]]; then
+    check "$slug" "${version:-$(target_version "$slug")}" || status=1
+else
+    [[ -z "$version" ]] || die "give the app with the version"
+    for slug in $(app_slugs); do
+        check "$slug" "$(target_version "$slug")" || status=1
+    done
+fi
+(( status == 0 )) || note "a version Manager can't download shouldn't be a target yet; wait until APKMirror lists it as stable"
+exit "$status"

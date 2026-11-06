@@ -1,0 +1,8 @@
+.gradle
+build
+.kotlin
+local.properties
+.idea
+*.iml
+*.log
+.DS_Store

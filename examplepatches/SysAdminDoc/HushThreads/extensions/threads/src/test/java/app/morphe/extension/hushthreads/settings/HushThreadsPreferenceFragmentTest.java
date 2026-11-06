@@ -10,6 +10,7 @@ package app.morphe.extension.hushthreads.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -94,6 +95,8 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
         ROW_TITLES.put(PatchFamily.HIDE_INSTAGRAM_BUTTON, "Hide the Instagram button");
         ROW_TITLES.put(PatchFamily.HIDE_GHOST_POST_BUBBLES, "Hide ghost post bubbles");
+        ROW_TITLES.put(PatchFamily.EXACT_POST_TIMES, "Show the date and time");
+        ROW_TITLES.put(PatchFamily.FILTER_COMMENTS, "Filter comments");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_ID, "Advertising ID removed");
         ROW_TITLES.put(PatchFamily.RESTORE_TRUST, "Re-signed build fix");
         ROW_TITLES.put(PatchFamily.VERSION_CODE, "Version code raised");
@@ -207,6 +210,7 @@ public class HushThreadsPreferenceFragmentTest {
                         || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
                     expected.add("Privacy");
                 }
+                if (build.contains(PatchFamily.FILTER_COMMENTS)) expected.add("Comments");
                 if (build.contains(PatchFamily.SAVE_MEDIA)) expected.add("Downloads");
                 if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
                         || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)) {
@@ -281,6 +285,19 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top "
                 + "of your feed. Restart Threads to see the change.",
                     String.valueOf(page.findPreference(Settings.HIDE_GHOST_POST_BUBBLES.key).getSummary()));
+            assertEquals("Show the date and time", String.valueOf(page.findPreference(Settings.EXACT_POST_TIMES.key).getTitle()));
+            assertEquals("Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's "
+                + "12 or 24-hour format.", String.valueOf(page.findPreference(Settings.EXACT_POST_TIMES.key).getSummary()));
+            // A reply is matched with the posts shown under it, and a bare domain with no path isn't
+            // a link, so both summaries say so.
+            assertEquals("Replies matching the patterns below are left out of a post's replies, so a spam reply never "
+                + "shows. A reply and the replies shown under it are checked and left out as one. Normal replies "
+                + "keep their order.", String.valueOf(page.findPreference(Settings.FILTER_COMMENTS.key).getSummary()));
+            assertEquals("Replies with a web link are left out, whatever the patterns say. Add a bare site name such "
+                + "as shopee.vn as a pattern.", String.valueOf(page.findPreference(Settings.HIDE_COMMENT_LINKS.key).getSummary()));
+            // The patterns dialog names its own Save, so it isn't left to Android's OK in the phone's language.
+            assertEquals("Save", String.valueOf(((android.preference.EditTextPreference) page.findPreference(
+                    app.morphe.extension.hushthreads.comments.CommentSettings.FILTER_COMMENT_PATTERNS.key)).getPositiveButtonText()));
             // The patches that were always in Manager's default selection ship their switches on,
             // Search's half of Hide suggested users included.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.HIDE_SEARCH_SUGGESTIONS,
@@ -288,10 +305,12 @@ public class HushThreadsPreferenceFragmentTest {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The ones that joined it later start off, so a default build looks like Threads, and so
-            // do Hide the Instagram button, Hide ghost post bubbles and Disable swipe to Search, which came after.
+            // do Hide the Instagram button, Hide ghost post bubbles, Disable swipe to Search and Show
+            // exact post times, which came after.
             for (BooleanSetting setting : Arrays.asList(Settings.BLOCK_RETURN_REFRESH, Settings.DISABLE_VIDEO_AUTOPLAY,
                     Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK,
-                    Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.DISABLE_SWIPE_TO_SEARCH)) {
+                    Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.DISABLE_SWIPE_TO_SEARCH,
+                    Settings.EXACT_POST_TIMES)) {
                 assertFalse(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The time limit holds until someone lifts it.
@@ -330,13 +349,14 @@ public class HushThreadsPreferenceFragmentTest {
             Preference card = rowsOf(controller).get(0);
             assertEquals("HushThreads is paused", String.valueOf(card.getTitle()));
             assertEquals(HushThreadsPreferenceFragment.pausedSummary(HushThreadsPause.Reason.CRASH_LOOP, pkg)
-                    + " Tap to turn it back on.\n" + L10n.f("Build %1$s", L10n.isolate("unknown")), String.valueOf(card.getSummary()));
+                    + " Tap to turn it back on.", String.valueOf(card.getSummary()));
         }
     }
 
     /**
-     * A version is a value set into a sentence, so both rows that show one isolate it: in a
-     * right-to-left sentence "450.0.0.51.78" then keeps the order it was written in.
+     * A version is a value set into a sentence, so the About row isolates it: in a right-to-left
+     * sentence "450.0.0.51.78" then keeps the order it was written in. The card leaves the
+     * versions to the header and About.
      */
     @Test
     public void theVersionRowsIsolateTheVersions() {
@@ -350,8 +370,8 @@ public class HushThreadsPreferenceFragmentTest {
             List<Preference> rows = rowsOf(controller);
             Preference card = rows.get(0);
             assertEquals("HushThreads is on", String.valueOf(card.getTitle()));
-            assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(L10n.isolate(threads)));
-            assertTrue(String.valueOf(card.getSummary()), String.valueOf(card.getSummary()).contains(L10n.isolate("unknown")));
+            // The card shows only with something to say; the header and About carry the versions.
+            assertNull(card.getSummary());
             Preference version = null;
             for (Preference row : rows) {
                 if ("Version".contentEquals(row.getTitle())) version = row;

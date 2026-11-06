@@ -1,0 +1,9 @@
+[versions]
+morphe-patcher = "1.15.1"
+# Morphe's smali fork, resolved from JitPack by commit.
+smali = "d856bad65f"
+
+[libraries]
+
+[plugins]
+android-library = { id = "com.android.library" }

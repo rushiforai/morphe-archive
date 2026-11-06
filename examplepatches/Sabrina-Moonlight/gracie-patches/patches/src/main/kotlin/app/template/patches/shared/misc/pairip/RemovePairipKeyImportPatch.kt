@@ -1,0 +1,83 @@
+/*
+ * Copyright (C) 2026 hxreborn
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.template.patches.shared.misc.pairip
+
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
+import org.w3c.dom.Element
+
+private const val KEY_IMPORT_CONSTANTS_CLASS = "Lcom/pairip/vmencryption/KeyImportConstants;"
+private const val KEY_IMPORT_APPLICATION = "com.pairip.vmencryption.KeyImportApplication"
+private const val KEY_IMPORT_FACTORY = "com.pairip.vmencryption.KeyImportAppComponentFactory"
+private const val KEY_IMPORT_COMPONENT_PREFIX = "com.pairip.vmencryption.KeyImport"
+private const val NAME_ATTRIBUTE = "android:name"
+private const val FACTORY_ATTRIBUTE = "android:appComponentFactory"
+
+private class KeyImportOriginals(val application: String?, val componentFactory: String)
+
+private lateinit var keyImportOriginals: KeyImportOriginals
+
+private val readKeyImportOriginalsPatch = bytecodePatch {
+    execute {
+        val constants = classDefBy(KEY_IMPORT_CONSTANTS_CLASS)
+
+        fun originalOrNull(fieldName: String): String? {
+            val initialValue = constants.staticFields.singleOrNull { it.name == fieldName }?.initialValue
+            return (initialValue as? StringEncodedValue)?.value?.takeIf { it.isNotEmpty() }
+        }
+
+        keyImportOriginals = KeyImportOriginals(
+            originalOrNull("originalApplicationClassName"),
+            originalOrNull("originalAppComponentFactoryClassName") ?: throw PatchException(
+                "$KEY_IMPORT_CONSTANTS_CLASS->originalAppComponentFactoryClassName has no non-empty string value",
+            ),
+        )
+    }
+}
+
+private fun Element.restoreAttribute(name: String, expectedStub: String, original: String) {
+    val declared = getAttribute(name)
+    check(declared == expectedStub) { "Expected $name=$expectedStub in the manifest, found $declared" }
+    setAttribute(name, original)
+}
+
+private fun Element.removeFromParent() {
+    parentNode?.removeChild(this)
+}
+
+val removePairipKeyImportPatch = resourcePatch {
+    dependsOn(readKeyImportOriginalsPatch)
+
+    execute {
+        document("AndroidManifest.xml").use { manifest ->
+            val application = manifest.getElementsByTagName("application").item(0) as Element
+            val originalApplication = keyImportOriginals.application
+            if (originalApplication != null) {
+                application.restoreAttribute(NAME_ATTRIBUTE, KEY_IMPORT_APPLICATION, originalApplication)
+            } else {
+                check(application.getAttribute(NAME_ATTRIBUTE) != KEY_IMPORT_APPLICATION) {
+                    "Manifest declares $KEY_IMPORT_APPLICATION but " +
+                        "$KEY_IMPORT_CONSTANTS_CLASS->originalApplicationClassName has no non-empty string value"
+                }
+            }
+            application.restoreAttribute(FACTORY_ATTRIBUTE, KEY_IMPORT_FACTORY, keyImportOriginals.componentFactory)
+
+            val toRemove = mutableListOf<Element>()
+            val children = application.childNodes
+            for (i in 0 until children.length) {
+                val node = children.item(i)
+                if (node is Element && node.getAttribute(NAME_ATTRIBUTE).startsWith(KEY_IMPORT_COMPONENT_PREFIX)) {
+                    toRemove += node
+                }
+            }
+            if (toRemove.isEmpty()) {
+                throw PatchException("No KeyImport components found in the manifest")
+            }
+            toRemove.forEach { it.removeFromParent() }
+        }
+    }
+}

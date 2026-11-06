@@ -4,11 +4,15 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.argumentRegister
+import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.numberOfParameterRegisters
+import app.morphe.util.p0Register
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.onlynazril.patches.shared.Constants.COMPATIBILITY_TIKTOK
@@ -206,6 +210,34 @@ val tiktokHandlePatch = bytecodePatch(
                 )
             }
 
+            // The comment is fetched again at the write site instead of kept in the register it
+            // was read into. 47.7.1 reuses that register for an unrelated check between the read
+            // and the write (the register holds an unrelated answer by the time setText runs), so
+            // requiring it to survive was an assumption about one build rather than about the
+            // code's shape. The
+            // getter is the call whose move-result filled the register, read backwards from the
+            // getCreateTime call; `this` still holds the cell at the write, so p0 can call it.
+            fun commentGetterFor(commentRegister: Int, readIndex: Int): MethodReference? {
+                for (index in readIndex - 1 downTo 0) {
+                    val instruction = instructions[index]
+                    val written = (instruction as? OneRegisterInstruction)?.registerA
+                    if (instruction.opcode == Opcode.MOVE_RESULT_OBJECT &&
+                        written == commentRegister
+                    ) {
+                        val invoke = instructions.getOrNull(index - 1) as? ReferenceInstruction
+                            ?: return null
+                        val getter = invoke.getReference<MethodReference>()
+                            ?.takeIf { it.returnType == COMMENT_MODEL }
+                            ?: return null
+                        // The call at the write site runs on p0, so only a getter that was
+                        // called on this same cell is safe to repeat there.
+                        return getter.takeIf { invoke.argumentRegister(0) == p0Register }
+                    }
+                    if (instruction.opcode.setsRegister() && written == commentRegister) return null
+                }
+                return null
+            }
+
             val sites = timeIndices.mapNotNull { timeIndex ->
                 val writeIndex = firstInvokeAfter(timeIndex) {
                     it.definingClass == TEXT_VIEW && it.name == "setText"
@@ -220,21 +252,13 @@ val tiktokHandlePatch = bytecodePatch(
                         "Comment: a time write in ${definingClass}->${name} does not name its view " +
                             "in four bits, so the view cannot be handed over.",
                     )
-                val comment = read.registerC
-                // Both are handed over together after the write, so the comment has to still be in
-                // that register by then. A build that reuses it in between fails here.
-                for (index in (timeIndex + 1) until writeIndex) {
-                    val instruction = instructions[index]
-                    if (instruction.opcode.setsRegister() &&
-                        (instruction as? OneRegisterInstruction)?.registerA == comment
-                    ) {
-                        throw PatchException(
-                            "Comment: ${definingClass}->${name} reuses v$comment between reading " +
-                                "the create time and writing the time.",
-                        )
-                    }
-                }
-                Triple(writeIndex, comment, write.registerC)
+                val getter = commentGetterFor(read.registerC, timeIndex)
+                    ?: throw PatchException(
+                        "Comment: ${definingClass}->${name} reads the create time off a comment " +
+                            "that no getter put in a register, so it cannot be fetched again at " +
+                            "the write.",
+                    )
+                Triple(writeIndex, getter, write.registerC)
             }
             if (sites.isEmpty()) {
                 throw PatchException(
@@ -242,11 +266,19 @@ val tiktokHandlePatch = bytecodePatch(
                 )
             }
             // Highest first: inserting shifts every index above it.
-            for ((writeIndex, comment, view) in sites.sortedByDescending { it.first }) {
+            for ((writeIndex, getter, view) in sites.sortedByDescending { it.first }) {
+                val comment = getFreeRegisterProvider(
+                    writeIndex + 1,
+                    1,
+                    listOf(view),
+                ).getFreeRegister4Bit()
                 addInstructions(
                     writeIndex + 1,
-                    "invoke-static {v$comment, v$view}, $COMMENT_DATE_BRIDGE" +
-                        "->attach(Ljava/lang/Object;Landroid/widget/TextView;)V",
+                    """
+                        invoke-virtual/range {p0 .. p0}, $getter
+                        move-result-object v$comment
+                        invoke-static {v$comment, v$view}, $COMMENT_DATE_BRIDGE->attach(Ljava/lang/Object;Landroid/widget/TextView;)V
+                    """.trimIndent(),
                 )
             }
         }

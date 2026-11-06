@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  # Semantic-release publishes on every qualifying push to main/dev:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          # Pinned plain version — avoids 'lts/*' getting mangled by editors
+          # (the asterisk is fragile in copy/paste and caused two failed runs).
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      # Web-uploaded repos lose the exec bit on gradlew — restore it before
+      # semantic-release (and its gradle plugin) invoke gradle.
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # Workaround: GitHub intermittently answers semantic-release's push of
+      # refs/notes/semantic-release-<tag> with a bare "! [remote rejected]
+      # ... (failed)" AFTER the tag has already landed, which aborts the run
+      # before the GitHub Release is created (this killed v1.8.0; widely
+      # reported: github.com/ai-ecoverse/slicc-browsers/issues/54). There is
+      # no official flag to skip the notes push, so a git shim returns success
+      # for that one push and passes every other git command through.
+      # The notes only record release channels; this repo releases on a single
+      # channel (main), so skipping it loses nothing.
+      # Credit: github.com/ccpu/multi-mind/pull/19
+      - name: Shim git to skip semantic-release notes push
+        run: |
+          mkdir -p "$HOME/git-shim"
+          REAL_GIT="$(command -v git)"
+          cat > "$HOME/git-shim/git" <<'SHIMEOF'
+          #!/usr/bin/env bash
+          if [ "$1" = "push" ]; then
+            for arg in "$@"; do
+              case "$arg" in
+                refs/notes/semantic-release*)
+                  echo "[git-shim] skipping notes push: $arg" >&2
+                  exit 0
+                  ;;
+              esac
+            done
+          fi
+          exec REAL_GIT_BINARY "$@"
+          SHIMEOF
+          sed -i "s|REAL_GIT_BINARY|$REAL_GIT|" "$HOME/git-shim/git"
+          chmod +x "$HOME/git-shim/git"
+          echo "$HOME/git-shim" >> "$GITHUB_PATH"
+
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@8beda2b7ed98355c0e97c0a63bec38ae472e66c4 # v4
+        with:
+          subject-name: 'Reddit Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+        
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid

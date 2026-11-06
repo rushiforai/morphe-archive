@@ -1,0 +1,76 @@
+name: Custom Theme preview release
+
+on:
+  push:
+    tags:
+      - 'custom-theme-previews-v*'
+
+jobs:
+  release:
+    name: Release preview bundle
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate preview assets
+        id: assets
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $prefix = "custom-theme-previews-"
+          if (-not $tag.StartsWith($prefix)) {
+              throw "Unexpected preview release tag: $tag"
+          }
+
+          $version = $tag.Substring($prefix.Length)
+          if ($version -notmatch '^v[1-9][0-9]*$') {
+              throw "Preview release version must match vN: $version"
+          }
+
+          $assetRoot = "release-assets/custom-theme-previews/$version"
+          $archive = "$assetRoot/custom-theme-previews-$version.zip"
+          $manifestPath = "$assetRoot/custom-theme-previews-$version-manifest.json"
+          if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) {
+              throw "Preview archive is missing: $archive"
+          }
+          if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+              throw "Preview manifest is missing: $manifestPath"
+          }
+
+          $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+          if ([int]$manifest.schemaVersion -ne 1) {
+              throw "Unsupported preview manifest schema."
+          }
+          if ([string]$manifest.bundleVersion -ne $version) {
+              throw "Preview manifest version does not match tag."
+          }
+          if ([string]$manifest.asset -ne [IO.Path]::GetFileName($archive)) {
+              throw "Preview manifest asset name does not match archive."
+          }
+
+          $archiveFile = Get-Item -LiteralPath $archive
+          if ([long]$manifest.compressedBytes -ne $archiveFile.Length) {
+              throw "Preview archive size does not match manifest."
+          }
+          $actualSha256 = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ([string]$manifest.sha256 -ne $actualSha256) {
+              throw "Preview archive SHA-256 does not match manifest."
+          }
+
+          "archive=$archive" >> $env:GITHUB_OUTPUT
+          "manifest=$manifestPath" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Publish preview release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Custom Theme Previews ${{ steps.assets.outputs.version }}
+          body: Theme preview bundle used by the Custom Theme patch. Actual theme packs are downloaded directly from Rboard PackRepoBeta.
+          make_latest: false
+          files: |
+            ${{ steps.assets.outputs.archive }}
+            ${{ steps.assets.outputs.manifest }}

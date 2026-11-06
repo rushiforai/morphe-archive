@@ -1,7 +1,8 @@
 name: Word list reports
 
 # Receives "wordlist-report" events from the report worker (tools/report-worker): words the Wordfeud server
-# rejected in a game. Valid words are added to wordlists/<code>/remove.txt on the branch wordlist/<code>, the list
+# rejected in a game (type remove) or words played in a game that our list lacks (type add). Valid words go to
+# wordlists/<code>/remove.txt or add.txt on the branch wordlist/<code>, the list
 # is rebuilt, and one pull request per language (wordlist/<code> -> main) collects all reports until it is merged.
 # Nothing reaches users before that pull request is merged (a merge makes a new release with the new list).
 on:
@@ -83,17 +84,20 @@ jobs:
         env:
           RULESET: ${{ github.event.client_payload.ruleset }}
           WORDS: ${{ join(github.event.client_payload.words, ',') }}
-        run: python3 -I tools/wordlists/report.py --ruleset "$RULESET" --words "$WORDS" | tee -a "$GITHUB_OUTPUT"
+          TYPE: ${{ github.event.client_payload.type || 'remove' }}
+        run: python3 -I tools/wordlists/report.py --type "$TYPE" --ruleset "$RULESET" --words "$WORDS" | tee -a "$GITHUB_OUTPUT"
 
       - name: Rebuild, commit and push
         if: steps.add.outputs.added != ''
         env:
           CODE: ${{ steps.lang.outputs.code }}
           ADDED: ${{ steps.add.outputs.added }}
+          TYPE: ${{ github.event.client_payload.type || 'remove' }}
         run: |
           python3 -I tools/wordlists/build.py --only "$CODE"
           git add wordlists
-          git commit -m "fix(wordlists): $CODE: $ADDED verwijderd (gemeld door de patch)"
+          if [ "$TYPE" = "add" ]; then what="toegevoegd (gespeeld, ontbrak in de lijst)"; else what="verwijderd (geweigerd door de server)"; fi
+          git commit -m "fix(wordlists): $CODE: $ADDED $what"
           git push origin "wordlist/$CODE"
 
       - name: Pull request
@@ -112,8 +116,8 @@ jobs:
             if open=$(gh pr list --head "$B" --base "$BASE" --state open --json number --jq '.[0].number'); then
               if [ -n "$open" ]; then echo "pull request #$open is open"; exit 0; fi
               if gh pr create --head "$B" --base "$BASE" \
-                  --title "Woordenlijst $CODE: gemelde woorden verwijderen" \
-                  --body "Woorden die de Wordfeud-server weigerde, automatisch gemeld door de patch. Elke melding voegt een commit toe aan deze branch; zie \`wordlists/$CODE/remove.txt\`. Controleer de woorden en merge wanneer je wilt: de merge maakt een nieuwe release met de bijgewerkte lijst."; then
+                  --title "Woordenlijst $CODE: gemelde woorden" \
+                  --body "Automatisch gemeld door de patch: woorden die de Wordfeud-server weigerde (\`wordlists/$CODE/remove.txt\`) en woorden die in een potje gespeeld zijn maar in onze lijst ontbraken (\`wordlists/$CODE/add.txt\`). Elke melding voegt een commit toe aan deze branch. Controleer de woorden en merge wanneer je wilt: de merge maakt een nieuwe release met de bijgewerkte lijst."; then
                 exit 0
               fi
             fi

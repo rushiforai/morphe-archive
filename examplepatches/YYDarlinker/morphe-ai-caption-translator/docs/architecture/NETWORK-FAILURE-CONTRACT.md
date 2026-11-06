@@ -31,6 +31,8 @@ Every new provider HTTP attempt calls `RequestControl.tryBeginAttempt`. A RETIRE
 
 The source protocol's large-quote coverage check preserves original declared coverage; source rebinding cannot claim a large unmentioned tail. At most the existing four compact source characters may be recovered by this correction. Structural completeness still cannot certify every semantic meaning. The source-coverage-v2 translated-cache namespace prevents old expanded-ID results from being restored under the new policy.
 
+Source-only salvage may retain exact, unambiguously ordered neighbours around explicitly missing speech; this does not expand legacy-ID coverage. The existing `>>` speaker boundary remains attached to its original source range when the model omits it from a quote. Marker-only deficits do not admit hole or page requests, including a page with already covered speech. Readable text recovered before a closed protocol tail remains an actionable, uncached quality candidate; any review uses the same existing semantic/session attempt limits. See [reply acceptance](../ARCHITECTURE.md#reply-acceptance-and-availability).
+
 ## Evidence and limits
 
 Active tests include `NetworkFailureContractTest`, `SourceHttpFailureContractTest`, `RetryAfterContractTest`, `AttemptAdmissionTest`, `RepairAdmissionTest`, `D7CoverageRegressionTest` and `D7CachePolicyTest`. Local HTTP fixtures verify received requests and real controller paths; they do not contact a paid provider.

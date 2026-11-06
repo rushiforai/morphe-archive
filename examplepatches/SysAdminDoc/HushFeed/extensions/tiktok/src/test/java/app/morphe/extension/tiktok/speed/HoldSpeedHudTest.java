@@ -10,7 +10,15 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.os.Looper;
+import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceScreen;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +27,7 @@ import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.categories.PlaybackPreferenceCategory;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
@@ -30,6 +39,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.util.ReflectionHelpers;
 
 /**
@@ -46,6 +56,8 @@ public class HoldSpeedHudTest {
 
     private final List<Float> applied = new ArrayList<>();
     private final List<Float> armed = new ArrayList<>();
+    private final List<Boolean> pulls = new ArrayList<>();
+    private boolean tikTokPulled;
     private final Object component = new Object();
     private ActivityController<Activity> owner;
     private float density;
@@ -56,6 +68,7 @@ public class HoldSpeedHudTest {
         Utils.setActivity(owner.get());
         density = owner.get().getResources().getDisplayMetrics().density;
         SettingsStatus.holdSpeedSlideEnabled = true;
+        SettingsStatus.holdSpeedAxisEnabled = true;
         Settings.HOLD_SPEED_SLIDE.save(true);
         Settings.HOLD_SPEED.save("2");
         HoldSpeedHud.applierForTests = (gesture, speed) -> {
@@ -66,7 +79,23 @@ public class HoldSpeedHudTest {
             assertSame(component, gesture);
             armed.add(speed);
         };
+        HoldSpeedHud.pullerForTests = (gesture, down) -> {
+            assertSame(component, gesture);
+            pulls.add(down);
+            tikTokPull(down);
+        };
         forget();
+    }
+
+    /**
+     * TikTok's pull-down lock state as the touch listener and the extension's bridge both reach
+     * it: the hook at its top answers first, and the signal goes out only when the state changes.
+     */
+    private void tikTokPull(boolean down) {
+        boolean answer = HoldSpeedHud.pullState(down ? 1 : 0);
+        if (answer == tikTokPulled) return;
+        tikTokPulled = answer;
+        HoldSpeedHud.onPullDown(answer ? 1 : 0);
     }
 
     @After
@@ -74,8 +103,12 @@ public class HoldSpeedHudTest {
         forget();
         HoldSpeedHud.applierForTests = null;
         HoldSpeedHud.lockArmerForTests = null;
+        HoldSpeedHud.pullerForTests = null;
         SettingsStatus.holdSpeedSlideEnabled = false;
+        SettingsStatus.holdSpeedAxisEnabled = false;
         Settings.HOLD_SPEED_SLIDE.resetToDefault();
+        Settings.HOLD_SPEED_HUD_STYLE.resetToDefault();
+        Settings.HOLD_SPEED_SLIDE_AXIS.resetToDefault();
         Settings.HOLD_SPEED.resetToDefault();
         Settings.CUSTOM_SPEEDS.resetToDefault();
         Settings.DEFAULT_SPEED_ENABLED.resetToDefault();
@@ -152,6 +185,25 @@ public class HoldSpeedHudTest {
         HoldSpeedHud.onHoldPress(component);
         assertEquals(1, bubbles());
         assertEquals("1.5x", label());
+    }
+
+    /**
+     * #248, a later report: a video opened from search, a profile or a chat plays in an activity
+     * of its own over the main one, and the bubble went on the main one's window behind it.
+     */
+    @Test
+    public void theBubbleGoesOnTheActivityInFrontOfTheMainOne() {
+        try (ActivityController<Activity> detail = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            HoldSpeedHud.onHoldPress(component);
+            assertEquals("nothing on the main activity behind", 0, bubbles());
+            ViewGroup front = detail.get().findViewById(android.R.id.content);
+            assertSame(front, HoldSpeedHud.bubble().getParent());
+            HoldSpeedHud.onHoldRelease();
+            assertEquals("the release takes it off the front one", 0, front.getChildCount());
+        }
+        // Back on the feed once that one is gone.
+        HoldSpeedHud.onHoldPress(component);
+        assertEquals(1, bubbles());
     }
 
     @Test
@@ -460,7 +512,282 @@ public class HoldSpeedHudTest {
         assertTrue(applied.isEmpty());
     }
 
+    @Test
+    public void theCircleStyleFollowsTheSameHoldInASmallDial() {
+        assertEquals(HoldSpeedHud.PILL, Settings.HOLD_SPEED_HUD_STYLE.defaultValue);
+        HoldSpeedHud.onHoldPress(component);
+        assertFalse("the pill stays the default", shown() instanceof HoldSpeedHud.Circle);
+
+        Settings.HOLD_SPEED_HUD_STYLE.save(HoldSpeedHud.CIRCLE);
+        HoldSpeedHud.onHoldPress(component);
+        assertEquals(1, bubbles());
+        assertTrue(shown() instanceof HoldSpeedHud.Circle);
+        assertEquals("2x", label());
+        shown().measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int diameter = Math.round(HoldSpeedHud.Circle.DIAMETER_DP * density);
+        assertEquals(diameter, shown().getMeasuredWidth());
+        assertEquals(diameter, shown().getMeasuredHeight());
+        assertFalse(shown().locked());
+        HoldSpeedHud.onHoldFrom(2f);
+        assertTrue("a locked video closes the dial's padlock", shown().locked());
+
+        move(0);
+        move(DEAD_ZONE + STEP + 2);
+        assertEquals(List.of(2.25f), applied);
+        assertEquals("2.25x", label());
+        HoldSpeedHud.onHoldRelease();
+        assertEquals(0, bubbles());
+
+        // A style the row doesn't offer, as from an old backup, draws the pill.
+        Settings.HOLD_SPEED_HUD_STYLE.save("square");
+        HoldSpeedHud.onHoldPress(component);
+        assertFalse(shown() instanceof HoldSpeedHud.Circle);
+    }
+
+    @Test
+    public void upAndDownStepsTheSpeedAndASlideToTheSideArmsTikToksLock() {
+        assertEquals(HoldSpeedHud.SIDEWAYS, Settings.HOLD_SPEED_SLIDE_AXIS.defaultValue);
+        Settings.HOLD_SPEED_SLIDE_AXIS.save(HoldSpeedHud.UP_DOWN);
+        HoldSpeedHud.onHoldPress(component);
+        move(0, 0);
+        // Up is faster, by the same dead zone and steps as the sideways slide.
+        move(0, -(DEAD_ZONE + 1));
+        assertTrue(applied.isEmpty());
+        move(0, -(DEAD_ZONE + STEP + 2));
+        assertEquals(List.of(2.25f), applied);
+        move(0, -(DEAD_ZONE + 2 * STEP + 4));
+        assertEquals(List.of(2.25f, 2.5f), applied);
+        move(0, -(DEAD_ZONE + STEP - 2));
+        assertEquals(List.of(2.25f, 2.5f, 2.25f), applied);
+        // A finger going down is slowing the video, so TikTok's own pull doesn't arm anything.
+        tikTokPull(true);
+        assertFalse(tikTokPulled);
+        assertFalse(shown().locked());
+        move(0, STEP);
+        assertEquals(1.75f, applied.get(applied.size() - 1), 0f);
+        int slid = applied.size();
+        // Sideways from where the hold began arms it, through TikTok's own state, either way.
+        move(SIDE_LOCK - 2, STEP);
+        assertTrue(pulls.isEmpty());
+        move(-(SIDE_LOCK + 2), STEP);
+        assertEquals(List.of(true), pulls);
+        assertTrue(tikTokPulled);
+        assertTrue("the padlock closes", shown().locked());
+        // Armed, the speed stays put, and resting between the two distances keeps it armed.
+        move(-(SIDE_LOCK - 4), -(DEAD_ZONE + 6 * STEP));
+        assertEquals(slid, applied.size());
+        assertEquals(List.of(true), pulls);
+        tikTokPull(false);
+        assertTrue("TikTok coming back up doesn't let go of it", tikTokPulled);
+        // Back near the middle lets go, and the slide goes on from where the finger is.
+        move(-(SIDE_UNLOCK - 2), 0);
+        assertEquals(List.of(true, false), pulls);
+        assertFalse(tikTokPulled);
+        assertFalse(shown().locked());
+        move(-(SIDE_UNLOCK - 2), -(DEAD_ZONE + STEP + 2));
+        assertEquals(2f, applied.get(applied.size() - 1), 0f);
+        // The release hands the arm back, and the next hold starts unarmed.
+        move(SIDE_LOCK + 10, 0);
+        assertEquals(List.of(true, false, true), pulls);
+        HoldSpeedHud.onHoldRelease();
+        tikTokPulled = false;
+        HoldSpeedHud.onHoldPress(component);
+        move(0, 0);
+        move(SIDE_LOCK - 2, 0);
+        assertEquals(List.of(true, false, true), pulls);
+    }
+
+    @Test
+    public void upAndDownOnALockedVideoUnlocksWithTheSideSlideAsAPullWould() {
+        Settings.HOLD_SPEED_SLIDE_AXIS.save(HoldSpeedHud.UP_DOWN);
+        HoldSpeedHud.onHoldPress(component);
+        HoldSpeedHud.onHoldFrom(2f);
+        assertTrue(shown().locked());
+        move(0, 0);
+        move(SIDE_LOCK + 2, 0);
+        assertEquals(List.of(true), pulls);
+        assertFalse("the slide opens the padlock, TikTok's unlock", shown().locked());
+        HoldSpeedHud.onHoldRelease();
+        assertTrue("an unlock locks no new speed", armed.isEmpty());
+    }
+
+    @Test
+    public void upAndDownSavedWhereThePatchLeftItOutSlidesSideways() {
+        SettingsStatus.holdSpeedAxisEnabled = false;
+        Settings.HOLD_SPEED_SLIDE_AXIS.save(HoldSpeedHud.UP_DOWN);
+        HoldSpeedHud.onHoldPress(component);
+        move(0, 0);
+        move(0, -(DEAD_ZONE + STEP + 2));
+        assertTrue("up stepped the speed with nothing behind the side lock", applied.isEmpty());
+        move(DEAD_ZONE + STEP + 2, -(DEAD_ZONE + STEP + 2));
+        assertEquals(List.of(2.25f), applied);
+        assertTrue("a sideways slide armed a lock", pulls.isEmpty());
+    }
+
+    @Test
+    public void sidewaysLeavesTikToksPullAloneAndTakesNoSideLock() {
+        HoldSpeedHud.onHoldPress(component);
+        move(0, 0);
+        move(SIDE_LOCK + STEP, 0);
+        assertFalse(applied.isEmpty());
+        assertTrue("a sideways slide is the speed here", pulls.isEmpty());
+        assertTrue(HoldSpeedHud.pullState(1));
+        assertFalse(HoldSpeedHud.pullState(0));
+        // With up and down chosen, a finger that isn't held keeps TikTok's answer too.
+        HoldSpeedHud.onHoldRelease();
+        Settings.HOLD_SPEED_SLIDE_AXIS.save(HoldSpeedHud.UP_DOWN);
+        assertTrue(HoldSpeedHud.pullState(1));
+        assertFalse(HoldSpeedHud.pullState(0));
+    }
+
+    @Test
+    @Config(sdk = 28, qualifiers = "xxhdpi")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theDialLightsTheNotchOfTheSpeedItIsOnAndOpensAtTheBottom() {
+        HoldSpeedHud.Circle circle = new HoldSpeedHud.Circle(owner.get(), GRID);
+        circle.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        int size = circle.getMeasuredWidth();
+        circle.layout(0, 0, size, size);
+        circle.setSpeed(2.25f, false);
+
+        Bitmap shot = draw(circle, size);
+        assertEquals("outside the disc is clear", 0, Color.alpha(shot.getPixel(0, 0)));
+        assertBright("the notch for 2.25x", notch(shot, circle, 7));
+        assertDim("the notch for 2.75x", notch(shot, circle, 9));
+        int gap = shot.getPixel(size / 2, Math.round(size / 2f + circle.ringRadius(size)));
+        assertTrue("the ring leaves the bottom open: " + Integer.toHexString(gap),
+                Color.alpha(gap) > 150 && Color.red(gap) < 60);
+        int shackle = Math.round(size / 2f - 12.5f * density);
+        assertDim("no padlock while open", shot.getPixel(size / 2, shackle));
+
+        circle.setSpeed(1f, false);
+        circle.setLocked(true);
+        shot = draw(circle, size);
+        assertBright("the notch for 1x", notch(shot, circle, 2));
+        assertDim("the notch for 2.25x once left", notch(shot, circle, 7));
+        assertTrue("the padlock shows when closed",
+                Color.red(shot.getPixel(size / 2, shackle)) > 180);
+    }
+
+    @Test
+    public void theStyleRowSitsUnderTheSlideSwitchAndNeedsIt() {
+        boolean speed = SettingsStatus.playbackSpeedEnabled;
+        SettingsStatus.playbackSpeedEnabled = true;
+        try (ActivityController<Host> controller = Robolectric.buildActivity(Host.class).setup()) {
+            Host host = controller.get();
+            Utils.setContext(host);
+            SettingsStatus.holdSpeedSlideEnabled = false;
+            assertNull(playbackPage(host).findPreference(Settings.HOLD_SPEED_HUD_STYLE.key));
+
+            SettingsStatus.holdSpeedSlideEnabled = true;
+            PreferenceScreen screen = playbackPage(host);
+            Preference row = screen.findPreference(Settings.HOLD_SPEED_HUD_STYLE.key);
+            assertTrue(row instanceof ListPreference);
+            assertEquals("Hold speed bubble style", String.valueOf(row.getTitle()));
+            ListPreference list = (ListPreference) row;
+            assertArrayEquals(new CharSequence[] {"Pill", "Circle"}, list.getEntries());
+            assertArrayEquals(new CharSequence[] {HoldSpeedHud.PILL, HoldSpeedHud.CIRCLE}, list.getEntryValues());
+            assertTrue(String.valueOf(row.getSummary()).contains("round dial"));
+            List<String> keys = new ArrayList<>();
+            collectKeys(screen, keys);
+            assertEquals("right under the slide switch",
+                    keys.indexOf(Settings.HOLD_SPEED_SLIDE.key) + 1, keys.indexOf(Settings.HOLD_SPEED_HUD_STYLE.key));
+
+            Settings.HOLD_SPEED_SLIDE.save(false);
+            assertFalse("the style waits for the slide", Settings.HOLD_SPEED_HUD_STYLE.isAvailable());
+            Settings.HOLD_SPEED_SLIDE.save(true);
+            assertTrue(Settings.HOLD_SPEED_HUD_STYLE.isAvailable());
+        } finally {
+            SettingsStatus.playbackSpeedEnabled = speed;
+            Utils.setContext(owner.get());
+        }
+    }
+
+    @Test
+    public void theDirectionRowSitsUnderTheStyleRowAndNeedsTheSlide() {
+        boolean speed = SettingsStatus.playbackSpeedEnabled;
+        SettingsStatus.playbackSpeedEnabled = true;
+        try (ActivityController<Host> controller = Robolectric.buildActivity(Host.class).setup()) {
+            Host host = controller.get();
+            Utils.setContext(host);
+            SettingsStatus.holdSpeedSlideEnabled = false;
+            assertNull(playbackPage(host).findPreference(Settings.HOLD_SPEED_SLIDE_AXIS.key));
+
+            SettingsStatus.holdSpeedSlideEnabled = true;
+            SettingsStatus.holdSpeedAxisEnabled = false;
+            assertNull("the direction showed without the patch part behind it",
+                    playbackPage(host).findPreference(Settings.HOLD_SPEED_SLIDE_AXIS.key));
+
+            SettingsStatus.holdSpeedAxisEnabled = true;
+            PreferenceScreen screen = playbackPage(host);
+            Preference row = screen.findPreference(Settings.HOLD_SPEED_SLIDE_AXIS.key);
+            assertTrue(row instanceof ListPreference);
+            assertEquals("Hold speed slide direction", String.valueOf(row.getTitle()));
+            ListPreference list = (ListPreference) row;
+            assertArrayEquals(new CharSequence[] {"Sideways", "Up and down"}, list.getEntries());
+            assertArrayEquals(new CharSequence[] {HoldSpeedHud.SIDEWAYS, HoldSpeedHud.UP_DOWN}, list.getEntryValues());
+            assertEquals(HoldSpeedHud.SIDEWAYS, list.getValue());
+            assertTrue(String.valueOf(row.getSummary()).contains("near the edge"));
+            List<String> keys = new ArrayList<>();
+            collectKeys(screen, keys);
+            assertEquals("right under the style row",
+                    keys.indexOf(Settings.HOLD_SPEED_HUD_STYLE.key) + 1, keys.indexOf(Settings.HOLD_SPEED_SLIDE_AXIS.key));
+
+            Settings.HOLD_SPEED_SLIDE.save(false);
+            assertFalse("the direction waits for the slide", Settings.HOLD_SPEED_SLIDE_AXIS.isAvailable());
+            Settings.HOLD_SPEED_SLIDE.save(true);
+            assertTrue(Settings.HOLD_SPEED_SLIDE_AXIS.isAvailable());
+        } finally {
+            SettingsStatus.playbackSpeedEnabled = speed;
+            Utils.setContext(owner.get());
+        }
+    }
+
+    /** A host for the settings page, which builds its rows on a PreferenceActivity. */
+    public static final class Host extends PreferenceActivity {}
+
+    private static PreferenceScreen playbackPage(PreferenceActivity host) {
+        PreferenceScreen screen = host.getPreferenceManager().createPreferenceScreen(host);
+        host.setPreferenceScreen(screen);
+        new PlaybackPreferenceCategory(host, screen);
+        return screen;
+    }
+
+    private static void collectKeys(Preference preference, List<String> into) {
+        if (preference.getKey() != null) into.add(preference.getKey());
+        if (preference instanceof PreferenceGroup) {
+            PreferenceGroup group = (PreferenceGroup) preference;
+            for (int i = 0; i < group.getPreferenceCount(); i++) collectKeys(group.getPreference(i), into);
+        }
+    }
+
+    private static Bitmap draw(View view, int size) {
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        view.draw(new Canvas(bitmap));
+        return bitmap;
+    }
+
+    /** The pixel under step {@code i}'s notch. */
+    private static int notch(Bitmap shot, HoldSpeedHud.Circle circle, int i) {
+        float size = shot.getWidth();
+        double angle = Math.toRadians(circle.angleOf(i));
+        float radius = circle.ringRadius(size);
+        return shot.getPixel(Math.round(size / 2f + (float) (radius * Math.cos(angle))),
+                Math.round(size / 2f + (float) (radius * Math.sin(angle))));
+    }
+
+    private static void assertBright(String what, int pixel) {
+        assertTrue(what + ": " + Integer.toHexString(pixel), Color.alpha(pixel) >= 225
+                && Color.red(pixel) >= 225 && Color.green(pixel) >= 225 && Color.blue(pixel) >= 225);
+    }
+
+    private static void assertDim(String what, int pixel) {
+        assertTrue(what + ": " + Integer.toHexString(pixel), Color.red(pixel) < 150);
+    }
+
     private static final float DEAD_ZONE = HoldSpeedHud.DEAD_ZONE_DP;
     private static final float STEP = HoldSpeedHud.STEP_DP;
     private static final float AXIS_LOCK = HoldSpeedHud.AXIS_LOCK_DP;
+    private static final float SIDE_LOCK = HoldSpeedHud.SIDE_LOCK_DP;
+    private static final float SIDE_UNLOCK = HoldSpeedHud.SIDE_UNLOCK_DP;
 }

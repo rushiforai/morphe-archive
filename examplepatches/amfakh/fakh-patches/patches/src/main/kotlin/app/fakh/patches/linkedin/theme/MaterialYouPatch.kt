@@ -277,7 +277,7 @@ private val materialYouResourcePatch = resourcePatch {
         // -v31: the system palette only exists on Android 12+, older versions keep LinkedIn's colors.
         writeColors("values-v31", colors)
 
-        // The notification count badges of the bottom bar use the red that errors also use, so the badges
+        // The notification count badges of the top and bottom bars use the red that errors also use, so the badges
         // are pointed at the blue that maps to the accent instead of changing the red.
         for (badge in NOTIFICATION_BADGES) {
             document("res/drawable/$badge.xml").use { document ->
@@ -289,8 +289,12 @@ private val materialYouResourcePatch = resourcePatch {
     }
 }
 
-/** Backgrounds of the bottom bar's notification badges, with a count and without. */
+/** Backgrounds of the notification badges of the top and bottom bars, with a count and without. */
 private val NOTIFICATION_BADGES = listOf(
+    "ad_notification_badge_determinate_bg_default",
+    "ad_notification_badge_determinate_bg_inverse",
+    "ad_notification_badge_indeterminate_bg_default",
+    "ad_notification_badge_indeterminate_bg_inverse",
     "mercado_mvp_notification_badge_determinate_bg_default",
     "mercado_mvp_notification_badge_indeterminate_bg_default",
 )

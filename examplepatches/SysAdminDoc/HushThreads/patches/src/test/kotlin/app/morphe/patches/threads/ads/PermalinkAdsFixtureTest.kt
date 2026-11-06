@@ -49,6 +49,8 @@ class PermalinkAdsFixtureTest {
         "512408625" to "LX/4Zu;",
         "512408635" to "LX/4ZY;",
         "512408636" to "LX/4Zu;",
+        "512408645" to "LX/4ZY;",
+        "512408647" to "LX/4Yv;",
         "512408648" to "LX/4Zu;",
     )
 

@@ -71,9 +71,11 @@ class FeedPatchesTest {
                 }
             }
             if (present.isEmpty()) continue
-            // One warning per missing holder and per missing ad-only view, one for no view at all and one for no Google ad SDK start.
-            assertEquals("subset $present warnings: $warnings", 3 - present.size + AD_ONLY_VIEWS.size + 2, warnings.size)
+            // One warning per missing holder and per missing ad-only view, one for no view at all, one for no Google ad SDK
+            // start and one for no Meta consent check.
+            assertEquals("subset $present warnings: $warnings", 3 - present.size + AD_ONLY_VIEWS.size + 3, warnings.size)
             assertFlag(context, "googleAds", false)
+            assertFlag(context, "metaAds", false)
             assertEquals(present.size, feedListHoldersHooked)
             assertFlag(context, "hideAds", true)
             assertFlag(context, "feedAds", true)
@@ -115,7 +117,7 @@ class FeedPatchesTest {
             feedListHookPatch.execute(context)
             hideAdsPatch.execute(context)
         }
-        assertEquals("only the absent Google ad SDK start: $warnings", 1, warnings.size)
+        assertEquals("only the absent Google ad SDK start and Meta consent check: $warnings", 2, warnings.size)
         assertEquals("feedList=2/2;pagedResponse=1/1;modelList=1/1", recorded(context, "feedLists"))
         assertEquals(allViews, recorded(context, "adViews"))
         assertFlag(context, "feedAds", true)
@@ -189,7 +191,7 @@ class FeedPatchesTest {
             feedListHookPatch.execute(context)
             hideAdsPatch.execute(context)
         }
-        assertEquals(warnings.toString(), AD_ONLY_VIEWS.size, warnings.size)
+        assertEquals(warnings.toString(), AD_ONLY_VIEWS.size + 1, warnings.size)
         assertFlag(context, "adViews", true)
         val view = context.mutableClassDefBy(type)
         val visibility = view.methods.single { it.name == "setVisibility" }
@@ -230,7 +232,7 @@ class FeedPatchesTest {
 
     @Test
     fun `a missing status stub refuses before any holder changes`() {
-        for (status in listOf("hideAds", "feedAds", "adViews", "googleAds")) {
+        for (status in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds")) {
             val context = PatchContexts.of(ExtensionDex.classes() + Holder.entries.map { holder(it) })
             context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == status }
             feedListHookPatch.execute(context)

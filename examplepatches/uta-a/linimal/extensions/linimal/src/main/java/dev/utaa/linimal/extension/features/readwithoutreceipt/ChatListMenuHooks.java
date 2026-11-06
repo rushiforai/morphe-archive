@@ -42,6 +42,8 @@ public final class ChatListMenuHooks {
     public static void initialize(Context context) {
         if (context != null) {
             applicationContext = context.getApplicationContext();
+            // スクロールプレビューの行から、トークを開く前にプレビュー画面を閉じるために使います。
+            ReadWithoutReceiptPreviewTracker.register(context);
         }
     }
 

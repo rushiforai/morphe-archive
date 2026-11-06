@@ -35,7 +35,7 @@ Debug logging	Hata ayıklama günlüğü
 Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri getirmek için tekrar dokun.
 Diagnostic data put back.	Tanılama verileri geri getirildi.
 Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
-Clears the saved log and patch check results that a report would include.	Bir raporun içereceği kayıtlı günlüğü ve yama kontrol sonuçlarını temizler.
+Clears the saved log, patch check results and any kept crash that a report would include.	Bir raporun içereceği kayıtlı günlüğü, yama kontrol sonuçlarını ve saklanan çökme kaydını temizler.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
 Export diagnostic report	Tanılama raporunu dışa aktar
 Export settings	Ayarları dışa aktar
@@ -150,8 +150,6 @@ Pause, backup and diagnostics	Duraklatma, yedekleme ve tanılama
 Updates	Güncellemeler
 Jump to a section	Bir bölüme git
 Go straight to one group of settings. Back returns to where you were.	Doğrudan bir ayar grubuna git. Geri, bulunduğun yere döndürür.
-Browse settings	Ayarları keşfet
-More settings	Diğer ayarlar
 No matching settings	Eşleşen ayar yok
 %1$d setting found	%1$d ayar bulundu
 %1$d settings found	%1$d ayar bulundu
@@ -160,8 +158,6 @@ Search settings	Ayarlarda ara
 Clear search	Aramayı temizle
 Saves	Kaydetmeler
 No saves in progress.	Devam eden kaydetme yok.
-Settings	Ayarlar
-Your controls are active.	Ayarların etkin.
 Pause	Duraklat
 Resume	Devam et
 Undo	Geri al
@@ -304,6 +300,10 @@ Posts	Gönderiler
 Copy text when you hold a post	Bir gönderiye basılı tutunca metni kopyala
 Copy text on long press	Uzun basınca metni kopyala
 Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	Bir gönderinin metnine basılı tutunca, açtığın bir gönderide de Metni kopyala açılır. Böylece kelime seçmek yerine gönderinin tamamını bağlantılarıyla birlikte alırsın.
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	Metin kopyalama ve tam gönderi saatleri
+Show the date and time	Tarihi ve saati göster
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	Gönderiler ve yanıtlar, ne kadar önce paylaşıldıkları yerine paylaşıldıkları tarihi ve saati telefonunuzun 12 veya 24 saatlik biçiminde gösterir.
 # Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
 Quick setups	Hızlı kurulumlar
 Quiet	Sessiz
@@ -337,4 +337,42 @@ Not saved: the proxy wants a password. Try another network.	Kaydedilmedi: Proxy 
 The proxy wants a password. Try another network.	Proxy parola istiyor. Başka bir ağ dene.
 # The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
 Settings shortcut on the app icon	Uygulama simgesinde ayarlar kısayolu
-Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu, and you can still open these settings from the HushThreads row in Threads' settings or with a long press on the Threads logo.	Threads simgesine basılı tutunca açılan menüye HushThreads ayarlarını koyar. Kapalıyken bu menüden çıkar. Bu ayarları yine Threads ayarlarındaki HushThreads satırından ya da Threads logosuna basılı tutarak açabilirsin.
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Threads simgesine basılı tutunca açılan menüye HushThreads ayarlarını koyar. Kapalıyken bu menüden çıkar.
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Threads ayarlarındaki satır
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Threads ayarlarında Diğer ayarlar'ın hemen üstüne bir HushThreads satırı ekler. Kapalıyken satır, Threads ayarlarını bir sonraki açtığında gider.
+Open settings from the logo	Ayarları logodan aç
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	Akışın üstündeki Threads logosuna basılı tutmak bu ayarları açar. Kapalıyken basılı tutmak hiçbir şey yapmaz.
+Stays on, since it's the only way left into these settings.	Bu ayarlara açılan son yol olduğu için açık kalır.
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	Tüm ayarları liste olarak göster
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	Ayarları kategoriye göre göster
+# context: what a screen reader says about a section button that is folded open
+Expanded	Genişletildi
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	Daraltıldı
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	Destek
+# context: the line under the Support section button
+Reports, restart and app information	Raporlar, yeniden başlatma ve uygulama bilgileri
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	Yardım ve yeniden başlatma
+# context: small heading over the Ko-fi link in Support
+Support the project	Projeyi destekle
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	Threads'i yeniden başlat
+Version %1$s	Sürüm %1$s
+Build %1$s (modified)	Derleme %1$s (değiştirilmiş)
+Build %1$s (source known)	Derleme %1$s (kaynak biliniyor)
+Build %1$s (source unknown)	Derleme %1$s (kaynak bilinmiyor)
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	Yorumlar
+Spam replies by words or links	Kelimeye veya bağlantıya göre spam yanıtlar
+Filter comments	Yorumları filtrele
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	Aşağıdaki kalıplarla eşleşen yanıtlar bir gönderinin yanıtlarından çıkarılır, böylece spam bir yanıt hiç görünmez. Bir yanıt ve altında gösterilen yanıtlar birlikte denetlenir ve birlikte çıkarılır. Normal yanıtlar sırasını korur.
+Blocked words and domains	Engellenen sözcükler ve alan adları
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	Her satıra bir kalıp veya virgülle ayırarak. shopee.vn gibi bir mağaza alan adı, ona bağlantı veren yanıtları çıkarır.
+One pattern a line, or separated by commas. Matched whatever the letter case.	Her satıra bir kalıp veya virgülle ayırarak. Büyük-küçük harf ayrımı yapılmadan eşleştirilir.
+Hide comments with links	Bağlantı içeren yorumları gizle
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Web bağlantısı içeren yanıtlar, kalıplar ne derse desin çıkarılır. shopee.vn gibi yalın bir site adını kalıp olarak ekleyin.

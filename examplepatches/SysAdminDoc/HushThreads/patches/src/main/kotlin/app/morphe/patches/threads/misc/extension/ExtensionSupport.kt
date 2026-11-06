@@ -195,6 +195,7 @@ internal fun Method.liveAcrossInjection(index: Int, targets: Collection<Int> = e
  *
  * @param highest the highest register the code's operands can name, v15 for an `invoke` or an
  *        `iget`, v255 for a `move-result` or an `if-eqz`
+ * @param excluding registers the code reads, never offered even where nothing reads them later
  */
 internal fun Method.freeLocalsAt(
     what: String,
@@ -202,9 +203,10 @@ internal fun Method.freeLocalsAt(
     count: Int,
     targets: Collection<Int> = emptyList(),
     highest: Int = 15,
+    excluding: Collection<Int> = emptyList(),
 ): List<Int> {
     val live = liveAcrossInjection(index, targets)
-    val free = (0 until minOf(localRegisterCount(), highest + 1)).filter { it !in live }
+    val free = (0 until minOf(localRegisterCount(), highest + 1)).filter { it !in live && it !in excluding }
     if (free.size < count) {
         throw PatchException(
             "$what: $definingClass->$name has ${free.size} local register(s) up to v$highest that nothing reads " +
@@ -212,6 +214,19 @@ internal fun Method.freeLocalsAt(
         )
     }
     return free.take(count)
+}
+
+/**
+ * `invoke-static` of [call] on the objects in [registers], as code put in front of instruction
+ * [index]. The call names 4-bit registers, so each of [registers] above v15 is first copied into
+ * a local [freeLocalsAt] offers there, none of [registers] itself. A build whose allocator moves a
+ * value up to v16 then still patches, where a refusal would stop the whole run (#20).
+ */
+internal fun Method.invokeStaticAt(what: String, index: Int, call: String, registers: List<Int>): String {
+    val high = registers.filter { it > 15 }.distinct()
+    val low = if (high.isEmpty()) emptyMap() else high.zip(freeLocalsAt(what, index, high.size, excluding = registers)).toMap()
+    val copies = high.joinToString("") { "move-object/from16 v${low[it]}, v$it\n" }
+    return copies + "invoke-static { ${registers.joinToString { "v${low[it] ?: it}" }} }, $call"
 }
 
 /**

@@ -35,6 +35,7 @@ patches {
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 val nicoidD8 = configurations.create("nicoidD8")
 val nicoidSmali = configurations.create("nicoidSmali")
+val nicoidBaksmali = configurations.create("nicoidBaksmali")
 val nicoidTestJson = configurations.create("nicoidTestJson")
 
 dependencies {
@@ -43,6 +44,7 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
     add(nicoidD8.name, "com.android.tools:r8:9.4.28")
     add(nicoidSmali.name, "org.smali:smali:2.5.2")
+    add(nicoidBaksmali.name, "org.smali:baksmali:2.5.2")
 }
 
 val androidJar = providers.provider {
@@ -274,12 +276,58 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
     classpath = files(compileSettingsIntegrityTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory })
     mainClass.set("e.e.a.HistorySortRulesTest")
 }
+// v1.10.2 canonical release payload overlay: compile the source helper from
+// editable Java, disassemble it to smali and assemble it with a COPY of the
+// recovered v1.10.1 payload. No published source files are modified.
+val dev111Sources = rootProject.file("porting/revisions/v1.10.2/java")
+val compileDev111 = tasks.register<JavaCompile>("compileDev111") {
+    source(fileTree(dev111Sources) { include("**/*.java") })
+    classpath = files(androidJar)
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/dev111/classes"))
+    options.encoding = "UTF-8"
+    options.release.set(8)
+}
+val dev111Jar = tasks.register<Jar>("dev111Jar") {
+    dependsOn(compileDev111)
+    archiveFileName.set("nicoid-dev111.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("nicoid/dev111"))
+    from(compileDev111.flatMap { it.destinationDirectory })
+}
+val dev111Dex = tasks.register<JavaExec>("dev111Dex") {
+    dependsOn(dev111Jar)
+    classpath = nicoidD8
+    mainClass.set("com.android.tools.r8.D8")
+    val output = layout.buildDirectory.dir("nicoid/dev111/dex")
+    doFirst {
+        output.get().asFile.deleteRecursively()
+        check(output.get().asFile.mkdirs()) { "Cannot create development dex directory" }
+    }
+    args("--min-api", "21", "--lib", androidJar.get().absolutePath,
+        "--lib", System.getProperty("java.home"), "--output", output.get().asFile.absolutePath,
+        dev111Jar.get().archiveFile.get().asFile.absolutePath)
+}
+val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
+    dependsOn(dev111Dex)
+    classpath = nicoidBaksmali
+    mainClass.set("org.jf.baksmali.Main")
+    val output = layout.buildDirectory.dir("nicoid/dev111/smali")
+    doFirst {
+        output.get().asFile.deleteRecursively()
+        check(output.get().asFile.mkdirs()) { "Cannot create development smali directory" }
+    }
+    args("disassemble", layout.buildDirectory.file("nicoid/dev111/dex/classes.dex").get().asFile.absolutePath,
+        "--output", output.get().asFile.absolutePath)
+}
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
-    val revision = rootProject.file("porting/revisions/v1.10.1")
+    dependsOn(dev111Smali)
+    val revision = rootProject.file("porting/revisions/v1.10.2")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")
+    val devSources = layout.buildDirectory.dir("nicoid/dev111/smali")
     inputs.dir(revision)
+    inputs.dir(rootProject.file("porting/revisions/v1.10.1"))
+    inputs.dir(devSources)
     outputs.files(payloads.resolve("helpers.mpe"), payloads.resolve("method-delta.dex"))
-    commandLine("bash", revision.resolve("build-payloads.sh"), payloads)
+    commandLine("bash", revision.resolve("build-payloads.sh"), payloads, devSources.get().asFile, "", project.version.toString())
 }
 
 tasks {
@@ -302,6 +350,9 @@ tasks {
 tasks.named("buildAndroid") { dependsOn(prepareNicoidHelpers) }
 tasks.named("build") { dependsOn(prepareNicoidHelpers) }
 tasks.named("processResources") { dependsOn(prepareNicoidHelpers) }
+// Gradle 9.8+ validates generated-resource ownership for the source archive.
+// The release task generates this archive; depend on its payload producer explicitly.
+tasks.matching { it.name == "sourcesJar" }.configureEach { dependsOn(prepareNicoidHelpers) }
 
 val patchesProject = project
 gradle.projectsEvaluated {

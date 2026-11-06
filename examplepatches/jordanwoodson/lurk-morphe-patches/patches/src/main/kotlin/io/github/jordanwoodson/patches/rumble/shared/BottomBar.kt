@@ -6,15 +6,12 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.string
 import io.github.jordanwoodson.patches.shared.compose.skipLoopItems
 
-// The bottom bar's content lambda, which loops over the tab list and draws one item per tab. Since 3.22.0 it is a
-// static method returning Unit, one Compose group deeper than before.
+// The bottom bar's content lambda, which loops over the tab list and draws one item per tab.
 internal object BottomNavigationBarFingerprint : Fingerprint(
+    returnType = "V",
     filters = listOf(
         string("\$this\$RumbleBottomNavigation"),
-        string(
-            "com.rumble.battles.navigation.BottomNavigationBar.<anonymous>.<anonymous> (",
-            StringComparisonType.STARTS_WITH,
-        ),
+        string("com.rumble.battles.navigation.BottomNavigationBar.<anonymous> (", StringComparisonType.STARTS_WITH),
     ),
 )
 

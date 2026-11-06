@@ -1,5 +1,6 @@
 package app.wordfeudwordfinder.extension.ui;
 
+import app.wordfeudwordfinder.extension.core.Tiles;
 import app.wordfeudwordfinder.extension.game.Ruleset;
 import app.wordfeudwordfinder.extension.solver.Move;
 import app.wordfeudwordfinder.extension.solver.Rules;
@@ -53,7 +54,8 @@ public final class OverlayFormat {
     /** Point value of a tile; 0 for a blank, an unknown letter, an empty square or no ruleset. */
     public static int letterPoints(Ruleset rs, char c) {
         if (c == '\0' || rs == null || isBlank(rs, c)) return 0;
-        Integer v = rs.getTilePoints().get(String.valueOf(c));
+        Integer v = rs.getTilePoints().get(Tiles.text(c)); // digraph code -> "CH"
+        if (v == null) v = rs.getTilePoints().get(String.valueOf(c));
         return v == null ? 0 : v;
     }
 
@@ -113,7 +115,7 @@ public final class OverlayFormat {
     public static String rejectionText(String lang, List<String> words, boolean oneOf) {
         if (words == null || words.isEmpty()) return Strings.get(lang, Key.REJECTED);
         return String.format(Locale.ROOT, Strings.get(lang, oneOf ? Key.REJECTED_ONE_OF : Key.REJECTED_WORDS),
-                String.join(", ", words));
+                String.join(", ", Tiles.spell(words)));
     }
 
     /** Score with its unit, e.g. "12 pts". */

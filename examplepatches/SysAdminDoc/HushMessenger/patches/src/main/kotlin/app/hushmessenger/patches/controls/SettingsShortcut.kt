@@ -71,6 +71,86 @@ internal fun resolveShortcutsPath(
 private fun Element.children(tag: String) = (0 until childNodes.length)
     .mapNotNull { childNodes.item(it) as? Element }.filter { it.tagName == tag }
 
+/*
+ * Labels and the icon of the screens HushMessenger adds. Text written straight into the manifest showed as "Messenger"
+ * on some phones: a realme launcher listed the settings icon under Messenger's own name and icon (#141), and a Samsung
+ * on Android 12 named Bold and Italic "Messenger" in the text menu (#125). Every label is a string resource now,
+ * translated where the settings page is, and the icon is a drawable of the app's own instead of one of Android's.
+ */
+internal const val SETTINGS_LABEL = "hush_settings_label"
+internal const val RESTART_LABEL = "hush_restart_label"
+internal const val BOLD_LABEL = "hush_text_bold"
+internal const val ITALIC_LABEL = "hush_text_italic"
+internal const val SETTINGS_ICON = "hush_settings_icon"
+internal const val SETTINGS_ICON_PATH = "res/drawable/$SETTINGS_ICON.xml"
+internal const val DEFAULT_STRINGS = "res/values/strings.xml"
+
+/** The name the settings label carries in every language, which a clone swaps for its own app name. */
+internal const val SETTINGS_LABEL_NAME = "HushMessenger"
+
+/** Each label's text by strings file. The translations are the settings page's own rows (SettingsTextViVN, SettingsTextZhTw). */
+internal val MANIFEST_STRINGS: Map<String, Map<String, String>> = linkedMapOf(
+    DEFAULT_STRINGS to linkedMapOf(SETTINGS_LABEL to "HushMessenger settings", RESTART_LABEL to "Restart Messenger",
+        BOLD_LABEL to "Bold", ITALIC_LABEL to "Italic"),
+    "res/values-vi/strings.xml" to linkedMapOf(SETTINGS_LABEL to "Cài đặt HushMessenger", RESTART_LABEL to "Khởi động lại Messenger",
+        BOLD_LABEL to "Đậm", ITALIC_LABEL to "Nghiêng"),
+    "res/values-zh-rTW/strings.xml" to linkedMapOf(SETTINGS_LABEL to "HushMessenger 設定", RESTART_LABEL to "重新啟動 Messenger",
+        BOLD_LABEL to "粗體", ITALIC_LABEL to "斜體"),
+)
+
+private fun Element.strings() = children("string")
+
+/** Adds [strings] to a decoded strings file. Refuses, before adding any, a file that already has one of them. */
+internal fun Document.addStrings(strings: Map<String, String>) {
+    val resources = documentElement
+    if (resources?.tagName != "resources") throw PatchException("Messenger controls: a strings file has no resources element")
+    val taken = resources.strings().map { it.getAttribute("name") }.toSet()
+    strings.keys.firstOrNull { it in taken }?.let {
+        throw PatchException("Messenger controls: the APK already has a string called $it. Start with the stock APK.")
+    }
+    for ((name, text) in strings) resources.appendChild(createElement("string").also {
+        it.setAttribute("name", name)
+        it.textContent = text
+    })
+}
+
+/** Rewrites the string [name] of a decoded strings file to [text]. Answers whether the file had it. */
+internal fun Document.setString(name: String, text: String): Boolean {
+    val string = documentElement?.strings()?.singleOrNull { it.getAttribute("name") == name } ?: return false
+    string.textContent = text
+    return true
+}
+
+// Declared before SETTINGS_ICON_XML, which reads it: top-level values initialize in file order.
+internal const val GEAR_PATH = "M19.14,12.94c0.04,-0.3 0.06,-0.61 0.06,-0.94c0,-0.32 -0.02,-0.64 -0.07,-0.94l2.03,-1.58" +
+    "c0.18,-0.14 0.23,-0.41 0.12,-0.61l-1.92,-3.32c-0.12,-0.22 -0.37,-0.29 -0.59,-0.22l-2.39,0.96c-0.5,-0.38 -1.03,-0.7 -1.62,-0.94" +
+    "L14.4,2.81c-0.04,-0.24 -0.24,-0.41 -0.48,-0.41h-3.84c-0.24,0 -0.43,0.17 -0.47,0.41L9.25,5.35C8.66,5.59 8.12,5.92 7.63,6.29" +
+    "L5.24,5.33c-0.22,-0.08 -0.47,0 -0.59,0.22L2.74,8.87C2.62,9.08 2.66,9.34 2.86,9.48l2.03,1.58C4.84,11.36 4.8,11.69 4.8,12" +
+    "s0.02,0.64 0.07,0.94l-2.03,1.58c-0.18,0.14 -0.23,0.41 -0.12,0.61l1.92,3.32c0.12,0.22 0.37,0.29 0.59,0.22l2.39,-0.96" +
+    "c0.5,0.38 1.03,0.7 1.62,0.94l0.36,2.54c0.05,0.24 0.24,0.41 0.48,0.41h3.84c0.24,0 0.44,-0.17 0.47,-0.41l0.36,-2.54" +
+    "c0.59,-0.24 1.13,-0.56 1.62,-0.94l2.39,0.96c0.22,0.08 0.47,0 0.59,-0.22l1.92,-3.32c0.12,-0.22 0.07,-0.47 -0.12,-0.61" +
+    "L19.14,12.94zM12,15.6c-1.98,0 -3.6,-1.62 -3.6,-3.6s1.62,-3.6 3.6,-3.6s3.6,1.62 3.6,3.6S13.98,15.6 12,15.6z"
+
+/**
+ * The settings icon: a white gear on the blue of HushMessenger's own icon, as an adaptive icon so every launcher shapes
+ * it like the icons beside it. The gear is the Material settings glyph, scaled from its 24 unit box into the middle 54
+ * of the 108 a launcher masks, inside the 66 it always shows.
+ */
+internal const val SETTINGS_ICON_XML = """<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background>
+        <color android:color="#FF0A6CFF" />
+    </background>
+    <foreground>
+        <vector android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+            <group android:translateX="27" android:translateY="27" android:scaleX="2.25" android:scaleY="2.25">
+                <path android:fillColor="#FFFFFFFF" android:pathData="$GEAR_PATH" />
+            </group>
+        </vector>
+    </foreground>
+</adaptive-icon>
+"""
+
 /**
  * Settings, restart and the app drawer icon. Messenger's shortcuts file stays stock: the extension publishes Patch
  * controls and Restart Messenger as dynamic shortcuts, which its Hide the icon shortcuts switch can take away again

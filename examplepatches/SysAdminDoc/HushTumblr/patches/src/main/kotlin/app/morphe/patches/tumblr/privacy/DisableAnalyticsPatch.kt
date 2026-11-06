@@ -12,7 +12,10 @@ package app.morphe.patches.tumblr.privacy
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patches.tumblr.ads.LIVERAMP_STARTUP_GUARDS
+import app.morphe.patches.tumblr.ads.guardStartups
 import app.morphe.patches.tumblr.flags.featureSwitchHookPatch
+import app.morphe.patches.tumblr.lookup.requireExtensionHook
 import app.morphe.patches.tumblr.misc.extension.enableCapability
 import app.morphe.patches.tumblr.misc.extension.enableStatus
 import app.morphe.patches.tumblr.misc.extension.requireStatusMethod
@@ -69,6 +72,8 @@ internal val analyticsPreflightPatch = bytecodePatch {
     execute {
         requireStatusMethod("disableAnalytics")
         requireStatusMethod("analyticsFlags")
+        requireStatusMethod("liveRampStartup")
+        LIVERAMP_STARTUP_GUARDS.forEach { requireExtensionHook(PATCH, it.hook) }
     }
 }
 
@@ -82,14 +87,16 @@ internal val disableFirebaseAnalyticsManifestPatch = resourcePatch {
  * these switches itself, so the edit adds them all. That half is a manifest change with no switch
  * in the app. The other half is the switch: it claims Tumblr's own tracking flags (LiveRamp, Open
  * Measurement, Moat, its exposure, network, performance and supply logging) in the extension's
- * feature switch table, so they answer off once Tumblr restarts.
+ * feature switch table, so they answer off once Tumblr restarts, and keeps LiveRamp's own
+ * manifest provider from starting its identity SDK at launch ([LIVERAMP_STARTUP_GUARDS]).
  */
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = PATCH,
     description = "Turns off Firebase crash reports and Google's analytics collection, and Tumblr's own tracking" +
-        " and ad measurement once it restarts. The Firebase and Google part stays until you patch again" +
-        " without it. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy.",
+        " and ad measurement once it restarts. LiveRamp's identity tracker doesn't start when Tumblr launches." +
+        " The Firebase and Google part stays until you patch again without it. On by default. Turn it off in" +
+        " Tumblr settings > HushTumblr > Privacy.",
     default = true,
 ) {
     category("Privacy")
@@ -99,6 +106,7 @@ val disableAnalyticsPatch = bytecodePatch(
     execute {
         requireStatusMethod("analyticsFlags")
         enableCapability("analyticsFlags")
+        if (guardStartups(PATCH, LIVERAMP_STARTUP_GUARDS)) enableCapability("liveRampStartup")
         enableStatus("disableAnalytics")
     }
 }

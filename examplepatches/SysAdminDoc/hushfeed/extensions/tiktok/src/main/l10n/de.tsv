@@ -424,6 +424,8 @@ Disable	Ausschalten
 Stop analytics and tracking	Analyse und Tracking stoppen
 Long-press Home for Hushfeed settings	Startseite lange drücken für Hushfeed-Einstellungen
 Press and hold the Home tab to open these settings. A tap on Home works as before.	Halte den Tab Startseite gedrückt, um diese Einstellungen zu öffnen. Ein Tippen auf Startseite funktioniert wie bisher.
+Search instead of Home	Suche statt Startseite
+The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.	Der Tab Startseite wird zu einer Suchtaste. Symbol und Name zeigen Suche, und ein Tippen öffnet die TikTok-Suche statt „Für dich“. TikTok startet im Posteingang oder, wenn der Posteingang ausgeblendet ist, im Profil, damit beim Öffnen kein Feed läuft.
 Keep For You on a Home tap	„Für dich“ beim Tippen auf Startseite behalten
 Keep For You on a pull down	„Für dich“ beim Herunterziehen behalten
 Keep long press from quick sharing	Langes Drücken nicht schnell teilen lassen
@@ -519,6 +521,7 @@ Forget seen videos after	Gesehene Videos vergessen nach
 Forget the %1$s seen videos.	Die %1$s gesehenen Videos vergessen.
 Forget what has been counted today and end any hold. The budgets themselves are left alone.	Vergessen, was heute gezählt wurde, und jede Sperre beenden. Die Budgets selbst bleiben unverändert.
 Friends	Freunde
+Discover	Entdecken
 Full comment sort options	Vollständige Sortieroptionen für Kommentare
 Full license	Vollständige Lizenz
 Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
@@ -1358,6 +1361,8 @@ Hide the Report button on videos	Melden-Schaltfläche auf Videos ausblenden
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	Blendet die Flaggen-Schaltfläche aus, die TikTok in manchen Regionen über dem Bild des Creators zeigt. Melden kannst du ein Video weiterhin über das Teilen-Menü.
 Hide search rewards	Such-Prämien ausblenden
 Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.	Blendet das Punkte-Banner unter dem Suchfeld und den schwebenden Münzzähler über den Suchergebnissen aus, die TikTok in manchen Regionen zeigt. Die Suche funktioniert wie bisher.
+Show only the search bar on Discover	Bei Entdecken nur die Suchleiste zeigen
+On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.	Blendet auf dem Tab Entdecken, den TikTok in manchen Regionen zeigt, die angesagten Hashtags, die Banner und die Tabs unter dem Suchfeld aus. Das Suchfeld bleibt und funktioniert wie bisher.
 %1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.	%1$s hat %2$d Mal hintereinander alles ausgeblendet, was TikTok geschickt hat. Schalte es aus, wenn du das nicht wolltest.
 Show the switch	Schalter anzeigen
 
@@ -1401,11 +1406,19 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	TikTok Shop in der Suche ausblenden
 Hide the Products block and product cards in search results.	Den Produkte-Block und Produktkarten in den Suchergebnissen ausblenden.
 Hide TikTok's Auto scroll button	TikToks Auto-Scroll-Schaltfläche ausblenden
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	Entfernt TikToks eigene Auto-Scroll-Aktion aus dem Videomenü und den Auto-Scroll-Schalter neben dem Video auf Tablets und aufgeklappten Foldables. Funktioniert auch bei ausgeschaltetem automatischem Weiterschalten.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.	Entfernt TikToks eigene Auto-Scroll-Aktion aus dem Videomenü und das Auto-Scroll-Label oben im Video. Auf Tablets und aufgeklappten Foldables verschwindet auch der Auto-Scroll-Schalter neben dem Video. Funktioniert auch bei ausgeschaltetem automatischem Weiterschalten.
 Hide the unread badges on the bottom tabs	Ungelesen-Abzeichen auf den unteren Tabs ausblenden
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Blendet die roten Zähler und Punkte auf allen unteren Tabs aus, Posteingang und Profil eingeschlossen, dazu die Blase über dem Posteingang, die neue Likes, Follower, Kommentare und laufende LIVEs zählt. Der Posteingang selbst zeigt weiterhin, was angekommen ist.
 Speed while you hold the video	Geschwindigkeit, solange du das Video gedrückt hältst
 Slide to change the hold speed	Haltegeschwindigkeit durch Wischen ändern
+Hold speed bubble style	Stil der Haltegeschwindigkeits-Blase
+Pill	Pille
+Circle	Kreis
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	Pille ist die breite Blase mit einer Punktreihe unter der Geschwindigkeit. Kreis ist eine kleine runde Skala mit einer Kerbe für jede Geschwindigkeit am Rand.
+Hold speed slide direction	Wischrichtung der Haltegeschwindigkeit
+Sideways	Seitwärts
+Up and down	Hoch und runter
+With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.	Bei Seitwärts wischst du nach links oder rechts, um die Geschwindigkeit zu ändern, und ziehst nach unten, um sie zu sperren. Bei Hoch und runter wischst du nach oben für schneller, nach unten für langsamer und zur Seite, um sie zu sperren. So erreicht auch ein Halten nahe am Rand jede Geschwindigkeit.
 Hide mini dramas	Mini-Dramen ausblenden
 Hide TikTok's short drama episodes and the cards that promote them.	TikToks kurze Drama-Folgen und die Karten, die dafür werben, ausblenden.
 Mini dramas	Mini-Dramen
@@ -2285,6 +2298,8 @@ Most liked first	Meistgelikte zuerst
 Least liked first	Am wenigsten gelikte zuerst
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Sortiert ein Profil- oder Gefällt-mir-Raster, angeheftete Videos bleiben vorn. Solange eine Reihenfolge gewählt ist, lädt das Raster von selbst bis zu 300 Videos nach, damit die Reihenfolge mehr als den ersten Bildschirm erfasst. Eine Schaltfläche in der oberen Ecke des Rasters ändert die Reihenfolge direkt dort.
 Sort loaded videos on Liked grids	Geladene Videos in Rastern mit „Gefällt mir“-Angaben sortieren
+Sort loaded videos on sound pages	Geladene Videos auf Sound-Seiten sortieren
+Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	Sortiert die Videos auf der Seite eines Sounds genauso und lädt bis zu 300 davon, solange eine Reihenfolge gewählt ist.
 Same as profile grids	Wie Profilraster
 Sort this grid	Dieses Raster sortieren
 Blur the video behind the bar	Video hinter der Leiste unscharf machen
@@ -2466,3 +2481,51 @@ Hide streak pop-ups	Streak-Pop-ups ausblenden
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	Hält die Streak-Hinweise an, die über TikTok einblenden, sowie die Streak-Nachrichten und Tipps in deinen Chats.
 Long press on For You opens my watch history	Langes Drücken auf Für dich öffnet meinen Wiedergabeverlauf
 Instead of these settings. The list has a button that brings you back here.	Statt dieser Einstellungen. Die Liste hat eine Schaltfläche, die dich hierher zurückbringt.
+Long press on Profile opens my watch history	Langes Drücken auf Profil öffnet meinen Wiedergabeverlauf
+Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.	Statt des Wiedergabeverlaufs von TikTok. Ein Tippen auf Profil funktioniert wie bisher. Wenn du durch langes Drücken auf Profil das Konto wechselst, übernimmt dies diesen Druck.
+Auto tap in LIVE rooms	Auto-Tippen in LIVE-Räumen
+Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.	Fügt LIVE-Räumen eine Auto-Tippen-Taste hinzu. Tippe sie an, um in gleichmäßigem Tempo auf den Stream zu tippen, und tippe erneut, um aufzuhören. Es stoppt auch, wenn du den Raum verlässt oder zu einem anderen wischst, TikTok verlässt oder den Bildschirm sperrst.
+Auto tap speed	Tempo beim Auto-Tippen
+2 taps a second	2-mal pro Sekunde
+4 taps a second	4-mal pro Sekunde
+6 taps a second	6-mal pro Sekunde
+8 taps a second	8-mal pro Sekunde
+Auto tap	Auto-Tippen
+Start tapping this LIVE	Auf dieses LIVE tippen
+Stop tapping this LIVE	Tippen auf dieses LIVE beenden
+Auto tap stopped	Auto-Tippen gestoppt
+Clean up your account	Konto aufräumen
+Remove all reposts	Alle Reposts entfernen
+Deletes all reposts from your account sequentially.	Löscht alle Reposts deines Kontos nacheinander.
+Remove all likes	Alle Likes entfernen
+Unlikes every video one after another.	Nimmt die Likes aller Videos nacheinander zurück.
+Clear Favorites	Favoriten leeren
+Removes every video from Favorites one after another.	Entfernt alle Videos nacheinander aus den Favoriten.
+Removing all reposts in %1$d	Reposts werden entfernt in %1$d
+Removing all likes in %1$d	Likes werden entfernt in %1$d
+Clearing Favorites in %1$d	Favoriten werden geleert in %1$d
+Reposts removed: %1$d	Entfernte Reposts: %1$d
+Likes removed: %1$d	Entfernte Likes: %1$d
+Favorites removed: %1$d	Aus Favoriten entfernt: %1$d
+Nothing to remove	Nichts zu entfernen
+Done. %1$d removed.	Fertig. %1$d entfernt.
+Stopped. %1$d removed.	Gestoppt. %1$d entfernt.
+TikTok refused. %1$d removed.	TikTok hat abgelehnt. %1$d entfernt.
+Network error. %1$d removed.	Netzwerkfehler. %1$d entfernt.
+Not available on this TikTok version	In dieser TikTok-Version nicht verfügbar
+Sign in to TikTok first	Melde dich zuerst bei TikTok an
+A removal is already running	Es läuft bereits eine Entfernung
+Cancelled	Abgebrochen
+Show inbox filters	Posteingangsfilter anzeigen
+Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Fügt über deinen Chats die Tabs Haupt, Anfragen, Ungelesen und Markiert hinzu, die TikTok sonst Creator-Konten gibt.
+Rebuild message search	Nachrichtensuche neu aufbauen
+Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.	Leert TikToks Nachrichtensuche und nimmt jede auf diesem Handy gespeicherte Nachricht wieder auf, die neuesten zuerst. Es läuft weiter, auch wenn du die Suche verlässt.
+Rebuilding message search	Nachrichtensuche wird neu aufgebaut
+Stopped. Search carries on later.	Gestoppt. Die Suche macht später weiter.
+Couldn't stop it. Try again.	Stoppen fehlgeschlagen. Versuch es erneut.
+Couldn't rebuild search. Try again.	Neuaufbau fehlgeschlagen. Versuch es erneut.
+Message search isn't on for this account	Nachrichtensuche ist für dieses Konto aus
+Offer Audio only in LIVE quality	Nur Audio in der LIVE-Qualität anbieten
+Audio only	Nur Audio
+Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.	Fügt der Videoqualität eines LIVE die Option Nur Audio hinzu. Der Raum spielt den Ton ohne Bild, was viel weniger Daten braucht, bis du eine andere Qualität wählst oder gehst. Aufnahmen aus dem Stream speichern weiterhin das Video.
+Pick a video quality to record the screen	Wähl eine Videoqualität für die Bildschirmaufnahme

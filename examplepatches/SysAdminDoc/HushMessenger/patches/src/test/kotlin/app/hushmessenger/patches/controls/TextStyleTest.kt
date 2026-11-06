@@ -87,7 +87,12 @@ class TextStyleTest {
         assertEquals(listOf("activity", "activity-alias", "activity-alias"), entries.map { it.tagName }, "An alias comes after its activity")
         assertEquals(TEXT_STYLE_ACTIVITY, entries[0].getAttribute("android:name"))
         assertEquals("false", entries[0].getAttribute("android:exported"))
-        assertEquals(TEXT_STYLE_ENTRIES, entries.drop(1).map { it.getAttribute("android:name") to it.getAttribute("android:label") })
+        // Labels are string resources holding the same words: a Samsung on Android 12 showed plain text as "Messenger" (#125).
+        assertEquals(TEXT_STYLE_ENTRIES.map { (name, _) -> name to "@string/${TEXT_STYLE_STRINGS.getValue(name)}" },
+            entries.drop(1).map { it.getAttribute("android:name") to it.getAttribute("android:label") })
+        for ((name, label) in TEXT_STYLE_ENTRIES) {
+            assertEquals(label, MANIFEST_STRINGS.getValue(DEFAULT_STRINGS).getValue(TEXT_STYLE_STRINGS.getValue(name)))
+        }
         for (alias in entries.drop(1)) {
             assertEquals(TEXT_STYLE_ACTIVITY, alias.getAttribute("android:targetActivity"))
             assertEquals("false", alias.getAttribute("android:enabled"), "Hidden until the extension sees the switch on")

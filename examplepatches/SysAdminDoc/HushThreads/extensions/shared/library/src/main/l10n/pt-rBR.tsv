@@ -35,7 +35,7 @@ Debug logging	Registro de depuração
 Diagnostic data cleared. Tap again to put it back.	Dados de diagnóstico apagados. Toque de novo para restaurá-los.
 Diagnostic data put back.	Dados de diagnóstico restaurados.
 Diagnostic report copied to the clipboard.	Relatório de diagnóstico copiado para a área de transferência.
-Clears the saved log and patch check results that a report would include.	Apaga o registro salvo e os resultados das verificações dos patches que um relatório incluiria.
+Clears the saved log, patch check results and any kept crash that a report would include.	Apaga o registro salvo, os resultados das verificações dos patches e a falha guardada que um relatório incluiria.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todas as opções, exceto Registro de depuração, funcionam como se estivessem desativadas, e o que foi definido ao aplicar os patches permanece ativo. Suas configurações não são alteradas.
 Export diagnostic report	Exportar relatório de diagnóstico
 Export settings	Exportar configurações
@@ -149,8 +149,6 @@ Pause, backup and diagnostics	Pausa, backup e diagnóstico
 Updates	Atualizações
 Jump to a section	Ir para uma seção
 Go straight to one group of settings. Back returns to where you were.	Vá diretamente para um grupo de configurações. Voltar leva você de volta ao ponto em que estava.
-Browse settings	Explorar configurações
-More settings	Mais configurações
 No matching settings	Nenhuma configuração encontrada
 %1$d setting found	%1$d configuração encontrada
 %1$d settings found	%1$d configurações encontradas
@@ -159,8 +157,6 @@ Search settings	Buscar configurações
 Clear search	Limpar busca
 Saves	Salvamentos
 No saves in progress.	Nenhum salvamento em andamento.
-Settings	Configurações
-Your controls are active.	Seus controles estão ativos.
 Pause	Pausar
 Resume	Retomar
 Undo	Desfazer
@@ -301,6 +297,10 @@ Posts	Publicações
 Copy text when you hold a post	Copiar texto ao tocar e segurar uma publicação
 Copy text on long press	Copiar texto ao tocar e segurar
 Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	Tocar e segurar o texto de uma publicação abre Copiar texto, até numa publicação aberta, para você copiar a publicação inteira com os links em vez de escolher palavras.
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	Copiar texto e horário exato das publicações
+Show the date and time	Mostrar a data e a hora
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	Publicações e respostas mostram a data e a hora em que foram publicadas, em vez de há quanto tempo, no formato de 12 ou 24 horas do seu celular.
 # Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
 Quick setups	Configurações rápidas
 Quiet	Tranquilo
@@ -334,4 +334,42 @@ Not saved: the proxy wants a password. Try another network.	Não foi salvo: o pr
 The proxy wants a password. Try another network.	O proxy pede uma senha. Tente outra rede.
 # The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
 Settings shortcut on the app icon	Atalho das configurações no ícone do app
-Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu, and you can still open these settings from the HushThreads row in Threads' settings or with a long press on the Threads logo.	Coloca as configurações do HushThreads no menu que aparece ao tocar e segurar o ícone do Threads. Desligado, o atalho sai desse menu, e você ainda pode abrir estas configurações pela linha do HushThreads nas configurações do Threads ou tocando e segurando o logotipo do Threads.
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Coloca as configurações do HushThreads no menu que aparece ao tocar e segurar o ícone do Threads. Desligado, o atalho sai desse menu.
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Linha nas configurações do Threads
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Adiciona uma linha do HushThreads logo acima de Mais configurações nas configurações do Threads. Desligado, a linha some na próxima vez que você abrir as configurações do Threads.
+Open settings from the logo	Abrir as configurações pelo logotipo
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	Tocar e segurar o logotipo do Threads no topo do feed abre estas configurações. Desligado, tocar e segurar não faz nada.
+Stays on, since it's the only way left into these settings.	Fica ligado porque é o único caminho que resta para estas configurações.
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	Mostrar todas as configurações em lista
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	Mostrar configurações por categoria
+# context: what a screen reader says about a section button that is folded open
+Expanded	Expandido
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	Recolhido
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	Suporte
+# context: the line under the Support section button
+Reports, restart and app information	Relatórios, reinicialização e informações do app
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	Ajuda e reinício
+# context: small heading over the Ko-fi link in Support
+Support the project	Apoie o projeto
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	Reiniciar o Threads
+Version %1$s	Versão %1$s
+Build %1$s (modified)	Build %1$s (modificada)
+Build %1$s (source known)	Build %1$s (origem conhecida)
+Build %1$s (source unknown)	Build %1$s (origem desconhecida)
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	Comentários
+Spam replies by words or links	Respostas de spam por palavras ou links
+Filter comments	Filtrar comentários
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	As respostas que correspondem aos padrões abaixo ficam de fora das respostas de uma publicação, então uma resposta de spam nunca aparece. Uma resposta e as respostas mostradas abaixo dela são verificadas e ficam de fora juntas. As respostas normais mantêm a ordem.
+Blocked words and domains	Palavras e domínios bloqueados
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	Um padrão por linha, ou separados por vírgulas. O domínio de uma loja como shopee.vn remove as respostas que apontam para ele.
+One pattern a line, or separated by commas. Matched whatever the letter case.	Um padrão por linha, ou separados por vírgulas. Comparado sem diferenciar maiúsculas de minúsculas.
+Hide comments with links	Ocultar comentários com links
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	As respostas com um link da web ficam de fora, o que quer que os padrões digam. Adicione um nome de site sozinho, como shopee.vn, como padrão.

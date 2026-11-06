@@ -6,22 +6,33 @@ package app.morphe.patches.facebook.reels
 
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.ads.sponsoredsearch.enumConstantFields
+import app.morphe.patches.facebook.ads.sponsoredsearch.enumStrings
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.feed.methodsHolding
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.facebook.misc.extension.patchLog
+import app.morphe.util.classDefForEachReferencing
+import app.morphe.util.cloneMutable
 import app.morphe.util.findMutableMethodOf
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -281,10 +292,18 @@ private fun parameterRegisters(method: Method): List<Int> {
  * The four hooks of the Clean mode button. [holders] answers the classes with a method loading a
  * literal, and [classOf] a class by type. Refuses unless each is found exactly once.
  */
-internal fun cleanModeButtonHooks(
-    holders: (String) -> List<ClassDef>,
-    classOf: (String) -> ClassDef?,
-): List<ButtonHook> {
+/** The Clean mode button's [tap] in [tapOwner], calling the [store]'s [setter] at [setterAt]. */
+private class SetterSite(
+    val event: String,
+    val tapOwner: ClassDef,
+    val tap: Method,
+    val tapCode: List<Instruction>,
+    val setterAt: Int,
+    val store: ClassDef,
+    val setter: Method,
+)
+
+private fun setterSite(holders: (String) -> List<ClassDef>, classOf: (String) -> ClassDef?): SetterSite {
     val event = clearModeEvent(holders(CLEAR_MODE_EVENT)) ?: refuse("expected one class whose toString loads \"$CLEAR_MODE_EVENT\"")
 
     val taps = holders(CLEAR_MODE_TAP).flatMap { owner -> methodsHolding(owner, CLEAR_MODE_TAP).map { owner to it } }
@@ -302,8 +321,22 @@ internal fun cleanModeButtonHooks(
     val setterAt = (minOf(literalAt, tapCode.size) - 1 downTo 0).firstOrNull { at ->
         (tapCode[at].reference as? MethodReference)?.let(::setterOf) != null
     } ?: refuse("the method loading \"$CLEAR_MODE_TAP\" calls no Clean mode setter before it")
+    val (store, setter) = setterOf(tapCode[setterAt].reference as MethodReference)!!
+    return SetterSite(event, tapOwner, tap, tapCode, setterAt, store, setter)
+}
+
+internal fun cleanModeButtonHooks(
+    holders: (String) -> List<ClassDef>,
+    classOf: (String) -> ClassDef?,
+): List<ButtonHook> {
+    val site = setterSite(holders, classOf)
+    val tapOwner = site.tapOwner
+    val tap = site.tap
+    val tapCode = site.tapCode
+    val setterAt = site.setterAt
+    val store = site.store
+    val setter = site.setter
     val setterCall = tapCode[setterAt]
-    val (store, setter) = setterOf(setterCall.reference as MethodReference)!!
 
     // The sticky check: the setter's first no-argument yes-or-no call, asked before anything else.
     val setterCode = setter.code()
@@ -381,6 +414,139 @@ internal fun cleanModeButtonHooks(
 
 private val VIRTUAL_CALLS = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 
+/*
+ * The sidebar's Clean mode button (#391), read from 585 arm64, 2026-11-05.
+ *
+ * - The store (585 LX/09hR;) is a public final class the injector makes through its one
+ *   constructor, which takes nothing and ends in its one return-void.
+ * - The setter (585 LX/09hR;->A01(LX/02xO;LX/0DhY;Z)V) returns at once without a player and for an
+ *   account without sticky Clean mode, then logs. Its work comes next: it sets the flag, takes the
+ *   bus from its lazy holder, posts the event made from the source and the value (21-29), and
+ *   returns. The work reads nothing but the store, the source and the value.
+ * - The tap hands the setter Facebook's own source, a static field read just before the call (585
+ *   LX/02xO;->A1g).
+ *
+ * The patch keeps the store as it's made and copies the setter into the store as [STORE_SWITCH],
+ * whose first instructions read the tap's source and jump to the work, so nothing checks a reel or
+ * the account. The extension's switchStore stub calls the copy with no player.
+ */
+
+/** The copy of the store's setter, made public in the store. */
+internal const val STORE_SWITCH = "hushfacebookSwitch"
+
+internal const val KEEP_STORE = "$CLEAN_MODE->keepStore($OBJECT)V"
+
+private const val SWITCH_STORE = "switchStore"
+
+/** The [store]'s [setter], whose work from [workAt] sets the flag and posts the event from Facebook's [source]. */
+internal class StoreSwitch(val store: ClassDef, val setter: Method, val source: FieldReference, val workAt: Int)
+
+/** Where the sidebar's Clean mode button switches the store. Refuses unless all of it is as read from 585. */
+internal fun cleanModeStoreSwitch(
+    holders: (String) -> List<ClassDef>,
+    classOf: (String) -> ClassDef?,
+): StoreSwitch {
+    val site = setterSite(holders, classOf)
+    val store = site.store
+    val setter = site.setter
+    if (!AccessFlags.PUBLIC.isSet(store.accessFlags)) refuse("the Clean mode store ${store.type} isn't public")
+    val init = store.methods.filter { it.name == "<init>" }
+    if (init.singleOrNull()?.parameterTypes?.isEmpty() != true ||
+        init.single().code().count { it.opcode == Opcode.RETURN_VOID } != 1
+    ) refuse("the Clean mode store ${store.type} isn't made by one constructor taking nothing")
+    val parameters = setter.parameterTypes.map(CharSequence::toString)
+    if (AccessFlags.STATIC.isSet(setter.accessFlags) || parameters.size != 3 || parameters.last() != "Z" ||
+        parameters.take(2).any { !it.startsWith("L") }
+    ) refuse("the Clean mode setter ${store.type}->${setter.name} doesn't take a source, a player and a value")
+
+    // The tap's source: the last write of the call's source register before the call.
+    val sourceRegister = site.tapCode[site.setterAt].registers().getOrNull(1)
+        ?: refuse("the Clean mode button's tap calls the setter with a range")
+    val write = (site.setterAt - 1 downTo 0).map { site.tapCode[it] }.firstOrNull { it.written() == sourceRegister }
+    val source = write?.takeIf { it.opcode == Opcode.SGET_OBJECT }?.reference as? FieldReference
+    if (source == null || source.type != parameters.first()) {
+        refuse("the Clean mode button's tap doesn't hand the setter a static ${parameters.first()}")
+    }
+
+    // The work: from the flag's read and set to the next return, in a line, reading only what it was given.
+    val code = setter.code()
+    val workAt = code.indices.firstOrNull { at ->
+        code[at].opcode == Opcode.IGET_OBJECT &&
+            (code[at].reference as FieldReference).let { it.definingClass == store.type && it.type == ATOMIC_BOOLEAN } &&
+            code.getOrNull(at + 1)?.calls() == ATOMIC_BOOLEAN_SET
+    } ?: refuse("the Clean mode setter doesn't set its flag")
+    val end = (workAt until code.size).firstOrNull { code[it].opcode == Opcode.RETURN_VOID }
+        ?: refuse("the Clean mode setter's work doesn't return")
+    val (sourceParameter, _, valueParameter) = parameterRegisters(setter)
+    val known = mutableSetOf(sourceParameter - 1, sourceParameter, valueParameter)
+    for (at in workAt until end) {
+        val instruction = code[at]
+        if (instruction is OffsetInstruction || instruction.opcode == Opcode.THROW) {
+            refuse("the Clean mode setter's work branches at $at")
+        }
+        instruction.reads().firstOrNull { it !in known }?.let { refuse("the Clean mode setter's work reads v$it at $at") }
+        instruction.written()?.let { known += it }
+    }
+    if ((workAt until end).none { code[it].opcode == Opcode.NEW_INSTANCE && (code[it].reference as TypeReference).type == site.event }) {
+        refuse("the Clean mode setter's work doesn't make the Clean mode event")
+    }
+    return StoreSwitch(store, setter, source, workAt)
+}
+
+/** The register [this] writes, or null. A check-cast writes the register it reads. */
+private fun Instruction.written(): Int? =
+    (this as? OneRegisterInstruction)?.registerA?.takeIf { opcode.setsRegister() }
+
+/** The registers [this] reads. */
+private fun Instruction.reads(): List<Int> {
+    val all = when (this) {
+        is FiveRegisterInstruction, is RegisterRangeInstruction -> registers()
+        is ThreeRegisterInstruction -> listOf(registerA, registerB, registerC)
+        is TwoRegisterInstruction -> listOf(registerA, registerB)
+        is OneRegisterInstruction -> listOf(registerA)
+        else -> emptyList()
+    }
+    return if (written() != null && opcode != Opcode.CHECK_CAST) all.drop(1) else all
+}
+
+/**
+ * The store keeps itself in the extension as it's made, its setter gets a copy that goes straight
+ * to the work, and the extension's stub calls the copy with a null in the source's and the
+ * player's places, the copy reading the source itself.
+ */
+private fun BytecodePatchContext.switchFromSidebar(switch: StoreSwitch) {
+    val store = mutableClassDefBy(switch.store)
+    store.methods.single { it.name == "<init>" }.let { init ->
+        val end = init.implementation!!.instructions.indexOfFirst { it.opcode == Opcode.RETURN_VOID }
+        init.addInstructions(end, "invoke-static { p0 }, $KEEP_STORE")
+    }
+    val copy = switch.setter.cloneMutable(name = STORE_SWITCH, accessFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value)
+    copy.addInstructionsWithLabels(
+        0,
+        """
+            sget-object p1, ${switch.source}
+            goto :work
+        """,
+        ExternalLabel("work", copy.getInstruction(switch.workAt)),
+    )
+    store.methods.add(copy)
+    val signature = "${switch.store.type}->$STORE_SWITCH(${switch.setter.parameterTypes.joinToString("")})V"
+    val stub = mutableClassDefBy(CLEAN_MODE).methods.singleOrNull {
+        it.name == SWITCH_STORE && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(OBJECT, OBJECT, "Z")
+    } ?: refuse("the extension has no $SWITCH_STORE stub")
+    // p1 only lends its register to the null.
+    stub.addInstructions(
+        0,
+        """
+            check-cast p0, ${switch.store.type}
+            const/4 p1, 0x0
+            invoke-virtual { p0, p1, p1, p2 }, $signature
+            return-void
+        """,
+    )
+}
+
 /**
  * The Clean mode button switches both ways while "Always use Clean mode" is on: its tap and the
  * store take Facebook's sticky way, the overlay marks a reel the person took out, and the builder
@@ -388,14 +554,247 @@ private val VIRTUAL_CALLS = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_R
  * answer in the same register.
  */
 internal fun BytecodePatchContext.toggleReelCleanMode() {
-    val hooks = cleanModeButtonHooks(
-        holders = { literal ->
-            classDefByStrings(literal, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
-        },
-        classOf = { type -> classDefByOrNull(type) },
-    )
+    val holders = { literal: String ->
+        classDefByStrings(literal, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+    }
+    val classOf = { type: String -> classDefByOrNull(type) }
+    val hooks = cleanModeButtonHooks(holders, classOf)
+    // #391: the sidebar's Clean mode button goes through the store. Read before any edit, and a
+    // build that moved it only loses that button, so it warns rather than refusing the patch.
+    val storeSwitch = try {
+        cleanModeStoreSwitch(holders, classOf)
+    } catch (refused: PatchException) {
+        patchLog.warning("${refused.message} Reels get no Clean mode button on their sidebar.")
+        null
+    }
+    storeSwitch?.let { switchFromSidebar(it) }
+    // #329: the builder's row for a kept button goes over the details. Its block sits further down
+    // the builder than the value's read, so it goes in first.
+    val builder = hooks.last()
+    val float = cleanButtonFloat(builder.method, holders, classOf) { type ->
+        buildList {
+            classDefForEachReferencing(types = listOf(type)) { classDef ->
+                if (!classDef.type.startsWith(EXTENSION_CLASSES)) addAll(classDef.methods.filter { isStaticMethod(it) })
+            }
+        }
+    }
+    mutableClassDefBy(builder.owner).findMutableMethodOf(builder.method).floatKeptButton(float)
     hooks.sortedByDescending { it.moveResult }.forEach { hook ->
         val keep = if (hook.call.endsWith(")Z")) "move-result" else "move-result-object"
         mutableClassDefBy(hook.owner).findMutableMethodOf(hook.method).askAfter(hook.moveResult, hook.register, hook.call, keep)
     }
 }
+
+/*
+ * The kept button's room (#329), read from 585 arm64, 2026-11-05. The overlay's render lays its
+ * parts out in one column (585 LX/09GM;->A17): the reel's details, which grow to fill it, then the
+ * row the builder makes for the Clean mode button. Out of Clean mode Facebook makes no row, so the
+ * details reach the bottom. The button kept for a reel taken out took its row's height from the
+ * details (174 px on the 1080 px wide test screen), which all moved up by that much and left a gap
+ * above the seek bar.
+ *
+ * - The builder makes the row's style with Litho's margin helper (585 LX/02dj;->A0D: the style,
+ *   then nine dimensions for all, horizontal, vertical, start, top, end, bottom, left and right)
+ *   and hands it first to the row's constructor (585 LX/02jJ;), the object it returns.
+ * - Litho's Kotlin helpers set a position type (585 LX/02cP;->A08, the style and Yoga's position
+ *   type enum, LX/0370;, which keeps the names "STATIC", "RELATIVE" and "ABSOLUTE") and position
+ *   insets (585 LX/02cP;->A03, the style and nine dimensions, each read with one constant of an
+ *   edge enum, LX/0371;, which keeps names like "POSITION_END" and "POSITION_BOTTOM").
+ *
+ * Hooked: right after the margin helper answers, a kept button's style is also positioned
+ * absolutely, 0 from the end and 0 from the bottom. Its margins still apply, so the button sits
+ * where it sits over a clean reel, and the details keep the whole column.
+ */
+
+internal const val FLOAT_CLEAN_BUTTON = "$CLEAN_MODE->floatCleanButton()Z"
+
+/** Yoga's position types, the names its enum keeps. */
+internal val POSITION_TYPES = listOf("STATIC", "RELATIVE", "ABSOLUTE")
+private const val ABSOLUTE = "ABSOLUTE"
+
+/** Two of the edges Litho's position helper sets, the names its edge enum keeps. */
+internal const val POSITION_END = "POSITION_END"
+internal const val POSITION_BOTTOM = "POSITION_BOTTOM"
+
+/** How many dimensions Litho's margin and position helpers take after the style. */
+internal const val EDGES = 9
+
+private const val ENUM = "Ljava/lang/Enum;"
+
+/**
+ * Where the kept button's row is laid over the details: in the builder at [at], right after the
+ * margin helper's move-result keeps the row's style in [style]. The ten registers from [range] the
+ * margin helper was handed aren't read again, so the block borrows them. [positionType] sets
+ * [absolute] on a style, and [position] sets its insets, the end one at [end] and the bottom one at
+ * [bottom] among its [EDGES] dimensions, each a [dimension] made from a long.
+ */
+internal data class FloatHook(
+    val at: Int,
+    val style: Int,
+    val range: Int,
+    val absolute: String,
+    val positionType: String,
+    val position: String,
+    val dimension: String,
+    val end: Int,
+    val bottom: Int,
+)
+
+internal fun isStaticMethod(method: Method) = AccessFlags.STATIC.isSet(method.accessFlags)
+
+private fun Method.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+/** Whether [params] and [returns] are a Litho style helper's: the style, then [EDGES] of [dimension], answering the style. */
+private fun isStyleHelper(params: List<CharSequence>, returns: String, style: String, dimension: String?) =
+    returns == style && params.size == EDGES + 1 && params[0].toString() == style &&
+        dimension != null && params.drop(1).all { it.toString() == dimension }
+
+/**
+ * Every register [this] names. A call lists both halves of a wide argument; any other instruction
+ * whose mnemonic works on a wide value, a long or a double is taken to use the register after each
+ * one it names as well.
+ */
+private fun Instruction.allRegisters(): List<Int> {
+    val named = when (this) {
+        is FiveRegisterInstruction, is RegisterRangeInstruction -> return registers()
+        is ThreeRegisterInstruction -> listOf(registerA, registerB, registerC)
+        is TwoRegisterInstruction -> listOf(registerA, registerB)
+        is OneRegisterInstruction -> listOf(registerA)
+        else -> return emptyList()
+    }
+    val mnemonic = opcode.name // opcode-name-ok: the smali mnemonic is what's matched, "iget-wide", "add-long"
+    val wide = listOf("wide", "long", "double").any { it in mnemonic }
+    return if (wide) named.flatMap { listOf(it, it + 1) } else named
+}
+
+private val DIRECT_CALLS = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
+
+/**
+ * The block that lays a kept button's row over the details, in [builder]. [holders] answers the
+ * classes with a method loading a literal, [classOf] a class by type, and [staticsNaming] the static
+ * methods of the classes that name a type. Refuses unless each part is found exactly once.
+ */
+internal fun cleanButtonFloat(
+    builder: Method,
+    holders: (String) -> List<ClassDef>,
+    classOf: (String) -> ClassDef?,
+    staticsNaming: (String) -> List<Method>,
+): FloatHook {
+    val code = builder.code()
+    // The row: the one object of the builder's own return type it makes, constructed with its style first.
+    val rows = code.indices.filter {
+        code[it].opcode == Opcode.NEW_INSTANCE && (code[it].reference as TypeReference).type == builder.returnType
+    }
+    val rowAt = rows.singleOrNull() ?: refuse("the Clean mode button's builder makes ${rows.size} of ${builder.returnType}")
+    val row = (code[rowAt] as OneRegisterInstruction).registerA
+    val constructorAt = (rowAt + 1 until code.size).firstOrNull { at ->
+        code[at].opcode in DIRECT_CALLS && code[at].calls()?.startsWith("${builder.returnType}-><init>(") == true &&
+            code[at].registers().firstOrNull() == row
+    } ?: refuse("the Clean mode button's builder doesn't construct its row")
+    val constructor = code[constructorAt].reference as MethodReference
+    val styleType = constructor.parameterTypes.firstOrNull()?.toString() ?: refuse("the button's row takes no style")
+    val style = code[constructorAt].registers()[1]
+
+    // The style comes straight from the margin helper, and nothing touches it before the row has it.
+    val keptAt = (constructorAt - 1 downTo 1).firstOrNull { at ->
+        code[at].opcode == Opcode.MOVE_RESULT_OBJECT && (code[at] as OneRegisterInstruction).registerA == style
+    } ?: refuse("the button row's style isn't an answer the builder keeps")
+    if ((keptAt + 1 until constructorAt).any { style in code[it].allRegisters() }) refuse("the button row's style changes before the row has it")
+    val margins = code[keptAt - 1]
+    val marginCall = margins.reference as? MethodReference
+    val dimension = marginCall?.parameterTypes?.getOrNull(1)?.toString()
+    if (margins.opcode != Opcode.INVOKE_STATIC_RANGE || marginCall == null ||
+        !isStyleHelper(marginCall.parameterTypes, marginCall.returnType, styleType, dimension)
+    ) refuse("the button row's style doesn't come from Litho's margin helper")
+    val range = (margins as RegisterRangeInstruction).startRegister
+    if (range + EDGES > 255) refuse("the margin helper's registers run past v255")
+    val borrowed = range..range + EDGES
+    if (code.drop(keptAt + 1).any { instruction -> instruction.allRegisters().any { it in borrowed } }) {
+        refuse("the builder reads the margin helper's registers again")
+    }
+
+    // The edge enum, and the position helper reading one of its edges for each dimension it's handed.
+    val edges = holders(POSITION_BOTTOM).filter { enumStrings(it).containsAll(listOf(POSITION_END, POSITION_BOTTOM)) }
+    val positions = edges.flatMap { edge ->
+        staticsNaming(edge.type).filter { helper ->
+            isStaticMethod(helper) && isStyleHelper(helper.parameterTypes, helper.returnType, styleType, dimension) &&
+                helper.code().any { it.opcode == Opcode.SGET_OBJECT && (it.reference as FieldReference).definingClass == edge.type }
+        }.map { edge to it }
+    }.distinctBy { it.second.signature() }
+    val (edge, position) = positions.singleOrNull()
+        ?: refuse("expected one Litho helper setting position insets, found ${positions.map { it.second.signature() }}")
+
+    // Yoga's position type enum, and the helper beside the position helper that sets one on a style.
+    // Other Kotlin style builders take a position type too, each in its own class.
+    val types = holders(ABSOLUTE).filter { it.superclass == ENUM && enumStrings(it).containsAll(POSITION_TYPES) }
+    val setters = types.flatMap { type ->
+        staticsNaming(type.type).filter {
+            isStaticMethod(it) && it.definingClass == position.definingClass && it.returnType == styleType &&
+                it.parameterTypes.map(CharSequence::toString) == listOf(styleType, type.type)
+        }
+    }.distinctBy { it.signature() }
+    val setter = setters.singleOrNull()
+        ?: refuse("expected one Litho helper beside ${position.signature()} setting a position type, found ${setters.map { it.signature() }}")
+    val positionType = types.first { it.type == setter.parameterTypes[1].toString() }
+    val absolute = enumConstantFields(positionType).entries.singleOrNull { it.value == ABSOLUTE }?.key
+        ?: refuse("Yoga's position type enum ${positionType.type} keeps no $ABSOLUTE")
+    val names = enumConstantFields(edge)
+    val parameters = parameterRegisters(position)
+    val positionCode = position.code()
+    val slots = mutableMapOf<String, Int>()
+    positionCode.forEachIndexed { at, instruction ->
+        val field = instruction.reference as? FieldReference
+        if (instruction.opcode != Opcode.SGET_OBJECT || field?.definingClass != edge.type) return@forEachIndexed
+        // The dimension it goes with is the one whose value was read just before.
+        val read = (at - 1 downTo 0).map { positionCode[it] }.firstOrNull { it.opcode == Opcode.IGET_WIDE } as TwoRegisterInstruction?
+        val slot = read?.let { parameters.indexOf(it.registerB) }?.takeIf { it in 1..EDGES } ?: return@forEachIndexed
+        names[field.name]?.let { slots[it] = slot }
+    }
+    val end = slots[POSITION_END] ?: refuse("Litho's position helper ${position.signature()} sets no $POSITION_END")
+    val bottom = slots[POSITION_BOTTOM] ?: refuse("Litho's position helper ${position.signature()} sets no $POSITION_BOTTOM")
+    if (end == bottom) refuse("Litho's position helper reads $POSITION_END and $POSITION_BOTTOM from one dimension")
+
+    // A dimension is made from a long, as the builder makes its own.
+    val made = classOf(dimension!!)?.methods?.any { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("J") }
+    if (made != true) refuse("Litho's dimension $dimension isn't made from a long")
+
+    return FloatHook(
+        at = keptAt + 1,
+        style = style,
+        range = range,
+        absolute = "${positionType.type}->$absolute:${positionType.type}",
+        positionType = setter.signature(),
+        position = position.signature(),
+        dimension = dimension,
+        end = end,
+        bottom = bottom,
+    )
+}
+
+/**
+ * The block itself: asks the extension, and for a kept button sets the absolute position type, then
+ * a 0 inset from the end and from the bottom, in the borrowed registers, before the row gets its
+ * style. Otherwise it jumps over all of it, to Facebook's next instruction.
+ */
+internal fun floatSmali(hook: FloatHook): String {
+    fun v(slot: Int) = "v${hook.range + slot}"
+    return buildString {
+        appendLine("invoke-static { }, $FLOAT_CLEAN_BUTTON")
+        appendLine("move-result ${v(0)}")
+        appendLine("if-eqz ${v(0)}, :facebook")
+        appendLine("move-object/from16 ${v(0)}, v${hook.style}")
+        appendLine("sget-object ${v(1)}, ${hook.absolute}")
+        appendLine("invoke-static/range { ${v(0)} .. ${v(1)} }, ${hook.positionType}")
+        appendLine("move-result-object ${v(0)}")
+        appendLine("new-instance ${v(1)}, ${hook.dimension}")
+        appendLine("const-wide/16 ${v(2)}, 0x0")
+        appendLine("invoke-direct/range { ${v(1)} .. ${v(3)} }, ${hook.dimension}-><init>(J)V")
+        listOf(hook.end, hook.bottom).filter { it != 1 }.forEach { appendLine("move-object/16 ${v(it)}, ${v(1)}") }
+        (1..EDGES).filter { it != hook.end && it != hook.bottom }.forEach { appendLine("const/16 ${v(it)}, 0x0") }
+        appendLine("invoke-static/range { ${v(0)} .. ${v(EDGES)} }, ${hook.position}")
+        appendLine("move-result-object v${hook.style}")
+    }
+}
+
+internal fun MutableMethod.floatKeptButton(hook: FloatHook) =
+    addInstructionsWithLabels(hook.at, floatSmali(hook), ExternalLabel("facebook", getInstruction(hook.at)))

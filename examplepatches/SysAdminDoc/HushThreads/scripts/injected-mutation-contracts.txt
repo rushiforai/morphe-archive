@@ -88,4 +88,8 @@ threads-feature returnRefresh
 threads-feature disableVideoAutoplay
 threads-feature pureBlack
 threads-feature saveMedia
+# Filter comments hands the reply list the opened post's parser reads to its own filter, once,
+# before Threads parses it, and the four reads the patch writes into the extension answer
+# Threads' own getters: the reply's posts, a post's media, a media's text and its caption.
+threads-feature filterComments
 threads-feature settingsRow

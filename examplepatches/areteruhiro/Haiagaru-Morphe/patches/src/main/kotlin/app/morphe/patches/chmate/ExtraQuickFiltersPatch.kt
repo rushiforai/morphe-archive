@@ -15,7 +15,6 @@ private const val EXTRA_FILTERS = "Lapp/morphe/extension/chmate/ExtraQuickFilter
 internal fun BytecodePatchContext.patchExtraQuickFilters(version: String) {
     if(version !in setOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.242 dev")) return
     patchThreadTitleActions(version)
-    patchExistingNgActions(version)
     val old = version == "0.8.10.191 dev"
     val middle = version == "0.8.10.226 dev"
     val adapter = mutableClassDefBy(if(old) "Lo/m9ExternalSyntheticLambda1;" else if(middle) "Lo/listener;" else "Lo/zzacr;")

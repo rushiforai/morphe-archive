@@ -33,6 +33,7 @@ public final class MorpheSettingsStore {
     public static final String KEY_INFO_REPLACE = "image_info_replace_actions";
     public static final String KEY_IMAGE_INFO = "image_info";
     public static final String KEY_HIGH_QUALITY_IMAGES = "high_quality_images";
+    public static final String KEY_HIDE_AI_PINS = "hide_ai_pins";
     public static final String KEY_HIDE_VIDEO_PINS = "hide_video_pins";
     public static final String KEY_KEEP_HOME_FEED = "keep_home_feed";
     public static final String KEY_HIDE_COMMENTS = "hide_comments";
@@ -49,6 +50,7 @@ public final class MorpheSettingsStore {
         KEY_KEEP_HOME_FEED,
         KEY_HIDE_SHOPPING_PINS,
         KEY_HIDE_VIDEO_PINS,
+        KEY_HIDE_AI_PINS,
         KEY_HIDE_SEARCH_BOARD_MODULES,
         KEY_HIDE_SEARCH_HISTORY,
         KEY_DISABLE_SCREENSHOT_SHARE,
@@ -99,6 +101,19 @@ public final class MorpheSettingsStore {
     static void setMenuFilter(String value) {
         SharedPreferences sp = prefs();
         if (sp != null) sp.edit().putString(KEY_MENU_FILTER, value).apply();
+    }
+
+    // Keep the user-entered text local, outside the settings backup.
+    private static final String KEY_MUTED_PIN_WORDS = "muted_pin_words";
+
+    static String mutedPinWords() {
+        SharedPreferences sp = prefs();
+        return sp == null ? "" : sp.getString(KEY_MUTED_PIN_WORDS, "");
+    }
+
+    static void setMutedPinWords(String value) {
+        SharedPreferences sp = prefs();
+        if (sp != null) sp.edit().putString(KEY_MUTED_PIN_WORDS, value).apply();
     }
 
     private MorpheSettingsStore() {}

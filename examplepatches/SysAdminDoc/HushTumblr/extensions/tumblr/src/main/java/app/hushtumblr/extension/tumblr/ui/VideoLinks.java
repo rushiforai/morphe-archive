@@ -32,7 +32,8 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * video it binds, and the player's controls hold a long-press listener whose callback is empty, so
  * a long press on a video did nothing. The patch hands each container its video's address here as
  * the player is built, and runs the controls' listener through here, so a long press on a video
- * with an address offers to share or copy it. Anything else long-pressed is Tumblr's.
+ * with an address offers to share or copy it, or save a web address's file through {@link VideoSaves}.
+ * Anything else long-pressed is Tumblr's.
  */
 public final class VideoLinks {
     /** Each video container and the address of the video it plays. Views drop out when they're gone. */
@@ -69,12 +70,15 @@ public final class VideoLinks {
             String address = addressOf(pressed);
             if (address == null) return false;
             Context context = pressed.getContext();
+            CharSequence[] choices = VideoSaves.savable(address)
+                    ? new CharSequence[] {L10n.t("Share video link"), L10n.t("Copy video link"), L10n.t("Save video")}
+                    : new CharSequence[] {L10n.t("Share video link"), L10n.t("Copy video link")};
             AlertDialog dialog = new AlertDialog.Builder(HushTumblrPreferenceFragment.themed(context))
-                    .setItems(new CharSequence[] {L10n.t("Share video link"), L10n.t("Copy video link")},
-                            (shown, which) -> {
-                                if (which == 0) share(context, address);
-                                else copy(context, address);
-                            })
+                    .setItems(choices, (shown, which) -> {
+                        if (which == 0) share(context, address);
+                        else if (which == 1) copy(context, address);
+                        else VideoSaves.save(context, address);
+                    })
                     .create();
             dialog.show();
             ScreenColors.dialog(dialog);

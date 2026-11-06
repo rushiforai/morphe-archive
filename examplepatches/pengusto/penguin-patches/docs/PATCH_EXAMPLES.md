@@ -16,6 +16,7 @@ All images reuse published, unedited evidence with synthetic data. Each pair nam
 | Finamp 1.0.1 | [Fix track alphabet navigation](#fix-track-alphabet-navigation) |
 | Finamp 1.0.1 | [Keep player output controls accessible](#keep-player-output-controls-accessible) |
 | Finamp 1.0.1 | [Fix quick settings banner contrast](#fix-quick-settings-banner-contrast) |
+| Finamp 1.0.1 | [Show album and track information](#show-album-and-track-information) |
 | Feeder 2.25.0 · project GitHub F-Droid APK | [Zoom article images](#zoom-article-images) |
 | Infinity+ 8.3.4 | [Configure custom OAuth for Infinity+](#configure-custom-oauth-for-infinity) |
 | Fossify Calendar 1.12.0 | [Readable Calendar descriptions](#readable-calendar-descriptions) |
@@ -50,6 +51,26 @@ export retains the downloaded chapter. The favorite itself remains in both datab
 | <img src="../tests/mihon/evidence/2026-10-30/before.png" width="300" alt="Before: excluded Default-category download lost; Downloaded only library is empty"> | <img src="../tests/mihon/evidence/2026-10-30/after.png" width="300" alt="After: excluded Default-category download retained; synthetic favorite remains downloaded"> |
 
 [Raw PNG/XML and acceptance evidence](../tests/mihon/evidence/2026-10-30/README.md) · [Back to patch index](#before--after)
+
+<a id="show-album-and-track-information"></a>
+
+## Show album and track information
+
+**Finamp 1.0.1** · [Setup & patch details](FINAMP_NATIVE.md)
+
+Read Jellyfin's available album and track descriptions, including descriptions
+saved with downloads. The track action follows the common actions in its menu.
+
+**Installed Android APK captures.** The same downloaded synthetic album, song,
+Light theme and display; the after APK was exported by Morphe Manager using the
+full locally built bundle. See the evidence for the scope of that test.
+
+| Before | After |
+| :---: | :---: |
+| **No track information action** | **Information action with icon** |
+| <img src="../tests/finamp/evidence/2026-11-05-notes/track-before.png" width="300" alt="Before: track menu without an information action"> | <img src="../tests/finamp/evidence/2026-11-05-notes/track-after.png" width="300" alt="After: track information with an icon below the common actions"> |
+
+[Album before](../tests/finamp/evidence/2026-11-05-notes/album-before.png) · [Album after](../tests/finamp/evidence/2026-11-05-notes/album-after.png) · [Raw captures and provenance](../tests/finamp/evidence/2026-11-05-notes/README.md) · [Back to patch index](#before--after)
 
 <a id="song-artist-order"></a>
 
@@ -225,7 +246,11 @@ Use your own authorized Reddit OAuth client and reach the existing login flow wi
 
 **Fossify Calendar 1.12.0 and 1.12.1** · [Setup & patch details](CALENDAR.md)
 
-Read an HTML event description as text while retaining an explicit Edit HTML source action.
+Read HTML event descriptions in the editor, event lists, widget and reminders.
+The editor also offers an explicit Edit HTML source action and preserves the
+original source when unrelated event fields change.
+
+**Editor**
 
 **Previous versus revised Morphe patch.** This is the wrapperless-table regression on the official APK, not an original-versus-patched pair or a source-fork capture. It demonstrates readable cell text, not a full HTML table layout. Live Outlook sync is outside the evidence.
 
@@ -234,9 +259,38 @@ Read an HTML event description as text while retaining an explicit Edit HTML sou
 | **Previous Morphe patch: raw table tags** | **Revised patch: Morning Workshop, with source editing** |
 | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/before-editor.png" width="300" alt="Before: Previous Morphe patch: raw table tags"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/after-editor.png" width="300" alt="After: Revised patch: Morning Workshop, with source editing"> |
 
-[Editor capture provenance](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review)
+**Day list**
 
-[Widget and notification comparisons](CALENDAR.md#widget-and-notification-comparisons) · [Back to patch index](#before--after)
+The same 1.12.0 synthetic event and previous-versus-revised patch comparison.
+
+| Before | After |
+| :---: | :---: |
+| <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/before-list.png" width="300" alt="Before: Previous patch shows table tags in the day list"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review/after-list.png" width="300" alt="After: Revised patch shows readable text in the day list"> |
+
+[Editor and day-list capture provenance](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/calendar-table-review)
+
+**Widget**
+
+Original versus Manager-patched 1.12.1, using the same synthetic event. The
+app's actual widget RemoteViews are rendered in a test container, not a launcher.
+
+| Before | After |
+| :---: | :---: |
+| <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/6cef3805d5f9e9109e81211483b03029d38c78c3/calendar-html-surfaces/2026-11-04/before-widget.png" width="300" alt="Before: Original widget render shows HTML tags"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/6cef3805d5f9e9109e81211483b03029d38c78c3/calendar-html-surfaces/2026-11-04/after-widget.png" width="300" alt="After: Patched widget render shows readable text"> |
+
+**Reminder**
+
+Original versus Manager-patched 1.12.1: Calendar's posted notification in the
+Android notification shade, using the same synthetic description as the widget.
+This directly invokes the notification builder; it does not verify a scheduled
+reminder for a synchronized event. A report of raw HTML in such a reminder is
+still under investigation in [issue #56](https://github.com/pengusto/penguin-patches/issues/56).
+
+| Before | After |
+| :---: | :---: |
+| <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/6cef3805d5f9e9109e81211483b03029d38c78c3/calendar-html-surfaces/2026-11-04/before-notification.png" width="300" alt="Before: Original reminder shows HTML tags"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/6cef3805d5f9e9109e81211483b03029d38c78c3/calendar-html-surfaces/2026-11-04/after-notification.png" width="300" alt="After: Patched reminder shows readable text"> |
+
+[Widget and reminder provenance](https://github.com/pengusto/penguin-patches/tree/6cef3805d5f9e9109e81211483b03029d38c78c3/calendar-html-surfaces/2026-11-04) · [Coverage and remaining checks](CALENDAR.md#verification-and-limits) · [Back to patch index](#before--after)
 
 <a id="separate-all-day-reminder-defaults"></a>
 

@@ -6,6 +6,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction12x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21s
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
@@ -60,6 +61,18 @@ class GoogleAuthFailureDiagnosticsPatchTest {
         assertNull(tokenErrorSite(body))
     }
 
+    /** getString が "Error" 以外のキーを読む場合、hook が受け取る値はエラー文字列ではないので注入しません。 */
+    @Test
+    fun `the getString key must be the Error string`() {
+        val body = listOf(
+            constString(0, TOKEN_ERROR_KEY),
+            getString(bundle = 1, key = 2),
+            ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 3),
+        )
+
+        assertNull(tokenErrorSite(body))
+    }
+
     @Test
     fun `an ambiguous token response is not patched`() {
         val read = listOf(
@@ -99,6 +112,17 @@ class GoogleAuthFailureDiagnosticsPatchTest {
 
         assertFalse(writesRegister(untouched, 5))
         assertTrue(writesRegister(rewritten, 5))
+    }
+
+    /** wide の値は A と A+1 の 2 つの register に書かれるため、A+1 の書き換えも検出します。 */
+    @Test
+    fun `a wide write into the component register is detected`() {
+        val wide = listOf(ImmutableInstruction21s(Opcode.CONST_WIDE_16, 4, 0))
+
+        assertTrue(writesRegister(wide, 5))
+        assertTrue(writesRegister(wide, 4))
+        assertFalse(writesRegister(wide, 6))
+        assertFalse(writesRegister(listOf(ImmutableInstruction21s(Opcode.CONST_16, 4, 0)), 5))
     }
 
     /** 先に適用された bind 先の差し替え hook の結果は、差し替えた ComponentName なので書き換えとして数えません。 */

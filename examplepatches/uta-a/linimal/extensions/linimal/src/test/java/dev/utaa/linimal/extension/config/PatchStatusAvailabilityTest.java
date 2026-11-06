@@ -53,6 +53,8 @@ public final class PatchStatusAvailabilityTest {
                 featureId, "OK", 1, 1) + ","
                 + patch("linimal.patch.read-without-receipt-compose-menu-row",
                         featureId, "OK", 1, 1) + ","
+                + patch("linimal.patch.read-without-receipt-preview-menu-row",
+                        featureId, "OK", 1, 1) + ","
                 + patch("linimal.patch.read-without-receipt-mark-as-read-block",
                         featureId, "OK", 1, 1) + ","
                 + patch("linimal.patch.read-without-receipt-local-read-block",
@@ -76,6 +78,7 @@ public final class PatchStatusAvailabilityTest {
         String[] patchIds = {
                 "linimal.patch.read-without-receipt-menu-label-resource",
                 "linimal.patch.read-without-receipt-compose-menu-row",
+                "linimal.patch.read-without-receipt-preview-menu-row",
                 "linimal.patch.read-without-receipt-mark-as-read-block",
                 "linimal.patch.read-without-receipt-local-read-block",
                 "linimal.patch.read-without-receipt-session",
@@ -83,7 +86,7 @@ public final class PatchStatusAvailabilityTest {
                 "linimal.patch.read-without-receipt-manual-read"
         };
         assertTrue(featureAvailability(featureId, patchIds, -1, false).isAvailable(featureId));
-        for (int index = 6; index < patchIds.length; index++) {
+        for (int index = 7; index < patchIds.length; index++) {
             assertFalse(featureAvailability(featureId, patchIds, index, false).isAvailable(featureId));
             assertFalse(featureAvailability(featureId, patchIds, index, true).isAvailable(featureId));
         }

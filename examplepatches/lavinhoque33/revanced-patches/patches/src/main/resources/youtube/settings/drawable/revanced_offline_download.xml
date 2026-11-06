@@ -1,0 +1,13 @@
+<!-- modified by lavinhoque33, 2026-10-23: icon of the playlist download action of the offline library. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+        android:width="24dp"
+        android:height="24dp"
+        android:viewportWidth="24"
+        android:viewportHeight="24">
+    <path
+            android:pathData="M12,4 L12,15 M7.5,10.5 L12,15 L16.5,10.5 M5,19.5 L19,19.5"
+            android:strokeColor="#000000"
+            android:strokeWidth="1.8"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+</vector>

@@ -205,6 +205,39 @@ public class AppFontTest {
         assertSame("still bold, in the new font", Typeface.create(medium, Typeface.BOLD), bolded.getTypeface());
     }
 
+    /**
+     * Tumblr's text styles carry {@code android:textFontWeight} (500 for names and Follow, 350 for the
+     * small text), and a plain TextView applies it as {@code Typeface.create(font, weight, italic)}. Those
+     * rows kept Tumblr's font on a phone while the case above passed.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aRowWhoseStyleSetsAWeightTakesTheFontAtThatWeight() {
+        Settings.APP_FONT.save(true);
+        Typeface tumblrsVariable = Typeface.create(Typeface.SERIF, 400, false), tumblrsMedium = Typeface.create(Typeface.SERIF, 500, false);
+        Typeface[] tumblrs = {tumblrsVariable, null, tumblrsMedium, null};
+        Typeface authors = Typeface.create(Typeface.MONOSPACE, 400, false);
+
+        TextView name = text(Typeface.create(tumblrsMedium, 500, false)), small = text(Typeface.create(tumblrsVariable, 350, false));
+        TextView author = text(Typeface.create(authors, 500, false));
+        Button follow = new Button(context);
+        follow.setTypeface(Typeface.create(tumblrsMedium, 500, false));
+        LinearLayout row = new LinearLayout(context);
+        row.addView(name);
+        row.addView(small);
+        row.addView(author);
+        row.addView(follow);
+
+        AppFont.restyle(row, tumblrs, context);
+
+        Typeface medium = AppFont.replacement(context, MEDIUM);
+        assertSame("a name", medium, name.getTypeface());
+        assertSame("a button", medium, follow.getTypeface());
+        assertEquals("the small text keeps its own weight", 350, small.getTypeface().getWeight());
+        assertNotSame("the small text is in the new font", Typeface.create(tumblrsVariable, 350, false), small.getTypeface());
+        assertSame("a post's author picked this", Typeface.create(authors, 500, false), author.getTypeface());
+    }
+
     @Test
     public void offARowInflatedAheadOfTimeKeepsItsFont() {
         Typeface tumblrs = Typeface.create("sans-serif", Typeface.NORMAL);

@@ -1,0 +1,956 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gms_core_dialog_continue_text">Продовжити</string>
+    <string name="gms_core_dialog_dismiss_text">Більше не показувати</string>
+    <string name="gms_core_dialog_not_whitelisted_not_allowed_in_background_message">"MicroG не має дозволу на роботу у фоновому режимі
+
+Дотримуйтеся посібника \"Don't kill my app\" для вашого пристрою та застосуйте інструкції до вашого MicroG
+
+Це необхідно для роботи застосунку"</string>
+    <string name="gms_core_dialog_not_whitelisted_using_battery_optimizations_message">"Необхідно вимкнути оптимізацію енергії для MicroG GmsCore, щоб запобігти проблемам
+
+Вимкнення оптимізації енергії для MicroG не вплине негативно на час автономної роботи
+
+Натисніть кнопку \"Продовжити\" та вимкніть оптимізацію"</string>
+    <string name="gms_core_dialog_open_website_text">Відкрити вебсайт</string>
+    <string name="gms_core_dialog_title">Потрібна дія</string>
+    <string name="gms_core_settings_summary">Щоб отримувати сповіщення у RVX Music, увімкніть \"Хмарні повідомлення\"</string>
+    <string name="gms_core_settings_title">Відкрити налаштування GmsCore</string>
+    <string name="gms_core_toast_not_installed_message">MicroG не встановлено. Встановіть його</string>
+    <string name="morphe_app_refresh_rate_default">Типова</string>
+    <string name="morphe_app_refresh_rate_fps">%s FPS</string>
+    <string name="morphe_app_refresh_rate_title">Частота оновлення застосунку</string>
+    <string name="morphe_app_refresh_rate_type_entry_1">Завжди</string>
+    <string name="morphe_app_refresh_rate_type_entry_2">Портретне відтворення</string>
+    <string name="morphe_app_refresh_rate_type_entry_3">Повноекранне відтворення</string>
+    <string name="morphe_app_refresh_rate_type_entry_4">Портретне та повноекранне відтворення</string>
+    <string name="morphe_app_refresh_rate_type_title">Замінити частоту оновлення</string>
+    <string name="morphe_crossfade_duration_10000ms">10 секунд</string>
+    <string name="morphe_crossfade_duration_1000ms">1 секунда</string>
+    <string name="morphe_crossfade_duration_11000ms">11 секунд</string>
+    <string name="morphe_crossfade_duration_12000ms">12 секунд</string>
+    <string name="morphe_crossfade_duration_2000ms">2 секунди</string>
+    <string name="morphe_crossfade_duration_250ms">250 мілісекунд</string>
+    <string name="morphe_crossfade_duration_3000ms">3 секунди</string>
+    <string name="morphe_crossfade_duration_4000ms">4 секунди</string>
+    <string name="morphe_crossfade_duration_5000ms">5 секунд</string>
+    <string name="morphe_crossfade_duration_500ms">500 мілісекунд</string>
+    <string name="morphe_crossfade_duration_6000ms">6 секунд</string>
+    <string name="morphe_crossfade_duration_7000ms">7 секунд</string>
+    <string name="morphe_crossfade_duration_750ms">750 мілісекунд</string>
+    <string name="morphe_crossfade_duration_8000ms">8 секунд</string>
+    <string name="morphe_crossfade_duration_9000ms">9 секунд</string>
+    <string name="morphe_custom_branding_apply_to_rvx_settings_summary">Використовувати вибрану іконку застосунку для пункту налаштувань RVX, якщо доступно</string>
+    <string name="morphe_custom_branding_apply_to_rvx_settings_title">Використовувати іконку в налаштуваннях RVX</string>
+    <string name="morphe_custom_branding_icon_title">Іконка застосунку</string>
+    <string name="morphe_custom_branding_name_title">Назва застосунку</string>
+    <string name="morphe_custom_branding_splash_animation_size_summary">Встановлює розмір користувацької анімації заставки</string>
+    <string name="morphe_custom_branding_splash_animation_size_title">Розмір анімації заставки</string>
+    <string name="morphe_dark_theme_custom_color_summary">Використовується, коли вибрано Користувацький</string>
+    <string name="morphe_dark_theme_custom_color_title">Користувацький колір теми</string>
+    <string name="morphe_dark_theme_title">Тема застосунку</string>
+    <string name="morphe_disable_drc_audio_summary_off">Аудіо DRC увімкнено</string>
+    <string name="morphe_disable_drc_audio_summary_on">Аудіо DRC вимкнено</string>
+    <string name="morphe_disable_quic_protocol_summary_off">Протокол QUIC увімкнено</string>
+    <string name="morphe_disable_quic_protocol_summary_on">Протокол QUIC вимкнено</string>
+    <string name="morphe_external_potoken_provider_user_dialog_message">Якщо це не працює, спробуйте примусово закрити MicroG</string>
+    <string name="morphe_force_original_audio_not_available">Щоб використовувати цю функцію, змініть клієнт \"Підміни відеопотоків\" на будь-який, окрім \"Android Studio\" або \"Android VR Downgraded\"</string>
+    <string name="morphe_force_original_audio_summary">Завжди відтворює оригінальну аудіодоріжку відео замість дубльованої</string>
+    <string name="morphe_force_original_audio_summary_off">Використовується звукова доріжка за замовчуванням</string>
+    <string name="morphe_force_original_audio_summary_on">Використовується оригінальна мова звукової доріжки</string>
+    <string name="morphe_force_original_audio_title">Примусово оригінальна мова звукової доріжки</string>
+    <string name="morphe_music_apple_music_token_dialog_instruction">"Вставте cookie media-user-token із music.apple.com
+
+Кроки:
+1. Увійдіть на music.apple.com як користувач-учасник
+2. Відкрийте DevTools → Application → Cookies → music.apple.com
+3. Скопіюйте значення \"media-user-token\""</string>
+    <string name="morphe_music_apple_music_token_title">Apple Music Media-user-token</string>
+    <string name="morphe_music_apple_music_token_toast_cleared">Apple Music: media-user-token очищено</string>
+    <string name="morphe_music_apple_music_token_toast_invalid">Apple Music: недійсний media-user-token - перевірте і спробуйте ще раз</string>
+    <string name="morphe_music_apple_music_token_toast_saved">Apple Music: media-user-token збережено</string>
+    <string name="morphe_music_apple_token_optional_hint">Токен Apple Music необов\'язковий. Без нього як резервний варіант буде використано Lyrically</string>
+    <string name="morphe_music_crossfade_about_best_summary">Звичайне відтворення треку за треком та автоперехід, повтор одного треку (трек плавно переходить сам у себе) і локальний звук - динамік телефону, дротові навушники, Bluetooth або USB</string>
+    <string name="morphe_music_crossfade_about_best_title">Найкраще працює з</string>
+    <string name="morphe_music_crossfade_about_credit_summary">Функцію кросфейду створив VazerOG</string>
+    <string name="morphe_music_crossfade_about_credit_title">Автор</string>
+    <string name="morphe_music_crossfade_about_how_summary">"Кросфейд накладає кінець однієї пісні на початок наступної, використовуючи вашу тривалість і криву
+
+Він працює під час автоматичного переходу й ручного пропуску, і для кожного є окремий перемикач. Під час автоматичного переходу змішування починається за кілька секунд до завершення пісні"</string>
+    <string name="morphe_music_crossfade_about_how_title">Як це працює</string>
+    <string name="morphe_music_crossfade_about_known_summary">"Музичне відео, встановлене першим треком - або запущене не з поточної черги - може на короткий час показуватися як відео, перш ніж увімкнеться режим лише аудіо
+
+Призупинення плавного переходу для перегляду музичного відео може залишити деякі відео чорними (ті, чий звук надходить із самого відео). Призупинення плавного переходу перед вибором треку допомагає уникнути цього"</string>
+    <string name="morphe_music_crossfade_about_known_title">Відомі проблеми</string>
+    <string name="morphe_music_crossfade_about_quirks_summary">"Музичні відео відтворюються лише як аудіо, поки кросфейд увімкнено. Натисніть і утримуйте перемішування, щоб призупинити кросфейд і дивитися відео
+
+Музичне відео, яким починається відтворення, залишається в режимі відео до наступної пісні
+
+Пісні, коротші за тривалість затухання, не кросфейдяться
+
+Екран блокування або сповіщення можуть ненадовго показувати застарілий стан під час переходу
+
+Призупинення кросфейду для перегляду музичного відео може залишити частину відео чорними. Щоб цього уникнути, призупиніть кросфейд до вибору пісні"</string>
+    <string name="morphe_music_crossfade_about_quirks_title">Обмеження</string>
+    <string name="morphe_music_crossfade_about_summary">Як працює плавний перехід - і коли він не працює</string>
+    <string name="morphe_music_crossfade_about_title">Інформація</string>
+    <string name="morphe_music_crossfade_about_unsupported_summary">"Трансляція або дзеркалення аудіо (Chromecast, дзеркалення екрана чи аудіо)
+
+Відтворення SABR (функцію \"Підміна відеопотоків\" вимкнено)"</string>
+    <string name="morphe_music_crossfade_about_unsupported_title">Не підтримується</string>
+    <string name="morphe_music_crossfade_cast_unstable_toast">Кросфейд вимкнено під час трансляції</string>
+    <string name="morphe_music_crossfade_curve_entry_ease_out_cubic">Незначна затримка</string>
+    <string name="morphe_music_crossfade_curve_entry_ease_out_quad">М’яке згладжування</string>
+    <string name="morphe_music_crossfade_curve_entry_equal_power">Рівномірна потужність</string>
+    <string name="morphe_music_crossfade_curve_entry_smoothstep">Плавна S-крива</string>
+    <string name="morphe_music_crossfade_curve_preview_incoming">Вхідний</string>
+    <string name="morphe_music_crossfade_curve_preview_outgoing">Вихідний</string>
+    <string name="morphe_music_crossfade_curve_title">Крива згасання</string>
+    <string name="morphe_music_crossfade_duration_title">Тривалість кросфейду</string>
+    <string name="morphe_music_crossfade_enabled_title">Увімкнути кросфейд</string>
+    <string name="morphe_music_crossfade_on_auto_advance_summary">Застосовує ефект кросфейду, коли трек завершується природним чином</string>
+    <string name="morphe_music_crossfade_on_auto_advance_title">Кросфейд під час автоматичного переходу</string>
+    <string name="morphe_music_crossfade_on_skip_summary">Застосовує ефект кросфейду, коли ви вручну пропускаєте до наступного треку</string>
+    <string name="morphe_music_crossfade_on_skip_title">Кросфейд під час ручного пропуску</string>
+    <string name="morphe_music_crossfade_paused_toast">Кросфейд призупинено для цього сеансу</string>
+    <string name="morphe_music_crossfade_resumed_toast">Кросфейд відновлено</string>
+    <string name="morphe_music_crossfade_screen_summary">Плавно змішує треки між собою</string>
+    <string name="morphe_music_crossfade_screen_title">Кросфейд</string>
+    <string name="morphe_music_crossfade_session_control_summary">Натисніть і утримуйте кнопку перемішування, щоб призупинити або відновити кросфейд</string>
+    <string name="morphe_music_crossfade_session_control_title">Керування сесією</string>
+    <string name="morphe_music_crossfade_video_mode_disabled_toast">Режим відео недоступний, поки кросфейд увімкнено</string>
+    <string name="morphe_music_deezer_arl_dialog_instruction">"Вставте cookie arl із Deezer
+
+Кроки:
+1. Увійдіть на deezer.com
+2. Відкрийте DevTools → Application → Cookies → deezer.com
+3. Скопіюйте значення \"arl\""</string>
+    <string name="morphe_music_deezer_arl_title">Deezer ARL</string>
+    <string name="morphe_music_deezer_arl_toast_cleared">Deezer: arl очищено</string>
+    <string name="morphe_music_deezer_arl_toast_invalid">Deezer: недійсний arl - перевірте і спробуйте ще раз</string>
+    <string name="morphe_music_deezer_arl_toast_saved">Deezer: arl збережено</string>
+    <string name="morphe_music_downloads_already_running">Завантаження вже виконується</string>
+    <string name="morphe_music_downloads_already_saved">Вже завантажено</string>
+    <string name="morphe_music_downloads_complete">Завантаження завершено</string>
+    <string name="morphe_music_downloads_failed">Помилка завантаження</string>
+    <string name="morphe_music_downloads_notification_channel">Аудіозавантаження</string>
+    <string name="morphe_music_downloads_progress">Завантаження %s%%</string>
+    <string name="morphe_music_downloads_sort">Сортувати</string>
+    <string name="morphe_music_downloads_started">Завантаження розпочато</string>
+    <string name="morphe_music_downloads_starting">Розпочато завантаження…</string>
+    <string name="morphe_music_downloads_unknown_track">Не вдалося визначити трек для завантаження</string>
+    <string name="morphe_music_in_app_downloads_summary">Завантажує аудіо всередині YouTube Music замість відкриття зовнішнього застосунку завантажувача</string>
+    <string name="morphe_music_in_app_downloads_title">Завантажити в застосунку</string>
+    <string name="morphe_music_lyrics_about_summary">"Тексти пісень зіставляються за назвою та виконавцем, тож нетипові метадані можуть нічого не знайти або знайти неправильну версію. Використовуйте оновлення, щоб перемикати версії. Постачальники, позначені *, потребують токена. Усі увімкнені постачальники не завжди запитуються у вашому порядку, а відповідають залежно від їхньої швидкості
+
+Тексти пісень надходять зі сторонніх служб, які не пов'язані з RVX, не спонсоруються та не схвалюються ним. Кожна служба використовується як є: тексти пісень, їх доступність і ліцензування залишаються за цими службами та їхніми правовласниками, а користування ними може підпадати під їхні умови надання послуг. До увімкненої служби надходить лише запит, який ви зробили: назва, виконавець і, якщо служба цього потребує, ідентифікатор відео. Додаткова кінцева точка ШІ та транскрипція QuickLRC працюють лише після того, як ви їх налаштуєте, і отримують текст пісні або URL відео треку"</string>
+    <string name="morphe_music_lyrics_about_title">Про сторонні тексти пісень</string>
+    <string name="morphe_music_lyrics_ai_config_api_token_hint">Ключ API (залиште порожнім для анонімного доступу)</string>
+    <string name="morphe_music_lyrics_ai_config_base_url_hint">URL-адреса кінцевої точки API (наприклад, https://text.pollinations.ai/openai)</string>
+    <string name="morphe_music_lyrics_ai_config_dialog_instruction">Налаштуйте кінцеву точку API, сумісну з OpenAI, для AI-перекладу текстів пісень, романізації та розділів</string>
+    <string name="morphe_music_lyrics_ai_config_dialog_title">Налаштування AI</string>
+    <string name="morphe_music_lyrics_ai_config_model_hint">Назва моделі (наприклад, openai-fast, gpt-4o-mini)</string>
+    <string name="morphe_music_lyrics_ai_config_status_empty_model">Назва моделі не може бути порожньою</string>
+    <string name="morphe_music_lyrics_ai_config_status_empty_url">Базова URL-адреса не може бути порожньою</string>
+    <string name="morphe_music_lyrics_ai_config_status_invalid_url">Базова URL-адреса має починатися з http:// або https://</string>
+    <string name="morphe_music_lyrics_ai_config_status_validating">Перевірка з\'єднання…</string>
+    <string name="morphe_music_lyrics_ai_config_summary_configured">Модель %1$s налаштовано</string>
+    <string name="morphe_music_lyrics_ai_config_toast_invalid">Не вдалося підключитися до кінцевої точки AI. Будь ласка, перевірте налаштування</string>
+    <string name="morphe_music_lyrics_ai_config_toast_reset">Налаштування AI скинуто</string>
+    <string name="morphe_music_lyrics_ai_config_toast_saved">Налаштування AI збережено</string>
+    <string name="morphe_music_lyrics_ai_extra_body_hint">Додаткове тіло запиту (JSON, додається до кожного запиту ШІ)</string>
+    <string name="morphe_music_lyrics_ai_extra_body_invalid">Схоже, ти вставив уже готовий переклад замість англійського оригіналу. Надішли, будь ласка, англійський рядок, і я перекладу</string>
+    <string name="morphe_music_lyrics_ai_prompt_dialog_hint">Заповнювачі: {language}, {task}, {title}, {artist}, {count}, {lines}</string>
+    <string name="morphe_music_lyrics_ai_prompt_dialog_title">Шаблон запиту</string>
+    <string name="morphe_music_lyrics_ai_prompt_toast_endpoint_invalid">Запит збережено, але кінцева точка AI ще непридатна до використання. Спочатку налаштуйте її в розділі \"Налаштування AI\"</string>
+    <string name="morphe_music_lyrics_ai_prompt_toast_reset">Запит скинуто</string>
+    <string name="morphe_music_lyrics_ai_prompt_toast_saved">Запит збережено</string>
+    <string name="morphe_music_lyrics_clear_cache_done">Очищено %1$s МБ</string>
+    <string name="morphe_music_lyrics_clear_cache_summary">Видалити тексти пісень, збережені на цьому пристрої</string>
+    <string name="morphe_music_lyrics_clear_cache_title">Очистити збережені тексти пісень</string>
+    <string name="morphe_music_lyrics_contribute_credit">Утримуйте кнопку копіювання, щоб зберегти цей LRC; якщо ви можете точніше налаштувати таймінги та поділитися ними зі спільнотою постачальників, ми будемо вдячні</string>
+    <string name="morphe_music_lyrics_copied">Скопійовано</string>
+    <string name="morphe_music_lyrics_credit_line_regex_summary">Якщо тексти пісень неправильно відфільтровано вниз, налаштуйте або очистіть це. Маркери, розділені комами: рядки, що містять маркер, за яким іде двокрапка, показуються як інформація про авторів унизу. Залиште порожнім, щоб вимкнути</string>
+    <string name="morphe_music_lyrics_credit_line_regex_title">Маркери інформаційного рядка</string>
+    <string name="morphe_music_lyrics_custom_regex_summary">Регулярний вираз, застосований до назв, виконавців та альбомів перед пошуком тексту пісні та при оцінці відповідності двох назв. Залиште порожнім, щоб вимкнути обидва. Типове значення видаляє типове сміття, наприклад \"Official Video\", \"Remaster\", \"【插曲】\" та \"- Topic\"</string>
+    <string name="morphe_music_lyrics_custom_regex_title">Регулярний вираз для метаданих</string>
+    <string name="morphe_music_lyrics_display_artist_first_summary">Перемикнути порядок показу виконавця та назви в мініплеєрі та MediaSession. Увімкнено - \"Виконавець - Назва\", вимкнено - \"Назва - Виконавець\". Не впливає на пошук текстів пісень</string>
+    <string name="morphe_music_lyrics_display_artist_first_title">Порядок відображення виконавця та назви</string>
+    <string name="morphe_music_lyrics_dual_only">Подвійний режим</string>
+    <string name="morphe_music_lyrics_enabled_summary">Показує текст пісні зі стороннього сервісу, повертаючись до вбудованого тексту, якщо нічого не знайдено</string>
+    <string name="morphe_music_lyrics_enabled_title">Використовувати сторонні тексти пісень</string>
+    <string name="morphe_music_lyrics_hide_info_summary">Приховати рядок з інформацією про авторів, що показується під текстом пісні</string>
+    <string name="morphe_music_lyrics_hide_info_title">Приховати рядок з інформацією про авторів</string>
+    <string name="morphe_music_lyrics_hide_played_summary">Приховувати рядки тексту пісні над рядком, що зараз відтворюється</string>
+    <string name="morphe_music_lyrics_hide_played_title">Приховувати відтворені рядки тексту</string>
+    <string name="morphe_music_lyrics_hide_unplayed_summary">Приховувати рядки тексту пісні під рядком, що зараз відтворюється</string>
+    <string name="morphe_music_lyrics_hide_unplayed_title">Приховувати ще не відтворені рядки тексту</string>
+    <string name="morphe_music_lyrics_keep_screen_on_summary">Запобігає вимкненню екрана, поки відкрита панель тексту пісні</string>
+    <string name="morphe_music_lyrics_keep_screen_on_title">Тримати екран увімкненим під час перегляду тексту пісні</string>
+    <string name="morphe_music_lyrics_local_romanization_dict_building">Читання %1$s: %2$d%%</string>
+    <string name="morphe_music_lyrics_local_romanization_dict_failed">Не вдалося завантажити, вимкніть і ввімкніть це знову, щоб повторити спробу</string>
+    <string name="morphe_music_lyrics_local_romanization_dict_ready">Зчитування готове (записів: %1$d)</string>
+    <string name="morphe_music_lyrics_local_romanization_summary">Романізувати на пристрої, коли постачальник, ваша модель і Google Перекладач не спрацьовують. Читання відповідає кожному слову синхронізованого тексту пісні; синхронізація по словах має бути ввімкнена. Китайська, кантонська, японська, корейська, грецька, російська, грузинська, вірменська; близько 120 МБ</string>
+    <string name="morphe_music_lyrics_local_romanization_title">Локальна романізація та вирівнювання</string>
+    <string name="morphe_music_lyrics_mediasession_summary">Показує поточний рядок на екрані блокування, в Android Auto та через Bluetooth. Потрібен Android 11 або новіший</string>
+    <string name="morphe_music_lyrics_mediasession_title">Показувати текст пісні MediaSession на екрані блокування</string>
+    <string name="morphe_music_lyrics_miniplayer_summary">Показує поточний рядок у мініплеєрі, а трек переноситься в підзаголовок</string>
+    <string name="morphe_music_lyrics_miniplayer_title">Показувати текст пісні в мініплеєрі</string>
+    <string name="morphe_music_lyrics_offset_ms_summary">Синхронізовані тексти пісень слідують за відтворенням. Якщо вони збиваються, налаштуйте зсув часу. Зсуває синхронізовані тексти пісень уперед або назад. Використовуйте позитивне значення, якщо текст випереджає пісню</string>
+    <string name="morphe_music_lyrics_offset_ms_title">Глобальний зсув часу</string>
+    <string name="morphe_music_lyrics_refreshed">Оновлено</string>
+    <string name="morphe_music_lyrics_refreshing">Оновлення</string>
+    <string name="morphe_music_lyrics_romanize_failed">Не вдалося романізувати текст пісні</string>
+    <string name="morphe_music_lyrics_romanize_hide">Романізовано</string>
+    <string name="morphe_music_lyrics_romanize_language_title">Мова романізації</string>
+    <string name="morphe_music_lyrics_romanize_only">Лише романізовано</string>
+    <string name="morphe_music_lyrics_romanized_by_ai">Романізовано %s</string>
+    <string name="morphe_music_lyrics_romanized_by_google">Романізовано Google</string>
+    <string name="morphe_music_lyrics_romanizing">Романізується…</string>
+    <string name="morphe_music_lyrics_saved">Збережено</string>
+    <string name="morphe_music_lyrics_sb_matching_summary">Зіставляє без сегментів, які пропускає SponsorBlock, і зсуває текст пісні на випущене аудіо. Якщо вимкнено, SponsorBlock повністю ігнорується</string>
+    <string name="morphe_music_lyrics_sb_matching_title">Використовувати сегменти SponsorBlock для зсуву тексту пісні</string>
+    <string name="morphe_music_lyrics_sb_no_video">У цього треку немає ідентифікатора відео для надсилання</string>
+    <string name="morphe_music_lyrics_search_artist_hint">Виконавець</string>
+    <string name="morphe_music_lyrics_search_dialog_title">Шукати текст пісні</string>
+    <string name="morphe_music_lyrics_search_empty">Введіть назву пісні та виконавця</string>
+    <string name="morphe_music_lyrics_search_no_providers">Жоден з увімкнених постачальників не може шукати інші пісні</string>
+    <string name="morphe_music_lyrics_search_title_hint">Назва пісні</string>
+    <string name="morphe_music_lyrics_show_copy_button_summary">Натисніть, щоб скопіювати оригінальний текст пісні як звичайний текст; натисніть і утримуйте, щоб зберегти файл вихідного тексту пісні у \"Завантаження\"</string>
+    <string name="morphe_music_lyrics_show_copy_button_title">Показати кнопку \"Копіювати\"</string>
+    <string name="morphe_music_lyrics_show_refresh_button_summary">Натисніть, щоб перейти до наступного варіанта тексту пісні; натисніть і утримуйте, щоб шукати текст пісні за назвою пісні та виконавцем</string>
+    <string name="morphe_music_lyrics_show_refresh_button_title">Показувати кнопку \"Оновити\"</string>
+    <string name="morphe_music_lyrics_show_romanize_button_summary">Натисніть, щоб увімкнути або вимкнути романізацію; натисніть і утримуйте, щоб показати лише романізацію. Використовує романізацію постачальника, Google Перекладач або API, сумісний з OpenAI</string>
+    <string name="morphe_music_lyrics_show_romanize_button_title">Показати кнопку \"Романізувати\"</string>
+    <string name="morphe_music_lyrics_show_section_summary">Позначати кожен новий розділ тексту пісні невеликим тегом, наприклад \"Куплет\" або \"Приспів\"</string>
+    <string name="morphe_music_lyrics_show_section_title">Показувати теги розділів</string>
+    <string name="morphe_music_lyrics_show_translate_button_summary">Натисніть, щоб увімкнути або вимкнути переклад; натисніть і утримуйте, щоб показати лише переклад. Використовує переклади постачальника, Google Перекладач або API, сумісний з OpenAI</string>
+    <string name="morphe_music_lyrics_show_translate_button_title">Показати кнопку \"Перекласти\"</string>
+    <string name="morphe_music_lyrics_source_all_disabled">Усі постачальники вимкнено, використовуються вбудовані та вбудовані в файл тексти пісень</string>
+    <string name="morphe_music_lyrics_source_label">Джерело: %s</string>
+    <string name="morphe_music_lyrics_source_reset_message">Відновити типовий порядок пріоритету постачальників</string>
+    <string name="morphe_music_lyrics_source_reset_title">Скинути порядок постачальників?</string>
+    <string name="morphe_music_lyrics_source_title">Сервіс текстів пісень</string>
+    <string name="morphe_music_lyrics_split_background_summary">Виносить бек-вокал, записаний у дужках, наприклад \"(Oh) I want you\", із рядка основного вокалу в окремий, тьмяніший рядок</string>
+    <string name="morphe_music_lyrics_split_background_title">Показувати бек-вокал окремо</string>
+    <string name="morphe_music_lyrics_swap_trans_roma_summary">Увімкнено - романізація під текстом, переклад над текстом; вимкнено - романізація над текстом, переклад під текстом</string>
+    <string name="morphe_music_lyrics_swap_trans_roma_title">Поміняти місцями переклад і романізацію</string>
+    <string name="morphe_music_lyrics_tap_to_seek_summary">Натисніть рядок, щоб перейти до цього моменту в пісні, натисніть і утримайте його, щоб скопіювати слово під пальцем або весь рядок, якщо натискання припало не на слово. Якщо вимкнено, обидва жести не працюватимуть</string>
+    <string name="morphe_music_lyrics_tap_to_seek_title">Натисніть та утримуйте рядок</string>
+    <string name="morphe_music_lyrics_text_filter_summary">Регулярний вираз, що застосовується лише до оригінального тексту пісні (не до перекладів чи романізацій). Залиште порожнім, щоб вимкнути</string>
+    <string name="morphe_music_lyrics_text_filter_title">Регулярний вираз для фільтрації текстів пісень</string>
+    <string name="morphe_music_lyrics_text_size_summary">Розмір тексту пісні</string>
+    <string name="morphe_music_lyrics_text_size_title">Розмір тексту</string>
+    <string name="morphe_music_lyrics_transcribe_align">Запросити вирівнювання QuickLRC</string>
+    <string name="morphe_music_lyrics_transcribe_aligning">Вирівнювання</string>
+    <string name="morphe_music_lyrics_transcribe_apply_align">Застосувати вирівнювання</string>
+    <string name="morphe_music_lyrics_transcribe_cancelled">Транскрипцію скасовано</string>
+    <string name="morphe_music_lyrics_transcribe_failed">QuickLRC не зміг обробити цей трек</string>
+    <string name="morphe_music_lyrics_transcribe_key_cleared">Ключ API QuickLRTC очищено</string>
+    <string name="morphe_music_lyrics_transcribe_key_dialog_instruction">QuickLRC додає таймінги до текстів, у яких їх немає, або транскрибує їх із треку, витрачаючи кредити. Якщо ключ вказано, для треків без тексту пропонується транскрипція, а в діалозі пошуку з\'являється кнопка вирівнювання</string>
+    <string name="morphe_music_lyrics_transcribe_key_rejected">QuickLRC не прийняв цей ключ</string>
+    <string name="morphe_music_lyrics_transcribe_key_saved">Ключ API QuickLRC збережено</string>
+    <string name="morphe_music_lyrics_transcribe_key_set_summary">Ключ QuickLRC збережено. Скористайтеся кнопкою вирівнювання в діалозі пошуку тексту пісні або запитом на панелі, коли для треку немає тексту</string>
+    <string name="morphe_music_lyrics_transcribe_key_summary">QuickLRC транскрибує або синхронізує за часом текст пісні для поточного треку. Окремий сервіс, не пов\'язаний із кінцевою точкою, сумісною з OpenAI, вище</string>
+    <string name="morphe_music_lyrics_transcribe_key_title">Ключ API QuickLRC</string>
+    <string name="morphe_music_lyrics_transcribe_local_unsupported">Транскрибувати можна лише треки, відтворені з YouTube</string>
+    <string name="morphe_music_lyrics_transcribe_no_text">Немає тексту для вирівнювання, натомість виконується транскрипція</string>
+    <string name="morphe_music_lyrics_transcribe_out_of_credits">Кредити QuickLRC для цього треку вичерпано</string>
+    <string name="morphe_music_lyrics_transcribe_prompt">Запросити транскрипцію QuickLRC</string>
+    <string name="morphe_music_lyrics_transcribe_working">Транскрибування</string>
+    <string name="morphe_music_lyrics_translate_failed">Не вдалося перекласти текст пісні</string>
+    <string name="morphe_music_lyrics_translate_hide">Перекладено</string>
+    <string name="morphe_music_lyrics_translate_only">Лише переклад</string>
+    <string name="morphe_music_lyrics_translated_by_ai">Перекладено %s</string>
+    <string name="morphe_music_lyrics_translated_by_google">Перекладено Google</string>
+    <string name="morphe_music_lyrics_translating">Переклад…</string>
+    <string name="morphe_music_lyrics_translation_language_title">Мова перекладу</string>
+    <string name="morphe_music_lyrics_use_ai_romanization_summary">Надає перевагу романізації, яку постачає провайдер, потім вашій моделі, сумісній з OpenAI, і Google Translate наостанок</string>
+    <string name="morphe_music_lyrics_use_ai_romanization_title">AI-романізація</string>
+    <string name="morphe_music_lyrics_use_ai_section_summary">Використовується лише тоді, коли постачальник не надає позначок розділів, таких як \"Приспів\" або \"Куплет\", які тоді визначає ваша модель, сумісна з OpenAI</string>
+    <string name="morphe_music_lyrics_use_ai_section_title">Розділ AI</string>
+    <string name="morphe_music_lyrics_use_ai_title">API, сумісний з OpenAI</string>
+    <string name="morphe_music_lyrics_use_ai_translation_summary">Надає перевагу перекладу, який постачає провайдер, потім вашій моделі, сумісній з OpenAI, і Google Translate наостанок</string>
+    <string name="morphe_music_lyrics_use_ai_translation_title">AI-переклад</string>
+    <string name="morphe_music_lyrics_word_sync_summary">Надавати пріоритет тексту пісні по словах, коли доступно. Якщо текст пісні містить синхронізацію по словах, підсвічує кожне слово або склад у такт музиці</string>
+    <string name="morphe_music_lyrics_word_sync_title">Підсвічувати синхронізовані слова або склади</string>
+    <string name="morphe_music_musixmatch_token_dialog_hint">токен користувача</string>
+    <string name="morphe_music_musixmatch_token_dialog_instruction">Додавайте токен лише для використання власного облікового запису. Він має бути отриманий з застосунку Musixmatch для Android: токени, скопійовані з musixmatch.com, належать до застарілого десктопного клієнта, і API їх відхиляє</string>
+    <string name="morphe_music_musixmatch_token_optional_hint">Musixmatch працює без токена, тому це поле можна залишити порожнім</string>
+    <string name="morphe_music_musixmatch_token_title">Токен Musixmatch</string>
+    <string name="morphe_music_musixmatch_token_toast_cleared">Musixmatch: токен користувача очищено</string>
+    <string name="morphe_music_musixmatch_token_toast_invalid">Musixmatch: недійсний токен користувача - перевірте і спробуйте ще раз</string>
+    <string name="morphe_music_musixmatch_token_toast_saved">Musixmatch: токен користувача збережено</string>
+    <string name="morphe_music_scrobbling_log_out">Вийти</string>
+    <string name="morphe_music_spotify_token_dialog_instruction">"Вставте cookie sp_dc зі Spotify
+
+Кроки:
+1. Увійдіть на open.spotify.com
+2. Відкрийте DevTools → Application → Cookies → open.spotify.com
+3. Скопіюйте значення \"sp_dc\""</string>
+    <string name="morphe_music_spotify_token_title">Spotify SpDc</string>
+    <string name="morphe_music_spotify_token_toast_cleared">Spotify: sp_dc очищено</string>
+    <string name="morphe_music_spotify_token_toast_invalid">Spotify: недійсний sp_dc - перевірте і спробуйте ще раз</string>
+    <string name="morphe_music_spotify_token_toast_saved">Spotify: sp_dc збережено</string>
+    <string name="morphe_music_token_dialog_get_token">Отримати токен</string>
+    <string name="morphe_music_youtube_cookies_dialog_instruction">"Вставте ваші файли cookie YouTube для запиту субтитрів і timetext із YouTube
+
+Кроки:
+1. Відкрийте youtube.com у браузері та увійдіть
+2. Відкрийте DevTools (F12) → Application → Cookies → youtube.com
+3. Скопіюйте повний рядок cookie (пари ключ=значення, розділені крапкою з комою)
+
+Обов'язкові файли cookie: SID, HSID, SSID, SAPISID, __Secure-3PAPISID, __Secure-1PAPISID, LOGIN_INFO"</string>
+    <string name="morphe_music_youtube_cookies_title">Файли cookie YouTube</string>
+    <string name="morphe_music_youtube_cookies_toast_cleared">YouTube: файли cookie очищено</string>
+    <string name="morphe_music_youtube_cookies_toast_invalid">YouTube: недійсні файли cookie - перевірте і спробуйте ще раз</string>
+    <string name="morphe_music_youtube_cookies_toast_saved">YouTube: файли cookie збережено</string>
+    <string name="morphe_notification_dot_color_summary">Змінює колір крапок сповіщень</string>
+    <string name="morphe_notification_dot_color_title">Колір крапки сповіщення</string>
+    <string name="morphe_oauth2_connection_failure_auth_error">Не вдається ввійти до VR: %s</string>
+    <string name="morphe_oauth2_connection_failure_auth_not_approved">Не вдається ввійти у VR, автентифікацію вебсайту не схвалено</string>
+    <string name="morphe_oauth2_connection_failure_generic">OAuth2 тимчасово недоступний</string>
+    <string name="morphe_oauth2_connection_failure_status">OAuth2 тимчасово недоступний (статус %s)</string>
+    <string name="morphe_oauth2_connection_failure_status_400">Термін дії входу в Android VR закінчився. Спробуйте ввійти у VR ще раз</string>
+    <string name="morphe_oauth2_connection_failure_timeout">OAuth2 тимчасово недоступний (тайм-аут API)</string>
+    <string name="morphe_oauth2_toast_invalid">Недійсний токен входу у VR, спробуйте ввійти у VR ще раз</string>
+    <string name="morphe_oauth2_toast_reset">Ви вийшли з Android VR</string>
+    <string name="morphe_potoken_provider_summary">"Виправляє проблеми з відтворенням за допомогою вбудованого провайдера PoToken (Експериментально)
+Якщо ви є користувачем YouTube Premium, це налаштування може не знадобитися"</string>
+    <string name="morphe_potoken_provider_title">Провайдер PoToken</string>
+    <string name="morphe_potoken_provider_unavailable_summary">"Виправляє проблеми з відтворенням за допомогою вбудованого провайдера PoToken (Експериментально)
+Щоб використовувати цю функцію, вимкніть \' Підміна відеопотоків \'"</string>
+    <string name="morphe_replace_music_with_youtube_summary">Замінює music.youtube.com на youtube.com у поширених посиланнях</string>
+    <string name="morphe_replace_music_with_youtube_summary_off">Під час поширення посилань використовується music.youtube.com</string>
+    <string name="morphe_replace_music_with_youtube_summary_on">Під час поширення посилань використовується youtube.com</string>
+    <string name="morphe_replace_music_with_youtube_title">Змінити посилання для поширення на youtube.com</string>
+    <string name="morphe_romanize_language_DEFAULT">Автоматична</string>
+    <string name="morphe_sanitize_sharing_links_summary">Видаляє параметри відстеження з посилань при поширенні</string>
+    <string name="morphe_sanitize_sharing_links_summary_off">Параметри запиту відстеження не вилучаються з поширених посилань</string>
+    <string name="morphe_sanitize_sharing_links_summary_on">Параметри запиту відстеження вилучаються з поширених посилань</string>
+    <string name="morphe_sanitize_sharing_links_title">Очищувати посилання для поширення</string>
+    <string name="morphe_sb_new_segment_choose_category">Вибрати категорію сегмента</string>
+    <string name="morphe_sb_new_segment_confirm_submit">Надіслати</string>
+    <string name="morphe_sb_new_segment_start_is_before_end">Початок має бути перед кінцем</string>
+    <string name="morphe_sb_new_segment_title">Новий сегмент SponsorBlock</string>
+    <string name="morphe_settings_menu_copy_path">Скопійовано: %s</string>
+    <string name="morphe_settings_menu_filter_picker_empty">Відкрийте екран стандартних налаштувань застосунку один раз, щоб заповнити список</string>
+    <string name="morphe_settings_menu_filter_screen_summary">Приховати елементи на екрані стандартних налаштувань застосунку за їхньою видимою назвою</string>
+    <string name="morphe_settings_menu_filter_screen_title">Фільтр меню налаштувань</string>
+    <string name="morphe_settings_name_custom_item_hint">Введіть назву</string>
+    <string name="morphe_settings_name_empty_warning">Назва не може бути порожньою</string>
+    <string name="morphe_settings_name_title">Назва налаштувань RVX</string>
+    <string name="morphe_settings_save">Зберегти</string>
+    <string name="morphe_skip_silence_minimum_pause_summary">Скорочуються лише паузи, не коротші за це значення. Набуває чинності при запуску наступного відео</string>
+    <string name="morphe_skip_silence_minimum_pause_title">Мінімальна тривалість паузи</string>
+    <string name="morphe_skip_silence_summary">Автоматично пропускає тихі паузи у звуку відео</string>
+    <string name="morphe_skip_silence_title">Пропускати тишу</string>
+    <string name="morphe_spoof_video_streams_client_failing_dialog_message">"%1$s кілька разів поспіль не спрацював, а %2$s спрацював
+
+Зробити %2$s типовим клієнтом?"</string>
+    <string name="morphe_spoof_video_streams_client_failing_dialog_switch">Перемкнути</string>
+    <string name="morphe_spoof_video_streams_client_failing_dialog_title">Типовий клієнт не працює</string>
+    <string name="morphe_spoof_video_streams_client_type_title">Типовий клієнт</string>
+    <string name="morphe_spoof_video_streams_no_clients_toast">Не вдалося отримати жодних клієнтських потоків</string>
+    <string name="morphe_spoof_video_streams_screen_summary">Налаштування підміни клієнта для запобігання проблемам з відтворенням</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary">Ви не ввійшли в Android VR. Натисніть тут, щоб увійти</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_disabled">Щоб використовувати цю функцію, змініть \"Типовий клієнт\" на Android VR</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_summary_signed_in">Наразі ви ввійшли в Android VR</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_about_title">Android VR з входом</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_message">"Код активації: %s
+
+1. Натисніть \"Відкрити вебсайт\" нижче, щоб відкрити вебсайт \"Підключити пристрій\"
+2. Вставте з буфера обміну (або введіть) код активації, показаний вище
+3. Увійдіть до Google, за потреби. Якщо у вас є кілька облікових записів, виберіть цей обліковий запис YouTube
+4. Натисніть \"Дозволити доступ до YouTube VR\"
+5. Поверніться до застосунку після того, як побачите повідомлення \"Пристрій підключено\""</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_activation_code_dialog_title">Інструкції</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_not_signed_in_message">"Вхід в Android VR може виправити проблеми з відтворенням для деяких користувачів
+
+Щоб увійти, натисніть \"Продовжити\" нижче"</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_reset">Вийти</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_dialog_title">Увійти в Android VR</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_message">"Автентифікацію збережено
+
+• Налаштування RVX не імпортують/експортують автентифікацію Android VR
+• Якщо застосунок не використовується 6 місяців, Google видалить цю автентифікацію
+• Вам потрібно буде увійти знову, якщо ви зміните пароль Google або скасуєте реєстрацію цього пристрою в налаштуваннях Google"</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_success_dialog_title">Вхід виконано успішно</string>
+    <string name="morphe_spoof_video_streams_sign_in_android_vr_toast_get_activation_code_failed">Не вдалося створити код активації</string>
+    <string name="morphe_spoof_video_streams_summary">"Виправляє проблеми з відтворенням для більшості користувачів, запитуючи сумісний відеопотік
+
+Якщо ви є користувачем YouTube Premium, це налаштування може не знадобитися"</string>
+    <string name="morphe_spoof_video_streams_summary_off">"Відеопотоки не підмінено
+
+Відтворення може не працювати"</string>
+    <string name="morphe_spoof_video_streams_summary_on">"Відеопотоки підмінено
+
+Якщо Ви користуєтеся YouTube Premium, ця опція може бути не потрібна"</string>
+    <string name="morphe_spoof_video_streams_title">Підміна відеопотоків</string>
+    <string name="morphe_spoof_video_streams_user_dialog_message">Вимкнення цього налаштування може спричинити проблеми з відтворенням</string>
+    <string name="morphe_theme_entry_amoled_black">AMOLED Чорний</string>
+    <string name="morphe_theme_entry_classic_youtube">Класична (Старий YouTube)</string>
+    <string name="morphe_theme_entry_dark_blue">Темно-синій</string>
+    <string name="morphe_theme_entry_dark_green">Темно-зелений</string>
+    <string name="morphe_theme_entry_dark_orange">Темно-помаранчевий</string>
+    <string name="morphe_theme_entry_dark_pink">Темно-рожевий</string>
+    <string name="morphe_theme_entry_dark_red">Темно-червоний</string>
+    <string name="morphe_theme_entry_dark_yellow">Темно-жовтий</string>
+    <string name="morphe_theme_entry_material_you_neutral">Material You (Нейтральний)</string>
+    <string name="morphe_theme_entry_material_you_primary">Material You - Основний</string>
+    <string name="morphe_theme_entry_material_you_secondary">Material You - Вторинний</string>
+    <string name="morphe_theme_entry_material_you_tertiary">Material You - Третинний</string>
+    <string name="morphe_theme_entry_modern_youtube">Сучасний YouTube</string>
+    <string name="revanced_add_miniplayer_next_button_summary">Додає кнопку наступного треку у мініплеєр</string>
+    <string name="revanced_add_miniplayer_next_button_title">Додати кнопку наступне у мініплеєр</string>
+    <string name="revanced_add_miniplayer_previous_button_summary">Додає кнопку попереднього треку у мініплеєр</string>
+    <string name="revanced_add_miniplayer_previous_button_title">Додати кнопку попереднє у мініплеєр</string>
+    <string name="revanced_app_info_dialog_message">&lt;b&gt;Назва&lt;/b&gt;&lt;br&gt;&lt;small&gt;%1$s&lt;/small&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Версія&lt;/b&gt;&lt;br&gt;&lt;small&gt;%2$s&lt;/small&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;RVX Патчі&lt;/b&gt;&lt;br&gt;&lt;small&gt;%3$s&lt;/small&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Пропатчено&lt;/b&gt;&lt;br&gt;&lt;small&gt;%4$s&lt;/small&gt;</string>
+    <string name="revanced_app_info_summary">Натисніть , щоб перевірити назву, версію, патч і коли пропатчено</string>
+    <string name="revanced_app_info_title">Про застосунок</string>
+    <string name="revanced_bypass_image_region_restrictions_summary">Обходить домен для зображень, заблокований у деяких регіонах, що дозволить отримувати мініатюри списків відтворення, аватари каналів тощо</string>
+    <string name="revanced_bypass_image_region_restrictions_title">Змінити домен зображень</string>
+    <string name="revanced_change_action_bar_position_summary">Переміщує панель дій під кнопку відтворення</string>
+    <string name="revanced_change_action_bar_position_title">Змінити положення панелі дій</string>
+    <string name="revanced_change_miniplayer_color_summary">Змінює колір мініплеєра на колір повноекранного плеєра</string>
+    <string name="revanced_change_miniplayer_color_title">Змінити колір мініплеєра</string>
+    <string name="revanced_change_player_background_color_summary">Змінює колір фона плеєра на користувацький</string>
+    <string name="revanced_change_player_background_color_title">Змінити колір фону плеєра</string>
+    <string name="revanced_change_seekbar_position_summary">Переміщує панель прогресу під кнопку відтворення</string>
+    <string name="revanced_change_seekbar_position_title">Змінити положення панелі прогресу</string>
+    <string name="revanced_change_share_sheet_summary">Змінює тип вікна діалогу поширення з вбудованого на системний</string>
+    <string name="revanced_change_share_sheet_title">Змінити діалог поширення</string>
+    <string name="revanced_change_start_page_entry_charts">Хіт-паради</string>
+    <string name="revanced_change_start_page_entry_episodes_for_later">Послухати пізніше</string>
+    <string name="revanced_change_start_page_entry_explore">Навігація</string>
+    <string name="revanced_change_start_page_entry_history">Історія</string>
+    <string name="revanced_change_start_page_entry_library">Бібліотека</string>
+    <string name="revanced_change_start_page_entry_liked_music">Музика, яка сподобалась</string>
+    <string name="revanced_change_start_page_entry_podcasts">Подкасти</string>
+    <string name="revanced_change_start_page_entry_samples">Семпли</string>
+    <string name="revanced_change_start_page_entry_search">Пошук</string>
+    <string name="revanced_change_start_page_entry_subscriptions">Підписки</string>
+    <string name="revanced_change_start_page_summary">Виберіть сторінку з якої буде стартувати застосунок</string>
+    <string name="revanced_change_start_page_title">Початкова сторінка</string>
+    <string name="revanced_confirm_user_dialog_title">Впевнені, що бажаєте продовжити?</string>
+    <string name="revanced_credits_title">Автори</string>
+    <string name="revanced_custom_filter_strings_summary">Список рядків конструктора шляху компонента, які потрібно приховати, кожен з нового рядка</string>
+    <string name="revanced_custom_filter_strings_title">Власний фільтр</string>
+    <string name="revanced_custom_filter_summary">Вмикає користувацькі фільтри для приховування компонентів інтерфейсу</string>
+    <string name="revanced_custom_filter_title">Увімкнути власний фільтр</string>
+    <string name="revanced_custom_filter_toast_invalid_syntax">Недійсний власний фільтр: %s</string>
+    <string name="revanced_custom_navigation_bar_color_value_invalid_invalid_toast">Недійсне значення кольору панелі навігації</string>
+    <string name="revanced_custom_navigation_bar_color_value_summary">Введіть hex код кольору панелі навігації</string>
+    <string name="revanced_custom_navigation_bar_color_value_title">Значення користувацького кольору панелі навігації</string>
+    <string name="revanced_custom_playback_speeds_invalid">Користувацькі швидкості мають бути меншими за %sx</string>
+    <string name="revanced_custom_playback_speeds_parse_exception">Неправильні користувацькі швидкості відтворення</string>
+    <string name="revanced_custom_playback_speeds_summary">Налаштувати доступні швидкості відтворення</string>
+    <string name="revanced_custom_playback_speeds_title">Редагувати користувацькі швидкості відтворення</string>
+    <string name="revanced_custom_player_background_color_primary_summary">"Введіть hex код основного кольору фону плеєра
+
+По можливості використовуйте темні кольори, оскільки застосунок не підтримує світлі теми"</string>
+    <string name="revanced_custom_player_background_color_primary_title">Основний колір фону плеєра</string>
+    <string name="revanced_custom_player_background_color_secondary_summary">"Введіть hex код вторинного кольору фону плеєра
+
+По можливості використовуйте темні кольори, оскільки застосунок не підтримує світлі теми"</string>
+    <string name="revanced_custom_player_background_color_secondary_title">Вторинний колір фону плеєра</string>
+    <string name="revanced_custom_player_background_invalid_toast">Недійсний колір фону плеєра</string>
+    <string name="revanced_debug_protobuffer_summary">Додає додаткову інформацію в журнал для розробників для ідентифікації компонентів застосунку</string>
+    <string name="revanced_debug_protobuffer_title">Налагоджувальний журнал протоколу буфера</string>
+    <string name="revanced_debug_spannable_summary">Включає охоплення журналу налагодження</string>
+    <string name="revanced_debug_spannable_title">Охоплення журналу</string>
+    <string name="revanced_debug_summary">Виводить журнал налагодження</string>
+    <string name="revanced_debug_title">Увімкнути журнал налагодження</string>
+    <string name="revanced_default_app_settings_summary">Щоб відкривати посилання на YouTube Music у RVX Music, увімкніть \"Відкривати підтримувані посилання\" та активуйте підтримувані веб-адреси</string>
+    <string name="revanced_default_app_settings_title">Відкрити налаштування за замовчуванням</string>
+    <string name="revanced_disable_auto_captions_summary">Вимикає примусове ввімкнення автоматичних субтитрів</string>
+    <string name="revanced_disable_auto_captions_title">Вимкнути примусові авто субтитри</string>
+    <string name="revanced_disable_cairo_splash_animation_summary">Вимикає сплеш анімацію Каїр під час запуску застосунку</string>
+    <string name="revanced_disable_cairo_splash_animation_title">Вимкнути сплеш анімацію Каїр</string>
+    <string name="revanced_disable_dislike_redirection_summary">Вимикає перенаправлення на наступний трек при натисканні на кнопку \"Не подобається\"</string>
+    <string name="revanced_disable_dislike_redirection_title">Вимкнути перенаправлення при \"Не подобається\"</string>
+    <string name="revanced_disable_drc_audio_summary">Вимикає DRC (стиснення динамічного діапазону), застосованого до аудіо</string>
+    <string name="revanced_disable_drc_audio_title">Вимкнути аудіо DRC</string>
+    <string name="revanced_disable_miniplayer_gesture_summary">Вимикає жести перемикання треків у мініплеєрі</string>
+    <string name="revanced_disable_miniplayer_gesture_title">Вимкнути жести мініплеєра</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_entry_on_click">Натиснення перемикача \"пісня | відео\"</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_entry_on_long_click">Натиснення та утримання перемикача \"пісня | відео\"</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_entry_redirect">Перенаправлення</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_summary">Визначає спосіб перенаправлення до офіційної пісні</string>
+    <string name="revanced_disable_music_video_in_album_redirect_type_title">Тип перенаправлення</string>
+    <string name="revanced_disable_music_video_in_album_summary">"Коли користувач без преміуму відтворює пісню з альбому, іноді замість офіційної пісні відтворюється музичне відео
+
+Знайти офіційну пісню, якщо виявлено музичне відео з альбому 
+
+Обмеження: відео для дітей не можна переспрямовувати"</string>
+    <string name="revanced_disable_music_video_in_album_title">Вимкнути музичні відео в альбомі</string>
+    <string name="revanced_disable_player_gesture_summary">Вимикає жести перемикання треків у плеєрі</string>
+    <string name="revanced_disable_player_gesture_title">Вимкнути жести плеєра</string>
+    <string name="revanced_disable_quic_protocol_summary">"Вимикає протокол CronetEngine's QUIC"</string>
+    <string name="revanced_disable_quic_protocol_title">Вимкнути протокол QUIC</string>
+    <string name="revanced_disable_trim_silence_summary">"Вимикає перемикач \"Пропуск тиші\" у спливаючому меню швидкості відтворення
+
+Інформація:
+• Ця функція призначена для подкастів
+• Ця функція все ще перебуває на стадії розробки, тому може працювати нестабільно"</string>
+    <string name="revanced_disable_trim_silence_title">Вимкнути перемикач \"Пропуск тиші\"</string>
+    <string name="revanced_enable_comments_scroll_top_summary">"При натисканні на заголовок панелі коментарів (\"Коментарі\") вони прокручуються на початок
+
+Обмеження: не поширюється на відповіді на коментарі"</string>
+    <string name="revanced_enable_comments_scroll_top_title">Включити прокрутку до початку коментарів</string>
+    <string name="revanced_enable_compact_dialog_summary">"Вмикає компактне спливаюче вікно на телефонах
+
+Відомі проблеми:
+• Обкладинка альбому на вкладці \"Бібліотека\" стає меншою, якщо вона впорядкована сіткою
+• Вікно \"Таймер сну\" може з'являтися незвично"</string>
+    <string name="revanced_enable_compact_dialog_title">Увімкнути компактний вигляд меню</string>
+    <string name="revanced_enable_custom_navigation_bar_color_summary">Встановлює колір для панелі навігації</string>
+    <string name="revanced_enable_custom_navigation_bar_color_title">Увімкнути користувацький колір панелі навігації</string>
+    <string name="revanced_enable_forced_miniplayer_summary">Вмикає мініплеєр на постійній основі під час переходу на новий трек</string>
+    <string name="revanced_enable_forced_miniplayer_title">Увімкнути мініплеєр на постійній основі</string>
+    <string name="revanced_enable_landscape_mode_summary">Вмикає ландшафтний режим під час повороту екрана на телефонах</string>
+    <string name="revanced_enable_landscape_mode_title">Увімкнути ландшафтний режим</string>
+    <string name="revanced_enable_opus_codec_summary">"Вмикає кодек OPUS, якщо відповідь від сервера містить його
+
+Інформація:
+• Останні YouTube Music клієнти за умовчанням використовують аудіокодек OPUS
+• Це буде корисно лише для користувачів, які користуються дуже старими клієнтами"</string>
+    <string name="revanced_enable_opus_codec_title">Увімкнути кодек OPUS</string>
+    <string name="revanced_enable_smooth_transition_animation_summary">Вмикає плавну анімацію при розгортанні мініплеєра зі згорнутого стану</string>
+    <string name="revanced_enable_smooth_transition_animation_title">Включити плавну анімацію переходу</string>
+    <string name="revanced_enable_swipe_to_dismiss_miniplayer_summary">Вмикає жест вниз для закриття мініплеєру</string>
+    <string name="revanced_enable_swipe_to_dismiss_miniplayer_title">Увімкнути жест закриття мініплеєру</string>
+    <string name="revanced_enable_thick_seekbar_summary">"Вмикає товсту панель прогресу
+
+Обмеження: сегменти SponsorBlock не показуються на панелі прогресу"</string>
+    <string name="revanced_enable_thick_seekbar_title">Увімкнути товсту панель прогресу</string>
+    <string name="revanced_enable_zen_mode_podcast_summary">Вмикає режим \"Дзен\" для подкастів</string>
+    <string name="revanced_enable_zen_mode_podcast_title">Увімкнути режим \"Дзен\" у подкастах</string>
+    <string name="revanced_enable_zen_mode_summary">Вмикає світло-сірий колір фону плеєра, щоб зменшити навантаження на очі</string>
+    <string name="revanced_enable_zen_mode_title">Увімкнути режим \"Дзен\"</string>
+    <string name="revanced_external_downloader_action_summary">"Кнопка \"Завантажити\" відкриває ваш зовнішній завантажувач
+
+• Підміняє лише кнопку \"Завантажити\" на панелі дій в плеєрі
+• Не підміняє кнопку \"Завантажити\" у спливаючому меню чи бібліотеці"</string>
+    <string name="revanced_external_downloader_action_title">Підмінити \"Завантажити\"</string>
+    <string name="revanced_external_downloader_dialog_title">Зовнішній завантажувач</string>
+    <string name="revanced_external_downloader_flyout_menu_summary">Використовує вибраний зовнішній завантажувач замість вбудованого меню завантаження</string>
+    <string name="revanced_external_downloader_flyout_menu_title">Замінити меню \"Завантажити\"</string>
+    <string name="revanced_external_downloader_not_installed_dialog_message">"%1$s не встановлено
+Будь ласка, завантажте %2$s з сайту"</string>
+    <string name="revanced_external_downloader_not_installed_dialog_title">Увага</string>
+    <string name="revanced_external_downloader_not_installed_warning">%s не встановлено. Будь ласка, встановіть його</string>
+    <string name="revanced_external_downloader_package_name_summary">Ім\'я пакета встановленого зовнішнього завантажувача, наприклад NewPipe або YTDLnis</string>
+    <string name="revanced_external_downloader_package_name_title">Ім\'я пакета зовнішнього завантажувача</string>
+    <string name="revanced_fullscreen_ads_closed_toast">Повноекранну рекламу закрито</string>
+    <string name="revanced_gms_show_dialog_summary">Відображає діалогове вікно оптимізації GMSCore при кожному запуску додатка</string>
+    <string name="revanced_gms_show_dialog_title">Показувати діалог оптимізації GMSCore</string>
+    <string name="revanced_hide_account_menu_empty_component_summary">Приховує порожній простір у меню облікового запису</string>
+    <string name="revanced_hide_account_menu_empty_component_title">Приховати порожні компоненти</string>
+    <string name="revanced_hide_account_menu_filter_strings_summary">Список назв меню облікового запису для фільтрування, розділених новими рядками</string>
+    <string name="revanced_hide_account_menu_filter_strings_title">Фільтр меню облікового запису</string>
+    <string name="revanced_hide_account_menu_summary">Приховує елементи меню облікового запису використовуючи користувацький фільтр</string>
+    <string name="revanced_hide_account_menu_title">Приховати меню облікового запису</string>
+    <string name="revanced_hide_action_button_add_to_playlist_summary">Приховує кнопку \"Зберегти\" (в список відтворення) на панелі дій плеєра</string>
+    <string name="revanced_hide_action_button_add_to_playlist_title">Приховати \"Зберегти\"</string>
+    <string name="revanced_hide_action_button_comment_summary">Приховує кнопку \"Коментарі\" на панелі дій плеєра</string>
+    <string name="revanced_hide_action_button_comment_title">Приховати \"Коментарі\"</string>
+    <string name="revanced_hide_action_button_details_summary">Приховує кнопку «Деталі» в розділі «Подкасти»</string>
+    <string name="revanced_hide_action_button_details_title">Кнопка «Приховати деталі»</string>
+    <string name="revanced_hide_action_button_disabled_summary">Приховує вимкнені кнопки, наприклад, вимкнену кнопку \"Коментарі\"</string>
+    <string name="revanced_hide_action_button_disabled_title">Приховати кнопку вимкнення</string>
+    <string name="revanced_hide_action_button_download_summary">Приховує кнопку \"Завантажити\" на панелі дій плеєра</string>
+    <string name="revanced_hide_action_button_download_title">Приховати \"Завантажити\"</string>
+    <string name="revanced_hide_action_button_label_summary">Приховує підписи кнопок на панелі дій плеєра</string>
+    <string name="revanced_hide_action_button_label_title">Приховати підписи панелі дій</string>
+    <string name="revanced_hide_action_button_like_dislike_summary">Приховує кнопки \"Подобається\" та \"Не подобається\". Це не працює в старому інтерфейсі плеєра</string>
+    <string name="revanced_hide_action_button_like_dislike_title">Приховати \"Подобається\" і \"Не подобається\"</string>
+    <string name="revanced_hide_action_button_live_chat_replay_summary">Приховує кнопку перегляду запису чату під час прямих трансляцій</string>
+    <string name="revanced_hide_action_button_live_chat_replay_title">Приховати кнопку «Перегляд запису чату»</string>
+    <string name="revanced_hide_action_button_lyrics_summary">Приховує кнопку «Текст пісні»</string>
+    <string name="revanced_hide_action_button_lyrics_title">Кнопка «Приховати текст пісні»</string>
+    <string name="revanced_hide_action_button_radio_summary">Приховує кнопку \"Радіо\" на панелі дій плеєра</string>
+    <string name="revanced_hide_action_button_radio_title">Приховати \"Радіо\"</string>
+    <string name="revanced_hide_action_button_share_summary">Приховує кнопку \"Поділитися\" на панелі дій плеєра</string>
+    <string name="revanced_hide_action_button_share_title">Приховати \"Поділитися\"</string>
+    <string name="revanced_hide_action_button_song_video_summary">"Приховує кнопку Пісня / Відео
+(Ця кнопка доступна лише деяким користувачам)"</string>
+    <string name="revanced_hide_action_button_song_video_title">Приховати кнопку Пісня / Відео</string>
+    <string name="revanced_hide_button_shelf_summary">Приховує кнопки \"Новинки\", \"Хіт-паради\", \"Настрій і жанри\" на вкладці \"Навігація\"</string>
+    <string name="revanced_hide_button_shelf_title">Приховати категорії в Навігації</string>
+    <string name="revanced_hide_carousel_shelf_summary">Приховує карусель треків на вкладках \"Головна\" та \"Навігація\"</string>
+    <string name="revanced_hide_carousel_shelf_title">Приховати карусель треків</string>
+    <string name="revanced_hide_cast_button_summary">Приховує кнопку \"Трансляція\" в плеєрі та мініплеєрі</string>
+    <string name="revanced_hide_cast_button_title">Приховати кнопку \"Трансляція\"</string>
+    <string name="revanced_hide_category_bar_summary">Приховує панель категорій</string>
+    <string name="revanced_hide_category_bar_title">Приховати панель категорій</string>
+    <string name="revanced_hide_comment_channel_guidelines_summary">Приховує правила каналу у верхній частині секції коментарів</string>
+    <string name="revanced_hide_comment_channel_guidelines_title">Приховати правила каналу</string>
+    <string name="revanced_hide_comment_timestamp_and_emoji_buttons_summary">Приховує кнопки емодзі та мітки часу під час введення коментарів</string>
+    <string name="revanced_hide_comment_timestamp_and_emoji_buttons_title">Приховати емодзі та кнопку мітки часу</string>
+    <string name="revanced_hide_comments_information_button_summary">Приховати кнопку інформації на панелі коментарів</string>
+    <string name="revanced_hide_comments_information_button_title">Приховати кнопку інформації</string>
+    <string name="revanced_hide_double_tap_overlay_filter_summary">Приховує затемнення, яке з’являється під час подвійного натискання для перемотування</string>
+    <string name="revanced_hide_double_tap_overlay_filter_title">Приховати фільтр подвійного натискання</string>
+    <string name="revanced_hide_floating_button_summary">Приховує плаваючу кнопку у вкладці \"Бібліотека\"</string>
+    <string name="revanced_hide_floating_button_title">Приховати плаваючу кнопку</string>
+    <string name="revanced_hide_flyout_menu_3_column_component_title">Приховати 3-стовпцевий компонент</string>
+    <string name="revanced_hide_flyout_menu_add_to_queue_title">Приховати \"Додати в чергу\"</string>
+    <string name="revanced_hide_flyout_menu_captions_title">Приховати \"Субтитри\"</string>
+    <string name="revanced_hide_flyout_menu_delete_playlist_title">Приховати \"Видалити список відтворення\"</string>
+    <string name="revanced_hide_flyout_menu_dismiss_queue_title">Приховати \"Відхилити чергу\"</string>
+    <string name="revanced_hide_flyout_menu_download_title">Приховати \"Завантажити\"</string>
+    <string name="revanced_hide_flyout_menu_edit_playlist_title">Приховати \"Редагувати список відтворення\"</string>
+    <string name="revanced_hide_flyout_menu_go_to_album_title">Приховати \"Перейти до альбому\"</string>
+    <string name="revanced_hide_flyout_menu_go_to_artist_title">Приховати \"Перейти на сторінку виконавця\"</string>
+    <string name="revanced_hide_flyout_menu_go_to_episode_title">Приховати \"Перейти до випуску\"</string>
+    <string name="revanced_hide_flyout_menu_go_to_podcast_title">Приховати \"Перейти до подкасту\"</string>
+    <string name="revanced_hide_flyout_menu_help_title">Приховати \"Довідка й відгуки\"</string>
+    <string name="revanced_hide_flyout_menu_not_interested_title">Приховати меню \"Не цікавить\"</string>
+    <string name="revanced_hide_flyout_menu_pin_to_speed_dial_title">Приховати \"Закріпити в розділі Швидкий набір\"</string>
+    <string name="revanced_hide_flyout_menu_play_next_title">Приховати \"Відтворити наступним\"</string>
+    <string name="revanced_hide_flyout_menu_quality_title">Приховати \"Якість\"</string>
+    <string name="revanced_hide_flyout_menu_remove_from_library_title">Приховати \"Вилучити з бібліотеки\"</string>
+    <string name="revanced_hide_flyout_menu_remove_from_playlist_title">Приховати \"Вилучити зі списку\"</string>
+    <string name="revanced_hide_flyout_menu_report_title">Приховати \"Поскаржитись\"</string>
+    <string name="revanced_hide_flyout_menu_save_episode_for_later_save_to_library_title">Сховати меню \"Зберегти епізод на потім\" та \"Зберегти до бібліотеки\"</string>
+    <string name="revanced_hide_flyout_menu_save_episode_for_later_title">Приховати \"Слухати згодом\"</string>
+    <string name="revanced_hide_flyout_menu_save_to_playlist_title">Приховати \"Зберегти в списку відтворення\"</string>
+    <string name="revanced_hide_flyout_menu_share_title">Приховати \"Поділитися\"</string>
+    <string name="revanced_hide_flyout_menu_shuffle_play_title">Приховати \"Перемішати\"</string>
+    <string name="revanced_hide_flyout_menu_sleep_timer_title">Приховати \"Таймер сну\"</string>
+    <string name="revanced_hide_flyout_menu_start_radio_title">Приховати \"Увімкнути Радіо\"</string>
+    <string name="revanced_hide_flyout_menu_stats_for_nerds_title">Приховати \"Статистика для досвідчених користувачів\"</string>
+    <string name="revanced_hide_flyout_menu_subscribe_title">Приховати \"Підписатися / Скасувати підписку\"</string>
+    <string name="revanced_hide_flyout_menu_taste_match_title">Приховати \"Підбір переваг\"</string>
+    <string name="revanced_hide_flyout_menu_unpin_from_speed_dial_title">Приховати \"Відкріпити від розділу Швидкий набір\"</string>
+    <string name="revanced_hide_flyout_menu_view_song_credit_title">Приховати \"Переглянути авторів пісні\"</string>
+    <string name="revanced_hide_fullscreen_ads_summary">"Приховує повноекранну рекламу"</string>
+    <string name="revanced_hide_fullscreen_ads_title">Приховати повноекранну рекламу</string>
+    <string name="revanced_hide_fullscreen_share_button_summary">Приховує кнопку \"Поділитися\" в повноекранному плеєрі</string>
+    <string name="revanced_hide_fullscreen_share_button_title">Приховати \"Поділитися\" повноекранного режиму</string>
+    <string name="revanced_hide_general_ads_summary">Приховує загальну рекламу</string>
+    <string name="revanced_hide_general_ads_title">Приховати загальну рекламу</string>
+    <string name="revanced_hide_handle_summary">Приховує електронну пошту / @нік у меню облікових записів</string>
+    <string name="revanced_hide_handle_title">Приховати електронну пошту / @нік</string>
+    <string name="revanced_hide_history_button_summary">Приховує кнопку історії на панелі інструментів</string>
+    <string name="revanced_hide_history_button_title">Приховати кнопку історії</string>
+    <string name="revanced_hide_lyrics_share_button_summary">Приховує кнопку \"Поділитися\" у текстах</string>
+    <string name="revanced_hide_lyrics_share_button_title">Приховати кнопку \"Поділитися\"</string>
+    <string name="revanced_hide_music_ads_summary">Приховує рекламу, яка з\'являється під час відтворення медіа</string>
+    <string name="revanced_hide_music_ads_title">Приховати медіарекламу</string>
+    <string name="revanced_hide_navigation_bar_summary">Приховує панель навігації</string>
+    <string name="revanced_hide_navigation_bar_title">Приховати панель навігації</string>
+    <string name="revanced_hide_navigation_explore_button_summary">Приховує кнопку \"Навігація\" на панелі навігації</string>
+    <string name="revanced_hide_navigation_explore_button_title">Приховати \"Навігація\"</string>
+    <string name="revanced_hide_navigation_home_button_summary">Приховує кнопку \"Головна\" на панелі навігації</string>
+    <string name="revanced_hide_navigation_home_button_title">Приховати \"Головна\"</string>
+    <string name="revanced_hide_navigation_label_summary">Приховує підпис під кожною навігаційною кнопкою</string>
+    <string name="revanced_hide_navigation_label_title">Приховати підписи кнопок навігації</string>
+    <string name="revanced_hide_navigation_library_button_summary">Приховує кнопку \"Бібліотека\" на панелі навігації</string>
+    <string name="revanced_hide_navigation_library_button_title">Приховати \"Бібліотека\"</string>
+    <string name="revanced_hide_navigation_samples_button_summary">Приховує кнопку \"Семпли\" на панелі навігації</string>
+    <string name="revanced_hide_navigation_samples_button_title">Приховати \"Семпли\"</string>
+    <string name="revanced_hide_navigation_upgrade_button_summary">Приховує кнопку \"Підписка\" на панелі навігації</string>
+    <string name="revanced_hide_navigation_upgrade_button_title">Приховати \"Підписка\"</string>
+    <string name="revanced_hide_notification_button_summary">Приховує кнопку сповіщень на панелі інструментів</string>
+    <string name="revanced_hide_notification_button_title">Приховати кнопку сповіщень</string>
+    <string name="revanced_hide_paid_promotion_label_summary">Приховує мітку \"Містить пряму рекламу\"</string>
+    <string name="revanced_hide_paid_promotion_label_title">Приховати \"Містить пряму рекламу\"</string>
+    <string name="revanced_hide_playlist_card_shelf_summary">Приховує полицю карток списку відтворення в стрічці</string>
+    <string name="revanced_hide_playlist_card_shelf_title">Приховати полицю карток списку відтворення</string>
+    <string name="revanced_hide_premium_promotion_closed_toast">Спливаючі вікна покупки преміум закрито</string>
+    <string name="revanced_hide_premium_promotion_summary">Приховує спливаючі вікна реклами підписки</string>
+    <string name="revanced_hide_premium_promotion_title">Приховати спливаючу рекламу Premium</string>
+    <string name="revanced_hide_premium_renewal_summary">Приховує банер поновлення підписки Music Premium</string>
+    <string name="revanced_hide_premium_renewal_title">Приховати банер поновлення Premium</string>
+    <string name="revanced_hide_promotion_alert_banner_summary">Приховує банер рекламних сповіщень</string>
+    <string name="revanced_hide_promotion_alert_banner_title">Приховати рекламні сповіщення</string>
+    <string name="revanced_hide_samples_shelf_summary">Приховує полицю \"Семпли для вас\" у стрічці</string>
+    <string name="revanced_hide_samples_shelf_title">Приховати полицю \"Семпли\"</string>
+    <string name="revanced_hide_search_button_summary">Приховує кнопку пошуку на панелі інструментів</string>
+    <string name="revanced_hide_search_button_title">Приховати кнопку пошуку</string>
+    <string name="revanced_hide_song_video_toggle_summary">Приховує перемикач \"пісня | відео\" у плеєрі</string>
+    <string name="revanced_hide_song_video_toggle_title">Приховати перемикач \"пісня | відео\"</string>
+    <string name="revanced_hide_sound_search_button_summary">Приховує кнопку пошуку музики у панелі пошуку</string>
+    <string name="revanced_hide_sound_search_button_title">Приховати кнопку пошуку музики</string>
+    <string name="revanced_hide_tap_to_update_button_summary">Приховує кнопку оновлення</string>
+    <string name="revanced_hide_tap_to_update_button_title">Приховати кнопку оновлення</string>
+    <string name="revanced_hide_terms_container_summary">Приховує контейнер \"Конфіденційність • Умови використання\"</string>
+    <string name="revanced_hide_terms_container_title">Приховати \"Конфіденційність • Умови використання\"</string>
+    <string name="revanced_hide_voice_search_button_summary">Приховує кнопку голосового пошуку у панелі пошуку</string>
+    <string name="revanced_hide_voice_search_button_title">Приховати кнопку голосового пошуку</string>
+    <string name="revanced_icon_custom">Користувацька</string>
+    <string name="revanced_music_change_navigation_bar_color_summary">Підлаштовує колір панелі навігації під повноекранний плеєр</string>
+    <string name="revanced_music_change_navigation_bar_color_title">Змінити колір панелі навігації</string>
+    <string name="revanced_preference_screen_account_title">Обліковий запис</string>
+    <string name="revanced_preference_screen_action_bar_title">Панель дій</string>
+    <string name="revanced_preference_screen_ads_title">Реклама</string>
+    <string name="revanced_preference_screen_flyout_title">Спливаюче меню</string>
+    <string name="revanced_preference_screen_general_title">Загальні</string>
+    <string name="revanced_preference_screen_lyrics_title">Тексти пісень</string>
+    <string name="revanced_preference_screen_misc_title">Різне</string>
+    <string name="revanced_preference_screen_navigation_title">Панель навігації</string>
+    <string name="revanced_preference_screen_player_title">Плеєр</string>
+    <string name="revanced_preference_screen_return_youtube_username_title">Повернути ім\'я користувача YouTube</string>
+    <string name="revanced_preference_screen_ryd_title">Return YouTube Dislike</string>
+    <string name="revanced_preference_screen_sb_title">SponsorBlock</string>
+    <string name="revanced_preference_screen_settings_title">Меню налаштувань</string>
+    <string name="revanced_preference_screen_video_title">Відео</string>
+    <string name="revanced_remember_playback_speed_last_selected_summary">Запам\'ятовує останню вибрану швидкість відтворення</string>
+    <string name="revanced_remember_playback_speed_last_selected_title">Запам\'ятовувати зміни швидкості відтворення</string>
+    <string name="revanced_remember_playback_speed_last_selected_toast_summary">Показує тост під час зміни стандартної швидкості відтворення</string>
+    <string name="revanced_remember_playback_speed_last_selected_toast_title">Показувати тост</string>
+    <string name="revanced_remember_playback_speed_toast">Зміна типової швидкості на %s</string>
+    <string name="revanced_remember_repeat_state_summary">Запам\'ятовує стан кнопки \"Повтор відтворення\"</string>
+    <string name="revanced_remember_repeat_state_title">Запам\'ятовувати стан повтору</string>
+    <string name="revanced_remember_shuffle_state_summary">Запам\'ятовує стан кнопки \"Перемішати\"</string>
+    <string name="revanced_remember_shuffle_state_title">Запам\'ятовувати стан перемішування</string>
+    <string name="revanced_remember_video_quality_auto_mobile">За замовчуванням якість при моб. мережі змінено на \"Авто\"</string>
+    <string name="revanced_remember_video_quality_auto_wifi">За замовчуванням якість при Wi-Fi змінено на \"Авто\"</string>
+    <string name="revanced_remember_video_quality_last_selected_summary">Запам\'ятовує останню вибрану якість відео</string>
+    <string name="revanced_remember_video_quality_last_selected_title">Запам\'ятовувати зміни якості відео</string>
+    <string name="revanced_remember_video_quality_last_selected_toast_summary">Показує тост під час зміни стандартної якості відео</string>
+    <string name="revanced_remember_video_quality_mobile">Зміна типової якості відео в мобільній мережі на %s</string>
+    <string name="revanced_remember_video_quality_none">Не вдалося встановити обрану якість</string>
+    <string name="revanced_remember_video_quality_wifi">Зміна типової якості відео для Wi-Fi мережі на %s</string>
+    <string name="revanced_remove_viewer_discretion_dialog_summary">Це не обходить вікове обмеження. Просто приймає його автоматично</string>
+    <string name="revanced_remove_viewer_discretion_dialog_title">Вилучити діалог про неприйнятний контент</string>
+    <string name="revanced_replace_action_button_like_summary">"Замінює іконку та анімацію кнопки "Подобається"
+
+• Ця установка більше не знадобиться, як тільки проблема буде вирішена на стороні сервера"</string>
+    <string name="revanced_replace_action_button_like_title">Заміна кнопки \"Подобається\"</string>
+    <string name="revanced_replace_action_button_like_type_summary">"Використовує зменшену кнопку "Подобається"
+
+• У деяких користувачів панель дій знаходиться нижче (A/B-тестування)
+• Ця настройка призначена для таких користувачів, не була протестована"</string>
+    <string name="revanced_replace_action_button_like_type_title">Використовувати зменшену кнопку</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_continue_watch_summary">Продовжує відео з поточного моменту під час переходу на YouTube</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_continue_watch_title">Продовжити перегляд</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_summary">Замінює пункт \"Відхилити чергу\" на пункт \"Дивитись на YouTube\"</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_title">Заміна \"Відхилити чергу\"</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_watch_on_youtube_label">Дивитись на YouTube</string>
+    <string name="revanced_replace_flyout_menu_dismiss_queue_watch_on_youtube_warning">Недійсна url-адреса відео</string>
+    <string name="revanced_replace_flyout_menu_report_only_player_summary">Залишає пункт меню \"Поскаржитися\" в коментарях недоторканим</string>
+    <string name="revanced_replace_flyout_menu_report_only_player_title">Залишити \"Поскаржитися\"</string>
+    <string name="revanced_replace_flyout_menu_report_summary">Замінює пункт \"Поскаржитися\" на пункт \"Швидкість відео\"</string>
+    <string name="revanced_replace_flyout_menu_report_title">Заміна \"Поскаржитися\"</string>
+    <string name="revanced_replace_navigation_button_about_summary">"Ця функція є експериментальною
+Існують структурні обмеження патчу, оскільки такі Activities, як Пошук і Налаштування в YouTube Music, не є загальнодоступними
+Відомі проблеми:
+• Коли замінені Activity як Пошук і Налаштування закрито, відкривається початкова сторінка
+
+Натисніть, щоб відкрити \"Змінити початкову сторінку\""</string>
+    <string name="revanced_replace_navigation_button_about_title">Про заміну кнопки</string>
+    <string name="revanced_replace_navigation_samples_button_summary">Замінює кнопку \"Семпли\" на кнопку \"Пошук\"</string>
+    <string name="revanced_replace_navigation_samples_button_title">Заміна кнопки \"Семпли\"</string>
+    <string name="revanced_replace_navigation_upgrade_button_summary">Замінює кнопку \"Оновити\" на кнопку \"Налаштування\"</string>
+    <string name="revanced_replace_navigation_upgrade_button_title">Заміна кнопки \"Оновити\"</string>
+    <string name="revanced_reset_to_default_toast">Скинуто до значень за замовчуванням</string>
+    <string name="revanced_restart_dialog_message">Перезапустіть додаток, щоб застосувати ці зміни</string>
+    <string name="revanced_restart_first_run">Перезавантажте, щоб завершити налаштування</string>
+    <string name="revanced_restart_message">Оновити та перезавантажити?</string>
+    <string name="revanced_restart_title">Потрібно перезапустити</string>
+    <string name="revanced_restore_old_comments_popup_panels_summary">Відновлює старий стиль спливаючих панелей коментарів</string>
+    <string name="revanced_restore_old_comments_popup_panels_title">Відновити старі спливаючі панелі коментарів</string>
+    <string name="revanced_restore_old_player_background_summary">Відновлює фон плеєра до старого стилю</string>
+    <string name="revanced_restore_old_player_background_title">Відновити старий фон плеєра</string>
+    <string name="revanced_restore_old_player_layout_summary">"Відновлює інтерфейс плеєра до старого стилю
+Деякі функції можуть працювати не належним чином у старому інтерфейсі плеєра"</string>
+    <string name="revanced_restore_old_player_layout_title">Відновити старий інтерфейс плеєра</string>
+    <string name="revanced_restore_old_style_library_shelf_summary">Відновлює старий стиль вкладки \"Бібліотека\" (Експериментальна опція)</string>
+    <string name="revanced_restore_old_style_library_shelf_title">Відновити старий стиль вкладки \"Бібліотека\"</string>
+    <string name="revanced_return_youtube_username_display_format_handle_username">\@псевдонім (Ім\'я користувача)</string>
+    <string name="revanced_return_youtube_username_display_format_summary">Вибрати формат відображення імені користувача</string>
+    <string name="revanced_return_youtube_username_display_format_title">Формат відображення</string>
+    <string name="revanced_return_youtube_username_display_format_username_handle">Ім\'я користувача (@псевдонім)</string>
+    <string name="revanced_return_youtube_username_display_format_username_only">Ім\'я користувача</string>
+    <string name="revanced_return_youtube_username_enabled_summary">Замінює псевдоніми на імена користувачів у коментарях</string>
+    <string name="revanced_return_youtube_username_enabled_title">Увімкнути повернення імені користувача YouTube</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_about_summary">"Щоб замінити псевдоніми на імена користувачів, потрібен ключ розробника YouTube Data API v3
+
+Щоденна квота для ключів API у безкоштовному тарифі становить 10 000, і 1 квота використовується для заміни псевдоніма на ім’я користувача для 1 коментаря
+
+Натисніть, щоб дізнатися, як створити ключ API"</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_about_title">Про ключ YouTube Data API</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_developer_key_summary">Ключ розробника для використання API YouTube Data v3</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_developer_key_title">Ключ YouTube Data API</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_dialog_message">1. Перейдіть до &lt;a href=%1$s&gt;Створити New Project&lt;/a&gt;.&lt;br&gt;2. Натисніть кнопку &lt;b&gt;CREATE&lt;/b&gt;.&lt;br&gt;3. Перейдіть до &lt;a href=%2$s&gt;YouTube Data API v3&lt;/a&gt;.&lt;br&gt;4. Натисніть кнопку &lt;b&gt;ENABLE&lt;/b&gt;.&lt;br&gt;5. Натисніть кнопку &lt;b&gt;CREATE CREDENTIALS&lt;/b&gt;.&lt;br&gt;6. Виберіть &lt;b&gt;Public data&lt;/b&gt;.&lt;br&gt;7. Натисніть кнопку &lt;b&gt;NEXT&lt;/b&gt;.&lt;br&gt;8. Скопіюйте ключ API.&lt;br&gt;&lt;br&gt;※ Ключ API не можна надавати іншим, тому його не включено в Імпорт / Експорт налаштувань</string>
+    <string name="revanced_return_youtube_username_youtube_data_api_v3_dialog_title">Створення ключа розробника YouTube Data API v3</string>
+    <string name="revanced_ryd_attribution_summary">"Return YouTube Dislike повертає кількість дизлайків, яку YouTube приховав у 2021 році. Дані беруться з архіву, створеного до видалення, а для новіших відео оцінюються за голосами користувачів розширення, тож вони приблизні й оновлюються кожні кілька днів
+
+Ідентифікатор відео, яке ви дивитеся, надсилається до API Return YouTube Dislike, а ваші лайки та дизлайки надсилаються анонімно для покращення оцінок"</string>
+    <string name="revanced_ryd_attribution_title">ReturnYouTubeDislike.com</string>
+    <string name="revanced_ryd_compact_layout_summary">Зменшує ширину кнопки \"Лайк\", щоб заощадити місце</string>
+    <string name="revanced_ryd_compact_layout_title">Використовувати компактну кнопку \"Лайк\"</string>
+    <string name="revanced_ryd_dislike_percentage_summary">Показує дизлайки у відсотках від лайків замість числа</string>
+    <string name="revanced_ryd_dislike_percentage_title">Показувати дизлайки у відсотках</string>
+    <string name="revanced_ryd_enabled_summary">Показує кількість дизлайків у треках</string>
+    <string name="revanced_ryd_enabled_title">Увімкнути Return YouTube Dislike</string>
+    <string name="revanced_ryd_estimated_like_summary">Показує приблизну кількість лайків на відео, де автор вимкнув лайки</string>
+    <string name="revanced_ryd_estimated_like_title">Показувати приблизну кількість лайків</string>
+    <string name="revanced_ryd_failure_client_rate_limit_requested">Дизлайки недоступні (ліміт клієнтів API)</string>
+    <string name="revanced_ryd_failure_connection_status_code">Дизлайки недоступні (статус %s)</string>
+    <string name="revanced_ryd_failure_connection_timeout">Дизлайки тимчасово недоступні (тайм-аут API)</string>
+    <string name="revanced_ryd_failure_generic">Дизлайки недоступні (%s)</string>
+    <string name="revanced_ryd_toast_on_connection_error_summary">Показує сповіщення, коли сервер Return YouTube Dislike недоступний</string>
+    <string name="revanced_ryd_toast_on_connection_error_title">Показувати сповіщення про помилки з’єднання</string>
+    <string name="revanced_ryd_video_likes_hidden_by_video_owner">Приховано власником</string>
+    <string name="revanced_sb_about_api">sponsor.ajay.app</string>
+    <string name="revanced_sb_about_api_sum">Дані надаються SponsorBlock API. Натисніть тут, щоб дізнатися більше та побачити завантаження для інших платформ</string>
+    <string name="revanced_sb_api_url">Змінити URL-адресу API</string>
+    <string name="revanced_sb_api_url_changed">Адресу API змінено</string>
+    <string name="revanced_sb_api_url_invalid">Адреса API недійсна</string>
+    <string name="revanced_sb_api_url_reset">Адресу API скинуто</string>
+    <string name="revanced_sb_api_url_sum">Адреса, яку SponsorBlock використовує для звернень до сервера. Не змінюйте це, якщо не знаєте, що робите</string>
+    <string name="revanced_sb_color_changed">Колір змінено</string>
+    <string name="revanced_sb_color_dot_label">Колір:</string>
+    <string name="revanced_sb_color_invalid">Недійсний код кольору</string>
+    <string name="revanced_sb_color_reset">Колір скинуто</string>
+    <string name="revanced_sb_diff_segments">Змінити поведінку сегмента</string>
+    <string name="revanced_sb_enabled">Увімкнути SponsorBlock</string>
+    <string name="revanced_sb_enabled_sum">SponsorBlock - це краудсорсингова система для пропускання дратівливих частин відео на YouTube</string>
+    <string name="revanced_sb_segments_filler">Дотичні теми / Жарти</string>
+    <string name="revanced_sb_segments_filler_sum">Дотичні сцени, додані лише для наповнення або гумору, які не є необхідними для розуміння основного змісту відео. Не включає сегменти, що надають контекст або фонові деталі</string>
+    <string name="revanced_sb_segments_hook">Зачіпка / Вітання</string>
+    <string name="revanced_sb_segments_hook_sum">Озвучені трейлери до майбутнього відео, вітання та прощання. Не містить розділів із додатковим контентом</string>
+    <string name="revanced_sb_segments_interaction">Нагадування про взаємодію (Підписка)</string>
+    <string name="revanced_sb_segments_interaction_sum">Коротке нагадування про вподобання, підписку або підписку посеред контенту. Якщо воно довге або про щось конкретне, його слід розмістити в розділі самореклами</string>
+    <string name="revanced_sb_segments_intro">Пауза / Заставка</string>
+    <string name="revanced_sb_segments_intro_sum">Інтервал без фактичного контенту. Може бути паузою, статичним кадром або повторюваною анімацією. Не включає переходи, що містять інформацію</string>
+    <string name="revanced_sb_segments_nomusic">Музика: Сегмент без музики</string>
+    <string name="revanced_sb_segments_nomusic_sum">Тільки для використання в музичних відео. Секції музичних відео без музики, які не підпадають під іншу категорію</string>
+    <string name="revanced_sb_segments_outro">Кінцеві заставки / Титри</string>
+    <string name="revanced_sb_segments_outro_sum">Титри або коли з\'являються кінцеві картки YouTube. Не для підсумків з інформацією</string>
+    <string name="revanced_sb_segments_preview">Попередній перегляд / Підсумок</string>
+    <string name="revanced_sb_segments_preview_sum">Колекція кліпів, які показують, що відбувається або що сталося у відео чи в інших відео серій, де вся інформація повторюється в іншому місці</string>
+    <string name="revanced_sb_segments_selfpromo">Самореклама / Рекомендація</string>
+    <string name="revanced_sb_segments_selfpromo_sum">Подібно до \"Спонсор\", за винятком неоплачуваної або самореклами. Включає секції про товари, пожертви або інформацію про те, з ким вони співпрацювали</string>
+    <string name="revanced_sb_segments_sponsor">Спонсор</string>
+    <string name="revanced_sb_segments_sponsor_sum">Рекламні інтеграції, реферальні посилання і пряма реклама. Не для самореклами або рекомендацій різних подій / творців / сайтів / продуктів, які подобаються автору відео</string>
+    <string name="revanced_sb_skip_automatically">Пропустити автоматично</string>
+    <string name="revanced_sb_skip_automatically_once">Пропустити один раз</string>
+    <string name="revanced_sb_skip_ignore">Вимкнути</string>
+    <string name="revanced_sb_skipped_filler">Пропущено дотичну тему</string>
+    <string name="revanced_sb_skipped_hook">Пропущено зачіпку</string>
+    <string name="revanced_sb_skipped_interaction">Пропущено дратівливе нагадування</string>
+    <string name="revanced_sb_skipped_intro_beginning">Пропущено вступ</string>
+    <string name="revanced_sb_skipped_intro_end">Пропущено паузу</string>
+    <string name="revanced_sb_skipped_multiple_segments">Пропущено декілька сегментів</string>
+    <string name="revanced_sb_skipped_nomusic">Пропущено сегмент без музики</string>
+    <string name="revanced_sb_skipped_outro">Пропущено закінчення</string>
+    <string name="revanced_sb_skipped_preview_beginning">Пропущено попередній перегляд</string>
+    <string name="revanced_sb_skipped_preview_end">Пропущено підсумок</string>
+    <string name="revanced_sb_skipped_selfpromo">Пропущено саморекламу</string>
+    <string name="revanced_sb_skipped_sponsor">Пропущено спонсорську вставку</string>
+    <string name="revanced_sb_sponsorblock_connection_failure_generic">SponsorBlock тимчасово не доступний</string>
+    <string name="revanced_sb_sponsorblock_connection_failure_status">SponsorBlock тимчасово недоступний (статус %s)</string>
+    <string name="revanced_sb_sponsorblock_connection_failure_timeout">SponsorBlock тимчасово недоступний (тайм-аут API)</string>
+    <string name="revanced_sb_toast_on_connection_error_sum">Показує тост, якщо API SponsorBlock не доступний</string>
+    <string name="revanced_sb_toast_on_skip">Показати тост, коли сегмент пропущено автоматично</string>
+    <string name="revanced_sb_toast_on_skip_sum">Показує тост, коли сегмент автоматично пропущено</string>
+    <string name="revanced_settings_export_as_file">Експорт налаштувань у файл</string>
+    <string name="revanced_settings_export_failed">Не вдалося експортувати налаштування</string>
+    <string name="revanced_settings_export_success">Налаштування було вдало експортовано</string>
+    <string name="revanced_settings_import">Імпорт</string>
+    <string name="revanced_settings_import_as_file">Імпорт налаштувань із файлу</string>
+    <string name="revanced_settings_import_copy">Копіювати</string>
+    <string name="revanced_settings_import_export_as_text">Імпорт або експорт налаштувань у вигляді тексту</string>
+    <string name="revanced_settings_import_export_summary">Імпортує або Експортує налаштування RVX Music</string>
+    <string name="revanced_settings_import_export_title">Імпорт / Експорт налаштувань</string>
+    <string name="revanced_settings_import_failed">Не вдалося імпортувати налаштування: %s</string>
+    <string name="revanced_settings_import_reset">Налаштування RVX скинуто до типових</string>
+    <string name="revanced_settings_import_success">Імпортовано %s налаштувань</string>
+    <string name="revanced_settings_navigate_up">Перейти вгору</string>
+    <string name="revanced_settings_reset">Скинути</string>
+    <string name="revanced_settings_reset_color">Скинути колір</string>
+    <string name="revanced_settings_search_clear_history">Очистити історію пошуку</string>
+    <string name="revanced_settings_search_clear_history_message">Ви впевнені, що хочете очистити всю історію пошуку?</string>
+    <string name="revanced_settings_search_empty_history_summary">Щоб зберегти історію пошуку, введіть пошуковий запит і натисніть Enter</string>
+    <string name="revanced_settings_search_empty_history_title">Історія пошуку порожня</string>
+    <string name="revanced_settings_search_history_summary_off">Історію пошуку налаштувань не показується</string>
+    <string name="revanced_settings_search_history_summary_on">Історію пошуку налаштувань показується</string>
+    <string name="revanced_settings_search_history_title">Показувати історію пошуку налаштувань</string>
+    <string name="revanced_settings_search_no_results_summary">Спробуйте інше ключове слово</string>
+    <string name="revanced_settings_search_no_results_title">За запитом \'%s\' нічого не знайдено</string>
+    <string name="revanced_settings_search_recent_searches">Нещодавні пошуки</string>
+    <string name="revanced_settings_search_remove">Видалити з історії пошуку</string>
+    <string name="revanced_settings_search_remove_message">Видалити з історії пошуку?</string>
+    <string name="revanced_settings_search_tips_summary">"• Натисніть на шлях, щоб відкрити його
+• Натисніть і утримуйте налаштування, щоб перейти до нього
+• Натисніть Enter, щоб зберегти пошуковий запит в історію
+• Пошук ігнорує регістр і розділові знаки
+• Батьківські налаштування показуються над вимкненими дочірніми налаштуваннями"</string>
+    <string name="revanced_settings_search_tips_title">Поради щодо пошуку</string>
+    <string name="revanced_settings_search_title">Пошук %s</string>
+    <string name="revanced_settings_show_slider_summaries_summary">Показує або приховує описи під налаштуваннями повзунків</string>
+    <string name="revanced_settings_show_slider_summaries_title">Показувати описи для налаштувань повзунків</string>
+    <string name="revanced_share_copy_settings_success">Налаштування скопійовано до буфера обміну</string>
+    <string name="revanced_spoof_app_version_for_lyrics_summary">Підміняє версію клієнта, яка використовується в текстах пісень, на старішу версію</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_6_42_55">6.42.55 - Без динамічних текстів</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_7_12_52">7.12.52 - З динамічним текстом</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_8_06_52">8.06.52 - З динамічним текстом + кнопка \"Поділитися\"</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_entry_8_33_54">8.33.54 - З динамічним текстом + кнопка \"Поділитися\" + Кнопка \"Перекласти\" (тільки для Преміум користувачів)</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_summary">Виберіть зі списку цільову версію для текстів</string>
+    <string name="revanced_spoof_app_version_for_lyrics_target_title">Версія програми при заміні для текстів</string>
+    <string name="revanced_spoof_app_version_for_lyrics_title">Підміна версії програми для текстів</string>
+    <string name="revanced_spoof_app_version_summary">Змушує сервер думати, що ви використовуєте стару версію застосунку, щоб відновити застарілі функції інтерфейсу</string>
+    <string name="revanced_spoof_app_version_target_entry_4_27_53">4.27.53 - Вимкнення режиму радіо в канадських регіонах</string>
+    <string name="revanced_spoof_app_version_target_entry_6_11_52">6.11.52 - Вимкнення динамічних текстів (караоке)</string>
+    <string name="revanced_spoof_app_version_target_entry_6_35_52">6.35.52 - Відновити стару спливаючу панель</string>
+    <string name="revanced_spoof_app_version_target_entry_6_42_55">6.42.55 - Вимкнення динамічних текстів</string>
+    <string name="revanced_spoof_app_version_target_entry_7_16_53">7.16.53 - Відновлення старої панелі дій</string>
+    <string name="revanced_spoof_app_version_target_entry_7_17_52">7.17.52 - Розділ коментарів не показується в домашній стрічці</string>
+    <string name="revanced_spoof_app_version_target_entry_8_05_50">8.05.50 - Виправлення екрана оновлення застосунку</string>
+    <string name="revanced_spoof_app_version_target_invalid_toast">Невірна версія підміни: %s</string>
+    <string name="revanced_spoof_app_version_target_summary">Виберіть зі списку цільову версію для підміни</string>
+    <string name="revanced_spoof_app_version_target_title">Підмінити версію застосунку на</string>
+    <string name="revanced_spoof_app_version_title">Підміна версії застосунку</string>
+    <string name="revanced_spoof_client_summary">Підміняє клієнт для запобігання проблем з відновленням
+
+Побічний ефект:
+• Кнопки дій можуть бути завжди приховані в YouTube Music 7.17+
+• Спливаюче меню плеєра може не відображатися належним чином
+• Ці побічні ефекти можна вирішити, очистивши дані програми та знову ввійшовши в систему</string>
+    <string name="revanced_spoof_client_title">Підмінити клієнт</string>
+    <string name="revanced_spoof_client_type_summary">"Визначає клієнт за замовчуванням для підробки"</string>
+    <string name="revanced_spoof_streaming_data_no_sdk_auth_token_about_summary">Натисніть, щоб переглянути, як отримати токен авторизації</string>
+    <string name="revanced_spoof_streaming_data_no_sdk_auth_token_about_title">Про авторизацію Android No SDK</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_about_summary">Натисніть тут, щоб побачити як увійти в Android VR</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_about_title">Авторизація в Android No SDK</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_dialog_get_authorization_token_text">Отримати токен авторизації</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_dialog_message">"Вхід до Android No SDK (YouTube) здійснюється відповідно до рекомендацій Google (авторизація облікового запису Google - OAuth 2.0 для додатків Android):
+
+1. Натисніть 'Отримати токен авторизації', щоб відкрити сторінку входу до WebView
+2. Увійдіть до свого облікового запису Google
+3. Результати входу відображатимуться протягом 5 секунд
+
+※ Натисніть 'Скинути', щоб видалити токен автентифікації"</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_success_dialog_message">"Токен автентифікації збережено
+
+- Токен автентифікації, виданий за допомогою цього процесу, можна використовувати тільки в YouTube (У RVX він використовується для отримання даних трансляції із YouTube)
+- Токен автентифікації, який не використовувався протягом більше ніж 6 місяців, буде анульований серверами Google
+- Якщо ви зміните пароль, скасуєте реєстрацію пристрою в налаштуваннях облікового запису чи видалите додаток, потрібно буде перевидати токен автентифікації"</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_success_dialog_title">Авторизовано</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_no_sdk_toast_reset">Токен автентифікації скинутий</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_activation_code_toast_copy">Код активації скопійовано в буфер обміну: %s</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_toast_failed">Не вдалося видати токен автентифікації</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_toast_failed_suggestion">Натисніть Скинути та спробуйте ще раз</string>
+    <string name="revanced_spoof_streaming_data_sign_in_android_vr_toast_reset">Токен автентифікації та код активації скинуто</string>
+    <string name="revanced_spoof_streaming_data_vr_auth_token_about_title">Про авторизацію Android VR</string>
+    <string name="revanced_spoof_video_streams_default_client_summary">"Визначає клієнт за замовчуванням для підробки"</string>
+    <string name="revanced_translations_title">Переклади</string>
+    <string name="revanced_watch_history_type_entry_1">Оригінальний</string>
+    <string name="revanced_watch_history_type_entry_2">Замінити домен</string>
+    <string name="revanced_watch_history_type_entry_3">Блокувати історію переглядів</string>
+    <string name="revanced_watch_history_type_summary">"• Оригінальний: Відповідає налаштуванням історії переглядів облікового запису Google, але історія переглядів може не працювати через DNS або VPN
+• Замінити домен: Дотримується налаштувань історії переглядів облікового запису Google
+• Блокувати історію переглядів: Історію переглядів заблоковано"</string>
+    <string name="revanced_watch_history_type_title">Тип історії перегляду</string>
+    <string name="revanced_webview_cookies">Куки</string>
+    <string name="revanced_webview_data_sync_id">ID синхр. даних</string>
+    <string name="revanced_webview_toast_copy_success">%s у буфер обміну</string>
+    <string name="revanced_webview_toast_empty">%s порожній</string>
+    <string name="revanced_webview_toast_no_network">Перевірте підключення до Інтернету</string>
+    <string name="revanced_webview_toast_unavailable">WebView недоступний</string>
+</resources>

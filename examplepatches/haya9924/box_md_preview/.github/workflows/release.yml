@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.1.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # The Morphe patch registry is served from GitHub Packages. The automatic
+      # GITHUB_TOKEN is enough to read a public package registry, so no personal
+      # token is stored for the build.
+      - name: Build patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Pick the bundle and check the version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version *= *//p' gradle.properties | tr -d '[:space:]')
+          mpp=$(ls patches/build/libs/patches-*.mpp | grep -Ev '(sources|javadoc)')
+          echo "Building $mpp"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "$TAG" != "v$version" ]; then
+            echo "Tag $TAG does not match version $version in gradle.properties" >&2
+            exit 1
+          fi
+          echo "MPP=$mpp" >> "$GITHUB_ENV"
+
+      # Draft -> attach -> publish: a published release is immutable, so the
+      # asset has to be uploaded while the release is still a draft.
+      - name: Create draft release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" --draft --title "$TAG" --generate-notes
+
+      - name: Upload patch bundle to draft release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload "$TAG" "$MPP" --clobber
+
+      - name: Publish release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: gh release edit "$TAG" --draft=false

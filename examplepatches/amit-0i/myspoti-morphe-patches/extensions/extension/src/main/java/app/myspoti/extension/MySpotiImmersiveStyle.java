@@ -2,6 +2,7 @@ package app.myspoti.extension;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 
 /**
  * Small Java mirror of MySpoti's public Classic and Immersive design tokens.
@@ -13,6 +14,7 @@ import android.graphics.Color;
 final class MySpotiImmersiveStyle {
     private static final String LOOK_PREFS = "settings_prefs";
     private static final String LOOK_KEY = "look";
+    private static final String DYNAMIC_COLOR_KEY = "dynamic_color";
     private static final String SUPPORT_PREFS = "support_reminder";
     private static final String IMMERSIVE_ACCENT_KEY = "accent_immersive";
 
@@ -40,6 +42,17 @@ final class MySpotiImmersiveStyle {
     }
 
     static int accent(Context context, boolean immersive) {
+        // MySpoti 2.4.0's DynamicColorPref takes precedence over the saved Classic accent:
+        // when enabled on Android 12+, AppAccent uses the wallpaper's system_accent1_200.
+        // Immersive deliberately does not use Material You; its accent remains user/cover based.
+        if (!immersive && isClassicDynamicColorEnabled(context)) {
+            try {
+                return context.getColor(android.R.color.system_accent1_200);
+            } catch (Throwable ignored) {
+                // Keep the manual Classic accent as a safe fallback on unusual framework builds.
+            }
+        }
+
         String keyName = immersive ? IMMERSIVE_ACCENT_KEY : "accent_classic";
         String key = context.getSharedPreferences(SUPPORT_PREFS, Context.MODE_PRIVATE)
                 .getString(keyName, null);
@@ -55,6 +68,14 @@ final class MySpotiImmersiveStyle {
             // SupportReminder falls back to GREEN for an invalid persisted accent value.
             default: return 0xFF1ED760;
         }
+    }
+
+
+    /** Mirrors DynamicColorPref.active for the Classic-look extension UI. */
+    private static boolean isClassicDynamicColorEnabled(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false;
+        return context.getSharedPreferences(LOOK_PREFS, Context.MODE_PRIVATE)
+                .getBoolean(DYNAMIC_COLOR_KEY, false);
     }
 
     static int withAlpha(int color, int alpha) {

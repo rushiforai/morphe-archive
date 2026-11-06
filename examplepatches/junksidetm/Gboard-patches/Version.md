@@ -2026,3 +2026,24 @@
 - **Files Modified**:
   - `Version.md` (Appended)
 - **Status**: 100% (Completed & Release v4.1.1 Published)
+
+
+## [2026-11-05 12:35:00 IST] - Upstream v4.2.0 Sync Resolution, Merge Conflict Harmonization & Invariants Certification
+- **Action**: Resolved GitHub Actions scheduled `upstream-sync.yml` failure (run 41825001591) by merging upstream `v4.2.0` (commit `4a0f17b`), resolving merge conflicts in `extensions/extension/build.gradle.kts` and `patches-bundle.json`, upgrading release baseline to `v4.2.0`, certifying all 5 critical fork invariants, and synchronizing verified commits across mirrors.
+- **Root Cause & Operational Resolution**:
+  - The scheduled daily GitHub Actions workflow (`upstream-sync.yml`) failed at step "Attempt merge on sync branch" on 2026-11-04 due to upstream `jasonwu1994/Gboard-patches` publishing `v4.2.0` (`4a0f17b`: "feat: add select-all editing, settings search, and custom spacebar images", morphe-patcher v2.1.0, terminal paste fix).
+  - Merging upstream `main` (`4a0f17b`) into fork `main` produced content conflicts across 2 files:
+    1. `extensions/extension/build.gradle.kts`: Integrated upstream's new settings search index test configuration tasks while maintaining release packaging tasks.
+    2. `patches-bundle.json`: Upgraded release version to `4.2.0`, configured download URL for `patches-4.2.0.mpp`, and enriched description with upstream v4.2.0 features (Select-All editing shortcuts, settings search engine, custom spacebar images, terminal paste fix) alongside the full custom fork suite.
+- **Verification & Fork Invariants**:
+  - Executed `scripts/verify-invariants.ps1`: All 5 critical fork invariant suites passed 100%:
+    1. Custom Emoji Font Feature (.ttf loader, reflection inspection, fallback chain, SHA-256 catalog hash).
+    2. Voice & Rambler Configuration (Rambler default backend, en-US and en-IN universal support).
+    3. AI Writing Tools Persistence (proofread and writing_tools flags, universal language tags allowlist).
+    4. Author Attribution & Credits (`junksidetm` repository and upstream `jasonwu1994` credit).
+    5. Cursor Trackpad Mode Permanence (`DEFAULT_ENABLED = true`, unconditional flag overrides, cached fallback).
+- **Files Modified**:
+  - `extensions/extension/build.gradle.kts`
+  - `patches-bundle.json`
+  - `Version.md` (Appended)
+- **Status**: 100% (Completed, Invariants Certified & Merged)

@@ -61,12 +61,18 @@ public final class FeatureSwitches {
     private static Map<String, Claim> claims() {
         Map<String, Claim> claims = new HashMap<>();
         // Tumblr's own requests to its ad networks, and the pop-up and full-screen ads the timeline
-        // filter can't see. Ads the server puts in a page come whatever these say.
+        // filter can't see. Ads the server puts in a page come whatever these say. The last two are
+        // the full-screen ad shown on opening a blog (47.0.0.108). With the first off, Tumblr's
+        // interstitial manager logs "Skipping: flag off" before it asks for or shows one, and never
+        // sets the ad source up; every blog open, from the dashboard, a reblog or anywhere else, goes
+        // through that check. The second only ends earlier the route that blog opens from
+        // notifications, messages and notes take into the manager.
         claim(claims, "HIDE_ADS", FamilyNames.HIDE_ADS,
                 "MAKE_ADX_REQUESTS", "MAKE_APS_AD_REQUESTS", "MAKE_DISPLAY_IO_REQUEST",
                 "MAKE_DISPLAY_IO_INTERSCROLLER_REQUEST", "MAKE_FAN_REQUESTS", "MAKE_NIMBUS_CLIENT_AD_REQUESTS",
                 "GOOGLE_BANNER_ADS", "GOOGLE_NATIVE_ADS", "GOOGLE_REWARDED_ADS", "SMART_BANNER_ADS",
-                "RENDER_NIMBUS_ADS", "RENDER_VUNGLE_ADS", "RENDER_DISPLAY_IO_INTERSCROLLER_S2S_ADS");
+                "RENDER_NIMBUS_ADS", "RENDER_VUNGLE_ADS", "RENDER_DISPLAY_IO_INTERSCROLLER_S2S_ADS",
+                "MAKE_NIMBUS_INTERSTITIAL_CLIENT_AD_REQUESTS", "INTERSTITIAL_ADS_BLOG_OPENING_TRIGGERS");
         // Tumblr's own tracking: LiveRamp's ID on its requests, Open Measurement and Moat ad
         // measurement, its log of which flags you were shown, and its network, performance and ad
         // supply logging. The two Moat flags have no reader in 46.5.0.109 and are here for the
@@ -158,9 +164,12 @@ public final class FeatureSwitches {
         }
     }
 
-    /** Whether any of [family]'s switches answers on. Paused, every one answers off. */
+    /**
+     * Whether any switch that can turn [family] on answers on. An option such as Keep Blaze posts
+     * can't. Paused, every one answers off.
+     */
     private static boolean anyOn(PatchFamily family) {
-        for (BooleanSetting setting : family.switches) {
+        for (BooleanSetting setting : family.enablers()) {
             if (setting.get()) return true;
         }
         return false;

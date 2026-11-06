@@ -57,6 +57,24 @@ Both *Look* features rewrite lists instead of editing a layout:
 Changes from the settings screen need a restart: the Home content is cached in its view
 model, and the bar reads the state once at startup. Both pages show the restart bar.
 
+## Accent color
+
+The patch does not recolour components one by one. `AccentPatch` hooks the `(J)J` helper the
+design system's palette calls from its `<clinit>`, and the extension swaps any colour that
+matches chess.com's green palette for the matching shade of the chosen accent: shade 5
+(green300, the brand green) is the accent itself, the others are mixed towards white or black
+by fixed amounts. Buttons, highlights, icons, text and the section accents therefore all follow
+one setting. The palette is built once per process, so a change needs a restart (the settings
+page shows the restart bar).
+
+One surface is deliberately exempt. The Puzzles tab's path background — the diagonal
+checkerboard under the puzzle map — is painted from green700 plus a hardcoded 10 %-darker copy.
+The copy is not a palette colour, so letting the palette half follow the accent left the two
+grid colours mismatched. The patch replaces that one palette read with `Accent.PATH_GREEN`
+(green700) and keeps the pair on chess.com's green. Only the green (WOOD) tier is affected:
+the other tiers build their backgrounds from non-green palette colours and literals, which the
+accent never touched.
+
 ## Caveats
 
 - **One target, no fallbacks.** The patches name the supported build's classes and methods
@@ -106,10 +124,16 @@ session runs it as `PathPuzzlesMode.REGULAR` so the Classic layout and the ratin
   Puzzle Points, Always Show Rating, Show Puzzle Goals, Difficulty and Show Chat Hints.
   Mistake Feedback, Voice and Show Timer are local and stay. The full Settings → Puzzles page
   is unchanged.
+- The filter holds on the next puzzle too. Next opens the replacement screen before the old
+  instance is destroyed, so the extension tracks which puzzle screen is in front: the replaced
+  instance's teardown must not hide its replacement. Backing out to the hub ends the session even
+  inside the short Next hand-off window: the decision waits for the window to close instead of
+  being skipped.
 
 Runtime-tested on 4.10.23: the seed cleared chess.com's guest queue, puzzles scored locally,
-the rating box and graph showed the Lichess values, and the settings dialog showed only the
-three local rows.
+the rating box and graph showed the Lichess values, the settings dialog showed only the three
+local rows — before and after Next — and backing out to the hub right after Next ended the
+session.
 
 ## Feature groups
 

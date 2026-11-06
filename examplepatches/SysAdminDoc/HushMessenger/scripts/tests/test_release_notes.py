@@ -91,8 +91,10 @@ class ReleaseNotes(unittest.TestCase):
         self.assertLess(at["### Behind the scenes"], lines.index(check))
         self.assertLess(lines.index(check), at["### Reports this release changed something for"])
         self.assertIn("#88, #89, #91, #93, #94, #98, #99, #100, #102, #103, #106 and #107.", lines)
-        self.assertIn(f"1. Update Messenger to {TARGET} first. Any build on [APKMirror's {TARGET} page]({PAGE}) works, "
-                      "and a `nodpi` one keeps the icons sharp.", lines)
+        self.assertIn(f"1. Update Messenger to {TARGET} first. On [APKMirror's {TARGET} page]({PAGE}), take a build "
+                      "whose version code is 347014974, 347015062 or 347015064. APKMirror shows the code for each "
+                      "download, and a build posted there after this release may not be supported yet.", lines)
+        self.assertNotIn("Any build", body)
         self.assertIn("2. In Morphe Manager (2.2.0 or newer), open **Sources** and refresh HushMessenger. "
                       "The card should say **66 patches**.", lines)
         self.assertIn("`patches-0.27.0.mpp` below is the same bundle for Morphe Desktop 1.19.1 or newer", body)
@@ -119,8 +121,8 @@ class ReleaseNotes(unittest.TestCase):
         body = self.build()
         self.assertIn(f"- The full test suite, plus a patch run against the one Messenger {TARGET} build on file.", body)
         self.assertIn("- Morphe Desktop patched and rebuilt one APK from the one build family.", body)
-        self.assertIn(f"1. Update Messenger to {TARGET} first. Get it from [APKMirror's {TARGET} page]({PAGE}).", body)
-        self.assertNotIn("nodpi", body)
+        self.assertIn(f"1. Update Messenger to {TARGET} first. Get build 347015062 from [APKMirror's {TARGET} page]({PAGE}).",
+                      body)
 
     def test_a_section_the_notes_cant_carry_word_for_word_is_refused(self):
         for name, section, expected in (

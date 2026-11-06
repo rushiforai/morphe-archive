@@ -1,0 +1,21 @@
+# /etc/hosts or Pi-hole format
+0.0.0.0 f.quetta.net
+0.0.0.0 qt.quetta.net
+0.0.0.0 ai.quetta.net
+0.0.0.0 go.quetta.net
+0.0.0.0 feedback.quetta.net
+0.0.0.0 feedback-test.quetta.net
+0.0.0.0 account.quetta.net
+0.0.0.0 online-sync.quetta.net
+0.0.0.0 test-sync.quetta.net
+0.0.0.0 update.quetta.net
+0.0.0.0 firebaseinstallations.googleapis.com
+0.0.0.0 fcmregistrations.googleapis.com
+0.0.0.0 firebaseperusertopics-pa.googleapis.com
+0.0.0.0 beacons.gvt2.com
+0.0.0.0 beacons2.gvt2.com
+0.0.0.0 beacons3.gvt2.com
+0.0.0.0 beacons4.gvt2.com
+0.0.0.0 beacons5.gvt2.com
+0.0.0.0 beacons.gcp.gvt2.com
+0.0.0.0 beacons5.gvt3.com

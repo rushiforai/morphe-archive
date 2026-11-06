@@ -1,0 +1,59 @@
+// Ported from xob0t/morphe-patches (GPLv3), app/tbank/patches/shared/Constants.kt.
+package app.ru_apps.tbank
+
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+
+object Constants {
+    const val PACKAGE_NAME = "com.idamob.tinkoff.android"
+
+    val COMPATIBILITY_TBANK = Compatibility(
+        name = "TBank",
+        packageName = PACKAGE_NAME,
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFFDD2D,
+        targets = listOf(
+            AppTarget(
+                version = "8.4.2",
+                versionCode = 13282,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "8.3.0",
+                versionCode = 13196,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "8.2.3",
+                versionCode = 13126,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "8.2.1",
+                versionCode = 13085,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "8.1.0",
+                versionCode = 12998,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "8.0.0",
+                versionCode = 12925,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "7.40.1",
+                versionCode = 12861,
+                minSdk = 28,
+            ),
+            AppTarget(
+                version = "7.39.0",
+                versionCode = 12782,
+                minSdk = 28,
+            ),
+        ),
+    )
+}

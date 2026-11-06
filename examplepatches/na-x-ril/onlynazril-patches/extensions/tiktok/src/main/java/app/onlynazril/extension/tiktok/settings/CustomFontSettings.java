@@ -165,6 +165,30 @@ public final class CustomFontSettings {
         return cached;
     }
 
+    /**
+     * Whether a path names one of the faces TikTok bundles. The app's own asset
+     * loader is handed every asset font it reads, so the path is what tells a
+     * TikTok face from a Lynx page's or a sticker's own.
+     */
+    public static boolean isBundledFace(String path) {
+        return path != null && path.startsWith("font/TikTok");
+    }
+
+    /**
+     * The imported file the feature serves, or null while the switch is off, the
+     * context is missing, or nothing is picked. A hybrid (H5) page is served this
+     * file's bytes, so it needs the file itself rather than the face.
+     */
+    public static File selectedFile() {
+        if (!isEnabled()) return null;
+        Context ctx = appContext();
+        if (ctx == null) return null;
+        String name = selected(ctx);
+        if (name == null) return null;
+        File file = new File(fontsDir(ctx), name);
+        return file.isFile() ? file : null;
+    }
+
     /** A file that is missing or unreadable answers null, and the app keeps its own face. */
     private static Typeface load(File file) {
         if (!file.isFile()) return null;

@@ -16,9 +16,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Sends words the Wordfeud server rejected to the report worker (tools/report-worker), which forwards them to the
- * project's repository for review (wordlists/&lt;code&gt;/remove.txt on a wordlist/&lt;code&gt; branch). Only
- * {@code {"ruleset":n,"words":[...],"patch":"x.y.z"}} is sent: no user name, game, cookie or device id. One
+ * Sends word reports to the report worker (tools/report-worker), which forwards them to the project's repository
+ * for review on a wordlist/&lt;code&gt; branch: words the Wordfeud server rejected (type "remove", to
+ * wordlists/&lt;code&gt;/remove.txt) and words that were played but are missing from our list (type "add", to
+ * add.txt). Only {@code {"type":"remove"|"add","ruleset":n,"words":[...],"patch":"x.y.z"}} is sent: no user name,
+ * game, cookie or device id. At most {@link #MAX_WORDS} words per request. One
  * attempt per report, in the background; failures are ignored. Off when the build has no report address
  * ({@code wordReportUrl} in gradle.properties).
  */
@@ -29,6 +31,8 @@ public final class WordReporter {
     }
 
     static final int TIMEOUT_MS = 10_000;
+    /** The worker accepts at most this many words per report. */
+    static final int MAX_WORDS = 8;
 
     private final String url;
     private final Sink sink;
@@ -49,12 +53,27 @@ public final class WordReporter {
         return url.startsWith("https://");
     }
 
-    /** Reports {@code words} for {@code rulesetId}; returns immediately. Never throws. */
+    /** Reports words the server rejected for {@code rulesetId}; returns immediately. Never throws. */
     public void report(int rulesetId, List<String> words) {
+        send("remove", rulesetId, words);
+    }
+
+    /** Reports played words that are missing from our list for {@code rulesetId}; returns immediately. */
+    public void reportAdditions(int rulesetId, List<String> words) {
+        send("add", rulesetId, words);
+    }
+
+    private void send(String type, int rulesetId, List<String> words) {
         if (!enabled() || words == null || words.isEmpty()) return;
+        for (int i = 0; i < words.size(); i += MAX_WORDS) {
+            post(type, rulesetId, words.subList(i, Math.min(words.size(), i + MAX_WORDS)));
+        }
+    }
+
+    private void post(String type, int rulesetId, List<String> words) {
         final String json;
         try {
-            json = body(rulesetId, words, BuildInfo.PATCH_VERSION);
+            json = body(type, rulesetId, words, BuildInfo.PATCH_VERSION);
         } catch (Exception e) {
             return;
         }
@@ -71,8 +90,9 @@ public final class WordReporter {
         }
     }
 
-    static String body(int rulesetId, List<String> words, String patch) throws Exception {
+    static String body(String type, int rulesetId, List<String> words, String patch) throws Exception {
         JSONObject o = new JSONObject();
+        o.put("type", type);
         o.put("ruleset", rulesetId);
         JSONArray a = new JSONArray();
         for (String w : words) a.put(w);

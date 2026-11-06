@@ -1,0 +1,26 @@
+app_name	package	source_version	split_set	sha256	acquisition_status	acquisition_source	version_code
+Яндекс Музыка	ru.yandex.music	2026.09.5 #167.1rur	ru.yandex.music	a65972608b532fa578c66649dfe50d37d1b2d1a31c491dd9cc3473629200a71a	verified	ruStore/Basil-AS-rustore-downloader	24026502
+Яндекс Карты	ru.yandex.yandexmaps	31.1.3	ru.yandex.yandexmaps	1a446b2ebdf9a520440428414143abbcfacc56e10213b8d3bb81afac6247306a	verified	ruStore/Basil-AS-rustore-downloader	739706910
+Яндекс Go / Taxi	ru.yandex.taxi	5.98.0	ru.yandex.taxi	ab16b2571cd88870458cbee087cb9ffbda0a48b5bfb73719199cb43cb0bbbcaf	verified	ruStore/Basil-AS-rustore-downloader	30128554
+Яндекс Расписания	ru.yandex.rasp	3.73.0	ru.yandex.rasp	9d4b8632c0fcf1304d5845892ad94026032b8f42831707fe58bd96affc74ff3c	verified	ruStore/Basil-AS-rustore-downloader	35000063
+Яндекс Погода	ru.yandex.weatherplugin	26.10.10	ru.yandex.weatherplugin	2f7e93398bea8d177ead2f9dfc9297102be00d42bbae3e95ce4bf13b64a6de99	verified	ruStore/Basil-AS-rustore-downloader	260100010
+Яндекс Пэй	com.yandex.bank	0.243.0	com.yandex.bank	03dc4398b6def38a258cdb686ebb9783d88d0a68928b0276c535e05177dd4a35	verified	ruStore/Basil-AS-rustore-downloader	11920
+СберБанк	ru.sberbankmobile	17.13.0	ru.sberbankmobile.split0,ru.sberbankmobile.split1	42235c5016020fffa3f3eb9a7fc8406dc8f2217818d7cd0bcbc817a3003d4db6	verified	ruStore/Basil-AS-rustore-downloader	2026062316
+Альфа-Банк	ru.alfabank.mobile.android	12.60.07	ru.alfabank.mobile.android	6f0c04c2d046c78224d3e7db3650c1c94dd1c39318291b85b2311990c1084b40	verified	ruStore/Basil-AS-rustore-downloader	2042600700
+ВТБ Онлайн	ru.vtb24.mobilebanking.android	20.18.1.3	ru.vtb24.mobilebanking.android	1807f0a4a8df5b527dc077937dfad092b66cf99eb29c7f7a4db5776504102679	verified	ruStore/Basil-AS-rustore-downloader	2090141585
+2ГИС	ru.dublgis.dgismobile	7.29.1.632.4	ru.dublgis.dgismobile	5ee8d368859583544fa4f5a2f9bc57e9d34294fc69a883ec41b0b401e7b5d80a	verified	ruStore/Basil-AS-rustore-downloader	282010632
+Звук	com.zvooq.openplay	4.117.0rs	com.zvooq.openplay	d8f28123ff738d2afbe3a370b289cf34020aad8d26346119386c2acb3d18f35c	verified	ruStore/Basil-AS-rustore-downloader	511700129
+MAX	ru.oneme.app	26.35.0	ru.oneme.app.split0,ru.oneme.app.split1,ru.oneme.app.split2	99ce398f2cb9e5c0d7f2fbd9380eea2e6426bbd8c1972a292bf3e449cf18563c	verified	ruStore/Basil-AS-rustore-downloader	6861
+Госуслуги	ru.rostel	27.1.0.9876-rustore	ru.rostel.split0,ru.rostel.split1	bb671504abc002a3ffa81eb2fc79c31b85f8d105307b391b24afec9b718297b5	verified	ruStore/Basil-AS-rustore-downloader	9876
+Ozon	ru.ozon.app.android	19.38.0	ru.ozon.app.android.split0,ru.ozon.app.android.split1,ru.ozon.app.android.split2	7416c2046adcb7c2ce657a1c9523a20bcfa21e0be996b754db7967f8530804b0	verified	ruStore/Basil-AS-rustore-downloader	2721
+Wildberries	com.wildberries.ru	7.8.3002-rustore	com.wildberries.ru	be3c589d60a7c20c5c2abc4494c29164a6528ec8164be8a329cff101846ba1b3	verified	ruStore/Basil-AS-rustore-downloader	61085
+Авито	com.avito.android	234.5	com.avito.android	c5e74ddd18dcdb85ac0cf909fecda2ce82a4e4ae99a3c5f944b3f3aedae9a1e6	verified	ruStore/Basil-AS-rustore-downloader	3561
+AliExpress Россия	ru.aliexpress.buyer	8.89.1.3597464	ru.aliexpress.buyer.split0,ru.aliexpress.buyer.split1,ru.aliexpress.buyer.split2	2d62823db054fe796449d757a14d479aed0515f8663efdc58f87316af654a546	verified	ruStore/Basil-AS/rustore-downloader	844
+Перекрёсток	ru.perekrestok.app	3.99.0	ru.perekrestok.app	f07d273958f3557d1aa025e9dc6975b71f508f8c88821364feae29eff16025c5	verified	ruStore/Basil-AS/rustore-downloader	4128
+Whoosh	com.punicapp.whoosh	4.0.0	com.punicapp.whoosh.split0,com.punicapp.whoosh.split1,com.punicapp.whoosh.split2,com.punicapp.whoosh.split3	c03f97f0aa10a1297cc4bda69cb7b492fc96dd28d41d5b8f8304e4e7897cc1aa	verified	ruStore/Basil-AS-rustore-downloader	418060
+Mir Pay	ru.nspk.mirpay	1.64.5.350	ru.nspk.mirpay	846f387542fc697ebb79faec05b364d3844c3a20b50a24f416157108133f14ed	verified	ruStore/Basil-AS-rustore-downloader	405
+Т-Банк	com.idamob.tinkoff.android	8.4.2	com.idamob.tinkoff.android	129f1339c6916de5cd018622f25e0d3f1f7a459c5145a234a302167d19664434	verified	ruStore/Basil-AS-rustore-downloader	13282
+Яндекс Почта	ru.yandex.mail	9.30.1	ru.yandex.mail	c8f9316f015547f7de49fc1508c7a2847c4edc34917ccf4c71b19ac6825b22b0	verified	ruStore/Basil-AS-rustore-downloader	125935
+билайн	ru.beeline.services	5.48.5	ru.beeline.services.split0,ru.beeline.services.split1,ru.beeline.services.split2	0e583b8e436b272d1402537f98d14eeae7f30ed8aaf064c19eacd5a854806412	verified	ruStore/Basil-AS-rustore-downloader	4391
+Мой МТС	ru.mts.mymts	6.77	ru.mts.mymts.split0,ru.mts.mymts.split1,ru.mts.mymts.split2,ru.mts.mymts.split3	ae1b8e8c34cb21e8719f92f1727e8fb93cc5fb6cdc1b3c1d566de5c1ef5f7288	verified	ruStore/Basil-AS-rustore-downloader	150770030
+МегаФон	ru.megafon.mlk	4.69.0	ru.megafon.mlk	38b7dbed87b62949900a5a0de681e8ef24436c602fbf9c851ad353290d8c5328	verified	ruStore/Basil-AS-rustore-downloader	42400548

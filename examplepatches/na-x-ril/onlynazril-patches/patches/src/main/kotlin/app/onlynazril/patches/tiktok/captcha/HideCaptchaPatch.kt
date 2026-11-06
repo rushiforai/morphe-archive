@@ -1,14 +1,26 @@
 package app.onlynazril.patches.tiktok.captcha
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.guardAtEntry
+import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.util.findMutableMethodOf
 import app.onlynazril.patches.shared.Constants.COMPATIBILITY_TIKTOK
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
 
 private const val BRIDGE = "Lapp/onlynazril/extension/tiktok/captcha/CaptchaBridge;"
 private const val PATCH = "Hide CAPTCHA popups"
+
+/** The Turing (oecverify) dialog: the SDK's own captcha surface, not reached through `sec`. */
+private const val TURING_DIALOG = "Lcom/tts/oecverify/BdTuring;"
+private const val TURING_CALLBACK = "Lcom/tts/oecverify/BdTuringCallback;"
+private const val TURING_SHOW = "showVerifyDialog"
+private const val TURING_ACTIVITY = "Landroid/app/Activity;"
 
 /** The method each puzzle callback is told the puzzle is over with; the class is read off the match. */
 private const val SEC_DISMISS = "LIZJ"
@@ -87,7 +99,67 @@ val tiktokCaptchaPatch = bytecodePatch(
                 dismissThenReturn(dismissCall(parameterTypes[2].toString(), LIVE_DISMISS)),
             )
         }
+
+        // The Turing dialog is a second surface, not reached through `sec`: a hybrid page or a
+        // live room is shown it by the oecverify SDK's own services, and a captcha that appears
+        // while the three entry points above stay silent comes from here. Both overloads carry
+        // the second shape's request or the older challenge code; the first parameter is the
+        // activity and the third the callback, whichever it is. The real-named class is the
+        // anchor, the request type is never written down.
+        val turingDialogs = mutableListOf<Method>()
+        classDefForEach { classDef ->
+            if (classDef.type != TURING_DIALOG) return@classDefForEach
+            classDef.methods
+                .filter { it.isTuringShowVerifyDialog() }
+                .forEach { turingDialogs += it }
+        }
+        if (turingDialogs.size != 2) {
+            throw PatchException(
+                "$PATCH: expected the two $TURING_DIALOG#$TURING_SHOW shapes, " +
+                    "found ${turingDialogs.size}.",
+            )
+        }
+        turingDialogs.forEach { dialog ->
+            mutableClassDefBy(TURING_DIALOG).findMutableMethodOf(dialog).guardTuringDialog()
+        }
     }
+}
+
+/** Whether the method is one of the two `BdTuring#showVerifyDialog` shapes. */
+private fun Method.isTuringShowVerifyDialog(): Boolean =
+    name == TURING_SHOW
+            && returnType == "V"
+            && implementation != null
+            && parameterTypes.size == 3
+            && parameterTypes[0] == TURING_ACTIVITY
+            && parameterTypes[2] == TURING_CALLBACK
+
+/**
+ * Guards the Turing dialog at its entry. The bridge answers whether this one may be hidden and,
+ * when it may, tells the callback the SDK's own "the dialog was closed" answer before the method
+ * returns, so the caller's flow is not left waiting. The second parameter is the request or the
+ * older challenge code, so it is not touched.
+ */
+private fun MutableMethod.guardTuringDialog() {
+    requireLocals(PATCH, 1)
+    val call = callThroughLocals(
+        PATCH,
+        "invoke-static",
+        "$BRIDGE->shouldHideTuringPopup(Landroid/app/Activity;Ljava/lang/Object;)Z",
+        objectIn("p1"),
+        objectIn("p3"),
+    )
+    addInstructionsWithLabels(
+        0,
+        """
+            $call
+            move-result v0
+            if-eqz v0, :morphe_captcha_turing_keep
+            return-void
+            :morphe_captcha_turing_keep
+            nop
+        """.trimIndent(),
+    )
 }
 
 /** Tell the callback the puzzle is over, when there is one, and leave the method. */

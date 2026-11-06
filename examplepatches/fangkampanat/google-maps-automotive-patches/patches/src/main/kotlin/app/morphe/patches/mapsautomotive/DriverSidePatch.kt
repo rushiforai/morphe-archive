@@ -23,11 +23,14 @@ import java.util.logging.Logger
 // seat (INFO_DRIVER_SEAT, from the car info) into a driver position, and a right-hand driver makes
 // the display "left of the user". DiLink 3 has no car service, so the seat is 0 and Maps draws the
 // left-hand-drive layout. The seat that provider reads passes through DriverSide.driverSeat, which
-// gives the seat for the side chosen in the Settings row (ROW_1_LEFT or ROW_1_RIGHT), or Maps' own
-// seat for Auto. The rest is Maps' code for a right-hand-drive car; Maps' other providers (the
-// limited-Maps screen's, the non-interactive one) do not read the seat and keep their own side, as in
-// such a car. For the report, the seat Maps' car info reads from the car (only on a device with the
-// automotive feature) goes to DriverSide.carDriverSeat.
+// gives the seat for the side chosen in the Settings row (ROW_1_LEFT or ROW_1_RIGHT). For Auto it
+// keeps Maps' seat when it is one of the seats the provider maps to a driver position, else on a BYD
+// it gives the front seat of the car's steering side setting, else Maps' seat. The provider must
+// compare exactly those seats, so the extension's list matches Maps. The rest is Maps' code for a
+// right-hand-drive car; Maps' other providers (the limited-Maps screen's, the non-interactive one) do
+// not read the seat and keep their own side, as in such a car. For the report, the seat Maps' car
+// info reads from the car (only on a device with the automotive feature) goes to
+// DriverSide.carDriverSeat.
 // Required: a missing anchor, an ambiguity or an unknown layout fails the patch.
 
 internal const val DRIVER_SIDE_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/DriverSide;"
@@ -38,9 +41,11 @@ private val DRIVER_POSITION_NAMES = setOf(
     "UNKNOWN_DRIVER_POSITION", "DRIVER_POSITION_LEFT", "DRIVER_POSITION_RIGHT", "DRIVER_POSITION_CENTER",
 )
 private const val CAR_INFO_TAG = "EmbeddedCarInfo:"
-// VehicleProperty.INFO_DRIVER_SEAT and the VehicleAreaSeat values DriverSide gives: ROW_1_LEFT, ROW_1_RIGHT.
+// VehicleProperty.INFO_DRIVER_SEAT and the VehicleAreaSeat values the provider maps to a driver position:
+// left, center and right of rows 1 to 3. DriverSide gives 1 or 4 (ROW_1_LEFT, ROW_1_RIGHT) for a manual
+// choice; for Auto it counts exactly these nine as Maps' seat.
 private const val INFO_DRIVER_SEAT = 356516106
-private val GIVEN_SEATS = setOf(1, 4)
+private val MAPS_SEATS = setOf(1, 2, 4, 16, 32, 64, 256, 512, 1024)
 private const val GET_INT_PROPERTY = "Landroid/car/hardware/property/CarPropertyManager;->getIntProperty(II)I"
 private const val MAX_SEAT_WRITE_DISTANCE = 4
 private val driverSideLogger = Logger.getLogger("app.morphe.patches.mapsautomotive.DriverSidePatch")
@@ -78,7 +83,7 @@ private fun BytecodePatchContext.carInfoClass() = taggedClass(CAR_INFO_TAG)
 // In the central display's provider, the driver position method: the one no-argument method returning
 // Maps' driver position enum. It reads the seat from the car info interface (one no-argument int call
 // on the provider's car info field, the car info's INFO_DRIVER_SEAT getter [seatGetter]) and compares
-// it with the seat areas, ROW_1_LEFT and ROW_1_RIGHT among them. The seat passes through
+// it with exactly the seat areas in MAPS_SEATS. The seat passes through
 // DriverSide.driverSeat right after that call.
 private fun BytecodePatchContext.giveDriverSeat(carInfo: ClassDef, seatGetter: Method) {
     val provider = taggedClass(CENTRAL_PROVIDER_TAG)
@@ -137,7 +142,7 @@ private fun BytecodePatchContext.giveDriverSeat(carInfo: ClassDef, seatGetter: M
     val result = code.getOrNull(call + 1)
     if (result?.opcode != Opcode.MOVE_RESULT) throw PatchException("The seat read in $position is not moved")
     val register = result.registerA()
-    // The seats DriverSide gives are compared with that register.
+    // Exactly the seats DriverSide knows are compared with that register.
     val compared = code.indices.filter { index ->
         code[index].opcode == Opcode.IF_EQ && (code[index] as TwoRegisterInstruction).registerA == register
     }.mapNotNull { index ->
@@ -145,8 +150,10 @@ private fun BytecodePatchContext.giveDriverSeat(carInfo: ClassDef, seatGetter: M
         (index - 1 downTo call + 2).firstOrNull { code[it].opcode.setsRegister() && code[it].registerA() == other }
             ?.let { code[it].literal() }
     }.toSet()
-    if (!compared.containsAll(GIVEN_SEATS)) {
-        throw PatchException("$position does not compare the seat with ${GIVEN_SEATS.joinToString()}, only $compared")
+    if (compared != MAPS_SEATS) {
+        throw PatchException(
+            "$position compares the seat with ${compared.sorted().joinToString()}, expected ${MAPS_SEATS.sorted().joinToString()}",
+        )
     }
     // Inserted code before a branch target would be skipped by that branch.
     if (code.getOrNull(call + 2)?.location?.labels?.isNotEmpty() != false) {

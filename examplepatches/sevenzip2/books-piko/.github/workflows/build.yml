@@ -1,0 +1,49 @@
+name: Build patches
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build patch bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        env:
+          # Morphe's Gradle plugin and patcher are published to GitHub Packages.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean buildAndroid --no-daemon
+
+      - name: Check patch bundle contents
+        run: |
+          bundle=$(ls patches/build/libs/*.mpp)
+          unzip -l "$bundle"
+          # The extension must be bundled and the patches compiled to DEX for Morphe Manager on Android.
+          unzip -l "$bundle" | grep -q "extensions/playbooks.mpe"
+          unzip -l "$bundle" | grep -q "classes.dex"
+
+      - name: Upload patch bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: books-piko-patches
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error

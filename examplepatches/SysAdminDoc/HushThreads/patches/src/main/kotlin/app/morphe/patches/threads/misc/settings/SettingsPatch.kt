@@ -148,13 +148,16 @@ val settingsPatch = bytecodePatch(
     name = "HushThreads settings",
     description = "Adds a HushThreads page to Threads where you turn features on or off, pause HushThreads, back up" +
         " your settings and read the licenses. Open it from Threads' own settings, or long-press the Threads " +
-        "logo at the top of your feed. Works as soon as you patch it in, with no switch.",
+        "logo at the top of your feed. Works as soon as you patch it in. Each way in has its own switch under " +
+        "Pause, backup and diagnostics, and the last one that's on stays on.",
     default = true,
 ) {
     category("Settings")
     // fbnsSignersPatch and pushProcessPatch are the #6 fixes, copyTextPatch the #9 one. Every
     // HushThreads patch depends on this one, so naming them here puts them in every build.
     dependsOn(threadsExtensionPatch, settingsManifestPatch, fbnsSignersPatch, pushProcessPatch, copyTextPatch)
+    // The settings header's logo goes into drawable-nodpi. See SettingsLogo.kt.
+    dependsOn(settingsLogoPatch)
     compatibleWith(*AppCompatibilities.threads())
 
     execute {

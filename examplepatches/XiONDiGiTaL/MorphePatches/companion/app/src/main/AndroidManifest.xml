@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    No android.permission.INTERNET anywhere in this app, so it cannot make a network request even
+    if a future change tried to. WorkManager's own manifest contributes ACCESS_NETWORK_STATE,
+    WAKE_LOCK, RECEIVE_BOOT_COMPLETED and FOREGROUND_SERVICE to the merged manifest; none of them
+    can send data without INTERNET. Imported conversations, the word list and the review schedule
+    stay in the app's private storage.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application
+        android:name=".StudyApp"
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TandemStudy">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.TandemStudy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

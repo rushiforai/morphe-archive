@@ -36,7 +36,7 @@ public class ExportDiagnosticReportPreference extends Preference {
     {
         // A key so the settings search can index this row. Nothing in the settings
         // framework treats it as a setting: a key with no Setting behind it is skipped.
-        setKey("action_export_diagnostic_report");
+        setKey(LogBufferManager.EXPORT_ROW_KEY);
         setSummary(destinationSummary());
         setOnPreferenceClickListener(pref -> {
             if (currentChoices != null && currentChoices.isShowing()) return true;

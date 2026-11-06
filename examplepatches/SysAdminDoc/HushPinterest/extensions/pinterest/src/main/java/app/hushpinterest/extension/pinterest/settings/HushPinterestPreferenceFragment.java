@@ -449,11 +449,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hides your recent searches. It doesn't delete your account's search history. The change "
                         + "shows the next time the screen updates."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_CREATE,
-                    L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar. The change shows the next "
-                        + "time the bar updates."), SettingsIcons.BLOCK);
+                    L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar and at the top of Home. The "
+                        + "change shows the next time they update."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS,
-                    L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar. The change "
-                        + "shows the next time the bar updates."), SettingsIcons.BLOCK);
+                    L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar, and Notifications "
+                        + "or Inbox at the top of Home. The change shows the next time they update."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH,
                     L10n.t("Hide Search button"), L10n.t("Hides Search in the bottom bar. The change shows the next "
                         + "time the bar updates."), SettingsIcons.BLOCK);

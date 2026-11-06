@@ -125,6 +125,12 @@ public final class MorpheSettingsActivity extends Activity {
                 MorpheStrings.get(MorpheStrings.HIDE_VIDEO_PINS_DESCRIPTION),
                 MorpheSettingsStore.KEY_HIDE_VIDEO_PINS,
                 MorpheSettingsStore.effective(MorpheSettingsStore.KEY_HIDE_VIDEO_PINS));
+        addToggleRow(root, MorpheStrings.get(MorpheStrings.HIDE_AI_PINS_TITLE),
+                MorpheStrings.get(MorpheStrings.HIDE_AI_PINS_DESCRIPTION),
+                MorpheSettingsStore.KEY_HIDE_AI_PINS,
+                MorpheSettingsStore.effective(MorpheSettingsStore.KEY_HIDE_AI_PINS));
+        addSettingsAction(root, MorpheStrings.get(MorpheStrings.MUTED_PIN_WORDS_TITLE),
+                MorpheStrings.get(MorpheStrings.MUTED_PIN_WORDS_HINT), this::showMutedPinWords);
         addToggleRow(root, MorpheStrings.get(MorpheStrings.SEARCH_MODULES_TITLE),
                 MorpheStrings.get(MorpheStrings.SEARCH_MODULES_DESCRIPTION),
                 MorpheSettingsStore.KEY_HIDE_SEARCH_BOARD_MODULES,
@@ -171,6 +177,8 @@ public final class MorpheSettingsActivity extends Activity {
                 MorpheStrings.get(MorpheStrings.HIGH_QUALITY_DESCRIPTION),
                 MorpheSettingsStore.KEY_HIGH_QUALITY_IMAGES,
                 MorpheSettingsStore.effective(MorpheSettingsStore.KEY_HIGH_QUALITY_IMAGES));
+
+        addSettingsAction(root, MorpheStrings.get("image_download_history"), null, this::showImageDownloadHistory);
 
         addSectionHeader(root, MorpheStrings.get(MorpheStrings.SECTION_PIN_MENU),
                 "ic_vr_ellipsis_gestalt");
@@ -264,7 +272,7 @@ public final class MorpheSettingsActivity extends Activity {
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(12), dp(12), dp(20), dp(12));
+        bar.setPaddingRelative(dp(12), dp(12), dp(20), dp(12));
 
         int touch = dp(10);
         View back = backControl();
@@ -288,7 +296,7 @@ public final class MorpheSettingsActivity extends Activity {
         title.setTypeface(fontBold != null ? fontBold : Typeface.DEFAULT_BOLD);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        titleParams.leftMargin = dp(4);
+        titleParams.setMarginStart(dp(4));
         bar.addView(title, titleParams);
 
         return bar;
@@ -304,12 +312,14 @@ public final class MorpheSettingsActivity extends Activity {
         Drawable arrow = pinterestIcon("ic_vr_arrow_left_gestalt");
         if (arrow != null) {
             ImageView icon = new ImageView(this);
+            arrow = arrow.mutate();
+            arrow.setAutoMirrored(true);
             icon.setImageDrawable(arrow);
             icon.setColorFilter(TEXT_PRIMARY);
             return icon;
         }
         TextView chevron = new TextView(this);
-        chevron.setText("←");
+        chevron.setText(getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? "→" : "←");
         chevron.setTextSize(22);
         chevron.setTextColor(TEXT_PRIMARY);
         chevron.setGravity(Gravity.CENTER);
@@ -496,7 +506,7 @@ public final class MorpheSettingsActivity extends Activity {
             iconView.setImageDrawable(icon);
             iconView.setColorFilter(ACCENT);
             LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dp(16), dp(16));
-            iconParams.rightMargin = dp(8);
+            iconParams.setMarginEnd(dp(8));
             row.addView(iconView, iconParams);
         }
 
@@ -546,7 +556,7 @@ public final class MorpheSettingsActivity extends Activity {
         TextView title = menuText(MorpheStrings.get(MorpheStrings.STARTUP_TAB_TITLE), 16, TEXT_PRIMARY, false);
         labels.addView(title);
         TextView description = menuText(MorpheStrings.get(MorpheStrings.STARTUP_TAB_DESCRIPTION), 12, TEXT_SECONDARY, false);
-        description.setPadding(0, dp(4), dp(12), 0);
+        description.setPaddingRelative(0, dp(4), dp(12), 0);
         labels.addView(description);
         row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView value = menuText(startupTabLabel(MorpheSettingsStore.startupTab()), 14, ACCENT, false);
@@ -615,7 +625,198 @@ public final class MorpheSettingsActivity extends Activity {
         }
     }
 
+    private LinearLayout newSettingsSheet(android.app.Dialog dialog, String title) {
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(24), dp(20), dp(24), dp(24));
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(0xFF1A1A1A);
+        background.setCornerRadii(new float[]{dp(24), dp(24), dp(24), dp(24), 0, 0, 0, 0});
+        card.setBackground(background);
+        card.addView(menuText(title, 22, TEXT_PRIMARY, true));
+        return card;
+    }
+
+    private void showSettingsSheet(android.app.Dialog dialog, LinearLayout card) {
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(card);
+        dialog.setContentView(scroll);
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+            window.setGravity(Gravity.BOTTOM);
+            window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
+        dialog.show();
+        if (window != null) window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    private void addSheetAction(LinearLayout card, String label, Runnable action) {
+        Button button = newButton(label);
+        button.setOnClickListener(view -> action.run());
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = dp(8);
+        card.addView(button, params);
+    }
+
+    private void showImageDownloadHistory() {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        LinearLayout card = newSettingsSheet(dialog, MorpheStrings.get("image_download_history"));
+        java.util.List<PinDownloadQueue.HistoryEntry> entries = PinDownloadQueue.history(this);
+        java.util.List<PinDownloadQueue.HistoryEntry> previews = new java.util.ArrayList<>();
+        java.util.List<ImageView> thumbnails = new java.util.ArrayList<>();
+        if (entries.isEmpty()) addNote(card, MorpheStrings.get("image_download_empty"));
+        for (PinDownloadQueue.HistoryEntry entry : entries) {
+            LinearLayout row = new LinearLayout(this);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(0, dp(10), 0, dp(10));
+            if (entry.saved() && previews.size() < 5 && android.os.Build.VERSION.SDK_INT >= 29) {
+                ImageView thumbnail = new ImageView(this);
+                thumbnail.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                thumbnail.setVisibility(View.GONE);
+                thumbnail.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(dp(48), dp(48));
+                size.setMarginEnd(dp(12));
+                row.addView(thumbnail, size);
+                previews.add(entry);
+                thumbnails.add(thumbnail);
+            }
+            LinearLayout labels = new LinearLayout(this);
+            labels.setOrientation(LinearLayout.VERTICAL);
+            labels.addView(menuText(entry.title(), 16, TEXT_PRIMARY, false));
+            String status = entry.pending() ? MorpheStrings.get("image_download_queued")
+                    : entry.saved() ? MorpheStrings.get("image_download_saved") : MorpheStrings.get("download_failed");
+            labels.addView(menuText(status, 13, TEXT_SECONDARY, false));
+            row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            if (!entry.pending()) {
+                row.setFocusable(true);
+                row.setBackground(new android.graphics.drawable.RippleDrawable(
+                        android.content.res.ColorStateList.valueOf(DIVIDER), null, null));
+                row.addView(menuText("›", 24, TEXT_SECONDARY, false));
+                row.setOnClickListener(view -> showHistoryActions(dialog, entry));
+            }
+            card.addView(row);
+        }
+        addSheetAction(card, MorpheStrings.get(MorpheStrings.BUTTON_CANCEL), dialog::dismiss);
+        showSettingsSheet(dialog, card);
+        if (android.os.Build.VERSION.SDK_INT >= 29 && !previews.isEmpty()) {
+            loadHistoryThumbnails(dialog, previews, thumbnails);
+        }
+    }
+
+    @android.annotation.TargetApi(29)
+    private void loadHistoryThumbnails(android.app.Dialog dialog,
+                                       java.util.List<PinDownloadQueue.HistoryEntry> entries,
+                                       java.util.List<ImageView> views) {
+        android.os.CancellationSignal cancellation = new android.os.CancellationSignal();
+        dialog.setOnDismissListener(ignored -> cancellation.cancel());
+        android.app.DownloadManager manager = getSystemService(android.app.DownloadManager.class);
+        if (manager == null) return;
+        int size = dp(48);
+        new Thread(() -> {
+            for (int i = 0; i < entries.size() && !cancellation.isCanceled(); i++) {
+                ImageView thumbnail = views.get(i);
+                try {
+                    Uri uri = manager.getUriForDownloadedFile(entries.get(i).managerId());
+                    if (uri == null) continue;
+                    android.graphics.Bitmap bitmap = getContentResolver().loadThumbnail(
+                            uri, new android.util.Size(size, size), cancellation);
+                    runOnUiThread(() -> {
+                        if (!dialog.isShowing()) return;
+                        thumbnail.setImageBitmap(bitmap);
+                        thumbnail.setVisibility(View.VISIBLE);
+                    });
+                } catch (java.io.IOException | RuntimeException ignored) {
+                    // A deleted file or unavailable thumbnail leaves the text row usable.
+                }
+            }
+        }, "morphe-download-previews").start();
+    }
+
+    private void showHistoryActions(android.app.Dialog history, PinDownloadQueue.HistoryEntry entry) {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        LinearLayout card = newSettingsSheet(dialog, entry.title());
+        if (entry.saved()) {
+            android.app.DownloadManager manager = getSystemService(android.app.DownloadManager.class);
+            Uri uri = manager == null ? null : manager.getUriForDownloadedFile(entry.managerId());
+            if (uri == null) {
+                Toast.makeText(this, MorpheStrings.get("image_download_unavailable"), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            addSheetAction(card, getString(android.R.string.copy), () -> {
+                ClipboardManager clipboard = getSystemService(ClipboardManager.class);
+                if (clipboard != null) clipboard.setPrimaryClip(ClipData.newUri(getContentResolver(), entry.title(), uri));
+                dialog.dismiss();
+            });
+            addSheetAction(card, MorpheStrings.get("image_download_share"), () -> {
+                dialog.dismiss();
+                shareDownloadedImage(uri, manager.getMimeTypeForDownloadedFile(entry.managerId()));
+            });
+        } else {
+            addSheetAction(card, MorpheStrings.get("image_download_retry"), () -> {
+                try {
+                    PinDownloadQueue.retry(this, entry);
+                    dialog.dismiss();
+                    history.dismiss();
+                    showImageDownloadHistory();
+                } catch (Exception failure) {
+                    Toast.makeText(this, MorpheStrings.get("download_failed"), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        addSheetAction(card, MorpheStrings.get(MorpheStrings.BUTTON_CANCEL), dialog::dismiss);
+        showSettingsSheet(dialog, card);
+    }
+
+    private void shareDownloadedImage(android.net.Uri uri, String mime) {
+        Intent share = new Intent(Intent.ACTION_SEND)
+                .setType(mime == null ? "image/*" : mime)
+                .putExtra(Intent.EXTRA_STREAM, uri)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        share.setClipData(android.content.ClipData.newRawUri(null, uri));
+        startActivity(Intent.createChooser(share, null));
+    }
+
+    private void showMutedPinWords() {
+        EditText input = new EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(2048)});
+        input.setMinLines(4);
+        input.setText(MorpheSettingsStore.mutedPinWords());
+        input.setHint(MorpheStrings.get(MorpheStrings.MUTED_PIN_WORDS_HINT));
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        LinearLayout card = newSettingsSheet(dialog, MorpheStrings.get(MorpheStrings.MUTED_PIN_WORDS_TITLE));
+        addNote(card, MorpheStrings.get(MorpheStrings.MUTED_PIN_WORDS_HINT));
+        input.setTextColor(TEXT_PRIMARY);
+        input.setHintTextColor(TEXT_SECONDARY);
+        input.setTypeface(fontRegular != null ? fontRegular : Typeface.DEFAULT);
+        input.setGravity(Gravity.TOP | Gravity.START);
+        input.setPadding(dp(16), dp(12), dp(16), dp(12));
+        input.setMaxLines(7);
+        GradientDrawable field = new GradientDrawable();
+        field.setColor(BUTTON_BACKGROUND);
+        field.setCornerRadius(dp(16));
+        input.setBackground(field);
+        card.addView(input);
+        addSheetAction(card, MorpheStrings.get(MorpheStrings.BUTTON_SAVE), () -> {
+            MorpheSettingsStore.setMutedPinWords(input.getText().toString());
+            dialog.dismiss();
+        });
+        addSheetAction(card, MorpheStrings.get(MorpheStrings.BUTTON_CANCEL), dialog::dismiss);
+        card.setFocusableInTouchMode(true);
+        card.requestFocus();
+        showSettingsSheet(dialog, card);
+    }
+
     private void addMenuFilterRow(LinearLayout parent) {
+        addSettingsAction(parent, MorpheStrings.get(MorpheStrings.MENU_FILTER_TITLE),
+                MorpheStrings.get(MorpheStrings.MENU_FILTER_HINT), this::showMenuFilterEditor);
+    }
+
+    private void addSettingsAction(LinearLayout parent, String titleText, String detail, Runnable action) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
@@ -624,13 +825,14 @@ public final class MorpheSettingsActivity extends Activity {
         row.setFocusable(true);
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
-        TextView title = menuText(MorpheStrings.get(MorpheStrings.MENU_FILTER_TITLE), 16,
+        TextView title = menuText(titleText, 16,
                 TEXT_PRIMARY, false);
         labels.addView(title);
-        TextView description = menuText(MorpheStrings.get(MorpheStrings.MENU_FILTER_HINT), 12,
-                TEXT_SECONDARY, false);
-        description.setPadding(0, dp(4), dp(12), 0);
-        labels.addView(description);
+        if (detail != null) {
+            TextView description = menuText(detail, 12, TEXT_SECONDARY, false);
+            description.setPaddingRelative(0, dp(4), dp(12), 0);
+            labels.addView(description);
+        }
         row.addView(labels, new LinearLayout.LayoutParams(0,
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         TextView arrow = menuText("›", 26, TEXT_SECONDARY, false);
@@ -638,7 +840,7 @@ public final class MorpheSettingsActivity extends Activity {
         row.addView(arrow);
         row.setBackground(new android.graphics.drawable.RippleDrawable(
                 android.content.res.ColorStateList.valueOf(DIVIDER), null, null));
-        row.setOnClickListener(v -> showMenuFilterEditor());
+        row.setOnClickListener(v -> action.run());
         parent.addView(row);
         View divider = new View(this);
         divider.setBackgroundColor(DIVIDER);
@@ -812,7 +1014,7 @@ public final class MorpheSettingsActivity extends Activity {
             iconView.setImageDrawable(icon);
             iconView.setColorFilter(TEXT_PRIMARY);
             LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dp(20), dp(20));
-            iconParams.rightMargin = dp(12);
+            iconParams.setMarginEnd(dp(12));
             row.addView(iconView, iconParams);
         }
 
@@ -833,7 +1035,7 @@ public final class MorpheSettingsActivity extends Activity {
             descriptionView.setTextSize(12);
             descriptionView.setTypeface(fontRegular != null ? fontRegular : Typeface.DEFAULT);
             descriptionView.setLineSpacing(dp(2), 1f);
-            descriptionView.setPadding(0, dp(4), dp(12), 0);
+            descriptionView.setPaddingRelative(0, dp(4), dp(12), 0);
             labels.addView(descriptionView);
         }
 
@@ -915,7 +1117,7 @@ public final class MorpheSettingsActivity extends Activity {
         });
         LinearLayout.LayoutParams importParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        importParams.leftMargin = dp(10);
+        importParams.setMarginStart(dp(10));
         buttons.addView(importButton, importParams);
 
         parent.addView(buttons);
@@ -975,12 +1177,12 @@ public final class MorpheSettingsActivity extends Activity {
             } finally {
                 output.close();
             }
-            MorpheLog.ok(MorpheLog.SETTINGS_ENTRY, "settings exported to " + uri);
+            MorpheLog.ok(MorpheLog.SETTINGS_ENTRY, "settings exported");
             Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_EXPORTED),
                     Toast.LENGTH_LONG).show();
         } catch (Throwable t) {
             MorpheLog.e(MorpheLog.SETTINGS_ENTRY, "export failed", t);
-            Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_EXPORT_FAILED) + t,
+            Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_EXPORT_FAILED),
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -994,7 +1196,7 @@ public final class MorpheSettingsActivity extends Activity {
             int applied = MorpheSettingsBackup.apply(json);
             Toast.makeText(this,
                     MorpheStrings.get(MorpheStrings.TOAST_IMPORTED)
-                            .replace("%d", String.valueOf(applied)),
+                            .replace("%d", MorpheStrings.number(applied)),
                     Toast.LENGTH_LONG).show();
             // Gli interruttori a schermo sono stati costruiti coi valori di prima: senza
             // ricostruire la schermata mostrerebbero il contrario di ciò che è appena stato
@@ -1002,7 +1204,7 @@ public final class MorpheSettingsActivity extends Activity {
             recreate();
         } catch (Throwable t) {
             MorpheLog.e(MorpheLog.SETTINGS_ENTRY, "import failed", t);
-            Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_IMPORT_FAILED) + t,
+            Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_IMPORT_FAILED),
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -1051,7 +1253,7 @@ public final class MorpheSettingsActivity extends Activity {
         });
         LinearLayout.LayoutParams copyParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        copyParams.leftMargin = dp(10);
+        copyParams.setMarginStart(dp(10));
         buttons.addView(copy, copyParams);
 
         parent.addView(buttons);
@@ -1072,7 +1274,7 @@ public final class MorpheSettingsActivity extends Activity {
             Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_COPIED),
                     Toast.LENGTH_LONG).show();
         } catch (Throwable t) {
-            Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_COPY_FAILED) + t,
+            Toast.makeText(this, MorpheStrings.get(MorpheStrings.TOAST_COPY_FAILED),
                     Toast.LENGTH_LONG).show();
         }
     }

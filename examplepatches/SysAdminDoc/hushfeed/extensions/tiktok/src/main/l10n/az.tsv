@@ -423,6 +423,8 @@ Disable	Söndürün
 Stop analytics and tracking	Analitikanı və izləməni dayandırın
 Long-press Home for Hushfeed settings	Hushfeed ayarları üçün Ana səhifəni uzun basın
 Press and hold the Home tab to open these settings. A tap on Home works as before.	Bu ayarları açmaq üçün Ana səhifə nişanını basıb saxlayın. Ana səhifəyə toxunmaq əvvəlki kimi işləyir.
+Search instead of Home	Ana səhifə əvəzinə Axtarış
+The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.	Ana səhifə nişanı axtarış düyməsinə çevrilir. Onun ikonu və adı Axtarış olur, toxunuş isə For You əvəzinə TikTok axtarışını açır. TikTok Gələnlər qutusunda, Gələnlər qutusu gizlidirsə Profildə açılır, beləliklə açanda lent oynamır.
 Keep For You on a Home tap	Ana səhifəyə toxunanda Sənin üçün nişanında qalın
 Keep For You on a pull down	Aşağı çəkəndə Sənin üçün nişanında qalın
 Keep long press from quick sharing	Uzun basmanın sürətli paylaşmanı işə salmasının qarşısını alın
@@ -521,6 +523,7 @@ Forget seen videos after	İzlənmiş videoları bu müddətdən sonra unudun
 Forget the %1$s seen videos.	%1$s izlənmiş videonu unudun.
 Forget what has been counted today and end any hold. The budgets themselves are left alone.	Bu gün sayılanları unudun və bütün fasilələri bitirin. Büdcələrin özünə toxunulmur.
 Friends	Dostlar
+Discover	Kəşf et
 Full comment sort options	Tam şərh çeşidləmə seçimləri
 Full license	Tam lisenziya
 Full report saved to %1$s	Tam hesabat %1$s yerinə saxlanıldı
@@ -637,6 +640,8 @@ Hide the playlist bar	Pleylist panelini gizlədin
 Hide the playlist bar along the bottom of videos that belong to a series.	Serialın bir hissəsi olan videoların altındakı pleylist panelini gizlədin.
 Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.	Sağ sütunda yaradıcının şəklinin altındakı plyus düyməsini gizlədin. Yuxarıdakı Avatar və izləmə düyməsini seçmək şəkli də onunla gizlədir.
 Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.	TikTok-un bəzi bölgələrdə göstərdiyi axtarış qutusunun altındakı xal bannerini və axtarış nəticələrinin üstündəki üzən sikkə sayğacını gizlədin. Axtarış əvvəlki kimi işləyir.
+Show only the search bar on Discover	Kəşf et bölməsində yalnız axtarış zolağını göstər
+On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.	TikTok-un bəzi bölgələrdə göstərdiyi Kəşf et nişanında trend heşteqləri, bannerləri və axtarış qutusunun altındakı nişanları gizlədir. Axtarış qutusu qalır və əvvəlki kimi işləyir.
 Hide the purple rewards button beside Add friends on your profile.	Profilinizdə Add friends yanındakı bənövşəyi mükafat düyməsini gizlədin.
 Hide the question cards TikTok slides over a video near its end, and the buttons that ask if you're interested in it.	TikTok-un videonun sonuna yaxın üstünə sürüşdürdüyü sual kartlarını və videonun sizə maraqlı olub-olmadığını soruşan düymələri gizlədin.
 Hide the rewards shortcut	Mükafat qısayolunu gizlədin
@@ -1398,11 +1403,19 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	Axtarışda TikTok Shop-u gizlədin
 Hide the Products block and product cards in search results.	Axtarış nəticələrindəki Məhsullar blokunu və məhsul kartlarını gizlədin.
 Hide TikTok's Auto scroll button	TikTok-un Auto scroll düyməsini gizlədin
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	TikTok-un öz Auto scroll əməliyyatını video panelindən, planşetlərdə və açılmış qatlanan telefonlarda isə videonun yanındakı Auto scroll açarını çıxarır. Avtomatik keçid söndürülü olanda da işləyir.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.	TikTok-un öz Auto scroll əməliyyatını video panelindən, Auto scroll yazısını isə videonun yuxarısından çıxarır. Planşetlərdə və açılmış qatlanan telefonlarda videonun yanındakı Auto scroll açarı da yox olur. Avtomatik keçid söndürülü olanda da işləyir.
 Hide the unread badges on the bottom tabs	Alt nişanlardakı oxunmamış nişanları gizlədin
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gələnlər və Profil daxil olmaqla hər alt nişandakı qırmızı say və nöqtələri, həmçinin Gələnlər üzərində yeni bəyənmələri, izləyiciləri, şərhləri və kimin LIVE-da olduğunu sayan balonu gizlədin. Gələnlərin özü yenə də nələrin gəldiyini göstərir.
 Speed while you hold the video	Videonu basıb saxlayarkən sürət
 Slide to change the hold speed	Saxlama sürətini sürüşdürərək dəyiş
+Hold speed bubble style	Saxlama sürəti balonunun üslubu
+Pill	Kapsul
+Circle	Dairə
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	Kapsul sürətin altında bir sıra nöqtə olan geniş balondur. Dairə kənarında hər sürət üçün bir çentik olan kiçik dəyirmi siferblatdır.
+Hold speed slide direction	Saxlama sürətinin sürüşdürmə istiqaməti
+Sideways	Yana
+Up and down	Yuxarı və aşağı
+With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.	Yana seçimində sürəti dəyişmək üçün sola və ya sağa sürüşdürün, kilidləmək üçün aşağı çəkin. Yuxarı və aşağı seçimində daha sürətli üçün yuxarı, daha yavaş üçün aşağı sürüşdürün, kilidləmək üçün isə yana sürüşdürün. Beləcə kənara yaxın saxlama da hər sürətə çatır.
 Hide mini dramas	Mini dramaları gizlədin
 Hide TikTok's short drama episodes and the cards that promote them.	TikTok-un qısa drama epizodlarını və onları təbliğ edən kartları gizlədin.
 Mini dramas	Mini dramalar
@@ -2282,6 +2295,8 @@ Most liked first	Əvvəlcə ən çox bəyənilənlər
 Least liked first	Əvvəlcə ən az bəyənilənlər
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Profil və ya bəyənilənlər şəbəkəsini sıralayır, sancılmış videolar əvvəldə qalır. Sıra seçiləndə şəbəkə 300 videoya qədər özü yüklənməyə davam edir, beləliklə sıra ilk ekrandan daha çoxunu əhatə edir. Şəbəkənin yuxarı küncündəki düymə sıranı elə oradaca dəyişir.
 Sort loaded videos on Liked grids	Bəyənilənlər şəbəkələrində yüklənmiş videoları sıralayın
+Sort loaded videos on sound pages	Səs səhifələrində yüklənmiş videoları sıralayın
+Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	Səsin səhifəsindəki videoları eyni qaydada sıralayır, sıralama seçili olduqca onlardan 300-ə qədərini yükləyir.
 Same as profile grids	Profil şəbəkələri ilə eyni
 Sort this grid	Bu şəbəkəni sırala
 Blur the video behind the bar	Panelin arxasındakı videonu bulanıqlaşdırın
@@ -2463,3 +2478,51 @@ Hide streak pop-ups	Seriya bildirişlərini gizlət
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	TikTok-un üzərinə sürüşən seriya bildirişlərini və söhbətlərə əlavə etdiyi seriya mesajlarını və məsləhətlərini dayandırır.
 Long press on For You opens my watch history	«Sənin üçün» üzərində uzun basma baxış tarixçəmi açır
 Instead of these settings. The list has a button that brings you back here.	Bu ayarların yerinə. Siyahıda səni bura qaytaran düymə var.
+Long press on Profile opens my watch history	Profil üzərində uzun basma baxış tarixçəmi açır
+Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.	TikTok-un Baxış tarixçəsinin yerinə. Profilə toxunmaq əvvəlki kimi işləyir. Profili basıb saxlamaq sizdə hesabı dəyişirsə, bu seçim həmin basmanı götürür.
+Auto tap in LIVE rooms	LIVE otaqlarında avto toxunma
+Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.	LIVE otaqlarına Avto toxunma düyməsi əlavə edir. Yayıma bərabər sürətlə toxunuş göndərmək üçün ona toxun, dayandırmaq üçün yenə toxun. Otaqdan çıxanda və ya başqa otağa sürüşdürəndə, TikTok-dan çıxanda və ya ekranı kilidləyəndə də dayanır.
+Auto tap speed	Avto toxunma sürəti
+2 taps a second	Saniyədə 2 toxunuş
+4 taps a second	Saniyədə 4 toxunuş
+6 taps a second	Saniyədə 6 toxunuş
+8 taps a second	Saniyədə 8 toxunuş
+Auto tap	Avto toxunma
+Start tapping this LIVE	Bu LIVE-a toxunmağa başla
+Stop tapping this LIVE	Bu LIVE-a toxunmanı dayandır
+Auto tap stopped	Avto toxunma dayandı
+Clean up your account	Hesabınızı təmizləyin
+Remove all reposts	Bütün yenidən paylaşmaları silin
+Deletes all reposts from your account sequentially.	Hesabınızdakı bütün yenidən paylaşmaları bir-bir silir.
+Remove all likes	Bütün bəyənmələri silin
+Unlikes every video one after another.	Bütün videoların bəyənməsini bir-bir geri götürür.
+Clear Favorites	Favoritləri təmizləyin
+Removes every video from Favorites one after another.	Bütün videoları Favoritlərdən bir-bir silir.
+Removing all reposts in %1$d	Yenidən paylaşmalar silinir: %1$d
+Removing all likes in %1$d	Bəyənmələr silinir: %1$d
+Clearing Favorites in %1$d	Favoritlər təmizlənir: %1$d
+Reposts removed: %1$d	Silinən yenidən paylaşmalar: %1$d
+Likes removed: %1$d	Silinən bəyənmələr: %1$d
+Favorites removed: %1$d	Favoritlərdən silinən: %1$d
+Nothing to remove	Silinəcək heç nə yoxdur
+Done. %1$d removed.	Hazırdır. Silindi: %1$d.
+Stopped. %1$d removed.	Dayandırıldı. Silindi: %1$d.
+TikTok refused. %1$d removed.	TikTok rədd etdi. Silindi: %1$d.
+Network error. %1$d removed.	Şəbəkə xətası. Silindi: %1$d.
+Not available on this TikTok version	Bu TikTok versiyasında mövcud deyil
+Sign in to TikTok first	Əvvəlcə TikTok-a daxil olun
+A removal is already running	Silmə artıq gedir
+Cancelled	Ləğv edildi
+Show inbox filters	Gələnlər qutusu filtrlərini göstər
+Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Söhbətlərinizin üstünə TikTok-un yaradıcı hesablarına verdiyi Əsas, Sorğular, Oxunmamış və Ulduzlu tablarını əlavə edir.
+Rebuild message search	Mesaj axtarışını yenidən qur
+Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.	TikTok-un mesaj axtarışını təmizləyir və bu telefonda saxlanan hər mesajı ən yenisindən başlayaraq yenidən əlavə edir. Axtarışdan çıxandan sonra da davam edir.
+Rebuilding message search	Mesaj axtarışı yenidən qurulur
+Stopped. Search carries on later.	Dayandırıldı. Axtarış sonra davam edəcək.
+Couldn't stop it. Try again.	Dayandırmaq alınmadı. Yenidən cəhd edin.
+Couldn't rebuild search. Try again.	Axtarış qurulmadı. Yenidən cəhd edin.
+Message search isn't on for this account	Mesaj axtarışı bu hesabda aktiv deyil
+Offer Audio only in LIVE quality	LIVE keyfiyyətində Yalnız səs təklif et
+Audio only	Yalnız səs
+Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.	LIVE-ın Video keyfiyyəti siyahısına Yalnız səs əlavə edir. Otaq şəkilsiz yalnız səsi oynadır, bu da çox az data işlədir, başqa keyfiyyət seçənə və ya çıxana qədər. Yayımdan yazmaq yenə də videonu saxlayır.
+Pick a video quality to record the screen	Ekranı yazmaq üçün video keyfiyyəti seç

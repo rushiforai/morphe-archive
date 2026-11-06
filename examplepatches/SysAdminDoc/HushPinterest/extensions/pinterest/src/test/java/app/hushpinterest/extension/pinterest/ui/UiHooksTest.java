@@ -512,6 +512,62 @@ public class UiHooksTest {
         assertEquals(2, nested.getChildCount());
     }
 
+    @Test public void greetingHeaderFoldsCreateAndNotificationsByNameAndReappliesOnWindowFocus() throws Exception {
+        Settings.HIDE_NAV_CREATE.save(true);
+        Settings.HIDE_NAV_NOTIFICATIONS.save(false);
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
+        LinearLayout row = new LinearLayout(activity);
+        View tuner = greetingButton(activity, "home_feed_greeting_header_tuner_icon");
+        View create = greetingButton(activity, "home_feed_greeting_header_create_icon");
+        View bell = greetingButton(activity, "home_feed_greeting_header_newshub_icon");
+        row.addView(tuner);
+        row.addView(create);
+        row.addView(bell);
+        InterfaceControls.greetingHeader(row);
+        assertEquals(View.GONE, create.getVisibility());
+        assertEquals(View.VISIBLE, bell.getVisibility());
+        assertEquals("the tuner has no switch", View.VISIBLE, tuner.getVisibility());
+
+        // Hush settings is a screen of its own, so coming back to Home is a window focus change.
+        activity.setContentView(row);
+        Settings.HIDE_NAV_CREATE.save(false);
+        Settings.HIDE_NAV_NOTIFICATIONS.save(true);
+        focus(row.getViewTreeObserver());
+        assertEquals(View.VISIBLE, create.getVisibility());
+        assertEquals(View.GONE, bell.getVisibility());
+        assertEquals(View.VISIBLE, tuner.getVisibility());
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        focus(row.getViewTreeObserver());
+        assertEquals("Pause brings the bell back", View.VISIBLE, bell.getVisibility());
+        PauseForTests.resume();
+
+        // A row that left its window stops listening to it.
+        android.view.ViewTreeObserver window = row.getViewTreeObserver();
+        activity.setContentView(new View(activity));
+        focus(window);
+        assertEquals(View.VISIBLE, bell.getVisibility());
+        assertEquals(3, row.getChildCount());
+    }
+
+    private static View greetingButton(Context context, String name) {
+        Resources original = context.getResources();
+        Resources named = new Resources(context.getAssets(), original.getDisplayMetrics(), original.getConfiguration()) {
+            @Override public String getResourceEntryName(int id) { return name; }
+        };
+        View button = new View(context) {
+            @Override public Resources getResources() { return named; }
+        };
+        button.setId(View.generateViewId());
+        return button;
+    }
+
+    private static void focus(android.view.ViewTreeObserver observer) throws Exception {
+        java.lang.reflect.Method dispatch = android.view.ViewTreeObserver.class
+                .getDeclaredMethod("dispatchOnWindowFocusChange", boolean.class);
+        dispatch.setAccessible(true);
+        dispatch.invoke(observer, true);
+    }
+
     @Test public void unknownNavigationModelsLeaveTheViewAlone() {
         Settings.HIDE_NAV_CREATE.save(true);
         View view = new View(RuntimeEnvironment.getApplication());

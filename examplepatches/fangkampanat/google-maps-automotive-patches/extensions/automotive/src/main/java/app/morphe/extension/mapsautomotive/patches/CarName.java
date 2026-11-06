@@ -174,7 +174,8 @@ public final class CarName {
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.SEND_TO_CAR)) {
-            return thai ? "ใช้ชื่อของ Maps ชั่วคราว · สวิตช์ใน Report Maps Car" : "Maps' name for now · switch in Report Maps Car";
+            return (thai ? "ใช้ชื่อของ Maps ชั่วคราว · สวิตช์ใน " : "Maps' name for now · switch in ")
+                    + ReportPatch.reportPlace(context, thai);
         }
         String name = storedName(context);
         if (name != null) return name;
@@ -270,8 +271,9 @@ public final class CarName {
             new AlertDialog.Builder(activity)
                     .setTitle(getSettingsTitle(activity))
                     .setMessage(thai
-                            ? "บันทึกแล้ว Maps Car จะใช้ชื่อนี้เมื่อเปิด Send to car อีกครั้งใน Report Maps Car"
-                            : "Saved. Maps Car uses this name once Send to car is switched on again in Report Maps Car.")
+                            ? "บันทึกแล้ว จะใช้ชื่อนี้เมื่อเปิด Send to car อีกครั้งใน " + ReportPatch.reportPlace(activity, true)
+                            : "Saved. This name is used once Send to car is switched on again in "
+                            + ReportPatch.reportPlace(activity, false) + ".")
                     .setPositiveButton(thai ? "ตกลง" : "OK", null)
                     .show();
         }
@@ -280,13 +282,13 @@ public final class CarName {
     // Maps sends the vehicle info about 20 s after it starts; a restart sends the new name now.
     private static void confirmRestart(Activity activity) {
         boolean thai = UiDensityPatch.isThai(activity);
-        String later = thai ? "บันทึกแล้ว จะส่งชื่อตอนเปิด Maps Car ครั้งถัดไป" : "Saved. The name is sent at the next start.";
+        String later = thai ? "บันทึกแล้ว จะส่งชื่อตอนเปิดแอปครั้งถัดไป" : "Saved. The name is sent at the next start.";
         new AlertDialog.Builder(activity)
                 .setTitle(getSettingsTitle(activity))
                 .setMessage(thai
-                        ? "บันทึกแล้ว Maps Car ส่งชื่อขึ้นบัญชี Google ราว 20 วินาทีหลังเริ่มแอป เริ่มใหม่ตอนนี้เลยไหม"
+                        ? "บันทึกแล้ว แอปส่งชื่อขึ้นบัญชี Google ราว 20 วินาทีหลังเริ่ม เริ่มใหม่ตอนนี้เลยไหม"
                         + " (การนำทางที่กำลังทำงานจะหยุด) ไม่อย่างนั้นจะส่งตอนเปิดครั้งถัดไป"
-                        : "Saved. Maps Car sends the name to your Google account about 20 s after it starts. Restart now"
+                        : "Saved. The app sends the name to your Google account about 20 s after it starts. Restart now"
                         + " (active navigation stops), or it is sent at the next start.")
                 .setPositiveButton(thai ? "เริ่มใหม่" : "Restart", (dialog, which) -> {
                     ReportLog.i(TAG, "restarting for the car name");

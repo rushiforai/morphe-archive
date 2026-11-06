@@ -1,0 +1,34 @@
+name: update
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: |
+          target="$(grep -oP 'AppTarget\(version = "\K[^"]+' patches/SilentTyping.kt)"
+          latest="$(curl -fsSL --retry 3 -A 'Mozilla/5.0' \
+            'https://play.google.com/store/apps/details?id=com.Slack&hl=en_US&gl=US' |
+            grep -oP '\[\[\["\K[0-9]+(\.[0-9]+){3}(?="\]\])' | head -1)"
+          [[ -n "$target" && -n "$latest" ]] || { echo "Could not read versions" >&2; exit 1; }
+          echo "Targeting $target, Google Play has $latest"
+          [[ "$latest" != "$target" && "$(printf '%s\n' "$target" "$latest" | sort -V | tail -1)" == "$latest" ]] || exit 0
+          title="Slack $latest is out"
+          if [[ -n "$(gh issue list --state all --search "\"$title\" in:title" --json number --jq '.[].number')" ]]; then
+            echo "Issue already exists"
+            exit 0
+          fi
+          gh issue create --title "$title" --body "Google Play has Slack $latest; the patches target $target.
+
+          Check the patches against the new APK, then update \`AppTarget\` in \`patches/SilentTyping.kt\`."

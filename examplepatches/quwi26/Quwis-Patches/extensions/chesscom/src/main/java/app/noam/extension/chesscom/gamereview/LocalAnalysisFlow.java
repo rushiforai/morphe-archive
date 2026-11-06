@@ -328,7 +328,7 @@ final class LocalAnalysisFlow {
                 } else {
                     try {
                         data = engineReview(startingFen, fens, playedLans, boards, historyUsable ? engineMoves : null,
-                            searchNodes, remote, progress -> {
+                            searchNodes, remote, lichess, progress -> {
                                 emitter.ensureActive();
                                 emitter.emit(ipConstructor.newInstance(progress, progressDepth, sourceEnum));
                             });
@@ -680,12 +680,13 @@ final class LocalAnalysisFlow {
     /**
      * Stockfish on the phone looks at every position as Lichess's servers do (FishnetSearch: with
      * the moves that led there, so it sees repetitions and the 50-move rule), and the moves are
-     * scored the Lichess way. On the computer the same search runs over sf-bridge; it gets one
-     * connection, because its Stockfish is told to use all of your computer's threads at once.
+     * scored the Lichess way, or the chess.com way when the review is not Lichess's. On the
+     * computer the same search runs over sf-bridge; it gets one connection, because its Stockfish
+     * is told to use all of your computer's threads at once.
      */
     private static ReviewData engineReview(String startingFen, String[] fens, String[] playedLans, char[][] boards,
                                            List<String> engineMoves, long nodesPerMove, boolean remote,
-                                           LichessServerReview.Waiting step) throws Throwable {
+                                           boolean lichess, LichessServerReview.Waiting step) throws Throwable {
         Context context = Utils.context();
         if (context == null) throw new IOException("Stockfish could not start for the review");
         int total = playedLans.length;
@@ -743,11 +744,22 @@ final class LocalAnalysisFlow {
             ply.best = (after.over && after.mate != 0)
                 || (bestLan != null && (bestLan.equals(playedNorm) || bestLan.equals(played)));
             // Lichess only judges inaccuracies, mistakes and blunders, and never the engine's own
-            // best move (fishnet's AnalysisBuilder drops the line when they match).
+            // best move (fishnet's AnalysisBuilder drops the line when they match). chess.com's
+            // bands are close, but its blunder starts at 0.20 expected points where Lichess's
+            // winning chances put it at 0.15, so what falls in between is a chess.com Mistake.
             ply.judgment = ply.best ? null
                 : LichessMath.judgment(before.score, before.mate, after.score, after.mate, isWhite);
-            ply.miss = ply.judgment != null
-                && LichessMath.lostMate(before.score, before.mate, after.score, after.mate, isWhite);
+            if (!lichess && LichessMath.BLUNDER.equals(ply.judgment)
+                && before.mate == 0 && after.mate == 0
+                && expectedLoss(ply, isWhite) < CHESSCOM_BLUNDER) {
+                ply.judgment = LichessMath.MISTAKE;
+            }
+            // Lichess's Miss is a lost forced mate. chess.com also misses a win the best move still
+            // had, and that Miss belongs to its review only.
+            ply.miss = lichess
+                ? ply.judgment != null
+                    && LichessMath.lostMate(before.score, before.mate, after.score, after.mate, isWhite)
+                : missed(ply, isWhite);
             if (bestLan != null) {
                 ply.bestMove = bestLan;
                 ply.bestLine = linePv(before.pv, bestLan);
@@ -789,6 +801,12 @@ final class LocalAnalysisFlow {
     private static final String GREAT = "greatFind";
     /** chess.com's Brilliant ("!!"), also a name its AnalysisMoveClassification knows. */
     private static final String BRILLIANT = "brilliant";
+
+    /** chess.com's blunder starts at 0.20 expected points lost; Lichess's winning chances at 0.15. */
+    private static final double CHESSCOM_BLUNDER = 0.20;
+    /** chess.com's winning position: 0.90 expected points, gone below 0.80. */
+    private static final double WINNING = 0.90;
+    private static final double NOT_WINNING = 0.80;
 
     /**
      * The mark a move gets, once. Lichess marks inaccuracies, mistakes and blunders (a lost forced
@@ -891,6 +909,33 @@ final class LocalAnalysisFlow {
         // A mate score whose number we were not given (the second line).
         if (Math.abs(score) >= 90) return score > 0 ? 1 : 0;
         return LichessMath.winPercent(score, 0) / 100.0;
+    }
+
+    /** Expected points the mover gave up on this move: chess.com's measure of a move's damage. */
+    private static double expectedLoss(ReviewData.Ply ply, boolean isWhite) {
+        double before = winExpectation(ply.scoreBefore, ply.mateBefore);
+        double after = winExpectation(ply.scoreAfter, ply.mateAfter);
+        return Math.max(0, isWhite ? before - after : after - before);
+    }
+
+    /**
+     * chess.com's Miss: the best move kept a winning position (0.90 expected points) and the played
+     * one did not (0.80), or a forced mate was let go. chess.com works its "winning" number out from
+     * the player's rating and publishes neither that number nor its expected-points curve, so both
+     * are fixed stand-ins read off the top of its own bands, not a copy of its model.
+     */
+    private static boolean missed(ReviewData.Ply ply, boolean isWhite) {
+        if (ply.best) return false;
+        if (LichessMath.lostMate(ply.scoreBefore, ply.mateBefore, ply.scoreAfter, ply.mateAfter, isWhite)) {
+            return true;
+        }
+        double best = winExpectation(ply.scoreBefore, ply.mateBefore);
+        double played = winExpectation(ply.scoreAfter, ply.mateAfter);
+        if (!isWhite) {
+            best = 1 - best;
+            played = 1 - played;
+        }
+        return best >= WINNING && played < NOT_WINNING;
     }
 
     /**

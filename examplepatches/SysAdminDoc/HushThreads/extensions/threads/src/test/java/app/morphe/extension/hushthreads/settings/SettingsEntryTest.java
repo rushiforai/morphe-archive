@@ -254,6 +254,170 @@ public class SettingsEntryTest {
         }
     }
 
+    /**
+     * The long press on the logo has its own switch. Off, a header drawn from then on gets no long
+     * press, and one drawn before keeps Compose's old handler, which then opens nothing.
+     */
+    @Test public void theLogoSwitchTakesTheLongPressAway() {
+        ActivityController<Activity> activity = resumedLauncher();
+        org.junit.Assert.assertSame(ThreadsLogo.LONG_PRESS, ThreadsLogo.longPress());
+
+        BaseSettings.SETTINGS_LOGO_PRESS.save(false);
+        assertNull("a header drawn now still gets a long press", ThreadsLogo.longPress());
+        assertNull(ThreadsLogo.LONG_PRESS.invoke());
+        ShadowLooper.idleMainLooper();
+        assertNull("an older header's long press opened the screen", dialogOver(activity.get()));
+
+        BaseSettings.SETTINGS_LOGO_PRESS.save(true);
+        org.junit.Assert.assertSame(ThreadsLogo.LONG_PRESS, ThreadsLogo.longPress());
+    }
+
+    /**
+     * Each way in has its switch on the Pause page, and the last one that's on stays on: its row is
+     * greyed out and says why, and turning it off is refused. Another way back on frees it.
+     */
+    @Test public void theLastWayInOnThePausePageCantBeTurnedOff() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment page = new HushThreadsPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            android.preference.SwitchPreference shortcut = way(page, BaseSettings.SETTINGS_SHORTCUT);
+            android.preference.SwitchPreference row = way(page, BaseSettings.SETTINGS_ROW);
+            android.preference.SwitchPreference logo = way(page, BaseSettings.SETTINGS_LOGO_PRESS);
+            org.junit.Assert.assertEquals("Settings row in Threads' settings", String.valueOf(row.getTitle()));
+            org.junit.Assert.assertEquals("Open settings from the logo", String.valueOf(logo.getTitle()));
+            String shortcutSummary = String.valueOf(shortcut.getSummary());
+            for (android.preference.SwitchPreference way : java.util.Arrays.asList(shortcut, row, logo)) {
+                assertTrue(way.getKey() + " is greyed out with all three on", way.isEnabled());
+            }
+
+            assertTrue(row.getOnPreferenceChangeListener().onPreferenceChange(row, false));
+            assertTrue(logo.getOnPreferenceChangeListener().onPreferenceChange(logo, false));
+            org.junit.Assert.assertFalse(BaseSettings.SETTINGS_ROW.savedValue());
+            org.junit.Assert.assertFalse(BaseSettings.SETTINGS_LOGO_PRESS.savedValue());
+            org.junit.Assert.assertFalse("the last way in can still be switched off", shortcut.isEnabled());
+            org.junit.Assert.assertEquals("Stays on, since it's the only way left into these settings.",
+                    String.valueOf(shortcut.getSummary()));
+            org.junit.Assert.assertFalse("turning off the last way in went through",
+                    shortcut.getOnPreferenceChangeListener().onPreferenceChange(shortcut, false));
+            assertTrue(BaseSettings.SETTINGS_SHORTCUT.savedValue());
+            assertTrue("the ways that are off can be turned back on", row.isEnabled() && logo.isEnabled());
+
+            // The shared fragment enables each row it syncs, and the last one stays greyed out after.
+            page.refreshSwitches();
+            org.junit.Assert.assertFalse("a sync turned the last way in back on", shortcut.isEnabled());
+
+            assertTrue(logo.getOnPreferenceChangeListener().onPreferenceChange(logo, true));
+            assertTrue("a second way in didn't free the shortcut", shortcut.isEnabled());
+            org.junit.Assert.assertEquals(shortcutSummary, String.valueOf(shortcut.getSummary()));
+        }
+    }
+
+    /**
+     * A Threads build the row and the long press don't fit has only the shortcut, and App info's
+     * way in, so the page offers no switch for the other two and the shortcut stays on.
+     */
+    @Test public void aBuildWithOnlyTheShortcutKeepsIt() {
+        WaysInForTests.set(false, false);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment page = new HushThreadsPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            assertNull("a switch for a row this build hasn't got", page.findPreference(BaseSettings.SETTINGS_ROW.key));
+            assertNull("a switch for a long press this build hasn't got",
+                    page.findPreference(BaseSettings.SETTINGS_LOGO_PRESS.key));
+            org.junit.Assert.assertFalse("the only way in can be switched off",
+                    way(page, BaseSettings.SETTINGS_SHORTCUT).isEnabled());
+
+            // Stored off from a build that had the other two, it's still published.
+            BaseSettings.SETTINGS_SHORTCUT.save(false);
+            assertTrue(SettingsEntry.shortcutOn());
+        } finally {
+            WaysInForTests.set(true, true);
+        }
+    }
+
+    /** All three stored off can't leave the screen unreachable from Threads: each of them comes back on. */
+    @Test public void everyWayStoredOffComesBackOn() {
+        BaseSettings.SETTINGS_SHORTCUT.save(false);
+        BaseSettings.SETTINGS_ROW.save(false);
+        BaseSettings.SETTINGS_LOGO_PRESS.save(false);
+        assertTrue(SettingsEntry.shortcutOn());
+        assertTrue(SettingsEntry.rowOn());
+        assertTrue(SettingsEntry.logoPressOn());
+        org.junit.Assert.assertSame(ThreadsLogo.LONG_PRESS, ThreadsLogo.longPress());
+
+        BaseSettings.SETTINGS_ROW.save(true);
+        org.junit.Assert.assertFalse(SettingsEntry.shortcutOn());
+        org.junit.Assert.assertFalse(SettingsEntry.logoPressOn());
+        assertTrue(SettingsEntry.rowOn());
+    }
+
+    /**
+     * A Threads build the patch fits but that has none of the row's icons never draws the row, so
+     * it isn't a way back in: the page offers no switch for it, and with the logo off the shortcut
+     * is the last way in and stays on.
+     */
+    @Test public void aRowThreadsCantDrawIsntAWayIn() {
+        ThreadsSettingsRow.icon = 0;
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment page = new HushThreadsPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            assertNull("a switch for a row Threads can't draw", page.findPreference(BaseSettings.SETTINGS_ROW.key));
+            android.preference.SwitchPreference shortcut = way(page, BaseSettings.SETTINGS_SHORTCUT);
+            android.preference.SwitchPreference logo = way(page, BaseSettings.SETTINGS_LOGO_PRESS);
+
+            assertTrue(logo.getOnPreferenceChangeListener().onPreferenceChange(logo, false));
+            org.junit.Assert.assertFalse("the row that's never drawn counted as a way back in", shortcut.isEnabled());
+            org.junit.Assert.assertFalse("the shortcut went off with only the undrawn row left",
+                    shortcut.getOnPreferenceChangeListener().onPreferenceChange(shortcut, false));
+            assertTrue(BaseSettings.SETTINGS_SHORTCUT.savedValue());
+        } finally {
+            ThreadsSettingsRow.icon = -1;
+        }
+    }
+
+    /**
+     * All three stored off put the shortcut up as the way back in. Turning just the row on makes
+     * the row the way in, so the shortcut leaves the launcher's menu again.
+     */
+    @Test public void turningTheRowOnWhenAllWereOffTakesTheShortcutOut() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        android.content.pm.ShortcutManager manager = context.getSystemService(android.content.pm.ShortcutManager.class);
+        BaseSettings.SETTINGS_SHORTCUT.save(false);
+        BaseSettings.SETTINGS_ROW.save(false);
+        BaseSettings.SETTINGS_LOGO_PRESS.save(false);
+        SettingsEntry.publishShortcutNow(context);
+        assertNotNull("all three off left no shortcut", shortcut(manager, SettingsEntry.SHORTCUT_ID));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushThreadsPreferenceFragment page = new HushThreadsPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            android.preference.SwitchPreference row = way(page, BaseSettings.SETTINGS_ROW);
+            assertTrue(row.getOnPreferenceChangeListener().onPreferenceChange(row, true));
+            app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+            assertNull("the shortcut stayed in the menu with the row on", shortcut(manager, SettingsEntry.SHORTCUT_ID));
+        }
+    }
+
+    /** The switches are kept while paused, like the shortcut's: a pause doesn't bring the row or the long press back. */
+    @Test public void aPauseLeavesTheRowAndTheLongPressAsTheirSwitchesSay() {
+        BaseSettings.SETTINGS_ROW.save(false);
+        BaseSettings.SETTINGS_LOGO_PRESS.save(false);
+        PauseForTests.pause(HushThreadsPause.Reason.SWITCH);
+        try {
+            assertTrue("the test didn't pause HushThreads", HushThreadsPause.isPaused());
+            org.junit.Assert.assertFalse("a pause brought the row back", SettingsEntry.rowOn());
+            assertNull("a pause brought the long press back", ThreadsLogo.longPress());
+        } finally {
+            PauseForTests.resume();
+        }
+    }
+
+    private static android.preference.SwitchPreference way(HushThreadsPreferenceFragment page,
+                                                           app.morphe.extension.shared.settings.BooleanSetting setting) {
+        android.preference.SwitchPreference row = (android.preference.SwitchPreference) page.findPreference(setting.key);
+        assertNotNull("no switch for " + setting.key, row);
+        return row;
+    }
+
     /** What the platform leaves after Threads' pushes rank ahead of the HushThreads shortcut. */
     private static void demote(android.content.Context context, android.content.pm.ShortcutManager manager,
                                int rank, String label) {
@@ -746,6 +910,25 @@ public class SettingsEntryTest {
         app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
         assertTrue("the start kept the ended process's access",
                 application.getContentResolver().getPersistedUriPermissions().isEmpty());
+    }
+
+    /**
+     * A crash kept in the first minute lists the switches. The settings screen registered them, so a
+     * start that crashed before anyone opened it kept a report with no [PATCHES] section.
+     */
+    @Test public void threadsStartingRegistersTheSwitchesACrashReportKeeps() throws Exception {
+        android.content.Context application = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.settings.preference.ReportSectionsForTests.clear();
+        PatchFamily.inBuildForTests = java.util.EnumSet.of(PatchFamily.HIDE_ADS);
+        try {
+            org.junit.Assert.assertEquals("", app.morphe.extension.shared.settings.preference.ReportSectionsForTests.keptWithACrash());
+            SettingsEntry.onApplicationCreate(new android.content.ContextWrapper(application));
+            app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+            String kept = app.morphe.extension.shared.settings.preference.ReportSectionsForTests.keptWithACrash();
+            assertTrue("the start registered no switches: " + kept, kept.startsWith("\n[PATCHES]\n"));
+        } finally {
+            PatchFamily.inBuildForTests = null;
+        }
     }
 
     /** Takes Android's fragment state out before it's restored, as Threads' IgFragmentActivity does. */

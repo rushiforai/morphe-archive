@@ -60,6 +60,17 @@ private object NavPanelPremiumFingerprint : Fingerprint(
     parameters = listOf("Lcom/linkedin/android/pegasus/dash/gen/voyager/dash/premium/PremiumUpsellSlotContent;"),
 )
 
+/**
+ * AiSuggestionBar.setLockedState(I18NManager): the "Get AI suggestions with Premium" bar under text fields, such as
+ * the profile headline, for members without Premium.
+ */
+private object AiSuggestionBarLockedFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/infra/ui/genai/AiSuggestionBar;",
+    name = "setLockedState",
+    returnType = "V",
+    parameters = listOf("Lcom/linkedin/android/infra/network/I18NManager;"),
+)
+
 @Suppress("unused")
 val hidePremiumUpsellsPatch = bytecodePatch(
     name = "Hide Premium upsells",
@@ -83,6 +94,19 @@ val hidePremiumUpsellsPatch = bytecodePatch(
                     move-object/from16 p1, v0
                 """,
                 ExternalLabel("keep", getInstruction(0))
+            )
+        }
+
+        AiSuggestionBarLockedFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static/range { p0 .. p0 }, $SETTINGS_CLASS->hideLockedAiSuggestionBar(Landroid/view/View;)Z
+                    move-result v0
+                    if-eqz v0, :show
+                    return-void
+                """,
+                ExternalLabel("show", getInstruction(0))
             )
         }
     }

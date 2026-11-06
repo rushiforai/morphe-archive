@@ -129,5 +129,6 @@ internal fun BytecodePatchContext.patchRefreshTargets(version:String){
     """.trimIndent())
     postStore.methods.remove(confirm);postStore.methods.add(saved);postStore.methods.add(wrapper)
     patchThreadNotificationDedup(version)
+    patchOpenTabsRefresh(version)
     println("Registered refresh targets: $version, scoped native patrol and DAT transaction")
 }

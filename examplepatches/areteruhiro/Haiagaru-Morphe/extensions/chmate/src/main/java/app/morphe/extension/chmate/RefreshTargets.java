@@ -46,6 +46,7 @@ public final class RefreshTargets {
         return info.getClass().getMethod(version.contains("226")?"e":"b",info.getClass()).invoke(null,info);
     }
     public static void refresh(Object fragment,int action){
+        if(OpenTabsRefresh.dispatching())return;
         // Pull-to-refresh and the native re-fetch command use a resource ID,
         // whereas toolbar/gesture refresh uses action 5.
         if(action!=5&&action!=2131362342&&action!=2131296861&&action!=0x7f090244)return;
@@ -71,11 +72,12 @@ public final class RefreshTargets {
     }
     // Replaced with an exact native WorkManager Data getter for each supported version.
     private static boolean marker(Object data){return false;}
-    public static synchronized void mark(Object worker,Object data){if(marker(data))workers.put(worker,true);}
+    public static synchronized void mark(Object worker,Object data){OpenTabsRefresh.mark(worker,data);if(marker(data))workers.put(worker,true);}
     private static synchronized boolean active(Object worker){return Boolean.TRUE.equals(workers.get(worker));}
-    public static boolean download(Object worker,boolean original){return active(worker)||original;}
-    public static String keywords(Object worker,String original){return active(worker)?"":original;}
+    public static boolean download(Object worker,boolean original){return OpenTabsRefresh.download(worker,active(worker)||original);}
+    public static String keywords(Object worker,String original){return active(worker)||OpenTabsRefresh.active(worker)?"":original;}
     public static List<?> filter(Object worker,List<?> rows){
+        if(OpenTabsRefresh.active(worker))return OpenTabsRefresh.filter(worker,rows);
         if(!active(worker))return rows;
         ArrayList<Object> result=new ArrayList<>();
         Context context=Haiagaru.applicationContextForExtension();if(context==null)return result;

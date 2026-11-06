@@ -1,0 +1,128 @@
+version: v1.0
+name: CI/CD
+agent:
+  machine:
+    type: f1-standard-2
+    os_image: ubuntu2404
+
+blocks:
+  - name: Release
+    run:
+      when: "branch =~ '^(main|dev)$' and pull_request !~ '.+' and tag !~ '.+'"
+    task:
+      prologue:
+        commands:
+          - checkout
+          - sem-version java 21
+          - sem-version node 24
+          - |
+            cache restore "gradle-deps-$(checksum gradle/libs.versions.toml),^gradle-deps-"
+            cache restore "gradle-wrapper-$(checksum gradle/wrapper/gradle-wrapper.properties),^gradle-wrapper-"
+            cache restore "android-sdk-$(checksum scripts/install-android-sdk.sh),^android-sdk-"
+          - bash scripts/install-android-sdk.sh
+          - |
+            if [ "$(git rev-parse --is-shallow-repository)" = true ]; then
+              git fetch --unshallow
+            fi
+          - git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+          - git fetch --all --tags
+          - export GITHUB_ACTOR="${GITHUB_ACTOR:-${SEMAPHORE_GIT_REPO_OWNER:-agrokenga}}"
+          - |
+            if [ -z "${GITHUB_TOKEN:-}" ]; then
+              echo "GITHUB_TOKEN is not set. Attach the morphe-patches-ci secret."
+              exit 1
+            fi
+            token_user=$(curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" \
+              https://api.github.com/user 2>/dev/null | sed -n 's/.*"login"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1)
+            if [ -n "$token_user" ]; then
+              export GITHUB_ACTOR="$token_user"
+            fi
+            status=$(curl -sL -o /dev/null -w '%{http_code}' \
+              -u "$GITHUB_ACTOR:$GITHUB_TOKEN" \
+              "https://maven.pkg.github.com/MorpheApp/registry/app/morphe/patches/app.morphe.patches.gradle.plugin/2.1.0/app.morphe.patches.gradle.plugin-2.1.0.pom")
+            if [ "$status" != "200" ]; then
+              echo "GitHub Packages authentication failed (HTTP $status) for MorpheApp/registry."
+              echo "The morphe-patches-ci GITHUB_TOKEN needs read:packages access, plus SSO authorization if the organization requires it."
+              exit 1
+            fi
+      secrets:
+        - name: morphe-patches-ci
+      jobs:
+        - name: Semantic release and build verification
+          commands:
+            - install-package --update gh jq
+            - npm ci
+            - export GITHUB_REPOSITORY="$SEMAPHORE_GIT_REPO_SLUG"
+            - export GITHUB_REF_NAME="$SEMAPHORE_GIT_BRANCH"
+            - git remote set-url origin "https://github.com/$GITHUB_REPOSITORY.git"
+            - ./gradlew clean :patches:buildAndroid --no-daemon
+            - cache store "gradle-deps-$(checksum gradle/libs.versions.toml)" "$HOME/.gradle/caches" --cleanup-by ACCESS_TIME
+            - cache store "gradle-wrapper-$(checksum gradle/wrapper/gradle-wrapper.properties)" "$HOME/.gradle/wrapper/dists" --cleanup-by ACCESS_TIME
+            - cache store "android-sdk-$(checksum scripts/install-android-sdk.sh)" "${ANDROID_SDK_ROOT:-$HOME/android-sdk}" --cleanup-by ACCESS_TIME
+            - |
+              cat > "$HOME/.git-askpass" <<'EOF'
+              #!/bin/sh
+              case "$1" in
+                *Username*) printf '%s\n' "x-access-token" ;;
+                *) printf '%s\n' "$GITHUB_TOKEN" ;;
+              esac
+              EOF
+              chmod +x "$HOME/.git-askpass"
+              export GIT_ASKPASS="$HOME/.git-askpass"
+              export GIT_TERMINAL_PROMPT=0
+              trap 'rm -f "$HOME/.git-askpass"' EXIT
+              npx semantic-release
+
+  - name: Verify build
+    run:
+      when: "pull_request =~ '.+' or tag =~ '.+' or branch !~ '^(main|dev)$'"
+    task:
+      prologue:
+        commands:
+          - checkout
+          - sem-version java 21
+          - |
+            cache restore "gradle-deps-$(checksum gradle/libs.versions.toml),^gradle-deps-"
+            cache restore "gradle-wrapper-$(checksum gradle/wrapper/gradle-wrapper.properties),^gradle-wrapper-"
+            cache restore "android-sdk-$(checksum scripts/install-android-sdk.sh),^android-sdk-"
+          - bash scripts/install-android-sdk.sh
+          - export GITHUB_ACTOR="${GITHUB_ACTOR:-${SEMAPHORE_GIT_REPO_OWNER:-agrokenga}}"
+      secrets:
+        - name: morphe-patches-ci
+      jobs:
+        - name: Build patches
+          commands:
+            - ./gradlew clean :patches:buildAndroid --no-daemon
+            - cache store "gradle-deps-$(checksum gradle/libs.versions.toml)" "$HOME/.gradle/caches" --cleanup-by ACCESS_TIME
+            - cache store "gradle-wrapper-$(checksum gradle/wrapper/gradle-wrapper.properties)" "$HOME/.gradle/wrapper/dists" --cleanup-by ACCESS_TIME
+            - cache store "android-sdk-$(checksum scripts/install-android-sdk.sh)" "${ANDROID_SDK_ROOT:-$HOME/android-sdk}" --cleanup-by ACCESS_TIME
+
+  - name: Open pull request to main
+    run:
+      when: "branch = 'dev' and pull_request !~ '.+' and tag !~ '.+'"
+    task:
+      prologue:
+        commands:
+          - checkout
+      secrets:
+        - name: morphe-patches-ci
+      jobs:
+        - name: Open pull request
+          commands:
+            - install-package --update gh jq
+            - export GH_TOKEN="$GITHUB_TOKEN"
+            - |
+              if gh pr list --base main --head dev --json number | jq -e '. | length > 0' >/dev/null; then
+                echo "Pull request already exists."
+              else
+                commits=$(gh api "repos/$SEMAPHORE_GIT_REPO_SLUG/compare/main...dev" --jq '.total_commits')
+                if [ "$commits" -eq 0 ]; then
+                  echo "No commits between main and dev. Skipping PR creation."
+                else
+                  gh pr create \
+                    --base main \
+                    --head dev \
+                    --title 'chore: Merge branch `dev` to `main`' \
+                    --body "When dev (pre-release) is ready, merge this pull request to create a new stable release."
+                fi
+              fi

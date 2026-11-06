@@ -1,0 +1,49 @@
+name: Open a PR to main
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  pull-request:
+    name: Open pull request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BRANCH: ${{ github.ref_name }}
+          TARGET_BRANCH: main
+        run: |
+          # Kiểm tra PR từ dev sang main đã tồn tại hay chưa.
+          if gh pr list --base "$TARGET_BRANCH" --head "$SOURCE_BRANCH" --json number | jq -e '. | length > 0' >/dev/null; then
+            echo "PR đã tồn tại."
+            exit 0
+          fi
+
+          # Chỉ tạo PR khi hai nhánh có commit khác nhau.
+          COMMITS=$(gh api "repos/${{ github.repository }}/compare/${TARGET_BRANCH}...${SOURCE_BRANCH}" --jq '.total_commits')
+          if [ "$COMMITS" -eq 0 ]; then
+            echo "Không có commit giữa $TARGET_BRANCH và $SOURCE_BRANCH. Bỏ qua tạo PR."
+            exit 0
+          fi
+
+          # Tạo PR để hợp nhất bản thử nghiệm vào bản ổn định.
+          gh pr create \
+            --base "$TARGET_BRANCH" \
+            --head "$SOURCE_BRANCH" \
+            --title 'chore: Hợp nhất nhánh `dev` vào `main`' \
+            --body "Hợp nhất PR khi bản thử nghiệm trên dev đã sẵn sàng để tạo bản phát hành ổn định." \
+            || {
+              echo "::error::Tạo PR thất bại. Hãy bật quyền cho GitHub Actions tạo và phê duyệt PR trong cài đặt kho mã."
+              exit 1
+            }

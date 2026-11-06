@@ -34,6 +34,12 @@ logger.lifecycle(
         if (reportUrl.isEmpty()) "not configured (no send button)" else "configured for ${reportUrl.removePrefix("https://")}",
 )
 
+// The public repository (gradle.properties): the report screen's link and the QR code of a new issue.
+val projectUrl = providers.gradleProperty("projectUrl").get().trim()
+if (!Regex("https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+").matches(projectUrl) || projectUrl.endsWith(".git")) {
+    throw GradleException("projectUrl must be https://github.com/<owner>/<repository>, without .git or a trailing slash")
+}
+
 configure<ApplicationExtension> {
     namespace = "app.morphe.extension"
     compileSdk = 36
@@ -42,6 +48,7 @@ configure<ApplicationExtension> {
         minSdk = 29
         buildConfigField("String", "MAPS_CAR_REPORT_URL", "\"$reportUrl\"")
         buildConfigField("String", "MAPS_CAR_REPORT_KEY", "\"$reportKey\"")
+        buildConfigField("String", "MAPS_CAR_PROJECT_URL", "\"$projectUrl\"")
     }
 
     buildFeatures {

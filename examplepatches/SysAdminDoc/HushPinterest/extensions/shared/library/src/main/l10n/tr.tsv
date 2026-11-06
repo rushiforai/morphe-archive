@@ -161,6 +161,7 @@ Promoted pins	Reklamlı pinler
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Reklamlı pinleri ana akışından, aramadan, ilgili pinlerden ve panolardan kaldırır; yalnızca reklam içeren panelleri gizler.
 ad-only views	yalnızca reklam görünümleri
 Google ad SDK start	Google reklam SDK'sının başlatılması
+Meta ad SDK	Meta reklam SDK'sı
 promoted pins in lists	listelerdeki reklamlı pinler
 Privacy	Gizlilik
 Pin actions	Pin işlemleri
@@ -325,8 +326,8 @@ Fix push notifications	Anlık bildirimleri düzelt
 Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.	Yamalı Pinterest'in anlık bildirimlere kaydolmasını sağlar. Bunu kendi başına yapamaz. Değişiklik, Pinterest bir sonraki açılışında geçerli olur.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Pinterest'in ekran görüntüsü paylaşmanı önermesini durdurur. Ekran görüntüleri yine çalışır. Değişikliği görmek için Pinterest'i yeniden başlat.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Son aramalarını gizler. Hesabının arama geçmişini silmez. Değişiklik ekran bir sonraki güncellenişinde görünür.
-Hides Create in the bottom bar. The change shows the next time the bar updates.	Alt çubuktaki Oluştur'u gizler. Değişiklik çubuk bir sonraki güncellenişinde görünür.
-Hides Notifications in the bottom bar. The change shows the next time the bar updates.	Alt çubuktaki Bildirimler'i gizler. Değişiklik çubuk bir sonraki güncellenişinde görünür.
+Hides Create in the bottom bar and at the top of Home. The change shows the next time they update.	Alt çubuktaki ve Ana sayfanın üstündeki Oluştur'u gizler. Değişiklik bunlar bir sonraki güncellenişinde görünür.
+Hides Notifications in the bottom bar, and Notifications or Inbox at the top of Home. The change shows the next time they update.	Alt çubuktaki Bildirimler'i ve Ana sayfanın üstündeki Bildirimler'i ya da Gelen kutusu'nu gizler. Değişiklik bunlar bir sonraki güncellenişinde görünür.
 Hides Search in the bottom bar. The change shows the next time the bar updates.	Alt çubuktaki Ara'yı gizler. Değişiklik çubuk bir sonraki güncellenişinde görünür.
 Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Üst çubuğun sonundaki küçük simge düğmelerini gizler. Geri, metin düğmeleri ve hesap denetimleri kalır. Değişiklik çubuk bir sonraki güncellenişinde görünür.
 Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Bundan sonra açtığın pin menülerinde Kolaja ekle ve Kolajı yeniden düzenle öğelerini gizler. Zaten açık olan menü değişmez.
@@ -540,9 +541,9 @@ Paints the red Save button on a pin you open in a color you pick. It's Pinterest
 Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	Kaydet düğmesi %1$s rengine boyanıyor. Değiştirmek için dokun. Değişiklik açtığın bir sonraki pinde görünür.
 Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	#3366FF gibi bir hex renk ya da #36F gibi üç hane yaz. Açık bir renkte yazı koyu olur, böylece düğme okunur kalır.
 Couldn't open the Save button color. Try again.	Kaydet düğmesinin rengi açılamadı. Tekrar dene.
-That isn't a hex color, so nothing changed. Try one like #3366FF.	Bu bir hex renk değil, bu yüzden hiçbir şey değişmedi. #3366FF gibi bir renk dene.
+Not a hex color, so nothing changed. Try one like #3366FF.	Hex renk değil, bu yüzden hiçbir şey değişmedi. #3366FF gibi bir renk dene.
 Couldn't save the Save button color. Try again.	Kaydet düğmesinin rengi kaydedilemedi. Tekrar dene.
-The Save button is back to Pinterest's red on the next pin you open.	Kaydet düğmesi açtığın bir sonraki pinde Pinterest'in kırmızısına döner.
+The Save button goes back to Pinterest's red on your next pin.	Kaydet düğmesi bir sonraki pininde Pinterest'in kırmızısına döner.
 The Save button turns %1$s on the next pin you open.	Kaydet düğmesi açtığın bir sonraki pinde %1$s olur.
 # context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Pinlerde Görüntü ara etiketini gizle

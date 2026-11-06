@@ -1,0 +1,94 @@
+name: Publish stable Morphe patch
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*-legacy.*'
+      - 'v*-x.*'
+    paths:
+      - 'patches-bundle.json'
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  stable_release:
+    if: ${{ !contains(github.ref_name, '-rc.') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Resolve release version
+        id: release_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == 'refs/heads/main' ]]; then
+            version="$(sed -n 's/^version = //p' gradle.properties)"
+          else
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate stable manifest and existing tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.release_version.outputs.version }}"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-(legacy|x)\.[0-9]+$ ]]
+          test "$version" = "$(sed -n 's/^version = //p' gradle.properties)"
+          python3 scripts/test-morphe-metadata.py
+          bash scripts/test-recommendation-filter.sh
+          python3 scripts/test-external-post-link.py
+          python3 - <<'PY'
+          import json
+          patches = json.load(open('patches-list.json', encoding='utf-8'))
+          actual = {p['name'] for p in patches['patches']}
+          expected = {'Fix external post links', 'Hide Find more', 'Hide Who to follow', 'Copy media URL', 'Hide sports scores', 'Hide search relevance prompt'}
+          assert actual == expected, (actual, expected)
+          print('Stable manifest has exactly six X patches: PASS')
+          PY
+
+      - name: Build and test release bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:test --no-daemon
+
+      - name: Verify release artifact and checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.release_version.outputs.version }}"
+          test -s "patches/build/libs/patches-$version.mpp"
+          unzip -t "patches/build/libs/patches-$version.mpp" >/dev/null
+          sha256sum "patches/build/libs/patches-$version.mpp"
+
+      - name: Publish stable release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.release_version.outputs.version }}"
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "::error::Release v$version already exists; refusing to overwrite immutable assets"
+            exit 1
+          fi
+          gh release create "v$version" \
+            "patches/build/libs/patches-$version.mpp" \
+            patches-bundle.json \
+            --target "$GITHUB_SHA" \
+            --title "$version (stable)" \
+            --notes "X Patch unifies all six opt-in features for X 12.31/12.32, including sports scores, search relevance prompts and media URL copy. On-device behavior of newer features remains unverified."
+          gh release view "v$version" --json tagName,isPrerelease,assets \
+            --jq '{tag: .tagName, prerelease: .isPrerelease, assets: [.assets[].name]}'

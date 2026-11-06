@@ -46,7 +46,7 @@ public class HookTargetsTest {
     public void everyHideAdsCapability() {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS,
-                PatchFamily.Capability.AD_VIEWS, PatchFamily.Capability.GOOGLE_ADS);
+                PatchFamily.Capability.AD_VIEWS, PatchFamily.Capability.GOOGLE_ADS, PatchFamily.Capability.META_ADS);
     }
 
     @After
@@ -74,7 +74,7 @@ public class HookTargetsTest {
                         + "PromotedPinCloseupFloatingActionBarModule=2/2;BoardSponsoredCuratorView=2/2");
         assertEquals(COMPLETE, PatchFamily.HIDE_ADS.coverageSummary(COMPLETE));
         List<String> report = report();
-        assertTrue(report.toString(), report.contains("Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start"));
+        assertTrue(report.toString(), report.contains("Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK"));
         assertTrue(report.toString(), report.contains("Hide ads targets for promoted pins in lists: feedList 2 of 2, "
                 + "pagedResponse 1 of 1, modelList 1 of 1" + NOT_COVERED));
         assertTrue(report.toString(), report.contains("Hide ads targets for ad-only views: TextAdView 2 of 2, "
@@ -92,7 +92,7 @@ public class HookTargetsTest {
         String[] halves = summary.split("It's missing the parts for ");
         assertEquals(summary, 2, halves.length);
         for (String handled : new String[]{"promoted pins in feed pages (1 of 2 parts)", "promoted pins in bookmarked lists",
-                "text ads", "floating ad bars on pin closeups (1 of 2 parts)", "Google ad SDK start"}) {
+                "text ads", "floating ad bars on pin closeups (1 of 2 parts)", "Google ad SDK start", "Meta ad SDK"}) {
             assertTrue(summary, halves[0].contains(handled));
         }
         for (String missing : new String[]{"promoted pins in paged results", "ad buttons on pin closeups", "sponsor credits on boards"}) {
@@ -103,7 +103,7 @@ public class HookTargetsTest {
 
         List<String> report = report();
         assertTrue(report.toString(), report.contains(
-                "Hide ads coverage: promoted pins in lists (partial), ad-only views (partial), Google ad SDK start"));
+                "Hide ads coverage: promoted pins in lists (partial), ad-only views (partial), Google ad SDK start, Meta ad SDK"));
         assertTrue(report.toString(), report.contains("Hide ads targets for promoted pins in lists: feedList 1 of 2 partial, "
                 + "pagedResponse 0 of 1 missing, modelList 1 of 1" + NOT_COVERED));
         assertTrue(report.toString(), report.contains("Hide ads targets for ad-only views: TextAdView 2 of 2, "
@@ -113,7 +113,8 @@ public class HookTargetsTest {
 
     @Test
     public void aCapabilityTheBuildLacksStillReadsAsMissing() {
-        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS, PatchFamily.Capability.GOOGLE_ADS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS, PatchFamily.Capability.GOOGLE_ADS,
+                PatchFamily.Capability.META_ADS);
         record("feedList=2/2;pagedResponse=1/1;modelList=1/1", "TextAdView=0/2");
         String summary = PatchFamily.HIDE_ADS.coverageSummary(COMPLETE);
         assertTrue(summary, summary.endsWith("It's missing the parts for ad-only views."));

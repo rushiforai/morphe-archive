@@ -1,0 +1,31 @@
+// Ported from xob0t/morphe-patches (GPLv3), app/privacy/patches/analytics/DisableAdjustPatch.kt.
+package app.privacy.patches.analytics
+
+import app.morphe.patcher.patch.resourcePatch
+import app.shared.*
+import org.w3c.dom.Element
+
+@Suppress("unused")
+val disableAdjustPatch = resourcePatch(
+    name = "Disable Adjust",
+    description = "Disables Adjust attribution manifest entry points.",
+    default = false,
+) {
+    execute {
+        document("AndroidManifest.xml").use { document ->
+            val manifest = document.documentElement
+            val application = manifest.childrenNamed("application").single() as Element
+
+            manifest.removeChildren(
+                manifest.childrenNamed("uses-permission")
+                    .filter { it.getAttribute("android:name").startsWith("com.adjust.") },
+            )
+
+            val disabledComponents = application.disableComponentsByPrefix(
+                "com.adjust.",
+            )
+
+            println("Disable Adjust: disabled $disabledComponents manifest components.")
+        }
+    }
+}

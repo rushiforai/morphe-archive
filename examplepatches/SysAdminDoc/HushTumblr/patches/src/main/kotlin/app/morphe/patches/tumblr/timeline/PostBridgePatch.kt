@@ -39,6 +39,7 @@ internal const val HUSH_TEXT = "$EXTENSION_PACKAGE/timeline/HushText;"
 internal const val HUSH_PAID_POST = "$EXTENSION_PACKAGE/timeline/HushPaidPost;"
 internal const val HUSH_FILTERED_POST = "$EXTENSION_PACKAGE/timeline/HushFilteredPost;"
 internal const val HUSH_FILTERED = "$EXTENSION_PACKAGE/timeline/HushFiltered;"
+internal const val HUSH_LIKED_POST = "$EXTENSION_PACKAGE/timeline/HushLikedPost;"
 
 private const val LIST = "Ljava/util/List;"
 private const val STRING = "Ljava/lang/String;"
@@ -93,6 +94,9 @@ internal val FILTERED_POST_BRIDGES = listOf(
         listOf(BridgeGetter("hushFilteredTags", "tags", LIST), BridgeGetter("hushFilteredContent", "content", LIST)),
     ),
 )
+
+/** Post's liked state as Tumblr sent it, the like button's first state. */
+internal val LIKED_POST_BRIDGE = ModelBridge(POST, HUSH_LIKED_POST, listOf(BridgeGetter("hushLiked", "liked", "Z")))
 
 /** A bridge found in this build: each interface method with the getter it calls, `Lclass;->name()type`. */
 internal class ResolvedBridge(val bridge: ModelBridge, val calls: Map<BridgeGetter, String>)
@@ -176,6 +180,19 @@ internal val filteredPostBridgePatch = bytecodePatch {
 
     execute {
         resolveBridges(FILTERED_POST_BRIDGES).forEach { addBridge(it) }
+    }
+}
+
+/**
+ * Makes Tumblr's `Post` implement the extension's `HushLikedPost`, so Hide liked posts can tell
+ * which posts the signed-in account had liked when the page came. Found by reading Tumblr
+ * 47.0.0.108 (2026-11-06): Post's liked is `y1()`.
+ */
+internal val likedPostBridgePatch = bytecodePatch {
+    dependsOn(tumblrExtensionPatch)
+
+    execute {
+        resolveBridges(listOf(LIKED_POST_BRIDGE)).forEach { addBridge(it) }
     }
 }
 

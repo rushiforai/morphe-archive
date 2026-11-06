@@ -147,6 +147,7 @@ function Invoke-DexDiff {
             'Disable video autoplay' = 'disableVideoAutoplay'
             'Pure black dark mode' = 'pureBlack'
             'Save photos and videos' = 'saveMedia'
+            'Filter comments' = 'filterComments'
             'HushThreads settings' = 'settingsRow'
         }
         foreach ($name in $SelectedPatches) {

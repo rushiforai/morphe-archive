@@ -35,6 +35,7 @@ internal const val COMPOSE_CLICK_HOOK = "$LONG_PRESS->composeClick(Ljava/lang/Ob
 internal val COMPOSE_STUBS = listOf("composeOptionType", "composeIconAndLabel", "composeKind")
 private const val PAIR = "Lkotlin/Pair;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
+private const val COMPOSE_VIEW = "Landroidx/compose/ui/platform/ComposeView;"
 
 internal class LongPressCompose(
     val face: ClassDef, val kinds: ClassDef, val dispatcher: Method,
@@ -96,12 +97,16 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
     val dispatcher = methodsWithString(LONG_PRESS_V2_FLAG).filter { method ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes.size == 1 &&
             classDefByOrNull(method.parameterTypes.single().toString())?.superclass == menu.event &&
-            method.body().any { instruction -> (instruction.ref() as? MethodReference)?.let { call ->
-                call.definingClass == menu.event && call.returnType == menu.model.type && call.parameterTypes.isEmpty()
-            } == true } &&
+            // The event's pin is read through its getter, or (14.43.0 on) straight from the field.
+            method.body().any { instruction -> when (val ref = instruction.ref()) {
+                is MethodReference -> ref.definingClass == menu.event && ref.returnType == menu.model.type && ref.parameterTypes.isEmpty()
+                is FieldReference -> instruction.opcode == Opcode.IGET_OBJECT && ref.definingClass == menu.event &&
+                    ref.name == menu.model.name && ref.type == menu.model.type
+                else -> false
+            } } &&
             // The board long-press event shares the superclass and has a dispatcher of its own.
             method.body().any { it.opcode == Opcode.CHECK_CAST && it.ref().toString() == menu.pin } &&
-            method.body().any { it.ref().toString().startsWith("Landroidx/compose/ui/platform/ComposeView;") }
+            method.body().any { it.ref().toString().startsWith(COMPOSE_VIEW) }
     }.one("the newer pin menu dispatcher")
     val body = dispatcher.body()
     val alias = body.first() as? TwoRegisterInstruction
@@ -116,7 +121,10 @@ internal fun BytecodePatchContext.longPressCompose(menu: LongPressMenu): LongPre
         } == true
     }
     val builder = builders.one("the pin menu option builder")
-    val listAt = body.indices.filter { body[it].ref().toString() == builder.toString() }.one("the newer menu's option list") + 2
+    // 14.43.0 inlined the older view menu into the same dispatcher, and it builds its own list later on.
+    // The newer menu's list is the one built before its ComposeView.
+    val composeAt = body.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE && it.ref().toString() == COMPOSE_VIEW }
+    val listAt = body.indices.filter { it < composeAt && body[it].ref().toString() == builder.toString() }.one("the newer menu's option list") + 2
     if (body[listAt - 1].opcode != Opcode.MOVE_RESULT_OBJECT) {
         throw PatchException("Long-press download: the newer menu's option list isn't kept")
     }

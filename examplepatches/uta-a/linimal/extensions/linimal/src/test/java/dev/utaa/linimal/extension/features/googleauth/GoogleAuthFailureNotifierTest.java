@@ -30,28 +30,40 @@ public final class GoogleAuthFailureNotifierTest {
     }
 
     @Test
-    public void sanitizeKeepsErrorCodesAndDropsOtherCharacters() {
-        assertEquals("NetworkError", GoogleAuthFailureNotifier.sanitize("NetworkError"));
-        assertEquals("Could not bind to service.", GoogleAuthFailureNotifier.sanitize("Could not bind to service."));
-        assertEquals("userexample.com", GoogleAuthFailureNotifier.sanitize("user@example.com\n"));
-        assertEquals("", GoogleAuthFailureNotifier.sanitize(null));
+    public void errorCodesAreShownAsIs() {
+        assertEquals("NetworkError", GoogleAuthFailureNotifier.displayableErrorCode("NetworkError"));
+        assertEquals("UNREGISTERED_ON_API_CONSOLE",
+                GoogleAuthFailureNotifier.displayableErrorCode("UNREGISTERED_ON_API_CONSOLE"));
+    }
+
+    /** 文字を削って残すと、メールアドレスや token の一部が通知に残るので、値ごと伏せます。 */
+    @Test
+    public void valuesThatAreNotErrorCodesAreHiddenEntirely() {
+        String unknown = GoogleAuthFailureNotifier.UNKNOWN_ERROR;
+        assertEquals(unknown, GoogleAuthFailureNotifier.displayableErrorCode("user@example.com"));
+        assertEquals(unknown, GoogleAuthFailureNotifier.displayableErrorCode("ya29.a0AfB_byC1x2"));
+        assertEquals(unknown, GoogleAuthFailureNotifier.displayableErrorCode("Bad Authentication for user"));
+        assertEquals(unknown, GoogleAuthFailureNotifier.displayableErrorCode("NetworkError\n"));
+        assertEquals(unknown, GoogleAuthFailureNotifier.displayableErrorCode(null));
+        assertEquals(unknown, GoogleAuthFailureNotifier.displayableErrorCode(""));
     }
 
     @Test
-    public void sanitizeLimitsTheLength() {
+    public void overlongValuesAreHidden() {
         StringBuilder longError = new StringBuilder();
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i <= GoogleAuthFailureNotifier.MAX_ERROR_CODE_LENGTH; i++) {
             longError.append('A');
         }
-        assertEquals(GoogleAuthFailureNotifier.MAX_ERROR_LENGTH,
-                GoogleAuthFailureNotifier.sanitize(longError.toString()).length());
+        assertEquals(GoogleAuthFailureNotifier.UNKNOWN_ERROR,
+                GoogleAuthFailureNotifier.displayableErrorCode(longError.toString()));
+        assertEquals(longError.substring(1),
+                GoogleAuthFailureNotifier.displayableErrorCode(longError.substring(1)));
     }
 
     @Test
     public void bindFailureAsksToCheckThatMicrogCanRun() {
-        String message = GoogleAuthFailureNotifier.message(Kind.BIND_FAILED, "Could not bind to service.");
+        String message = GoogleAuthFailureNotifier.message(Kind.BIND_FAILED, "");
         assertTrue(message.contains("MicroG-RE に接続できませんでした"));
-        assertTrue(message.contains("Could not bind to service."));
         assertTrue(message.contains("バッテリー"));
     }
 
@@ -81,10 +93,31 @@ public final class GoogleAuthFailureNotifierTest {
     @Test
     public void theSameFailureIsNotRepeatedWithinTheInterval() {
         long interval = GoogleAuthFailureNotifier.SAME_FAILURE_INTERVAL_MILLIS;
-        assertTrue(GoogleAuthFailureNotifier.shouldNotify(null, Long.MIN_VALUE, "a", 0L));
-        assertFalse(GoogleAuthFailureNotifier.shouldNotify("a", 1_000L, "a", 1_000L + interval - 1));
-        assertTrue(GoogleAuthFailureNotifier.shouldNotify("a", 1_000L, "a", 1_000L + interval));
-        assertTrue(GoogleAuthFailureNotifier.shouldNotify("a", 1_000L, "b", 1_001L));
-        assertTrue(GoogleAuthFailureNotifier.shouldNotify("a", 5_000L, "a", 1_000L));
+        assertTrue(GoogleAuthFailureNotifier.shouldNotify(null, 0L));
+        assertFalse(GoogleAuthFailureNotifier.shouldNotify(1_000L, 1_000L + interval - 1));
+        assertTrue(GoogleAuthFailureNotifier.shouldNotify(1_000L, 1_000L + interval));
+        // 端末の時計が戻った場合は通知します。
+        assertTrue(GoogleAuthFailureNotifier.shouldNotify(5_000L, 1_000L));
+    }
+
+    /** 間に別の失敗を挟んでも、同じ失敗は間隔の間は出し直しません。 */
+    @Test
+    public void anotherFailureInBetweenDoesNotResetTheInterval() {
+        GoogleAuthFailureNotifier.History history = new GoogleAuthFailureNotifier.History();
+        assertTrue(history.record("MICROG_ERROR:NetworkError", 0L));
+        assertTrue(history.record("BIND_FAILED:", 1_000L));
+        assertFalse(history.record("MICROG_ERROR:NetworkError", 2_000L));
+        assertTrue(history.record("MICROG_ERROR:NetworkError", GoogleAuthFailureNotifier.SAME_FAILURE_INTERVAL_MILLIS));
+    }
+
+    @Test
+    public void onlyARecentNumberOfFailuresIsRemembered() {
+        GoogleAuthFailureNotifier.History history = new GoogleAuthFailureNotifier.History();
+        assertTrue(history.record("first", 0L));
+        for (int i = 0; i < GoogleAuthFailureNotifier.MAX_REMEMBERED_FAILURES; i++) {
+            assertTrue(history.record("other" + i, 1L));
+        }
+        // 最も古い "first" は捨てられているので、間隔内でも通知します。
+        assertTrue(history.record("first", 2L));
     }
 }

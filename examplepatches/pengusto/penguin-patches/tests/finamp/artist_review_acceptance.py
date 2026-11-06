@@ -15,12 +15,17 @@ from build_native_payloads import ENGINE_SHA
 
 def download_file_hashes(ui):
     """Read only the disposable app's downloaded WAV/PNG files, never its DBs."""
-    if base.PACKAGE != 'com.unicornsonlsd.finamp':
+    if base.PACKAGE not in ('com.unicornsonlsd.finamp', 'com.unicornsonlsd.finamp.debug'):
         raise ValueError('Unexpected package for download persistence inspection')
     prefix = '/data/user/0/' + base.PACKAGE + '/files/'
     paths = []
     for folder, suffix in [('songs', 'wav'), ('images', 'png')]:
-        files = ui.adb('shell', 'su', '0', 'find', prefix + folder, '-maxdepth', '1', '-type', 'f').splitlines()
+        try:
+            files = ui.adb('shell', 'su', '0', 'find', prefix + folder, '-maxdepth', '1', '-type', 'f').splitlines()
+        except RuntimeError as error:
+            if 'No such file or directory' not in str(error):
+                raise
+            continue  # Fresh installs have not created their download folders yet.
         for path in files:
             name = path.removeprefix(prefix + folder + '/')
             if name == 'album_white.png':
@@ -47,7 +52,7 @@ def main():
     parser.add_argument('--adb', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--native-report', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=[i for i in range(128) if i & 4], required=True)
+    parser.add_argument('--mask', type=int, choices=[i for i in range(256) if i & 4], required=True)
     parser.add_argument('--probe', choices=('count-states', 'performance', 'guest-warning'), default='count-states')
     args = parser.parse_args()
     ui = base.Android(out=args.out, adb=args.adb)

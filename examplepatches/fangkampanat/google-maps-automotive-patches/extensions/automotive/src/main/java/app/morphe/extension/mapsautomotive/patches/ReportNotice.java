@@ -23,7 +23,7 @@ final class ReportNotice {
 
     static void crash(Context context, boolean safeModeStarts) {
         boolean thai = UiDensityPatch.isThai(context);
-        post(context, thai ? "Maps Car ปิดตัวผิดปกติ" : "Maps Car closed unexpectedly", safeModeStarts
+        post(context, thai ? "แอปปิดตัวผิดปกติ" : "The app closed unexpectedly", safeModeStarts
                 ? (thai ? "เด้ง 2 ครั้งใน 10 นาที เปิดครั้งหน้าจะอยู่ใน safe mode (ปิดฟีเจอร์เสริม) แตะเพื่อส่งรายงาน"
                 : "It crashed twice in 10 minutes, so it starts in safe mode (extra features off). Tap to send a report.")
                 : (thai ? "แตะเพื่อส่งรายงานปัญหา คุณจะเห็นข้อมูลทั้งหมดก่อนส่ง"
@@ -32,7 +32,7 @@ final class ReportNotice {
 
     static void safeMode(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
-        post(context, thai ? "Maps Car อยู่ใน safe mode" : "Maps Car is in safe mode", thai
+        post(context, thai ? "อยู่ใน safe mode" : "Safe mode is on", thai
                 ? "ฟีเจอร์เสริมปิดอยู่หลังเด้ง 2 ครั้ง แตะเพื่อส่งรายงาน หรือเปิดฟีเจอร์กลับ"
                 : "Extra features are off after 2 crashes. Tap to send a report or turn them back on.");
     }
@@ -52,7 +52,7 @@ final class ReportNotice {
             if (manager == null) return;
             boolean thai = UiDensityPatch.isThai(context);
             NotificationChannel channel = new NotificationChannel(CHANNEL,
-                    thai ? "ปัญหาของ Maps Car" : "Maps Car problems", NotificationManager.IMPORTANCE_DEFAULT);
+                    thai ? "ปัญหาของแอป" : "App problems", NotificationManager.IMPORTANCE_DEFAULT);
             channel.setSound(null, null);
             channel.enableVibration(false);
             manager.createNotificationChannel(channel);

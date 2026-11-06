@@ -118,6 +118,8 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
 
     /** One read, write or import, with what the screen needs to stop waiting for it. */
     private static final class Run {
+        final int action;
+        Run(int action) { this.action = action; }
         /** Reaches the file's app while it opens the file, for an app that honours it. */
         final CancellationSignal cancel = new CancellationSignal();
         /** The file the worker has open, closed when the screen stops waiting. */
@@ -172,6 +174,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     };
 
     private final int rowAction;
+    final SettingsFeedback feedback = new SettingsFeedback(this::notifyChanged);
     private final CharSequence restingSummary;
     /** The line this row shows while it's the one running, else null. */
     @Nullable
@@ -194,13 +197,18 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         setOnPreferenceClickListener(preference -> {
             // Rows are out of reach while a run is going, so this is only the race between a tap
             // and that.
-            if (OWNER.get() == null && !stillStalled()) {
+            if (OWNER.get() == null && !stillStalled(action)) {
                 if (action == UNDO) undo();
+                else if (action == IMPORT && page.pendingImport != null) showPreview(page);
                 else pickFile(page, action);
             }
             return true;
         });
         latestPage = new WeakReference<>(page);
+        if (unseenResult != null && unseenAction == action) {
+            feedback.show(unseenResult);
+            unseenResult = null;
+        }
         ROWS.add(new WeakReference<>(this));
         observeUndo();
         int running = runningAction;
@@ -235,10 +243,10 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             page.startActivityForResult(intent, action);
         } catch (ActivityNotFoundException missing) {
             Logger.printInfo(() -> "No file picker for the settings file");
-            Utils.showToastLong(L10n.t("This phone has no file picker, so there's no way to choose a file here."));
+            result(action, L10n.t("This phone has no file picker, so there's no way to choose a file here."));
         } catch (RuntimeException error) {
             Logger.printInfo(() -> "Could not open the file picker: " + error.getClass().getSimpleName());
-            Utils.showToastLong(L10n.t("Couldn't open the file picker. Try again."));
+            result(action, L10n.t("Couldn't open the file picker. Try again."));
         }
     }
 
@@ -273,7 +281,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
                 said = L10n.t("Couldn't save the settings file. Try again.");
             } finally {
                 String result = said;
-                ended(run, result == null ? null : () -> Utils.showToastLong(result));
+                ended(run, result == null ? null : () -> result(EXPORT, result));
             }
         });
         if (!accepted) notStarted(run);
@@ -329,7 +337,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             } catch (SettingsBackup.Rejected refused) {
                 Logger.printInfo(() -> "Settings file refused: " + refused.reason);
                 String said = refusal(refused.reason);
-                result = () -> Utils.showToastLong(said);
+                result = () -> result(IMPORT, said);
             } finally {
                 ended(run, result);
             }
@@ -383,12 +391,16 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             return;
         }
         page.pendingImport = snapshot.toBundle();
+        page.importRetained = false;
         if (page.isResumed()) showPreview(page);
     }
 
-    /** Called when the page resumes: a preview waiting on an answer is shown again. */
+    /**
+     * Called when the page resumes: a preview waiting on an answer is shown again. A file kept
+     * after its import failed waits for an Import tap, under the row that says what happened.
+     */
     static void onPageResumed(HushTumblrPreferenceFragment page) {
-        if (page.pendingImport != null) showPreview(page);
+        if (page.pendingImport != null && !page.importRetained) showPreview(page);
     }
 
     /**
@@ -489,6 +501,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_hide_suggested_communities": return L10n.t("Hide suggested communities");
             case "hushtumblr_hide_suggested_tags": return L10n.t("Hide suggested tags");
             case "hushtumblr_hide_watch_it_rows": return L10n.t("Hide Watch it rows");
+            case "hushtumblr_hide_featured_posts": return L10n.t("Hide Featured posts");
             case "hushtumblr_hide_hashtags": return L10n.t("Hide hashtags");
             case "hushtumblr_hide_follow_button": return L10n.t("Hide the Follow button");
             case "hushtumblr_hide_tumblrmart": return L10n.t("Hide the diamond and TumblrMart");
@@ -503,7 +516,10 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_hide_notifications_count": return L10n.t("Hide the Notifications count");
             case "hushtumblr_hide_reblogs": return L10n.t("Hide reblogs");
             case "hushtumblr_keep_tagged_reblogs": return L10n.t("Keep tagged reblogs");
+            case "hushtumblr_keep_blaze_posts": return L10n.t("Keep Blaze posts");
             case "hushtumblr_keep_reblogs_with_content": return L10n.t("Keep reblogs with added content");
+            case "hushtumblr_hide_own_reblogs": return L10n.t("Hide your own reblogs");
+            case "hushtumblr_hide_liked_posts": return L10n.t("Hide liked posts");
             case "hushtumblr_hide_notification_likes": return L10n.t("Hide likes");
             case "hushtumblr_hide_notification_reblogs": return L10n.t("Hide reblog notifications");
             case "hushtumblr_hide_notification_replies": return L10n.t("Hide reply notifications");
@@ -518,6 +534,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_show_post_timestamps": return L10n.t("Show post timestamps");
             case "hushtumblr_show_image_descriptions": return L10n.t("Visible image descriptions");
             case "hushtumblr_share_video_links": return L10n.t("Share video links");
+            case "hushtumblr_sharper_images": return L10n.t("Sharper images");
             case "hushtumblr_mute_root_posts": return L10n.t("Mute posts locally");
             case "hushtumblr_reveal_allowed_mature_content": return L10n.t("Reveal allowed mature content");
             case "hushtumblr_show_mutual_markers": return L10n.t("Show mutual markers");
@@ -552,6 +569,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         Activity activity = page.getActivity();
         if (snapshot == null || activity == null) {
             page.pendingImport = null;
+            page.importRetained = false;
             return;
         }
         int changed = snapshot.switchChanges();
@@ -564,10 +582,19 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         } else {
             builder.setPositiveButton(L10n.t("Import"), (dialog, which) -> {
                 Bundle chosen = page.pendingImport;
-                answered(page);
+                page.importPreview = null;
+                // Answered: if it's kept for another try, it waits for a tap from here on.
+                page.importRetained = true;
                 apply(page, chosen);
             });
             builder.setNegativeButton(L10n.t("Cancel"), (dialog, which) -> answered(page));
+            if (page.importRetained) {
+                // A file whose import failed comes back here, so a corrected one is a tap away.
+                builder.setNeutralButton(L10n.t("Choose another file"), (dialog, which) -> {
+                    answered(page);
+                    pickFile(page, IMPORT);
+                });
+            }
         }
         page.importPreview = builder.show();
         ScreenColors.dialog(page.importPreview);
@@ -575,6 +602,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
 
     private static void answered(HushTumblrPreferenceFragment page) {
         page.pendingImport = null;
+        page.importRetained = false;
         page.importPreview = null;
     }
 
@@ -588,39 +616,55 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         boolean accepted = false;
         try {
             accepted = Utils.runOnBackgroundThread(() -> {
+                String message = null;
+                // Only a write that failed part way is worth another go with the same file. A
+                // refused file would be refused again.
+                boolean retry = false;
                 try {
                     int changed = SettingsBackup.apply(snapshot);
-                    Utils.showToastLong(importedMessage(changed));
+                    message = importedMessage(changed);
                 } catch (SettingsBackup.Rejected refused) {
-                    Utils.showToastLong(refusal(refused.reason));
+                    message = refusal(refused.reason);
                 } catch (SettingsBackup.ApplyFailed failure) {
                     Logger.printInfo(() -> "Settings import failed: " + failure.getMessage()
                             + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
-                    Utils.showToastLong(failure.rolledBack
+                    message = failure.rolledBack
                             ? L10n.t("Couldn't import the settings. Nothing was changed.")
                             : L10n.t("Couldn't import the settings, and couldn't put back the ones you had. "
-                                    + "Check the settings on this screen."));
+                                    + "Check the settings on this screen.");
+                    retry = true;
                 } finally {
+                    String outcome = message;
+                    boolean offerAgain = retry;
                     Utils.runOnMainThread(() -> {
-                        AbstractPreferenceFragment.settingImportInProgress = false;
-                        finish(run);
+                        if (!finish(run)) return;
                         HushTumblrPreferenceFragment current = latestPage.get();
-                        if (current != null && current.isAdded()) current.refreshSwitches();
+                        if (current != null && current.isAdded()) {
+                            if (offerAgain) {
+                                current.pendingImport = chosen;
+                                current.importRetained = true;
+                            }
+                            current.refreshSwitches();
+                        }
+                        if (outcome != null) result(IMPORT, outcome);
                     });
                 }
             });
+            if (accepted) {
+                page.pendingImport = null;
+                page.importRetained = false;
+            }
         } catch (RuntimeException error) {
             Logger.printInfo(() -> "Settings import didn't start: " + error.getClass().getSimpleName());
         } finally {
             // This path has no wait that runs out, so nothing else would give the rows back.
             if (!accepted) {
-                AbstractPreferenceFragment.settingImportInProgress = false;
                 notStarted(run);
             }
         }
     }
 
-    /** What the toast after an import says: how many saved settings changed. */
+    /** What the retained result after an import says: how many saved settings changed. */
     static String importedMessage(int changed) {
         return afterBulk(changed == 0 ? L10n.t("Settings imported.") : L10n.quantity(changed,
                 "Settings imported. %1$d setting changed.", "Settings imported. %1$d settings changed.", changed));
@@ -639,24 +683,26 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         boolean accepted = false;
         try {
             accepted = Utils.runOnBackgroundThread(() -> {
+                String message = null;
                 try {
                     switch (SettingsBackup.undo()) {
-                        case UNDONE: Utils.showToastLong(afterBulk(L10n.t("Import undone. Your earlier settings are back."))); break;
-                        case EXPIRED: Utils.showToastLong(L10n.t("Undo ended because a saved setting changed.")); break;
-                        case NOTHING: Utils.showToastLong(L10n.t("There's no import to undo.")); break;
+                        case UNDONE: message = afterBulk(L10n.t("Import undone. Your earlier settings are back.")); break;
+                        case EXPIRED: message = L10n.t("Undo ended because a saved setting changed."); break;
+                        case NOTHING: message = L10n.t("There's no import to undo."); break;
                     }
                 } catch (SettingsBackup.ApplyFailed failure) {
                     Logger.printInfo(() -> "Settings import undo failed: " + failure.getMessage()
                             + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
-                    Utils.showToastLong(failure.rolledBack
+                    message = failure.rolledBack
                             ? L10n.t("Couldn't undo the import. Your imported settings are unchanged.")
-                            : L10n.t("Couldn't undo the import or restore the imported settings. Check the settings on this screen."));
+                            : L10n.t("Couldn't undo the import or restore the imported settings. Check the settings on this screen.");
                 } finally {
+                    String outcome = message;
                     Utils.runOnMainThread(() -> {
-                        AbstractPreferenceFragment.settingImportInProgress = false;
-                        finish(run);
+                        if (!finish(run)) return;
                         HushTumblrPreferenceFragment current = latestPage.get();
                         if (current != null && current.isAdded()) current.refreshSwitches();
+                        if (outcome != null) result(UNDO, outcome);
                     });
                 }
             });
@@ -664,7 +710,6 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             Logger.printInfo(() -> "Settings import undo didn't start: " + error.getClass().getSimpleName());
         } finally {
             if (!accepted) {
-                AbstractPreferenceFragment.settingImportInProgress = false;
                 notStarted(run);
             }
         }
@@ -679,21 +724,26 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     /** Claims the rows for one run, or says why not. */
     @Nullable
     private static Run start(int action, String line) {
-        if (stillStalled()) return null;
-        Run run = new Run();
+        if (stillStalled(action)) return null;
+        Run run = new Run(action);
         if (!OWNER.compareAndSet(null, run)) {
-            Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+            result(action, L10n.t("Couldn't start that. Try again in a moment."));
             return null;
         }
         runningAction = action;
         runningLine = line;
         setRowsBusy(action, line);
+        // The last result is about the run before, and this one will say how it went.
+        SettingsBackupPreference acting = row(action);
+        if (acting != null) acting.feedback.clear();
+        if (unseenAction == action) unseenResult = null;
         return run;
     }
 
     /** Gives the rows back, if [run] still holds them. */
     private static boolean finish(Run run) {
         if (!OWNER.compareAndSet(run, null)) return false;
+        if (run.action == IMPORT || run.action == UNDO) AbstractPreferenceFragment.settingImportInProgress = false;
         runningAction = 0;
         runningLine = null;
         setRowsBusy(0, null);
@@ -704,7 +754,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     private static void notStarted(Run run) {
         run.ended = true;
         finish(run);
-        Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+        result(run.action, L10n.t("Couldn't start that. Try again in a moment."));
     }
 
     /**
@@ -736,15 +786,15 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             // Closing can wait on the app too, so not on the main thread.
             if (open != null) new Thread(() -> closeQuietly(open), "hushtumblr-settings-file").start();
             Logger.printInfo(() -> "Settings file: stopped waiting on the app holding it");
-            Utils.showToastLong(message);
+            result(run.action, message);
         }, timeoutMs);
     }
 
     /** Says so, and answers true, while a run the screen stopped waiting for still holds a worker. */
-    private static boolean stillStalled() {
+    private static boolean stillStalled(int action) {
         Run held = stalled;
         if (held == null || held.ended) return false;
-        Utils.showToastLong(L10n.t("The app holding the last settings file still hasn't answered. Try again later."));
+        result(action, L10n.t("The app holding the last settings file still hasn't answered. Try again later."));
         return true;
     }
 
@@ -772,6 +822,9 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             else row.showBusy(action, line);
         }
     }
+
+    /** Whether the row shows a running or waiting line in place of its own summary. */
+    boolean isBusy() { return busyLine != null; }
 
     private void showBusy(int action, @Nullable String line) {
         busyLine = rowAction == action ? line : null;
@@ -809,5 +862,48 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         // A screen reader hears the row as unavailable, and this says why. Older versions read the
         // summary, which shows the same line.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) view.setStateDescription(busyLine);
+        HushTumblrPreferenceFragment.showAllText(view);
+        feedback.bind(view);
+    }
+
+    /** A result that came while no settings page was open, kept for that action's row on the next one. */
+    private static int unseenAction;
+    @Nullable
+    private static String unseenResult;
+
+    /** The full result stays with its action after busy/resting summaries refresh. */
+    private static void result(int action, String message) {
+        Utils.runOnMainThreadNowOrLater(() -> {
+            SettingsBackupPreference row = row(action);
+            if (row != null) {
+                if (unseenAction == action) unseenResult = null;
+                row.feedback.show(message);
+                HushTumblrPreferenceFragment page = latestPage.get();
+                // A row on another settings page is built but not drawn. It keeps the result for
+                // when its page opens, and a toast says it now.
+                if (page != null && !page.inView(keyOf(action))) Utils.showToastLong(message);
+                return;
+            }
+            // Nowhere to put it yet: said now, and shown under the row once the screen is back.
+            Utils.showToastLong(message);
+            unseenAction = action;
+            unseenResult = message;
+        });
+    }
+
+    static void forgetUnseenResultForTests() { unseenResult = null; }
+
+    /** The row for [action] on the open settings page, or null. */
+    @Nullable
+    private static SettingsBackupPreference row(int action) {
+        HushTumblrPreferenceFragment current = latestPage.get();
+        if (current == null || !current.isAdded()) return null;
+        Preference row = current.findPreference(keyOf(action));
+        return row instanceof SettingsBackupPreference ? (SettingsBackupPreference) row : null;
+    }
+
+    private static String keyOf(int action) {
+        return action == EXPORT ? "action_export_settings"
+                : action == IMPORT ? "action_import_settings" : "action_undo_import";
     }
 }

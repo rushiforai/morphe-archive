@@ -65,6 +65,10 @@ public enum PatchFamily {
             Settings.HIDE_INSTAGRAM_BUTTON),
     HIDE_GHOST_POST_BUBBLES(FamilyNames.HIDE_GHOST_POST_BUBBLES, "hideGhostPostBubbles", null,
             Settings.HIDE_GHOST_POST_BUBBLES),
+    EXACT_POST_TIMES(FamilyNames.EXACT_POST_TIMES, "exactPostTimes", null,
+            Settings.EXACT_POST_TIMES),
+    FILTER_COMMENTS(FamilyNames.FILTER_COMMENTS, "filterComments", null,
+            Settings.FILTER_COMMENTS, Settings.HIDE_COMMENT_LINKS),
     // A manifest can't be switched at run time: the permission is gone from the APK whether or not
     // HushThreads is paused.
     REMOVE_AD_ID(FamilyNames.REMOVE_AD_ID, "removeAdId", "the removed advertising ID permission"),

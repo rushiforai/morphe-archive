@@ -1,0 +1,271 @@
+// Ported from xob0t/morphe-patches (GPLv3), app/avito/patches/blacklist/BlockListingsPatch.kt.
+package app.ru_apps.avito.blacklist
+
+import app.ru_apps.avito.settings.MorpheSettingsRegistry
+import app.ru_apps.avito.settings.morpheSettingsPatch
+import app.ru_apps.avito.Constants.COMPATIBILITY_AVITO
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.shared.childrenNamed
+import app.shared.methodReferenceOrNull
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import org.w3c.dom.Element
+
+private const val BLACKLIST_CLASS = "Lapp/avito/blacklist/Blacklist;"
+private const val BLACKLIST_ACTIVITY = "app.avito.blacklist.BlacklistActivity"
+private const val KONVEYOR_ITEM_BINDER = "Lcom/avito/konveyor/a;"
+private const val EXTENDED_PROFILE_BEDUIN_WRAPPER =
+    "Lcom/avito/android/extended_profile_native_widgets_beduin_v2_wrapper/"
+
+/**
+ * `onBindViewHolder(holder, position)` of every concrete Beduin v2 lazy adapter
+ * (grid, row, pager, ...) extending [lazyAdapter], the
+ * [BeduinLazyAdapterSubmitListFingerprint] class.
+ */
+internal fun BytecodePatchContext.beduinLazyAdapterBinds(lazyAdapter: String): List<MutableMethod> {
+    val binds = mutableListOf<MutableMethod>()
+    classDefForEach { classDef ->
+        if (classDef.superclass != lazyAdapter) return@classDefForEach
+        val bind = classDef.methods.firstOrNull { method ->
+            method.name == "onBindViewHolder" &&
+                method.returnType == "V" &&
+                method.implementation != null &&
+                method.parameterTypes.map { it.toString() }.let { params ->
+                    params.size == 2 && params[0].startsWith("L") && params[1] == "I"
+                }
+        } ?: return@classDefForEach
+        binds += mutableClassDefBy(classDef).methods
+            .first { it.name == bind.name && it.parameterTypes == bind.parameterTypes }
+    }
+    return binds
+}
+
+/**
+ * Registers the self-contained blacklist management screen
+ * ([BLACKLIST_ACTIVITY], provided by the extension) in the app manifest. It is
+ * opened from the "Чёрный список" row inside the Morphe settings screen. Declared
+ * `exported` so it can also be opened directly for testing via
+ * `adb shell am start`.
+ */
+private val registerBlacklistActivityPatch = resourcePatch {
+    compatibleWith(COMPATIBILITY_AVITO)
+
+    execute {
+        document("AndroidManifest.xml").use { document ->
+            val application = document.documentElement.childrenNamed("application").single()
+            val alreadyRegistered = application.childrenNamed("activity").any {
+                it.getAttribute("android:name") == BLACKLIST_ACTIVITY
+            }
+            if (alreadyRegistered) return@use
+
+            val activity = document.createElement("activity")
+            activity.setAttribute("android:name", BLACKLIST_ACTIVITY)
+            activity.setAttribute("android:exported", "true")
+            activity.setAttribute("android:label", "Чёрный список")
+            activity.setAttribute("android:theme", "@style/Theme.Avito")
+            application.appendChild(activity)
+        }
+    }
+}
+
+/**
+ * Hides classifieds (offers) in Avito search feeds whose advert id or seller
+ * `userKey` is on the user's blacklist, and contributes a "Чёрный список" sub-screen
+ * to the Morphe settings host to manage and import/export that blacklist.
+ *
+ * The feed filter runs inside the obfuscated SERP element converter
+ * ([SerpElementsConverterFingerprint]): the input `List<SerpElement>` is passed
+ * to `Blacklist.filterSerpElements`, which removes blocked adverts in place before
+ * they are converted into adapter items. Newer builds may also render search
+ * results as server-driven Beduin v2 lists; when present, those are filtered at
+ * the Beduin lazy adapter ([BeduinLazyAdapterSubmitListFingerprint]) and get the
+ * same long-press block menu from its adapters' bind. The Settings entry, its
+ * click, and the long-press bind hook live in [morpheSettingsPatch] (this patch's
+ * `onBindAdvert` is called from there).
+ */
+@Suppress("unused")
+val blockListingsPatch = bytecodePatch(
+    name = "Block listings",
+    description = "Hides Avito offers from blacklisted adverts or sellers and adds a blacklist manager " +
+        "(import/export compatible with the Ave Blacklist extension).",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_AVITO)
+    // morpheSettingsPatch provides the shared extension + the Settings host this
+    // feature plugs into; registerBlacklistActivityPatch registers our own screen.
+    dependsOn(morpheSettingsPatch, registerBlacklistActivityPatch)
+
+    execute {
+        val converter = SerpElementsConverterFingerprint.methodOrNull
+            ?: throw PatchException("SERP elements converter was not found")
+
+        // Two-stage feed sanitization in the obfuscated converter:
+        //
+        // 1) INPUT: remove blocked network SerpElements up front (p1, the
+        //    List<SerpElement>). Cheap, and it captures readable labels for the
+        //    blacklist manager. Range form so it's valid regardless of register count.
+        // 2) OUTPUT: just before the method returns its ArrayList of adapter items,
+        //    remove any blocked AdvertItem that the input pass missed. The input
+        //    getters (network model) don't cover every feed — notably the home grid
+        //    — so this output pass, which uses the same robust id resolution as the
+        //    long-press bind, is what guarantees blocked items never reach the grid
+        //    (no leftover gaps) across both search and home.
+        converter.addInstructions(
+            0,
+            "invoke-static/range {p1 .. p1}, $BLACKLIST_CLASS->filterSerpElements(Ljava/util/List;)V",
+        )
+
+        // Inject before every return-object (descending, so earlier indices stay
+        // valid) — the returned register holds the ArrayList of items.
+        val returnIndices = converter.instructionsOrNull
+            ?.toList().orEmpty()
+            .mapIndexedNotNull { index, instruction ->
+                if (instruction.opcode == Opcode.RETURN_OBJECT) index else null
+            }
+            .reversed()
+        if (returnIndices.isEmpty()) {
+            throw PatchException("Block listings: SERP elements converter has no object return")
+        }
+        for (returnIndex in returnIndices) {
+            val itemsRegister =
+                (converter.instructionsOrNull!!.toList()[returnIndex] as OneRegisterInstruction).registerA
+            converter.addInstructions(
+                returnIndex,
+                "invoke-static/range {v$itemsRegister .. v$itemsRegister}, " +
+                    "$BLACKLIST_CLASS->filterAdvertItems(Ljava/util/List;)V",
+            )
+        }
+        println(
+            "Block listings: installed SERP feed filter (in+out, ${returnIndices.size} returns) " +
+                "in ${SerpElementsConverterFingerprint.originalClassDef.type}",
+        )
+
+        // Beduin v2 lists (the newer search results screen) bypass the SERP
+        // converter and the Konveyor bind. Optional: older builds without Beduin v2
+        // lazy lists keep working with the hooks above alone.
+        val beduinSubmit = BeduinLazyAdapterSubmitListFingerprint.methodOrNull
+        if (beduinSubmit != null) {
+            val lazyAdapter = BeduinLazyAdapterSubmitListFingerprint.originalClassDef.type
+            beduinSubmit.addInstructions(
+                0,
+                """
+                    invoke-static/range {p0 .. p1}, $BLACKLIST_CLASS->filterBeduinComponents(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;
+                    move-result-object p1
+                """,
+            )
+
+            // Long-press menu on Beduin tiles: hook onBindViewHolder(holder, position)
+            // of every concrete lazy adapter (grid, row, pager, ...).
+            val beduinBinds = beduinLazyAdapterBinds(lazyAdapter)
+            beduinBinds.forEach { bind ->
+                bind.addInstructions(
+                    0,
+                    "invoke-static/range {p0 .. p2}, " +
+                        "$BLACKLIST_CLASS->onBindBeduin(Ljava/lang/Object;Ljava/lang/Object;I)V",
+                )
+            }
+            val beduinBindHooks = beduinBinds.size
+            println(
+                "Block listings: filtered Beduin v2 lists in $lazyAdapter " +
+                    "and hooked $beduinBindHooks lazy adapter bind(s)",
+            )
+        } else {
+            println("Block listings: no Beduin v2 lazy adapter in this build, skipped")
+        }
+
+        // Seller profile pages list adverts in a Beduin v2 lazy column
+        // (ExtendedProfileLazyColumnAdapter) that binds Konveyor items by calling
+        // the ItemBinder's bind(holder, item, position) directly, bypassing the
+        // presenter bind hook. Add the long-press menu right before each such call,
+        // with the holder and item it is about to bind.
+        var sellerProfileBindHooks = 0
+        classDefForEach { classDef ->
+            if (!classDef.type.startsWith(EXTENDED_PROFILE_BEDUIN_WRAPPER)) return@classDefForEach
+            classDef.methods.forEach { method ->
+                val callIndexes = method.instructionsOrNull
+                    ?.toList().orEmpty()
+                    .mapIndexedNotNull { index, instruction ->
+                        val reference = instruction.methodReferenceOrNull() ?: return@mapIndexedNotNull null
+                        val isItemBinderBind = reference.definingClass == KONVEYOR_ITEM_BINDER &&
+                            reference.returnType == "V" &&
+                            reference.parameterTypes.size == 3 &&
+                            reference.parameterTypes[2].toString() == "I"
+                        if (isItemBinderBind) index else null
+                    }
+                    .reversed()
+                if (callIndexes.isEmpty()) return@forEach
+                val mutableMethod = mutableClassDefBy(classDef).methods
+                    .first { it.name == method.name && it.parameterTypes == method.parameterTypes }
+                callIndexes.forEach { index ->
+                    // Registers of bind(holder, item, position): binder, holder, item, position.
+                    val registers = when (val call = mutableMethod.instructionsOrNull!!.toList()[index]) {
+                        is FiveRegisterInstruction -> listOf(call.registerC, call.registerD, call.registerE)
+                        is RegisterRangeInstruction -> (call.startRegister until call.startRegister + 3).toList()
+                        else -> throw PatchException("Block listings: unexpected seller profile bind call")
+                    }
+                    val (holder, item) = registers[1] to registers[2]
+                    val target = "$BLACKLIST_CLASS->onBindSellerProfileAdvert(Ljava/lang/Object;Ljava/lang/Object;)V"
+                    val hook = when {
+                        item == holder + 1 -> "invoke-static/range {v$holder .. v$item}, $target"
+                        holder <= 15 && item <= 15 -> "invoke-static {v$holder, v$item}, $target"
+                        else -> throw PatchException("Block listings: seller profile bind registers out of range")
+                    }
+                    mutableMethod.addInstructions(index, hook)
+                    sellerProfileBindHooks++
+                }
+            }
+        }
+        if (sellerProfileBindHooks == 0) {
+            throw PatchException("Block listings: seller profile item bind call not found")
+        }
+        println("Block listings: added long-press to $sellerProfileBindHooks seller profile item bind call(s)")
+
+        // Add block-offer / block-seller actions to the advert-detail toolbar. The
+        // presenter setup method gets the AdvertDetails and builds the toolbar, so we
+        // pass it (p2) and the presenter (p0) to the extension.
+        val toolbar = AdvertDetailsToolbarMenuFingerprint.methodOrNull
+        if (toolbar != null) {
+            toolbar.addInstructions(
+                0,
+                "invoke-static/range {p0 .. p2}, " +
+                    "$BLACKLIST_CLASS->onAdvertToolbar(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V",
+            )
+            println("Block listings: added block actions to the advert toolbar")
+        } else {
+            throw PatchException("Block listings: advert toolbar presenter not found")
+        }
+
+        // Add a "block seller" action to the seller-profile toolbar. The profile
+        // header converter receives the deep-link strings (one is the userKey) and
+        // the ExtendedProfile model; pass p1..p3 to the extension.
+        val sellerConverter = SellerProfileConverterFingerprint.methodOrNull
+        if (sellerConverter != null) {
+            sellerConverter.addInstructions(
+                0,
+                "invoke-static/range {p1 .. p3}, " +
+                    "$BLACKLIST_CLASS->onSellerToolbar(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V",
+            )
+            println("Block listings: added block action to the seller profile toolbar")
+        } else {
+            throw PatchException("Block listings: seller profile converter not found")
+        }
+
+        // Register the blacklist manager as a sub-screen of Настройки Morphe.
+        MorpheSettingsRegistry.addScreen(
+            key = "avito_blacklist",
+            title = "Чёрный список",
+            activity = BLACKLIST_ACTIVITY,
+            summary = "Заблокированные объявления и продавцы",
+            section = MorpheSettingsRegistry.Section.FILTERING,
+            order = 10,
+        )
+    }
+}

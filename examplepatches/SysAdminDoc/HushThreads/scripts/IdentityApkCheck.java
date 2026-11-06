@@ -52,7 +52,9 @@ class IdentityApkCheck {
     private static void checkApk(File apk, String expected) throws Exception {
         String utils = "Lapp/morphe/extension/shared/Utils;";
         String summaryClass = "Lapp/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment;";
+        String navigation = "Lapp/morphe/extension/hushthreads/settings/SettingsNavigation;";
         int definitions = 0;
+        boolean navigationUsesBuildLine = false;
         Map<String, Set<String>> callers = new HashMap<>();
         MultiDexContainer<? extends DexFile> dex = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
         for (String entry : dex.getDexEntryNames()) {
@@ -83,6 +85,11 @@ class IdentityApkCheck {
                                 call.getName().equals("getPatchesBuildIdentity")) {
                             callers.computeIfAbsent(clazz.getType(), ignored -> new HashSet<>()).add(method.getName());
                         }
+                        if (clazz.getType().equals(navigation) && instruction instanceof ReferenceInstruction reference &&
+                                reference.getReference() instanceof MethodReference call &&
+                                call.getDefiningClass().equals(summaryClass) && call.getName().equals("overviewBuildDetails")) {
+                            navigationUsesBuildLine = true;
+                        }
                     }
                 }
             }
@@ -98,9 +105,15 @@ class IdentityApkCheck {
             }
         }
         Set<String> settingsMethods = callers.get(summaryClass);
-        if (!settingsMethods.contains("initialize") || !settingsMethods.contains("buildIdentitySummary")) {
-            throw new AssertionError("Final APK lost the About or recovery identity reader");
+        if (!settingsMethods.contains("initialize")) {
+            throw new AssertionError("Final APK lost the About identity reader");
         }
-        System.out.println(apk.getName() + ": exact verified identity preserved in About, recovery and reports");
+        // The build line under the main list shows in every state, paused included. R8 may keep
+        // overviewBuildDetails or inline it into the navigation, so either path counts.
+        if (!callers.containsKey(navigation) &&
+                !(navigationUsesBuildLine && settingsMethods.contains("overviewBuildDetails"))) {
+            throw new AssertionError("Final APK lost the build line's identity reader");
+        }
+        System.out.println(apk.getName() + ": exact verified identity preserved in About, the build line and reports");
     }
 }

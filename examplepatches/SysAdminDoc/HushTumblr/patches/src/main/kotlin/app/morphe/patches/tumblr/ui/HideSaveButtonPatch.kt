@@ -26,8 +26,11 @@ internal const val HIDE_SAVE_HOOK = "$POST_FOOTER->hideSaveButton()Z"
  * The function is the one whose source note starts with [FOOTER_CONTROLS] and [SAVE_CONTROL]
  * (`qvg.d` in 46.5.0.109, drawing `ic_dashboard_post_control_save` with `alt_text_save_btn`). The
  * footer calls it only when the post's state has a Save button, which Tumblr builds only while its
- * `POST_STASH` flag is on (`oji.f`), so with the flag off the hook is never asked. Community posts'
- * own footer has no Save button. Found by reading Tumblr 46.5.0.109 (2026-10-11).
+ * `POST_STASH` flag is on (`oji.f`), so with the flag off the hook is never asked. 47.0.0.108's
+ * check (`t4k.f`) also wants `POST_STASH_WRITE` and a published post; with both flags forced on in
+ * Tumblr's saved feature config the button shows, and the hook takes it out with no gap (emulator,
+ * 2026-11-05). Community posts' own footer has no Save button. Found by reading Tumblr 46.5.0.109
+ * (2026-10-11).
  */
 @Suppress("unused")
 val hideSaveButtonPatch = bytecodePatch(

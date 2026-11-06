@@ -1,0 +1,191 @@
+# Added by lavinhoque33, 2026-10-11.
+# Weekly merge of anddea's dev branch into this fork.
+# Clean merge: builds the patches and opens (or updates) a PR from sync/anddea-dev.
+# Conflicts: opens (or updates) an issue listing the conflicting files.
+# anddea's workflow files are inert here (they only run for repository_owner 'anddea'),
+# and GITHUB_TOKEN cannot push workflow changes, so this fork's copies are always kept.
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: read
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: anddea/revanced-patches
+  UPSTREAM_BRANCH: dev
+  SYNC_BRANCH: sync/anddea-dev
+  ISSUE_TITLE: 'Upstream sync: merge conflicts with anddea/dev'
+  # Pin gh to this repository; without it gh can pick the fork's parent (anddea) as the target.
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  sync:
+    name: Sync
+    if: github.repository_owner == 'lavinhoque33'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+
+      - name: Merge upstream
+        id: merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Upstream commits gradlew.bat with CRLF stored while .gitattributes asks for eol=crlf,
+          # which leaves a phantom worktree change that blocks merges. Merge blobs as-is.
+          echo '* -text' > .git/info/attributes
+          git reset -q --hard HEAD
+          git fetch --no-tags "https://github.com/$UPSTREAM_REPO.git" "$UPSTREAM_BRANCH"
+          UPSTREAM_SHA=$(git rev-parse FETCH_HEAD)
+          echo "upstream_sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+
+          if git merge-base --is-ancestor "$UPSTREAM_SHA" HEAD; then
+            echo "Already up to date with $UPSTREAM_REPO@$UPSTREAM_BRANCH."
+            echo "result=uptodate" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          BASE=$(git merge-base HEAD "$UPSTREAM_SHA")
+          {
+            echo 'commits<<EOF'
+            git log --format='- %s (%h)' "$BASE..$UPSTREAM_SHA" -- . ':(exclude).github/workflows' | head -200
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+          git merge --no-commit --no-ff "$UPSTREAM_SHA" || true
+
+          # Keep this fork's workflow files (see header).
+          for f in $(git diff --name-only HEAD -- .github/workflows; git diff --name-only --diff-filter=U -- .github/workflows); do
+            if git cat-file -e "HEAD:$f" 2>/dev/null; then
+              git checkout HEAD -- "$f"
+            else
+              git rm -q --cached -f -- "$f" && rm -f -- "$f"
+            fi
+          done
+
+          CONFLICTS=$(git diff --name-only --diff-filter=U)
+          if [ -n "$CONFLICTS" ]; then
+            {
+              echo 'conflicts<<EOF'
+              echo "$CONFLICTS"
+              echo 'EOF'
+            } >> "$GITHUB_OUTPUT"
+            echo "result=conflict" >> "$GITHUB_OUTPUT"
+            git reset -q --hard HEAD
+            exit 0
+          fi
+
+          git commit -q -m "chore: Merge $UPSTREAM_REPO@$UPSTREAM_BRANCH (${UPSTREAM_SHA:0:9})"
+          echo "result=clean" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        if: steps.merge.outputs.result == 'clean'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle
+        if: steps.merge.outputs.result == 'clean'
+        uses: burrunan/gradle-cache-action@404534c34a2faa40430357a3183522a845b04f3b # v3.0.3
+
+      - name: Build
+        id: build
+        if: steps.merge.outputs.result == 'clean'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Upload patches
+        if: steps.merge.outputs.result == 'clean'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: patches
+          path: patches/build/libs/*.mpp
+
+      - name: Open or update pull request
+        if: steps.merge.outputs.result == 'clean'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMITS: ${{ steps.merge.outputs.commits }}
+          UPSTREAM_SHA: ${{ steps.merge.outputs.upstream_sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          git reset -q --hard HEAD
+          git push -f origin "HEAD:refs/heads/$SYNC_BRANCH"
+
+          BODY=$(cat <<EOF
+          Merges [$UPSTREAM_REPO@$UPSTREAM_BRANCH](https://github.com/$UPSTREAM_REPO/commit/$UPSTREAM_SHA) into \`$DEFAULT_BRANCH\`. The merge was clean and the patches build ([run and .mpp artifact]($RUN_URL)).
+
+          **Merge with "Create a merge commit".** Squash or rebase drops the shared history, and the next sync would conflict again.
+
+          Upstream workflow file changes are left out on purpose; those workflows only run in anddea's repository.
+
+          ### Upstream commits
+          $COMMITS
+          EOF
+          )
+
+          PR=$(gh pr list --head "$SYNC_BRANCH" --state open --json number -q '.[0].number')
+          if [ -n "$PR" ]; then
+            gh pr edit "$PR" --body "$BODY"
+          else
+            gh pr create --base "$DEFAULT_BRANCH" --head "$SYNC_BRANCH" \
+              --title "chore: Merge $UPSTREAM_REPO@$UPSTREAM_BRANCH" --body "$BODY"
+          fi
+
+          ISSUE=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" --json number -q '.[0].number')
+          if [ -n "$ISSUE" ]; then
+            gh issue close "$ISSUE" --comment "The merge is clean again, see the sync pull request."
+          fi
+
+      - name: Open or update conflict issue
+        if: steps.merge.outputs.result == 'conflict'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+          COMMITS: ${{ steps.merge.outputs.commits }}
+          UPSTREAM_SHA: ${{ steps.merge.outputs.upstream_sha }}
+        run: |
+          FILES=$(echo "$CONFLICTS" | sed 's/^/- `/; s/$/`/')
+          BODY=$(cat <<EOF
+          Merging [$UPSTREAM_REPO@$UPSTREAM_BRANCH](https://github.com/$UPSTREAM_REPO/commit/$UPSTREAM_SHA) conflicts in:
+
+          $FILES
+
+          Resolve locally:
+          \`\`\`
+          git fetch https://github.com/$UPSTREAM_REPO.git $UPSTREAM_BRANCH
+          git merge FETCH_HEAD
+          \`\`\`
+
+          ### Upstream commits
+          $COMMITS
+          EOF
+          )
+
+          ISSUE=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" --json number -q '.[0].number')
+          if [ -n "$ISSUE" ]; then
+            gh issue edit "$ISSUE" --body "$BODY"
+            gh issue comment "$ISSUE" --body "Updated for $UPSTREAM_SHA."
+          else
+            gh issue create --title "$ISSUE_TITLE" --body "$BODY"
+          fi

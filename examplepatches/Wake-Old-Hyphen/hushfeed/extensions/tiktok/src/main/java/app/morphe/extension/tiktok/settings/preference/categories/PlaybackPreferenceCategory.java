@@ -16,6 +16,7 @@ import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
+import app.morphe.extension.tiktok.speed.HoldSpeedHud;
 import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
 
 
@@ -62,8 +63,9 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     Settings.AUTO_ADVANCE_LIMIT, "%1$s video", "%1$s videos").zeroMeansOff());
             addPreference(new TogglePreference(context, "Hide TikTok's Auto scroll button",
                     "Takes TikTok's own Auto scroll action out of the video panel and the Auto "
-                            + "scroll switch beside videos on tablets and unfolded foldables. "
-                            + "Works with Auto-advance off too.",
+                            + "scroll label off the top of videos. Tablets and unfolded foldables "
+                            + "also lose the Auto scroll switch beside videos. Works with "
+                            + "Auto-advance off too.",
                     Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION));
             addPreference(new TogglePreference(context, "Auto-advance in search results",
                     "Also turns on TikTok's own Auto scroll for videos opened from search. "
@@ -129,6 +131,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "that quality again after a restart. A room whose stream doesn't have it "
                             + "opens at TikTok's choice.",
                     Settings.REMEMBER_LIVE_QUALITY));
+            addPreference(new TogglePreference(context, "Offer Audio only in LIVE quality",
+                    "Adds Audio only to a LIVE's Video quality list. The room plays its sound without "
+                            + "the picture, which uses much less data, until you pick another quality or "
+                            + "leave. Recording from the stream still saves the video.",
+                    Settings.LIVE_AUDIO_ONLY));
             addPreference(new TogglePreference(context, "Offer clear screen in every LIVE room",
                     "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. "
                             + "TikTok puts it in the menu of only some rooms. This adds it to the others.",
@@ -153,6 +160,14 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "phone shows while you watch, with the sound the app plays when TikTok has the "
                             + "microphone permission. Android asks you to allow screen recording each time, and "
                             + "shows its own notice while it records."));
+            addPreference(new TogglePreference(context, "Auto tap in LIVE rooms",
+                    "Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady "
+                            + "pace, and tap it again to stop. It also stops when you leave or swipe to "
+                            + "another room, leave TikTok or lock the screen.",
+                    Settings.LIVE_AUTO_TAP));
+            addPreference(new ChoicePreference(context, "Auto tap speed", Settings.LIVE_AUTO_TAP_RATE,
+                    app.morphe.extension.tiktok.live.LiveAutoTap.RATE_LABELS,
+                    app.morphe.extension.tiktok.live.LiveAutoTap.RATE_VALUES));
         }
         if (SettingsStatus.stopVideoLoopingEnabled) {
             addPreference(new TogglePreference(
@@ -362,6 +377,19 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                                 + "Letting go goes back to normal. A pull-down lock keeps the speed you slid to. "
                                 + "On a locked video, letting go locks the new speed.",
                         Settings.HOLD_SPEED_SLIDE));
+                addPreference(new ChoicePreference(context, "Hold speed bubble style", Settings.HOLD_SPEED_HUD_STYLE,
+                        new String[]{"Pill", "Circle"},
+                        new String[]{HoldSpeedHud.PILL, HoldSpeedHud.CIRCLE})
+                        .withNote("Pill is the wide bubble with a row of dots under the speed. Circle is a small "
+                                + "round dial with a notch for each speed around its edge."));
+                if (SettingsStatus.holdSpeedAxisEnabled) {
+                    addPreference(new ChoicePreference(context, "Hold speed slide direction", Settings.HOLD_SPEED_SLIDE_AXIS,
+                            new String[]{"Sideways", "Up and down"},
+                            new String[]{HoldSpeedHud.SIDEWAYS, HoldSpeedHud.UP_DOWN})
+                            .withNote("With Sideways, slide left or right to change the speed and pull down to lock it. "
+                                    + "With Up and down, slide up for faster and down for slower, and slide to the side "
+                                    + "to lock it, so a hold near the edge still reaches every speed."));
+                }
             }
             if (SettingsStatus.hideSpeedToastsEnabled) {
                 addPreference(new TogglePreference(context, "Hide speed messages",

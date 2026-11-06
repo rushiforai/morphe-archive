@@ -324,6 +324,10 @@ def index(args) -> None:
         "download_url": f"https://github.com/{REPOSITORY}/releases/download/v{args.version}/patches-{args.version}.mpp",
         "version": args.version,
     })
+    # Manager pins the first key a source signs with and checks every later bundle against it.
+    public_key = root / "morphe-signing.pub"
+    if public_key.is_file():
+        bundle["public_key"] = read(public_key)[0].strip()
     readme = swap(readme, r"^The latest release is \[v\d+\.\d+\.\d+\]\([^)\s]*\), with \d+ patches\.",
                   f"The latest release is [v{args.version}](https://github.com/{REPOSITORY}/releases/tag/v{args.version}), "
                   f"with {count} patches.", "README")

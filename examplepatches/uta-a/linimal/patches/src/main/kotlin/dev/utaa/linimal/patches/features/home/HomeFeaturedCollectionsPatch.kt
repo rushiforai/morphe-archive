@@ -14,7 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
-import dev.utaa.linimal.patches.features.premium.premiumSettingsRowPatch
+import dev.utaa.linimal.patches.features.preview.previewScrollPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
@@ -94,7 +94,7 @@ val homeFeaturedCollectionsPatch = bytecodePatch(
         }
     }
     // 機能パッチは単一の直列チェーンを成し、この patch の後段に noOpProbePatch が続きます。
-    dependsOn(premiumSettingsRowPatch)
+    dependsOn(previewScrollPatch)
 
     execute {
         val gridPackages = featuredGridSourceMetadataFingerprint.matchAllOrNull().orEmpty()

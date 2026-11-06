@@ -151,6 +151,67 @@ public class QuickSetupsTest {
         }
     }
 
+    /** iPhone look turns on the header and the kept search bar and titles an empty header Chats. Undo takes all three back. */
+    @Test public void iPhoneLookTitlesAnEmptyHeaderChatsKeepsTheSearchBarAndUndoTakesItBack() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            android.widget.EditText field = root.findViewWithTag("home_header_text");
+            root.findViewWithTag("tab_app").performClick();
+            root.findViewWithTag("quick_iphone").performClick();
+            assertEquals("Changed 3 controls", ShadowToast.getTextOfLatestToast());
+            assertTrue(Settings.preferences.getBoolean(HomeHeader.KEY, false));
+            assertTrue(Settings.preferences.getBoolean("inbox_search_bar", false));
+            assertEquals("Chats", Settings.preferences.getString(HomeHeader.TEXT, ""));
+            assertEquals("Chats", field.getText().toString());
+            assertTrue(((Switch) root.findViewWithTag(HomeHeader.KEY)).isChecked());
+            // Showing the words in the field isn't typing, so nothing saves them again once the field's pause passes.
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(HomeHeaderRow.SAVE_DELAY_MILLIS));
+            root.findViewWithTag("quick_iphone").performClick();
+            assertEquals("Nothing to change. Those controls were already set.", ShadowToast.getTextOfLatestToast());
+
+            Settings.preferences.edit().remove(HomeHeader.KEY).remove("inbox_search_bar").remove(HomeHeader.TEXT).commit();
+            field.setText("");
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(HomeHeaderRow.SAVE_DELAY_MILLIS));
+            root.findViewWithTag("quick_iphone").performClick();
+            root.findViewWithTag("undo").performClick();
+            assertEquals("Put back 3 controls", ShadowToast.getTextOfLatestToast());
+            assertFalse(Settings.preferences.contains(HomeHeader.KEY));
+            assertFalse(Settings.preferences.contains("inbox_search_bar"));
+            assertFalse(Settings.preferences.contains(HomeHeader.TEXT));
+            assertEquals("", field.getText().toString());
+        }
+    }
+
+    /** Words someone chose stay, typed a moment ago included, and so do words edited after the tap when Undo runs. */
+    @Test public void iPhoneLookNeverWritesOverChosenWords() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            android.widget.EditText field = root.findViewWithTag("home_header_text");
+            field.setText("Inbox");
+            root.findViewWithTag("tab_app").performClick();
+            root.findViewWithTag("quick_iphone").performClick();
+            assertEquals("Changed 2 controls", ShadowToast.getTextOfLatestToast());
+            assertEquals("Inbox", Settings.preferences.getString(HomeHeader.TEXT, ""));
+            assertEquals("Inbox", field.getText().toString());
+
+            root.findViewWithTag("undo").performClick();
+            Settings.preferences.edit().remove(HomeHeader.TEXT).commit();
+            field.setText("");
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(HomeHeaderRow.SAVE_DELAY_MILLIS));
+            root.findViewWithTag("quick_iphone").performClick();
+            assertEquals("Chats", field.getText().toString());
+            field.setText("Mine");
+            root.findViewWithTag("undo").performClick();
+            assertEquals("Mine", Settings.preferences.getString(HomeHeader.TEXT, ""));
+            assertEquals("Mine", field.getText().toString());
+        }
+    }
+
+    @Test public void iPhoneLookTitlesTheHeaderInThePagesLanguage() {
+        assertEquals("Đoạn chat", new SettingsText(new Locale("vi", "VN")).get("quick_iphone_words"));
+        assertEquals("聊天室", new SettingsText(Locale.TAIWAN).get("quick_iphone_words"));
+    }
+
     @Test public void backToDefaultsIsFinalOnceUndoRunsOutOrSettingsClose() {
         Settings.preferences.edit().putBoolean("growth", true).commit();
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

@@ -1,0 +1,19 @@
+{
+  "certificates": [
+    {
+      "pattern": "smart-launcher-*-patched-arm64.apk",
+      "package": "ginlemon.flowerfree",
+      "sha256": "99384c87090cbada11f449bd4cb658eb844435cab67c9fa062a0edcdec06729c"
+    },
+    {
+      "pattern": "openbubbles-wear-patched-universal.apk",
+      "package": "com.openbubbles.messaging",
+      "sha256": "e5d2b8f7a0df6015f4ace1ab06c600797557fd9fb52e04930786b792c6dd42ae"
+    },
+    {
+      "pattern": "OpenBubblesWear-Watch-*.apk",
+      "package": "com.openbubbles.messaging",
+      "sha256": "e5d2b8f7a0df6015f4ace1ab06c600797557fd9fb52e04930786b792c6dd42ae"
+    }
+  ]
+}

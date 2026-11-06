@@ -169,7 +169,7 @@ private fun Method.handsItemsTo(base: String): Int? {
 internal class DirectPostPlan(val query: MutableMethod, val ask: Int, val id: Int)
 
 /**
- * The query that opens one post by itself (`PostPermalinkTimelineFragment`'s in Tumblr 46.9.1.100),
+ * The query that opens one post by itself (`PostPermalinkTimelineFragment`'s in Tumblr 47.0.0.108),
  * which takes Tumblr's service and answers its [POST_PERMALINK] call. The id it asks for is that
  * call's last argument. A blog tab asks the same call for its own reasons, in a method of another
  * shape, and stays as it is.

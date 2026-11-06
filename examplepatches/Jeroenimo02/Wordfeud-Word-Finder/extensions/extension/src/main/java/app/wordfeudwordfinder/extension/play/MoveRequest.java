@@ -1,5 +1,6 @@
 package app.wordfeudwordfinder.extension.play;
 
+import app.wordfeudwordfinder.extension.core.Tiles;
 import app.wordfeudwordfinder.extension.solver.Move;
 import java.util.List;
 import java.util.Locale;
@@ -32,14 +33,17 @@ public final class MoveRequest {
             String letter = m.placedLetters.get(i);
             boolean blank = isBlank(letter);
             sb.append('[').append(xy[0]).append(',').append(xy[1]).append(',');
-            quote(sb, blank ? "*" + letter.toUpperCase(Locale.ROOT) : letter);
+            // Digraph tiles (internal one-char codes) go out as Wordfeud writes them: "CH", or "*CH" for a blank.
+            boolean digraph = letter.length() == 1 && Tiles.isDigraph(letter.charAt(0));
+            String tile = digraph ? Tiles.text(letter.charAt(0)) : letter;
+            quote(sb, blank ? "*" + tile.toUpperCase(Locale.ROOT) : tile);
             sb.append(']');
         }
         sb.append("],\"words\":[");
         List<String> words = m.allWords;
         for (int i = 0; i < words.size(); i++) {
             if (i > 0) sb.append(',');
-            quote(sb, words.get(i));
+            quote(sb, Tiles.spell(words.get(i)));
         }
         return sb.append("],\"ruleset\":").append(rulesetId).append('}').toString();
     }

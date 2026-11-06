@@ -1,5 +1,5 @@
 /*
- * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at 837bac40e (GPL-3.0),
  * modified for HushThreads (Threads), 2026.
  *
  * Copyright 2026 Hushfacebook contributors
@@ -12,11 +12,15 @@ package app.morphe.extension.hushthreads.settings;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.text.InputType;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -26,10 +30,11 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -54,13 +59,31 @@ public final class SettingsDialog extends DialogFragment {
     /** The argument naming the page the screen opens on: a route of {@link SettingsNavigation}. */
     static final String START_PAGE = "hushthreads_start_page";
     static final String RESTART_STATUS = "hushthreads_restart_status";
+    static final String VIEW_TOGGLE = "hushthreads_view_toggle";
+    static final String PAUSE_ACTION = "hushthreads_toolbar_pause";
+    static final String PAGE_TITLE = "hushthreads_page_title";
+    /** The build line in small type at the bottom of the settings. */
+    static final String BUILD_DETAILS = "hushthreads_build_details";
     /** Tags of what shows in the container when the page couldn't be attached. */
     static final String ATTACH_FAILURE = "hushthreads_attach_failure";
     static final String ATTACH_RETRY = "hushthreads_attach_retry";
     static final String ATTACH_BACK = "hushthreads_attach_back";
 
     private TextView pageTitle;
+    /** What the bar calls the page once the header's name has scrolled away. */
+    private CharSequence pageName = "HushThreads";
+    private HeaderColumn column;
+    /** The header over the search: the logo, the name and the version line. */
+    private View headerIcon;
+    private TextView headerName;
+    private View headerVersion;
+    /** Pause, Resume or Undo, at the end of the bar on the main page. */
+    Button pauseAction;
     private LinearLayout searchBox;
+    /** Under the search: shows the settings as one list or a button per section. */
+    private LinearLayout viewToggle;
+    private ImageView viewToggleIcon;
+    private TextView viewToggleLabel;
     private EditText search;
     private TextView results;
     private int found;
@@ -149,26 +172,24 @@ public final class SettingsDialog extends DialogFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        LinearLayout root = new LinearLayout(getContext());
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(ScreenColors.DEFAULT.background);
+        ScreenColors palette = ScreenColors.DEFAULT;
+        HeaderColumn root = new HeaderColumn(getContext());
+        column = root;
+        root.setBackgroundColor(palette.background);
 
         LinearLayout bar = new LinearLayout(getContext());
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         // Start and end, not left and right: in a right-to-left language the bar is mirrored.
-        bar.setPaddingRelative(dp(16), dp(48), dp(16), dp(14));
+        bar.setPaddingRelative(dp(4), dp(4), dp(12), dp(4));
 
         android.widget.ImageButton back = new android.widget.ImageButton(getContext());
-        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, ScreenColors.DEFAULT.title);
+        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, palette.title);
         arrow.setBounds(0, 0, dp(24), dp(24));
         arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         back.setImageDrawable(arrow);
         back.setPadding(dp(12), dp(12), dp(12), dp(12));
-        android.graphics.drawable.Drawable backSurface = ScreenColors.DEFAULT.controlSurface(
-                back, ScreenColors.DEFAULT.card, 12, ScreenColors.DEFAULT.outline);
-        back.setBackground(new android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(ScreenColors.half(ScreenColors.DEFAULT.accent)), backSurface, null));
+        ScreenColors.pressFeedback(back, palette.title, true);
         back.setMinimumWidth(dp(48));
         back.setMinimumHeight(dp(48));
         back.setContentDescription(L10n.t(getContext(), "Back"));
@@ -186,50 +207,69 @@ public final class SettingsDialog extends DialogFragment {
             SettingsEntry.onClosedByUser();
             dismissAllowingStateLoss();
         });
-        LinearLayout.LayoutParams backPosition = new LinearLayout.LayoutParams(dp(48), dp(48));
-        backPosition.gravity = Gravity.TOP;
-        bar.addView(back, backPosition);
+        bar.addView(back, new LinearLayout.LayoutParams(dp(48), dp(48)));
+        boolean largeText = getResources().getConfiguration().fontScale >= 1.5f;
+        LinearLayout labels = bar;
+        if (largeText) {
+            labels = new LinearLayout(getContext());
+            labels.setOrientation(LinearLayout.VERTICAL);
+            bar.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        }
 
-        LinearLayout titles = new LinearLayout(getContext());
-        titles.setOrientation(LinearLayout.VERTICAL);
-        titles.setPaddingRelative(dp(16), 0, 0, 0);
-        TextView brand = new TextView(getContext());
-        brand.setText("HushThreads");
-        brand.setTextColor(ScreenColors.DEFAULT.heading);
-        brand.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        brand.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        brand.setIncludeFontPadding(false);
-        brand.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        titles.addView(brand);
         TextView title = new TextView(getContext());
         pageTitle = title;
-        title.setTag("hushthreads_page_title");
-        title.setText(L10n.t("Settings"));
-        title.setTextColor(ScreenColors.DEFAULT.title);
-        title.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 32);
+        title.setTag(PAGE_TITLE);
+        title.setText("HushThreads");
+        title.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        // The bar, every page opened from it and search all show their name here, in the logo's blues.
+        ShimmerTitle.wear(title, palette.background);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setIncludeFontPadding(false);
+        title.setPaddingRelative(dp(8), dp(8), dp(8), dp(8));
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
+        title.setAutoSizeTextTypeUniformWithConfiguration(12, 22, 1, TypedValue.COMPLEX_UNIT_SP);
+        title.setMaxLines(1);
         title.setAccessibilityHeading(true);
-        titles.addView(title);
-        bar.addView(titles, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        labels.addView(title, new LinearLayout.LayoutParams(largeText ? ViewGroup.LayoutParams.MATCH_PARENT : 0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, largeText ? 0 : 1));
+        pauseAction = new Button(getContext());
+        pauseAction.setTag(PAUSE_ACTION);
+        pauseAction.setVisibility(View.GONE);
+        LinearLayout.LayoutParams actionPlace = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        actionPlace.gravity = Gravity.END;
+        labels.addView(pauseAction, actionPlace);
         root.addView(bar);
+        View divider = new View(getContext());
+        divider.setBackgroundColor(palette.outline);
+        root.addView(divider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(1)));
+        // The bar and its line stay put while the header, the search and the list scroll under them.
+        root.pin(2);
+
+        headerName = SettingsHeader.addTo(root, palette);
+        headerIcon = root.findViewWithTag(SettingsHeader.ICON);
+        headerVersion = root.findViewWithTag(SettingsHeader.VERSION);
 
         buildSearch(root);
         restartStatus = liveStatus(root, RESTART_STATUS);
 
         FrameLayout container = new FrameLayout(getContext());
         container.setId(CONTAINER_ID);
-        root.addView(container, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        // The column gives it the height below the bar.
+        root.addView(container, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0));
 
-        // Threads targets a recent API, so its windows are edge to edge: keep the bars off the
-        // content.
+        root.setOnScrollChangeListener((view, x, y, oldX, oldY) -> showBarTitle());
+        root.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom)
+                -> showBarTitle());
+        // Threads targets a recent API, so its windows are edge to edge: keep the bars and the
+        // keyboard off the content.
         root.setOnApplyWindowInsetsListener((view, insets) -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.ime());
                 view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             } else {
-                // Android 9 and 10 have no inset types, and these are the same bars there.
+                // Android 9 and 10 have no inset types; their system window insets hold the
+                // keyboard too, with the window set to resize for it.
                 view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                         insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
             }
@@ -238,43 +278,80 @@ public final class SettingsDialog extends DialogFragment {
         return root;
     }
 
+    /** Lets the header follow [list]: it slides up under the bar as the rows scroll. */
+    void followList(ListView list) {
+        if (column != null) column.follow(list);
+    }
+
+    /**
+     * The bar leaves the name off while the header under it shows it, and names the page again
+     * once the header has scrolled away. While a search is typed it says so. Invisible rather than
+     * gone, so the bar keeps its height and its buttons stay where they were.
+     */
+    private void showBarTitle() {
+        if (pageTitle == null || column == null || headerName == null) return;
+        boolean searching = searchBox.getVisibility() == View.VISIBLE && search.length() > 0;
+        CharSequence text = searching ? L10n.t("Search settings") : pageName;
+        if (!TextUtils.equals(text, pageTitle.getText())) pageTitle.setText(text);
+        // "Search settings" names what the screen is doing, not the page; the header's name, which
+        // stays during a search, is the page's heading then.
+        if (pageTitle.isAccessibilityHeading() == searching) pageTitle.setAccessibilityHeading(!searching);
+        boolean nameShows = !searching && headerName.getVisibility() == View.VISIBLE
+                && (!column.isLaidOut() || headerName.getBottom() > column.getScrollY() + column.pinnedBottom());
+        int shown = nameShows ? View.INVISIBLE : View.VISIBLE;
+        if (pageTitle.getVisibility() != shown) pageTitle.setVisibility(shown);
+    }
+
     private void buildSearch(LinearLayout root) {
         ScreenColors palette = ScreenColors.DEFAULT;
         searchBox = new LinearLayout(getContext());
         searchBox.setGravity(Gravity.CENTER_VERTICAL);
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(palette.card);
+        surface.setCornerRadius(dp(10));
+        surface.setStroke(dp(1), ScreenColors.focusStroke(palette.heading, palette.outline));
+        searchBox.setBackground(surface);
         searchBox.setAddStatesFromChildren(true);
-        searchBox.setBackground(palette.controlSurface(searchBox, palette.card, 12, palette.outline));
-        searchBox.setPaddingRelative(dp(16), 0, 0, 0);
+        searchBox.setPaddingRelative(dp(14), 0, dp(4), 0);
         ImageView icon = new ImageView(getContext());
         icon.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.SEARCH, palette.summary));
         icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        searchBox.addView(icon, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        searchBox.addView(icon, new LinearLayout.LayoutParams(dp(20), dp(20)));
         search = new EditText(getContext());
         search.setHint(L10n.t("Search settings"));
         search.setContentDescription(L10n.t("Search settings"));
         search.setSingleLine(true);
         search.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         search.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH);
+        search.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
+                | android.view.inputmethod.EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         search.setBackground(null);
         search.setTextColor(palette.title);
-        search.setHintTextColor(palette.summary);
+        search.setHintTextColor(palette.hint);
         palette.paintTextEditing(search);
-        search.setPaddingRelative(dp(12), dp(12), 0, dp(12));
-        search.setMinimumHeight(dp(52));
+        search.setPaddingRelative(dp(12), dp(10), 0, dp(10));
+        search.setMinimumHeight(dp(48));
         searchBox.addView(search, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         android.widget.ImageButton clear = new android.widget.ImageButton(getContext());
         clear.setImageDrawable(SettingsIcons.icon(getContext(), SettingsIcons.CLOSE, palette.summary));
-        palette.paintInlineAction(clear);
+        ScreenColors.pressFeedback(clear, palette.summary, true);
         clear.setPadding(dp(12), dp(12), dp(12), dp(12));
         clear.setContentDescription(L10n.t("Clear search"));
-        clear.setVisibility(View.INVISIBLE);
-        clear.setOnClickListener(ignored -> search.setText(""));
+        // At large text sizes an empty button's reserved width cuts off the search hint.
+        int emptyClearVisibility = getResources().getConfiguration().fontScale >= 1.5f
+                ? View.GONE : View.INVISIBLE;
+        clear.setVisibility(emptyClearVisibility);
+        clear.setOnClickListener(ignored -> {
+            search.setText("");
+            search.requestFocus();
+        });
         searchBox.addView(clear, new LinearLayout.LayoutParams(dp(48), dp(48)));
         search.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
             @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
+                clear.setVisibility(text.length() == 0 ? emptyClearVisibility : View.VISIBLE);
+                showBarTitle();
                 HushThreadsPreferenceFragment page = page();
                 if (!settingSearch && page != null && page.navigation != null) page.navigation.search(text.toString());
             }
@@ -287,19 +364,22 @@ public final class SettingsDialog extends DialogFragment {
         });
         LinearLayout.LayoutParams layout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        layout.setMargins(dp(16), 0, dp(16), dp(8));
+        // On the 18 dp line the section cards and the restart bar stand on.
+        layout.setMargins(dp(18), dp(4), dp(18), dp(12));
         root.addView(searchBox, layout);
+        buildViewToggle(root, palette);
         // Typed letters alone tell a screen reader nothing about the list below, so the count is
         // spoken from a polite live region, once the typing has settled.
         results = new TextView(getContext());
         results.setTextColor(palette.summary);
-        results.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        results.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         results.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         results.setVisibility(View.GONE);
         LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         place.setMarginStart(dp(20));
         place.setMarginEnd(dp(20));
+        place.topMargin = dp(8);
         place.bottomMargin = dp(8);
         root.addView(results, place);
         // A newly opened screen must not steal focus and raise the keyboard.
@@ -309,11 +389,67 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     /**
+     * Under the search, a row of the page like a section's button: it shows every section's rows
+     * on one list, or a button per section, and offers whichever the list isn't showing. It stays
+     * while a search is typed.
+     */
+    private void buildViewToggle(LinearLayout root, ScreenColors palette) {
+        viewToggle = new LinearLayout(getContext());
+        viewToggle.setTag(VIEW_TOGGLE);
+        viewToggle.setOrientation(LinearLayout.HORIZONTAL);
+        viewToggle.setGravity(Gravity.CENTER_VERTICAL);
+        viewToggle.setMinimumHeight(dp(48));
+        viewToggle.setPaddingRelative(dp(20), dp(4), dp(20), dp(4));
+        GradientDrawable surface = new GradientDrawable();
+        surface.setColor(palette.card);
+        surface.setStroke(dp(1), palette.interactionOutline(palette.outline));
+        // Edge to edge like the rows under it: only the line along its bottom shows.
+        android.graphics.drawable.Drawable inset = new InsetDrawable(surface, -dp(1), -dp(1), -dp(1), 0);
+        viewToggle.setBackground(new RippleDrawable(ScreenColors.interactionRipple(palette.heading), inset, null));
+        viewToggle.setFocusable(true);
+        viewToggle.setClickable(true);
+        viewToggleIcon = new ImageView(getContext());
+        viewToggleIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        viewToggleIcon.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        viewToggleIcon.setPaddingRelative(0, 0, dp(14), 0);
+        viewToggle.addView(viewToggleIcon, new LinearLayout.LayoutParams(dp(38), dp(24)));
+        viewToggleLabel = new TextView(getContext());
+        viewToggleLabel.setTextColor(palette.title);
+        viewToggleLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        viewToggleLabel.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        viewToggleLabel.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        viewToggle.addView(viewToggleLabel, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        viewToggle.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setClassName(Button.class.getName());
+            }
+        });
+        viewToggle.setOnClickListener(ignored -> {
+            HushThreadsPreferenceFragment page = page();
+            if (page != null && page.navigation != null) page.navigation.showAsList(!page.navigation.listMode());
+        });
+        showViewToggle(false);
+        viewToggle.setVisibility(View.GONE);
+        root.addView(viewToggle, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    /** The toggle offers the view the list isn't showing: [list] is the one it shows now. */
+    void showViewToggle(boolean list) {
+        CharSequence label = list ? L10n.t("Show settings by category") : L10n.t("Show all settings as a list");
+        if (!TextUtils.equals(label, viewToggleLabel.getText())) viewToggleLabel.setText(label);
+        viewToggleIcon.setImageDrawable(SettingsIcons.icon(getContext(), list ? SettingsIcons.FEED : SettingsIcons.MENU,
+                ScreenColors.DEFAULT.heading));
+    }
+
+    /**
      * A line a screen reader reads whenever its words change, and nobody sees. It's a polite live
      * region, so the words wait for whatever is being read and focus stays where it is. The row
      * that shows the same words is built again on every change, and a new view's text is no change
      * to read, so the words are kept here, in a view that stays for as long as the screen does. The
-     * line is one clear pixel laid over the top edge of the page, and takes no room.
+     * line is one clear pixel over the top of the list, and takes no room.
      */
     private TextView liveStatus(LinearLayout root, String tag) {
         TextView status = new TextView(getContext());
@@ -336,13 +472,26 @@ public final class SettingsDialog extends DialogFragment {
     }
 
     void showPage(CharSequence title, boolean home, String query) {
-        pageTitle.setText(home ? L10n.t("Settings") : title);
-        pageTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP,
-                L10n.t("Set when you patched").contentEquals(title) ? 26 : 32);
+        pageName = title;
+        // The header belongs to the main page, and stays there while a search is typed.
+        int header = home ? View.VISIBLE : View.GONE;
+        headerIcon.setVisibility(header);
+        headerName.setVisibility(header);
+        headerVersion.setVisibility(header);
+        int headingSize = 22;
+        if (home) {
+            pageTitle.setAutoSizeTextTypeUniformWithConfiguration(12, headingSize, 1, TypedValue.COMPLEX_UNIT_SP);
+        } else {
+            pageTitle.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);
+            pageTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, headingSize);
+        }
+        pageTitle.setMaxLines(home ? 1 : Integer.MAX_VALUE);
         searchBox.setVisibility(home ? View.VISIBLE : View.GONE);
+        viewToggle.setVisibility(home ? View.VISIBLE : View.GONE);
         settingSearch = true;
         if (!search.getText().toString().equals(query)) search.setText(query);
         settingSearch = false;
+        showBarTitle();
         if (!home || query.isEmpty()) {
             search.clearFocus();
             hideKeyboard();

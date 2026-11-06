@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Morphe resource patch declares the embedded service in the host manifest. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />

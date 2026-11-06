@@ -24,7 +24,7 @@ still require device validation; local APK checks alone do not verify them.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0-dev.3](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.4.0-dev.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.4.0](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
@@ -59,6 +59,16 @@ still require device validation; local APK checks alone do not verify them.
 - The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
 - Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
   like any other patch bundle.
+
+  ### Release signing
+
+  To make Morphe Manager show the bundle signer and reject tampered releases:
+
+  1. Run `./gradlew generateSigningKey` once. This creates `morphe-signing.pub` and `morphe-signing.key`.
+  2. Commit `morphe-signing.pub`; never commit `morphe-signing.key`.
+  3. Store the contents of `morphe-signing.key` in the repository secret `MORPHE_SIGNING_KEY`.
+
+  The release workflow signs every published `.mpp` and publishes its signature alongside the bundle. Keep a secure backup of the private key; replacing it requires users to trust the new signer in Morphe Manager.
 
 See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
 

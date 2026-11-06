@@ -1,0 +1,18 @@
+name: Đề xuất tính năng
+description: Đề xuất tính năng cho XXLC Grok Patches.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Kiểm tra [các đề xuất hiện có](https://github.com/XXLC/grok-morphe-patches/issues?q=label%3A%22Feature+request%22) trước khi tạo đề xuất mới.
+  - type: textarea
+    attributes:
+      label: Tính năng đề xuất
+      description: Mô tả hành vi mong muốn và tình huống sử dụng cụ thể.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Thông tin tham khảo

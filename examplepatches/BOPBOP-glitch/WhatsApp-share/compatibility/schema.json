@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WhatsApp Morphe Compatibility Record",
+  "type": "object",
+  "required": [
+    "schema",
+    "packageName",
+    "version",
+    "status",
+    "scope",
+    "patchBehaviorChanged",
+    "tests"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1
+    },
+    "packageName": {
+      "const": "com.whatsapp"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "untested",
+        "build-validated",
+        "patch-validated",
+        "device-validated",
+        "stable",
+        "unsupported"
+      ]
+    },
+    "scope": {
+      "const": "compatibility-only"
+    },
+    "patchBehaviorChanged": {
+      "const": false
+    },
+    "declaredExperimental": {
+      "type": "boolean"
+    },
+    "patchCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tests": {
+      "type": "object",
+      "required": [
+        "bundleBuild",
+        "dexPresent",
+        "patchMetadata",
+        "patchTime",
+        "launch",
+        "loginSession",
+        "sendReceive",
+        "restart"
+      ],
+      "properties": {
+        "bundleBuild": {
+          "type": "boolean"
+        },
+        "dexPresent": {
+          "type": "boolean"
+        },
+        "patchMetadata": {
+          "type": "boolean"
+        },
+        "patchTime": {
+          "type": "boolean"
+        },
+        "launch": {
+          "type": "boolean"
+        },
+        "loginSession": {
+          "type": "boolean"
+        },
+        "sendReceive": {
+          "type": "boolean"
+        },
+        "restart": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

@@ -18,9 +18,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import semicoloncolonel.mobilestream.extension.shared.misc.AdBreakText;
@@ -39,6 +41,13 @@ import semicoloncolonel.mobilestream.extension.shared.misc.AdBreakText;
  * video and the player's volume is set to zero, and both are restored when
  * the show returns. The cover shows no countdown, because the live playlist
  * reaches only the live edge and the end of a break is not known in advance.
+ *
+ * The mask follows the most recently started or resumed player that is on
+ * screen and playing. The browse tab plays channels in a dialog over the
+ * Live tab's player, and both stay on screen, so a player whose position is
+ * not moving is passed over. Every new playback clears the previous segments, so a
+ * movie or another channel is never compared with an old live window. When
+ * the cover lifts, the player's own mute setting is restored.
  */
 @SuppressWarnings("unused")
 public final class XumoLiveMask {
@@ -59,19 +68,24 @@ public final class XumoLiveMask {
         }
     }
 
-    private static volatile List<Segment> segments = new ArrayList<>();
+    private static final List<Segment> NONE = new ArrayList<>();
+    private static volatile List<Segment> segments = NONE;
     private static volatile long playlistReadMs;
     private static long lastDiagnosticMs;
 
-    private static WeakReference<View> playerView = new WeakReference<>(null);
+    /** Player views, most recently started or resumed last. Main thread only. */
+    private static final List<WeakReference<View>> views = new ArrayList<>();
     private static boolean ticking;
     private static int clearTicks;
 
+    // A position that stops moving means the player is paused or has failed.
+    private static long lastPositionMs = -1;
+    private static int stillTicks;
+
     private static FrameLayout cover;
     private static TextView label;
-
+    private static View coveredView;
     private static Object mutedPlayer;
-    private static float savedVolume = 1f;
 
     private static Method getPlayer;
     private static Method position;
@@ -106,17 +120,19 @@ public final class XumoLiveMask {
         byte[] bytes = buffer.toByteArray();
         try {
             record(new String(bytes, StandardCharsets.UTF_8));
-        } catch (Exception ex) {
-            Log.e(TAG, "playlist read failure", ex);
+        } catch (Throwable t) {
+            Log.e(TAG, "playlist read failure", t);
         }
         return new ByteArrayInputStream(bytes);
     }
 
     private static void record(String text) {
-        // Media playlists only: not the multivariant playlist, not a finished
-        // (on-demand) playlist, and not the captions playlist.
-        if (!text.contains("#EXTINF") || text.contains("#EXT-X-STREAM-INF")
-                || text.contains("#EXT-X-ENDLIST") || text.contains(".vtt")) {
+        // The multivariant playlist and the captions playlist say nothing
+        // about the video's timeline. A finished (on-demand) playlist means
+        // the live window is gone.
+        if (text.contains("#EXT-X-STREAM-INF") || text.contains(".vtt")) return;
+        if (!text.contains("#EXTINF") || text.contains("#EXT-X-ENDLIST")) {
+            segments = NONE;
             return;
         }
         List<Segment> parsed = new ArrayList<>();
@@ -138,12 +154,69 @@ public final class XumoLiveMask {
         playlistReadMs = SystemClock.elapsedRealtime();
     }
 
-    /** Injection point: the end of each XumoPlayerView constructor. */
-    public static void attach(View view) {
-        playerView = new WeakReference<>(view);
+    /** Injection point: the start of XumoPlayerView.play. A new playback. */
+    public static void play(View view) {
+        segments = NONE;
+        if (view == coveredView) hide();
+        track(view);
+    }
+
+    /** Injection point: the start of XumoPlayerView.resume. */
+    public static void resume(View view) {
+        track(view);
+    }
+
+    /** Injection point: the start of XumoPlayerView.release. */
+    public static void release(View view) {
+        if (view == coveredView) hide();
+        untrack(view);
+    }
+
+    private static void track(View view) {
+        untrack(view);
+        views.add(new WeakReference<>(view));
         if (ticking) return;
         ticking = true;
         MAIN.post(TICK);
+    }
+
+    private static void untrack(View view) {
+        Iterator<WeakReference<View>> it = views.iterator();
+        while (it.hasNext()) {
+            View known = it.next().get();
+            if (known == null || known == view) it.remove();
+        }
+    }
+
+    /** Each tracked player's position at the last tick. Main thread only. */
+    private static final java.util.WeakHashMap<View, Long> positions = new java.util.WeakHashMap<>();
+
+    /**
+     * The most recently started or resumed player that is on screen and whose
+     * position moved since the last tick, or else the most recent one on
+     * screen.
+     */
+    private static View activeView() {
+        View fallback = null;
+        for (int i = views.size() - 1; i >= 0; i--) {
+            View view = views.get(i).get();
+            if (view == null) {
+                views.remove(i);
+                continue;
+            }
+            if (!view.isAttachedToWindow() || !view.isShown()) continue;
+            if (fallback == null) fallback = view;
+            long position;
+            try {
+                Object player = player(view);
+                position = player == null ? -1 : currentPosition(player);
+            } catch (Throwable t) {
+                position = -1;
+            }
+            Long previous = positions.put(view, position);
+            if (position >= 0 && previous != null && previous != position) return view;
+        }
+        return fallback;
     }
 
     private static final Runnable TICK = new Runnable() {
@@ -151,24 +224,37 @@ public final class XumoLiveMask {
         public void run() {
             try {
                 check();
-            } catch (Exception ex) {
-                Log.e(TAG, "tick failure", ex);
+            } catch (Throwable t) {
+                Log.e(TAG, "tick failure", t);
+            }
+            // Stop when no player is left; play or resume starts it again.
+            if (views.isEmpty() && cover == null && mutedPlayer == null) {
+                ticking = false;
+                return;
             }
             MAIN.postDelayed(this, 500);
         }
     };
 
     private static void check() throws Exception {
-        View view = playerView.get();
-        Object player = view != null && view.isAttachedToWindow() ? player(view) : null;
-        long remainingMs = player == null ? -1 : adRemaining(currentPosition(player));
+        View view = activeView();
+        Object player = view == null || adDisplayed(view) ? null : player(view);
+        long positionMs = player == null ? -1 : currentPosition(player);
+        if (positionMs >= 0 && positionMs == lastPositionMs) stillTicks++;
+        else stillTicks = 0;
+        lastPositionMs = positionMs;
+        // A position that stops moving (buffering, paused, or failed) leaves
+        // the cover as it is: the error screen and controls draw above it.
+        if (positionMs >= 0 && stillTicks >= 6) return;
+        boolean playing = positionMs >= 0;
+        long remainingMs = playing ? adRemaining(positionMs) : -1;
         if (remainingMs >= 0) {
             clearTicks = 0;
             show((ViewGroup) view, player, remainingMs);
         } else if (cover != null || mutedPlayer != null) {
             // Two clear ticks in a row before lifting the cover, so a playlist
             // refresh landing between ticks cannot flash the ad.
-            if (++clearTicks >= 2 || player == null) hide();
+            if (++clearTicks >= 2 || !playing) hide();
         }
     }
 
@@ -189,6 +275,17 @@ public final class XumoLiveMask {
         return -1;
     }
 
+    /** True while one of Xumo's own client-side (IMA) ads plays in this player. */
+    private static boolean adDisplayed(View view) {
+        try {
+            Field field = view.getClass().getDeclaredField("isAdDisplayed");
+            field.setAccessible(true);
+            return field.getBoolean(view);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     private static Object player(View view) throws Exception {
         if (getPlayer == null) getPlayer = view.getClass().getMethod("getPlayer");
         return getPlayer.invoke(view);
@@ -205,16 +302,17 @@ public final class XumoLiveMask {
 
     private static void show(ViewGroup view, Object player, long remainingMs) {
         try {
-            if (cover == null || cover.getParent() != view) {
-                if (cover != null && cover.getParent() != null) {
-                    ((ViewGroup) cover.getParent()).removeView(cover);
-                }
+            if (coveredView != view) hide();
+            if (cover == null) {
+                // Over the video and under the player controls and the error
+                // screen, which stay usable during a break.
+                ViewGroup host = overlay(view);
                 cover = buildCover(view);
-                view.addView(cover, new FrameLayout.LayoutParams(
+                host.addView(cover, new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                coveredView = view;
                 Log.i(TAG, "Live break covered");
             }
-            cover.bringToFront();
             // No countdown: the live playlist reaches only the live edge, so
             // the end of a break is not known in advance.
             long now = SystemClock.elapsedRealtime();
@@ -223,7 +321,11 @@ public final class XumoLiveMask {
                 Log.i(TAG, "Covered: " + remainingMs + " ms of ads in the playlist ahead, "
                         + segments.size() + " segments, playlist read " + (now - playlistReadMs) + " ms ago");
             }
-            if (mutedPlayer != player) mute(player);
+            // Muted again on every tick, because Xumo restores its own volume
+            // when the screen resumes.
+            if (getVolume == null) getVolume = player.getClass().getMethod("getVolume");
+            if ((Float) getVolume.invoke(player) != 0f) volume(player, 0f);
+            mutedPlayer = player;
         } catch (Exception ex) {
             Log.e(TAG, "show failure", ex);
         }
@@ -238,23 +340,27 @@ public final class XumoLiveMask {
                 label = null;
                 Log.i(TAG, "Live break ended");
             }
-            if (mutedPlayer != null) {
-                volume(mutedPlayer, savedVolume);
-                mutedPlayer = null;
+            if (mutedPlayer != null && coveredView != null) {
+                // Xumo's own mute setting decides the volume, and its mute
+                // button is redrawn to match.
+                coveredView.getClass().getMethod("updatePersistedButtons").invoke(coveredView);
             }
+        } catch (Throwable t) {
+            Log.e(TAG, "hide failure", t);
+        } finally {
+            mutedPlayer = null;
+            coveredView = null;
             clearTicks = 0;
-        } catch (Exception ex) {
-            Log.e(TAG, "hide failure", ex);
         }
     }
 
-    private static void mute(Object player) throws Exception {
-        if (mutedPlayer != null) volume(mutedPlayer, savedVolume);
-        if (getVolume == null) getVolume = player.getClass().getMethod("getVolume");
-        savedVolume = (Float) getVolume.invoke(player);
-        if (savedVolume <= 0f) savedVolume = 1f;
-        volume(player, 0f);
-        mutedPlayer = player;
+    private static ViewGroup overlay(ViewGroup view) {
+        try {
+            Object overlay = view.getClass().getMethod("getOverlayFrameLayout").invoke(view);
+            if (overlay instanceof ViewGroup) return (ViewGroup) overlay;
+        } catch (Throwable ignored) {
+        }
+        return view;
     }
 
     private static void volume(Object player, float value) throws Exception {

@@ -63,9 +63,21 @@ public final class FeatureDexFixture {
     // A blog's posts page is a subclass of the page every blog, likes and search page starts from.
     private static final String TIMELINE_RESPONSE = "Lcom/tumblr/rumblr/response/timeline/TimelineResponse;";
     private static final String POSTS_RESPONSE = "Lcom/tumblr/rumblr/response/timeline/PostsResponse;";
+    // The SDK launch providers, held to ContentProvider like the real ones, since each hook takes one.
+    private static final String PROVIDER = "Landroid/content/ContentProvider;";
+    private static final String AUDIENCE = "Lcom/facebook/ads/internal/dynamicloading/DynamicLoaderFactory;";
+    private static final String AUDIENCE_FALLBACK = "Lcom/facebook/ads/internal/dynamicloading/DynamicLoaderFallback;";
+    private static final String AUDIENCE_LOADER = "Lcom/facebook/ads/internal/dynamicloading/DynamicLoader;";
+    private static final String MOBILE_ADS = "Lcom/google/android/gms/ads/MobileAdsInitProvider;";
+    private static final String MOBILE_ADS_START = "Lcom/google/android/gms/ads/MobileAds;";
+    private static final String VUNGLE = "Lcom/vungle/ads/VungleProvider;";
+    private static final String LIVERAMP = "Lcom/liveramp/ats/LRInitProvider;";
+    private static final String NIMBUS = "Lcom/tumblr/startup/NimbusStartupInitializer;";
+    private static final String SDK_STARTUP = BASE + "privacy/SdkStartup;";
     private static final Map<String, String> SUPERCLASSES = Map.of(APP, CORE_APP, ACTIVITY, COMPONENT_ACTIVITY,
             CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;", POSTS_RESPONSE, TIMELINE_RESPONSE,
-            "Lfixture/PostSpacing;", "Landroidx/recyclerview/widget/RecyclerView$o;");
+            "Lfixture/PostSpacing;", "Landroidx/recyclerview/widget/RecyclerView$o;", MOBILE_ADS, PROVIDER,
+            VUNGLE, PROVIDER, LIVERAMP, PROVIDER);
     private static final String VOID = "V";
     private static final String OBJECT = "Ljava/lang/Object;";
     private static final String LIST = "Ljava/util/List;";
@@ -90,7 +102,7 @@ public final class FeatureDexFixture {
     private static final String PAGINATION_FRAGMENT = "Lcom/tumblr/ui/fragment/PaginationFragment;";
     private static final String PAGE_LINKS = "Lcom/tumblr/timeline/model/link/TimelinePaginationLink;";
     private static final String PAGE_LINK = "Lcom/tumblr/timeline/model/link/Link;";
-    private static final String LOAD_TYPE = "Lxrl;";
+    private static final String LOAD_TYPE = "Luxl;";
     private static final String FEATURE = "Lfixture/Feature;";
     private static final String FEATURE_CHECK = "Lfixture/FeatureCheck;";
     private static final String FEATURE_SWITCHES = BASE + "flags/FeatureSwitches;";
@@ -116,9 +128,9 @@ public final class FeatureDexFixture {
     private static final String PHOTO_CONTAINER = "Lcom/tumblr/ui/widget/graywater/viewholder/PhotoContainer;";
     private static final String PHOTO_HOLDER = "Lcom/tumblr/ui/widget/graywater/viewholder/PhotoViewHolder;";
     private static final String PHOTO_ROW_ITEM = "Lcom/tumblr/ui/widget/graywater/viewholder/PhotosetRowItem;";
-    private static final String PHOTO_BINDER = "Lzka$a;";
-    private static final String GALLERY_BINDER = "Lx1f;";
-    private static final String GALLERY_ROW = "Lu1f;";
+    private static final String PHOTO_BINDER = "Lboa$a;";
+    private static final String GALLERY_BINDER = "Lb6f;";
+    private static final String GALLERY_ROW = "Ly5f;";
     private static final String ALT_TEXT = BASE + "ui/AltTextCaptions;";
     private static final String IMAGE_DESCRIPTION = BASE + "ui/HushImageDescription;";
     private static final String IMAGE_CONTAINER = BASE + "ui/HushImageContainer;";
@@ -468,15 +480,15 @@ public final class FeatureDexFixture {
      * kept isEmpty() answer.
      */
     static List<Method> pagingMethods(String variant) {
-        ImmutableMethodReference load = ref(TIMELINE_FRAGMENT, "v6", VOID, LOAD_TYPE, "Z");
-        ImmutableMethodReference emptyView = ref(TIMELINE_FRAGMENT, "N4", VOID), settle = ref(TIMELINE_FRAGMENT, "Q5", VOID, LOAD_TYPE);
+        ImmutableMethodReference load = ref(TIMELINE_FRAGMENT, "y6", VOID, LOAD_TYPE, "Z");
+        ImmutableMethodReference emptyView = ref(TIMELINE_FRAGMENT, "N4", VOID), settle = ref(TIMELINE_FRAGMENT, "R5", VOID, LOAD_TYPE);
         List<Instruction> body = new ArrayList<>(List.of(
                 invoke(Opcode.INVOKE_INTERFACE, ref(LIST, "isEmpty", "Z"), 5), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 7),
                 new ImmutableInstruction11n(Opcode.CONST_4, 1, 1), new ImmutableInstruction21t(Opcode.IF_EQZ, 7, 0),
                 loadType(5), new ImmutableInstruction22t(Opcode.IF_NE, 4, 5, 0),
-                invoke(Opcode.INVOKE_VIRTUAL, ref(TIMELINE_FRAGMENT, "P5", VOID), 3), end(),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(TIMELINE_FRAGMENT, "Q5", VOID), 3), end(),
                 member(Opcode.IPUT_BOOLEAN, 1, 3, PAGINATION_FRAGMENT, "l", "Z"), invoke(Opcode.INVOKE_VIRTUAL, emptyView, 3), end(),
-                new ImmutableInstruction11n(Opcode.CONST_4, 7, 0), member(Opcode.IPUT_OBJECT, 7, 3, TIMELINE_FRAGMENT, "W", "Lretrofit2/Call;"),
+                new ImmutableInstruction11n(Opcode.CONST_4, 7, 0), member(Opcode.IPUT_OBJECT, 7, 3, TIMELINE_FRAGMENT, "X", "Lretrofit2/Call;"),
                 invoke(Opcode.INVOKE_VIRTUAL, settle, 3, 4),
                 member(Opcode.IPUT_OBJECT, 6, 3, PAGINATION_FRAGMENT, "k", "Landroid/os/Parcelable;"),
                 member(Opcode.IPUT_BOOLEAN, 7, 3, PAGINATION_FRAGMENT, "l", "Z"),
@@ -495,19 +507,19 @@ public final class FeatureDexFixture {
                     invoke(Opcode.INVOKE_VIRTUAL, emptyView, 3), end(),
                     member(Opcode.IPUT_OBJECT, 6, 3, PAGINATION_FRAGMENT, "k", "Landroid/os/Parcelable;"), loadType(1),
                     new ImmutableInstruction22t(Opcode.IF_EQ, 4, 1, 0), invoke(Opcode.INVOKE_VIRTUAL, settle, 3, 4),
-                    invoke(Opcode.INVOKE_VIRTUAL, variant.equals("wrong-load") ? ref(TIMELINE_FRAGMENT, "w6", VOID, LOAD_TYPE, "Z") : load, 3, 1, 7), end()));
+                    invoke(Opcode.INVOKE_VIRTUAL, variant.equals("wrong-load") ? ref(TIMELINE_FRAGMENT, "z6", VOID, LOAD_TYPE, "Z") : load, 3, 1, 7), end()));
             body.addAll(at, hook);
             // Tumblr's own two branches moved with their targets, and the block's four land inside it or right after.
             captionBranch(body, at + 1, at + 4); captionBranch(body, at + 6, at + 18); captionBranch(body, at + 8, at + 12);
             captionBranch(body, at + 14, at + 16); captionBranch(body, 21, 29); captionBranch(body, 23, 26);
         }
         return List.of(method(TIMELINE_FRAGMENT, "n4", VOID, false, 9, body, LOAD_TYPE, LIST, PAGE_LINKS, "Ljava/util/Map;", "Z"),
-                method(TIMELINE_FRAGMENT, "v6", VOID, false, 3, List.of(end()), LOAD_TYPE, "Z"),
+                method(TIMELINE_FRAGMENT, "y6", VOID, false, 3, List.of(end()), LOAD_TYPE, "Z"),
                 // The fragment's own next-page call, made when a scroll nears the end.
-                method(TIMELINE_FRAGMENT, "Z5", VOID, false, 3,
+                method(TIMELINE_FRAGMENT, "b6", VOID, false, 3,
                         List.of(loadType(0), new ImmutableInstruction11n(Opcode.CONST_4, 1, 1), invoke(Opcode.INVOKE_VIRTUAL, load, 2, 0, 1), end())),
-                method(TIMELINE_FRAGMENT, "N4", VOID, false, 1, List.of(end())), method(TIMELINE_FRAGMENT, "P5", VOID, false, 1, List.of(end())),
-                method(TIMELINE_FRAGMENT, "Q5", VOID, false, 2, List.of(end()), LOAD_TYPE));
+                method(TIMELINE_FRAGMENT, "N4", VOID, false, 1, List.of(end())), method(TIMELINE_FRAGMENT, "Q5", VOID, false, 1, List.of(end())),
+                method(TIMELINE_FRAGMENT, "R5", VOID, false, 2, List.of(end()), LOAD_TYPE));
     }
 
     /** The timeline fragment, with the hook that asks what to do with an emptied page unless clean. */
@@ -812,7 +824,7 @@ public final class FeatureDexFixture {
                         new ImmutableFieldReference(PHOTO_BINDER, variant.equals("wrong-photo-field") ? "d" : "c", IMAGE_BLOCK)),
                 invoke(Opcode.INVOKE_STATIC, ref(ALT_TEXT, "photo", VOID, OBJECT, OBJECT), variant.equals("wrong-photo-holder") ? 3 : 2, 0)));
         photo.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0)); photo.add(end());
-        classes.put(PHOTO_BINDER, List.of(method(PHOTO_BINDER, "i", VOID, false, 5, photo, PHOTO_HOLDER, "Liwj;", STRING)));
+        classes.put(PHOTO_BINDER, List.of(method(PHOTO_BINDER, "i", VOID, false, 5, photo, PHOTO_HOLDER, "La2k;", STRING)));
         List<Instruction> gallery = new ArrayList<>(), full = new ArrayList<>();
         if (hooked && !variant.equals("missing-gallery")) gallery.add(invoke(Opcode.INVOKE_STATIC, ref(ALT_TEXT, "gallery", VOID, OBJECT, OBJECT),
                 2, variant.equals("wrong-gallery-image") ? 1 : 3));
@@ -820,7 +832,7 @@ public final class FeatureDexFixture {
                 variant.equals("wrong-clear-row") ? 5 : 6));
         gallery.add(end()); full.add(end());
         classes.put(GALLERY_BINDER, List.of(method(GALLERY_BINDER, "r", VOID, false, 4, gallery, CONTEXT, PHOTO_ROW_ITEM, IMAGE_BLOCK),
-                method(GALLERY_BINDER, "n", VOID, false, 9, full, CONTEXT, "Lcom/tumblr/analytics/ScreenType;", "Lmrn;", "Lgw7;", "Lhae;", GALLERY_ROW, "Liwj;", "Lxh2;")));
+                method(GALLERY_BINDER, "n", VOID, false, 9, full, CONTEXT, "Lcom/tumblr/analytics/ScreenType;", "Ljxn;", "Lny7;", "Ljee;", GALLERY_ROW, "La2k;", "Ltj2;")));
     }
 
     private static void smallCase(File root, String name, Map<String, List<Method>> classes, String family, String reason) throws Exception {
@@ -1024,7 +1036,7 @@ public final class FeatureDexFixture {
 
     private static void postJsonPresence(Map<String, List<Method>> classes, boolean patched, String fault) {
         String adapter = POST.substring(0, POST.length() - 1) + "JsonAdapter;";
-        String[] parameters = new String[155]; Arrays.fill(parameters, "I"); parameters[154] = "Lh27;";
+        String[] parameters = new String[155]; Arrays.fill(parameters, "I"); parameters[154] = "Lh47;";
         List<Method> model = new ArrayList<>(classes.get(POST));
         model.removeIf(m -> m.getName().equals("<init>") && m.getParameterTypes().size() == 155);
         model.add(new ImmutableMethod(POST, "<init>", Arrays.stream(parameters).map(p -> new ImmutableMethodParameter(p, Set.of(), null)).toList(),
@@ -1061,7 +1073,7 @@ public final class FeatureDexFixture {
         reader.set(2070, new ImmutableInstruction22x(Opcode.MOVE_FROM16, 158, 7));
         reader.set(2166, new ImmutableInstruction3rc(Opcode.INVOKE_DIRECT_RANGE, 4, 156, ref(POST, "<init>", VOID, parameters)));
         reader.set(2167, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 4));
-        reader.set(2180, invoke(Opcode.INVOKE_STATIC, ref("Lf7b;", "a", VOID, STRING), 0));
+        reader.set(2180, invoke(Opcode.INVOKE_STATIC, ref("Lbbb;", "a", VOID, STRING), 0));
         reader.set(2181, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 157));
         int error = 2168;
         if (patched && !fault.equals("missing-presence-hook")) {
@@ -1074,7 +1086,7 @@ public final class FeatureDexFixture {
         reader.set(2069, new ImmutableInstruction21t(Opcode.IF_NEZ, 0, codeOffset(reader, 2069, error)));
         if (patched && fault.equals("missing-error-return")) reader.set(error + 13, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0));
         List<Method> adapterMethods = new ArrayList<>(classes.get(adapter)); adapterMethods.removeIf(m -> m.getName().equals("fromJson"));
-        adapterMethods.add(method(adapter, "fromJson", OBJECT, false, 178, reader, "Le9b;")); classes.put(adapter, adapterMethods);
+        adapterMethods.add(method(adapter, "fromJson", OBJECT, false, 178, reader, "Ladb;")); classes.put(adapter, adapterMethods);
     }
 
     private static String postKey(String name) {
@@ -1128,6 +1140,119 @@ public final class FeatureDexFixture {
         classes.put(owner, List.of(method(owner, "launch", VOID, false, 3, body, CONTEXT)));
         if (hooked) classes.put(BASE + "ui/ReviewPrompts;", List.of(method(BASE + "ui/ReviewPrompts;", "skip", "Z", true, 1,
                 List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)))));
+    }
+
+    /** A provider hook asked with this (v[self]), its answer in v[answer], returned at once when true. */
+    private static List<Instruction> answerGuard(String hook, int self, int answer, boolean wrongReturn) {
+        List<Instruction> guard = new ArrayList<>(List.of(invoke(Opcode.INVOKE_STATIC, ref(SDK_STARTUP, hook, "Z", PROVIDER), self),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, answer)));
+        // The wrong return hands back a constant false, so what the provider returns no longer comes from the hook.
+        if (wrongReturn) guard.addAll(List.of(new ImmutableInstruction21t(Opcode.IF_EQZ, answer, 4),
+                new ImmutableInstruction11n(Opcode.CONST_4, answer, 0), new ImmutableInstruction11x(Opcode.RETURN, answer)));
+        else guard.addAll(List.of(new ImmutableInstruction21t(Opcode.IF_EQZ, answer, 3), new ImmutableInstruction11x(Opcode.RETURN, answer)));
+        return guard;
+    }
+
+    /** A context hook asked with the context parameter v[context], which takes its answer back. */
+    private static List<Instruction> contextGuard(String hook, int context, boolean inverted, Instruction... exit) {
+        int skip = 2;
+        for (Instruction i : exit) skip += i.getCodeUnits();
+        List<Instruction> guard = new ArrayList<>(List.of(invoke(Opcode.INVOKE_STATIC, ref(SDK_STARTUP, hook, CONTEXT, CONTEXT), context),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, context),
+                new ImmutableInstruction21t(inverted ? Opcode.IF_EQZ : Opcode.IF_NEZ, context, skip)));
+        guard.addAll(Arrays.asList(exit));
+        return guard;
+    }
+
+    /**
+     * The SDK launch entries the way Tumblr's build has them: Audience Network's static
+     * DynamicLoaderFactory initialize (v0 and v1 free, the context in v2) and its static code
+     * loader doMakeLoader (v0 and v1 free, the context in v2), which hands out the SDK's own
+     * fallback loader when guarded (or null in fallback-null), Vungle's and LiveRamp's
+     * providers (v0 free), Google Mobile Ads' attachInfo with no local and its static MobileAds
+     * initialize (the context in v2), and the Nimbus initializer's bridge create with no local.
+     * Unless clean, Hide ads guards the ad SDKs and Disable analytics LiveRamp, each first thing,
+     * by the flags set.
+     */
+    private static void sdkStartup(Map<String, List<Method>> classes, String variant) {
+        boolean clean = variant.equals("clean");
+        boolean ads = !clean && Boolean.TRUE.equals(FLAGS.get("hideAds"));
+        boolean liveRamp = !clean && Boolean.TRUE.equals(FLAGS.get("disableAnalytics"));
+        Map<String, String> hooks = Map.of(VUNGLE, "vungle", LIVERAMP, "liveRamp");
+        for (String owner : List.of(VUNGLE, LIVERAMP)) {
+            boolean guarded = owner.equals(LIVERAMP) ? liveRamp && !variant.equals("liveramp-missing")
+                    : ads && !variant.equals("missing");
+            List<Instruction> original = List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 1), new ImmutableInstruction11x(Opcode.RETURN, 0));
+            List<Instruction> body = new ArrayList<>();
+            if (guarded && owner.equals(VUNGLE) && variant.equals("provider-not-first")) {
+                // Asked only after the provider has already set its own answer.
+                body.add(original.get(0));
+                body.addAll(answerGuard(hooks.get(owner), 1, 0, false));
+                body.add(original.get(1));
+            } else {
+                if (guarded) body.addAll(answerGuard(hooks.get(owner), 1, 0, owner.equals(VUNGLE) && variant.equals("wrong-return")));
+                body.addAll(original);
+            }
+            classes.put(owner, List.of(method(owner, "onCreate", "Z", false, 2, body)));
+        }
+        String bundle = "Lcom/facebook/ads/internal/settings/MultithreadedBundleWrapper;";
+        String listener = "Lcom/facebook/ads/AudienceNetworkAds$InitListener;";
+        List<Instruction> loader = List.of(literal("fixture-audience", 0),
+                invoke(Opcode.INVOKE_STATIC, ref("Lfixture/AudienceLoader;", "start", VOID, CONTEXT, bundle, listener, "Z"), 2, 3, 4, 5), end());
+        List<Instruction> initialize = new ArrayList<>();
+        if (ads && variant.equals("not-first")) {
+            // Asked only after Audience Network has already started on its way.
+            initialize.add(loader.get(0));
+            initialize.addAll(contextGuard("audienceNetwork", 2, false, end()));
+            initialize.addAll(loader.subList(1, loader.size()));
+        } else {
+            if (ads) initialize.addAll(contextGuard("audienceNetwork", 2, false, end()));
+            initialize.addAll(loader);
+        }
+        List<Instruction> make = new ArrayList<>();
+        // wrong-fallback hands out another of the SDK's static loaders with the same type.
+        String handedOut = variant.equals("wrong-fallback") ? "makeOtherLoader" : "makeFallbackLoader";
+        if (ads) make.addAll(variant.equals("fallback-null")
+                ? contextGuard("audienceNetwork", 2, false, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 2))
+                : contextGuard("audienceNetwork", 2, false, invoke(Opcode.INVOKE_STATIC, ref(AUDIENCE_FALLBACK, handedOut, AUDIENCE_LOADER)),
+                        new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 2), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 2)));
+        make.addAll(List.of(invoke(Opcode.INVOKE_STATIC, ref("Lfixture/AudienceLoader;", "load", AUDIENCE_LOADER, CONTEXT, "Z"), 2, 3),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        classes.put(AUDIENCE, List.of(method(AUDIENCE, "initialize", VOID, true, 6, initialize, CONTEXT, bundle, listener, "Z"),
+                method(AUDIENCE, "doMakeLoader", AUDIENCE_LOADER, true, 4, make, CONTEXT, "Z")));
+        List<Method> loaders = new ArrayList<>();
+        for (String name : List.of("makeFallbackLoader", "makeOtherLoader")) loaders.add(method(AUDIENCE_FALLBACK, name, AUDIENCE_LOADER, true, 1,
+                List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0))));
+        classes.put(AUDIENCE_FALLBACK, loaders);
+        String complete = "Lcom/google/android/gms/ads/initialization/OnInitializationCompleteListener;";
+        List<Instruction> start = new ArrayList<>();
+        // context-register takes the answer into a free register, so Tumblr's code runs on the context it was handed.
+        if (ads && variant.equals("context-register")) start.addAll(List.of(
+                invoke(Opcode.INVOKE_STATIC, ref(SDK_STARTUP, "mobileAds", CONTEXT, CONTEXT), 2),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0), new ImmutableInstruction21t(Opcode.IF_NEZ, 0, 3), end()));
+        else if (ads) start.addAll(contextGuard("mobileAds", 2, false, end()));
+        start.add(invoke(Opcode.INVOKE_STATIC, ref("Lfixture/MobileAdsStart;", "start", VOID, CONTEXT, complete), 2, 3));
+        start.add(end());
+        classes.put(MOBILE_ADS_START, List.of(method(MOBILE_ADS_START, "initialize", VOID, true, 4, start, CONTEXT, complete)));
+        List<Instruction> attach = new ArrayList<>();
+        if (ads) attach.addAll(contextGuard("mobileAds", 1, variant.equals("context-inverted"), end()));
+        attach.add(invoke(Opcode.INVOKE_STATIC, ref("Lfixture/MobileAdsInit;", "attach", VOID, CONTEXT, "Landroid/content/pm/ProviderInfo;"), 1, 2));
+        attach.add(end());
+        classes.put(MOBILE_ADS, List.of(method(MOBILE_ADS, "attachInfo", VOID, false, 3, attach, CONTEXT, "Landroid/content/pm/ProviderInfo;")));
+        List<Instruction> create = new ArrayList<>();
+        if (ads) create.addAll(contextGuard("nimbus", 1, false, new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)));
+        create.addAll(List.of(invoke(Opcode.INVOKE_VIRTUAL, ref(NIMBUS, "b", VOID, CONTEXT), 0, 1), literal("fixture-unit", 0),
+                new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
+        classes.put(NIMBUS, List.of(method(NIMBUS, "create", OBJECT, false, 2, create, CONTEXT),
+                method(NIMBUS, "b", VOID, false, 2, List.of(end()), CONTEXT)));
+        if (!ads && !liveRamp) return;
+        // Each hook is v0 then its parameter, and answers once the settings are ready.
+        List<Method> answers = new ArrayList<>();
+        for (String name : List.of("vungle", "liveRamp")) answers.add(method(SDK_STARTUP, name, "Z", true, 2,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)), PROVIDER));
+        for (String name : List.of("audienceNetwork", "mobileAds", "nimbus")) answers.add(method(SDK_STARTUP, name, CONTEXT, true, 2,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), CONTEXT));
+        classes.put(SDK_STARTUP, answers);
     }
 
     private static void optionalNudges(Map<String, List<Method>> classes, String kind, String variant) {
@@ -1378,6 +1503,27 @@ public final class FeatureDexFixture {
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             reviewPrompt(classes, variant);
             write(root, "feature-review-" + variant, classes, true, "skipReviewPrompts");
+        }
+        // The SDK launch entries have a clean APK of their own, so every other Hide ads and Disable
+        // analytics fixture stays one whose build has none of those SDKs.
+        Map<String, List<Method>> sdkClean = new LinkedHashMap<>(clean);
+        sdkStartup(sdkClean, "clean");
+        write(root, "sdk-startup-clean", sdkClean, false);
+        for (String variant : List.of("good", "ads-only", "missing", "wrong-return", "not-first", "provider-not-first",
+                "context-inverted", "context-register", "fallback-null", "wrong-fallback", "false-capability", "liveramp-missing")) {
+            reset(); enable("hideAds");
+            boolean analytics = !variant.equals("ads-only");
+            if (analytics) enable("disableAnalytics");
+            if (variant.equals("false-capability")) FLAGS.put("adSdkStartup", false);
+            Map<String, List<Method>> classes = new LinkedHashMap<>(sdkClean);
+            classes.putAll(hosts(true));
+            timeline(classes, true);
+            featureSwitch(classes, true);
+            classes.remove(POST);
+            paidPostBridge(classes, "good");
+            sdkStartup(classes, variant);
+            write(root, "feature-sdk-startup-" + variant, classes, true,
+                    analytics ? new String[]{"hideAds", "disableAnalytics"} : new String[]{"hideAds"});
         }
         for (String variant : List.of("good", "missing", "wrong-return")) {
             reset(); enable("hideBlogNotificationReminders");

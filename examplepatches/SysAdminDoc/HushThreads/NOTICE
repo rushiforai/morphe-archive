@@ -11,17 +11,19 @@ HushThreads is built from Hushfacebook, its Facebook sibling. Its settings
 screen, diagnostics, shared extension library, build and release checks come
 from there, and through it from Hushfeed, which is built on
 icysymmetra/tiktok-patches-for-morphe, which is built on Morphe, which hard
-forked ReVanced. Some of the files Hushfacebook carries are rewritten from
-Andrew Liang's patches, which credit FroggoMorphePatches for some of their
-ideas and implementations. The Threads patches themselves are written here.
+forked ReVanced. The file that names the supported Threads builds and the
+patch list generator reached tiktok-patches-for-morphe from De-Vanced. Some
+of the files Hushfacebook carries are rewritten from Andrew Liang's patches,
+which credit FroggoMorphePatches for some of their ideas and implementations.
+The Threads patches themselves are written here.
 The place Hide ads takes ads out of the feed, the feed cache's merge, is the
 one zeldrisho/morphe-patches found. None of its code is used. The feed unit
 types Hide ads also reads as ads are the ones MrxSiN's ThreadsHideAds named,
 and none of its code is used either. The notices below are reproduced from
 those projects. Morphe requires its text to be carried in derivative works
 and shown to the person using the software, so it is also reachable in the
-app itself: long-press Threads' launcher icon, open HushThreads, then More
-settings, About and Licenses.
+app itself: long-press Threads' launcher icon, open HushThreads, then About
+and Licenses.
 
 Saving photos and videos comes from HushGram, the Instagram sibling, which
 took Hushfacebook's save engine and fitted it to Meta's media model that
@@ -30,9 +32,18 @@ Threads shares.
 The Restart row in settings, and the way Threads reopens on the same settings
 page after it, come from HushPinterest, the Pinterest sibling.
 
+The settings screen's look, with the logo header that folds away, sections
+that open in place and the Pause button in the top bar, was designed for
+HushGram and comes here through Hushfacebook.
+
+The Traditional Chinese translation started from the one NikolaJyun made in
+their HushThreads fork. Rows HushThreads shares with HushGram came from
+HushGram's Italian, Korean and Chinese tables.
+
   HushThreads                 https://github.com/SysAdminDoc/HushThreads
+  HushThreads (NikolaJyun)    https://github.com/NikolaJyun/HushThreads
   Hushfacebook                https://github.com/SysAdminDoc/Hushfacebook
-  Hushfacebook commits        814acd23d7b70d5d23abce6cb6c97767e16a051e, 88a7f512c1e97126ae6fb3cf05e3c152a39fb1fc
+  Hushfacebook commits        814acd23d7b70d5d23abce6cb6c97767e16a051e, 88a7f512c1e97126ae6fb3cf05e3c152a39fb1fc, 837bac40e866547bd2a2147c8eecf366aa0dddbe
   HushGram                    https://github.com/SysAdminDoc/HushGram
   HushPinterest               https://github.com/SysAdminDoc/HushPinterest
   Hushfeed                    https://github.com/SysAdminDoc/hushfeed
@@ -41,13 +52,15 @@ page after it, come from HushPinterest, the Pinterest sibling.
   morphe-patches (zeldrisho)  https://github.com/zeldrisho/morphe-patches
   ThreadsHideAds (MrxSiN)     https://github.com/MrxSiN/ThreadsHideAds
   tiktok-patches-for-morphe   https://github.com/icysymmetra/tiktok-patches-for-morphe
+  De-Vanced                   https://github.com/RookieEnough/De-Vanced
   morphe-patches              https://github.com/MorpheApp/morphe-patches
   morphe-patches-library      https://github.com/MorpheApp/morphe-patches-library
   ReVanced                    https://gitlab.com/ReVanced/revanced-patches
 
-Hushfacebook, HushGram, HushPinterest, Andrew Liang's patches,
-FroggoMorphePatches, zeldrisho's patches and MrxSiN's ThreadsHideAds are
-licensed under the GNU General Public License v3.0.
+Hushfacebook, HushGram, HushPinterest, NikolaJyun's HushThreads fork,
+Andrew Liang's patches, FroggoMorphePatches, zeldrisho's patches, MrxSiN's
+ThreadsHideAds and De-Vanced are licensed under the GNU General Public
+License v3.0.
 Files that came from another project keep a "Forked from" line naming it and
 the commit they came from, and provenance.json records every rule.
 
@@ -55,8 +68,8 @@ the commit they came from, and provenance.json records every rule.
 Morphe: Project Name Restriction
 --------------------------------
 
-Carried by Hushfeed, Andrew Liang's patches and FroggoMorphePatches from the
-Morphe patches template.
+Carried by De-Vanced, tiktok-patches-for-morphe, Hushfeed, Andrew Liang's
+patches and FroggoMorphePatches from the Morphe patches template.
 
 This license does not grant permission to use the name "Morphe", or any name, logo, or branding that is confusingly similar, as the name or primary identifying mark of any modified version, fork, or derivative work.
 

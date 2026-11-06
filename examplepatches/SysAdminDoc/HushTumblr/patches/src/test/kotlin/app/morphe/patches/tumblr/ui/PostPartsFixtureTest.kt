@@ -23,8 +23,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.experimental.categories.Category
 
@@ -71,15 +73,30 @@ class PostPartsFixtureTest {
             val tvBody = context.mutableClassDefBy(tv.method.definingClass).methods
                 .single { it.name == tv.method.name && it.parameterTypes == tv.method.parameterTypes }
                 .instructionList()
-            assertEquals("$where: two instructions added", tvBefore.size + 2, tvBody.size)
+            assertEquals("$where: four instructions added", tvBefore.size + 4, tvBody.size)
             assertEquals("$where: the extension is handed the tags", TV_TAGS_HOOK, tvBody[tv.at].methodRef()?.let {
                 "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" })
             assertEquals(where, listOf(tv.register), tvBody[tv.at].namedRegisters())
             assertEquals("$where: its answer is the tags", Opcode.MOVE_RESULT_OBJECT, tvBody[tv.at + 1].opcode)
             assertEquals(where, tv.register, (tvBody[tv.at + 1] as OneRegisterInstruction).registerA)
             assertEquals("$where: right before the split", tv.register, tvBody[tv.at + 2].namedRegisters().first())
-            assertEquals("$where: Tumblr's own code around it", tvBefore,
-                tvBody.filterIndexed { at, _ -> at != tv.at && at != tv.at + 1 }.map { it.opcode })
+
+            // The label's two come after the line is written, behind the tag hook's two.
+            val more = tv.moreAt + 2
+            assertEquals("$where: right after the line is written", "setText", tvBody[more - 1].methodRef()?.name)
+            assertEquals(where, tv.written, tvBody[more - 1].namedRegisters()[1])
+            assertEquals("$where: the label is read into a free local", Opcode.IGET_OBJECT, tvBody[more].opcode)
+            val read = tvBody[more] as TwoRegisterInstruction
+            assertEquals(where, tv.scratch, read.registerA)
+            assertEquals("$where: from the view itself", tv.self, read.registerB)
+            assertEquals(where, tv.more, tvBody[more].fieldRef()?.let { "${it.definingClass}->${it.name}:${it.type}" })
+            assertNotEquals("$where: the label isn't the line", tvBody[more - 2].fieldRef()?.name, tvBody[more].fieldRef()?.name)
+            assertEquals("$where: the extension is handed the label and the line", TV_MORE_HOOK,
+                tvBody[more + 1].methodRef()?.let {
+                    "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" })
+            assertEquals(where, listOf(tv.scratch, tv.written), tvBody[more + 1].namedRegisters())
+            assertEquals("$where: Tumblr's own code around them", tvBefore,
+                tvBody.filterIndexed { at, _ -> at !in setOf(tv.at, tv.at + 1, more, more + 1) }.map { it.opcode })
             assertSwitchedOn(context, build.name, "hideHashtags", "postTags")
         }
     }

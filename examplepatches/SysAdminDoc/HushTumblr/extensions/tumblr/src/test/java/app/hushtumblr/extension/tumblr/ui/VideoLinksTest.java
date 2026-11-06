@@ -98,7 +98,7 @@ public class VideoLinksTest {
         AlertDialog menu = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(menu);
         assertTrue(menu.isShowing());
-        assertEquals(Arrays.asList("Share video link", "Copy video link"), texts(shadowOf(menu).getItems()));
+        assertEquals(Arrays.asList("Share video link", "Copy video link", "Save video"), texts(shadowOf(menu).getItems()));
     }
 
     @Test public void shareHandsTheAddressToTheShareSheet() {

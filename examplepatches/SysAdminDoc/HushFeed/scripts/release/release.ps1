@@ -225,7 +225,7 @@ function Test-DeviceFree([string]$Device) {
 }
 
 function Get-Attached { @(adb.exe devices | Select-String '^(\S+)\s+device$' | ForEach-Object { $_.Matches[0].Groups[1].Value }) }
-
+function Unlock-Avd([string]$Device, [string]$Pin) { if ($Pin) { foreach ($step in @('keyevent', '82'), @('text', $Pin), @('keyevent', '66')) { Start-Sleep -Seconds 2; adb.exe -s $Device shell input @step | Out-Null } } }
 function Start-Avd([string]$Name) {
     foreach ($running in Get-Attached | Where-Object { $_ -like 'emulator-*' }) {
         if ("$(adb.exe -s $running emu avd name 2>$null)" -like "$Name *") {
@@ -240,7 +240,7 @@ function Start-Avd([string]$Name) {
     $deadline = (Get-Date).AddMinutes(5)
     while ((Get-Date) -lt $deadline) {
         Start-Sleep -Seconds 5
-        if ("$(adb.exe -s $started shell getprop sys.boot_completed 2>$null)" -match '1') { return @{ Serial = $started; Started = $true } }
+        if ("$(adb.exe -s $started shell getprop sys.boot_completed 2>$null)" -match '1') { Unlock-Avd $started (Get-MachineConfig).pins.$Name; return @{ Serial = $started; Started = $true } }
     }
     adb.exe -s $started emu kill 2>$null | Out-Null
     throw "$Name didn't boot in five minutes."
@@ -253,9 +253,9 @@ function Select-Device([string]$Package) {
     foreach ($candidate in $candidates) {
         if ($candidate -like 'avd:*') {
             $avd = Start-Avd $candidate.Substring(4)
-            if ($avd) { return $avd }
+            if ($avd) { $avd.Name = $candidate; return $avd }
         } elseif ($candidate -in $attached -and (Test-DeviceFree $candidate)) {
-            return @{ Serial = $candidate; Started = $false }
+            return @{ Name = $candidate; Serial = $candidate; Started = $false }
         }
     }
     throw "Every device for $Package is busy or offline: $($candidates -join ', '). Check whether a lease holder is idle, then rerun."
@@ -270,7 +270,7 @@ function Step-walk {
         # A walk that passed on this exact bundle stands.
         if ($state.walks[$package] -and $state.walks[$package].bundle -eq $state.bundle) { Say "$package already walked on this bundle"; continue }
         $device = Select-Device $package
-        $key = if ($config.keys.($device.Serial)) { $config.keys.($device.Serial) } else { $config.keys.default }
+        $key = @($config.keys.($device.Name), $config.keys.($device.Serial), $config.keys.default) | Where-Object { $_ } | Select-Object -First 1
         $patchArgs = @{ Apk = Get-Apk $package $target.PackageVersion; OutDir = (Join-Path $stateDir "patched-$package") }
         foreach ($property in $key.PSObject.Properties) { $patchArgs[$property.Name] = $property.Value }
         New-Item -ItemType Directory -Force -Path $patchArgs.OutDir | Out-Null

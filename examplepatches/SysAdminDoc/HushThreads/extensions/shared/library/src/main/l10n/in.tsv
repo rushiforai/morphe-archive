@@ -35,7 +35,7 @@ Debug logging	Pencatatan debug
 Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
 Diagnostic data put back.	Data diagnostik dikembalikan.
 Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
-Clears the saved log and patch check results that a report would include.	Menghapus log tersimpan dan hasil pemeriksaan patch yang akan dimuat dalam laporan.
+Clears the saved log, patch check results and any kept crash that a report would include.	Menghapus log tersimpan, hasil pemeriksaan patch, dan crash tersimpan yang akan dimuat dalam laporan.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
@@ -150,8 +150,6 @@ Pause, backup and diagnostics	Jeda, cadangan, dan diagnostik
 Updates	Pembaruan
 Jump to a section	Lompat ke bagian
 Go straight to one group of settings. Back returns to where you were.	Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.
-Browse settings	Jelajahi pengaturan
-More settings	Pengaturan lainnya
 No matching settings	Tidak ada pengaturan yang cocok
 %1$d setting found	%1$d pengaturan ditemukan
 %1$d settings found	%1$d pengaturan ditemukan
@@ -160,8 +158,6 @@ Search settings	Cari pengaturan
 Clear search	Hapus pencarian
 Saves	Penyimpanan
 No saves in progress.	Tidak ada penyimpanan yang berlangsung.
-Settings	Pengaturan
-Your controls are active.	Kontrol Anda aktif.
 Pause	Jeda
 Resume	Lanjutkan
 Undo	Urungkan
@@ -304,6 +300,10 @@ Posts	Postingan
 Copy text when you hold a post	Salin teks saat Anda menekan lama postingan
 Copy text on long press	Salin teks dengan tekan lama
 Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	Menekan lama teks postingan membuka Salin teks, juga di postingan yang sedang dibuka, jadi Anda mendapat seluruh postingan beserta tautannya, bukan memilih kata satu per satu.
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	Salin teks dan waktu posting yang tepat
+Show the date and time	Tampilkan tanggal dan waktu
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	Postingan dan balasan menampilkan tanggal dan waktu diposting, bukan berapa lama yang lalu, dalam format 12 atau 24 jam ponsel Anda.
 # Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
 Quick setups	Penyiapan cepat
 Quiet	Tenang
@@ -337,4 +337,42 @@ Not saved: the proxy wants a password. Try another network.	Tidak disimpan: prox
 The proxy wants a password. Try another network.	Proxy butuh kata sandi. Coba jaringan lain.
 # The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
 Settings shortcut on the app icon	Pintasan pengaturan di ikon aplikasi
-Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu, and you can still open these settings from the HushThreads row in Threads' settings or with a long press on the Threads logo.	Menaruh pengaturan HushThreads di menu yang muncul saat ikon Threads ditekan lama. Jika dimatikan, pintasan itu hilang dari menu tersebut, dan Anda tetap bisa membuka pengaturan ini dari baris HushThreads di pengaturan Threads atau dengan menekan lama logo Threads.
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Menaruh pengaturan HushThreads di menu yang muncul saat ikon Threads ditekan lama. Jika dimatikan, pintasan itu hilang dari menu tersebut.
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Baris di pengaturan Threads
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Menambahkan baris HushThreads tepat di atas Pengaturan lainnya di pengaturan Threads. Jika dimatikan, baris itu hilang saat Anda membuka pengaturan Threads berikutnya.
+Open settings from the logo	Buka pengaturan dari logo
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	Menekan lama logo Threads di bagian atas feed membuka pengaturan ini. Jika dimatikan, menekan lama tidak melakukan apa-apa.
+Stays on, since it's the only way left into these settings.	Tetap aktif karena ini satu-satunya jalan yang tersisa ke pengaturan ini.
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	Tampilkan semua pengaturan sebagai daftar
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	Tampilkan pengaturan per kategori
+# context: what a screen reader says about a section button that is folded open
+Expanded	Diperluas
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	Diciutkan
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	Bantuan
+# context: the line under the Support section button
+Reports, restart and app information	Laporan, mulai ulang, dan informasi aplikasi
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	Bantuan dan mulai ulang
+# context: small heading over the Ko-fi link in Support
+Support the project	Dukung proyek ini
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	Mulai ulang Threads
+Version %1$s	Versi %1$s
+Build %1$s (modified)	Build %1$s (diubah)
+Build %1$s (source known)	Build %1$s (sumber diketahui)
+Build %1$s (source unknown)	Build %1$s (sumber tidak diketahui)
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	Komentar
+Spam replies by words or links	Balasan spam berdasarkan kata atau tautan
+Filter comments	Saring komentar
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	Balasan yang cocok dengan pola di bawah tidak ditampilkan pada balasan sebuah postingan, jadi balasan spam tidak akan muncul. Sebuah balasan dan balasan yang tampil di bawahnya diperiksa dan disembunyikan bersama. Balasan biasa tetap dalam urutannya.
+Blocked words and domains	Kata dan domain yang diblokir
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	Satu pola per baris, atau dipisahkan koma. Domain toko seperti shopee.vn menghapus balasan yang menautkannya.
+One pattern a line, or separated by commas. Matched whatever the letter case.	Satu pola per baris, atau dipisahkan koma. Dicocokkan tanpa membedakan huruf besar-kecil.
+Hide comments with links	Sembunyikan komentar yang berisi tautan
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Balasan yang memuat tautan web tidak ditampilkan, apa pun polanya. Tambahkan nama situs saja seperti shopee.vn sebagai pola.

@@ -29,6 +29,7 @@ public final class NgEditGesture {
 
     public static boolean onGesture(View view, int gesture, android.graphics.PointF start) {
         if (gesture == 0 || !view.isShown()) return false;
+        if (assigned(view, gesture, OpenTabsRefresh.GESTURE)) return OpenTabsRefresh.gesture(view);
         if (assigned(view, gesture, DeleteReadThreads.KEY)) return DeleteReadThreads.gesture(view, start);
         if (!assigned(view, gesture)) return false;
         return handle(view, ACTION);
@@ -56,8 +57,9 @@ public final class NgEditGesture {
     public static Object preview(View view, int gesture, Object original) {
         if (original != null || gesture == 0) return original;
         boolean delete = assigned(view, gesture, DeleteReadThreads.KEY);
-        if (!delete && !assigned(view, gesture)) return original;
-        String label = delete ? "既読スレをすべて削除" : "NG編集";
+        boolean refresh = assigned(view, gesture, OpenTabsRefresh.GESTURE);
+        if (!delete && !refresh && !assigned(view, gesture)) return original;
+        String label = delete ? "既読スレをすべて削除" : refresh ? "開いているスレ・板を一括更新" : "NG編集";
         synchronized (NgEditGesture.class) {
             Class<?> owner = view.getClass();
             // Preference assignment can change without changing the gesture sequence.

@@ -18,14 +18,14 @@ body:
     attributes:
       label: HushThreads and Threads versions
       description: Long-press the Threads icon and tap HushThreads, or open Threads' App info page and tap Additional settings in the app. Copy the version line under the HushThreads title. If the screen opens on category pages, open About and copy the Version line.
-      placeholder: Version 0.0.16 for Threads 452.0.0.50.64
+      placeholder: Version 0.0.17 for Threads 454.0.0.54.79
     validations:
       required: true
   - type: input
     id: variant
     attributes:
       label: Which Threads file did you patch?
-      description: Where it came from, its architecture, and whether you gave the patcher an .xapk or .apkm bundle or a single .apk, if you know them. Most bugs on a build that should work come from a different variant.
+      description: Where it came from, its architecture, and whether you gave the patcher an .xapk or .apkm bundle or a single .apk, if you know them. Most bugs on a build that should work come from a different variant, and an install that fails with INSTALL_FAILED_NO_MATCHING_ABIS means the file is for another processor.
       placeholder: arm64-v8a, an .xapk bundle
   - type: dropdown
     id: manager
@@ -42,7 +42,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 2.3.0
+      placeholder: Morphe Manager 2.4.0
     validations:
       required: true
   - type: dropdown
@@ -78,6 +78,7 @@ body:
         - Disable screenshot detection
         - Disable swipe to Search
         - Disable video autoplay
+        - Filter comments
         - Hide ads
         - Hide ghost post bubbles
         - Hide suggested users
@@ -91,6 +92,7 @@ body:
         - Restore screens on re-signed builds
         - Sanitize sharing links
         - Save photos and videos
+        - Show exact post times
         - Trust user-added certificates
     validations:
       required: true

@@ -564,6 +564,12 @@ public class Settings extends BaseSettings {
     /** A long press on the Home tab opens Hushfeed's settings (#45). TikTok gives that press nothing of its own. */
     public static final BooleanSetting HOME_TAB_OPENS_SETTINGS = new BooleanSetting("home_tab_opens_settings", TRUE);
     /**
+     * The Home tab turns into a search button (#338): its icon and name read Search, a tap opens
+     * TikTok's search instead of the feed, and a start from the icon lands on Inbox or Profile.
+     * Home is a tab the bottom tab filter can't drop, so this is how a reader gets rid of it.
+     */
+    public static final BooleanSetting SEARCH_INSTEAD_OF_HOME = new BooleanSetting("search_instead_of_home", FALSE);
+    /**
      * A long press on the Profile tab opens TikTok's Watch history (#199). Off by default: on some
      * accounts that press is TikTok's account switcher, which this takes over while it's on.
      */
@@ -716,6 +722,12 @@ public class Settings extends BaseSettings {
     /** TikTok's key for that pick ("hd", "origin" and so on), saved from its picker. Never shown. */
     public static final StringSetting REMEMBERED_LIVE_QUALITY = new StringSetting("remembered_live_quality", "");
     /**
+     * Adds Audio only to a LIVE room's Video quality list when the room's stream has its sound on
+     * its own (#265); the LIVE controls patch. Read as the list opens and as the player switches,
+     * so no restart. A pick lasts for that room only. See LiveAudioOnly.
+     */
+    public static final BooleanSetting LIVE_AUDIO_ONLY = new BooleanSetting("live_audio_only", FALSE);
+    /**
      * Offers clear screen in every LIVE room's menu (#57); the LIVE controls patch. Read as a
      * room builds its menu, so the next menu follows a change.
      */
@@ -743,6 +755,17 @@ public class Settings extends BaseSettings {
      * the phone's screen. Read as each recording starts, so no restart.
      */
     public static final StringSetting LIVE_RECORD_SOURCE = new StringSetting("live_record_source", "stream");
+    /**
+     * Puts an Auto tap button in LIVE rooms (#335); the LIVE controls patch. Tapping it sends taps
+     * to the stream until it is tapped again or the room is left. Read as a room resumes and on the
+     * chip's once-a-second check, so no restart.
+     */
+    public static final BooleanSetting LIVE_AUTO_TAP = new BooleanSetting("live_auto_tap", FALSE);
+    /**
+     * How many taps a second Auto tap sends (#335), "2" to "8"; anything else reads as 4 and more
+     * than 8 as 8. Read as tapping starts, so no restart.
+     */
+    public static final StringSetting LIVE_AUTO_TAP_RATE = new StringSetting("live_auto_tap_rate", "4");
     /**
      * Plays the audio TikTok mutes on a post whose sound was pulled; the Keep pulled sounds
      * patch. Read as each video starts, so no restart.
@@ -773,6 +796,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting PROFILE_GRID_SORT = new StringSetting("profile_grid_sort", "off");
     /** The Liked tab's own order (#180): "profile" follows PROFILE_GRID_SORT, otherwise one of GridSort's orders. */
     public static final StringSetting LIKED_GRID_SORT = new StringSetting("liked_grid_sort", "profile");
+    /** The order of a sound page's video grid (#180): off, or one of GridSort's orders. */
+    public static final StringSetting SOUND_GRID_SORT = new StringSetting("sound_grid_sort", "off");
     public static final BooleanSetting SHOW_EXACT_COUNTS = new BooleanSetting("show_exact_counts", FALSE);
     public static final BooleanSetting CLEAR_DISPLAY = new BooleanSetting("clear_display", FALSE);
     /** Clear display turned on by hand carries to the next video. Off, each video starts with its controls (#232). */
@@ -789,6 +814,12 @@ public class Settings extends BaseSettings {
     public static final StringSetting HOLD_SPEED = new StringSetting("hold_speed", "2");
     /** Sliding sideways during the hold changes its speed, with a bubble that shows it (#248). */
     public static final BooleanSetting HOLD_SPEED_SLIDE = new BooleanSetting("hold_speed_slide", FALSE);
+    /** How that bubble looks: the pill, or the round dial adapted from OmerKurdi79's fork (#248). */
+    public static final StringSetting HOLD_SPEED_HUD_STYLE = new StringSetting(
+            "hold_speed_hud_style", "pill", false, Setting.parent(HOLD_SPEED_SLIDE));
+    /** Which way that slide goes: sideways with TikTok's pull-down lock, or up and down with a sideways lock (#248). */
+    public static final StringSetting HOLD_SPEED_SLIDE_AXIS = new StringSetting(
+            "hold_speed_slide_axis", "sideways", false, Setting.parent(HOLD_SPEED_SLIDE));
     /** Leaves out TikTok's message when a speed is picked from the menu or locked with a hold (#248). */
     public static final BooleanSetting HIDE_SPEED_TOASTS = new BooleanSetting("hide_speed_toasts", FALSE);
     public static final BooleanSetting AUTO_ADVANCE = new BooleanSetting("auto_advance", FALSE, true);
@@ -1168,6 +1199,12 @@ public class Settings extends BaseSettings {
     /** The banner at the top of the Inbox that invites you to start a group chat. */
     public static final BooleanSetting HIDE_INBOX_GROUP_CHAT_BANNER =
             new BooleanSetting("hide_inbox_group_chat_banner", FALSE);
+    /**
+     * TikTok's Main, Requests, Unread and Starred tabs above the chat list, which it otherwise
+     * gives only creator and business accounts. Read when the Inbox is built. See InboxFilterTabs.
+     */
+    public static final BooleanSetting SHOW_INBOX_FILTERS =
+            new BooleanSetting("show_inbox_filters", FALSE, true);
     public static final BooleanSetting EXPAND_ACTIVITY_LIST = new BooleanSetting("expand_activity_list", FALSE);
     /** Chat screen clutter. Each is off by default and read live when a chat opens. */
     public static final BooleanSetting HIDE_CHAT_CALL_BUTTONS =
@@ -1210,6 +1247,12 @@ public class Settings extends BaseSettings {
     /** A long press on For You opens that list over the feed instead of these settings (#172). */
     public static final BooleanSetting FOR_YOU_HOLD_OPENS_WATCH_HISTORY = new BooleanSetting(
             "for_you_hold_opens_watch_history", FALSE, Setting.parent(LOCAL_WATCH_HISTORY));
+    /**
+     * A long press on the Profile tab opens that list, in place of TikTok's Watch history or its
+     * account switcher, so For You can keep opening these settings (#172).
+     */
+    public static final BooleanSetting PROFILE_HOLD_OPENS_LOCAL_WATCH_HISTORY = new BooleanSetting(
+            "profile_hold_opens_local_watch_history", FALSE, Setting.parent(LOCAL_WATCH_HISTORY));
     public static final BooleanSetting HIDE_PLAYLIST_BAR = new BooleanSetting("hide_playlist_bar", FALSE, true);
     public static final BooleanSetting HIDE_EVENT_BADGE = new BooleanSetting("hide_event_badge", FALSE, true);
     public static final BooleanSetting HIDE_INSERTED_CARDS = new BooleanSetting("hide_inserted_cards", FALSE, true);
@@ -1361,6 +1404,8 @@ public class Settings extends BaseSettings {
     // Read each time TikTok builds a video's caption strips, so no restart.
     public static final BooleanSetting HIDE_CREATION_TAGS = new BooleanSetting("hide_creation_tags", FALSE);
     public static final BooleanSetting HIDE_SEARCH_SUGGESTIONS = new BooleanSetting("hide_search_suggestions", FALSE);
+    // The Discover page checks it before each draw, so no restart (#338).
+    public static final BooleanSetting DISCOVER_SEARCH_BAR_ONLY = new BooleanSetting("discover_search_bar_only", FALSE);
     public static final BooleanSetting STOP_SEARCH_AUTOPLAY = new BooleanSetting("stop_search_autoplay", FALSE);
     /**
      * Has TikTok read its own HD upload choice as on; the Always upload in HD patch. Read as each

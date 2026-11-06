@@ -1,11 +1,12 @@
 <#
 .SYNOPSIS
-    Offline contracts for walk-app-core.ps1: what the walk taps, how it tells the settings pages
-    apart, which logcat lines are Threads crashes, and when a walk is PASS.
+    Offline contracts for walk-app-core.ps1: what the walk taps, how it tells the settings main
+    page and an open section apart, which logcat lines are Threads crashes, and when a walk is PASS.
 .DESCRIPTION
     test-script-contracts.ps1 runs this, so the push gate holds it for every script change. The
-    dumps below were recorded on Threads 452.0.0.50.64 (emulator-5580, 1080x2400), cut to the rows
-    the walk reads.
+    Threads dumps below were recorded on Threads 452.0.0.50.64 (emulator-5580, 1080x2400), cut to
+    the rows the walk reads. The HushThreads settings dumps follow the view tree SettingsDialog and
+    SettingsNavigation build, at the same size.
 #>
 [CmdletBinding()]
 param([string]$Root, [string]$Java, [string]$DesktopJar, [string]$Aapt2)
@@ -18,76 +19,161 @@ function Assert-WalkContract([bool]$Condition, [string]$Message) {
     if (-not $Condition) { throw $Message }
 }
 
-# The settings pages come from SettingsNavigation.java, in the order home lists them.
+# The settings sections come from SettingsNavigation.java, in the order the main page lists
+# their headers, with Support last.
 $sections = @(Get-WalkSections -Root $Root)
-Assert-WalkContract ($sections.Count -eq 10 -and $sections[0] -ceq 'Feed' -and $sections[-1] -ceq 'About' -and
-    $sections -ccontains 'Pause, backup and diagnostics') "Get-WalkSections read: $($sections -join ', ')"
+Assert-WalkContract ($sections.Count -eq 12 -and $sections[0] -ceq 'Feed' -and $sections[-2] -ceq 'About' -and $sections[-1] -ceq 'Support' -and
+    $sections[-4] -ceq 'Set when you patched' -and $sections[-3] -ceq 'Pause, backup and diagnostics') "Get-WalkSections read: $($sections -join ', ')"
 
 function New-WalkDump([string[]]$Rows) {
     $pkg = 'package="com.instagram.barcelona"'
     $xmlRows = foreach ($row in $Rows) { $row.Replace('PKG', $pkg) }
     "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?><hierarchy rotation=`"0`">$($xmlRows -join '')</hierarchy>"
 }
-$header = @(
-    '<node text="" resource-id="" class="android.widget.Button" PKG content-desc="Back" clickable="true" bounds="[42,254][168,380]" />'
-    '<node text="HushThreads" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[210,254][1038,297]" />'
+# The bar pinned over the settings: Back (read as a Button), and Pause. The page's name sits
+# beside Back, hidden while the header under the bar shows "HushThreads".
+$bar = @(
+    '<node text="" resource-id="" class="android.widget.Button" PKG content-desc="Back" clickable="true" bounds="[11,140][137,266]" />'
+    '<node text="Pause" resource-id="" class="android.widget.Button" PKG content-desc="" clickable="true" bounds="[860,156][1048,250]" />'
 )
-$homeDump = New-WalkDump (@($header) + @(
-        '<node text="Settings" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[210,297][1038,396]" />'
-        '<node text="Search settings" resource-id="" class="android.widget.EditText" PKG content-desc="Search settings" clickable="true" bounds="[147,433][912,570]" />'
-        '<node text="HushThreads is on" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[246,683][600,740]" />'
-        '<node text="Pause" resource-id="" class="android.widget.Button" PKG content-desc="" clickable="true" bounds="[820,672][1006,798]" />'
-        '<node text="Quick setups" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,935][481,992]" />'
-        '<node text="BROWSE SETTINGS" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[0,1192][1080,1307]" />'
-        '<node text="" resource-id="" class="android.widget.Button" PKG content-desc="" clickable="true" bounds="[0,1307][1080,1570]">'
-        '<node text="Feed" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1362][329,1419]" />'
-        '<node text="Ads and suggested accounts in your feed" resource-id="android:id/summary" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1419][922,1515]" />'
-        '</node>'
-        '<node text="Privacy" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1638][376,1695]" />'
-        '<node text="" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[0,591][1080,592]" />'
+$barTitle = '<node text="HushThreads" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[158,170][840,236]" />'
+$listToggle = '<node text="Show all settings as a list" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[152,800][860,850]" />'
+# The top of the main page: the header, search, the one-pixel line screen readers hear, the toggle and Quick setups.
+$top = @($bar) + @(
+    '<node text="HushThreads" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[42,420][560,500]" />'
+    '<node text="Version 0.0.16 for Threads 454.0.0.48.79" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[42,500][900,550]" />'
+    '<node text="Search settings" resource-id="" class="android.widget.EditText" PKG content-desc="Search settings" clickable="true" bounds="[147,590][912,716]" />'
+    '<node text="" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[0,760][1080,761]" />'
+    '<node text="" resource-id="" class="android.widget.Button" PKG content-desc="" clickable="true" bounds="[0,762][1080,888]">'
+    $listToggle
+    '</node>'
+    '<node text="Quick setups" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,935][481,992]" />'
+)
+$feedHeader = @(
+    '<node text="" resource-id="" class="android.widget.Button" PKG content-desc="" clickable="true" bounds="[0,1060][1080,1323]">'
+    '<node text="Feed" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1115][329,1172]" />'
+    '<node text="Ads and suggested accounts in your feed" resource-id="android:id/summary" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1172][922,1268]" />'
+    '</node>'
+)
+$hideAds = @(
+    '<node text="" resource-id="" class="android.widget.Switch" PKG content-desc="" clickable="true" bounds="[0,1323][1080,1600]">'
+    '<node text="Hide ads" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1378][403,1435]" />'
+    '<node text="" resource-id="android:id/switch_widget" class="android.widget.Switch" PKG content-desc="" clickable="false" bounds="[885,1430][1006,1498]" />'
+    '</node>'
+)
+$homeDump = New-WalkDump (@($top) + @($feedHeader) + @(
+        '<node text="Privacy" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1390][376,1447]" />'
     ))
-$feedDump = New-WalkDump (@($header) + @(
-        '<node text="Feed" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[210,297][1038,396]" />'
-        '<node text="" resource-id="" class="android.widget.Switch" PKG content-desc="" clickable="true" bounds="[0,433][1080,794]">'
-        '<node text="Hide ads" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,488][403,545]" />'
-        '<node text="" resource-id="android:id/switch_widget" class="android.widget.Switch" PKG content-desc="" clickable="false" bounds="[885,556][1006,624]" />'
-        '</node>'
+# Feed opened in place: its rows go in under its header and push Privacy down.
+$feedOpenDump = New-WalkDump (@($top) + @($feedHeader) + @($hideAds) + @(
+        '<node text="Privacy" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,2150][376,2207]" />'
     ))
-# A Threads screen whose own text happens to read HushThreads and Feed, with no settings header.
+# The list view: each section's heading, in capitals the way the dump reads it, over all of its
+# rows, and the toggle offers the headers again.
+$listDump = New-WalkDump (@($top | ForEach-Object { $_.Replace('Show all settings as a list', 'Show settings by category') }) + @(
+        '<node text="FEED" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[0,1060][1080,1185]" />'
+    ) + @($hideAds) + @(
+        '<node text="PRIVACY" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[0,1650][1080,1775]" />'
+    ))
+# Scrolled to the end: the header and search are gone under the bar, which names the page now.
+$buildLine = '<node text="Build sha256=1a2b3c" resource-id="android:id/summary" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[42,1800][1038,1840]" />'
+$scrolledDump = New-WalkDump (@($bar) + @($barTitle) + @(
+        '<node text="About" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1200][356,1257]" />'
+        '<node text="Support" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1500][390,1557]" />'
+        $buildLine
+    ))
+$supportOpenDump = New-WalkDump (@($bar) + @($barTitle) + @(
+        '<node text="Support" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,900][390,957]" />'
+        '<node text="Help and restart" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[42,1080][400,1130]" />'
+        '<node text="Report a problem" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1180][560,1237]" />'
+        '<node text="Restart Threads" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1380][540,1437]" />'
+        '<node text="Support the project" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[42,1560][440,1610]" />'
+        '<node text="Support HushThreads" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,1660][640,1717]" />'
+        $buildLine
+    ))
+# A page the main page opens: its own name in the bar, no header and no search.
+$quickSetupsDump = New-WalkDump (@($bar) + @(
+        '<node text="Quick setups" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[158,170][840,236]" />'
+        '<node text="Quiet" resource-id="android:id/title" class="android.widget.TextView" PKG content-desc="" clickable="false" bounds="[236,400][360,457]" />'
+    ))
+# A Threads screen whose own text happens to read HushThreads and Feed, with no settings bar.
 $threadsDump = New-WalkDump @(
     '<node text="HushThreads" resource-id="com.instagram.barcelona:id/username" class="android.widget.TextView" PKG content-desc="" clickable="true" bounds="[210,254][1038,297]" />'
     '<node text="Feed" resource-id="" class="android.widget.TextView" PKG content-desc="" clickable="true" bounds="[400,2250][680,2337]" />'
 )
 
 $homeNodes = @(ConvertFrom-UiDump -Xml $homeDump)
-$feedNodes = @(ConvertFrom-UiDump -Xml $feedDump)
-Assert-WalkContract ((Get-WalkSettingsPage -Nodes $homeNodes -Sections $sections) -ceq 'home') 'The settings home dump did not read as home.'
-Assert-WalkContract ((Get-WalkSettingsPage -Nodes $feedNodes -Sections $sections) -ceq 'Feed') 'The Feed page dump did not read as Feed.'
-Assert-WalkContract ($null -eq (Get-WalkSettingsPage -Nodes @(ConvertFrom-UiDump -Xml $threadsDump) -Sections $sections)) 'A Threads screen read as a settings page.'
-Assert-WalkContract ($null -eq (Get-WalkSettingsPage -Nodes @() -Sections $sections)) 'An empty dump read as a settings page.'
-# A page hides the search box, so a page name over a search box isn't a page the walk opened.
-$searchUnderFeed = @(ConvertFrom-UiDump -Xml $homeDump.Replace('text="Settings"', 'text="Feed"'))
-Assert-WalkContract ($null -eq (Get-WalkSettingsPage -Nodes $searchUnderFeed -Sections $sections)) 'A page name over the search box read as that page.'
+$feedOpenNodes = @(ConvertFrom-UiDump -Xml $feedOpenDump)
+$listNodes = @(ConvertFrom-UiDump -Xml $listDump)
+$scrolledNodes = @(ConvertFrom-UiDump -Xml $scrolledDump)
+$supportOpenNodes = @(ConvertFrom-UiDump -Xml $supportOpenDump)
+$quickSetupsNodes = @(ConvertFrom-UiDump -Xml $quickSetupsDump)
+$threadsNodes = @(ConvertFrom-UiDump -Xml $threadsDump)
+foreach ($case in @(
+        @{ Why = 'The main page at its top'; Nodes = $homeNodes }
+        @{ Why = 'The main page with Feed open'; Nodes = $feedOpenNodes }
+        @{ Why = 'The list view'; Nodes = $listNodes }
+        @{ Why = 'The main page scrolled under the bar'; Nodes = $scrolledNodes })) {
+    Assert-WalkContract ((Get-WalkSettingsPage -Nodes $case.Nodes) -ceq 'home') "$($case.Why) did not read as the settings main page."
+}
+foreach ($case in @(
+        @{ Why = 'Quick setups'; Nodes = $quickSetupsNodes }
+        @{ Why = 'A Threads screen'; Nodes = $threadsNodes }
+        @{ Why = 'An empty dump'; Nodes = @() }
+        @{ Why = 'The header without the Back button'; Nodes = @($homeNodes | Where-Object Desc -cne 'Back') }
+        @{ Why = 'The bar without the page name'; Nodes = @($scrolledNodes | Where-Object Text -cne 'HushThreads') })) {
+    Assert-WalkContract ($null -eq (Get-WalkSettingsPage -Nodes $case.Nodes)) "$($case.Why) read as the settings main page."
+}
 
 $feedRow = Find-WalkSectionRow -Nodes $homeNodes -Section 'Feed'
-Assert-WalkContract ($feedRow -and $feedRow.X -eq 282 -and $feedRow.Y -eq 1390) "The Feed row was found at $($feedRow.X),$($feedRow.Y), not 282,1390."
-Assert-WalkContract ($null -eq (Find-WalkSectionRow -Nodes $homeNodes -Section 'Downloads')) 'A page whose row is off screen was found.'
-Assert-WalkContract ($null -eq (Find-WalkSectionRow -Nodes $feedNodes -Section 'Feed')) "The Feed page's own header was taken for its row."
+Assert-WalkContract ($feedRow -and $feedRow.X -eq 282 -and $feedRow.Y -eq 1143) "The Feed header was found at $($feedRow.X),$($feedRow.Y), not 282,1143."
+Assert-WalkContract ($null -eq (Find-WalkSectionRow -Nodes $homeNodes -Section 'Downloads')) 'A section whose header is off screen was found.'
+# Open is a row of the section under its header, folded is the next header or nothing under it.
+foreach ($case in @(
+        @{ Why = 'Feed with Privacy under it'; Nodes = $homeNodes; Section = 'Feed'; State = 'closed' }
+        @{ Why = 'Feed with Hide ads under it'; Nodes = $feedOpenNodes; Section = 'Feed'; State = 'open' }
+        @{ Why = 'Privacy at the bottom of the screen'; Nodes = $feedOpenNodes; Section = 'Privacy'; State = 'closed' }
+        @{ Why = 'About with Support under it'; Nodes = $scrolledNodes; Section = 'About'; State = 'closed' }
+        @{ Why = 'Support with only the build line under it'; Nodes = $scrolledNodes; Section = 'Support'; State = 'closed' }
+        @{ Why = 'Support with its rows under it'; Nodes = $supportOpenNodes; Section = 'Support'; State = 'open' }
+        @{ Why = "The list view's Feed heading over its rows"; Nodes = $listNodes; Section = 'Feed'; State = 'open' }
+        @{ Why = "The list view's Privacy heading at the bottom"; Nodes = $listNodes; Section = 'Privacy'; State = 'closed' }
+        @{ Why = 'Downloads off screen'; Nodes = $homeNodes; Section = 'Downloads'; State = $null })) {
+    $state = Get-WalkSectionState -Nodes $case.Nodes -Section $case.Section -Sections $sections
+    Assert-WalkContract ($state -ceq $case.State) "$($case.Why) read as '$state', not '$($case.State)'."
+}
+$listLabel = Find-WalkViewToggle -Nodes $homeNodes
+Assert-WalkContract ($listLabel -and $listLabel.Text -ceq $WalkListToggle -and $listLabel.X -eq 506 -and $listLabel.Y -eq 825) "The list view toggle was found at $($listLabel.X),$($listLabel.Y), not 506,825."
+Assert-WalkContract ((Find-WalkViewToggle -Nodes $listNodes).Text -ceq $WalkCategoryToggle) "The list view's toggle didn't offer the sections again."
+Assert-WalkContract ($null -eq (Find-WalkViewToggle -Nodes $scrolledNodes)) 'A toggle scrolled away under the bar was found.'
+# The dump still lists the toggle once it has slid up under the bar, as a phone's does.
+$underBarNodes = @(ConvertFrom-UiDump -Xml (New-WalkDump (@($bar) + @($barTitle) + @($listToggle.Replace('[152,800][860,850]', '[152,180][860,230]')))))
+Assert-WalkContract ($null -eq (Find-WalkViewToggle -Nodes $underBarNodes)) 'A toggle under the bar, where a tap lands on the bar, was found.'
+Assert-WalkContract ($null -eq (Find-WalkViewToggle -Nodes @(ConvertFrom-UiDump -Xml (New-WalkDump @($listToggle))))) "The toggle's words read as the toggle off the settings main page."
+Assert-WalkContract (Test-WalkTapAllowed -Node $listLabel -Sections $sections -Nodes $homeNodes) 'The walk refused the toggle under the search.'
+Assert-WalkContract (-not (Test-WalkTapAllowed -Node $listLabel -Sections $sections)) 'The walk would tap the toggle without the screen it came from.'
+Assert-WalkContract (-not (Test-WalkTapAllowed -Node $listLabel -Sections $sections -Nodes $quickSetupsNodes)) 'The walk would tap the toggle on a page other than the main page.'
 
 # What the walk refuses to tap, whatever a lookup hands it.
 $refused = @(
-    @{ Why = 'Quick setups'; Node = ($homeNodes | Where-Object Text -ceq 'Quick setups') }
-    @{ Why = 'the Pause button'; Node = ($homeNodes | Where-Object Text -ceq 'Pause') }
-    @{ Why = 'a Feed node without the title id'; Node = ($homeNodes | Where-Object { $_.Text -ceq 'Feed' } | Select-Object -First 1 | ForEach-Object { $copy = $_.PSObject.Copy(); $copy.Id = 'summary'; $copy }) }
-    @{ Why = 'a one-pixel Feed title'; Node = ($feedRow.PSObject.Copy() | ForEach-Object { $_.Bottom = $_.Top + 1; $_ }) }
-    @{ Why = "another app's Feed title"; Node = ($feedRow.PSObject.Copy() | ForEach-Object { $_.Package = 'com.instagram.android'; $_ }) }
-    @{ Why = 'a Hide ads switch'; Node = ($feedNodes | Where-Object Text -ceq 'Hide ads') }
+    @{ Why = 'Quick setups'; Node = ($homeNodes | Where-Object Text -ceq 'Quick setups'); OnScreen = $homeNodes }
+    @{ Why = 'the Pause button'; Node = ($homeNodes | Where-Object Text -ceq 'Pause'); OnScreen = $homeNodes }
+    @{ Why = 'the Back button'; Node = ($homeNodes | Where-Object Desc -ceq 'Back'); OnScreen = $homeNodes }
+    @{ Why = 'the search box'; Node = ($homeNodes | Where-Object Class -ceq 'android.widget.EditText'); OnScreen = $homeNodes }
+    @{ Why = 'a Feed node without the title id'; Node = ($homeNodes | Where-Object { $_.Text -ceq 'Feed' } | Select-Object -First 1 | ForEach-Object { $copy = $_.PSObject.Copy(); $copy.Id = 'summary'; $copy }); OnScreen = $homeNodes }
+    @{ Why = 'a one-pixel Feed title'; Node = ($feedRow.PSObject.Copy() | ForEach-Object { $_.Bottom = $_.Top + 1; $_ }); OnScreen = $homeNodes }
+    @{ Why = "another app's Feed title"; Node = ($feedRow.PSObject.Copy() | ForEach-Object { $_.Package = 'com.instagram.android'; $_ }); OnScreen = $homeNodes }
+    @{ Why = 'a Hide ads switch'; Node = ($feedOpenNodes | Where-Object Text -ceq 'Hide ads'); OnScreen = $feedOpenNodes }
+    @{ Why = 'Report a problem'; Node = ($supportOpenNodes | Where-Object Text -ceq 'Report a problem'); OnScreen = $supportOpenNodes }
+    @{ Why = 'Restart Threads'; Node = ($supportOpenNodes | Where-Object Text -ceq 'Restart Threads'); OnScreen = $supportOpenNodes }
+    @{ Why = 'the Ko-fi row'; Node = ($supportOpenNodes | Where-Object Text -ceq 'Support HushThreads'); OnScreen = $supportOpenNodes }
 )
 foreach ($case in $refused) {
     Assert-WalkContract ($null -ne $case.Node) "The fixture for $($case.Why) is missing."
-    Assert-WalkContract (-not (Test-WalkTapAllowed -Node $case.Node -Sections $sections)) "The walk would tap $($case.Why)."
+    Assert-WalkContract (-not (Test-WalkTapAllowed -Node $case.Node -Sections $sections -Nodes $case.OnScreen)) "The walk would tap $($case.Why)."
 }
-Assert-WalkContract (Test-WalkTapAllowed -Node $feedRow -Sections $sections) 'The walk refused the Feed row itself.'
+Assert-WalkContract (Test-WalkTapAllowed -Node $feedRow -Sections $sections) 'The walk refused the Feed header itself.'
+Assert-WalkContract (Test-WalkTapAllowed -Node (Find-WalkSectionRow -Nodes $supportOpenNodes -Section 'Support') -Sections $sections) 'The walk refused the Support header.'
 
 # Threads' screens and the way into its settings, cut from the same recordings.
 function New-WalkNode([string]$Id, [string]$Bounds, [string]$Text = '', [string]$Desc = '', [string]$Class = 'android.view.View') {
@@ -463,7 +549,7 @@ Assert-WalkContract ($taps.Count -eq 1 -and $walkSource -cmatch "'input', 'tap',
     'walk-app.ps1 taps something other than the node Invoke-WalkTap was handed.'
 Assert-WalkContract ($walkSource -cmatch '(?s)function Invoke-WalkTap\(\$Row, \[object\[\]\]\$OnScreen\) \{\s*if \(-not \(Test-WalkTapAllowed -Node \$Row -Sections \$sections -Nodes \$OnScreen\)\) \{\s*throw') `
     "walk-app.ps1's Invoke-WalkTap doesn't refuse a node Test-WalkTapAllowed turns down before tapping."
-Assert-WalkContract (@([regex]::Matches($walkSource, 'Invoke-WalkTap -Row')).Count -eq 2) 'walk-app.ps1 taps from somewhere other than the settings path and the settings rows.'
+Assert-WalkContract (@([regex]::Matches($walkSource, 'Invoke-WalkTap -Row')).Count -eq 3) 'walk-app.ps1 taps from somewhere other than the settings path, the section headers and the view toggle.'
 Assert-WalkContract ($walkSource -notmatch 'KEYCODE_(POWER|SLEEP)|stay_on_while_plugged_in|pm (clear|uninstall)|logcat[^\r\n]*-c') `
     'walk-app.ps1 sends power or sleep, changes stay awake, clears Threads or clears the log.'
 foreach ($screen in $WalkScreens) {

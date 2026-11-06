@@ -124,7 +124,11 @@ de versie. De download wordt op de SHA-256 gecontroleerd en daarna uitgepakt (gz
 Bronkeuze: alleen openbare licenties (besluit opdrachtgever 2026-11-03). Regelset-id's (bevestigd uit
 `kimsb/WordfeudBot`, `kimsb/wftiles-android` en `ardavey/wordfeud-api-perl`): 0 Engels (VS), 1 Noors bokmål,
 2 Nederlands, 3 Deens, 4 Zweeds, 5 Engels internationaal, 6 Spaans, 7 Frans, 8 Zweeds strikt, 9 Duits,
-10 Noors nynorsk, 11 Fins, 12 Portugees. Lijsten (2026-11-03): 0/5 ENABLE, 1 en 10 Norsk ordbank, 2 OpenTaal, 3 COR₁ 1.5.1.0 (N+K), 4 DSSO, 7 Grammalecte v7.7, 9 enz/german-wordlist. Regelset 8 (Zweeds strikt) krijgt geen lijst: waarschijnlijk alleen grondvormen (onbevestigd). Spaans (6, ook dubbelletter-tegels CH/LL/RR), Fins (11) en Portugees (12): nog geen lijst. Regelsets zonder openbare lijst krijgen geen lijst; de overlay toont dan
+10 Noors nynorsk, 11 Fins, 12 Portugees. Lijsten (2026-11-03): 0/5 ENABLE, 1 en 10 Norsk ordbank, 2 OpenTaal, 3 COR₁ 1.5.1.0 (N+K), 4 DSSO, 7 Grammalecte v7.7, 9 enz/german-wordlist. Aangevuld 2026-11-05: 6 lorenbrichter/Words es.txt (= FISE-2), 8 hising/svenska-ord.txt (SAOL-grondvormen; aanname dat 'strikt' geen verbuigingen toestaat, onbevestigd), 11 fginter/hunspell-fi (uitgevouwen), 12 jfoclpf/words-pt. Alle regelsets hebben nu een lijst; maximaal 15 tegels.
+
+Dubbelletter-tegels (Spaans CH, LL, RR; `core/Tiles`): intern één teken (Griekse hoofdletter Χ, Λ, Ρ; kleine letter = blanco), zodat bord, rek, woordgraaf en zettenberekening ongewijzigd blijven. Het spelverloop (`"CH"`, `"*CH"`), de woordenlijst (CH altijd als CH-tegel, zoals in Spaanse woordspellen) en de verstuurde zet (`[x,y,"CH"]`, woorden voluit gespeld) worden aan de rand vertaald. Onbevestigd: dat de Wordfeud-API deze tegels als `"CH"` schrijft (geen Spaans potje gezien).
+
+Woordgraaf (2026-11-05): minimale DAWG, woord voor woord gebouwd uit de gesorteerde lijst (formaat versie 2; versie 1 blijft leesbaar). Fins 7,8 MB in plaats van 37 MB als trie, Nederlands 2,3 MB in plaats van 10 MB. Regelsets zonder openbare lijst krijgen geen lijst; de overlay toont dan
 `WL-NONE` (zie §10).
 
 ### 6.1a Woordmeldingen
@@ -141,6 +145,11 @@ taal ter beoordeling aangeboden; niets gaat zonder merge van de opdrachtgever na
 - De workflow `wordlist-report.yml` zet geldige woorden die in de lijst staan in `wordlists/<taal>/remove.txt` op
   de branch `wordlist/<taal>`, bouwt de lijst opnieuw (commit type `fix`) en houdt per taal één PR naar `main`
   open. Na de merge maakt de release-workflow een nieuwe versie met de bijgewerkte lijst.
+- Toevoegen (2026-11-05): `GameReplay` verzamelt per zet het hoofdwoord en de dwarswoorden (`GameState.playedWords`).
+  Bij het berekenen van zetten in de overlay meldt `MissingWords` gespeelde woorden die niet in de lijst staan
+  (type `add`, eenmalig per toestel en regelset, max. 24 per keer); de workflow zet ze in `add.txt` op dezelfde
+  branch (alleen als ze niet in de lijst, `add.txt` of `remove.txt` staan). De Worker begrenst meldingen op 20 per IP
+  per uur (KV-binding `REPORT_KV`).
 
 ### 6.2 Downloadflow
 

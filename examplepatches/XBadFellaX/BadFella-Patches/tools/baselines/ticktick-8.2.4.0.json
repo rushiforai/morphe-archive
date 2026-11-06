@@ -262,10 +262,10 @@
       "patches/src/main/kotlin/app/badfella/patches/ticktick/misc/RestoreRemindersPatch.kt": "2afddd8745cd61ae7a8fb45c9aa81c7fe0080e92a88874342be4e1fa9e768d0d",
       "patches/src/main/kotlin/app/badfella/patches/ticktick/premium/Fingerprints.kt": "1580427a7ce3b6f8ebe5e276532d4bff99f2dbc0add499524dd2a984bda795df",
       "patches/src/main/kotlin/app/badfella/patches/ticktick/premium/TickTickPremiumPatch.kt": "0c831b23e68e9eb49c05858567c659a990b12327ffda5e6aaa78b52cc44a1698",
-      "patches/src/main/kotlin/app/badfella/patches/ticktick/shared/Constants.kt": "139b7f027408cdc1d7f9720ad7fcf9faad058de114e2fc42077e1dbca9d45c7d",
+      "patches/src/main/kotlin/app/badfella/patches/ticktick/shared/Constants.kt": "b2fc0dbeee63ca891da3b5ba9d9f7b8dab54f3e858d91ae3ab37319c6777f5b7",
       "patches/src/main/kotlin/util/PatchListGenerator.kt": "dd3cea217ce5efc7b3843de64a97f598afc376e4c16c627fe23f6511028af9b7",
       "tools/DexInventory.java": "585d1c04d9eec3ab06837fc8912957fee167c80d4ea535222a8d42c7a0d1ef23",
-      "tools/update_check.py": "0ad6cadf1565541a326eb9de367354064bed1de7750cfdcefb860c385d2deb0f",
+      "tools/update_check.py": "90fd4a9472cefea9711a64d1f513acde05dab8d7412ec92ba95a34f50a726238",
       "tools/update_contracts.json": "35928e629aa8c828902e2d7d1ddfafb303ba18130a9f727f565a973c63f12845"
     },
     "supported_versions": [

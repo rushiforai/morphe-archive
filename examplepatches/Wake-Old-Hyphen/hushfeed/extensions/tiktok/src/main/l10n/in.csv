@@ -416,6 +416,8 @@ Disable,Matikan
 Stop analytics and tracking,Hentikan analitik dan pelacakan
 Long-press Home for Hushfeed settings,Tekan lama Beranda untuk pengaturan Hushfeed
 Press and hold the Home tab to open these settings. A tap on Home works as before.,Tekan lama tab Beranda untuk membuka pengaturan ini. Mengetuk Beranda tetap berfungsi seperti biasa.
+Search instead of Home,Cari sebagai pengganti Beranda
+"The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.","Tab Beranda berubah menjadi tombol pencarian. Ikon dan namanya menjadi Cari, dan ketukan membuka pencarian TikTok, bukan For You. TikTok dibuka di Kotak Masuk, atau di Profil jika Kotak Masuk disembunyikan, sehingga feed tidak diputar saat Anda membukanya."
 Keep For You on a Home tap,Pertahankan Untuk Kamu saat mengetuk Beranda
 Keep For You on a pull down,Pertahankan Untuk Kamu saat tarik ke bawah
 Keep long press from quick sharing,Jangan biarkan tekan lama membagikan cepat
@@ -511,6 +513,7 @@ Forget seen videos after,Lupakan video yang sudah ditonton setelah
 Forget the %1$s seen videos.,Lupakan %1$s video yang dilihat.
 Forget what has been counted today and end any hold. The budgets themselves are left alone.,Lupakan yang sudah dihitung hari ini dan akhiri penahanan apa pun. Anggarannya sendiri tidak diubah.
 Friends,Teman
+Discover,Temukan
 Full comment sort options,Opsi urutan komentar lengkap
 Full license,Lisensi lengkap
 Full report saved to %1$s,Laporan lengkap disimpan ke %1$s
@@ -1354,6 +1357,8 @@ Hide the Report button on videos,Sembunyikan tombol Laporkan di video
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.,Sembunyikan tombol bendera yang ditaruh TikTok di atas foto kreator di beberapa wilayah. Kamu tetap bisa melaporkan video dari menu bagikan.
 Hide search rewards,Sembunyikan hadiah pencarian
 "Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.","Sembunyikan banner poin di bawah kotak pencarian dan penghitung koin yang melayang di atas hasil pencarian, yang ditampilkan TikTok di beberapa wilayah. Pencarian tetap berfungsi seperti biasa."
+Show only the search bar on Discover,Tampilkan hanya bilah pencarian di Temukan
+"On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.","Di tab Temukan, yang ditampilkan TikTok di beberapa wilayah, sembunyikan tagar yang sedang tren, banner, dan tab di bawah kotak pencarian. Kotak pencarian tetap ada dan berfungsi seperti biasa."
 "%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.","%1$s menyembunyikan semua yang dikirim TikTok, %2$d kali berturut-turut. Matikan jika bukan itu yang kamu inginkan."
 Show the switch,Tampilkan sakelarnya
 this creator,kreator ini
@@ -1394,11 +1399,19 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search,Sembunyikan TikTok Shop di pencarian
 Hide the Products block and product cards in search results.,Sembunyikan blok Produk dan kartu produk di hasil pencarian.
 Hide TikTok's Auto scroll button,Sembunyikan tombol Auto scroll TikTok
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,Menghapus aksi Auto scroll milik TikTok dari panel video serta sakelar Auto scroll di samping video pada tablet dan ponsel lipat yang terbuka. Tetap berfungsi saat lanjut otomatis nonaktif.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.,Menghapus aksi Auto scroll milik TikTok dari panel video serta label Auto scroll di bagian atas video. Sakelar Auto scroll di samping video pada tablet dan ponsel lipat yang terbuka juga dihapus. Tetap berfungsi saat lanjut otomatis nonaktif.
 Hide the unread badges on the bottom tabs,Sembunyikan lencana belum dibaca di tab bawah
 "Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.","Menyembunyikan angka dan titik merah di semua tab bawah, termasuk Kotak Masuk dan Profil, serta gelembung di atas Kotak Masuk yang menghitung suka, pengikut, dan komentar baru, juga siapa yang sedang LIVE. Kotak masuk sendiri tetap menampilkan yang masuk."
 Speed while you hold the video,Kecepatan saat video ditahan
 Slide to change the hold speed,Geser untuk mengubah kecepatan tahan
+Hold speed bubble style,Gaya gelembung kecepatan tahan
+Pill,Pil
+Circle,Lingkaran
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Pil adalah gelembung lebar dengan sederet titik di bawah kecepatan. Lingkaran adalah dial bulat kecil dengan tanda untuk setiap kecepatan di tepinya.
+Hold speed slide direction,Arah geser kecepatan tahan
+Sideways,Ke samping
+Up and down,Atas dan bawah
+"With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.","Dengan Ke samping, geser ke kiri atau kanan untuk mengubah kecepatan dan tarik ke bawah untuk menguncinya. Dengan Atas dan bawah, geser ke atas untuk lebih cepat dan ke bawah untuk lebih lambat, lalu geser ke samping untuk menguncinya, jadi tahan di dekat tepi tetap bisa mencapai semua kecepatan."
 Hide mini dramas,Sembunyikan drama mini
 Hide TikTok's short drama episodes and the cards that promote them.,Sembunyikan episode drama pendek TikTok dan kartu yang mempromosikannya.
 Mini dramas,Drama mini
@@ -2260,6 +2273,8 @@ Most liked first,Paling banyak disukai dulu
 Least liked first,Paling sedikit disukai dulu
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Mengurutkan kisi profil atau Disukai, dan video yang disematkan tetap di depan. Selama urutan dipilih, kisi terus memuat sendiri hingga 300 video, jadi urutannya mencakup lebih dari layar pertama. Tombol di sudut atas kisi mengubah urutan langsung di sana."
 Sort loaded videos on Liked grids,Urutkan video yang dimuat di kisi Disukai
+Sort loaded videos on sound pages,Urutkan video yang dimuat di halaman suara
+"Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.","Mengurutkan video di halaman suara dengan cara yang sama, memuat hingga 300 video selama urutan dipilih."
 Same as profile grids,Sama seperti kisi profil
 Sort this grid,Urutkan kisi ini
 Blur the video behind the bar,Buramkan video di belakang bilah
@@ -2424,3 +2439,59 @@ Hide typing,Sembunyikan status mengetik
 People you chat with won't see that you're typing. Needs Ghost mode on.,Orang yang kamu ajak chat tidak akan melihat bahwa kamu sedang mengetik. Mode siluman harus menyala.
 Show all settings as a list,Tampilkan semua setelan sebagai daftar
 Show settings by category,Tampilkan setelan menurut kategori
+Long-press Inbox for read receipts,Tekan lama Kotak masuk untuk tanda dibaca
+"Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press.","Tekan dan tahan tab Kotak masuk untuk mengaktifkan atau mematikan Sembunyikan tanda sudah dibaca. Sebuah pesan menunjukkan statusnya. Ketukan biasa pada Kotak masuk tetap berfungsi seperti biasa. Jika menahan Kotak masuk sudah melakukan sesuatu untukmu, ini mengambil alih tekanan itu."
+Read receipts hidden,Tanda dibaca disembunyikan
+Read receipts shown,Tanda dibaca ditampilkan
+Compact long-press menu everywhere,Menu tekan lama ringkas di mana saja
+"A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.","Tekan lama pada video membuka lembar bagikan kecil TikTok juga di For You, sama seperti video kreator. Ini mengalahkan dua sakelar menu lengkap di atas. Perlu Tekan lama di bawaan TikTok."
+Hide streak pop-ups,Sembunyikan pop-up streak
+Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Menghentikan peringatan streak yang muncul di atas TikTok serta pesan dan tips streak yang ditambahkan ke obrolan Anda.
+Long press on For You opens my watch history,Tekan lama Untuk Kamu membuka riwayat tontonan saya
+Instead of these settings. The list has a button that brings you back here.,Sebagai ganti pengaturan ini. Daftarnya punya tombol untuk kembali ke sini.
+Auto tap in LIVE rooms,Ketuk otomatis di ruang LIVE
+"Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.","Menambahkan tombol Ketuk otomatis ke ruang LIVE. Ketuk untuk mengirim ketukan ke siaran dengan tempo tetap, lalu ketuk lagi untuk berhenti. Ini juga berhenti saat kamu keluar atau menggeser ke ruang lain, keluar dari TikTok, atau mengunci layar."
+Auto tap speed,Kecepatan ketuk otomatis
+2 taps a second,2 ketukan per detik
+4 taps a second,4 ketukan per detik
+6 taps a second,6 ketukan per detik
+8 taps a second,8 ketukan per detik
+Auto tap,Ketuk otomatis
+Start tapping this LIVE,Mulai mengetuk LIVE ini
+Stop tapping this LIVE,Berhenti mengetuk LIVE ini
+Auto tap stopped,Ketuk otomatis berhenti
+Clean up your account,Bersihkan akun Anda
+Remove all reposts,Hapus semua repost
+Deletes all reposts from your account sequentially.,Menghapus semua repost dari akun Anda satu per satu.
+Remove all likes,Hapus semua suka
+Unlikes every video one after another.,Membatalkan suka setiap video satu per satu.
+Clear Favorites,Kosongkan Favorit
+Removes every video from Favorites one after another.,Menghapus setiap video dari Favorit satu per satu.
+Removing all reposts in %1$d,Menghapus semua repost dalam %1$d
+Removing all likes in %1$d,Menghapus semua suka dalam %1$d
+Clearing Favorites in %1$d,Mengosongkan Favorit dalam %1$d
+Reposts removed: %1$d,Repost dihapus: %1$d
+Likes removed: %1$d,Suka dihapus: %1$d
+Favorites removed: %1$d,Dihapus dari Favorit: %1$d
+Nothing to remove,Tidak ada yang perlu dihapus
+Done. %1$d removed.,Selesai. %1$d dihapus.
+Stopped. %1$d removed.,Dihentikan. %1$d dihapus.
+TikTok refused. %1$d removed.,TikTok menolak. %1$d dihapus.
+Network error. %1$d removed.,Kesalahan jaringan. %1$d dihapus.
+Not available on this TikTok version,Tidak tersedia di versi TikTok ini
+Sign in to TikTok first,Masuk ke TikTok terlebih dahulu
+A removal is already running,Penghapusan sedang berjalan
+Cancelled,Dibatalkan
+Show inbox filters,Tampilkan filter kotak masuk
+"Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.","Menambahkan tab Utama, Permintaan, Belum dibaca, dan Berbintang di atas obrolanmu, yang diberikan TikTok kepada akun kreator."
+Rebuild message search,Bangun ulang pencarian pesan
+"Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.","Mengosongkan pencarian pesan TikTok lalu menambahkan lagi setiap pesan yang tersimpan di ponsel ini, mulai dari yang terbaru. Tetap berjalan setelah kamu keluar dari pencarian."
+Rebuilding message search,Membangun ulang pencarian pesan
+Stopped. Search carries on later.,Dihentikan. Pencarian lanjut nanti.
+Couldn't stop it. Try again.,Tidak bisa dihentikan. Coba lagi.
+Couldn't rebuild search. Try again.,Pencarian tidak bisa dibangun ulang. Coba lagi.
+Message search isn't on for this account,Pencarian pesan tidak aktif di akun ini
+Offer Audio only in LIVE quality,Tawarkan Hanya audio di kualitas LIVE
+Audio only,Hanya audio
+"Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.","Menambahkan Hanya audio ke daftar kualitas video LIVE. Ruang memutar suaranya tanpa gambar, yang jauh lebih hemat data, sampai kamu memilih kualitas lain atau keluar. Merekam dari siaran tetap menyimpan videonya."
+Pick a video quality to record the screen,Pilih kualitas video untuk merekam layar

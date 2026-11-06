@@ -88,9 +88,9 @@ class LongPressDownloadFixtureTest {
             assertEquals(build.name, "Z", found.springsDetached.type)
             // Pinned by hand, so a search that drifts to another boolean and object pair fails here
             // instead of agreeing with itself (DexDiff repeats the same search).
-            if (build.name.startsWith("pinterest-14.42.0-")) {
+            if (build.name.startsWith("pinterest-14.43.0-")) {
                 assertEquals(build.name, "Lcom/pinterest/ui/menu/SpringLinearLayout;->d:Z", "${found.springsDetached}")
-                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Lqa3/y1;", "${found.springDriver}")
+                assertEquals(build.name, "Lcom/pinterest/ui/menu/KotSpringLinearLayout;->g:Leb3/a2;", "${found.springDriver}")
             }
             assertEquals(build.name, listOf(CONTEXT_MENU_ITEM, "${found.springsDetached}", "${found.springDriver}"), stub("springsReattached"))
             assertEquals(build.name, listOf(Opcode.CHECK_CAST, Opcode.CONST_4, Opcode.IPUT_BOOLEAN, Opcode.IPUT_OBJECT, Opcode.RETURN_VOID),
@@ -101,10 +101,10 @@ class LongPressDownloadFixtureTest {
             assertTrue(build.name, "${found.strings}->download:I" in item)
             assertTrue(build.name, item.any { it.startsWith("${found.factory.definingClass}->${found.factory.name}(") })
             assertTrue(build.name, item.any { it.startsWith("${found.styler.definingClass}->${found.styler.name}(") })
-            // The button's id field and the three ids it's compared with, pinned by hand on 14.42.0
+            // The button's id field and the three ids it's compared with, pinned by hand on 14.43.0
             // so a search that drifts to another int field fails here.
-            if (build.name.startsWith("pinterest-14.42.0-")) {
-                assertEquals(build.name, "Lvn0/e;", ids!!.owner)
+            if (build.name.startsWith("pinterest-14.43.0-")) {
+                assertEquals(build.name, "Lno0/e;", ids!!.owner)
                 assertEquals(build.name, "j", ids.field)
                 assertTrue(build.name, ids.closeup)
             }
@@ -199,10 +199,10 @@ class LongPressDownloadFixtureTest {
 
             val extension = context.mutableClassDefBy(LONG_PRESS)
             fun stub(name: String) = references(extension.methods.single { it.name == name })
-            // Pinned by hand on 14.42.0, so a search that drifts to another interface or enum fails here.
-            if (build.name.startsWith("pinterest-14.42.0-")) {
-                assertEquals(build.name, "Lv13/a0;", found.face.type)
-                assertEquals(build.name, "Lv13/r0;", found.kinds.type)
+            // Pinned by hand on 14.43.0, so a search that drifts to another interface or enum fails here.
+            if (build.name.startsWith("pinterest-14.43.0-")) {
+                assertEquals(build.name, "Lk23/y;", found.face.type)
+                assertEquals(build.name, "Lk23/p0;", found.kinds.type)
             }
             assertEquals(build.name, listOf(found.face.type), stub("composeOptionType"))
             assertTrue(build.name, "${menu.icon}->DOWNLOAD:${menu.icon}" in stub("composeIconAndLabel"))

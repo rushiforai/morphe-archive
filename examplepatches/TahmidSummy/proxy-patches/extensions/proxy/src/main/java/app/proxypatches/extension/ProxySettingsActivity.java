@@ -8,6 +8,7 @@ import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -20,17 +21,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * "Proxy settings" screen. Opened from the app icon's long-press menu, or from Morphe's settings
- * menu if present. Works offline, so it's reachable even when the proxy is wrong or down.
- * Registered in the manifest by the patch.
+ * "Proxy settings" screen, opened from the app icon's long-press menu. Works offline, so it's
+ * reachable even when the proxy is wrong or down. Registered in the manifest by the patch.
+ * <p>
+ * The saved password is write-only: it's never shown or put back in the field. An empty field
+ * keeps the saved password; "Remove saved password" clears it. Screenshots, screen recording and
+ * the recent-apps preview are blocked (FLAG_SECURE).
  */
 @SuppressWarnings("deprecation")
 public class ProxySettingsActivity extends Activity {
+    private static final String SAVED_HINT = "(password saved — type to replace)";
+    private static final String NONE_HINT = "(none)";
+    private static final String REMOVED_HINT = "(will be removed when you save)";
+
     private EditText host, port, username, password;
     private Switch direct;
     private RadioGroup typeGroup;
     private int radioHttps, radioHttp, radioSocks;
     private TextView status;
+    /** The saved password, used when the field is left empty. Never displayed. */
+    private String savedPassword = "";
+    private boolean removePassword;
 
     private int radio(RadioGroup group, String label) {
         RadioButton b = new RadioButton(this);
@@ -50,6 +61,8 @@ public class ProxySettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // No screenshots / screen recording, and a blank preview in recent apps.
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setTitle("Proxy settings");
 
         LinearLayout root = new LinearLayout(this);
@@ -87,10 +100,23 @@ public class ProxySettingsActivity extends Activity {
         port = field(root, "Port", "443", v.port > 0 ? String.valueOf(v.port) : "", InputType.TYPE_CLASS_NUMBER);
 
         username = field(root, "Username (optional)", "", v.username, InputType.TYPE_CLASS_TEXT);
-        password = field(root, "Password (optional)", "", v.password,
+        // Write-only: start empty; the hint says whether one is saved.
+        savedPassword = v.password;
+        password = field(root, "Password (optional)", savedPassword.isEmpty() ? NONE_HINT : SAVED_HINT, "",
                 InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        if (!savedPassword.isEmpty()) {
+            Button remove = button("Remove saved password");
+            remove.setOnClickListener(x -> {
+                removePassword = true;
+                password.setText("");
+                password.setHint(REMOVED_HINT);
+                remove.setVisibility(android.view.View.GONE);
+                status.setText("The saved password will be removed when you save.");
+            });
+            root.addView(remove, matchWrap());
+        }
         CheckBox show = new CheckBox(this);
-        show.setText("Show password");
+        show.setText("Show typed password");
         show.setOnCheckedChangeListener((b, checked) -> {
             password.setInputType(InputType.TYPE_CLASS_TEXT | (checked
                     ? InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
@@ -158,8 +184,11 @@ public class ProxySettingsActivity extends Activity {
                 return null;
             }
         }
+        // Empty field = keep the saved password (unless "Remove saved password" was tapped).
+        String typed = password.getText().toString();
+        String pass = !typed.isEmpty() ? typed : (removePassword ? "" : savedPassword);
         return new ProxySettings.Values(h, p, selectedType(),
-                username.getText().toString(), password.getText().toString(), runDirect);
+                username.getText().toString(), pass, runDirect);
     }
 
     private ProxySettings.Values saveValues() {

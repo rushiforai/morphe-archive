@@ -1,5 +1,5 @@
 """Production store + JSON backup: string enum roundtrip, legacy import, atomic validation."""
-import ast,re,subprocess,tempfile
+import ast,os,re,subprocess,tempfile
 from pathlib import Path
 root=Path(__file__).resolve().parents[2]
 source=root/'extensions/extension/src/main/java/app/template/extension/pinterest'
@@ -7,7 +7,7 @@ source=root/'extensions/extension/src/main/java/app/template/extension/pinterest
 store=(source/'MorpheSettingsStore.java').read_text()
 keys=set(re.findall(r'(?:public )?static final String (KEY_\w+) =',store))
 array=store.split('public static final String[] KEYS = {',1)[1].split('};',1)[0]
-covered=set(re.findall(r'KEY_\w+',array))|{'KEY_STARTUP_TAB','KEY_MENU_FILTER','KEY_HIDE_PROFILE_BUTTON'}
+covered=set(re.findall(r'KEY_\w+',array))|{'KEY_STARTUP_TAB','KEY_MENU_FILTER','KEY_HIDE_PROFILE_BUTTON','KEY_MUTED_PIN_WORDS'}
 assert keys==covered,(keys-covered,covered-keys)
 tree=ast.parse((Path(__file__).with_name('test_settings_dependencies.py')).read_text())
 stubs=ast.literal_eval(next(n.value for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='STUBS' for t in n.targets)))
@@ -22,7 +22,9 @@ public class BackupTest {
  static void check(boolean ok){if(!ok)throw new AssertionError();}
  public static void main(String[]args)throws Exception {
  android.content.SharedPreferences prefs=new android.content.SharedPreferences();java.lang.reflect.Field f=MorpheSettingsStore.class.getDeclaredField("cachedPrefs");f.setAccessible(true);f.set(null,prefs);
+ MorpheSettingsStore.setMutedPinWords("private preference");
  MorpheSettingsStore.setStartupTab("PROFILE");String exported=MorpheSettingsBackup.export(new android.content.Context());
+ check(!exported.contains("private preference"));
  check("PROFILE".equals(new org.json.JSONObject(exported).getJSONObject("settings").getString("startup_tab")));
  MorpheSettingsStore.setStartupTab("HOME");MorpheSettingsBackup.apply(exported);check("PROFILE".equals(MorpheSettingsStore.startupTab()));
  MorpheSettingsBackup.apply("{\\"settings\\":{\\"hide_video_pins\\":false}}");check("PROFILE".equals(MorpheSettingsStore.startupTab()));
@@ -42,7 +44,7 @@ public class BackupTest {
   org.json.JSONObject expected=new org.json.JSONObject(snapshot).getJSONObject("settings");
   check(expected.length()==MorpheSettingsStore.KEYS.length+2);
   prefs.values.clear();int before=prefs.commits;
-  check(MorpheSettingsBackup.apply(snapshot)==26);check(prefs.commits==before+1);
+  check(MorpheSettingsBackup.apply(snapshot)==expected.length());check(prefs.commits==before+1);
   org.json.JSONObject actual=new org.json.JSONObject(MorpheSettingsBackup.export(new android.content.Context())).getJSONObject("settings");
   for(java.util.Iterator<String> keys=expected.keys();keys.hasNext();) {String key=keys.next();check(expected.get(key).equals(actual.get(key)));}
  }
@@ -64,9 +66,10 @@ public class BackupTest {
  try {MorpheSettingsBackup.apply(MorpheSettingsBackup.export(new android.content.Context()));throw new AssertionError();}catch(java.io.IOException expected){}
  prefs.fail=false;f.set(null,null);
  try {MorpheSettingsBackup.apply("{\\"settings\\":{\\"disable_ads\\":true}}");throw new AssertionError();}catch(java.io.IOException expected){}
- System.out.println("PASS all 26 settings roundtrip, legacy preservation, strict types, one commit and persistence errors");
+ System.out.println("PASS all settings roundtrip, legacy preservation, strict types, one commit and persistence errors");
  }}'''
-jars=list((Path.home()/'.gradle/caches/modules-2/files-2.1/org.json/json').glob('**/*.jar'))
+explicit_jar=os.environ.get('PINTEREST_JSON_JAR')
+jars=[Path(explicit_jar)] if explicit_jar else list((Path.home()/'.gradle/caches/modules-2/files-2.1/org.json/json').glob('**/*.jar'))
 assert jars,'org.json runtime JAR needed for backup test'
 with tempfile.TemporaryDirectory() as tmp:
  paths=[]

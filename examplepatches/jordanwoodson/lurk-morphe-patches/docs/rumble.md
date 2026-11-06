@@ -1,30 +1,14 @@
-# Rumble 3.22.0
+# Rumble 3.21.0
 
-The Rumble patches target `com.rumble.battles` **3.22.0 / versionCode 913**, the Google Play release of
-2026-11-04, with the signing certificate pinned in `rumble/shared/Constants.kt`. APKMirror still lists 3.21.0.
-The patches were written against 3.21.0 (versionCode 887, APKMirror's APKM) and moved to 3.22.0 on
-2026-11-04, tested on Google Play's arm64-v8a xxhdpi split APKs (`apks/rumble/3.22.0/com.rumble.battles.apks`).
-Notes below that name 3.21.0 were traced or checked on it.
+`Unlock Premium` targets `com.rumble.battles` **3.21.0 / versionCode 887**, using the
+APKMirror APKM and signing certificate pinned in `rumble/shared/Constants.kt`.
 
-What changed from 3.21.0 to 3.22.0 for the patches:
+Support for Google Play's 3.22.0 (versionCode 913, 2026-11-04) was written in commit 6b6b2fa and taken
+back out because APKMirror doesn't list 3.22.0 yet, so Morphe Manager's download link couldn't find it.
+Once `bin/manager-link rumble 3.22.0` reports APKMirror's 3.22.0 release page, revert the commit that
+removed it; 6b6b2fa's message and its version of this page say what changed for the patches.
 
-- **Video quality.** Rumble no longer keeps the quality picked in the player: `videoQualityKey`,
-  `videoBitrateKey` and `liveVideoUseAutoKey` are gone from its DataStore, and the start-source chooser is now
-  (sources, height, allowAuto, data saver). Every video but a Short starts on Auto when it has an Auto source,
-  else at the source nearest 720p (a Short at its own height). Default video quality hooks the new chooser
-  and learns whether a video is live from the player's video load (see [Default video
-  quality](#default-video-quality)).
-- **Refresh stream.** The quality switch no longer reports its source to a quality callback, so the reload
-  calls it as it is. The 3.21.0 lookup of that callback would now have taken the player's logger.
-- **UserPreferenceManager** is found by `autoplayOnKey`, `playbackInFeedKey` and `backgroundPlayKey`, since
-  `videoQualityKey` is gone (Disable autoplay, Background audio by default).
-- **Bottom bar.** Its content lambda is now a static method returning `Unit`, with the trace label
-  `BottomNavigationBar.<anonymous>.<anonymous>` (Hide Shorts, Hide Create tab).
-
-The other patches apply unchanged. The probes that pinned 3.21.0's R8 names now read them from the locators
-or find them by type (`KeywordsProbe`, `RefreshProbe`); `PremiumProbe`'s profile mapper is pinned to 3.22.0's.
-
-For `Unlock Premium`, sign in, or sign out and back in after installing, to fetch a fresh profile. The patch
+Sign in, or sign out and back in after installing, to fetch a fresh profile. The patch
 overrides the profile's local premium flag; a signed-out session never fetches that
 profile. Server-authorized streams, purchases and subscription metadata are unaffected.
 Signed-in behavior has not been verified with an account (see below).
@@ -49,8 +33,8 @@ UserProfile.l() reads isPremium (JSON is_premium)
   -> session DataStore key isUserPremiumKey
 ```
 
-These obfuscated names describe this APK only; they are not patch fingerprints. In 3.22.0 the mapper is
-`Be.a.t` and the entity `rf.h`, with the same getters. Only the getter's result changes. Nullable `premiumData`, account
+These obfuscated names describe this APK only; they are not patch fingerprints.
+Only the getter's result changes. Nullable `premiumData`, account
 validation, age verification and onboarding retain their original behavior.
 
 ### What a premium flag without premium data does
@@ -79,14 +63,14 @@ With GitHub Packages access configured as described in the workspace README:
 ```sh
 bin/patch rumble
 bin/emu start
-bash bin/test-rumble ~/build/lurk-morphe-patches/out/rumble-3.22.0-patched.apk
+bash bin/test-rumble ~/build/lurk-morphe-patches/out/rumble-3.21.0-patched.apk
 ```
 
 `bin/test-rumble` runs every probe in `tests/rumble/`, or only the ones named after the APK
 (`bash bin/test-rumble <apk> PremiumProbe`). Running them all also runs three checks on the APK's dex:
 
 - `tests/rumble/verify_compose.py`: the Compose trace labels and App Info rows the patches rely on (see
-  [Finding code](#finding-code-in-3220)).
+  [Finding code](#finding-code-in-3210)).
 - The extension hooks: `tests/rumble/expected_hooks.py` reads the settings registry out of the dex and lists
   the hooks of `tests/rumble/expected-hooks.txt` whose setting is registered, and
   `tests/verify_extension_calls.py` fails unless app code calls each one. Add a line there with every new hook.
@@ -101,8 +85,7 @@ bash bin/test-rumble ~/build/lurk-morphe-patches/out/rumble-3.22.0-patched.apk
 | `PlaybackProbe` | Fill screen (Media3's real `AspectRatioFrameLayout` measured in landscape and portrait), Seek interval, the sleep timer's pause through the listener |
 | `ChatProbe`, `KeywordsProbe` | Hide chat clutter, Show deleted messages, Chat timestamps, Chat keywords |
 | `CountProbe`, `InterfaceProbe`, `SearchProbe`, `UpdateProbe` | Show exact counts, startup tab and Home sections, Don't save searches, Block update prompts |
-| `ThemeProbe` | AMOLED black: the theme's color set and the palette |
-| `PlayerProbe`, `QualityProbe`, `RefreshProbe` | Remember speed, audio focus, keep screen on; Default video quality; Refresh stream |
+| `ThemeProbe` | AMOLED black: the theme's color set and the palette || `PlayerProbe`, `QualityProbe`, `RefreshProbe` | Remember speed, audio focus, keep screen on; Default video quality; Refresh stream |
 | `PremiumProbe` | Unlock Premium's getter and mapper |
 
 Disable autoplay changes DataStore defaults inside coroutine readers that can't run under `app_process`;
@@ -117,23 +100,20 @@ metadata. It also checks unrelated account state. No probe uses a Rumble account
 requests.
 
 The probes reach obfuscated classes, methods and fields through locators: while patching, each patch records
-what it matched with `Locators.record("rumble.<patch>.<what>", …)` (52 entries with the default patches:
+what it matched with `Locators.record("rumble.<patch>.<what>", …)` (50 entries with the default patches:
 classes as `Lpkg/A;`, methods as `Lpkg/A;->name(…)R`, fields as `Lpkg/A;->name:T`), and the settings patch
 writes them into the patched APK as `assets/lurk/locators.json`. `ProbeSupport.locate`, `type`, `method` and `fieldName` read that
-file from the APK on the probe's classpath and fall back to the names of the version the probe was written
-against while it is absent (the stock APK, or a build from before the asset). A new Rumble version then needs
-no probe edits for anything a patch matches. `RefreshProbe` finds what no patch touches by type: ExoPlayer and
-Kotlin's function interfaces keep their names, Compose state is the interface with `getValue`, the Composer
-and the panel's arguments come from the error panel's parameters, and ExoPlayer's renamed methods are told
-apart by signature. The profile mapper in `PremiumProbe` stays pinned (to 3.22.0's `Be.a.t`) and has to be
-re-derived for a new version; other lookups go by type or signature (`ProbeSupport.bySignature`,
-`staticOfType`).
+file from the APK on the probe's classpath and fall back to the names in 3.21.0 while it is absent (the stock
+APK, or a build from before the asset). A new Rumble version then needs no probe edits for anything a patch
+matches. What no patch touches (Compose state internals, ExoPlayer and Composer methods in `RefreshProbe`, the
+profile mapper in `PremiumProbe`) stays pinned to 3.21.0 and has to be re-derived; other lookups go by type or
+signature (`ProbeSupport.bySignature`, `staticOfType`).
 
 To confirm the negative control, the same probe against the original base APK must
 fail with `Profile must report premium when server is_premium=false`:
 
 ```sh
-bash bin/test-rumble ~/build/lurk-morphe-patches/rumble/3.22.0/base.apk PremiumProbe
+bash bin/test-rumble ~/build/lurk-morphe-patches/rumble/3.21.0/base.apk PremiumProbe
 ```
 
 ## Validation on 2026-10-14
@@ -156,7 +136,7 @@ are in `~/build/lurk-morphe-patches/build-rumble/`; the launch screenshot is in
 
 ## Lurk icon
 
-`Lurk icon` replaces the launcher icon with `assets/rumble-icon.png`. Rumble (3.21.0 and 3.22.0) builds its
+`Lurk icon` replaces the launcher icon with `assets/rumble-icon.png`. Rumble 3.21.0 builds its
 adaptive icon from `drawable/ic_launcher_background.xml` and `drawable/ic_launcher_foreground.xml`
 (`mipmap-anydpi/ic_launcher[_round].xml`) and ships `.webp` fallbacks per density. The patch
 overwrites those files under the same names, so resource IDs and the manifest stay untouched, and
@@ -171,7 +151,7 @@ app cold-launches to its home feed.
 
 ## Block cookie notice
 
-Rumble (3.21.0 and 3.22.0) shows its cookie and privacy notice through the Ketch consent SDK (organization `rumble`,
+Rumble 3.21.0 shows its cookie and privacy notice through the Ketch consent SDK (organization `rumble`,
 property `rumble_android_app`). Rumble's consent service calls `Ketch.load()` at startup and on every
 resume. Settings > Data Consent calls `Ketch.showPreferences()`. Each loads Ketch's web experience in a
 WebView, which fetches the config for the user's jurisdiction and sends the identities Rumble supplied
@@ -288,7 +268,7 @@ finds its switch off after updating, unless it was changed on the screen before.
 | Hide premium-only videos | `hide_premium_only` | when a list is loaded again |
 | Block update prompts | `block_update_prompts` | after a restart |
 | Default video quality (a choice; "Rumble's default" is 0) | `video_quality` | at the next video |
-| Live streams too | `video_quality_live` | at the next video |
+| Live streams too | `video_quality_live` | after a restart |
 | On mobile data (a choice; "Same as on Wi-Fi" is 0) | `video_quality_mobile` | at the next video |
 | Show exact counts | `exact_counts` | when the screen is drawn again |
 | Hide pinned messages, Hide sponsor reads | `chat_hide_pinned`, `chat_hide_sponsor_reads` | when the chat is drawn again |
@@ -366,14 +346,12 @@ and Change app name applied (Gradle still can't reach GitHub Packages):
 - `bin/test-rumble` passes on the patched APK. A build with only Clean share links and Clone app
   shows just that switch and works under `com.rumble.battles.lurk`.
 
-## Finding code in 3.22.0
+## Finding code in 3.21.0
 
 R8 renames Rumble's classes and methods, so the patches below find code through what survives:
 
 - Constructors check each parameter by name (`"eventRemoteDataSource"`, `"rumbleAdRepository"`, …).
 - Kotlin data objects return their source name from `toString()` (`"Success"`, `"EmptyVideoAdList"`).
-- Kotlin data classes print each field after its source name in `toString()` (`", resolution="`), which leads
-  to the field and its getter, also when R8 parks the value in another register before appending it.
 - Enum constants keep their names in `<clinit>` (`"SHORTS"`, `"Tip"`, `"OFF"`).
 - Compose functions carry a trace label (`"com.rumble.battles.….ShortsListView (ShortsListView.kt:65)"`),
   matched without the line number.
@@ -575,8 +553,7 @@ is on. Checked on 2026-10-22: with Hide Join buttons on, The Dan Bongino Show's 
 ## Disable autoplay
 
 Both options change a DataStore default in `UserPreferenceManager` (constructor strings `autoplayOnKey`,
-`playbackInFeedKey`, `backgroundPlayKey`; 3.21.0's `videoQualityKey` is gone). The patch follows each key to
-its field, the field's synthetic
+`playbackInFeedKey`, `videoQualityKey`). The patch follows each key to its field, the field's synthetic
 accessor, and the inner class reading it. It then changes the value used when nothing is stored, so
 Settings > Playback still works.
 
@@ -602,59 +579,56 @@ session stays PLAYING, the position moving on in the background.
 
 ## Default video quality
 
-The player chooses its start source with (sources, height, allowAuto, data saver). That signature is unique,
-with the string `sourceList`. Since 3.22.0:
+The player chooses its start source with (sources, last picked height, last picked bitrate, the server's
+preferred height, isLive, data saver, live uses Auto). That signature is unique, with the string
+`sourceList`.
 
-- Rumble starts on Auto (the HLS source with height and bitrate 0) whenever it may and there is one. Every
-  video but a Short may, live or not.
-- Otherwise it takes the source nearest the height: 720p (`MOBILE(720)`; 480 in 3.21.0), or a Short's own.
-  Ties go to the higher height, then the higher bitrate.
-- Data saver takes the lowest source and wins.
-- Rumble no longer keeps a quality picked in the player: the pick plays that video, and the next one starts
-  as above. 3.21.0 stored it app-wide (`videoQualityKey`, `videoBitrateKey`), and those keys are gone.
+- With no picked quality, Rumble uses `preferred_video_resolution`, which is 480p on phones.
+- The choice starts at "Rumble's default" (0; the `quality` option sets another start). Once a height is
+  chosen, the patch fills it in with the highest bitrate, and Rumble's own nearest-height logic does the
+  rest.
+- A quality picked in the player is stored app-wide and keeps winning.
+- Data saver still takes precedence.
 
-The choice starts at "Rumble's default" (0; the `quality` option sets another start). With a height chosen,
-the hook at the start of the chooser (`RumblePlayback.startHeight`) passes that height with Auto not allowed,
-and Rumble's own nearest-height rule does the rest; at "Rumble's default" it changes nothing. Only starting a
-video runs the chooser: the player's video load (a VOD, a live stream or a Short becoming current) and the
-Shorts cache preloading the rendition it will play. Shorts start at the chosen quality too.
+Only starting a video runs the chooser: the player itself, when a Short is created or becomes current, and
+the Shorts cache preloading the rendition it will play. A quality picked in the player plays that source
+directly and is saved through Rumble's own quality-save use case.
 
-**Live streams too** (`video_quality_live`, initially the `live` option, off). While it is off, live streams
-keep Rumble's Auto. The chooser doesn't know what it plays, so the player's video load (its one-parameter
-method returning a source that calls the chooser) first passes its video to `RumblePlayback.loadingVideo`. That
-reads the video's `livestreamStatus`, an enum (`UNKNOWN`, `ENDED`, `OFFLINE`, `LIVE`) found through the video's
-`toString`; R8 left it without a getter, so the patch makes the field public. `LIVE` and `OFFLINE` (a stream
-that hasn't started) count as live, as in Rumble's player. The answer is kept per thread for the next chooser
-call only, so the Shorts cache, which calls the chooser without a load, counts as not live. The switch applies
-at the next video; 3.21.0 changed the default of `liveVideoUseAutoKey`, which needed a restart.
+**Live streams too** (`video_quality_live`, initially the `live` option, off). Before it looks at any
+height, the chooser returns the Auto source (height and bitrate 0) for a live stream while Rumble's
+"live uses Auto" preference is true. That is DataStore `liveVideoUseAutoKey`, read as `?: true`. Picking
+Auto in the player stores true; picking a quality on a live stream stores false. While the switch is on
+and a default quality is chosen, the patch changes the `?: true` default to false, the same way Disable
+autoplay changes its defaults. Live streams then start at the default quality, until Auto is picked in the
+player. With the switch off the default is Rumble's again.
 
 **On mobile data** (`video_quality_mobile`, initially the `mobileQuality` option, "Same as on Wi-Fi").
 On a metered network (mobile data, or a Wi-Fi hotspot marked as metered) a cap C lowers the quality a video
 starts at; it never raises it:
 
-- The start height is what Rumble or the default quality would start at (the default quality, Rumble's Auto,
-  or its height), lowered to C. Auto counts as C.
-- The nearest source to a height can be above C when no source has exactly that height. So the extension
-  reads each source's height (the `resolution` getter of the player source, found through its `toString`) and
-  starts at the highest available height at or below the target, or the lowest one if every source is above
-  it, with Auto not allowed. A stream that only has Auto stays on Auto (Rumble falls back to it).
-- A quality picked in the player still plays. The next video on mobile data starts at C again.
-- With the choice at "Same as on Wi-Fi", or off a metered network, the chooser gets the values it got before.
+- The start height is what Rumble or the default quality would start at (a saved pick, the default
+  quality, or the server's preferred height), lowered to C. A saved Auto counts as C.
+- Rumble picks the source nearest a height by the difference of reciprocals, which can land above C when no
+  source has exactly that height (480 sits exactly between 360 and 720). So the extension reads each
+  source's height (the `resolution` getter of the player source, found through its `toString`) and starts at
+  the highest available height at or below the target, or the lowest one if every source is above it.
+- While capped, the live-stream Auto return is skipped, so a live stream starts at the nearest rendition at
+  or below C, even when Auto was picked. A stream that only has Auto stays on Auto.
+- A quality picked in the player still plays, and Rumble saves it as usual. The next video on mobile data
+  starts at C again; back on Wi-Fi the saved pick applies, because Lurk never writes `videoQualityKey`,
+  `videoBitrateKey` or `liveVideoUseAutoKey`.
+- With the choice at "Same as on Wi-Fi", or off a metered network, the chooser gets exactly the values it
+  got before.
 
-`QualityProbe` runs the real chooser with fake sources after telling the extension about a VOD or a live video
-(Rumble's default, the default quality for a VOD and a Short, data saver, a live stream with Live streams too
-off and on, the live answer not outliving its call), the bridged `livestreamStatus` and source height, and the
-cap function. The metered check can't be faked under `app_process`.
-
-Checked on 2026-11-04 on the emulator, signed out: at "Rumble's default" a VOD started on Auto (the quality
-row offers Auto, 360p, 720p and 1080p). With 1080p chosen, a VOD (a past live stream) started at 1080p and a
-live stream on Auto; with Live streams too on, the live stream started at 1080p.
+`QualityProbe` runs the real chooser with fake sources (default quality, a kept pick, live Auto, Rumble's
+default), the live default with each setting, and the cap function. The metered check can't be faked under
+`app_process`.
 
 ## Block update prompts
 
 Rumble can lock old versions out from Firebase Remote Config. `ContentViewModel` (constructor strings
 `shouldForceNewAppVersionUseCase`, `shouldSuggestNewAppVersionUseCase`) asks two use cases at startup,
-passing its own version as a literal (`"3.22.0"`):
+passing the literal `"3.21.0"`:
 
 - **Forced:** `ShouldForceNewAppVersionUseCase` compares `forced_app_version` with that version. If it is
   newer, `com.rumble.battles.landing.ForceUpdateView` replaces the app with an "update required" screen.
@@ -712,8 +686,6 @@ the link when its host is `rumble.com` or a subdomain (any case); other links ar
   `src_v1_*` only reach analytics events.
 - Shared links checked on 2026-10-14 had no query string, including a video opened from a Home
   recommendation row.
-- 3.22.0's code builds Shorts links the same way, and `src_v1_*` is still an analytics enum; its shared links
-  weren't checked in the app.
 
 So the patch is a guard in case the server or a later version starts adding tags.
 
@@ -959,9 +931,9 @@ the App Info rows as for the Lurk row, and a tap reloads the player at the same 
   source again, re-prepares and seeks to the current position. The patch adds a public static method to the
   player class that calls it with the current source; the extension reaches it through a bridged stub,
   because the player's fields are private.
-- Since 3.22.0 the quality switch saves nothing, so a reload changes no quality. In 3.21.0 it reported the
-  source to Rumble's quality-change callback, which saved it as your pick, and the added method swapped that
-  callback for one that did nothing during the call.
+- The quality switch also reports the source to Rumble's quality-change callback, which saves it as your
+  pick. The added method swaps that callback for one that does nothing during the call, so a reload saves
+  no quality.
 - The player's load method (the one asking the start-source chooser) records which player loaded which
   video, so a panel reloads its own player.
 - The hook runs at the start of the composable, on every recomposition. `RumblePlayer.refreshable` makes
@@ -985,7 +957,7 @@ gestures use), and the icon reads (the R class fields with those IDs) return a c
 chosen. At "15 seconds (Rumble's)" the buttons and icons are Rumble's own.
 
 `PlayerProbe` runs the real speed store with the switch on and off, and the focus and keep-screen-on
-decisions. `RefreshProbe` checks the clickable panel modifier and the reload through the quality switch.
+decisions. `RefreshProbe` checks the clickable panel modifier and the silent callback.
 
 ## Live chat
 
@@ -1137,14 +1109,13 @@ that app code calls every new extension method.
   to before.
 
 Retained refresh integration regression: `bin/test-rumble <patched.apk> RefreshProbe` executes the
-actual emitted video-load hooks, error-panel prefix, click/reload bridge and stock quality switch (`P4` in
-3.22.0, `x4` in 3.21.0) on ART. Player/state/Compose boundaries verify source URL, full-width seek position,
-per-video mapping, repeated taps, the player's status becoming Playing and disabled/null cases. The stock
-switch catches ordinary Exceptions and logs them; an Error or a failure inside its logger reaches the caller
-as itself. In 3.21.0 the generated reload also restored the quality callback in a catch-all handler, which
-3.22.0 no longer needs. These exceptions are synthetic regression inputs; no live occurrence is claimed.
-`tests/rumble/verify_refresh.py` checks the generated reload and the fatal-state branch to the mobile panel
-(pinned to 3.22.0's names). A real emulator network
+actual emitted video-load hook, error-panel prefix, click/reload bridge and stock `x4` on ART.
+Player/state/Compose boundaries verify source URL, full-width seek position, per-video mapping,
+repeated taps, disabled/null cases and preserved quality callbacks. The generated reload now restores
+its callback in a catch-all handler too: stock `x4` catches ordinary Exceptions, but an escaping Error
+or failure inside its logger previously left the no-op callback installed. These exceptions are
+synthetic regression inputs; no live occurrence is claimed. `tests/rumble/verify_refresh.py` checks
+emitted catch metadata and the fatal-state branch to the mobile panel. A real emulator network
 failure, the fatal-panel tap and continuing playback were observed on 2026-10-18 under a
 three-method error-policy fixture. Unchanged production recovered automatically from the observed outage; natural fatal
 entry, physical-phone and authenticated/Premium behavior are not established by that fixture.

@@ -200,7 +200,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
         for (method in cls.methods) {
             fun add(key: String) { found.getValue(key).add(method) }
-            if ((cls.type == EPHEMERAL_VIEWER && (method.name == EPHEMERAL_DIALOG || method.name == "onResume")) ||
+            if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
                 (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
                 try {
                     method.screenshotViewerSites()
@@ -267,7 +267,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
                 STORY_SUGGESTIONS_QUERY in strings + method.tableStrings(stringTables)) add("people_story")
             // The chat list supplier's items read, which first traces under its own name.
             if (cls.type == INBOX_SUPPLIER && !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == IMMUTABLE_LIST &&
-                method.parameterTypes.isEmpty() && INBOX_ITEMS_TRACE in strings) { add(INBOX_REFRESH_HOOK); add(PIN_LIST) }
+                method.parameterTypes.isEmpty() && INBOX_ITEMS_TRACE in strings) { add(INBOX_REFRESH_HOOK); add(PIN_LIST); add(HIDDEN_CHAT_LIST) }
             if (cls.type == "Lcom/facebook/screenshot/ScreenshotContentObserver;" && method.name == "onChange" &&
                 method.returnType == "V") add("allow_screenshot")
             // Android 14 and newer report a screenshot here, and Messenger turns it into the in-chat notice.
@@ -390,24 +390,31 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     found.getValue(AI_SEARCH_HINT).addAll(searchBars)
     found.getValue(AI_SEARCH_SCREEN_HINT).addAll(findAiSearchScreenHint(classes, searchBars))
     found.getValue(AI_MENTION_ROWS).addAll(findAiMentionRows(classes))
+    found.getValue(AI_SUMMARY).addAll(findAiSummary(classes))
     found.getValue(XHE_AUDIO).addAll(findXheAudio(classes))
     found.getValue(DISAPPEARING_SWIPE).addAll(findDisappearingSwipe(classes))
     found.getValue(RECENT_MEDIA).addAll(findRecentMedia(classes))
     found.getValue(INSTANTS_BUTTON).addAll(findInstantsButton(classes))
     found.getValue(SAVE_VOICE).addAll(findSaveVoice(classes))
     found.getValue(SAVE_VOICE_MENU).addAll(findSaveVoiceMenu(classes))
+    found.getValue(MESSAGE_ACTIONS).addAll(findMessageActions(classes))
+    found.getValue(MESSAGE_ACTIONS_MORE).addAll(findMessageActionsMore(classes))
     found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes) + findBoundUploadTasks(classes) +
         findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes))
     found.getValue(ATTRIBUTION_UPLOADS).addAll(findAttributionUploads(classes))
     found.getValue(AD_EVENTS).addAll(findAdEvents(classes))
     found.getValue(MQTT_TELEMETRY).addAll(findMqttTelemetry(classes))
     findPinnedChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
+    findHiddenChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
     found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
     found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
     found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
     found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
     found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
+    found.getValue(LANDSCAPE_LOCK).addAll(findPortraitLock(classes))
+    found.getValue(LANDSCAPE_MEDIA).addAll(findMediaOrientation(classes))
     found.getValue(BLOCKED_LIST_PICTURES).addAll(findBlockedListPictures(classes))
+    found.getValue(RESTRICTED_NOTIFY).addAll(findRestrictedNotify(classes))
     found.getValue(SHARE_STORY).addAll(findShareStory(classes))
     found.getValue(AVATAR_SHAPE).addAll(findAvatarShape(classes))
     found.getValue(STORY_RING).addAll(findStoryRing(classes))

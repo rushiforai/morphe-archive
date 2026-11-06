@@ -73,7 +73,7 @@ public final class KeywordsProbe {
         ProbeSupport.check(highlight.invoke(null, modifier, entity("viewer", "hello there")) == modifier,
                 "a plain message keeps Rumble's modifier");
         Object mention = highlight.invoke(null, modifier, entity("viewer", "hi @Lurker how are you"));
-        ProbeSupport.check(mention != modifier && modifierType().isInstance(mention),
+        ProbeSupport.check(mention != modifier && Class.forName("t1.o").isInstance(mention),
                 "a mention of the learned username gets a background modifier");
         ProbeSupport.check(highlight.invoke(null, modifier, entity("lurker", "hi @lurker")) == modifier,
                 "your own messages aren't mentions");
@@ -118,17 +118,12 @@ public final class KeywordsProbe {
         return entity;
     }
 
-    /** Compose's Modifier interface: the message row's first parameter. */
-    private static Class<?> modifierType() throws Exception {
-        return ProbeSupport.method("rumble.chat.message_row",
+    /** Compose's Modifier (the message row's first parameter): the companion every modifier chain starts from. */
+    private static Object modifierCompanion() throws Exception {
+        Class<?> modifier = ProbeSupport.method("rumble.chat.message_row",
                 "Lic/X;->d(Lt1/o;LKe/l;Ljava/util/Map;LKe/k;Lkotlin/jvm/functions/Function1;"
                         + "Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;"
                         + "Lkotlin/jvm/functions/Function1;LZ0/r;II)V").getParameterTypes()[0];
-    }
-
-    /** Compose's Modifier: the companion every modifier chain starts from. */
-    private static Object modifierCompanion() throws Exception {
-        Class<?> modifier = modifierType();
         for (Field field : modifier.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers()) && modifier.isAssignableFrom(field.getType())) {
                 field.setAccessible(true);

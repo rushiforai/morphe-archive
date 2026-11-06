@@ -331,7 +331,8 @@ public final class BydBatteryPatch {
         lastSampleAt = SystemClock.elapsedRealtime();
         lastSoc = sample.soc;
         // The first reading at once: the start's first snapshot, taken before it, would hold the report for 60 s.
-        ReportBuilder.saveSnapshot(context, resumed);
+        // A new model too (a learning reset or a learned value), so the report shows its consumption.
+        ReportBuilder.saveSnapshot(context, resumed || model.revision != lastRevision);
         // A new read also restarts the model's age that Maps sends with each request.
         notifyModelChanged();
         String source = file == null ? "source=fallback;" + model.describe()
@@ -536,7 +537,7 @@ public final class BydBatteryPatch {
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.BYD_BATTERY)) {
-            return thai ? "ปิดชั่วคราว · สวิตช์ใน Report Maps Car" : "Off for now · switch in Report Maps Car";
+            return (thai ? "ปิดชั่วคราว · สวิตช์ใน " : "Off for now · switch in ") + ReportPatch.reportPlace(context, thai);
         }
         if (!isEnabled(context)) {
             if (untestedByd(context)) return thai ? "ปิด · ยังไม่ได้ทดสอบกับรถรุ่นนี้" : "Off · not tested on this car model";
@@ -779,10 +780,10 @@ public final class BydBatteryPatch {
                         : (thai ? "ปิด" : "Off"))
                         : (thai ? "เปิด · ไม่พบระบบรถ BYD (BYD SDK)" : "On · no BYD vehicle system (BYD SDK) found"));
                 intro.setText(!enabled
-                        ? (thai ? "เมื่อเปิด Maps Car จะอ่านแบตเตอรี่จากรถ BYD ทุก 10 วินาที แล้วให้ Maps ใช้คำนวณแบตที่เหลือเมื่อถึงปลายทาง"
+                        ? (thai ? "เมื่อเปิด Maps จะอ่านแบตเตอรี่จากรถ BYD ทุก 10 วินาที แล้วใช้คำนวณแบตที่เหลือเมื่อถึงปลายทาง"
                         + " เปลี่ยนแล้วแอปจะเริ่มใหม่"
-                        : "When on, Maps Car reads the BYD car's battery every 10 s and gives it to Maps for the battery on"
-                        + " arrival. The app restarts after a change.")
+                        : "When on, Maps reads the BYD car's battery every 10 s and uses it for the battery on arrival."
+                        + " The app restarts after a change.")
                         + (!untested ? "" : thai
                         ? "\n\nทดสอบแล้วเฉพาะ BYD Dolphin (DiLink 3) รถคันนี้ (" + modelText(host, true) + ") ยังไม่ได้ทดสอบ"
                         + " จึงปิดไว้ก่อน เปิดเองได้ แต่แบตที่เหลือเมื่อถึงปลายทางอาจคลาดเคลื่อน"
@@ -790,8 +791,8 @@ public final class BydBatteryPatch {
                         : "\n\nTested only on a BYD Dolphin (DiLink 3). This car (" + modelText(host, false) + ") is untested,"
                         + " so this starts off. You can turn it on, but the battery on arrival may be less accurate."
                         + " Plug-in hybrids (DM-i) are not supported.")
-                        : (thai ? "Maps Car ไม่พบระบบรถ BYD จึงไม่ได้ส่งข้อมูลแบตให้ Maps ปิดได้ถ้าไม่ใช่รถ BYD"
-                        : "Maps Car found no BYD vehicle system, so Maps gets no battery data. Turn this off on other cars."));
+                        : (thai ? "ไม่พบระบบรถ BYD จึงไม่ได้ส่งข้อมูลแบตให้ Maps ปิดได้ถ้าไม่ใช่รถ BYD"
+                        : "No BYD vehicle system found, so Maps gets no battery data. Turn this off on other cars."));
                 show(intro, true);
                 for (View view : new View[]{batteryDivider, battery, load, arrival, usage, detailsDivider, detailsToggle, details}) {
                     show(view, false);
@@ -926,6 +927,8 @@ public final class BydBatteryPatch {
             host.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putInt(KEY_LOAD, preset).apply();
             ReportLog.i(TAG, "load " + preset + " kg, mass " + massKg(file) + " kg from the next reading");
             update();
+            // A report opened right after the choice reads the main process's snapshot.
+            ReportBuilder.saveSnapshot(host.getApplicationContext(), true);
         }
 
         private void paintChips() {
@@ -1009,6 +1012,7 @@ public final class BydBatteryPatch {
                 line(text, thai ? "แบบจำลองที่ Maps ใช้" : "Model Maps uses", file != null
                         ? String.format(Locale.ROOT, thai ? "ตาราง BYD %s (DiCarServer) · เลือกจากความจุ %.1f" + NBSP + "kWh"
                         : "BYD %s tables (DiCarServer) · chosen for %.1f" + NBSP + "kWh", file.table(), energyFileCapacityWh / 1000.0)
+                        + (!file.lossesReordered ? "" : thai ? " · เรียงค่าตารางที่สลับกลับแล้ว" : " · transposed values put back")
                         + (!sendsDolphinPower(file) ? "" : String.format(Locale.ROOT, thai
                         ? " · มอเตอร์ %d" + NBSP + "kW · ชาร์จ DC %d" + NBSP + "kW"
                         : " · motor %d" + NBSP + "kW · DC charging %d" + NBSP + "kW", PEAK_MOTOR_POWER_W / 1000, MAX_CHARGING_RATE_W / 1000))
@@ -1352,7 +1356,7 @@ public final class BydBatteryPatch {
         }
     }
 
-    private static boolean isByd() {
+    static boolean isByd() {
         return startsByd(Build.MANUFACTURER) || startsByd(Build.BRAND) || startsByd(Build.MODEL);
     }
 
@@ -1524,6 +1528,7 @@ public final class BydBatteryPatch {
                 .put("capacity_wh", sampled ? sampleCapacityWh : JSONObject.NULL)
                 .put("model_source", !on || !energyFileChecked ? "none" : file != null ? "byd_file" : "fallback")
                 .put("table", file != null ? file.table() : JSONObject.NULL)
+                .put("table_losses", file != null ? (file.lossesReordered ? "reordered" : "as_stored") : JSONObject.NULL)
                 .put("mass_kg", file != null ? massKg(file) : JSONObject.NULL)
                 .put("load_kg", on ? loadKg : JSONObject.NULL)
                 .put("peak_motor_power_w", dolphin ? PEAK_MOTOR_POWER_W : JSONObject.NULL)

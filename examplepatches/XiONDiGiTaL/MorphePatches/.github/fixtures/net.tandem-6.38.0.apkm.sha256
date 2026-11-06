@@ -1,0 +1,8 @@
+# Reference file the patches were developed and verified against: the APKMirror universal bundle
+# net.tandem 6.38.0 (versionCode 11568). Comment lines are ignored by `sha256sum -c`.
+#
+# The file itself is proprietary and is not committed; the regression workflow downloads it from the
+# location in the TANDEM_APKM_URL repository variable and refuses anything that does not match this
+# line. Change the line only when the reference build itself changes, because every patch in this
+# repository is a claim about that exact build.
+17539cc675654353e5971a8fd2bea6384876c71f63b387f8d95ef6cf7502e3ca  tandem-6.38.0.apkm

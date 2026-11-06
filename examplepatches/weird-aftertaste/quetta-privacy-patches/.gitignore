@@ -1,0 +1,36 @@
+# Signing material and local credentials
+*.key
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+.env
+.env.*
+!.env.example
+local.properties
+
+# Original apps and generated patch artifacts
+*.apk
+*.apks
+*.xapk
+*.zip
+*.mpp
+*.idsig
+*.aligned
+*.unsigned
+*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# Build and tool caches
+**/.gradle/
+**/.kotlin/
+**/build/
+**/__pycache__/
+*.py[cod]
+tools/
+work3/
+**/morphe-temporary-files/
+.idea/
+.vscode/
+*.log

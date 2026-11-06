@@ -14,7 +14,9 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.RegisterLiveness
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableExceptionHandler
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -238,5 +240,39 @@ class InjectionRegistersTest {
             ),
         )
         assertEquals("two locals, this, then the double's pair", 5, instance.parameterRegisterNumber(1))
+    }
+
+    /**
+     * `invoke-static` names 4-bit registers. A build whose allocator puts the post or the
+     * continuation in v16 used to stop the whole run (#20); the call now reads a copy of it.
+     */
+    @Test
+    fun `a call on a register above v15 reads a copy of it in a free local`() {
+        val keep = "Lcom/example/Log;->keep(Ljava/lang/Object;Ljava/lang/Object;)V"
+        val method = smali(
+            registers = 20, params = emptyList(),
+            body = """
+                const/4 v0, 0x0
+                const/4 v1, 0x0
+                move-object/from16 v17, v1
+                return-void
+            """,
+        )
+        // Nothing reads v0 after instruction 3, but the call does, so it's never the copy.
+        val code = method.invokeStaticAt("Fixture", 3, keep, listOf(17, 0))
+        assertEquals("move-object/from16 v1, v17\ninvoke-static { v1, v0 }, $keep", code)
+        method.addInstructions(3, code)
+        val body = method.implementation!!.instructions.toList()
+        assertEquals("nothing left out", 6, body.size)
+        assertEquals(Opcode.MOVE_OBJECT_FROM16, body[3].opcode)
+        assertEquals(listOf(1, 17), (body[3] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+        val call = body[4] as FiveRegisterInstruction
+        assertEquals(Opcode.INVOKE_STATIC, call.opcode)
+        assertEquals(listOf(2, 1, 0), listOf(call.registerCount, call.registerC, call.registerD))
+
+        // Two above v15 get two copies, and calls that fit are left as they were.
+        val both = method.invokeStaticAt("Fixture", 5, keep, listOf(17, 18))
+        assertEquals("move-object/from16 v0, v17\nmove-object/from16 v1, v18\ninvoke-static { v0, v1 }, $keep", both)
+        assertEquals("invoke-static { v3, v4 }, $keep", method.invokeStaticAt("Fixture", 5, keep, listOf(3, 4)))
     }
 }

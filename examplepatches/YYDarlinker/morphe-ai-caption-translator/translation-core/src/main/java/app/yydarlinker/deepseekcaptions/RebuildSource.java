@@ -382,7 +382,13 @@ final class RebuildSource {
 
     static boolean nonSpeech(String s) {
         String t = s.trim().toLowerCase(Locale.ROOT);
-        return MUSIC.matcher(t).matches() || NON_SPEECH.matcher(t).matches();
+        return speakerMarkerOnly(t) || MUSIC.matcher(t).matches() || NON_SPEECH.matcher(t).matches();
+    }
+
+    private static final Pattern SPEAKER_MARKER = Pattern.compile(">>(?:\\s+>>)*");
+
+    static boolean speakerMarkerOnly(String text) {
+        return SPEAKER_MARKER.matcher(text.trim()).matches();
     }
 
     // ---- Reading a track ----

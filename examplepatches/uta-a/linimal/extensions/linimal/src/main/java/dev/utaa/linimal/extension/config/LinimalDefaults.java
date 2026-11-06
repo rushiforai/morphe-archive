@@ -33,6 +33,8 @@ public final class LinimalDefaults {
                 return true;
             case PREMIUM:
             case PREMIUM_SETTINGS_ROW:
+            case PREMIUM_PREVIEW_PROMOTION:
+            case PREVIEW_SCROLL:
             case VOOM:
             case SHOPPING:
             case NEWS:

@@ -61,8 +61,9 @@ private val MOVES = EnumSet.of(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 /**
  * The post row's long press override: in [method], the read at [read] of the override the row
  * was handed into [register], the null check at [guard] that decides the long press from it, the
- * override's own long press [action] the row reads when there is one, and a register [free] the
- * hook may write in front of [guard].
+ * override's own long press [action] the row reads when there is one, a register [free] the hook
+ * may write in front of [guard], and [low], the override in a register the hook's read and call can
+ * name: [register] itself up to v15, a free local holding a copy of it above.
  */
 internal class LongPressOverride(
     val method: MutableMethod,
@@ -71,7 +72,21 @@ internal class LongPressOverride(
     val register: Int,
     val action: FieldReference,
     val free: Int,
-)
+    val low: Int = register,
+) {
+    /** The hook put in front of [guard], with a `:threads` label for Threads' own check. */
+    fun hook(): String {
+        val held = "v$register"
+        val copy = if (low == register) "" else "move-object/from16 v$low, $held\n"
+        return """
+            if-eqz $held, :threads
+            ${copy}iget-object v$free, v$low, $action
+            invoke-static { v$low, v$free }, $LONG_PRESS
+            move-result-object $held
+            check-cast $held, ${action.definingClass}
+        """
+    }
+}
 
 /** PostText, [method], and its boolean [parameter] that turns text selection on, copied at [copy] and tested at [check]. */
 internal class SelectionFlag(val method: MutableMethod, val parameter: Int, val copy: Int, val check: Int)
@@ -104,17 +119,9 @@ internal val copyTextPatch = bytecodePatch {
 
         // From the bottom of each method up, so a hook never moves a check still to come.
         overrides.sortedByDescending { it.guard }.forEach { override ->
-            val held = "v${override.register}"
-            val free = "v${override.free}"
             override.method.addInstructionsWithLabels(
                 override.guard,
-                """
-                    if-eqz $held, :threads
-                    iget-object $free, $held, ${override.action}
-                    invoke-static { $held, $free }, $LONG_PRESS
-                    move-result-object $held
-                    check-cast $held, ${override.action.definingClass}
-                """,
+                override.hook(),
                 ExternalLabel("threads", override.method.getInstruction(override.guard)),
             )
         }
@@ -186,16 +193,14 @@ private fun MutableMethod.overrideAt(guard: Int): LongPressOverride {
             flow.instructions[at].getReference<FieldReference>()?.definingClass == method.definingClass
     } ?: throw PatchException("$PATCH: the override check at $guard in ${method.signature()} doesn't read only the " +
         "lambda's own override")
-    if (register > 15) {
-        throw PatchException("$PATCH: ${method.signature()} holds its override in v$register, which the call can't name")
-    }
     val action = method.overrideAction(flow, guard)!!
     if (action.definingClass != flow.instructions[read].getReference<FieldReference>()!!.type) {
         throw PatchException("$PATCH: the override check at $guard in ${method.signature()} reads $action from " +
             "another type than the override it read at $read")
     }
-    val free = method.freeLocalsAt(PATCH, guard, 1).single()
-    return LongPressOverride(method, read, guard, register, action, free)
+    // The hook's read and call name 4-bit registers, so an override above v15 goes through a copy.
+    val scratch = method.freeLocalsAt(PATCH, guard, if (register > 15) 2 else 1, excluding = listOf(register))
+    return LongPressOverride(method, read, guard, register, action, scratch[0], scratch.getOrElse(1) { register })
 }
 
 /**

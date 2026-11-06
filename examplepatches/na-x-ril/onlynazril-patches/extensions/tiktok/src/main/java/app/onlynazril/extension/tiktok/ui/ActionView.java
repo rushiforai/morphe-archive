@@ -26,6 +26,7 @@ public final class ActionView extends TextView {
         setText(label);
         setTextSize(Tokens.ACTION_SP);
         setTextColor(textColor);
+        setTypeface(Fonts.face(false));
         setGravity(Gravity.CENTER);
         setPadding(
                 Tokens.dp(context, Tokens.SPACE_4),

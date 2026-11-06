@@ -48,7 +48,7 @@ def verify_mutant(original, mutant):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adb', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=range(1, 128), default=31)
+    parser.add_argument('--mask', type=int, choices=range(1, 256), default=31)
     parser.add_argument('--out-root', type=Path, default=base.REPO_ROOT / '.scratch/finamp/manager-2.2.0')
     parser.add_argument('--mutant-apk', type=Path, required=True)
     parser.add_argument('--original-apk', type=Path, required=True)

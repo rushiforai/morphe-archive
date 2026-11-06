@@ -7,6 +7,7 @@
     them in a single run and validates the desktop CLI process, result report, patch names,
     target version and saved APK. A result file can be written from a finally block after a
     failed compile, so a zero failed-patch count is not enough to call the run successful.
+    The CLI runs with --validate, so a fingerprint that fits two methods fails its patch.
 
     The bundle declares one compatible version, and the CLI refuses any other APK unless it is
     told to go ahead with -f. -Force does that for a retained newer build: the stock APK's own
@@ -191,7 +192,10 @@ try {
         if ($patchInput -eq $mergedApk) { Write-Host "[verify] merged $(Split-Path -Leaf $Apk) into one APK for the CLI" }
         $enable = @()
         foreach ($name in $names) { $enable += '-e'; $enable += $name }
-        $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+        # --validate makes every match() fingerprint prove it fits one method, so a second candidate
+        # in a new build fails its patch here instead of hooking whichever came first. matchAll() and
+        # a fingerprint that fits nothing behave as without it, and the patched output is the same.
+        $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '--validate', '-p', $Bundle,
             '-o', $out, '-t', $temp, '-r', $result)
         if ($forced) { $arguments += '-f' }
         $arguments = $arguments + $enable + @($patchInput)

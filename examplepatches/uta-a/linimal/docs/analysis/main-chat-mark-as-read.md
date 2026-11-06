@@ -335,7 +335,7 @@ executor へ印を付けると、送信・リアクション・削除も「手�
 相手へ既読が届く。そのため `readReceiptManualCallerPatch` は executor ではなくボタンの coroutine の
 executor 呼び出しだけを囲む。26.11.0 と同じく明示的なボタン操作だけが手動で、他は gate で止まる。
 
-26.16.0 には公式の手動既読設定（`ManualReadReceiptSettingsCategory`、Premium）も追加された。
+26.16.0 には公式の手動既読設定（`ManualReadReceiptSettingsCategory`）も追加された。
 公式の説明では返信・リアクション・「既読にする」で既読が付く。Linimal の設定とは独立している。
 
 ### 長押しメニュー
@@ -343,6 +343,7 @@ executor 呼び出しだけを囲む。26.11.0 と同じく明示的なボタン
 固定 4 行ではなく、`Lb71/e;->k`（トーク項目の分岐）が行一覧の composable `La71/f;->a` を呼び、
 その中で一覧から行を描く。行は `a` を呼ぶ直前へ 1 行だけ差し込み、行 composable とラベルの複製元は
 `a` の中から取り出す。同じ `a` を使うトークプレビューには行を足さない。
+スクロールプレビュー画面のメニューは別の composable が描くため、別のパッチで行を足す（`chat-scroll-preview.md`）。
 
 ### 送信の観測
 

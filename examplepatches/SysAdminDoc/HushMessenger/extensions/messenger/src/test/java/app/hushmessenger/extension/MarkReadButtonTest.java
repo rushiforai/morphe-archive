@@ -138,6 +138,12 @@ public class MarkReadButtonTest {
         assertTrue(MarkReadButton.place(detailsCutOff, ours));
         assertEquals("it shows, among the first three", Arrays.asList(ours, voice, video, details), detailsCutOff);
 
+        // Messenger's chat Label button (its TAG icon) is the bar's own button class and sets no test tag at all.
+        Object label = new Button(null);
+        List<Object> labeled = new ArrayList<>(Arrays.asList(label, voice, video, details));
+        assertTrue(MarkReadButton.place(labeled, ours));
+        assertEquals(Arrays.asList(ours, voice, video, details), labeled);
+
         Object share = new Button("broadcast_channel_share_button"), bell = new Button("notification_button");
         Object invite = new Button("thread_view_title_bar_channel_invite_button");
         List<Object> channel = new ArrayList<>(Arrays.asList(share, invite, bell));

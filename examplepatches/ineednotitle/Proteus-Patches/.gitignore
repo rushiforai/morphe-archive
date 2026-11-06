@@ -1,0 +1,11 @@
+# Build outputs (were accidentally committed once — keep them out)
+build/
+patches/build/
+extensions/extension/build/
+.gradle/
+
+# Local Gradle credentials — NEVER commit tokens.
+# Use gpr.user / gpr.key here only on your own machine, or better:
+# export GITHUB_ACTOR / GITHUB_TOKEN, or ~/.gradle/gradle.properties
+# gradle.properties is tracked for project config; keep secrets out of it.
+local.properties

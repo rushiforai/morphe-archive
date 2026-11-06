@@ -169,7 +169,7 @@ final class ExportIndex {
             root.put("format", FORMAT);
             root.put("version", VERSION);
             root.put("appPackage", "app.myspoti.stable");
-            root.put("appVersion", "2.3.0");
+            root.put("appVersion", "2.4.0");
             root.put("createdAt", System.currentTimeMillis());
             root.put("entries", entries);
             root.put("collections", collectionEntries);

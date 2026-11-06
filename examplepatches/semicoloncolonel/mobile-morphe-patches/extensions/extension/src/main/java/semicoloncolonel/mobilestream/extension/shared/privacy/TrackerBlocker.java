@@ -125,6 +125,10 @@ public final class TrackerBlocker {
             // JustWatch (26.43.10)
             "sp.justwatch.com", "t.justwatch.com", // JustWatch's own Snowplow event collectors
             "singular.net", // Singular attribution
+            // Plex (2026.22.0)
+            "analytics.plex.tv", // Plex's own event collector
+            "plex.adsmeasurement.com", // Plex ad measurement
+            "prodregistryv2.org", // Statsig event logging (not its flag hosts)
             // Fandango at Home (10.24)
             "kochava.kvaedit.site", "kochava.dewrain.life", // Kochava fallback hosts
             // CBS News (5.20)

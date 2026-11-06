@@ -9,7 +9,7 @@
 ## Add the source and patch
 
 1. [Add Penguin Patches to Morphe](https://morphe.software/add-source?github=pengusto/penguin-patches). If the link does not hand off, use **Sources → Add → Remote** in Morphe Manager with `https://github.com/pengusto/penguin-patches`.
-2. Select the matching original APK, choose the patches and configure their options. Finamp's three patches are optional and initially off. Infinity+ requires your own authorized Reddit OAuth client; follow its [setup guide](INFINITY.md).
+2. Select the matching original APK, choose the patches and configure their options. Finamp's patches are optional and initially off. Infinity+ requires your own authorized Reddit OAuth client; follow its [setup guide](INFINITY.md).
 3. Patch, sign with your backed-up key and install. Check the behavior with disposable data before relying on it. Do not install emulator test APKs.
 
 The source follows stable releases from `main`. Enable pre-releases for this source only if you intend to try upcoming `dev` changes.

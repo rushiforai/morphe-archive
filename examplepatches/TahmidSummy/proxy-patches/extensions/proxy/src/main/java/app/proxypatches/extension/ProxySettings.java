@@ -91,8 +91,8 @@ public final class ProxySettings {
     private ProxySettings() {}
 
     static Values defaults() {
-        return new Values(ProxyConfig.host(), ProxyConfig.port(), ProxyConfig.type(),
-                ProxyConfig.username(), ProxyConfig.password(), false);
+        // Starting values have no login: it's only ever entered in the app.
+        return new Values(ProxyConfig.host(), ProxyConfig.port(), ProxyConfig.type(), "", "", false);
     }
 
     /** Loads saved settings. Called once at app start. */
@@ -192,18 +192,27 @@ public final class ProxySettings {
         return bmp;
     }
 
+    static Context context() {
+        return appContext;
+    }
+
+    /** Shows a long toast on the main thread. */
+    static void toast(String text) {
+        Context ctx = appContext;
+        if (ctx == null) return;
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                Toast.makeText(ctx, text, Toast.LENGTH_LONG).show();
+            } catch (Throwable ignored) {
+            }
+        });
+    }
+
     /** Shows (once) a hint that no proxy is set, since the app is offline until then. */
     static void showNotConfiguredHint() {
         if (hintShown || appContext == null) return;
         hintShown = true;
-        new Handler(Looper.getMainLooper()).post(() -> {
-            try {
-                Toast.makeText(appContext,
-                        "No proxy set, so the app is offline. Long-press the app icon → Proxy settings " +
-                                "to set one, or turn on \"Run without proxy\".",
-                        Toast.LENGTH_LONG).show();
-            } catch (Throwable ignored) {
-            }
-        });
+        toast("No proxy set, so the app is offline. Long-press the app icon → Proxy settings " +
+                "to set one, or turn on \"Run without proxy\".");
     }
 }

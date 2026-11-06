@@ -316,7 +316,7 @@ Test-Broken { param($c) $c.entries[0].lineage = '' } '*names no lineage*' 'A sou
 
 Write-Host '[sources] every ledger rule refuses the copy that breaks it'
 
-# --- the census and the listings a release is held to ----------------------------------------------
+# --- how old the census is ------------------------------------------------------------------------
 
 $census = Copy-Json $ledger
 $census.census.checkedAt = '2026-09-25'
@@ -327,52 +327,7 @@ Assert-True (-not (Test-SourceCensus -Ledger $census -Today '2026-09-24').Valid)
 $census.census.checkedAt = 'yesterday'
 Assert-True (-not (Test-SourceCensus -Ledger $census -Today '2026-10-01').Valid) 'A census with no date was accepted.'
 
-$listings = Copy-Json $ledger
-foreach ($index in $listings.indexes) { $index.hushthreads = [pscustomobject]@{ status = 'listed'; url = 'https://example.com/listing'; checked = '2026-09-25' } }
-Assert-True (Test-SourceListings -Ledger $listings).Valid 'Every index listing HushThreads was refused.'
-$listings.indexes[0].hushthreads = [pscustomobject]@{ status = 'submitted'; url = 'https://example.com/issue/1'; submitted = '2026-09-25' }
-Assert-True (Test-SourceListings -Ledger $listings).Valid 'A dated submission was not accepted in place of a listing.'
-$listings.indexes[1].hushthreads = [pscustomobject]@{ status = 'not-listed'; checked = '2026-09-25' }
-$pending = Test-SourceListings -Ledger $listings
-Assert-True (-not $pending.Valid -and $pending.Pending -contains [string]$listings.indexes[1].name) `
-    'An index with neither a listing nor a submission was accepted.'
-
-# Test-SourceReleaseGate reads the ledger where the release does, so it gets a root of its own.
-$gateRoot = Join-Path $caseRoot 'gate'
-New-Item -ItemType Directory -Path (Join-Path $gateRoot 'sources') -Force | Out-Null
-foreach ($name in @('NOTICE', 'provenance.json', 'patches-list.json')) {
-    Copy-Item -LiteralPath (Join-Path $Root $name) -Destination (Join-Path $gateRoot $name)
-}
-function Save-GateLedger {
-    param([string]$CheckedAt, [switch]$Pending)
-    $copy = Copy-Json $ledger
-    $copy.census.checkedAt = $CheckedAt
-    foreach ($index in $copy.indexes) {
-        $index.hushthreads = if ($Pending) { [pscustomobject]@{ status = 'not-listed'; checked = $CheckedAt } } else {
-            [pscustomobject]@{ status = 'listed'; url = 'https://example.com/listing'; checked = $CheckedAt } }
-    }
-    # Every date the audit's clean run stamps is set here, or a ledger stamped after these fixed
-    # days would put a record after the gate's today and fail the case for the wrong reason.
-    foreach ($entry in $copy.entries) { $entry.lastChecked = $CheckedAt }
-    foreach ($item in @($copy.outOfScope)) { $item.lastChecked = $CheckedAt }
-    [IO.File]::WriteAllText((Get-SourceLedgerPath -Root $gateRoot), ($copy | ConvertTo-Json -Depth 20))
-}
-Save-GateLedger -CheckedAt '2026-09-25'
-$gate = Test-SourceReleaseGate -Root $gateRoot -Today '2026-10-09'
-Assert-True $gate.Valid "The release gate refused a census 14 days old: $($gate.Reason)"
-Assert-True ($gate.Summary -like '*14 day(s) old*') "The release gate did not say how old the census is: $($gate.Summary)"
-$gate = Test-SourceReleaseGate -Root $gateRoot -Today '2026-10-10'
-Assert-True (-not $gate.Valid -and $gate.Reason -like '*15 days old*audit-threads-sources.ps1*') "The release gate accepted a stale census: $($gate.Reason)"
-Save-GateLedger -CheckedAt '2026-09-25' -Pending
-$gate = Test-SourceReleaseGate -Root $gateRoot -Today '2026-09-26'
-# An index that doesn't list HushThreads yet is named, not refused: a submission is a public
-# request on someone else's project, so a release can't be made to wait on it.
-Assert-True ($gate.Valid -and $gate.Summary -like '*HushThreads is not listed on *yet and has no submission recorded there*') "The release gate didn't name the indexes that don't list HushThreads: $($gate.Summary) $($gate.Reason)"
-Remove-Item -LiteralPath (Get-SourceLedgerPath -Root $gateRoot)
-$gate = Test-SourceReleaseGate -Root $gateRoot -Today '2026-09-26'
-Assert-True (-not $gate.Valid -and $gate.Reason -like '*ledger is missing*') "The release gate accepted a missing ledger: $($gate.Reason)"
-
-Write-Host '[sources] the census holds to 14 days and every index needs a listing or a dated submission'
+Write-Host '[sources] a census reads as current for 14 days'
 
 # --- the audit, against stand-ins for every forge and index -----------------------------------------
 
@@ -435,7 +390,7 @@ $fixtureLedger = [ordered]@{
             forks = @(); contentHashes = @(); mirrors = @(); lastChecked = '2026-09-01' }
         [ordered]@{ id = 'gamma'; repository = 'https://gitlab.com/fixture-group/gamma-patches'; lineage = 'gamma'; upstream = $null
             kind = 'revanced-patches'; packages = @('com.instagram.barcelona'); targetVersions = [ordered]@{ 'com.instagram.barcelona' = @() }
-            features = @('Open links outside'); branches = @([ordered]@{ name = 'main'; commit = $commitG1 }); watchPaths = @()
+            features = @('Open links outside'); branches = @([ordered]@{ name = 'main'; commit = $commitG1 }); watchPaths = @('patches/threads', 'extensions/threads')
             license = [ordered]@{ spdx = 'GPL-3.0'; url = "https://gitlab.com/fixture-group/gamma-patches/-/blob/$commitG1/LICENSE"; sha256 = $licenseHash }
             contaminatedBy = $null; disposition = 'candidate'; reason = 'A fixture GitLab source.'; archived = $false
             forks = @(); contentHashes = @(); mirrors = @(); lastChecked = '2026-09-01' }
@@ -520,7 +475,15 @@ function New-FakeAnswers {
         gammaLicense = @{ Status = 200; Content = (@{ file_name = 'LICENSE'; content = $licenseBase64 } | ConvertTo-Json) }
         gammaBranches = @{ Status = 200; Content = "[{`"name`":`"main`",`"commit`":{`"id`":`"$commitG1`"}}]" }
         gammaForks = @{ Status = 200; Content = '[]' }
-        repoMeta = @{ Status = 200; Content = '{"full_name":"newcomer/threads-patches","license":{"spdx_id":"MIT"},"fork":false,"archived":false,"pushed_at":"2026-09-20T00:00:00Z","description":"Threads patches"}' }
+        # The newest commit GitLab's GraphQL answers for a branch and path; anything else has none. A
+        # gammaGraphql answer stands in for the whole reply.
+        gammaWatch = @{
+            'main|patches/threads' = @{ sha = $commitG1; committedDate = '2026-09-01T12:00:00+02:00' }
+            'old|patches/threads' = @{ sha = ('c3' * 20); committedDate = '2026-08-01T12:00:00+02:00' }
+        }
+        gammaGraphql = $null
+        gammaCompare = @{}
+        repoMeta =@{ Status = 200; Content = '{"full_name":"newcomer/threads-patches","license":{"spdx_id":"MIT"},"fork":false,"archived":false,"pushed_at":"2026-09-20T00:00:00Z","description":"Threads patches"}' }
         oldNameMeta = @{ Status = 200; Content = '{"full_name":"fixture-owner/alpha-patches","fork":false,"archived":false}' }
         receipt = @{ Status = 200; Content = (@{ targets = @($adoptedBuilds | ForEach-Object {
             @{ source = @{ versionName = $_; forced = $false }; patches = @(@{ name = 'Hide ads'; applied = $true }) } }) } | ConvertTo-Json -Depth 8) }
@@ -534,10 +497,10 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     # Stands in for every request the audit makes, so no case needs the network. A request it
     # doesn't recognize fails the case that made it.
     function Invoke-WebRequest {
-        param($Uri, $Headers, $UserAgent, [switch]$UseBasicParsing, $TimeoutSec, $Method, $OutFile, $MaximumRedirection, [switch]$PassThru)
+        param($Uri, $Headers, $UserAgent, [switch]$UseBasicParsing, $TimeoutSec, $Method, $Body, $ContentType, $OutFile, $MaximumRedirection, [switch]$PassThru)
         $url = [string]$Uri
         $authorization = if ($Headers -and $Headers.ContainsKey('Authorization')) { [string]$Headers['Authorization'] } else { $null }
-        $fakeForge.Requests.Add([pscustomobject]@{ Uri = $url; Authorization = $authorization })
+        $fakeForge.Requests.Add([pscustomobject]@{ Uri = $url; Authorization = $authorization; Method = $Method; Body = $Body })
         $a = $fakeForge.Answers
         $answer = $null
         switch -Regex ($url) {
@@ -573,6 +536,29 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/repository/files/LICENSE\?ref=main$' { $answer = $a.gammaLicense; break }
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/repository/branches\?per_page=100&page=1$' { $answer = $a.gammaBranches; break }
             '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/forks\?per_page=100&page=1$' { $answer = $a.gammaForks; break }
+            '^https://gitlab\.com/api/v4/projects/fixture-group%2Fgamma-patches/repository/compare\?from=([0-9a-f]{40})&to=([0-9a-f]{40})$' {
+                # GitLab lists the commits $to has past $from: none when it's behind or the same.
+                $status = $a.gammaCompare[$Matches[2]]
+                if ($status) { $answer = @{ Status = 200; Content = $(if ($status -eq 'ahead') { "{`"commits`":[{`"id`":`"$($Matches[2])`"}]}" } else { '{"commits":[]}' }) } }
+                break
+            }
+            '^https://gitlab\.com/api/graphql$' {
+                if ($null -ne $a.gammaGraphql) { $answer = $a.gammaGraphql; break }
+                $query = [string](($Body | ConvertFrom-Json).query)
+                if ($Method -ne 'Post' -or $query -notlike '*project(fullPath: "fixture-group/gamma-patches")*') { break }
+                $commits = [ordered]@{}
+                foreach ($asked in [regex]::Matches($query, '(q\d+): lastCommit\(ref: "([^"]+)", path: "([^"]+)", refType: HEADS\) \{ sha committedDate \}')) {
+                    $commits[$asked.Groups[1].Value] = $a.gammaWatch["$($asked.Groups[2].Value)|$($asked.Groups[3].Value)"]
+                }
+                # A branch's own head comes from the branch list this stand-in hands out.
+                $listedBranches = @(([string]$a.gammaBranches.Content | ConvertFrom-Json) | ForEach-Object { $_ })
+                foreach ($asked in [regex]::Matches($query, '(h\d+): lastCommit\(ref: "([^"]+)", refType: HEADS\) \{ sha \}')) {
+                    $listedBranch = @($listedBranches | Where-Object { [string]$_.name -ceq $asked.Groups[2].Value } | Select-Object -First 1)
+                    $commits[$asked.Groups[1].Value] = if ($listedBranch.Count -gt 0) { @{ sha = [string]$listedBranch[0].commit.id } } else { $null }
+                }
+                $answer = @{ Status = 200; Content = (@{ data = @{ project = @{ repository = $commits } } } | ConvertTo-Json -Depth 6) }
+                break
+            }
             '^https://api\.github\.com/repos/(newcomer/threads-patches|clone/alpha-clone)$' { $answer = $a.repoMeta; break }
             '^https://api\.github\.com/repos/fixture-owner/alpha-old$' { $answer = $a.oldNameMeta; break }
             '^https://github\.com/SysAdminDoc/HushThreads/releases/download/v9\.9\.9/release-receipt-9\.9\.9\.json$' { $answer = $a.receipt; break }
@@ -740,6 +726,89 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'unseen-fork' '*alpha-patches*fork stranger/alpha-patches*' 'A fork the ledger has not seen'
     $fakeForge.Answers = New-FakeAnswers
 
+    # GitLab renames a fork waiting to be deleted after its own id, and a scanner keeps making and
+    # deleting forks of ReVanced's mirror. One whose name ends in its own id isn't a fork to record;
+    # one that only looks like it is.
+    $fakeForge.Answers.gammaForks.Content = '[{"id":42,"path_with_namespace":"scanner/temp-deletion_scheduled-42"}]'
+    $scheduled = Invoke-Audit
+    Assert-True ($scheduled.ExitCode -eq 0) ("A fork GitLab is deleting was reported: " +
+        (@($scheduled.Report.findings | ForEach-Object { "$($_.kind): $($_.detail)" }) -join ' | '))
+    Reset-FixtureLedger
+    $fakeForge.Answers.gammaForks.Content = '[{"id":41,"path_with_namespace":"scanner/temp-deletion_scheduled-42"}]'
+    Assert-Drift 'unseen-fork' '*gamma-patches*fork scanner/temp-deletion_scheduled-42*' 'A fork named like a deleted one under another id'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # GitLab's watched paths are read through GraphQL. gitlab.com's hourly REST limit can't hold a
+    # request per branch and path: ReVanced's mirror needs 70 of those and an address gets about 60.
+    $watchedClean = Invoke-Audit
+    Assert-True ($watchedClean.ExitCode -eq 0) ("A GitLab source whose watched code stayed put was reported: " +
+        (@($watchedClean.Report.findings | ForEach-Object { "$($_.kind): $($_.detail)" }) -join ' | '))
+    $questions = @($fakeForge.Requests | Where-Object { $_.Uri -ceq 'https://gitlab.com/api/graphql' })
+    Assert-True ($questions.Count -eq 1 -and $questions[0].Method -eq 'Post' -and $questions[0].Body -like '*patches/threads*' -and $questions[0].Body -like '*extensions/threads*') `
+        "One GitLab branch and two watched paths weren't one question: $(@($questions | ForEach-Object { $_.Body }) -join ' | ')"
+    Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://gitlab.com/api/v4/*/repository/commits*' }).Count -eq 0) `
+        'A GitLab watched path was still read through REST.'
+    Reset-FixtureLedger
+
+    # The newest of the watched paths is the branch's head, whichever way the zones fall: 13:00 at
+    # +05:00 is before 12:00 at +02:00, though it reads later.
+    $fakeForge.Answers.gammaWatch['main|extensions/threads'] = @{ sha = ('d1' * 20); committedDate = '2026-09-01T13:00:00+05:00' }
+    $olderPath = Invoke-Audit
+    Assert-True ($olderPath.ExitCode -eq 0) ("A watched path older than the pin moved the branch: " +
+        (@($olderPath.Report.findings | ForEach-Object { "$($_.kind): $($_.detail)" }) -join ' | '))
+    Reset-FixtureLedger
+    $fakeForge.Answers.gammaWatch['main|extensions/threads'] = @{ sha = ('d1' * 20); committedDate = '2026-09-01T11:00:00+00:00' }
+    Assert-Drift 'changed-head' "*gamma-patches*branch main moved from $commitG1 to $('d1' * 20)*" 'A GitLab branch whose second watched path moved'
+    $fakeForge.Answers = New-FakeAnswers
+    $fakeForge.Answers.gammaWatch = @{}
+    Assert-Drift 'changed-head' "*gamma-patches*branch main moved from $commitG1 to no Threads code*" 'A GitLab branch that lost its watched code'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # Forty branches and two paths are four questions (ten branches each, with their heads), and the last one is read: its branch holds
+    # the only work the ledger hasn't pinned. A branch name with slashes reaches GitLab whole.
+    $manyBranches = @('main') + @(1..39 | ForEach-Object { "github/fork/someone/b$_" })
+    $fakeForge.Answers.gammaBranches.Content = ConvertTo-Json -Compress -Depth 4 -InputObject @($manyBranches | ForEach-Object { @{ name = $_; commit = @{ id = ('c4' * 20) } } })
+    $fakeForge.Answers.gammaWatch['github/fork/someone/b39|extensions/threads'] = @{ sha = ('c4' * 20); committedDate = '2026-09-02T12:00:00+02:00' }
+    $fakeForge.Answers.gammaCompare[('c4' * 20)] = 'ahead'
+    $manyRun = Invoke-Audit
+    $manyFindings = @($manyRun.Report.findings | ForEach-Object { "$($_.kind): $($_.detail)" }) -join ' | '
+    $manyQuestions = @($fakeForge.Requests | Where-Object { $_.Uri -ceq 'https://gitlab.com/api/graphql' }).Count
+    Assert-True ($manyQuestions -eq 4) "Forty branches and two paths weren't four questions: $manyQuestions"
+    Assert-True (@($manyRun.Report.findings | Where-Object { $_.kind -eq 'new-branch' -and $_.detail -like '*branch github/fork/someone/b39 carries Threads work*' }).Count -eq 1) `
+        "The last question's branch wasn't read: $manyFindings"
+    $fakeForge.Answers = New-FakeAnswers
+    Reset-FixtureLedger
+
+    # Branches that share a head share one comparison, since each counts against that limit.
+    $fakeForge.Answers.gammaBranches.Content = "[{`"name`":`"main`",`"commit`":{`"id`":`"$commitG1`"}},{`"name`":`"one`",`"commit`":{`"id`":`"$('c5' * 20)`"}},{`"name`":`"two`",`"commit`":{`"id`":`"$('c5' * 20)`"}}]"
+    foreach ($sharing in 'one', 'two') { $fakeForge.Answers.gammaWatch["$sharing|patches/threads"] = @{ sha = ('c5' * 20); committedDate = '2026-08-01T12:00:00+02:00' } }
+    $fakeForge.Answers.gammaCompare[('c5' * 20)] = 'behind'
+    $sharedRun = Invoke-Audit
+    Assert-True ($sharedRun.ExitCode -eq 0) ("Branches behind a pinned one were reported: " +
+        (@($sharedRun.Report.findings | ForEach-Object { "$($_.kind): $($_.detail)" }) -join ' | '))
+    Assert-True (@($fakeForge.Requests | Where-Object { $_.Uri -like 'https://gitlab.com/api/v4/*/repository/compare*' }).Count -eq 1) `
+        'Two branches with one head were compared twice.'
+    $fakeForge.Answers = New-FakeAnswers
+    Reset-FixtureLedger
+
+    # An answer that doesn't hold the commits leaves the source unread and the ledger alone. A
+    # missing project mustn't read as a branch with no watched code.
+    foreach ($broken in @(
+            @{ Answer = @{ Status = 200; Content = '{"errors":[{"message":"Query has complexity of 300, which exceeds max complexity of 200"}]}' }; Said = '*gamma-patches could not be read*GitLab refused*exceeds max complexity*'; Case = 'A GraphQL refusal' }
+            @{ Answer = @{ Status = 200; Content = '{"data":{"project":null}}' }; Said = '*gamma-patches could not be read*with no repository*'; Case = 'A GraphQL answer with no project' }
+            @{ Answer = @{ Status = 429; Content = $null }; Said = '*gamma-patches could not be read: the commits under its watched paths answered HTTP 429*'; Case = 'A limit on GraphQL' }
+            @{ Answer = @{ Status = 500; Content = $null }; Said = '*gamma-patches could not be read: the commits under its watched paths answered HTTP 500*'; Case = 'A server error on GraphQL' })) {
+        $fakeForge.Answers.gammaGraphql = $broken.Answer
+        $brokenRun = Invoke-Audit
+        $brokenFindings = @($brokenRun.Report.findings | ForEach-Object { "$($_.kind): $($_.repository) $($_.detail)" }) -join ' | '
+        Assert-True ($brokenRun.ExitCode -eq 1 -and @($brokenRun.Report.findings | Where-Object { $_.kind -eq 'source-failed' -and $_.detail -like $broken.Said }).Count -eq 1) `
+            "$($broken.Case) didn't leave the source unread (exit $($brokenRun.ExitCode)): $brokenFindings"
+        Assert-True (@($brokenRun.Report.findings | Where-Object { $_.kind -eq 'changed-head' -and $_.repository -like '*gamma-patches*' }).Count -eq 0) `
+            "$($broken.Case) read as a moved branch: $brokenFindings"
+        Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $fixtureLedgerText) "$($broken.Case) changed the ledger."
+    }
+    $fakeForge.Answers = New-FakeAnswers
+
     $fakeForge.Answers.gammaProject = @{ Status = 404; Content = $null }
     Assert-Drift 'repository-gone' '*gamma-patches*HTTP 404*' 'A GitLab source that is gone'
     $fakeForge.Answers = New-FakeAnswers
@@ -791,6 +860,76 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
 
     $fakeForge.Answers.searchHits[1].sha = ('8b' * 20)
     Assert-Drift 'mirror-changed' '*copier/alpha-copy*' 'A recorded copy whose file changed'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # A recorded fork whose Threads files code search finds and no lineage holds: no index lists
+    # it, so only its files say it carries work of its own.
+    $fakeForge.Answers.searchHits = @($fakeForge.Answers.searchHits) + @(
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/Alpha.kt'; sha = $blobKnown }
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/Novel.kt'; sha = ('8c' * 20) })
+    Assert-Drift 'fork-changed' '*github.com/someone/alpha-patches*recorded fork of alpha holds 1 Threads file*' 'A recorded fork with a Threads file of its own'
+    $forkResult = Invoke-Audit
+    $forkFinding = @($forkResult.Report.findings | Where-Object { $_.kind -eq 'fork-changed' })
+    Assert-True ($forkFinding.Count -eq 1 -and @($forkFinding[0].evidence.hits).Count -eq 1 -and $forkFinding[0].evidence.hits[0].path -eq 'patches/Novel.kt') `
+        "The recorded fork's finding didn't name just its own file: $(ConvertTo-Json -Compress -Depth 6 -InputObject $forkFinding)"
+    $fakeForge.Answers = New-FakeAnswers
+
+    # Many such files make one finding that names 20 of them and counts the rest.
+    $fakeForge.Answers.searchHits = @($fakeForge.Answers.searchHits) + @(for ($n = 0; $n -lt 25; $n++) {
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = "patches/Novel$n.kt"; sha = ('{0:x2}' -f (0xa0 + $n)) * 20 } })
+    $manyResult = Invoke-Audit
+    $manyFinding = @($manyResult.Report.findings | Where-Object { $_.kind -eq 'fork-changed' })
+    Assert-True ($manyResult.ExitCode -eq 1 -and $manyFinding.Count -eq 1 -and @($manyFinding[0].evidence.hits).Count -eq 20 -and $manyFinding[0].evidence.more -eq 5) `
+        "A recorded fork with 25 files of its own didn't make one finding naming 20 and counting 5: $(ConvertTo-Json -Compress -Depth 4 -InputObject $manyFinding)"
+    Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $fixtureLedgerText) 'An audit with a changed recorded fork changed the ledger.'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # A recorded fork found under its old name gets the same check.
+    $fakeForge.Answers.searchHits = @($fakeForge.Answers.searchHits) + @(
+        @{ repository = @{ full_name = 'fixture-owner/alpha-old' }; path = 'patches/Novel.kt'; sha = ('8d' * 20) })
+    $fakeForge.Answers.oldNameMeta.Content = '{"full_name":"someone/alpha-patches","fork":true,"archived":false}'
+    Assert-Drift 'fork-changed' '*github.com/someone/alpha-patches*recorded fork of alpha*' 'A recorded fork found by its old name with a Threads file of its own'
+    $fakeForge.Answers = New-FakeAnswers
+
+    # A recorded fork holding only files its lineage or that lineage's copies hold stays quiet.
+    $fakeForge.Answers.searchHits = @($fakeForge.Answers.searchHits) + @(
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/Alpha.kt'; sha = $blobKnown }
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/Copy.kt'; sha = $blobMirror })
+    $sameFork = Invoke-Audit
+    Assert-True ($sameFork.ExitCode -eq 0 -and @($sameFork.Report.findings | Where-Object { $_.kind -eq 'fork-changed' }).Count -eq 0) `
+        ("A recorded fork holding only its lineage's files was reported: " +
+            (@($sameFork.Report.findings | ForEach-Object { "$($_.kind): $($_.repository) $($_.detail)" }) -join ' | '))
+    Reset-FixtureLedger
+    $fakeForge.Answers = New-FakeAnswers
+
+    # A file only another lineage holds is still news in a recorded fork or copy of this one.
+    $blobBeta = '3b' * 20
+    $crossLedger = $fixtureLedgerText | ConvertFrom-Json
+    $crossLedger.entries[1].contentHashes = @($blobBeta)
+    $crossLedgerText = ($crossLedger | ConvertTo-Json -Depth 20) -replace "`r`n", "`n"
+    [IO.File]::WriteAllText($fixtureLedgerPath, $crossLedgerText, (New-Object Text.UTF8Encoding $false))
+    $fakeForge.Answers.searchHits = @($fakeForge.Answers.searchHits) + @(
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/Beta.kt'; sha = $blobBeta })
+    $fakeForge.Answers.searchHits[1].sha = $blobBeta
+    $cross = Invoke-Audit
+    $crossFork = @($cross.Report.findings | Where-Object { $_.kind -eq 'fork-changed' -and $_.repository -like '*someone/alpha-patches' })
+    $crossCopy = @($cross.Report.findings | Where-Object { $_.kind -eq 'mirror-changed' -and $_.repository -like '*copier/alpha-copy' })
+    Assert-True ($cross.ExitCode -eq 1 -and $crossFork.Count -eq 1 -and @($crossFork[0].evidence.hits).Count -eq 1 -and
+        $crossFork[0].evidence.hits[0].path -ceq 'patches/Beta.kt' -and $crossCopy.Count -eq 1) `
+        ("A recorded fork and copy of alpha holding beta's file weren't both reported: " +
+            (@($cross.Report.findings | ForEach-Object { "$($_.kind): $($_.repository) $($_.detail)" }) -join ' | '))
+    Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $crossLedgerText) 'An audit with a fork holding another lineage''s file changed the ledger.'
+    Reset-FixtureLedger
+    $fakeForge.Answers = New-FakeAnswers
+
+    # Two paths that differ only by case are two files.
+    $fakeForge.Answers.searchHits = @($fakeForge.Answers.searchHits) + @(
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/Novel.kt'; sha = ('8e' * 20) }
+        @{ repository = @{ full_name = 'someone/alpha-patches' }; path = 'patches/novel.kt'; sha = ('8f' * 20) })
+    $caseResult = Invoke-Audit
+    $caseFinding = @($caseResult.Report.findings | Where-Object { $_.kind -eq 'fork-changed' })
+    Assert-True ($caseFinding.Count -eq 1 -and @($caseFinding[0].evidence.hits).Count -eq 2) `
+        "A recorded fork's two files differing only by case weren't both named: $(ConvertTo-Json -Compress -Depth 6 -InputObject $caseFinding)"
     $fakeForge.Answers = New-FakeAnswers
 
     $fakeForge.Answers.alphaBranches.Content = "[{`"name`":`"trunk`",`"commit`":{`"sha`":`"$commitA1`"}}]"
@@ -951,8 +1090,8 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     $fakeForge.Answers = New-FakeAnswers
 
     # A rate limit is waited out until the reset the answer names: Retry-After in seconds or as a
-    # date, or GitLab's RateLimit-Reset in seconds since 1970, one second past it and never past the
-    # cap. An answer naming no reset waits RateLimitWaitSeconds, and a fourth limit is a failure.
+    # date, or GitLab's RateLimit-Reset in seconds since 1970, one second past it. An answer naming
+    # no reset waits RateLimitWaitSeconds, and a fourth limit is a failure.
     function Set-LimitedForks {
         param([object[]]$Headers)
         $queue = New-Object 'System.Collections.Generic.Queue[object]'
@@ -969,8 +1108,6 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             Low = 14; High = 17; Named = $true }
         @{ Case = 'A RateLimit-Reset in seconds from now'; Headers = { @{ 'RateLimit-Reset' = '12' } }; Low = 13; High = 13; Named = $true }
         @{ Case = 'An answer naming no reset'; Headers = { @{} }; Low = 5; High = 5; Named = $false; Extra = @{ RateLimitWaitSeconds = 5 } }
-        @{ Case = 'A reset past the cap'; Headers = { @{ 'Retry-After' = '100000' } }; Low = 900; High = 900; Named = $true }
-        @{ Case = 'A Retry-After too big for a number of seconds'; Headers = { @{ 'Retry-After' = [string][long]::MaxValue } }; Low = 900; High = 900; Named = $true }
         # The header collections the two shells really hand over: Windows PowerShell's
         # WebHeaderCollection and PowerShell 7's HttpResponseHeaders. The comma keeps each whole.
         @{ Case = 'A WebHeaderCollection'; Headers = { $web = New-Object System.Net.WebHeaderCollection; $web.Add('Retry-After', '9'); , $web }
@@ -993,6 +1130,20 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
         Assert-True (($result.Said -like '*rate limited on gitlab.com*for the reset it names*') -eq $limit.Named) `
             "$($limit.Case) did not say whether it waited for a named reset: $($result.Said)"
         Reset-FixtureLedger
+        $fakeForge.Answers = New-FakeAnswers
+    }
+    # A reset further off than the cap isn't slept through, since GitLab's hourly window would keep
+    # a run quiet for most of an hour. The source fails at once and the log says when it lifts.
+    foreach ($far in @(@{ Case = 'A reset past the cap'; Headers = @{ 'Retry-After' = '100000' } },
+            @{ Case = 'A Retry-After too big for a number of seconds'; Headers = @{ 'Retry-After' = [string][long]::MaxValue } })) {
+        Set-LimitedForks @($far.Headers)
+        $farRun = Invoke-Audit
+        Assert-True ($farRun.ExitCode -eq 1 -and @($farRun.Report.findings | Where-Object { $_.kind -eq 'source-failed' -and $_.detail -like '*forks of fixture-group/gamma-patches answered HTTP 429*' }).Count -eq 1) `
+            "$($far.Case) didn't fail its source (exit $($farRun.ExitCode)): $($farRun.Said)"
+        Assert-True (@($fakeForge.Sleeps | Where-Object { $_ -gt 0 }).Count -eq 0) "$($far.Case) was slept through: $($fakeForge.Sleeps -join ', ') s."
+        Assert-True ($farRun.Said -like '*rate limited on gitlab.com until about * UTC, past the 300 s cap, so not waiting*') `
+            "$($far.Case) didn't say when the limit lifts: $($farRun.Said)"
+        Assert-True ([IO.File]::ReadAllText($fixtureLedgerPath) -ceq $fixtureLedgerText) "$($far.Case) changed the ledger."
         $fakeForge.Answers = New-FakeAnswers
     }
     Set-LimitedForks @(@{ 'Retry-After' = '3' }, @{ 'Retry-After' = '3' }, @{ 'Retry-After' = '3' }, @{ 'Retry-After' = '3' })

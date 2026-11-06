@@ -31,7 +31,7 @@ val wordlistRepository: String = System.getenv("GITHUB_REPOSITORY")?.takeIf { it
 val wordReportUrl: String = ((findProperty("wordReportUrl") ?: rootProject.findProperty("wordReportUrl")) as String?)
     ?.trim()?.takeIf { it.startsWith("https://") } ?: ""
 
-val generateWordListManifest by tasks.registering {
+tasks.register("generateWordListManifest") {
     val outDir = wordlistOutDir
     val manifest = wordlistManifestFile
     val repo = wordlistRepository
@@ -43,14 +43,13 @@ val generateWordListManifest by tasks.registering {
     inputs.property("reportUrl", reportUrl)
     outputs.dir(outDir)
     doLast {
-        @Suppress("UNCHECKED_CAST")
-        val json = groovy.json.JsonSlurper().parse(manifest) as Map<String, Any>
-        val languages = json["languages"] as Map<String, Map<String, Any>>
-        val rulesets = json["rulesets"] as Map<String, String>
+        val json = groovy.json.JsonSlurper().parse(manifest) as Map<*, *>
+        val languages = json["languages"] as Map<*, *>
+        val rulesets = json["rulesets"] as Map<*, *>
         fun lit(s: String) = "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
-        val rows = rulesets.entries.sortedBy { it.key.toInt() }.joinToString("\n") { (id, code) ->
-            val l = languages.getValue(code)
-            "        {${lit(id)}, ${lit(l["file"] as String)}, ${lit(l["sha256"] as String)}, ${lit(l["version"].toString())}},"
+        val rows = rulesets.entries.sortedBy { it.key.toString().toInt() }.joinToString("\n") { (id, code) ->
+            val l = languages[code] as Map<*, *>
+            "        {${lit(id.toString())}, ${lit(l["file"] as String)}, ${lit(l["sha256"] as String)}, ${lit(l["version"].toString())}},"
         }
         val file = outDir.get().file("app/wordfeudwordfinder/extension/words/WordListManifest.java").asFile
         file.parentFile.mkdirs()

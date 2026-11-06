@@ -410,7 +410,8 @@ private fun bubbleShortcutField(byType: Map<String, ClassDef>, shortcut: Method)
             ref.bubbleParameters().toList().contains(SHORTCUT) &&
             s.argument(at, ref.bubbleParameters().indexOf(SHORTCUT) + 1)?.let { s.callValue(at, it) == build } == true
     }
-    if (containerCtor == null || !s.returns(s.key(containerCtor, s.argument(containerCtor, 0)!!))) return null
+    if (containerCtor == null) return bubbleHolderField(shortcut, s, build) { target(it) }
+    if (!s.returns(s.key(containerCtor, s.argument(containerCtor, 0)!!))) return null
     val constructor = target(s.reference(containerCtor)) ?: return null
     val cf = BubbleValues(constructor)
     val shortcutRegister = cf.parameter(SHORTCUT) ?: return null
@@ -419,6 +420,38 @@ private fun bubbleShortcutField(byType: Map<String, ClassDef>, shortcut: Method)
         val field = (i as? ReferenceInstruction)?.reference as? FieldReference ?: return@mapNotNull null
         field.takeIf { cf.code[at].opcode == Opcode.IPUT_OBJECT && it.type == SHORTCUT &&
             cf.key(at, i.registerA) == cf.key(0, shortcutRegister) && cf.key(at, i.registerB) == cf.key(0, cf.self()) }
+    }.singleOrNull()
+}
+
+/**
+ * 586's armv7 build puts the built shortcut in a holder and hands the holder to the returned container's constructor,
+ * which copies it onto the container's own field. That field, followed from the one holder the shortcut goes into.
+ */
+private fun bubbleHolderField(shortcut: Method, s: BubbleValues, build: Int, target: (MethodReference?) -> Method?): FieldReference? {
+    val store = s.code.indices.singleOrNull { at ->
+        val i = s.code[at]
+        i.opcode == Opcode.IPUT_OBJECT && i is TwoRegisterInstruction &&
+            ((i as ReferenceInstruction).reference as? FieldReference)?.type == SHORTCUT && s.callValue(at, i.registerA) == build
+    } ?: return null
+    val write = s.code[store] as TwoRegisterInstruction
+    val holderField = (write as ReferenceInstruction).reference as FieldReference
+    val holderType = holderField.definingClass
+    val holderKey = s.key(store, write.registerB) ?: return null
+    val containerCtor = s.calls().singleOrNull { at ->
+        val ref = s.reference(at) ?: return@singleOrNull false
+        val parameters = ref.bubbleParameters()
+        ref.name == "<init>" && ref.definingClass == shortcut.returnType && parameters.count { it == holderType } == 1 &&
+            s.argument(at, parameters.indexOf(holderType) + 1)?.let { s.key(at, it) } == holderKey
+    } ?: return null
+    if (!s.returns(s.key(containerCtor, s.argument(containerCtor, 0)!!))) return null
+    val cf = BubbleValues(target(s.reference(containerCtor)) ?: return null)
+    val holder = cf.parameter(holderType) ?: return null
+    return cf.code.indices.mapNotNull { at ->
+        val i = cf.code[at] as? TwoRegisterInstruction ?: return@mapNotNull null
+        val field = (i as? ReferenceInstruction)?.reference as? FieldReference ?: return@mapNotNull null
+        field.takeIf { cf.code[at].opcode == Opcode.IPUT_OBJECT && it.definingClass == shortcut.returnType && it.type == SHORTCUT &&
+            cf.key(at, i.registerB) == cf.key(0, cf.self()) &&
+            cf.fieldKey(at, i.registerA)?.let { (read, base) -> read.toString() == holderField.toString() && base == cf.key(0, holder) } == true }
     }.singleOrNull()
 }
 

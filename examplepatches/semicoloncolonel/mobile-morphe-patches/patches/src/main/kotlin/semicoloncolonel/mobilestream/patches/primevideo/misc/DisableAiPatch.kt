@@ -26,9 +26,13 @@ private val SWITCHES = setOf(
     "isLighthouseAIChatEnabled",
     "isLighthouseAIChatEnabledT1",
     "isMobileCompanionEnabled",
-    "isCompanionPlaybackInterceptionEnabled",
     "computeLighthouseAIChatEnabled",
     "computeMobileCompanionEnabled",
+)
+
+// Present in 3.0.477.1447, removed in 3.0.480.457. Turned off when present.
+private val OPTIONAL_SWITCHES = setOf(
+    "isCompanionPlaybackInterceptionEnabled",
 )
 
 @Suppress("unused")
@@ -41,10 +45,12 @@ val disableAiPatch = bytecodePatch(
 
     execute {
         val methods = mutableClassDefBy(CHAT_CONFIG).methods.filter {
-            it.name in SWITCHES && it.returnType == "Z" && it.parameterTypes.isEmpty()
+            (it.name in SWITCHES || it.name in OPTIONAL_SWITCHES) &&
+                it.returnType == "Z" && it.parameterTypes.isEmpty()
         }
-        if (methods.map { it.name }.toSet() != SWITCHES) {
-            throw PatchException("Lighthouse chat switches not found: ${SWITCHES - methods.map { it.name }.toSet()}")
+        val missing = SWITCHES - methods.map { it.name }.toSet()
+        if (missing.isNotEmpty()) {
+            throw PatchException("Lighthouse chat switches not found: $missing")
         }
         methods.forEach { it.addInstructions(0, "const/4 v0, 0x0\nreturn v0") }
     }

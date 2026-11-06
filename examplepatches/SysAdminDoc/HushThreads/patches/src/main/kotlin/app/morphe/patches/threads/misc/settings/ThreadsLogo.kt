@@ -37,7 +37,8 @@ internal const val THREADS_LOGO = "$EXTENSION_PACKAGE/settings/ThreadsLogo;"
 internal const val THREADS_LOGO_LONG_PRESS = "$EXTENSION_PACKAGE/settings/ThreadsLogo\$LongPress;"
 internal const val LOGO_CLICKABLE = "$THREADS_LOGO->clickable(Ljava/lang/Object;Ljava/lang/Object;" +
     "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object;"
-internal const val LOGO_LONG_PRESS_FIELD = "$THREADS_LOGO->LONG_PRESS:$THREADS_LOGO_LONG_PRESS"
+/** The long press for each draw of the logo, or null with its switch off. */
+internal const val LOGO_LONG_PRESS = "$THREADS_LOGO->longPress()Ljava/lang/Object;"
 internal const val THREADS_LOGO_DESCRIBE = "$EXTENSION_PACKAGE/settings/ThreadsLogo\$Describe;"
 internal const val LOGO_DESCRIBE_FIELD = "$THREADS_LOGO->DESCRIBE:$THREADS_LOGO_DESCRIBE"
 internal const val LOGO_DESCRIBE = "$THREADS_LOGO->describe(Ljava/lang/Object;Ljava/lang/String;)V"
@@ -143,8 +144,9 @@ internal fun BytecodePatchContext.addLogoLongPress() {
         move-result-object v0
         """
     }.orEmpty()
-    // Threads' arguments in Compose's order, the translated long press label, its handler, no
-    // double tap, and Threads' tap last, the way the combined clickable takes them.
+    // Threads' arguments in Compose's order, the translated long press label, its handler (none
+    // with its switch off), no double tap, and Threads' tap last, the way the combined clickable
+    // takes them.
     writeStub(THREADS_LOGO, "clickable", 17, """
         move-object/from16 v0, p0
         check-cast v0, ${types[0]}
@@ -157,7 +159,9 @@ internal fun BytecodePatchContext.addLogoLongPress() {
         move-object/from16 v4, p4
         invoke-static {}, $THREADS_LOGO->longClickLabel()Ljava/lang/String;
         move-result-object v5
-        sget-object v6, $LOGO_LONG_PRESS_FIELD
+        invoke-static {}, $LOGO_LONG_PRESS
+        move-result-object v6
+        check-cast v6, $FUNCTION0
         const/4 v7, 0x0
         move-object/from16 v8, p5
         check-cast v8, $FUNCTION0
@@ -170,6 +174,8 @@ internal fun BytecodePatchContext.addLogoLongPress() {
     // The stand-in answers an Object, so the modifier is cast back before Threads uses it.
     method.sendToStandIn(site.call, LOGO_CLICKABLE)
     method.addInstruction(site.call + 2, "check-cast v$result, ${site.clickable.returnType}")
+    // Last, so a build refused above leaves the settings screen without the long press's switch.
+    answerInBuild(THREADS_LOGO)
 }
 
 /**

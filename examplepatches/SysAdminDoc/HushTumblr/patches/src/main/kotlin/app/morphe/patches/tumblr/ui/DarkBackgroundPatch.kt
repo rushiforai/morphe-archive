@@ -587,8 +587,8 @@ internal fun BytecodePatchContext.resolvePostFooterColor(): Pair<Method, DesignC
  * getter read right after a key is that color's. The function that turns it into the color screens
  * use is the one static `(BlogTheme)int` beside the comparison that calls the getter. Every screen
  * reads those functions, so each hook goes right before the return. The theme itself stays real: the
- * customize screens and that comparison read the getters straight. In 46.9.1.100 those are `ey2.s`,
- * `ey2.z` and `ey2.n`, found from `ey2.l` (2026-10-31).
+ * customize screens and that comparison read the getters straight. In 47.0.0.108 those are `a03.s`,
+ * `a03.z` and `a03.n`, found from `a03.l` (2026-11-05).
  */
 internal fun BytecodePatchContext.resolveBlogColors(): List<Pair<Method, DesignColorRead>> {
     val colors = listOf(
@@ -644,9 +644,9 @@ private fun BytecodePatchContext.resolveBlogColor(key: String, hook: String): Pa
  *
  * Every read of [HUB_HEADER]'s color is kept in a register and parsed later, so the hook goes right
  * after the `move-result-object` and writes its answer back there. The JSON adapter's read stays
- * real, so a header Tumblr writes out keeps its color. In 46.9.1.100 those are
- * `HubContainerFragment.L5`, which paints the page's bars, and `HubTimelineFragment`'s `m9` and
- * `getBackgroundColor` (2026-10-31).
+ * real, so a header Tumblr writes out keeps its color. In 47.0.0.108 those are
+ * `HubContainerFragment.L5`, which paints the page's bars, and `HubTimelineFragment`'s `p9` and
+ * `getBackgroundColor` (2026-11-05).
  */
 internal fun BytecodePatchContext.resolveTagPageColors(): List<Pair<Method, DesignColorRead>> {
     val reads = mutableListOf<Pair<Method, DesignColorRead>>()

@@ -120,8 +120,10 @@ public class SettingsDialogTest {
         HushThreadsPreferenceFragment page = pageOf(dialog);
         assertNull("Retry reached the page's own recovery", page.findPreference(ERROR));
         assertNotNull(page.navigation);
+        // Sections open in place on the main list, so the asked-for one is the one folded open.
+        assertTrue("Retry didn't open the section it was asked for", page.navigation.isExpanded("Appearance"));
         TextView pageTitle = dialog.getView().findViewWithTag("hushthreads_page_title");
-        assertEquals("Retry didn't open the page it was asked for", german.get("Appearance"), String.valueOf(pageTitle.getText()));
+        assertEquals("HushThreads", String.valueOf(pageTitle.getText()));
         assertFalse(Settings.HIDE_ADS.get());
         assertTrue(Settings.PURE_BLACK.get());
         assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());

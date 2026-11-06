@@ -295,10 +295,12 @@ class NativeMediaControlsTest {
         assertFailsWith<PatchException> { screenshotViewerFixture(resume, resumeTail = 24).screenshotViewerSites() }
         val mask = screenshotViewerFixture(resume).apply { replaceInstruction(9, "const/16 v1, 0x80") }
         assertFailsWith<PatchException> { mask.screenshotViewerSites() }
-        // 586 names it A1K, the name 584 once used.
-        val dialog = screenshotViewerFixture("$EPHEMERAL_VIEWER->$EPHEMERAL_DIALOG(Landroid/os/Bundle;)Landroid/app/Dialog;")
-        assertEquals(listOf(9), dialog.screenshotViewerSites())
-        assertEquals(listOf(9), CompatMirror.screenshotViewerSites(dialog))
+        // 586 names it A1K, the name 584 once used, and A1L in its armv7 build.
+        for (name in listOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_ARMV7)) {
+            val dialog = screenshotViewerFixture("$EPHEMERAL_VIEWER->$name(Landroid/os/Bundle;)Landroid/app/Dialog;")
+            assertEquals(listOf(9), dialog.screenshotViewerSites(), name)
+            assertEquals(listOf(9), CompatMirror.screenshotViewerSites(dialog), name)
+        }
         // 585's A1J and A1H, 584's A1O and A1I, 583's A1F and 582's A1D overrides, same body, are refused.
         for (old in listOf("A1J", "A1H", "A1O", "A1I", "A1F", "A1D")) {
             val override = screenshotViewerFixture("$EPHEMERAL_VIEWER->$old(Landroid/os/Bundle;)Landroid/app/Dialog;")
@@ -307,9 +309,13 @@ class NativeMediaControlsTest {
         }
         val quick = "$QUICKSNAP_VIEWER->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;"
         // Builds have put the flag anywhere from 29 to 32. The one addFlags call is the site, with the same guarded prefix
-        // ahead of it, in 586's 39-register frame. 585's 40-register frame and 584's 23-register one are refused.
+        // ahead of it, in 586's 39-register frame (38 in its armv7 build). 585's 40-register frame and 584's 23-register
+        // one are refused.
         assertEquals(listOf(30), screenshotViewerFixture(quick, quickSite = 30).screenshotViewerSites())
         assertEquals(listOf(30), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, quickSite = 30)))
+        val armv7 = screenshotViewerFixture(quick, quickRegisters = QUICKSNAP_REGISTERS_ARMV7)
+        assertEquals(listOf(32), armv7.screenshotViewerSites())
+        assertEquals(listOf(32), CompatMirror.screenshotViewerSites(armv7))
         for (frame in listOf(40, 23)) {
             assertFailsWith<PatchException>("$frame") { screenshotViewerFixture(quick, quickRegisters = frame).screenshotViewerSites() }
             assertEquals(emptyList(), CompatMirror.screenshotViewerSites(screenshotViewerFixture(quick, quickRegisters = frame)), "$frame")
@@ -351,9 +357,15 @@ class NativeMediaControlsTest {
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menuSources = cell.menuSources + 1)).isEmpty())
             // "Generate custom stickers" in the menu label's place: the custom sticker cell isn't the AI menu.
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = 0x7f14128f)).isEmpty())
+            // Each build's cell keeps its own Generate label and render size: the other ABI's are refused.
+            for (other in aiCells.filter { it.render != cell.render }) {
+                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = other.menu)).isEmpty(), other.render)
+                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = other.size)).isEmpty(), other.render)
+            }
         }
-        // 586's cell offers its AI label from four renders and its Generate menu label from one.
-        assertEquals(listOf(listOf(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1)),
+        // 586's cell offers its AI label from four renders and its Generate menu label from one, in both ABIs. The armv7
+        // render runs four instructions shorter and its Generate label sits two resources on.
+        assertEquals(listOf(listOf(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1), listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_ARMV7, 1)),
             aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
     }
 

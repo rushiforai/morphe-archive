@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: morphe-patches/package-lock.json
+
+      - name: Install dependencies
+        working-directory: morphe-patches
+        run: npm install
+
+      # The CLI is used instead of an action so semantic-release runs inside the patch project,
+      # where .releaserc and package.json live, and no default npm plugin is injected.
+      - name: Release
+        id: release
+        working-directory: morphe-patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: npx semantic-release
+
+      # semantic-release succeeds whether or not it published anything, so a tag on HEAD is the
+      # only reliable signal that a release was created.
+      - name: Detect published release
+        id: published
+        run: |
+          git fetch --tags --force --quiet
+          if git describe --tags --exact-match HEAD > /dev/null 2>&1; then
+            echo "value=true" >> "$GITHUB_OUTPUT"
+            echo "release published: $(git describe --tags --exact-match HEAD)"
+          else
+            echo "value=false" >> "$GITHUB_OUTPUT"
+            echo "no release published; verifying compilation instead"
+          fi
+
+      - name: Attest
+        if: steps.published.outputs.value == 'true'
+        uses: actions/attest-build-provenance@v1
+        continue-on-error: true
+        with:
+          subject-name: Quetta Privacy Patches
+          subject-path: morphe-patches/patches/build/libs/patches-*.mpp
+
+      - name: Verify project compiles
+        if: steps.published.outputs.value != 'true'
+        working-directory: morphe-patches
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

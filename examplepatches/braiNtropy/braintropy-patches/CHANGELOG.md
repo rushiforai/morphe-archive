@@ -1,3 +1,15 @@
+## [2.6.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.5.0...v2.6.0) (2026-11-05)
+
+### ✨ New Features
+
+* **Hume:** Add "Unlock Premium" patch ([a066a42](https://github.com/braiNtropy/braintropy-patches/commit/a066a42a475941c9a41ee04e54c826b6596b2cb2))
+
+## [2.6.0-dev.1](https://github.com/braiNtropy/braintropy-patches/compare/v2.5.0...v2.6.0-dev.1) (2026-11-05)
+
+### ✨ New Features
+
+* **Hume:** Add "Unlock Premium" patch ([a066a42](https://github.com/braiNtropy/braintropy-patches/commit/a066a42a475941c9a41ee04e54c826b6596b2cb2))
+
 ## [2.5.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.4.0...v2.5.0) (2026-10-29)
 
 ### 🐛 Bug Fixes

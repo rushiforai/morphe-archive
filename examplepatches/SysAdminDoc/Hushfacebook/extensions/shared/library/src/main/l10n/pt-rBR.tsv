@@ -306,6 +306,8 @@ Hide Threads cards between reels	Ocultar cartões do Threads entre os reels
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Oculta o cartão “Threads que você talvez curta” entre os reels. Desligado por padrão, porque ainda não foi testado em uma conta real.
 Only reels from accounts I follow	Só reels de contas que eu sigo
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	A aba Reels só mostra reels de pessoas e Páginas que você segue, a partir do próximo lote que o Facebook carregar. A aba pode demorar mais para encher. Desligado por padrão.
+Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	O Facebook não tem mais reels que seus filtros manteriam, então estes reels não serão filtrados por enquanto.
+Hush hid the suggested posts after this, so Home ends here.	O Hush ocultou as publicações sugeridas que vinham depois, por isso a Página inicial termina aqui.
 Download quality	Qualidade do download
 Best	A melhor
 Smallest	A menor
@@ -745,7 +747,7 @@ Holding a video in the feed or in Watch plays it at double speed until you let g
 Locked at 2x. Tap the video to go back.	Travado em 2x. Toque no vídeo para voltar.
 Hide the pull down to lock hint	Ocultar a dica de puxar para baixo para travar
 Hide the 2x popups	Ocultar os avisos de 2x
-Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Segurar um vídeo em 2x não mostra nenhum aviso, nem "Velocidade: 2x", nem "Solte para travar", nem "Travado em velocidade 2x". Segurar e travar continuam funcionando.
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed", and feed videos drop the "2x speed" tip. The hold and the lock still work.	Segurar um vídeo em 2x não mostra nenhum aviso, nem "Velocidade: 2x", nem "Solte para travar", nem "Travado em velocidade 2x", e os vídeos do feed deixam de mostrar a dica "Velocidade 2x". Segurar e travar continuam funcionando.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Segurar um vídeo para 2x mostra só o selo 2x simples, sem a dica "Puxe para baixo para travar a velocidade 2x". Puxar para baixo ainda trava. Funciona sem as opções acima.
 Default playback quality	Qualidade de reprodução padrão
@@ -2035,6 +2037,15 @@ Cast button on feed videos	Botão de transmitir nos vídeos do feed
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Adiciona um botão de transmitir aos vídeos do feed. Ele entrega o vídeo a um app de transmissão que você tenha, como o Web Video Caster, que o envia para sua TV. O Facebook não tem mais transmissão própria.
 Cast this video	Transmitir este vídeo
 Full player button on feed videos	Botão de player completo nos vídeos do feed
+Skip buttons on feed videos	Botões de pular nos vídeos do feed
+Speed button on feed videos	Botão de velocidade nos vídeos do feed
+Times on the seek bar	Tempos na barra de progresso
+Back 10 seconds	Voltar 10 segundos
+Ahead 10 seconds	Avançar 10 segundos
+Playback speed	Velocidade de reprodução
+Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Adiciona aos vídeos do feed botões que voltam ou avançam 10 segundos, como no player do próprio Facebook. Vídeos ao vivo e anúncios mantêm os próprios controles. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.
+Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Adiciona aos vídeos do feed um botão que mostra a velocidade. Cada toque passa para a próxima: 1x, 1.25x, 1.5x, 2x e depois 0.5x. Vídeos ao vivo e anúncios mantêm os próprios controles. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.
+Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Mostra quanto já passou de um vídeo do feed na ponta esquerda da barra de progresso e quanto falta na ponta direita. Precisa de “Barra de progresso nos vídeos do feed” ligado.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Adiciona um botão aos vídeos do feed que abre o vídeo no player completo do próprio Facebook, com todos os controles. Vídeos ao vivo também ganham o botão. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Abrir vídeos em tela cheia centralizados
@@ -2043,6 +2054,10 @@ Videos you open full screen, from a comment or a link, start with their details 
 Open in the full player	Abrir no player completo
 Seek bar on feed videos	Barra de progresso nos vídeos do feed
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Mostra uma barra na parte de baixo de um vídeo do feed. Arraste e solte para pular para esse ponto. Vídeos ao vivo e anúncios mantêm os próprios controles. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.
+Fade the seek bar and speaker	Esmaecer a barra de progresso e o alto-falante
+Lower the seek bar and speaker	Abaixar a barra de progresso e o alto-falante
+While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Enquanto um vídeo do feed toca, a barra de progresso e o botão de alto-falante do Facebook esmaecem alguns segundos depois que ele começa ou depois do seu último toque. Toque na barra ou pause o vídeo e eles voltam. Precisa de “Barra de progresso nos vídeos do feed” ligado.
+Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Aproxima a barra de progresso de um vídeo do feed da borda de baixo, junto com os botões de alto-falante e de pessoas marcadas do Facebook. Precisa de “Barra de progresso nos vídeos do feed” ligado.
 Feed video position	Posição do vídeo do feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Cor dos selos
@@ -2363,8 +2378,12 @@ Restore feed sound after opened videos	Restaurar o som do feed depois de abrir v
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Um vídeo que você abre toca com som como sempre. De volta ao feed, o som fica como estava antes de você abrir, mesmo depois de assistir por muito tempo.
 Hide the Join button on posts	Ocultar o botão Participar nas publicações
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Oculta o botão Participar ao lado do nome do grupo nas publicações de grupos dos quais você não participa, e a barra Participar do grupo abaixo dos vídeos deles. A mudança aparece nas publicações carregadas depois dela.
+Hide the X on posts	Ocultar o X nas publicações
+Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	Tira o X do canto superior das publicações do seu feed. O menu de três pontos ao lado continua. A mudança aparece nas publicações carregadas depois dela.
 Hide the Reels title	Ocultar o título Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Tira a palavra Reels do topo da aba Reels. Os botões ao lado ficam.
+Hide Back on opened videos	Ocultar Voltar nos vídeos abertos
+Takes the Back arrow off the top of a video or reel you open, and Menu off the top of the Reels tab. Your phone's back gesture or button still goes back.	Tira a seta Voltar do topo de um vídeo ou reel que você abre, e o Menu do topo da aba Reels. O gesto ou botão de voltar do seu celular continua funcionando.
 Videos in search results wait for a tap	Vídeos nos resultados da busca esperam um toque
 Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	Os vídeos nos resultados da busca não começam sozinhos. Toque em um para reproduzi-lo. Funciona com Tocar para reproduzir ligado ou desligado.
 Custom color	Cor personalizada
@@ -2412,9 +2431,20 @@ A tap in the middle of a story shows a play and pause button, like Reels. Taps o
 Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Os stories só mudam com um toque duplo, o lado esquerdo para o anterior e qualquer outro lugar para o próximo. Um toque pausa ou reproduz o story, ou mostra o botão de reproduzir quando ele está ativado.
 Pause story	Pausar story
 Play story	Reproduzir story
+Replay story	Reproduzir story de novo
 Hide song and effect credits	Ocultar créditos de música e efeito
 Hide reply suggestions	Ocultar sugestões de resposta
 Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Tira os créditos de música e efeito da linha abaixo do nome de quem postou o story. Vale a partir do próximo story que você abrir.
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Tira a fileira de respostas sugeridas da parte de baixo de um story. A caixa de resposta continua. Vale a partir do próximo story que você abrir.
+Hide the Subscribe button	Ocultar o botão Inscrever-se
+Takes the Subscribe button off the top of a story. Applies from the next story you open.	Tira o botão Inscrever-se da parte de cima de um story. Vale a partir do próximo story que você abrir.
 Progress bar at the bottom	Barra de progresso embaixo
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Mostra uma barra fina na parte de baixo de um story que vai enchendo enquanto ele toca, como a do Reels.
+Seek bar on stories	Barra de progresso nos stories
+Fade the story seek bar	Esmaecer a barra de progresso dos stories
+Story position	Posição do story
+Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Mostra uma barra na parte de baixo de um story em vídeo que você arrasta para andar por ele. O story espera enquanto você arrasta. “Barra de progresso embaixo” dá lugar a ela nos stories em vídeo.
+With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	Com “Barra de progresso nos stories” ligado, a barra esmaece alguns segundos depois que o story começa ou depois do seu último toque. Um toque ou uma pausa traz ela de volta.
+Clean mode	Modo limpo
+Clean mode button on reels	Botão do modo limpo nos reels
+Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Adiciona um botão do modo limpo aos botões na lateral de um reel. Toque nele para escondê-los, e o modo limpo continua ativo enquanto você desliza. O próprio botão do modo limpo do Facebook os traz de volta.

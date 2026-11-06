@@ -1,0 +1,119 @@
+name: Validate Compatibility
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: Build compatibility bundle
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Enforce compatibility-only scope
+        run: |
+          set -euxo pipefail
+          git fetch origin main
+          python3 - <<'PY'
+          import subprocess, sys
+          allowed_prefixes = (
+              "compatibility/",
+              "docs/COMPATIBILITY_V2.md",
+              ".github/workflows/v2-validate.yml",
+              ".github/workflows/release.yml",
+              "docs/COMPATIBILITY_INTELLIGENCE.md",
+              "scripts/build_compatibility_intelligence.py",
+              ".github/workflows/compat-intelligence.yml",
+              "scripts/verify_compatibility.py",
+              "scripts/generate_compatibility_report.py",
+              "scripts/add_compatibility_version.py",
+              "scripts/bump_patch_version.py",
+              "gradle.properties",
+              "patches/src/main/kotlin/app/whatsappmorphe/patches/shared/Constants.kt",
+          )
+          changed = subprocess.check_output(
+              ["git", "diff", "--name-only", "origin/main...HEAD"],
+              text=True,
+          ).splitlines()
+          forbidden = [
+              path for path in changed
+              if not any(path == prefix or path.startswith(prefix) for prefix in allowed_prefixes)
+          ]
+          if forbidden:
+              print("Compatibility branch changed forbidden paths:")
+              print("\n".join(forbidden))
+              sys.exit(1)
+          print("Compatibility-only scope verified:", changed)
+          PY
+
+      - name: Read patch version
+        run: |
+          set -euxo pipefail
+          PATCH_VERSION="$(sed -n 's/^version *= *//p' gradle.properties | xargs)"
+          test -n "$PATCH_VERSION"
+          echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_ENV"
+          echo "Patch version: $PATCH_VERSION"
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: "9.7.1"
+
+      - name: Verify frozen sources and compatibility declarations
+        run: python3 scripts/verify_compatibility.py --source-only
+
+      - name: Generate metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle generatePatchesList --no-daemon
+
+      - name: Build Android bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle :patches:buildAndroid --no-daemon
+
+      - name: Validate bundle and generated metadata
+        run: |
+          set -euxo pipefail
+          MPP="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          test -n "$MPP"
+          unzip -t "$MPP"
+          unzip -Z1 "$MPP" | grep -E '\.dex$'
+          unzip -p "$MPP" META-INF/MANIFEST.MF | grep -F "Version: $PATCH_VERSION"
+          python3 scripts/verify_compatibility.py
+          python3 - <<'PY'
+          import json, os
+          with open("patches-list.json", encoding="utf-8") as f:
+              data = json.load(f)
+          expected = os.environ["PATCH_VERSION"]
+          assert data["version"] == expected, (data["version"], expected)
+          print("patches-list version:", data["version"])
+          PY
+
+      - name: Generate compatibility report
+        run: python3 scripts/generate_compatibility_report.py
+
+      - name: Upload compatibility artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whatsapp-morphe-compatibility-${{ env.PATCH_VERSION }}
+          path: |
+            patches/build/libs/*.mpp
+            build/compatibility-report.json
+          if-no-files-found: error

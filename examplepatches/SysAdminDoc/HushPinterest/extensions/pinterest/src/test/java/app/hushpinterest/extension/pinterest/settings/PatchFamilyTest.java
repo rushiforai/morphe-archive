@@ -122,7 +122,7 @@ public class PatchFamilyTest {
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         Set<PatchFamily.Capability> expectedAds = EnumSet.of(PatchFamily.Capability.FEED_ADS,
-                PatchFamily.Capability.AD_VIEWS, PatchFamily.Capability.GOOGLE_ADS);
+                PatchFamily.Capability.AD_VIEWS, PatchFamily.Capability.GOOGLE_ADS, PatchFamily.Capability.META_ADS);
         Set<PatchFamily.Capability> installedAds = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         assertEquals(expectedAds, PatchFamily.HIDE_ADS.expectedCapabilities());
         assertEquals(installedAds, PatchFamily.HIDE_ADS.installedCapabilities());
@@ -352,7 +352,7 @@ public class PatchFamilyTest {
                         + "hushpinterest_hide_ai_self_described=off)"),
                 running.subList(0, 2));
         assertEquals(Arrays.asList(
-                "Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start",
+                "Hide ads coverage: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK",
                 "Hide AI-labeled pins coverage: AI-labeled pins in lists"),
                 coverageLines(running));
         assertTrue(PatchFamily.reportLines(EnumSet.of(PatchFamily.HIDE_ADS), false)
@@ -398,7 +398,7 @@ public class PatchFamilyTest {
         PatchFamily.inBuildForTests = build;
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FEED_ADS);
         List<String> running = PatchFamily.reportLines(build, false);
-        assertTrue(running.toString(), running.contains("Hide ads coverage: promoted pins in lists; missing: ad-only views, Google ad SDK start"));
+        assertTrue(running.toString(), running.contains("Hide ads coverage: promoted pins in lists; missing: ad-only views, Google ad SDK start, Meta ad SDK"));
         assertTrue(running.toString(), running.contains("Hide AI-labeled pins coverage: none; missing: AI-labeled pins in lists"));
         Settings.HIDE_ADS.save(false);
         Settings.HIDE_AI_PINS.save(false);
@@ -408,7 +408,7 @@ public class PatchFamilyTest {
 
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
-        assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: promoted pins in lists, ad-only views, Google ad SDK start"));
+        assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: promoted pins in lists, ad-only views, Google ad SDK start, Meta ad SDK"));
         assertTrue(none.toString(), none.contains("Hide AI-labeled pins coverage: none; missing: AI-labeled pins in lists"));
     }
 

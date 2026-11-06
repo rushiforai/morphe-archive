@@ -17,7 +17,8 @@
           },
           {
             "type": "feat",
-            "release": "minor"
+            "scope": "dev",
+            "release": "patch"
           },
           {
             "type": "bump",
@@ -43,22 +44,22 @@
           "types": [
             {
               "type": "fix",
-              "section": "\ud83d\udc1b Bug Fixes",
+              "section": "🐛 Bug Fixes",
               "hidden": false
             },
             {
               "type": "feat",
-              "section": "\u2728 New Features",
+              "section": "✨ New Features",
               "hidden": false
             },
             {
               "type": "bump",
-              "section": "\ud83d\ude80 Updated App Support",
+              "section": "🚀 Updated App Support",
               "hidden": false
             },
             {
               "type": "perf",
-              "section": "\ud83d\udd27 Improvements",
+              "section": "🔧 Improvements",
               "hidden": false
             },
             {

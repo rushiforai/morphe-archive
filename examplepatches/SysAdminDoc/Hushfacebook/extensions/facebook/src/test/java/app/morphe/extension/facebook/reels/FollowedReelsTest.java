@@ -11,6 +11,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.os.Looper;
+
 import com.facebook.graphql.model.GraphQLStory;
 
 import org.junit.After;
@@ -18,7 +20,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,8 +66,162 @@ public class FollowedReelsTest {
     public void restore() {
         PauseForTests.resume();
         Settings.FOLLOWED_REELS_ONLY.resetToDefault();
+        FollowedReels.forgetViewers();
         FeedFilterCounters.clear();
         HookStatus.clear();
+    }
+
+    private static List<?> viewerPage(Object controller, Section... sections) {
+        return FollowedReels.followedSections(controller, Arrays.asList(sections), FollowedReelsForTests.MODEL,
+                FollowedReelsForTests.STATUSES, ReelLanguages.PATCHED);
+    }
+
+    /**
+     * A viewer whose first page holds only reels from authors you don't follow keeps its first reel,
+     * since Facebook can't show an empty viewer (0.21.0 release walk), and every route keeps that reel.
+     * The next page of the same viewer is filtered as usual, and a new viewer gets its own first reel.
+     */
+    @Test
+    public void aNewViewerKeepsItsFirstReelAndOnlyThatOne() {
+        Settings.FOLLOWED_REELS_ONLY.save(true);
+        Object viewer = new Object();
+        Object card = new Object();
+        Item first = FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE);
+        Section opening = new Section(new ArrayList<>(Arrays.asList(card, first,
+                FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE))));
+
+        assertEquals(Collections.singletonList(opening), viewerPage(viewer, opening));
+        assertEquals(Arrays.asList(card, first), opening.items);
+        List<Object> itemLevel = page(first);
+        assertSame(itemLevel, FollowedReelsForTests.followedOnly(itemLevel));
+        String sections = line(FollowedReels.SECTIONS_ROUTE);
+        assertNotNull(FeedFilterCounters.report().toString(), sections);
+        assertTrue(sections, sections.contains(FollowedReels.FIRST_REEL + " 1"));
+        assertTrue(sections, sections.contains("1 removed"));
+
+        Section next = new Section(new ArrayList<>(Collections.singletonList(
+                FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE))));
+        assertTrue(viewerPage(viewer, next).isEmpty());
+
+        Item another = FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE);
+        Section otherViewer = new Section(new ArrayList<>(Collections.singletonList(another)));
+        assertEquals(Collections.singletonList(otherViewer), viewerPage(new Object(), otherViewer));
+        assertEquals(Collections.singletonList(another), otherViewer.items);
+    }
+
+    /**
+     * A viewer whose pages lose every reel {@link FollowedReels#EMPTIED_PAGES_LIMIT} times in a row
+     * stops being filtered and says so once, since Facebook ends such a viewer on "Something went
+     * wrong" even with its first reel kept (0.21.0 release walk). Its later pages go on as they came,
+     * every route keeps their reels, and a new viewer is filtered again.
+     */
+    @Test
+    public void aViewerWhosePagesKeepComingBackEmptyStopsBeingFiltered() {
+        Settings.FOLLOWED_REELS_ONLY.save(true);
+        ShadowToast.reset();
+        Object viewer = new Object();
+        viewerPage(viewer, notFollowedSection());
+        for (int i = 1; i < FollowedReels.EMPTIED_PAGES_LIMIT; i++) {
+            assertTrue("page " + i, viewerPage(viewer, notFollowedSection()).isEmpty());
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull("a toast before the limit", ShadowToast.getLatestToast());
+
+        assertTrue(viewerPage(viewer, notFollowedSection()).isEmpty());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Facebook has no more reels your filters would keep, so these reels aren't filtered for now.",
+                ShadowToast.getTextOfLatestToast());
+        String sections = line(FollowedReels.SECTIONS_ROUTE);
+        assertTrue(sections, sections.contains(FollowedReels.SHOWING_ALL + " 1"));
+
+        Item later = FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE);
+        List<?> page = Collections.singletonList(new Section(new ArrayList<>(Collections.singletonList(later))));
+        assertSame(page, FollowedReels.followedSections(viewer, page, FollowedReelsForTests.MODEL,
+                FollowedReelsForTests.STATUSES, ReelLanguages.PATCHED));
+        List<Object> itemLevel = page(later);
+        assertSame(itemLevel, FollowedReelsForTests.followedOnly(itemLevel));
+
+        ShadowToast.reset();
+        viewerPage(viewer, notFollowedSection());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull("the toast came twice", ShadowToast.getLatestToast());
+        assertTrue(line(FollowedReels.SECTIONS_ROUTE).contains(FollowedReels.SHOWING_ALL + " 1"));
+
+        Object next = new Object();
+        viewerPage(next, notFollowedSection());
+        assertTrue(viewerPage(next, notFollowedSection()).isEmpty());
+    }
+
+    /** A page that keeps a followed reel ends the run, so a viewer that finds some keeps filtering. */
+    @Test
+    public void aKeptReelEndsTheRunOfEmptiedPages() {
+        Settings.FOLLOWED_REELS_ONLY.save(true);
+        ShadowToast.reset();
+        Object viewer = new Object();
+        viewerPage(viewer, notFollowedSection());
+        for (int i = 1; i < FollowedReels.EMPTIED_PAGES_LIMIT; i++) viewerPage(viewer, notFollowedSection());
+        Item followed = FollowedReelsForTests.reel(FollowStatus.IS_SUBSCRIBED);
+        Section mixed = new Section(new ArrayList<>(Arrays.asList(followed,
+                FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE))));
+        viewerPage(viewer, mixed);
+        assertEquals(Collections.singletonList(followed), mixed.items);
+
+        for (int i = 1; i < FollowedReels.EMPTIED_PAGES_LIMIT; i++) {
+            assertTrue("page " + i, viewerPage(viewer, notFollowedSection()).isEmpty());
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull(ShadowToast.getLatestToast());
+        assertFalse(line(FollowedReels.SECTIONS_ROUTE).contains(FollowedReels.SHOWING_ALL));
+    }
+
+    /** A page of cards alone, with nothing dropped, doesn't add to the run. */
+    @Test
+    public void cardsAloneDontCountAsAnEmptiedPage() {
+        Settings.FOLLOWED_REELS_ONLY.save(true);
+        Object viewer = new Object();
+        viewerPage(viewer, notFollowedSection());
+        for (int i = 1; i < FollowedReels.EMPTIED_PAGES_LIMIT; i++) {
+            viewerPage(viewer, new Section(new ArrayList<>(Collections.singletonList(new Object()))));
+            viewerPage(viewer, notFollowedSection());
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(line(FollowedReels.SECTIONS_ROUTE).contains(FollowedReels.SHOWING_ALL));
+    }
+
+    private static Section notFollowedSection() {
+        return new Section(new ArrayList<>(Collections.singletonList(FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE))));
+    }
+
+    /** A first page of cards alone leaves the viewer waiting for its first reel. */
+    @Test
+    public void cardsAloneLeaveTheViewerWaitingForItsFirstReel() {
+        Settings.FOLLOWED_REELS_ONLY.save(true);
+        Object viewer = new Object();
+        viewerPage(viewer, new Section(new ArrayList<>(Collections.singletonList(new Object()))));
+        Item first = FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE);
+        Section reels = new Section(new ArrayList<>(Arrays.asList(first,
+                FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE))));
+
+        viewerPage(viewer, reels);
+
+        assertEquals(Collections.singletonList(first), reels.items);
+    }
+
+    /** Off, the first page goes on as Facebook sent it and uses up nothing. */
+    @Test
+    public void offTheViewerKeepsItsFirstReelForLater() {
+        Object viewer = new Object();
+        List<?> page = Collections.singletonList(new Section(new ArrayList<>(Collections.singletonList(
+                FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE)))));
+        assertSame(page, FollowedReels.followedSections(viewer, page, FollowedReelsForTests.MODEL,
+                FollowedReelsForTests.STATUSES, ReelLanguages.PATCHED));
+
+        Settings.FOLLOWED_REELS_ONLY.save(true);
+        Item first = FollowedReelsForTests.reel(FollowStatus.CAN_SUBSCRIBE);
+        Section reels = new Section(new ArrayList<>(Collections.singletonList(first)));
+        viewerPage(viewer, reels);
+
+        assertEquals(Collections.singletonList(first), reels.items);
     }
 
     private static String line(String route) {

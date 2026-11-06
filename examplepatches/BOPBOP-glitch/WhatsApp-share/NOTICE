@@ -1,0 +1,11 @@
+WhatsApp Morphe Patches
+
+Based on the Morphe patches template (GPL-3.0) and selected GPL-3.0 patch logic from PichiWA Patches.
+
+Morphe:
+https://github.com/MorpheApp
+
+PichiWA source used as a porting baseline:
+https://github.com/enricoottavoita/pichiwa-patches
+
+This project is not affiliated with WhatsApp, Meta, Morphe, or PichiWA.

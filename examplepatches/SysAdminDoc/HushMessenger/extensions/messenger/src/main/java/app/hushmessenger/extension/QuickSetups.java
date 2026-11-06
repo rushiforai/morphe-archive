@@ -14,8 +14,9 @@ import java.util.function.Predicate;
  * <p>Quiet and Privacy only turn controls on, and only ones whose effect is plain from their name and takes away nothing
  * someone would miss. Left out on purpose: stories, the inbox tabs, Meta AI and the other features people use, friend
  * requests, and anything that changes what other people see of you, such as typing, read receipts and anonymous
- * stories. Back to defaults turns every control off. Pause, the theme, update checks and the Menu row and app drawer
- * choices aren't controls, so they stay as they are.
+ * stories. iPhone look turns on the home header and the kept search bar, and SettingsActivity gives an empty header
+ * the words "Chats". Back to defaults turns every control off. Pause, the theme, update checks and the Menu row and
+ * app drawer choices aren't controls, so they stay as they are.
  */
 final class QuickSetups {
     /** Fewer ads, promotions, suggestions and nags. */
@@ -25,8 +26,11 @@ final class QuickSetups {
     /** Less sent to Meta: usage statistics, the advertising ID, ad and inbox logging, and MQTT health reports. */
     static final List<String> PRIVACY = Collections.unmodifiableList(Arrays.asList(
         "analytics_uploads", "attribution_uploads", "ad_events", "mqtt_telemetry"));
+    /** A chat list that looks like Messenger on an iPhone: a "Chats" title in place of the wordmark, the search bar kept. */
+    static final List<String> IPHONE = Collections.unmodifiableList(Arrays.asList("home_header", "inbox_search_bar"));
     /** The choices in the order the settings show them. Each has a SettingsText title "quick_" + name and its "_help". */
-    static final List<String> CHOICES = Collections.unmodifiableList(Arrays.asList("quiet", "privacy", "defaults"));
+    static final List<String> CHOICES = Collections.unmodifiableList(Arrays.asList(
+        "quiet", "privacy", "iphone", "defaults"));
 
     private QuickSetups() { }
 
@@ -35,6 +39,7 @@ final class QuickSetups {
         Map<String, Boolean> values = new LinkedHashMap<>();
         if ("quiet".equals(name)) for (String key : QUIET) values.put(key, true);
         else if ("privacy".equals(name)) for (String key : PRIVACY) values.put(key, true);
+        else if ("iphone".equals(name)) for (String key : IPHONE) values.put(key, true);
         else if ("defaults".equals(name)) for (String[] spec : SettingsActivity.CONTROLS) values.put(spec[0], false);
         else throw new IllegalArgumentException("Unknown quick setup: " + name);
         return values;

@@ -200,7 +200,7 @@ public class DexDiff {
     private static final String OUTSIDE_FIRST_CALL = "first-call-outside";
     private static final Set<String> THREADS_FEATURES = Set.of(
             "hideAds", "hideSuggestedUsers", "sanitizeSharingLinks", "openLinksExternally", "disableAnalytics", "restoreTrust",
-            "returnRefresh", "disableVideoAutoplay", "pureBlack", "saveMedia", "settingsRow");
+            "returnRefresh", "disableVideoAutoplay", "pureBlack", "saveMedia", "filterComments", "settingsRow");
 
     private static final class Contract {
         final String kind;
@@ -1969,6 +1969,13 @@ public class DexDiff {
     private static final String FEED = "Lcom/instagram/barcelona/feed/data/cache/BarcelonaFeedCache;";
     private static final String MEDIA = "Lcom/instagram/feed/media/Media;";
     private static final String ADS = "Lapp/morphe/extension/hushthreads/ads/FeedAds;->";
+    /** Filter comments: its own class, the opened post's reply parser, and the schema interfaces it reads. */
+    private static final String COMMENTS = "Lapp/morphe/extension/hushthreads/comments/CommentFilter;->";
+    private static final String REPLIES_PARSER_HOST = "Lcom/instagram/barcelona/permalink/data/BarcelonaPermalinkRepository;";
+    private static final String REPLIES_RESPONSE = "Lcom/instagram/api/schemas/TextAppRepliesResponseIntf;";
+    private static final String THREAD = "Lcom/instagram/api/schemas/ThreadIntf;";
+    private static final String THREAD_ITEM = "Lcom/instagram/api/schemas/ThreadItemIntf;";
+    private static final String MEDIA_EXT = "Lcom/instagram/feed/media/MediaExtKt;";
     private static final String FILTER_PAGE = ADS + "filter(Ljava/util/List;)Ljava/util/List;";
     private static final String PERMALINK_ADS = ADS + "permalinkAds(Ljava/util/List;)Ljava/util/List;";
     private static final String PERMALINK_AD_FETCHER = "Lcom/instagram/barcelona/sponsored/permalink/ThreadsPermalinkAdFetcher;";
@@ -2468,6 +2475,8 @@ public class DexDiff {
     private static final String SUGGESTED_WIRE = "suggested_users";
     private static final String KICKSTART_WIRE = "text_app_suggested_users_kickstart_unit";
     private static final String STRING_EQUALS = "Ljava/lang/String;->equals(Ljava/lang/Object;)Z";
+    private static final String CHAINING_WIRE = "suggested_users_chaining_";
+    private static final String STRING_STARTS_WITH = "Ljava/lang/String;->startsWith(Ljava/lang/String;)Z";
     private static final String RECORDED_RAW = "hushthreadsSuggestedUsersRaw";
 
     private record FeatureUse(int index, int register) {}
@@ -3052,6 +3061,59 @@ public class DexDiff {
         }
     }
 
+    /**
+     * The id field of the row Threads builds on the phone after a follow. Stock methods that load
+     * [CHAINING_WIRE] hand the SUGGESTED_USERS kind, on every path, to one item constructor taking
+     * one kind and one String, and that constructor stores its String parameter in this field.
+     */
+    private static FieldReference featureChainingId(Map<String, List<Method>> clean, String item, String enumType, FieldReference suggestedKind) {
+        Set<String> constructors = new TreeSet<>();
+        for (List<Method> definitions : clean.values()) for (Method m : definitions) {
+            if (m.getImplementation() == null || !holds(m, CHAINING_WIRE)) continue;
+            FeatureFlow flow = new FeatureFlow(m);
+            List<Instruction> code = flow.layout.instructions;
+            for (int at = 0; at < code.size(); at++) {
+                Instruction call = code.get(at);
+                if (call.getOpcode() != Opcode.INVOKE_DIRECT && call.getOpcode() != Opcode.INVOKE_DIRECT_RANGE) continue;
+                MethodReference callee = (MethodReference) ((ReferenceInstruction) call).getReference();
+                if (!callee.getDefiningClass().equals(item) || !callee.getName().equals("<init>")) continue;
+                List<String> types = callee.getParameterTypes().stream().map(CharSequence::toString).toList();
+                if (java.util.Collections.frequency(types, enumType) != 1 || java.util.Collections.frequency(types, FEATURE_STRING) != 1) continue;
+                int word = 1;
+                for (int k = 0; k < types.indexOf(enumType); k++) word += slots(types.get(k));
+                int register = invokeRegisters(call)[word], site = at;
+                List<Integer> loads = new ArrayList<>();
+                for (int n = 0; n < code.size(); n++) if (code.get(n).getOpcode() == Opcode.SGET_OBJECT
+                        && reference(code.get(n)).equals(suggestedKind.toString()) && flow.uses(n, -1).contains(new FeatureUse(site, register))) loads.add(n);
+                if (loads.isEmpty()) continue;
+                int load = featureOne(loads, "SUGGESTED_USERS load for the chaining row in " + featureSig(m));
+                requireFeature(flow.sourceOnEveryPath(load, -1, at, register, false), "chaining row kind is not SUGGESTED_USERS on every path in " + featureSig(m));
+                constructors.add(featureSig(callee));
+            }
+        }
+        Method constructor = featureMethod(clean, featureOne(new ArrayList<>(constructors), "chaining row constructor"));
+        List<String> types = constructor.getParameterTypes().stream().map(CharSequence::toString).toList();
+        int thisRegister = constructor.getImplementation().getRegisterCount() - 1 - types.stream().mapToInt(DexDiff::slots).sum();
+        int parameterRegister = thisRegister + 1;
+        for (int n = 0; n < types.indexOf(FEATURE_STRING); n++) parameterRegister += slots(types.get(n));
+        FeatureFlow flow = new FeatureFlow(constructor);
+        int parameter = parameterRegister;
+        FieldReference field = featureOne(flow.uses(-1, parameter).stream().filter(use -> {
+            Instruction i = flow.layout.instructions.get(use.index());
+            return i.getOpcode() == Opcode.IPUT_OBJECT && ((TwoRegisterInstruction) i).getRegisterA() == use.register()
+                    && ((TwoRegisterInstruction) i).getRegisterB() == thisRegister;
+        }).map(use -> (FieldReference) ((ReferenceInstruction) flow.layout.instructions.get(use.index())).getReference())
+                .filter(f -> f.getDefiningClass().equals(item) && f.getType().equals(FEATURE_STRING)).distinct().toList(), "chaining row id field");
+        for (int n = 0; n < flow.layout.instructions.size(); n++) {
+            Instruction i = flow.layout.instructions.get(n);
+            if (i.getOpcode() != Opcode.IPUT_OBJECT || !reference(i).equals(field.toString())) continue;
+            requireFeature(flow.parameterOnEveryPath(n, ((TwoRegisterInstruction) i).getRegisterA(), parameter)
+                    && flow.parameterOnEveryPath(n, ((TwoRegisterInstruction) i).getRegisterB(), thisRegister),
+                    "chaining row id writer does not store the constructor's String on every path");
+        }
+        return field;
+    }
+
     /** Card fields are resolved from stock JSON keys, constructor arguments and enum allocation.
      * The generated predicate must then match every guard, receiver, branch and result register. */
     private static void featureSuggested(Map<String, List<Method>> clean, Map<String, List<Method>> patched,
@@ -3178,23 +3240,32 @@ public class DexDiff {
         featureField(before.get(item), activeContent, false);
         requireFeature(AccessFlags.FINAL.isSet(featureField(before.get(model), rawType, false).getAccessFlags()), "raw netego_type field is mutable");
         featurePreserveCards(before, after, patched, wrapper, recordedRaw);
+        FieldReference chainingId = featureChainingId(clean, item, enumType, suggestedKind);
+        featureField(before.get(item), chainingId, false);
         Method stub = featureMethod(patched, ADS + "isSuggestedUserItem(Ljava/lang/Object;)Z");
         List<Instruction> body = instructions(stub);
+        // A SUGGESTED_USERS item whose id starts with CHAINING_WIRE is the row built on the phone
+        // after a follow and returns true at 36; every other card keeps the server-slot proof.
         Opcode[] expected = { Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT,
                 Opcode.IF_NEZ, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.SGET_OBJECT, Opcode.IF_EQ, Opcode.SGET_OBJECT,
-                Opcode.IF_NE, Opcode.IGET_OBJECT, Opcode.CONST_STRING, Opcode.GOTO, Opcode.IGET_OBJECT, Opcode.CONST_STRING,
+                Opcode.IF_NE, Opcode.IGET_OBJECT, Opcode.CONST_STRING, Opcode.GOTO,
+                Opcode.IGET_OBJECT, Opcode.IF_EQZ, Opcode.CONST_STRING, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_NEZ,
+                Opcode.IGET_OBJECT, Opcode.CONST_STRING,
                 Opcode.IF_EQZ, Opcode.IGET_OBJECT, Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT,
-                Opcode.IF_NE, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN };
+                Opcode.IF_NE, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.CONST_4, Opcode.RETURN,
+                Opcode.CONST_4, Opcode.RETURN };
         int[][] registers = { {0, 4}, {0}, {4}, {4}, {0}, {0}, {4}, {0}, {1}, {0, 1}, {1}, {0, 1}, {0, 4}, {1}, {},
-                {0, 4}, {1}, {0}, {2, 4}, {3, 2}, {3}, {2}, {2, 2}, {0, 2}, {0, 0}, {1, 0}, {0}, {0}, {0}, {0} };
+                {0, 4}, {0}, {1}, {0, 1}, {0}, {0},
+                {0, 4}, {1}, {0}, {2, 4}, {3, 2}, {3}, {2}, {2, 2}, {0, 2}, {0, 0}, {1, 0}, {0}, {0}, {0}, {0}, {0}, {0} };
         requireFeature(body.size() == expected.length && AccessFlags.STATIC.isSet(stub.getAccessFlags())
                 && stub.getImplementation().getRegisterCount() == 5 && stub.getImplementation().getTryBlocks().isEmpty(), "suggestion predicate is a stub or has a different declaration");
         Map<Integer, String> references = Map.ofEntries(Map.entry(0, item), Map.entry(2, item), Map.entry(3, featureSig(media)), Map.entry(6, featureSig(kind)),
                 Map.entry(8, suggestedKind.toString()), Map.entry(10, kickstartKind.toString()), Map.entry(12, kickstartSlot.toString()), Map.entry(13, KICKSTART_WIRE),
-                Map.entry(15, suggestedSlot.toString()), Map.entry(16, SUGGESTED_WIRE), Map.entry(18, activeContent.toString()), Map.entry(19, wrapperType),
-                Map.entry(21, wrapperType), Map.entry(22, recordedRaw.toString()), Map.entry(24, rawType.toString()), Map.entry(25, STRING_EQUALS));
+                Map.entry(15, chainingId.toString()), Map.entry(17, CHAINING_WIRE), Map.entry(18, STRING_STARTS_WITH),
+                Map.entry(21, suggestedSlot.toString()), Map.entry(22, SUGGESTED_WIRE), Map.entry(24, activeContent.toString()), Map.entry(25, wrapperType),
+                Map.entry(27, wrapperType), Map.entry(28, recordedRaw.toString()), Map.entry(30, rawType.toString()), Map.entry(31, STRING_EQUALS));
         Layout layout = new Layout(stub.getImplementation());
-        Map<Integer, Integer> branches = Map.of(1, 28, 5, 28, 9, 15, 11, 28, 14, 17, 17, 28, 20, 28, 23, 28);
+        Map<Integer, Integer> branches = Map.of(1, 34, 5, 34, 9, 15, 11, 34, 14, 23, 16, 21, 20, 36, 23, 34, 26, 34, 29, 34);
         for (int n = 0; n < body.size(); n++) {
             Instruction i = body.get(n);
             requireFeature(i.getOpcode() == expected[n] || expected[n] == Opcode.CONST_STRING && i.getOpcode() == Opcode.CONST_STRING_JUMBO,
@@ -3207,7 +3278,8 @@ public class DexDiff {
             if (branches.containsKey(n)) requireFeature(layout.addresses.get(n) + ((OffsetInstruction) i).getCodeOffset()
                     == layout.addresses.get(branches.get(n)), "suggestion predicate guard changed at " + n);
         }
-        requireFeature(((WideLiteralInstruction) body.get(28)).getWideLiteral() == 0, "unknown suggestion cards do not return false");
+        requireFeature(((WideLiteralInstruction) body.get(34)).getWideLiteral() == 0, "unknown suggestion cards do not return false");
+        requireFeature(((WideLiteralInstruction) body.get(36)).getWideLiteral() == 1, "chaining suggestion rows do not return true");
         featureHostCalls(patched, featureSig(stub), Map.of());
         featureSearchCarousel(clean, patched);
         featureProfileSuggestions(clean, patched);
@@ -3779,7 +3851,8 @@ public class DexDiff {
         Map<Integer, FeatureBlock> blocks = new HashMap<>();
         for (int read : reads) {
             int value = ((OneRegisterInstruction) body.get(read + 1)).getRegisterA();
-            blocks.put(read + 2, (now, at) -> featurePostLink(clean, now, at, value, post, fetchFlow, read + 2));
+            blocks.put(read + 2, (now, at) -> featureLowLink(now, at, value, fetchFlow, read + 2, "post link hook",
+                    (from, low) -> featureFetchLink(clean, now, from, low, post, fetchFlow, read + 2)));
         }
         featureBody(fetch, featureMethod(patched, featureSig(fetch)), 0, Map.of(), POST_LINK, null, blocks);
 
@@ -3801,7 +3874,8 @@ public class DexDiff {
             Map<Integer, FeatureBlock> holderBlocks = new HashMap<>();
             for (int read : holderReads) {
                 int value = ((OneRegisterInstruction) holder.get(read + 1)).getRegisterA();
-                holderBlocks.put(read + 2, (now, at) -> featureHolderLink(clean, now, at, value, self, held, holderFlow, read + 2));
+                holderBlocks.put(read + 2, (now, at) -> featureLowLink(now, at, value, holderFlow, read + 2, "holder link hook",
+                        (from, low) -> featureHolderLink(clean, now, from, low, self, held, holderFlow, read + 2)));
             }
             featureBody(m, featureMethod(patched, featureSig(m)), 0, Map.of(), POST_LINK, null, holderBlocks);
             calls.put(featureSig(m), holderReads.size());
@@ -3833,7 +3907,7 @@ public class DexDiff {
                 for (int call : fetches) {
                     int[] arguments = invokeRegisters(stock.get(call));
                     requireFeature(arguments[4] == key, featureSig(m) + " hands the plain fetch more than one continuation");
-                    resumed.put(call, (now, at) -> featureRemember(now, at, key, arguments[2]));
+                    resumed.put(call, (now, at) -> featureRemember(now, at, key, arguments[2], resumedFlow, call));
                 }
                 fetcher = true;
             } else if (m.getName().equals("invokeSuspend") && !AccessFlags.STATIC.isSet(m.getAccessFlags())
@@ -3852,7 +3926,7 @@ public class DexDiff {
                     requireFeature(resumedFlow.parameterOnEveryPath(cast + 1, key, self),
                             featureSig(m) + " loses its coroutine alias before remembering the post");
                     int kept = registerA(stock.get(cast));
-                    resumed.put(cast + 1, (now, at) -> featureRemember(now, at, key, kept));
+                    resumed.put(cast + 1, (now, at) -> featureRemember(now, at, key, kept, resumedFlow, cast + 1));
                 }
                 // The recall goes through this itself: 452 reuses the alias for an instance-of
                 // between the cast and the read.
@@ -3865,7 +3939,8 @@ public class DexDiff {
             remembers.put(featureSig(m), resumed.size());
             for (int read : stockReads) {
                 int value = registerA(stock.get(read + 1));
-                resumed.put(read + 2, (now, at) -> featureResumeLink(clean, now, at, value, recall, resumedFlow, read + 2));
+                resumed.put(read + 2, (now, at) -> featureLowLink(now, at, value, resumedFlow, read + 2, "resumed link hook",
+                        (from, low) -> featureResumeLink(clean, now, from, low, recall, resumedFlow, read + 2)));
             }
             featureBody(m, featureMethod(patched, featureSig(m)), 0, Map.of(), POST_LINK, null, resumed);
             recalls.put(featureSig(m), stockReads.size());
@@ -3902,11 +3977,64 @@ public class DexDiff {
         return true;
     }
 
-    /** The post going to the extension against the coroutine in [key], just before the share waits. */
-    private static int featureRemember(List<Instruction> body, int at, int key, int post) {
-        requireFeature(at < body.size() && isStaticInvoke(body.get(at).getOpcode()) && reference(body.get(at)).equals(REMEMBER_POST)
-                && Arrays.equals(invokeRegisters(body.get(at)), new int[]{key, post}), "missing or miswired " + REMEMBER_POST + " at instruction " + at);
-        return 1;
+    /**
+     * The post going to the extension against the coroutine in [key], just before [stock]'s
+     * instruction [site] waits. The call takes 4-bit registers, so each of the two above v15 is
+     * first copied, in that order, into a local nothing reads from the site on (#20).
+     */
+    private static int featureRemember(List<Instruction> body, int at, int key, int post, FeatureFlow stock, int site) {
+        List<Integer> high = java.util.stream.IntStream.of(key, post).filter(r -> r > 15).distinct().boxed().toList();
+        Map<Integer, Integer> low = new HashMap<>();
+        for (int n = 0; n < high.size(); n++) {
+            int from = high.get(n), k = at + n;
+            requireFeature(k < body.size() && body.get(k).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                    && ((TwoRegisterInstruction) body.get(k)).getRegisterB() == from, REMEMBER_POST + " doesn't copy v" + from + " down at instruction " + k);
+            int copy = registerA(body.get(k));
+            requireFeature(copy < 16 && copy != key && copy != post && !low.containsValue(copy),
+                    REMEMBER_POST + " copies v" + from + " into v" + copy + " at instruction " + k);
+            featureScratch(stock, site, REMEMBER_POST + " copy at instruction " + k, copy);
+            low.put(from, copy);
+        }
+        int call = at + high.size();
+        requireFeature(call < body.size() && isStaticInvoke(body.get(call).getOpcode()) && reference(body.get(call)).equals(REMEMBER_POST)
+                && Arrays.equals(invokeRegisters(body.get(call)), new int[]{low.getOrDefault(key, key), low.getOrDefault(post, post)}),
+                "missing or miswired " + REMEMBER_POST + " at instruction " + call);
+        return high.size() + 1;
+    }
+
+    /**
+     * [hook] on the link [stock] read into [value], in front of its instruction [site], answering the
+     * hook's length from where it starts and the register it gets the link in. The hook's calls take
+     * 4-bit registers, so a link above v15, and only such a link, goes down into a free local first
+     * and back up after (454's ARMv7 and x86 Share to Instagram).
+     */
+    private static int featureLowLink(List<Instruction> body, int at, int value, FeatureFlow stock, int site, String what,
+            java.util.function.IntBinaryOperator hook) {
+        if (value <= 15) return hook.applyAsInt(at, value);
+        requireFeature(at < body.size() && body.get(at).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                && ((TwoRegisterInstruction) body.get(at)).getRegisterB() == value, what + " doesn't copy the link in v" + value + " down at " + at);
+        int link = registerA(body.get(at));
+        requireFeature(link < 16, what + " copies the link into v" + link + ", above v15, at " + at);
+        featureScratch(stock, site, what + " at instruction " + at, link);
+        int back = at + 1 + hook.applyAsInt(at + 1, link);
+        requireFeature(back < body.size() && body.get(back).getOpcode() == Opcode.MOVE_OBJECT_FROM16 && registerA(body.get(back)) == value
+                && ((TwoRegisterInstruction) body.get(back)).getRegisterB() == link, what + " doesn't copy the link back into v" + value + " at " + back);
+        return back + 1 - at;
+    }
+
+    /**
+     * The fetch's hook on the link in [link]: the post the fetch stores, in [post], and copied into
+     * a free local first when it sits above v15, since the hook's getters name 4-bit registers.
+     */
+    private static int featureFetchLink(Map<String, List<Method>> clean, List<Instruction> body, int at, int link, int post,
+            FeatureFlow stock, int site) {
+        if (post <= 15) return featurePostLink(clean, body, at, link, post, stock, site);
+        requireFeature(at < body.size() && body.get(at).getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                && ((TwoRegisterInstruction) body.get(at)).getRegisterB() == post, "post link hook doesn't copy the post in v" + post + " down at " + at);
+        int held = registerA(body.get(at));
+        requireFeature(held < 16 && held != link, "post link hook copies the post into v" + held + " at " + at);
+        featureScratch(stock, site, "post link hook at instruction " + at, held);
+        return 1 + featurePostLink(clean, body, at + 1, link, held, stock, site);
     }
 
     /**
@@ -6666,6 +6794,7 @@ public class DexDiff {
             case "disableVideoAutoplay": featureOmittedVideoAutoplay(clean, patched); break;
             case "pureBlack": featureOmittedPureBlack(clean, patched); break;
             case "saveMedia": featureOmittedSaveMedia(clean, patched); break;
+            case "filterComments": featureOmittedComments(patched); break;
             case "settingsRow": featureOmittedSettingsRow(clean, patched); break;
             default: throw new IllegalArgumentException("Unknown omitted feature " + feature);
         }
@@ -6678,6 +6807,43 @@ public class DexDiff {
                 featurePreserveTargets(clean, patched, m -> m.getDefiningClass().equals(FEED));
             }
         }
+    }
+
+    /**
+     * Left out, Filter comments leaves the opened post's reply parser as Threads wrote it: the
+     * host calls nothing of the extension.
+     */
+    private static void featureOmittedComments(Map<String, List<Method>> patched) {
+        featureHostCalls(patched, COMMENTS + "filter(Ljava/util/List;)Ljava/util/List;", Map.of());
+    }
+
+    /**
+     * Filter comments hands the reply list the opened post's parser reads to its own filter, once,
+     * and the four reads it writes into the extension answer Threads' own getters: the reply's
+     * posts, a post's media, a media's text and its caption.
+     */
+    private static void featureComments(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        requireFeature(featureConstant(patched, "filterComments", "Z") == 1, "filter comments switch isn't on");
+        Method parser = featureTarget(clean, m -> m.getDefiningClass().equals(REPLIES_PARSER_HOST)
+                && m.getReturnType().startsWith("L") && m.getParameterTypes().size() == 6
+                && m.getParameterTypes().get(0).equals(REPLIES_RESPONSE)
+                && m.getParameterTypes().get(1).equals(REPLIES_PARSER_HOST), "opened post's reply parser");
+        featureHostCalls(patched, COMMENTS + "filter(Ljava/util/List;)Ljava/util/List;", Map.of(featureSig(parser), 1));
+        // The reads are checked where this build's extension carries them; an older one has none.
+        if (patched.containsKey(COMMENTS + "threadItems(Ljava/lang/Object;)Ljava/util/List;")) {
+            featureStubCalls(patched, COMMENTS + "threadItems(Ljava/lang/Object;)Ljava/util/List;", THREAD);
+            featureStubCalls(patched, COMMENTS + "itemMedia(Ljava/lang/Object;)Ljava/lang/Object;", THREAD_ITEM);
+            featureStubCalls(patched, COMMENTS + "mediaText(Ljava/lang/Object;)Ljava/lang/String;", MEDIA);
+            featureStubCalls(patched, COMMENTS + "mediaCaption(Ljava/lang/Object;)Ljava/lang/String;", MEDIA_EXT);
+        }
+    }
+
+    /** Whether the extension's stub [signature] still calls something on [definingClass], as the patch wrote it. */
+    private static void featureStubCalls(Map<String, List<Method>> patched, String signature, String definingClass) {
+        Method stub = featureMethod(patched, signature);
+        boolean calls = instructions(stub).stream().map(DexDiff::reference)
+                .anyMatch(r -> r.startsWith(definingClass + "->"));
+        requireFeature(calls, signature + " doesn't call " + definingClass);
     }
 
     private static List<String> checkThreadsFeatures(File cleanApk, File patchedApk, Set<String> rules,
@@ -6759,6 +6925,7 @@ public class DexDiff {
                     case "disableVideoAutoplay": featureVideoAutoplay(clean, patched); break;
                     case "pureBlack": featurePureBlack(clean, patched); break;
                     case "saveMedia": featureSaveMedia(clean, patched, cleanApk, patchedApk); break;
+                    case "filterComments": featureComments(clean, patched); break;
                     default: throw new IllegalArgumentException("Unknown feature " + feature);
                 }
                 System.out.println("[diff] threads-feature " + feature + ": verified");

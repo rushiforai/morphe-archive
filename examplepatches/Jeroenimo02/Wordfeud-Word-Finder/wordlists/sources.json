@@ -1,21 +1,6 @@
 {
   "_comment": "Bronnen van de woordenlijsten per taal. Alleen openbare licenties. Wordt gelezen door tools/wordlists/build.py; zie wordlists/README.md.",
   "languages": {
-    "en": {
-      "name": "English (ENABLE)",
-      "rulesets": [
-        0,
-        5
-      ],
-      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-      "source": {
-        "url": "https://raw.githubusercontent.com/dolph/dictionary/233d25a56b9ac8bef906916ccf091a976995cce0/enable1.txt",
-        "sha256": "3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89"
-      },
-      "license": "Public domain (ENABLE word list)",
-      "attribution": "ENABLE2K word list, via dolph/dictionary",
-      "notes": "Free approximation of TWL (ruleset 0) and Collins/SOWPODS (ruleset 5); the server rejects words that are not in Wordfeud's own list."
-    },
     "nb": {
       "name": "Norsk bokmål",
       "rulesets": [
@@ -122,11 +107,143 @@
         "zip_member": "lexique-grammalecte-fr-v7.7.txt",
         "column": 2,
         "numeric_id": true,
-        "skip_capitalised": true
+        "skip_capitalised": true,
+        "skip_if": [
+          {
+            "column": 7,
+            "token": "symb"
+          },
+          {
+            "column": 7,
+            "token": "sig"
+          },
+          {
+            "column": 7,
+            "token": "abr",
+            "max_len": 2
+          }
+        ]
       },
       "license": "MPL 2.0",
       "attribution": "Lexique des formes fléchies du français, Grammalecte v7.7 (Olivier R.)",
-      "notes": "Accents folded as in French Scrabble (É -> E); contains classic and 1990 reform spellings."
+      "notes": "Accents folded as in French Scrabble (É -> E); contains classic and 1990 reform spellings. Symbols, units and acronyms (Notes column: symb, sig) and abbreviations of at most 2 letters (abr) are left out."
+    },
+    "pt": {
+      "name": "Português",
+      "rulesets": [
+        12
+      ],
+      "alphabet": "ABCDEFGHIJLMNOPQRSTUVXZÇ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/jfoclpf/words-pt/cced78e688777b6a6dfe074edc96735f11ea2098/wordsList.zip",
+        "sha256": "8459f51d8e0de19593be43b41a21c64a1026a84132e5410bd320c43fe93d8213",
+        "zip_member": "wordsList",
+        "charset": "iso-8859-1",
+        "skip_capitalised": true
+      },
+      "license": "GPL-3.0",
+      "attribution": "jfoclpf/words-pt (European Portuguese, from the Natura word lists of Universidade do Minho)",
+      "notes": "European Portuguese, post-1990-reform spelling; accents folded except Ç. Wordfeud's own list is proprietary."
+    },
+    "sv-strict": {
+      "name": "Svenska (strikt)",
+      "rulesets": [
+        8
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPRSTUVXYZÅÄÖ",
+      "source": {
+        "url": "https://raw.githubusercontent.com/hising/svenska-ord.txt/d1b83cfb84b3d1fd1092ac29650994c2ad3cd867/svenska-ord.txt",
+        "sha256": "fbd30abf429d0878976537f45396e3814d5fef9052be90148ca0ed65581752e9",
+        "skip_capitalised": true
+      },
+      "license": "Unlicense (as published; the headwords come from SAOL)",
+      "attribution": "hising/svenska-ord.txt (about 120,000 headwords from SAOL)",
+      "notes": "Base forms only, on the assumption that Wordfeud's Swedish strict allows no inflected forms (unconfirmed)."
+    },
+    "es": {
+      "name": "Español",
+      "rulesets": [
+        6
+      ],
+      "alphabet": "ABCDEFGHIJLMNOPQRSTUVXYZÑ",
+      "digraphs": [
+        "CH",
+        "LL",
+        "RR"
+      ],
+      "source": {
+        "url": "https://raw.githubusercontent.com/lorenbrichter/Words/f4976d6a6d34beb431dec8d4b443a138f4dc8bee/Words/es.txt",
+        "sha256": "a6e805ab9a56a32e27aa528c2abf022e6594d8dc6001322236560a7a58ee34b4"
+      },
+      "license": "CC0 1.0 (as published by lorenbrichter/Words; the content matches the FISE-2 Scrabble lexicon)",
+      "attribution": "lorenbrichter/Words es.txt (Letterpress word list)",
+      "notes": "Plain spelling; the patch reads CH, LL and RR as the Wordfeud digraph tiles. Maximum length counted in tiles."
+    },
+    "fi": {
+      "name": "Suomi",
+      "rulesets": [
+        11
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPRSTUVYÄÖ",
+      "source": {
+        "format": "hunspell",
+        "url": "https://raw.githubusercontent.com/mhavo/suomen-kieliavut/538f91e2c296f1466dcfd5e24400b38f46f4d76f/dict/ginter/fi_FI.dic",
+        "sha256": "7015bf1eba98f52f29428117687e08d657ffc189c13960734ff3083d572c98db",
+        "aff_url": "https://raw.githubusercontent.com/mhavo/suomen-kieliavut/538f91e2c296f1466dcfd5e24400b38f46f4d76f/dict/ginter/fi_FI.aff",
+        "aff_sha256": "027d87effa5c4c629e912d22e052d68fba450bd2849401f5459a3da09b86723d",
+        "skip_capitalised": true
+      },
+      "license": "CC0 1.0",
+      "attribution": "fginter/hunspell-fi (TurkuNLP), via mhavo/suomen-kieliavut",
+      "notes": "All forms generated from the Hunspell dictionary (built from forms attested in a Finnish corpus)."
+    },
+    "en-us": {
+      "name": "English (US)",
+      "rulesets": [
+        0
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/dolph/dictionary/233d25a56b9ac8bef906916ccf091a976995cce0/enable1.txt",
+          "sha256": "3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/wordnik/wordlist/46e6215d0f90356afe9c8ba4be347e7e98cb425c/wordlist-20210729.txt",
+          "sha256": "bfd1b4eb4ade1ba81e84c7e24248b9a1aecec9d9baa427453b367a83e30e0451",
+          "strip_quotes": true
+        }
+      ],
+      "license": "Public domain (ENABLE) and MIT (Wordnik, Copyright (c) 2020 Wordnik)",
+      "attribution": "ENABLE2K word list via dolph/dictionary; Wordnik open word list (wordnik/wordlist)",
+      "notes": "Free approximation of NWL (Wordfeud US English): about 95% of NWL2023.",
+      "min_version": 2
+    },
+    "en-intl": {
+      "name": "English (international)",
+      "rulesets": [
+        5
+      ],
+      "alphabet": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "sources": [
+        {
+          "url": "https://raw.githubusercontent.com/dolph/dictionary/233d25a56b9ac8bef906916ccf091a976995cce0/enable1.txt",
+          "sha256": "3f16130220645692ed49c7134e24a18504c2ca55b3c012f7290e3e77c63b1a89"
+        },
+        {
+          "url": "https://raw.githubusercontent.com/wordnik/wordlist/46e6215d0f90356afe9c8ba4be347e7e98cb425c/wordlist-20210729.txt",
+          "sha256": "bfd1b4eb4ade1ba81e84c7e24248b9a1aecec9d9baa427453b367a83e30e0451",
+          "strip_quotes": true
+        },
+        {
+          "url": "https://raw.githubusercontent.com/lorenbrichter/Words/f4976d6a6d34beb431dec8d4b443a138f4dc8bee/Words/en.txt",
+          "sha256": "b78af5ad2f66bed4e64fd48334af7d5620a91c45e7a578c084b9b72f9abcd5dd"
+        }
+      ],
+      "license": "Public domain (ENABLE), MIT (Wordnik, Copyright (c) 2020 Wordnik), CC0 1.0 (Letterpress, as published)",
+      "attribution": "ENABLE2K via dolph/dictionary; Wordnik open word list; lorenbrichter/Words en.txt (Letterpress)",
+      "notes": "Free approximation of Collins Scrabble Words (Wordfeud international English): about 98% of CSW21.",
+      "min_version": 2
     }
   }
 }

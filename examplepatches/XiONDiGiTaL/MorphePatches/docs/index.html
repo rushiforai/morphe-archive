@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XiØN Patches — Android patches for Morphe</title>
+<meta name="description" content="Independent Android patches for Morphe by XiØN (XiONDiGiTaL). Five Tandem 6.38.0 patches shipped as a prebuilt bundle, installable straight from a Morphe patch source.">
+<meta name="theme-color" content="#050607">
+<link rel="canonical" href="https://xiondigital.net/MorphePatches/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="XiØN Patches — Android patches for Morphe">
+<meta property="og:description" content="Five working Tandem 6.38.0 patches for Morphe, shipped as a prebuilt bundle you can add as a patch source.">
+<meta property="og:url" content="https://xiondigital.net/MorphePatches/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#patches">Skip to patches</a>
+
+<div class="ambient" aria-hidden="true">
+  <span class="ambient__glow ambient__glow--a"></span>
+  <span class="ambient__glow ambient__glow--b"></span>
+  <span class="ambient__grid"></span>
+</div>
+
+<div class="site">
+  <header class="site-header">
+    <div class="wrap header__inner">
+      <a class="brand" href="#top">
+        <img class="brand__mark" src="assets/xion-morphe-patches.png" alt="" onerror="this.remove()">
+        <span class="brand__word">Xi<span class="brand__o">Ø</span>N</span>
+        <span class="brand__tag">Morphe patches</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a class="nav__link" href="#patches">Patches</a>
+        <a class="nav__link" href="#install">Install</a>
+        <a class="nav__link" href="#verify">Verify</a>
+        <a class="nav__link" href="#releases">Releases</a>
+        <a class="nav__link" href="#companion">Companion</a>
+      </nav>
+      <a class="btn btn--primary btn--sm header__cta" href="https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches">Add to Morphe</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ------------------------------------------------------------ hero -->
+    <section class="hero">
+      <span class="hero__ghost" aria-hidden="true">Ø</span>
+      <div class="wrap hero__inner">
+        <div class="hero__copy">
+          <p class="eyebrow">Morphe patches — XIONDIGITAL</p>
+          <h1 class="hero__title">Xi<span class="o">Ø</span>N<br>Patches</h1>
+          <p class="hero__tagline">
+            Android patches, built for Morphe.
+            <em>Five of them, for Tandem.</em>
+          </p>
+          <p class="hero__lede">
+            Each patch is a real change to the app's own dex — documented down to the method it anchors on
+            and the exact code it injects. No forks, no rebuilds, no guesswork inside the patcher.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches">Add patch source</a>
+            <a class="btn btn--ghost" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/latest">Download bundle</a>
+          </div>
+          <ul class="hero__meta">
+            <li><span>Release</span> <strong>v1.1.0</strong></li>
+            <li><span>Patches</span> <strong>5</strong></li>
+            <li><span>Target</span> <strong>net.tandem 6.38.0</strong></li>
+            <li><span>Status</span> <strong>Experimental</strong></li>
+          </ul>
+        </div>
+
+        <aside class="source-card" aria-label="Patch source">
+          <p class="source-card__label">Add as a source</p>
+          <code class="source-card__url" id="source-url">https://morphe.software/add-source?github=XiONDiGiTaL/MorphePatches</code>
+          <div class="source-card__row">
+            <button class="btn btn--ghost btn--sm" type="button" data-copy="#source-url">Copy link</button>
+            <a class="btn btn--ghost btn--sm" href="https://github.com/XiONDiGiTaL/MorphePatches">Repository</a>
+          </div>
+          <ul class="source-card__list">
+            <li><span>01</span> Bypass PairIP checks</li>
+            <li><span>02</span> Force dark mode</li>
+            <li><span>03</span> Remove ads</li>
+            <li><span>04</span> Disable Adjust tracking</li>
+            <li><span>05</span> Clone package</li>
+          </ul>
+          <p class="source-card__note">
+            Morphe reads <code class="inline-code">patches-list.json</code> from this repository, so the five
+            patches above are the five you get.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------- patches -->
+    <section class="section" id="patches">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">01 / The collection</p>
+            <h2 class="section__title">Five patches, <em>one app</em></h2>
+          </div>
+          <p class="section__note">
+            Tandem: Language exchange, <code class="inline-code">net.tandem</code> 6.38.0. Nineteen method
+            anchors across <code class="inline-code">classes.dex</code>,
+            <code class="inline-code">classes2.dex</code> and <code class="inline-code">classes4.dex</code>,
+            plus ten package-name literals the clone patch rewrites.
+          </p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">01</span>
+              <span class="chip chip--blue chip--dot">Required</span>
+            </div>
+            <h3 class="card__title">Bypass PairIP checks</h3>
+            <p class="card__copy">
+              Skips PairIP's APK signature and Play licence checks, which otherwise stop a re-signed build
+              from starting. Any patched Tandem build needs this one.
+            </p>
+            <div class="card__tags">
+              <span class="chip">integrity</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">02</span>
+              <span class="chip chip--blue chip--dot">Default on</span>
+            </div>
+            <h3 class="card__title">Force dark mode</h3>
+            <p class="card__copy">
+              Turns on Tandem's own dark theme, regardless of the system dark-mode setting. Uses the app's
+              existing theme switch rather than recolouring anything by hand.
+            </p>
+            <div class="card__tags">
+              <span class="chip">interface</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">03</span>
+              <span class="chip chip--blue chip--dot">Default on</span>
+            </div>
+            <h3 class="card__title">Remove ads</h3>
+            <p class="card__copy">
+              Removes Tandem's community ad slot and stops the bundled AppLovin MAX and Meta Audience
+              Network SDKs from requesting ads.
+            </p>
+            <div class="card__tags">
+              <span class="chip">ads</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">04</span>
+              <span class="chip chip--blue chip--dot">Default on</span>
+            </div>
+            <h3 class="card__title">Disable Adjust tracking</h3>
+            <p class="card__copy">
+              Stops the bundled Adjust attribution SDK from initialising, so no install, session or event
+              attribution gets sent.
+            </p>
+            <div class="card__tags">
+              <span class="chip">tracking</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__top">
+              <span class="card__num">05</span>
+              <span class="chip chip--blue chip--dot">Opt-in</span>
+            </div>
+            <h3 class="card__title">Clone package</h3>
+            <p class="card__copy">
+              Installs the patched build under its own application id — <code class="inline-code">app.xiondigital.tandem</code>
+              by default — so it sits beside the official app instead of replacing it. Provider authorities,
+              the signature permission, the WeChat task affinity and Tandem's package literals move with it.
+            </p>
+            <div class="card__tags">
+              <span class="chip">packaging</span>
+              <span class="chip">Experimental</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------------- install -->
+    <section class="section" id="install">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">02 / Install</p>
+            <h2 class="section__title">Three steps, <em>no build</em></h2>
+          </div>
+          <p class="section__note">You need Morphe Manager and a stock Tandem 6.38.0 APK or APKM. That's it.</p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <span class="step__num">STEP 01</span>
+            <div>
+              <h3 class="step__title">Add the source</h3>
+              <p class="step__copy">
+                Open the add-source link and confirm it in Morphe, or add
+                <code class="inline-code">XiONDiGiTaL/MorphePatches</code> by hand. The five patches then
+                appear inside Morphe.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num">STEP 02</span>
+            <div>
+              <h3 class="step__title">Select your Tandem file</h3>
+              <p class="step__copy">
+                Pick a stock <code class="inline-code">6.38.0</code> (versionCode 11568) APK or APKM. Any
+                other version is refused instead of being patched blindly.
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step__num">STEP 03</span>
+            <div>
+              <h3 class="step__title">Keep PairIP bypass enabled</h3>
+              <p class="step__copy">
+                Patch, then install the re-signed build. Leave <strong>Bypass PairIP checks</strong> on —
+                a re-signed build is rejected at startup without it. Enable <strong>Clone package</strong> if
+                you want it to install next to the official app rather than replace it. Heads up: in the
+                2026-11-04 device test the patched build still stopped at Tandem's licence gate, so these
+                patches do not produce a runnable app yet.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top: 14px;">
+          <h3 class="panel__title">Prefer a file?</h3>
+          <p class="panel__note">
+            Import <code class="inline-code">patches.mpp</code> straight into Morphe Manager — from the
+            <a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0">v1.1.0 release</a>
+            or from the repository. Same five patches, no source needed.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------- verify -->
+    <section class="section" id="verify">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">03 / Compatibility &amp; checksums</p>
+            <h2 class="section__title">What it targets, <em>byte for byte</em></h2>
+          </div>
+          <p class="section__note">Check the file you downloaded against the hash below before you patch anything.</p>
+        </div>
+
+        <div class="panel panel--split">
+          <div>
+            <table class="table">
+              <caption>Compatibility</caption>
+              <tbody>
+                <tr><th scope="row">App</th><td>Tandem: Language exchange (<code>net.tandem</code>)</td></tr>
+                <tr><th scope="row">Version</th><td>6.38.0 — versionCode 11568</td></tr>
+                <tr><th scope="row">Input</th><td>APK or APKM</td></tr>
+                <tr><th scope="row">minSdk</th><td>32</td></tr>
+                <tr><th scope="row">Patcher</th><td>Morphe <code>2.1.0</code></td></tr>
+                <tr><th scope="row">Anchors</th><td>19 methods + 10 package literals</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <table class="table">
+              <caption>Bundle checksums</caption>
+              <tbody>
+                <tr>
+                  <th scope="row">Release asset<br><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.1.0/patches-1.1.0.mpp">patches-1.1.0.mpp</a></th>
+                  <td>
+                    <span class="hash">
+                      <code id="hash-release">0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9</code>
+                      <button class="btn btn--ghost btn--sm" type="button" data-copy="#hash-release">Copy</button>
+                    </span>
+                    <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted-dim);">74,124 bytes · SHA-256</span>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Repository<br><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/Tandem/patches.mpp">Tandem/patches.mpp</a></th>
+                  <td>
+                    <span class="hash">
+                      <code id="hash-repo">0034159ee9a8ba74d7f540f2ca48f5c57cf4d805f68639da575d991e1f5f2af9</code>
+                      <button class="btn btn--ghost btn--sm" type="button" data-copy="#hash-repo">Copy</button>
+                    </span>
+                    <span style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted-dim);">74,124 bytes · SHA-256</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="panel__note">
+              Both files are the same build and carry the same
+              <code class="inline-code">Patcher-Version: 2.1.0</code>, so either download matches the one
+              hash above.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------- releases -->
+    <section class="section" id="releases">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">04 / Releases</p>
+            <h2 class="section__title">Versioned, <em>automated</em></h2>
+          </div>
+          <p class="section__note">Every push to <code class="inline-code">main</code> runs semantic-release, which tags the next version and attaches the freshly built bundle.</p>
+        </div>
+
+        <div class="panel">
+          <table class="table">
+            <caption>Published versions</caption>
+            <thead>
+              <tr><th scope="col">Version</th><th scope="col">Date</th><th scope="col">Bundle</th><th scope="col">Contents</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.1.0">v1.1.0</a></th>
+                <td>2026-11-04</td>
+                <td><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.1.0/patches-1.1.0.mpp">patches-1.1.0.mpp</a></td>
+                <td>Adds <strong>Clone package</strong>: the patched build installs under its own application id beside the official app, with the signature permission, all nine provider authorities, the WeChat task affinity and ten dex literals renamed to match. Opt-in; the other four patches unchanged</td>
+              </tr>
+              <tr>
+                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.0.2">v1.0.2</a></th>
+                <td>2026-11-04</td>
+                <td><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.0.2/patches-1.0.2.mpp">patches-1.0.2.mpp</a></td>
+                <td>The four original patches plus the offline companion app. Empties PairIP's licence paywall, error dialog and delayed shutdown</td>
+              </tr>
+              <tr>
+                <th scope="row"><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/tag/v1.0.1">v1.0.1</a></th>
+                <td>2026-11-03</td>
+                <td><a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/releases/download/v1.0.1/patches-1.0.1.mpp">patches-1.0.1.mpp</a></td>
+                <td>Superseded: applied cleanly but still left PairIP's licence screen reachable, so a build could be sent to Google Play at launch. Use v1.1.0</td>
+              </tr>
+              <tr>
+                <th scope="row">v1.0.0</th>
+                <td>2026-11-01</td>
+                <td>—</td>
+                <td>Retired: built before the patch-time fixes, so patching aborted. Use v1.1.0</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="panel__note">
+            Only patch bundles are distributed here — never original or prepatched application packages.
+          </p>
+        </div>
+
+        <div class="panel" style="margin-top: 14px; border-color: rgba(63, 128, 255, 0.28); background: linear-gradient(180deg, rgba(63, 128, 255, 0.07), var(--panel));">
+          <h3 class="panel__title">Where this stands</h3>
+          <p class="panel__note">
+            The bundle applies to the APKMirror 6.38.0 APKM: all five patches complete, the patched dex was
+            decompiled to confirm every replaced body and the injected night-mode call, and with
+            <strong>Clone package</strong> enabled the installed id, provider authorities, signature permission
+            and task affinity are renamed as documented. It has since been run on a device
+            (SM-S918U, Android 17): the clone installs as its own app, but Tandem's licence gate opens Google
+            Play and the process dies inside <code class="inline-code">libpairipcore.so</code> before the UI.
+            That is why every patch is still listed as <strong>Experimental</strong>. When a build survives
+            launch on hardware, that status changes — not before.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------- companion -->
+    <section class="section" id="companion">
+      <div class="wrap">
+        <div class="section__head">
+          <div>
+            <p class="eyebrow">05 / Companion app</p>
+            <h2 class="section__title">Tandem Study, <em>offline</em></h2>
+          </div>
+          <p class="section__note">
+            Vocabulary, statistics, search and spaced review need a database, an algorithm and a screen —
+            things a dex patch cannot add. They ship as a separate app instead.
+          </p>
+        </div>
+
+        <div class="panel panel--split">
+          <div>
+            <h3 class="panel__title">Your own conversations, on your own phone</h3>
+            <p class="panel__note">
+              Tandem already hands you your history: <strong>Profile → Settings → Download my data</strong>.
+              Tandem Study imports that archive into a local database and builds the study material from it.
+            </p>
+            <ul class="source-card__list">
+              <li><span>01</span> Word list with translations and how often each one appears</li>
+              <li><span>02</span> Message counts, activity over time, most-used words</li>
+              <li><span>03</span> Search across the messages you wrote and received</li>
+              <li><span>04</span> Spaced-repetition review with a daily reminder</li>
+            </ul>
+            <div class="card__tags" style="margin-top: 16px; padding-top: 0;">
+              <span class="chip chip--blue chip--dot">No INTERNET permission</span>
+              <span class="chip">Android</span>
+              <span class="chip">Experimental</span>
+            </div>
+            <p class="panel__note" style="margin-top: 14px;">
+              It has no <code class="inline-code">INTERNET</code> permission, so nothing it imports can leave
+              the device, and it never reads or writes Tandem's own data. The importer follows Tandem's
+              export format; it has not yet been tried against a full real-world export.
+            </p>
+            <p style="margin-top: 14px;">
+              <a class="text-link" href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/companion/README.md">Tandem Study README ↗</a>
+            </p>
+          </div>
+
+          <div class="shots">
+            <figure class="shot">
+              <img src="assets/tandem-study-words.png" alt="Word list built from an imported Tandem export" loading="lazy">
+              <figcaption>Words, translations and occurrences</figcaption>
+            </figure>
+            <figure class="shot">
+              <img src="assets/tandem-study-review.png" alt="Vocabulary review screen with a daily reminder" loading="lazy">
+              <figcaption>Review and reminders</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer__grid">
+        <div>
+          <p class="footer__brand">Xi<span class="o">Ø</span>N Patches</p>
+          <p class="footer__copy">
+            Independent Android patches by XiONDiGiTaL, not affiliated with, endorsed by, or sponsored by
+            any app or project referenced here. App names and trademarks belong to their owners.
+          </p>
+        </div>
+        <div class="footer__col">
+          <h3>Project</h3>
+          <ul>
+            <li><a href="https://github.com/XiONDiGiTaL/MorphePatches">Repository</a></li>
+            <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/releases">Releases</a></li>
+            <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/issues">Report an issue</a></li>
+            <li><a href="https://github.com/XiONDiGiTaL/MorphePatches/blob/main/Tandem/README.md">Tandem docs</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h3>Elsewhere</h3>
+          <ul>
+            <li><a href="https://morphe.software">Morphe</a></li>
+            <li><a href="https://github.com/MorpheApp/morphe-patches">Upstream patches</a></li>
+            <li><a href="https://xiondigital.net">XiØN · artist site</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__base">
+        <span>Morphe patches — XIONDIGITAL</span>
+        <span>v1.1.0 · updated 2026-11-04</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var target = document.querySelector(button.getAttribute("data-copy"));
+      if (!target) return;
+      var text = target.textContent.trim();
+      var label = button.textContent;
+      function done(ok) {
+        button.textContent = ok ? "Copied" : "Copy failed";
+        setTimeout(function () { button.textContent = label; }, 1600);
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else {
+        done(false);
+      }
+    });
+  });
+</script>
+</body>
+</html>

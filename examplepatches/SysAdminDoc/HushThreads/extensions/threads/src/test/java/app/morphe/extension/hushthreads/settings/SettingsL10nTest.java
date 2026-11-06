@@ -210,7 +210,8 @@ public class SettingsL10nTest {
      */
     @Test
     public void inEveryShippedLanguageNothingOnTheScreenStaysEnglish() throws Exception {
-        String[][] languages = {{"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        String[][] languages = {{"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"ko", "ko"},
+                {"pt-rBR", "pt-rbr"}, {"tr", "tr"}, {"zh-rTW", "zh-rtw"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = TranslationsForTests.of(language[1]);
@@ -293,8 +294,8 @@ public class SettingsL10nTest {
                 + "again and leave out that patch.";
         String other = "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, "
                 + "patch again and leave out the patch in brackets after it.";
-        String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"},
-                {"tr", "tr"}};
+        String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"},
+                {"ko", "ko"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}, {"zh-rTW", "zh-rtw"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = language[1] == null ? null : TranslationsForTests.of(language[1]);
@@ -302,8 +303,10 @@ public class SettingsL10nTest {
             String single = PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.REMOVE_AD_ID));
             String item = row(table, PatchFamily.REMOVE_AD_ID.staysWhilePaused);
             assertNotNull(single);
+            // Hangul and Han have no capitals, so a letter with no case starts the sentence as it is.
+            int first = single.codePointAt(0);
             assertTrue(language[0] + " doesn't start with a capital: " + single,
-                    Character.isUpperCase(single.codePointAt(0)));
+                    Character.isUpperCase(first) || Character.getType(first) == Character.OTHER_LETTER);
             assertTrue(language[0] + " lost its item: " + single,
                     single.toLowerCase(Locale.ROOT).contains(item.toLowerCase(Locale.ROOT).substring(1)));
             // One item takes the language's own form for one: Indonesian has none and takes the other.
@@ -342,7 +345,7 @@ public class SettingsL10nTest {
                 + ").", "Remove the advertising ID"));
 
         List<String> repeats = new ArrayList<>();
-        for (String language : new String[]{"en", "de", "es", "in-rID", "pt-rBR", "tr"}) {
+        for (String language : new String[]{"en", "de", "es", "in-rID", "it", "ko", "pt-rBR", "tr", "zh-rTW"}) {
             RuntimeEnvironment.setQualifiers("+" + language);
             for (PatchFamily family : PatchFamily.values()) {
                 if (family.staysWhilePaused == null) continue;
@@ -417,17 +420,32 @@ public class SettingsL10nTest {
             shown.add(cancel);
             choices.dismiss();
 
-            // Quick setups and Report a problem, which like the restart row only the home list holds.
+            // The rows only the main list draws: Quick setups, the section headers, and Support with
+            // its headings, Report a problem, Restart Threads and the Ko-fi row folded open, then the
+            // build line. The same list as one long list adds its headings.
+            page.navigation.navigate(SettingsNavigation.SUPPORT);
             android.widget.ListView home = dialog.getView().findViewById(android.R.id.list);
             int homeRows = 0;
             for (int i = 0; i < home.getCount(); i++) {
                 Preference row = (Preference) home.getItemAtPosition(i);
-                if (!SettingsNavigation.QUICK_SETUPS.equals(row.getKey()) && !SettingsNavigation.REPORT.equals(row.getKey())) continue;
-                shown.add(String.valueOf(row.getTitle()));
-                shown.add(String.valueOf(row.getSummary()));
-                homeRows++;
+                if (SettingsNavigation.QUICK_SETUPS.equals(row.getKey()) || SettingsNavigation.REPORT.equals(row.getKey())) homeRows++;
             }
-            assertEquals("Quick setups or Report a problem is missing from the home page", 2, homeRows);
+            assertEquals("Quick setups or Report a problem is missing from the main list", 2, homeRows);
+            addListed(dialog, shown);
+            page.navigation.showAsList(true);
+            addListed(dialog, shown);
+            page.navigation.showAsList(false);
+            page.navigation.navigate("");
+            // The toolbar: Pause, the view toggle and the search field.
+            android.view.View bar = dialog.getView();
+            shown.add(String.valueOf(((android.widget.TextView) bar.findViewWithTag(SettingsDialog.PAUSE_ACTION)).getText()));
+            android.view.View toggle = bar.findViewWithTag(SettingsDialog.VIEW_TOGGLE);
+            assertNotNull("the view toggle is missing", toggle);
+            shown.add(String.valueOf(toggle.getContentDescription()));
+            if (toggle instanceof android.widget.TextView) shown.add(String.valueOf(((android.widget.TextView) toggle).getText()));
+            android.widget.EditText search = findSearch(bar);
+            assertNotNull("the search field is missing", search);
+            shown.add(String.valueOf(search.getHint()));
 
             // Quick setups: each choice is its name and, on the next line, what it does. Then the
             // toast after a choice, for one change and for none.
@@ -650,6 +668,32 @@ public class SettingsL10nTest {
             return;
         }
         throw new AssertionError("no restart row with a change waiting");
+    }
+
+    /** Every row the main list holds right now, title and summary. */
+    private static void addListed(SettingsDialog dialog, Set<String> shown) {
+        android.widget.ListView list = dialog.getView().findViewById(android.R.id.list);
+        for (int i = 0; i < list.getCount(); i++) {
+            Object item = list.getItemAtPosition(i);
+            if (!(item instanceof Preference)) continue;
+            shown.add(String.valueOf(((Preference) item).getTitle()));
+            CharSequence summary = ((Preference) item).getSummary();
+            if (summary == null) continue;
+            // The build line is two catalog strings, one per line.
+            shown.addAll(Arrays.asList(String.valueOf(summary).split("\n")));
+        }
+    }
+
+    private static android.widget.EditText findSearch(android.view.View view) {
+        if (view instanceof android.widget.EditText) return (android.widget.EditText) view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                android.widget.EditText found = findSearch(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private static Preference find(List<Preference> rows, String key) {

@@ -102,9 +102,75 @@ class PostFiltersFixtureTest {
         }
     }
 
+    /**
+     * Hide Featured posts reads the header icon through the paid-post bridge without Hide ads: it
+     * turns on its own switch and leaves Hide ads' off. The icon it looks for, sparkle, is one the
+     * server's header icon enum names.
+     */
+    @Test
+    fun `Hide Featured posts bridges the header icon and turns its switch on`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val icons = "Lcom/tumblr/rumblr/model/post/PostHeaderContext\$ContextIcon;"
+            val types = setOf(POST, POST_HEADER_CONTEXT, POST.removeSuffix(";") + "JsonAdapter;",
+                POST_HEADER_CONTEXT.removeSuffix(";") + "JsonAdapter;", icons)
+            val classes = FixtureDex.classes(build, types)
+            assertEquals("${build.name}: the models, their adapters and the icon enum", types, classes.keys)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+
+            postJsonPresencePatch.execute(context)
+            paidPostBridgePatch.execute(context)
+            hideFeaturedPostsPatch.execute(context)
+
+            val post = context.mutableClassDefBy(POST)
+            assertTrue("${build.name}: Post is a HushPaidPost", HUSH_PAID_POST in post.interfaces)
+            assertTrue("${build.name}: Post has the header icon getter", post.methods.any {
+                it.name == "hushHeaderIcon" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+            })
+            val names = classes.getValue(icons).methods.single { it.name == "<clinit>" }.instructionList()
+            assertTrue("${build.name}: the header icons include sparkle", names.any { it.stringRef() == "sparkle" })
+            for ((flag, on) in mapOf("hideFeaturedPosts" to 1, "featuredPosts" to 1, "hideAds" to 0, "paidPostHeader" to 0)) {
+                val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
+                    .implementation!!.instructions.first()
+                assertEquals("${build.name}: $flag", on, (first as NarrowLiteralInstruction).narrowLiteral)
+            }
+        }
+    }
+
     @Test
     fun `Hide reblogs bridges the post model and turns its switch on`() =
         check(hideReblogsPatch, "hideReblogs", "reblogPosts")
+
+    /**
+     * Hide your own reblogs needs both bridges: the post one to tell a reblog, and the paid one for
+     * Tumblr's can_edit. It turns on its own switch and leaves Hide ads' off.
+     */
+    @Test
+    fun `Hide your own reblogs bridges the post and its can_edit and turns its switch on`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val types = POST_BRIDGES.flatMap { listOf(it.model, it.adapter) }.toSet() + setOf(POST_HEADER_CONTEXT,
+                POST_HEADER_CONTEXT.removeSuffix(";") + "JsonAdapter;", "Lcom/tumblr/rumblr/model/post/PostHeaderContext\$ContextIcon;")
+            val classes = FixtureDex.classes(build, types)
+            assertEquals("${build.name}: the models and their adapters", types, classes.keys)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+
+            postBridgePatch.execute(context)
+            postJsonPresencePatch.execute(context)
+            paidPostBridgePatch.execute(context)
+            hideOwnReblogsPatch.execute(context)
+
+            val post = context.mutableClassDefBy(POST)
+            assertTrue("${build.name}: Post is a HushPost", HUSH_POST in post.interfaces)
+            assertTrue("${build.name}: Post is a HushPaidPost", HUSH_PAID_POST in post.interfaces)
+            val canEdit = post.methods.single { it.name == "hushCanEdit" }.instructionList()
+            assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), canEdit.map { it.opcode })
+            assertEquals("$POST->P()Z", canEdit[0].methodRef().toString())
+            for ((flag, on) in mapOf("hideOwnReblogs" to 1, "ownReblogPosts" to 1, "hideAds" to 0, "paidPostHeader" to 0)) {
+                val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
+                    .implementation!!.instructions.first()
+                assertEquals("${build.name}: $flag", on, (first as NarrowLiteralInstruction).narrowLiteral)
+            }
+        }
+    }
 
     @Test
     fun `Hide video posts bridges the post model and turns its switch on`() =
@@ -154,6 +220,34 @@ class PostFiltersFixtureTest {
                 }
             }
             for (flag in listOf("hideFilteredPosts", "filteredPosts")) {
+                val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
+                    .implementation!!.instructions.first()
+                assertEquals("${build.name}: $flag", 1, (first as NarrowLiteralInstruction).narrowLiteral)
+            }
+        }
+    }
+
+    /** Hide liked posts bridges the getter Post's adapter writes under "liked" and turns its switch on. */
+    @Test
+    fun `Hide liked posts bridges the post's liked state and turns its switch on`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val types = setOf(LIKED_POST_BRIDGE.model, LIKED_POST_BRIDGE.adapter)
+            val classes = FixtureDex.classes(build, types)
+            assertEquals("${build.name}: Post and its adapter", types, classes.keys)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+
+            likedPostBridgePatch.execute(context)
+            hideLikedPostsPatch.execute(context)
+
+            val post = context.mutableClassDefBy(POST)
+            assertTrue("${build.name}: Post is a HushLikedPost", HUSH_LIKED_POST in post.interfaces)
+            val liked = post.methods.single { it.name == "hushLiked" && it.parameterTypes.isEmpty() }
+            assertEquals("${build.name}: hushLiked returns a boolean", "Z", liked.returnType)
+            assertTrue("${build.name}: hushLiked is public", AccessFlags.PUBLIC.isSet(liked.accessFlags))
+            val body = liked.instructionList()
+            assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), body.map { it.opcode })
+            assertEquals("${build.name}: the liked getter", "$POST->y1()Z", body[0].methodRef().toString())
+            for (flag in listOf("hideLikedPosts", "likedPosts")) {
                 val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
                     .implementation!!.instructions.first()
                 assertEquals("${build.name}: $flag", 1, (first as NarrowLiteralInstruction).narrowLiteral)

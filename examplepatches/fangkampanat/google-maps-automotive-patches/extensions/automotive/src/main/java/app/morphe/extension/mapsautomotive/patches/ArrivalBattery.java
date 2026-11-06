@@ -147,6 +147,8 @@ public final class ArrivalBattery {
             }
         }
         ReportLog.i(TAG, level + " level set to " + (percent == AUTO ? "auto" : percent + "%"));
+        // A report opened right after the choice reads the main process's snapshot.
+        ReportBuilder.saveSnapshot(context.getApplicationContext(), true);
     }
 
     static int[] choices(String level) {

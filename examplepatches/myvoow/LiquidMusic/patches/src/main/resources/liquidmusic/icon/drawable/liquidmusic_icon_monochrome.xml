@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LiquidMusic icon for themed icons (Android 13+): the drop, with the audio bars cut out. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <group android:pivotX="100" android:pivotY="102" android:scaleX="0.78" android:scaleY="0.78">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M100,30 C100,30 152,88 152,122 A52,52 0 0 1 48,122 C48,88 100,30 100,30 Z M78,112 L78,112 A5,5 0 0 1 83,117 L83,135 A5,5 0 0 1 78,140 L78,140 A5,5 0 0 1 73,135 L73,117 A5,5 0 0 1 78,112 Z M94,96 L94,96 A5,5 0 0 1 99,101 L99,151 A5,5 0 0 1 94,156 L94,156 A5,5 0 0 1 89,151 L89,101 A5,5 0 0 1 94,96 Z M110,104 L110,104 A5,5 0 0 1 115,109 L115,143 A5,5 0 0 1 110,148 L110,148 A5,5 0 0 1 105,143 L105,109 A5,5 0 0 1 110,104 Z M126,116 L126,116 A5,5 0 0 1 131,121 L131,131 A5,5 0 0 1 126,136 L126,136 A5,5 0 0 1 121,131 L121,121 A5,5 0 0 1 126,116 Z" />
+    </group>
+</vector>

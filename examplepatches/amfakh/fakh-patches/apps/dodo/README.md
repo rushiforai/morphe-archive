@@ -1,7 +1,7 @@
 # DoDo Music
 
 Patches for **DoDo Music** (`com.dundunstudio.autoplay`, "DoDo Music - Auto Game Clicker" on APKPure),
-version `2.0.14`, as an XAPK.
+versions `2.0.14` and `2.0.17`, as an XAPK.
 
 ## Patches
 
@@ -65,12 +65,12 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o dodo-patched.apk <DoDo Music 2.0.14 XAPK>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o dodo-patched.apk <DoDo Music 2.0.17 XAPK>
 ```
 
 ## Getting the APK
 
-Download the `2.0.14` XAPK from APKPure by hand. Morphe Manager's own lookup only knows APKMirror
+Download the `2.0.17` XAPK from APKPure by hand. Morphe Manager's own lookup only knows APKMirror
 and Uptodown pages, and falls back to a web search for this app.
 
 ## Credits

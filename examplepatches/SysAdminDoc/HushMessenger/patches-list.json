@@ -1,6 +1,6 @@
 {
     "NOTE": "Generated locally from the built MPP with :patches:generatePatchCatalog. Do not edit by hand.",
-    "version": "0.28.0",
+    "version": "0.29.0",
     "patches": [
         {
             "name": "Allow chat bubbles",
@@ -52,7 +52,64 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Allow landscape",
+            "description": "Lets Messenger turn sideways with your phone, for a wider keyboard and bigger photos and videos. It follows your phone's auto-rotate setting. Calls, the camera, payments and a few other screens stay upright. Restart Messenger after you change it. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Conversations",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: landscape",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "586.0.0.55.92",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -109,7 +166,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -166,7 +223,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -223,7 +280,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -280,7 +337,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -337,7 +394,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -394,7 +451,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -452,7 +509,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -495,7 +552,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -511,6 +568,63 @@
                     "values": {}
                 }
             ]
+        },
+        {
+            "name": "Customize message actions",
+            "description": "Lets you choose the order of the actions you get by holding a message, and hide the ones you don't use, separately for messages you sent and messages you got. The first ones show in the row under the message and the rest under More. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Conversations",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: message_actions",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "586.0.0.55.92",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
         },
         {
             "name": "Fix videos that won't send",
@@ -562,7 +676,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -606,7 +720,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -663,7 +777,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -720,7 +834,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -777,7 +891,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -834,7 +948,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -843,7 +957,7 @@
         },
         {
             "name": "Hide Meta AI",
-            "description": "Hides the Meta AI floating button, toolbar button, tab and menu entries, plus AI in search and in @ suggestions. Restart Messenger to see the tab go. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "description": "Hides the Meta AI floating button, toolbar button, tab and menu entries, AI in search and in @ suggestions, and the offer to summarize a chat's unread messages. Restart Messenger to see the tab go. Starts off. Turn it on in HushMessenger settings > Controls.",
             "default": true,
             "category": "Navigation",
             "dependencies": [
@@ -891,7 +1005,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -948,7 +1062,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1005,7 +1119,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1062,7 +1176,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1119,7 +1233,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1176,7 +1290,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1233,7 +1347,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1290,7 +1404,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1347,7 +1461,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1404,7 +1518,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1461,7 +1575,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1518,7 +1632,64 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Hide chosen chats",
+            "description": "Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your chat list when new messages come in, and search still finds it. Hiding stays on this phone, and you can unhide chats in HushMessenger settings. It doesn't stop notifications, so mute the chat in Messenger for that. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Inbox",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: hidden_chats",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "586.0.0.55.92",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1575,7 +1746,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1632,7 +1803,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1689,7 +1860,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1746,7 +1917,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1803,7 +1974,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1860,7 +2031,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1917,7 +2088,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -1974,7 +2145,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2031,7 +2202,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2088,7 +2259,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2145,7 +2316,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2202,7 +2373,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2259,7 +2430,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2316,7 +2487,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2373,7 +2544,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2417,7 +2588,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2474,7 +2645,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2531,7 +2702,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2575,7 +2746,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2632,7 +2803,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2689,7 +2860,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2746,7 +2917,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2803,7 +2974,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2860,7 +3031,64 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Notify for restricted chats",
+            "description": "Chats with people you've restricted notify you like your other chats. A chat you've muted stays quiet. Restricted people still can't see when you're active or when you've read their messages. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Privacy",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: restricted_notify",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "586.0.0.55.92",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2917,7 +3145,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -2974,7 +3202,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3031,7 +3259,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3088,7 +3316,64 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Preview chats on long press",
+            "description": "Pressing and holding a chat opens Messenger's own preview of it, with the chat's menu underneath, so you can peek at a chat without opening it. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Inbox",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: chat_preview",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "586.0.0.55.92",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3145,7 +3430,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3202,7 +3487,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3259,7 +3544,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3316,7 +3601,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3360,7 +3645,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3417,7 +3702,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3474,7 +3759,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3531,7 +3816,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3588,7 +3873,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3645,7 +3930,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3702,7 +3987,64 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
+                        }
+                    ]
+                }
+            ],
+            "options": []
+        },
+        {
+            "name": "Show People tab",
+            "description": "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Restart Messenger to see the tab. Starts off. Turn it on in HushMessenger settings > Controls.",
+            "default": true,
+            "category": "Navigation",
+            "dependencies": [
+                {
+                    "type": "BytecodePatch",
+                    "name": null,
+                    "description": "Load HushMessenger runtime controls",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                },
+                {
+                    "type": "ResourcePatch",
+                    "name": null,
+                    "description": "Record HushMessenger capability: tab_people_show",
+                    "dependencies": [
+                        {
+                            "type": "ResourcePatch",
+                            "name": null,
+                            "description": "Install HushMessenger settings",
+                            "dependencies": []
+                        }
+                    ]
+                }
+            ],
+            "compatiblePackages": [
+                {
+                    "packageName": "com.facebook.orca",
+                    "name": "Messenger",
+                    "description": null,
+                    "apkFileType": "APK",
+                    "appIconColor": "#0084FF",
+                    "signatures": [
+                        "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+                        "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+                    ],
+                    "targets": [
+                        {
+                            "version": "586.0.0.55.92",
+                            "versionCodes": null,
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3759,7 +4101,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3810,7 +4152,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3877,7 +4219,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3934,7 +4276,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -3991,7 +4333,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4048,7 +4390,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4105,7 +4447,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4162,7 +4504,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4219,7 +4561,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4276,7 +4618,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4333,7 +4675,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4390,7 +4732,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4447,7 +4789,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4504,7 +4846,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4561,7 +4903,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }
@@ -4618,7 +4960,7 @@
                             "versionCodes": null,
                             "isExperimental": false,
                             "minSdk": 28,
-                            "description": "Stock build 347215348; checked again during patching"
+                            "description": "Stock builds 347215257, 347215330, 347215341, 347215343, 347215344 and 347215348; checked again during patching"
                         }
                     ]
                 }

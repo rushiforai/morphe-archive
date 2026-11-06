@@ -19,14 +19,19 @@ import java.io.File
  *
  * The patcher fills its class pool from an APK's dex files, and what takes a pool directly is
  * internal to it: the context's constructor, the pool's class and its setter. They are reached by
- * their JVM names, pinned to morphe-patcher 2.1.0. A bump that renames one fails here, naming it,
+ * their JVM names, pinned to morphe-patcher 2.2.0. A bump that renames one fails here, naming it,
  * rather than leaving a test that never ran the patch. Nothing is written to disk: the context only
  * names its work folders until something compiles the dex, which no test here asks for.
+ *
+ * Fingerprint validation is on, as it is in verify-all-patches.ps1's `--validate` run: a fingerprint
+ * that fits two methods throws instead of taking the first, whether a patch reads it through
+ * `match()`, `method` or `methodOrNull`, so an optional hook that fits twice fails its patch too.
+ * `matchAll()` is unaffected, and so is a fingerprint that fits nothing.
  */
 internal object PatchContexts {
     fun of(classes: Collection<ClassDef>): BytecodePatchContext {
         val work = File(System.getProperty("java.io.tmpdir"), "hushthreads-patch-context")
-        val config = PatcherConfig(apkFile = File(work, "none.apk"), temporaryFilesPath = work)
+        val config = PatcherConfig(apkFile = File(work, "none.apk"), temporaryFilesPath = work, validate = true)
         val metadataType = Class.forName("app.morphe.patcher.PackageMetadata")
         val metadata = metadataType.getConstructor(
             String::class.java, String::class.java, String::class.java,

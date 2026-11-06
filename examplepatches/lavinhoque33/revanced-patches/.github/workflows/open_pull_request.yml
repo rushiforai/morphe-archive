@@ -1,0 +1,32 @@
+name: Open a PR to main
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+env:
+  MESSAGE: Merge branch `${{ github.head_ref || github.ref_name }}` to `main`
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pull-request:
+    name: Open pull request
+    if: github.repository_owner == 'anddea'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Open pull request
+        uses: repo-sync/pull-request@7e79a9f5dc3ad0ce53138f01df2fad14a04831c5 # v2.12.1
+        with:
+          destination_branch: main
+          pr_title: 'chore: ${{ env.MESSAGE }}'
+          pr_body: |
+            This pull request will ${{ env.MESSAGE }}.
+          pr_draft: true

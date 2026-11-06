@@ -61,8 +61,12 @@ public final class SettingsContextRule extends ExternalResource {
         // Whether Quick setups is off the home page is process-wide as well, and every home row
         // count reads it.
         app.morphe.extension.shared.settings.BaseSettings.HIDE_QUICK_SETUPS.resetToDefault();
-        // So is the settings shortcut's switch, which decides whether a start publishes it.
+        // So are the switches for the ways in, the shortcut's deciding whether a start publishes it.
         app.morphe.extension.shared.settings.BaseSettings.SETTINGS_SHORTCUT.resetToDefault();
+        app.morphe.extension.shared.settings.BaseSettings.SETTINGS_ROW.resetToDefault();
+        app.morphe.extension.shared.settings.BaseSettings.SETTINGS_LOGO_PRESS.resetToDefault();
+        // A full build has all three ways in, and which of them a build has is process-wide too.
+        app.morphe.extension.hushthreads.settings.WaysInForTests.set(true, true);
         // The restart debt is process-wide by design, and the test JVM is one process: a
         // restart-gated toggle in one class would pin the row on every page captured after it.
         app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment

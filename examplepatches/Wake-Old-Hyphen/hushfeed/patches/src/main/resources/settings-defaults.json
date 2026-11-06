@@ -51,7 +51,8 @@
       "publish_date_on_grid",
       "video_length_on_grid",
       "profile_grid_sort",
-      "liked_grid_sort"
+      "liked_grid_sort",
+      "sound_grid_sort"
     ],
     "Always upload in HD": [
       "always_upload_hd"
@@ -292,6 +293,8 @@
       "keep_for_you_on_pull_down",
       "home_tab_opens_settings",
       "profile_tab_opens_watch_history",
+      "inbox_tab_flips_read_receipts",
+      "search_instead_of_home",
       "start_page",
       "show_feed_buttons",
       "hide_tako_ai",
@@ -329,7 +332,8 @@
       "hide_seen_videos",
       "seen_video_retention_days",
       "seen_video_mark_percent",
-      "local_watch_history"
+      "local_watch_history",
+      "for_you_hold_opens_watch_history"
     ],
     "Hide comment popup ads": [
       "hide_comment_eggs"
@@ -376,7 +380,8 @@
       "hide_chat_ai_replies",
       "turn_off_chat_double_tap",
       "turn_off_chat_swipe_reply",
-      "hide_inbox_custom_titles"
+      "hide_inbox_custom_titles",
+      "show_inbox_filters"
     ],
     "Hide inbox stories": [
       "hide_inbox_stories"
@@ -394,7 +399,8 @@
     ],
     "Hide search suggestions": [
       "hide_search_rewards",
-      "hide_search_suggestions"
+      "hide_search_suggestions",
+      "discover_search_bar_only"
     ],
     "Hide suggested accounts": [
       "hide_inbox_suggested_accounts"
@@ -511,6 +517,9 @@
       "record_live",
       "live_record_quality",
       "live_record_source",
+      "live_auto_tap",
+      "live_auto_tap_rate",
+      "live_audio_only",
       "remembered_live_quality"
     ],
     "Lift text length limits": [
@@ -530,6 +539,7 @@
       "rail_hold_favorites",
       "long_press_full_menu_on_profiles",
       "long_press_full_menu_in_search",
+      "long_press_compact_menu",
       "edge_seek",
       "edge_seek_seconds"
     ],
@@ -558,7 +568,8 @@
     "Notification controls": [
       "hide_follower_notifications",
       "turn_off_push_notifications",
-      "hide_message_streaks"
+      "hide_message_streaks",
+      "hide_streak_popups"
     ],
     "Open external links directly": [
       "open_external_links"
@@ -583,6 +594,8 @@
       "custom_speeds",
       "hold_speed",
       "hold_speed_slide",
+      "hold_speed_hud_style",
+      "hold_speed_slide_axis",
       "hide_speed_toasts",
       "remembered_speed_v2"
     ],
@@ -1359,6 +1372,12 @@
       "type": "boolean",
       "default": false
     },
+    "discover_search_bar_only": {
+      "field": "DISCOVER_SEARCH_BAR_ONLY",
+      "key": "discover_search_bar_only",
+      "type": "boolean",
+      "default": false
+    },
     "dm_sticker_save_box": {
       "field": "DM_STICKER_SAVE_BOX",
       "key": "dm_sticker_save_box",
@@ -1792,6 +1811,12 @@
     "following_latest_first": {
       "field": "FOLLOWING_LATEST_FIRST",
       "key": "following_latest_first",
+      "type": "boolean",
+      "default": false
+    },
+    "for_you_hold_opens_watch_history": {
+      "field": "FOR_YOU_HOLD_OPENS_WATCH_HISTORY",
+      "key": "for_you_hold_opens_watch_history",
       "type": "boolean",
       "default": false
     },
@@ -2569,6 +2594,12 @@
       "type": "boolean",
       "default": false
     },
+    "hide_streak_popups": {
+      "field": "HIDE_STREAK_POPUPS",
+      "key": "hide_streak_popups",
+      "type": "boolean",
+      "default": false
+    },
     "hide_subscriber_only": {
       "field": "HIDE_SUBSCRIBER_ONLY",
       "key": "hide_subscriber_only",
@@ -2629,11 +2660,23 @@
       "type": "string",
       "default": "2"
     },
+    "hold_speed_hud_style": {
+      "field": "HOLD_SPEED_HUD_STYLE",
+      "key": "hold_speed_hud_style",
+      "type": "string",
+      "default": "pill"
+    },
     "hold_speed_slide": {
       "field": "HOLD_SPEED_SLIDE",
       "key": "hold_speed_slide",
       "type": "boolean",
       "default": false
+    },
+    "hold_speed_slide_axis": {
+      "field": "HOLD_SPEED_SLIDE_AXIS",
+      "key": "hold_speed_slide_axis",
+      "type": "string",
+      "default": "sideways"
     },
     "home_tab_opens_settings": {
       "field": "HOME_TAB_OPENS_SETTINGS",
@@ -2658,6 +2701,12 @@
     "inbox_loaded_search": {
       "field": "INBOX_LOADED_SEARCH",
       "key": "inbox_loaded_search",
+      "type": "boolean",
+      "default": false
+    },
+    "inbox_tab_flips_read_receipts": {
+      "field": "INBOX_TAB_FLIPS_READ_RECEIPTS",
+      "key": "inbox_tab_flips_read_receipts",
       "type": "boolean",
       "default": false
     },
@@ -2774,6 +2823,24 @@
       "key": "liquid_glass_bottom_bar",
       "type": "boolean",
       "default": false
+    },
+    "live_audio_only": {
+      "field": "LIVE_AUDIO_ONLY",
+      "key": "live_audio_only",
+      "type": "boolean",
+      "default": false
+    },
+    "live_auto_tap": {
+      "field": "LIVE_AUTO_TAP",
+      "key": "live_auto_tap",
+      "type": "boolean",
+      "default": false
+    },
+    "live_auto_tap_rate": {
+      "field": "LIVE_AUTO_TAP_RATE",
+      "key": "live_auto_tap_rate",
+      "type": "string",
+      "default": "4"
     },
     "live_feed_filter": {
       "field": "LIVE_FEED_FILTER",
@@ -2894,6 +2961,12 @@
       "key": "long_press_action",
       "type": "string",
       "default": "default"
+    },
+    "long_press_compact_menu": {
+      "field": "LONG_PRESS_COMPACT_MENU",
+      "key": "long_press_compact_menu",
+      "type": "boolean",
+      "default": false
     },
     "long_press_full_menu_in_search": {
       "field": "LONG_PRESS_FULL_MENU_IN_SEARCH",
@@ -3453,6 +3526,12 @@
       "type": "boolean",
       "default": false
     },
+    "search_instead_of_home": {
+      "field": "SEARCH_INSTEAD_OF_HOME",
+      "key": "search_instead_of_home",
+      "type": "boolean",
+      "default": false
+    },
     "see_through_bottom_bar": {
       "field": "SEE_THROUGH_BOTTOM_BAR",
       "key": "see_through_bottom_bar",
@@ -3685,6 +3764,12 @@
       "type": "boolean",
       "default": true
     },
+    "show_inbox_filters": {
+      "field": "SHOW_INBOX_FILTERS",
+      "key": "show_inbox_filters",
+      "type": "boolean",
+      "default": false
+    },
     "show_join_date": {
       "field": "SHOW_JOIN_DATE",
       "key": "show_join_date",
@@ -3780,6 +3865,12 @@
       "key": "skip_update_checks",
       "type": "boolean",
       "default": false
+    },
+    "sound_grid_sort": {
+      "field": "SOUND_GRID_SORT",
+      "key": "sound_grid_sort",
+      "type": "string",
+      "default": "off"
     },
     "sound_seekbar": {
       "field": "SOUND_SEEKBAR",

@@ -58,6 +58,10 @@ fixtures/
 
 # Keep the selected marketing artwork with the project; assets/ holds what ships.
 
+# The bundle signing key's private half lives outside the tree. morphe-signing.pub is its public half.
+morphe-signing.key
+*.signing.key
+
 # Local working notes
 CLAUDE.md
 CODEX_CHANGELOG.md

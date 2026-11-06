@@ -8,6 +8,7 @@
 # Patches with every patch enabled, Morphe's -f (ignore the version targets) and --continue-on-error,
 # then prints the failures grouped as SHA gate, Hermes pattern, fingerprint and other, plus the class
 # names the probes in tests/<app>/ use that the new version no longer has. Constants.kt is not changed.
+# When everything applies it runs bin/manager-link: a version Manager can't download isn't a target yet.
 # Writes $MORPHE_WORK/bump/<app>-<version>/: patch.log, result.json, summary.txt.
 source "$(dirname "$0")/lib/common.sh"
 
@@ -82,5 +83,10 @@ elif (( status )); then
 else
     echo "Next: check the hooks (bin/verify-hooks $slug $patched), run the probes and try the app, then set"
     echo "$version in ${constants#"$ROOT"/} and commit as bump($slug): support <App> $version."
+    echo
+    if ! "$ROOT/bin/manager-link" "$slug" "$version"; then
+        echo "Morphe Manager can't download $version yet: keep the work on a branch and set the target once"
+        echo "bin/manager-link $slug $version passes (APKMirror lists it as stable)."
+    fi
 fi
 exit "$status"

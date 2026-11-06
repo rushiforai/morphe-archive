@@ -2,7 +2,6 @@ package app.onlynazril.extension.tiktok.ui;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
@@ -111,7 +110,7 @@ public final class RowView extends LinearLayout {
         view.setText(text);
         view.setTextSize(sizeSp);
         view.setTextColor(color);
-        if (bold) view.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        view.setTypeface(Fonts.face(bold));
         return view;
     }
 

@@ -4,7 +4,7 @@ Oxbow is a fork of [Feurstagram](https://github.com/jean-voila/FeurStagram) by J
 
 ## What is Oxbow?
 
-Oxbow is an open-source Android patch for Instagram that removes distracting features such as feed, Reels, Explore, ads and telemetry while keeping useful features like DMs, stories, profiles, search and notifications. On top of the inherited blocks, Oxbow adds media downloads, HD profile pictures, ghost mode and clean share links.
+Oxbow is an open-source Android patch for Instagram that removes distracting features such as feed, Reels, Explore, ads and telemetry while keeping useful features like DMs, stories, profiles, search and notifications. On top of the inherited blocks, Oxbow adds media downloads, HD profile pictures, ghost mode (including screenshots of disappearing photos and videos) and clean share links.
 
 ## Is Oxbow affiliated with Instagram or Meta?
 

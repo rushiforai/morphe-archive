@@ -31,7 +31,7 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # Feed ownership is shared. Ad views and the Play Core update prompt can be absent in a supported target.
 # An empty capability column is a family that changes no bytecode (a manifest-only patch): only its
 # installed flag is checked against the selected patches.
-family|hideAds|Hide ads|feedAds,adViews,googleAds
+family|hideAds|Hide ads|feedAds,adViews,googleAds,metaAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
 family|filterFeed|Filter feed|feedVideoPins,feedMutedWords,feedSavedPins
@@ -69,6 +69,7 @@ mutation|settings|settings|Lcom/pinterest/ReleaseHiltApplication;|Lcom/pinterest
 mutation|feedAds,feedAiPins,feedShopping,feedVideoPins,feedMutedWords,boardPins|feed|Lapp/hushpinterest/extension/pinterest/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;|, _items count:|PagedResponse(bookmark=|ModelListWithBookmark(models=
 mutation|adViews|views|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ads/Ads;->adViewMeasureSpec(I)I|Lcom/pinterest/featurelibrary/textads/TextAdView;,Lcom/pinterest/activity/pin/view/modules/LegacyPromotedCloseupActionButtonModule;,Lcom/pinterest/feature/pin/closeup/view/PromotedPinCloseupFloatingActionBarModule;,Lcom/pinterest/feature/board/detail/header/view/lego/BoardSponsoredCuratorView;
 mutation|googleAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipGoogleAds()Z|googleAds
+mutation|metaAds|guard|Lapp/hushpinterest/extension/pinterest/ads/Ads;->skipMetaConsent(Ljava/lang/Object;)Z|metaAds
 mutation|homeFeed|guard|Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdResumeRefresh(J)Z|homeResume|Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdHomeRefresh(Ljava/util/Map;I)Z|homeRefresh
 mutation|analyticsTasks,analyticsUploads|analytics|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockTask(Ljava/lang/Object;)Z|Ljava/net/URL;->openConnection()Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->blockUpload()Z|Lapp/hushpinterest/extension/pinterest/privacy/Analytics;->engageService(Ljava/lang/Object;)Ljava/lang/Object;
 mutation|linkTracking|links|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putStringExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;|Landroid/content/Intent;->putExtra(Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->putTextExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/CharSequence;)Landroid/content/Intent;|Landroid/content/ClipData;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;|Lapp/hushpinterest/extension/pinterest/privacy/LinkTracking;->newPlainText(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;

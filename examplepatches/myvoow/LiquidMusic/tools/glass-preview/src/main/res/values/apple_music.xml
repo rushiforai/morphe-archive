@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The resources of Apple Music 7.0.0-beta that the extension relies on, with the same names
+     and values (dark theme). See docs/apple-music-7.0.0-beta.md. -->
+<resources>
+    <item name="blur_target" type="id" />
+    <item name="bottom_nav_blur" type="id" />
+    <item name="bottom_nav_view" type="id" />
+    <item name="mini_player_blur" type="id" />
+    <item name="mini_player_content" type="id" />
+    <item name="material_layer" type="id" />
+    <item name="artwork_color_scheme_layer" type="id" />
+    <!-- Menu items of the tab bar (bottom_navigation_menu_multiply). -->
+    <item name="action_listen_now_deprecated" type="id" />
+    <item name="action_browse_deprecated" type="id" />
+    <item name="action_multiply_radio_deprecated" type="id" />
+    <item name="action_library_deprecated" type="id" />
+    <item name="search_fragment_deprecated" type="id" />
+    <dimen name="corner_radius_pill">80dp</dimen>
+    <dimen name="apple_material_bg_stroke">0.5dp</dimen>
+    <color name="apple_material_background">#99262628</color>
+    <color name="apple_material_stroke">#33ffffff</color>
+</resources>

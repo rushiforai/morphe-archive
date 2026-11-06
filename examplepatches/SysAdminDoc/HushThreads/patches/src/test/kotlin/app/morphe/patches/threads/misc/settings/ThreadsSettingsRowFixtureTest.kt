@@ -125,6 +125,7 @@ class ThreadsSettingsRowFixtureTest {
 
             val click = context.mutableClassDefBy(SETTINGS_ROW_CLICK)
             assertEquals("$where: the click is a Function0", listOf(FUNCTION0), click.interfaces.toList())
+            assertEquals("$where: the screen offers the row's switch", 1, context.inBuildAnswer(SETTINGS_ROW))
         }
     }
 
@@ -229,6 +230,8 @@ class ThreadsSettingsRowFixtureTest {
         assertTrue("the application still starts HushThreads", onCreate.any { it.method()?.name == "onApplicationCreate" })
         val stub = context.mutableClassDefBy(SETTINGS_ROW).methods.single { it.name == "showRow" }.body()
         assertEquals("the row's stub is left empty", listOf(Opcode.RETURN_VOID), stub.map { it.opcode })
+        assertEquals("the screen leaves out the row's switch", 0, context.inBuildAnswer(SETTINGS_ROW))
+        assertEquals("and the long press's", 0, context.inBuildAnswer(THREADS_LOGO))
     }
 
     /** Where the switch sends More settings, the goto that ends that case, the run it goes to and the row call there. */

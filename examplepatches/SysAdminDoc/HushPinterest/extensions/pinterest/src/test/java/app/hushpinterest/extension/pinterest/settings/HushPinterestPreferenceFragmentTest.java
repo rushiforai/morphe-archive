@@ -310,7 +310,7 @@ public class HushPinterestPreferenceFragmentTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = pageOf(controller);
             assertEquals("This build doesn't include the parts that handle "
-                            + L10n.join(Arrays.asList("promoted pins in lists", "ad-only views", "Google ad SDK start")) + ".",
+                            + L10n.join(Arrays.asList("promoted pins in lists", "ad-only views", "Google ad SDK start", "Meta ad SDK")) + ".",
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("This build doesn't include the parts that handle AI-labeled pins in lists.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));

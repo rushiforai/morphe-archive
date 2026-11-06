@@ -82,6 +82,23 @@ object Constants {
         )
     )
 
+    /** Signing certificate of the tested CrexiFy TV 4.5 (12) universal APK. */
+    val COMPATIBILITY_CREXIFY_TV = Compatibility(
+        name = "CrexiFy TV",
+        packageName = "com.crexify.tv",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x08C7D6,
+        signatures = setOf("17e2ae241663794ce890f350e1e0d884c59727418bac22518a62ac2e66131062"),
+        targets = listOf(
+            AppTarget(
+                version = "4.5",
+                versionCode = 12,
+                minSdk = 23,
+                description = "Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 12"
+            )
+        )
+    )
+
     val COMPATIBILITY_PLAYZ_TV = Compatibility(
         name = "PlayZ TV",
         packageName = "com.playz.tv",

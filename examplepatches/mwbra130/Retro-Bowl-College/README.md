@@ -1,0 +1,478 @@
+# Mwbra130's Morphe Patches
+
+A personal bundle of Morphe patches for Android — premium unlocks, ad removal, and a few quality-of-life tweaks, all in one source. Add the bundle to Morphe Manager or Morphe Desktop, pick your app, and patch it yourself.
+
+**19 apps · 26 patches** · current bundle: [v1.63.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.63.0)
+
+## Apps at a glance
+
+<!-- App icon grid: maintained by hand and kept OUTSIDE the auto-generated patches block
+     below on purpose, so releases don't overwrite it. Reflects bundle v1.61.0. -->
+
+<table>
+<tr>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/O22rWPbgLS6WhWbdzPnX5CuLSbWd4dyFS0XTfHR-sQxNQkS317Jt5kK3Bbwaccm7Zp-HsCsGWhep9zSNRS4B=w128-h128" width="72" height="72" alt="1DM: Browser & Video Download icon">
+<br><b>1DM: Browser & Video Download</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/3b2xdcIvbLFtNiOP1vCbQuszwP2qWyGsa_pGC63VNQlSC4ddP3sApprJ0r4ajU5bypFYjIWaHe_pjNzvE5cKvQ=w128-h128" width="72" height="72" alt="Alarmy icon">
+<br><b>Alarmy</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/LX__Y8tKCvkvEgboZtQfDsvYiNFa6kwWSpqObipZI2MLK5rFVd5tEU8xgMNoMj1ICOf9TO7PFoFmiKGeIpf1=w128-h128" width="72" height="72" alt="Crossy Road icon">
+<br><b>Crossy Road</b>
+<br><sub>3 patches</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/pVUW445uF1ek7vCeJetlNWk6bb4gMBnbSUtMEbzMkNHU6dDwoyO3KiEsSvYoiFByfHfAHXtcKf8nIGrCsu4ueQ=w128-h128" width="72" height="72" alt="Echo icon">
+<br><b>Echo</b>
+<br><sub>2 patches</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/n-VW4rcGGAZNvcAxpAA6gM64UTXU2iuPuCXBluW83Kd21zGhNgOThvhsYTo25mME4VioiXXbg3oL3S_BIk5QvYQ=w128-h128" width="72" height="72" alt="Games In One - Watch Games icon">
+<br><b>Games In One - Watch Games</b>
+<br><sub>1 patch</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/04xiToIui2lD8Co9xPb-_V3JW90vSS8ej7aEAMqzdA9uadnjkGbPFvtkQPxB4okIIkrZquPYnxE3Eg6d6Ik_XQ=w128-h128" width="72" height="72" alt="Gradient Weather icon">
+<br><b>Gradient Weather</b>
+<br><sub>2 patches</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/SrSr_L4l99jgmGMy79N0_mEhpdn-fBqpg1hxobrs_daqRyZU-IUaiz3_07Bx-c5fB8JtHE0R5HpB2S8V3XAfJTs=w128-h128" width="72" height="72" alt="Happy Color icon">
+<br><b>Happy Color</b>
+<br><sub>1 patch · 🧪 experimental</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/SkxvvpzgHvzG3ODTIf3EZA5kbAvFX6ahey_-wQppGxG4X6jxXBHY2LeBQShRLi7RktS02Tl6HlqON22dH62TZQ=w128-h128" width="72" height="72" alt="Hermit icon">
+<br><b>Hermit</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/bOSkPoR8m9Qc_TPwrID8_Db51EL9oO0rq4UzRPAHKN2Zc1mq7gCq_0tySpBp1h6PkV5h7IOr0IvA1MTBiGyQCw=w128-h128" width="72" height="72" alt="ISS Live Now icon">
+<br><b>ISS Live Now</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/juZBxj0uxtz80RMbyvPxco2O7rD7aU71VvhLsgConfsM4FmtzXTprkGXiEZQHugPU0A17AYnQ_tgF-0Nph9MIQ=w128-h128" width="72" height="72" alt="Notes icon">
+<br><b>Notes</b>
+<br><sub>1 patch</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/-21ASw97RWIu-CnDVbEEtTrfVIDqpfhY4eofgk5aT98q4E8jnrMVxNqI0J7JYgRTkHjoOoWM58ScUzu30cxevQ=w128-h128" width="72" height="72" alt="Poweramp icon">
+<br><b>Poweramp</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/DrvO8zMElYMrKfmdRtxwyH_kkvk6MJD87mBaC_38Bw1Pkq0DJB0h-SpfbK5SOAkoJQRJ2TpUU0QvW3bSdUe8=w128-h128" width="72" height="72" alt="Retro Bowl College icon">
+<br><b>Retro Bowl College</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/ssy9sm_kmFckXCA5OT-VpT4pYOE_P0dy8oM8mTvvXaD692W14esUS6saR8qaprJcrfMrmPyYG4Dvyr4Mudp3gg=w128-h128" width="72" height="72" alt="Rocket Player icon">
+<br><b>Rocket Player</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/8Y6RokzLQKhDAFcI5vYbgCd-_Hi8b6pQbrSAYB3a40ZH_NoBOz3U25qcvzOOEOkQrXzraI9DCs1NzJxpgZs2=w128-h128" width="72" height="72" alt="Roku Remote icon">
+<br><b>Roku Remote</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/OdQDxdeo_WyMUftwJbJHF4PALrfSJ4B4vpOWkXPKar1_JN3NKc9ULakQ5o3mjzcuRRTDheF36xSh9mxVRnjD=w128-h128" width="72" height="72" alt="Smart MP3 Tagger icon">
+<br><b>Smart MP3 Tagger</b>
+<br><sub>2 patches</sub>
+</td>
+</tr>
+<tr>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/c-cyyIsMn659H-p3XFezpj3wjkC9Z7XhmZIz-WiZuVGZyMWp7t_pGUdpS0_be_Qu8_9UewBqVxFtONQ4-GiwaQ=w128-h128" width="72" height="72" alt="Smashy Road 2 icon">
+<br><b>Smashy Road 2</b>
+<br><sub>2 patches</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/5wJZegUK2e_dXD14bp1NqX_Op20rpfnSLAYiuVJR7e32095qA8-yEDlezpbT7r1mx69VzjqWbCyVhHMm1T8O=w128-h128" width="72" height="72" alt="Tuner icon">
+<br><b>Tuner</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/o2AAUlWu7gGP5WwbE7eg0aP3vqNKjna0HbfFP3LIFVAHpUpT3KfLxnGv3R8Nn6z0XUP9hsly0SBR4jniSW08Dw=w128-h128" width="72" height="72" alt="Unified Remote icon">
+<br><b>Unified Remote</b>
+<br><sub>1 patch</sub>
+</td>
+<td align="center" width="20%">
+<img src="https://play-lh.googleusercontent.com/z74H5YZukP3qJGkbJGUZj39y_1rDADZI_rkRUB04ID1x9WjhpuBA_t_FMdMQ7vFm0MFwLWkMFQPInRq-kC7MXg=w128-h128" width="72" height="72" alt="Video Cutter icon">
+<br><b>Video Cutter</b>
+<br><sub>2 patches</sub>
+</td>
+<td width="20%"></td>
+</tr>
+</table>
+
+Apps marked 🧪 are experimental — enable **Experimental patches** in Morphe Manager's settings, or they won't show up in the patch list.
+
+## How to use
+
+1. Open **Morphe Manager** on your Android device.
+2. Go to **Settings** > **Patch Sources** and add:
+   ```
+   https://github.com/mwbra130/Retro-Bowl-College
+   ```
+   Or tap: [Add to Morphe](https://morphe.software/add-source?github=mwbra130/Retro-Bowl-College)
+3. Pick the app and the patch, then patch. **Uninstall the original app first** — patched builds are signed with a different key and won't install over the original.
+
+   Tip: if the patches don't show up or look outdated, remove this source and add it again. Morphe Manager caches the patch bundle.
+
+## Every patch, app by app
+
+<!-- PATCHES_START -->
+> **[v1.64.0](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.64.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+<details>
+<summary>Echo&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 9.7 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. Required for Enable Pro to take effect — keep it on. | • Spoofed package installer name |
+| [Enable Pro](#enable-pro) | Unlocks Echo Pro (the lifetime tier: Auto EQ, limiter, compressor and all other Pro features). Use with Change installer source. |  |
+
+</details>
+
+<details>
+<summary>Smart MP3 Tagger&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 26.8.130 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from Google Play. Required for Smart MP3 Tagger: its PairIP local installer check is live, so a re-signed build fails the license check without it — keep it on. | • Spoofed package installer name |
+| [Enable Lifetime Pro](#enable-lifetime-pro) | Turns on the app's Pro state (no ads, unlimited functions) as if the one-time "Super Pro Forever" purchase were owned — the lifetime state, with nothing to expire. |  |
+
+</details>
+
+<details>
+<summary>Video Cutter&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 4.4.6 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from Google Play. Required for Video Cutter: its PairIP local installer check is live, so a re-signed build fails the license check without it — keep it on. | • Spoofed package installer name |
+| [Remove ads](#remove-ads) | Removes all ads, as if the Remove Ads purchase were bought. Also enable the Change installer source patch (pre-selected). |  |
+
+</details>
+
+<details>
+<summary>Gradient Weather&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 1.1.1 | 1.3.4 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
+| [Enable Premium](#enable-premium) | Unlocks Gradient Weather Premium. Use With Spoof Install Source |  |
+
+</details>
+
+<details>
+<summary>DroidCam&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 9.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Disable PairIP protection](#disable-pairip-protection) | Lets the patched app run: replaces PairIP's VM startup with harvested vault/handle data and removes the signature check and license dialog. Requires 'Disable PairIP protection (runtime files)'. DroidCam 9.0 only. |  |
+| [Disable PairIP protection (runtime files)](#disable-pairip-protection-runtime-files) | Swaps the VM-encrypted native libraries (libmjpg, libmdns) for decrypted builds that 'Disable PairIP protection' needs. Enable both together. DroidCam 9.0 only. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks DroidCam Pro (HD/4K, no watermark, all options): the license verdict is forced to Pro and renews itself at every silent re-check. Requires 'Disable PairIP protection'. DroidCam 9.0 only. |  |
+
+</details>
+
+<details>
+<summary>Unified Remote&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 3.25.1 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Full](#enable-full) | Unlocks Unified Remote Full for free, as if the one-time Full purchase were bought: 70+ remotes, no ads, screen mirroring, floating remotes, extended keyboard, widgets and quick actions, voice commands, custom remotes, IR and NFC actions. |  |
+
+</details>
+
+<details>
+<summary>Alarmy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 26.42.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Turns on the app's premium state (premium features, no ads) as if a lifetime premium were active. |  |
+
+</details>
+
+<details>
+<summary>Hermit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 31.8.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Unlocks Premium (the one-time all-features purchase) and every individually sold feature. |  |
+
+</details>
+
+<details>
+<summary>ISS Live Now&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 8.7.3 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Turns on the app's Pro state (no ads, Pro features) as if the Pro version were purchased. |  |
+
+</details>
+
+<details>
+<summary>Rocket Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 6.3.4 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Grants Premium, whose only features over Basic are no ads and VIP support: removes all banner and interstitial ads (the player, playlists and equalizer are already free). |  |
+
+</details>
+
+<details>
+<summary>Tuner&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 3.7.36 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Premium](#enable-premium) | Unlocks Patrocine (Cifra Club Pro) and removes ads: registered users get no interstitials and banner hosts treat them as registered. |  |
+
+</details>
+
+<details>
+<summary>Roku Remote&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 1.3.2 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Enable Pro](#enable-pro) | Turns on the app's Pro state (no ads, Pro features) as if the lifetime plan were active. |  |
+
+</details>
+
+<details>
+<summary>Crossy Road&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 7.14.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Free store](#free-store) | The in-game store is free. Just tap "Buy" and the item is yours — no payment needed. For an ad-free game, just buy the ad-block item from the store. |  |
+| [Unlimited gold](#unlimited-gold) | Your coin balance always shows 65,535 and spending coins always works without deducting any — pull the prize machine and buy coin characters as much as you want. |  |
+| [Unlock all characters](#unlock-all-characters) | Every character is unlocked and playable — paid, coin, prize machine, progress and secret characters included. Your real collection progress is not changed; characters are unlocked while the patch is applied. |  |
+
+</details>
+
+<details>
+<summary>Happy Color&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 2.24.1 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Remove ads](#remove-ads) | Stops banner, interstitial and app-open ads from loading (AppLovin MAX). Rewarded ads for hints are left working. |  |
+
+</details>
+
+<details>
+<summary>1DM: Browser & Video Download&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 20.0 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Remove ads](#remove-ads) | Removes ads (Appodeal mediation and the direct Amazon ads path), hides the app's own rotating promo bars (the bottom house-promo bar and the downloads-screen VPN/Telegram offer strip) and the green "Upgrade to 1DM+" bar in the settings drawer. Does NOT unlock 1DM+ features — 1DM+ is a separate paid app and its features are not in this app. |  |
+
+</details>
+
+<details>
+<summary>Notes&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 2.2.2 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Remove ads](#remove-ads) | Stops interstitial ad breaks and native ads in the notes list from loading (Google Mobile Ads). Rewarded ads that unlock features when watched are left working. Does not unlock premium. |  |
+
+</details>
+
+<details>
+<summary>Smashy Road 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Supported versions:**
+
+| 1.54 | 1.45 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Unlimited coins & unlocks](#unlimited-coins-unlocks) | Sets cash to 9,999,999, every upgrade card to 10,000, unlocks ALL vehicles and characters (no spinning needed), unlocks the Pro Pass, slot/lottery machines, completes all main + side missions, and maxes vehicle durability. Backs up your save before touching it. To revert: place an empty file named SR2_RESTORE.txt in Android/data/com.rkgames.basisgame/files/ and open the game. |  |
+| [Unlock All Slot Machines](#unlock-all-slot-machines) | Unlocks all slot machines (1/2/3) without Google Play purchase. Patches the native ownership checks to always grant the machines. |  |
+
+</details>
+
+<details>
+<summary>Poweramp&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| build-1031-bundle-play |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Poweramp's full version state and Feature Package #1. |  |
+
+</details>
+
+<details>
+<summary>Games In One - Watch Games&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 0.4.5 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks all games (VIP). The store sees the one-time VIP purchase as owned — no real purchase is made. |  |
+
+</details>
+
+<details>
+<summary>Retro Bowl College&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Supported versions:**
+
+| 1.1.2 |
+| :---: |
+
+| Patch | Description | Options |
+|----------|----------------|-----------|
+| [Unlock premium](#unlock-premium) | Unlocks the full version. No real purchase is made. |  |
+
+</details>
+
+<!-- PATCHES_END -->
+
+
+## Building locally
+
+To build the patch bundle (`.mpp`) on your machine:
+
+```powershell
+.\gradlew.bat buildAndroid
+```
+
+The compiled patch package will be generated at:
+`patches/build/libs/patches-*.mpp`
+
+Load this `.mpp` file into [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) or Morphe Manager to patch your APKs.
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
+
+## Credits
+
+Some patches in this bundle are ports or updates of other creators' work — credit to the original authors:
+
+- **Poweramp** — [arandomhooman](https://github.com/arandomhooman/hoomans-morphe-patches): the Poweramp "Unlock Premium" patch is a port of his patch for Poweramp build-1025, retargeted to build-1031.
+- **Gradient Weather** — [morningentree (Entree3k)](https://github.com/Entree3k/Morning-Entree-Patches): the Gradient Weather "Enable Premium" patch was authored from his Morning Entree Patches template.
+- **Crossy Road** — [byehi98](https://github.com/byehi98/okish-morphe-patches): the Crossy Road "Free store" patch is a port of his okish-morphe-patches version (his targeted Crossy Road 7.13.0; updated here for 7.14.0).
+
+## Disclaimer
+
+Use these patches at your own risk. They modify third-party apps, and a patched app can break, crash, lose data, or stop working when the app updates. Using them may also violate an app's terms of service — if your account gets banned or suspended, that is your responsibility, not mine.
+
+These patches are provided as-is, with no warranty of any kind, and I accept no responsibility for crashes, bans, data loss, or any other damage that comes from using them. If that is not acceptable to you, do not use them.

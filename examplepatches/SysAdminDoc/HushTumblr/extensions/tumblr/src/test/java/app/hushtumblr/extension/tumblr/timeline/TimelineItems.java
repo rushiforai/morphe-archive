@@ -8,10 +8,13 @@ package app.hushtumblr.extension.tumblr.timeline;
 import com.tumblr.rumblr.model.BlazedPost;
 import com.tumblr.rumblr.model.Display;
 import com.tumblr.rumblr.model.GenericButton;
+import com.tumblr.rumblr.model.Option;
+import com.tumblr.rumblr.model.Options;
 import com.tumblr.rumblr.model.RelatedBlogsJsonAdapter;
 import com.tumblr.rumblr.model.SponsoredState;
 import com.tumblr.rumblr.model.TimelineObject;
 import com.tumblr.rumblr.model.link.ActionLink;
+import com.tumblr.rumblr.model.link.Link;
 import com.tumblr.rumblr.model.link.WebLink;
 import com.tumblr.rumblr.model.TimelineObjectType;
 import com.tumblr.rumblr.model.Timelineable;
@@ -24,6 +27,7 @@ import com.tumblr.rumblr.response.WrappedTimelineResponseJsonAdapter;
 import com.tumblr.rumblr.response.timeline.LikesResponseJsonAdapter;
 import com.tumblr.rumblr.response.timeline.PostsResponseJsonAdapter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -176,6 +180,28 @@ public final class TimelineItems {
         }, false);
     }
 
+    /** A reblog as {@link #reblogOf} makes, on a blog of yours: Tumblr says you can edit it. */
+    public static TimelineObject yourReblogOf(List<?> original, Object... added) {
+        List<HushTrail> trail = Collections.singletonList(() -> original);
+        return new TimelineObject(new Post(Arrays.asList(added), trail, null, null, "100") {
+            @Override public boolean hushCanEdit() { return true; }
+        }, false);
+    }
+
+    /** A post of your own made of [blocks], not a reblog. */
+    public static TimelineObject yourPostWith(Object... blocks) {
+        return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
+            @Override public boolean hushCanEdit() { return true; }
+        }, false);
+    }
+
+    /** A post made of [blocks] that Tumblr sent already liked by the signed-in account. */
+    public static TimelineObject likedPostWith(Object... blocks) {
+        return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
+            @Override public boolean hushLiked() { return true; }
+        }, false);
+    }
+
     /** A post made of [blocks], whose id is [id]. */
     public static TimelineObject postWithId(String id, Object... blocks) {
         return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
@@ -216,6 +242,44 @@ public final class TimelineItems {
         }, false);
     }
 
+    /**
+     * A post with [content] from a blog you don't follow, whose server header names [icon] and that
+     * the server tells Tumblr to show as [type], left out when null. A paid Blaze post carries the
+     * "blaze" icon, and can come served as sponsored too.
+     */
+    public static TimelineObject servedWithHeader(String icon, DisplayType type, Object... content) {
+        return new TimelineObject(new Post(Arrays.asList(content), null, null, null, null) {
+            @Override public String hushHeaderIcon() { return icon; }
+        }, false, null, type);
+    }
+
+    /** The dismissal Tumblr's web client sends for a featured post, as XKit Rewritten #2458 shows it. */
+    public static final String MARKETING_DISMISSAL = "/v2/user/dismiss/marketing_post";
+
+    /**
+     * A post whose header names [icon] and whose dismiss menu offers one choice per href. Tumblr
+     * sends the posts its staff feature with the "sparkle" icon and {@link #MARKETING_DISMISSAL}.
+     */
+    public static TimelineObject featuredPost(String icon, String... hrefs) {
+        Link[] links = new Link[hrefs.length];
+        for (int i = 0; i < hrefs.length; i++) links[i] = hrefs[i] == null ? null : new ActionLink(hrefs[i]);
+        return featuredPostLinking(icon, links);
+    }
+
+    /** A post whose header names [icon] and whose dismiss menu offers one choice per link. */
+    public static TimelineObject featuredPostLinking(String icon, Link... links) {
+        List<Option> options = new ArrayList<>();
+        for (Link link : links) options.add(new Option(link));
+        return new TimelineObject(new Post(Collections.emptyList(), null, null, null, null) {
+            @Override public String hushHeaderIcon() { return icon; }
+        }, new Options("Featured", options));
+    }
+
+    /** PausedHooksTest's probe for Hide Featured posts. */
+    public static boolean aPageLosesItsFeaturedPost() {
+        return aPageLoses(featuredPost("sparkle", MARKETING_DISMISSAL));
+    }
+
     /** A blazed post displayed organically, with no paid header context. */
     public static TimelineObject organicBlazedPost() {
         return new TimelineObject(new Post(Collections.emptyList(), null, null, null, null) {
@@ -231,6 +295,16 @@ public final class TimelineItems {
     /** PausedHooksTest's probe for Hide reblogs. */
     public static boolean aPageLosesItsReblog() {
         return aPageLoses(reblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("second")));
+    }
+
+    /** PausedHooksTest's probe for Hide your own reblogs. */
+    public static boolean aPageLosesYourReblog() {
+        return aPageLoses(yourReblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("mine")));
+    }
+
+    /** PausedHooksTest's probe for Hide liked posts. */
+    public static boolean aPageLosesItsLikedPost() {
+        return aPageLoses(likedPostWith(new TextBlock("liked already")));
     }
 
     /** PausedHooksTest's probe for Hide video posts. */
@@ -262,7 +336,7 @@ public final class TimelineItems {
     }
 
     /** A post Tumblr's model would carry, as the post bridge patches make it. */
-    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost {
+    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost, HushLikedPost {
         private final List<?> content;
         private final List<?> trail;
         private final List<?> tags;
@@ -288,6 +362,7 @@ public final class TimelineItems {
         @Override public boolean hushCanEdit() { return false; }
         @Override public boolean hushPaidContextKnown() { return true; }
         @Override public Object hushFiltered() { return null; }
+        @Override public boolean hushLiked() { return false; }
     }
 
     private static final class Carousel extends Item {

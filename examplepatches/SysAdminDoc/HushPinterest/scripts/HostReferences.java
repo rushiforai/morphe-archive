@@ -94,7 +94,11 @@ public class HostReferences {
             // getDefault() is API 20 in the pinned library. Let the DEX header choose its
             // opcode table, or DEX 039 method handles become NOPs and escape the checks.
             MultiDexContainer<? extends DexFile> container = DexFileFactory.loadDexContainer(input, null);
-            List<String> entries = new ArrayList<>(container.getDexEntryNames());
+            // The app's own class loader reads the classes*.dex at the root, and the hooks resolve
+            // there. 14.43.0's assets/audience_network/classes.dex is Facebook's ad SDK, loaded by the
+            // SDK in a loader of its own, and it declares kotlin/Metadata again in its own shape.
+            List<String> entries = new ArrayList<>();
+            for (String entry : container.getDexEntryNames()) if (entry.matches("classes\\d*\\.dex")) entries.add(entry);
             Collections.sort(entries);
             for (String entry : entries) for (ClassDef c : container.getEntry(entry).getDexFile().getClasses()) {
                 Type type = new Type(c.getType(), c.getAccessFlags(), c.getSuperclass(), new ArrayList<>(c.getInterfaces()));

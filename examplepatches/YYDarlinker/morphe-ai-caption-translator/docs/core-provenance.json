@@ -8,7 +8,7 @@
       "upstream": "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/RebuildController.java",
       "destination": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildController.java",
       "upstream_sha256": "bc5ba7aab1c61dc785742e8cb63b3d69a5d11142aaf817d66d280bc415a4a1e3",
-      "sha256": "d8545696ae592a3c2369c7bfc4f3476981394632a92e432703c078598c9af0d7",
+      "sha256": "d1c8066841e4a53283fc40c2421557594facd1e4bb6d208cb8c98298d355ef37",
       "snapshot": "translation-core/upstream/RebuildController.java.txt",
       "upstream_git_blob": "814922f06c539681e1471379faf61cb7c6651548"
     },
@@ -40,7 +40,7 @@
       "upstream": "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/RebuildSource.java",
       "destination": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildSource.java",
       "upstream_sha256": "429f9f059f44113f171f0c7574dabd1b3b8fc589fc2f56489e86a978bc53866e",
-      "sha256": "608115566bd08e1b9ad329443848e0ff4ee439aee06bda83c360ce30845cc604",
+      "sha256": "9236fcd22b9e290e0652f89898ff5b68a023cd9c453675d7be7957b9161c985d",
       "snapshot": "translation-core/upstream/RebuildSource.java.txt",
       "upstream_git_blob": "7f1c52768fb09e675c687a8232db3eabb521fd68"
     },
@@ -56,7 +56,7 @@
       "upstream": "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/RebuildProtocol.java",
       "destination": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildProtocol.java",
       "upstream_sha256": "02b60c2313df406b91d2e97b449414954427ae57fb98e3c9a57dc9a86b35cb3b",
-      "sha256": "64cebf07486c974dc8330a6ceb42d84af573aea7592ec408566c9adf10bf5b2a",
+      "sha256": "f9b67c2b1d3906a8ec7b70e66df3dbdd212ec509a671368074e5c7c32fb6362e",
       "snapshot": "translation-core/upstream/RebuildProtocol.java.txt",
       "upstream_git_blob": "d5dc8cc59c7db9b9411dbd90cfdfa4d725ec3f4c"
     },
@@ -166,7 +166,7 @@
     },
     {
       "path": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildSalvage.java",
-      "sha256": "d476c37030a843b59a73425e4b0766d522ba48c2a60273f688129158a64f31ca",
+      "sha256": "9aab8b1781aa3dc74940a65c681264d7116bb3382d1d19bb304d4babc6fed9f0",
       "purpose": "partial-plan salvage: per-segment identity and wider-quote ownership checks, explicit holes; advisory quality observations do not withhold structurally usable events"
     },
     {
@@ -186,7 +186,7 @@
     },
     {
       "path": "translation-core/src/main/java/app/yydarlinker/deepseekcaptions/RebuildWorkSet.java",
-      "sha256": "37cb5f3497a204bff0f564889ac73436a54161bfa6193d098fb6380ba09ae196",
+      "sha256": "9710d286377b284809c4911608888a6701079e100613d6345494ca16a6ec5345",
       "purpose": "Internal per-slot task state, admission, selection and quota accounting; no session, context or publication authority. D4 exposes the existing slot as a persistent read-only content view and keeps content transactions under the session lock."
     },
     {

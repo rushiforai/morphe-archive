@@ -33,6 +33,7 @@ import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.AtomicFile;
 import android.database.Cursor;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -90,6 +91,35 @@ public final class LogBufferManager {
 
     private static String say(CharSequence set, String fallback) {
         return set == null ? fallback : set.toString();
+    }
+
+    /** The export and clear rows' keys, which a {@link ResultPresenter} places their results by. */
+    public static final String EXPORT_ROW_KEY = "action_export_diagnostic_report";
+    public static final String CLEAR_ROW_KEY = "action_clear_diagnostic_data";
+
+    /**
+     * Shows an export or clear result where it stays readable, under its row. Android 12 and later
+     * show two lines of a toast, which a saved file's path or a large-text translation runs past.
+     */
+    public interface ResultPresenter {
+        /**
+         * True when it showed [message] for the row with [rowKey]. False leaves it to a toast.
+         * [keep] marks a result the reader still needs once a toast is gone, a failure or where a
+         * file was saved, which the row can show later when it isn't in view now.
+         */
+        boolean show(String rowKey, String message, boolean keep);
+    }
+
+    /** Set by a bundle that draws results under their rows. Unset, every result is a toast. */
+    public static volatile ResultPresenter resultPresenter;
+
+    /** [toastLength] is Toast.LENGTH_SHORT or LENGTH_LONG, for when no presenter shows it. */
+    static void tell(String rowKey, String message, boolean keep, int toastLength) {
+        Utils.runOnMainThreadNowOrLater(() -> {
+            ResultPresenter presenter = resultPresenter;
+            if (presenter != null && presenter.show(rowKey, message, keep)) return;
+            Utils.showToast(message, toastLength);
+        });
     }
 
     private static final int BUFFER_MAX_CHARS = 250_000;
@@ -189,7 +219,8 @@ public final class LogBufferManager {
             Utils.runOnMainThread(() -> copyToClipboard(exportText));
         });
         if (!started) {
-            Utils.showToastLong(say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")));
+            tell(EXPORT_ROW_KEY, say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")),
+                    true, Toast.LENGTH_LONG);
         }
     }
 
@@ -197,7 +228,8 @@ public final class LogBufferManager {
     private static void copyToClipboard(String exportText) {
         try {
             Utils.setClipboard(exportText);
-            Utils.showToastShort(say(copiedMessage, L10n.t("Diagnostic report copied to the clipboard.")));
+            tell(EXPORT_ROW_KEY, say(copiedMessage, L10n.t("Diagnostic report copied to the clipboard.")),
+                    false, Toast.LENGTH_SHORT);
         } catch (Exception ex) {
             clipboardFailed(ex);
         }
@@ -206,29 +238,34 @@ public final class LogBufferManager {
     private static void clipboardFailed(Exception ex) {
         // The exception's own text stays in the log. It can carry a path or a signed URL,
         // and a reader on a phone cannot act on it from a toast.
-        Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
+        tell(EXPORT_ROW_KEY, say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")),
+                true, Toast.LENGTH_LONG);
         Logger.printException(() -> "Failed to export diagnostics", ex);
     }
 
     public static void exportToFile() {
         Context context = Utils.getContext();
         if (context == null) {
-            Utils.showToastLong(say(noContextMessage, L10n.t("The diagnostic report couldn't be saved yet. Try again in a moment.")));
+            tell(EXPORT_ROW_KEY, say(noContextMessage, L10n.t("The diagnostic report couldn't be saved yet. Try again in a moment.")),
+                    true, Toast.LENGTH_LONG);
             return;
         }
         Context application = context.getApplicationContext();
         final Context app = application == null ? context : application;
         if (!FILE_EXPORT_RUNNING.compareAndSet(false, true)) {
-            Utils.showToastShort(say(alreadySavingMessage, L10n.t("A diagnostic report is already being saved.")));
+            tell(EXPORT_ROW_KEY, say(alreadySavingMessage, L10n.t("A diagnostic report is already being saved.")),
+                    false, Toast.LENGTH_SHORT);
             return;
         }
         try {
             Utils.submitOnBackgroundThread(() -> {
                 try {
                     String saved = writeToFile(app, buildExportText());
-                    Utils.showToastLong(String.format(say(savedToMessage, L10n.t("Full report saved to %1$s")), L10n.isolate(saved)));
+                    tell(EXPORT_ROW_KEY, String.format(say(savedToMessage, L10n.t("Full report saved to %1$s")),
+                            L10n.isolate(saved)), true, Toast.LENGTH_LONG);
                 } catch (Exception ex) {
-                    Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
+                    tell(EXPORT_ROW_KEY, say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")),
+                            true, Toast.LENGTH_LONG);
                     Logger.printException(() -> "Failed to save diagnostics", ex);
                 } finally {
                     FILE_EXPORT_RUNNING.set(false);
@@ -238,7 +275,8 @@ public final class LogBufferManager {
         } catch (RejectedExecutionException error) {
             FILE_EXPORT_RUNNING.set(false);
             Logger.printException(() -> "Could not start diagnostic export", error);
-            Utils.showToastLong(say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")));
+            tell(EXPORT_ROW_KEY, say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")),
+                    true, Toast.LENGTH_LONG);
         }
     }
 
@@ -796,9 +834,10 @@ public final class LogBufferManager {
         // Every line logged meanwhile waits on this lock, and the crash files are read and deleted
         // under it. Said once the lock is free, so the line isn't part of what it measures.
         Logger.printDebug(() -> "Diagnostic data clear held its lock for " + held + " ms");
-        Utils.showToastShort(restorable
-                ? say(clearedMessage, L10n.t("Diagnostic data cleared. Tap again to put it back."))
-                : say(nothingToClearMessage, L10n.t("There's no diagnostic data to clear.")));
+        // The row's summary says the cleared line itself until the next tap, so only a toast does.
+        if (restorable) Utils.showToastShort(say(clearedMessage, L10n.t("Diagnostic data cleared. Tap again to put it back.")));
+        else tell(CLEAR_ROW_KEY, say(nothingToClearMessage, L10n.t("There's no diagnostic data to clear.")),
+                false, Toast.LENGTH_SHORT);
     }
 
     /** True while the clear row's next tap can restore what its previous tap removed. */
@@ -837,13 +876,13 @@ public final class LogBufferManager {
         Logger.printDebug(() -> "Diagnostic data undo (" + ended + ") held its lock for " + held + " ms");
 
         if (result == UndoResult.RESTORED) {
-            Utils.showToastShort(say(restoredMessage, L10n.t("Diagnostic data put back.")));
+            tell(CLEAR_ROW_KEY, say(restoredMessage, L10n.t("Diagnostic data put back.")), false, Toast.LENGTH_SHORT);
         } else if (result == UndoResult.NOTHING_TO_RESTORE) {
-            Utils.showToastShort(say(nothingToRestoreMessage,
-                    L10n.t("There's no diagnostic data to put back.")));
+            tell(CLEAR_ROW_KEY, say(nothingToRestoreMessage,
+                    L10n.t("There's no diagnostic data to put back.")), false, Toast.LENGTH_SHORT);
         } else {
-            Utils.showToastLong(say(restoreFailedMessage,
-                    L10n.t("Couldn't put back the diagnostic data. Try again.")));
+            tell(CLEAR_ROW_KEY, say(restoreFailedMessage,
+                    L10n.t("Couldn't put back the diagnostic data. Try again.")), true, Toast.LENGTH_LONG);
         }
         return result;
     }

@@ -1,0 +1,50 @@
+package app.morphe.extension.youtube.settings;
+
+public class Settings {
+    public static final Flag VOT_USE_LIVE_VOICES = new Flag("live");
+    public static final Flag VOT_AUDIO_PROXY_ENABLED = new Flag("proxy");
+    public static class Text {
+        public String value;
+        Text(String value) { this.value = value; }
+        public String get() { return value; }
+    }
+    public static final Text VOT_SOURCE_LANGUAGE = new Text("auto");
+    public static final Text VOT_TARGET_LANGUAGE = new Text("ru");
+    public static final Volume VOT_TRANSLATION_VOLUME = new Volume();
+    public static class Volume {
+        public int get() { return 100; }
+    }
+    public static final Flag GOOGLE_VOT_SESSION_ENABLED = new Flag("session");
+
+    public static class Flag {
+        public final String key;
+        public boolean value;
+
+        Flag(String k) {
+            key = k;
+        }
+
+        public boolean get() {
+            return value;
+        }
+
+        public void save(boolean v) {
+            value = v;
+        }
+    }
+
+    public static final Flag VOT_ENABLED = new Flag("VOT_ENABLED");
+    public static final Flag VOT_AUTO_TRANSLATE = new Flag("VOT_AUTO_TRANSLATE");
+    public static final Flag VOT_PAUSE_VIDEO_WHILE_PREPARING_TRANSLATION =
+            new Flag("VOT_PAUSE_VIDEO_WHILE_PREPARING_TRANSLATION");
+    public static final Flag GOOGLE_VOT_ENABLED = new Flag("GOOGLE_VOT_ENABLED");
+    public static final Flag GOOGLE_VOT_AUTO_TRANSLATE = new Flag("GOOGLE_VOT_AUTO_TRANSLATE");
+    public static final Flag GOOGLE_VOT_PAUSE_WHILE_PREPARING =
+            new Flag("GOOGLE_VOT_PAUSE_WHILE_PREPARING");
+    public static final Flag GOOGLE_VOT_USE_NATIVE_TTS = new Flag("GOOGLE_VOT_USE_NATIVE_TTS");
+    public static final Flag GOOGLE_VOT_TTS_VOICE_TYPE = new Flag("GOOGLE_VOT_TTS_VOICE_TYPE");
+    public static final Flag GOOGLE_VOT_TRANSLATION_SERVICE =
+            new Flag("GOOGLE_VOT_TRANSLATION_SERVICE");
+    public static final Flag GOOGLE_VOT_CAPTION_LANGUAGE = new Flag("GOOGLE_VOT_CAPTION_LANGUAGE");
+    public static final Flag GOOGLE_VOT_OPENROUTER_MODEL = new Flag("GOOGLE_VOT_OPENROUTER_MODEL");
+}

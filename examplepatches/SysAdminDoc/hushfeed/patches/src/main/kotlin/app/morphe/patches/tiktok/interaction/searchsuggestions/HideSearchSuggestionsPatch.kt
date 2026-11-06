@@ -276,6 +276,29 @@ private object DefaultSearchHintFingerprint : Fingerprint(
     custom = { method, _ -> isDefaultSearchHint(method) },
 )
 
+internal const val DISCOVER_PAGE = "Lcom/ss/android/ugc/aweme/discover/ui/DiscoverAndSearchFragment;"
+private const val DISCOVER_EXTENSION = "Lapp/morphe/extension/tiktok/search/DiscoverSearchBarOnly;"
+
+/**
+ * The Discover tab's page (#338), which TikTok's bottom bar opens for the DISCOVER tab in the
+ * regions that get one: a search box over a pager of trending hashtags and banners. A real name
+ * on a real class. Its view is fully built by onViewCreated, so the extension gets the page there.
+ */
+internal object DiscoverViewCreatedFingerprint : Fingerprint(
+    definingClass = DISCOVER_PAGE,
+    name = "onViewCreated",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
+)
+
+/**
+ * Hands the Discover page's view to the extension first thing, before anything can branch, so
+ * one straight-line call is all that's added and TikTok's own code runs after it unchanged.
+ */
+internal fun MutableMethod.hookDiscoverPage() {
+    addInstruction(0, "invoke-static/range {p1 .. p1}, $DISCOVER_EXTENSION->onViewCreated(Landroid/view/View;)V")
+}
+
 /**
  * Stops the search page filling itself with things to search for. TikTok asks for suggested
  * words before you have typed anything and shows them as "You might be interested in" and
@@ -302,6 +325,7 @@ val hideSearchSuggestionsPatch = bytecodePatch(
         val searchHint = SearchHintObserverFingerprint.method
         val hintApplier = SearchHintApplierFingerprint.method
         val defaultHint = DefaultSearchHintFingerprint.method
+        val discoverPage = DiscoverViewCreatedFingerprint.method
         val hintModel = hintApplier.parameterTypes.single().toString()
         if (classDefBy(hintModel).methods.none {
                 it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;")
@@ -336,6 +360,7 @@ val hideSearchSuggestionsPatch = bytecodePatch(
         LynxFirstScreenCacheFingerprint.method.hookFirstScreenCache()
         LynxParameterFingerprint.method.hookInitialLynxParameter()
         SearchReentryFingerprint.method.hookReentryVisibility()
+        discoverPage.hookDiscoverPage()
     }
 }
 
@@ -378,7 +403,7 @@ internal fun MutableMethod.hookReentryVisibility() {
     val read = instructions.getOrNull(keyIndex + 1)
     val reference = read?.getReference<MethodReference>()
     val result = instructions.getOrNull(keyIndex + 2)
-    // The settings reader was named here as LX/0BZD;->LJIIJJI, both of which R8 assigns. Its
+    // The settings reader was named here as LX/0Cu8;->LJIIJJI, both of which R8 assigns. Its
     // signature is what identifies it at this call site: two ints, the key this method just
     // loaded, a boolean, and an int back.
     if (read !is FiveRegisterInstruction || read.registerCount != 5 || read.registerF != keyRegister ||

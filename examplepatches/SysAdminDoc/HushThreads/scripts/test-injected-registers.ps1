@@ -685,12 +685,12 @@ try {
     # Every rule must have bad builds of its own. The feature fixtures below cover eleven families.
     $otherRules = @(Get-Content -LiteralPath $contracts | ForEach-Object { $_.Trim() } |
         Where-Object { $_ -and -not $_.StartsWith('#') -and $_ -notmatch '^(no-call|sole-call|start-call)\s' })
-    Assert-True ((($otherRules | Sort-Object) -join ',') -ceq 'threads-feature disableAnalytics,threads-feature disableVideoAutoplay,threads-feature hideAds,threads-feature hideSuggestedUsers,threads-feature openLinksExternally,threads-feature pureBlack,threads-feature restoreTrust,threads-feature returnRefresh,threads-feature sanitizeSharingLinks,threads-feature saveMedia,threads-feature settingsRow') `
+    Assert-True ((($otherRules | Sort-Object) -join ',') -ceq 'threads-feature disableAnalytics,threads-feature disableVideoAutoplay,threads-feature filterComments,threads-feature hideAds,threads-feature hideSuggestedUsers,threads-feature openLinksExternally,threads-feature pureBlack,threads-feature restoreTrust,threads-feature returnRefresh,threads-feature sanitizeSharingLinks,threads-feature saveMedia,threads-feature settingsRow') `
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
 
     $featureClean = New-DexApk -Name 'features-clean' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'features-clean') })
     $featureCases = [ordered]@{
-        'features-good' = 'hideAds,hideSuggestedUsers,sanitizeSharingLinks,openLinksExternally,disableAnalytics,restoreTrust,returnRefresh,disableVideoAutoplay,pureBlack,saveMedia,settingsRow'
+        'features-good' = 'hideAds,hideSuggestedUsers,sanitizeSharingLinks,openLinksExternally,disableAnalytics,restoreTrust,returnRefresh,disableVideoAutoplay,pureBlack,saveMedia,filterComments,settingsRow'
         'features-omitted' = 'none'
         'features-only-hideAds' = 'hideAds'
         'features-only-hideSuggestedUsers' = 'hideSuggestedUsers'
@@ -702,6 +702,7 @@ try {
         'features-only-disableVideoAutoplay' = 'disableVideoAutoplay'
         'features-only-pureBlack' = 'pureBlack'
         'features-only-saveMedia' = 'saveMedia'
+        'features-only-filterComments' = 'filterComments'
         'features-only-settingsRow' = 'settingsRow'
     }
     foreach ($mask in 1..7) { $featureCases["features-mask-$mask"] = 'disableAnalytics' }
@@ -710,7 +711,7 @@ try {
         $checked = Invoke-DexDiff -Clean $featureClean -Patched $apk -Allowlist $emptyAllowlist -Name $case.Key -Contracts $contracts -Features $case.Value
         Assert-True ($checked.ExitCode -eq 0 -and (Get-Findings $checked).Fails.Count -eq 0) ("Feature selection $($case.Key) failed. " + ($checked.Output -join [Environment]::NewLine))
         foreach ($feature in @('hideAds', 'hideSuggestedUsers', 'sanitizeSharingLinks', 'openLinksExternally', 'disableAnalytics', 'restoreTrust', 'returnRefresh',
-            'disableVideoAutoplay', 'pureBlack', 'saveMedia', 'settingsRow')) {
+            'disableVideoAutoplay', 'pureBlack', 'saveMedia', 'filterComments', 'settingsRow')) {
             $state = if ($feature -cin ($case.Value -split ',')) { 'verified' } else { 'omitted' }
             Assert-True (($checked.Output -join [Environment]::NewLine) -match [regex]::Escape("threads-feature ${feature}: $state")) "Feature $feature did not report $state."
         }

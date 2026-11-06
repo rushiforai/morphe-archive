@@ -17,6 +17,7 @@ import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -45,7 +46,9 @@ class ShowPostedDateFixtureTest {
             showPostedDatePatch.execute(context)
             for (flag in listOf("showPostedDate", "postedDate")) assertEquals("${build.name}: $flag", 1, flag(context, flag))
 
-            val hooked = updates.filter { patched(context, it).size != it.instructions().size }
+            // A count can't tell: on 14.43.0 the hook pushes a switch payload off its boundary and the
+            // padding nop in front of it goes, so the method keeps its length.
+            val hooked = updates.filter { ((patched(context, it).first() as? ReferenceInstruction)?.reference)?.toString() == POSTED_DATE_HOOK }
             val clean = hooked.singleOrNull() ?: error("${build.name}: ${hooked.size} title modules hooked")
             val body = patched(context, clean)
             val hook = body[0]
@@ -54,7 +57,7 @@ class ShowPostedDateFixtureTest {
             val registers = clean.implementation!!.registerCount
             assertEquals("${build.name}: the module, then the pin", registers - 2, (hook as RegisterRangeInstruction).startRegister)
             assertEquals(build.name, 2, hook.registerCount)
-            assertEquals("${build.name}: Pinterest's own update follows", clean.instructions().map { it.opcode }, body.drop(1).map { it.opcode })
+            assertEquals("${build.name}: Pinterest's own update follows", unpadded(clean.instructions()), unpadded(body.drop(1)))
             assertEquals("${build.name}: the extension only adds its line to a LinearLayout", "Landroid/widget/LinearLayout;", build.frameworkBase)
         }
     }
@@ -91,6 +94,11 @@ class ShowPostedDateFixtureTest {
     private fun flag(context: BytecodePatchContext, name: String) =
         (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.implementation!!.instructions.first() as NarrowLiteralInstruction).narrowLiteral
 
+    /** The opcodes without the nop that only pads a payload onto its 4-byte boundary. */
+    private fun unpadded(body: List<Instruction>) = body.filterIndexed { at, instruction ->
+        instruction.opcode != Opcode.NOP || body.getOrNull(at + 1)?.opcode !in PAYLOADS
+    }.map { it.opcode }
+
     private fun patched(context: BytecodePatchContext, method: Method) =
         context.mutableClassDefBy(method.definingClass).methods.single {
             it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType
@@ -119,5 +127,6 @@ class ShowPostedDateFixtureTest {
 
     private companion object {
         const val PATCH_NAME = "Show posted date"
+        val PAYLOADS = setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD)
     }
 }

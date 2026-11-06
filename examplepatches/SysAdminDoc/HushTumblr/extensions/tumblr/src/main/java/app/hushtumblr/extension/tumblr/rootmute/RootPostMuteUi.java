@@ -346,8 +346,11 @@ final class RootPostMuteUi {
         void message(String message) {
             if (closed) return;
             setVisibility(VISIBLE);
+            // The notice is a polite live region, so a screen reader reads a new line once without
+            // an announcement, which Android 16 deprecates. The same line again is news again
+            // (a second failed try), and only a change of text is read, so it changes twice.
+            if (message.contentEquals(label.getText())) label.setText("");
             label.setText(message);
-            label.announceForAccessibility(message);
         }
 
         void offer(String message, RootPostMutes.Undo value) {

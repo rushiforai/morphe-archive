@@ -24,7 +24,7 @@ Then select the **Proxy** patch for Reddit and patch the app.
 | **Proxy type** | **HTTPS**: the connection to the proxy itself is encrypted (such as Caddy `forward_proxy`). **HTTP**: a plain HTTP proxy. **SOCKS5**: a SOCKS5 proxy. |
 | **Proxy host** | Hostname or IP of your proxy, for example `proxy.example.com` |
 | **Port** | For example `443` for HTTPS, `8080` for HTTP, or `1080` for SOCKS5 |
-| **Username / Password** | Your proxy login, or leave both empty if it has none |
+| **Username / Password** | Your proxy login, or leave both empty if it has none. Once saved, the password is **never shown again**: the field stays empty, and leaving it empty keeps the saved one. **Remove saved password** clears it. |
 
 > ℹ️ **SOCKS5 isn't encrypted** between your phone and the proxy. Your app traffic inside is still HTTPS, but your proxy login and the hostnames you visit can be seen on the network path. **HTTPS** proxies protect both. With SOCKS5, hostnames are sent to the proxy unresolved, so DNS happens on the proxy, not on your phone.
 
@@ -34,11 +34,19 @@ The screen also has these buttons:
 - **Save** applies the settings to new connections straight away.
 - **Save & restart app** also drops connections that are already open.
 
-The screen works offline, so you can always fix a wrong or dead proxy.
+The screen works offline, so you can always fix a wrong or dead proxy. It also **blocks screenshots and screen recording**, and shows blank in the recent-apps view.
 
-The patch options in Morphe Manager (proxy type, host, port, username, password) are optional **starting values**, if you'd rather have the proxy set from the first launch.
+**If your proxy stops working**, the app tells you instead of just failing to load. You see a short message such as:
 
-> ⚠️ Your proxy login is stored in the app's private storage, or in plain text inside the APK if you set it as a patch option. Don't share your patched APK.
+- "Can't reach your proxy";
+- "Your proxy rejected the login";
+- "Secure (TLS) connection to your proxy failed".
+
+It appears at most once a minute, only while the app is open, and only after a few failures in a row. It doesn't appear when your phone itself has no internet, so a dead Wi-Fi isn't blamed on the proxy.
+
+The patch options in Morphe Manager (proxy type, host, port) are optional **starting values**, if you'd rather have the proxy pre-filled from the first launch.
+
+> 🔒 **Your username and password are only ever entered in the app's Proxy settings.** There's deliberately no patch option for them. Patch options are stored as plain text inside the APK, and installed APKs can be read by any app on the phone. The app's own storage is private to the app (Android's sandbox).
 
 ## 🔍 What the patch does
 
@@ -51,6 +59,7 @@ For Reddit it also closes the gaps where traffic would otherwise skip the proxy:
 
 - **Cronet** (Chromium networking, Reddit's main stack) would switch to direct connections and QUIC whenever Android broadcasts a proxy change. It's patched to keep using the proxy.
 - **Cronet's own DNS** (built-in resolver and stale/persisted host cache) is turned off.
+- **Reddit's startup DNS warm-up** (`DnsLookupInitializer`) is turned off. On a fresh install it looked up Reddit's API hosts with your phone's DNS.
 - **Google Play Services' Cronet**, used by reCAPTCHA, is disabled, so reCAPTCHA uses the app's own patched Cronet.
 - **WebView** gets a proxy override.
 - **Android's built-in `HttpURLConnection`** (used by SDKs such as AppsFlyer and Firebase) quietly tries a direct connection when the proxy fails. Every `http(s)` URL is opened with the proxy passed explicitly, which turns that fallback off.
@@ -74,7 +83,7 @@ The only other traffic is the phone's DNS lookup of the proxy's own hostname.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/TahmidSummy/proxy-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.3.1](https://github.com/TahmidSummy/proxy-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -88,7 +97,7 @@ The only other traffic is the phone's DNS lookup of the proxy's own hostname.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Proxy](#proxy) | Routes all of the app's traffic through your HTTP, HTTPS or SOCKS5 proxy, with optional username and password. Change it any time in the app: long-press the app icon → Proxy settings. Nothing goes direct, even if the proxy is down, unless you turn on "Run without proxy" there. | • Proxy host (optional)<br>• Proxy port<br>• Proxy type<br>• Username (optional)<br>• Password (optional) |
+| [Proxy](#proxy) | Routes all of the app's traffic through your HTTP, HTTPS or SOCKS5 proxy, with optional username and password. Set it up in the app: long-press the app icon → Proxy settings (the login is entered there, never baked into the APK). Nothing goes direct, even if the proxy is down, unless you turn on "Run without proxy" there. | • Proxy host (optional)<br>• Proxy port<br>• Proxy type |
 
 </details>
 

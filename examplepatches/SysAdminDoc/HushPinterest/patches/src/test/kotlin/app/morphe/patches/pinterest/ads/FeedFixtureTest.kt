@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import java.io.File
@@ -61,7 +62,7 @@ class FeedFixtureTest {
             }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
-            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
+            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "metaAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping",
                     "filterFeed", "feedVideoPins", "feedMutedWords", "feedSavedPins")) assertFlag(context, flag)
             // Home's request and page each carry one hook, and Download pins asking for the first adds no second.
             val homeFields = context.homeFieldsOrNull()!!
@@ -80,6 +81,15 @@ class FeedFixtureTest {
             assertEquals("${build.name}: Google ad SDK start", "$EXTENSION_PACKAGE/ads/Ads;->skipGoogleAds()Z",
                 (guarded[0] as ReferenceInstruction).reference.toString())
             assertEquals(build.name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID), guarded.subList(1, 4).map { it.opcode })
+            // Meta's ad SDK waits on one consent check, asked with a vendor enum; it answers no for Meta first.
+            val vendors = classes.filter { owner -> owner.fields.any { it.name == META_AUDIENCE_NETWORK && it.type == owner.type } }.map { it.type }.toSet()
+            val consent = classes.flatMap { it.methods }.single { method -> !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+                method.parameterTypes.size == 1 && method.parameterTypes.single().toString() in vendors }
+            val asked = context.mutableClassDefBy(consent.definingClass).methods.single { it.name == consent.name && it.parameterTypes == consent.parameterTypes }
+                .implementation!!.instructions.toList()
+            assertEquals("${build.name}: Meta ad SDK consent", "$EXTENSION_PACKAGE/ads/Ads;->skipMetaConsent(Ljava/lang/Object;)Z",
+                (asked[0] as ReferenceInstruction).reference.toString())
+            assertEquals(build.name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.RETURN), asked.subList(1, 5).map { it.opcode })
 
             val filter = "$EXTENSION_PACKAGE/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;"
             for (holder in holders.values.flatten()) {
@@ -124,8 +134,19 @@ class FeedFixtureTest {
     private fun read(build: File): Pair<List<ClassDef>, Map<String, List<String>>> {
         val wanted = mutableMapOf<String, ClassDef>()
         val holders = mutableMapOf<String, MutableList<String>>()
+        // Pinterest's consent vendor enums, and the classes with a one-argument boolean check by parameter type.
+        val vendors = mutableSetOf<String>()
+        val askers = mutableMapOf<String, MutableSet<String>>()
         FixtureDex.forEach(build) { dex ->
             for (classDef in dex.classes) {
+                if (classDef.fields.any { it.name == META_AUDIENCE_NETWORK && it.type == classDef.type && AccessFlags.STATIC.isSet(it.accessFlags) }) {
+                    vendors += classDef.type
+                    wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                }
+                for (method in classDef.methods) {
+                    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Z" || method.parameterTypes.size != 1) continue
+                    askers.getOrPut(method.parameterTypes.single().toString()) { mutableSetOf() } += classDef.type
+                }
                 val written = classDef.methods.filter { it.name == "toString" }.flatMap { method ->
                     (method.implementation?.instructions?.toList() ?: emptyList()).mapNotNull {
                         ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
@@ -135,10 +156,17 @@ class FeedFixtureTest {
                 matched.forEach { holders.getOrPut(it) { mutableListOf() } += classDef.type }
                 val googleAds = classDef.methods.any { method -> method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == GOOGLE_MOBILE_ADS } == true }
-                val home = classDef.type.startsWith("Lcom/pinterest/feature/home/model/") || classDef.type == "Lcom/pinterest/legacy/feeds/DynamicFeed;"
+                // 14.43.0 moved Home's page callback into a shared lambda class, found by the page it hands to Home's model.
+                val handsToHome = classDef.methods.any { method -> method.implementation?.instructions?.any {
+                    val call = (it as? ReferenceInstruction)?.reference as? MethodReference
+                    call != null && call.definingClass.startsWith("Lcom/pinterest/feature/home/model/") &&
+                        call.parameterTypes.any { type -> type.toString() == "Lcom/pinterest/legacy/feeds/DynamicFeed;" }
+                } == true }
+                val home = classDef.type.startsWith("Lcom/pinterest/feature/home/model/") || classDef.type == "Lcom/pinterest/legacy/feeds/DynamicFeed;" || handsToHome
                 if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds || home) wanted[classDef.type] = ImmutableClassDef.of(classDef)
             }
         }
+        wanted += FixtureDex.classes(build, vendors.flatMap { askers[it].orEmpty() }.toSet() - wanted.keys)
         var above = wanted.values.mapNotNull { it.superclass }.toSet() - wanted.keys
         while (above.isNotEmpty()) {
             val found = FixtureDex.classes(build, above)

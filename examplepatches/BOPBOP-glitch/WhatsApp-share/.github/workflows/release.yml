@@ -1,0 +1,198 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "dist/**"
+      - "patches-bundle.json"
+      - "patches-list.json"
+
+concurrency:
+  group: whatsapp-morphe-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, validate and publish Morphe patches
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Read patch version
+        run: |
+          set -euxo pipefail
+          PATCH_VERSION="$(sed -n 's/^version *= *//p' gradle.properties | xargs)"
+          test -n "$PATCH_VERSION"
+          echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_ENV"
+          echo "Patch version: $PATCH_VERSION"
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: "9.7.1"
+
+      - name: Validate compatibility policy
+        run: python3 scripts/verify_compatibility.py --source-only
+
+      - name: Generate patch metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          gradle generatePatchesList --no-daemon
+
+      - name: Build Android Morphe bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          gradle :patches:buildAndroid --no-daemon
+          MPP="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          test -n "$MPP"
+          mkdir -p dist
+          cp "$MPP" "dist/patches-$PATCH_VERSION.mpp"
+          cp "$MPP" "dist/patches-latest.mpp"
+
+      - name: Validate Android MPP
+        run: |
+          set -euxo pipefail
+          MPP="dist/patches-$PATCH_VERSION.mpp"
+          test -s "$MPP"
+          unzip -t "$MPP"
+          unzip -Z1 "$MPP" | tee /tmp/mpp-entries.txt
+          grep -E '\.dex$' /tmp/mpp-entries.txt
+
+          unzip -p "$MPP" META-INF/MANIFEST.MF | tee /tmp/morphe-manifest.txt
+          grep -F "Name: WhatsApp Morphe Patches" /tmp/morphe-manifest.txt
+          grep -F "Version: $PATCH_VERSION" /tmp/morphe-manifest.txt
+          grep -F "Patcher-Version: 1.14.1" /tmp/morphe-manifest.txt
+
+          python3 scripts/verify_compatibility.py
+          python3 - <<'PY'
+          import json, os
+          with open("patches-list.json", encoding="utf-8") as f:
+              data=json.load(f)
+          expected=os.environ["PATCH_VERSION"]
+          assert data["version"] == expected, (data["version"], expected)
+          patches=data.get("patches", [])
+          assert len(patches) == 8, len(patches)
+          print("patches-list.json validated:", expected, len(patches), "patches")
+          PY
+
+          cmp "dist/patches-$PATCH_VERSION.mpp" dist/patches-latest.mpp
+          sha256sum "$MPP" dist/patches-latest.mpp
+
+      - name: Write Morphe source metadata
+        run: |
+          set -euxo pipefail
+          CREATED_AT="$(date -u +'%Y-%m-%dT%H:%M:%S')"
+          cat > patches-bundle.json <<EOF
+          {
+            "created_at": "$CREATED_AT",
+            "description": "WhatsApp Morphe Patches v$PATCH_VERSION - compatibility-focused build.",
+            "download_url": "https://github.com/BOPBOP-glitch/WhatsApp-share/releases/download/v$PATCH_VERSION/patches-$PATCH_VERSION.mpp",
+            "signature_download_url": "",
+            "version": "$PATCH_VERSION"
+          }
+          EOF
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime
+          with open("patches-bundle.json", encoding="utf-8") as f:
+              data=json.load(f)
+          assert data["version"] == os.environ["PATCH_VERSION"]
+          datetime.fromisoformat(data["created_at"])
+          assert data["download_url"].endswith(f"/releases/download/v{os.environ['PATCH_VERSION']}/patches-{os.environ['PATCH_VERSION']}.mpp")
+          print("patches-bundle.json validated")
+          PY
+
+      - name: Generate compatibility report
+        run: python3 scripts/generate_compatibility_report.py
+
+      - name: Commit published source files
+        run: |
+          set -euxo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-list.json patches-bundle.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: publish Morphe source v$PATCH_VERSION [skip ci]"
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whatsapp-morphe-patches-${{ env.PATCH_VERSION }}
+          path: |
+            dist/patches-${{ env.PATCH_VERSION }}.mpp
+            dist/patches-latest.mpp
+            build/compatibility-report.json
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.PATCH_VERSION }}
+          name: WhatsApp Morphe Patches v${{ env.PATCH_VERSION }}
+          body: |
+            Compatibility-focused release for WhatsApp 2.26.27.4.
+
+            Permanent latest-release page:
+            https://github.com/BOPBOP-glitch/WhatsApp-share/releases/latest
+
+            Permanent Morphe source:
+            https://github.com/BOPBOP-glitch/WhatsApp-share
+
+            Convenience latest bundle:
+            https://github.com/BOPBOP-glitch/WhatsApp-share/releases/latest/download/patches-latest.mpp
+          files: |
+            dist/patches-${{ env.PATCH_VERSION }}.mpp
+            dist/patches-latest.mpp
+            build/compatibility-report.json
+          make_latest: true
+
+      - name: End-to-end latest-link validation
+        run: |
+          set -euxo pipefail
+          sleep 8
+
+          curl -fL --retry 5 --retry-delay 2             "https://raw.githubusercontent.com/BOPBOP-glitch/WhatsApp-share/main/patches-bundle.json?run=${GITHUB_RUN_ID}"             -o /tmp/remote-patches-bundle.json
+
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime
+          with open("/tmp/remote-patches-bundle.json", encoding="utf-8") as f:
+              data=json.load(f)
+          assert data["version"] == os.environ["PATCH_VERSION"], data
+          datetime.fromisoformat(data["created_at"])
+          assert data["download_url"].endswith(f"/releases/download/v{os.environ['PATCH_VERSION']}/patches-{os.environ['PATCH_VERSION']}.mpp")
+          print("remote metadata validated:", data["download_url"])
+          PY
+
+          curl -fL --retry 5 --retry-delay 2             "https://github.com/BOPBOP-glitch/WhatsApp-share/releases/download/v$PATCH_VERSION/patches-$PATCH_VERSION.mpp"             -o /tmp/remote-patches-versioned.mpp
+
+          unzip -t /tmp/remote-patches-versioned.mpp
+          unzip -Z1 /tmp/remote-patches-versioned.mpp | grep -E '\\.dex "dist/patches-$PATCH_VERSION.mpp" /tmp/remote-patches-versioned.mpp
+          echo "Stable repository source and versioned bundle validated end-to-end."
+
+
+          cmp "dist/patches-$PATCH_VERSION.mpp" /tmp/remote-patches-versioned.mpp
+          echo "Stable repository source and versioned bundle validated end-to-end."

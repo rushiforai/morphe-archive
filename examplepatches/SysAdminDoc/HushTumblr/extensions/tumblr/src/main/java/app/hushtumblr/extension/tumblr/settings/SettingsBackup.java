@@ -99,6 +99,7 @@ public final class SettingsBackup {
      */
     static final List<BooleanSetting> ALLOWLIST = Collections.unmodifiableList(Arrays.asList(
             Settings.HIDE_ADS,
+            Settings.KEEP_BLAZE_POSTS,
             Settings.HIDE_ADVERTISING_ID,
             Settings.DISABLE_ANALYTICS,
             Settings.HIDE_AD_FREE_BANNER,
@@ -116,6 +117,7 @@ public final class SettingsBackup {
             Settings.HIDE_SUGGESTED_COMMUNITIES,
             Settings.HIDE_SUGGESTED_TAGS,
             Settings.HIDE_WATCH_IT_ROWS,
+            Settings.HIDE_FEATURED_POSTS,
             Settings.HIDE_HASHTAGS,
             Settings.HIDE_FOLLOW_BUTTON,
             Settings.HIDE_TUMBLRMART,
@@ -131,6 +133,8 @@ public final class SettingsBackup {
             Settings.HIDE_REBLOGS,
             Settings.KEEP_TAGGED_REBLOGS,
             Settings.KEEP_REBLOGS_WITH_CONTENT,
+            Settings.HIDE_OWN_REBLOGS,
+            Settings.HIDE_LIKED_POSTS,
             Settings.HIDE_NOTIFICATION_LIKES,
             Settings.HIDE_NOTIFICATION_REBLOGS,
             Settings.HIDE_NOTIFICATION_REPLIES,
@@ -150,6 +154,7 @@ public final class SettingsBackup {
             Settings.SHOW_POST_TIMESTAMPS,
             Settings.SHOW_IMAGE_DESCRIPTIONS,
             Settings.SHARE_VIDEO_LINKS,
+            Settings.SHARPER_IMAGES,
             Settings.MUTE_ROOT_POSTS,
             Settings.REVEAL_ALLOWED_MATURE_CONTENT,
             Settings.SHOW_MUTUAL_MARKERS,
@@ -698,6 +703,11 @@ public final class SettingsBackup {
                 if (value == null) skipped.add(setting);
                 else texts.put(setting, value);
             }
+        }
+        if (ordered.containsKey(Settings.HIDE_ADS) && !ordered.containsKey(Settings.KEEP_BLAZE_POSTS)) {
+            // Every file names each switch it knows, so one with Hide ads and no Keep Blaze posts
+            // predates the option, when Hide ads took Blaze posts too.
+            ordered.put(Settings.KEEP_BLAZE_POSTS, false);
         }
         if ((Integer) schema < 3 && ordered.containsKey(Settings.HIDE_REBLOGS)) {
             // Old Hide reblogs backups had no exceptions.

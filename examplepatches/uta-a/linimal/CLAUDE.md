@@ -23,6 +23,7 @@ python3 scripts/preflight_reference.py --apksigner "$ANDROID_SDK_ROOT/build-tool
 
 - 常駐 Gradle daemon が欠損した instrumented plugin JAR を参照して失敗したことがある。キャッシュは削除せず `--no-daemon` で回避する。
 - 出力は `patches/build/libs/patches-*.mpp`。runtime extension は `extensions/linimal.mpe` としてこのバンドルに同梱される。
+- 実機確認用の APK は Morphe Desktop CLI で生成する（Java 21 以上が必要。ビルド用の Java 17 とは別）。`java -jar morphe-desktop-*-all.jar patch --patches patches/build/libs/patches-<version>.mpp --out line-linimal.apk line-apk/<APKM>`
 - `line-apk/` の APKM はローカル専用の読み取り入力。APK/APKM、逆コンパイル結果（`base/`、`jadx-out/` など）、署名鍵はコミットしない（`.gitignore` 済み）。
 
 ## アーキテクチャ

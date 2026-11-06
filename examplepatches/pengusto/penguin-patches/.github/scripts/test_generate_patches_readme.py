@@ -61,6 +61,30 @@ class ReleaseReadmeTests(unittest.TestCase):
         for icon, _ in icons:
             self.assertRegex(icon, r"/[^/]+/[^/]+/[0-9a-f]{40}/.+\.png$")
 
+    def test_supported_apps_are_visible_near_the_top_and_follow_metadata(self):
+        data = json.loads((ROOT / "patches-list.json").read_text())
+        result = self.render(data)
+        strip = result.split("<!-- PATCHES_APPS_START -->")[1].split("<!-- PATCHES_APPS_END -->")[0]
+        self.assertLess(result.index("<!-- PATCHES_APPS_START -->"), result.index("## Finamp"))
+        self.assertNotIn("<details", strip)
+        self.assertEqual(strip.count('width="32" height="32"'), app_count(data))
+        self.assertIn('href="docs/FINAMP_NATIVE.md"', strip)
+        self.assertIn('alt="Finamp app icon"', strip)
+        data["patches"] = [p for p in data["patches"] if p["name"] == "Song artist order"]
+        smaller = self.render(data).split("<!-- PATCHES_APPS_START -->")[1].split("<!-- PATCHES_APPS_END -->")[0]
+        self.assertEqual(smaller.count('width="32" height="32"'), 1)
+        self.assertIn("Finamp", smaller)
+        self.assertNotIn("Fossify", smaller)
+
+    def test_preview_group_headings_show_app_icons(self):
+        data = json.loads((ROOT / "patches-list.json").read_text())
+        result = self.render(data)
+        previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
+        headings = re.findall(r'^### <img [^\n]+ alt="([^"]+ app icon)"[^\n]+$', previews, re.MULTILINE)
+        self.assertEqual(len(headings), app_count(data))
+        self.assertIn("Kvaesitso app icon", headings)
+        self.assertIn("Fossify Music Player app icon", headings)
+
     def test_small_next_prerelease_updates_summary_without_expanding(self):
         data = json.loads((ROOT / "patches-list.json").read_text())
         data["version"] = "v1.2.0-dev.1"
@@ -88,9 +112,11 @@ class ReleaseReadmeTests(unittest.TestCase):
             with self.subTest(patch=patch["name"]):
                 self.assertIn(slug, sections, "released patches need a comparison")
                 images = re.findall(r'<img src="([^"]+)"[^>]+alt="([^"]+)"', sections[slug])
-                self.assertEqual(len(images), 2, "each patch needs both sides of the comparison")
-                self.assertTrue(images[0][1].startswith("Before:"))
-                self.assertTrue(images[1][1].startswith("After:"))
+                self.assertGreaterEqual(len(images), 2, "each patch needs a comparison")
+                self.assertEqual(len(images) % 2, 0, "each comparison needs both sides")
+                for before, after in zip(images[::2], images[1::2]):
+                    self.assertTrue(before[1].startswith("Before:"))
+                    self.assertTrue(after[1].startswith("After:"))
                 for source, _ in images:
                     if not source.startswith("https://"):
                         self.assertTrue((ROOT / "docs" / source).resolve().is_file(), source)
@@ -113,6 +139,17 @@ class ReleaseReadmeTests(unittest.TestCase):
             self.assertIn(f"[Before / after](#preview-{slug})", result)
         self.assertNotIn("<details open>", result)
 
+    def test_finamp_information_patch_has_a_direct_before_after_preview(self):
+        data = {"version": "1.6.4", "patches": [{
+            "name": "Show album and track information", "description": "Read Jellyfin descriptions",
+            "compatiblePackages": [{"packageName": "com.unicornsonlsd.finamp", "name": "Finamp",
+                                    "targets": [{"version": "1.0.1"}]}]}]}
+        result = self.render(data)
+        self.check_gallery(data, result)
+        self.assertIn("#preview-show-album-and-track-information", result)
+        self.assertIn('src="tests/finamp/evidence/2026-11-05-notes/track-before.png"', result)
+        self.assertIn('src="tests/finamp/evidence/2026-11-05-notes/track-after.png"', result)
+
     def test_mihon_preview_embeds_real_pair_and_guide(self):
         data = {"version": "1.5.0", "patches": [{
             "name": "Preserve excluded Default-category downloads",
@@ -132,7 +169,7 @@ class ReleaseReadmeTests(unittest.TestCase):
         previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
         self.assertEqual(previews.count("<summary>"), len(data["patches"]))
         self.assertEqual(len(re.findall(r"^### ", previews, re.MULTILINE)), app_count(data))
-        self.assertEqual(previews.count("<img "), 2 * len(data["patches"]))
+        self.assertGreaterEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', previews)), 2 * len(data["patches"]))
         self.assertNotIn("## About these comparisons", previews)
         sections = dict(re.findall(r'<a id="preview-([^"]+)"></a>(.*?)(?=\n<a id=|\Z)', previews, re.DOTALL))
         for patch in data["patches"]:
@@ -140,9 +177,11 @@ class ReleaseReadmeTests(unittest.TestCase):
             with self.subTest(patch=patch["name"]):
                 images = re.findall(r'<img src="([^"]+)"[^>]+alt="([^"]+)"', sections[slug])
                 self.assertRegex(sections[slug], r'^\s*<details>\s*<summary>')
-                self.assertEqual(len(images), 2)
-                self.assertTrue(images[0][1].startswith("Before:"))
-                self.assertTrue(images[1][1].startswith("After:"))
+                self.assertGreaterEqual(len(images), 2)
+                self.assertEqual(len(images) % 2, 0)
+                for before, after in zip(images[::2], images[1::2]):
+                    self.assertTrue(before[1].startswith("Before:"))
+                    self.assertTrue(after[1].startswith("After:"))
                 for source, _ in images:
                     if not source.startswith("https://"):
                         self.assertTrue((ROOT / source).is_file(), source)
@@ -151,6 +190,10 @@ class ReleaseReadmeTests(unittest.TestCase):
         self.assertIn("**Source-widget comparison, not Android APK screenshots.**", previews)
         self.assertIn("**Breal versus Penguin comparison.**", previews)
         self.assertIn("**Previous versus revised Morphe patch.**", previews)
+        calendar = sections["readable-calendar-descriptions"]
+        for surface in ("Editor", "Day list", "Widget", "Reminder"):
+            self.assertIn(f"**{surface}**", calendar)
+        self.assertEqual(len(re.findall(r'<img ', calendar)), 8)
 
     def test_finamp_hero_count_follows_metadata_instead_of_stale_copy(self):
         data = json.loads((ROOT / "patches-list.json").read_text())
@@ -162,7 +205,8 @@ class ReleaseReadmeTests(unittest.TestCase):
         result = self.render(data, readme=stale)
         self.assertIn("Explore the 1 Finamp patch →", result)
         self.assertNotIn("Explore the 3 Finamp patches", result)
-        self.assertEqual(result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0].count("<img "), 2)
+        previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
+        self.assertEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', previews)), 2)
 
     def test_missing_released_preview_fails_without_rewriting_readme(self):
         with tempfile.TemporaryDirectory() as tmp:

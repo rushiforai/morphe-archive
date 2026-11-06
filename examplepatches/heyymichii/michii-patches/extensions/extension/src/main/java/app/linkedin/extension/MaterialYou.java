@@ -44,37 +44,67 @@ public final class MaterialYou {
     private static final Map<Integer, Integer> BACKGROUNDS = new HashMap<>();
     /** LinkedIn green of selected states (0xRRGGBB) to the system palette color that replaces it. */
     private static final Map<Integer, Integer> CHECKED = new HashMap<>();
+    /** System accent color resource id to its shade (10 to 1000). */
+    private static final Map<Integer, Integer> ACCENT_SHADES = new HashMap<>();
+
+    /**
+     * Whether accent colors are replaced: with Material You on, by the wallpaper's (Android 12+) or by the chosen
+     * accent color (any version).
+     */
+    private static boolean accentOn() {
+        if (!Settings.materialYou()) return false;
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || Settings.accentColor() >= 0;
+    }
+
+    /** The color of a system palette resource: an accent shade of the chosen accent color, when there is one. */
+    private static int color(int id) {
+        int seed = Settings.accentColor();
+        Integer shade = ACCENT_SHADES.get(id);
+        if (seed >= 0 && shade != null) return AccentPalette.shade(seed, shade);
+        return resources().getColor(id, null);
+    }
 
     static {
+        // Blue palette: links, buttons, selected states.
+        ACCENTS.put(0xF6FBFF, android.R.color.system_accent1_10);
+        ACCENTS.put(0xE8F3FF, android.R.color.system_accent1_50);
+        ACCENTS.put(0xD0E8FF, android.R.color.system_accent1_100);
+        ACCENTS.put(0xD2E9FF, android.R.color.system_accent1_100);
+        ACCENTS.put(0xA8D4FF, android.R.color.system_accent1_200);
+        ACCENTS.put(0xAAD6FF, android.R.color.system_accent1_200);
+        ACCENTS.put(0x70B5F9, android.R.color.system_accent1_200);
+        ACCENTS.put(0x71B7FB, android.R.color.system_accent1_200);
+        ACCENTS.put(0x378FE9, android.R.color.system_accent1_400);
+        ACCENTS.put(0x0A66C2, android.R.color.system_accent1_600);
+        ACCENTS.put(0x004182, android.R.color.system_accent1_700);
+        ACCENTS.put(0x09223B, android.R.color.system_accent1_800);
+        ACCENTS.put(0x0A2037, android.R.color.system_accent1_900);
+        // ArtDeco's older blues: links in messages, for one.
+        ACCENTS.put(0x0073B1, android.R.color.system_accent1_600);
+        ACCENTS.put(0x0084BF, android.R.color.system_accent1_500);
+        ACCENTS.put(0x006097, android.R.color.system_accent1_700);
+        // Selected states, green in LinkedIn's palette: light theme (checked, hover) and dark theme.
+        CHECKED.put(0x01754F, android.R.color.system_accent1_600);
+        CHECKED.put(0x004C33, android.R.color.system_accent1_700);
+        CHECKED.put(0x37C898, android.R.color.system_accent1_200);
+        CHECKED.put(0x74E5C0, android.R.color.system_accent1_100);
+        // Teal accent of charts (analytics): light theme (accent, hover) and dark theme.
+        CHECKED.put(0x1A707E, android.R.color.system_accent1_600);
+        CHECKED.put(0x114951, android.R.color.system_accent1_700);
+        CHECKED.put(0x5EC0CF, android.R.color.system_accent1_200);
+        CHECKED.put(0x94DDE8, android.R.color.system_accent1_100);
+        // System accent shades (resource ids, inlined at compile time) to their number, for a chosen accent color.
+        int[] shades = {10, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+        int[] ids = {
+                android.R.color.system_accent1_10, android.R.color.system_accent1_50,
+                android.R.color.system_accent1_100, android.R.color.system_accent1_200,
+                android.R.color.system_accent1_300, android.R.color.system_accent1_400,
+                android.R.color.system_accent1_500, android.R.color.system_accent1_600,
+                android.R.color.system_accent1_700, android.R.color.system_accent1_800,
+                android.R.color.system_accent1_900, android.R.color.system_accent1_1000,
+        };
+        for (int i = 0; i < ids.length; i++) ACCENT_SHADES.put(ids[i], shades[i]);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Blue palette: links, buttons, selected states.
-            ACCENTS.put(0xF6FBFF, android.R.color.system_accent1_10);
-            ACCENTS.put(0xE8F3FF, android.R.color.system_accent1_50);
-            ACCENTS.put(0xD0E8FF, android.R.color.system_accent1_100);
-            ACCENTS.put(0xD2E9FF, android.R.color.system_accent1_100);
-            ACCENTS.put(0xA8D4FF, android.R.color.system_accent1_200);
-            ACCENTS.put(0xAAD6FF, android.R.color.system_accent1_200);
-            ACCENTS.put(0x70B5F9, android.R.color.system_accent1_200);
-            ACCENTS.put(0x71B7FB, android.R.color.system_accent1_200);
-            ACCENTS.put(0x378FE9, android.R.color.system_accent1_400);
-            ACCENTS.put(0x0A66C2, android.R.color.system_accent1_600);
-            ACCENTS.put(0x004182, android.R.color.system_accent1_700);
-            ACCENTS.put(0x09223B, android.R.color.system_accent1_800);
-            ACCENTS.put(0x0A2037, android.R.color.system_accent1_900);
-            // ArtDeco's older blues: links in messages, for one.
-            ACCENTS.put(0x0073B1, android.R.color.system_accent1_600);
-            ACCENTS.put(0x0084BF, android.R.color.system_accent1_500);
-            ACCENTS.put(0x006097, android.R.color.system_accent1_700);
-            // Selected states, green in LinkedIn's palette: light theme (checked, hover) and dark theme.
-            CHECKED.put(0x01754F, android.R.color.system_accent1_600);
-            CHECKED.put(0x004C33, android.R.color.system_accent1_700);
-            CHECKED.put(0x37C898, android.R.color.system_accent1_200);
-            CHECKED.put(0x74E5C0, android.R.color.system_accent1_100);
-            // Teal accent of charts (analytics): light theme (accent, hover) and dark theme.
-            CHECKED.put(0x1A707E, android.R.color.system_accent1_600);
-            CHECKED.put(0x114951, android.R.color.system_accent1_700);
-            CHECKED.put(0x5EC0CF, android.R.color.system_accent1_200);
-            CHECKED.put(0x94DDE8, android.R.color.system_accent1_100);
             // Backgrounds: cards in dark mode, and the light canvas.
             BACKGROUNDS.put(0x1B1F23, DARK_SURFACE);
             BACKGROUNDS.put(0x1D2226, DARK_SURFACE);
@@ -188,7 +218,7 @@ public final class MaterialYou {
      */
     public static long translucentAccent(long packed) {
         // sRGB Compose colors keep the ARGB value in the upper 32 bits and color space 0 in the lower ones.
-        if ((packed & 0x3F) != 0 || !Settings.materialYou()) return packed;
+        if ((packed & 0x3F) != 0 || !accentOn()) return packed;
         long argb = packed >>> 32;
         long alpha = argb >>> 24;
         int rgb = (int) (argb & 0xFFFFFF);
@@ -200,7 +230,7 @@ public final class MaterialYou {
     /** Injected at the end of the Compose themes' static initializer for the selected state tokens. */
     public static long checked(long packed) {
         // sRGB Compose colors keep the ARGB value in the upper 32 bits and color space 0 in the lower ones.
-        if ((packed & 0x3F) != 0 || !Settings.materialYou()) return packed;
+        if ((packed & 0x3F) != 0 || !accentOn()) return packed;
         return (map(CHECKED, packed >>> 32) & 0xFFFFFFFFL) << 32;
     }
 
@@ -220,7 +250,7 @@ public final class MaterialYou {
 
     /** Injected after each blue constant of the Compose themes: an ARGB value as used by Color(long). */
     public static long accent(long argb) {
-        return Settings.materialYou() ? map(ACCENTS, argb) : argb;
+        return accentOn() ? map(ACCENTS, argb) : argb;
     }
 
     /** Injected after each background constant of the Compose themes: an ARGB value as used by Color(long). */
@@ -234,7 +264,7 @@ public final class MaterialYou {
             if (colors.isEmpty() || (argb >>> 24) != 0xFF) return argb;
             Integer systemColor = colors.get((int) (argb & 0xFFFFFF));
             if (systemColor == null) return argb;
-            return resources().getColor(systemColor, null) & 0xFFFFFFFFL;
+            return color(systemColor) & 0xFFFFFFFFL;
         } catch (Throwable t) {
             Diagnostics.error("Material You color failed", t);
             return argb;
@@ -242,7 +272,7 @@ public final class MaterialYou {
     }
 
     /** System accent tones, light to dark, that blue colors of server drawn screens are matched to. */
-    private static final int[] ACCENT_TONES = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ? new int[0] : new int[]{
+    private static final int[] ACCENT_TONES = {
             android.R.color.system_accent1_10, android.R.color.system_accent1_50, android.R.color.system_accent1_100,
             android.R.color.system_accent1_200, android.R.color.system_accent1_300, android.R.color.system_accent1_400,
             android.R.color.system_accent1_500, android.R.color.system_accent1_600, android.R.color.system_accent1_700,
@@ -256,7 +286,7 @@ public final class MaterialYou {
      */
     public static Map<Object, Object> sduiColors(Map<Object, Object> overrides) {
         if (overrides == null || overrides.isEmpty()) return overrides;
-        if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) && !Settings.amoledBlack()) {
+        if (!accentOn() && !Settings.amoledBlack()) {
             return overrides;
         }
         try {
@@ -286,7 +316,9 @@ public final class MaterialYou {
      * palette colors the server sends, which skip the theme.
      */
     public static Object sduiUIColor(Object color) {
-        if (color == null || (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !Settings.amoledBlack())) return color;
+        if (color == null || (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !Settings.amoledBlack() && !accentOn())) {
+            return color;
+        }
         try {
             long packed = (long) Reflect.get(color, "value");
             long mapped = sduiColor(packed);
@@ -305,7 +337,7 @@ public final class MaterialYou {
         int rgb = (int) (argb & 0xFFFFFF);
         if (rgb == WARM_GRAY_30 && (argb >>> 24) == 0xFF) return mvpCanvas(packed);
         if (isAmoledBackground(argb)) return BLACK;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return packed;
+        if (!accentOn()) return packed;
         if ((argb >>> 24) != 0xFF) return translucentAccent(packed);
         long mapped = argb;
         if (ACCENTS.containsKey(rgb)) mapped = map(ACCENTS, argb);
@@ -364,7 +396,7 @@ public final class MaterialYou {
         int best = rgb;
         float distance = Float.MAX_VALUE;
         for (int tone : ACCENT_TONES) {
-            int color = resources().getColor(tone, null);
+            int color = color(tone);
             float d = Math.abs(luminance(color) - luminance(rgb));
             if (d < distance) {
                 distance = d;
@@ -389,12 +421,15 @@ public final class MaterialYou {
                 r.getColor(dark ? DARK_SURFACE : LIGHT_SURFACE, null),
                 r.getColor(dark ? DARK_SURFACE_HIGH : LIGHT_SURFACE_HIGH, null),
                 r.getColor(dark ? DARK_BORDER : LIGHT_BORDER, null),
-                r.getColor(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600, null),
+                color(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600),
         };
     }
 
     /** The accent of the Michii Patches settings and dialogs. */
     static int settingsAccent(boolean dark, int fallback) {
+        if (accentOn()) {
+            return color(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600);
+        }
         int[] colors = settingsColors(dark);
         return colors != null ? colors[3] : fallback;
     }

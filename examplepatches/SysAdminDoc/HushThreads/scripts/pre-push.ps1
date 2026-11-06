@@ -818,11 +818,13 @@ try {
             $artifacts = @(Get-ChildItem -LiteralPath (Join-Path $Root 'patches/build/release') `
                 -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
             # The bundle this checkout built, so the indexed URL, its hash and the hosted checksum
-            # entry can all be compared against something real: the only one there, whatever its
-            # name, or among several the one named for the version the index publishes. With none
-            # of those the hosted asset is downloaded and held to every other check a local build
-            # gets. This push is the one that hands a release to Manager users, and it used to go
-            # out with the hosted bundle unread whenever build/release didn't hold exactly one.
+            # entry can all be compared against something real: the copy release.ps1 staged when it
+            # tagged the version the index publishes (a later build replaces build/release, not
+            # that), else the only one in build/release, whatever its name, or among several the
+            # one named for that version. With none of those the hosted asset is downloaded and
+            # held to every other check a local build gets. This push is the one that hands a
+            # release to Manager users, and it used to go out with the hosted bundle unread
+            # whenever build/release didn't hold exactly one.
             $indexPath = Join-Path $Root 'patches-bundle.json'
             $indexVersion = $null
             if (Test-Path -LiteralPath $indexPath -PathType Leaf) {
@@ -832,8 +834,10 @@ try {
                     throw "patches-bundle.json is not JSON the release check can read: $($_.Exception.Message)"
                 }
             }
+            $staged = Join-Path $Root "build/release-assets/$indexVersion/patches-$indexVersion.mpp"
             $forIndex = @($artifacts | Where-Object { $_.Name -eq "patches-$indexVersion.mpp" })
-            $builtHere = if ($artifacts.Count -eq 1) { $artifacts[0] } elseif ($forIndex.Count -eq 1) { $forIndex[0] }
+            $builtHere = if ($indexVersion -and (Test-Path -LiteralPath $staged -PathType Leaf)) { Get-Item -LiteralPath $staged }
+            elseif ($artifacts.Count -eq 1) { $artifacts[0] } elseif ($forIndex.Count -eq 1) { $forIndex[0] }
             if ($builtHere) {
                 $among = if ($artifacts.Count -gt 1) { "found $($artifacts.Count) bundles, so " } else { '' }
                 Write-Step "${among}the hosted asset is compared with $($builtHere.Name), built here"

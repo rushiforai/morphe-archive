@@ -1,3 +1,27 @@
+## [1.3.0](https://github.com/heyymichii/michii-patches/compare/v1.2.2...v1.3.0) (2026-11-05)
+
+### ✨ New Features
+
+* Add Accent color ([2ea52bb](https://github.com/heyymichii/michii-patches/commit/2ea52bbb84d81907391917e7e90035ddf4ea8a2c))
+* Add Bottom bar style ([2a29ad1](https://github.com/heyymichii/michii-patches/commit/2a29ad14c6baf3a99fa479e5b23cb8df1d52333e))
+* Add Icon-only post actions ([c644286](https://github.com/heyymichii/michii-patches/commit/c644286350f840f355906f171391eb98761528dd))
+* Hide bottom bar tabs and badges, and copy post text ([7ad46de](https://github.com/heyymichii/michii-patches/commit/7ad46deae5ae4a44cf2daa3ad99eb230ec25ffbe))
+
+## [1.2.2](https://github.com/heyymichii/michii-patches/compare/v1.2.1...v1.2.2) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* Close the full page Premium ad instead of leaving a black screen ([ec9abba](https://github.com/heyymichii/michii-patches/commit/ec9abba70d53285b16976db6939520de4d625756))
+
+## [1.2.1](https://github.com/heyymichii/michii-patches/compare/v1.2.0...v1.2.1) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* Hide more Premium upsells ([3121486](https://github.com/heyymichii/michii-patches/commit/312148698566aa231a645661ad110c9e5c5888cb)), closes [#9](https://github.com/heyymichii/michii-patches/issues/9)
+* Hide My Network's games section with Hide games ([0c1592d](https://github.com/heyymichii/michii-patches/commit/0c1592da2011aeee52ec64477003eaf5ffe9ff7e)), closes [#15](https://github.com/heyymichii/michii-patches/issues/15)
+* Let AMOLED black reach older screens ([06ddfd2](https://github.com/heyymichii/michii-patches/commit/06ddfd23e4040d56d5b6f8feb840f1f56aa23f10)), closes [#13](https://github.com/heyymichii/michii-patches/issues/13)
+* Show the Michii Patches entry above the Me panel's sections ([89add05](https://github.com/heyymichii/michii-patches/commit/89add05f7aa108885c853c06eee15087a3872065)), closes [#12](https://github.com/heyymichii/michii-patches/issues/12)
+
 ## [1.2.0](https://github.com/heyymichii/michii-patches/compare/v1.1.1...v1.2.0) (2026-10-28)
 
 ### 🐛 Bug Fixes

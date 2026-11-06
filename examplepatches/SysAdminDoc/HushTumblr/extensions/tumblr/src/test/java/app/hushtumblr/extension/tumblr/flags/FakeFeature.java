@@ -28,6 +28,10 @@ public enum FakeFeature {
     RENDER_NIMBUS_ADS,
     RENDER_VUNGLE_ADS,
     RENDER_DISPLAY_IO_INTERSCROLLER_S2S_ADS,
+    MAKE_NIMBUS_INTERSTITIAL_CLIENT_AD_REQUESTS,
+    INTERSTITIAL_ADS_BLOG_OPENING_TRIGGERS,
+    /** Off, it ends the interstitial cooldown, so it's left to Tumblr. */
+    INTERSTITIAL_ADS_CLIENT_COOLDOWN,
 
     // Disable analytics
     LIVERAMP_ATS,

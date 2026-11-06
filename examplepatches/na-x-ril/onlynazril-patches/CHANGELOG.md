@@ -1,3 +1,27 @@
+## [1.5.0](https://github.com/na-x-ril/onlynazril-patches/compare/v1.4.0...v1.5.0) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **TikTok/Custom font:** Compose, Lynx and hybrid pages keep TikTok's own text ([b781efe](https://github.com/na-x-ril/onlynazril-patches/commit/b781efec61a6485c1c47526aa37b1cc8193409f9))
+* **TikTok/Custom font:** Hybrid pages keep their own font ([c6745a6](https://github.com/na-x-ril/onlynazril-patches/commit/c6745a6db2499309d7445e4b2d7c564750b7b286))
+
+### ✨ New Features
+
+* **TikTok/AMOLED:** Add `AMOLED theme` patch ([b98f05a](https://github.com/na-x-ril/onlynazril-patches/commit/b98f05adfee202908c3e904f4de931cacc83ca04))
+* **TikTok:** target 47.7.1 and 47.7.2 and open Tweaks from Home ([821adf9](https://github.com/na-x-ril/onlynazril-patches/commit/821adf9ce4e91cf048f62662253e957f755c1b63))
+
+## [1.5.0-dev.1](https://github.com/na-x-ril/onlynazril-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **TikTok/Custom font:** Compose, Lynx and hybrid pages keep TikTok's own text ([b781efe](https://github.com/na-x-ril/onlynazril-patches/commit/b781efec61a6485c1c47526aa37b1cc8193409f9))
+* **TikTok/Custom font:** Hybrid pages keep their own font ([c6745a6](https://github.com/na-x-ril/onlynazril-patches/commit/c6745a6db2499309d7445e4b2d7c564750b7b286))
+
+### ✨ New Features
+
+* **TikTok/AMOLED:** Add `AMOLED theme` patch ([b98f05a](https://github.com/na-x-ril/onlynazril-patches/commit/b98f05adfee202908c3e904f4de931cacc83ca04))
+* **TikTok:** target 47.7.1 and 47.7.2 and open Tweaks from Home ([821adf9](https://github.com/na-x-ril/onlynazril-patches/commit/821adf9ce4e91cf048f62662253e957f755c1b63))
+
 ## [1.4.0](https://github.com/na-x-ril/onlynazril-patches/compare/v1.3.0...v1.4.0) (2026-10-11)
 
 ### ✨ New Features

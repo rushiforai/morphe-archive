@@ -74,4 +74,7 @@ Roadmap_Blocked.md
 *.md
 !README.md
 !CHANGELOG.md
-!docs/tumblr-46.9.1.100-factory-map.md
+!docs/tumblr-47.0.0.108-factory-map.md
+
+# The bundle signing key's private half lives in HUSHTUMBLR_BUNDLE_SIGNING_KEY, never here.
+morphe-signing.key

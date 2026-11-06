@@ -21,16 +21,16 @@ class OutputPolicyTests(unittest.TestCase):
                 payload_output([2], target, Path('/tmp/finamp-test'))
 
     def test_old_seven_mask_matrix_is_partial_now(self):
-        for limit in (8, 32, 64):
+        for limit in (8, 32, 64, 128):
             with self.subTest(limit=limit), self.assertRaises(ValueError):
                 payload_output(range(1, limit), PRODUCTION, Path('/tmp/finamp-test'))
 
     def test_source_matrix_contains_every_independent_combination(self):
         matrix = json.loads(Path(__file__).with_name('native-sources.json').read_text())
-        bits = [1, 2, 4, 8, 16, 32, 64]
+        bits = [1, 2, 4, 8, 16, 32, 64, 128]
         self.assertEqual(set(map(int, matrix['mask_bits'])), set(bits))
-        self.assertEqual(set(map(int, matrix['masks'])), set(range(128)))
-        for mask in range(128):
+        self.assertEqual(set(map(int, matrix['masks'])), set(range(256)))
+        for mask in range(256):
             entry = matrix['masks'][str(mask)]
             expected = {feature for bit in bits if mask & bit
                         for feature in matrix['masks'][str(bit)]['features']}
@@ -39,8 +39,9 @@ class OutputPolicyTests(unittest.TestCase):
             self.assertRegex(entry['tree'], r'^[0-9a-f]{40}$')
             # A single aggregate ref retains all mask commits as parents;
             # the immutable commit and tree pins identify the exact selection.
-            self.assertEqual(entry['branch'], matrix['asyncvalue_review']['source_ref'])
-        self.assertEqual(len({entry['commit'] for entry in matrix['masks'].values()}), 128)
+            review = 'notes_review' if mask & 128 else 'asyncvalue_review'
+            self.assertEqual(entry['branch'], matrix[review]['source_ref'])
+        self.assertEqual(len({entry['commit'] for entry in matrix['masks'].values()}), 256)
         self.assertRegex(matrix['asyncvalue_review']['source_ref'],
                          r'^penguin/finamp-1\.0\.1-[a-z0-9-]+$')
         self.assertRegex(matrix['asyncvalue_review']['source_ref_commit'], r'^[0-9a-f]{40}$')
@@ -48,7 +49,7 @@ class OutputPolicyTests(unittest.TestCase):
                          {mask for mask in range(128) if mask & 4})
 
     def test_complete_matrix_can_replace_production(self):
-        self.assertEqual(payload_output(range(1, 128), None, Path('/tmp/finamp-test')),
+        self.assertEqual(payload_output(range(1, 256), None, Path('/tmp/finamp-test')),
                          PRODUCTION.resolve())
 
 

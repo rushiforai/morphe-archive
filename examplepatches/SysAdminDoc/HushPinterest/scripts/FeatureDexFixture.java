@@ -956,6 +956,7 @@ public final class FeatureDexFixture {
             for (String family : selected) enable(family);
             FLAGS.put("adViews", false);
             FLAGS.put("googleAds", false);
+            FLAGS.put("metaAds", false);
             // These synthetic targets have no Home request, so Hide pins you've already saved stays out.
             FLAGS.put("feedSavedPins", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);

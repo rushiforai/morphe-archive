@@ -11,6 +11,6 @@ object Constants {
         description = "The Mint Mobile app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x6FBE4A,
-        targets = listOf(AppTarget("2.3.40"))
+        targets = listOf(AppTarget("2.3.41"))
     )
 }

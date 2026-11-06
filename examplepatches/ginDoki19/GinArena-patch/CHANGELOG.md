@@ -1,3 +1,27 @@
+## [2.9.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.2...v2.9.0) (2026-11-05)
+
+### ✨ New Features
+
+* add CrexiFy TV 4.5 patches ([518ab2e](https://github.com/ginDoki19/GinArena-patch/commit/518ab2ead18581084c50bf6f33fca4f46df02d9e))
+
+## [2.9.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.2...v2.9.0-dev.1) (2026-11-05)
+
+### ✨ New Features
+
+* add CrexiFy TV 4.5 patches ([518ab2e](https://github.com/ginDoki19/GinArena-patch/commit/518ab2ead18581084c50bf6f33fca4f46df02d9e))
+
+## [2.8.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.1...v2.8.2) (2026-11-05)
+
+### 🚀 Updated App Support
+
+* **player:** hide playback controls on open and fullscreen ([bde2729](https://github.com/ginDoki19/GinArena-patch/commit/bde272914e96fe0ea68e06d9331de35ccbe7206d))
+
+## [2.8.2-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.1...v2.8.2-dev.1) (2026-11-05)
+
+### 🚀 Updated App Support
+
+* **player:** hide playback controls on open and fullscreen ([bde2729](https://github.com/ginDoki19/GinArena-patch/commit/bde272914e96fe0ea68e06d9331de35ccbe7206d))
+
 ## [2.8.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.0...v2.8.1) (2026-11-04)
 
 ### 🐛 Bug Fixes

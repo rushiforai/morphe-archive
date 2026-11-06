@@ -37,8 +37,8 @@ android {
     namespace = "app.wordfeudwordfinder.extension"
     sourceSets {
         getByName("main") {
-            java.srcDir(buildInfoDir.get().asFile)
-            java.srcDir(layout.buildDirectory.dir("generated/source/wordlists").get().asFile)
+            java.directories.add(buildInfoDir.get().asFile.path)
+            java.directories.add(layout.buildDirectory.dir("generated/source/wordlists").get().asFile.path)
         }
     }
 }

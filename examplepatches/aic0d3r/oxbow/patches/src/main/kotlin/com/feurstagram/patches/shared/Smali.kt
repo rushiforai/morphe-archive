@@ -8,6 +8,8 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.builder.BuilderSwitchPayload
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -16,6 +18,26 @@ const val CONFIG_CLASS = "Lcom/feurstagram/extension/Config;"
 /** True when the method loads a string ending with [suffix] (purge-log prefixes change per release). */
 fun Method.hasStringEndingWith(suffix: String): Boolean =
     implementation?.instructions?.any { it.getReference<StringReference>()?.string?.endsWith(suffix) == true } == true
+
+/** True when the method loads exactly [string]. */
+fun Method.loadsString(string: String): Boolean =
+    implementation?.instructions?.any { it.getReference<StringReference>()?.string == string } == true
+
+/**
+ * Whether a branch, switch case or catch handler lands on the first instruction. A hook added at
+ * index 0 would then be skipped on that path, so callers refuse such a method instead.
+ */
+fun MutableMethod.branchesToEntry(): Boolean {
+    val implementation = implementation ?: return false
+    val targets = implementation.instructions.flatMap { instruction ->
+        when (instruction) {
+            is BuilderOffsetInstruction -> listOf(instruction.target)
+            is BuilderSwitchPayload -> instruction.switchElements.map { it.target }
+            else -> emptyList()
+        }
+    } + implementation.tryBlocks.map { it.exceptionHandler.handler }
+    return targets.any { it.location.index == 0 }
+}
 
 /** Fingerprint on a method that loads a string ending with [suffix]. */
 fun stringSuffixFingerprint(suffix: String, returnType: String? = null) = Fingerprint(

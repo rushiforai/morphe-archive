@@ -22,7 +22,6 @@ import java.util.List;
 
 import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.Logger;
-import app.hushtumblr.extension.shared.Utils;
 import app.hushtumblr.extension.shared.settings.Setting;
 import app.hushtumblr.extension.shared.settings.preference.ReportProblem;
 
@@ -69,17 +68,18 @@ final class ReportProblemForm {
     }
 
     /** Opens the report in a browser, in a task of its own, or says no app here can. */
-    static void open(Context context, PreferenceGroup screen) {
+    static void open(Context context, PreferenceGroup screen, SettingsFeedback feedback) {
         try {
             context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(issueUrl(screen)))
                     .addCategory(Intent.CATEGORY_BROWSABLE)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            feedback.clear();
         } catch (ActivityNotFoundException | SecurityException missing) {
             // No browser, or none switched on. Uncaught, Android's exception closed Tumblr.
             Logger.printInfo(() -> "No app opened the bug report link");
             // The Source code row's own message, so the screen says this one way.
-            Utils.showToastLong(L10n.f("No app on this phone can open the link. The address is %1$s.",
-                    L10n.isolate(HushTumblrPreferenceFragment.SOURCE_ADDRESS)));
+            feedback.show(L10n.f("No app on this phone can open the link. The address is %1$s.",
+                    L10n.isolate(HushTumblrPreferenceFragment.SOURCE_ADDRESS)), HushTumblrPreferenceFragment.SOURCE_URL);
         }
     }
 }

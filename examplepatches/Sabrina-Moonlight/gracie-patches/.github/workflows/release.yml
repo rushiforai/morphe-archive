@@ -1,0 +1,123 @@
+name: Release
+
+# Se puede lanzar a mano (Actions > Release > Run workflow, rama main) y también se lanza
+# solo cuando Sort Uploads termina de colocar archivos subidos a Drop-Files.
+# Compila el .mpp, lo publica en Releases (con versión nueva automática), actualiza la
+# lista de patches y patches-bundle.json, y borra los releases/etiquetas anteriores
+# para que en GitHub y en Morphe Manager siempre quede un solo release: el más nuevo.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compilar MPP y publicar Release
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Versión nueva: la más alta entre gradle.properties y (última etiqueta vX.Y.Z + 1 en el último número).
+      # Solo cambia gradle.properties dentro de esta ejecución; no se sube nada al repositorio.
+      - name: Calcular versión
+        id: ver
+        run: |
+          base=$(grep -E '^version' gradle.properties | head -1 | sed 's/.*=[ \t]*//' | tr -d '\r ')
+          ultima=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's/^v//' | sort -V | tail -1 || true)
+          sig=""
+          if [ -n "$ultima" ]; then
+            sig="${ultima%.*}.$(( ${ultima##*.} + 1 ))"
+          fi
+          nueva=$(printf '%s\n%s\n' "$base" "$sig" | grep . | sort -V | tail -1)
+          sed -i "s/^version.*/version = $nueva/" gradle.properties
+          echo "version=$nueva" >> "$GITHUB_OUTPUT"
+          echo "Versión: $nueva"
+
+      # Las dos tareas van en una sola llamada a Gradle (igual que lo hace el propio equipo
+      # de Morphe): pedirlas por separado hace que el plugin "app.morphe.patches" se
+      # aplique dos veces en el mismo job, y la segunda vez falla con un error sin mensaje.
+      - name: Compilar y generar lista de patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+
+      # Actualiza patches-list.json con la versión, y mete la lista de patches en el
+      # README (entre <!-- PATCHES_START --> y <!-- PATCHES_END -->). Así Morphe Manager
+      # y GitHub siempre muestran la versión y la lista actuales.
+      - name: Actualizar lista y paquete de patches
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          jq ".version = \"$VERSION\"" patches-list.json > patches-list.json.tmp
+          mv patches-list.json.tmp patches-list.json
+
+          python3 .github/scripts/generate_patches_readme.py "$GITHUB_REPOSITORY" "main" patches-list.json README.md
+
+          cat > patches-bundle.json << JSON
+          {
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S)",
+            "description": "Patches for apps I like",
+            "download_url": "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/patches-$VERSION.mpp",
+            "signature_download_url": "",
+            "version": "$VERSION"
+          }
+          JSON
+
+      - name: Publicar Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          gh release create "v$VERSION" patches/build/libs/patches-*.mpp \
+            --title "v$VERSION" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
+
+      # Deja un solo release visible en GitHub y en Morphe Manager: borra todos los
+      # releases y etiquetas anteriores, dejando únicamente el que se acaba de publicar.
+      - name: Borrar releases y etiquetas anteriores
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          for tag in $(gh release list --limit 1000 --json tagName --jq '.[].tagName'); do
+            if [ "$tag" != "v$VERSION" ]; then
+              echo "Borrando release y etiqueta $tag"
+              gh release delete "$tag" --yes --cleanup-tag
+            fi
+          done
+
+      # Copia de respaldo en Actions > ejecución > Artifacts.
+      - name: Subir MPP
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-mpp
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+
+      # Deja en main la lista y el bundle ya actualizados con esta versión.
+      - name: Guardar lista de patches en main
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md patches-list.json patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "Nada que guardar"
+          else
+            git commit -m "chore: Release v$VERSION [skip ci]"
+            git pull --rebase --autostash origin main
+            git push origin HEAD:main
+          fi

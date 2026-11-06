@@ -313,6 +313,8 @@ Hide Threads cards between reels	Ẩn thẻ Threads giữa các reel
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Ẩn thẻ "Threads bạn có thể thích" giữa các reel. Mặc định tắt vì chưa được thử trên tài khoản thật.
 Only reels from accounts I follow	Chỉ reel từ tài khoản tôi theo dõi
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Tab Reels chỉ hiện reel của những người và Trang bạn theo dõi, bắt đầu từ đợt tiếp theo Facebook tải. Tab có thể lâu đầy hơn. Mặc định tắt.
+Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook không còn reel nào mà bộ lọc của bạn giữ lại, nên tạm thời các reel này không được lọc.
+Hush hid the suggested posts after this, so Home ends here.	Hush đã ẩn các bài viết gợi ý phía sau, nên Trang chủ kết thúc ở đây.
 Download quality	Chất lượng tải xuống
 Best	Tốt nhất
 Smallest	Nhỏ nhất
@@ -859,7 +861,7 @@ Holding a video in the feed or in Watch plays it at double speed until you let g
 Locked at 2x. Tap the video to go back.	Đã khóa ở 2x. Nhấn vào video để trở lại.
 Hide the pull down to lock hint	Ẩn gợi ý kéo xuống để khóa
 Hide the 2x popups	Ẩn các thông báo 2x
-Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Giữ video để xem 2x sẽ không hiện thông báo nào, không có "Tốc độ: 2x", "Thả để khóa" hay "Đã khóa ở tốc độ 2x". Giữ và khóa vẫn hoạt động.
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed", and feed videos drop the "2x speed" tip. The hold and the lock still work.	Giữ video để xem 2x sẽ không hiện thông báo nào, không có "Tốc độ: 2x", "Thả để khóa" hay "Đã khóa ở tốc độ 2x", và video trong bảng tin cũng không còn hiện mẹo "Tốc độ 2x". Giữ và khóa vẫn hoạt động.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Nhấn giữ video để phát 2x chỉ hiện nhãn 2x thông thường, không có gợi ý "Kéo xuống để khóa tốc độ 2x". Kéo xuống vẫn khóa được. Không cần bật các công tắc phía trên.
 Default playback quality	Chất lượng phát mặc định
@@ -2149,6 +2151,15 @@ Cast button on feed videos	Nút truyền trên video bảng tin
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Thêm nút truyền vào video trên bảng tin. Nút này chuyển video sang ứng dụng truyền bạn có, như Web Video Caster, để phát lên TV. Facebook không còn tính năng truyền riêng nữa.
 Cast this video	Truyền video này
 Full player button on feed videos	Nút trình phát đầy đủ trên video bảng tin
+Skip buttons on feed videos	Nút tua trên video bảng tin
+Speed button on feed videos	Nút tốc độ trên video bảng tin
+Times on the seek bar	Thời gian trên thanh tua
+Back 10 seconds	Lùi 10 giây
+Ahead 10 seconds	Tới 10 giây
+Playback speed	Tốc độ phát
+Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Thêm vào video bảng tin các nút lùi hoặc tới 10 giây, giống trình phát của chính Facebook. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
+Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Thêm vào video bảng tin một nút hiển thị tốc độ. Mỗi lần nhấn chuyển sang tốc độ tiếp theo: 1x, 1.25x, 1.5x, 2x, rồi 0.5x. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
+Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Hiển thị thời gian đã xem ở đầu trái thanh tua của video bảng tin, và thời gian còn lại ở đầu phải. Cần bật Thanh tua trên video bảng tin.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Thêm nút vào video bảng tin để mở video trong trình phát đầy đủ của Facebook, với mọi nút điều khiển. Video trực tiếp cũng có nút này. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Mở video toàn màn hình ở giữa
@@ -2157,6 +2168,10 @@ Videos you open full screen, from a comment or a link, start with their details 
 Open in the full player	Mở trong trình phát đầy đủ
 Seek bar on feed videos	Thanh tua trên video bảng tin
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Hiển thị một thanh dọc theo cạnh dưới của video bảng tin. Kéo rồi thả để nhảy đến điểm đó. Video trực tiếp và quảng cáo vẫn giữ điều khiển riêng. Khi Nhấn để phát bật, Nút điều khiển video trong bảng tin cũng phải bật.
+Fade the seek bar and speaker	Làm mờ thanh tua và nút loa
+Lower the seek bar and speaker	Hạ thấp thanh tua và nút loa
+While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Khi video bảng tin đang phát, thanh tua và nút loa của Facebook mờ đi vài giây sau khi video bắt đầu hoặc sau lần chạm cuối của bạn. Chạm vào thanh hoặc tạm dừng video là chúng hiện lại. Cần bật Thanh tua trên video bảng tin.
+Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Đưa thanh tua của video bảng tin xuống gần cạnh dưới hơn, cùng với nút loa và nút người được gắn thẻ của Facebook. Cần bật Thanh tua trên video bảng tin.
 Feed video position	Vị trí video bảng tin
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Màu huy hiệu
@@ -2477,8 +2492,12 @@ Restore feed sound after opened videos	Khôi phục âm thanh bảng tin sau khi
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Video bạn mở vẫn phát kèm âm thanh như bình thường. Khi quay lại bảng tin, âm thanh sẽ giống như trước khi bạn mở video, kể cả khi bạn xem lâu.
 Hide the Join button on posts	Ẩn nút Tham gia trên bài viết
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Ẩn nút Tham gia cạnh tên nhóm trên các bài viết từ nhóm bạn chưa tham gia, cùng thanh Tham gia nhóm bên dưới video của các nhóm đó. Thay đổi hiện ở các bài viết được tải sau đó.
+Hide the X on posts	Ẩn nút X trên bài viết
+Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	Bỏ nút X ở góc trên của các bài viết trong bảng feed. Menu ba chấm bên cạnh vẫn giữ nguyên. Thay đổi hiện ở các bài viết được tải sau đó.
 Hide the Reels title	Ẩn tiêu đề Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Bỏ chữ Reels ở đầu tab Reels. Các nút bên cạnh vẫn giữ nguyên.
+Hide Back on opened videos	Ẩn nút Quay lại trên video đã mở
+Takes the Back arrow off the top of a video or reel you open, and Menu off the top of the Reels tab. Your phone's back gesture or button still goes back.	Bỏ mũi tên Quay lại ở phía trên video hoặc reel bạn mở, và nút Menu ở đầu tab Reels. Cử chỉ hoặc nút quay lại của điện thoại vẫn dùng được.
 Videos in search results wait for a tap	Video trong kết quả tìm kiếm chờ bạn chạm
 Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	Video trong kết quả tìm kiếm không tự phát. Chạm vào một video để phát. Hoạt động cả khi Chạm để phát bật hoặc tắt.
 Custom color	Màu tùy chỉnh
@@ -2526,9 +2545,20 @@ A tap in the middle of a story shows a play and pause button, like Reels. Taps o
 Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Tin chỉ chuyển khi nhấn đúp, bên trái về tin trước và chỗ khác sang tin tiếp theo. Chạm một lần sẽ tạm dừng hoặc phát tin, hoặc hiện nút phát khi tùy chọn đó đang bật.
 Pause story	Tạm dừng tin
 Play story	Phát tin
+Replay story	Phát lại tin
 Hide song and effect credits	Ẩn thông tin bài hát và hiệu ứng
 Hide reply suggestions	Ẩn gợi ý trả lời
 Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Bỏ thông tin bài hát và hiệu ứng khỏi dòng dưới tên người đăng tin. Áp dụng từ tin tiếp theo bạn mở.
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Bỏ hàng câu trả lời gợi ý ở cuối tin. Ô trả lời vẫn giữ nguyên. Áp dụng từ tin tiếp theo bạn mở.
+Hide the Subscribe button	Ẩn nút Đăng ký
+Takes the Subscribe button off the top of a story. Applies from the next story you open.	Bỏ nút Đăng ký ở đầu tin. Áp dụng từ tin tiếp theo bạn mở.
 Progress bar at the bottom	Thanh tiến trình ở dưới
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Hiện một thanh mỏng ở cuối tin, đầy dần khi tin phát, giống thanh trên Reels.
+Seek bar on stories	Thanh tua trên tin
+Fade the story seek bar	Làm mờ thanh tua của tin
+Story position	Vị trí trong tin
+Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Hiện một thanh ở cuối tin video để bạn kéo đi qua tin. Tin chờ trong lúc bạn kéo. Thanh tiến trình ở dưới nhường chỗ cho thanh này trên tin video.
+With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	Khi bật Thanh tua trên tin, thanh mờ đi vài giây sau khi tin bắt đầu hoặc sau lần chạm cuối của bạn. Chạm hoặc tạm dừng là thanh hiện lại.
+Clean mode	Chế độ gọn gàng
+Clean mode button on reels	Nút Chế độ gọn gàng trên reels
+Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Thêm nút Chế độ gọn gàng vào các nút dọc bên cạnh reel. Chạm vào để ẩn chúng, và Chế độ gọn gàng vẫn bật khi bạn vuốt. Nút Chế độ gọn gàng của chính Facebook sẽ hiện chúng lại.

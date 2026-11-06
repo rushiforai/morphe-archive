@@ -29,7 +29,7 @@ public final class ThreadWatch {
         if(minutes>0||text.length()==0)text.append(minutes).append("分");
         return text.toString();
     }
-    private static void showInterval(Activity a){
+    private static void showInterval(Activity a,Runnable onReturn){
         int minutes=interval(a);int[] values={minutes/1440,minutes%1440/60,minutes%60};
         String[] labels={"日","時間","分"};
         android.widget.LinearLayout box=new android.widget.LinearLayout(a);box.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -60,7 +60,7 @@ public final class ThreadWatch {
                 a.getSharedPreferences(PREFS+"_options",0).edit().putInt("minutes",saved).commit();schedule(a);dialog.dismiss();
                 Toast.makeText(a,"確認間隔を"+intervalLabel(saved)+"にしました",Toast.LENGTH_SHORT).show();
             }catch(IllegalArgumentException invalid){error.setVisibility(android.view.View.VISIBLE);}
-        }));dialog.show();
+        }));dialog.setOnDismissListener(d->{if(!a.isFinishing()&&!a.isDestroyed()&&onReturn!=null)onReturn.run();});dialog.show();
     }
     static ThreadWatchRules.Target current(Object fragment,Activity a)throws Exception{
         String version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;
@@ -90,10 +90,18 @@ public final class ThreadWatch {
         int[] duration={ThreadWatchManagement.defaultDuration(a)};ThreadWatchManagement.durationButton(box,a,duration);
         ThreadWatchManagement.addButton(box,a);
         Runnable enabled=()->{replies.setEnabled(auto.isChecked());stop.setEnabled(auto.isChecked());};enabled.run();auto.setOnCheckedChangeListener((v,b)->enabled.run());
-        new HaiagaruDialog.Builder(a).setTitle("書き込み後の自動監視")
+        HaiagaruDialog dialog=new HaiagaruDialog.Builder(a).setTitle("書き込み後の自動監視")
             .setMessage("投稿成功を確認したスレを自動登録します。以下は未登録スレの初期設定です。登録済みスレは『このスレの新着通知』の個別設定を優先し、上書きしません。停止後も次の書き込みで監視を再開し、個別の期限を更新します。初期OFFです。")
-            .setView(box).setNeutralButton("確認間隔",(d,w)->showInterval(a)).setNegativeButton("キャンセル",null)
-            .setPositiveButton("保存",(d,w)->{p.edit().putBoolean("watchAfterPosting",auto.isChecked()).putBoolean("watchAutoRepliesOnly",replies.isChecked()).putBoolean("watchAutoStopAfterReply",stop.isChecked()).apply();a.getSharedPreferences(PREFS+"_options",0).edit().putInt("durationMinutes",duration[0]).apply();if(auto.isChecked())permission(a);}).show();
+            .setView(box).setNeutralButton("確認間隔",null).setNegativeButton("キャンセル",null)
+            .setPositiveButton("保存",(d,w)->{p.edit().putBoolean("watchAfterPosting",auto.isChecked()).putBoolean("watchAutoRepliesOnly",replies.isChecked()).putBoolean("watchAutoStopAfterReply",stop.isChecked()).apply();a.getSharedPreferences(PREFS+"_options",0).edit().putInt("durationMinutes",duration[0]).apply();if(auto.isChecked())permission(a);}).create();
+        keepParentForInterval(dialog,a,null);dialog.show();
+    }
+    /** The interval editor is a child; keep unsaved parent controls and Back/Cancel navigation. */
+    private static void keepParentForInterval(HaiagaruDialog dialog,Activity a,Runnable onReturn){
+        dialog.setOnShowListener(d->dialog.getButton(-3).setOnClickListener(v->showInterval(a,onReturn)));
+    }
+    private static String watchMessage(Activity a,boolean registered,JSONObject saved){
+        return (registered?ThreadWatchManagement.status(saved)+"。":"")+"このスレの個別設定を優先します。書き込み後の自動監視設定には上書きされません。保存・再開時に期限を更新します。約"+intervalLabel(interval(a))+"ごとに確認します。初回確認は通知しません。標準の返信通知と同じ返信は、先に通知した側だけで知らせます。返信判定にはこの端末の自分の書き込みマークを使用します。";
     }
     private static void permission(Activity a){
         if(Build.VERSION.SDK_INT>=33&&a.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=PackageManager.PERMISSION_GRANTED)
@@ -112,8 +120,8 @@ public final class ThreadWatch {
             ThreadWatchManagement.durationButton(box,a,duration);
             android.widget.Button defaults=new android.widget.Button(a);defaults.setText("書き込み後の自動監視を設定");box.addView(defaults);defaults.setOnClickListener(v->showDefaults(a));
             HaiagaruDialog.Builder dialog=new HaiagaruDialog.Builder(a).setTitle("このスレの新着通知")
-                .setMessage((registered?ThreadWatchManagement.status(saved)+"。":"")+"このスレの個別設定を優先します。書き込み後の自動監視設定には上書きされません。保存・再開時に期限を更新します。約"+intervalLabel(interval(a))+"ごとに確認します。初回確認は通知しません。標準の返信通知と同じ返信は、先に通知した側だけで知らせます。返信判定にはこの端末の自分の書き込みマークを使用します。")
-                .setView(box).setNeutralButton("確認間隔を変更",(d,w)->showInterval(a))
+                .setMessage(watchMessage(a,registered,saved))
+                .setView(box).setNeutralButton("確認間隔を変更",null)
                 .setPositiveButton(registered?"保存・監視を再開":"通知を登録",(d,w)->{
                     synchronized(LOCK){try{
                         if(!registered&&prefs(a).getAll().size()>=100){Toast.makeText(a,"登録できるのは100スレまでです",Toast.LENGTH_LONG).show();return;}
@@ -128,7 +136,7 @@ public final class ThreadWatch {
                     if(!registered)return;
                     synchronized(LOCK){prefs(a).edit().remove(t.url).commit();}
                     ((NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(t.url,JOB);schedule(a);
-                });dialog.show();
+                });HaiagaruDialog parent=dialog.create();keepParentForInterval(parent,a,()->parent.setMessage(watchMessage(a,registered,saved)));parent.show();
         }catch(Exception error){Toast.makeText(a,"通知設定を開けません",Toast.LENGTH_LONG).show();}
     }
     /** Called only after native posting confirmation records the exact response URL. */

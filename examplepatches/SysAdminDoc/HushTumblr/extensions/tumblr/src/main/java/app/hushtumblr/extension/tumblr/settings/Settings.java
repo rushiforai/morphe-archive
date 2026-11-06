@@ -50,6 +50,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting MUTE_ROOT_POSTS = new BooleanSetting("hushtumblr_mute_root_posts", FALSE);
     public static final BooleanSetting SHOW_IMAGE_DESCRIPTIONS = new BooleanSetting("hushtumblr_show_image_descriptions", FALSE);
     public static final BooleanSetting SHARE_VIDEO_LINKS = new BooleanSetting("hushtumblr_share_video_links", FALSE);
+    public static final BooleanSetting SHARPER_IMAGES = new BooleanSetting("hushtumblr_sharper_images", FALSE);
     public static final BooleanSetting SHOW_POST_TIMESTAMPS = new BooleanSetting("hushtumblr_show_post_timestamps", FALSE);
     public static final BooleanSetting WORDS_CURRENT_TEXT = new BooleanSetting("hushtumblr_words_current_text", TRUE);
     public static final BooleanSetting WORDS_REBLOG_TRAIL = new BooleanSetting("hushtumblr_words_reblog_trail", TRUE);
@@ -71,6 +72,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_ADS =
             new BooleanSetting("hushtumblr_hide_ads", TRUE, true);
+
+    /**
+     * Keep the posts people paid to promote with Blaze while Hide ads takes the rest, leaving the
+     * other post rules in force ({@code TimelineFilter.isPaidBlaze}).
+     * The feed filter reads it per page, so it needs no restart.
+     */
+    public static final BooleanSetting KEEP_BLAZE_POSTS =
+            new BooleanSetting("hushtumblr_keep_blaze_posts", FALSE);
 
     /**
      * Google's advertising ID getters answer an empty ID with ad tracking limited
@@ -189,6 +198,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtumblr_hide_watch_it_rows", FALSE);
 
     /**
+     * The posts Tumblr's staff put in your feeds under a "Featured" header come out of each page
+     * ({@link app.hushtumblr.extension.tumblr.timeline.TimelineFilter}). Off to start.
+     */
+    public static final BooleanSetting HIDE_FEATURED_POSTS =
+            new BooleanSetting("hushtumblr_hide_featured_posts", FALSE);
+
+    /**
      * Posts in your feeds don't show their tags
      * ({@link app.hushtumblr.extension.tumblr.ui.PostParts}). Off to start.
      */
@@ -286,6 +302,22 @@ public class Settings extends BaseSettings {
     /** Keep reblogs whose own content isn't empty, while leaving the other enabled post rules in force. */
     public static final BooleanSetting KEEP_REBLOGS_WITH_CONTENT =
             new BooleanSetting("hushtumblr_keep_reblogs_with_content", FALSE);
+
+    /**
+     * Reblogs made on a blog of yours, the ones Tumblr says you can edit, leave each page of the
+     * dashboard and the feeds that load like it. A blog's own page keeps them
+     * ({@link app.hushtumblr.extension.tumblr.timeline.PostRules}).
+     */
+    public static final BooleanSetting HIDE_OWN_REBLOGS =
+            new BooleanSetting("hushtumblr_hide_own_reblogs", FALSE);
+
+    /**
+     * Posts the signed-in account had liked when Tumblr sent them leave each page of the dashboard
+     * and the feeds that load like it. Likes and blog pages keep them
+     * ({@link app.hushtumblr.extension.tumblr.timeline.PostRules}).
+     */
+    public static final BooleanSetting HIDE_LIKED_POSTS =
+            new BooleanSetting("hushtumblr_hide_liked_posts", FALSE);
 
     /**
      * Posts with a video anywhere in them, the reblog trail included, leave each page of posts

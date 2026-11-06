@@ -73,6 +73,66 @@ public final class Hiders {
     }
 
     /**
+     * Called by Instagram's Back handling with the depth of its tab history (the
+     * tabs Back walks back through, oldest first): the depth to act on.
+     *
+     * With the Home icon hidden the history still starts on Home, where Instagram
+     * always starts, and Back from the first tab shown would walk back onto the
+     * hidden feed. A hidden Home is not counted, so Back from that tab leaves the
+     * app, as Back from Home does.
+     */
+    public static int backHistoryDepth(java.util.List<?> history, int depth) {
+        try {
+            if (history == null || Config.isNavTabShown("nav_show_home")) return depth;
+            int shown = 0;
+            for (Object entry : history) {
+                if (!"fragment_feed".equals(fragmentTag(tabOf(entry)))) shown++;
+            }
+            return Math.min(depth, shown);
+        } catch (Throwable ignored) {
+            return depth;
+        }
+    }
+
+    /** The tab enum constant a tab-history entry holds, or null. */
+    private static Object tabOf(Object entry) {
+        if (entry == null) return null;
+        for (java.lang.reflect.Field field : entry.getClass().getDeclaredFields()) {
+            if (!field.getType().isEnum() || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+            try {
+                field.setAccessible(true);
+                return field.get(entry);
+            } catch (Throwable ignored) {
+                // next field
+            }
+        }
+        return null;
+    }
+
+    /** The "fragment_..." tag a tab enum constant carries, or null. */
+    private static String fragmentTag(Object tab) {
+        if (tab == null) return null;
+        for (Class<?> c = tab.getClass(); c != null && c != Enum.class; c = c.getSuperclass()) {
+            for (java.lang.reflect.Field field : c.getDeclaredFields()) {
+                if (field.getType() != String.class
+                        || java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(tab);
+                    if (value instanceof String && ((String) value).startsWith("fragment_")) {
+                        return (String) value;
+                    }
+                } catch (Throwable ignored) {
+                    // next field
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Applies GONE/VISIBLE to one or more named views on every layout pass,
      * driven by a block_* preference. Toggling the preference off restores the
      * views on the next pass.

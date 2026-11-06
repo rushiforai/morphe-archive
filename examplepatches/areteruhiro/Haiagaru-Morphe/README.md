@@ -2,7 +2,7 @@
 
 ◆2ofgBR.b9E <br>
 ChMate用Morpheパッチ「Haiagaru」 Part 1
-https://jbbs.shitaraba.net/bbs/read.cgi/computer/45040/1793701433/ <br> 
+https://jbbs.shitaraba.net/computer/45040/ <br> 
 
 # Haiagaru for Morphe
 

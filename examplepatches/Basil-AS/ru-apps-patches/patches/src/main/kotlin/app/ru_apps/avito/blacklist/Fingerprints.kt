@@ -1,0 +1,110 @@
+// Ported from xob0t/morphe-patches (GPLv3), app/avito/patches/blacklist/Fingerprints.kt.
+package app.ru_apps.avito.blacklist
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
+
+private const val SERP_DISPLAY_TYPE = "Lcom/avito/android/remote/model/SerpDisplayType;"
+private const val LIST = "Ljava/util/List;"
+private const val STRING = "Ljava/lang/String;"
+private const val ADVERT_DETAILS = "Lcom/avito/android/remote/model/AdvertDetails;"
+private const val ADVERT_DETAILS_STYLE = "Lcom/avito/android/advert_details/AdvertDetailsStyle;"
+private const val EXTENDED_PROFILE = "Lcom/avito/android/remote/model/ExtendedProfile;"
+
+/**
+ * Matches the seller-profile (ExtendedProfile) header converter — the method that
+ * turns the loaded profile into the screen's UI, receiving the deep-link
+ * `userKey`/`context` strings and the full `ExtendedProfile`. We hook its entry to
+ * add a "block seller" action to the profile toolbar.
+ *
+ * Identified by its distinctive shape — two `String`s followed by an
+ * `ExtendedProfile` — within the (stable) `extended_profile/converter` package, so
+ * it survives the per-release minification of the class/method names.
+ */
+object SellerProfileConverterFingerprint : Fingerprint(
+    definingClass = "Lcom/avito/android/extended_profile/converter/",
+    parameters = listOf(STRING, STRING, EXTENDED_PROFILE),
+    // Only the concrete converter implementation — not an abstract declaration with
+    // the same signature (which has no body to patch).
+    custom = { method, _ -> method.implementation != null },
+)
+
+/**
+ * Matches `AdvertDetailsToolbarPresenter`'s navbar-setup method, which builds the
+ * advert-detail toolbar (and inflates its menu) and receives the full
+ * `AdvertDetails`. We hook its entry to add block-offer / block-seller actions.
+ *
+ * Identified by its stable advert-presenter package, parameter shape and its call
+ * to `AdvertDetails.getNavigationBar()`. The concrete class and method names are
+ * minified per release, while the model API and feature package remain stable.
+ */
+object AdvertDetailsToolbarMenuFingerprint : Fingerprint(
+    definingClass = "Lcom/avito/android/advert/",
+    returnType = "V",
+    parameters = listOf(
+        ADVERT_DETAILS_STYLE,
+        ADVERT_DETAILS,
+        STRING,
+        "Z",
+    ),
+    filters = listOf(
+        methodCall(
+            definingClass = ADVERT_DETAILS,
+            name = "getNavigationBar",
+        ),
+    ),
+    // Only the concrete presenter implementation — not the abstract interface
+    // declaration with the same signature (which has no body to patch).
+    custom = { method, _ -> method.implementation != null },
+)
+
+/**
+ * Matches the SERP element converter that turns a list of network
+ * `SerpElement`s into the adapter item list rendered in search results.
+ *
+ * This is the sole concrete implementation of the converter interface
+ * (`U0`/`T0` in 226.5, `P0`/`O0` in 221.0), invoked by the parallel
+ * `convertParallel` path. The method name and class are obfuscated and the
+ * parameter count varies between releases:
+ *
+ * - 221.0: `(List, SerpDisplayType, String, String, boolean, List) -> ArrayList`
+ * - 226.5: `(List, SerpDisplayType, String, String, boolean, boolean, List, int) -> ArrayList`
+ *
+ * The match therefore relies only on the stable core shared by both: a concrete
+ * method in `serp/adapter` returning `ArrayList`, taking a `List` then a
+ * (non-obfuscated) `SerpDisplayType`, two `String`s, and at least one more
+ * `List` afterwards. `SerpDisplayType` makes this highly distinctive — it is the
+ * only `serp/adapter` method with this shape.
+ */
+object SerpElementsConverterFingerprint : Fingerprint(
+    definingClass = "Lcom/avito/android/serp/adapter/",
+    returnType = "Ljava/util/ArrayList;",
+    // Variable-arity shape (param count differs across releases), so the parameter
+    // constraints stay here rather than in the fixed-arity `parameters` field.
+    custom = { method, _ ->
+        method.implementation != null &&
+            method.parameterTypes.map { it.toString() }.let { params ->
+                params.size >= 5 &&
+                    params[0] == LIST &&
+                    params[1] == SERP_DISPLAY_TYPE &&
+                    params[2] == STRING &&
+                    params[3] == STRING &&
+                    params.drop(4).contains(LIST)
+            }
+    },
+)
+
+/**
+ * Matches Beduin v2's `LazyComponentAdapter.submitList(List, Runnable)`: the
+ * single entry through which every server-driven Beduin v2 lazy list and grid
+ * receives its components (the adapter already drops components whose display
+ * predicate is false here). Newer search screens render their results through
+ * it instead of the SERP converter. Absent on builds without Beduin v2 lists.
+ */
+object BeduinLazyAdapterSubmitListFingerprint : Fingerprint(
+    definingClass = "Lcom/avito/beduin/v2/component/common/lazy/",
+    name = "submitList",
+    returnType = "V",
+    parameters = listOf(LIST, "Ljava/lang/Runnable;"),
+    custom = { method, _ -> method.implementation != null },
+)

@@ -558,12 +558,12 @@ class CloseupButtonsFixtureTest {
         const val FIND_VIEW_CALL = "Landroid/view/View;->findViewById(I)Landroid/view/View;"
         const val CAROUSEL = "Lcom/pinterest/ads/onetap/view/CloseupCarouselView;"
         const val ICON_BUTTON = "Lcom/pinterest/gestalt/iconbutton/GestaltIconButton;"
-        const val LENS_BUILDER = "Lyt/d;"
+        const val LENS_BUILDER = "Lzt/d;"
         const val SET_ID_CALL = "Landroid/view/View;->setId(I)V"
-        const val REMIX_VIEW = "Lfk1/m;"
-        const val ACTION_ROW = "Ljc1/r0;"
-        const val COMMENT_VIEW = "Lac1/k;"
-        val VISIT_ROWS = setOf("Ljc1/x0;", "Lzz/b;")
+        const val REMIX_VIEW = "Lvk1/l;"
+        const val ACTION_ROW = "Lad1/g1;"
+        const val COMMENT_VIEW = "Lrc1/i;"
+        val VISIT_ROWS = setOf("Lad1/n1;", "Lc00/b;")
         val OTHER_HOOKS = setOf(CLOSEUP_REMIX_HOOK, CLOSEUP_ACTION_BAR_HOOK, CLOSEUP_VISIT_SITE_HOOK)
     }
 }

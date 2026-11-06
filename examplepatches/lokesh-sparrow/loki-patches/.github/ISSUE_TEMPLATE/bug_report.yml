@@ -29,7 +29,7 @@ body:
     attributes:
       label: App version
       description: In Android settings → Apps → LinkedIn, or the name of the APKMirror file you patched.
-      placeholder: "4.1.1255.1"
+      placeholder: "4.1.1267"
     validations:
       required: true
 

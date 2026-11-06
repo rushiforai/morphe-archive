@@ -1,0 +1,53 @@
+# Gradle files
+.gradle/
+.gradle-user/
+build/
+.kotlin/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS Files
+*.log
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.aab
+*.apk
+output-metadata.json
+
+# IntelliJ
+*.iml
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android Profiling
+*.hprof
+
+# Local patch pipeline (merged/patched APKs)
+.pipeline/
+
+# Morphe Desktop runtime data (keystore, caches) and local tooling binaries
+tools/
+
+# Throwaway harness that loads the built .mpp with morphe-patcher 1.6.0/1.15.0/2.1.0
+.compat-harness/
+
+# Bulk reverse-engineering artifacts (keep the report and the small evidence dumps)
+analysis/jadx_src/
+analysis/jadx_res/
+analysis/dex/
+analysis/_evidence/dex_strings.txt
+analysis/_evidence/defined_classes.txt
+apks/

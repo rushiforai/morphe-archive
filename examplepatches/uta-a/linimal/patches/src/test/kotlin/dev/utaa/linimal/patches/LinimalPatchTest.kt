@@ -28,7 +28,9 @@ import dev.utaa.linimal.patches.features.lineai.lineAiGalleryViewerPatch
 import dev.utaa.linimal.patches.features.lineai.lineAiImageSideMenuPatch
 import dev.utaa.linimal.patches.features.lineai.lineAiMessageContextMenuPatch
 import dev.utaa.linimal.patches.features.navigation.mainTabsPatch
+import dev.utaa.linimal.patches.features.premium.premiumPreviewPromotionPatch
 import dev.utaa.linimal.patches.features.premium.premiumSettingsRowPatch
+import dev.utaa.linimal.patches.features.preview.previewScrollPatch
 import dev.utaa.linimal.patches.features.googleauth.googleAuthMicrogManifestPatch
 import dev.utaa.linimal.patches.features.googleauth.googleAuthTokenRoutingPatch
 import dev.utaa.linimal.patches.features.googleauth.googleAccountPickerRoutingPatch
@@ -48,6 +50,7 @@ import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptMe
 import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptSessionPatch
 import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptSendPatch
 import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptManualReadPatch
+import dev.utaa.linimal.patches.features.readwithoutreceipt.readWithoutReceiptPreviewMenuPatch
 import dev.utaa.linimal.patches.features.readwithoutreceipt.notificationReadWithoutReceiptEntryPatch
 import dev.utaa.linimal.patches.settings.linimalSettingsResourcePatch
 import dev.utaa.linimal.patches.settings.settingsEntryPatch
@@ -103,12 +106,15 @@ class LinimalPatchTest {
             setOf(readWithoutReceiptMarkAsReadBlockPatch),
             readWithoutReceiptLocalReadBlockPatch.dependencies,
         )
-        assertEquals(setOf(readWithoutReceiptComposeMenuPatch), readWithoutReceiptMarkAsReadBlockPatch.dependencies)
+        assertEquals(setOf(readWithoutReceiptPreviewMenuPatch), readWithoutReceiptMarkAsReadBlockPatch.dependencies)
+        assertEquals(setOf(readWithoutReceiptComposeMenuPatch), readWithoutReceiptPreviewMenuPatch.dependencies)
         assertEquals(setOf(readWithoutReceiptMenuLabelResourcePatch), readWithoutReceiptComposeMenuPatch.dependencies)
         assertEquals(setOf(homeFeedLoadingIndicatorPatch), readWithoutReceiptMenuLabelResourcePatch.dependencies)
         assertEquals(setOf(homeRecentHistoryPatch), homeFeedLoadingIndicatorPatch.dependencies)
         assertEquals(setOf(homeFeaturedCollectionsPatch), homeRecentHistoryPatch.dependencies)
-        assertEquals(setOf(premiumSettingsRowPatch), homeFeaturedCollectionsPatch.dependencies)
+        assertEquals(setOf(previewScrollPatch), homeFeaturedCollectionsPatch.dependencies)
+        assertEquals(setOf(premiumPreviewPromotionPatch), previewScrollPatch.dependencies)
+        assertEquals(setOf(premiumSettingsRowPatch), premiumPreviewPromotionPatch.dependencies)
         assertEquals(setOf(homeFeedPostCardsPatch), premiumSettingsRowPatch.dependencies)
         assertEquals(setOf(agentIChatListSearchPatch), homeFeedPostCardsPatch.dependencies)
         assertEquals(setOf(lineAiGalleryViewerPatch), agentIChatListSearchPatch.dependencies)

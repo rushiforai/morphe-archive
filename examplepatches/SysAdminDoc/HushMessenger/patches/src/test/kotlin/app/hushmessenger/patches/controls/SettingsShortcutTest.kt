@@ -1,6 +1,7 @@
 package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.patch.PatchException
+import java.io.File
 import java.io.StringReader
 import java.io.StringWriter
 import javax.xml.parsers.DocumentBuilderFactory
@@ -114,6 +115,76 @@ class SettingsShortcutTest {
         assertFailsWith<PatchException> {
             resolveShortcutsPath(listOf("res/a.xml", "res/b.xml")) { shortcuts() }
         }
+    }
+
+    private fun Document.strings() = nodes("string").associate { it.getAttribute("name") to it.textContent }
+
+    /** #141: labels are string resources, added beside Messenger's own strings. */
+    @Test fun labelStringsGoInBesideMessengersOwn() {
+        val file = xml("""<resources><string name="app_name">Messenger</string></resources>""")
+        file.addStrings(MANIFEST_STRINGS.getValue(DEFAULT_STRINGS))
+        assertEquals(mapOf("app_name" to "Messenger", SETTINGS_LABEL to "HushMessenger settings", RESTART_LABEL to "Restart Messenger",
+            BOLD_LABEL to "Bold", ITALIC_LABEL to "Italic"), file.strings())
+        // A second run means the APK was patched before, and nothing more goes in.
+        val before = file.snapshot()
+        assertFailsWith<PatchException> { file.addStrings(mapOf("hush_new" to "x", SETTINGS_LABEL to "y")) }
+        assertEquals(before, file.snapshot())
+        assertFailsWith<PatchException> { xml("<other/>").addStrings(mapOf("hush_new" to "x")) }
+        assertTrue(file.setString(SETTINGS_LABEL, "Copy settings"))
+        assertEquals("Copy settings", file.strings()[SETTINGS_LABEL])
+        assertFalse(file.setString("hush_missing", "x"))
+    }
+
+    /** The launcher and the text menu show what the settings page calls the same things, in its languages. */
+    @Test fun labelsMatchTheSettingsPagesOwnWords() {
+        val source = File("../extensions/messenger/src/main/java/app/hushmessenger/extension")
+        val keys = mapOf(SETTINGS_LABEL to "settings", RESTART_LABEL to "restart", BOLD_LABEL to "text_style_bold", ITALIC_LABEL to "text_style_italic")
+        val english = source.resolve("SettingsText.java").readText()
+        val tables = mapOf("res/values-vi/strings.xml" to "SettingsTextViVN.java", "res/values-zh-rTW/strings.xml" to "SettingsTextZhTw.java")
+        assertEquals(setOf(DEFAULT_STRINGS) + tables.keys, MANIFEST_STRINGS.keys)
+        for ((path, texts) in MANIFEST_STRINGS) {
+            assertEquals(keys.keys, texts.keys, path)
+            // A clone puts its own name in place of this one.
+            assertTrue(SETTINGS_LABEL_NAME in texts.getValue(SETTINGS_LABEL), path)
+            val table = tables[path]?.let { source.resolve(it).readText() }
+            for ((string, key) in keys) {
+                val text = texts.getValue(string)
+                if (table == null) assertTrue("ENGLISH.put(\"$key\", \"$text\");" in english, "$path $string")
+                else assertTrue("{\"$key\", \"$text\"}" in table, "$path $string")
+            }
+        }
+    }
+
+    /** The settings icon is an adaptive icon of the APK's own, a white gear on HushMessenger's blue (#141). */
+    @Test fun theSettingsIconIsAnAdaptiveGear() {
+        assertEquals("res/drawable/$SETTINGS_ICON.xml", SETTINGS_ICON_PATH)
+        val icon = xml(SETTINGS_ICON_XML)
+        assertEquals("adaptive-icon", icon.documentElement.tagName)
+        assertEquals(listOf("background", "foreground"), icon.documentElement.childNodes.let { n ->
+            (0 until n.length).mapNotNull { (n.item(it) as? Element)?.tagName } })
+        val path = icon.nodes("path").single()
+        assertEquals(GEAR_PATH, path.getAttribute("android:pathData"))
+        // Every command has whole sets of numbers, and every point the absolute ones reach sits in the 24 unit box.
+        val arity = mapOf('M' to 2, 'L' to 2, 'H' to 1, 'V' to 1, 'C' to 6, 'S' to 4, 'Q' to 4, 'T' to 2, 'A' to 7, 'Z' to 0)
+        val tokens = Regex("[A-Za-z]|-?\\d*\\.?\\d+").findAll(GEAR_PATH).map { it.value }.toList()
+        assertEquals(GEAR_PATH.replace(Regex("[ ,]"), "").length, tokens.sumOf { it.length }, "Nothing but commands and numbers")
+        var command = ' '
+        var numbers = mutableListOf<Double>()
+        fun close() {
+            if (command == ' ') return
+            val size = arity.getValue(command.uppercaseChar())
+            assertTrue(if (size == 0) numbers.isEmpty() else numbers.isNotEmpty() && numbers.size % size == 0, "$command $numbers")
+            if (command.isUpperCase()) assertTrue(numbers.all { it in 0.0..24.0 }, "$command $numbers")
+        }
+        for (token in tokens) {
+            if (token.length == 1 && token[0].isLetter()) {
+                close()
+                command = token.single()
+                numbers = mutableListOf()
+            } else numbers += token.toDouble()
+        }
+        close()
+        assertEquals('z', command)
     }
 
     @Test fun resolveSkipsUnreadableEntriesAndValuesDirectory() {

@@ -31,6 +31,16 @@ private object AttachBaseContextFingerprint : Fingerprint(
 )
 
 /**
+ * The method that shows the "integrity check fails, it will quit automatically" toast and kills the process 3.8
+ * seconds later, once the security library decides the signature is not Tuya's. Found by the string resource it
+ * looks up, since R8 renames the class and its shape differs per app.
+ */
+private object IntegrityKillFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("thing_app_siganature_illegal"),
+)
+
+/**
  * libthing_security reads the app's signing certificate and kills the process when it is not Tuya's, so this
  * patch makes the app see the original certificate again through a PackageManager proxy.
  */
@@ -48,7 +58,12 @@ val signatureSpoofPatch = bytecodePatch(
     execute {
         AttachBaseContextFingerprint.method.addInstructions(
             0,
-            "invoke-static { }, Lapp/fakh/extension/smartlife/SignatureSpoof;->install()V",
+            "invoke-static { p1 }, Lapp/fakh/extension/smartlife/SignatureSpoof;->install(Landroid/content/Context;)V",
+        )
+        // Safety net for phones where the spoof does not cover every check: the app keeps running instead of quitting.
+        IntegrityKillFingerprint.method.addInstructions(
+            0,
+            "invoke-static { }, Lapp/fakh/extension/smartlife/SignatureSpoof;->logIntegrityKill()V\nreturn-void",
         )
     }
 }

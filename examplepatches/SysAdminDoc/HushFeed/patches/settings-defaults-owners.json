@@ -51,7 +51,8 @@
       "PUBLISH_DATE_ON_GRID",
       "VIDEO_LENGTH_ON_GRID",
       "PROFILE_GRID_SORT",
-      "LIKED_GRID_SORT"
+      "LIKED_GRID_SORT",
+      "SOUND_GRID_SORT"
     ],
     "Always upload in HD": [
       "ALWAYS_UPLOAD_HD"
@@ -293,6 +294,7 @@
       "HOME_TAB_OPENS_SETTINGS",
       "PROFILE_TAB_OPENS_WATCH_HISTORY",
       "INBOX_TAB_FLIPS_READ_RECEIPTS",
+      "SEARCH_INSTEAD_OF_HOME",
       "START_PAGE",
       "SHOW_FEED_BUTTONS",
       "HIDE_TAKO_AI",
@@ -327,7 +329,9 @@
       "HIDE_SEEN_VIDEOS",
       "SEEN_VIDEO_RETENTION_DAYS",
       "SEEN_VIDEO_MARK_PERCENT",
-      "LOCAL_WATCH_HISTORY"
+      "LOCAL_WATCH_HISTORY",
+      "FOR_YOU_HOLD_OPENS_WATCH_HISTORY",
+      "PROFILE_HOLD_OPENS_LOCAL_WATCH_HISTORY"
     ],
     "Hide CAPTCHA popups": [
       "HIDE_CAPTCHA_POPUPS"
@@ -377,7 +381,8 @@
       "HIDE_CHAT_AI_REPLIES",
       "TURN_OFF_CHAT_DOUBLE_TAP",
       "TURN_OFF_CHAT_SWIPE_REPLY",
-      "HIDE_INBOX_CUSTOM_TITLES"
+      "HIDE_INBOX_CUSTOM_TITLES",
+      "SHOW_INBOX_FILTERS"
     ],
     "Hide inbox stories": [
       "HIDE_INBOX_STORIES"
@@ -392,7 +397,8 @@
     ],
     "Hide search suggestions": [
       "HIDE_SEARCH_REWARDS",
-      "HIDE_SEARCH_SUGGESTIONS"
+      "HIDE_SEARCH_SUGGESTIONS",
+      "DISCOVER_SEARCH_BAR_ONLY"
     ],
     "Hide suggested accounts": [
       "HIDE_INBOX_SUGGESTED_ACCOUNTS"
@@ -511,6 +517,9 @@
       "RECORD_LIVE",
       "LIVE_RECORD_QUALITY",
       "LIVE_RECORD_SOURCE",
+      "LIVE_AUTO_TAP",
+      "LIVE_AUTO_TAP_RATE",
+      "LIVE_AUDIO_ONLY",
       "REMEMBERED_LIVE_QUALITY"
     ],
     "Location access governor": [
@@ -583,6 +592,8 @@
       "CUSTOM_SPEEDS",
       "HOLD_SPEED",
       "HOLD_SPEED_SLIDE",
+      "HOLD_SPEED_HUD_STYLE",
+      "HOLD_SPEED_SLIDE_AXIS",
       "HIDE_SPEED_TOASTS",
       "REMEMBERED_SPEED"
     ],

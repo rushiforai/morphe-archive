@@ -38,7 +38,12 @@ public final class YttvDaiDisabler {
     private YttvDaiDisabler() {
     }
 
-    /** Overwritten by "Mask live ad breaks": true keeps DAI on for live streams. */
+    /** Overwritten by Skip ads: true turns DAI off. */
+    public static boolean disableDai() {
+        return false;
+    }
+
+        /** Overwritten by "Mask live ad breaks": true keeps DAI on for live streams. */
     public static boolean keepLiveDai() {
         return false;
     }
@@ -65,9 +70,15 @@ public final class YttvDaiDisabler {
 
     /** Called from PlaybackControllerWrapper wherever it stores the cue-point provider. */
     public static void onCuePointProvider(Object provider) {
+        // Taken and cleared at once, so a closed controller is not kept alive.
+        Object playbackController = controller;
+        controller = null;
         if (provider == null || done.put(provider, Boolean.TRUE) != null) return;
+        // A new playback: the previous one's live ad slots no longer apply.
+        YttvLiveMask.reset();
+        if (!disableDai()) return;
         if (keepLiveDai()) {
-            String label = streamLabel(controller);
+            String label = streamLabel(playbackController);
             if (isLive(label)) {
                 Log.i(TAG, "live stream (" + label + "): DAI left on for the mask");
                 return;

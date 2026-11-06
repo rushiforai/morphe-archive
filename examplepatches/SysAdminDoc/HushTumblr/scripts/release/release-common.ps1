@@ -381,6 +381,92 @@ function Test-ReleaseAssets {
     return $true
 }
 
+function Complete-ReleaseDraft {
+    <#
+    .SYNOPSIS
+        Finishes the draft an interrupted gh release create left for -Tag, then publishes it.
+    .DESCRIPTION
+        gh release create makes a draft, uploads the assets one by one and publishes it last, so a
+        run cut off part way leaves a draft holding some of them. The draft has to target -Source
+        under the tag's own title, no published release may share its tag, a tag origin already
+        has has to point at -Source, and every asset already up has to be one of -Uploads and
+        match the file built here byte for byte. Anything else is refused before GitHub is
+        changed. Nothing hosted is replaced, except an upload GitHub never finished and nothing
+        has touched for 15 minutes, which holds no file and goes up again. It's published with
+        -Notes as its notes and as a full release, the way gh release create would have.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)][string]$Repository,
+        [Parameter(Mandatory = $true)][string]$Tag, [Parameter(Mandatory = $true)][string]$Source,
+        [Parameter(Mandatory = $true)][string]$Assets, [Parameter(Mandatory = $true)][string[]]$Uploads,
+        [Parameter(Mandatory = $true)][string]$Notes)
+
+    # No double quote in the filter: Windows PowerShell passes one to a native command unescaped.
+    $lines = @(Invoke-ReleaseQuiet {
+        & gh release view $Tag -R $Repository --json isDraft,targetCommitish,name,assets --jq '(.isDraft | tostring), .targetCommitish, .name, (.assets[] | .state, .name, .updatedAt)'
+    })
+    if ($LASTEXITCODE -ne 0 -or $lines.Count -lt 3 -or ($lines.Count - 3) % 3 -ne 0) { throw "gh couldn't read the $Tag draft on GitHub." }
+    if ($lines[0] -cne 'true') { throw "$Tag on GitHub isn't a draft, so there's nothing to finish." }
+    if ($lines[1] -cne $Source) { throw "The $Tag draft on GitHub targets $($lines[1]), not the prepare commit $Source. Delete that draft and run this again." }
+    if ($lines[2] -cne $Tag) { throw "The $Tag draft on GitHub is titled '$($lines[2])', so this script didn't make it. Delete that draft and run this again." }
+    # A list, not a hashtable: two names that differ only in case stay two assets.
+    $hosted = @(for ($k = 3; $k -lt $lines.Count; $k += 3) {
+        [pscustomobject]@{ State = [string]$lines[$k]; Name = [string]$lines[$k + 1]; Updated = [string]$lines[$k + 2] }
+    })
+    $foreign = @($hosted | Where-Object { $Uploads -cnotcontains $_.Name } | ForEach-Object { $_.Name })
+    if ($foreign.Count -gt 0) { throw "The $Tag draft holds $($foreign -join ', '), which this release doesn't ship. Delete that draft and run this again." }
+    # gh looks a release up by its tag for each command, so a published twin could take the changes.
+    $twin = @(Invoke-ReleaseQuiet { & gh api "repos/$Repository/releases/tags/$Tag" --jq '.id' })
+    if ($LASTEXITCODE -eq 0 -and $twin.Count -gt 0) {
+        throw "GitHub also has a published $Tag next to the draft, so the draft is left as it is. Delete the draft and run this again."
+    }
+    $cutoff = [DateTimeOffset]::UtcNow.AddMinutes(-15)
+    foreach ($asset in @($hosted | Where-Object { $_.State -cne 'uploaded' })) {
+        $touched = [DateTimeOffset]::MinValue
+        $read = [DateTimeOffset]::TryParse($asset.Updated, [Globalization.CultureInfo]::InvariantCulture,
+            [Globalization.DateTimeStyles]::AssumeUniversal, [ref]$touched)
+        if (-not $read -or $touched -gt $cutoff) {
+            throw "The $Tag draft's $($asset.Name) is still uploading, maybe from another run. Let that run finish, or run this again in 15 minutes."
+        }
+    }
+    $global:LASTEXITCODE = 0
+    $tagLines = @(& git -C $Root ls-remote origin "refs/tags/$Tag" "refs/tags/$Tag^{}")
+    if ($LASTEXITCODE -ne 0) { throw "git couldn't ask origin for $Tag (exit $LASTEXITCODE). Check the network and the remote." }
+    if ($tagLines.Count -gt 0) {
+        # An annotated tag's commit is on its peeled line.
+        $tagged = ((@($tagLines | Where-Object { $_ -match '\^\{\}$' }) + @($tagLines))[0] -split '\s+')[0]
+        if ($tagged -cne $Source) { throw "origin's $Tag already points at $tagged, not the prepare commit $Source." }
+    }
+    $done = @($hosted | Where-Object { $_.State -ceq 'uploaded' } | ForEach-Object { $_.Name })
+    if ($done.Count -gt 0) {
+        $check = Join-Path ([IO.Path]::GetTempPath()) ('hushtumblr-draft-' + [guid]::NewGuid().ToString('N'))
+        try {
+            $patterns = @($done | ForEach-Object { '-p'; $_ })
+            Invoke-ReleaseNative 'gh release download' { & gh release download $Tag -R $Repository -D $check @patterns }
+            foreach ($name in $done) {
+                $local = (Get-FileHash -LiteralPath (Join-Path $Assets $name) -Algorithm SHA256).Hash
+                $up = (Get-FileHash -LiteralPath (Join-Path $check $name) -Algorithm SHA256).Hash
+                if ($local -cne $up) {
+                    throw "The $Tag draft's $name isn't the one built here ($up, local $local), so it's left as it is. Delete that draft and run this again."
+                }
+            }
+        } finally {
+            if (Test-Path -LiteralPath $check) { Remove-Item -LiteralPath $check -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
+    foreach ($name in @($hosted | Where-Object { $_.State -cne 'uploaded' } | ForEach-Object { $_.Name })) {
+        Write-ReleaseStep "$name never finished uploading to the $Tag draft, so it goes up again"
+        Invoke-ReleaseNative "Removing the unfinished $name" { & gh release delete-asset $Tag $name -R $Repository --yes }
+    }
+    $missing = @($Uploads | Where-Object { $done -cnotcontains $_ })
+    if ($missing.Count -gt 0) {
+        Write-ReleaseStep "uploading $($missing -join ', ') to the $Tag draft"
+        $files = @($missing | ForEach-Object { Join-Path $Assets $_ })
+        Invoke-ReleaseNative 'gh release upload' { & gh release upload $Tag -R $Repository @files }
+    }
+    Write-ReleaseStep "the $Tag draft holds the $($Uploads.Count) assets built here, so it's published"
+    Invoke-ReleaseNative 'gh release edit' { & gh release edit $Tag -R $Repository --notes-file $Notes --prerelease=false --draft=false }
+}
+
 function Get-SigningInputs {
     <#
     .SYNOPSIS

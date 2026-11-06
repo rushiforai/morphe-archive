@@ -4,6 +4,7 @@ import app.wordfeudwordfinder.extension.game.GameStore;
 import app.wordfeudwordfinder.extension.play.MoveSubmitter;
 import app.wordfeudwordfinder.extension.play.SessionReader;
 import app.wordfeudwordfinder.extension.play.UrlConnectionPoster;
+import app.wordfeudwordfinder.extension.words.MissingWords;
 import app.wordfeudwordfinder.extension.words.RejectedWords;
 import app.wordfeudwordfinder.extension.words.UrlConnectionFetcher;
 import app.wordfeudwordfinder.extension.words.WordListManager;
@@ -24,6 +25,7 @@ public final class WordFinder {
     private final WordListManager wordLists;
     private final RejectedWords rejected;
     private final MoveSubmitter submitter;
+    private final MissingWords missingWords;
 
     /**
      * Also used by tests: builds an instance rooted at the given directory without Android. The app's own files
@@ -36,8 +38,10 @@ public final class WordFinder {
         this.rejected = new RejectedWords(storage);
         this.wordLists = new WordListManager(storage, new UrlConnectionFetcher(), wordListExecutor());
         File appFiles = root.getAbsoluteFile().getParentFile();
+        WordReporter reporter = WordReporter.fromBuild();
         this.submitter = new MoveSubmitter(new SessionReader(appFiles, System::currentTimeMillis),
-                new UrlConnectionPoster(), gameStore, rejected, WordReporter.fromBuild());
+                new UrlConnectionPoster(), gameStore, rejected, reporter);
+        this.missingWords = new MissingWords(storage, reporter);
         GameStore gs = gameStore;
         WordListManager wl = wordLists;
         gameStore.addListener(() -> wl.onRulesetsSeen(gs.seenRulesets(), gs::ruleset));
@@ -100,6 +104,11 @@ public final class WordFinder {
     }
 
     /** Sends moves to the Wordfeud API (blocking; call off the main thread). */
+    /** Reports played words that are missing from the word list (see {@link MissingWords}). */
+    public MissingWords missingWords() {
+        return missingWords;
+    }
+
     public MoveSubmitter submitter() {
         return submitter;
     }

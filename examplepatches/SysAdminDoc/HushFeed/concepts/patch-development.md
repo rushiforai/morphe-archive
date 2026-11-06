@@ -1,14 +1,14 @@
 # App and patch development map
 
-This guide maps the TikTok app Hushfeed modifies to the code and release checks that make a patch. Its version and patch counts were last synced with the source on 2026-11-01. The generated [patch catalog](../patches-list.json) is the current source of truth for patch names and compatibility.
+This guide maps the TikTok app Hushfeed modifies to the code and release checks that make a patch. Its version and patch counts were last synced with the source on 2026-11-05. The generated [patch catalog](../patches-list.json) is the current source of truth for patch names and compatibility.
 
 ## What Hushfeed ships
 
 Hushfeed is a Morphe patch bundle, not a TikTok APK. Morphe Manager takes a TikTok APK chosen by the user, applies the selected patches, and signs the result with the user's existing key. The patch definitions and the runtime code they inject live in separate Gradle modules.
 
-Source snapshot: version 0.80.0, 143 patch entries. Those come from gradle.properties and patches-list.json.
+Source snapshot: version 0.81.0, 147 patch entries. Those come from gradle.properties and patches-list.json.
 
-Published bundle: version 0.80.0, 143 patches. Those come from patches-bundle.json and the release it names.
+Published bundle: version 0.81.0, 147 patches. Those come from patches-bundle.json and the release it names.
 
 The source runs ahead of the published bundle until the next release ships. The index moves only after a new bundle is published and verified, which is the release sequence described in CONTRIBUTING.md. Do not hand-edit the index to make the two match.
 
@@ -20,8 +20,8 @@ Keep every Unreleased bullet under a `###` group. The release cutter preserves t
 | --- | --- |
 | App | Global TikTok |
 | Package | com.zhiliaoapp.musically |
-| Supported version | 47.6.3 |
-| Version code | 2024706030 |
+| Supported version | 47.7.2 |
+| Version code | 2024707020 |
 | APK signer SHA-256 | 9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba |
 | Extension minimum Android API | 23 |
 
@@ -90,21 +90,21 @@ The Morphe Gradle plugin and the default extension namespace are configured in s
 
 The runtime code is grouped by feature under extensions/tiktok/src/main/java/app/morphe/extension/tiktok/. Current package folders are accountmanagement, blockauthor, captions, capture, cleardisplay, comment, commentsort, diagnostics, download, externalbrowser, favorites, featurecontrols, featuregatelab, feed, feedfilter, foldable, follow, font, ghostmode, inbox, interaction, live, misc, navigation, network, notinterested, offline, playback, popups, privacy, profile, publishdate, repost, search, seekbar, seen, settings, share, speed, spoof, storage, telemetry, theme, translation, upload, and wellbeing. Search the generated patch catalog by display name first, then follow its dependencies into the Kotlin and Java sources.
 
-The current catalog's 143 patches are grouped as follows:
+The current catalog's 147 patches are grouped as follows:
 
 | Manager category | Patches |
 | --- | ---: |
 | Comments | 16 |
 | Downloads | 5 |
 | Feed | 20 |
-| Inbox | 8 |
+| Inbox | 9 |
 | Interaction | 18 |
 | Interface | 10 |
 | Performance | 11 |
-| Playback | 20 |
-| Privacy | 16 |
+| Playback | 21 |
+| Privacy | 17 |
 | Search | 4 |
-| Settings | 15 |
+| Settings | 16 |
 
 The [patch catalog](../patches-list.json) has the complete names and plain-English descriptions. Keep the prose in that generated catalog aligned with the README's patch table and the in-app setting title. The build's documentation checks compare those sources.
 

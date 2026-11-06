@@ -15,6 +15,15 @@ final class BrowserUaTemplates {
         if(index<0||index>=VERSIONS.length)return DEFAULT;
         return "Dalvik/2.1.0 (Linux; U; Android "+VERSIONS[index]+"; HT-01 Build/XYZ0.123456.789)";
     }
+    static int selectedIndex(String saved){
+        String resolved=resolve(saved==null?DEFAULT:saved);
+        for(int i=0;i<VERSIONS.length;i++)if(value(i).equals(resolved))return i;
+        return -1;
+    }
+    static String selectedLabel(String saved){
+        int index=selectedIndex(saved);
+        return index<0?"カスタムUA":labels()[index];
+    }
     static String resolve(String value){
         // Match only shipped templates; do not rewrite a custom UA from settings import.
         if("Dalvik/2.1.0 (Linux; U; Android 4.0.3; HT-01 Build/XYZ0.123456.789)".equals(value)

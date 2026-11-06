@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "java": "21",
+  "gradle": "9.7.1",
+  "morpheGradlePlugin": "1.3.4",
+  "morphePatcher": "1.14.1",
+  "lockedFiles": {
+    "build.gradle.kts": "d905b375a2d6e122e0ede813e7e469f6335e7bd72e4d58ac55a31b34b0823ec8",
+    "gradle/libs.versions.toml": "53845748098b4db514449109bbb0c70c14bad9574195b7f11d6fa420baafd03f",
+    "settings.gradle.kts": "8341f3f9ec33d859482558d857f4ae6a6507fd79bea53fc84edc783d4af0abbf",
+    "patches/build.gradle.kts": "9a0b2a462d2719760e15684c8127190ad7893940a345505e8f2020302c196856"
+  }
+}

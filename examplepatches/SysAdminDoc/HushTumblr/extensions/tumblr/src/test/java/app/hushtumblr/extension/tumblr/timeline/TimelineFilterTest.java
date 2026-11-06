@@ -11,10 +11,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.tumblr.rumblr.model.BlazedPost;
 import com.tumblr.rumblr.model.SponsoredState;
 import com.tumblr.rumblr.model.TimelineObject;
 import com.tumblr.rumblr.model.TimelineObjectType;
+import com.tumblr.rumblr.model.Timelineable;
+import com.tumblr.rumblr.model.link.ActionLink;
+import com.tumblr.rumblr.model.link.Link;
 import com.tumblr.rumblr.model.post.DisplayType;
+import com.tumblr.rumblr.model.post.blocks.TextBlock;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,9 +41,11 @@ import app.hushtumblr.extension.shared.diagnostics.HookStatus;
 import app.hushtumblr.extension.shared.settings.BooleanSetting;
 import app.hushtumblr.extension.shared.settings.HushTumblrPause;
 import app.hushtumblr.extension.shared.settings.PauseForTests;
+import app.hushtumblr.extension.tumblr.settings.FamilyNames;
 import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.PatchFamilyForTests;
 import app.hushtumblr.extension.tumblr.settings.Settings;
+import app.hushtumblr.extension.tumblr.settings.TextSettings;
 
 /** What Hide ads and the suggestion card switches take out of a page of posts, and what they leave. */
 @RunWith(RobolectricTestRunner.class)
@@ -59,10 +66,15 @@ public class TimelineFilterTest {
         PatchFamilyForTests.inBuild(null);
         PatchFamilyForTests.capabilities(null);
         Settings.HIDE_ADS.resetToDefault();
+        Settings.KEEP_BLAZE_POSTS.resetToDefault();
+        Settings.HIDE_TEXT_POSTS.resetToDefault();
+        Settings.HIDE_POSTS_WITH_WORDS.resetToDefault();
+        TextSettings.HIDDEN_WORDS.resetToDefault();
         Settings.HIDE_SUGGESTED_BLOGS.resetToDefault();
         Settings.HIDE_SUGGESTED_COMMUNITIES.resetToDefault();
         Settings.HIDE_SUGGESTED_TAGS.resetToDefault();
         Settings.HIDE_WATCH_IT_ROWS.resetToDefault();
+        Settings.HIDE_FEATURED_POSTS.resetToDefault();
         TimelineFilter.carouselItemsForTests = null;
         TimelinePaging.resetForTests();
         PauseForTests.resume();
@@ -189,6 +201,197 @@ public class TimelineFilterTest {
         List<Object> page = Arrays.asList(broken, TimelineItems.postWithHeader("blaze", false, false));
         assertEquals(Arrays.asList(broken), TimelineFilter.filter(page));
         assertTrue(String.join("\n", HookStatus.report("")).contains("timeline item"));
+    }
+
+    /**
+     * Keep Blaze posts leaves in a post whose header carries the server's Blaze icon, whether it came
+     * with that header alone or served as sponsored too. Every other ad still goes: each network ad
+     * kind (one carrying a Blaze header as well), a post labeled Sponsored or served as a paid
+     * placement without the icon, the "money-alt" Sponsored header, a Blaze campaign object served
+     * or labeled as sponsored even around a Blaze post, and an organic blazed post served as sponsored.
+     */
+    @Test
+    public void keepBlazePostsKeepsOnlyPostsWithTheBlazeIcon() {
+        Settings.KEEP_BLAZE_POSTS.save(true);
+        TimelineObject header = TimelineItems.postWithHeader("blaze", false, false);
+        TimelineObject served = TimelineItems.servedWithHeader("blaze", DisplayType.SPONSORED);
+        List<Object> page = new ArrayList<>(Arrays.asList(header, TimelineItems.sponsoredPost(),
+                TimelineItems.postServed(SponsoredState.SPONSORED, DisplayType.SPONSORED),
+                TimelineItems.postWithHeader("money-alt", false, false),
+                TimelineItems.servedWithHeader("money-alt", DisplayType.SPONSORED),
+                TimelineItems.servedWithHeader("BLAZE", DisplayType.SPONSORED),
+                TimelineItems.servedWithHeader(null, DisplayType.SPONSORED), served,
+                new TimelineObject(new BlazedPost(served.getData()), false, null, DisplayType.SPONSORED),
+                new TimelineObject(new BlazedPost(header.getData()), true),
+                new TimelineObject(TimelineItems.organicBlazedPost().getData(), false, null, DisplayType.SPONSORED)));
+        for (String type : TimelineFilter.AD_TYPES) {
+            page.add(TimelineItems.of(TimelineObjectType.valueOf(type)));
+            page.add(new TimelineObject(new BlazeIconAd(TimelineObjectType.valueOf(type)), false));
+        }
+        assertEquals(Arrays.asList(header, served), TimelineFilter.filter(page));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("Blaze post kept 2") && report.contains("ad removed " + (page.size() - 2)));
+    }
+
+    /**
+     * With Keep Blaze posts on, what Hide ads already left stays: your own and followed blogs' posts
+     * with a Blaze header, an organic blazed post and your Blaze campaign list. With Hide ads off or
+     * paused it changes nothing, and turned off again Blaze posts go with the other ads.
+     */
+    @Test
+    public void keepBlazePostsChangesNothingElse() {
+        Settings.KEEP_BLAZE_POSTS.save(true);
+        List<Object> organic = Arrays.asList(TimelineItems.postWithHeader("blaze", true, false),
+                TimelineItems.postWithHeader("blaze", false, true), TimelineItems.organicBlazedPost(),
+                TimelineItems.blazed(TimelineItems.postWithHeader("blaze", false, false)));
+        assertSame(organic, TimelineFilter.filter(organic));
+        List<Object> page = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.GEMINI_AD),
+                TimelineItems.servedWithHeader("blaze", DisplayType.SPONSORED));
+        Settings.HIDE_ADS.save(false);
+        assertSame(page, TimelineFilter.filter(page));
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame(page, TimelineFilter.filter(page));
+        PauseForTests.resume();
+        assertEquals(Arrays.asList(page.get(0), page.get(2)), TimelineFilter.filter(page));
+        Settings.KEEP_BLAZE_POSTS.save(false);
+        assertEquals(Collections.singletonList(page.get(0)), TimelineFilter.filter(page));
+    }
+
+    /** A post Keep Blaze posts leaves in still meets the post switches: its kind and its words. */
+    @Test
+    public void aKeptBlazePostStillMeetsThePostSwitches() {
+        Settings.KEEP_BLAZE_POSTS.save(true);
+        List<Object> page = Arrays.asList(TimelineItems.servedWithHeader("blaze", DisplayType.SPONSORED,
+                new TextBlock("Big Spoilers ahead")), TimelineItems.post());
+        assertSame(page, TimelineFilter.filter(page));
+        Settings.HIDE_TEXT_POSTS.save(true);
+        assertEquals(Collections.singletonList(page.get(1)), TimelineFilter.filter(page));
+        Settings.HIDE_TEXT_POSTS.save(false);
+        Settings.HIDE_POSTS_WITH_WORDS.save(true);
+        TextSettings.HIDDEN_WORDS.save(TimelineItems.PROBE_WORD);
+        assertEquals(Collections.singletonList(page.get(1)), TimelineFilter.filter(page));
+        // Each removal is counted under the switch that took it, and the post counts as kept only
+        // on the pass that left it in.
+        List<String> report = HookStatus.report("");
+        assertTrue(report.toString(), report.contains(
+                "Hide ads: invoked 3, 0 found, 0 missing. Counted: Blaze post kept 1"));
+        assertTrue(report.toString(), report.contains(
+                "Hide text posts: invoked 3, 0 found, 0 missing. Counted: post removed 1"));
+        assertTrue(report.toString(), report.contains(
+                "Hide posts with these words: invoked 3, 0 found, 0 missing. Counted: post removed 1"));
+    }
+
+    /** A network ad's card whose payload carries a Blaze header anyway. */
+    private static final class BlazeIconAd implements Timelineable, HushPaidPost {
+        private final TimelineObjectType type;
+        BlazeIconAd(TimelineObjectType type) { this.type = type; }
+        @Override public String getId() { return "ad"; }
+        @Override public TimelineObjectType getTimelineObjectType() { return type; }
+        @Override public String hushHeaderIcon() { return "blaze"; }
+        @Override public boolean hushFollowed() { return false; }
+        @Override public boolean hushCanEdit() { return false; }
+        @Override public boolean hushPaidContextKnown() { return true; }
+    }
+
+    /**
+     * Tumblr sends a post its staff feature with the server's "sparkle" header icon and the
+     * marketing dismissal among its dismiss menu's choices. With Hide Featured posts on it goes,
+     * counted as a post, and the posts around it stay in order. Off, as it starts, and paused, it
+     * stays, and so it does in a build without the patch.
+     */
+    @Test
+    public void aFeaturedPostGoesWhileTheSwitchIsOn() {
+        TimelineObject featured = TimelineItems.featuredPost("sparkle", "/v2/user/dismiss/post",
+                TimelineItems.MARKETING_DISMISSAL);
+        List<Object> page = Arrays.asList(TimelineItems.post(), featured, TimelineItems.post());
+        assertSame("off, as it starts", page, TimelineItems.onTheDashboard(page));
+
+        Settings.HIDE_FEATURED_POSTS.save(true);
+        assertEquals(Arrays.asList(page.get(0), page.get(2)), TimelineItems.onTheDashboard(page));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("Hide Featured posts") && report.contains("post removed 1"));
+
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame("paused", page, TimelineItems.onTheDashboard(page));
+        PauseForTests.resume();
+
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.FEATURED_POSTS)));
+        assertSame("a build without the patch", page, TimelineItems.onTheDashboard(page));
+    }
+
+    /**
+     * Neither half alone makes a post featured: the sparkle icon with another dismissal or none, the
+     * marketing dismissal under another icon or none, or Blaze and Sponsored icons with Hide ads
+     * off. The marketing dismissal still counts with a query on its address, and a choice with no
+     * link before it is skipped.
+     */
+    @Test
+    public void onlyTheSparkleIconWithTheMarketingDismissalIsFeatured() {
+        Settings.HIDE_FEATURED_POSTS.save(true);
+        Settings.HIDE_ADS.save(false);
+        List<Object> page = Arrays.asList(
+                TimelineItems.featuredPost("sparkle", "/v2/user/dismiss/post"),
+                TimelineItems.featuredPost("sparkle"),
+                TimelineItems.postWithHeader("sparkle", false, false),
+                TimelineItems.featuredPost("star", TimelineItems.MARKETING_DISMISSAL),
+                TimelineItems.featuredPost(null, TimelineItems.MARKETING_DISMISSAL),
+                TimelineItems.featuredPost("SPARKLE", TimelineItems.MARKETING_DISMISSAL),
+                TimelineItems.featuredPost("blaze", TimelineItems.MARKETING_DISMISSAL),
+                TimelineItems.featuredPost("money-alt", TimelineItems.MARKETING_DISMISSAL),
+                TimelineItems.featuredPost("sparkle", "/v2/user/dismiss/marketing_post_extra"),
+                TimelineItems.post());
+        assertSame(page, TimelineItems.onTheDashboard(page));
+
+        TimelineObject query = TimelineItems.featuredPost("sparkle", TimelineItems.MARKETING_DISMISSAL + "?tumblelog=featured");
+        TimelineObject afterABlank = TimelineItems.featuredPost("sparkle", null, TimelineItems.MARKETING_DISMISSAL);
+        List<Object> featured = Arrays.asList(query, TimelineItems.post(), afterABlank);
+        assertEquals(Collections.singletonList(featured.get(1)), TimelineItems.onTheDashboard(featured));
+        assertFalse(String.join("\n", HookStatus.report("")).contains("timeline item"));
+    }
+
+    /** A heading before a featured post stays, as it does before any post a post switch takes out. */
+    @Test
+    public void aHeadingBeforeAFeaturedPostStays() {
+        Settings.HIDE_FEATURED_POSTS.save(true);
+        List<Object> page = Arrays.asList(TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.featuredPost("sparkle", TimelineItems.MARKETING_DISMISSAL), TimelineItems.post());
+        assertEquals(Arrays.asList(page.get(0), page.get(2)), TimelineItems.onTheDashboard(page));
+        assertFalse(String.join("\n", HookStatus.report("")).contains("heading removed"));
+    }
+
+    /** A page of nothing but featured posts comes back empty, and the feed goes on to its next page. */
+    @Test
+    public void aPageOfOnlyFeaturedPostsGoesOnToTheNextPage() {
+        Settings.HIDE_FEATURED_POSTS.save(true);
+        List<Object> page = Collections.singletonList(
+                TimelineItems.featuredPost("sparkle", TimelineItems.MARKETING_DISMISSAL));
+        Object fragment = new Object();
+        assertEquals(Collections.emptyList(), TimelineItems.onTheDashboard(page));
+        assertEquals(TimelinePaging.NEXT, TimelinePaging.onPage(fragment, Load.PAGINATION, new Object(), true));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains(TimelinePaging.EMPTIED + " 1"));
+    }
+
+    /** A dismiss menu that can't be read keeps the post and records the failure under the switch. */
+    @Test
+    public void anUnreadableDismissMenuIsKeptAndReported() {
+        Settings.HIDE_FEATURED_POSTS.save(true);
+        TimelineObject broken = TimelineItems.featuredPostLinking("sparkle", new UnreadableLink(),
+                new ActionLink(TimelineItems.MARKETING_DISMISSAL));
+        List<Object> page = Arrays.asList(broken, TimelineItems.post());
+        assertSame(page, TimelineItems.onTheDashboard(page));
+        // The menu is read by reflection, so the link's own throw arrives wrapped.
+        assertEquals(Collections.singletonList("a working 'timeline item' hook (it threw java.lang.reflect.InvocationTargetException)"),
+                HookStatus.missing(FamilyNames.HIDE_FEATURED_POSTS));
+    }
+
+    /** A link whose address throws when it's read. Public, so the filter's reflection reaches it. */
+    public static final class UnreadableLink implements Link {
+        @Override
+        public String getLink() {
+            throw new IllegalStateException("unreadable");
+        }
     }
 
     /**

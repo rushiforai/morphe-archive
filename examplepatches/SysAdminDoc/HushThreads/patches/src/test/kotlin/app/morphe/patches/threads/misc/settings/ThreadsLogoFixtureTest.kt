@@ -50,9 +50,13 @@ class ThreadsLogoFixtureTest {
         val stub = logo.methods.single { it.name == "clickable" }
         assertTrue(AccessFlags.STATIC.isSet(stub.accessFlags) && AccessFlags.PUBLIC.isSet(stub.accessFlags))
         assertEquals(LOGO_CLICKABLE, stub.signature())
-        val field = logo.fields.single { it.name == "LONG_PRESS" }
-        assertTrue(AccessFlags.STATIC.isSet(field.accessFlags) && AccessFlags.FINAL.isSet(field.accessFlags))
-        assertEquals(LOGO_LONG_PRESS_FIELD, "${field.definingClass}->${field.name}:${field.type}")
+        val longPress = logo.methods.single { it.name == "longPress" }
+        assertTrue(AccessFlags.STATIC.isSet(longPress.accessFlags) && AccessFlags.PUBLIC.isSet(longPress.accessFlags))
+        assertEquals(LOGO_LONG_PRESS, longPress.signature())
+        val patchedIn = logo.methods.single { it.name == "patchedIn" }
+        assertTrue(AccessFlags.STATIC.isSet(patchedIn.accessFlags))
+        assertEquals("Z", patchedIn.returnType)
+        assertTrue(patchedIn.parameterTypes.isEmpty())
         val press = ExtensionDex.classDef(THREADS_LOGO_LONG_PRESS)
         assertTrue(press.interfaces.isEmpty())
         val invoke = press.methods.single { it.name == "invoke" }
@@ -229,8 +233,14 @@ class ThreadsLogoFixtureTest {
             assertEquals("$THREADS_LOGO->longClickLabel()Ljava/lang/String;",
                 stub[stub.indexOf(label) - 1].method().toString())
             assertEquals("$where: no double tap", 0, (writer(7) as NarrowLiteralInstruction).narrowLiteral)
-            assertEquals("$where: the long press", LOGO_LONG_PRESS_FIELD,
-                writer(6).takeIf { it.opcode == Opcode.SGET_OBJECT }?.getReference<FieldReference>().toString())
+            // The long press is asked for on each draw, so its switch can take it away.
+            val longPress = writer(6)
+            assertEquals("$where: the long press, as a Function0", FUNCTION0,
+                longPress.takeIf { it.opcode == Opcode.CHECK_CAST }?.getReference<TypeReference>()?.type)
+            val asked = stub.indexOf(longPress)
+            assertEquals("$where: the switch's answer", Opcode.MOVE_RESULT_OBJECT, stub[asked - 1].opcode)
+            assertEquals(into.startRegister + 6, (stub[asked - 1] as OneRegisterInstruction).registerA)
+            assertEquals("$where: asked each draw", LOGO_LONG_PRESS, stub[asked - 2].method().toString())
             assertEquals("$where: Threads' tap", FUNCTION0,
                 writer(8).takeIf { it.opcode == Opcode.CHECK_CAST }?.getReference<TypeReference>()?.type)
             assertEquals("$where: Threads' tap comes from Threads", parameter(5), copiedFrom(8))
@@ -266,6 +276,7 @@ class ThreadsLogoFixtureTest {
             assertEquals("$where: the setter", fixture.semantics.setter, describeBody[1].method().toString())
             assertEquals(listOf(receiver, receiver + 1), describeBody[1].registers())
             assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_STATIC, Opcode.RETURN_VOID), describeBody.map { it.opcode })
+            assertEquals("$where: the screen offers the long press's switch", 1, context.inBuildAnswer(THREADS_LOGO))
         }
     }
 
@@ -332,6 +343,8 @@ class ThreadsLogoFixtureTest {
             warnings.single().contains("long press on the Threads logo is left out"))
         val list = context.mutableClassDefBy("Lfixture/SettingsScreen;").methods.single { it.name == "list" }.body()
         assertTrue("the row still goes in", list.any { it.method()?.toString() == ADD_SETTINGS_ROW })
+        assertEquals("the screen offers the row's switch", 1, context.inBuildAnswer(SETTINGS_ROW))
+        assertEquals("and not the long press's", 0, context.inBuildAnswer(THREADS_LOGO))
     }
 
     private data class Fixture(
@@ -522,4 +535,14 @@ class ThreadsLogoFixtureTest {
         const val SINGLETON_LIST = "Ljava/util/Collections;->singletonList(Ljava/lang/Object;)Ljava/util/List;"
         val fixtures = PerBuild<Fixture>()
     }
+}
+
+/**
+ * What the extension's patchedIn() stub in [type] answers: 1 once the settings patch put that way
+ * in, 0 as the extension ships it. The settings screen offers that way's switch only on a 1.
+ */
+internal fun BytecodePatchContext.inBuildAnswer(type: String): Int {
+    val body = mutableClassDefBy(type).methods.single { it.name == "patchedIn" }.implementation!!.instructions.toList()
+    assertEquals("$type's patchedIn()", listOf(Opcode.CONST_4, Opcode.RETURN), body.map { it.opcode })
+    return (body[0] as NarrowLiteralInstruction).narrowLiteral
 }

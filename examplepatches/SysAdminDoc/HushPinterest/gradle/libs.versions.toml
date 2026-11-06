@@ -1,16 +1,16 @@
 [versions]
 # Align with morphe-patches-template (Compatibility / Manager display names). A Manager that
 # bundles an older patcher than this pin refuses the bundle at its Patcher-Version gate. Patcher
-# 2.1.0 went stable on 2026-10-30 with Manager 2.3.0 and desktop 1.20.0, and every Hush repo
-# tracks the newest stable patcher. It adds bundle signing and refuses classes newer than Java 17.
-# Since 2.0 it matches a fingerprint string against the whole literal, decodes only the resources
+# 2.2.0 went stable on 2026-11-04 with Manager 2.4.0 and desktop 2.0.0, and every Hush repo
+# tracks the newest stable patcher. It asks for the same smali, ARSCLib and Kotlin as 2.1.0, which
+# added bundle signing and refuses classes newer than Java 17. Since 2.0 it matches a fingerprint string against the whole literal, decodes only the resources
 # a patch asks for, and hides compatiblePackages behind compatibility (PatchListGenerator rebuilds
 # the old field). It pulls in MorpheApp's ARSCLib 4695b583ef. Manager 1.x refuses a 2.0 bundle
 # with its update prompt.
-morphe-patcher = "2.1.0"
+morphe-patcher = "2.2.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value on a release run.
-manager-floor = "2.3.0"
+manager-floor = "2.4.0"
 # The Manager floor the README names between releases: the README describes the published release,
 # so it keeps the floor that release needs until the next release moves it. Delete this line once
 # the README names manager-floor. Between releases the fact check holds the README and the bug form

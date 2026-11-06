@@ -313,6 +313,8 @@ Hide Threads cards between reels	Threads-Karten zwischen Reels ausblenden
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Blendet die Karte „Threads, die dir gefallen könnten“ zwischen Reels aus. Standardmäßig aus, weil es auf einem echten Konto noch nicht ausprobiert wurde.
 Only reels from accounts I follow	Nur Reels von Konten, denen ich folge
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Der Reels-Tab zeigt nur Reels von Personen und Seiten, denen du folgst, ab dem nächsten Schwung, den Facebook lädt. Der Tab kann dann länger brauchen, bis er voll ist. Standardmäßig aus.
+Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook hat keine Reels mehr, die deine Filter behalten würden, deshalb werden diese Reels vorerst nicht gefiltert.
+Hush hid the suggested posts after this, so Home ends here.	Hush hat die vorgeschlagenen Beiträge danach ausgeblendet, deshalb endet die Startseite hier.
 Download quality	Download-Qualität
 Best	Beste
 Smallest	Kleinste
@@ -859,7 +861,7 @@ Holding a video in the feed or in Watch plays it at double speed until you let g
 Locked at 2x. Tap the video to go back.	Bei 2x gesperrt. Tippe auf das Video, um zurückzuwechseln.
 Hide the pull down to lock hint	Hinweis „Zum Sperren nach unten ziehen“ ausblenden
 Hide the 2x popups	2x-Einblendungen ausblenden
-Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Beim Halten für 2x erscheint gar kein Hinweis, also kein „Geschwindigkeit: 2x“, „Loslassen zum Sperren“ oder „Bei 2x-Geschwindigkeit gesperrt“. Halten und Sperren funktionieren weiter.
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed", and feed videos drop the "2x speed" tip. The hold and the lock still work.	Beim Halten für 2x erscheint gar kein Hinweis, also kein „Geschwindigkeit: 2x“, „Loslassen zum Sperren“ oder „Bei 2x-Geschwindigkeit gesperrt“, und Feed-Videos zeigen den Tipp „2x-Geschwindigkeit“ nicht mehr. Halten und Sperren funktionieren weiter.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Wenn du ein Video für 2x gedrückt hältst, erscheint nur die einfache 2x-Anzeige, ohne den Hinweis „Nach unten ziehen, um 2x-Geschwindigkeit zu sperren“. Nach unten ziehen sperrt sie weiterhin. Das funktioniert auch ohne die Schalter oben.
 Default playback quality	Standard-Wiedergabequalität
@@ -2149,6 +2151,15 @@ Cast button on feed videos	Cast-Taste bei Feed-Videos
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Fügt Feed-Videos eine Cast-Taste hinzu. Sie übergibt das Video an eine Cast-App, die du hast, etwa Web Video Caster, die es an deinen Fernseher sendet. Facebook selbst kann nicht mehr casten.
 Cast this video	Dieses Video casten
 Full player button on feed videos	Taste für den vollständigen Player bei Feed-Videos
+Skip buttons on feed videos	Sprungtasten bei Feed-Videos
+Speed button on feed videos	Tempotaste bei Feed-Videos
+Times on the seek bar	Zeiten an der Suchleiste
+Back 10 seconds	10 Sekunden zurück
+Ahead 10 seconds	10 Sekunden vor
+Playback speed	Wiedergabegeschwindigkeit
+Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Fügt Feed-Videos Tasten hinzu, die 10 Sekunden zurück oder vor springen, wie im eigenen Player von Facebook. Live-Videos und Werbung behalten ihre eigene Steuerung. Ist „Zum Abspielen tippen“ an, muss auch „Wiedergabesteuerung im Feed“ an sein.
+Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Fügt Feed-Videos eine Taste hinzu, die ihr Tempo anzeigt. Jedes Tippen wechselt zum nächsten: 1x, 1.25x, 1.5x, 2x, dann 0.5x. Live-Videos und Werbung behalten ihre eigene Steuerung. Ist „Zum Abspielen tippen“ an, muss auch „Wiedergabesteuerung im Feed“ an sein.
+Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Zeigt am linken Ende der Suchleiste eines Feed-Videos, wie weit du bist, und am rechten Ende, wie viel noch übrig ist. Dafür muss „Suchleiste bei Feed-Videos“ an sein.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Fügt Feed-Videos eine Taste hinzu, die das Video in Facebooks eigenem vollständigen Player mit allen Steuerelementen öffnet. Live-Videos bekommen sie auch. Ist „Zum Abspielen tippen“ an, muss auch „Wiedergabesteuerung im Feed“ an sein.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Vollbildvideos zentriert öffnen
@@ -2157,6 +2168,10 @@ Videos you open full screen, from a comment or a link, start with their details 
 Open in the full player	Im vollständigen Player öffnen
 Seek bar on feed videos	Suchleiste bei Feed-Videos
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Zeigt eine Leiste am unteren Rand eines Feed-Videos. Zieh sie und lass los, um zu dieser Stelle zu springen. Live-Videos und Werbung behalten ihre eigene Steuerung. Ist „Zum Abspielen tippen“ an, muss auch „Wiedergabesteuerung im Feed“ an sein.
+Fade the seek bar and speaker	Suchleiste und Lautsprecher verblassen lassen
+Lower the seek bar and speaker	Suchleiste und Lautsprecher tiefer setzen
+While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Während ein Feed-Video läuft, verblassen seine Suchleiste und Facebooks Lautsprecher-Taste ein paar Sekunden nach dem Start oder deiner letzten Berührung. Berühre die Leiste oder pausiere das Video, dann sind sie wieder da. Dafür muss „Suchleiste bei Feed-Videos“ an sein.
+Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Setzt die Suchleiste eines Feed-Videos näher an den unteren Rand, zusammen mit Facebooks Tasten für Lautsprecher und markierte Personen. Dafür muss „Suchleiste bei Feed-Videos“ an sein.
 Feed video position	Position im Feed-Video
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Badge-Farbe
@@ -2477,8 +2492,12 @@ Restore feed sound after opened videos	Feed-Ton nach geöffneten Videos wiederhe
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Ein Video, das du öffnest, läuft wie gewohnt mit Ton. Zurück im Feed ist der Ton so wie vor dem Öffnen, auch wenn du lange zugeschaut hast.
 Hide the Join button on posts	Beitreten-Button bei Beiträgen ausblenden
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Blendet den Beitreten-Button neben dem Gruppennamen bei Beiträgen aus Gruppen aus, in denen du nicht Mitglied bist, und die Leiste „Gruppe beitreten“ unter deren Videos. Eine Änderung gilt für Beiträge, die danach geladen werden.
+Hide the X on posts	X bei Beiträgen ausblenden
+Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	Entfernt das X oben in der Ecke von Beiträgen in deinem Feed. Das Drei-Punkte-Menü daneben bleibt. Eine Änderung gilt für Beiträge, die danach geladen werden.
 Hide the Reels title	Reels-Titel ausblenden
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Nimmt das Wort Reels oben im Reels-Tab weg. Die Buttons daneben bleiben.
+Hide Back on opened videos	Zurück bei geöffneten Videos ausblenden
+Takes the Back arrow off the top of a video or reel you open, and Menu off the top of the Reels tab. Your phone's back gesture or button still goes back.	Nimmt den Zurück-Pfeil oben aus einem geöffneten Video oder Reel und das Menü oben aus dem Reels-Tab. Die Zurück-Geste oder -Taste deines Handys geht weiter zurück.
 Videos in search results wait for a tap	Videos in Suchergebnissen warten auf einen Tipp
 Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	Videos in Suchergebnissen starten nicht von selbst. Tippe eines an, um es abzuspielen. Funktioniert mit „Zum Abspielen tippen“ an oder aus.
 Custom color	Eigene Farbe
@@ -2526,9 +2545,20 @@ A tap in the middle of a story shows a play and pause button, like Reels. Taps o
 Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Stories wechseln nur bei Doppeltippen, links zur vorherigen und überall sonst zur nächsten. Einfaches Tippen pausiert die Story oder spielt sie ab, oder zeigt die Play-Taste, wenn sie an ist.
 Pause story	Story pausieren
 Play story	Story abspielen
+Replay story	Story erneut abspielen
 Hide song and effect credits	Song- und Effekt-Credits ausblenden
 Hide reply suggestions	Antwortvorschläge ausblenden
 Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Entfernt die Song- und Effekt-Credits aus der Zeile unter dem Namen der Person, die die Story gepostet hat. Gilt ab der nächsten Story, die du öffnest.
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Entfernt die Reihe mit Antwortvorschlägen unten in einer Story. Das Antwortfeld bleibt. Gilt ab der nächsten Story, die du öffnest.
+Hide the Subscribe button	Abonnieren-Button ausblenden
+Takes the Subscribe button off the top of a story. Applies from the next story you open.	Entfernt den Abonnieren-Button oben in einer Story. Gilt ab der nächsten Story, die du öffnest.
 Progress bar at the bottom	Fortschrittsbalken unten
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Zeigt unten in einer Story einen dünnen Balken, der sich beim Abspielen füllt, wie bei Reels.
+Seek bar on stories	Suchleiste bei Storys
+Fade the story seek bar	Story-Suchleiste verblassen lassen
+Story position	Position in der Story
+Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Zeigt unten in einer Video-Story eine Leiste, die du ziehst, um dich durch die Story zu bewegen. Die Story wartet, während du ziehst. „Fortschrittsbalken unten“ macht bei Video-Storys Platz dafür.
+With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	Wenn „Suchleiste bei Storys“ an ist, verblasst die Leiste ein paar Sekunden nach dem Start der Story oder deiner letzten Berührung. Eine Berührung oder eine Pause holt sie zurück.
+Clean mode	Clean-Modus
+Clean mode button on reels	Clean-Modus-Taste bei Reels
+Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Fügt den Tasten an der Seite eines Reels eine Clean-Modus-Taste hinzu. Tippe darauf, um sie auszublenden, und der Clean-Modus bleibt beim Wischen an. Facebooks eigene Clean-Modus-Taste holt sie zurück.

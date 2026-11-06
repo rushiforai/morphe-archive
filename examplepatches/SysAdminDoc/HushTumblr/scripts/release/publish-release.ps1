@@ -22,7 +22,9 @@
       5. verify-published-index.ps1, which asks GitHub what Manager is offered now.
 
     A step that already happened is checked instead of done again, so a run that stopped part
-    way carries on from where it stopped.
+    way carries on from where it stopped. A draft gh release create left behind is finished by
+    Complete-ReleaseDraft: held to the prepare commit, its uploaded assets matched to the ones
+    built here, the rest uploaded, then published.
 
 .EXAMPLE
     scripts/release/publish-release.ps1 -Version 0.0.7 -Intro intro.txt -Tail tail.txt -Summary summary.txt `
@@ -97,12 +99,20 @@ if ($remote -cne $source -and $remote -cne $head) {
 
 # 1 and 2: the release, made once.
 $release = Get-PublishedRelease
-if ($release) {
-    Write-ReleaseStep "$tag is already on GitHub (published $($release.PublishedAt)), so it's checked, not made again"
-} else {
+if (-not $release -or $release.IsDraft) {
+    # A draft gets its notes written again too, so it's published with this run's notes.
     if (-not $Intro -or -not $Tail) { throw '-Intro and -Tail name the files with the notes above and below the CHANGELOG bullets.' }
     $notes = Join-Path $assets 'notes.txt'
     Invoke-ReleaseText -Root $Root -What 'The release notes' -Arguments @('notes', '--version', $Version, '--intro', $Intro, '--tail', $Tail, '--out', $notes)
+}
+if ($release -and $release.IsDraft) {
+    Write-ReleaseStep "$tag is a draft a run that stopped part way left, so it's finished instead of made again"
+    Complete-ReleaseDraft -Root $Root -Repository $Repository -Tag $tag -Source $source -Assets $assets -Uploads $uploads -Notes $notes
+    $release = Get-PublishedRelease
+    if (-not $release) { throw "gh release edit published $tag, but GitHub doesn't show it." }
+} elseif ($release) {
+    Write-ReleaseStep "$tag is already on GitHub (published $($release.PublishedAt)), so it's checked, not made again"
+} else {
     $files = @($uploads | ForEach-Object { Join-Path $assets $_ })
     Write-ReleaseStep "publishing $tag at $source"
     Invoke-ReleaseNative 'gh release create' {

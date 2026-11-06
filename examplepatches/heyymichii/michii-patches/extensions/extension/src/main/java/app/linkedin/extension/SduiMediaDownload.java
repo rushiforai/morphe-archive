@@ -75,6 +75,7 @@ public final class SduiMediaDownload {
 
             Activity activity = activity(fragment);
             if (activity == null) return;
+            Settings.closePremiumTakeover(activity, screen);
             WhatsNew.maybeShow(activity);
             removeView(activity, DOWNLOAD_TAG);
             if (!resumedIsMedia || !Settings.downloadMedia()) return;

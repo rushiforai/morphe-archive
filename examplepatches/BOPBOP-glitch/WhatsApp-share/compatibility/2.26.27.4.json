@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "packageName": "com.whatsapp",
+  "version": "2.26.27.4",
+  "status": "build-validated",
+  "scope": "compatibility-only",
+  "patchBehaviorChanged": false,
+  "declaredExperimental": true,
+  "patchCount": 8,
+  "tests": {
+    "bundleBuild": true,
+    "dexPresent": true,
+    "patchMetadata": true,
+    "patchTime": false,
+    "launch": false,
+    "loginSession": false,
+    "sendReceive": false,
+    "restart": false
+  },
+  "evidence": {
+    "workflowRun": "36522729590"
+  }
+}

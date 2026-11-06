@@ -24,6 +24,7 @@ val hidePostsWithWordsPatch = bytecodePatch(
     name = "Hide posts with these words",
     description = "Hides posts matching your word list. Choose whether to check current text, the reblog trail," +
         " tags or summaries. Allowed words can keep a matching post, but other enabled filters still apply." +
+        " Both word editors let you type a made-up post and see what the word filter would do with it." +
         " Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
     default = true,
 ) {

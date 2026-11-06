@@ -50,10 +50,20 @@ function Assert-HushThreadsDeviceLease {
         throw 'Device testing needs HUSHTHREADS_DEVICE_LEASE_DIR, HUSHTHREADS_DEVICE_LEASE_TOKEN and HUSHTHREADS_DEVICE_IDENTITY.'
     }
     $path = Join-Path $LeaseDirectory ($Serial + '.json')
-    try {
-        $stream = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
-    } catch [IO.IOException] {
-        throw "No readable exclusive device lease for $Serial. Acquire it before device testing."
+    # Another session waiting for the phone may be reading the lease right now, so a sharing
+    # violation (32, or 33 for a locked range) is retried for a few seconds. A missing lease, or a
+    # lock that outlasts the retries, still stops the run.
+    $stream = $null
+    foreach ($delay in @(100, 250, 500, 1000, 2000, 0)) {
+        try {
+            $stream = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+            break
+        } catch [IO.IOException] {
+            if (($_.Exception.GetBaseException().HResult -band 0xFFFF) -notin 32, 33 -or $delay -eq 0) {
+                throw "No readable exclusive device lease for $Serial. Acquire it before device testing."
+            }
+            Start-Sleep -Milliseconds $delay
+        }
     }
     try {
         $reader = [IO.StreamReader]::new($stream, [Text.UTF8Encoding]::new($false), $false, 4096, $true)

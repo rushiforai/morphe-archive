@@ -1,7 +1,9 @@
 """Run each release_text command on a temporary tree and read back what it wrote."""
 
 import argparse
+import base64
 import contextlib
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -38,6 +40,45 @@ HushThreads v0.0.12 has 17 patches. All but three are selected.
 USER_AGENT = 'headers.put("User-Agent", "HushThreads/0.0.12");\nassert(wire.contains("HushThreads/0.0.12\\r\\n"));\n'
 TOML = 'morphe-patcher = "1.15.1"\nmanager-floor = "1.34.0"\n'
 FORM = "      placeholder: Version 0.0.12 for Threads 450.0.0.51.78\n      placeholder: Morphe Manager 1.34.0\n"
+# Throwaway Ed25519 keys, so the bundles here carry real signatures.
+SEED = bytes(range(32))
+OTHER_SEED = bytes(range(1, 33))
+# RFC 8032 section 7.1, TEST 1 and TEST 2: secret key, public key, message, signature.
+RFC_8032 = [
+    ("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+     "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a", "",
+     "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"),
+    ("4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+     "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c", "72",
+     "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00"),
+]
+
+
+def sign(seed: bytes, message: bytes) -> tuple[bytes, bytes]:
+    """The public key and Ed25519 signature for `seed`, by RFC 8032 5.1.6."""
+    digest = hashlib.sha512(seed).digest()
+    secret = int.from_bytes(digest[:32], "little") & ((1 << 254) - 8) | (1 << 254)
+    public = release_text.point_encode(release_text.point_times(release_text.BASE, secret))
+    r = int.from_bytes(hashlib.sha512(digest[32:] + message).digest(), "little") % release_text.L
+    nonce = release_text.point_encode(release_text.point_times(release_text.BASE, r))
+    k = int.from_bytes(hashlib.sha512(nonce + public + message).digest(), "little") % release_text.L
+    return public, nonce + ((r + k * secret) % release_text.L).to_bytes(32, "little")
+
+
+PUBLIC_KEY = base64.b64encode(sign(SEED, b"")[0]).decode("ascii")
+OTHER_KEY = base64.b64encode(sign(OTHER_SEED, b"")[0]).decode("ascii")
+
+
+def zip_with_comment(comment: str, body: bytes = b"") -> bytes:
+    """`body` and a zip end record carrying `comment`: all the index reads of a bundle."""
+    raw = comment.encode("ascii")
+    return body + b"PK\x05\x06" + bytes(16) + len(raw).to_bytes(2, "little") + raw
+
+
+def signed_zip(seed: bytes, body: bytes = b"") -> bytes:
+    """What signBundle writes: the MorpheSig1 signature over the archive with an empty comment."""
+    public, signature = sign(seed, b"MorpheSig1" + hashlib.sha256(zip_with_comment("", body)).digest())
+    return zip_with_comment(f"MorpheSig1 {base64.b64encode(public).decode()} {base64.b64encode(signature).decode()}", body)
 
 
 def catalog(*builds: str, version: str = "v0.0.13", count: int = 2) -> str:
@@ -75,6 +116,8 @@ class ReleaseTextTest(unittest.TestCase):
         self.write("extensions/threads/build/test-results/testDebugUnitTest/TEST-b.xml", results(2))
         self.write("patches/build/test-results/test/TEST-c.xml", results(4))
         self.write("patches/build/test-results/fixtureTest/TEST-d.xml", results(1))
+        self.write("morphe-signing.pub", PUBLIC_KEY + "\n")
+        self.bundle(signed_zip(SEED, b"payload"))
         self.saved = release_text.ROOT
         release_text.ROOT = self.root
 
@@ -89,6 +132,13 @@ class ReleaseTextTest(unittest.TestCase):
 
     def read(self, name: str) -> str:
         return (self.root / name).read_text(encoding="utf-8")
+
+    def bundle(self, data: bytes, version: str = "0.0.13") -> None:
+        """The release bundle and the bundle.sha256 buildAndroid writes beside it."""
+        path = self.root / f"patches/build/release/patches-{version}.mpp"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        path.with_name("bundle.sha256").write_text(hashlib.sha256(data).hexdigest(), encoding="ascii")
 
     def run_command(self, command, **values):
         with contextlib.redirect_stdout(io.StringIO()) as printed:
@@ -196,7 +246,10 @@ class ReleaseTextTest(unittest.TestCase):
         self.run_command(release_text.index, version="0.0.13", created="2026-10-09T17:03:42",
                          summary=str(self.root / "summary.txt"))
         bundle = json.loads(self.read("patches-bundle.json"))
-        self.assertEqual(list(bundle), ["created_at", "description", "download_url", "signature_download_url", "version"])
+        self.assertEqual(list(bundle), ["created_at", "description", "download_url", "signature_download_url", "version",
+                                        "public_key"])
+        # Manager pins this key when it adds the source, so it's the key that signed the bundle.
+        self.assertEqual(bundle["public_key"], PUBLIC_KEY)
         self.assertEqual(bundle["version"], "0.0.13")
         self.assertEqual(bundle["created_at"], "2026-10-09T17:03:42")
         self.assertEqual(bundle["download_url"],
@@ -226,6 +279,49 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertNotIn("90 patches", facts)
         self.assertNotIn("449.0.0.54.82", facts)
         self.assertIn("with 90 patches.", groups)
+
+    def test_index_refuses_a_bundle_the_published_key_did_not_sign(self):
+        self.run_command(release_text.cut, version="0.0.13", date="2026-10-09")
+        self.write("summary.txt", "x.\n")
+        values = dict(version="0.0.13", created="2026-10-09T17:03:42", summary=str(self.root / "summary.txt"))
+        self.bundle(zip_with_comment("", b"payload"))
+        self.refused(release_text.index, "isn't signed", **values)
+        self.bundle(signed_zip(OTHER_SEED, b"payload"))
+        self.refused(release_text.index, "another key", **values)
+        self.assertEqual(json.loads(self.read("patches-bundle.json"))["version"], "0.0.12")
+
+    def test_index_refuses_a_bundle_changed_after_it_was_signed(self):
+        self.run_command(release_text.cut, version="0.0.13", date="2026-10-09")
+        self.write("summary.txt", "x.\n")
+        values = dict(version="0.0.13", created="2026-10-09T17:03:42", summary=str(self.root / "summary.txt"))
+        # Changed after signing with the comment kept, and a checksum written to match.
+        self.bundle(signed_zip(SEED, b"payload").replace(b"payload", b"paylo4d"))
+        self.refused(release_text.index, "changed after it was signed", **values)
+        # A comment naming the published key over a signature that key never made.
+        self.bundle(zip_with_comment(f"MorpheSig1 {PUBLIC_KEY} {'S' * 86}==", b"payload"))
+        self.refused(release_text.index, "changed after it was signed", **values)
+        # Signed, then changed with bundle.sha256 left as the build wrote it.
+        self.bundle(signed_zip(SEED, b"payload"))
+        (self.root / "patches/build/release/bundle.sha256").write_text(hashlib.sha256(b"other").hexdigest(), encoding="ascii")
+        self.refused(release_text.index, "bundle.sha256", **values)
+        self.assertEqual(json.loads(self.read("patches-bundle.json"))["version"], "0.0.12")
+
+    def test_signed_passes_the_published_keys_bundle_and_stops_the_rest(self):
+        self.assertIn(PUBLIC_KEY, self.run_command(release_text.signed, version="0.0.13"))
+        self.bundle(zip_with_comment("", b"payload"))
+        self.refused(release_text.signed, "isn't signed", version="0.0.13")
+        self.bundle(signed_zip(OTHER_SEED, b"payload"))
+        self.refused(release_text.signed, "another key", version="0.0.13")
+
+    def test_ed25519_matches_rfc_8032(self):
+        for secret, public, message, signature in RFC_8032:
+            secret, public, message, signature = map(bytes.fromhex, (secret, public, message, signature))
+            self.assertTrue(release_text.ed25519_verify(public, message, signature))
+            self.assertEqual(sign(secret, message), (public, signature), "the test signer is off")
+            flipped = bytearray(signature)
+            flipped[5] ^= 1
+            self.assertFalse(release_text.ed25519_verify(public, message, bytes(flipped)))
+            self.assertFalse(release_text.ed25519_verify(public, message + b"x", signature))
 
     def test_index_refuses_a_release_the_changelog_has_not_cut(self):
         self.write("summary.txt", "x.\n")

@@ -19,6 +19,7 @@ import app.morphe.patches.threads.ads.MEDIA
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.freeLocalsAt
+import app.morphe.patches.threads.misc.extension.invokeStaticAt
 import app.morphe.patches.threads.misc.extension.localRegisterCount
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.patches.threads.misc.extension.requireThisIntact
@@ -280,14 +281,18 @@ private fun BytecodePatchContext.replaceShortLinks(link: FieldReference) {
                 (written == media || instruction.opcode.setsWideRegister() && written == media - 1)
             ) throw PatchException("$PATCH: $where writes v$media, the post, between its link read at $read and the store")
         }
-        if (media > 15) throw PatchException("$PATCH: $where keeps the post above v15")
-        Triple(after, value, method.freeLocalsAt(PATCH, after, if (value > 15) 3 else 2))
+        val needed = 2 + listOf(value, media).count { it > 15 }
+        Triple(after, value, method.freeLocalsAt(PATCH, after, needed, excluding = listOf(value, media)))
     }
 
     // Later sites first, so the earlier indices still point where they did.
     for ((after, value, scratch) in sites.sortedByDescending { it.first }) {
-        val link = scratch.getOrElse(2) { value }
-        method.addInstructionsWithLabels(after, throughLowLink(value, link, postLinkHook(link, media, scratch[0], scratch[1])))
+        val extra = scratch.drop(2).iterator()
+        val link = if (value > 15) extra.next() else value
+        // The hook's getters name 4-bit registers too, so a post above v15 goes through a copy.
+        val held = if (media > 15) extra.next() else media
+        val copy = if (held == media) "" else "move-object/from16 v$held, v$media\n"
+        method.addInstructionsWithLabels(after, throughLowLink(value, link, copy + postLinkHook(link, held, scratch[0], scratch[1])))
     }
 
     val hooked = replaceShortLinksInHolders(types, getters)
@@ -416,13 +421,11 @@ private fun BytecodePatchContext.rememberAtFetch(
         val continuation = body[calls.first()].getReference<MethodReference>()!!.parameterTypes[3].toString()
         requireOwnContinuation(where, coroutine, continuation, calls + reads.map { it + 2 })
     }
-    if (coroutine > 15 || arguments.any { it[2] > 15 }) {
-        throw PatchException("$PATCH: $where keeps the continuation or the post above v15")
-    }
     val edits: Edits = mutableListOf()
     // At the call's own label, so a branch that jumped to the call keeps the post too.
     for ((call, registers) in calls.zip(arguments)) {
-        edits += call to { addInstructionsAtControlFlowLabel(call, "invoke-static { v$coroutine, v${registers[2]} }, $REMEMBER_POST") }
+        val remember = invokeStaticAt(PATCH, call, REMEMBER_POST, listOf(coroutine, registers[2]))
+        edits += call to { addInstructionsAtControlFlowLabel(call, remember) }
     }
     recallAfter(this, edits, where, body, reads, coroutine)
     edits.applyLastFirst()
@@ -456,11 +459,11 @@ private fun BytecodePatchContext.rememberAtCast(method: MutableMethod, types: Se
         }
     }
     val registers = posts.map { (body[it] as OneRegisterInstruction).registerA }
-    if (self > 15 || registers.any { it > 15 }) throw PatchException("$PATCH: $where keeps this or the post above v15")
     val edits: Edits = mutableListOf()
     // After the cast, and not at the next instruction's label: only the cast's own post goes in.
     for ((cast, post) in posts.zip(registers)) {
-        edits += cast + 1 to { addInstructions(cast + 1, "invoke-static { v$self, v$post }, $REMEMBER_POST") }
+        val remember = invokeStaticAt(PATCH, cast + 1, REMEMBER_POST, listOf(self, post))
+        edits += cast + 1 to { addInstructions(cast + 1, remember) }
     }
     // The read finds the post through this, which requireThisIntact keeps to every read. 452 reuses
     // the alias for an instance-of between the cast and the read.

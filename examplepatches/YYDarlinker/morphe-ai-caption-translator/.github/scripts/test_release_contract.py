@@ -19,7 +19,7 @@ class ReleaseContractTest(unittest.TestCase):
             patches['version']=version
             patch_list.write_text(json.dumps(patches),encoding='utf-8')
             prop=dst/'gradle.properties'
-            prop.write_text(re.sub(r'^version=.*$', 'version='+version, prop.read_text(), flags=re.M),encoding='utf-8')
+            prop.write_text(re.sub(r'^[ \t]*version[ \t]*=.*$', 'version='+version, prop.read_text(), flags=re.M),encoding='utf-8')
             if mutate: mutate(data)
             (dst/"patches-bundle.json").write_text(json.dumps(data),encoding="utf-8")
             if mutate_files: mutate_files(dst)

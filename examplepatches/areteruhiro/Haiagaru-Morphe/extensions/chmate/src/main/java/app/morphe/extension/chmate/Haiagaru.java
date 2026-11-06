@@ -473,7 +473,8 @@ public final class Haiagaru {
 
     /** Adds the archive action to ChMate's own home-toolbar customization model. */
     public static Object addEdgeArchiveToolbarChoice(Object toolbarModel) {
-        return addToolbarChoice(toolbarModel, EDDI_ARCHIVE_TOOLBAR_ID, "haiagaru_edge_archive");
+        Object result=addToolbarChoice(toolbarModel, EDDI_ARCHIVE_TOOLBAR_ID, "haiagaru_edge_archive");
+        return addToolbarChoice(result,OpenTabsRefresh.ACTION,"haiagaru_refresh_open_tabs");
     }
 
     public static Object addMarkAllReadToolbarChoice(Object toolbarModel) {
@@ -498,6 +499,7 @@ public final class Haiagaru {
         // The toolbar action is always available; the setting only hides the
         // original filter row at the top of the response list.
         Object result = addToolbarChoice(toolbarModel, QuickFilterToolbar.ID, "haiagaru_quick_filter");
+        result=addToolbarChoice(result,OpenTabsRefresh.ACTION,"haiagaru_refresh_open_tabs");
         try {
             String version = applicationContext.getPackageManager().getPackageInfo(applicationContext.getPackageName(), 0).versionName;
             if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version)
@@ -644,6 +646,7 @@ public final class Haiagaru {
 
     /** Handles the custom toolbar item before ChMate dispatches its stock actions. */
     public static boolean handleEdgeArchiveToolbarClick(Object fragment, int itemId) {
+        if(itemId==OpenTabsRefresh.ACTION){OpenTabsRefresh.refresh(toolbarActivity(fragment));return true;}
         if(itemId==ThreadWatch.ACTION){ThreadWatch.show(fragment);return true;}
         if (itemId == ToolbarIcons.AUTO_NG_EXCLUSIONS) {
             RedIdAutoNg.showExclusions(toolbarActivity(fragment));
@@ -3839,11 +3842,22 @@ public final class Haiagaru {
         });
         Switch viewingUa = addSwitch(layout,activity,text("User-Agentを変更する","Change User-Agent"),
                 preferences.getBoolean(BrowserUaTemplates.ENABLED,false));
-        live.toggle(viewingUa,BrowserUaTemplates.ENABLED);
-        Button uaTemplate = new Button(activity);uaTemplate.setText(text("UAテンプレートを選ぶ","Choose UA template"));layout.addView(uaTemplate);
+        Button uaTemplate = new Button(activity);layout.addView(uaTemplate);
+        TextView selectedUa = new TextView(activity);selectedUa.setTextIsSelectable(true);layout.addView(selectedUa);
+        Runnable updateUa=()->{
+            String saved=preferences.getString("userAgent",BrowserUaTemplates.DEFAULT);
+            boolean enabled=preferences.getBoolean(BrowserUaTemplates.ENABLED,false);
+            uaTemplate.setText("UAテンプレート："+BrowserUaTemplates.selectedLabel(saved));
+            selectedUa.setText((enabled?"適用中：":"変更OFF・保存中：")+BrowserUaTemplates.selectedLabel(saved)
+                    +"\n"+BrowserUaTemplates.resolve(saved));
+        };
+        updateUa.run();
+        live.toggle(viewingUa,BrowserUaTemplates.ENABLED,updateUa);
         uaTemplate.setOnClickListener(v->new HaiagaruDialog.Builder(activity).setTitle("UAテンプレート")
-                .setItems(BrowserUaTemplates.labels(),(dialog,index)->{
+                .setSingleChoiceItems(BrowserUaTemplates.labels(),BrowserUaTemplates.selectedIndex(
+                        preferences.getString("userAgent",BrowserUaTemplates.DEFAULT)),(dialog,index)->{
                     preferences.edit().putString("userAgent",BrowserUaTemplates.value(index)).apply();
+                    updateUa.run();dialog.dismiss();
                     Toast.makeText(activity,"UAテンプレートを保存しました。開いている認証画面は一度閉じてください。",Toast.LENGTH_LONG).show();
                 }).setNegativeButton("閉じる",null).show());
         TextView uaHelp = new TextView(activity);

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "💬 DM Lopikss on Discord"
+    url: "https://discord.com/users/493792470778511360"
+    about: "Questions and requests for patches for other Android games."
+  - name: "📚 Project documentation"
+    url: "https://github.com/lopikss/lopikss-patches#readme"
+    about: "Check supported versions, installation instructions and limitations."

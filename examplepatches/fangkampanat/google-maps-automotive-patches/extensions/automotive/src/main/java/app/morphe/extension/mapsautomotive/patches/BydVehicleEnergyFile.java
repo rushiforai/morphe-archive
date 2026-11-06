@@ -33,7 +33,9 @@ import java.util.function.UnaryOperator;
  * own and other cars' ids are not known.
  * <p>
  * Read only, nothing of BYD's is bundled. The file is deserialized with a class allowlist; every part
- * must be well-formed protobuf. Plain Java without Android APIs, so the JVM probe runs this code.
+ * must be well-formed protobuf, and the drivetrain losses must show zero loss at zero power, as stored or
+ * put back from BYD's transposed order ({@link #checkedLosses}). Plain Java without Android APIs, so the JVM
+ * probe runs this code.
  */
 final class BydVehicleEnergyFile {
     private static final String BYD_CLASS = "com.byd.car.VEMBinaryData";
@@ -59,20 +61,34 @@ final class BydVehicleEnergyFile {
     // {1 energy_to_full_wh}}.
     private static final int REGEN_AT_ENERGY = 1, ENERGY_LEVEL = 1, CURVE_AT_POWER = 1, CURVES_AT_TEMP = 2,
             TEMP_CURVE_AT_POWER = 2, TIME_TO_FULL = 2, ENERGY_TO_FULL = 1;
+    // DrivetrainLosses {7 LossesAtSpeed {1 speed (float), 2 LossAtPower {1 power_watts (sint32), 2 losses_watts
+    // (IntWithUncertainty)}}}.
+    private static final int LOSSES_AT_SPEED = 7, LOSS_SPEED = 1, LOSS_AT_POWER = 2, LOSS_POWER = 1, LOSS_VALUE = 2;
     // The tables used and their capacities, each with a fallback name (81_1 and 81_1750_1 are the
     // same file). Not used: 215_1, 251_1 and 425_1, whose drag coefficient is 12x below the others' (km/h
     // units); 81_1620_1 (51,136 Wh), which would split from 420_1 at 48.1 kWh, the Dolphin's own capacity;
-    // default.bin with its placeholder capacity; the other variants of 81 and 128.
+    // default.bin with its placeholder capacity; the other variants of 81 and 128. Read from DiCarServer
+    // 3.4.0 (BYD firmware 20260610); in 2.1.0 (20260801) 81_1 is a new table (60,900 Wh, 1,694 kg) and
+    // 81_1750_1, 425_1 and the other 81 variants are gone.
     private static final String[][] TABLES = {{"420_1"}, {"81_1", "81_1750_1"}, {"128_2", "128_3"}};
     private static final int[] TABLE_CAPACITY_WH = {45120, 64870, 74880};
 
     final String name, sha256;
+    /**
+     * Hash of the parts {@link Predictor} reads, after the drivetrain losses are checked: the same for a
+     * file whose bytes changed but whose prediction did not (BydSpeedBands keys its pools on it).
+     */
+    final String predictionSha256;
     final int size;
     /** From the file's vehicle info: its mass and capacity (energy levels scale from it), air density, temperature. */
     final int fileMassKg, fileCapacityWh;
     final float airDensity, fileExternalTemp;
     /** Road load A, B, C (N, N/(m/s), N/(m/s)²). */
     final float roadA, roadB, roadC;
+    /** Raise when {@link Predictor} computes differently, so BydSpeedBands starts its pools again. */
+    private static final int PREDICTION_VERSION = 1;
+    /** Whether the drivetrain losses were stored in transposed order and are used put back ({@link #checkedLosses}). */
+    final boolean lossesReordered;
     private final byte[] vehicleInfo, roadLoad, drivetrainLosses, chargingCurves;
     private final TreeMap<Integer, byte[]> maxRegen, batteryLosses;
     private final TreeMap<Integer, List<byte[]>> drainAtTime;
@@ -121,7 +137,9 @@ final class BydVehicleEnergyFile {
         sha256 = sha256(bytes);
         vehicleInfo = required(data.mVehicleInfo, "vehicle info");
         roadLoad = required(data.mRoadLoad, "road load");
-        drivetrainLosses = required(data.mDrivetrainLosses, "drivetrain losses");
+        byte[] storedLosses = required(data.mDrivetrainLosses, "drivetrain losses");
+        drivetrainLosses = checkedLosses(storedLosses);
+        lossesReordered = drivetrainLosses != storedLosses;
         chargingCurves = data.mChargingCurves;
         maxRegen = parts(data.mMaxRegenPowerMap, "max regen");
         batteryLosses = parts(data.mBatteryLossesMap, "battery losses");
@@ -164,6 +182,34 @@ final class BydVehicleEnergyFile {
         // The parts that are rewritten must parse as their messages.
         for (byte[] regen : maxRegen.values()) scaleRegen(regen, capacity);
         if (chargingCurves != null) scaleChargingCurves(chargingCurves, capacity);
+        predictionSha256 = predictionHash();
+    }
+
+    /**
+     * {@link #predictionSha256}: the Predictor's version, the file's mass, capacity and temperature (used without the
+     * car's), road load, drivetrain losses, regen, battery losses, drain at time.
+     */
+    private String predictionHash() {
+        ByteArrayOutputStream parts = new ByteArrayOutputStream();
+        writeVarint(parts, PREDICTION_VERSION);
+        writeVarint(parts, Float.floatToIntBits(fileExternalTemp) & 0xFFFFFFFFL);
+        writeVarint(parts, fileMassKg);
+        writeVarint(parts, fileCapacityWh);
+        writeMessage(parts, 1, roadLoad);
+        writeMessage(parts, 2, drivetrainLosses);
+        for (Map.Entry<Integer, byte[]> entry : maxRegen.entrySet()) {
+            writeVarintField(parts, 3, entry.getKey());
+            writeMessage(parts, 3, entry.getValue());
+        }
+        for (Map.Entry<Integer, byte[]> entry : batteryLosses.entrySet()) {
+            writeVarintField(parts, 4, entry.getKey());
+            writeMessage(parts, 4, entry.getValue());
+        }
+        for (Map.Entry<Integer, List<byte[]>> entry : drainAtTime.entrySet()) {
+            writeVarintField(parts, 5, entry.getKey());
+            for (byte[] part : entry.getValue()) writeMessage(parts, 5, part);
+        }
+        return sha256(parts.toByteArray());
     }
 
     /**
@@ -349,9 +395,9 @@ final class BydVehicleEnergyFile {
     String describe() {
         return String.format(Locale.ROOT, "file=%s;bytes=%d;sha256=%s;file_mass_kg=%d;file_capacity_wh=%d"
                         + ";road_load=%s/%s/%s;air_density=%s;regen_keys=%s;losses_keys=%s;drain_time_keys=%s"
-                        + ";drain_temp=%d;charging_curves=%s", name, size, sha256, fileMassKg, fileCapacityWh,
+                        + ";drain_temp=%d;charging_curves=%s;drivetrain_losses=%s", name, size, sha256, fileMassKg, fileCapacityWh,
                 roadA, roadB, roadC, airDensity, maxRegen.keySet(), batteryLosses.keySet(), drainAtTime.keySet(),
-                drainAtTemp.size(), chargingCurves != null);
+                drainAtTemp.size(), chargingCurves != null, lossesReordered ? "reordered" : "as_stored");
     }
 
     /** The temperature keys used for an outside temperature, for the log. */
@@ -448,6 +494,159 @@ final class BydVehicleEnergyFile {
             if (field.is(1, VARINT)) return (int) field.varint;
         }
         return 0;
+    }
+
+    // Drivetrain losses.
+
+    /**
+     * The drivetrain losses Maps gets. All eleven tables of DiCarServer 3.4.0 (BYD firmware 20260610) have zero loss
+     * at zero power at every speed. DiCarServer 2.1.0 (firmware 20260801) ships the same grids with their values in
+     * transposed order: read by speed, then power, they are the original grid read by power, then speed (for the
+     * Dolphin's 420_1 the table's own prediction at 20 km/h went from 9.6 to 82 kWh/100 km). Such a grid is put back,
+     * each value field moved whole: for every table both versions have, Maps then gets the 20260610 bytes (2.1.0's 81_1
+     * is a new table, checked only by this rule). A grid is taken as transposed only if at least two of its speeds
+     * fail as stored (one is a damaged value) and every speed passes once put back; anything else rejects the file, as
+     * does a grid that is not full (the same powers at every speed, each once, at distinct finite speeds).
+     */
+    private static byte[] checkedLosses(byte[] losses) throws IOException {
+        List<Float> speeds = new ArrayList<>();
+        List<List<LossPoint>> grid = new ArrayList<>();
+        boolean plain = true;
+        for (Reader entry = new Reader(losses); entry.next(); ) {
+            // Other fields of the message stay as stored.
+            if (!entry.is(LOSSES_AT_SPEED, LENGTH_DELIMITED)) continue;
+            float speed = 0;
+            int speedFields = 0;
+            List<LossPoint> points = new ArrayList<>();
+            for (Reader field = new Reader(entry.message()); field.next(); ) {
+                if (field.is(LOSS_SPEED, FIXED32)) {
+                    // -0.0 is the absent 0.0.
+                    speed = field.fixed32Float() + 0.0f;
+                    speedFields++;
+                } else if (field.is(LOSS_AT_POWER, LENGTH_DELIMITED)) {
+                    LossPoint point = lossPoint(field.message());
+                    plain &= point.plain;
+                    points.add(point);
+                } else {
+                    plain = false;
+                }
+            }
+            plain &= speedFields <= 1;
+            speeds.add(speed);
+            grid.add(points);
+        }
+        if (grid.isEmpty()) throw invalid("drivetrain losses empty");
+        int failing = 0;
+        for (List<LossPoint> points : grid) if (!zeroAtZeroPower(points)) failing++;
+        if (failing == 0) return losses;
+
+        // A full grid: the same powers at every speed, each once, at distinct finite speeds.
+        int rows = grid.size(), columns = grid.get(0).size();
+        int[] powers = new int[columns];
+        for (int j = 0; j < columns; j++) powers[j] = grid.get(0).get(j).power;
+        Arrays.sort(powers);
+        boolean full = plain && columns > 0;
+        for (int j = 1; j < columns; j++) full &= powers[j] != powers[j - 1];
+        for (List<LossPoint> points : grid) {
+            int[] own = new int[points.size()];
+            for (int j = 0; j < own.length; j++) own[j] = points.get(j).power;
+            Arrays.sort(own);
+            full &= Arrays.equals(own, powers);
+        }
+        Float[] sortedSpeeds = speeds.toArray(new Float[0]);
+        Arrays.sort(sortedSpeeds);
+        for (int i = 0; i < rows; i++) full &= !sortedSpeeds[i].isNaN() && !sortedSpeeds[i].isInfinite()
+                && (i == 0 || !sortedSpeeds[i].equals(sortedSpeeds[i - 1]));
+        int zero = Arrays.binarySearch(powers, 0);
+        if (!full) throw invalid("drivetrain losses: zero-power loss not zero at " + failing + " of " + rows
+                + " speeds, and not a full grid");
+        if (zero < 0) throw invalid("drivetrain losses: no zero-power point");
+        if (failing < 2) throw invalid("drivetrain losses: zero-power loss not zero at 1 of " + rows + " speeds");
+
+        // stored[i][j]: the value field at the i-th speed and the j-th power, both ascending.
+        int[] rank = new int[rows];
+        for (int e = 0; e < rows; e++) rank[e] = Arrays.binarySearch(sortedSpeeds, speeds.get(e));
+        LossPoint[][] stored = new LossPoint[rows][columns];
+        for (int e = 0; e < rows; e++) {
+            for (LossPoint point : grid.get(e)) stored[rank[e]][Arrays.binarySearch(powers, point.power)] = point;
+        }
+        // Put back: the value at (i, j) is the stored grid's (j * rows + i)-th value, read row by row.
+        LossPoint[][] back = new LossPoint[rows][columns];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                int k = j * rows + i;
+                back[i][j] = stored[k / columns][k % columns];
+            }
+            if (back[i][zero].mean != 0) throw invalid("drivetrain losses: zero-power loss not zero at " + failing + " of "
+                    + rows + " speeds as stored, nor once put back");
+        }
+        int[] entry = {0};
+        return rewrite(losses, LOSSES_AT_SPEED, message -> {
+            LossPoint[] row = back[rank[entry[0]++]];
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            for (Reader field = new Reader(message); field.next(); ) {
+                if (!field.is(LOSS_AT_POWER, LENGTH_DELIMITED)) {
+                    field.copyTo(out);
+                    continue;
+                }
+                // The power field as stored, then the value field put back.
+                LossPoint point = lossPoint(field.message());
+                ByteArrayOutputStream rebuilt = new ByteArrayOutputStream();
+                rebuilt.write(point.powerField, 0, point.powerField.length);
+                byte[] value = row[Arrays.binarySearch(powers, point.power)].value;
+                rebuilt.write(value, 0, value.length);
+                writeMessage(out, LOSS_AT_POWER, rebuilt.toByteArray());
+            }
+            return out.toByteArray();
+        });
+    }
+
+    /** Exactly one zero-power point, with zero loss. */
+    private static boolean zeroAtZeroPower(List<LossPoint> points) {
+        int found = 0;
+        for (LossPoint point : points) {
+            if (point.power != 0) continue;
+            if (point.mean != 0) return false;
+            found++;
+        }
+        return found == 1;
+    }
+
+    /** One LossAtPower: its power, and its power and value fields as stored (tag included; empty when absent). */
+    private static final class LossPoint {
+        final int power, mean;
+        final byte[] powerField, value;
+        /** Nothing but at most one power and one value field. */
+        final boolean plain;
+
+        LossPoint(int power, int mean, byte[] powerField, byte[] value, boolean plain) {
+            this.power = power;
+            this.mean = mean;
+            this.powerField = powerField;
+            this.value = value;
+            this.plain = plain;
+        }
+    }
+
+    private static LossPoint lossPoint(byte[] message) {
+        int power = 0, mean = 0, powerFields = 0, valueFields = 0;
+        ByteArrayOutputStream powerField = new ByteArrayOutputStream(), value = new ByteArrayOutputStream();
+        boolean plain = true;
+        for (Reader field = new Reader(message); field.next(); ) {
+            if (field.is(LOSS_POWER, VARINT)) {
+                power = (int) (field.varint >>> 1) ^ -(int) (field.varint & 1);
+                field.copyTo(powerField);
+                powerFields++;
+            } else if (field.is(LOSS_VALUE, LENGTH_DELIMITED)) {
+                mean = mean(field.message());
+                field.copyTo(value);
+                valueFields++;
+            } else {
+                plain = false;
+            }
+        }
+        return new LossPoint(power, mean, powerField.toByteArray(), value.toByteArray(),
+                plain && powerFields <= 1 && valueFields <= 1);
     }
 
     // Deserialization and checks.

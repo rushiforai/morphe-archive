@@ -33,6 +33,7 @@ public final class SettingsStatus {
     public static boolean feedAds() { return false; }
     public static boolean adViews() { return false; }
     public static boolean googleAds() { return false; }
+    public static boolean metaAds() { return false; }
 
     public static boolean hideAiPins() { return false; }
     public static boolean feedAiPins() { return false; }

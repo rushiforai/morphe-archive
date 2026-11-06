@@ -25,17 +25,53 @@
       "version": 1,
       "words": 590890
     },
-    "en": {
+    "en-intl": {
       "added": 0,
-      "attribution": "ENABLE2K word list, via dolph/dictionary",
-      "file": "wordlists/en/words.txt.gz",
-      "license": "Public domain (ENABLE word list)",
+      "attribution": "ENABLE2K via dolph/dictionary; Wordnik open word list; lorenbrichter/Words en.txt (Letterpress)",
+      "file": "wordlists/en-intl/words.txt.gz",
+      "license": "Public domain (ENABLE), MIT (Wordnik, Copyright (c) 2020 Wordnik), CC0 1.0 (Letterpress, as published)",
       "removed": 0,
-      "sha256": "229586853b5802c19b24bedba058c236605f81758a9c8380940a217a5205e324",
-      "size": 439691,
-      "source_words": 168551,
+      "sha256": "5f187bd2f0b0a8592a515981dff42df58f40c595560ad33f56bf4a57d3725326",
+      "size": 713730,
+      "source_words": 275412,
+      "version": 2,
+      "words": 275412
+    },
+    "en-us": {
+      "added": 0,
+      "attribution": "ENABLE2K word list via dolph/dictionary; Wordnik open word list (wordnik/wordlist)",
+      "file": "wordlists/en-us/words.txt.gz",
+      "license": "Public domain (ENABLE) and MIT (Wordnik, Copyright (c) 2020 Wordnik)",
+      "removed": 0,
+      "sha256": "ebebc666e1002cc47ecc4a562eae5ab37952a9e35ec7184bb64e35a5044d0389",
+      "size": 502716,
+      "source_words": 194220,
+      "version": 2,
+      "words": 194220
+    },
+    "es": {
+      "added": 0,
+      "attribution": "lorenbrichter/Words es.txt (Letterpress word list)",
+      "file": "wordlists/es/words.txt.gz",
+      "license": "CC0 1.0 (as published by lorenbrichter/Words; the content matches the FISE-2 Scrabble lexicon)",
+      "removed": 0,
+      "sha256": "2228963a64afde5183ddcc55ec2dfbcaa7db1e80dff1519bebf7922795e391b7",
+      "size": 1470808,
+      "source_words": 636598,
       "version": 1,
-      "words": 168551
+      "words": 636598
+    },
+    "fi": {
+      "added": 0,
+      "attribution": "fginter/hunspell-fi (TurkuNLP), via mhavo/suomen-kieliavut",
+      "file": "wordlists/fi/words.txt.gz",
+      "license": "CC0 1.0",
+      "removed": 0,
+      "sha256": "b93fcedc60b5db7fdaf2678a1f17813f6ec5c87c3e78b2d0ea274c54a8acacf7",
+      "size": 4006272,
+      "source_words": 1456175,
+      "version": 1,
+      "words": 1456175
     },
     "fr": {
       "added": 0,
@@ -43,11 +79,11 @@
       "file": "wordlists/fr/words.txt.gz",
       "license": "MPL 2.0",
       "removed": 0,
-      "sha256": "3fc60514893354f292b976b26d8fd94ad6ef9e1bb001848ffcfe0aba7d474fa1",
-      "size": 971906,
-      "source_words": 408364,
-      "version": 1,
-      "words": 408364
+      "sha256": "dd9e9cccd029ad2bb4fc8f30e232d5c9f345949a87dea88df44b63d38f096c2c",
+      "size": 970528,
+      "source_words": 407899,
+      "version": 2,
+      "words": 407899
     },
     "nb": {
       "added": 0,
@@ -85,6 +121,18 @@
       "version": 1,
       "words": 98470
     },
+    "pt": {
+      "added": 0,
+      "attribution": "jfoclpf/words-pt (European Portuguese, from the Natura word lists of Universidade do Minho)",
+      "file": "wordlists/pt/words.txt.gz",
+      "license": "GPL-3.0",
+      "removed": 0,
+      "sha256": "dad7700e5747e399b773acb5efa8de0fbacff1a4ea6dd693e579430d3900e8fa",
+      "size": 856655,
+      "source_words": 372377,
+      "version": 1,
+      "words": 372377
+    },
     "sv": {
       "added": 0,
       "attribution": "Den stora svenska ordlistan (Göran Andersson), as adapted in mrcz/Wordfeud-Player",
@@ -96,17 +144,33 @@
       "source_words": 370672,
       "version": 1,
       "words": 370672
+    },
+    "sv-strict": {
+      "added": 0,
+      "attribution": "hising/svenska-ord.txt (about 120,000 headwords from SAOL)",
+      "file": "wordlists/sv-strict/words.txt.gz",
+      "license": "Unlicense (as published; the headwords come from SAOL)",
+      "removed": 0,
+      "sha256": "3642c79d19cd837afc0062e9493b699ddf0a5bbb4dd26ac41c2431a9376ff340",
+      "size": 386059,
+      "source_words": 108839,
+      "version": 1,
+      "words": 108839
     }
   },
   "rulesets": {
-    "0": "en",
+    "0": "en-us",
     "1": "nb",
     "10": "nn",
+    "11": "fi",
+    "12": "pt",
     "2": "nl",
     "3": "da",
     "4": "sv",
-    "5": "en",
+    "5": "en-intl",
+    "6": "es",
     "7": "fr",
+    "8": "sv-strict",
     "9": "de"
   }
 }

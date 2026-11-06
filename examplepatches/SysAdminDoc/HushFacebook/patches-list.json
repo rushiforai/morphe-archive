@@ -1,5 +1,5 @@
 {
-  "version": "v0.20.0",
+  "version": "v0.21.0",
   "appNames": {
     "com.facebook.katana": "Facebook"
   },
@@ -471,7 +471,7 @@
     },
     {
       "name": "Clean up the story viewer",
-      "description": "Switches that take the song and effect credits off the line under the poster's name on a story, and the suggested replies off the bottom while the reply box stays, plus one that adds a thin progress bar along the bottom like the one on Reels. All start off. Turn them on in Hushfacebook settings > Stories.",
+      "description": "Switches that take the song and effect credits and the Subscribe button off a story, and the suggested replies off the bottom while the reply box stays, plus one that adds a thin progress bar along the bottom like the one on Reels. All start off. Turn them on in Hushfacebook settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [
@@ -1158,6 +1158,7 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
+        "BytecodePatch",
         "Hushfacebook settings"
       ],
       "compatiblePackages": {
@@ -1492,7 +1493,7 @@
     },
     {
       "name": "Hide post prompts",
-      "description": "Removes the strip Facebook adds to some posts, like \"Are you interested in this post?\", \"Show less\" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn it off in Hushfacebook settings > News feed. Four more switches there, Hide the Follow link on posts, Hide the Join button on posts, Hide counts on posts and Hide the reaction preview on posts, start off.",
+      "description": "Removes the strip Facebook adds to some posts, like \"Are you interested in this post?\", \"Show less\" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn it off in Hushfacebook settings > News feed. Five more switches there, Hide the Follow link on posts, Hide the Join button on posts, Hide the X on posts, Hide counts on posts and Hide the reaction preview on posts, start off.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -3184,7 +3185,7 @@
     },
     {
       "name": "Pinch to zoom",
-      "description": "Pinch a story or a photo on someone's profile to zoom in, like you can on photos in the feed. It goes back when you let go, unless you turn on Stay zoomed under it, which keeps the zoom until you tap or press Back. Starts off. Turn it on in Hushfacebook settings > Stories.",
+      "description": "Pinch a story or a photo on someone's profile to zoom in, like you can on photos in the feed. It goes back when you let go, unless you turn on Stay zoomed under it, which keeps the zoom until you tap or press Back. Keep videos playing while zoomed, another switch under it, lets a video on a profile or Page play on while you zoom, and with Stay zoomed you press and hold to pause it. Starts off. Turn it on in Hushfacebook settings > Stories.",
       "category": "Stories",
       "use": true,
       "dependencies": [

@@ -18,7 +18,7 @@ object Constants {
         packageName = "com.tuya.smart",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFF5A1F,
-        targets = listOf(AppTarget(version = "7.12.3", versionCode = 870)),
+        targets = listOf(AppTarget(version = "7.12.3", versionCode = 870), AppTarget(version = "7.12.6", versionCode = 872)),
     )
 
     val COMPATIBILITY_BARDI = Compatibility(

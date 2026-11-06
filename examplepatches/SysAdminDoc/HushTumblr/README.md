@@ -5,7 +5,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%208%2B-3DDC84" alt="Platform Android 8+">
   <img src="https://img.shields.io/badge/Tumblr-46.8.1.100-001935" alt="Tumblr 46.8.1.100">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.3.0%2B-8A2BE2" alt="For Morphe Manager 2.3.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.4.0%2B-8A2BE2" alt="For Morphe Manager 2.4.0 or newer">
 </p>
 
 <p>
@@ -27,7 +27,7 @@ The latest release is [v0.0.9](https://github.com/SysAdminDoc/HushTumblr/release
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.3.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.4.0 or newer.
 2. Add HushTumblr as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushTumblr
 3. Download the Tumblr 46.8.1.100 bundle (`.apkm`, version code 1460801100) from [APKMirror](https://www.apkmirror.com/apk/tumblr-inc/tumblr/tumblr-social-media-art-46-8-1-100-release/).
 4. Patch it with the default selection. That's every patch except Spoof signature for Google sign-in, which you can pick after turning on **Settings → Advanced → Expert mode** in Morphe Manager.
@@ -43,19 +43,20 @@ Long-press the Tumblr logo at the top of your dashboard. You can also tap **Hush
 
 ## Patches
 
-There are 49 patches.
+There are 53 patches.
 
 | Patch | What it does |
 |---|---|
 | `Dark background color` | Makes the background of Tumblr's Dark Mode palette black, which can save battery on OLED screens, or another dark color you pick when patching. On Android 12 or newer it can follow your wallpaper's colors instead. Blog and tag pages take it too, in place of their own colors. Other palettes stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
-| `Disable analytics` | Turns off Firebase crash reports and Google's analytics collection, and Tumblr's own tracking and ad measurement once it restarts. The Firebase and Google part stays until you patch again without it. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy. |
+| `Disable analytics` | Turns off Firebase crash reports and Google's analytics collection, and Tumblr's own tracking and ad measurement once it restarts. LiveRamp's identity tracker doesn't start when Tumblr launches. The Firebase and Google part stays until you patch again without it. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy. |
 | `Disable update prompts` | Stops Tumblr asking Google Play for a newer version and showing Play's update prompt. Starts off. Turn it on in Tumblr settings > HushTumblr > Updates. |
 | `Filter activity notifications` | Hides selected likes, reblogs, replies, follows, mentions, asks and boops from the activity list as pages load. Each switch starts off. Choose them in Tumblr settings > HushTumblr > Notifications. |
 | `Fix push notifications` | Lets the patched app sign up for push notifications. Firebase can refuse a patched Tumblr whose request doesn't name Tumblr's original signature, so this sends its fingerprint. On by default. Turn it off in Tumblr settings > HushTumblr > Notifications. |
 | `Hide Blaze prompts` | Hides the prompts to pay for Blaze, Tumblr's way to promote a post. That covers the Blaze buttons on your blog and dashboard, the nudge after you post, and the Blaze banners. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
+| `Hide Featured posts` | Takes the staff-picked posts Tumblr shows under a Featured header out of your dashboard and other feeds. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide Tumblr TV` | Takes the Tumblr TV tab out of the bottom bar, and stops sign-up from sending you there. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide Watch it rows` | Takes Tumblr TV's Watch it rows and video hub cards out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
-| `Hide ads` | Takes ad cards and paid Blaze posts out of your dashboard and other feeds, and stops Tumblr asking its ad networks for more. On by default. Turn it off in Tumblr settings > HushTumblr > Feed. |
+| `Hide ads` | Takes ad cards and paid Blaze posts out of your dashboard and other feeds. Tumblr stops asking its ad networks for more and stops showing a full-screen ad when you open a blog, and the ad networks don't start when Tumblr launches. Its Keep Blaze posts option leaves the Blaze posts in. On by default. Turn it off in Tumblr settings > HushTumblr > Feed. |
 | `Hide advertising ID` | Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you'd deleted your ad ID in Android. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy. |
 | `Hide blog notification reminders` | Hides the pop-up suggesting you turn on notifications for a blog. Your subscriptions and notification settings stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide filtered posts` | Takes the posts Tumblr covers with "This post contains filtered content" out of your dashboard, searches and other feeds, so your filtered tags and words hide them completely. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
@@ -63,9 +64,10 @@ There are 49 patches.
 | `Line between posts` | Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `App font` | Replaces Tumblr's own font with your phone's font, or a font file you choose in settings. Fonts a post's author picked stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide hashtags` | Takes the tags off the bottom of posts in your dashboard, other feeds and Tumblr TV, and keeps the source link. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
-| `Hide note counts` | Takes the like, reblog and comment counts off the footer under posts, community posts included, and the counts off the top of a post's notes and its tabs. The buttons stay and still work. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
+| `Hide liked posts` | Takes the posts you've already liked out of your dashboard and the feeds like it as each page loads. Your likes and blogs still show them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
+| `Hide note counts` | Takes the like, reblog and comment counts off the footer under posts, community posts included, and the counts off a post's notes, from the top and its tabs to each comment's likes and replies. The buttons stay and still work. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Hide photo posts` | Takes photo posts out of your dashboard and other feeds as each page loads. A post with pictures and no video, its reblog trail included, counts as a photo post. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
-| `Hide posts with these words` | Hides posts matching your word list. Choose whether to check current text, the reblog trail, tags or summaries. Allowed words can keep a matching post, but other enabled filters still apply. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
+| `Hide posts with these words` | Hides posts matching your word list. Choose whether to check current text, the reblog trail, tags or summaries. Allowed words can keep a matching post, but other enabled filters still apply. Both word editors let you type a made-up post and see what the word filter would do with it. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide reblogs` | Takes reblogs out of your dashboard and other feeds as each page loads, and keeps the posts people made themselves. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested blogs` | Takes the blogs Tumblr suggests you follow out of your dashboard and other feeds, whether as cards, rows or carousels, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Hide suggested communities` | Takes the communities Tumblr suggests you join out of your dashboard and other feeds, along with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
@@ -84,10 +86,12 @@ There are 49 patches.
 | `Hide the share button` | Takes the share button out of the footer under posts in your dashboard and other feeds. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Hide unread dots` | Hides the unread dots and counts on the bottom bar's Dashboard, Communities and Notifications tabs, with a switch for each tab. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Hide video posts` | Takes video posts out of your dashboard and other feeds as each page loads. A post with a video anywhere in it, its reblog trail included, counts as a video post. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
+| `Hide your own reblogs` | Takes the reblogs you made out of your dashboard and the feeds like it as each page loads. Your blog still shows them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Mute posts locally` | Adds a local mute action to post menus. Originals and their reblogs stay hidden for this account. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed. |
 | `Reorder the bottom bar` | Puts the bottom bar's tabs in an order you pick, from a list in its settings. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
 | `Reveal allowed mature content` | Removes mature-content covers only when Tumblr explicitly allows them for the signed-in adult account. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
-| `Share video links` | Long-press a video in a post to share or copy its direct link. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
+| `Share video links` | Long-press a video in a post to share or copy its direct link, or save the video to your phone. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
+| `Sharper images` | Loads images in posts at a higher resolution when Tumblr has a larger copy, up to twice the width Tumblr shows them at, even on a slow connection. GIFs keep Tumblr's size. Uses more data. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Show post timestamps` | Shows when posts were made using Tumblr's own timestamp layout. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Show mutual markers` | Marks blogs that follow your primary blog when you follow them. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts. |
 | `Skip review prompts` | Stops the pop-up that asks what you think of the Tumblr app and then asks you for a store rating or feedback. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface. |
@@ -163,7 +167,7 @@ The walk also runs Android's verifier against the clean reference and the signed
 - `patches/src/main/kotlin/app/morphe/patches/tumblr/` holds the patches, and `shared/compat/AppCompatibilities.kt` names the supported build.
 - `extensions/tumblr/` and `extensions/shared/library/` are the Java code that runs inside Tumblr, settings and translations included.
 - `patches-list.json` is the generated catalog. `patches-bundle.json` is the Morphe source index and only changes at release time.
-- `docs/` maps the hooks in Tumblr 46.9.1.100, and `scripts/release/release.ps1` cuts a release.
+- `docs/` maps the hooks in Tumblr 47.0.0.108, and `scripts/release/release.ps1` cuts a release.
 
 ## Credits and license
 

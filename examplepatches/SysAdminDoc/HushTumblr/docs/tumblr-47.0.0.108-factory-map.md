@@ -1,0 +1,119 @@
+# Tumblr 47.0.0.108 app map
+
+Static notes on the Tumblr build HushTumblr targets, first taken from 46.9.1.100 with a dexlib2 probe on 2026-10-31 and moved to 47.0.0.108 on 2026-11-05 (names through a whole-dex rename map, the paging, palette and font counts measured again). Use it to find hooks again when Tumblr ships a new version. Obfuscated names (three or four lowercase letters, like `yo8`) change with every release, so each one below says how to find it again by shape.
+
+## The APK
+
+| Fact | Value |
+|---|---|
+| Package | `com.tumblr` |
+| Version | 47.0.0.108, versionCode 1470000108 (stable) |
+| SDK | minSdk 26 (Android 8.0), targetSdk 36 |
+| Shipped as | Split bundle only on APKMirror (base plus 4 ABI, 7 density and 14 language splits) |
+| Bundle | `tumblr-47.0.0.108-1470000108.apkm`, 41,444,354 bytes, SHA-256 `3ae95de35c7c9f521e4acf98b14ae0e65d72c2688fa4713f6b9bb217efca78e6` |
+| Merged APK | `tumblr-47.0.0.108-1470000108.apk`, 86,074,313 bytes, made with `scripts/MergeSplits.java` |
+| Dex | 9 files in base.apk (one of them `assets/audience_network/classes.dex`), about 57 MB, 70,170 classes |
+| Application | `com.tumblr.App` |
+| Launcher | `com.tumblr.ui.activity.JumpoffActivity` |
+| Signer | `CN=Tumblr, OU=Tumblr, O=Tumblr, L=New York, ST=NY, C=US`, v2 and v3 schemes plus a Google source stamp |
+| Cert SHA-256 | `39ac9c821ad2d605e4849f066e8aad3cca27d5e13eb03ad8755be234a2985dfd` |
+| Cert SHA-1 | `cd177dd4057daf3af7eca430825ee7dc08ad56fa` |
+| APKMirror path | `tumblr-inc/tumblr` (titles read "Tumblr: Social Media & Art") |
+
+Tumblr keeps the real names of its API models (`com.tumblr.rumblr.model.*`, `com.tumblr.rumblr.response.*`) and of `com.tumblr.UserInfo`. Most other code is renamed by R8.
+
+## Feature flags
+
+Tumblr reads about 220 server-controlled flags from `/v2/config` (the enum has 224 constants in this build, 218 in 46.9.1.100). They live in one enum, `yo8` in this build.
+
+- **Find it:** the enum whose static initializer holds the string "Whether or not we should show the Tumblr Blaze landing page banner". It also has fields named `FEATURE_BUCKETS`, `immutableFeatureStateMap`, `analyticsFeatureReadStateMap` and `analyticsFeatureExposedStateMap`, and its companion holds "You're checking for Feature.isEnabled() with a non-boolean bucket!".
+- **Constant names are kept** (`IN_APP_UPDATE`, `AD_FREE_CTA_BANNER` and so on). `toString()` turns them into the API's camelCase (`inAppUpdate`, `adFreeCtaBanner`).
+- **The check path:** the static checks `l(yo8)Z` and `p(yo8)Z`, the instance checks `n()` and `o()` and the varargs `i(yo8[])Z` all end in the companion (`yo8$b`). `d(yo8)Z` caches the answer in `immutableFeatureStateMap` after asking `e(yo8)Z`. `e` calls `f(yo8, bucket)Z`, which calls `g(yo8, String)Z`.
+- **`g(feature, expected)`** reads the server value through `lm5.d(lm5, yo8, Z, I, Object)String` (a default-argument bridge to `lm5.c(yo8, Z)String`), compares it with `expected` ignoring case, logs the exposure through `l(yo8, Z)` and returns the result. Hooking the result right after its `move-result` (before the `l` call) overrides every boolean check, including the cached one, since the cache stores what `e` returned. A flag override applies after Tumblr restarts.
+- `lm5` is the configuration holder. It also carries `AdPlacementConfiguration`, `Gdpr`, `Privacy`, `ClientControl` and `Dismissals`.
+
+Flags worth a switch (all boolean):
+
+| Area | Flags |
+|---|---|
+| Updates and nags | `IN_APP_UPDATE`, `IN_APP_PLAY_STORE_REVIEW`, `ENABLE_REPROMPTING_APP_REVIEW`, `AD_FREE_CTA_BANNER`, `SCREENSHOT_INTERCEPTION` |
+| Tumblr TV | `TUMBLR_TV_MOBILE_NAV`, `TUMBLR_TV_ONBOARDING_REDIRECT`, `VIDEO_HUBS_RELATED_NUDGE` |
+| Blaze | `BLAZE_DASHBOARD_ENTRYPOINT_IN_USER_BLOG_HEADER`, `BLAZE_DASHBOARD_ENTRYPOINT_NEAR_PREMIUM`, `BLAZE_NUDGE_AFTER_POST`, `SHOW_BLAZE_SETTINGS_BANNER`, `TUMBLR_BLAZE_LANDING_PAGE_BANNER` |
+| Communities | `COMMUNITIES_TAB_BAR_ITEM`, `COMMUNITIES_TOOLTIPS`, `COMMUNITIES_SEARCH_TAB` |
+| Ad requests | `MAKE_ADX_REQUESTS`, `MAKE_APS_AD_REQUESTS`, `MAKE_DISPLAY_IO_REQUEST`, `MAKE_DISPLAY_IO_INTERSCROLLER_REQUEST`, `MAKE_FAN_REQUESTS`, `MAKE_NIMBUS_CLIENT_AD_REQUESTS`, `GOOGLE_BANNER_ADS`, `GOOGLE_NATIVE_ADS`, `GOOGLE_REWARDED_ADS`, `SMART_BANNER_ADS`, `RENDER_NIMBUS_ADS`, `RENDER_VUNGLE_ADS`, `RENDER_DISPLAY_IO_INTERSCROLLER_S2S_ADS`, `MAKE_NIMBUS_INTERSTITIAL_CLIENT_AD_REQUESTS`, `INTERSTITIAL_ADS_BLOG_OPENING_TRIGGERS` (the full-screen ad on opening a blog; `INTERSTITIAL_ADS_CLIENT_COOLDOWN` is left to Tumblr, since off it ends the wait between two) |
+| Tracking | `LIVERAMP_ATS`, `ENABLE_OM_SDK`, `MOAT_VIDEO_AD_BEACONING`, `LITTLE_SISTER_MOAT_LOGGING`, `SEND_FEATURE_EXPOSED_ANALYTICS`, `SEND_NETWORK_USAGE_DATA`, `SUPPLY_LOGGING`, `MOBILE_PERFORMANCE_LOGGING` |
+| Shop and premium | `TUMBLRMART_EARNED_BADGES_NOTIFICATIONS`, `PREMIUM_PERK_GIFTS`, `TUMBLR_FREE_PREMIUM` |
+
+Turning an ad-request flag off is a second line behind the feed filter, not a replacement for it: server-side ads (`GEMINI_AD`) arrive in the timeline whatever the flags say.
+
+## Timeline
+
+- `com.tumblr.rumblr.model.TimelineObject` wraps one feed item: `getData()` returns a `Timelineable`, and the metadata adds `isShowSponsoredLabel()Z`, `getSponsoredBadgeUrl()`, `getRecommendationReason()`, `getPlacementId()` and `getServeId()`.
+- `Timelineable.getTimelineObjectType()` returns `com.tumblr.rumblr.model.TimelineObjectType`. Its ad and promotion constants in this build: `GEMINI_AD`, `FACEBOOK_BIDDAABLE` (Tumblr's spelling), `NIMBUS_AD`, `DISPLAY_IO_INTERSCROLLER_S2S_ADS`, `VUNGLE_AD`, `CLIENT_SIDE_AD`, `CLIENT_SIDE_MEDIATION`, `DISPLAY_IO_INTERSCROLLER_AD`, `GOOGLE_NATIVE` and `BLAZED_POST`. Other notable ones: `COMMUNITY_CARD`, `COMMUNITY_ROW`, `VIDEO_HUB_CARD`, `VIDEO_HUBS_ROW`, `TRENDING_TOPIC`, `TAG_RIBBON`, `BLOG_CARD`, `CAROUSEL`, `TIMELINE_MESSAGE`, `BANNER`, `RICH_BANNER`, `ANNOUNCEMENT`. `COMMUNITY_CARD` (`list_item_community_card_dashboard`) is the card a feed suggests, alone or in a carousel. `COMMUNITY_ROW` (`list_item_community_row`, root `community_row_root`) is a line of a list of communities: a category of Communities' Browse page (`CommunitiesBrowseActivity`) and a search's Communities tab. Browse, its categories and the Communities landing page load through `TumblrCommunitiesTimelineService` as a `WrappedTimelineResponse`, the dashboard's own response, so the call stack can't tell them from a feed and Hide suggested communities takes cards only. A suggested tag carousel is a `CAROUSEL` whose items are `TAG_CAROUSEL_CARD` (model `TagCarouselCard`: `isFollowed`, `items`, `borderColor`), headed by a `TITLE` ("Check out these tags", "Trending on Tumblr today", "Related tags" on a search's Posts tab, "Explore more #tag" on a tag's page). A page of lone `TAG_CAROUSEL_CARD` items is the carousel loading more of itself. `FOLLOWED_TAG_CAROUSEL_CARD` (`FollowedTagCarouselCard`, no follow state) is a tag you follow. `SIGNPOST` (`Signpost`: `display` with title and media, `resources` with description and options) is "Know someone who'd love #tag?" between a tag's posts and the "Follow tags to get updates here" message of an empty Your tags tab, a page with no posts. A search's Tags tab is `TITLE`, `COMMUNITY_HUB_HEADER_CARD`, `TITLE`, `TAG_CARDS_COLLECTION`.
+- Ad models: `ClientAd`, `NimbusClientAd`, `advertising.ServerSideAd`, `advertising.SimpleAd`, `BlazedPost` (which wraps a `post.Post` and a `blazerBlog`).
+- **Lists to filter**, both reached from Moshi with the parsed list as the first argument:
+  - `Timeline.<init>(List, PaginationLink)` (wrapped by `WrappedTimelineResponse`, the dashboard path).
+  - `TimelineResponse.<init>(List, PaginationLink, Map)`, the base of `PostsResponse` (blog posts), `LikesResponse` and `BlogSearchResponse`.
+- **What a page was parsed for.** A page with items is only built inside a generated Moshi adapter's `fromJson`, so that adapter is on the call stack when the list hook runs, and Moshi finds these adapters by name, so their names are kept. `Timeline.<init>(List, PaginationLink)` is called from `TimelineJsonAdapter.fromJson` alone. Ten adapters read a `Timeline` field, and each asks Moshi for it in its constructor (`const-class Timeline`):
+  - Search: `response.SearchResultsResponseJsonAdapter`. Every search tab is a `GraywaterSearchResultsFragment` (`SearchActivity$f.X(I)` builds nothing else). It loads `TumblrCommonService.searchTimeline` (`GET timeline/search`) and then `searchTimelinePagination`, the only two calls that return a `SearchResultsResponse`. Blog and community cards here are results, so the two suggestion switches leave them.
+  - Feeds: `response.WrappedTimelineResponseJsonAdapter` (dashboard, Explore, hubs, the Communities tab; in `TumblrService` also `postPermalink`, `postPermalinkSingle`, `postsReview`, the Blaze lists `postsBlazeActive` and `postsBlazedAll`, and the `like` and `unlike` answers), `response.CommunityHubResponseJsonAdapter` (`/v2/hubs/{hub_name}/timeline`, a tag's page) and `model.RelatedBlogsJsonAdapter` (the blogs offered beside a blog card).
+  - The rest, where the cards are left alone: `response.PostNotesResponse`, `response.PostResponse`, `response.VideoHubResponse`, `model.post.PostReplyPreview`, `model.note.RichNote` and `model.answertime.AnswertimeResponse`.
+  - `TimelineResponse.<init>` is called from the `fromJson` of the `TimelineResponse`, `PostsResponse`, `LikesResponse` and `BlogSearchResponse` adapters, the last three through their own constructors. All four count as feeds. There's no `user/likes` call: your own Likes, like anyone's, is `TumblrService.likes` (`GET blog/{hostname}/likes`) and `likesPagination`, both `LikesResponse`.
+  - `TumblrCommunitiesTimelineService.browsePage` (`/v2/communities/categories`) and `categoryPage` load a `WrappedTimelineResponse` like the dashboard does, so nothing on the stack tells those two lists from a feed.
+- **How a loaded page reaches the screen.** The dashboard, a blog's posts and likes and every search tab are built on `com.tumblr.ui.fragment.TimelineFragment`, and each page they load is handed to `TimelineFragment.p4(type, items, links, extras, fromCache)`. The type is the renamed enum `uxl`, whose constant for a next page is `PAGINATION` (that's the name its `<clinit>` passes, so `name()` reads it).
+  - The items `p4` gets are a converted copy of the parsed list, built on another thread, and the dashboard's first page can come from a read made before the screen opened. Nothing ties that list to the one the list hook saw.
+  - `p4` asks `items.isEmpty()` first. An empty `PAGINATION` page calls `T5()` when `z5()` isn't null and returns. The finished request stays in `TimelineFragment.Y` (a `retrofit2.Call`) and the links in `PaginationFragment.k` aren't replaced. An empty page of any other type sets `PaginationFragment.l` (no more pages) and calls `P4()`, which shows the empty view, the "No results" screen.
+  - A page with items clears `Y`, calls `U5(type)` (it stops a refresh's spinner, or hides the loading row for `PAGINATION`), stores the links in `k` and clears `l`.
+  - The next page is asked for from a row bind. `Z3()` posts a runnable (`iul`) that ends in the synthetic `e6()`, which is `B6(PAGINATION, true)`, but only while `Y` is null, `l` and `Z` are false and two seconds have passed since `y`. `B6(type, flag)` is protected. It reads the link through `M5(type)`, which for `PAGINATION` is `k.d()` (`TimelinePaginationLink.d()`, a `Link` or null), and starts the request. So one empty `PAGINATION` page ends a feed for good, because `Y` is never cleared again.
+  - The paging hook goes right after `p4` keeps the `isEmpty()` answer (in `v7`, which held the extras), where the local `v1` is about to be written and so is free. `U5` and `B6` are protected, so the next load has to be made from code inside the fragment.
+- `post.Post` is partly renamed. Its Blaze data is `BlazeCampaign` (field `O1`, getter `G()`) and `BlazeControl` (field `a2`, getter `h0()`). A post on your own blog can carry both, so they don't mark a paid placement on their own.
+- **Filtered posts.** A post that matches one of your filtered tags or words arrives with a note, `post.asset.Filtered`, which `PostJsonAdapter` writes under "filtered" through `Post.c0()`. The note's adapter writes "tags" through `Filtered.b()List` and "content" through `Filtered.a()List`. The post's view model copies the two lists (an empty list when the note is null), and `GraywaterFragment` covers the post with "This post contains filtered tags" or "... filtered content" when either has an entry.
+
+## Settings hub
+
+The Settings screen is Jetpack Compose: `com.tumblr.settingshub.impl.hub.SettingsHubActivity`.
+
+- **Rows:** the view model `settingshub.impl.hub.d` builds them in `K()List`. It starts a list builder (`p04.c()`), adds one `ul0` per row and freezes the list with `p04.a(List)List` just before returning. Appending a row means adding to the builder before that last call.
+- **Row model `ul0`:** `<init>(ak0 kind, int titleRes, bpa icon, Integer subtitleRes)`, plus a default-argument bridge. The getters are `b()` kind, `c()` title, `a()` icon, `d()` subtitle.
+- **Kinds `vl0`:** `PREFERENCES`, `NOTIFICATIONS`, `SUBSCRIPTIONS`, `LABS`, `PANEL` (only when `b93.a()`), `ACCOUNT`.
+- **Icons:** `com.tumblr.compose.ds.icons.outline.<Name>Kt.get<Name>(Lus7;)Lbpa;` with `zu7.a` as the argument. The set includes `Hide`, `Shield`, `Settings` and `Sparkle`.
+- **Clicks:** the row's click lambda `hub.b$a` (fields `a` the event sink, `b` the `ul0`) sends `hub.c$b(kind)`. The view model's `I(ak0)` maps the kind to an Intent through `z6j` and the activity's `A3(a$b)` starts it, toasting "This section isn't available yet." when the target is missing. A row of our own is recognized in the click lambda by its title resource before the kind is read.
+- **Row keys:** the list's key function is private static `hub.b.m(ul0)`, which returns the kind's `name()`. The lambda `j7j` reaches it through the synthetic accessor `hub.b.d(ul0)`.
+
+## Dashboard logo
+
+The "t" at the top of the dashboard is `com.tumblr.ui.widget.TLogoView`, a `FrameLayout` holding a `SimpleDraweeView` (`t_logo`, layout `view_t_logo`). Its layout names the class, so the name is kept.
+
+- **Bind:** `tabbeddashboard.fragments.TabbedDashboardHostFragment.o6(View)`, called from `onViewCreated`, picks `t_logo_view_top_bar` when `APP_TOP_NAVIGATION_UPDATE` is on and `t_logo_view` otherwise, makes it visible and gives it a tap (`fsk`) with `TLogoView.setOnClickListener`, the only call to it outside the class itself. The logo is in `v1` at that call.
+- **Listeners:** `TLogoView.setOnClickListener` wraps the listener in `aqk`, which runs the logo's own `d()` first when its flag `a` is set, and the constructor sets one too, so the view always reports a click listener. Nothing sets a long press or touch listener on it, so the settings patch's long press leaves the tap alone.
+- `n6(TLogoView)` only recolors and animates the logo for `HUNGRY_HUNGRY_DASHBOARD`.
+
+## Themes and colors
+
+Tumblr colors a screen in three ways, and a palette's background has to change in all of them. Read on 2026-10-31.
+
+- **Activity themes:** `jm0$a.I(tj0, int)` calls `setTheme` with the palette's style for that activity, but only when the palette's map names the activity (`ws6` for Dark, read through `bm0.b`). Screens the map leaves out never get a palette theme, and the Compose settings (`settingshub.impl.hub.SettingsHubActivity`, `settingshub.impl.preferences.SettingsPreferencesActivity`) are among them. Find it as the one instance `(activity, int)` method that calls `setTheme(int)` on its first parameter and then reads its own companion.
+- **Older Compose theme:** `TumblrTheme` is `apl.e(hg5, dgm, plm, zi9, qh5, int, int)`. Its colors come from `sgm.<init>(Context, int)`, which wraps the context in the style `ig5.a(hg5, boolean)` picks (`BaseTumblrTheme`, `.Dark`, `.GothRave`, `.LCD`, `.Pride`). The palette parameter defaults to True Blue and several callers leave it there whatever the person picked (the dashboard's `TitleViewHolder.r1`, the Blaze screens), so a True Blue theme turns up in a Dark session.
+- **Design system:** `DsTheme` is `rw7.e(hg5, ou7, zi9, qh5, int, int)`, found by its Compose note `com.tumblr.compose.ds.DsTheme (`. Its colors (`ou7`) aren't read from a theme. Each palette has a holder whose static initializer builds them once from the color list `vt7`: `vs6` Dark, `tbm` True Blue, `jbc` Low-Contrast Classic, `xw9` Goth Rave, `skg` Pride. System asks `fpk.a(Configuration)` and takes `vs6` at night, which is how to tell the Dark holder from the rest.
+- **The Dark holder's grays:** in `vs6.<clinit>` the gray behind a screen is `vt7.z()` (#0d0d0d, `ds_colorGray95`) at 37, 123, 284 and 288, filling `Chrome.chrome`, `Content.mobileContainer`, `Global.sideMenu` and `Global.topMenu`. The next gray up is `vt7.y()` (#1a1a1a, `ds_colorGray90`) at 39, 49, 113 and 292, filling `Chrome.panel`, `Chrome.mobile`, `Content.panel` and `Global.modal`. The group classes keep those names in `toString` (`ev3` Chrome, `dv5` Content, `lu9` Global). The settings screens draw their bar and rows with `Content.panel` (`dv5.g()`).
+- **Layouts:** the same eight surfaces are theme attributes for Views. `BaseTumblrTheme.Dark` sets `st_chrome`, `st_content_mobile_container`, `st_side_menu` and `st_top_menu` to Gray95, and `st_chrome_panel`, `st_chrome_mobile`, `st_content_panel` and `st_modal` to Gray90. The redesigned post card reads `?attr/st_content_panel` through its header, footer and shadow drawables.
+- **Blog and tag pages:** `a03.s(BlogTheme)I` is the page color a blog or tag timeline paints behind its cards, read from `BlogTheme.d()`. Those colors come from the blog, so no palette reaches them. Other direct readers of `BlogTheme.d()`: `a03$e$a.e(BlogTheme)I`, `a03$e.d(Context, BlogTheme)Drawable`, `AvatarBackingFrameLayout.b(BlogTheme, Z)V`, `ui/widget/c.j0` and `kzl.h`. `a03.z(BlogTheme)I` reads `BlogTheme.u()` (`title_color`) and paints the title and description in `ui/widget/c.u0`. `a03.n(BlogTheme)I` reads `BlogTheme.a()` (`link_color`) and paints the header's small text in `ui/widget/c.s0`. Neither looks at `s`, so a dark title vanishes on a dark page. Only `a03.p(BlogTheme)I`, which runs `n` through `gsm.B` against `s` for buttons and links, picks a readable color by itself. `a03.l` is the comparison that names all three getters by key.
+
+## Fonts
+
+Tumblr's own fonts reach the screen two ways, and post fonts share the first. Read on 2026-10-31.
+
+- **AndroidX loader:** `onh.n(Context, int, TypedValue, int, onh$e, Handler, Z, Z)Typeface`, private static, found by its `Font resource ID #0x` failure text. Every resource font passes through it: `onh.c`, `h`, `i`, `j`, `androidx/appcompat/widget/f0.j`, Compose's `a80.c` and `d`, `z5l.f`, `g` and `m`, `z79.a`, `TabbedDashboardHostFragment$h` and exoplayer. Tumblr's own code never calls `Resources.getFont` or `TypedArray.getFont`, but Android's plain `TextView` does, past this method. A waiting callback gets its face from `onh$e.d(Typeface, Handler)V`.
+- **Pre-inflated rows:** `zr0` (its tag is `AsyncViewProvider`) is built by `GraywaterDashboardFragment.W7` and `GraywaterExploreTimelineFragment.W7`. It inflates rows on the background inflater `rr0`, which has no AppCompat, so they're plain `android.widget.TextView` and `Button` objects that read `android:fontFamily` inside Android and never reach the loader. `dumpsys activity top` shows both kinds side by side on a cold dashboard under the same ids (`blog_name`, `header_cta`). Those rows leave through `zr0.c(int, ViewGroup)View`, found by its `Returning pre-inflated View for resId: ` log line. Its fallback `zr0.r` uses the parent's inflater, which gives AppCompat views.
+- **Font picker:** `z79.a(Context, com.tumblr.font.a)Typeface`, static, called from 68 methods. Its Favorit cases go through `onh.h`, and `ROBOTO_REGULAR` and `ROBOTO_MEDIUM` answer `Typeface.SANS_SERIF` and `Typeface.create("sans-serif-medium", 0)` without loading anything. `UNKNOWN` answers null. The enum's own static initializer also holds `sans-serif-medium`, so a search on that string needs the picker's shape too.
+- **Resource ids:** `0x7f090000` boop_spleen, `01` calluna_regular, `02` clarendon_text_pro_webfont, `03` clearface_regular_webfont, `04` fairwater_script_regular, `05` favorit_tumblr (an .otf), `06` favorit_tumblr_bold_700, `07` favorit_tumblr_medium, `08` favorit_tumblr_regular_400, `09` roboto_medium_numbers, `0a` source_code_pro_regular, `0b` ziclets_webfont. The ones a post's author can pick stay out of App font's list. Resolve ids by name, as they move between builds.
+
+## Other anchors
+
+- `com.tumblr.UserInfo` keeps its name and has about 40 static preference getters, 23 of them `()Z`. `G()Z` reads `pref_is_premium_user`.
+- The blog notification reminder reads `blog_notify_enabled` in private static `nu2.l()Z`, used only by `nu2.s(View)Z`. The class owns a `PopupWindow` and a constructor reading `R$string.blog_cta_message`. Its show decision increments a per-blog reminder counter and shows at count 2. `BlogHeaderFragment.Y5()` and `BlogHeaderLegacyFragment.f6()` call it. The optional hook answers false at the decision's entry, without writing the preference. Deliberate subscriptions queue `PendingSubscriptionInfo` through `com.tumblr.ui.widget.a.u(String,String,Z)`, a separate path.
+- Unsolicited gift prompts are scheduled by `BlogHeaderFragment.l6(Boolean)V` and `BlogHeaderLegacyFragment.t6(Boolean)V`, the only readers of `R$string.ad_free_browsing_gift_message`. Both construct `eu9` with `kjf.GIVE_GIFT`, read its seen key and post a delayed callback. `eu9.h(Activity,View,float,OnClickListener)V` renders both those prompts and the crab tip. It reads `popup_gift_message`, `popup_gift_message_right` and `popup_text_message`, and contains `textMessage`. `eu9.p()String` exposes its instance key. Static `eu9.f(eu9)String` distinguishes `key_has_seen_ad_free_browsing_gift_popup` and `key_has_seen_summon_crabs_popup`. The optional render-time hook suppresses only the exact gift key, so queued callbacks use the current switch and crab/unknown keys stay native. Deliberate gifting bypasses this renderer through `BlogHeaderFragment.o6()` and `BlogHeaderLegacyFragment.w6()`, which call `fkd.T(...,"gift")` then `startActivity`.
+- Play Core's in-app update library is present (`com.google.android.play.core.appupdate`) and gated by `IN_APP_UPDATE`.
+- Ad and tracking SDKs in the dex: Google Mobile Ads, Amazon APS, Facebook Audience Network, Vungle (Liftoff), Mintegral, Smart AdServer, Nimbus, Display.io, LiveRamp ATS and the IAB Open Measurement SDK.
+- Timeline spacing: `mxl.h` draws the gap between timeline objects. Its branch for the `debug_timeline_object_spacing` debug option already paints each gap, which Line between posts reuses.
+- Opening one post: `PostPermalinkTimelineFragment$a.b(TumblrService)Call` asks for a post by its id. That request answers through the same timeline list code as a feed, so the feed switches apply to it unless they're told it was asked for by name.

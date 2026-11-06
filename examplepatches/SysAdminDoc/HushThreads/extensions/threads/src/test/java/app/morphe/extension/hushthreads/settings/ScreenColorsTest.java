@@ -94,9 +94,9 @@ public class ScreenColorsTest {
         text.put("row title on its card", new int[]{c.title, c.card});
         text.put("title of a row a tap acts on, on its card", new int[]{c.heading, c.card});
         text.put("row summary on its card", new int[]{c.summary, c.card});
-        text.put("overview status title", new int[]{c.title, c.statusCard});
-        text.put("overview status summary", new int[]{c.summary, c.statusCard});
-        text.put("overview action", new int[]{c.heading, c.statusCard});
+        // The status card is a row like the others now, on the same card tone.
+        text.put("search hint in its card", new int[]{c.hint, c.card});
+        text.put("field hint on the dialog", new int[]{c.hint, c.dialog});
         text.put("section title on the page", new int[]{c.heading, c.background});
         text.put("title bar and back arrow on the page", new int[]{c.title, c.background});
         text.put("dialog title on the dialog", new int[]{c.title, c.dialog});
@@ -105,7 +105,6 @@ public class ScreenColorsTest {
         // is read against that.
         text.put("dialog choice's name on its card", new int[]{c.title, c.card});
         text.put("dialog choice's detail on its card", new int[]{c.summary, c.card});
-        text.put("selected choice's text", new int[]{c.title, c.selection});
         text.put("primary action text on its fill", new int[]{c.onAccent, c.accent});
         text.put("secondary action on the dialog", new int[]{c.secondaryActionText(), c.dialog});
         text.put("secondary recovery action on its card", new int[]{c.secondaryActionText(), c.card});
@@ -115,9 +114,10 @@ public class ScreenColorsTest {
     static Map<String, int[]> controls(ScreenColors c) {
         Map<String, int[]> parts = new LinkedHashMap<>();
         parts.put("switch on, against its card", new int[]{c.accent, c.card});
-        parts.put("icon against its tile", new int[]{c.heading, c.iconTile});
+        // Row icons sit straight on the card, with no tile behind them.
+        parts.put("row icon against its card", new int[]{c.heading, c.card});
+        parts.put("focus outline against its card", new int[]{c.heading, c.card});
         parts.put("focus outline against dialog", new int[]{c.heading, c.dialog});
-        parts.put("focus outline against selected choice", new int[]{c.heading, c.selection});
         parts.put("switch off, against its card", new int[]{c.switchOff, c.card});
         // The thumb shows where the switch is, so it needs 3:1 against the track it sits on.
         parts.put("switch off's thumb, against its track", new int[]{c.offThumb(), c.switchOff});
@@ -147,8 +147,8 @@ public class ScreenColorsTest {
     @Test
     public void theBlackPagesRatios() {
         ScreenColors page = ScreenColors.DEFAULT;
-        assertEquals(19.24, contrast(page.title, page.background), 0.01);
-        assertEquals(9.50, contrast(page.summary, page.background), 0.01);
+        assertEquals(19.21, contrast(page.title, page.background), 0.01);
+        assertEquals(8.83, contrast(page.summary, page.background), 0.01);
         assertEquals(8.58, contrast(page.heading, page.background), 0.01);
         assertEquals(4.85, contrast(page.onAccent, page.accent), 0.01);
         assertEquals(3.34, contrast(page.offThumb(), page.switchOff), 0.01);

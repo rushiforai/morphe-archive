@@ -1,0 +1,17 @@
+[
+ {"id":2672,"ide":"PROC_RUBBISH_4","vanilla":"/Game/SanAndreas/Environment/INT/SM_proc_rubbish_4.SM_proc_rubbish_4","mesh":"SM_Flyers1"},
+ {"id":2675,"ide":"PROC_RUBBISH_6","vanilla":"/Game/SanAndreas/Environment/INT/SM_proc_rubbish_6.SM_proc_rubbish_6","mesh":"SM_Flyers2"},
+ {"id":2676,"ide":"PROC_RUBBISH_8","vanilla":"/Game/SanAndreas/Environment/INT/SM_proc_rubbish_8.SM_proc_rubbish_8","mesh":"SM_Flyers3"},
+ {"id":2677,"ide":"PROC_RUBBISH_7","vanilla":"/Game/SanAndreas/Environment/INT/SM_proc_rubbish_7.SM_proc_rubbish_7","mesh":"SM_Flyers4"},
+ {"id":849,"ide":"CJ_urb_rub_3","vanilla":"/Game/SanAndreas/Environment/Props/SM_cj_urb_rub_3.SM_cj_urb_rub_3","mesh":"SM_FoodWrapper_Clutter_01"},
+ {"id":850,"ide":"CJ_urb_rub_1","vanilla":"/Game/SanAndreas/Environment/Props/SM_cj_urb_rub_1.SM_cj_urb_rub_1","mesh":"SM_BurgerBox_Clutter_01"},
+ {"id":851,"ide":"CJ_urb_rub_2","vanilla":"/Game/SanAndreas/Environment/Props/SM_cj_urb_rub_2.SM_cj_urb_rub_2","mesh":"SM_SprunkCup_Clutter_01"},
+ {"id":852,"ide":"CJ_urb_rub_4","vanilla":"/Game/SanAndreas/Environment/Props/SM_cj_urb_rub_4.SM_cj_urb_rub_4","mesh":"SM_Soda_Clutter_01"},
+ {"id":853,"ide":"CJ_urb_rub_5","vanilla":"/Game/SanAndreas/Environment/Props/SM_cj_urb_rub_5.SM_cj_urb_rub_5","mesh":"SM_Sm_Branch_B"},
+ {"id":854,"ide":"CJ_urb_rub_3b","vanilla":"/Game/SanAndreas/Environment/Props/SM_cj_urb_rub_3b.SM_cj_urb_rub_3b","mesh":"SM_branch_1"},
+ {"id":2821,"ide":"gb_foodwrap01","vanilla":"/Game/SanAndreas/Environment/INT/SM_gb_foodwrap01.SM_gb_foodwrap01","mesh":"SM_branch_5"},
+ {"id":2856,"ide":"gb_foodwrap02","vanilla":"/Game/SanAndreas/Environment/INT/SM_gb_foodwrap02.SM_gb_foodwrap02","mesh":"SM_branch_11"},
+ {"id":2861,"ide":"gb_foodwrap03","vanilla":"/Game/SanAndreas/Environment/INT/SM_gb_foodwrap03.SM_gb_foodwrap03","mesh":"SM_Med_Branch_C"},
+ {"id":2866,"ide":"gb_foodwrap04","vanilla":"/Game/SanAndreas/Environment/INT/SM_gb_foodwrap04.SM_gb_foodwrap04","mesh":"SM_Dry_Weed_B"},
+ {"id":2867,"ide":"gb_foodwrap05","vanilla":"/Game/SanAndreas/Environment/INT/SM_gb_foodwrap05.SM_gb_foodwrap05","mesh":"SM_Dry_Weed_C"}
+]

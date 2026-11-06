@@ -661,6 +661,7 @@ Forgotten. Tap to put them back.,Đã xóa khỏi bộ nhớ. Chạm để khôi
 Found %1$s in your chats.,Đã tìm thấy %1$s trong các đoạn chat của bạn.
 Frame saved to %1$s,Đã lưu khung hình vào %1$s
 Friends,Bạn bè
+Discover,Khám phá
 Friends tab name,Tên thẻ Bạn bè
 "Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.",Bạn bè sẽ không thấy chấm xanh lá hoặc trạng thái Đang hoạt động khi bạn dùng TikTok. Yêu cầu bật Chế độ ẩn danh (Ghost mode). Trạng thái của họ có thể ngừng cập nhật đối với bạn và trạng thái cuối cùng của bạn có thể vẫn hiển thị.
 Frosted,Kính mờ
@@ -843,6 +844,8 @@ Hide the playlist bar,Ẩn thanh danh sách phát
 Hide the playlist bar along the bottom of videos that belong to a series.,Ẩn thanh danh sách phát ở cuối các video thuộc một chuỗi (series).
 Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.,"Ẩn nút dấu cộng dưới ảnh của nhà sáng tạo ở cột bên phải. Đánh dấu tích vào tùy chọn ""Ảnh đại diện và nút theo dõi"" ở trên sẽ ẩn luôn cả ảnh đại diện."
 "Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.",Ẩn biểu ngữ tích điểm dưới ô tìm kiếm và bộ đếm xu nổi trên kết quả tìm kiếm mà TikTok hiển thị ở một số khu vực. Tính năng tìm kiếm vẫn hoạt động bình thường.
+Show only the search bar on Discover,Chỉ hiện thanh tìm kiếm ở Khám phá
+"On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.","Ở tab Khám phá, mà TikTok hiển thị tại một số khu vực, ẩn các hashtag thịnh hành, biểu ngữ và các tab bên dưới ô tìm kiếm. Ô tìm kiếm vẫn còn và hoạt động như trước."
 Hide the profile views button at the top of your profile. Your profile view history setting doesn't change.,Ẩn nút lượt xem trang cá nhân ở đầu trang cá nhân của bạn. Cài đặt lịch sử xem trang cá nhân của bạn sẽ không thay đổi.
 Hide the purple rewards button beside Add friends on your profile.,Ẩn nút phần thưởng màu tím bên cạnh nút Thêm bạn bè trên trang cá nhân của bạn.
 "Hide the question cards TikTok slides over a video near its end, and the buttons that ask if you're interested in it.",Ẩn các thẻ câu hỏi mà TikTok trượt qua video khi gần kết thúc và các nút hỏi bạn có quan tâm hay không.
@@ -1377,6 +1380,8 @@ Press and hold a comment to find Block this commenter in its menu. Their comment
 Press and hold a profile picture to save the full size original to your photo destination.,Nhấn giữ ảnh đại diện để lưu ảnh gốc kích thước đầy đủ vào thư mục lưu ảnh của bạn.
 "Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.","Nhấn giữ một tin (story) để lưu lại. Các tin không có nút lưu riêng và nhấn giữ vốn là thao tác tạm dừng của TikTok, nên tính năng này sẽ ghi đè lên cử chỉ đó."
 Press and hold the Home tab to open these settings. A tap on Home works as before.,Nhấn giữ thẻ Trang chủ để mở các cài đặt này. Thao tác chạm một lần vào Trang chủ vẫn hoạt động như trước.
+Search instead of Home,Tìm kiếm thay cho Trang chủ
+"The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.","Thẻ Trang chủ trở thành nút tìm kiếm. Biểu tượng và tên của nó là Tìm kiếm, và chạm vào sẽ mở trang tìm kiếm của TikTok thay vì Dành cho bạn. TikTok mở ở Hộp thư, hoặc ở Hồ sơ khi Hộp thư bị ẩn, nên bảng tin không phát khi bạn mở ứng dụng."
 "Press and hold the Profile tab to open your Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press, and the name at the top of your profile still switches accounts.","Nhấn giữ thẻ Trang cá nhân để mở Lịch sử xem của bạn. Thao tác chạm bình thường vào Trang cá nhân vẫn hoạt động như cũ. Nếu việc nhấn giữ Trang cá nhân dùng để chuyển đổi tài khoản trên thiết bị của bạn, tính năng này sẽ thay thế cử chỉ đó, và bạn vẫn có thể chuyển đổi tài khoản bằng tên ở đầu trang cá nhân."
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.,Nhấn giữ một phần ba bên trái hoặc bên phải màn hình để tua lại hoặc tua tới. Một phần ba ở giữa vẫn giữ thao tác Nhấn giữ thông thường.
 Preview a translation from a received text message's menu. The original message stays unchanged.,Xem bản dịch xem trước từ menu của tin nhắn văn bản đã nhận. Tin nhắn gốc vẫn giữ nguyên.
@@ -1792,12 +1797,22 @@ Skipping videos with %1$s,Đang bỏ qua các video với %1$s
 Sleep timer off,Đã tắt bộ hẹn giờ ngủ
 Slide across the tabs,Trượt qua các thẻ
 Slide to change the hold speed,Trượt để thay đổi tốc độ nhấn giữ
+Hold speed bubble style,Kiểu bong bóng tốc độ nhấn giữ
+Pill,Viên thuốc
+Circle,Hình tròn
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Viên thuốc là bong bóng rộng với một hàng chấm dưới tốc độ. Hình tròn là mặt số tròn nhỏ có một vạch cho mỗi tốc độ quanh viền.
+Hold speed slide direction,Hướng trượt tốc độ nhấn giữ
+Sideways,Sang ngang
+Up and down,Lên và xuống
+"With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.","Với Sang ngang, trượt sang trái hoặc phải để đổi tốc độ và kéo xuống để khóa. Với Lên và xuống, trượt lên để nhanh hơn, trượt xuống để chậm hơn và trượt sang một bên để khóa, nên khi giữ gần mép màn hình bạn vẫn đến được mọi tốc độ."
 Soft blur,Mờ nhẹ
 Soft tick,Rung nhẹ
 Some of these notes are in English.,Một số ghi chú này bằng tiếng Anh.
 Some recording files remain. Try deleting them again.,Vẫn còn tệp ghi hình. Hãy thử xóa lại.
 Something is missing from %1$s. Tap for the whole report.,%1$s bị thiếu một số nội dung. Chạm để xem toàn bộ báo cáo.
 Sort loaded videos on Liked grids,Sắp xếp video đã tải trên lưới video đã thích
+Sort loaded videos on sound pages,Sắp xếp video đã tải trên trang âm thanh
+"Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.","Sắp xếp video trên trang của một âm thanh theo cùng cách, tải tối đa 300 video khi đang chọn một thứ tự."
 Sort loaded videos on profile grids,Sắp xếp video đã tải trên lưới trang cá nhân
 Sort this grid,Sắp xếp lưới này
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Sắp xếp lưới trang cá nhân hoặc video đã thích với các video được ghim ở vị trí đầu tiên. Khi bật sắp xếp, lưới sẽ tự động tải thêm tối đa 300 video để phạm vi sắp xếp bao quát hơn màn hình đầu tiên. Nút bấm ở góc trên của lưới cho phép thay đổi thứ tự ngay tại chỗ."
@@ -1909,7 +1924,7 @@ Tag saved videos with their details,Gắn nhãn thông tin chi tiết vào video
 Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,Gỡ vòng viền LIVE nhấp nháy khỏi ảnh đại diện trên bảng tin và trong bình luận. Chạm vào ảnh đại diện của nhà sáng tạo đang phát trực tiếp sẽ mở trang cá nhân của họ thay vì tham gia buổi LIVE.
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Gỡ vòng viền tin (story) khỏi ảnh đại diện trên bảng tin, trong bình luận và trên trang cá nhân. Chạm vào ảnh đại diện sẽ mở trang cá nhân thay vì xem tin."
 Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.,Gỡ nút AI Cast của TikTok khỏi thanh công cụ bên hông máy ảnh. Mở lại máy ảnh để xem thay đổi.
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,Gỡ thao tác Tự động cuộn của TikTok khỏi bảng video và công tắc Tự động cuộn bên cạnh video trên máy tính bảng và màn hình gập. Hoạt động ngay cả khi Tự động chuyển tiếp đang tắt.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.,Gỡ thao tác Tự động cuộn của TikTok khỏi bảng video và nhãn Tự động cuộn ở đầu video. Công tắc Tự động cuộn bên cạnh video trên máy tính bảng và màn hình gập cũng bị gỡ. Hoạt động ngay cả khi Tự động chuyển tiếp đang tắt.
 Tap @names in bios,Chạm vào tên @username trong tiểu sử
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,Chạm vào nút Đăng lại trên thanh dưới video 2 lần trong %1$d giây. Việc đăng lại kèm ghi chú vẫn được giữ nguyên.
 Tap Stop or leave the room to save it.,Chạm vào Dừng hoặc rời khỏi phòng để lưu.
@@ -2422,3 +2437,59 @@ Hide typing,Ẩn trạng thái đang gõ
 People you chat with won't see that you're typing. Needs Ghost mode on.,Những người bạn trò chuyện sẽ không thấy bạn đang gõ. Yêu cầu bật Chế độ ẩn danh.
 Show all settings as a list,Hiển thị tất cả cài đặt dạng danh sách
 Show settings by category,Hiển thị cài đặt theo danh mục
+Long-press Inbox for read receipts,Nhấn giữ Hộp thư để bật tắt xác nhận đã đọc
+"Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press.","Nhấn giữ tab Hộp thư để bật hoặc tắt Ẩn trạng thái đã đọc. Một thông báo cho biết đang ở trạng thái nào. Chạm vào Hộp thư vẫn hoạt động như trước. Nếu nhấn giữ Hộp thư đã làm gì đó cho bạn, tùy chọn này sẽ lấy lần nhấn đó."
+Read receipts hidden,Đã ẩn xác nhận đã đọc
+Read receipts shown,Đã hiện xác nhận đã đọc
+Compact long-press menu everywhere,Menu nhấn giữ gọn ở mọi nơi
+"A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.","Nhấn giữ một video sẽ mở bảng chia sẻ nhỏ của TikTok cả ở Dành cho bạn, giống video của nhà sáng tạo. Nó được ưu tiên hơn hai công tắc menu đầy đủ ở trên. Cần đặt Nhấn giữ ở mặc định của TikTok."
+Hide streak pop-ups,Ẩn cửa sổ bật lên chuỗi
+Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Chặn các cảnh báo chuỗi trượt vào trên TikTok cùng tin nhắn và mẹo về chuỗi mà nó thêm vào cuộc trò chuyện của bạn.
+Long press on For You opens my watch history,Nhấn giữ Dành cho bạn sẽ mở lịch sử xem của tôi
+Instead of these settings. The list has a button that brings you back here.,Thay cho phần cài đặt này. Danh sách có nút đưa bạn quay lại đây.
+Auto tap in LIVE rooms,Tự động chạm trong phòng LIVE
+"Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.","Thêm nút Tự động chạm vào phòng LIVE. Chạm vào nút để gửi lượt chạm vào buổi phát với nhịp đều, chạm lại để dừng. Tính năng cũng dừng khi bạn rời phòng hoặc vuốt sang phòng khác, rời TikTok hoặc khóa màn hình."
+Auto tap speed,Tốc độ tự động chạm
+2 taps a second,2 lần chạm mỗi giây
+4 taps a second,4 lần chạm mỗi giây
+6 taps a second,6 lần chạm mỗi giây
+8 taps a second,8 lần chạm mỗi giây
+Auto tap,Tự động chạm
+Start tapping this LIVE,Bắt đầu chạm vào LIVE này
+Stop tapping this LIVE,Dừng chạm vào LIVE này
+Auto tap stopped,Đã dừng tự động chạm
+Clean up your account,Dọn dẹp tài khoản
+Remove all reposts,Xóa tất cả bài đăng lại
+Deletes all reposts from your account sequentially.,Lần lượt xóa mọi bài đăng lại khỏi tài khoản của bạn.
+Remove all likes,Xóa tất cả lượt thích
+Unlikes every video one after another.,Lần lượt bỏ thích từng video.
+Clear Favorites,Xóa mục Yêu thích
+Removes every video from Favorites one after another.,Lần lượt xóa từng video khỏi mục Yêu thích.
+Removing all reposts in %1$d,Xóa tất cả bài đăng lại sau %1$d
+Removing all likes in %1$d,Xóa tất cả lượt thích sau %1$d
+Clearing Favorites in %1$d,Xóa mục Yêu thích sau %1$d
+Reposts removed: %1$d,Đã xóa bài đăng lại: %1$d
+Likes removed: %1$d,Đã bỏ thích: %1$d
+Favorites removed: %1$d,Đã xóa khỏi Yêu thích: %1$d
+Nothing to remove,Không có gì để xóa
+Done. %1$d removed.,Xong. Đã xóa %1$d.
+Stopped. %1$d removed.,Đã dừng. Đã xóa %1$d.
+TikTok refused. %1$d removed.,TikTok từ chối. Đã xóa %1$d.
+Network error. %1$d removed.,Lỗi mạng. Đã xóa %1$d.
+Not available on this TikTok version,Không khả dụng trên phiên bản TikTok này
+Sign in to TikTok first,Hãy đăng nhập TikTok trước
+A removal is already running,Đang có một lượt xóa chạy
+Cancelled,Đã hủy
+Show inbox filters,Hiện bộ lọc hộp thư
+"Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.","Thêm các tab Chính, Yêu cầu, Chưa đọc và Đã gắn sao phía trên các cuộc trò chuyện, giống như TikTok cung cấp cho tài khoản nhà sáng tạo."
+Rebuild message search,Tạo lại tìm kiếm tin nhắn
+"Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.","Xóa tìm kiếm tin nhắn của TikTok và thêm lại mọi tin nhắn đã lưu trên điện thoại này, bắt đầu từ tin mới nhất. Vẫn chạy tiếp sau khi bạn rời trang tìm kiếm."
+Rebuilding message search,Đang tạo lại tìm kiếm tin nhắn
+Stopped. Search carries on later.,Đã dừng. Tìm kiếm sẽ tiếp tục sau.
+Couldn't stop it. Try again.,Không dừng được. Vui lòng thử lại.
+Couldn't rebuild search. Try again.,Không tạo lại được. Vui lòng thử lại.
+Message search isn't on for this account,Tìm kiếm tin nhắn chưa bật cho tài khoản này
+Offer Audio only in LIVE quality,Thêm Chỉ âm thanh vào chất lượng LIVE
+Audio only,Chỉ âm thanh
+"Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.","Thêm Chỉ âm thanh vào danh sách chất lượng video của LIVE. Phòng phát âm thanh mà không có hình, tốn ít dữ liệu hơn nhiều, cho đến khi bạn chọn chất lượng khác hoặc rời đi. Ghi từ luồng vẫn lưu video."
+Pick a video quality to record the screen,Chọn chất lượng video để quay màn hình

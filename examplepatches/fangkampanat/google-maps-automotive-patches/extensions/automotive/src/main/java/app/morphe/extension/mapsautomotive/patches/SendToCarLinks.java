@@ -203,8 +203,8 @@ public final class SendToCarLinks {
             if (context == null) return;
             boolean thai = "th".equals(Locale.getDefault().getLanguage());
             Toast.makeText(context, thai
-                    ? "Maps Car เปิดลิงก์ maps.app.goo.gl ไม่ได้"
-                    : "Maps Car couldn't open the maps.app.goo.gl link", Toast.LENGTH_LONG).show();
+                    ? "เปิดลิงก์ maps.app.goo.gl ไม่ได้"
+                    : "Couldn't open the maps.app.goo.gl link", Toast.LENGTH_LONG).show();
         } catch (Throwable ignored) {
         }
     }

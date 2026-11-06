@@ -1,3 +1,29 @@
+## [1.4.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* drop legacy Zalo version support ([a32f638](https://github.com/Nezumi-2711/morphe-patches/commit/a32f638f869860b0b217c9691a476a7f385aee62))
+* group Nezumi navigation settings ([cc499a5](https://github.com/Nezumi-2711/morphe-patches/commit/cc499a586e0a7a0a7f43027ec68e4421809612c8))
+* validate bundle signing key ([65fce28](https://github.com/Nezumi-2711/morphe-patches/commit/65fce28a3b7cee3ee8e950d222e929a9c2c6d2ec))
+* **zalo:** scope Nezumi Settings to selected patches ([323d0d2](https://github.com/Nezumi-2711/morphe-patches/commit/323d0d2c150b597b32db6932a1d08aeaee4086fc))
+
+### ✨ New Features
+
+* sign patch bundle releases ([23bbf06](https://github.com/Nezumi-2711/morphe-patches/commit/23bbf06b2a67a9c37a833c0c9f39e48f27a41cf6))
+* **zalo:** add Discovery tab setting ([fa5fc71](https://github.com/Nezumi-2711/morphe-patches/commit/fa5fc71f4bfe79dbcec9947034a90c6ea742accf))
+
+## [1.4.0-dev.5](https://github.com/Nezumi-2711/morphe-patches/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* validate bundle signing key ([65fce28](https://github.com/Nezumi-2711/morphe-patches/commit/65fce28a3b7cee3ee8e950d222e929a9c2c6d2ec))
+
+## [1.4.0-dev.4](https://github.com/Nezumi-2711/morphe-patches/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2026-11-05)
+
+### ✨ New Features
+
+* sign patch bundle releases ([23bbf06](https://github.com/Nezumi-2711/morphe-patches/commit/23bbf06b2a67a9c37a833c0c9f39e48f27a41cf6))
+
 ## [1.4.0-dev.3](https://github.com/Nezumi-2711/morphe-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-11-05)
 
 ### 🐛 Bug Fixes

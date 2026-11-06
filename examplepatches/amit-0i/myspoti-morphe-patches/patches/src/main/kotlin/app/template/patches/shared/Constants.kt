@@ -10,6 +10,6 @@ object Constants {
         packageName = "app.myspoti.stable",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x1DB954,
-        targets = listOf(AppTarget(version = "2.3.0", isExperimental = false)),
+        targets = listOf(AppTarget(version = "2.4.0", isExperimental = false)),
     )
 }

@@ -54,7 +54,8 @@ param(
     # The walk, step by step. A link is opened and swiped -Swipes times. "tap:<label>" taps the
     # node whose text or description is exactly <label>, from a fresh dump, scrolling back up to
     # find it, and only labels that open or expand something belong here: never Like, Follow,
-    # Add friend, Send or a person. "longpress" holds the middle of the screen, "back" goes back.
+    # Add friend, Send or a person. "longpress" holds the screen's center line 3/8 of the way down,
+    # "back" goes back.
     # "query" types $AuditQuery into the search field fb://search just opened and submits it.
     # No fb://groups or fb://friends: all-on hides those tabs, and their links then land nowhere
     # or on Android's app chooser.
@@ -250,7 +251,18 @@ function Invoke-Adb {
                 if ($fresh.Count -eq 0) { throw 'No fresh Facebook UI nodes. No input was sent.' }
             }
             $nodeWindow = $script:auditWindowIdentity
-            if ($arguments[2] -eq 'tap') {
+            $queryTap = $inputQuery -and $arguments[2] -eq 'tap'
+            if ($queryTap) {
+                # One tap per query step, and only inside the one search field holding the query.
+                if ($script:auditQueryTaps -ge 1) { throw 'The search field already got its tap. No tap was sent.' }
+                $field = Select-AuditQueryField $fresh
+                if ($arguments.Count -ne 5 -or $arguments[3] -notmatch '^\d+$' -or $arguments[4] -notmatch '^\d+$' -or
+                        $null -eq $field -or $field.bounds -notmatch '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$' -or
+                        [int]$arguments[3] -lt [int]$Matches[1] -or [int]$arguments[3] -ge [int]$Matches[3] -or
+                        [int]$arguments[4] -lt [int]$Matches[2] -or [int]$arguments[4] -ge [int]$Matches[4]) {
+                    throw 'The tap is not inside the one search field holding the query. No tap was sent.'
+                }
+            } elseif ($arguments[2] -eq 'tap') {
                 if ($inputNodeLabel -cnotin @('Comment', 'Settings and privacy', 'Feeds')) {
                     throw 'No permitted navigation node was selected. No tap was sent.'
                 }
@@ -266,7 +278,8 @@ function Invoke-Adb {
             # in Facebook search on the S22, 2026-10-18), and the query needs the field focused.
             $keyboard = $arguments[2] -ne 'keyevent' -and (Test-AuditKeyboard)
             if ($typing -and $arguments[2] -eq 'text' -and -not $keyboard) { throw 'No keyboard is open for the query. Nothing was typed.' }
-            if (-not $typing -and $keyboard) { throw 'The keyboard is open. No swipe or tap was sent.' }
+            if (-not $typing -and -not $queryTap -and $keyboard) { throw 'The keyboard is open. No swipe or tap was sent.' }
+            if ($queryTap -and -not $keyboard) { throw 'No keyboard is open for the search field tap. No tap was sent.' }
             # A dump can take seconds. An overlay may have taken input while it was running.
             Assert-AuditForeground
             if ($nodeWindow -cne $script:auditWindowIdentity) {
@@ -275,6 +288,7 @@ function Invoke-Adb {
             if ($inputWindow -and $inputWindow -cne $script:auditWindowIdentity) {
                 throw 'The verified destination window changed. No input was sent.'
             }
+            if ($queryTap) { $script:auditQueryTaps++ }
         }
     }
     $preference = $ErrorActionPreference
@@ -489,14 +503,55 @@ function Open-AuditRoute([string]$Route, [bool]$Reel) {
     }
 }
 
+# True when $Inner sits somewhere inside $Outer in the dump's tree. Only dumped nodes carry a parent.
+function Test-AuditNodeHolds($Outer, $Inner) {
+    if ($Inner -isnot [Xml.XmlNode]) { return $false }
+    for ($parent = $Inner.ParentNode; $null -ne $parent; $parent = $parent.ParentNode) {
+        if ([object]::ReferenceEquals($parent, $Outer)) { return $true }
+    }
+    return $false
+}
+
+# True when a clickable Facebook node other than the target, its rows or its parts holds the
+# target's middle, where a tap on it would land.
+function Test-AuditTapCovered($Target, [object[]]$Nodes) {
+    if ($Target.bounds -notmatch '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$') { return $true }
+    $x = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
+    $y = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
+    foreach ($other in $Nodes) {
+        if ([object]::ReferenceEquals($other, $Target) -or $other.clickable -cne 'true' -or $other.package -cne $Package -or
+                $other.bounds -notmatch '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$') { continue }
+        if ($x -lt [int]$Matches[1] -or $x -ge [int]$Matches[3] -or $y -lt [int]$Matches[2] -or $y -ge [int]$Matches[4]) { continue }
+        if (-not (Test-AuditNodeHolds $other $Target) -and -not (Test-AuditNodeHolds $Target $other)) { return $true }
+    }
+    return $false
+}
+
 # The one node a "tap:<label>" step may tap, or $null. A row can repeat its label on a child that
 # isn't clickable (the menu's Settings and privacy row on the S22), so several matches still
 # name one target when exactly one is clickable and every other match sits inside it.
-function Select-AuditTapNode([string]$Label, [object[]]$Nodes) {
+# Comment sits under every post, so two short posts put two on one screen, and any of them opens a
+# comment sheet: the topmost clickable one a tap may reach is taken. A Comment scrolled under the
+# top bar, the header row or the tab bar can't be reached, since the tap lands on what covers its
+# middle (the all-on feed's drawer button on the S22, 2026-11-05, opened the drawer). Every other
+# label must name one target.
+function Select-AuditTapNode([string]$Label, [object[]]$Nodes, [string[]]$Repeated = @('Comment')) {
     $boundsPattern = '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$'
     $found = @($Nodes | Where-Object { $_.text -ceq $Label -or $_.'content-desc' -ceq $Label } |
         Where-Object { $_.package -ceq $Package -and $_.bounds -match $boundsPattern })
-    if ($found.Count -eq 1) { return $found[0] }
+    if ($found.Count -eq 1 -and -not ($Repeated -ccontains $Label -and (Test-AuditTapCovered $found[0] $Nodes))) { return $found[0] }
+    if ($found.Count -gt 1 -and $Repeated -ccontains $Label) {
+        $reachable = @($found | Where-Object { $_.clickable -ceq 'true' } | ForEach-Object {
+            $null = $_.bounds -match $boundsPattern
+            $box = @([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4])
+            if ($box[2] -gt $box[0] -and $box[3] -gt $box[1] -and [int](($box[1] + $box[3]) / 2) -ge $MinimumTapY -and
+                    -not (Test-AuditTapCovered $_ $Nodes)) {
+                [pscustomobject]@{ Node = $_; Top = $box[1] }
+            }
+        })
+        if ($reachable.Count -eq 0) { return $null }
+        return @($reachable | Sort-Object Top)[0].Node
+    }
     $rows = @($found | Where-Object { $_.clickable -ceq 'true' })
     if ($found.Count -lt 2 -or $rows.Count -ne 1) { return $null }
     $null = $rows[0].bounds -match $boundsPattern
@@ -508,6 +563,16 @@ function Select-AuditTapNode([string]$Label, [object[]]$Nodes) {
                 [int]$Matches[3] -gt $outer[2] -or [int]$Matches[4] -gt $outer[3]) { return $null }
     }
     return $rows[0]
+}
+
+# The search field once the query is typed: Facebook's one EditText on screen, holding exactly the
+# query. A typeahead row repeating the query, a second field or other text is no target.
+function Select-AuditQueryField([object[]]$Nodes) {
+    $fields = @($Nodes | Where-Object { $_.package -ceq $Package -and $_.class -ceq 'android.widget.EditText' })
+    if ($fields.Count -ne 1 -or $fields[0].text -cne $AuditQuery -or
+            $fields[0].bounds -notmatch '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$' -or
+            [int]$Matches[3] -le [int]$Matches[1] -or [int]$Matches[4] -le [int]$Matches[2]) { return $null }
+    return $fields[0]
 }
 
 function Find-AuditTapNode([string]$Label) {
@@ -562,7 +627,7 @@ function Send-Profile([string]$Json) {
 }
 
 # The keys to turn off: [WalkKeys] that -On didn't ask for, then every -Off key, each once. The
-# walk's hold in the middle of a reel reaches Hold a reel for 2x only with Long press opens
+# walk's hold on a reel reaches Hold a reel for 2x only with Long press opens
 # comments and Only on the right edge off: either one sends it to the comment sheet or Facebook's
 # menu instead. With the reel waiting for Tap to play, that hold is the only thing on the walk that
 # sets a reel's speed (585 sets none for a reel that hasn't started), so Hold a reel for 2x and
@@ -851,12 +916,29 @@ function Get-SettingsPages {
     return @('') + @($pages) + @('support')
 }
 
+# The Hush settings screen by its own words. The Hushfacebook name scrolls away with the header, so
+# a page opened at its section, or scrolled to the bottom, shows only the fixed toolbar's list
+# toggle, under either of its labels and in the page's language.
+function Test-SettingsScreen([string[]]$Text, [object]$Rows) {
+    foreach ($label in @('Hushfacebook', 'Show all settings as a list', 'Show settings by category')) {
+        $words = $label
+        if ($Rows -is [Collections.IDictionary] -and $Rows.Contains($label) -and -not [string]::IsNullOrEmpty([string]$Rows[$label])) {
+            $words = [string]$Rows[$label]
+        }
+        if ($Text -ccontains $words) { return $true }
+    }
+    return $false
+}
+
+# Back until no Hush settings screen is left. Back first takes a page back from its section jump,
+# then closes the screen.
 function Close-Settings {
-    for ($i = 0; $i -lt 3; $i++) {
-        $text = Get-ScreenText
+    for ($i = 0; $i -lt 4; $i++) {
+        $text = @(Get-ScreenText)
         $record = ((Invoke-Adb shell "cat $AuditDir/page.json 2>/dev/null; true") -join "`n").Trim()
         $shown = if ($record) { $record | ConvertFrom-Json } else { $null }
-        if (-not ($text -contains 'Hushfacebook' -or $text -contains 'Search settings' -or
+        $table = if ($shown) { Get-AuditLocaleTable ([string]$shown.locale) $shown.localeTags } else { $null }
+        if (-not ((Test-SettingsScreen $text $(if ($table) { $table.Rows } else { $null })) -or $text -contains 'Search settings' -or
                 ($shown -and $shown.schema -in @(2, 3) -and $text -contains $shown.title))) { return }
         Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
         Start-Sleep -Milliseconds 900
@@ -957,7 +1039,7 @@ function Save-SettingsPages([string]$Pass, [string]$RequestedLocale = '') {
             }
         }
         $opened = (Test-AuditSectionShown $shown $page) -and $localeMatches -and
-            $allText.Contains('Hushfacebook') -and $allText.Contains($shown.title)
+            (Test-SettingsScreen @($allText) $(if ($table) { $table.Rows } else { $null })) -and $allText.Contains($shown.title)
         $results.Add([pscustomobject]@{ Page = $(if ($page) { $page } else { 'Home' }); Name = $name; Shots = $shots
             Opened = $opened; Locale = $shown.locale; TextLocale = $(if ($table) { $table.Tag } else { $null })
             ExpandedSections = $shown.expandedSections; SectionRows = $shown.sectionRows; TargetExpanded = $shown.targetExpanded })
@@ -992,6 +1074,10 @@ if ($size -notmatch '(\d+)x(\d+)\s*$') { throw "Could not read the screen size: 
 $width = [int]$Matches[1]; $height = [int]$Matches[2]
 if ($MinimumTapY -ge $height) { throw 'MinimumTapY must be below the bottom of the screen.' }
 $swipeX = [int]($width / 2); $swipeFrom = [int]($height * 0.75); $swipeTo = [int]($height * 0.3)
+# A reel waiting for Tap to play has Facebook's play button at the middle of the screen, which takes
+# a hold there as a press of its own: the reel stays paused and Hold a reel for 2x never hears it.
+# 3/8 of the way down is still the reel and clear of that button.
+$holdY = [int]($height * 0.375)
 $sdk = [int](((Invoke-Adb shell getprop ro.build.version.sdk) -join '').Trim())
 if ($Locales.Count -gt 0 -and $sdk -lt 33) { throw 'App-locale passes require Android 13 or newer.' }
 $stateBefore = [ordered]@{ schema = 1; serial = $Serial; device = $deviceIdentity; package = $Package
@@ -1091,7 +1177,7 @@ try {
             } elseif ($step -eq 'longpress') {
                 $inputReel = $routeReel
                 $inputWindow = if ($routeReel) { $routeWindow }
-                try { Invoke-Adb shell input swipe $swipeX ([int]($height / 2)) $swipeX ([int]($height / 2)) 2500 | Out-Null }
+                try { Invoke-Adb shell input swipe $swipeX $holdY $swipeX $holdY 2500 | Out-Null }
                 finally { $inputReel = $false; $inputWindow = $null }
                 Start-Sleep -Seconds 1
                 $inputReel = $routeReel
@@ -1114,9 +1200,29 @@ try {
                 }
                 $inputWindow = $routeWindow
                 $inputQuery = $true
+                $script:auditQueryTaps = 0
                 try {
                     Invoke-Adb shell input text $AuditQuery | Out-Null
                     Start-Sleep -Seconds 2
+                    # Enter straight after typing went to the first typeahead row about 2 times in 10
+                    # (emulator-5590, 0.21.0) and searched nothing. A tap in the field first, then
+                    # Enter, submitted every time.
+                    $field = Select-AuditQueryField @(Get-UiNodes)
+                    if ($field -and $field.bounds -match '^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$' -and
+                            [int]$Matches[1] -ge 0 -and [int]$Matches[2] -ge 0 -and [int]$Matches[3] -le $width -and [int]$Matches[4] -le $height) {
+                        $fieldX = [int](([int]$Matches[1] + [int]$Matches[3]) / 2)
+                        $fieldY = [int](([int]$Matches[2] + [int]$Matches[4]) / 2)
+                        # The field can change before Invoke-Adb's own dump. A refused tap leaves Enter,
+                        # which checks the screen again before it goes.
+                        try {
+                            Invoke-Adb shell input tap $fieldX $fieldY | Out-Null
+                            Start-Sleep -Milliseconds 800
+                        } catch {
+                            $summary.Add("Walk: the search field tap at step $stepNumber was refused ($($_.Exception.Message)). Enter sent without it.")
+                        }
+                    } else {
+                        $summary.Add("Walk: no single search field held the query at step $stepNumber. Enter sent without the tap.")
+                    }
                     Invoke-Adb shell input keyevent KEYCODE_ENTER | Out-Null
                 } finally { $inputWindow = $null; $inputQuery = $false }
                 $routeStep = $null

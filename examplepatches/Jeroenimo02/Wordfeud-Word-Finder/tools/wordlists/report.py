@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Adds words reported as rejected by the Wordfeud server to wordlists/<code>/remove.txt.
+"""Adds reported words to wordlists/<code>/remove.txt (type remove) or add.txt (type add).
 
-Used by the "Word list reports" workflow (repository_dispatch from the report worker). A word is only added when
+Used by the "Word list reports" workflow (repository_dispatch from the report worker). A word is only taken when
   - the ruleset has a word list (wordlists/manifest.json),
   - it normalises to a valid word of that language (same rules as build.py),
-  - it is currently in that language's list (wordlists/<code>/words.txt.gz), and
-  - it is not already in remove.txt.
+  - type remove (the server rejected it): it is currently in the list and not already in remove.txt;
+  - type add (it was played, so the server accepted it): it is not in the list, not in add.txt, and not in
+    remove.txt (a word the server once rejected is left to the reviewer).
 Everything else is ignored, so junk reports cannot add arbitrary lines.
 
-Usage: python3 tools/wordlists/report.py --ruleset 2 --words NDJ,XYZ
+Usage: python3 tools/wordlists/report.py [--type remove|add] --ruleset 2 --words NDJ,XYZ
 Prints "code=<code>" and "added=<comma separated words>" (empty when nothing was added) for the workflow.
 """
 import argparse
@@ -27,6 +28,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ruleset", required=True)
     ap.add_argument("--words", required=True)
+    ap.add_argument("--type", default="remove")
     args = ap.parse_args()
 
     try:
@@ -48,15 +50,23 @@ def main():
     with gzip.open(os.path.join(folder, "words.txt.gz"), "rt", encoding="utf-8") as f:
         current = set(line.rstrip("\n") for line in f)
     remove_path = os.path.join(folder, "remove.txt")
-    already = set(build.read_word_file(remove_path, norm))
+    add_path = os.path.join(folder, "add.txt")
+    removed = set(build.read_word_file(remove_path, norm))
+    additions = set(build.read_word_file(add_path, norm))
+    kind = args.type if args.type in ("remove", "add") else ""
+    target = remove_path if kind == "remove" else add_path
 
     added = []
     for raw in args.words.split(",")[:MAX_WORDS]:
         w = norm(raw)
-        if w and w in current and w not in already and w not in added:
+        if not w or w in added:
+            continue
+        if kind == "remove" and w in current and w not in removed:
+            added.append(w)
+        elif kind == "add" and w not in current and w not in additions and w not in removed:
             added.append(w)
     if added:
-        with open(remove_path, "a", encoding="utf-8") as f:
+        with open(target, "a", encoding="utf-8") as f:
             for w in added:
                 f.write(w + "\n")
     print("code=%s\nadded=%s" % (code, ",".join(added)))

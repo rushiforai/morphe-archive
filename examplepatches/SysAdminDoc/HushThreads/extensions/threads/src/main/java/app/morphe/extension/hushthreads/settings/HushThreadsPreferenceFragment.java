@@ -20,6 +20,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
@@ -46,6 +47,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -108,6 +110,10 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
     /** The first row, which says whether HushThreads runs now and whether the next start changes that. */
     @Nullable
     private Preference statusCard;
+
+    /** The switches for the ways into these settings, on the Pause page. */
+    @Nullable
+    private WaysIn ways;
 
     /** The row that asks GitHub for the newest release now, and says what the last try found. */
     @Nullable
@@ -196,6 +202,12 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             // Set here rather than in initialize(), so a page whose initialize() failed, the
             // recovery page, is drawn on the same black.
             list.setBackgroundColor(ScreenColors.DEFAULT.background);
+            // Room under the last row, which scrolls through it, so the row clears the gesture bar.
+            int room = Math.round(24 * getResources().getDisplayMetrics().density);
+            list.setClipToPadding(false);
+            list.setPaddingRelative(list.getPaddingStart(), list.getPaddingTop(), list.getPaddingEnd(), room);
+            // The header over the list slides up under the bar as the rows scroll.
+            if (getParentFragment() instanceof SettingsDialog) ((SettingsDialog) getParentFragment()).followList(list);
         }
     }
 
@@ -262,6 +274,13 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
     /** Shows what the switches are saved as, after an import wrote them. */
     void refreshSwitches() {
         updateUIToSettingValues();
+    }
+
+    /** The shared fragment enables each row it syncs, and the last way in stays greyed out. */
+    @Override
+    protected void updatePreferenceAvailability(Preference pref, Setting<?> setting) {
+        super.updatePreferenceAvailability(pref, setting);
+        if (ways != null && ways.has(pref)) ways.refresh();
     }
 
     @Override
@@ -372,6 +391,23 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             }
         }
 
+        if (build.contains(PatchFamily.FILTER_COMMENTS)) {
+            PreferenceCategory comments = category(screen, L10n.t("Comments"));
+            comments.addPreference(toggle(context, Settings.FILTER_COMMENTS, L10n.t("Filter comments"),
+                    L10n.t("Replies matching the patterns below are left out of a post's replies, so a "
+                        + "spam reply never shows. A reply and the replies shown under it are checked and left "
+                        + "out as one. Normal replies keep their order.")));
+            EditTextPreference patterns = CommentSettingsRows.patternsRow(context);
+            comments.addPreference(patterns);
+            SwitchPreference links = toggle(context, Settings.HIDE_COMMENT_LINKS,
+                    L10n.t("Hide comments with links"),
+                    L10n.t("Replies with a web link are left out, whatever the patterns say. "
+                        + "Add a bare site name such as shopee.vn as a pattern."));
+            comments.addPreference(links);
+            links.setDependency(Settings.FILTER_COMMENTS.key);
+            patterns.setDependency(Settings.FILTER_COMMENTS.key);
+        }
+
         saves = null;
         if (build.contains(PatchFamily.SAVE_MEDIA)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
@@ -413,6 +449,11 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         posts.addPreference(toggle(context, Settings.COPY_TEXT, L10n.t("Copy text on long press"),
                 L10n.t("Holding a post's text opens Copy text, on an opened post too, so you get the whole post "
                     + "with its links instead of picking out words.")));
+        if (build.contains(PatchFamily.EXACT_POST_TIMES)) {
+            posts.addPreference(toggle(context, Settings.EXACT_POST_TIMES, L10n.t("Show the date and time"),
+                    L10n.t("Posts and replies show the date and time they went up instead of 3h or 2d, "
+                        + "in your phone's 12 or 24-hour format.")));
+        }
 
         // In every build: Android checks Threads' links against Meta's signing key, which no
         // re-signed build has, whatever its patches.
@@ -482,18 +523,23 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 L10n.t("Turns off every HushThreads switch except Debug logging the next time Threads starts. What "
                     + "you chose when you patched stays, and your choices are saved.")), SettingsIcons.PAUSE));
         hushthreads.addPreference(mark(quickSetupsHomeRow(context), SettingsIcons.BUILD));
-        // The settings entry's own, so every build has it, and a pause leaves it as it is (HushFacebook#146).
-        SwitchPreference settingsShortcut = toggle(context, BaseSettings.SETTINGS_SHORTCUT,
-                L10n.t("Settings shortcut on the app icon"),
+        // A switch for each way into these settings this build has (HushFacebook#146). They're the
+        // settings entry's own, so a pause leaves them as they are.
+        ways = new WaysIn();
+        ways.add(hushthreads, context, BaseSettings.SETTINGS_SHORTCUT, L10n.t("Settings shortcut on the app icon"),
                 L10n.t("Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that "
-                        + "menu, and you can still open these settings from the HushThreads row in Threads' settings "
-                        + "or with a long press on the Threads logo."));
-        settingsShortcut.setOnPreferenceChangeListener((preference, value) -> {
-            BaseSettings.SETTINGS_SHORTCUT.save((Boolean) value);
-            SettingsEntry.shortcutSwitchChanged(context);
-            return true;
-        });
-        hushthreads.addPreference(mark(settingsShortcut, SettingsIcons.OPENING));
+                        + "menu."), SettingsIcons.OPENING);
+        if (ThreadsSettingsRow.shows()) {
+            ways.add(hushthreads, context, BaseSettings.SETTINGS_ROW, L10n.t("Settings row in Threads' settings"),
+                    L10n.t("Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone "
+                            + "the next time you open Threads' settings."), SettingsIcons.SETTINGS);
+        }
+        if (ThreadsLogo.inBuild()) {
+            ways.add(hushthreads, context, BaseSettings.SETTINGS_LOGO_PRESS, L10n.t("Open settings from the logo"),
+                    L10n.t("A long press on the Threads logo at the top of the feed opens these settings. Off, the "
+                            + "long press does nothing."), SettingsIcons.FEED);
+        }
+        ways.refresh();
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushthreads.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
@@ -516,8 +562,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         hushthreads.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
-        clear.setClearAndUndoSummaries(L10n.t("Clears the saved log and patch check results that a report would "
-            + "include."),
+        clear.setClearAndUndoSummaries(L10n.t("Clears the saved log, patch check results and any kept crash that "
+            + "a report would include."),
                 L10n.t("Diagnostic data cleared. Tap again to put it back."));
         hushthreads.addPreference(mark(clear, SettingsIcons.DELETE));
         // Keep the detailed patch-time exception list after the controls people come here for.
@@ -849,7 +895,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                     ? L10n.f("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.", file, folder)
                     : L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.",
                     file, folder);
-            statusCard.setSummary(left + "\n" + L10n.f("Build %1$s", L10n.isolate(buildIdentitySummary())));
+            statusCard.setSummary(left);
             // Resume can be tapped on a category page too, where the card isn't in view.
             Utils.showToastLong(left);
             return;
@@ -871,29 +917,42 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         boolean pausedNext = HushThreadsPause.pausesNextStart(context);
         String status;
         if (!HushThreadsPause.isPaused()) {
-            String version = L10n.f("Version %1$s for Threads %2$s",
-                    L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName()));
-            status = pausedNext ? version + " " + L10n.t("HushThreads pauses when Threads restarts.") : version;
+            // The header names the versions and the build line sits under the list, so a card
+            // that shows for nothing but a newer release holds only that release's line.
+            status = pausedNext ? L10n.t("HushThreads pauses when Threads restarts.") : null;
         } else if (pausedNext) {
             status = pausedSummary(HushThreadsPause.reason(), context.getPackageName())
                     + " " + L10n.t("Tap to turn it back on.");
         } else {
             status = L10n.t("HushThreads turns back on when Threads restarts.");
         }
-        status += "\n" + L10n.f("Build %1$s", L10n.isolate(buildIdentitySummary()));
+        // The build is the line under everything else on the main list, so the card leaves it out.
         String release = ReleaseCheck.statusLine();
-        card.setSummary(release == null ? status : status + "\n" + release);
+        card.setSummary(status == null ? release : release == null ? status : status + "\n" + release);
     }
 
-    /** Keep the complete payload hash and source state here; About carries the full provenance. */
-    static String buildIdentitySummary() {
-        String identity = Utils.getPatchesBuildIdentity();
-        int source = identity.indexOf("; source=");
-        if (!identity.startsWith("sha256=") || source != "sha256=".length() + 64) return identity;
-        int end = identity.indexOf(';', source + 2);
-        int commit = identity.indexOf(':', source + 2);
-        if (commit >= 0 && (end < 0 || commit < end)) end = commit;
-        return end < 0 ? identity : identity.substring(0, end);
+    private static final java.util.regex.Pattern BUILD_IDENTITY = java.util.regex.Pattern.compile(
+            "sha256=([0-9a-f]{64}); source=(?:(clean|dirty):[0-9a-f]{40}; tree=[0-9a-f]{40}|(unknown)); inputs=[0-9a-f]{64}");
+
+    /**
+     * The line under everything on the main list: the version, then the build's first eight hash
+     * characters and whether its source is known. Only this line abbreviates the identity. About
+     * and exported diagnostics keep the original bytes. Ported from Hushfacebook 837bac40.
+     */
+    static String overviewBuildDetails() {
+        String value = Utils.getPatchesBuildIdentity();
+        java.util.regex.Matcher identity = BUILD_IDENTITY.matcher(value == null ? "" : value);
+        String build;
+        if (identity.matches()) {
+            String shortId = L10n.isolate(identity.group(1).substring(0, 8));
+            build = "dirty".equals(identity.group(2)) ? L10n.f("Build %1$s (modified)", shortId)
+                    : "clean".equals(identity.group(2)) ? L10n.f("Build %1$s (source known)", shortId)
+                    : L10n.f("Build %1$s (source unknown)", shortId);
+        } else {
+            String state = value == null || value.isEmpty() || "unknown".equals(value) ? "unknown" : "unverified";
+            build = L10n.f("Build %1$s", L10n.isolate(state));
+        }
+        return L10n.f("Version %1$s", L10n.isolate(Utils.getPatchesReleaseVersion())) + "\n" + build;
     }
 
     /**
@@ -1049,6 +1108,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         preference.setSummary(summary);
         String icon = SettingsIcons.SETTINGS;
         if (setting == Settings.HIDE_ADS) icon = SettingsIcons.BLOCK;
+        else if (setting == Settings.FILTER_COMMENTS) icon = SettingsIcons.BLOCK;
+        else if (setting == Settings.HIDE_COMMENT_LINKS) icon = SettingsIcons.LINKS;
         else if (setting == Settings.HIDE_SUGGESTED_USERS) icon = SettingsIcons.PERSON;
         else if (setting == Settings.HIDE_SEARCH_SUGGESTIONS) icon = SettingsIcons.SEARCH;
         else if (setting == Settings.BLOCK_RETURN_REFRESH) icon = SettingsIcons.BOOKMARK;
@@ -1065,6 +1126,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         else if (setting == Settings.HIDE_INSTAGRAM_BUTTON) icon = SettingsIcons.CAMERA;
         else if (setting == Settings.HIDE_GHOST_POST_BUBBLES) icon = SettingsIcons.CHAT;
         else if (setting == Settings.COPY_TEXT) icon = SettingsIcons.CHAT;
+        else if (setting == Settings.EXACT_POST_TIMES) icon = SettingsIcons.CALENDAR;
         else if (setting == Settings.CHECK_FOR_RELEASES) icon = SettingsIcons.UPDATES;
         mark(preference, icon);
         return preference;
@@ -1115,6 +1177,26 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         }
     }
 
+    /**
+     * A heading inside a section, drawn like a section title over the rows it names. It belongs to
+     * no category of its own, so the rows under it stay in their section's card.
+     */
+    static final class Subheading extends Preference {
+        Subheading(Context context) {
+            super(context);
+            setSelectable(false);
+            setPersistent(false);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            view.setAccessibilityHeading(true);
+            showAllText(view);
+            ScreenColors.heading(view);
+        }
+    }
+
     /** A row of text, which a screen reader calls a button when a tap does something. */
     static final class Row extends Preference implements ImmediateAction {
         /** Set on a row whose tap does what it says at once, which then goes without a chevron. */
@@ -1140,6 +1222,46 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(isSelectable() ? new RowSemantics(this, Button.class) : null);
+        }
+    }
+
+    /**
+     * The switches for the ways into these settings. The last one that's on can't be turned off:
+     * its row is greyed out and says so, and a change that reaches it anyway is refused.
+     */
+    static final class WaysIn {
+        private final Map<BooleanSetting, SwitchPreference> rows = new LinkedHashMap<>();
+        private final Map<BooleanSetting, String> summaries = new LinkedHashMap<>();
+
+        void add(PreferenceCategory category, Context context, BooleanSetting way, String title, String summary,
+                 String icon) {
+            SwitchPreference row = toggle(context, way, title, summary);
+            row.setOnPreferenceChangeListener((preference, value) -> {
+                boolean on = (Boolean) value;
+                if (!on && SettingsEntry.isLastWayIn(way)) return false;
+                way.save(on);
+                // The shortcut is also published while every way is off, so any of the three can
+                // change whether it's in the launcher's menu.
+                SettingsEntry.shortcutSwitchChanged(context);
+                refresh();
+                return true;
+            });
+            rows.put(way, row);
+            summaries.put(way, summary);
+            category.addPreference(mark(row, icon));
+        }
+
+        boolean has(Preference row) {
+            return rows.containsValue(row);
+        }
+
+        void refresh() {
+            for (Map.Entry<BooleanSetting, SwitchPreference> entry : rows.entrySet()) {
+                boolean last = SettingsEntry.isLastWayIn(entry.getKey());
+                entry.getValue().setEnabled(!last);
+                entry.getValue().setSummary(last ? L10n.t("Stays on, since it's the only way left into these settings.")
+                        : summaries.get(entry.getKey()));
+            }
         }
     }
 
@@ -1243,7 +1365,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
      * focus, so on its own a switch row said neither that it was a switch nor whether it was on.
      * A double tap goes through the list, the way a tap does, so the preference's own click runs.
      */
-    static final class RowSemantics extends View.AccessibilityDelegate {
+    static class RowSemantics extends View.AccessibilityDelegate {
         private final Preference preference;
         private final Class<? extends View> role;
 

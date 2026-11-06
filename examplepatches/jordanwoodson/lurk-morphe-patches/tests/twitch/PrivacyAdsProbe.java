@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /** Executes actual emitted Twitch methods on ART, with uninitialized owners to detect fallthrough.
- * Compile against compile-only fy50/yig stubs (Twitch 31.9.0's Spade callback and its error type); omit both
+ * Compile against compile-only bx50/nig stubs (Twitch 31.8.0's Spade callback and its error type); omit both
  * stubs from the probe DEX. The other names come from the APK's locators; the fallbacks are Twitch 31.7.0's:
  * Spade dispatcher jn0, client ads ms/os, Crashlytics arbiter apc.
  * CLASSPATH=probe.jar:patched.apk app_process / PrivacyAdsProbe
@@ -60,12 +60,12 @@ public final class PrivacyAdsProbe {
         System.out.println(ProbeLocators.loaded() ? "names from the APK's locators" : "no locators in the APK: 31.7.0 names");
         settings();
         switches.put("disable_analytics", true);
-        // The callback type fy50 stays the compile-time stub's name; the rest come from the locators.
+        // The callback type bx50 stays the compile-time stub's name; the rest come from the locators.
         Class<?> dispatcher = Class.forName(ProbeLocators.type("twitch.match.spade_event", "jn0"));
         Object owner = allocate(dispatcher);
         Method send = dispatcher.getMethod(ProbeLocators.method("twitch.match.spade_event", "d"),
-            String.class, LinkedHashMap.class, fy50.class, boolean.class);
-        // R8 removed fy50's empty constructor, so bypass our compile-only constructor as well.
+            String.class, LinkedHashMap.class, bx50.class, boolean.class);
+        // R8 removed bx50's empty constructor, so bypass our compile-only constructor as well.
         SpadeCallback callback = (SpadeCallback) allocate(SpadeCallback.class);
         send.invoke(owner, "test_event", new LinkedHashMap<>(), callback, false);
         check(callback.successes == 1 && callback.failures == 0, "Spade must complete success exactly once");
@@ -146,11 +146,11 @@ public final class PrivacyAdsProbe {
     }
 }
 
-final class SpadeCallback extends fy50 {
+final class SpadeCallback extends bx50 {
     int successes;
     int failures;
     Object value;
 
     @Override public void M(Object response) { successes++; value = response; }
-    @Override public void L(yig error) { failures++; }
+    @Override public void L(nig error) { failures++; }
 }

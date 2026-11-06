@@ -159,9 +159,7 @@ Boolean->booleanValue()Z
 
 ### 変更しないもの
 
-- 課金資格の判定
 - 購読 API と決済通信
-- Premium の subscription state
 - Premium 設定行から遷移する画面そのもの
 - 既存の Premium 誘導の抑制が対象とする送信取消時の案内
 
@@ -196,7 +194,6 @@ featureId は `linimal.home-feed-post-cards` と `linimal.premium-settings-row` 
 - Home の container ごと非表示にする方式
 - render 後の `removeView` だけで消す方式
 - VOOM feed の request と response を遮断する方式
-- Premium の subscription state や課金資格を書き換える方式
 - Premium 行を1 variant だけ抑制する方式
 
 ## 実機確認
@@ -220,5 +217,4 @@ OFF では両方とも公式の表示へ戻ることを確認する。
 
 - 実機での ON 反映タイミングと既存 recomposition の挙動
 - LYP プレミアムと LINE プレミアムの地域差分の実機確認
-- Premium 登録済みアカウントでの行表示との差分
 - Home Feed の A/B test 差分

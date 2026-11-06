@@ -96,7 +96,7 @@ There are 34 patches. Where a patch has a switch, its description names the sett
 | `Hide closeup buttons` | Lets you hide the buttons on a pin you open, each with its own switch. That covers the back arrow and the visual search (lens) button that float over the picture, the like, comment, share and more buttons under it, the Remix button and the Visit site button. Another switch keeps the lens but drops its glow and the Search image label Pinterest puts on it for your first pins each day. Two more rows draw the red Save button smaller or paint it a color you pick. Your phone's back gesture still leaves the pin, and Search image in the pin menu still works. They all start off. Turn them on in HushPinterest settings > Interface. |
 | `Hide comments` | Collapses the comments and comment previews under pins. It doesn't change who can comment on your pins. Good for a quieter pin page. A separate switch hides the suggested replies next to the comment box. Both start off. Turn them on in HushPinterest settings > Interface. |
 | `Hide header buttons` | Hides the small icon buttons at the end of the top bar. Back buttons, text buttons and account controls stay. Good for a cleaner top bar. Starts off. Turn it on in HushPinterest settings > Interface. |
-| `Hide navigation buttons` | Lets you hide the Create, Notifications and Search buttons in the bottom bar, each with its own switch. Home and Profile stay. Starts off. Turn them on in HushPinterest settings > Interface. |
+| `Hide navigation buttons` | Lets you hide the Create, Notifications and Search buttons in the bottom bar, each with its own switch. The Create and Notifications switches also cover those buttons at the top of Home. Home and Profile stay. Starts off. Turn them on in HushPinterest settings > Interface. |
 | `Hide save toasts` | Stops the pop-up Pinterest shows after you save a pin, such as the Saved to your board message or a suggestion to follow the creator. The pin is still saved. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide search history` | Hides your recent searches on the search screen of this phone. It doesn't delete your account's search history. Starts off. Turn it on in HushPinterest settings > Interface. |
 | `Hide shopping and product pins` | Hides shoppable pins, shopping stories and featured boards. Good if you want to browse ideas, not products. Starts off. Turn it on in HushPinterest settings > Feed. |
@@ -163,10 +163,10 @@ Each release patches its own build only, so an older Pinterest is refused. SHA-2
 
 On Windows, compare yours with `Get-FileHash -Algorithm SHA256 .\pinterest.apkm`. Other Pinterest versions aren't supported.
 
-The next release moves to Pinterest 14.42.0, version code 14428010, and it'll take at least version 2.3.0 of Morphe Manager. APKMirror has that one as a plain APK for Android 10 or newer. Stick with 14.41.0 until the release is out.
+The next release moves to Pinterest 14.43.0, version code 14438020, and it'll take at least version 2.4.0 of Morphe Manager. APKMirror has that one as a plain APK for Android 10 or newer. Stick with 14.41.0 until the release is out.
 
 ```text
-14428010  f55fd078a6ecf5a2a88dd0056096b1999370c6f143f278c80caaead0c072585e
+14438020  694bad5dc10c5fbdb8f282d1ad13439e4a729b7714f9153908b99b275cb1e288
 ```
 
 ## Verify a release download

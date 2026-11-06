@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    # The Morphe settings plugin configures its GitHub Packages registry repository with
+    # repository.credentials { ... .get() }, so gpr.user / gpr.key must be present or the
+    # build fails with a bare IllegalArgumentException before resolving anything.
+    # app.morphe:morphe-patcher is published there and answers 401 to anonymous requests,
+    # so a token with read:packages is required: a classic PAT in the MORPHE_PACKAGES_TOKEN
+    # secret, falling back to the Actions token (which works once the package is public to
+    # this repo). These are passed through GRADLE_OPTS so the job-level GITHUB_TOKEN that
+    # semantic-release and the attestation step rely on stays untouched.
+    env:
+      GRADLE_OPTS: >-
+        -Dorg.gradle.project.gpr.user=${{ github.actor }}
+        -Dorg.gradle.project.gpr.key=${{ secrets.MORPHE_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        run: ./gradlew :patches:buildAndroid :patches:test clean --no-daemon

@@ -33,6 +33,7 @@ public final class FamilyNames {
     public static final String MUTE_ROOT_POSTS = "Mute posts locally";
     public static final String VISIBLE_ALT_TEXT = "Visible image descriptions";
     public static final String SHARE_VIDEO_LINKS = "Share video links";
+    public static final String SHARPER_IMAGES = "Sharper images";
     public static final String SHOW_POST_TIMESTAMPS = "Show post timestamps";
     public static final String HIDE_ADS = "Hide ads";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
@@ -54,6 +55,7 @@ public final class FamilyNames {
     public static final String HIDE_SUGGESTED_COMMUNITIES = "Hide suggested communities";
     public static final String HIDE_SUGGESTED_TAGS = "Hide suggested tags";
     public static final String HIDE_WATCH_IT_ROWS = "Hide Watch it rows";
+    public static final String HIDE_FEATURED_POSTS = "Hide Featured posts";
     public static final String HIDE_HASHTAGS = "Hide hashtags";
     public static final String HIDE_FOLLOW_BUTTON = "Hide the Follow button";
     public static final String HIDE_TUMBLRMART = "Hide the diamond and TumblrMart";
@@ -65,6 +67,8 @@ public final class FamilyNames {
     public static final String HIDE_SAVE_BUTTON = "Hide the Save button";
     public static final String HIDE_UNREAD_DOTS = "Hide unread dots";
     public static final String HIDE_REBLOGS = "Hide reblogs";
+    public static final String HIDE_OWN_REBLOGS = "Hide your own reblogs";
+    public static final String HIDE_LIKED_POSTS = "Hide liked posts";
     public static final String HIDE_VIDEO_POSTS = "Hide video posts";
     public static final String HIDE_PHOTO_POSTS = "Hide photo posts";
     public static final String HIDE_TEXT_POSTS = "Hide text posts";

@@ -1,3 +1,54 @@
+## [1.16.1](https://github.com/browzomje/browzomje-patches/compare/v1.16.0...v1.16.1) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **Pinterest:** add Google sign-in through microG ([8720ee5](https://github.com/browzomje/browzomje-patches/commit/8720ee587014bf55dcc6d1c6b7c13a8e739b52dd))
+
+## [1.16.0](https://github.com/browzomje/browzomje-patches/compare/v1.15.0...v1.16.0) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **Pinterest:** polish settings and enable Firebase registration repair ([939157f](https://github.com/browzomje/browzomje-patches/commit/939157f624bcfba4994cf4c01960a233d5a862ac))
+
+### ✨ New Features
+
+* **Pinterest:** add image history, muted words, and Firebase repair ([ebc923c](https://github.com/browzomje/browzomje-patches/commit/ebc923cb1e279bf78a1b67f429cbe81b054f363e))
+
+## [1.16.0-dev.1](https://github.com/browzomje/browzomje-patches/compare/v1.15.0...v1.16.0-dev.1) (2026-11-05)
+
+### ✨ New Features
+
+* **Pinterest:** add image history, muted words, and Firebase repair ([ebc923c](https://github.com/browzomje/browzomje-patches/commit/ebc923cb1e279bf78a1b67f429cbe81b054f363e))
+
+## [1.15.0](https://github.com/browzomje/browzomje-patches/compare/v1.14.1...v1.15.0) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **ci:** install the Pinterest image fixture dependency ([e17d566](https://github.com/browzomje/browzomje-patches/commit/e17d5662f18779c3e998797dd7c0cd75e553d16d))
+* **ci:** provide the JSON runtime for backup tests ([b2967dd](https://github.com/browzomje/browzomje-patches/commit/b2967dd7b124a9e3d85441c7519acf4d0d33dd5f))
+* **Pinterest:** download the visible carousel slide ([c6d152f](https://github.com/browzomje/browzomje-patches/commit/c6d152f064c0eed1900aa95a8234a174321899dd))
+
+### ✨ New Features
+
+* **Pinterest:** support 14.43.0 and complete locale coverage ([a89cb60](https://github.com/browzomje/browzomje-patches/commit/a89cb60984deca43485053505616d9fac2063a78))
+
+## [1.15.0-dev.2](https://github.com/browzomje/browzomje-patches/compare/v1.15.0-dev.1...v1.15.0-dev.2) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **Pinterest:** download the visible carousel slide ([c6d152f](https://github.com/browzomje/browzomje-patches/commit/c6d152f064c0eed1900aa95a8234a174321899dd))
+
+## [1.15.0-dev.1](https://github.com/browzomje/browzomje-patches/compare/v1.14.1...v1.15.0-dev.1) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **ci:** install the Pinterest image fixture dependency ([e17d566](https://github.com/browzomje/browzomje-patches/commit/e17d5662f18779c3e998797dd7c0cd75e553d16d))
+* **ci:** provide the JSON runtime for backup tests ([b2967dd](https://github.com/browzomje/browzomje-patches/commit/b2967dd7b124a9e3d85441c7519acf4d0d33dd5f))
+
+### ✨ New Features
+
+* **Pinterest:** support 14.43.0 and complete locale coverage ([a89cb60](https://github.com/browzomje/browzomje-patches/commit/a89cb60984deca43485053505616d9fac2063a78))
+
 ## [1.14.1](https://github.com/browzomje/browzomje-patches/compare/v1.14.0...v1.14.1) (2026-10-26)
 
 ### 🐛 Bug Fixes

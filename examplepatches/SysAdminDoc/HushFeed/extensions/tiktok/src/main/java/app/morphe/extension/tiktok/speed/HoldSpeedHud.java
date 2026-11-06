@@ -53,13 +53,36 @@ import java.util.TreeSet;
  * <p>There is one bubble at most. A new hold, letting go, the video on screen changing, the window
  * losing focus (a pause, a dialog, the notification shade), Hushfeed Pause and the switch going off
  * each take it down, and a recreated activity drops it with its old views.
+ *
+ * <p>{@link Settings#HOLD_SPEED_HUD_STYLE} picks how the bubble looks: {@link #PILL}, the wide
+ * bubble, or {@link #CIRCLE}, a small dial adapted from OmerKurdi79's fork. Both follow the hold
+ * the same way; only the drawing differs.
+ *
+ * <p>{@link Settings#HOLD_SPEED_SLIDE_AXIS} can turn the slide on its side, the way that fork's
+ * dial works: with {@link #UP_DOWN}, up steps faster and down slower, so a hold near the screen's
+ * edge has room for every speed, and a slide {@link #SIDE_LOCK_DP} to either side arms the lock.
+ * The lock is still TikTok's: the sideways slide drives its pull-down state, and TikTok's own
+ * trigger, a finger far enough down, is overruled for the hold, since down means slower now.
  */
 public final class HoldSpeedHud {
-    /** How far the finger moves sideways before the slide starts, then how far per step, in dp. */
+    /** The values of {@link Settings#HOLD_SPEED_HUD_STYLE}. */
+    public static final String PILL = "pill";
+    public static final String CIRCLE = "circle";
+    /** The values of {@link Settings#HOLD_SPEED_SLIDE_AXIS}. */
+    public static final String SIDEWAYS = "sideways";
+    public static final String UP_DOWN = "up_down";
+
+    /** How far the finger moves along the slide before it starts, then how far per step, in dp. */
     static final float DEAD_ZONE_DP = 16f;
     static final float STEP_DP = 32f;
-    /** How far down a hold goes, more down than sideways, before it counts as a pull and not a slide. */
+    /** How far a hold goes toward the lock, more that way than along the slide, before it counts as heading for the lock and not a slide. */
     static final float AXIS_LOCK_DP = 18f;
+    /**
+     * With up and down for the speed, how far to either side of where the hold began arms the
+     * lock, and how near it has to come back to let it go, so a finger resting there doesn't flicker.
+     */
+    static final float SIDE_LOCK_DP = 40f;
+    static final float SIDE_UNLOCK_DP = 32f;
 
     private static WeakReference<Object> gesture = new WeakReference<>(null);
     private static WeakReference<Bubble> bubble = new WeakReference<>(null);
@@ -68,10 +91,17 @@ public final class HoldSpeedHud {
     private static int index;
     private static float anchorX = Float.NaN;
     private static float anchorY = Float.NaN;
-    private static float originX = Float.NaN;
+    /** Where the last step was taken, as a distance toward faster from the anchor. */
+    private static float origin;
     private static boolean sliding;
+    /** The hold went down toward TikTok's pull before it slid, so it doesn't slide until the pull lets go. */
     private static boolean vertical;
     private static boolean pulled;
+    /** This hold steps the speed up and down, and where it began, which its sideways lock is measured from. */
+    private static boolean upDown;
+    private static float lockX = Float.NaN;
+    /** Whether this hold's sideways slide has armed TikTok's lock. */
+    private static boolean sideArmed;
     /** Whether this hold began on a video TikTok counts as locked, and the speed that video had. */
     private static boolean startedLocked;
     private static float heldFrom = Float.NaN;
@@ -93,6 +123,14 @@ public final class HoldSpeedHud {
 
     /** Set by tests only. Unpatched, as in the tests, {@link #armLockNative} does nothing. */
     public static volatile Applier lockArmerForTests;
+
+    /** What TikTok's pull-down lock state does with a pull, so a test can stand in for it. */
+    public interface Puller {
+        void pull(Object gesture, boolean down);
+    }
+
+    /** Set by tests only. Unpatched, as in the tests, {@link #pullNative} does nothing. */
+    public static volatile Puller pullerForTests;
 
     private HoldSpeedHud() {}
 
@@ -122,6 +160,28 @@ public final class HoldSpeedHud {
      */
     public static void armLockNative(Object gesture, float speed) { }
 
+    /**
+     * Replaced with a call to TikTok's pull-down lock state on the gesture, the one its touch
+     * listener makes when the finger goes far enough down and when it comes back.
+     */
+    public static void pullNative(Object gesture, boolean down) { }
+
+    /**
+     * Called at the top of TikTok's pull-down lock state with what its touch listener worked out
+     * from how far down the finger is, 1 or 0, and answers the one the state goes by. With up and
+     * down for the speed, a finger going down is slowing the video, so the hold's sideways slide
+     * answers instead; otherwise TikTok's stands.
+     */
+    public static boolean pullState(int tiktok) {
+        try {
+            if (!holding || !upDown || !enabled()) return tiktok != 0;
+            return sideArmed;
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not answer the hold's pull-down", ex);
+            return tiktok != 0;
+        }
+    }
+
     /** Called from the gesture's press, past its "already held" guard, with the component. */
     public static void onHoldPress(Object component) {
         try {
@@ -138,6 +198,10 @@ public final class HoldSpeedHud {
             sliding = false;
             vertical = false;
             pulled = false;
+            // Saved on a build whose patch had TikTok's lock state, it stays sideways on one without.
+            upDown = SettingsStatus.holdSpeedAxisEnabled && UP_DOWN.equals(Settings.HOLD_SPEED_SLIDE_AXIS.get());
+            lockX = Float.NaN;
+            sideArmed = false;
             startedLocked = false;
             heldFrom = Float.NaN;
             heldVideo = PlaybackSpeedPatch.onScreenVideoId();
@@ -167,7 +231,8 @@ public final class HoldSpeedHud {
     /**
      * Called with every event the gesture's touch listener gets. Only a move during a hold does
      * anything: the first one marks where the finger is, later ones step the speed by how far it
-     * moved sideways from there. Up and cancel are left to the gesture's release.
+     * moved along the slide from there, sideways or, with {@link #UP_DOWN}, up for faster. Up and
+     * cancel are left to the gesture's release.
      */
     public static void onHoldTouch(MotionEvent event) {
         if (!holding || event == null || event.getActionMasked() != MotionEvent.ACTION_MOVE) return;
@@ -179,30 +244,35 @@ public final class HoldSpeedHud {
             // Raw, so the bubble or a view moving under the finger can't shift where it seems to be.
             float x = event.getRawX();
             float y = event.getRawY();
+            if (Float.isNaN(lockX)) lockX = x;
+            float density = density();
+            // Letting the side lock go reaches onPullDown, which marks the finger again from here.
+            if (upDown) followSideLock(x, density);
+            if (pulled || vertical) return;
             if (Float.isNaN(anchorX)) {
                 anchorX = x;
                 anchorY = y;
                 return;
             }
-            if (pulled || vertical) return;
-            float density = density();
-            float dx = x - anchorX;
+            float along = upDown ? anchorY - y : x - anchorX;
             if (!sliding) {
-                float dy = y - anchorY;
-                if (dy > AXIS_LOCK_DP * density && dy > Math.abs(dx)) {
-                    vertical = true;
+                float toward = upDown ? Math.abs(x - anchorX) : y - anchorY;
+                if (toward > AXIS_LOCK_DP * density && toward > Math.abs(along)) {
+                    // TikTok's pull holds the slide off until it lets go. The sideways lock is
+                    // measured here, so coming back toward the middle lets the slide start.
+                    if (!upDown) vertical = true;
                     return;
                 }
                 float dead = DEAD_ZONE_DP * density;
-                if (Math.abs(dx) <= dead) return;
+                if (Math.abs(along) <= dead) return;
                 sliding = true;
-                originX = anchorX + Math.signum(dx) * dead;
+                origin = Math.signum(along) * dead;
             }
             float step = STEP_DP * density;
-            int moved = (int) ((x - originX) / step);
+            int moved = (int) ((along - origin) / step);
             if (moved == 0) return;
             // The origin follows the finger past either end too, so coming back steps at once.
-            originX += moved * step;
+            origin += moved * step;
             int to = Math.max(0, Math.min(steps.length - 1, index + moved));
             if (to == index) return;
             index = to;
@@ -211,6 +281,24 @@ public final class HoldSpeedHud {
             Logger.printException(() -> "Could not change the hold speed", ex);
             end();
         }
+    }
+
+    /**
+     * With up and down for the speed, a slide {@link #SIDE_LOCK_DP} to either side of where the
+     * hold began arms TikTok's lock, as its pull down would, and coming back within
+     * {@link #SIDE_UNLOCK_DP} lets it go. TikTok's own state takes both, so its release locks or
+     * unlocks just as it does after a pull, and its signal tells {@link #onPullDown} as usual.
+     */
+    private static void followSideLock(float x, float density) {
+        float side = Math.abs(x - lockX);
+        boolean arm = sideArmed ? side >= SIDE_UNLOCK_DP * density : side > SIDE_LOCK_DP * density;
+        if (arm == sideArmed) return;
+        sideArmed = arm;
+        Object component = gesture.get();
+        if (component == null) return;
+        Puller puller = pullerForTests;
+        if (puller != null) puller.pull(component, arm);
+        else pullNative(component, arm);
     }
 
     /**
@@ -252,6 +340,8 @@ public final class HoldSpeedHud {
         }
         holding = false;
         pulled = false;
+        sideArmed = false;
+        lockX = Float.NaN;
         gesture.clear();
         dismiss();
     }
@@ -338,11 +428,14 @@ public final class HoldSpeedHud {
     }
 
     private static void show(float speed) {
-        Activity activity = Utils.getActivity();
+        // The activity in front, not the main one: a video opened from search, a profile or a
+        // chat plays in an activity of its own, and the bubble went on the window behind it.
+        Activity activity = Utils.getVisibleActivity();
         if (activity == null || activity.isFinishing()) return;
         ViewGroup content = activity.findViewById(android.R.id.content);
         if (!(content instanceof FrameLayout)) return;
-        Bubble view = new Bubble(activity, steps);
+        boolean round = CIRCLE.equals(Settings.HOLD_SPEED_HUD_STYLE.get());
+        Bubble view = round ? new Circle(activity, steps) : new Bubble(activity, steps);
         view.setSpeed(speed, false);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -350,6 +443,10 @@ public final class HoldSpeedHud {
         params.topMargin = Math.round(content.getHeight() * 0.14f);
         content.addView(view, params);
         bubble = new WeakReference<>(view);
+        if (round) {
+            view.setAlpha(0f);
+            view.animate().alpha(1f).setDuration(Circle.FADE_IN_MS);
+        }
     }
 
     /** Takes the bubble down, wherever it is. */
@@ -366,19 +463,22 @@ public final class HoldSpeedHud {
         return bubble.get();
     }
 
-    /** A small pill: a padlock and the speed over a row of dots, one per step, the current one lit. */
-    static final class Bubble extends View {
-        private final float density;
-        private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint dot = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint lock = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final RectF bounds = new RectF();
-        private final float[] steps;
+    /**
+     * A small pill: a padlock and the speed over a row of dots, one per step, the current one lit.
+     * {@link Circle} draws the same state its own way.
+     */
+    static class Bubble extends View {
+        final float density;
+        final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint dot = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final Paint lock = new Paint(Paint.ANTI_ALIAS_FLAG);
+        final RectF bounds = new RectF();
+        final float[] steps;
         private final float widestLabel;
-        private float speed = Float.NaN;
-        private String label = "";
-        private boolean locked;
+        float speed = Float.NaN;
+        String label = "";
+        boolean locked;
 
         Bubble(Context context, float[] steps) {
             super(context);
@@ -476,6 +576,103 @@ public final class HoldSpeedHud {
             if (bubble.get() == this) {
                 bubble.clear();
                 holding = false;
+            }
+        }
+    }
+
+    /**
+     * The round style (#248), after the dial in OmerKurdi79's fork: a dark disc with a hairline
+     * rim, a ring that fills from the slowest step to the current one, a notch per step around it
+     * with the current one lit, and the speed in the middle. The padlock shows only while closed,
+     * above a smaller speed.
+     */
+    static final class Circle extends Bubble {
+        static final float DIAMETER_DP = 52f;
+        static final long FADE_IN_MS = 150;
+        /** The ring opens at the bottom: it starts down and to the left and turns three quarters. */
+        static final float START = 135f;
+        static final float SWEEP = 270f;
+
+        private final Paint ring = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF arc = new RectF();
+
+        Circle(Context context, float[] steps) {
+            super(context, steps);
+            fill.setColor(0xBE101218);
+            ring.setStyle(Paint.Style.STROKE);
+            ring.setStrokeCap(Paint.Cap.ROUND);
+            text.setTextAlign(Paint.Align.CENTER);
+        }
+
+        /** Where step {@code i} sits on the ring, in degrees clockwise from three o'clock. */
+        float angleOf(int i) {
+            int last = steps.length - 1;
+            return START + (last > 0 ? SWEEP * i / last : 0f);
+        }
+
+        /** The ring's radius for a view {@code size} pixels across. */
+        float ringRadius(float size) {
+            return size / 2f - density - 3.5f * density;
+        }
+
+        @Override
+        protected void onMeasure(int widthSpec, int heightSpec) {
+            int diameter = Math.round(DIAMETER_DP * density);
+            setMeasuredDimension(diameter, diameter);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            float size = Math.min(getWidth(), getHeight());
+            float cx = getWidth() / 2f;
+            float cy = getHeight() / 2f;
+            float outer = size / 2f - density;
+            canvas.drawCircle(cx, cy, outer, fill);
+            ring.setStrokeWidth(density);
+            ring.setColor(0x23FFFFFF);
+            canvas.drawCircle(cx, cy, outer, ring);
+
+            if (steps.length > 0) {
+                float radius = ringRadius(size);
+                arc.set(cx - radius, cy - radius, cx + radius, cy + radius);
+                ring.setStrokeWidth(2 * density);
+                ring.setColor(0x19FFFFFF);
+                canvas.drawArc(arc, START, SWEEP, false, ring);
+                int current = indexOf(steps, speed);
+                ring.setColor(0xB9D7E1EB);
+                canvas.drawArc(arc, START, Math.max(3f, angleOf(current) - START), false, ring);
+                for (int i = 0; i < steps.length; i++) {
+                    double angle = Math.toRadians(angleOf(i));
+                    float x = cx + (float) (radius * Math.cos(angle));
+                    float y = cy + (float) (radius * Math.sin(angle));
+                    if (i == current) {
+                        dot.setColor(0x96FFFFFF);
+                        canvas.drawCircle(x, y, 3.5f * density, dot);
+                        dot.setColor(0xFFFFFFFF);
+                        canvas.drawCircle(x, y, 1.8f * density, dot);
+                    } else {
+                        dot.setColor(0x32FFFFFF);
+                        canvas.drawCircle(x, y, 1.2f * density, dot);
+                    }
+                }
+            }
+
+            if (locked) {
+                // A closed padlock over the speed: the shackle's arch, its legs and the body.
+                lock.setColor(0xDCFFFFFF);
+                lock.setStyle(Paint.Style.STROKE);
+                bounds.set(cx - 2.5f * density, cy - 12.5f * density, cx + 2.5f * density, cy - 7.5f * density);
+                canvas.drawArc(bounds, 180, 180, false, lock);
+                canvas.drawLine(cx - 2.5f * density, cy - 10 * density, cx - 2.5f * density, cy - 7 * density, lock);
+                canvas.drawLine(cx + 2.5f * density, cy - 10 * density, cx + 2.5f * density, cy - 7 * density, lock);
+                lock.setStyle(Paint.Style.FILL);
+                bounds.set(cx - 4 * density, cy - 7 * density, cx + 4 * density, cy - 1.5f * density);
+                canvas.drawRoundRect(bounds, 1.5f * density, 1.5f * density, lock);
+                text.setTextSize(11 * density);
+                canvas.drawText(label, cx, cy + 9.5f * density, text);
+            } else {
+                text.setTextSize(13 * density);
+                canvas.drawText(label, cx, cy + 4.5f * density, text);
             }
         }
     }

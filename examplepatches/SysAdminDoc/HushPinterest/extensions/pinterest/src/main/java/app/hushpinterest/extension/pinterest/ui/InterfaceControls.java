@@ -8,6 +8,7 @@ package app.hushpinterest.extension.pinterest.ui;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -24,6 +25,7 @@ public final class InterfaceControls {
 
     private static final Map<View, String> navigation = new WeakHashMap<>();
     private static final Map<View, Integer> hidden = new WeakHashMap<>();
+    private static final Map<View, Boolean> greetingRows = new WeakHashMap<>();
 
     /** Called after the host assigns a navigation view its ID. Home and Profile always remain. */
     public static void bindNavigation(View view, Object tab) {
@@ -48,6 +50,77 @@ public final class InterfaceControls {
             return UiHooks.enabled(FamilyNames.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH);
         }
         return false;
+    }
+
+    /**
+     * Called once Home's greeting header has put its buttons in their row: an optional tuner, then
+     * Create, then the Notifications or Inbox button in a frame of its own. On accounts with this
+     * header the bottom bar has no Create or Notifications, so the same two switches fold these. A
+     * return to Home from another screen, Hush settings included, brings back window focus, which
+     * reapplies them, since nothing else rebuilds the header then.
+     */
+    public static void greetingHeader(View row) {
+        try {
+            if (!(row instanceof ViewGroup)) return;
+            boolean first;
+            synchronized (greetingRows) { first = greetingRows.put(row, Boolean.TRUE) == null; }
+            refreshGreetingHeader(row);
+            if (first) {
+                GreetingFocus watch = new GreetingFocus(row);
+                row.addOnAttachStateChangeListener(watch);
+                if (row.isAttachedToWindow()) watch.onViewAttachedToWindow(row);
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_NAVIGATION_BUTTONS, "greeting header", failure);
+        }
+    }
+
+    static void refreshGreetingHeader(View row) {
+        ViewGroup group = (ViewGroup) row;
+        for (int index = 0; index < group.getChildCount(); index++) {
+            View child = group.getChildAt(index);
+            String tab = greetingTab(resourceName(child));
+            if (tab == null) continue;
+            boolean hide = hideNavigation(tab);
+            collapse(child, hide);
+            if (hide) HookStatus.counted(FamilyNames.HIDE_NAVIGATION_BUTTONS, "CREATE".equals(tab)
+                    ? "header Create hidden" : "header Notifications hidden");
+        }
+    }
+
+    static String greetingTab(String name) {
+        if ("home_feed_greeting_header_create_icon".equals(name)) return "CREATE";
+        if ("home_feed_greeting_header_newshub_icon".equals(name)) return "NOTIFICATIONS";
+        return null;
+    }
+
+    /** Listens to the window the header row is in, and only while it's in one. */
+    private static final class GreetingFocus
+            implements View.OnAttachStateChangeListener, ViewTreeObserver.OnWindowFocusChangeListener {
+        private final View row;
+        private ViewTreeObserver observer;
+
+        GreetingFocus(View row) { this.row = row; }
+
+        @Override public void onViewAttachedToWindow(View view) {
+            if (observer != null) return;
+            observer = view.getViewTreeObserver();
+            observer.addOnWindowFocusChangeListener(this);
+        }
+
+        @Override public void onViewDetachedFromWindow(View view) {
+            if (observer != null && observer.isAlive()) observer.removeOnWindowFocusChangeListener(this);
+            observer = null;
+        }
+
+        @Override public void onWindowFocusChanged(boolean hasFocus) {
+            if (!hasFocus) return;
+            try {
+                refreshGreetingHeader(row);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.HIDE_NAVIGATION_BUTTONS, "greeting header", failure);
+            }
+        }
     }
 
     /** A layout pass reapplies the selection, including restoring a view when its switch is off. */

@@ -98,11 +98,26 @@ internal val expectedDexSites347215348 = mapOf(
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0g(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@580" to APP_COMMUNICATION_FORMAT,
 )
 
+/** The six permission loads in 586.0.0.55.92's armv7 build. Generated from 347215341's record. */
+internal val expectedDexSites347215341 = mapOf(
+    "LX/0ia;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/132;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1Yw;->A09(Lcom/facebook/auth/usersession/FbUserSession;LX/1Yw;Ljava/lang/String;Ljava/lang/String;)V@35" to APP_COMMUNICATION,
+    "LX/2Ft;->A01(Landroid/content/Intent;LX/2Ft;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/33t;->A02(ILX/5g9;Ljava/lang/Object;)Ljava/lang/Object;@881" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0f(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@610" to APP_COMMUNICATION_FORMAT,
+)
+
 /** The loads an unknown build is checked against. */
 internal val expectedDexSites = expectedDexSites347215348
 
 /** Each supported build's permission loads, by version code, as scripts/profiles records them. */
 internal val expectedDexSitesByBuild: Map<Int, Map<String, String>> = mapOf(
+    347215257 to expectedDexSites347215348,
+    347215330 to expectedDexSites347215348,
+    347215341 to expectedDexSites347215341,
+    347215343 to expectedDexSites347215348,
+    347215344 to expectedDexSites347215348,
     347215348 to expectedDexSites347215348,
 )
 

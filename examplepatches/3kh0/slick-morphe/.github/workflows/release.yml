@@ -1,0 +1,45 @@
+name: release
+
+# Pushing a v1.2.3 tag publishes that release and points patches-bundle.json on main at it,
+# which Morphe Manager polls for updates. Tags with a suffix (v1.2.3-beta.1) become GitHub
+# pre-releases and leave Morphe Manager alone.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 27
+      - uses: actions/cache@v6
+        with:
+          path: work
+          key: ${{ runner.os }}-build-${{ hashFiles('build.sh') }}
+      - run: VERSION="${GITHUB_REF_NAME#v}" bash build.sh
+      - run: |
+          tag="$GITHUB_REF_NAME" v="${GITHUB_REF_NAME#v}"
+          [[ "$v" == *-* ]] && pre=--prerelease || pre=--latest
+          gh release create "$tag" dist/*.mpp --title "Slick Android $v" --generate-notes "$pre"
+          [[ "$v" == *-* ]] && exit 0
+          git fetch -q origin main && git checkout -q main
+          jq -n --arg v "$v" --arg t "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+            --arg d "$(gh release view "$tag" --json body --jq .body)" \
+            --arg u "https://github.com/$GITHUB_REPOSITORY/releases/download/$tag/slick-android-$v.mpp" \
+            '{created_at: $t, description: $d, download_url: $u, signature_download_url: "", version: $v}' \
+            > patches-bundle.json
+          cp dist/patches-list.json patches-list.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qm "chore: release $tag" patches-bundle.json patches-list.json
+          git push -q origin main

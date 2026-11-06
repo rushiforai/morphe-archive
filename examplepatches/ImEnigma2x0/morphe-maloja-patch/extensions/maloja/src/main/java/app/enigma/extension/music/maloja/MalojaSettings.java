@@ -41,6 +41,16 @@ public class MalojaSettings {
         return clamp(DELAY_SECONDS.get(), 30, 360);
     }
 
+    /**
+     * @return Played time after which a song of this length is scrobbled, or -1 if it is too
+     *         short to be scrobbled at all.
+     */
+    static long scrobbleThresholdMillis(int durationSeconds) {
+        if (durationSeconds <= minSongDurationSeconds()) return -1;
+        final long percentMillis = (long) (durationSeconds * 1000L * (delayPercent() / 100.0f));
+        return Math.min(percentMillis, delaySeconds() * 1000L);
+    }
+
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }

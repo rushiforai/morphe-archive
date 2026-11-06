@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Semantic release runs its own Gradle build command and creates GitHub Release on main/dev
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        continue-on-error: true
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Build MPP bundle if semantic-release did not create a release
+      - name: Build MPP bundle
+        if: steps.release.outputs.new_release_published != 'true'
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Upload MPP artifact
+        if: steps.release.outputs.new_release_published != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectre-patches-mpp
+          path: patches/build/libs/patches-*.mpp
+
+      - name: Create GitHub Release with MPP bundle
+        if: steps.release.outputs.new_release_published != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: Spectre patches v1.0.0
+          body: |
+            ## Spectre patches for MyAnimeList (v2.3.15)
+            - **AMOLED black theme**: Replaces dark mode with solid pure black (#000000).
+            - **Open links in app**: Handles `myanimelist.net` deep links directly inside the app.
+          files: patches/build/libs/patches-*.mpp
+          fail_on_unmatched_files: false

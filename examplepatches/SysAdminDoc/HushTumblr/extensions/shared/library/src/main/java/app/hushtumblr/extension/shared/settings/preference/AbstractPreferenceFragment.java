@@ -309,7 +309,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             // Report success only after every operation that can still enter recovery succeeded.
             if (showRestartAfterUpdate) {
                 if (noteRestartPending(setting, valueBefore) && isAdded()) {
-                    showRestartDialog(getContext());
+                    showRestartDialog(getContext(), setting.key);
                 }
             }
             if (!refreshOnly) setting.noteSavedPreferenceChange();
@@ -319,9 +319,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             boolean restored = pref != null && setting != null
                     && restorePreferenceFromSetting(pref, setting, sharedPreferences);
             Context context = getActivity();
-            Utils.showToastLong(String.valueOf(restored
+            preferenceChangeFailed(pref, restored
                     ? preferenceChangeRecoveredMessage(context)
-                    : preferenceChangeRecoveryFailedMessage(context)));
+                    : preferenceChangeRecoveryFailedMessage(context));
         } finally {
             updatingPreference = false;
         }
@@ -448,7 +448,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
                     if (setting.rebootApp) {
                         if (noteRestartPending(setting, valueBefore)) {
-                            showRestartDialog(context);
+                            showRestartDialog(context, setting.key);
                         }
                     }
                 },
@@ -644,9 +644,12 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      */
     protected static CharSequence savedMessage;
 
-    /** Lets an app keep restart feedback inside its settings shell. */
+    /**
+     * Lets an app keep restart feedback inside its settings shell. [key] is the setting that was
+     * changed, or null when no one row made the change.
+     */
     public interface RestartFeedbackPresenter {
-        void present(Context context, CharSequence message);
+        void present(Context context, @Nullable String key, CharSequence message);
     }
 
     private static volatile RestartFeedbackPresenter restartFeedbackPresenter;
@@ -687,14 +690,32 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
         return L10n.t(context, "Settings couldn't refresh completely. Reopen settings and try again.");
     }
 
-    public static void showRestartDialog(Context context) {
-        Utils.verifyOnMainThread();
-        CharSequence message = savedMessage == null
+    /**
+     * Says that the change to [pref] failed. A toast here; a bundle that shows results under their
+     * rows puts it under [pref], where it outlasts a toast's two lines on Android 12 and later.
+     */
+    protected void preferenceChangeFailed(@Nullable Preference pref, CharSequence message) {
+        Utils.showToastLong(String.valueOf(message));
+    }
+
+    /** What a saved change that waits for a restart says. */
+    public static CharSequence restartMessage(@Nullable Context context) {
+        return savedMessage == null
                 ? L10n.t(context, "Saved. Restart Tumblr to apply this change.")
                 : savedMessage;
+    }
+
+    public static void showRestartDialog(Context context) {
+        showRestartDialog(context, null);
+    }
+
+    /** Says the change to [key] was saved and waits for a restart. */
+    public static void showRestartDialog(Context context, @Nullable String key) {
+        Utils.verifyOnMainThread();
+        CharSequence message = restartMessage(context);
         RestartFeedbackPresenter presenter = restartFeedbackPresenter;
         if (presenter != null) {
-            presenter.present(context, message);
+            presenter.present(context, key, message);
         } else {
             Utils.showToastLong(message.toString());
         }

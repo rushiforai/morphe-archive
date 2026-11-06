@@ -103,7 +103,8 @@ public class AppFontRowsTest {
             assertTrue(chosenFile().isFile());
             assertTrue(String.valueOf(page.findPreference(FILE_ROW).getSummary()).contains("Inter.ttf"));
             assertTrue(page.findPreference(PHONE_ROW).isEnabled());
-            assertEquals("Font file saved. Turn on App font to use it.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Font file saved. Turn on App font to use it.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
+            assertNull(ShadowToast.getTextOfLatestToast());
             assertFalse("the switch is off, so nothing's waiting on a restart",
                     AbstractPreferenceFragment.restartPending.contains(TextSettings.APP_FONT_FILE.key));
         }
@@ -120,7 +121,9 @@ public class AppFontRowsTest {
 
             pick(activity, page, "a", font());
 
-            assertEquals("Font file saved.", ShadowToast.getTextOfLatestToast());
+            // The note under the row says the pick waits for a restart, where it stays to be read.
+            assertEquals("Font file saved.\nRestart Tumblr to apply this change.",
+                    SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
             assertTrue(AbstractPreferenceFragment.restartPending.contains(TextSettings.APP_FONT_FILE.key));
             assertTrue("the restart row", showsRestartRow(dialog));
         }
@@ -145,7 +148,7 @@ public class AppFontRowsTest {
 
             pick(activity, page, "b", "not a font at all".getBytes(StandardCharsets.UTF_8));
 
-            assertEquals("That isn't a font file. Nothing changed.", ShadowToast.getTextOfLatestToast());
+            assertEquals("That isn't a font file. Nothing changed.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
             assertEquals(saved, TextSettings.APP_FONT_FILE.savedValue());
             assertTrue(chosenFile().isFile());
         }
@@ -159,7 +162,7 @@ public class AppFontRowsTest {
 
             deliver(activity, tap(activity, page), Uri.parse("content://" + AUTHORITY + "/never-written"));
 
-            assertEquals("Couldn't read that file. Try again.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Couldn't read that file. Try again.", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
             assertEquals("", TextSettings.APP_FONT_FILE.savedValue());
         }
     }
@@ -174,7 +177,27 @@ public class AppFontRowsTest {
             settle();
 
             assertNull(ShadowToast.getTextOfLatestToast());
+            assertNull(SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
             assertEquals("", TextSettings.APP_FONT_FILE.savedValue());
+        }
+    }
+
+    /** With nothing on the phone to pick a file, the row says so and stays usable. */
+    @Test
+    public void aPhoneWithNoFilePickerSaysSoUnderTheRow() {
+        org.robolectric.shadows.ShadowApplication application = shadowOf(RuntimeEnvironment.getApplication());
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            application.checkActivities(true);
+            Preference row = page.findPreference(FILE_ROW);
+            SettingsL10nTest.openPageOf(page, FILE_ROW);
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            ShadowLooper.idleMainLooper();
+            assertEquals("This phone has no file picker, so there's no way to choose a file here.", SettingsFeedbackTest.message(row));
+            assertNull(ShadowToast.getTextOfLatestToast());
+            assertTrue(row.isEnabled());
+        } finally {
+            application.checkActivities(false);
         }
     }
 
@@ -192,7 +215,8 @@ public class AppFontRowsTest {
             assertEquals("", TextSettings.APP_FONT_FILE.savedValue());
             assertFalse(chosenFile().exists());
             assertFalse(row.isEnabled());
-            assertEquals("Back to the phone's font.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Back to the phone's font.", SettingsFeedbackTest.message(row));
+            assertNull("the file row still says a file was saved", SettingsFeedbackTest.message(page.findPreference(FILE_ROW)));
             assertTrue(String.valueOf(page.findPreference(FILE_ROW).getSummary()).contains("phone's font"));
         }
     }
@@ -206,6 +230,7 @@ public class AppFontRowsTest {
     private static ShadowActivity.IntentForResult tap(Activity activity, HushTumblrPreferenceFragment page) {
         Preference row = page.findPreference(FILE_ROW);
         assertNotNull("no such row", row);
+        SettingsL10nTest.openPageOf(page, FILE_ROW);
         row.getOnPreferenceClickListener().onPreferenceClick(row);
         ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         assertNotNull("no picker opened", started);

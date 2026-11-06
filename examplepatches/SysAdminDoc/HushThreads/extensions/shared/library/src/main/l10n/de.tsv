@@ -35,7 +35,7 @@ Debug logging	Debug-Protokollierung
 Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
 Diagnostic data put back.	Diagnosedaten wiederhergestellt.
 Diagnostic report copied to the clipboard.	Diagnosebericht in die Zwischenablage kopiert.
-Clears the saved log and patch check results that a report would include.	Leert das gespeicherte Protokoll und die Patch-Prüfergebnisse, die ein Bericht enthalten würde.
+Clears the saved log, patch check results and any kept crash that a report would include.	Leert das gespeicherte Protokoll, die Patch-Prüfergebnisse und einen gespeicherten Absturz, die ein Bericht enthalten würde.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
 Export diagnostic report	Diagnosebericht exportieren
 Export settings	Einstellungen exportieren
@@ -150,8 +150,6 @@ Pause, backup and diagnostics	Pause, Sicherung und Diagnose
 Updates	Updates
 Jump to a section	Zu einem Abschnitt springen
 Go straight to one group of settings. Back returns to where you were.	Direkt zu einer Gruppe von Einstellungen. Zurück bringt dich dorthin, wo du warst.
-Browse settings	Einstellungen durchsuchen
-More settings	Weitere Einstellungen
 No matching settings	Keine passenden Einstellungen
 %1$d setting found	%1$d Einstellung gefunden
 %1$d settings found	%1$d Einstellungen gefunden
@@ -160,8 +158,6 @@ Search settings	Einstellungen suchen
 Clear search	Suche löschen
 Saves	Gespeicherte Medien
 No saves in progress.	Keine Speichervorgänge aktiv.
-Settings	Einstellungen
-Your controls are active.	Deine Einstellungen sind aktiv.
 Pause	Pausieren
 Resume	Fortsetzen
 Undo	Rückgängig
@@ -304,6 +300,10 @@ Posts	Beiträge
 Copy text when you hold a post	Text kopieren, wenn du einen Beitrag gedrückt hältst
 Copy text on long press	Text kopieren per langem Drücken
 Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	Hältst du den Text eines Beitrags gedrückt, öffnet sich Text kopieren, auch in einem geöffneten Beitrag. So bekommst du den ganzen Beitrag mit seinen Links, statt einzelne Wörter auszuwählen.
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	Text kopieren und genaue Beitragszeiten
+Show the date and time	Datum und Uhrzeit anzeigen
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	Beiträge und Antworten zeigen Datum und Uhrzeit ihrer Veröffentlichung statt nur, wie lange das her ist, im 12- oder 24-Stunden-Format deines Telefons.
 # Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
 Quick setups	Schnelleinstellungen
 Quiet	Ruhig
@@ -337,4 +337,42 @@ Not saved: the proxy wants a password. Try another network.	Nicht gespeichert: D
 The proxy wants a password. Try another network.	Der Proxy will ein Passwort. Wechsle das Netz.
 # The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
 Settings shortcut on the app icon	Einstellungsverknüpfung am App-Symbol
-Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu, and you can still open these settings from the HushThreads row in Threads' settings or with a long press on the Threads logo.	Zeigt die HushThreads-Einstellungen im Menü, das beim langen Drücken des Threads-Symbols erscheint. Aus verschwinden sie aus diesem Menü, und du kannst die Einstellungen weiter über die HushThreads-Zeile in den Threads-Einstellungen oder durch langes Drücken des Threads-Logos öffnen.
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Zeigt die HushThreads-Einstellungen im Menü, das beim langen Drücken des Threads-Symbols erscheint. Aus verschwinden sie aus diesem Menü.
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Zeile in den Threads-Einstellungen
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Fügt in den Threads-Einstellungen direkt über Weitere Einstellungen eine HushThreads-Zeile hinzu. Aus ist die Zeile weg, wenn du die Threads-Einstellungen das nächste Mal öffnest.
+Open settings from the logo	Einstellungen über das Logo öffnen
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	Langes Drücken auf das Threads-Logo oben im Feed öffnet diese Einstellungen. Aus passiert beim langen Drücken nichts.
+Stays on, since it's the only way left into these settings.	Bleibt an, weil es der letzte Weg zu diesen Einstellungen ist.
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	Alle Einstellungen als Liste zeigen
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	Einstellungen nach Kategorie zeigen
+# context: what a screen reader says about a section button that is folded open
+Expanded	Ausgeklappt
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	Eingeklappt
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	Hilfe
+# context: the line under the Support section button
+Reports, restart and app information	Fehlerberichte, Neustart und App-Informationen
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	Hilfe und Neustart
+# context: small heading over the Ko-fi link in Support
+Support the project	Projekt unterstützen
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	Threads neu starten
+Version %1$s	Version %1$s
+Build %1$s (modified)	Build %1$s (geändert)
+Build %1$s (source known)	Build %1$s (Quelle bekannt)
+Build %1$s (source unknown)	Build %1$s (Quelle unbekannt)
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	Kommentare
+Spam replies by words or links	Spam-Antworten nach Wörtern oder Links
+Filter comments	Kommentare filtern
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	Antworten, die zu den Mustern unten passen, fehlen bei den Antworten eines Beitrags, sodass eine Spam-Antwort nie erscheint. Eine Antwort und die Antworten darunter werden zusammen geprüft und fehlen zusammen. Normale Antworten behalten ihre Reihenfolge.
+Blocked words and domains	Gesperrte Wörter und Domains
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	Ein Muster pro Zeile oder durch Kommas getrennt. Die Domain eines Shops wie shopee.vn nimmt die Antworten heraus, die darauf verlinken.
+One pattern a line, or separated by commas. Matched whatever the letter case.	Ein Muster pro Zeile oder durch Kommas getrennt. Geprüft unabhängig von Groß- und Kleinschreibung.
+Hide comments with links	Kommentare mit Links ausblenden
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Antworten mit einem Weblink fehlen, unabhängig von den Mustern. Einen bloßen Seitennamen wie shopee.vn fügst du als Muster hinzu.

@@ -1,0 +1,41 @@
+name: Open a PR to main
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  pull-request:
+    name: Propose tested changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find or create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BRANCH: ${{ github.ref_name }}
+          TARGET_BRANCH: main
+        run: |
+          if gh pr list --base "$TARGET_BRANCH" --head "$SOURCE_BRANCH" --json number | jq -e 'length > 0' >/dev/null; then
+            echo "Existing PR found."
+            exit 0
+          fi
+          # A sync merge can contain a commit but no actual file changes.
+          # Compare changed files, not just total commit count.
+          CHANGED_FILES=$(gh api "repos/${{ github.repository }}/compare/${TARGET_BRANCH}...${SOURCE_BRANCH}" --jq '.files | length')
+          if [ "$CHANGED_FILES" -eq 0 ]; then
+            echo "No changed files to propose."
+            exit 0
+          fi
+          if ! gh pr create --base "$TARGET_BRANCH" --head "$SOURCE_BRANCH" --draft \
+            --title "chore: Review development updates" \
+            --body "Review CI results before merging into main."; then
+            echo "::warning::Automatic PR creation is disabled in repository settings. Open a PR manually from dev into main."
+          fi

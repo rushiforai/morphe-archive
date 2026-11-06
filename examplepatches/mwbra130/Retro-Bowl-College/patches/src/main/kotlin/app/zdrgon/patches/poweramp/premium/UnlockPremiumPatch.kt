@@ -1,0 +1,987 @@
+/*
+ * Ported from hoomans-morphe-patches by arandomhooman (GPL-3.0):
+ * https://github.com/arandomhooman/hoomans-morphe-patches
+ * Original targets Poweramp build-1025; this port retargets build-1031-bundle-play.
+ * The dex-side anchors were verified present in the 1031 dex on 2026-11-02.
+ * The native probes below still carry the 1025 byte signatures and DO NOT match
+ * the 1031 libpowerampcore.so yet; they are being re-derived for 1031.
+ */
+
+package app.zdrgon.patches.poweramp.premium
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+
+private const val FULL_VERIFIED_CACHED = "0x111"
+private const val FEATURE_PACKAGE_PURCHASED = "0x1"
+private const val FEATURE_PACKAGE_REFRESH_DONE = "0x3"
+private const val FEATURE_PACKAGE_STATE_KEY = 0x0F0D0163
+private const val PLAY_PURCHASE_CONTROLLER_KIND = "0x9"
+private const val POWERAMP_PACKAGE_NAME = "com.maxmpz.audioplayer"
+private val POWERAMP_VERSIONS = listOf("build-1031-bundle-play")
+private const val POWERAMP_ICON_COLOR = 0xFF6A00
+
+private class NativeProbePatch(
+    val label: String,
+    val signature: ByteArray,
+    val offset: Int,
+    val replacement: ByteArray,
+)
+
+private fun ints(vararg b: Int): ByteArray = b.map { it.toByte() }.toByteArray()
+
+private fun movW(register: Int, value: Int): ByteArray {
+    val instruction = 0x52800000 or (value shl 5) or register
+    return byteArrayOf(
+        instruction.toByte(),
+        (instruction ushr 8).toByte(),
+        (instruction ushr 16).toByte(),
+        (instruction ushr 24).toByte(),
+    )
+}
+
+// Native re-sign probes: 0x269/0x257/0x22b are size multipliers; 0x256/0x355 are guards.
+// 1031 probe set, re-derived from build-1031's libpowerampcore.so on 2026-11-02 (the 1025
+// signatures match nothing in the recompiled library). All 22 ldrb sites that read the
+// cert/buildstamp byte table (global slot 0x98f060, the 1031 counterpart of 1025's
+// 0x888060) are pinned: guards forced to the pass value, size multipliers to 1, and the
+// library scanner's root gate (table byte 0x32a must equal 2, an offset 1025 never read;
+// unpinned it reads the random tamper-fill and scan_root returns FAIL, breaking playback
+// of files the engine has to resolve through the native scanner). The four
+// output-size sites read two table bytes 8 bytes apart, so each is a single probe whose
+// replacement rewrites both loads (a split probe's signature would contain the sibling
+// load the previous probe just replaced, and sequential matching would miss it). Every
+// signature was verified to occur exactly once in the 1031 library. Unlike 1025, a
+// failed signature verification in 1031 installs a random-filled 0x400-byte table
+// instead of null, so no buildstamp writer/hash probes are needed: nothing can
+// null-deref, and these reader pins make the table contents irrelevant.
+private val arm64NativeProbePatches = listOf(
+    NativeProbePatch(
+        label = "guard-256-a",
+        signature = ints(
+            0x88, 0x3B, 0x00, 0x90, 0x08, 0x31, 0x40, 0xF9,
+            0x08, 0x59, 0x49, 0x39, 0x48, 0xE7, 0xFF, 0x35,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 0),
+    ),
+    NativeProbePatch(
+        label = "guard-256-b",
+        signature = ints(
+            0x68, 0x3B, 0x00, 0xF0, 0x08, 0x31, 0x40, 0xF9,
+            0x08, 0x59, 0x49, 0x39, 0x28, 0xE4, 0xFF, 0x35,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 0),
+    ),
+    NativeProbePatch(
+        label = "guard-256-after-size",
+        signature = ints(
+            0x00, 0x00, 0x80, 0x12, 0x42, 0x00, 0x00, 0x14,
+            0x08, 0x59, 0x49, 0x39, 0x68, 0x00, 0x00, 0x34,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 0),
+    ),
+    NativeProbePatch(
+        label = "guard-256-c",
+        signature = ints(
+            0x68, 0x3B, 0x00, 0xD0, 0x08, 0x31, 0x40, 0xF9,
+            0x08, 0x59, 0x49, 0x39, 0x68, 0x00, 0x00, 0x34,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 0),
+    ),
+    NativeProbePatch(
+        label = "size-269-main",
+        signature = ints(
+            0x68, 0x3B, 0x00, 0xD0, 0x08, 0x31, 0x40, 0xF9,
+            0x09, 0xA5, 0x49, 0x39, 0x25, 0xD4, 0x43, 0x29,
+        ),
+        offset = 8,
+        replacement = movW(register = 9, value = 1),
+    ),
+    NativeProbePatch(
+        label = "guard-328-a",
+        signature = ints(
+            0x09, 0x3B, 0x00, 0xB0, 0x29, 0x31, 0x40, 0xF9,
+            0x29, 0xA1, 0x4C, 0x39, 0x09, 0xBB, 0x00, 0x35,
+        ),
+        offset = 8,
+        replacement = movW(register = 9, value = 0),
+    ),
+    NativeProbePatch(
+        label = "guard-328-b",
+        signature = ints(
+            0x09, 0x3B, 0x00, 0xB0, 0x29, 0x31, 0x40, 0xF9,
+            0x29, 0xA1, 0x4C, 0x39, 0x08, 0x05, 0x00, 0x32,
+        ),
+        offset = 8,
+        replacement = movW(register = 9, value = 0),
+    ),
+    NativeProbePatch(
+        label = "size-263",
+        signature = ints(
+            0x89, 0x35, 0x00, 0xB0, 0x29, 0x31, 0x40, 0xF9,
+            0x29, 0x8D, 0x49, 0x39, 0x21, 0x7D, 0x13, 0x9B,
+        ),
+        offset = 8,
+        replacement = movW(register = 9, value = 1),
+    ),
+    NativeProbePatch(
+        label = "size-257",
+        signature = ints(
+            0x49, 0x35, 0x00, 0xD0, 0x29, 0x31, 0x40, 0xF9,
+            0x29, 0x5D, 0x49, 0x39, 0x63, 0xBE, 0x08, 0xB9,
+        ),
+        offset = 8,
+        replacement = movW(register = 9, value = 1),
+    ),
+    NativeProbePatch(
+        label = "jni-guard-269",
+        signature = ints(
+            0xC8, 0x34, 0x00, 0xF0, 0x08, 0x31, 0x40, 0xF9,
+            0x08, 0xA5, 0x49, 0x39, 0x1F, 0x05, 0x00, 0x71,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 1),
+    ),
+    NativeProbePatch(
+        label = "output-pair1",
+        signature = ints(
+            0x48, 0x34, 0x00, 0x90, 0x08, 0x31, 0x40, 0xF9,
+            0x09, 0xA5, 0x49, 0x39, 0xE2, 0x7E, 0x09, 0x1B,
+            0x08, 0xAD, 0x48, 0x39, 0xC3, 0x7E, 0x08, 0x1B,
+        ),
+        offset = 8,
+        replacement = ints(
+            0x29, 0x00, 0x80, 0x52, 0xE2, 0x7E, 0x09, 0x1B,
+            0x28, 0x00, 0x80, 0x52, 0xC3, 0x7E, 0x08, 0x1B,
+        ),
+    ),
+    NativeProbePatch(
+        label = "output-pair2",
+        signature = ints(
+            0x48, 0x34, 0x00, 0x90, 0x08, 0x31, 0x40, 0xF9,
+            0x09, 0xA5, 0x49, 0x39, 0x3F, 0x05, 0x00, 0x71,
+            0x01, 0x16, 0x00, 0x54, 0x08, 0xAD, 0x48, 0x39,
+            0x1F, 0x05, 0x00, 0x71,
+        ),
+        offset = 8,
+        replacement = ints(
+            0x29, 0x00, 0x80, 0x52, 0x3F, 0x05, 0x00, 0x71,
+            0x01, 0x16, 0x00, 0x54, 0x28, 0x00, 0x80, 0x52,
+            0x1F, 0x05, 0x00, 0x71,
+        ),
+    ),
+    NativeProbePatch(
+        label = "output-pair3",
+        signature = ints(
+            0x48, 0x34, 0x00, 0x90, 0x08, 0x31, 0x40, 0xF9,
+            0x09, 0xA5, 0x49, 0x39, 0xE2, 0x7E, 0x09, 0x1B,
+            0x08, 0xAD, 0x48, 0x39, 0xA3, 0x7E, 0x08, 0x1B,
+        ),
+        offset = 8,
+        replacement = ints(
+            0x29, 0x00, 0x80, 0x52, 0xE2, 0x7E, 0x09, 0x1B,
+            0x28, 0x00, 0x80, 0x52, 0xA3, 0x7E, 0x08, 0x1B,
+        ),
+    ),
+    NativeProbePatch(
+        label = "output-pair4",
+        signature = ints(
+            0x28, 0x34, 0x00, 0xF0, 0x08, 0x31, 0x40, 0xF9,
+            0x09, 0xA5, 0x49, 0x39, 0xE2, 0x7E, 0x09, 0x1B,
+            0x08, 0xAD, 0x48, 0x39, 0xC3, 0x7E, 0x08, 0x1B,
+        ),
+        offset = 8,
+        replacement = ints(
+            0x29, 0x00, 0x80, 0x52, 0xE2, 0x7E, 0x09, 0x1B,
+            0x28, 0x00, 0x80, 0x52, 0xC3, 0x7E, 0x08, 0x1B,
+        ),
+    ),
+    NativeProbePatch(
+        label = "output-269-extra",
+        signature = ints(
+            0x5B, 0x34, 0x00, 0x90, 0x68, 0x33, 0x40, 0xF9,
+            0x15, 0xA5, 0x49, 0x39, 0xC8, 0x02, 0x40, 0xF9,
+        ),
+        offset = 8,
+        replacement = movW(register = 21, value = 1),
+    ),
+    NativeProbePatch(
+        label = "output-22b-extra",
+        signature = ints(
+            0x68, 0x33, 0x40, 0xF9, 0xFB, 0x03, 0x17, 0x2A,
+            0x17, 0xAD, 0x48, 0x39, 0xC8, 0x02, 0x40, 0xF9,
+        ),
+        offset = 8,
+        replacement = movW(register = 23, value = 1),
+    ),
+    NativeProbePatch(
+        label = "guard-355",
+        signature = ints(
+            0xA8, 0x33, 0x00, 0x90, 0x08, 0x31, 0x40, 0xF9,
+            0x08, 0x55, 0x4D, 0x39, 0x1F, 0x0D, 0x00, 0x71,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 0),
+    ),
+    NativeProbePatch(
+        label = "scan-gate-32a",
+        signature = ints(
+            0x68, 0x35, 0x00, 0xB0, 0x08, 0x31, 0x40, 0xF9,
+            0x08, 0xA9, 0x4C, 0x39, 0x1F, 0x09, 0x00, 0x71,
+        ),
+        offset = 8,
+        replacement = movW(register = 8, value = 2),
+    )
+)
+
+@Suppress("unused")
+val patchNativeTamperChecksPatch = rawResourcePatch(
+    description = "Neutralizes Poweramp's native re-sign checks in libpowerampcore.so so the patched " +
+        "arm64 build can finish startup and load the audio engine.",
+) {
+    compatibleWith(
+        Compatibility(
+            name = "Poweramp",
+            packageName = POWERAMP_PACKAGE_NAME,
+            appIconColor = POWERAMP_ICON_COLOR,
+            targets = POWERAMP_VERSIONS.map(::AppTarget),
+        ),
+    )
+
+    execute {
+        val libPath = "lib/arm64-v8a/libpowerampcore.so"
+        val lib = get(libPath)
+        if (!lib.exists()) {
+            throw PatchException(
+                "$libPath not found in the APK. Poweramp's native tamper bypass is derived for the " +
+                    "arm64 build; merge an arm64 split into a universal APK before patching.",
+            )
+        }
+
+        val bytes = lib.readBytes()
+        // Resolve every probe against the pristine bytes first, then apply: a probe's
+        // signature may legitimately contain a byte another probe rewrites, and
+        // searching the half-patched array would miss it.
+        val resolved = arm64NativeProbePatches.map { entry ->
+            val match = bytes.findUnique(entry.signature, entry.label)
+                ?: throw PatchException(
+                    "Poweramp: native probe ${entry.label} not found in $libPath",
+                )
+            entry to match
+        }
+        for ((entry, match) in resolved) {
+            entry.replacement.copyInto(bytes, match + entry.offset)
+        }
+        lib.writeBytes(bytes)
+    }
+}
+
+private fun ByteArray.findUnique(pattern: ByteArray, label: String): Int? {
+    var found: Int? = null
+    val last = size - pattern.size
+    outer@ for (i in 0..last) {
+        for (j in pattern.indices) {
+            if (this[i + j] != pattern[j]) continue@outer
+        }
+        if (found != null) {
+            throw PatchException("Poweramp native probe $label is ambiguous (matched more than once).")
+        }
+        found = i
+    }
+    return found
+}
+
+@Suppress("unused")
+val unlockPremiumPatch = bytecodePatch(
+    name = "Unlock Premium",
+    description = "Unlocks Poweramp's full version state and Feature Package #1.",
+) {
+    dependsOn(patchNativeTamperChecksPatch)
+
+    compatibleWith(
+        Compatibility(
+            name = "Poweramp",
+            packageName = POWERAMP_PACKAGE_NAME,
+            appIconColor = POWERAMP_ICON_COLOR,
+            targets = POWERAMP_VERSIONS.map(::AppTarget),
+        ),
+    )
+
+    execute {
+        fun Method.stringLiterals(): Set<String> =
+            implementation?.instructions?.mapNotNull { instruction ->
+                (instruction as? ReferenceInstruction)?.reference
+                    ?.let { it as? StringReference }?.string
+            }?.toSet().orEmpty()
+
+        // The Play bundle obfuscates this class to i30; the official universal keeps prefs.B.
+        // Pin the holder by its sbuf property and use its resolved type for all field matches.
+        val licenseState = classDefByStrings("sbuf").singleOrNull()
+            ?: throw PatchException(
+                "Poweramp: license state holder (sbuf) not found or ambiguous.",
+            )
+        if ("getSbuf()Ljava/nio/ByteBuffer;" !in licenseState.methods.flatMap { it.stringLiterals() }) {
+            throw PatchException(
+                "Poweramp: class matched by sbuf is missing getSbuf()Ljava/nio/ByteBuffer;.",
+            )
+        }
+        val mutableLicenseState = mutableClassDefBy(licenseState)
+        val licenseStateType = licenseState.type
+
+        fun Method.singleStateFieldReferenceIndex(label: String, fieldName: String): Int {
+            val matches = implementation?.instructions?.withIndex()?.filter { (_, instruction) ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                field != null &&
+                    field.definingClass == licenseStateType &&
+                    field.name == fieldName
+            }.orEmpty()
+
+            if (matches.size != 1) {
+                throw PatchException(
+                    "Poweramp: expected exactly 1 state reference ($fieldName) in $label, " +
+                        "found ${matches.size}. Re-derive the Poweramp state patch.",
+                )
+            }
+
+            return matches.single().index
+        }
+
+        fun Method.singleLicenseStateReferenceIndex(label: String) =
+            singleStateFieldReferenceIndex(label, "H")
+
+        fun Method.stateFieldNameForKey(label: String, stateKey: Int, stateValueType: String): String {
+            val instructions = implementation?.instructions
+                ?: throw PatchException("Poweramp: $label has no implementation.")
+            val keyIndex = instructions.indexOfFirst { instruction ->
+                (instruction as? NarrowLiteralInstruction)?.narrowLiteral == stateKey
+            }
+            if (keyIndex < 0) {
+                throw PatchException("Poweramp: state key 0x${stateKey.toString(16)} not found in $label.")
+            }
+
+            return instructions.drop(keyIndex + 1).asSequence().mapNotNull { instruction ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                field?.takeIf {
+                    it.definingClass == licenseStateType &&
+                        it.type == stateValueType
+                }?.name
+            }.firstOrNull()
+                ?: throw PatchException("Poweramp: state field for 0x${stateKey.toString(16)} not found in $label.")
+        }
+
+        fun opcodeName(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
+            instruction.opcode.name.replace('-', '_').replace('/', '_')
+
+        // i30.H is the full/trial state; 0x111 is Poweramp's cached full-version value.
+        val classInitializer = mutableLicenseState.methods.singleOrNull { method ->
+            method.name == "<clinit>" &&
+                method.returnType == "V" &&
+                method.parameterTypes.isEmpty()
+        } ?: throw PatchException("Poweramp: license state class initializer not found.")
+
+        val hStoreIndex = classInitializer.singleLicenseStateReferenceIndex("license state initializer")
+        val licenseStateValueType = (
+            (classInitializer.instructions[hStoreIndex] as ReferenceInstruction).reference as FieldReference
+            ).type
+        val hInitializerIndex = classInitializer.instructions.withIndex().filter { (index, instruction) ->
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            index < hStoreIndex &&
+                reference != null &&
+                reference.parameterTypes == listOf("I") &&
+                reference.returnType == licenseStateValueType
+        }.lastOrNull()?.index ?: throw PatchException(
+            "Poweramp: initializer for license state H not found before the H field store.",
+        )
+        classInitializer.addInstructions(hInitializerIndex, "const/16 v1, $FULL_VERIFIED_CACHED")
+
+        val baseApplication = mutableClassDefByOrNull("Lcom/maxmpz/app/base/BaseApplication;")
+            ?: throw PatchException("Poweramp: BaseApplication not found.")
+        val getIntState = baseApplication.methods.singleOrNull { method ->
+            method.name == "getIntState" &&
+                method.returnType == "I" &&
+                method.parameterTypes == listOf("I")
+        } ?: throw PatchException("Poweramp: BaseApplication.getIntState not found.")
+        val featurePackageStateFieldName =
+            getIntState.stateFieldNameForKey(
+                "BaseApplication.getIntState",
+                FEATURE_PACKAGE_STATE_KEY,
+                licenseStateValueType,
+            )
+        val featureStateStoreIndex = classInitializer
+            .singleStateFieldReferenceIndex("feature package state initializer", featurePackageStateFieldName)
+        val featureStateInitializerIndex = classInitializer.instructions.withIndex().filter { (index, instruction) ->
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            index < featureStateStoreIndex &&
+                reference != null &&
+                reference.parameterTypes == listOf("I") &&
+                reference.returnType == licenseStateValueType
+        }.lastOrNull()?.index ?: throw PatchException(
+            "Poweramp: initializer for Feature Package #1 state not found before the field store.",
+        )
+        val featureInitializerRegister = (
+            classInitializer.instructions[featureStateInitializerIndex] as? Instruction35c
+            )?.registerD
+            ?: throw PatchException(
+                "Poweramp: Feature Package state initializer call shape changed.",
+            )
+        classInitializer.addInstructions(
+            featureStateInitializerIndex,
+            "const/4 v$featureInitializerRegister, $FEATURE_PACKAGE_PURCHASED",
+        )
+
+        val preferenceStore = classDefByStrings("hide_verified").singleOrNull()
+            ?: throw PatchException(
+                "Poweramp: shared preference restore class not found or ambiguous.",
+            )
+        if ("luae" !in preferenceStore.methods.flatMap { it.stringLiterals() }) {
+            throw PatchException(
+                "Poweramp: class matched by hide_verified is missing luae; wrong preference class.",
+            )
+        }
+        // Force a state holder's value at its restore-time store. The 1025 code inserted
+        // a const into a hardcoded register (v1) in front of the field reference; in 1031
+        // the loaded preference value travels in a different register, which left the
+        // const dead and the stored value untouched. Derive the value register from the
+        // holder setter call itself: the first (I)V invoke after the field reference
+        // whose argument list is exactly (holder, value).
+        fun stateStoreForceIndexAndRegister(
+            method: MutableMethod,
+            label: String,
+            fieldName: String,
+        ): Pair<Int, Int> {
+            val referenceIndex = method.singleStateFieldReferenceIndex(label, fieldName)
+            val setter = method.instructions.withIndex().drop(referenceIndex + 1)
+                .firstOrNull { (_, instruction) ->
+                    val reference =
+                        (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    reference != null &&
+                        reference.parameterTypes == listOf("I") &&
+                        reference.returnType == "V" &&
+                        (instruction as? Instruction35c)?.registerCount == 2
+                } ?: throw PatchException(
+                "Poweramp: state setter call not found after $fieldName in $label.",
+            )
+            val valueRegister = (setter.value as Instruction35c).registerD
+            return setter.index to valueRegister
+        }
+
+        val mutablePreferenceStore = mutableClassDefBy(preferenceStore)
+        val restoreLicenseState = mutablePreferenceStore.methods.singleOrNull { method ->
+            method.stringLiterals().let { strings ->
+                "hide_verified" in strings && "luae" in strings && "r" in strings
+            }
+        } ?: throw PatchException(
+            "Poweramp: shared preference restore method for license state not found.",
+        )
+        // Resolve both store sites before editing: inserting shifts later indices, so
+        // apply the forces in descending index order.
+        val licenseStoreForce = stateStoreForceIndexAndRegister(
+            restoreLicenseState,
+            "shared preference restore",
+            "H",
+        )
+        val featureStoreForce = stateStoreForceIndexAndRegister(
+            restoreLicenseState,
+            "shared preference restore",
+            featurePackageStateFieldName,
+        )
+        val storeForces = listOf(
+            licenseStoreForce to "const/16 v\$REG, $FULL_VERIFIED_CACHED",
+            featureStoreForce to "const/4 v\$REG, $FEATURE_PACKAGE_PURCHASED",
+        ).sortedByDescending { (force, _) -> force.first }
+        for ((force, template) in storeForces) {
+            restoreLicenseState.addInstructions(
+                force.first,
+                template.replace("\$REG", force.second.toString()),
+            )
+        }
+
+        val onCreate = baseApplication.methods.singleOrNull { method ->
+            method.name == "onCreate" &&
+                method.returnType == "V" &&
+                method.parameterTypes.isEmpty()
+        } ?: throw PatchException("Poweramp: BaseApplication.onCreate not found.")
+        val tamperField = onCreate.instructions.asSequence().filter { instruction ->
+            opcodeName(instruction).equals("SPUT_BOOLEAN", ignoreCase = true)
+        }.mapNotNull { instruction ->
+            (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        }.filter { field ->
+            field.type == "Z" && field.definingClass != baseApplication.type
+        }.groupingBy { field ->
+            "${field.definingClass}->${field.name}:${field.type}"
+        }.eachCount().filterValues { count ->
+            count >= 2
+        }.keys.singleOrNull() ?: throw PatchException(
+            "Poweramp: signature-check state field not found or ambiguous in BaseApplication.onCreate.",
+        )
+        // 1031 differs from 1025 here (verified from the 1031 dex on 2026-11-02):
+        // v2 is preloaded with 1, the check compares the first 96 signature bytes,
+        // and the field's final value is (match ? 1 : 0) xor v2, i.e. the field ends
+        // up 0 when the signature is valid and 1 when it is not. There is no
+        // const/4 v2, 0 to flip like 1025 had. Force the valid value (0) right after
+        // the LAST store to the field, reusing that store's own register, so every
+        // branch path through the check leaves the field at 0.
+        val tamperStores = onCreate.instructions.withIndex().filter { (_, instruction) ->
+            opcodeName(instruction).equals("SPUT_BOOLEAN", ignoreCase = true) &&
+                ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let { field ->
+                    "${field.definingClass}->${field.name}:${field.type}" == tamperField
+                } == true
+        }
+        if (tamperStores.isEmpty()) {
+            throw PatchException(
+                "Poweramp: signature-check state store not found in BaseApplication.onCreate.",
+            )
+        }
+        val lastTamperStore = tamperStores.last()
+        val tamperStoreRegister = (lastTamperStore.value as? OneRegisterInstruction)?.registerA
+            ?: throw PatchException(
+                "Poweramp: signature-check state store shape changed in BaseApplication.onCreate.",
+            )
+        onCreate.addInstructions(
+            lastTamperStore.index + 1,
+            "const/4 v$tamperStoreRegister, 0x0\n" +
+                "sput-boolean v$tamperStoreRegister, $tamperField",
+        )
+
+        // The 32-byte buffer passed to native_process is the live license state used by the
+        // playback watchdog and settings code. Slot 1 (offset 4) holds the same 0x111 full result
+        // forced into prefs.H above. Keep the preference's existing buffer writable, then restore
+        // only that slot after native_process so every Java alias continues to share one buffer.
+        val sync = mutableClassDefByOrNull("Lcom/maxmpz/audioplayer/Sync;")
+            ?: throw PatchException("Poweramp: Sync class not found.")
+        val syncProcess = sync.methods.singleOrNull { method ->
+            AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.returnType == "V" &&
+                method.parameterTypes.isEmpty() &&
+                method.instructions.any { instruction ->
+                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    reference?.definingClass == sync.type &&
+                        reference.name == "native_process" &&
+                        reference.returnType == "I"
+                }
+        } ?: throw PatchException("Poweramp: Sync native_process wrapper not found.")
+        val nativeProcessCallIndex = syncProcess.instructions.withIndex().singleOrNull { (_, instruction) ->
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass == sync.type &&
+                reference.name == "native_process" &&
+                reference.returnType == "I"
+        }?.index ?: throw PatchException("Poweramp: native_process call not found uniquely.")
+        val nativeProcessCall = syncProcess.instructions[nativeProcessCallIndex]
+            as? com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+            ?: throw PatchException("Poweramp: native_process uses an unsupported invoke shape.")
+        if (nativeProcessCall.registerCount != 3) {
+            throw PatchException("Poweramp: native_process arguments changed; re-derive.")
+        }
+        val nativeProcessBufferRegister = nativeProcessCall.registerE
+        val licenseBufferField = syncProcess.instructions.take(nativeProcessCallIndex).mapNotNull { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { field ->
+                opcodeName(instruction).equals("SGET_OBJECT", ignoreCase = true) &&
+                    (instruction as? OneRegisterInstruction)?.registerA == nativeProcessBufferRegister &&
+                    field.type == "Ljava/nio/ByteBuffer;" &&
+                    field.definingClass != sync.type
+            }
+        }.singleOrNull() ?: throw PatchException(
+            "Poweramp: the ByteBuffer passed as native_process argument 3 was not loaded uniquely.",
+        )
+        val licenseBufferOwner = mutableClassDefByOrNull(licenseBufferField.definingClass)
+            ?: throw PatchException("Poweramp: native license buffer owner not found.")
+        val licenseBufferInitializer = licenseBufferOwner.methods.singleOrNull { method ->
+            method.name == "<clinit>" && method.returnType == "V" && method.parameterTypes.isEmpty()
+        } ?: throw PatchException("Poweramp: native license buffer initializer not found.")
+        val licenseBufferStoreIndex = licenseBufferInitializer.instructions.withIndex().singleOrNull {
+                (_, instruction) ->
+            opcodeName(instruction).equals("SPUT_OBJECT", ignoreCase = true) &&
+                ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let { field ->
+                    field.definingClass == licenseBufferField.definingClass &&
+                        field.name == licenseBufferField.name &&
+                        field.type == licenseBufferField.type
+                } == true
+        }?.index ?: throw PatchException("Poweramp: native license buffer store not found uniquely.")
+        val preferenceBufferField = licenseBufferInitializer.instructions.take(licenseBufferStoreIndex)
+            .mapNotNull { instruction ->
+                ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { field ->
+                    field.type == "Ljava/nio/ByteBuffer;" &&
+                        field.definingClass != licenseBufferField.definingClass
+                }
+            }.singleOrNull() ?: throw PatchException(
+            "Poweramp: backing preference buffer field not found uniquely.",
+        )
+        val preferenceBufferClass = mutableClassDefByOrNull(preferenceBufferField.definingClass)
+            ?: throw PatchException("Poweramp: backing preference buffer class not found.")
+        val preferenceBufferConstructor = preferenceBufferClass.methods.singleOrNull { method ->
+            method.name == "<init>" && method.instructions.count { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.definingClass == "Ljava/nio/ByteBuffer;" &&
+                    reference.name == "asReadOnlyBuffer" &&
+                    reference.parameterTypes.isEmpty() &&
+                    reference.returnType == "Ljava/nio/ByteBuffer;"
+            } == 1
+        } ?: throw PatchException("Poweramp: preference buffer constructor not found uniquely.")
+        val readOnlyCallIndex = preferenceBufferConstructor.instructions.withIndex().single { (_, instruction) ->
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass == "Ljava/nio/ByteBuffer;" &&
+                reference.name == "asReadOnlyBuffer" &&
+                reference.parameterTypes.isEmpty() &&
+                reference.returnType == "Ljava/nio/ByteBuffer;"
+        }.index
+        val readOnlyCall = preferenceBufferConstructor.instructions[readOnlyCallIndex]
+            as? com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+            ?: throw PatchException("Poweramp: preference buffer copy uses an unsupported invoke shape.")
+        if (readOnlyCall.registerCount != 1) {
+            throw PatchException("Poweramp: preference buffer copy arguments changed; re-derive.")
+        }
+        preferenceBufferConstructor.replaceInstruction(
+            readOnlyCallIndex,
+            "invoke-virtual {v${readOnlyCall.registerC}}, " +
+                "Ljava/nio/ByteBuffer;->duplicate()Ljava/nio/ByteBuffer;",
+        )
+
+        val nativeProcessResultIndex = nativeProcessCallIndex + 1
+        val resultRegister = (
+            syncProcess.instructions.getOrNull(nativeProcessResultIndex) as? OneRegisterInstruction
+            )?.registerA
+        if (
+            resultRegister != 0 ||
+            nativeProcessBufferRegister != 2 ||
+            syncProcess.implementation?.registerCount != 4
+        ) {
+            throw PatchException("Poweramp: Sync native_process result register shape changed; re-derive.")
+        }
+        val normalCleanupIndex = syncProcess.instructions.withIndex()
+            .drop(nativeProcessResultIndex + 1)
+            .firstOrNull { (_, instruction) ->
+                opcodeName(instruction).equals("SPUT_OBJECT", ignoreCase = true) &&
+                    ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let { field ->
+                        field.definingClass == sync.type &&
+                            field.type == "Lcom/maxmpz/app/base/BaseApplication;"
+                    } == true
+            }?.index ?: throw PatchException("Poweramp: Sync normal cleanup path not found.")
+        syncProcess.addInstructionsWithLabels(
+            nativeProcessResultIndex + 1,
+            """
+                if-eqz v0, :restore_license
+                const/4 v0, 0x1
+                invoke-static {v0}, Lcom/maxmpz/audioplayer/Sync;->native_close(I)V
+                :restore_license
+                const/4 v0, 0x4
+                const/16 v3, $FULL_VERIFIED_CACHED
+                invoke-virtual {v$nativeProcessBufferRegister, v0, v3}, Ljava/nio/ByteBuffer;->putInt(II)Ljava/nio/ByteBuffer;
+                goto :normal_cleanup
+            """,
+            ExternalLabel("normal_cleanup", syncProcess.getInstruction(normalCleanupIndex)),
+        )
+
+        val featurePackageStateIndex = getIntState
+            .singleStateFieldReferenceIndex("BaseApplication.getIntState", featurePackageStateFieldName)
+        val featurePackageStateReadIndex = getIntState.instructions.withIndex()
+            .drop(featurePackageStateIndex + 1)
+            .firstOrNull { (_, instruction) ->
+                opcodeName(instruction).startsWith("IGET", ignoreCase = true)
+            }?.index ?: throw PatchException(
+            "Poweramp: Feature Package #1 state read not found in BaseApplication.getIntState.",
+        )
+        getIntState.addInstructions(featurePackageStateReadIndex + 1, "const/4 p1, $FEATURE_PACKAGE_PURCHASED")
+
+        val licenseResultHandler = baseApplication.methods.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.stringLiterals().let { strings ->
+                    "res" in strings &&
+                        "store" in strings &&
+                        "purchased" in strings &&
+                        "apm_email" in strings
+                }
+        } ?: throw PatchException(
+            "Poweramp: license result handler (res/store/purchased/apm_email) not found.",
+        )
+        licenseResultHandler.addInstructions(
+            licenseResultHandler.singleLicenseStateReferenceIndex("license result handler") + 1,
+            "const/16 v0, $FULL_VERIFIED_CACHED",
+        )
+
+        // The handler computes this flag from the raw native result before H is forced to 0x111.
+        // PlayerService and widget actions read it directly, so keep it in the non-expired state too.
+        val expiredFlagStore = licenseResultHandler.instructions.withIndex().singleOrNull {
+                (_, instruction) ->
+            opcodeName(instruction).equals("SPUT_BOOLEAN", ignoreCase = true) &&
+                ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let { field ->
+                    field.type == "Z" && field.definingClass != baseApplication.type
+                } == true
+        } ?: throw PatchException("Poweramp: expired-state flag store not found uniquely.")
+        val expiredFlagRegister = (expiredFlagStore.value as? OneRegisterInstruction)?.registerA
+            ?: throw PatchException("Poweramp: expired-state flag store shape changed.")
+        val expiredFlagField = (
+            (expiredFlagStore.value as? ReferenceInstruction)?.reference as? FieldReference
+            ) ?: throw PatchException("Poweramp: expired-state flag field reference changed.")
+        // Insert after the labeled stock store so every branch that targets it flows through the
+        // override. An insertion before it can be skipped because dex labels stay on the old store.
+        licenseResultHandler.addInstructions(
+            expiredFlagStore.index + 1,
+            """
+                const/4 v$expiredFlagRegister, 0x0
+                sput-boolean v$expiredFlagRegister, ${expiredFlagField.definingClass}->${expiredFlagField.name}:Z
+            """,
+        )
+
+        // All widget/activity routes pass through this hook. Its native release gate can replace the
+        // requested Intent with ExpiredActivity; the caller has already added FLAG_NEW_TASK when needed.
+        val activityRoute = baseApplication.methods.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.parameterTypes == listOf(
+                    "Landroid/content/Context;",
+                    "Landroid/content/Intent;",
+                ) &&
+                "sac" in method.stringLiterals() &&
+                method.instructions.any { instruction ->
+                    ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let { reference ->
+                        reference.definingClass == sync.type &&
+                            reference.name == "native_release" &&
+                            reference.returnType == "I"
+                    } == true
+                }
+        } ?: throw PatchException("Poweramp: native activity-route gate not found uniquely.")
+        activityRoute.addInstructions(
+            0,
+            """
+                invoke-virtual {p1, p2}, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V
+                return-void
+            """,
+        )
+
+        // A cold launcher attach schedules this native license refresh after 250 ms. Native code can
+        // start ExpiredActivity directly before the Java result handler gets a chance to normalize it.
+        val scheduledLicenseRefresh = baseApplication.methods.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.parameterTypes == listOf("Z") &&
+                method.implementation != null &&
+                "__Executors" in method.stringLiterals()
+        } ?: throw PatchException("Poweramp: scheduled native license refresh not found uniquely.")
+        scheduledLicenseRefresh.addInstructions(0, "return-void")
+
+        // Some cold-launch and widget paths can still route through ExpiredActivity before the live
+        // state bus catches up. Force its one full-version state read true so it immediately closes.
+        val expiredActivity = mutableClassDefByOrNull(
+            "Lcom/maxmpz/audioplayer/dialogs/ExpiredActivity;",
+        ) ?: throw PatchException("Poweramp: ExpiredActivity not found.")
+        val expiredOnCreate = expiredActivity.methods.singleOrNull { method ->
+            method.name == "onCreate" &&
+                method.returnType == "V" &&
+                method.parameterTypes == listOf("Landroid/os/Bundle;")
+        } ?: throw PatchException("Poweramp: ExpiredActivity.onCreate not found uniquely.")
+        val fullVersionStateResultIndex = expiredOnCreate.instructions.withIndex().singleOrNull {
+                (_, instruction) ->
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let { reference ->
+                reference.definingClass == "Lcom/maxmpz/widget/StateBus;" &&
+                    reference.name == "getBooleanState" &&
+                    reference.returnType == "Z" &&
+                    reference.parameterTypes == listOf("I")
+            } == true
+        }?.index?.plus(1) ?: throw PatchException(
+            "Poweramp: ExpiredActivity full-version state read not found uniquely.",
+        )
+        val fullVersionStateRegister = (
+            expiredOnCreate.instructions.getOrNull(fullVersionStateResultIndex) as? OneRegisterInstruction
+            )?.registerA ?: throw PatchException(
+            "Poweramp: ExpiredActivity full-version state result shape changed.",
+        )
+        expiredOnCreate.addInstructions(
+            fullVersionStateResultIndex + 1,
+            "const/4 v$fullVersionStateRegister, 0x1",
+        )
+
+        val featurePackagePreference = mutableClassDefByOrNull(
+            "Lcom/maxmpz/audioplayer/preference/FeaturePackPref;",
+        ) ?: throw PatchException("Poweramp: FeaturePackPref not found.")
+        val updateFeaturePackagePreference = featurePackagePreference.methods.singleOrNull { method ->
+            method.name == "update" &&
+                method.returnType == "V" &&
+                method.parameterTypes.isEmpty()
+        } ?: throw PatchException("Poweramp: FeaturePackPref.update not found.")
+        // 1031: BuyPrefBase.n is a CharSequence now (the buy-button label); the boolean
+        // hooman hardcoded as "n" in 1025 was renamed by the obfuscator. Identify the
+        // purchased store structurally instead (verified from the 1031 dex on
+        // 2026-11-02): it is the only BuyPrefBase boolean store in update() whose value
+        // is computed from the purchase controller's int state compared against 4
+        // (state == 4 is purchased-complete; BaseBuyFvPref.update computes the same
+        // base field from exactly that test). The scan also yields the controller's
+        // state field name, which 1025 called "f" and 1031 calls "e".
+        val purchaseControllerType = updateFeaturePackagePreference.instructions
+            .mapNotNull { instruction ->
+                (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            }
+            .firstOrNull { field ->
+                field.definingClass == "Lcom/maxmpz/audioplayer/preference/BuyPrefBase;" &&
+                    field.type.startsWith("L")
+            }?.type ?: throw PatchException(
+            "Poweramp: purchase controller field not found in FeaturePackPref.update.",
+        )
+        var purchaseStateFieldName: String? = null
+        val purchasedFlagStore = updateFeaturePackagePreference.instructions.withIndex()
+            .firstOrNull { (storeIndex, instruction) ->
+                val isPurchasedStore = opcodeName(instruction).equals("IPUT_BOOLEAN", ignoreCase = true) &&
+                    ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.let { field ->
+                        field.definingClass == "Lcom/maxmpz/audioplayer/preference/BuyPrefBase;" &&
+                            field.type == "Z"
+                    } == true
+                if (!isPurchasedStore) {
+                    false
+                } else {
+                    val window = updateFeaturePackagePreference.instructions
+                        .subList(maxOf(0, storeIndex - 14), storeIndex)
+                    val stateField = window.mapNotNull { windowInstruction ->
+                        val field = (windowInstruction as? ReferenceInstruction)?.reference as? FieldReference
+                        field?.takeIf {
+                            opcodeName(windowInstruction).startsWith("IGET", ignoreCase = true) &&
+                                it.definingClass == purchaseControllerType &&
+                                it.type == "I"
+                        }
+                    }.lastOrNull()
+                    val comparesStateToFour = window.any { windowInstruction ->
+                        (windowInstruction as? NarrowLiteralInstruction)?.narrowLiteral == 4
+                    }
+                    if (stateField != null && comparesStateToFour) {
+                        purchaseStateFieldName = stateField.name
+                        true
+                    } else {
+                        false
+                    }
+                }
+            } ?: throw PatchException(
+            "Poweramp: FeaturePackPref purchased flag store not found.",
+        )
+        val purchasedFlagStoreIndex = purchasedFlagStore.index
+        val purchasedFlagStoreRegister = (purchasedFlagStore.value as? OneRegisterInstruction)?.registerA
+            ?: throw PatchException(
+                "Poweramp: FeaturePackPref purchased flag store shape changed.",
+            )
+        val purchaseStateField = purchaseStateFieldName ?: throw PatchException(
+            "Poweramp: purchase controller state field not found in FeaturePackPref.update.",
+        )
+        val featurePackagePurchasedField = updateFeaturePackagePreference.instructions.withIndex()
+            .take(purchasedFlagStoreIndex)
+            .mapNotNull { (_, instruction) ->
+                (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            }
+            .lastOrNull { field ->
+                field.type == "Z" &&
+                    field.definingClass != "Lcom/maxmpz/audioplayer/preference/BuyPrefBase;"
+            } ?: throw PatchException(
+            "Poweramp: FeaturePackPref source purchased flag not found.",
+        )
+        val purchaseControllerClass = mutableClassDefByOrNull(featurePackagePurchasedField.definingClass)
+            ?: throw PatchException("Poweramp: purchase controller base class not found.")
+        val featurePackageProductTextField = updateFeaturePackagePreference.instructions.withIndex()
+            .mapNotNull { (_, instruction) ->
+                (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            }
+            .firstOrNull { field ->
+                field.definingClass == purchaseControllerClass.type &&
+                    field.type == "Ljava/lang/String;"
+            } ?: throw PatchException("Poweramp: FeaturePackPref product text field not found.")
+        val purchaseStateNotifier = purchaseControllerClass.methods.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.parameterTypes == listOf(purchaseControllerClass.type)
+        } ?: throw PatchException("Poweramp: purchase-state notifier method not found.")
+        val purchaseControllerConstructor = purchaseControllerClass.methods.singleOrNull { method ->
+            method.name == "<init>" &&
+                method.parameterTypes.size == 4 &&
+                method.parameterTypes.count { it == "I" } == 2 &&
+                method.parameterTypes.count { it == "Ljava/lang/String;" } == 2
+        } ?: throw PatchException("Poweramp: purchase controller constructor not found uniquely.")
+        val constructorRegisterCount = purchaseControllerConstructor.implementation?.registerCount
+            ?: throw PatchException("Poweramp: purchase controller constructor has no implementation.")
+        val constructorParameterWords = purchaseControllerConstructor.parameterTypes.sumOf { type ->
+            if (type == "J" || type == "D") 2 else 1
+        }
+        val constructorThisRegister = constructorRegisterCount - constructorParameterWords - 1
+        val kindParameterRegister = constructorThisRegister + 1 +
+            purchaseControllerConstructor.parameterTypes.take(2).sumOf { type ->
+                if (type == "J" || type == "D") 2 else 1
+            }
+        val purchaseControllerKindField = purchaseControllerConstructor.instructions.mapNotNull { instruction ->
+            val registers = instruction as? TwoRegisterInstruction ?: return@mapNotNull null
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                ?: return@mapNotNull null
+            field.takeIf {
+                opcodeName(instruction).equals("IPUT", ignoreCase = true) &&
+                    registers.registerA == kindParameterRegister &&
+                    registers.registerB == constructorThisRegister &&
+                    field.definingClass == purchaseControllerClass.type &&
+                    field.type == "I"
+            }
+        }.singleOrNull() ?: throw PatchException(
+            "Poweramp: purchase controller kind field was not stored uniquely from constructor parameter 3.",
+        )
+        val startPurchaseRefresh = purchaseControllerClass.methods.singleOrNull { method ->
+            method.returnType == "V" &&
+                method.parameterTypes.isEmpty() &&
+                "__Executors" in method.stringLiterals()
+        } ?: throw PatchException("Poweramp: purchase refresh worker launcher not found.")
+        startPurchaseRefresh.addInstructionsWithLabels(
+            0,
+            """
+                iget v0, p0, ${purchaseControllerClass.type}->${purchaseControllerKindField.name}:I
+                const/16 v1, $PLAY_PURCHASE_CONTROLLER_KIND
+                if-ne v0, v1, :original_purchase_refresh
+                const/4 v0, $FEATURE_PACKAGE_REFRESH_DONE
+                iput v0, p0, ${purchaseControllerClass.type}->${purchaseStateField}:I
+                const/4 v0, $FEATURE_PACKAGE_PURCHASED
+                iput-boolean v0, p0, ${purchaseControllerClass.type}->${featurePackagePurchasedField.name}:Z
+                const-string v1, ""
+                iput-object v1, p0, ${purchaseControllerClass.type}->${featurePackageProductTextField.name}:Ljava/lang/String;
+                invoke-static {p0}, ${purchaseControllerClass.type}->${purchaseStateNotifier.name}(${purchaseControllerClass.type})V
+                return-void
+            """,
+            ExternalLabel("original_purchase_refresh", startPurchaseRefresh.getInstruction(0)),
+        )
+        updateFeaturePackagePreference.addInstructions(
+            purchasedFlagStoreIndex,
+            "const/4 v$purchasedFlagStoreRegister, $FEATURE_PACKAGE_PURCHASED",
+        )
+
+        // Settings export (issue #94). Export zips the temp SQLite dump then calls a static
+        // y([B)[B that Base64-encodes and hands the string to Sync.native_lock. After re-sign,
+        // native_lock returns null, y returns null, and the zip writer returns without writing
+        // so the SAF file stays 0 bytes. Pin is the unique "eS" acquire token used only here.
+        // Return the raw zip bytes so export is non-empty; import of that file still needs a
+        // matching native path if you re-import into stock Poweramp.
+        val exportCryptoHost = classDefByStrings("eS").singleOrNull()
+            ?: throw PatchException(
+                "Poweramp: export crypto host (string eS) not found. Re-derive the settings-export " +
+                    "pin for this build.",
+            )
+        val exportSeal = mutableClassDefBy(exportCryptoHost).methods.singleOrNull { method ->
+            AccessFlags.STATIC.isSet(method.accessFlags) &&
+                method.returnType == "[B" &&
+                method.parameterTypes == listOf("[B") &&
+                method.stringLiterals().contains("eS")
+        } ?: throw PatchException(
+            "Poweramp: export seal y([B)[B with eS not found. Re-derive the settings-export pin.",
+        )
+        exportSeal.addInstructions(0, "return-object p0")
+
+    }
+}

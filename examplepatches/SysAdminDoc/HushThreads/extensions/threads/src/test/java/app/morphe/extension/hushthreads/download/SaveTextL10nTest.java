@@ -135,7 +135,7 @@ public class SaveTextL10nTest {
     @Test
     public void everyToastFitsTwoLinesInEveryLanguage() {
         List<String> tooLong = new ArrayList<>();
-        for (String language : new String[] { "en", "de", "es", "in", "pt-rBR", "tr" }) {
+        for (String language : new String[] { "en", "de", "es", "in", "it", "ko", "pt-rBR", "tr", "zh-rTW" }) {
             RuntimeEnvironment.setQualifiers(language);
             List<String> toasts = new ArrayList<>();
             for (Downloader.Status status : Downloader.Status.values()) {
@@ -171,20 +171,50 @@ public class SaveTextL10nTest {
     /**
      * The lines a toast takes, wrapped by word at 34 characters. An S22 (384 dp wide, font scale 1)
      * cut a toast's second line at "This network's proxy asks for a p…", 34 characters and the
-     * ellipsis. The marks that isolate a folder's name take no room.
+     * ellipsis. The marks that isolate a folder's name take no room. A Han or Hangul character is
+     * drawn about twice as wide as a Latin letter and a line can break before any one of them, so
+     * each is a word of its own two characters wide.
      */
     private static int toastLines(String toast) {
+        String text = toast.replace("⁨", "").replace("⁩", "");
         int lines = 1;
         int used = 0;
-        for (String word : toast.replace("⁨", "").replace("⁩", "").split(" ")) {
-            if (used > 0 && used + 1 + word.length() > 34) {
-                lines++;
-                used = word.length();
-            } else {
-                used += (used > 0 ? 1 : 0) + word.length();
+        boolean spaced = false;
+        for (int at = 0; at < text.length(); ) {
+            int point = text.codePointAt(at);
+            if (point == ' ') {
+                spaced = true;
+                at++;
+                continue;
             }
+            int width;
+            int end = at + Character.charCount(point);
+            if (wide(point)) {
+                width = 2;
+            } else {
+                width = 1;
+                while (end < text.length() && text.codePointAt(end) != ' ' && !wide(text.codePointAt(end))) {
+                    width++;
+                    end += Character.charCount(text.codePointAt(end));
+                }
+            }
+            int gap = used > 0 && spaced ? 1 : 0;
+            if (used > 0 && used + gap + width > 34) {
+                lines++;
+                used = width;
+            } else {
+                used += gap + width;
+            }
+            spaced = false;
+            at = end;
         }
         return lines;
+    }
+
+    private static boolean wide(int point) {
+        Character.UnicodeScript script = Character.UnicodeScript.of(point);
+        return script == Character.UnicodeScript.HAN || script == Character.UnicodeScript.HANGUL
+                || (point >= 0x3000 && point <= 0x303F) || (point >= 0xFF00 && point <= 0xFF60);
     }
 
     /** A channel named in one language is renamed in the next, keeping what the person set. */

@@ -49,10 +49,12 @@ import app.morphe.extension.shared.Utils;
  * off the main thread; reads only state the extension already holds, never the car again.
  */
 final class ReportBuilder {
-    static final int SCHEMA = 1, CONSENT_TEXT_VERSION = 5, MAX_COMMENT_CHARS = 2000;
-    /** The main process's last battery and window state is saved at most this often, except on a window change. */
+    static final int SCHEMA = 1, CONSENT_TEXT_VERSION = 6, MAX_COMMENT_CHARS = 2000;
+    /** The main process's last battery and window state is saved at most this often, unless asked for at once. */
     private static final long SNAPSHOT_EVERY_MS = 60 * 1000;
     private static long snapshotAt;
+    /** One snapshot built and written at a time (see saveSnapshot). */
+    private static final Object SNAPSHOT_WRITE = new Object();
     private static final int MAX_LOG_LINES = 2000, LOG_BUDGET_BYTES = 320 * 1024, PROCESS_BUDGET_BYTES = 16 * 1024,
             MAX_LINE_CHARS = 1024, SHORT = 256, MAX_LIBRARIES = 80;
     // UIDs per Android user (UserHandle.PER_USER_RANGE).
@@ -207,7 +209,9 @@ final class ReportBuilder {
 
     /**
      * From the main process: its BYD battery and window state for reports built in the report screen's
-     * process. At most once a minute, unless [now] (a window change); written off the calling thread.
+     * process. At most once a minute, unless [now] (a window change, a new energy model or a setting chosen
+     * in a dialog); written off the calling thread, one snapshot at a time, so the last one written holds
+     * the latest state.
      */
     static void saveSnapshot(Context context, boolean now) {
         long time = SystemClock.elapsedRealtime();
@@ -216,18 +220,26 @@ final class ReportBuilder {
             snapshotAt = time;
         }
         Utils.runOnBackgroundThread(() -> {
-            try {
-                Screen screen = new Screen();
-                screen.densityDpi = WindowRefreshPatch.densityDpi;
-                JSONObject snapshot = new JSONObject()
-                        .put("at", System.currentTimeMillis())
-                        .put("battery", SafeMode.included(SafeMode.BYD_BATTERY) ? BydBatteryPatch.reportBattery(context) : JSONObject.NULL)
-                        .put("ui", ui(context, screen));
-                ReportStore.saveSnapshot(context, snapshot);
-            } catch (JSONException | RuntimeException error) {
-                ReportLog.w(ReportPatch.TAG, "state for the report not saved", error);
+            // Built and written under one lock: two writers share the temporary file, and a snapshot built
+            // earlier must not land after a newer one.
+            synchronized (SNAPSHOT_WRITE) {
+                writeSnapshot(context);
             }
         });
+    }
+
+    private static void writeSnapshot(Context context) {
+        try {
+            Screen screen = new Screen();
+            screen.densityDpi = WindowRefreshPatch.densityDpi;
+            JSONObject snapshot = new JSONObject()
+                    .put("at", System.currentTimeMillis())
+                    .put("battery", SafeMode.included(SafeMode.BYD_BATTERY) ? BydBatteryPatch.reportBattery(context) : JSONObject.NULL)
+                    .put("ui", ui(context, screen));
+            ReportStore.saveSnapshot(context, snapshot);
+        } catch (JSONException | RuntimeException error) {
+            ReportLog.w(ReportPatch.TAG, "state for the report not saved", error);
+        }
     }
 
     // A section of the main process's snapshot with its age, or null.

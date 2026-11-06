@@ -30,7 +30,8 @@ show_deleted_messages  RumbleChat.deletedLabel
 chat_timestamps  RumbleChat.nameWithTime
 
 video_quality  RumblePlayback.startHeight
-video_quality  RumblePlayback.loadingVideo
+video_quality  RumblePlayback.capActive
+video_quality  RumblePlayback.liveUsesAutoByDefault
 resume_signed_out  RumblePlayback.signedOutPosition
 remember_speed|default_speed  RumblePlayback.onSpeedPicked
 remember_speed|default_speed  RumblePlayback.onSpeedReset
@@ -43,6 +44,7 @@ player_gestures  RumbleGestures.dispatch
 keep_screen_on_paused  RumblePlayer.keepScreenOn
 refresh_stream  RumblePlayer.onVideoLoaded
 refresh_stream  RumblePlayer.refreshable
+refresh_stream  RumblePlayer.noQualityCallback
 seek_seconds  RumblePlayer.seekMillis
 seek_seconds  RumblePlayer.seekBackIcon
 seek_seconds  RumblePlayer.seekForwardIcon

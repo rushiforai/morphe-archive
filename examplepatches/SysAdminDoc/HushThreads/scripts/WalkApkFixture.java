@@ -23,6 +23,7 @@ public class WalkApkFixture {
     private static final String UTILS = "Lapp/morphe/extension/shared/Utils;";
     private static final String SETTINGS =
             "Lapp/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment;";
+    private static final String NAVIGATION = "Lapp/morphe/extension/hushthreads/settings/SettingsNavigation;";
     private static final String LOGS = "Lapp/morphe/extension/shared/settings/preference/LogBufferManager;";
     private static final String STRING = "Ljava/lang/String;";
     private static final ImmutableMethodReference GET_IDENTITY =
@@ -66,9 +67,15 @@ public class WalkApkFixture {
                 type(SETTINGS,
                         method(SETTINGS, "initialize", "V", readIdentity(),
                                 new ImmutableInstruction10x(Opcode.RETURN_VOID)),
-                        summary(SETTINGS, "buildIdentitySummary")),
+                        summary(SETTINGS, "overviewBuildDetails")),
+                // The build line under the main list reads the identity through overviewBuildDetails.
+                type(NAVIGATION, method(NAVIGATION, "buildLine", STRING,
+                        new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
+                                new ImmutableMethodReference(SETTINGS, "overviewBuildDetails", List.of(), STRING)),
+                        new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0),
+                        new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0))),
                 type(LOGS, summary(LOGS, "buildReport")));
         DexPool.writeTo(output.toString(), new ImmutableDexFile(Opcodes.forApi(30), classes));
-        System.out.println("[fixture] wrote identity getter and three consumers to " + output);
+        System.out.println("[fixture] wrote identity getter, About, the build line and reports to " + output);
     }
 }

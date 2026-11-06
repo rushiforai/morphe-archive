@@ -181,6 +181,9 @@ switch ($Stage) {
         if (-not $env:HUSHTUMBLR_DESKTOP_JAR -or -not (Test-Path -LiteralPath $env:HUSHTUMBLR_DESKTOP_JAR -PathType Leaf)) {
             throw 'Set HUSHTUMBLR_DESKTOP_JAR to the Morphe desktop CLI. The gate and the receipt patch with it.'
         }
+        if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable('HUSHTUMBLR_BUNDLE_SIGNING_KEY', 'User'))) {
+            throw 'Set the User variable HUSHTUMBLR_BUNDLE_SIGNING_KEY to the bundle signing key. The gate and the build sign the bundle with it.'
+        }
         $signing = Get-SigningInputs -GpgHome $GpgHome -Fingerprint $SigningFingerprint -PublicKey $TrustedPublicKeyPath
         $gpgVersion = @(Invoke-ReleaseQuiet { & $Gpg --version })
         if ($LASTEXITCODE -ne 0 -or $gpgVersion.Count -eq 0) { throw "$Gpg doesn't run, and the build stage signs the checksums with it. Pass -Gpg." }
@@ -255,7 +258,24 @@ switch ($Stage) {
         Invoke-ReleaseQuiet { & gh release view $tag -R $Repository --json tagName } | Out-Null
         if ($LASTEXITCODE -eq 0) { throw "$tag is already on GitHub, and the assets here don't match it ($built). Nothing was rebuilt." }
 
-        Invoke-ReleaseGradle -Root $Root -Tasks @(':patches:buildAndroid') -Job 'release bundle'
+        # The build signs the bundle (MorpheSig1) with this key. It lives in a User environment
+        # variable on the release machine, never in the repo; morphe-signing.pub is its public half.
+        # It's in the environment for this build only, so the shell that ran the stage, and what it
+        # starts next, never inherits the private key.
+        $hadSigningKey = Test-Path Env:\MORPHE_SIGNING_KEY
+        $callerSigningKey = $env:MORPHE_SIGNING_KEY
+        try {
+            if ([string]::IsNullOrWhiteSpace($env:MORPHE_SIGNING_KEY)) {
+                $env:MORPHE_SIGNING_KEY = [Environment]::GetEnvironmentVariable('HUSHTUMBLR_BUNDLE_SIGNING_KEY', 'User')
+            }
+            if ([string]::IsNullOrWhiteSpace($env:MORPHE_SIGNING_KEY)) {
+                throw 'HUSHTUMBLR_BUNDLE_SIGNING_KEY is not set. Morphe Manager pins the first key a source signs with, so a release bundle is never built unsigned.'
+            }
+            Invoke-ReleaseGradle -Root $Root -Tasks @(':patches:buildAndroid') -Job 'release bundle'
+        } finally {
+            if ($hadSigningKey) { $env:MORPHE_SIGNING_KEY = $callerSigningKey }
+            elseif (Test-Path Env:\MORPHE_SIGNING_KEY) { Remove-Item -LiteralPath Env:\MORPHE_SIGNING_KEY }
+        }
         $bundle = Get-ReleaseBundlePath -Root $Root -Version $Version
         $sbom = [IO.Path]::ChangeExtension($bundle, '.cdx.json')
         foreach ($file in $bundle, $sbom) { if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw ":patches:buildAndroid left no $file." } }
@@ -267,7 +287,10 @@ switch ($Stage) {
         $zip = [IO.Compression.ZipFile]::OpenRead($bundle)
         try { $hasDex = @($zip.Entries | Where-Object { $_.FullName -ceq 'classes.dex' }).Count -eq 1 } finally { $zip.Dispose() }
         if (-not $hasDex) { throw 'The bundle has no classes.dex, so Manager would load no patches from it.' }
-        Write-ReleaseStep "bundle $(Split-Path -Leaf $bundle) is pinned to $commit and carries its dex"
+        $signature = Get-BundleSignature -Path $bundle
+        if ($null -eq $signature) { throw 'A signing key was set, but the bundle came out unsigned.' }
+        if ($signature.PublicKey -cne (Get-BundlePublicKey -Root $Root)) { throw 'The bundle is signed by a key other than morphe-signing.pub.' }
+        Write-ReleaseStep "bundle $(Split-Path -Leaf $bundle) is pinned to $commit, carries its dex and is signed by $($signature.PublicKey)"
 
         $fixtures = Get-DeclaredFixtures -Root $Root
         $work = Join-Path ([IO.Path]::GetTempPath()) ('hushtumblr-receipt-' + [guid]::NewGuid().ToString('N'))

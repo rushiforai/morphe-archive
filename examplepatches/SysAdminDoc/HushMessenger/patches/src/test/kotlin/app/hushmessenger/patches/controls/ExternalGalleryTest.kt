@@ -397,6 +397,13 @@ class ExternalGalleryTest {
 
     @Test fun onlyTheOneWayEditReachesTheLauncherOpensTheRoute() {
         assertTrue(findExternalGallery(galleryClasses()).isNotEmpty())
+        // 586's armv7 handler reuses the event's register once its reads are done, with no branch after.
+        for (reuse in listOf("invoke-static {p0, p2, v2}", "return-void")) {
+            val reused = itemsClass(GALLERY_ITEMS_BODY.replace(reuse, "const/4 p3, 0x0\n$reuse"))
+            assertTrue(mirroredControls(galleryClasses(reused)).getValue(EXTERNAL_GALLERY).isNotEmpty(), reuse)
+            assertTrue(findExternalGallery(galleryClasses(reused)).isNotEmpty(), reuse)
+            assertEquals(ITEMS_INTENT, galleryRoute?.itemsIntent, reuse)
+        }
         // The provider read from some other object's field could hand over anything.
         val otherField = handlerClass(GALLERY_HANDLER_BODY.replace("iget-object v1, v0, $GALLERY_PROVIDER", "iget-object v1, v0, LX/6CD;->A0L:LX/0c8;"))
         // An Edit helper that never starts the launcher it takes doesn't prove what the provider holds.
@@ -421,9 +428,13 @@ class ExternalGalleryTest {
         // A static result reader has no p1 to p3 the hook can hand over as they are.
         val staticReader = fixtureClass("LX/7Rm;", listOf(fixtureMethod(COMPOSER_RESULT, composerResultBody(), flags = STATIC)))
         // The photo handler has to be the one static method handed a thread and a result event that checks for the
-        // request and reads one intent field the event class has, from an event register it never overwrites.
+        // request and reads one intent field the event class has, from an event register nothing overwrites ahead of a
+        // read. A reuse after the last read only counts with no branch from it on.
         val itemsTwin = itemsClass(GALLERY_ITEMS_BODY.replace("LX/B5V;", "LX/B5W;"), GALLERY_ITEMS.replace("LX/B5V;", "LX/B5W;"))
-        val itemsOverwritten = itemsClass(GALLERY_ITEMS_BODY.replace(":other\nreturn-void", ":other\nconst/4 p3, 0x0\nreturn-void"))
+        val itemsOverwritten = itemsClass(GALLERY_ITEMS_BODY.replace("iget-object v2, p3, $ITEMS_INTENT",
+            "const/4 p3, 0x0\niget-object v2, p3, $ITEMS_INTENT"))
+        val itemsReusedThenBranched = itemsClass(GALLERY_ITEMS_BODY.replace("iget-object v2, p3, $ITEMS_INTENT",
+            "iget-object v2, p3, $ITEMS_INTENT\nconst/4 p3, 0x0\nif-eqz v2, :other"))
         // Two intent fields the event class really has, read ahead of the usual one, so only the one-field rule refuses.
         val itemsTwoIntents = itemsClass(GALLERY_ITEMS_BODY.replace("iget-object v2, p3, $ITEMS_INTENT",
             "iget-object v3, p3, $ACTIVITY_RESULT_EVENT->A03:Landroid/content/Intent;\niget-object v2, p3, $ITEMS_INTENT"))
@@ -439,7 +450,8 @@ class ExternalGalleryTest {
             "override" to galleryClasses() + overriding,
             "override below" to galleryClasses() + middle + below, "not an interface" to galleryClasses(notInterface),
             "static reader" to galleryClasses(staticReader), "items twin" to galleryClasses() + itemsTwin,
-            "items event overwritten" to galleryClasses(itemsOverwritten), "items two intents" to galleryClasses(itemsTwoIntents, resultEventClass(secondIntent = "A03")),
+            "items event overwritten" to galleryClasses(itemsOverwritten),
+            "items reused then branched" to galleryClasses(itemsReusedThenBranched), "items two intents" to galleryClasses(itemsTwoIntents, resultEventClass(secondIntent = "A03")),
             "items no request" to galleryClasses(itemsNoRequest), "items not static" to galleryClasses(itemsNotStatic),
             "items no thread" to galleryClasses(itemsNoThread), "items no handler" to galleryClasses().filterNot { it.type == "LX/B5V;" },
             "items field missing" to galleryClasses(resultEventClass(intentName = "A03")),

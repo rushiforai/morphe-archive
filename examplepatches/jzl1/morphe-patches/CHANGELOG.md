@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/jzl1/morphe-patches/compare/v1.1.1...v1.2.0) (2026-11-05)
+
+### ✨ New Features
+
+* **analiti:** add 99133 support and skip update attestation ([210dd3a](https://github.com/jzl1/morphe-patches/commit/210dd3a077a4ff4f35aadcbb38b00ebcd1dcc100))
+
 ## [1.1.1](https://github.com/jzl1/morphe-patches/compare/v1.1.0...v1.1.1) (2026-10-25)
 
 ### 🐛 Bug Fixes

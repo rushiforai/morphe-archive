@@ -1,0 +1,56 @@
+name: Build patch bundle (.mpp)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build .mpp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Java
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Build Android patch bundle
+        run: |
+          ./gradlew buildAndroid --stacktrace > build.log 2>&1 && tail -5 build.log && exit 0
+          echo "=== ROOT CAUSE (first relevant lines) ==="
+          grep -nE "What went wrong|> |error:|e: |Exception|Caused by|Could not|Failed to|Unresolved" build.log | head -25 | while read -r line; do
+            echo "::error::$line"
+            echo "$line"
+          done
+          echo "=== LAST 60 LINES OF GRADLE LOG ==="
+          tail -60 build.log
+          exit 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload .mpp artifact
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.7.0
+        with:
+          name: patches-mpp
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+
+      - name: Upload full gradle log
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.7.0
+        with:
+          name: gradle-error-log
+          path: build.log

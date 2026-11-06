@@ -51,9 +51,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Runtime bridge for the R8-minified MySpoti 2.3.0 stable APK.
- * Verified APK mappings: OfflineStore=fj5, OfflineTrack=gj5,
- * OfflineCrypto=vh5, OfflineCollections=sh5, OfflineCollection=nh5, OfflineAccounts=mh5.
+ * Runtime bridge for the R8-minified MySpoti 2.4.0 stable APK.
+ * Verified APK mappings: OfflineStore=ft5, OfflineTrack=gt5,
+ * OfflineCrypto=sr5, OfflineCollections=qr5, OfflineCollection=lr5, OfflineAccounts=kr5.
  * Myspoti source origin: https://github.com/kota-zo/myspoti (GPL-3.0).
  */
 public final class DownloadPatch {
@@ -61,11 +61,11 @@ public final class DownloadPatch {
     private static final String PREFS = "morphe_download_tools";
     private static final String PREF_LOCATION = "storage_id";
 
-    // R8 class names and member names are pinned to the inspected 2.3.0 stable APK.
-    private static final String STORE = "fj5";
-    private static final String TRACK = "gj5";
-    private static final String CRYPTO = "vh5";
-    private static final String COLLECTIONS = "sh5";
+    // R8 class names and member names are pinned to the inspected 2.4.0 stable APK.
+    private static final String STORE = "ft5";
+    private static final String TRACK = "gt5";
+    private static final String CRYPTO = "sr5";
+    private static final String COLLECTIONS = "qr5";
 
     private static volatile Context appContext;
     private static volatile Activity foregroundActivity;
@@ -154,10 +154,10 @@ public final class DownloadPatch {
      * final recomposition. This avoids depending on Compose internals or R8-renamed APIs.
      */
     public static void syncImmersiveSettingsAction(Object page) {
-        // Lt07 is the inspected 2.3.0 R8 descriptor for the private SettingsPage enum
-        // (Root, Playback, Downloads, DownloadQuality, Data, Display, Look, ...).
+        // Lsg7 is the inspected 2.4.0 R8 descriptor for the private SettingsPage enum
+        // (Root, Playback, Sources, Lyrics, Streaming, Crossfade, Downloads, ...).
         // The router's Function4 class is R8-merged, so ignore its unrelated call sites.
-        if (!(page instanceof Enum<?>) || !"t07".equals(page.getClass().getName())) return;
+        if (!(page instanceof Enum<?>) || !"sg7".equals(page.getClass().getName())) return;
         boolean downloads = "Downloads".equals(((Enum<?>) page).name());
         runOnMain(() -> {
             SETTINGS_ACTION_HANDLER.removeCallbacks(REMOVE_SETTINGS_ACTION);
@@ -227,7 +227,7 @@ public final class DownloadPatch {
     }
 
     /**
-     * Legacy NavController mapping (not used by the 2.3.0 Settings hook): NavController Le65 has field b (Lh65),
+     * Legacy NavController mapping (not used by the 2.4.0 Settings hook): NavController Le65 has field b (Lh65),
      * Lh65.h() returns the current NavDestination Lq65, whose field c is its route String.
      */
     private static String currentDestinationRoute(Object navController) {
@@ -702,8 +702,8 @@ public final class DownloadPatch {
 
     /**
      * Snapshot of whole downloaded playlists, albums and Liked Songs.
-     * APK 2.3.0 DEX mapping: sh5.e is SnapshotStateMap<String, nh5>;
-     * nh5 fields a/b/c/d are uri/type/name/trackIds respectively.
+     * APK 2.4.0 DEX mapping: qr5.e is SnapshotStateMap<String, lr5>;
+     * lr5 fields a/b/c/d are uri/type/name/trackIds respectively.
      */
     public static List<CollectionSnapshot> downloadedCollections() throws Exception {
         Class<?> collectionsClass = Class.forName(COLLECTIONS);
@@ -1465,7 +1465,7 @@ public final class DownloadPatch {
             Class<?> store = Class.forName(STORE);
             Object statuses = declaredField(store, "e").get(null);
             if (statuses instanceof Map) ((Map<?, ?>) statuses).clear();
-            Method load = store.getDeclaredMethod("n", File.class);
+            Method load = store.getDeclaredMethod("o", File.class);
             load.setAccessible(true);
             Object result = load.invoke(null, storageRoot(context));
             return result instanceof List;
@@ -1475,7 +1475,7 @@ public final class DownloadPatch {
         }
     }
 
-    /** The R8-mapped OfflineCollections.file field is sh5.b; collections are sh5.e; singles are sh5.f. */
+    /** The R8-mapped OfflineCollections.file field is qr5.b; collections are qr5.e; singles are qr5.f. */
     private static boolean setCollectionsFileAndRead(Context context) {
         try {
             Class<?> collections = Class.forName(COLLECTIONS);

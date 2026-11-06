@@ -48,6 +48,9 @@ internal const val AD_VIEW_TARGETS = "adViews"
 /** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant. */
 internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
 
+/** The consent vendor Pinterest names for Meta's Audience Network, an enum constant. */
+internal const val META_AUDIENCE_NETWORK = "META_AUDIENCE_NETWORK"
+
 /**
  * Takes promoted pins out of the home feed, search, related pins and boards, and folds away the
  * views Pinterest only builds for an ad.
@@ -61,6 +64,12 @@ internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
  * Pinterest's main screen also starts Google's mobile ads SDK for accounts in its GMA experiment.
  * That launch step returns first while the switch is on, so the SDK never starts and Pinterest's own
  * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05).
+ *
+ * 14.43.0 added Meta's Audience Network, which fills ad slots with Meta's native ads. Every way in
+ * (the SDK start, the bidder token Pinterest registers, each slot's load) first asks Pinterest's
+ * third-party consent check about that vendor, so the check answers no for Meta alone while the
+ * switch is on. Pinterest then takes the path it takes when someone turns that consent off: the SDK
+ * never starts, the token goes up empty and each slot fails as "consent_revoked" (2026-11-05).
  *
  * The four views keep their names in 14.39.0.
  */
@@ -81,9 +90,12 @@ val hideAdsPatch = bytecodePatch(
         requireStatusMethod("feedAds")
         requireStatusMethod("adViews")
         requireStatusMethod("googleAds")
+        requireStatusMethod("metaAds")
         requireStub(HOOK_TARGETS, AD_VIEW_TARGETS)
         val googleAds = googleAdsStart()
         val answer = googleAds?.freeLocalsAt(PATCH, 0, 1)?.single()
+        val metaConsent = metaConsentCheck()
+        val metaAnswer = metaConsent?.freeLocalsAt(PATCH, 0, 1)?.single()
 
         if (feedListHoldersHooked > 0) enableCapability("feedAds")
 
@@ -120,6 +132,18 @@ val hideAdsPatch = bytecodePatch(
             enableCapability("googleAds")
         }
 
+        if (metaConsent != null && metaAnswer != null) {
+            // p1 is the vendor asked about; the extension answers true only for Meta.
+            metaConsent.addInstructionsWithLabels(0, """
+                invoke-static/range { p1 .. p1 }, $ADS->skipMetaConsent(Ljava/lang/Object;)Z
+                move-result v$metaAnswer
+                if-eqz v$metaAnswer, :hush_ask_meta_consent
+                const/4 v$metaAnswer, 0x0
+                return v$metaAnswer
+            """, ExternalLabel("hush_ask_meta_consent", metaConsent.getInstruction(0)))
+            enableCapability("metaAds")
+        }
+
         enableStatus("hideAds")
     }
 }
@@ -152,6 +176,33 @@ private fun BytecodePatchContext.googleAdsStart(): MutableMethod? {
         return null
     }
     return mutable(starts.single())
+}
+
+/**
+ * Pinterest's consent check for third-party SDKs: the one instance method answering a boolean whose
+ * only parameter is a vendor enum, a type with a static [META_AUDIENCE_NETWORK] constant of its own
+ * type. Pinterest's ad models keep enums of that name too, and nothing asks them for consent. Null,
+ * with a warning, unless exactly one method fits.
+ */
+private fun BytecodePatchContext.metaConsentCheck(): MutableMethod? {
+    val vendors = mutableSetOf<String>()
+    val askers = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (owner.fields.any { it.name == META_AUDIENCE_NETWORK && it.type == owner.type && AccessFlags.STATIC.isSet(it.accessFlags) }) {
+            vendors += owner.type
+        }
+        owner.methods.filterTo(askers) { method ->
+            !AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null && method.returnType == "Z" &&
+                method.parameterTypes.size == 1
+        }
+    }
+    val checks = askers.filter { it.parameterTypes.single().toString() in vendors }
+    if (checks.size != 1) {
+        patchLog.warning("$PATCH: ${checks.size} consent checks ask about Meta's ad SDK in this build instead of one, so it runs as usual")
+        return null
+    }
+    return mutable(checks.single())
 }
 
 /**

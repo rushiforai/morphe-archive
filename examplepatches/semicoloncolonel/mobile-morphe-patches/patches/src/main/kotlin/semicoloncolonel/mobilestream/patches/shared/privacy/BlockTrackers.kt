@@ -21,6 +21,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
+import semicoloncolonel.mobilestream.patches.shared.misc.OKHTTP_INTERCEPTOR_API
+import semicoloncolonel.mobilestream.patches.shared.misc.missingMethods
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared layers of every "Block analytics & tracking" patch.
@@ -119,7 +121,8 @@ internal fun BytecodePatchContext.blockTrackers() {
     // OkHttp's public API (see the probes above). The call sits before the
     // super() call, which the verifier allows because it doesn't touch `this`.
     if (OkHttpBuilderInterceptorsFingerprint.methodOrNull != null &&
-        OkHttpRequestUrlFingerprint.methodOrNull != null
+        OkHttpRequestUrlFingerprint.methodOrNull != null &&
+        missingMethods(OKHTTP_INTERCEPTOR_API).isEmpty()
     ) {
         OkHttpClientInitFingerprint.methodOrNull?.addInstructions(
             0,

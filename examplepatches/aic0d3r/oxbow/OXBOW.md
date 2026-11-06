@@ -7,23 +7,33 @@ cut off from the river's main current: Instagram off the stream, keeping what ma
 for new Instagram versions). On top of them, utilities that let you *keep* things, never ones
 that pull you back into scrolling.
 
-## Features (Instagram 453.0.0.55.79)
+## Features (Instagram 454.0.0.54.77)
+
+On-device status below is from a smoke test of the 454 clone on the test phone (classic docked
+tab bar, no pill highlight, no Create tab; tested with the Reels icon hidden and shown). The 454
+.apkm carries no feature splits; the in-app browser still opens bio links. Rows marked *not
+retested on 454* last passed on 453 and build + hook were verified on 454, not exercised on the
+phone.
 
 | Feature | Patch / extension | Tested on device |
 |---|---|---|
-| Download: posts, carousel slide, videos | `download/DownloadPatch.kt`, `Download.java` | yes |
-| Download: stories, highlights | same | yes |
-| Download: reels viewer (any menu variant) | same (`addClipsRow`) | yes |
-| HD profile picture: long-press avatar | same (`profileAvatarLongPress`) | yes (1080px) |
-| Clean share links (allowlist: `img_index`, `story_media_id`, `comment_id`, `hl`) | `privacy/CleanLinksPatch.kt`, `ShareLinks.java` | yes (copy link) |
-| Ghost: stories not marked seen | `privacy/GhostModePatch.kt` + `Block.java` | opens fine; "not in viewer list" needs a 2nd account |
-| Ghost: no DM read receipts | same (`holdReceipt`, inbox seen check) | yes (two accounts: sender stays on Delivered, the chat clears and stays cleared after a restart) |
+| Download: posts, carousel slide, videos | `download/DownloadPatch.kt`, `Download.java` | yes on 454 (post photo, video, carousel slide; hold-Download saved all 12 slides of a carousel) |
+| Download: stories, highlights | same | yes on 454 (story photo and a highlight photo saved) |
+| Download: reels viewer (any menu variant) | same (`addClipsRow`) | yes on 454 (reel video saved from the `⋯` row) |
+| HD profile picture: long-press avatar | same (`profileAvatarLongPress`) | yes on 454 (1080px) |
+| Clean share links (allowlist: `img_index`, `story_media_id`, `comment_id`, `hl`) | `privacy/CleanLinksPatch.kt`, `ShareLinks.java` | yes on 454 (Copy link and a share-sheet paste, both clean; the video intent builder path re-checked in the 454 bytecode only) |
+| Ghost: stories not marked seen | `privacy/GhostModePatch.kt` + `Block.java` | stories open fine on 454; "not in viewer list" needs a 2nd account |
+| Ghost: no DM read receipts | same (`holdReceipt`, inbox seen check) | 453: yes (two accounts: sender stays on Delivered, the chat clears and stays cleared after a restart). 454: patch applies (the inbox unread answer needed a new match) and the hooks are in the bytecode; not exercised on the phone (needs a second account) |
 | Ghost: no typing indicator | same | not exercised (needs a real chat) |
-| Comments off (feed + reels buttons, composer, sheet, endpoints) | `distraction/CommentsAndScrollPatch.kt`, `Scroll.java`, `Block.java` | yes |
-| No endless scrolling (reel viewer swipe, "more like this" feeds, Inspiration reels) | same | yes (swipe) |
-| No story swipe-up (reply box, reactions, keyboard; Send message still replies) | same (`StorySwipeUpFingerprint`) | yes (photo + video stories) |
-| Hide Meta AI / Muse (share sheet target, Meet Muse promo cards, Vibes / Meta AI / Imagine feed units) | `metaai/HideMetaAiPatch.kt`, `MetaAi.java`, `Block.java` | build + no crash; this account never gets the Muse target, so removal not seen |
-| Hide Home (long-press Messages opens settings) | `Hiders.java`, `HomeTabWatcher.java`, `Config.java` | yes |
+| Ghost: Hide screenshots (view-once / replayable / vanish-mode photo or video; the switch also lifts the disappearing-media window's FLAG_SECURE block, from HushGram) | same (both screenshot detectors' hand-off, the secure-window helper, every `Window.setFlags`/`addFlags` call), `Config.isScreenshotHidden` | yes on 454, end to end (second account): switch on — the screenshot is allowed and the sender sees no notice; switch off — the stock block returns. The detector gate on a screenshotable surface (vanish mode) not exercised separately |
+| Ghost: long-press New message flips the Ghost switches | `Hiders.java` (`GhostShortcut`) | yes on 454 (toast, all four switches on) |
+| Comments off (feed + reels buttons, composer, sheet, endpoints) | `distraction/CommentsAndScrollPatch.kt`, `Scroll.java`, `Block.java` | yes on 454 (feed button and count gone, sheet never opens, endpoints throw before leaving the phone; Reels button hidden, composer never opens). 454 had moved the branches past the old hooks — fixed (commit 7f639df) |
+| No endless scrolling (reel viewer swipe, "more like this" feeds, Inspiration reels) | same | yes on 454 (reel viewer stays on the same reel); the other surfaces not retested |
+| No story swipe-up (reply box, reactions, keyboard; Send message still replies) | same (`StorySwipeUpFingerprint`) | yes on 454 (photo story: no keyboard, no reply bar) |
+| Feed ads (sponsored posts dropped at parse time) | `network/FeedItemFilterPatch.kt`, `Block.java` | yes on 454 (with the block off, the network trace shows "drop sponsored media" twice; with it on, no sponsored post reaches the feed) |
+| Hide Home: Back leaves the app from the first tab left (Back history) | `settings/BackHistoryPatch.kt`, `Hiders.backHistoryDepth` (from FeurStagram) | yes on 454 (Home hidden: Back from Messages lands on Reels, one more Back leaves the app; the feed never comes back) |
+| Hide Meta AI / Muse (share sheet target, Meet Muse promo cards, Vibes / Meta AI / Imagine feed units) | `metaai/HideMetaAiPatch.kt`, `MetaAi.java`, `Block.java` | no crash across the 454 smoke test; this account never shows the Muse surfaces, so removal not seen |
+| Hide Home (long-press Messages opens settings) | `Hiders.java`, `HomeTabWatcher.java`, `Config.java` | yes on 454 (settings open from the long-press; Home itself hidden and the bar re-flows) |
 
 Settings: *Keep and privacy* page (downloads, clean links, ghost mode); comments and endless
 scrolling live in *Blocked surfaces* so the permanent lock covers them.
@@ -38,7 +48,7 @@ A changed default only reaches toggles the user never touched.
 | Block feed, Reels, Explore, Friends lane, Instants, Notes, suggested, ads, Meta AI | Block stories, comments, notifications button |
 | Block endless scrolling, story swipe-up | Following-only feed |
 | Downloads | Download all carousel slides |
-| Clean links | Ghost: story seen, DM read receipts, typing |
+| Clean links | Ghost: story seen, DM read receipts, typing, screenshots |
 | Hide Instagram popups | Permanent lock |
 | Force SDR | Reels tab icon (hidden) |
 | Update check on launch | |

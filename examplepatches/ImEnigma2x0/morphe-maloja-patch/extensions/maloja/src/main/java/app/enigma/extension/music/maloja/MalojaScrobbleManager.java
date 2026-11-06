@@ -5,9 +5,6 @@ import android.media.session.PlaybackState;
 import android.os.Handler;
 import android.os.Looper;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
@@ -29,7 +26,6 @@ public class MalojaScrobbleManager {
     }
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     /** Metadata of the current track, kept so it can be read again as the song of an album. */
     private MediaMetadata currentMetadata;
@@ -55,6 +51,10 @@ public class MalojaScrobbleManager {
 
     private MalojaScrobbleManager() {
         AlbumSongBridge.addChangeListener(this::reloadCurrentTrack);
+        // The offline player of the official downloads patch has its own media session,
+        // which the hooks of this patch never see.
+        OfflinePlaybackScrobbler.start();
+        ScrobbleQueue.start();
     }
 
     /**
@@ -198,18 +198,12 @@ public class MalojaScrobbleManager {
     private void startTimer() {
         cancelRunnable();
 
-        final int minSongDuration = MalojaSettings.minSongDurationSeconds();
-        if (currentDurationSeconds <= minSongDuration) {
+        scrobbleAtPlayedMillis = MalojaSettings.scrobbleThresholdMillis(currentDurationSeconds);
+        if (scrobbleAtPlayedMillis < 0) {
             Logger.printDebug(() -> "Duration " + currentDurationSeconds
-                    + "s <= minimum " + minSongDuration + "s, skipping scrobble");
-            scrobbleAtPlayedMillis = -1;
+                    + "s <= minimum " + MalojaSettings.minSongDurationSeconds() + "s, skipping scrobble");
             return;
         }
-
-        final float delayPercent = MalojaSettings.delayPercent() / 100.0f;
-        final long delayMillis = MalojaSettings.delaySeconds() * 1000L;
-        final long thresholdMillis = (long) (currentDurationSeconds * 1000L * delayPercent);
-        scrobbleAtPlayedMillis = Math.min(thresholdMillis, delayMillis);
 
         scheduleFromPlayedTime();
     }
@@ -248,22 +242,8 @@ public class MalojaScrobbleManager {
         if (scrobbled) return;
         scrobbled = true;
 
-        final String serverUrl = MalojaSettings.SERVER_URL.get();
-        final String apiKey = MalojaSettings.API_KEY.get();
-        final String artist = currentArtist;
-        final String track = currentTitle;
-        final String album = currentAlbum;
-        final int duration = currentDurationSeconds;
-        final long listenedAt = songStartedAtSeconds;
-
-        executor.submit(() -> {
-            try {
-                if (Maloja.scrobble(serverUrl, apiKey, artist, track, album, duration, listenedAt)) {
-                    Logger.printDebug(() -> "Scrobbled to Maloja: '" + track + "' by " + artist);
-                }
-            } catch (Exception ex) {
-                Logger.printException(() -> "Maloja scrobble failure", ex);
-            }
-        });
+        // Stored before it is sent, so it reaches the server even without a connection right now.
+        ScrobbleQueue.add(new ScrobbleQueue.Listen(currentArtist, currentTitle, currentAlbum,
+                currentDurationSeconds, songStartedAtSeconds));
     }
 }

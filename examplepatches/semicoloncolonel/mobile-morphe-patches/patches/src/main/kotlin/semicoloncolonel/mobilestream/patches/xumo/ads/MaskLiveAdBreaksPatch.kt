@@ -4,7 +4,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -21,9 +20,10 @@ import semicoloncolonel.mobilestream.patches.xumo.shared.Constants
 //   1. ExoPlayer's HLS playlist parser (unnamed in this build; found by its
 //      "#EXT-X-STREAM-INF" tag string and its (Uri, InputStream) parse method)
 //      hands each playlist to XumoLiveMask first, which records the segments.
-//   2. Each XumoPlayerView constructor attaches the view to XumoLiveMask,
-//      which then checks the player's position against those segments every
-//      half second, and covers and mutes the video during ad segments.
+//   2. XumoPlayerView's play, resume, and release tell XumoLiveMask which
+//      player is in use. It checks that player's position against the
+//      segments every half second, and covers and mutes the video during ad
+//      segments. Each new playback clears the segments.
 //   3. The player's getCurrentPosition() and setVolume(float) are renamed in
 //      this build. Their names are read from Xumo's own code (saveProgress
 //      reads the position; setVolume is the player's only (float) method) and
@@ -99,20 +99,19 @@ val maskLiveAdBreaksPatch = bytecodePatch(
         PositionMethodFingerprint.method.addInstructions(0, "const-string v0, \"$positionName\"\nreturn-object v0")
         VolumeMethodFingerprint.method.addInstructions(0, "const-string v0, \"$volumeName\"\nreturn-object v0")
 
-        // 2. Attach every XumoPlayerView as it is built.
-        var constructors = 0
-        mutableClassDefBy(PLAYER_VIEW).methods.filter { it.name == "<init>" }.forEach { method ->
-            val returns = method.implementation!!.instructions
-                .withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }
-            // Last first, so earlier indices stay valid.
-            returns.sortedDescending().forEach { index ->
-                method.addInstructions(
-                    index,
-                    "invoke-static/range { p0 .. p0 }, $MASK->attach(Landroid/view/View;)V",
-                )
-            }
-            if (returns.isNotEmpty()) constructors++
+        // 2. Track the player views that start, resume, and release playback.
+        val view = mutableClassDefBy(PLAYER_VIEW)
+        mapOf(
+            "play" to "play",
+            "resume" to "resume",
+            "release" to "release",
+        ).forEach { (method, hook) ->
+            val target = view.methods.singleOrNull { it.name == method && it.returnType == "V" }
+                ?: throw PatchException("XumoPlayerView.$method not found")
+            target.addInstructions(
+                0,
+                "invoke-static/range { p0 .. p0 }, $MASK->$hook(Landroid/view/View;)V",
+            )
         }
-        if (constructors == 0) throw PatchException("No XumoPlayerView constructor to attach to")
     }
 }

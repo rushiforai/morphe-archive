@@ -2,7 +2,7 @@
 
 A collection of patches for Android applications, designed for the [Morphe](https://morphe.software) patcher.
 
-[Pinterest 14.39.0 — checklist completa delle verifiche](docs/pinterest/VERIFICATION_14.39.0.md) (collaudo dispositivo ancora aperto).
+[Pinterest 14.39.0 verification checklist](docs/pinterest/VERIFICATION_14.39.0.md)
 
 ## ❓ About
 
@@ -13,7 +13,9 @@ These patches allow you to remove advertisements, block tracking, and add new ut
 
 The optional **Hide video pins** setting is off by default. It filters video Pins in feeds and search, including Story Pins identified by their video duration. Pages containing only videos may become empty; search suggestions and their thumbnails remain visible. Pinterest has several feed formats, so broader device coverage is still needed.
 
-The **Choose startup tab** patch (Pinterest 14.39.0) adds Home, Search and Saved
+**Hide AI-labeled Pins** is enabled by default and in the recommended preset. It filters Pins that carry a Pinterest AI disclosure.
+
+The **Choose startup tab** patch (Pinterest 14.39.0 and 14.43.0) adds Home, Search and Saved
 choices in Morphe settings, with native icons. Home is the default. The choice
 applies to fresh launches from the app icon; links and restored sessions keep
 their destination. Hidden Search falls back to Home.
@@ -21,18 +23,52 @@ their destination. Hidden Search falls back to Home.
 External video downloads open YTDLnis directly when installed, then Seal.
 Android's share chooser is the fallback when neither supported app is available.
 
+**Muted words** hides Pins whose title or description contains a listed word or
+phrase. Add one entry per line in Morphe settings. An empty list leaves the feed
+unchanged. The list stays on the device and is excluded from settings exports.
+
+**Image download history** shows queued and recent completed or failed image
+downloads started by Morphe. Select a saved image to copy or share the file, or a failed
+image to retry. On Android 10 and later, the five most recent saved images can show a thumbnail.
+
+**Repair Firebase registration** is enabled by default for re-signed Pinterest
+14.39.0 and 14.43.0. Push delivery was confirmed on a patched 14.43.0 build.
+The patch can be excluded from the patch selection in Morphe Manager.
+
+### Signing in to a re-signed Pinterest build
+
+Google sign-in with stock Play services can fail after re-signing because the
+Android OAuth client is tied to a signing certificate. Use your Pinterest email
+and password, or set a Pinterest password through the account recovery flow.
+Firebase registration repair covers push registration. Google sign-in on a
+re-signed build has separate requirements.
+
+**GmsCore support for Pinterest** is an opt-in patch for Pinterest 14.43.0 with
+a configured microG-RE installation (`app.revanced.android.gms`). It routes
+Google sign-in and Firebase Messaging to that provider. Add the Google account
+to microG-RE before testing. With stock Play services, leave this patch
+unselected to retain the stock messaging route.
+
+### Pinterest device testing
+
+The 14.43.0 candidate has passed startup and single-image download on Android.
+The carousel regression test passed on Android by downloading the first image,
+the second image, and the first image again.
+
+See [Pinterest porting checks](docs/pinterest/PORTING.md) for bytecode validation and Android regression tests.
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.14.1](https://github.com/browzomje/browzomje-patches/releases/tag/v1.14.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;39 patches total
+> **[v1.16.1](https://github.com/browzomje/browzomje-patches/releases/tag/v1.16.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details open>
-<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;34 patches</summary>
+<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 14.39.0 |
-| :---: |
+| 14.39.0 | 14.43.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -41,14 +77,15 @@ Android's share chooser is the fallback when neither supported app is available.
 | [Disable AppsFlyer tracking](#disable-appsflyer-tracking) | Neutralises the AppsFlyer attribution SDK, so no install, event or uninstall data leaves the device. |  |
 | [Disable Google Engage](#disable-google-engage) | Stops Pinterest publishing your content to Google (Discover, Assistant, Play Store). |  |
 | [Disable Google Engage worker](#disable-google-engage-worker) | Blocks the periodic Google Engage job, the other way content reaches Google. |  |
-| [Disable ads](#disable-ads) | Removes sponsored pins from the home, search, related and board feeds. Also carries the "Hide product pins" and "Hide board modules in search" filters, and the opt-in "Hide video pins" filter, all switchable from the Morphe settings screen. |  |
+| [Disable ads](#disable-ads) | Removes sponsored pins from the home, search, related and board feeds. Also carries the "Hide product pins" and "Hide board modules in search" filters, and the opt-in "Hide video pins" filter and the default-on "Hide AI-labeled Pins" filter, all switchable from the Morphe settings screen. |  |
 | [Disable email confirmation dialog](#disable-email-confirmation-dialog) | Closes the "confirm your email" modal, and similar ones, when enabled in Morphe settings. |  |
-| [Disable third-party trackers](#disable-third-party-trackers) | Turns off the embedded advertising and telemetry SDKs (AdMob, Bugsnag, Firebase, Privacy Sandbox) and strips the Advertising ID permission. Push notifications keep working. |  |
+| [Disable third-party trackers](#disable-third-party-trackers) | Turns off the embedded advertising and telemetry SDKs (AdMob, Bugsnag, Firebase, Privacy Sandbox) and strips the Advertising ID permission. This patch leaves Firebase Messaging enabled. |  |
 | [Download board](#download-board) | Adds an option to the board's "…" menu to bulk download the images and videos of the loaded pins. |  |
 | [Download images in highest available quality](#download-images-in-highest-available-quality) | Checks for an original image before downloading, with automatic fallback to the largest available app variant. |  |
 | [Download pin from long press](#download-pin-from-long-press) | Adds a download button to the circular menu you get by long-pressing a pin, so the image can be saved without opening it. |  |
 | [Download video](#download-video) | Adds a "Download video" option to the pin menu, saving the clip to the Downloads folder. |  |
 | [Filter pin menu actions](#filter-pin-menu-actions) | Hides selected native pin menu actions by their localized labels, one per line. |  |
+| [GmsCore support for Pinterest](#gmscore-support-for-pinterest) | Routes Google sign-in and push registration to microG-RE. Select only with a configured microG-RE installation. |  |
 | [Hide Create nav button](#hide-create-nav-button) | Hides the "+" (create Pin) navigation button, when enabled in Morphe settings. |  |
 | [Hide Notifications nav button](#hide-notifications-nav-button) | Hides the notifications navigation button, when enabled in Morphe settings. |  |
 | [Hide Search nav button](#hide-search-nav-button) | Hides the search navigation button, when enabled in Morphe settings. |  |
@@ -65,6 +102,7 @@ Android's share chooser is the fallback when neither supported app is available.
 | [Morphe settings screen (manifest)](#morphe-settings-screen-manifest) | Registers the Morphe settings Activity in the manifest, with an intent-filter for the morphe:// scheme. |  |
 | [Neutralize advertising ID](#neutralize-advertising-id) | Returns an empty Google Advertising ID and forces "limit ad tracking", without crashing the app. |  |
 | [Open links in the default browser](#open-links-in-the-default-browser) | Opens links in the phone's default browser instead of Pinterest's in-app browser, when the matching Morphe setting is enabled. |  |
+| [Repair Firebase registration](#repair-firebase-registration) | Uses the original Pinterest certificate fingerprint in Firebase Installations requests to help a re-signed app register for push notifications. |  |
 | [Sanitize copied links](#sanitize-copied-links) | Turns the pin.it link that "Copy link" copies, whose slug identifies who shared it, into the plain pin link. Switchable from Morphe settings. |  |
 | [Sanitize shared links](#sanitize-shared-links) | Strips tracking parameters from the link on the Android share sheet and resolves pin.it short links to the plain pin link. Switchable from Morphe settings. |  |
 | [Set pin as wallpaper](#set-pin-as-wallpaper) | Adds a "Set as wallpaper" option to the pin menu, which downloads the image and sets it as the device wallpaper. |  |

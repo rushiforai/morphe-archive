@@ -228,6 +228,16 @@
       ],
       "license": "GPL-3.0-only",
       "changes": "The settings standard written for HushPinterest, copied later than the rest of the fork. Renamed for Tumblr: package app.hushtumblr.extension.shared and the HushTumblrPause class in place of HushPinterestPause. QuickSetups saves a choice in one commit on the settings worker, since a HushTumblr switch row saves only through that worker and setting its check alone stores nothing. QuickSetupKeys lists Tumblr's switches for Quiet and Privacy. ReportProblemForm points at HushTumblr's repository and reuses the screen's own no-browser message. The rest is unchanged."
+    },
+    {
+      "paths": [
+        "extensions/tumblr/src/main/java/app/hushtumblr/extension/tumblr/settings/SettingsFeedback.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushTumblr",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Persistent feedback for settings actions, with exact link copying and one polite update for each result."
     }
   ]
 }

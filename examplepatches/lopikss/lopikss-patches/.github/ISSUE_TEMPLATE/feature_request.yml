@@ -1,0 +1,25 @@
+name: "✨ Feature request"
+description: "Suggest a change to an existing patch, repository or tool"
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a completely new game, please choose **Request support for another game** instead.
+  - type: input
+    id: app
+    attributes:
+      label: Related game or repository component
+      placeholder: "XP Hero v26.2.0 / Morphe source / documentation"
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What should change?
+      description: "Explain your suggestion and why it helps."
+    validations:
+      required: true
+  - type: textarea
+    id: testing
+    attributes:
+      label: How could we verify it works?
+      description: "Share expected behavior and any reproducible steps."

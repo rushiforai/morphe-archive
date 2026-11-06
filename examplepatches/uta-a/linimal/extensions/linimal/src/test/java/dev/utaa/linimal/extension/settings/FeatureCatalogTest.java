@@ -157,10 +157,13 @@ public final class FeatureCatalogTest {
         assertGroup(groups.get(0), null,
                 "linimal.premium",
                 "linimal.premium-settings-row",
+                "linimal.premium-preview-promotion",
+                "linimal.preview-scroll",
                 "linimal.external-browser",
                 "linimal.push-notifications",
                 "linimal.google-drive-backup");
         assertEquals("設定のプレミアムを表示しない", groups.get(0).getEntries().get(1).getTitle());
+        assertEquals("プレビューの Premium の案内を表示しない", groups.get(0).getEntries().get(2).getTitle());
     }
 
     /** 見出しだけが残らないよう、項目がすべて消えた小見出しは Group を作りません。 */

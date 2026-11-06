@@ -20,14 +20,13 @@ public final class SduiComponentFilter {
 
     /**
      * With diagnostic logging on, logs each view name once, so a diagnostic report shows the names of the
-     * components a user saw (for new filters). Names with digits are skipped: those can carry profile names.
+     * components a user saw (for new filters). Digits are written as #, since names with digits can carry
+     * profile IDs.
      */
     private static void logViewName(String viewName) {
         if (viewName.isEmpty() || !Settings.debug() || loggedViewNames.size() >= MAX_LOGGED_VIEW_NAMES) return;
-        for (int i = 0; i < viewName.length(); i++) {
-            if (Character.isDigit(viewName.charAt(i))) return;
-        }
-        if (loggedViewNames.add(viewName)) Settings.debugLog("view " + viewName);
+        String name = viewName.replaceAll("[0-9]", "#");
+        if (loggedViewNames.add(name)) Settings.debugLog("view " + name);
     }
 
     /** Components of LinkedIn's puzzle games: search cards (search-game-card-queens), the hub (games-sdui-hub). */
@@ -43,8 +42,14 @@ public final class SduiComponentFilter {
             String viewName = Proto.string(viewTracking, "getViewName");
             String screenName = Proto.string(component, "getObservabilityViewName");
             logViewName(viewName);
+            CopyPostText.onComponent(component, viewName);
             if (Settings.hideGames() && isGameView(viewName)) {
                 return hide(true, "games: " + viewName);
+            }
+            // A My Network section of game cards, so its title ("Need a 30 second break?") goes with them.
+            if (Settings.hideGames() && (viewName.startsWith("cohorts-section") || viewName.startsWith("cohort-section"))
+                    && ProtoScanner.containsAscii(payload(component), "game-card-")) {
+                return hide(true, "games section: " + viewName);
             }
 
             switch (viewName) {
@@ -72,9 +77,14 @@ public final class SduiComponentFilter {
                     break;
             }
 
-            if (Settings.hidePremium() && viewName.contains("upsell")) {
+            if (Settings.hidePremium()) {
                 // premium-upsell-card, profile-ai-enhance-card-upsell, taj-home-upsell, ...
-                return hide(true, "premium upsell: " + viewName);
+                if (viewName.contains("upsell")) return hide(true, "premium upsell: " + viewName);
+                // "Premium insights" on company pages, "Premium: People who viewed your profile" on My Network.
+                if (viewName.contains("premium-insights") || viewName.contains("freemium")) {
+                    return hide(true, "premium teaser: " + viewName);
+                }
+                if (isPremiumEntryPoint(component)) return hide(true, "premium entry point");
             }
 
             if (screenName.startsWith(MEDIA_SCREEN_PREFIX) || screenName.startsWith(PROFILE_MEDIA_PREFIX)) {
@@ -173,6 +183,35 @@ public final class SduiComponentFilter {
             if (s.equals("feed-actor") && ++authors >= 2) return true;
         }
         return false;
+    }
+
+    /**
+     * Largest upsell text entry point ("Improve your profile with Premium"): under 4 KB, while the form around it
+     * is over 100 KB.
+     */
+    private static final int MAX_ENTRY_POINT_SIZE = 5000;
+
+    /**
+     * Largest link that opens a Premium card on a tap ("Get AI suggestions with Premium", about 1.6 KB). Larger
+     * components with such a card are real content with a Premium button in it, such as the profile top card,
+     * whose cover photo button opens one.
+     */
+    private static final int MAX_UPSELL_LINK_SIZE = 2000;
+
+    /**
+     * Unnamed Premium links: "Improve your profile with Premium" and "Get AI suggestions with Premium" when editing
+     * the profile intro, and "Optimize profile". They carry the upsell text entry point, or the Premium card they
+     * open on a tap. Only small components count, since the form or profile around them carries the same markers.
+     * The size is checked first: Protobuf caches it, while the bytes are built on every call.
+     */
+    private static boolean isPremiumEntryPoint(Object component) {
+        Object sizeValue = Proto.call(component, "getSerializedSize");
+        if (!(sizeValue instanceof Integer)) return false;
+        int size = (Integer) sizeValue;
+        if (size > MAX_ENTRY_POINT_SIZE) return false;
+        byte[] payload = payload(component);
+        if (ProtoScanner.containsAscii(payload, "TextEntryPointShowUpsell")) return true;
+        return size <= MAX_UPSELL_LINK_SIZE && ProtoScanner.containsAscii(payload, "premium-upsell-card");
     }
 
     private static boolean hidePromotedJob(Object component) {

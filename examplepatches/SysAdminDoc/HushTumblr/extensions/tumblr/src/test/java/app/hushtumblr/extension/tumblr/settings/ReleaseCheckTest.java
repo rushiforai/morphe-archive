@@ -679,7 +679,7 @@ public class ReleaseCheckTest {
                 assertFalse(ReleaseCheck.checkNow());
                 assertFalse("a check that never ran still counts as running", ReleaseCheck.isRunning());
                 checkNow.getOnPreferenceClickListener().onPreferenceClick(checkNow);
-                assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+                assertEquals("Couldn't start that. Try again in a moment.", SettingsFeedbackTest.message(checkNow));
                 assertEquals(ReleaseCheck.idleSummary(), String.valueOf(checkNow.getSummary()));
             }
             ReleaseCheckForTests.settle();
@@ -827,7 +827,7 @@ public class ReleaseCheckTest {
                     HushTumblrPreferenceFragment.UPDATE_INSTRUCTIONS)) {
                 Preference row = page.findPreference(key);
                 row.getOnPreferenceClickListener().onPreferenceClick(row);
-                String tip = String.valueOf(ShadowToast.getTextOfLatestToast());
+                String tip = SettingsFeedbackTest.message(row);
                 assertTrue(tip, tip.contains("github.com/SysAdminDoc/HushTumblr"));
                 assertFalse(controller.get().isFinishing());
             }

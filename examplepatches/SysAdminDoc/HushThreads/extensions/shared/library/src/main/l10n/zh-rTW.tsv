@@ -1,0 +1,380 @@
+# Traditional Chinese (Taiwan) for HushThreads: the English key, a tab, the translation. One row per string.
+# Started from NikolaJyun's translation, https://github.com/NikolaJyun/HushThreads (GPL-3.0), with the
+# rows shared with https://github.com/SysAdminDoc/HushGram taken from its zh-rTW table.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	建置 %1$s
+%1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	該檔案中有 %1$d 個項目不是這個版本的 HushThreads 可辨識的設定，因此會略過。
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	該檔案中有 %1$d 個項目不是這個版本的 HushThreads 可辨識的設定，因此會略過。
+%1$d switch will change.	將變更 %1$d 個開關。
+%1$d switches will change.	將變更 %1$d 個開關。
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s。它是在修補時設定的，因此「暫停」無法關閉它。若要排除它，請重新修補並取消選取該修補項目。
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s。這是在修補時設定的，因此「暫停」無法關閉。若要排除，請重新修補並取消選取後方括號中的修補項目。
+A diagnostic report is already being saved.	正在儲存診斷報告。
+A file named %1$s in %2$s paused HushThreads.	%2$s 中名為 %1$s 的檔案已讓 HushThreads 暫停。
+About	關於
+Advertising ID removed	已移除廣告 ID
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 與更舊版本不會指出哪些連結會在此開啟。輕觸以開啟此應用程式的設定，然後選擇「預設開啟」。
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android 只會將 Threads 連結傳送給由 Meta 簽署的應用程式。選取這些網址即可改為在此開啟連結，其他連結設定不受影響。
+Android verified this app for Threads' web addresses, so their links open here.	Android 已驗證此應用程式可處理 Threads 的網址，因此其連結會在此開啟。
+Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	無法開啟 Android 對此應用程式的設定。請從 Threads 圖示開啟「應用程式資訊」，再選擇「預設開啟」。
+Back	返回
+Cancel	取消
+Changing these	正在變更這些項目
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	選擇設定檔。匯入前會先顯示它將變更多少個開關。
+Clear diagnostic data	清除診斷資料
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	複製快速報告，或將完整報告儲存到 Download/Morphe。報告不含連結、ID、Cookie 與登入權杖；分享前請確認沒有其他私人文字。
+Copy quick report	複製快速報告
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	無法匯入設定，也無法還原原有設定。請檢查此畫面的開關。
+Couldn't import the settings. Nothing was changed.	無法匯入設定，未變更任何項目。
+Couldn't open that file. Nothing was changed.	無法開啟該檔案，未變更任何項目。
+Couldn't open the file picker. Try again.	無法開啟檔案選擇器，請再試一次。
+Couldn't put back the diagnostic data. Try again.	無法還原診斷資料，請再試一次。
+Couldn't save the settings file. Try again.	無法儲存設定檔，請再試一次。
+Couldn't start that. Try again in a moment.	無法啟動該作業，請稍後再試。
+Couldn't start the report export. Try again shortly.	無法開始匯出報告，請稍後再試。
+Couldn't turn HushThreads back on. Try again.	無法重新啟用 HushThreads，請再試一次。
+Debug logging	偵錯記錄
+Diagnostic data cleared. Tap again to put it back.	診斷資料已清除。再次輕觸可還原。
+Diagnostic data put back.	診斷資料已還原。
+Diagnostic report copied to the clipboard.	診斷報告已複製到剪貼簿。
+Clears the saved log, patch check results and any kept crash that a report would include.	清除已儲存的記錄、修補檢查結果，以及報告會包含的已保留當機紀錄。
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	除了「偵錯記錄」以外，所有開關都會如同關閉般運作；修補時設定的項目仍會保留。你的設定不會變更。
+Export diagnostic report	匯出診斷報告
+Export settings	匯出設定
+Feed	動態消息
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	下次啟動 Threads 時，會關閉所有 HushThreads 開關（「偵錯記錄」除外）。修補時選擇的項目會保留，你的選擇也會儲存。
+Hide ads	隱藏廣告
+HushThreads %1$s on Threads %2$s	HushThreads %1$s（Threads %2$s）
+HushThreads %1$s targets Threads %2$s.	HushThreads %1$s 的目標版本是 Threads %2$s。
+HushThreads pauses when Threads restarts.	Threads 重新啟動時，HushThreads 會暫停。
+HushThreads turns back on when Threads restarts.	Threads 重新啟動時，HushThreads 會重新啟用。
+It targets Threads %1$s.	目標版本為 Threads %1$s。
+None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	未為此應用程式選取任何 Threads 網址，因此連結會在其他位置開啟。輕觸以在 Android 設定中選取它們。
+Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	此應用程式只選取了部分 Threads 網址，其餘連結會在其他位置開啟。輕觸以在 Android 設定中選取它們。
+Privacy	隱私
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	將你的開關儲存至檔案。不會包含「暫停」、「偵錯記錄」及版本檢查。
+Saved. Restart Threads to apply this change.	已儲存。重新啟動 Threads 以套用此變更。
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	部分 Threads 畫面會檢查應用程式簽署者，因此在修補版中無法開啟。此修正可讓它們重新開啟。
+Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	設定已匯出。持有該檔案的應用程式不允許 HushThreads 讀回檔案，因此未能檢查。
+# context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
+Sponsored posts come out of For you, Following and the posts you open before Threads shows them, so no gap is left.	在 Threads 顯示前，會從「為你推薦」、「追蹤中」及你開啟的貼文移除贊助貼文，因此不會留下空白。
+# context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
+Sponsored posts in For you and Following	「為你推薦」與「追蹤中」的贊助貼文
+# context: Feed overview summaries when suggestions alone, or both feed rules, are selected
+Suggested accounts in your feed	動態消息中的建議帳號
+Ads and suggested accounts in your feed	動態消息中的廣告與建議帳號
+Stop analytics uploads	停止上傳分析資料
+# context: xmt and slof are the tags' own names in the link and stay as they are
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	移除你複製或分享之貼文連結中的 xmt、slof 等追蹤標記。短分享連結會改為貼文本身的連結。
+The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	持有該檔案的應用程式回應太久，HushThreads 已停止等待。未變更任何項目。
+The app holding the last settings file still hasn't answered. Try again later.	持有上一個設定檔的應用程式尚未回應，請稍後再試。
+The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	持有設定檔的應用程式回應太久，HushThreads 已停止等待。它可能仍會完成儲存，使用前請檢查檔案。
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	無法移除檔案 %1$s。請從 %2$s 刪除它，然後再次輕觸「繼續」。
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	設定檔已儲存，但讀回的內容與寫入內容不同。請另存為新檔案。
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	阻止大部分使用報告傳送至 Meta，但仍可能有少部分送出。關閉此選項即可恢復傳送。
+Analytics address coverage	分析網址涵蓋範圍
+Blocked: %1$s. Not found in this build: %2$s.	已封鎖：%1$s。此版本中找不到：%2$s。
+This build didn't record which report types it covers. Patch again to see them.	此版本未記錄涵蓋哪些報告類型。請重新修補以查看。
+none	無
+Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads 無法讀取你的手機廣告 ID。此版本已移除相關權限。
+Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads 啟動後一分鐘內連續三次當機或凍結，因此 HushThreads 已自行暫停。
+Threads' web addresses are selected for this app in Android's settings, so their links open here.	已在 Android 設定中為此應用程式選取 Threads 網址，因此其連結會在此開啟。
+Tracking in links and analytics uploads	連結追蹤與分析資料上傳
+Try again, or go back to Threads.	請再試一次，或返回 Threads。
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	在你繼續前，除了「偵錯記錄」外，所有開關都會如同關閉般運作。修補時的變更仍會保留。
+Full report saved to %1$s	完整報告已儲存至 %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0，並包含建置所用專案的聲明
+HushThreads is on	HushThreads 已啟用
+HushThreads is paused	HushThreads 已暫停
+HushThreads settings	HushThreads 設定
+HushThreads settings couldn't open	無法開啟 HushThreads 設定
+Import	匯入
+Import settings	匯入設定
+Importing settings	正在匯入設定
+Licenses	授權條款
+Links	連結
+OK	確定
+Pause HushThreads	暫停 HushThreads
+Re-signed build fix	重新簽署版本修正
+Reading the settings file	正在讀取設定檔
+Remove tracking from shared links	移除分享連結中的追蹤
+Retry	重試
+Save full report	儲存完整報告
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushThreads releases	檢查新的 HushThreads 版本
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	每天在 Threads 啟動時檢查 GitHub 是否有較新的 HushThreads，並在此通知你。不會下載任何內容。
+Check now	立即檢查
+Asks GitHub for the newest release right now, even with the switch above off.	即使上方開關已關閉，也立即向 GitHub 查詢最新版本。
+Checking GitHub now.	正在檢查 GitHub。
+HushThreads %1$s is out. Update it in Morphe Manager.	HushThreads %1$s 已推出。請在 Morphe Manager 中更新。
+Version %1$s for Threads %2$s	版本 %1$s（適用於 Threads %2$s）
+You have the newest HushThreads release.	你正在使用最新的 HushThreads 版本。
+The newest HushThreads release is %1$s.	最新的 HushThreads 版本是 %1$s。
+Couldn't reach GitHub. Try again later.	無法連線至 GitHub，請稍後再試。
+GitHub is turning away checks from this network for now. Try again later.	GitHub 目前拒絕此網路的檢查要求，請稍後再試。
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub 回傳了 HushThreads 無法讀取的內容，請稍後再試。
+Saving the settings file	正在儲存設定檔
+Set when you patched	修補時設定
+Settings couldn't open	無法開啟設定
+Settings couldn't refresh completely. Reopen settings and try again.	無法完整重新整理設定。請重新開啟設定後再試。
+Settings exported.	設定已匯出。
+Settings imported. %1$d switch changed.	設定已匯入，已變更 %1$d 個開關。
+Settings imported. %1$d switches changed.	設定已匯入，已變更 %1$d 個開關。
+Source code and issues	原始碼與問題回報
+Stays in while paused	暫停時仍保留
+Tap to turn it back on.	輕觸以重新啟用。
+That file is too large to be a settings file. Nothing was changed.	該檔案太大，無法作為設定檔。未變更任何項目。
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	該檔案不是可讀文字，可能在傳輸過程中損毀。未變更任何項目。
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	該檔案重複列出某個設定，無法判斷要使用哪個值。未變更任何項目。
+That isn't a HushThreads settings file. Nothing was changed.	那不是 HushThreads 設定檔。未變更任何項目。
+That settings file holds a value HushThreads can't read. Nothing was changed.	該設定檔包含 HushThreads 無法讀取的值。未變更任何項目。
+That settings file is damaged or only partly downloaded. Nothing was changed.	該設定檔已損毀或下載不完整。未變更任何項目。
+That settings file was written by a newer HushThreads than this one. Nothing was changed.	該設定檔由比目前更新的 HushThreads 寫入。未變更任何項目。
+The diagnostic report couldn't be saved yet. Try again in a moment.	尚無法儲存診斷報告，請稍後再試。
+The diagnostic report couldn't be saved. Try again.	無法儲存診斷報告，請再試一次。
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.	無法移除檔案 %1$s。請從 %2$s 刪除它以重新啟用 HushThreads。
+Your choices are saved. Tap Resume, then restart Threads.	你的選擇已儲存。輕觸「繼續」，然後重新啟動 Threads。
+the re-signed build fix	重新簽署版本修正
+The setting couldn't finish updating. Its saved value is shown.	設定無法完成更新，顯示的是已儲存的值。
+There's no diagnostic data to clear.	沒有可清除的診斷資料。
+There's no diagnostic data to put back.	沒有可還原的診斷資料。
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	它們是在 Morphe Manager 修補時選取的，「暫停」無法關閉。請重新修補以變更。
+This phone has no file picker, so there's no way to choose a file here.	此手機沒有檔案選擇器，因此無法在此選擇檔案。
+Version	版本
+Record patch activity and show errors for a bug report. Leave off during normal use.	記錄修補活動並顯示錯誤，以供問題回報。正常使用時請保持關閉。
+You paused HushThreads.	你已暫停 HushThreads。
+Your switches already match that file, so nothing will change.	你的開關已符合該檔案，因此不會變更。
+Copy a short report to the clipboard.	將簡短報告複製到剪貼簿。
+Save the full report in Download/Morphe.	將完整報告儲存到 Download/Morphe。
+Settings imported.	設定已匯入。
+No app on this phone can open the link. The address is %1$s.	此手機沒有應用程式可開啟此連結。網址為 %1$s。
+Pause, backup and diagnostics	暫停、備份與診斷
+Updates	更新
+Jump to a section	跳至區段
+Go straight to one group of settings. Back returns to where you were.	直接前往一組設定。「返回」會回到原本位置。
+No matching settings	沒有相符的設定
+%1$d setting found	找到 %1$d 項設定
+%1$d settings found	找到 %1$d 項設定
+Try a different word or clear the search.	請嘗試其他關鍵字或清除搜尋。
+Search settings	搜尋設定
+Clear search	清除搜尋
+Saves	儲存作業
+No saves in progress.	目前沒有進行中的儲存作業。
+Pause	暫停
+Resume	繼續
+Undo	復原
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Threads' web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	支援的連結
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	此應用程式在 Android 設定中的「開啟支援的連結」已關閉。輕觸以啟用。
+Android didn't say which links open here. Tap to check in Android's settings.	Android 未指出哪些連結會在此開啟。輕觸以在 Android 設定中查看。
+Selecting links by hand	手動選取連結
+# context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
+the removed advertising ID permission	已移除的廣告 ID 權限
+
+# context: optional feed rule and its scope
+Hide suggested users	隱藏建議追蹤的用戶
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	移除動態消息與個人檔案中的建議追蹤帳號卡片。一般貼文與轉發貼文不受影響。
+Keep feed position on return	返回時保留動態消息位置
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	在十分鐘內返回 Threads 時會保留原本位置；下拉重新整理仍可使用。
+No time limit	無時間限制
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	開啟上方開關後，無論離開多久都會保留原本位置。下拉重新整理與重新啟動仍會載入新貼文。
+Where you left off in your feed	動態消息中上次瀏覽的位置
+Open links in your browser	在瀏覽器中開啟連結
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	你輕觸的連結會在瀏覽器或網站應用程式中開啟，略過 Threads 的連結追蹤。Threads 與 Instagram 頁面仍會在 Threads 中開啟。
+Tap to play videos	輕觸播放影片
+Videos in your feed wait for a tap instead of playing as you scroll.	動態消息中的影片會等待你輕觸，不會在捲動時自動播放。
+Videos in your feed	動態消息中的影片
+
+# context: overview disclosure for default patches omitted from this build (Hushfacebook 814acd23)
+Tap to see which.	輕觸以查看項目。
+%1$d default patch isn't in this build	此版本缺少 %1$d 個預設修補項目
+%1$d default patches aren't in this build	此版本缺少 %1$d 個預設修補項目
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	此版本未包含：%1$s。Morphe Manager 預設會選取它。請在選取它後重新修補以啟用其功能。
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	此版本未包含：%1$s。Morphe Manager 預設會選取它們。請在選取它們後重新修補以啟用其功能。
+Appearance	外觀
+Pure black dark mode	純黑深色模式
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	深色模式使用真正的黑色，而非深灰色。請在 Threads 中開啟深色模式；重新啟動 Threads 以查看變更。
+Hide the Instagram button	隱藏 Instagram 按鈕
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	移除你自己與他人個人檔案頂端的 Instagram 按鈕。重新啟動 Threads 以查看變更。
+Hide ghost post bubbles	隱藏幽靈貼文泡泡
+Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	移除個人檔案大頭貼與動態消息頂端列中的幽靈貼文泡泡。重新啟動 Threads 以查看變更。
+Turn features on or off	開啟或關閉功能
+# Fotos und Videos speichern
+%1$d saved in lower quality than on Threads.	有 %1$d 個項目以低於 Threads 的畫質儲存。
+%1$d saves stopped. Reopen the post and save again.	有 %1$d 個儲存作業停止。請重新開啟貼文後再儲存。
+%1$d saves were interrupted	有 %1$d 個儲存作業被中斷
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s 代表儲存日期與時間，%2$s 代表影片在 Threads 的編號，%3$s 代表發文者，%4$s 代表發文日期。未知資訊會略過；名稱未包含這些資訊時會加上日期。若資料夾中已有相同名稱，會在末尾加上儲存時間。無效字元會改為底線。留白可使用預設值 %5$s。
+%1$s of %2$s	%1$s／%2$s
+%1$s so far	目前 %1$s
+A save stopped. Reopen the post and save again.	儲存作業已停止。請重新開啟貼文後再儲存。
+A save was interrupted	儲存作業被中斷
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	在貼文選單中加入「儲存」。含有多張相片或多部影片的貼文會全部儲存。關閉或暫停時會顯示 Threads 原本的選單。
+Best	最佳
+Cancel saving this carousel	取消儲存此輪播貼文
+Cancel saving this photo	取消儲存此相片
+Cancel saving this video	取消儲存此影片
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	輪播貼文已取消。已儲存 %1$d 個、失敗 %2$d 個、略過 %3$d 個。
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	選擇 Movies 與 Pictures 下的資料夾名稱。無效字元會改為底線。留白可使用預設資料夾 %1$s。
+Copying to the gallery	正在複製到圖庫
+Download failed. Try again in a moment.	下載失敗，請稍後再試。
+Download quality	下載畫質
+Downloading	正在下載
+Downloads	下載項目
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	每部影片會以 %1$s 或最接近的較低畫質儲存。若沒有較低畫質，則以最接近的較高畫質儲存。
+Each video saves at its lowest quality, for the smallest file.	每部影片會以最低畫質儲存，以取得最小檔案。
+Each video saves at the best quality the player streams.	每部影片會以播放器串流的最佳畫質儲存。
+Example without post details	不含貼文資訊的範例
+File name	檔案名稱
+File name set to %1$s.	檔案名稱已設為 %1$s。
+Folder name	資料夾名稱
+Folder set to %1$s.	資料夾已設為 %1$s。
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	若 WhatsApp、CapCut 或 InShot 等編輯器，或圖庫播放已儲存影片時沒有聲音，此選項可能有幫助，但可能降低畫質。
+How far a photo or video you're saving has got, with a button to cancel it	顯示正在儲存的相片或影片進度，並提供取消按鈕
+HushThreads saves	HushThreads 儲存作業
+Joining the picture and sound	正在合併影像與聲音
+Last carousel save	上次儲存輪播貼文
+Link expired. Reopen the post and try again	連結已過期。請重新開啟貼文後再試
+Not saved: a carousel can have at most %1$d pages	未儲存：輪播貼文最多可有 %1$d 頁
+Not saved: that isn't a Threads photo or video	未儲存：那不是 Threads 相片或影片
+Not saved: the file is over 512 MB	未儲存：檔案超過 512 MB
+Page %1$d of %2$d	第 %1$d／%2$d 頁
+Photos and videos you save from posts	你從貼文儲存的相片與影片
+Reopen the post and save again.	請重新開啟貼文後再儲存。
+Save	儲存
+Save all	全部儲存
+Save cancelled	已取消儲存
+Save folder	儲存資料夾
+Save photo	儲存相片
+Save photos and videos	儲存相片與影片
+Save video	儲存影片
+Save videos other apps can open	儲存其他應用程式可開啟的影片
+Saved %1$d. Failed %2$d. Skipped %3$d.	已儲存 %1$d 個、失敗 %2$d 個、略過 %3$d 個。
+Saved to %1$s	已儲存至 %1$s
+Saved to %1$s in lower quality than on Threads	已儲存至 %1$s，畫質低於 Threads
+Saved to the gallery	已儲存至圖庫
+Saved to the gallery in lower quality than on Threads	已儲存至圖庫，畫質低於 Threads
+Saving a carousel	正在儲存輪播貼文
+Saving a photo	正在儲存相片
+Saving a video	正在儲存影片
+Saving...	正在儲存…
+Saving... To cancel, open Downloads in HushThreads settings.	正在儲存…要取消，請到 HushThreads 設定的「下載項目」。
+Smallest	最小
+Video file name	影片檔案名稱
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	影片名稱為 %1$s。相片一律使用 %2$s 後接日期與時間命名。
+Videos go to %1$s and photos to %2$s.	影片儲存至 %1$s，相片儲存至 %2$s。
+Version code raised	已提高版本代碼
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	版本號已設為 Android 允許的最高值，因此 Google Play 不會提供 Meta 的更新來覆蓋此版本。Threads 仍會辨識其實際版本。若要回到原版 Threads，請先解除安裝此版本；這會刪除手機上的 Threads 資料。後續 HushThreads 版本也必須使用「變更版本代碼」，否則無法覆蓋安裝。
+the raised version code	已提高的版本代碼
+Share sheet entry removed	已移除分享面板項目
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	從其他應用程式分享時不會顯示 Threads。從 Threads 分享到其他應用程式仍可正常使用。
+the removed share sheet entry	已移除的分享面板項目
+User certificates trusted	信任使用者憑證
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads 接受你新增至手機的安全憑證。它對 Meta 憑證的檢查不變，因此代理伺服器仍無法讀取大部分流量。
+the user certificate trust	使用者憑證信任
+Hide screenshots from Threads	不讓 Threads 偵測螢幕截圖
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	截圖時不會通知 Threads，因此它無法記錄或回應截圖。
+Full size photos	完整尺寸相片
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	相片會以 Threads 提供的最大尺寸載入，而非依螢幕選擇的尺寸。畫面會更清晰，但會使用更多流量。
+No swipe into Search	禁止滑動進入搜尋
+A sideways swipe on your feed no longer slides into Search. The Search button still opens it. Restart Threads to see the change.	在動態消息橫向滑動不再進入「搜尋」。搜尋按鈕仍可開啟搜尋。重新啟動 Threads 以查看變更。
+# context: title of the last row on the settings home page; a tap opens the maintainer's Ko-fi page in a browser
+Support HushThreads	支持 HushThreads
+# context: reports use the app's own Downloads folder on Android 9, where the shared Downloads collection isn't available
+Copy a quick report or save the full one in Threads' own Downloads folder. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	複製快速報告，或將完整報告儲存至 Threads 自己的 Downloads 資料夾。報告不含連結、ID、Cookie 與登入權杖；分享前請確認沒有其他私人文字。
+Save the full report in Threads' own Downloads folder.	將完整報告儲存至 Threads 自己的 Downloads 資料夾。
+# context: diagnostic clear row's title when its next tap restores what was cleared
+Restore diagnostic data	還原診斷資料
+# context: disabled backup row. The placeholder names the file action that is running on the other row
+%1$s. This action will be available when it finishes.	%1$s。完成後即可使用此動作。
+
+# context: TalkBack action for a long press on the Threads logo in the feed header
+Open HushThreads settings	開啟 HushThreads 設定
+
+# context: the restart row's title while one change waits for a restart; a tap restarts Threads
+Restart Threads to apply this change	重新啟動 Threads 以套用此變更
+# context: the same row with several changes waiting; %1$d is how many
+Restart Threads to apply %1$d changes	重新啟動 Threads 以套用 %1$d 項變更
+# context: the restart row's summary; the settings screen comes back on the page it was on
+Threads closes and reopens on this page.	Threads 會關閉並在此頁面重新開啟。
+# Copy text on long press (#9): its heading, the heading's line on the main page, the switch and its summary. Copy text is the name of Threads' own menu item for copying a post, so use the name Threads shows in this language.
+Posts	貼文
+Copy text when you hold a post	長按貼文時複製文字
+Copy text on long press	長按時複製文字
+Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	長按貼文文字（包括已開啟的貼文）會開啟「複製文字」，讓你取得完整貼文與其中連結，而非只能選取單字。
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	複製文字與精確發文時間
+Show the date and time	顯示日期與時間
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	貼文和回覆會顯示發布的日期與時間，而不是 3 小時或 2 天，並採用手機的 12 或 24 小時制。
+# Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
+Quick setups	快速設定
+Quiet	安靜模式
+Hides ads and the cards that suggest accounts to follow.	隱藏廣告與建議追蹤帳號的卡片。
+Stops most usage reports and takes tracking off the links you share. Threads isn't told about your screenshots either.	停止大部分使用報告，並移除分享連結中的追蹤；Threads 也不會得知你的截圖。
+Back to defaults	還原預設值
+Puts every feature switch back the way it started.	將每個功能開關還原為初始狀態。
+Changed %1$d setting	已變更 %1$d 項設定
+Changed %1$d settings	已變更 %1$d 項設定
+# Report a problem: the main page row and its summary. A tap opens a new GitHub bug report in the browser.
+Report a problem	回報問題
+Opens a GitHub report with your versions and settings filled in. Add what happened.	開啟已填入你的版本與設定的 GitHub 問題回報；請補充發生的情況。
+# The Links page's line beside a Meta-signed Instagram (#8): Instagram's own launcher won't hand a post or profile to a patched Threads, and the error is Instagram's.
+Instagram won't open posts here	Instagram 無法在此開啟貼文
+Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.	你的 Instagram 由 Meta 簽署，它只會在同樣由 Meta 簽署的 Threads 中開啟 Threads 貼文與個人檔案。在 Instagram 輕觸時會顯示無法載入網站的錯誤。直接在 Threads 中開啟貼文仍可正常使用。
+Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	輕觸即可開啟一組開關，或將所有開關還原為初始狀態。長按可隱藏此列。
+Quick setups on the home page	首頁上的快速設定
+Hidden. Tap to show it again.	已隱藏。輕觸可再次顯示。
+Shown. Tap to hide it.	已顯示。輕觸可隱藏。
+Quick setups hidden. Bring it back from Pause, backup and diagnostics.	快速設定已隱藏。請從「暫停、備份與診斷」恢復。
+# Android 9 only, a save without Threads' Storage permission: the toast, then the same advice as the line under a carousel's counts. Storage and Permissions are the names Android's app info screen shows in this language.
+Not saved: Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	未儲存：Android 9 上的 Threads 需要「儲存空間」權限才能儲存。請在 Threads 的「應用程式資訊」＞「權限」中開啟，再次儲存。
+Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	Android 9 上的 Threads 需要「儲存空間」權限才能儲存。請在 Threads 的「應用程式資訊」＞「權限」中開啟，再次儲存。
+# A save whose download took longer than its time limit (ten minutes for one file): the toast. The connection is the phone's internet connection. Android 12 and later cut a toast after two lines, so it stays short.
+Not saved: the download was too slow. Try a faster connection.	未儲存：下載速度太慢。請嘗試較快的連線。
+Hide follow suggestions in Search	隱藏搜尋中的追蹤建議
+Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	移除搜尋畫面中的「追蹤建議」列。你的搜尋與主題不受影響。
+# A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
+Not saved: the proxy wants a password. Try another network.	未儲存：代理伺服器要求密碼。請嘗試其他網路。
+# The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.
+The proxy wants a password. Try another network.	代理伺服器要求密碼。請嘗試其他網路。
+# The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
+Settings shortcut on the app icon	應用程式圖示上的設定捷徑
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	將 HushThreads 設定放進長按 Threads 圖示時出現的選單。關閉後就會從該選單移除。
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Threads 設定中的項目
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	在 Threads 設定的「更多設定」正上方加入 HushThreads 項目。關閉後，下次開啟 Threads 設定時該項目就會消失。
+Open settings from the logo	從標誌開啟設定
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	長按動態頂端的 Threads 標誌即可開啟這些設定。關閉後長按不會有任何作用。
+Stays on, since it's the only way left into these settings.	因為這是進入這些設定僅剩的方式，所以會保持開啟。
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	以清單顯示所有設定
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	依分類顯示設定
+# context: what a screen reader says about a section button that is folded open
+Expanded	已展開
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	已收合
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	支援
+# context: the line under the Support section button
+Reports, restart and app information	報告、重新啟動與應用程式資訊
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	說明與重新啟動
+# context: small heading over the Ko-fi link in Support
+Support the project	支持這個專案
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	重新啟動 Threads
+Version %1$s	版本 %1$s
+Build %1$s (modified)	建置 %1$s（已修改）
+Build %1$s (source known)	建置 %1$s（來源已知）
+Build %1$s (source unknown)	建置 %1$s（來源不明）
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	留言
+Spam replies by words or links	依字詞或連結過濾垃圾回覆
+Filter comments	過濾留言
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	符合下方規則的回覆不會列在貼文的回覆中，垃圾回覆因此不會出現。一則回覆和顯示在它下方的回覆會一起檢查、一起移除。一般回覆會維持原本的順序。
+Blocked words and domains	封鎖的字詞與網域
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	每行一條規則，或以逗號分隔。輸入 shopee.vn 這類商店網域，就會移除連到該網站的回覆。
+One pattern a line, or separated by commas. Matched whatever the letter case.	每行一條規則，或以逗號分隔。比對時不分大小寫。
+Hide comments with links	隱藏含連結的留言
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	含有網頁連結的回覆都會被移除，不論規則為何。像 shopee.vn 這樣單獨的網站名稱，請加為規則。

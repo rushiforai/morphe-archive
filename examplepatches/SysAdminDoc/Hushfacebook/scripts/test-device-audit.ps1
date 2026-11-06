@@ -7,7 +7,7 @@ $auditAst = [System.Management.Automation.Language.Parser]::ParseFile($auditPath
 if ($parseErrors.Count) { throw ($parseErrors -join "`n") }
 $testFunctions = @('Assert-AuditLease', 'Assert-AuditSteps', 'Assert-AuditForeground', 'Invoke-Adb',
     'Get-AuditLocales', 'Get-AuditNightMode', 'Restore-AuditState', 'Format-Shell',
-    'New-AuditBaseline', 'Get-AuditOff', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-SettingsPages', 'Test-AuditSectionShown', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Select-AuditTapNode', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
+    'New-AuditBaseline', 'Get-AuditOff', 'Compare-AuditWalk', 'Test-AuditBaseline', 'Publish-AuditBaseline', 'Save-SettingsPages', 'Get-SettingsPages', 'Test-AuditSectionShown', 'Test-SettingsScreen', 'Get-AuditLocaleTable', 'Write-Step', 'Test-AuditDestination', 'Test-AuditNodeHolds', 'Test-AuditTapCovered', 'Select-AuditTapNode', 'Select-AuditQueryField', 'Find-AuditTapNode', 'Get-UiNodes', 'Send-Profile', 'Test-AuditLocaleList', 'Get-AuditLauncher', 'Get-Report',
     'Test-AuditReelViewer', 'Get-AuditReelProof', 'Close-AuditHoldCover', 'Open-AuditRoute', 'Test-AuditKeyboard', 'Test-AuditSettingsRestored', 'ConvertFrom-AuditJsonTable', 'Resolve-AuditStateBefore', 'Get-AuditCrashes')
 foreach ($functionName in $testFunctions) {
     $definition = $auditAst.Find({ param($node)
@@ -389,6 +389,56 @@ try {
     Invoke-Adb shell input text news | Out-Null
     Invoke-Adb shell input keyevent KEYCODE_ENTER | Out-Null
     Assert-That (@($script:adbCalls | Where-Object { $_ -like '* input *' }).Count -eq 2) 'The query was not typed and submitted.'
+    # Enter can land on the first typeahead row, so the query step may tap the field holding the query
+    # once, with the keyboard open, and nowhere else.
+    $dumpBeforeQueryTap = $script:uiDump
+    function New-QueryDump([string]$Fields) {
+        return "<?xml version=`"1.0`"?><hierarchy>$Fields<node package=`"$Package`" class=`"android.widget.TextView`" text=`"news`" bounds=`"[0,300][1080,420]`" clickable=`"true`" /></hierarchy>"
+    }
+    $queryField = "<node package=`"$Package`" class=`"android.widget.EditText`" text=`"news`" bounds=`"[120,60][900,180]`" />"
+    $script:uiDump = New-QueryDump $queryField
+    $script:auditQueryTaps = 0
+    $script:adbCalls.Clear()
+    Assert-Throws { Invoke-Adb shell input tap 540 360 } 'A query-step tap went to the typeahead row repeating the query.'
+    Assert-Throws { Invoke-Adb shell input tap 900 120 } 'A query-step tap went just past the search field.'
+    Assert-Throws { Invoke-Adb shell input tap 500 } 'A query-step tap with no Y was sent.'
+    Assert-That (-not @($script:adbCalls | Where-Object { $_ -like '* input *' }).Count) 'A query-step tap escaped the search field guard.'
+    Invoke-Adb shell input tap 510 120 | Out-Null
+    Assert-That (@($script:adbCalls | Where-Object { $_ -like '* input tap 510 120' }).Count -eq 1) 'A tap in the field holding the query was refused with the keyboard open.'
+    $script:adbCalls.Clear()
+    Assert-Throws { Invoke-Adb shell input tap 510 120 } 'The search field got a second tap in one query step.'
+    Invoke-Adb shell input keyevent KEYCODE_ENTER | Out-Null
+    Assert-That (@($script:adbCalls | Where-Object { $_ -like '* input *' }).Count -eq 1) 'Enter was refused after the field tap.'
+    foreach ($case in @(
+            @("<node package=`"$Package`" class=`"android.widget.EditText`" text=`"new`" bounds=`"[120,60][900,180]`" />", 'a field holding other text'),
+            @("<node package=`"$Package`" class=`"android.widget.EditText`" text=`"News`" bounds=`"[120,60][900,180]`" />", 'a field holding the query in another case'),
+            @(($queryField + $queryField.Replace('[120,60][900,180]', '[120,200][900,280]')), 'one of two fields holding the query'),
+            @("<node package=`"com.other.app`" class=`"android.widget.EditText`" text=`"news`" bounds=`"[120,60][900,180]`" />", "another app's field"),
+            @("<node package=`"$Package`" class=`"android.widget.EditText`" text=`"news`" bounds=`"[900,60][120,180]`" />", 'a field with inverted bounds'),
+            @('', 'a screen with no search field'))) {
+        $script:uiDump = New-QueryDump $case[0]
+        $script:auditQueryTaps = 0
+        $script:adbCalls.Clear()
+        Assert-Throws { Invoke-Adb shell input tap 510 120 } "A query-step tap went to $($case[1])."
+        Assert-That (-not @($script:adbCalls | Where-Object { $_ -like '* input *' }).Count) "A tap escaped the guard on $($case[1])."
+    }
+    $script:uiDump = New-QueryDump $queryField
+    $script:auditQueryTaps = 0
+    Assert-Throws { Invoke-Adb shell input tap 510.4 120 } 'A query-step tap with a fractional X was sent.'
+    Assert-Throws { Invoke-Adb shell input tap 510 -120 } 'A query-step tap with a negative Y was sent.'
+    $script:auditQueryTaps = 0
+    # A Comment node under the tap passes the navigation check, so only the keyboard guard is left to refuse it.
+    $script:uiDump = New-QueryDump ($queryField + "<node package=`"$Package`" class=`"android.view.View`" content-desc=`"Comment`" bounds=`"[400,60][620,180]`" clickable=`"true`" />")
+    $inputQuery = $false
+    Assert-Throws { Invoke-Adb shell input tap 510 120 } 'The search field got a tap across the open keyboard outside the query step.'
+    $inputQuery = $true
+    $script:uiDump = New-QueryDump $queryField
+    Assert-Throws { Invoke-Adb shell input swipe 10 20 10 5 } 'The query step sent a swipe across the open keyboard.'
+    $script:imeState = '  mInputShown=false'
+    Assert-Throws { Invoke-Adb shell input tap 510 120 } 'The search field got a tap with no keyboard open.'
+    $script:imeState = "  mShowRequested=true`n  mInputShown=true"
+    Assert-That (-not @($script:adbCalls | Where-Object { $_ -like '* input *' }).Count) 'Input escaped the query step guard.'
+    $script:uiDump = $dumpBeforeQueryTap
     $script:imeState = '  mInputShown=false'
     $script:adbCalls.Clear()
     Assert-Throws { Invoke-Adb shell input text news } 'The query was typed with no keyboard open.'
@@ -451,6 +501,45 @@ try {
     Assert-That ($null -eq (Select-AuditTapNode 'Settings and privacy' @($row, (New-TapNode 'Settings and privacy' '[0,1900][1080,2058]' 'false')))) 'A match outside the clickable row was ignored.'
     Assert-That ($null -eq (Select-AuditTapNode 'Settings and privacy' @($rowText, (New-TapNode 'Settings and privacy' '[136,1001][956,1058]' 'false')))) 'Two unclickable matches picked one.'
     Assert-That ($null -eq (Select-AuditTapNode 'Settings and privacy' @((New-TapNode 'Settings and privacy' '[0,1966][1080,2091]' 'true' 'com.other.app')))) 'A foreign node was tapped.'
+    # Two short posts put two Comment buttons on one screen (the 0.21.0 walk's feed).
+    $lowerComment = New-TapNode 'Comment' '[24,866][106,948]' 'true'
+    $upperComment = New-TapNode 'Comment' '[24,474][106,556]' 'true'
+    Assert-That ([object]::ReferenceEquals((Select-AuditTapNode 'Comment' @($lowerComment, $upperComment)), $upperComment)) 'Two Comment buttons on one screen were not resolved to the topmost.'
+    $MinimumTapY = 600
+    try {
+        Assert-That ([object]::ReferenceEquals((Select-AuditTapNode 'Comment' @($upperComment, $lowerComment)), $lowerComment)) 'A Comment button above the minimum tap Y was taken.'
+        Assert-That ($null -eq (Select-AuditTapNode 'Comment' @($upperComment, (New-TapNode 'Comment' '[24,300][106,382]' 'true')))) 'Comment buttons all above the minimum tap Y returned one.'
+    } finally { $MinimumTapY = 0 }
+    Assert-That ($null -eq (Select-AuditTapNode 'Comment' @((New-TapNode 'Comment' '[24,474][106,556]' 'false'), (New-TapNode 'Comment' '[24,866][106,948]' 'false')))) 'An unclickable Comment label was tapped.'
+    Assert-That ([object]::ReferenceEquals((Select-AuditTapNode 'Comment' @($lowerComment, $upperComment, (New-TapNode 'Comment' '[24,100][106,182]' 'true' 'com.other.app'))), $upperComment)) 'A foreign Comment node was taken over Facebook''s.'
+    # A Comment scrolled under the top bar or the tab bar sends its tap there (the drawer button on
+    # the S22, 2026-11-05). The bounds are the S22's all-on feed; the nodes are parsed the way
+    # Get-UiNodes parses a dump, so rows and parts are found through the tree.
+    function Get-TestTapNodes([string]$Body) {
+        return @(([xml]"<?xml version=`"1.0`"?><hierarchy>$Body</hierarchy>").SelectNodes('//node') | Where-Object { $_.package -ceq $Package })
+    }
+    function New-XmlTapNode([string]$Label, [string]$Bounds, [string]$Inside = '') {
+        return "<node package=`"$Package`" class=`"android.widget.Button`" content-desc=`"$Label`" bounds=`"$Bounds`" clickable=`"true`">$Inside</node>"
+    }
+    $coveredPost = "<node package=`"$Package`" content-desc=`"`" bounds=`"[0,75][1080,600]`" clickable=`"true`">" + (New-XmlTapNode 'Comment' '[124,92][248,216]') + '</node>'
+    $openPost = "<node package=`"$Package`" content-desc=`"`" bounds=`"[0,1100][1080,1400]`" clickable=`"true`">" + (New-XmlTapNode 'Comment' '[124,1200][248,1324]') + '</node>'
+    $topBar = "<node package=`"$Package`" content-desc=`"`" bounds=`"[0,75][1080,199]`" clickable=`"true`">" + (New-XmlTapNode 'Menu' '[24,92][200,182]') + '</node>'
+    $feedNodes = Get-TestTapNodes ($coveredPost + $openPost + $topBar)
+    $feedPick = Select-AuditTapNode 'Comment' $feedNodes
+    Assert-That ($null -ne $feedPick -and $feedPick.bounds -ceq '[124,1200][248,1324]') 'A Comment under the top bar was taken over one in the open.'
+    Assert-That ($null -eq (Select-AuditTapNode 'Comment' (Get-TestTapNodes ($coveredPost + $topBar)))) 'The one Comment on screen, under the top bar, was taken.'
+    $tabBar = (New-XmlTapNode 'Comment' '[162,2131][324,2255]') + (New-XmlTapNode 'Marketplace, tab 2 of 6' '[180,2116][360,2274]')
+    Assert-That ($null -eq (Select-AuditTapNode 'Comment' (Get-TestTapNodes $tabBar))) 'A Comment under the tab bar was taken.'
+    $labelInside = "<node package=`"$Package`" class=`"android.view.ViewGroup`" content-desc=`"Comment`" text=`"Comment`" bounds=`"[150,120][230,190]`" clickable=`"false`" />"
+    $labelledCover = $coveredPost.Replace('[248,216]" clickable="true">', '[248,216]" clickable="true">' + $labelInside)
+    Assert-That ($null -eq (Select-AuditTapNode 'Comment' (Get-TestTapNodes ($labelledCover + $topBar)))) 'A covered Comment whose label repeats on a child was taken.'
+    $insidePick = Select-AuditTapNode 'Comment' (Get-TestTapNodes $coveredPost)
+    Assert-That ($null -ne $insidePick -and $insidePick.bounds -ceq '[124,92][248,216]') 'The clickable post row holding a Comment counted as covering it.'
+    $partsPick = Select-AuditTapNode 'Comment' (Get-TestTapNodes ($openPost.Replace('[248,1324]" clickable="true">', '[248,1324]" clickable="true">' + (New-XmlTapNode 'Comment icon' '[150,1220][222,1304]'))))
+    Assert-That ($null -ne $partsPick -and $partsPick.bounds -ceq '[124,1200][248,1324]') 'A clickable part inside a Comment counted as covering it.'
+    $foreignBar = "<node package=`"com.other.app`" content-desc=`"`" bounds=`"[0,75][1080,199]`" clickable=`"true`" />"
+    $foreignNodes = @(([xml]"<hierarchy>$coveredPost$foreignBar</hierarchy>").SelectNodes('//node'))
+    Assert-That ($foreignNodes[1].'content-desc' -ceq 'Comment' -and -not (Test-AuditTapCovered $foreignNodes[1] $foreignNodes)) 'Another app''s node counted as covering a Comment.'
     Write-TestLease -Owner 'replacement'
     Assert-Throws { Invoke-Adb shell input tap 10 10 } 'Ownership loss during the walk permitted input.'
 
@@ -943,6 +1032,11 @@ try {
         'Independent open sections were rejected or their proof was missing from the result.'
     $script:screenText = @('Newsfeed')
     Assert-That (-not @(Save-SettingsPages 'dark-de-no-toolbar' 'de')[0].Opened) 'Section proof passed without the Hushfacebook toolbar.'
+    # A page opened at its section has scrolled the Hushfacebook header away; the list toggle stays.
+    $script:screenText = @('Alle Einstellungen als Liste zeigen', 'Newsfeed')
+    Assert-That (@(Save-SettingsPages 'dark-de-toggle' 'de')[0].Opened) 'A German page under its list toggle alone was rejected.'
+    $script:screenText = @('Show all settings as a list', 'Newsfeed')
+    Assert-That (-not @(Save-SettingsPages 'dark-de-english-toggle' 'de')[0].Opened) 'An English toggle passed a German page.'
     $script:screenText = @('Hushfacebook', 'Newsfeed')
     $script:pageAck = New-TestSectionAck '{"route":"Playback","title":"Newsfeed","locale":"de-DE","localeTags":["de-rde","de"]}'
     Assert-That (-not @(Save-SettingsPages 'dark-de' 'de')[0].Opened) 'Wrong localized page was accepted.'

@@ -1,0 +1,92 @@
+name: Unzip to Main
+
+# Sube un ZIP a la raíz de main y este workflow lo abre y deja todo su contenido en main.
+# - Si el ZIP trae una carpeta envoltorio (como "proyecto-main/"), la quita y usa lo de adentro.
+# - Pisa los archivos que ya existan con la versión del ZIP.
+# - NO toca: .github (GitHub no deja que un robot lo cambie) ni las llaves de firma (*.keystore, *.jks).
+# - Cuando termina, borra el ZIP de main.
+# También se puede lanzar a mano (Actions > Unzip to Main > Run workflow).
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: unzip-main
+  cancel-in-progress: false
+
+jobs:
+  descomprimir:
+    name: Unzip files into main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descomprimir ZIP en main
+        env:
+          RAMA: ${{ github.ref_name }}
+        run: |
+          set -u
+          shopt -s nullglob
+          zips=(*.zip)
+          if [ "${#zips[@]}" -eq 0 ]; then
+            echo "- No hay ningún ZIP en la raíz de main." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          : > /tmp/informe.md
+          for z in "${zips[@]}"; do
+            rm -rf /tmp/zipx && mkdir /tmp/zipx
+            if ! unzip -q -o "$z" -d /tmp/zipx; then
+              echo "::error::No se pudo abrir $z. Puede estar dañado: súbelo otra vez."
+              exit 1
+            fi
+            rm -rf /tmp/zipx/__MACOSX
+            find /tmp/zipx -name '.DS_Store' -delete
+
+            # Si el ZIP trae una sola carpeta envoltorio (ej. gracie-music-main/), usar lo de adentro.
+            # No se quita si esa carpeta ya existe en main (ej. "app"), porque entonces es parte del proyecto.
+            raiz=/tmp/zipx
+            n_dirs=$(find /tmp/zipx -mindepth 1 -maxdepth 1 -type d | wc -l)
+            n_files=$(find /tmp/zipx -mindepth 1 -maxdepth 1 -type f | wc -l)
+            if [ "$n_dirs" -eq 1 ] && [ "$n_files" -eq 0 ]; then
+              unica=$(find /tmp/zipx -mindepth 1 -maxdepth 1 -type d)
+              if [ ! -e "$(basename "$unica")" ]; then
+                raiz="$unica"
+              fi
+            fi
+
+            tar -C "$raiz" --no-wildcards-match-slash \
+              --exclude='./.git' \
+              --exclude='./.github' \
+              --exclude='*.keystore' \
+              --exclude='*.jks' \
+              --exclude='./*.zip' \
+              -cf - . | tar -xf -
+
+            rm -f -- "$z"
+            echo "- ZIP \`$z\` descomprimido en main (sin \`.github\` ni llaves de firma)." >> /tmp/informe.md
+          done
+
+          [ -f gradlew ] && chmod +x gradlew
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "- El ZIP no traía cambios respecto a main." >> /tmp/informe.md
+          else
+            git commit -m "chore: descomprimir ZIP subido en main"
+            git pull --rebase --autostash origin "$RAMA"
+            git push origin "HEAD:refs/heads/$RAMA"
+          fi
+
+          {
+            echo "## Unzip to Main"
+            cat /tmp/informe.md
+          } >> "$GITHUB_STEP_SUMMARY"

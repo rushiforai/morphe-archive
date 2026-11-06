@@ -1,0 +1,13 @@
+[versions]
+morphe-patcher = "2.2.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.15.0"
+junit = "5.10.1"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

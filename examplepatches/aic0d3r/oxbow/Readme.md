@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/aic0d3r/oxbow/releases/latest"><img src="https://img.shields.io/github/v/release/aic0d3r/oxbow?color=2ea44f" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License: GPL-3.0"></a>
-  <a href="https://github.com/aic0d3r/oxbow/releases"><img src="https://img.shields.io/badge/works%20with-Instagram%20453.0.0.55.79-8a2be2" alt="Instagram 453.0.0.55.79"></a>
+  <a href="https://github.com/aic0d3r/oxbow/releases"><img src="https://img.shields.io/badge/works%20with-Instagram%20454.0.0.54.77-8a2be2" alt="Instagram 454.0.0.54.77"></a>
 </p>
 
 Oxbow is a free, open-source patched Instagram for Android that is calm from the first
@@ -87,9 +87,10 @@ until you reinstall.
 - **HD profile pictures**: long-press the avatar on a profile to save it in full
   resolution (a short tap still opens Instagram's preview).
 - **Ghost mode** (off by default): watch stories without appearing as a viewer, read DMs
-  without sending read receipts, type without the typing indicator. Chats you read stay
-  cleared in your own inbox. Long-press **New message** at the top of your inbox to flip all
-  three at once.
+  without sending read receipts, type without the typing indicator, and screenshot a
+  disappearing photo or video without the sender being told (*Hide screenshots*). Chats you
+  read stay cleared in your own inbox. Long-press **New message** at the top of your inbox to
+  flip all four at once.
 - **Tracker-free links**: copied and shared links keep only what's needed to open them;
   `igsh`, `utm_*`, `obrf` and the rest are stripped.
 
@@ -135,7 +136,7 @@ prebuilt APK is involved and updates arrive through the Manager. On your phone, 
 bundle from APKMirror. Enable *Clone* to keep the official app too.
 
 <p align="center">
-  <img src="docs/screenshots/morphe-source.png" width="260" alt="Morphe Manager listing the Oxbow patch source with 17 patches">
+  <img src="docs/screenshots/morphe-source.png" width="260" alt="Morphe Manager listing the Oxbow patch source">
 </p>
 
 **Option 3: [build it from source](#build-it-yourself).**
@@ -206,7 +207,7 @@ you want. Oxbow is the other way round, set up calm on first launch.
 | Ghost mode | No | Yes | Yes | **Yes** |
 | Tracker-free links | No | Yes | Yes | **Yes** |
 | Comments off | No | Yes | Yes | **Yes** |
-| Latest Instagram supported | 452.0 | 452.1, pre-release | 452.1 | **453.0** |
+| Latest Instagram supported | 452.0 | 452.1, pre-release | 452.1 | **454.0** |
 
 *Compared from each project's README and changelog in October 2026. Spot an error? [Open an
 issue](https://github.com/aic0d3r/oxbow/issues/new/choose).*

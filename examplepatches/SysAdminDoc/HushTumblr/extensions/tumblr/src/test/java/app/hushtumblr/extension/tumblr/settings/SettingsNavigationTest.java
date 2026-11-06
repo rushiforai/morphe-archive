@@ -149,8 +149,9 @@ public class SettingsNavigationTest {
 
         org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).checkActivities(true);
         tap(HushTumblrPreferenceFragment.SUPPORT);
+        // The address stays under the row it came from, with a way to copy it, instead of a toast that fades.
         assertEquals("No app on this phone can open the link. The address is " + L10n.isolate("ko-fi.com/X8K126YVER") + ".",
-                ShadowToast.getTextOfLatestToast());
+                SettingsFeedbackTest.message((Preference) list().getItemAtPosition(last)));
         assertFalse(controller.get().isFinishing());
         assertEquals(before, savedValues());
     }
@@ -222,7 +223,11 @@ public class SettingsNavigationTest {
             ShadowLooper.idleMainLooper();
         }
         layout(dialog.getView());
-        assertEquals("Couldn't turn HushTumblr back on. Try again.", ShadowToast.getTextOfLatestToast());
+        Preference card = (Preference) list().getAdapter().getItem(0);
+        assertEquals("Couldn't turn HushTumblr back on. Try again.", SettingsFeedbackTest.message(card));
+        TextView said = list().getChildAt(0).findViewWithTag(SettingsFeedback.MESSAGE_TAG);
+        assertNotNull("the card doesn't show what to do", said);
+        assertEquals("Couldn't turn HushTumblr back on. Try again.", said.getText().toString());
         assertTrue(BaseSettings.PAUSED.savedValue());
         assertTrue(Setting.preferences.preferences.getBoolean(BaseSettings.PAUSED.key, false));
         assertTrue(((SwitchPreference) page.findPreference(BaseSettings.PAUSED.key)).isChecked());
@@ -235,6 +240,290 @@ public class SettingsNavigationTest {
         assertFalse(BaseSettings.PAUSED.savedValue());
         assertFalse(((SwitchPreference) page.findPreference(BaseSettings.PAUSED.key)).isChecked());
         assertEquals("Undo", statusAction().getText().toString());
+    }
+
+    /**
+     * Resume tapped on a page's pause line says what it left to do under that line, the one in
+     * view, rather than under the home card. At 2x text in RTL the button sits below the note.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "ar-rXB-ldrtl-w390dp-h600dp-night-xhdpi")
+    public void aResumeFromAPagesPauseLineSaysWhatItLeftUnderThatLine() {
+        org.robolectric.RuntimeEnvironment.setFontScale(2f);
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        recreate();
+        assertEquals(2f, dialog.getView().getResources().getConfiguration().fontScale, 0f);
+        page.navigation.navigate("Privacy");
+        layout(dialog.getView(), 1200);
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS)) {
+            pageAction().performClick();
+            ShadowLooper.idleMainLooper();
+        }
+        layout(dialog.getView(), 1200);
+        assertTrue(BaseSettings.PAUSED.savedValue());
+        Preference line = (Preference) list().getItemAtPosition(0);
+        String left = SettingsFeedbackTest.message(line);
+        assertNotNull("the pause line that was tapped doesn't say what to do", left);
+        assertNull("said under the home card, which isn't in view",
+                SettingsFeedbackTest.message(page.getPreferenceScreen().getPreference(0)));
+        View row = list().getChildAt(0);
+        TextView said = row.findViewWithTag(SettingsFeedback.MESSAGE_TAG);
+        assertNotNull(said);
+        assertEquals(left, said.getText().toString());
+        View region = row.findViewWithTag(SettingsFeedback.REGION_TAG);
+        android.widget.Button action = pageAction();
+        assertSame("the button and the note share the text column", region.getParent(), action.getParent());
+        assertTrue("Resume covers the note: note ends at " + region.getBottom() + ", button starts at " + action.getTop(),
+                action.getTop() >= region.getBottom());
+        assertTrue("the row cuts the button off", ((View) action.getParent()).getHeight() >= action.getBottom());
+    }
+
+    /** A result for a row on another page waits for that page, where it's then shown in full. */
+    @Test public void aResultForARowOnAnotherPageWaitsForThatPage() {
+        String failed = "Couldn't save that change. Try again.";
+        HushTumblrPreferenceFragment.unseenResult(Settings.HIDE_ADVERTISING_ID.key, failed);
+        ShadowLooper.idleMainLooper();
+        Preference privacy = page.findPreference(Settings.HIDE_ADVERTISING_ID.key);
+        assertNull("shown under a switch on a page that isn't open", SettingsFeedbackTest.message(privacy));
+        assertEquals(failed, ShadowToast.getTextOfLatestToast());
+        page.navigation.navigate("Privacy");
+        ShadowLooper.idleMainLooper();
+        assertEquals(failed, SettingsFeedbackTest.message(privacy));
+    }
+
+    /** Two results waiting for one page both show there, though showing the first rebuilds the page. */
+    @Test public void twoResultsWaitingForOnePageBothShowThere() {
+        page.navigation.navigate("Privacy");
+        String other = null;
+        for (int i = 0; i < list().getCount() && other == null; i++) {
+            Object item = list().getItemAtPosition(i);
+            if (item instanceof SwitchPreference && !Settings.HIDE_ADVERTISING_ID.key.equals(((Preference) item).getKey())) {
+                other = ((Preference) item).getKey();
+            }
+        }
+        assertNotNull("Privacy has a second switch", other);
+        page.navigation.navigate("");
+        String first = "Couldn't save that change. Try again.";
+        String second = "Couldn't save this one either. Try again.";
+        HushTumblrPreferenceFragment.unseenResult(Settings.HIDE_ADVERTISING_ID.key, first);
+        HushTumblrPreferenceFragment.unseenResult(other, second);
+        ShadowLooper.idleMainLooper();
+        page.navigation.navigate("Privacy");
+        ShadowLooper.idleMainLooper();
+        assertEquals(first, SettingsFeedbackTest.message(page.findPreference(Settings.HIDE_ADVERTISING_ID.key)));
+        assertEquals(second, SettingsFeedbackTest.message(page.findPreference(other)));
+    }
+
+    /** A result that comes back while Tumblr is in the background shows under its row once settings is back. */
+    @Test public void aResultWhileTumblrIsInTheBackgroundShowsWhenSettingsIsBack() {
+        page.navigation.navigate("Privacy");
+        ShadowLooper.idleMainLooper();
+        controller.pause().stop();
+        String failed = "Couldn't save that change. Try again.";
+        HushTumblrPreferenceFragment.unseenResult(Settings.HIDE_ADVERTISING_ID.key, failed);
+        ShadowLooper.idleMainLooper();
+        Preference privacy = page.findPreference(Settings.HIDE_ADVERTISING_ID.key);
+        assertEquals(failed, ShadowToast.getTextOfLatestToast());
+        controller.start().resume();
+        ShadowLooper.idleMainLooper();
+        assertEquals(failed, SettingsFeedbackTest.message(privacy));
+    }
+
+    /** A Resume from home answers for the pause too, so a page's pause line drops what the last one said. */
+    @Test public void aResumeFromHomeClearsWhatAPagesPauseLineLastSaid() {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        recreate();
+        page.navigation.navigate("Privacy");
+        layout(dialog.getView());
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS)) {
+            pageAction().performClick();
+            ShadowLooper.idleMainLooper();
+        }
+        Preference line = (Preference) list().getItemAtPosition(0);
+        assertNotNull(SettingsFeedbackTest.message(line));
+        page.navigation.navigate("");
+        layout(dialog.getView());
+        statusAction().performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse(BaseSettings.PAUSED.savedValue());
+        assertNull("the pause line still says the last Resume failed", SettingsFeedbackTest.message(line));
+    }
+
+    /** A page opened with a keyboard starts at its pause line, which no key lands on, not at the first row a key does. */
+    @Test public void aPageOpenedWithoutTouchStartsAtItsPauseLine() {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        recreate();
+        assertFalse("the list is driven by keys here", list().isInTouchMode());
+        page.navigation.navigate("Pause, backup and diagnostics");
+        layout(dialog.getView());
+        assertEquals(0, list().getFirstVisiblePosition());
+        assertEquals(SettingsNavigation.PAGE_STATUS, ((Preference) list().getItemAtPosition(0)).getKey());
+        assertTrue("a key still lands on the first setting", list().getSelectedItemPosition() > 0);
+    }
+
+    /**
+     * Without touch, home comes back with the heading or status card it was left on at the top,
+     * part-way scrolled as it was, rather than the row a key lands on after it. That row stays the
+     * one a key lands on.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w390dp-h600dp-night-xhdpi")
+    public void homeComesBackWithoutTouchOnTheHeadingItWasLeftOn() {
+        touchMode(false);
+        layout(dialog.getView(), 1200);
+        assertFalse("the list is driven by keys here", list().isInTouchMode());
+        List<Integer> unselectable = new ArrayList<>();
+        StringBuilder rows = new StringBuilder();
+        for (int i = 0; i < list().getChildCount(); i++) {
+            rows.append(i).append(list().getAdapter().isEnabled(i) ? "+" : "-").append('@').append(list().getChildAt(i).getTop()).append(' ');
+            if (i + 1 < list().getCount() && !list().getAdapter().isEnabled(i) && list().getAdapter().isEnabled(i + 1)) unselectable.add(i);
+        }
+        assertTrue("home shows the status card and a heading, each above a row a key lands on: " + rows,
+                unselectable.contains(0) && unselectable.size() >= 2);
+        for (int row : unselectable) {
+            putAtTop(row);
+
+            page.navigation.navigate("About");
+            layout(dialog.getView(), 1200);
+            assertTrue(page.navigation.back());
+            layout(dialog.getView(), 1200);
+            assertHomeAt(row, "Back");
+
+            findSearch(dialog.getView()).setText("Hide");
+            layout(dialog.getView(), 1200);
+            findSearch(dialog.getView()).setText("");
+            layout(dialog.getView(), 1200);
+            assertHomeAt(row, "a cleared search");
+
+            findSearch(dialog.getView()).setText("Hide");
+            layout(dialog.getView(), 1200);
+            assertTrue(page.navigation.back());
+            layout(dialog.getView(), 1200);
+            assertHomeAt(row, "Back from a search");
+
+            page.navigation.navigate("About");
+            layout(dialog.getView(), 1200);
+            recreate();
+            layout(dialog.getView(), 1200);
+            assertFalse(list().isInTouchMode());
+            assertTrue(page.navigation.back());
+            layout(dialog.getView(), 1200);
+            assertHomeAt(row, "Back after a recreate");
+        }
+    }
+
+    /**
+     * Without touch, a row that goes from above home's place while home isn't showing (here the
+     * restart row, once nothing waits for a restart) can't leave a key landing past the first row
+     * in view that takes one.
+     */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    @Config(qualifiers = "w390dp-h600dp-night-xhdpi")
+    public void homeWithoutTouchStillSelectsTheFirstKeyRowWhenARowAboveWentWhileAway() {
+        app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
+                BaseSettings.DEBUG.key);
+        recreate();
+        touchMode(false);
+        layout(dialog.getView(), 1200);
+        assertEquals("Restart Tumblr to apply this change",
+                String.valueOf(((Preference) list().getItemAtPosition(1)).getTitle()));
+        int heading = -1;
+        for (int i = 2; i + 1 < list().getCount() && heading < 0; i++) {
+            if (!list().getAdapter().isEnabled(i) && list().getAdapter().isEnabled(i + 1)) heading = i;
+        }
+        assertTrue("home has a heading below the restart row", heading > 1);
+        putAtTop(heading);
+
+        page.navigation.navigate("About");
+        layout(dialog.getView(), 1200);
+        app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(
+                BaseSettings.DEBUG.key);
+        assertTrue(page.navigation.back());
+        layout(dialog.getView(), 1200);
+        assertFalse("the restart row is gone", titles().contains("Restart Tumblr to apply this change"));
+        int firstKeyRow = -1;
+        for (int i = list().getFirstVisiblePosition(); i <= list().getLastVisiblePosition() && firstKeyRow < 0; i++) {
+            if (list().getAdapter().isEnabled(i)) firstKeyRow = i;
+        }
+        assertTrue(firstKeyRow >= 0);
+        assertEquals("a key lands on the first row in view that takes one", firstKeyRow, list().getSelectedItemPosition());
+    }
+
+    /** Scrolls home until [row] is the top row, 10 pixels above the top of the list. */
+    private void putAtTop(int row) {
+        for (int i = 0; i < 20 && (row < list().getFirstVisiblePosition() || row > list().getLastVisiblePosition()); i++) {
+            list().scrollListBy(row < list().getFirstVisiblePosition() ? -200 : 200);
+            layout(dialog.getView(), 1200);
+        }
+        list().scrollListBy(list().getChildAt(row - list().getFirstVisiblePosition()).getTop() + 10);
+        layout(dialog.getView(), 1200);
+        assertEquals(row, list().getFirstVisiblePosition());
+        assertEquals(-10, list().getChildAt(0).getTop());
+    }
+
+    private void assertHomeAt(int row, String after) {
+        assertEquals("home's top row after " + after, row, list().getFirstVisiblePosition());
+        assertEquals("home's offset after " + after, -10, list().getChildAt(0).getTop());
+        assertEquals("the row a key lands on after " + after, row + 1, list().getSelectedItemPosition());
+    }
+
+    /** The Pause switch answers for the pause too, so the pause line drops what a failed Resume said. */
+    @Test public void thePauseSwitchClearsWhatAFailedResumeLeftOnThePauseLine() {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        recreate();
+        page.navigation.navigate("Pause, backup and diagnostics");
+        layout(dialog.getView());
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS)) {
+            pageAction().performClick();
+            ShadowLooper.idleMainLooper();
+        }
+        Preference line = (Preference) list().getItemAtPosition(0);
+        assertEquals(SettingsNavigation.PAGE_STATUS, line.getKey());
+        assertNotNull(SettingsFeedbackTest.message(line));
+        // An earlier Resume from home that finished while this page showed waits for the card.
+        HushTumblrPreferenceFragment.unseenResult(HushTumblrPreferenceFragment.STATUS_CARD,
+                "Couldn't turn HushTumblr back on. Try again.");
+        ShadowLooper.idleMainLooper();
+        tap(BaseSettings.PAUSED.key);
+        ShadowLooper.idleMainLooper();
+        assertFalse(BaseSettings.PAUSED.savedValue());
+        assertNull("the pause line still says the last Resume failed", SettingsFeedbackTest.message(line));
+        page.navigation.navigate("");
+        layout(dialog.getView());
+        ShadowLooper.idleMainLooper();
+        Preference card = page.getPreferenceScreen().getPreference(0);
+        assertEquals(HushTumblrPreferenceFragment.STATUS_CARD, card.getKey());
+        assertNull("the home card still says the last Resume failed", SettingsFeedbackTest.message(card));
+    }
+
+    /** A Resume that finishes after the reader opened another page says what it left under that page's pause line. */
+    @Test public void aResumeThatFinishesOnAnotherPageSaysSoUnderItsPauseLine() {
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        recreate();
+        layout(dialog.getView());
+        List<Runnable> writes = new ArrayList<>();
+        HushTumblrPreferenceFragment.editWorkerForTests = writes::add;
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS)) {
+            statusAction().performClick();
+            assertEquals(1, writes.size());
+            page.navigation.navigate("Privacy");
+            writes.remove(0).run();
+            ShadowLooper.idleMainLooper();
+        } finally {
+            for (Runnable write : writes) write.run();
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+        }
+        assertTrue(BaseSettings.PAUSED.savedValue());
+        Preference line = (Preference) list().getItemAtPosition(0);
+        assertEquals(SettingsNavigation.PAGE_STATUS, line.getKey());
+        assertEquals("Couldn't turn HushTumblr back on. Try again.", SettingsFeedbackTest.message(line));
+        assertNull("said under the home card, which isn't in view",
+                SettingsFeedbackTest.message(page.getPreferenceScreen().getPreference(0)));
     }
 
     /** A marker Resume can't remove keeps the Pause switch on, and the card says both steps. */
@@ -253,8 +542,9 @@ public class SettingsNavigationTest {
             layout(dialog.getView());
             assertTrue(BaseSettings.PAUSED.savedValue());
             assertEquals("Resume", statusAction().getText().toString());
-            String line = String.valueOf(((Preference) list().getItemAtPosition(0)).getSummary());
-            assertTrue(line, line.contains("couldn't be removed") && line.endsWith("then tap Resume again."));
+            // The steps sit under the card, which a rebuilt screen keeps, not in its summary.
+            String line = SettingsFeedbackTest.message((Preference) list().getItemAtPosition(0));
+            assertTrue(line, line != null && line.contains("couldn't be removed") && line.endsWith("then tap Resume again."));
         } finally {
             held.delete();
             marker.delete();
@@ -483,6 +773,154 @@ public class SettingsNavigationTest {
         assertEquals(HOME_ROWS, list().getCount());
     }
 
+    /**
+     * A change that waits for a restart says so under its own switch, which the reader is on, and
+     * is read once from there: no announcement, which Android 16 deprecates, and no toast. A screen
+     * Android rebuilds shows the note without reading it again, and the note goes with the restart
+     * row once nothing waits.
+     */
+    @Test @Config(sdk = {26, 36})
+    public void aChangeWaitingOnARestartSaysSoUnderItsSwitch() {
+        android.view.accessibility.AccessibilityManager a11y = controller.get().getSystemService(android.view.accessibility.AccessibilityManager.class);
+        org.robolectric.Shadows.shadowOf(a11y).setEnabled(true);
+        String saved = "Saved. Restart Tumblr to apply this change.";
+        String key = Settings.FIX_PUSH_NOTIFICATIONS.key;
+        try {
+            page.navigation.navigate("Notifications");
+            layout(dialog.getView());
+            tap(key);
+            layout(dialog.getView());
+            ShadowLooper.idleMainLooper();
+            assertTrue(contains(SettingsNavigation.RESTART));
+            assertEquals(saved, SettingsFeedbackTest.message(row(key)));
+            List<TextView> shown = new ArrayList<>();
+            feedbackTexts(list(), shown);
+            assertEquals(Arrays.asList(saved), texts(shown));
+            assertEquals(View.ACCESSIBILITY_LIVE_REGION_POLITE, shown.get(0).getAccessibilityLiveRegion());
+            assertNull("the restart note went to a toast", ShadowToast.getLatestToast());
+            assertEquals(0, announcements(a11y));
+
+            recreate();
+            layout(dialog.getView());
+            ShadowLooper.idleMainLooper();
+            assertEquals(saved, SettingsFeedbackTest.message(row(key)));
+            shown.clear();
+            feedbackTexts(list(), shown);
+            assertEquals(Arrays.asList(saved), texts(shown));
+            assertEquals("the note was read out again", View.ACCESSIBILITY_LIVE_REGION_NONE, shown.get(0).getAccessibilityLiveRegion());
+
+            // Put back, the switch owes nothing, and neither its note nor the restart row stays.
+            tap(key);
+            layout(dialog.getView());
+            assertFalse(contains(SettingsNavigation.RESTART));
+            assertNull(SettingsFeedbackTest.message(row(key)));
+
+            // A note left after another route took the change back goes once nothing waits.
+            tap(key);
+            assertEquals(saved, SettingsFeedbackTest.message(row(key)));
+            Settings.FIX_PUSH_NOTIFICATIONS.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+            page.onRestartPendingChanged();
+            ShadowLooper.idleMainLooper();
+            assertNull(SettingsFeedbackTest.message(row(key)));
+
+            // Its own change taken back, the note goes though another change still waits.
+            tap(key);
+            assertEquals(saved, SettingsFeedbackTest.message(row(key)));
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
+                    TextSettings.TAB_ORDER.key);
+            Settings.FIX_PUSH_NOTIFICATIONS.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.remove(key);
+            page.onRestartPendingChanged();
+            ShadowLooper.idleMainLooper();
+            assertNull("the note outlived its change", SettingsFeedbackTest.message(row(key)));
+            assertTrue("the other change no longer shows", contains(SettingsNavigation.RESTART));
+            assertEquals(0, announcements(a11y));
+        } finally {
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        }
+    }
+
+    /**
+     * A change the next start makes anyway owes no restart. With safe mode pausing this run and the
+     * next, turning Pause off changes nothing a restart would, so no note and no toast says one is
+     * owed. A change that does wait still says so.
+     */
+    @Test public void aChangeTheNextStartMakesAnywaySaysNoRestartIsOwed() {
+        String note = "Restart Tumblr to apply this change.";
+        try {
+            BaseSettings.SAFE_MODE.save(true);
+            PauseForTests.pause(HushTumblrPause.Reason.CRASH_LOOP);
+            recreate();
+            layout(dialog.getView());
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
+                    BaseSettings.PAUSED.key);
+            assertEquals(0, app.hushtumblr.extension.shared.settings.preference.ReopenSettingsAfterRestart
+                    .changesWaiting(controller.get()));
+            page.restartOwed(BaseSettings.PAUSED.key, note);
+            ShadowLooper.idleMainLooper();
+            assertNull("a restart was said to be owed in a toast", ShadowToast.getLatestToast());
+            List<TextView> shown = new ArrayList<>();
+            feedbackTexts(list(), shown);
+            assertTrue("a restart was said to be owed: " + texts(shown), shown.isEmpty());
+
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.add(
+                    Settings.FIX_PUSH_NOTIFICATIONS.key);
+            page.restartOwed(Settings.FIX_PUSH_NOTIFICATIONS.key, note);
+            ShadowLooper.idleMainLooper();
+            shown.clear();
+            feedbackTexts(list(), shown);
+            String toast = ShadowToast.getTextOfLatestToast();
+            assertTrue("a change that waits said nothing", texts(shown).contains(note) || note.equals(toast));
+        } finally {
+            BaseSettings.SAFE_MODE.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        }
+    }
+
+    /**
+     * A page that fits whole doesn't scroll, so a note going from a row there lets the row shrink
+     * back. Held at its taller height it would only leave a gap under the switch.
+     */
+    @Test @Config(sdk = 33) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aRowOnAPageThatFitsShrinksBackWhenItsNoteGoes() {
+        String key = Settings.FIX_PUSH_NOTIFICATIONS.key;
+        try {
+            page.navigation.navigate("Notifications");
+            layout(dialog.getView(), 4000);
+            assertEquals("the page doesn't fit whole: " + children(), list().getCount() - 1, list().getLastVisiblePosition());
+            int resting = rowHeight(key);
+            tap(key);
+            layout(dialog.getView(), 4000);
+            assertNotNull(SettingsFeedbackTest.message(row(key)));
+            assertTrue("the note added no height: " + children(), rowHeight(key) > resting);
+            tap(key);
+            layout(dialog.getView(), 4000);
+            layout(dialog.getView(), 4000);
+            assertNull(SettingsFeedbackTest.message(row(key)));
+            assertEquals(0, list().getFirstVisiblePosition());
+            assertEquals("the row kept the note's height: " + children(), resting, rowHeight(key));
+        } finally {
+            Settings.FIX_PUSH_NOTIFICATIONS.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        }
+    }
+
+    /** How tall [key]'s row is in view, which fails when the row isn't on screen. */
+    private int rowHeight(String key) {
+        View row = list().getChildAt(position(key) - list().getFirstVisiblePosition());
+        assertNotNull(key + " is off screen", row);
+        return row.getHeight();
+    }
+
+    private static int announcements(android.view.accessibility.AccessibilityManager a11y) {
+        int said = 0;
+        for (android.view.accessibility.AccessibilityEvent event : org.robolectric.Shadows.shadowOf(a11y).getSentAccessibilityEvents()) {
+            if (event.getEventType() == android.view.accessibility.AccessibilityEvent.TYPE_ANNOUNCEMENT) said++;
+        }
+        return said;
+    }
+
     /** The row restarts Tumblr and leaves a marker that opens the screen again on this page. */
     @Test @Config(sdk = {30, 37})
     public void theRestartRowRestartsIntoThePageItWasTappedOn() {
@@ -575,7 +1013,105 @@ public class SettingsNavigationTest {
         assertTrue(SettingsNavigation.HIDE_QUICK_SETUPS.savedValue());
         assertFalse(contains(SettingsNavigation.QUICK_SETUPS));
         assertEquals(HOME_ROWS - 1, list().getCount());
-        assertEquals("Quick setups hidden. Bring it back from Pause, backup and diagnostics.", ShadowToast.getTextOfLatestToast());
+        // Said under the link it names, where it stays after a toast would have gone.
+        HushTumblrPreferenceFragment.Row tools = page.navigation.sectionLink(SettingsNavigation.TOOLS_PAGE);
+        String hint = "Quick setups hidden. Bring it back from Pause, backup and diagnostics.";
+        assertEquals(hint, SettingsFeedbackTest.message(tools));
+        assertTrue("the hint isn't on the home page", contains(tools.getKey()));
+        page.navigation.search("quick");
+        page.navigation.search("");
+        assertEquals("a search took the hint away", hint, SettingsFeedbackTest.message(tools));
+
+        // Opening the page it names finishes it.
+        tap(tools.getKey());
+        assertNull(SettingsFeedbackTest.message(tools));
+        while (page.navigation.back()) { }
+
+        // So does bringing Quick setups back some other way, such as from a search.
+        page.navigation.navigate(SettingsNavigation.TOOLS_PAGE);
+        tap(SettingsNavigation.RESTORE_QUICK_SETUPS);
+        while (page.navigation.back()) { }
+        assertTrue(longPress(SettingsNavigation.QUICK_SETUPS));
+        assertEquals(hint, SettingsFeedbackTest.message(tools));
+        page.navigation.search("quick setups");
+        tap(SettingsNavigation.RESTORE_QUICK_SETUPS);
+        page.navigation.search("");
+        assertTrue(contains(SettingsNavigation.QUICK_SETUPS));
+        assertNull("the hint outlived Quick setups coming back", SettingsFeedbackTest.message(tools));
+    }
+
+    /** What a row says after an action stays through Android rebuilding the screen, and isn't read out again. */
+    @Test public void resultsUnderRowsComeBackWhenTheScreenIsRebuilt() {
+        org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).checkActivities(true);
+        tap(HushTumblrPreferenceFragment.SUPPORT);
+        String support = SettingsFeedbackTest.message(row(HushTumblrPreferenceFragment.SUPPORT));
+        assertNotNull("the Support row said nothing", support);
+        assertTrue(longPress(SettingsNavigation.QUICK_SETUPS));
+        String hint = SettingsFeedbackTest.message(page.navigation.sectionLink(SettingsNavigation.TOOLS_PAGE));
+        assertNotNull(hint);
+        String refused = "Settings weren't exported.";
+        ((SettingsBackupPreference) page.findPreference("action_export_settings")).feedback.show(refused);
+        ShadowLooper.idleMainLooper();
+
+        recreate();
+        assertEquals(support, SettingsFeedbackTest.message(row(HushTumblrPreferenceFragment.SUPPORT)));
+        assertEquals(hint, SettingsFeedbackTest.message(page.navigation.sectionLink(SettingsNavigation.TOOLS_PAGE)));
+        assertEquals(refused, SettingsFeedbackTest.message(page.findPreference("action_export_settings")));
+
+        // On screen again, each is shown and none is announced a second time.
+        layout(dialog.getView(), 6000);
+        List<TextView> home = new ArrayList<>();
+        feedbackTexts(list(), home);
+        assertEquals(Arrays.asList(hint, support), texts(home));
+        page.navigation.navigate(SettingsNavigation.TOOLS_PAGE);
+        layout(dialog.getView(), 6000);
+        List<TextView> tools = new ArrayList<>();
+        feedbackTexts(list(), tools);
+        assertEquals(Arrays.asList(refused), texts(tools));
+        home.addAll(tools);
+        for (TextView said : home) {
+            assertEquals(said.getText() + " was read out again", View.ACCESSIBILITY_LIVE_REGION_NONE, said.getAccessibilityLiveRegion());
+        }
+    }
+
+    /**
+     * The Source row, the status card and the setup guide store no setting, and still keep what
+     * they said through a rebuild.
+     */
+    @Test public void rowsWithNoSettingKeepTheirResultsWhenTheScreenIsRebuilt() {
+        String source = "No app on this phone can open the link. The address is https://example.org/source.";
+        String status = "Resume didn't take. Try again.";
+        String guide = "Android's settings for this app didn't open. Open App info from Tumblr's icon, then Open by default.";
+        ((HushTumblrPreferenceFragment.Row) page.findPreference(HushTumblrPreferenceFragment.SOURCE_ROW))
+                .feedback.show(source, "https://example.org/source");
+        ((HushTumblrPreferenceFragment.Row) page.findPreference(HushTumblrPreferenceFragment.STATUS_CARD))
+                .feedback.show(status);
+        ((SetupGuidancePreference) page.findPreference(SetupGuidancePreference.KEY)).feedback.show(guide);
+        ShadowLooper.idleMainLooper();
+
+        recreate();
+        assertEquals(source, SettingsFeedbackTest.message(page.findPreference(HushTumblrPreferenceFragment.SOURCE_ROW)));
+        assertEquals(status, SettingsFeedbackTest.message(page.findPreference(HushTumblrPreferenceFragment.STATUS_CARD)));
+        assertEquals(guide, SettingsFeedbackTest.message(page.findPreference(SetupGuidancePreference.KEY)));
+    }
+
+    private Preference row(String key) {
+        int at = position(key);
+        assertTrue("No visible row " + key, at >= 0);
+        return (Preference) list().getItemAtPosition(at);
+    }
+
+    private static void feedbackTexts(View view, List<TextView> into) {
+        if (SettingsFeedback.MESSAGE_TAG.equals(view.getTag())) into.add((TextView) view);
+        if (!(view instanceof android.view.ViewGroup)) return;
+        android.view.ViewGroup group = (android.view.ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) feedbackTexts(group.getChildAt(i), into);
+    }
+
+    private static List<String> texts(List<TextView> views) {
+        List<String> texts = new ArrayList<>();
+        for (TextView view : views) texts.add(view.getText().toString());
+        return texts;
     }
 
     /** The row on Pause, backup and diagnostics shows the state, brings Quick setups back and hides it again. */
@@ -639,7 +1175,7 @@ public class SettingsNavigationTest {
         assertTrue(String.valueOf(cards.getItem(1)).startsWith("Privacy\n"));
         assertTrue(String.valueOf(cards.getItem(2)).startsWith("Back to defaults\n"));
         try {
-            // Hide ads starts on, so Quiet turns on the other fourteen.
+            // Hide ads starts on, so Quiet turns on the other fifteen.
             choices.getListView().performItemClick(null, 0, 0);
             ShadowLooper.idleMainLooper();
             for (BooleanSetting setting : QuickSetupKeys.QUIET) {
@@ -647,7 +1183,7 @@ public class SettingsNavigationTest {
                 assertTrue(setting.key + " was saved but its row still shows off",
                         ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
-            assertEquals("Changed 14 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed 15 settings", ShadowToast.getTextOfLatestToast());
             // Turning off screenshot sharing waits for a restart, so the row is up under the status card.
             assertEquals(SettingsNavigation.RESTART, ((Preference) list().getItemAtPosition(1)).getKey());
 
@@ -656,7 +1192,7 @@ public class SettingsNavigationTest {
             assertEquals("Changed 0 settings", ShadowToast.getTextOfLatestToast());
             page.applyQuickSetup(QuickSetupKeys.defaults());
             ShadowLooper.idleMainLooper();
-            assertEquals("Changed 14 settings", ShadowToast.getTextOfLatestToast());
+            assertEquals("Changed 15 settings", ShadowToast.getTextOfLatestToast());
             for (BooleanSetting setting : QuickSetupKeys.DEFAULTS) {
                 assertEquals(setting.key, setting.defaultValue, setting.savedValue());
             }
@@ -682,11 +1218,25 @@ public class SettingsNavigationTest {
             page.navigation.navigate("Feed");
             tap(Settings.HIDE_SUGGESTED_BLOGS.key);
             assertEquals(1, writes.size());
+            // Quick setups is offered from home, where its row and the note under it are.
+            page.navigation.navigate("");
             page.applyQuickSetup(QuickSetupKeys.quiet());
             ShadowLooper.idleMainLooper();
             assertEquals(1, writes.size());
-            assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Couldn't start that. Try again in a moment.",
+                    SettingsFeedbackTest.message(page.navigation.ownRow(SettingsNavigation.QUICK_SETUPS)));
             assertFalse(Settings.HIDE_WATCH_IT_ROWS.savedValue());
+
+            // Once the switch has saved, the same choice goes through, and the note under the row
+            // says it waits for a restart in place of the refusal.
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            writes.remove(0).run();
+            ShadowLooper.idleMainLooper();
+            page.applyQuickSetup(QuickSetupKeys.quiet());
+            ShadowLooper.idleMainLooper();
+            assertTrue(Settings.HIDE_WATCH_IT_ROWS.savedValue());
+            assertEquals("Saved. Restart Tumblr to apply this change.",
+                    SettingsFeedbackTest.message(page.navigation.ownRow(SettingsNavigation.QUICK_SETUPS)));
         } finally {
             // The worker first: the save's own refresh would otherwise queue behind it and never run.
             HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
@@ -722,11 +1272,12 @@ public class SettingsNavigationTest {
         assertFalse(decoded, decoded.contains("Hide suggested blogs"));
         assertEquals(before, savedValues());
 
-        // No browser: a toast says where to go, and Tumblr stays open.
+        // A missing browser leaves recovery beside the action.
         org.robolectric.Shadows.shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).checkActivities(true);
         tap(SettingsNavigation.REPORT);
         assertEquals("No app on this phone can open the link. The address is "
-                + L10n.isolate("github.com/SysAdminDoc/HushTumblr") + ".", ShadowToast.getTextOfLatestToast());
+                + L10n.isolate("github.com/SysAdminDoc/HushTumblr") + ".",
+                SettingsFeedbackTest.message((Preference) list().getItemAtPosition(last - 1)));
         assertFalse(controller.get().isFinishing());
     }
 
@@ -771,6 +1322,198 @@ public class SettingsNavigationTest {
         layout(dialog.getView());
         assertFalse(Settings.HIDE_TUMBLR_TV.savedValue());
         assertFalse(contains(SettingsNavigation.RESTART));
+    }
+
+    /**
+     * A finger tap on a switch near the end of a page leaves the tapped row where it was, whether the
+     * restart row comes, stays with a new count, or goes. On a phone the page jumped by up to two
+     * rows after a tap there, so the next tap at the same spot flipped a different switch.
+     */
+    @Test @Config(sdk = 33) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aFingerTapNearThePageEndLeavesTheTappedRowWhereItWas() {
+        touchMode(true);
+        try {
+            // The window's own height: an idle main looper lays the window out at that size anyway.
+            page.navigation.navigate("Interface");
+            layout(dialog.getView());
+            for (int i = 0; i < 20 && list().getLastVisiblePosition() < list().getCount() - 1; i++) {
+                list().scrollListBy(2000);
+                layout(dialog.getView());
+            }
+            BooleanSetting dark = Settings.DARK_BACKGROUND;
+            BooleanSetting wallpaper = Settings.DARK_BACKGROUND_WALLPAPER;
+            assertEquals("the page doesn't end on Match my wallpaper: " + titles(),
+                    list().getCount() - 1, position(wallpaper.key));
+            assertEquals("the list isn't at its end", list().getCount() - 1, list().getLastVisiblePosition());
+            for (BooleanSetting setting : new BooleanSetting[] {dark, wallpaper, wallpaper, wallpaper, dark, dark, wallpaper, dark}) {
+                boolean was = setting.savedValue();
+                int top = rowTop(setting.key);
+                String before = children();
+                fingerTap(setting.key);
+                layout(dialog.getView());
+                assertEquals(setting.key + " didn't flip", !was, setting.savedValue());
+                assertEquals(setting.key + " moved after its tap\nbefore " + before + "\nafter  " + children(),
+                        top, rowTop(setting.key));
+            }
+            assertFalse("both switches are back off, so no restart is owed", contains(SettingsNavigation.RESTART));
+        } finally {
+            Settings.DARK_BACKGROUND.resetToDefault();
+            Settings.DARK_BACKGROUND_WALLPAPER.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        }
+    }
+
+    /**
+     * The same taps with each save finishing on the worker after the tap's first layout, as on a
+     * phone, and each tap made with the page at its end. The restart row and the switch refresh come
+     * a frame after the tap there, and the page slid down a row and a half on the S22.
+     */
+    @Test @Config(sdk = 33) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aTapWhoseSaveFinishesAfterLayoutLeavesTheTappedRowWhereItWas() {
+        List<Runnable> writes = new ArrayList<>();
+        touchMode(true);
+        HushTumblrPreferenceFragment.editWorkerForTests = writes::add;
+        try {
+            page.navigation.navigate("Interface");
+            layout(dialog.getView());
+            BooleanSetting dark = Settings.DARK_BACKGROUND;
+            BooleanSetting wallpaper = Settings.DARK_BACKGROUND_WALLPAPER;
+            for (BooleanSetting setting : new BooleanSetting[] {dark, wallpaper, wallpaper, wallpaper, dark, dark, wallpaper, dark}) {
+                toEnd();
+                boolean was = setting.savedValue();
+                int top = rowTop(setting.key);
+                String before = children();
+                fingerTap(setting.key);
+                layout(dialog.getView());
+                for (int i = 0; i < 10 && !writes.isEmpty(); i++) {
+                    writes.remove(0).run();
+                    ShadowLooper.idleMainLooper(100, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    layout(dialog.getView());
+                }
+                assertTrue("a save never finished", writes.isEmpty());
+                assertEquals(setting.key + " didn't flip", !was, setting.savedValue());
+                assertEquals(setting.key + " moved after its tap\nbefore " + before + "\nafter  " + children(),
+                        top, rowTop(setting.key));
+            }
+            assertFalse("both switches are back off, so no restart is owed", contains(SettingsNavigation.RESTART));
+        } finally {
+            for (Runnable write : writes) write.run();
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            Settings.DARK_BACKGROUND.resetToDefault();
+            Settings.DARK_BACKGROUND_WALLPAPER.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        }
+    }
+
+    /**
+     * On every page, scrolled to its end, the lowest switch in view is flipped and flipped back with
+     * its save finishing after layout. No row in view moves, the backup rows that say "Saving
+     * changes" meanwhile included.
+     */
+    @Test @Config(sdk = 33) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void noRowMovesWhileTheLowestSwitchOnAPageSaves() {
+        List<Runnable> writes = new ArrayList<>();
+        List<Setting<?>> flipped = new ArrayList<>();
+        touchMode(true);
+        HushTumblrPreferenceFragment.editWorkerForTests = writes::add;
+        int checked = 0;
+        try {
+            for (String name : new String[] {"Feed", "Posts", "Interface", "Privacy", "Notifications", "Links",
+                    "Pause, backup and diagnostics", "About"}) {
+                while (page.navigation.back()) { }
+                page.navigation.navigate(name);
+                layout(dialog.getView());
+                toEnd();
+                String key = null;
+                for (int i = 0; i < list().getChildCount(); i++) {
+                    Object item = list().getItemAtPosition(list().getFirstVisiblePosition() + i);
+                    if (item instanceof HushTumblrPreferenceFragment.Toggle
+                            && !BaseSettings.PAUSED.key.equals(((Preference) item).getKey())) key = ((Preference) item).getKey();
+                }
+                if (key == null) continue;
+                checked++;
+                flipped.add(Setting.getSettingFromPath(key));
+                for (int tap = 0; tap < 2; tap++) {
+                    Map<String, Integer> before = tops();
+                    String shown = children();
+                    fingerTap(key);
+                    layout(dialog.getView());
+                    for (int i = 0; i < 10 && !writes.isEmpty(); i++) {
+                        writes.remove(0).run();
+                        ShadowLooper.idleMainLooper(100, java.util.concurrent.TimeUnit.MILLISECONDS);
+                        layout(dialog.getView());
+                    }
+                    Map<String, Integer> after = tops();
+                    after.keySet().retainAll(before.keySet());
+                    before.keySet().retainAll(after.keySet());
+                    assertEquals(name + ": rows moved while " + key + " saved\nbefore " + shown + "\nafter  " + children(),
+                            before, after);
+                }
+            }
+            assertTrue("too few pages had a switch at their end: " + checked, checked >= 4);
+        } finally {
+            for (Runnable write : writes) write.run();
+            HushTumblrPreferenceFragment.editWorkerForTests = Runnable::run;
+            for (Setting<?> setting : flipped) setting.resetToDefault();
+            app.hushtumblr.extension.shared.settings.preference.AbstractPreferenceFragment.restartPending.clear();
+        }
+    }
+
+    /** Each row in view with a key, and its top. */
+    private Map<String, Integer> tops() {
+        Map<String, Integer> out = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < list().getChildCount(); i++) {
+            Object item = list().getItemAtPosition(list().getFirstVisiblePosition() + i);
+            if (item instanceof Preference && ((Preference) item).hasKey()) out.put(((Preference) item).getKey(), list().getChildAt(i).getTop());
+        }
+        return out;
+    }
+
+    /** Scrolls the page to its end. */
+    private void toEnd() {
+        for (int i = 0; i < 20 && (list().getLastVisiblePosition() < list().getCount() - 1
+                || list().getChildAt(list().getChildCount() - 1).getBottom() > list().getHeight() - list().getPaddingBottom()); i++) {
+            list().scrollListBy(2000);
+            layout(dialog.getView());
+        }
+        assertEquals("the list isn't at its end", list().getCount() - 1, list().getLastVisiblePosition());
+    }
+
+    /** The first position in view, then each row's key and top, for a failure message. */
+    private String children() {
+        StringBuilder out = new StringBuilder("first=" + list().getFirstVisiblePosition());
+        for (int i = 0; i < list().getChildCount(); i++) {
+            Object item = list().getAdapter().getItem(list().getFirstVisiblePosition() + i);
+            String key = item instanceof android.preference.Preference ? ((android.preference.Preference) item).getKey() : String.valueOf(item);
+            out.append(" [").append(key).append('@').append(list().getChildAt(i).getTop())
+                    .append('+').append(list().getChildAt(i).getHeight()).append(']');
+        }
+        return out.toString();
+    }
+
+    /** Where [key]'s row starts in the list, which fails when the row isn't on screen. */
+    private int rowTop(String key) {
+        int position = position(key);
+        View row = list().getChildAt(position - list().getFirstVisiblePosition());
+        assertNotNull(key + " is off screen", row);
+        return row.getTop();
+    }
+
+    /** A finger's down and up over the part of [key]'s row that shows, left of its switch, as on a phone. */
+    private void fingerTap(String key) {
+        int position = position(key);
+        View row = list().getChildAt(position - list().getFirstVisiblePosition());
+        assertNotNull(key + " is off screen", row);
+        float x = row.getWidth() / 3f;
+        float y = (Math.max(row.getTop(), 0) + Math.min(row.getBottom(), list().getHeight())) / 2f;
+        long now = android.os.SystemClock.uptimeMillis();
+        android.view.MotionEvent down = android.view.MotionEvent.obtain(now, now, android.view.MotionEvent.ACTION_DOWN, x, y, 0);
+        android.view.MotionEvent up = android.view.MotionEvent.obtain(now, now + 40, android.view.MotionEvent.ACTION_UP, x, y, 0);
+        assertTrue(list().dispatchTouchEvent(down));
+        assertTrue(list().dispatchTouchEvent(up));
+        down.recycle();
+        up.recycle();
+        ShadowLooper.idleMainLooper(500, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
     /** The paused line on real pages, dark and light, for a look before the phone does. */

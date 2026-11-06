@@ -70,13 +70,13 @@ internal class FontPlan(
 )
 
 /**
- * AndroidX's ResourcesCompat (`lih` in 46.9.1.100) loads every font resource through one method, View
+ * AndroidX's ResourcesCompat (`onh` in 47.0.0.108) loads every font resource through one method, View
  * and Compose text alike. Its start asks the extension first: a face comes back through the caller's
  * callback and as the answer, the way a font found in its cache does, and null goes on to Tumblr's
- * font. Tumblr's font picker (`s59` in 46.9.1.100) answers two fonts with Roboto by family name and
+ * font. Tumblr's font picker (`z79` in 47.0.0.108) answers two fonts with Roboto by family name and
  * never reaches the loader, so those two answers go through the extension as well.
  *
- * The dashboard's view provider (`eq0` in 46.9.1.100) inflates its first rows on a background thread
+ * The dashboard's view provider (`zr0` in 47.0.0.108) inflates its first rows on a background thread
  * with an inflater that has no AppCompat. Those are plain TextViews, and a plain TextView reads
  * `android:fontFamily` inside Android, past the loader, so each such row goes through the extension
  * as it's handed over.

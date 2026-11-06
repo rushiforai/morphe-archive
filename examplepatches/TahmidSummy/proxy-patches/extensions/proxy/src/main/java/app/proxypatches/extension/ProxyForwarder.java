@@ -250,13 +250,15 @@ public final class ProxyForwarder {
 
     private static void handle(Socket client) {
         Socket upstream = null;
+        ProxySettings.Values settings = null;
         try {
             client.setTcpNoDelay(true);
             byte[] head = readHeader(client.getInputStream());
             if (head == null) return;
 
             // Snapshot per connection: saved changes apply to the next connection.
-            ProxySettings.Values settings = ProxySettings.get();
+            settings = ProxySettings.get();
+            final ProxySettings.Values cfg = settings;
             String header = new String(head, StandardCharsets.ISO_8859_1);
             boolean isConnect = header.regionMatches(true, 0, "CONNECT ", 0, 8);
 
@@ -270,8 +272,9 @@ public final class ProxyForwarder {
             } else if (settings.isSocks()) {
                 // SOCKS5 proxy: the forwarder speaks SOCKS5 upstream, the app still sees an HTTP proxy.
                 upstream = openTarget(header, isConnect, client.getOutputStream(),
-                        (host, port) -> Socks5.connect(settings, host, port));
+                        (host, port) -> Socks5.connect(cfg, host, port));
                 if (upstream == null) return;
+                ProxyStatus.ok();
             } else {
                 byte[] rewritten = rewrite(header, isConnect, settings.authBase64())
                         .getBytes(StandardCharsets.ISO_8859_1);
@@ -279,6 +282,26 @@ public final class ProxyForwarder {
                 OutputStream uout = upstream.getOutputStream();
                 uout.write(rewritten);
                 uout.flush();
+
+                // Read the proxy's reply header ourselves (then pass it on), so a rejected
+                // login or refused tunnel can be reported instead of failing silently.
+                byte[] reply = readHeader(upstream.getInputStream());
+                if (reply == null) throw new java.io.EOFException("the proxy closed the connection without replying");
+                OutputStream cout = client.getOutputStream();
+                cout.write(reply);
+                cout.flush();
+                int code = statusCode(reply);
+                if (code == 407) {
+                    ProxyStatus.failed(ProxyStatus.Problem.LOGIN, "HTTP 407");
+                    return;
+                }
+                if (isConnect && code != 200) {
+                    // Some proxies (e.g. Caddy with probe resistance) hide a bad login behind a
+                    // redirect or 404 instead of 407.
+                    ProxyStatus.failed(ProxyStatus.Problem.REFUSED, "HTTP " + code);
+                    return;
+                }
+                ProxyStatus.ok();
             }
 
             final Socket c = client;
@@ -288,9 +311,29 @@ public final class ProxyForwarder {
             up.join(30000);
         } catch (Throwable t) {
             Log.w(TAG, "conn: " + t);
+            if (settings != null && !settings.direct && settings.isConfigured()) {
+                ProxyStatus.Problem problem = ProxyStatus.classify(t);
+                if (problem != null) {
+                    String detail = problem == ProxyStatus.Problem.LOGIN || problem == ProxyStatus.Problem.REFUSED
+                            ? (settings.isSocks() ? "SOCKS5" : String.valueOf(t.getMessage()))
+                            : settings.host + ":" + settings.port;
+                    ProxyStatus.failed(problem, detail);
+                }
+            }
         } finally {
             closeQuietly(client);
             closeQuietly(upstream);
+        }
+    }
+
+    /** Status code from an HTTP response header ("HTTP/1.1 200 OK" -> 200), or -1. */
+    static int statusCode(byte[] header) {
+        String first = new String(header, StandardCharsets.ISO_8859_1).split("\r\n", 2)[0];
+        String[] parts = first.split(" ");
+        try {
+            return parts.length >= 2 ? Integer.parseInt(parts[1]) : -1;
+        } catch (NumberFormatException e) {
+            return -1;
         }
     }
 

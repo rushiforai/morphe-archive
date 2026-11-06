@@ -1,0 +1,798 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<manifest android:versionCode="386871"
+          android:versionName="2026.9.4.1 (386871)"
+          android:installLocation="auto"
+          android:compileSdkVersion="37"
+          android:compileSdkVersionCodename="DEV"
+          package="com.google.android.apps.books"
+          platformBuildVersionCode="37"
+          platformBuildVersionName="DEV" xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-sdk android:minSdkVersion="32"
+            android:targetSdkVersion="37" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+                   android:maxSdkVersion="22" />
+  <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+  <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+  <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+  <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
+  <uses-permission android:name="android.permission.SUBSCRIBED_FEEDS_READ" />
+  <uses-permission android:name="android.permission.SUBSCRIBED_FEEDS_WRITE" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.GET_PACKAGE_SIZE" />
+  <uses-permission android:name="com.android.vending.BILLING" />
+  <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+  <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+  <permission android:name="com.google.android.apps.books.permission.C2D_MESSAGE"
+              android:protectionLevel="signature" />
+  <uses-permission android:name="com.google.android.apps.books.permission.C2D_MESSAGE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <uses-permission-sdk-23 android:name="android.permission.RECORD_AUDIO" />
+  <uses-feature android:name="android.hardware.microphone"
+                android:required="false" />
+  <permission android:name="com.google.android.apps.books.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+              android:protectionLevel="signature" />
+  <uses-permission android:name="com.google.android.apps.books.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+  <supports-screens android:smallScreens="true"
+                    android:normalScreens="true"
+                    android:largeScreens="true"
+                    android:xlargeScreens="true" />
+  <uses-permission-sdk-23 android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+  <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+  <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+  <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
+                   android:usesPermissionFlags="neverForLocation" />
+  <queries>
+    <intent>
+      <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.WEB_SEARCH" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:mimeType="application/pdf" />
+    </intent>
+    <intent>
+      <action android:name="android.speech.tts.engine.INSTALL_TTS_DATA" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="https" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <data android:scheme="http" />
+    </intent>
+    <package android:name="com.google.android.apps.kids.home" />
+    <package android:name="com.google.android.googlequicksearchbox" />
+    <package android:name="com.google.android.apps.search.assistant.platform.appintegration.devapp" />
+    <package android:name="com.google.android.apps.chrome" />
+    <intent>
+      <action android:name="com.android.vending.billing.InAppBillingService.BIND" />
+    </intent>
+    <intent>
+      <action android:name="com.google.android.apps.play.billingtestcompanion.BillingOverrideService.BIND" />
+    </intent>
+    <intent>
+      <action android:name="androidx.window.extensions.layout.EngagementModeService" />
+    </intent>
+  
+    <package android:name="app.revanced.android.gms" />
+    <provider android:authorities="app.revanced.android.gms.auth.accounts" />
+  </queries>
+  <application android:label="@string/app_name"
+               android:icon="@mipmap/ic_launcher_play_books"
+               android:name="com.google.android.apps.play.books.app.BooksApplication"
+               android:backupAgent="com.google.android.apps.play.books.app.BooksBackupAgent"
+               android:allowBackup="true"
+               android:vmSafeMode="false"
+               android:restoreAnyVersion="true"
+               android:hardwareAccelerated="true"
+               android:largeHeap="true"
+               android:supportsRtl="true"
+               android:restrictedAccountType="com.google"
+               android:fullBackupOnly="true"
+               android:extractNativeLibs="false"
+               android:fullBackupContent="@xml/backup_scheme"
+               android:resizeableActivity="true"
+               android:networkSecurityConfig="@xml/network_security_config"
+               android:roundIcon="@mipmap/ic_round_launcher_play_books"
+               android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+               android:dataExtractionRules="@xml/snowcone_backup_scheme"
+               android:enableOnBackInvokedCallback="true"
+               android:allowCrossUidActivitySwitchFromBelow="false">
+        <meta-data
+            android:name="app.revanced.android.gms.SPOOFED_PACKAGE_NAME"
+            android:value="com.google.android.apps.books" />
+        <meta-data
+            android:name="app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE"
+            android:value="38918a453d07199354f8b19af05ec6562ced5788" />
+
+    <meta-data android:name="com.google.android.gms.car.application"
+               android:resource="@xml/automotive_app_desc" />
+    <meta-data android:name="com.google.android.gms.car.notification.SmallIcon"
+               android:resource="@drawable/ic_play_books_white_24dp" />
+    <meta-data android:name="com.google.android.gms.car.application.theme"
+               android:resource="@style/AndroidAutoBooksTheme" />
+    <service android:name="com.google.android.libraries.phenotype.registration.PhenotypeMetadataHolderService"
+             android:enabled="false"
+             android:exported="false"
+             android:process="">
+      <intent-filter>
+        <action android:name="com.google.android.libraries.phenotype.registration.PhenotypeMetadataHolderService" />
+      </intent-filter>
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.apps.books"
+                 android:resource="@raw/com_google_android_apps_books_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.apps.books"
+                 android:resource="@raw/com_google_android_apps_books_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.apps.books.user"
+                 android:resource="@raw/com_google_android_apps_books_user_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.apps.books.user"
+                 android:resource="@raw/com_google_android_apps_books_user_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.gms.auth_account_client"
+                 android:resource="@raw/com_google_android_gms_auth_account_client_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.gms.auth_account_client"
+                 android:resource="@raw/com_google_android_gms_auth_account_client_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.gms.clearcut_client"
+                 android:resource="@raw/com_google_android_gms_clearcut_client_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.gms.clearcut_client"
+                 android:resource="@raw/com_google_android_gms_clearcut_client_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.libraries.consentverifier"
+                 android:resource="@raw/com_google_android_libraries_consentverifier_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.libraries.consentverifier"
+                 android:resource="@raw/com_google_android_libraries_consentverifier_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.gms.gcm"
+                 android:resource="@raw/com_google_android_gms_gcm_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.gms.icing.mdd"
+                 android:resource="@raw/com_google_android_gms_icing_mdd_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.gms.setupservices"
+                 android:resource="@raw/com_google_android_gms_setupservices_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.gms.usagereporting"
+                 android:resource="@raw/com_google_android_gms_usagereporting_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.libraries.notifications.platform"
+                 android:resource="@raw/com_google_android_libraries_notifications_platform_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.libraries.notifications.platform"
+                 android:resource="@raw/com_google_android_libraries_notifications_platform_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.libraries.mdi.sync"
+                 android:resource="@raw/com_google_android_libraries_mdi_sync_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.libraries.mdi.sync"
+                 android:resource="@raw/com_google_android_libraries_mdi_sync_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.libraries.onegoogle"
+                 android:resource="@raw/com_google_android_libraries_onegoogle_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.android.billingclient"
+                 android:resource="@raw/com_android_billingclient_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.android.billingclient"
+                 android:resource="@raw/com_android_billingclient_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.heterodyne_info.binarypb:com.google.android.libraries.performance.primes"
+                 android:resource="@raw/com_google_android_libraries_performance_primes_heterodyne_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.libraries.performance.primes"
+                 android:resource="@raw/com_google_android_libraries_performance_primes_registration_info" />
+      <meta-data android:name="com.google.android.gms.phenotype.registration.binarypb:com.google.android.libraries.surveys"
+                 android:resource="@raw/com_google_android_libraries_surveys_registration_info" />
+    </service>
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.apps.books"
+               android:resource="@xml/com_google_android_apps_books_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.apps.books.user"
+               android:resource="@xml/com_google_android_apps_books_user_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.gms.auth_account_client"
+               android:resource="@xml/com_google_android_gms_auth_account_client_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.gms.clearcut_client"
+               android:resource="@xml/com_google_android_gms_clearcut_client_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.libraries.consentverifier"
+               android:resource="@xml/com_google_android_libraries_consentverifier_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.gms.icing.mdd"
+               android:resource="@xml/com_google_android_gms_icing_mdd_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.libraries.notifications.platform"
+               android:resource="@xml/com_google_android_libraries_notifications_platform_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.libraries.mdi.sync"
+               android:resource="@xml/com_google_android_libraries_mdi_sync_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.libraries.onegoogle"
+               android:resource="@xml/com_google_android_libraries_onegoogle_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.android.billingclient"
+               android:resource="@xml/com_android_billingclient_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.libraries.performance.primes"
+               android:resource="@xml/com_google_android_libraries_performance_primes_phenotype" />
+    <meta-data android:name="com.google.android.gms.phenotype.registration.xml:com.google.android.libraries.surveys"
+               android:resource="@xml/com_google_android_libraries_surveys_phenotype" />
+    <receiver android:name="com.google.android.apps.play.books.appwidget.AppWidgetLocaleChangedReceiver"
+              android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.LOCALE_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.android.apps.play.books.appwidget.legacy.LegacyAppWidgetService"
+             android:permission="android.permission.BIND_REMOTEVIEWS"
+             android:exported="false" />
+    <service android:name="com.google.android.apps.play.books.appwidget.mybooks.MyBooksRemoteViewsService"
+             android:permission="android.permission.BIND_REMOTEVIEWS"
+             android:exported="false" />
+    <receiver android:name="com.google.android.apps.play.books.audio.BooksMediaButtonReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MEDIA_BUTTON" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.android.apps.play.books.audio.BooksMediaBrowseService"
+             android:exported="true"
+             android:foregroundServiceType="mediaPlayback">
+      <intent-filter>
+        <action android:name="android.media.browse.MediaBrowserService" />
+        <action android:name="android.intent.action.MEDIA_BUTTON" />
+      </intent-filter>
+    </service>
+    <activity android:theme="@style/Theme.Books.DayNight"
+              android:label="@string/table_of_contents_title"
+              android:name="com.google.android.apps.play.books.audiobook.activity.toc.AudiobookTableOfContentsActivity"
+              android:exported="false" />
+    <service android:name="com.google.android.apps.play.books.audiobook.service.download.AudiobookDownloadService"
+             android:exported="false"
+             android:foregroundServiceType="dataSync" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/main_activity_name"
+              android:name="com.google.android.apps.play.books.audiobook.ui.AudiobookActivity"
+              android:exported="true"
+              android:autoRemoveFromRecents="true">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:pathPrefix="/books/listen" />
+      </intent-filter>
+    </activity>
+    <activity android:theme="@android:style/Theme.NoDisplay"
+              android:label="@string/main_activity_name"
+              android:name="com.google.android.apps.play.books.audiobook.ui.AudiobookTrampolineActivity"
+              android:exported="true"
+              android:excludeFromRecents="true">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:pathPrefix="/books/ab" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:pathPrefix="/books/absample" />
+      </intent-filter>
+    </activity>
+    <activity android:theme="@style/DetailPageHeaderFullscreenImageActivityTheme"
+              android:name="com.google.android.apps.play.books.bricks.types.detailpageheader.DetailPageHeaderFullscreenImageActivity"
+              android:exported="false" />
+    <activity android:theme="@style/CarAccountPickerTheme"
+              android:name="com.google.android.apps.play.books.car.accountpicker.CarAccountPickerActivity"
+              android:exported="true" />
+    <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+               android:value="com.google.android.apps.play.books.cast.CastOptionsProvider" />
+    <service android:name="com.google.android.gms.cast.framework.ReconnectionService"
+             android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.catalog.search.GenreListActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.catalog.search.GenreActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.catalog.search.searchresults.SearchResultsActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.catalog.search.topcharts.TopChartsActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.catalog.ui.detailpage.impl.DetailPageActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.EbookReader"
+              android:label="@string/main_activity_name"
+              android:name="com.google.android.apps.play.books.ebook.activity.ReadingActivity"
+              android:exported="true"
+              android:windowSoftInputMode="adjustResize"
+              android:autoRemoveFromRecents="true">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:pathPrefix="/books/reader" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="googlebooks" />
+      </intent-filter>
+    </activity>
+    <activity android:theme="@style/Theme.Books.DayNight.TableOfContents"
+              android:label="@string/table_of_contents_title"
+              android:name="com.google.android.apps.play.books.ebook.activity.contents.EbookTableOfContentsActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.Dark"
+              android:name="com.google.android.apps.play.books.ebook.activity.video.FullScreenVideoActivity"
+              android:exported="false"
+              android:screenOrientation="sensor"
+              android:configChanges="orientation|screenSize" />
+    <activity android:theme="@style/Theme.Books.DayNight.SplashScreen"
+              android:label="@string/main_activity_name"
+              android:name="com.google.android.apps.play.books.firstrun.FirstRunActivity"
+              android:exported="false"
+              android:excludeFromRecents="true" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/main_activity_name"
+              android:name="com.google.android.apps.play.books.home.HomeActivity"
+              android:exported="true"
+              android:launchMode="singleTask"
+              android:windowSoftInputMode="adjustPan">
+      <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books/" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/books/home/onboarding" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="@string/shop_intent_path" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="@string/shop_intent_path" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/books/getapp" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books/getapp" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/books/getapp2" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books/getapp2" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+    <activity-alias android:name="com.google.android.apps.books.app.HomeActivity"
+                    android:exported="true"
+                    android:targetActivity="com.google.android.apps.play.books.home.HomeActivity" />
+    <meta-data android:name="android.max_aspect"
+               android:value="2.4" />
+    <meta-data android:name="com.google.android.gms.version"
+               android:value="@integer/google_play_services_version" />
+    <activity android:theme="@style/Theme.Books.DayNight.SplashScreen"
+              android:label="@string/main_activity_name"
+              android:name="com.google.android.apps.play.books.app.BooksActivity"
+              android:exported="true"
+              android:noHistory="true" />
+    <activity-alias android:label="@string/main_activity_name"
+                    android:name="com.google.android.apps.books.app.BooksActivity"
+                    android:exported="true"
+                    android:targetActivity="com.google.android.apps.play.books.app.BooksActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <meta-data android:name="android.app.shortcuts"
+                 android:resource="@xml/launcher_shortcuts" />
+    </activity-alias>
+    <activity android:theme="@android:style/Theme.Translucent.NoTitleBar"
+              android:name="com.google.android.apps.play.books.help.CopyVersionActivity"
+              android:exported="true"
+              android:excludeFromRecents="true"
+              android:noHistory="true" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/shortcut_name"
+              android:name="com.google.android.apps.play.books.home.BooksShortcutActivity"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.CREATE_SHORTCUT" />
+        <category android:name="android.intent.category.DEFAULT" />
+      </intent-filter>
+    </activity>
+    <activity android:theme="@style/Theme.Books.DayNight.License"
+              android:label="@string/preferences_license_title"
+              android:name="com.google.android.libraries.social.licenses.LicenseMenuActivity"
+              android:exported="true" />
+    <provider android:name="com.google.android.apps.play.books.database.main.BooksProvider"
+              android:exported="true"
+              android:authorities="com.google.android.apps.books" />
+    <provider android:name="com.google.android.apps.play.books.database.main.BooksProvider$PublicProvider"
+              android:exported="true"
+              android:authorities="com.google.android.apps.books.public" />
+    <provider android:name="com.google.android.apps.play.books.database.main.AudiobookSupplementProvider"
+              android:exported="false"
+              android:authorities="com.google.android.apps.books.supplement_provider"
+              android:grantUriPermissions="true" />
+    <service android:name="com.google.android.apps.play.books.service.SyncService"
+             android:exported="true">
+      <intent-filter>
+        <action android:name="android.content.SyncAdapter" />
+      </intent-filter>
+      <meta-data android:name="android.content.SyncAdapter"
+                 android:resource="@xml/syncadapter" />
+    </service>
+    <receiver android:name="com.google.android.apps.play.books.app.AccountsReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="com.google.android.apps.play.books.app.NotificationBroadcastReceiver"
+              android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.DELETE" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:pathPrefix="/books/notification/download" />
+      </intent-filter>
+    </receiver>
+    <receiver android:label="@string/mybooks_title"
+              android:name="com.google.android.apps.books.appwidget.BooksAppWidgetProvider"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider"
+                 android:resource="@xml/appwidgetinfo_legacy" />
+      <meta-data android:name="appwidgetinfo.mybooks"
+                 android:resource="@xml/appwidgetinfo_mybooks" />
+    </receiver>
+    <activity android:theme="@style/Theme.Books.DayNight"
+              android:label="@string/uploads_activity_name"
+              android:name="com.google.android.apps.play.books.app.UploadsActivityAliasPdf"
+              android:enabled="false"
+              android:exported="true"
+              android:launchMode="singleTop"
+              android:windowSoftInputMode="adjustPan">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:mimeType="application/pdf" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="application/pdf" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="*/*"
+              android:scheme="file"
+              android:host="*"
+              android:pathPattern="/.*.pdf" />
+      </intent-filter>
+    </activity>
+    <uses-library android:name="org.apache.http.legacy"
+                  android:required="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.navigation.activity.ArbitraryFragmentActivity"
+              android:exported="false" />
+    <receiver android:name="com.google.android.apps.play.books.notification.BooksNotificationChannelsReceiver"
+              android:enabled="@bool/supportsChannels"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.app.action.APP_BLOCK_STATE_CHANGED" />
+        <action android:name="android.app.action.NOTIFICATION_CHANNEL_BLOCK_STATE_CHANGED" />
+        <action android:name="android.app.action.NOTIFICATION_CHANNEL_GROUP_BLOCK_STATE_CHANGED" />
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+        <action android:name="android.intent.action.LOCALE_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.screen.deeplink.DeepLinkActivity"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/books/details" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books/details" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/audiobooks/details" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/audiobooks/details" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/books/series" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books/series" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/audiobooks/series" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/audiobooks/series" />
+        <data android:scheme="http"
+              android:host="play.google.com"
+              android:path="/books/collection" />
+        <data android:scheme="https"
+              android:host="play.google.com"
+              android:path="/books/collection" />
+      </intent-filter>
+    </activity>
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/app_name"
+              android:name="com.google.android.apps.play.books.series.SeriesCommercePageActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight.NoActionBar"
+              android:label="@string/testing_options_activity_title"
+              android:name="com.google.android.apps.play.books.testingoptions.TestingOptionsActivity"
+              android:exported="false" />
+    <activity android:theme="@style/Theme.Books.DayNight"
+              android:label="@string/uploads_activity_name"
+              android:name="com.google.android.apps.play.books.upload.UploadActivityEpub"
+              android:exported="true"
+              android:launchMode="singleTop"
+              android:windowSoftInputMode="adjustPan">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:mimeType="application/epub+zip" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="application/epub+zip" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="*/*"
+              android:scheme="file"
+              android:host="*"
+              android:pathPattern="/.*.epub" />
+      </intent-filter>
+    </activity>
+    <activity android:theme="@style/Theme.Books.DayNight"
+              android:label="@string/uploads_activity_name"
+              android:name="com.google.android.apps.play.books.upload.UploadActivity"
+              android:exported="false"
+              android:launchMode="singleTop"
+              android:windowSoftInputMode="adjustPan" />
+    <activity android:theme="@android:style/Theme.NoDisplay"
+              android:name="com.google.android.apps.play.books.util.apprestart.ApplicationRestarterImpl$IntermediateActivity"
+              android:exported="false"
+              android:autoRemoveFromRecents="true" />
+    <activity android:theme="@style/Theme.PlayCore.Transparent"
+              android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"
+              android:exported="false"
+              android:stateNotNeeded="true" />
+    <activity android:theme="@android:style/Theme.Translucent.NoTitleBar"
+              android:name="com.google.android.gms.common.api.GoogleApiActivity"
+              android:exported="false" />
+    <receiver android:name="com.google.android.libraries.appdoctor.AppDoctorReceiver"
+              android:permission="com.google.android.gms.permission.INTERNAL_BROADCAST"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="com.google.android.libraries.appdoctor.ACTION_TELE_DOCTOR_FIX" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="com.google.android.libraries.notifications.entrypoints.blockstatechanged.BlockStateChangedReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.app.action.APP_BLOCK_STATE_CHANGED" />
+        <action android:name="android.app.action.NOTIFICATION_CHANNEL_BLOCK_STATE_CHANGED" />
+        <action android:name="android.app.action.NOTIFICATION_CHANNEL_GROUP_BLOCK_STATE_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.android.libraries.notifications.entrypoints.scheduled.ScheduledTaskService"
+             android:permission="android.permission.BIND_JOB_SERVICE"
+             android:exported="false" />
+    <receiver android:name="com.google.android.libraries.notifications.entrypoints.systemtray.SystemTrayBroadcastReceiver"
+              android:exported="false" />
+    <activity android:theme="@android:style/Theme.Translucent.NoTitleBar"
+              android:name="com.google.android.libraries.notifications.entrypoints.systemtray.SystemTrayActivity"
+              android:exported="false" />
+    <receiver android:name="com.google.android.libraries.notifications.platform.entrypoints.accountchanged.AccountChangedReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.accounts.LOGIN_ACCOUNTS_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.android.libraries.notifications.platform.entrypoints.firebase.FirebaseMessagingServiceImpl"
+             android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+    <receiver android:name="com.google.android.libraries.notifications.platform.entrypoints.localechanged.LocaleChangedReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.LOCALE_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="com.google.android.libraries.notifications.platform.entrypoints.restart.RestartReceiver"
+              android:enabled="false"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="com.google.android.libraries.notifications.platform.entrypoints.timezonechanged.TimezoneChangedReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="com.google.android.libraries.notifications.platform.entrypoints.update.UpdateReceiver"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.android.libraries.notifications.platform.executor.impl.GnpExecutorApiService"
+             android:exported="false" />
+    <provider android:name="com.google.android.libraries.notifications.platform.media.GnpFileProvider"
+              android:exported="false"
+              android:authorities="com.google.android.apps.books.chime_sdk_file_provider"
+              android:grantUriPermissions="true">
+      <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                 android:resource="@xml/chime_sdk_image_cache" />
+    </provider>
+    <activity android:theme="@android:style/Theme.Translucent.NoTitleBar"
+              android:name="com.google.android.libraries.onegoogle.accountmanagement.AddAccountActivity"
+              android:exported="false" />
+    <receiver android:name="com.google.android.libraries.performance.primes.transmitter.LifeboatReceiver"
+              android:exported="false"
+              android:process=":primes_lifeboat" />
+    <receiver android:name="com.google.android.libraries.phenotype.client.stable.AccountRemovedBroadcastReceiver"
+              android:exported="true"
+              android:process=""
+              android:directBootAware="false">
+      <intent-filter>
+        <action android:name="android.accounts.action.ACCOUNT_REMOVED" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="com.google.android.libraries.phenotype.client.stable.PhenotypeUpdateBackgroundBroadcastReceiver"
+              android:permission="com.google.android.gms.permission.PHENOTYPE_UPDATE_BROADCAST"
+              android:exported="true"
+              android:process="">
+      <intent-filter>
+        <action android:name="com.google.android.gms.phenotype.UPDATE" />
+      </intent-filter>
+    </receiver>
+    <meta-data android:name="com.google.android.play.billingclient.version"
+               android:value="9.1.0" />
+    <activity android:theme="@android:style/Theme.Translucent.NoTitleBar"
+              android:name="com.android.billingclient.api.ProxyBillingActivity"
+              android:exported="false"
+              android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
+    <activity android:theme="@android:style/Theme.Translucent.NoTitleBar"
+              android:name="com.android.billingclient.api.ProxyBillingActivityV2"
+              android:exported="false"
+              android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize" />
+    <activity android:theme="@style/Theme.Social.Licenses"
+              android:label="@string/preferences_license_title"
+              android:name="com.google.android.libraries.social.licenses.LicenseActivity"
+              android:exported="false" />
+    <activity android:theme="@style/SurveysTransparentActivity"
+              android:name="com.google.android.libraries.surveys.internal.view.SurveyActivity"
+              android:exported="false"
+              android:process="@string/survey_activity_process_name"
+              android:excludeFromRecents="true"
+              android:launchMode="singleTop"
+              android:configChanges="keyboardHidden|orientation|screenLayout|screenSize"
+              android:windowSoftInputMode="adjustResize">
+      <meta-data android:name="distractionOptimized"
+                 android:value="true" />
+    </activity>
+    <service android:name="android.net.http.MetaDataHolder"
+             android:enabled="false"
+             android:exported="false">
+      <meta-data android:name="android.net.http.EnableTelemetry"
+                 android:value="true" />
+    </service>
+    <service android:name="com.google.firebase.components.ComponentDiscoveryService"
+             android:exported="false">
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.datatransport.TransportRegistrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.iid.Registrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.storage.FirebaseStorageKtxRegistrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+      <meta-data android:name="com.google.firebase.components:com.google.firebase.storage.StorageRegistrar"
+                 android:value="com.google.firebase.components.ComponentRegistrar" />
+    </service>
+    <receiver android:name="com.google.firebase.iid.FirebaseInstanceIdReceiver"
+              android:permission="com.google.android.c2dm.permission.SEND"
+              android:exported="true">
+      <intent-filter>
+        <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.firebase.messaging.FirebaseMessagingService"
+             android:exported="false"
+             android:directBootAware="true">
+      <intent-filter android:priority="-500">
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+    <service android:name="androidx.room.MultiInstanceInvalidationService"
+             android:exported="false"
+             android:directBootAware="true" />
+    <uses-library android:name="androidx.window.extensions"
+                  android:required="false" />
+    <uses-library android:name="androidx.window.sidecar"
+                  android:required="false" />
+    <service android:name="androidx.work.impl.background.systemjob.SystemJobService"
+             android:permission="android.permission.BIND_JOB_SERVICE"
+             android:enabled="@bool/enable_system_job_service_default"
+             android:exported="true"
+             android:directBootAware="false" />
+    <service android:name="androidx.work.impl.foreground.SystemForegroundService"
+             android:enabled="@bool/enable_system_foreground_service_default"
+             android:exported="false"
+             android:directBootAware="false" />
+    <receiver android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
+              android:enabled="true"
+              android:exported="false"
+              android:directBootAware="false" />
+    <receiver android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
+              android:enabled="false"
+              android:exported="false"
+              android:directBootAware="false">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+      </intent-filter>
+    </receiver>
+    <receiver android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
+              android:permission="android.permission.DUMP"
+              android:enabled="true"
+              android:exported="true"
+              android:directBootAware="false">
+      <intent-filter>
+        <action android:name="androidx.work.diagnostics.REQUEST_DIAGNOSTICS" />
+      </intent-filter>
+    </receiver>
+    <service android:name="com.google.android.build.data.PropertiesServiceHolder"
+             android:enabled="false"
+             android:exported="false"
+             android:process="">
+      <intent-filter>
+        <action android:name="com.google.android.build.data.Properties" />
+      </intent-filter>
+      <meta-data android:name="com.google.android.build.data.properties"
+                 android:resource="@raw/build_data" />
+    </service>
+  </application>
+</manifest>

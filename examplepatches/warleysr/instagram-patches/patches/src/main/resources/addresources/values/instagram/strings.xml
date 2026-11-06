@@ -1,0 +1,11 @@
+<resources>
+    <!-- Keep screen on while playing video -->
+    <string name="piko_keep_screen_on_while_playing">Keep screen on while playing video</string>
+    <string name="piko_keep_screen_on_while_playing_summary">Keeps the screen on while a video is playing in the feed, stories and other places</string>
+
+    <!-- Carousel auto scroll -->
+    <string name="piko_carousel_auto_scroll_enabled">Carousel auto scroll enabled</string>
+    <string name="piko_carousel_auto_scroll_disabled">Carousel auto scroll disabled</string>
+    <string name="piko_carousel_auto_scroll_on">Carousel auto scroll: on</string>
+    <string name="piko_carousel_auto_scroll_off">Carousel auto scroll: off</string>
+</resources>

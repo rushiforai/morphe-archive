@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Releases use date-based versions (1.yy.mm.dd.hhmm, betas end in -beta).
+      # Only the main and dev branches publish releases. See .github/scripts/release.sh.
+      - name: Release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/release.sh
+
+      - name: Attest
+        # Build attestations are only available for public repositories.
+        if: steps.release.outputs.published == 'true' && !github.event.repository.private
+        continue-on-error: true
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'OrangeTree Patches ${{ steps.release.outputs.tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Always verify compilation when no release was published.
+      - name: Verify project compiles
+        if: steps.release.outputs.published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

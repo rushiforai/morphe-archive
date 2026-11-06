@@ -1,3 +1,32 @@
+## [1.12.0](https://github.com/amfakh/fakh-patches/compare/v1.11.6...v1.12.0) (2026-11-06)
+
+### ✨ New Features
+
+* **FlipSide:** add Premium unlock for version 1.6, which unlocks every locked feature with no trial limit ([f109f3b](https://github.com/amfakh/fakh-patches/commit/f109f3b37f85a0c31031d2a4bc1bd032b96a2cdc))
+* **DoDo Music:** all patches now work on version 2.0.17 ([be80325](https://github.com/amfakh/fakh-patches/commit/be803250f2675d52842a30b61f140b6de78299d6))
+
+### 🐛 Bug Fixes
+
+* **Smart Life, Tuya Smart, BARDI:** log why the app closes after opening, to help track down the integrity error some phones still get ([b6dd5de](https://github.com/amfakh/fakh-patches/commit/b6dd5de0326f69362856077fd9ddafe6baa8f83d))
+
+## [1.11.6](https://github.com/amfakh/fakh-patches/compare/v1.11.5...v1.11.6) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **Smart Life, Tuya Smart, BARDI:** the app no longer closes a few seconds after opening when its integrity check still rejects the patched signature ([8b802cb](https://github.com/amfakh/fakh-patches/commit/8b802cb948a0b38b616f43812281212696dff7cc))
+
+## [1.11.5](https://github.com/amfakh/fakh-patches/compare/v1.11.4...v1.11.5) (2026-11-05)
+
+### ✨ New Features
+
+* **Tuya Smart:** all patches now work on version 7.12.6-872 ([0424bc5](https://github.com/amfakh/fakh-patches/commit/0424bc5688ceeef01f5bfb6fa8674d71354a4826))
+
+## [1.11.4](https://github.com/amfakh/fakh-patches/compare/v1.11.3...v1.11.4) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** Material You now recolors the red message badge in the top bar ([d9149f3](https://github.com/amfakh/fakh-patches/commit/d9149f30355559dffadd005ffbda0c3de61a96a7))
+
 ## [1.11.3](https://github.com/amfakh/fakh-patches/compare/v1.11.2...v1.11.3) (2026-11-05)
 
 ### 🐛 Bug Fixes

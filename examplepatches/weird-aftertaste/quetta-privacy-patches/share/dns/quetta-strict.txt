@@ -1,0 +1,21 @@
+# strict tier: also silences settings/sync/push/update. Feature cost noted per line.
+f.quetta.net            # site favicons go blank
+qt.quetta.net           # start page suggestions/popular sites
+ai.quetta.net           # server-side video sniffing
+go.quetta.net           # share links
+feedback.quetta.net     # in-app feedback/report
+feedback-test.quetta.net
+account.quetta.net      # sign-in / sync / QR login
+online-sync.quetta.net
+test-sync.quetta.net
+update.quetta.net       # component + adblock list updates
+firebaseinstallations.googleapis.com   # Firebase install ID (breaks push)
+fcmregistrations.googleapis.com        # push registration (breaks notifications)
+firebaseperusertopics-pa.googleapis.com
+beacons.gvt2.com        # connectivity probes
+beacons2.gvt2.com
+beacons3.gvt2.com
+beacons4.gvt2.com
+beacons5.gvt2.com
+beacons.gcp.gvt2.com
+beacons5.gvt3.com

@@ -1,0 +1,197 @@
+name: Sort Uploads
+
+# Trabaja directo sobre la rama en la que se suben los archivos (en este proyecto, main). No abre pull requests.
+# Corre solo cuando se suben archivos a "Drop-Files" en main. También se puede lanzar a mano (Actions > Sort Uploads > Run workflow).
+# Cuando termina de colocar los archivos sin problemas, lanza solo el workflow Release.
+# Si hay un ZIP en "Drop-Files", lo abre, lo borra y coloca su contenido PISANDO lo que ya existe:
+#    - los archivos sueltos del ZIP (sin carpeta) se ordenan como siempre: por ROUTES.txt o por nombre.
+#    - los archivos que vienen con carpeta se copian a esa ruta.
+#    - se salta .github/workflows, que GitHub no deja tocar a un robot.
+# Si hay un "Drop-Files/DELETE.txt" (una ruta por línea), borra esos archivos del repositorio.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Drop-Files/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sort-uploads
+  cancel-in-progress: false
+
+jobs:
+  ordenar:
+    name: Sort uploaded files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar rama
+        id: rama
+        env:
+          ACTUAL: ${{ github.ref_name }}
+        run: |
+          echo "nombre=$ACTUAL" >> "$GITHUB_OUTPUT"
+
+      - name: Mover archivos
+        id: mover
+        env:
+          RAMA: ${{ steps.rama.outputs.nombre }}
+        run: |
+          set -u
+          INBOX=Drop-Files
+          ROUTES="$INBOX/ROUTES.txt"
+          DELETE="$INBOX/DELETE.txt"
+          movidos=0
+          borrados=0
+          pendientes=0
+          hubo_zip=0
+          : > /tmp/informe.md
+
+          # Abrir los ZIP: lo que viene suelto (sin carpeta) pasa a Drop-Files para ordenarlo abajo;
+          # lo que viene con carpeta se copia a su ruta. Siempre pisa lo que ya existe. Luego se borra el ZIP.
+          for z in "$INBOX"/*.zip; do
+            [ -f "$z" ] || continue
+            zname=$(basename "$z")
+            rm -rf /tmp/zipx && mkdir /tmp/zipx
+            if ! unzip -q -o "$z" -d /tmp/zipx; then
+              echo "- \`$zname\`: no se pudo abrir el ZIP." >> /tmp/informe.md
+              pendientes=1; continue
+            fi
+            rm -rf /tmp/zipx/__MACOSX
+            find /tmp/zipx -name '.DS_Store' -delete
+            raiz=/tmp/zipx
+            n_dirs=$(find /tmp/zipx -mindepth 1 -maxdepth 1 -type d | wc -l)
+            n_files=$(find /tmp/zipx -mindepth 1 -maxdepth 1 -type f | wc -l)
+            if [ "$n_dirs" -eq 1 ] && [ "$n_files" -eq 0 ]; then
+              unica=$(find /tmp/zipx -mindepth 1 -maxdepth 1 -type d)
+              # Solo se quita la carpeta envoltorio si no es una carpeta del proyecto (ej. "patches")
+              if [ ! -e "$(basename "$unica")" ]; then
+                raiz="$unica"
+              fi
+            fi
+            sueltos=0
+            conruta=0
+            while IFS= read -r -d '' rel; do
+              rel=${rel#./}
+              case "$rel" in "$INBOX"/*|.git/*|.github/workflows/*|/*|*..*) continue;; esac
+              case "$rel" in
+                */*)
+                  mkdir -p "$(dirname "$rel")"
+                  cp -p "$raiz/$rel" "$rel"
+                  conruta=$((conruta+1));;
+                *)
+                  cp -p "$raiz/$rel" "$INBOX/$rel"
+                  sueltos=$((sueltos+1));;
+              esac
+            done < <(cd "$raiz" && find . -type f -print0)
+            rm -f "$z"
+            hubo_zip=1
+            movidos=$((movidos+conruta))
+            echo "- ZIP \`$zname\`: abierto y borrado. $sueltos archivos sueltos para ordenar y $conruta copiados a su carpeta. \`.github/workflows\` se omite: súbelo a mano." >> /tmp/informe.md
+          done
+          [ -f gradlew ] && chmod +x gradlew
+
+          # Borrar los archivos listados en DELETE.txt (una ruta por línea; # = comentario)
+          if [ -f "$DELETE" ]; then
+            while IFS= read -r linea || [ -n "$linea" ]; do
+              ruta=$(printf '%s' "$linea" | tr -d '\r' | sed 's/^[ \t]*//; s/[ \t]*$//')
+              case "$ruta" in ""|"#"*) continue;; esac
+              case "$ruta" in /*|*..*|.git|.git/*|.github|.github/*|LICENSE|NOTICE|"$INBOX"|"$INBOX"/*)
+                echo "- borrar \`$ruta\`: ruta no permitida." >> /tmp/informe.md
+                pendientes=1; continue;;
+              esac
+              if [ -f "$ruta" ]; then
+                git rm -q -- "$ruta" 2>/dev/null || rm -f -- "$ruta"
+                echo "- borrado \`$ruta\`" >> /tmp/informe.md
+                borrados=$((borrados+1))
+              else
+                echo "- borrar \`$ruta\`: no existe o no es un archivo." >> /tmp/informe.md
+                pendientes=1
+              fi
+            done < "$DELETE"
+            rm -f "$DELETE"
+          fi
+
+          for f in "$INBOX"/*; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            case "$name" in PLACEHOLDER.md|ROUTES.txt|DELETE.txt|*.zip) continue;; esac
+
+            dest=""
+            # 1) Ruta indicada a mano en ROUTES.txt (formato: Nombre.kt = ruta/completa/Nombre.kt)
+            if [ -f "$ROUTES" ]; then
+              dest=$(awk -F'=' -v n="$name" '{k=$1; gsub(/^[ \t]+|[ \t\r]+$/,"",k); if(k==n){sub(/^[^=]*=[ \t]*/,""); gsub(/[ \t\r]+$/,""); print; exit}}' "$ROUTES")
+            fi
+            # 2) Si no hay, buscar un archivo con ese nombre en el repositorio
+            if [ -z "$dest" ]; then
+              matches=$(find . -type f -name "$name" -not -path './.git/*' -not -path "./$INBOX/*" -not -path '*/build/*')
+              count=$(printf '%s' "$matches" | grep -c . || true)
+              if [ "$count" -eq 1 ]; then
+                dest="${matches#./}"
+              elif [ "$count" -eq 0 ]; then
+                echo "- \`$name\`: no existe en el repositorio. Añade una línea a \`Drop-Files/ROUTES.txt\`: \`$name = ruta/completa/$name\`" >> /tmp/informe.md
+                pendientes=1; continue
+              else
+                echo "- \`$name\`: hay $count archivos con ese nombre y no sé cuál es. Añade su ruta a \`Drop-Files/ROUTES.txt\`. Opciones:" >> /tmp/informe.md
+                printf '%s\n' "$matches" | sed 's/^\.\//    - `/; s/$/`/' >> /tmp/informe.md
+                pendientes=1; continue
+              fi
+            fi
+
+            # Seguridad: la ruta debe ser relativa y no salir del repositorio
+            case "$dest" in /*|*..*|.git/*|.github/*)
+              echo "- \`$name\`: ruta no permitida (\`$dest\`)." >> /tmp/informe.md
+              pendientes=1; continue;;
+            esac
+
+            mkdir -p "$(dirname "$dest")"
+            mv "$f" "$dest"
+            echo "- \`$name\` → \`$dest\`" >> /tmp/informe.md
+            movidos=$((movidos+1))
+          done
+
+          # Si no queda nada pendiente, borrar también ROUTES.txt
+          if [ "$pendientes" -eq 0 ] && [ -f "$ROUTES" ]; then rm "$ROUTES"; fi
+
+          # Se sube todo lo que haya cambiado (incluido el ZIP borrado), aunque no se haya movido nada.
+          git add -A
+          if ! git diff --cached --quiet; then
+            # chore = no crea versión (carga de plantilla). fix = crea una pre-versión al compilar.
+            if [ "$hubo_zip" -eq 1 ]; then
+              MSG="chore: cargar archivos del ZIP subido"
+            else
+              MSG="fix: colocar archivos subidos y borrar los indicados"
+            fi
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "$MSG"
+            git pull --rebase --autostash origin "$RAMA"
+            git push origin "HEAD:refs/heads/$RAMA"
+          fi
+
+          [ -s /tmp/informe.md ] || echo "- No había archivos nuevos en Drop-Files." >> /tmp/informe.md
+          {
+            echo "## Archivos subidos"
+            cat /tmp/informe.md
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "movidos=$((movidos+borrados))" >> "$GITHUB_OUTPUT"
+          echo "pendientes=$pendientes" >> "$GITHUB_OUTPUT"
+
+      - name: Avisar si algo quedó pendiente
+        if: steps.mover.outputs.pendientes == '1'
+        run: |
+          echo "::error::Algunos archivos no se pudieron colocar. Abre este resumen para ver cuáles y qué hacer."
+          exit 1
+
+      - name: Lanzar Release
+        if: steps.mover.outputs.movidos != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RAMA: ${{ steps.rama.outputs.nombre }}
+        run: gh workflow run release.yml --ref "$RAMA"

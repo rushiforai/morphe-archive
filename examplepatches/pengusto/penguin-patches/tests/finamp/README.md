@@ -6,12 +6,13 @@ Output is ARM64 only. See [the user guide](../../docs/FINAMP_NATIVE.md).
 
 Bits: 1 = title validation, 2 = song artist order, 4 = artist-page loading,
 8 = offline performing-artist filtering, 16 = Tracks alphabet navigation,
-32 = player output access, 64 = quick-settings banner contrast.
+32 = player output access, 64 = quick-settings banner contrast,
+128 = album and track information with downloaded descriptions.
 Every nonempty combination has its own delta against the original snapshot.
 The [source matrix](native-sources.json) pins complete MPL-2.0 source
 trees; it is not a set of patches against current Finamp redesign.
 
-The current matrix has 127 nonempty selections. Historical 1.1.0 reports below
+The current matrix has 255 nonempty selections. Historical 1.1.0 reports below
 cover seven selections; use that tag's scripts to reproduce its exact bundle.
 Current reviewed Artist acceptance is documented in `README-artist-review.md`.
 Player/UI acceptance remains in `README-ui-fixes.md` and
@@ -29,7 +30,7 @@ python3 -B tests/finamp/validate_bundle.py --bundle "$MPP" \
   --report .scratch/finamp/bundle-verification.json
 ```
 
-This replays all 127 payloads, checks source pins, output sizes/hashes, Dart
+This replays all 255 payloads, checks source pins, output sizes/hashes, Dart
 snapshot compatibility and compiled feature markers. The manual Release workflow
 runs it before publishing a bundle. APKs and signing keys are never committed
 or included in the MPP.
@@ -46,10 +47,13 @@ recorded source trees. Their new public
 has 128 parents, one complete source commit per selection in mask order. This
 uses one reference rather than recreating the removed per-mask branches.
 
-Clone the ref into `FINAMP_SOURCE`, then verify its graph and every tree pin:
+Use the existing Finamp checkout as `FINAMP_SOURCE`. Fetch both published
+aggregate refs and verify their graphs and every tree pin:
 
 ```sh
-git clone --branch penguin/finamp-1.0.1-asyncvalue-bundle https://github.com/pengusto/finamp.git "$FINAMP_SOURCE"
+git -C "$FINAMP_SOURCE" fetch origin \
+  refs/heads/penguin/finamp-1.0.1-asyncvalue-bundle:refs/heads/penguin/finamp-1.0.1-asyncvalue-bundle \
+  refs/heads/penguin/finamp-1.0.1-notes-bundle:refs/heads/penguin/finamp-1.0.1-notes-bundle
 python3 -B tests/finamp/verify_source_graph.py --repo "$FINAMP_SOURCE" \
   --source-matrix tests/finamp/native-sources.json \
   --source-diff docs/patches/finamp-1.0.1-artist-asyncvalue.patch
@@ -62,16 +66,20 @@ rebuilding its source are separate operations.
 Run from the Penguin repository root:
 
 ```sh
+git -C "$FINAMP_SOURCE" worktree add --detach "$FINAMP_SOURCE/.worktrees/native-build" \
+  penguin/finamp-1.0.1-notes-bundle
 python3 -B tests/finamp/build_native_payloads.py \
-  --source-repo "$FINAMP_SOURCE" --source-matrix tests/finamp/native-sources.json \
+  --source-repo "$FINAMP_SOURCE" --source-worktree "$FINAMP_SOURCE/.worktrees/native-build" \
+  --source-matrix tests/finamp/native-sources.json \
   --flutter "$FLUTTER/bin/flutter" --original-apk "$FINAMP_APK" \
   --strip "$LLVM_STRIP" --work-dir "$PWD/.scratch/finamp/native-build"
 ```
 
-The builder owns a separate checkout under its work directory, enforces the
+Exclude `.worktrees/` in the source checkout's `.git/info/exclude` first. The
+builder uses the explicitly provided detached worktree, enforces the
 committed dependency lock, generates translations, compiles and strips the
 snapshot, then verifies a delta replay. It replaces the production manifest only
-after all 127 masks complete. `--masks 2` defaults to private partial output;
+after all 255 masks complete. `--masks 2` defaults to private partial output;
 partial runs cannot write into production resources. Use `--output` for a
 separate full exploratory rebuild too.
 

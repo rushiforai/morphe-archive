@@ -242,11 +242,11 @@ public final class CommentTools {
     }
 
     private static final String POLL_HOOK_FAMILY = "comment polls";
-    private static final String[] DISLIKE_BUTTON_IDS = {"47.6.3:k1e"};
+    private static final String[] DISLIKE_BUTTON_IDS = {"47.7.2:k2g"};
 
     /** One log line for a cell with no thumbs down, not a verdict on the build. */
     private static boolean warnedNoDislikeControl;
-    private static final String[] DISLIKE_ICON_IDS = {"47.6.3:mn5"};
+    private static final String[] DISLIKE_ICON_IDS = {"47.7.2:mof"};
     private static final String[] LIKE_COUNT_IDS = {"tv_like_count"};
     /**
      * Faded enough to read as blocked, still readable. At 0.35 the comment text dropped to about
@@ -1239,7 +1239,8 @@ public final class CommentTools {
             new java.util.concurrent.ConcurrentHashMap<>();
 
     /* Classes the bind handed over as the comment itself rather than as a holder of one. */
-    private static final Set<Class<?>> COMMENT_TYPES = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final Set<Class<?>> COMMENT_TYPES =
+            Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Class<?>, Boolean>());
 
     /**
      * The bound comment: the object itself when it answers to {@code getCid} and {@code getUser}

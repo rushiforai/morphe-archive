@@ -25,6 +25,9 @@ final class PatchStatusRequirements {
                 "linimal.patch.settings-entry"));
         requirements.put("linimal.premium", ids("linimal.patch.premium-unsend"));
         requirements.put("linimal.premium-settings-row", ids("linimal.patch.premium-settings-row"));
+        requirements.put("linimal.premium-preview-promotion",
+                ids("linimal.patch.premium-preview-promotion"));
+        requirements.put("linimal.preview-scroll", ids("linimal.patch.preview-scroll"));
         requirements.put("linimal.external-browser", ids("linimal.patch.external-browser-chat-text-link"));
         requirements.put("linimal.push-notifications", ids("linimal.patch.fis-certificate-header"));
         requirements.put("linimal.google-drive-backup",
@@ -80,6 +83,7 @@ final class PatchStatusRequirements {
         requirements.put("linimal.read-without-receipt", ids(
                 "linimal.patch.read-without-receipt-menu-label-resource",
                 "linimal.patch.read-without-receipt-compose-menu-row",
+                "linimal.patch.read-without-receipt-preview-menu-row",
                 "linimal.patch.read-without-receipt-mark-as-read-block",
                 "linimal.patch.read-without-receipt-local-read-block",
                 "linimal.patch.read-without-receipt-session",

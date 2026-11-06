@@ -319,6 +319,8 @@ Hide Threads cards between reels	Скрывать карточки Threads ме�
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Скрывает карточку «Возможно, вам понравится в Threads» между Reels. По умолчанию выключено, поскольку функция еще не проверялась на реальном аккаунте.
 Only reels from accounts I follow	Только Reels от аккаунтов, на которые я подписан
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	На вкладке Reels остаются только ролики людей и Страниц, на которые вы подписаны, начиная со следующей порции, которую загрузит Facebook. Вкладка может заполняться дольше. По умолчанию выключено.
+Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	У Facebook больше нет роликов, которые оставили бы ваши фильтры, поэтому пока эти ролики не фильтруются.
+Hush hid the suggested posts after this, so Home ends here.	Hush скрыл рекомендованные публикации после этого места, поэтому лента «Главная» заканчивается здесь.
 Download quality	Качество скачивания
 Best	Наилучшее
 Smallest	Минимальный размер
@@ -881,7 +883,7 @@ Holding a video in the feed or in Watch plays it at double speed until you let g
 Locked at 2x. Tap the video to go back.	Скорость 2x закреплена. Нажмите на видео, чтобы вернуть прежнюю.
 Hide the pull down to lock hint	Скрывать подсказку о блокировке скорости свайпом вниз
 Hide the 2x popups	Скрывать всплывающие подсказки 2x
-Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	При удержании видео для скорости 2x подсказка не появляется совсем: ни «Скорость: 2x», ни «Отпустите, чтобы зафиксировать», ни «Зафиксирована скорость 2x». Удержание и фиксация по-прежнему работают.
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed", and feed videos drop the "2x speed" tip. The hold and the lock still work.	При удержании видео для скорости 2x подсказка не появляется совсем: ни «Скорость: 2x», ни «Отпустите, чтобы зафиксировать», ни «Зафиксирована скорость 2x», а видео в ленте больше не показывают подсказку «Скорость 2x». Удержание и фиксация по-прежнему работают.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	При удержании видео на скорости 2x показывается только значок 2x без подсказки «Проведите вниз, чтобы зафиксировать скорость 2x». Свайп вниз по-прежнему фиксирует скорость. Работает независимо от переключателей выше.
 Default playback quality	Качество воспроизведения по умолчанию
@@ -2193,6 +2195,15 @@ Cast button on feed videos	Кнопка трансляции для видео �
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Добавляет кнопку трансляции к видео в Ленте. Она передает видео в установленное приложение для трансляции, например Web Video Caster, которое отправляет его на телевизор. В Facebook больше нет собственной функции трансляции.
 Cast this video	Транслировать это видео
 Full player button on feed videos	Кнопка полного плеера для видео в Ленте
+Skip buttons on feed videos	Кнопки перемотки для видео в Ленте
+Speed button on feed videos	Кнопка скорости для видео в Ленте
+Times on the seek bar	Время на полосе перемотки
+Back 10 seconds	Назад на 10 секунд
+Ahead 10 seconds	Вперёд на 10 секунд
+Playback speed	Скорость воспроизведения
+Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Добавляет к видео в Ленте кнопки, которые перематывают на 10 секунд назад или вперёд, как в собственном плеере Facebook. Для прямых эфиров и рекламы остаются собственные элементы управления. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Добавляет к видео в Ленте кнопку, которая показывает скорость. Каждое нажатие переключает на следующую: 1x, 1.25x, 1.5x, 2x, затем 0.5x. Для прямых эфиров и рекламы остаются собственные элементы управления. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Показывает на левом конце полосы перемотки видео в Ленте, сколько уже просмотрено, а на правом, сколько осталось. Нужна включённая «Полоса перемотки для видео в Ленте».
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Добавляет к видео в Ленте кнопку, которая открывает видео в полном плеере Facebook со всеми его элементами управления. Прямые эфиры тоже ее получают. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Открывать полноэкранные видео по центру
@@ -2201,6 +2212,10 @@ Videos you open full screen, from a comment or a link, start with their details 
 Open in the full player	Открыть в полном плеере
 Seek bar on feed videos	Полоса перемотки для видео в Ленте
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Показывает внизу видео в Ленте полосу перемотки. Перетащите ползунок и отпустите, чтобы перейти к нужному моменту. Для прямых эфиров и рекламы остаются собственные элементы управления. Если включено воспроизведение по нажатию, необходимо также включить встроенные элементы управления видео в Ленте.
+Fade the seek bar and speaker	Приглушать полосу перемотки и кнопку звука
+Lower the seek bar and speaker	Опустить полосу перемотки и кнопку звука
+While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Пока видео в Ленте воспроизводится, его полоса перемотки и кнопка звука Facebook становятся бледнее через несколько секунд после начала или после последнего касания. Коснитесь полосы или поставьте видео на паузу, и они вернутся. Нужна включённая «Полоса перемотки для видео в Ленте».
+Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Опускает полосу перемотки видео в Ленте ближе к нижнему краю вместе с кнопками звука и отмеченных людей Facebook. Нужна включённая «Полоса перемотки для видео в Ленте».
 Feed video position	Позиция видео в Ленте
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Цвет значков
@@ -2531,8 +2546,12 @@ Restore feed sound after opened videos	Возвращать звук Ленты 
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Открытое видео воспроизводится со звуком как обычно. После возврата в Ленту звук будет таким же, как до открытия видео, даже после долгого просмотра.
 Hide the Join button on posts	Скрывать кнопку «Вступить» в публикациях
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Скрывает кнопку «Вступить» рядом с названием группы в публикациях из групп, в которые вы не вступили, а также панель «Вступить в группу» под их видео. Изменение видно в публикациях, загруженных после него.
+Hide the X on posts	Скрывать крестик в публикациях
+Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	Убирает крестик из верхнего угла публикаций в ленте. Меню с тремя точками рядом остаётся. Изменение видно в публикациях, загруженных после него.
 Hide the Reels title	Скрывать заголовок Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Убирает слово Reels в верхней части вкладки Reels. Кнопки рядом остаются.
+Hide Back on opened videos	Скрывать «Назад» у открытых видео
+Takes the Back arrow off the top of a video or reel you open, and Menu off the top of the Reels tab. Your phone's back gesture or button still goes back.	Убирает стрелку «Назад» в верхней части открытого видео или Reels и кнопку «Меню» вверху вкладки Reels. Жест или кнопка «Назад» на телефоне по-прежнему работает.
 Videos in search results wait for a tap	Видео в результатах поиска ждут нажатия
 Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	Видео в результатах поиска не запускаются сами. Нажмите на видео, чтобы его включить. Работает при включенной и выключенной функции «Нажать для воспроизведения».
 Custom color	Свой цвет
@@ -2580,9 +2599,20 @@ A tap in the middle of a story shows a play and pause button, like Reels. Taps o
 Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Истории переключаются только двойным нажатием, слева на предыдущую, в любом другом месте на следующую. Одиночное нажатие ставит Историю на паузу или продолжает её, либо показывает кнопку воспроизведения, если она включена.
 Pause story	Приостановить Историю
 Play story	Воспроизвести Историю
+Replay story	Воспроизвести Историю снова
 Hide song and effect credits	Скрыть подписи песни и эффекта
 Hide reply suggestions	Скрыть варианты ответа
 Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Убирает подписи песни и эффекта из строки под именем автора Истории. Действует со следующей открытой Истории.
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Убирает ряд предложенных ответов внизу Истории. Поле ответа остаётся. Действует со следующей открытой Истории.
+Hide the Subscribe button	Скрыть кнопку «Подписаться»
+Takes the Subscribe button off the top of a story. Applies from the next story you open.	Убирает кнопку «Подписаться» вверху Истории. Действует со следующей открытой Истории.
 Progress bar at the bottom	Полоса прогресса внизу
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Показывает внизу Истории тонкую полосу, которая заполняется по мере воспроизведения, как в Reels.
+Seek bar on stories	Полоса перемотки в Историях
+Fade the story seek bar	Приглушать полосу перемотки Историй
+Story position	Позиция в Истории
+Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Показывает внизу видеоистории полосу, которую можно тянуть, чтобы перемещаться по ней. Пока вы тянете, История ждёт. «Полоса прогресса внизу» уступает ей место в видеоисториях.
+With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	Когда включена «Полоса перемотки в Историях», полоса становится бледнее через несколько секунд после начала Истории или после последнего касания. Касание или пауза возвращают её.
+Clean mode	Чистый режим
+Clean mode button on reels	Кнопка чистого режима в Reels
+Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Добавляет кнопку чистого режима к кнопкам сбоку от Reels. Нажмите ее, чтобы скрыть их, и чистый режим останется включенным при пролистывании. Собственная кнопка чистого режима Facebook возвращает их.

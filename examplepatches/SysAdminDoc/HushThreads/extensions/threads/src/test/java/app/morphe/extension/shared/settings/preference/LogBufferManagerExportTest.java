@@ -271,6 +271,31 @@ public class LogBufferManagerExportTest {
         }
     }
 
+    /**
+     * A kept crash's header comes out as it was written: the redactor read the digit runs in the
+     * patch build's hashes as content ids. What follows the header is still redacted.
+     */
+    @Test public void aKeptCrashKeepsItsBuildLinesWhole() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        app.morphe.extension.shared.settings.BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        LogBufferManager.clearLogBuffer();
+        String build = "patch_build: sha256=1234567890123456789" + "abcdef".repeat(7) + "abc"
+                + "; source=clean:1234567890123456" + "abcdef".repeat(4) + "; tree=" + "f".repeat(40)
+                + "; inputs=" + "e".repeat(64) + "\n";
+        String header = "schema: 1\ncomplete: true\napp_version_code: 454054079\n" + build;
+        LogBufferManager.persistCrashReport(context,
+                header + "exception: java.lang.IllegalStateException\nlost post 1234567890123456789 again\n");
+        try {
+            String report = LogBufferManager.buildExportText();
+            assertTrue(report, report.contains("[LATEST JAVA CRASH]\n" + header));
+            assertTrue("the content id after the header stayed: " + report,
+                    report.indexOf("lost post 1234567890123456789 again") < 0);
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
     /** MediaStore's Downloads table, as much of it as an export touches. */
     public static final class Downloads extends ContentProvider {
         private final Map<Long, ContentValues> rows = new HashMap<>();

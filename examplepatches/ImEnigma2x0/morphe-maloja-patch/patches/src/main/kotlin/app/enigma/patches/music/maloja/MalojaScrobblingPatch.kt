@@ -1,6 +1,7 @@
 package app.enigma.patches.music.maloja
 
 import app.enigma.patches.music.maloja.Constants.COMPATIBILITY_YOUTUBE_MUSIC
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 
 private const val EXTENSION_CLASS = "Lapp/enigma/extension/music/maloja/MalojaPatch;"
@@ -19,6 +20,13 @@ val malojaScrobblingPatch = bytecodePatch(
     extendWith("extensions/maloja.mpe")
 
     execute {
+        // Starts the pending scrobble queue and the offline player listener at launch, since
+        // the app may never touch its own media session while only downloads are played.
+        MusicActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static { }, $EXTENSION_CLASS->onActivityCreated()V"
+        )
+
         MediaSessionSetPlaybackStateFingerprint.hookMediaSessionArgument(
             "$EXTENSION_CLASS->onSetPlaybackState(Landroid/media/session/PlaybackState;)V"
         )

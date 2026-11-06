@@ -30,6 +30,10 @@ class DexSiteContractTest {
     fun eachBuildAcceptsOnlyItsOwnInstructionSites() {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), expectedDexSitesByBuild.keys)
         validateDexSites(expectedDexSites347215348.toList(), expectedDexSitesFor("347215348"))
+        validateDexSites(expectedDexSites347215341.toList(), expectedDexSitesFor("347215341"))
+        // 586's two builds load the same permissions under other names, so neither build's sites pass for the other.
+        assertFailsWith<PatchException> { validateDexSites(expectedDexSites347215348.toList(), expectedDexSitesFor("347215341")) }
+        assertFailsWith<PatchException> { validateDexSites(expectedDexSites347215341.toList(), expectedDexSitesFor("347215348")) }
         val sites = expectedDexSitesByBuild + (347215349 to otherSites)
         validateDexSites(otherSites.toList(), expectedDexSitesFor("347215349", sites))
         assertFailsWith<PatchException> { validateDexSites(otherSites.toList(), expectedDexSitesFor("347215348", sites)) }

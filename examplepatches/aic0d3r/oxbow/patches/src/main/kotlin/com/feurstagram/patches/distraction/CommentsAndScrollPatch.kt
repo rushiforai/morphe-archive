@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -130,18 +131,23 @@ val commentsAndScrollPatch = bytecodePatch(
                     // iput-boolean only takes 4-bit registers: from a high one, work on a copy in v1.
                     val obj = if (reg > 15) 1 else reg
                     val copy = if (reg > 15) "move-object/from16 v$obj, v$reg" else ""
+                    // 454 branches straight to this return (a Systrace `if-eqz`), and labels stay on
+                    // the instruction they point at: so the return itself becomes the hook's first
+                    // instruction and a fresh return follows it.
+                    val at = ret.location.index
+                    method.replaceInstruction(at, "invoke-static { }, $CONFIG_CLASS->isCommentsBlocked()Z")
                     method.addInstructionsWithLabels(
-                        ret.location.index,
+                        at + 1,
                         """
-                            invoke-static { }, $CONFIG_CLASS->isCommentsBlocked()Z
                             move-result v$tmp
                             if-eqz v$tmp, :keep
                             const/4 v$tmp, 0x0
                             $copy
                             iput-boolean v$tmp, v$obj, $commentsEnabled
                             iput-boolean v$tmp, v$obj, $commentCount
+                            :keep
+                            return-object v$reg
                         """,
-                        ExternalLabel("keep", ret),
                     )
                 }
                 builders++
@@ -179,17 +185,40 @@ val commentsAndScrollPatch = bytecodePatch(
                         (gotoInsn as com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction).codeOffset
                 }
                 if (mergeIdx < 0) throw PatchException("Reels comment state: merge target not found")
+                // 454 branches straight to the new-instance (count <= 0 and others), and labels
+                // stay on the instruction they point at: the new-instance itself becomes the
+                // hook's first instruction and is re-emitted after it. 454 also changed which
+                // singleton is which: the one just before the new-instance is the count-less
+                // button (count <= 0), the hidden state is the one the log line is followed by.
+                // Cover both: the new-instance, then (lower index, so second) the count-less load.
+                val hiddenAt = (log until newAt).first { insns[it].opcode == Opcode.SGET_OBJECT }
+                val hidden = insns[hiddenAt].getReference<FieldReference>()!!
+                val stateType = newInsn.getReference<TypeReference>()!!.type
+                replaceInstruction(newAt, "invoke-static { }, $CONFIG_CLASS->isCommentsBlocked()Z")
                 addInstructionsWithLabels(
-                    newAt,
+                    newAt + 1,
                     """
-                        invoke-static { }, $CONFIG_CLASS->isCommentsBlocked()Z
                         move-result v$stateReg
                         if-eqz v$stateReg, :oxbow_keep
-                        sget-object v$stateReg, $singleton
+                        sget-object v$stateReg, $hidden
                         goto :oxbow_merge
+                        :oxbow_keep
+                        new-instance v$stateReg, $stateType
                     """,
-                    ExternalLabel("oxbow_keep", insns[newAt]),
                     ExternalLabel("oxbow_merge", insns[mergeIdx]),
+                )
+                replaceInstruction(newAt - 2, "invoke-static { }, $CONFIG_CLASS->isCommentsBlocked()Z")
+                addInstructionsWithLabels(
+                    newAt - 1,
+                    """
+                        move-result v$stateReg
+                        if-eqz v$stateReg, :oxbow_count_less
+                        sget-object v$stateReg, $hidden
+                        goto :oxbow_after
+                        :oxbow_count_less
+                        sget-object v$stateReg, $singleton
+                    """,
+                    ExternalLabel("oxbow_after", insns[newAt - 1]),
                 )
             } else {
                 val hiddenAt = (log until insns.size).first { insns[it].opcode == Opcode.SGET_OBJECT }

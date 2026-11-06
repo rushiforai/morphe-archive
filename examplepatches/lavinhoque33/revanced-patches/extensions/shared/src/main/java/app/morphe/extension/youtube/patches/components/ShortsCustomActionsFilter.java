@@ -1,0 +1,233 @@
+/*
+ * Copyright (C) 2026 anddea
+ *
+ * This file is part of the revanced-patches project:
+ * https://github.com/anddea/revanced-patches
+ *
+ * Original author(s):
+ * - anddea (https://github.com/anddea)
+ * - Hoàng Gia Bảo (https://github.com/YT-Advanced)
+ * - inotia00 (https://github.com/inotia00)
+ * - Francesco Marastoni (https://github.com/Francesco146)
+ *
+ * Licensed under the GNU General Public License v3.0.
+ *
+ * ------------------------------------------------------------------------
+ * GPLv3 Section 7 – Additional Terms & Attribution Requirements
+ * ------------------------------------------------------------------------
+ *
+ * This file contains substantial original work by the author(s) listed above.
+ *
+ * In accordance with Section 7 of the GNU General Public License v3.0,
+ * the following additional terms apply to this file:
+ *
+ * 1. Source Credit Preservation (Section 7(b)): This specific copyright notice
+ *    and the list of original authors above must be preserved in any copy
+ *    or derivative work. You may add your own copyright notice below it,
+ *    but you may not remove the original one.
+ *
+ * 2. Origin & Modification Marking (Section 7(c)): Modified versions must be
+ *    clearly marked as such (e.g., by adding a "Modified by" line or a new
+ *    copyright notice) and must not be misrepresented as the original work.
+ *
+ * 3. Version Control Attribution (Section 7(b)): Any ports or substantial
+ *    modifications must retain historical authorship credit in version control
+ *    systems (e.g., Git), listing original author(s) appropriately and
+ *    modifiers as committers or co-authors.
+ *
+ * 4. User Interface Attribution (Section 7(b)): Any works containing or
+ *    derived from this material must maintain a visible credit or
+ *    acknowledgment to the original author(s) within the application's
+ *    user interface (e.g., in an "About" or "Credits" section).
+ */
+
+package app.morphe.extension.youtube.patches.components;
+
+import androidx.annotation.GuardedBy;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
+import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
+import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.TrieSearch;
+import app.morphe.extension.youtube.patches.shorts.CustomActionsPatch;
+
+@SuppressWarnings("unused")
+public final class ShortsCustomActionsFilter extends Filter {
+    private static final boolean SHORTS_CUSTOM_ACTIONS_FLYOUT_MENU_ENABLED =
+            CustomActionsPatch.isFlyoutMenuEnabled();
+    private static final boolean SHORTS_CUSTOM_ACTIONS_TOOLBAR_ENABLED =
+            CustomActionsPatch.isToolbarEnabled();
+    private static final boolean SHORTS_CUSTOM_ACTIONS_ENABLED =
+            SHORTS_CUSTOM_ACTIONS_FLYOUT_MENU_ENABLED || SHORTS_CUSTOM_ACTIONS_TOOLBAR_ENABLED;
+
+    /**
+     * Last unique video id's loaded.
+     * Key is a String representing the video id.
+     * Value is a ByteArrayFilterGroup used for performing KMP pattern searching.
+     */
+    @GuardedBy("itself")
+    private static final Map<String, ByteArrayFilterGroup> lastVideoIds = new LinkedHashMap<>() {
+        /**
+         * Number of video id's to keep track of for searching thru the buffer.
+         * A minimum value of 3 should be sufficient, but check a few more just in case.
+         */
+        private static final int NUMBER_OF_LAST_VIDEO_IDS_TO_TRACK = 5;
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry eldest) {
+            return size() > NUMBER_OF_LAST_VIDEO_IDS_TO_TRACK;
+        }
+    };
+    private final ByteArrayFilterGroupList videoIdFilterGroup = new ByteArrayFilterGroupList();
+
+    private final StringFilterGroup playerFlyoutMenu;
+
+    private final StringFilterGroup likeDislikeButton;
+
+    public static volatile boolean isShortsFlyoutMenuVisible;
+
+    public ShortsCustomActionsFilter() {
+        likeDislikeButton = new StringFilterGroup(
+                null,
+                "shorts_like_button.",
+                "reel_like_button.",
+                "reel_like_toggled_button.",
+                "shorts_dislike_button.",
+                "reel_dislike_button.",
+                "reel_dislike_toggled_button."
+        );
+        playerFlyoutMenu = new StringFilterGroup(
+                null,
+                "overflow_menu_item."
+        );
+
+        addIdentifierCallbacks(playerFlyoutMenu);
+        addPathCallbacks(likeDislikeButton);
+
+        // After the button identifiers is binary data and then the video id for that specific short.
+        videoIdFilterGroup.addAll(
+                new ByteArrayFilterGroup(
+                        null,
+                        "id.reel_like_button",
+                        "id.reel_dislike_button",
+                        "ic_right_like",
+                        "ic_right_dislike"
+                )
+        );
+    }
+
+    private volatile static String shortsVideoId = "";
+
+    private static void setShortsVideoId(@NonNull String videoId, boolean isLive) {
+        if (shortsVideoId.equals(videoId)) {
+            return;
+        }
+        final String prefix = isLive ? "New Short livestream video id: " : "New Short video id: ";
+        Logger.printDebug(() -> prefix + videoId);
+        shortsVideoId = videoId;
+    }
+
+    public static String getShortsVideoId() {
+        return shortsVideoId;
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void newShortsVideoStarted(@NonNull String newlyLoadedChannelId, @NonNull String newlyLoadedChannelName,
+                                             @NonNull String newlyLoadedVideoId, @NonNull String newlyLoadedVideoTitle,
+                                             final long newlyLoadedVideoLength, boolean newlyLoadedLiveStreamValue) {
+        if (!SHORTS_CUSTOM_ACTIONS_ENABLED) {
+            return;
+        }
+        if (!newlyLoadedLiveStreamValue) {
+            return;
+        }
+        setShortsVideoId(newlyLoadedVideoId, true);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void newPlayerResponseVideoId(String videoId, boolean isShortAndOpeningOrPlaying) {
+        try {
+            if (!SHORTS_CUSTOM_ACTIONS_ENABLED) {
+                return;
+            }
+            if (!isShortAndOpeningOrPlaying) {
+                return;
+            }
+            synchronized (lastVideoIds) {
+                if (!lastVideoIds.containsKey(videoId)) {
+                    // Put a placeholder first
+                    lastVideoIds.put(videoId, null);
+                    lastVideoIds.put(videoId, new ByteArrayFilterGroup(null, videoId));
+                }
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "newPlayerResponseVideoId failure", ex);
+        }
+    }
+
+    /**
+     * This could use {@link TrieSearch}, but since the patterns are constantly changing
+     * the overhead of updating the Trie might negate the search performance gain.
+     */
+    private static boolean byteArrayContainsString(@NonNull byte[] array, @NonNull String text,
+                                                   @Nullable ByteArrayFilterGroup videoIdFilter) {
+        // If a video filter is available, check it first.
+        if (videoIdFilter != null) {
+            return videoIdFilter.check(array).isFiltered();
+        }
+        for (int i = 0, lastArrayStartIndex = array.length - text.length(); i <= lastArrayStartIndex; i++) {
+            boolean found = true;
+            for (int j = 0, textLength = text.length(); j < textLength; j++) {
+                if (array[i + j] != (byte) text.charAt(j)) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
+                              StringFilterGroup matchedGroup, FilterContentType contentType, int contentIndex) {
+        if (!SHORTS_CUSTOM_ACTIONS_ENABLED) {
+            return false;
+        }
+        if (matchedGroup == playerFlyoutMenu) {
+            isShortsFlyoutMenuVisible = true;
+            findVideoId(buffer);
+        } else if (matchedGroup == likeDislikeButton && videoIdFilterGroup.check(buffer).isFiltered()) {
+            findVideoId(buffer);
+        }
+
+        return false;
+    }
+
+    private void findVideoId(byte[] buffer) {
+        synchronized (lastVideoIds) {
+            for (Map.Entry<String, ByteArrayFilterGroup> entry : lastVideoIds.entrySet()) {
+                final String videoId = entry.getKey();
+                final ByteArrayFilterGroup videoIdFilter = entry.getValue();
+                if (byteArrayContainsString(buffer, videoId, videoIdFilter)) {
+                    setShortsVideoId(videoId, false);
+                    return;
+                }
+            }
+        }
+    }
+}

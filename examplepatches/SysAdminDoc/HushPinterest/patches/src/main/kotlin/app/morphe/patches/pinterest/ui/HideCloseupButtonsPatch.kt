@@ -213,7 +213,7 @@ private fun foundAt(method: Method, body: List<Instruction>, at: Int, id: String
 /**
  * Every place [id]'s button is made by a call: a method other than a constructor, passed the id
  * while its register still holds it, answering one of the APK's own views into the
- * `move-result-object` right after. 14.42.0 makes the Remix button that way. The hook goes right
+ * `move-result-object` right after. 14.43.0 makes the Remix button that way. The hook goes right
  * after, the only place the new button is sure to be in that register, so these sites are checked
  * like a found button's.
  */

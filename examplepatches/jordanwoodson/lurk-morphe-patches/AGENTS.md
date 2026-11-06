@@ -29,7 +29,10 @@ first. CONTRIBUTING.md has the rules contributors see; keep the two in line with
   holds `COMPATIBILITY_<APP>`; every patch calls `compatibleWith(...)` with it. The settings, Lurk icon,
   Clone app, Change app name and Remove tracking permissions patches take their body from
   `patches/.../shared/apps/` (one `LurkApp` per app in `Apps.kt`); the app's file keeps name and description.
-- When patches are tested on a new app version, update that version in the app's `targets`.
+- When patches are tested on a new app version, update that version in the app's `targets`, but only once
+  APKMirror lists it as stable: Manager's download link comes from Morphe's API, which finds versions through
+  APKMirror, so a Play-only version sends people to a beta or a web search. `bin/manager-link <app> <version>`
+  must pass first; until then keep the bump on a branch.
 - Fingerprint on strings, method signatures and instruction patterns, not obfuscated class names.
   Fingerprint strings must be whole dex strings: Morphe Patcher 2.0 compares them exactly when a 2.0-built
   bundle is in the run (`tests/verify_fingerprint_strings.py`, part of `bin/test-host`).
@@ -54,7 +57,7 @@ first. CONTRIBUTING.md has the rules contributors see; keep the two in line with
 `bin/scan <app>`, `bin/decompile <app>`, `bin/patch <app> [--no-build] [--abi=x86_64] [--install=emulator-5580]`,
 `bin/emu [--port N] start [SNAPSHOT]|stop|restart|save|load|snapshots|status|shot`, `bin/ui <command>`,
 `bin/test-host`, `bin/test-<app>*`, `bin/verify-hooks <app> <apk>`, `bin/new-app`, `bin/refs`,
-`bin/app-icon <app> <artwork.png>`. Version bumps: `bin/bump <app> <version> [file] [--pin]` (patches with
+`bin/app-icon <app> <artwork.png>`, `bin/manager-link [app [version]]`. Version bumps: `bin/bump <app> <version> [file] [--pin]` (patches with
 every patch forced on and groups the failures by cause), `bin/hermes-pin <app> [version]` (rewrites the
 Hermes bundle SHA gate), then `bump(<app>): support <App> <version>` as the commit.
 

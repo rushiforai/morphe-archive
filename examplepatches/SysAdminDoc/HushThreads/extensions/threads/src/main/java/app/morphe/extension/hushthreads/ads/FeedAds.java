@@ -26,10 +26,22 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 /**
  * Applies selected local rules to each feed page before the feed cache merges it.
  *
- * <p>Every page Threads fetches for the feed, For You and Following alike, goes through one merge
+ * <p>The pages Threads fetches for the feed, For You and Following alike, go through one merge
  * method of {@code BarcelonaFeedCache} before anything is cached or drawn. The patch hands that
  * method's page of items to {@link #filter} first and merges what comes back. Only selected,
  * enabled rules remove items, so unrelated feed items keep their original order.
+ *
+ * <p>When two of Threads' flags are on, For You is kept in its spool cache instead, whose own merge
+ * puts each page into the spool's model pool without passing the one above. The patch hands that
+ * page to {@link #spoolPage}, which applies the same rules and also counts the page as the spool's,
+ * so an export shows which cache a phone's For You runs on.
+ *
+ * <p>For You's data source also writes feed items into either cache four more ways that pass
+ * neither merge: the refresh's write, the paging flow's, an append to the page it holds, and a page
+ * it rebuilds. Each handler's write hands its items to {@link #forYouWrite} or {@link #spoolWrite}
+ * first, which apply the same rules and count the writes apart from the pages. Its writes of one
+ * item (one it adds, puts after a post or swaps in) ask {@link #forYouItem} or {@link #spoolItem}
+ * the same way, and an item the rules take out isn't written.
  *
  * <p>An item is an ad when the post it carries is one: Threads' own check reads the post's
  * "injected" data, the block the server attaches to a sponsored post, and this asks that same check.
@@ -41,6 +53,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *
  * <p>An opened post fetches its own ads to show among its replies, apart from the feed. Those come
  * through {@link #permalinkAds}, where every item is an ad.
+ *
+ * <p>Threads can also insert one item into a For You page a cache already holds, which is how it
+ * places an ad it got on its own, and that passes neither merge. Each insert asks
+ * {@link #insertedAd} first.
  *
  * <p>The typed methods at the bottom have no body of their own here. Their answers are Threads'
  * obfuscated names, which change with every build, so the patch finds them by what they do and
@@ -80,6 +96,65 @@ public final class FeedAds {
      * HushThreads is paused or anything goes wrong. Never throws.
      */
     public static List<?> filter(List<?> items) {
+        return filter(items, PAGES, null, "feed page");
+    }
+
+    /**
+     * Injected at the start of the spool cache's merge, with For You's page it was given. The same
+     * as {@link #filter}, and each completed check also counts a spool page. Never throws.
+     */
+    public static List<?> spoolPage(List<?> items) {
+        return filter(items, PAGES, SPOOL_PAGES, "spool feed page");
+    }
+
+    /**
+     * Injected at the start of For You's other writes into the feed cache, with the items each was
+     * given. The same as {@link #filter}, counted as a For You cache write instead of a page. A
+     * resumed write passes no list. Never throws.
+     */
+    public static List<?> forYouWrite(List<?> items) {
+        return filter(items, FOR_YOU_WRITES, null, "For You cache write");
+    }
+
+    /** The same as {@link #forYouWrite} for the spool cache's writes, each also counted as the spool's. Never throws. */
+    public static List<?> spoolWrite(List<?> items) {
+        return filter(items, FOR_YOU_WRITES, SPOOL_WRITES, "spool cache write");
+    }
+
+    /**
+     * Injected at the start of For You's writes of one feed item into the feed cache: an item it
+     * adds, puts after a post or swaps in for one it holds. Answers true when a selected rule takes
+     * the item out, and the patch then answers the write's own "done" without writing it. False
+     * when every rule keeps it, all switches are off, HushThreads is paused or anything goes wrong.
+     * A resumed write passes no item, and that isn't a check. Never throws.
+     */
+    public static boolean forYouItem(Object item) {
+        return dropped(item, FOR_YOU_ITEMS, null, "For You item write");
+    }
+
+    /** The same as {@link #forYouItem} for the spool cache's writes, each also counted as the spool's. Never throws. */
+    public static boolean spoolItem(Object item) {
+        return dropped(item, FOR_YOU_ITEMS, SPOOL_ITEMS, "spool item write");
+    }
+
+    private static final String PAGES = "feed pages checked";
+    private static final String SPOOL_PAGES = "spool feed pages checked";
+    private static final String FOR_YOU_WRITES = "For You cache writes checked";
+    private static final String SPOOL_WRITES = "spool cache writes checked";
+    private static final String FOR_YOU_ITEMS = "For You item writes checked";
+    private static final String SPOOL_ITEMS = "spool item writes checked";
+
+    /** One item through the page rules: whether they took it out. Kept on every failure, as a page is. */
+    private static boolean dropped(Object item, String checked, String spool, String hook) {
+        List<?> kept = filter(item == null ? null : Collections.singletonList(item), checked, spool, hook);
+        return kept != null && kept.isEmpty();
+    }
+
+    /**
+     * Counts each completed check as {@code checked}, and also as {@code spool} when that isn't
+     * null. A failure is reported against {@code hook}, so the report names the write that threw.
+     */
+    private static List<?> filter(List<?> items, String checked, String spool, String hook) {
         // The rule being asked when something throws. Null while walking the page itself, where a
         // failure belongs to every rule that was going to read it.
         Rule checking = null;
@@ -121,7 +196,8 @@ public final class FeedAds {
             for (int r = 0; r < active.size(); r++) {
                 Rule rule = active.get(r);
                 // Count only completed checks, including pages the server sent without matches.
-                HookStatus.counted(rule.family, "feed pages checked");
+                HookStatus.counted(rule.family, checked);
+                if (spool != null) HookStatus.counted(rule.family, spool);
                 HookStatus.counted(rule.family, "feed items checked", index);
                 if (removed[r] == 0) continue;
                 int count = removed[r];
@@ -132,9 +208,9 @@ public final class FeedAds {
         } catch (Throwable t) {
             // One bad item keeps the whole page as Threads sent it rather than dropping posts blind.
             if (checking != null) {
-                HookStatus.threw(checking.family, "feed page", t);
+                HookStatus.threw(checking.family, hook, t);
             } else {
-                for (Rule rule : active) HookStatus.threw(rule.family, "feed page", t);
+                for (Rule rule : active) HookStatus.threw(rule.family, hook, t);
             }
             return items;
         }
@@ -159,6 +235,31 @@ public final class FeedAds {
         } catch (Throwable t) {
             HookStatus.threw(rule.family, "opened post ads", t);
             return ads;
+        }
+    }
+
+    /**
+     * Injected at the start of both For You caches' insert of one item into a page they already
+     * hold, the way Threads places an ad it got apart from a page fetch. Answers true for an ad with
+     * Hide ads on, and the patch then answers the insert's own "nothing went in" code. False when
+     * the switch is off, HushThreads is paused, the item isn't an ad or anything goes wrong. Never
+     * throws.
+     */
+    public static boolean insertedAd(Object item) {
+        Rule rule = Rule.ADS;
+        try {
+            if (!rule.selected()) return false;
+            HookStatus.invoked(rule.family);
+            if (item == null || !Utils.settingsReady() || !rule.enabled()) return false;
+            boolean ad = rule.matches(item);
+            HookStatus.counted(rule.family, "inserted items checked");
+            if (!ad) return false;
+            HookStatus.counted(rule.family, "inserted ads taken out");
+            Logger.printDebug(() -> rule.family + ": kept an inserted ad out of For You");
+            return true;
+        } catch (Throwable t) {
+            HookStatus.threw(rule.family, "inserted item", t);
+            return false;
         }
     }
 
@@ -204,7 +305,11 @@ public final class FeedAds {
         return false;
     }
 
-    /** A typed server suggestion card, excluding Media and unknown/fallback card types. */
+    /**
+     * A typed server suggestion card, or the suggested-accounts row Threads builds itself under a
+     * post after a follow (its id starts with "suggested_users_chaining_"). Media and
+     * unknown/fallback card types never match. The patch writes the check in.
+     */
     static boolean isSuggestedUserItem(Object item) {
         return false;
     }

@@ -488,20 +488,20 @@ public class SettingsL10nTest {
             addSettingsFileText(activity, rows, shown);
             addReleaseCheckText(shown);
 
-            // What the diagnostics rows say in a toast, with nothing to export or clear. The quick
-            // report is built on a worker and answers on the main thread.
+            // What the diagnostics rows say, with nothing to export or clear: under the row while
+            // settings shows it. The quick report is built on a worker and answers on the main thread.
             LogBufferManager.exportToClipboard();
             settle();
-            addToast(shown);
-            Preference clear = find(rows, "action_clear_diagnostic_data");
+            addResult(find(rows, LogBufferManager.EXPORT_ROW_KEY), shown);
+            Preference clear = find(rows, LogBufferManager.CLEAR_ROW_KEY);
             clear.getOnPreferenceClickListener().onPreferenceClick(clear);
             settle();
-            addToast(shown);
+            addResult(clear, shown);
             if (LogBufferManager.canUndoClear()) {
-                // Whatever an earlier test left is put back, and the undo says so in a toast too.
+                // Whatever an earlier test left is put back, and the undo says so too.
                 clear.getOnPreferenceClickListener().onPreferenceClick(clear);
                 settle();
-                addToast(shown);
+                addResult(clear, shown);
             }
             dialog.dismissAllowingStateLoss();
             ShadowLooper.idleMainLooper();
@@ -537,15 +537,15 @@ public class SettingsL10nTest {
     }
 
     /**
-     * Export settings and Import settings through the picker: the toast an export ends with, the
-     * preview an import shows, both ways it can read, the toast after it, and every refusal.
+     * Export settings and Import settings through the picker: the line an export ends with under its
+     * row, the preview an import shows, both ways it can read, the line after it, and every refusal.
      */
     private static void addSettingsFileText(Activity activity, List<Preference> rows, Set<String> shown)
             throws Exception {
         SettingsFileProvider.install("settings-l10n");
         Uri written = SettingsFileProvider.put("settings-l10n", "export.json", new byte[0]);
         answer(activity, pick(activity, find(rows, "action_export_settings")), written);
-        addToast(shown);
+        addFeedback(find(rows, "action_export_settings"), shown);
 
         String key = Settings.HIDE_ADVERTISING_ID.key;
         String changesOne = "{\"format\":\"hushtumblr-settings\",\"schema\":1,\"settings\":{\"" + key
@@ -560,7 +560,7 @@ public class SettingsL10nTest {
         shown.add(cancel);
         preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         settle();
-        addToast(shown);
+        addFeedback(find(rows, "action_import_settings"), shown);
         Settings.HIDE_ADVERTISING_ID.resetToDefault();
 
         String changesNothing = "{\"format\":\"hushtumblr-settings\",\"schema\":1,\"settings\":{\"" + key + "\":true}}";
@@ -582,7 +582,7 @@ public class SettingsL10nTest {
         for (SettingsBackup.Reason reason : SettingsBackup.Reason.values()) {
             shown.add(SettingsBackupPreference.refusal(reason));
         }
-        // The toast after an import, for none and for several switches changed.
+        // The line after an import, for none and for several switches changed.
         shown.add(SettingsBackupPreference.importedMessage(0));
         shown.add(SettingsBackupPreference.importedMessage(2));
 
@@ -594,7 +594,7 @@ public class SettingsL10nTest {
             Preference importRow = find(rows, "action_import_settings");
             importRow.getOnPreferenceClickListener().onPreferenceClick(importRow);
             ShadowLooper.idleMainLooper();
-            addToast(shown);
+            addFeedback(importRow, shown);
         } finally {
             application.checkActivities(false);
         }
@@ -659,6 +659,23 @@ public class SettingsL10nTest {
         }
     }
 
+    /** The result line under an action's row, cleared after reading so a later read can't pass on it. */
+    private static void addFeedback(Preference row, Set<String> shown) {
+        String message = SettingsFeedbackTest.message(row);
+        assertNotNull(row.getKey() + " showed no result", message);
+        shown.add(message);
+        ((SettingsFeedback) org.robolectric.util.ReflectionHelpers.getField(row, "feedback")).clear();
+    }
+
+    /**
+     * What a diagnostics row said: the line under it, or the toast a clear that removed something
+     * shows, since that row's summary already offers the undo.
+     */
+    private static void addResult(Preference row, Set<String> shown) {
+        if (SettingsFeedbackTest.message(row) != null) addFeedback(row, shown);
+        else addToast(shown);
+    }
+
     private static void addToast(Set<String> shown) {
         String toast = ShadowToast.getTextOfLatestToast();
         assertNotNull("no toast was shown", toast);
@@ -685,6 +702,30 @@ public class SettingsL10nTest {
         Fragment page = dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
         assertTrue("no preference page in the dialog: " + page, page instanceof HushTumblrPreferenceFragment);
         return (HushTumblrPreferenceFragment) page;
+    }
+
+    /**
+     * Opens the settings page holding the row with [key] from home, the way a reader gets to it
+     * before tapping it. A result only shows under a row whose page is in view.
+     */
+    static void openPageOf(HushTumblrPreferenceFragment page, String key) {
+        page.navigation.navigate("");
+        android.widget.ListView list = page.getView().findViewById(android.R.id.list);
+        for (Preference section : page.sections()) {
+            if (((PreferenceGroup) section).findPreference(key) == null) continue;
+            for (int i = 0; i < list.getCount(); i++) {
+                Object item = list.getItemAtPosition(i);
+                if (!(item instanceof Preference)) continue;
+                Preference link = (Preference) item;
+                if (link.getKey() == null || !link.getKey().startsWith("section_")
+                        || !String.valueOf(section.getTitle()).contentEquals(link.getTitle())) continue;
+                link.getOnPreferenceClickListener().onPreferenceClick(link);
+                ShadowLooper.idleMainLooper();
+                assertTrue("the page with " + key + " didn't open", page.navigation.shows(key));
+                return;
+            }
+        }
+        throw new AssertionError("no settings page holds " + key);
     }
 
     /** The back arrow: the first view in the dialog's title bar. */

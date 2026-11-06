@@ -15,11 +15,13 @@ import android.content.pm.ApplicationInfo;
 import android.preference.Preference;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +38,7 @@ import org.robolectric.shadows.ShadowLooper;
 
 import java.util.EnumSet;
 
+import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.SettingsContextRule;
 
 /** Tumblr omits supportsRtl, unlike the extension's test manifest. */
@@ -67,6 +70,8 @@ public class SettingsRtlHostTest {
         hostInfo.flags = originalFlags;
         PatchFamily.inBuildForTests = null;
         SettingsDialog.failNextMount = null;
+        Settings.HIDE_POSTS_WITH_WORDS.resetToDefault();
+        TextSettings.HIDDEN_WORDS.resetToDefault();
     }
 
     @Test
@@ -95,6 +100,42 @@ public class SettingsRtlHostTest {
         assertDialogDirection(restored, View.LAYOUT_DIRECTION_RTL);
         assertEquals("draft \u0645\u0633\u0648\u062f\u0629", ((EditText) restored.findViewById(android.R.id.edit)).getText().toString());
         assertHostUnchanged();
+    }
+
+    @Test
+    @Config(qualifiers = "ar-rXB-ldrtl")
+    public void theWordPreviewMirrorsAndARestoredEditorStartsItEmpty() {
+        Settings.HIDE_POSTS_WITH_WORDS.save(true);
+        TextSettings.HIDDEN_WORDS.save("cat");
+        SettingsDialog settings = SettingsL10nTest.show(controller.get());
+        click(SettingsL10nTest.pageOf(settings).findPreference(HushTumblrPreferenceFragment.HIDDEN_WORDS_ROW));
+        AlertDialog editor = ShadowAlertDialog.getLatestAlertDialog();
+        String arabic = new String(new int[]{0x645, 0x633, 0x648, 0x62F, 0x629}, 0, 5);
+        EditText post = SettingsDialogTest.previewInputs(editor).get(0);
+        post.setText(arabic + " cat");
+        assertDialogDirection(editor, View.LAYOUT_DIRECTION_RTL);
+        TextView result = SettingsDialogTest.previewResult(editor);
+        ViewGroup section = (ViewGroup) result.getParent();
+        assertEquals(View.LAYOUT_DIRECTION_RTL, section.getLayoutDirection());
+        assertEquals(View.LAYOUT_DIRECTION_RTL, result.getLayoutDirection());
+        assertEquals(View.TEXT_ALIGNMENT_VIEW_START, result.getTextAlignment());
+        assertEquals(L10n.f("The word filter would hide this post for \u201c%1$s\u201d in %2$s.", L10n.isolate("cat"),
+                L10n.t("Post text")), result.getText().toString());
+        assertEquals(View.LAYOUT_DIRECTION_RTL, post.getLayoutDirection());
+        Button clear = section.findViewWithTag(WordPreviewSection.CLEAR_TAG);
+        assertTrue("Clear isn't on the start side", clear.getLeft() > section.getWidth() / 2);
+
+        controller.recreate();
+        ShadowLooper.idleMainLooper();
+        AlertDialog restored = ShadowAlertDialog.getLatestAlertDialog();
+        assertDialogDirection(restored, View.LAYOUT_DIRECTION_RTL);
+        for (EditText input : SettingsDialogTest.previewInputs(restored)) {
+            assertEquals("", input.getText().toString());
+            assertEquals(View.LAYOUT_DIRECTION_RTL, input.getLayoutDirection());
+        }
+        assertEquals(L10n.t("Type part of a post above to see what the word filter does with it."),
+                SettingsDialogTest.previewResult(restored).getText().toString());
+        restored.dismiss();
     }
 
     @Test

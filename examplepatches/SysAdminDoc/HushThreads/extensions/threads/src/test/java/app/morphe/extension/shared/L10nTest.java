@@ -45,7 +45,8 @@ public class L10nTest {
 
     @Test
     public void everyLanguageTheBundleCarriesHasATableWithTheKey() {
-        assertEquals(Arrays.asList("de", "es", "in", "pt-rbr", "tr"), Arrays.asList(L10nTranslations.LANGUAGES));
+        assertEquals(Arrays.asList("de", "es", "in", "it", "ko", "pt-rbr", "tr", "zh-rtw"),
+                Arrays.asList(L10nTranslations.LANGUAGES));
         for (String language : L10nTranslations.LANGUAGES) {
             Map<String, String> table = L10nTranslations.of(language);
             assertNotNull(language, table);
@@ -71,6 +72,18 @@ public class L10nTest {
         // to it reads English rather than a neighbour's spelling it never asked for.
         assertEquals(table("pt-rbr").get(KEY), L10n.t(in(new Locale("pt", "BR")), KEY));
         assertEquals(KEY, L10n.t(in(new Locale("pt", "PT")), KEY));
+        // The Chinese table is Taiwan's Traditional script. Android hands a zh-rTW string to every
+        // phone that writes Traditional, Hong Kong and Macau included, and Simplified to none.
+        String traditional = table("zh-rtw").get(KEY);
+        assertEquals(traditional, L10n.t(in(Locale.TAIWAN), KEY));
+        assertEquals(traditional, L10n.t(in(new Locale("zh", "HK")), KEY));
+        assertEquals(traditional, L10n.t(in(new Locale("zh", "MO")), KEY));
+        assertEquals(traditional, L10n.t(in(Locale.forLanguageTag("zh-Hant")), KEY));
+        assertEquals(traditional, L10n.t(in(Locale.forLanguageTag("zh-Hant-HK")), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.SIMPLIFIED_CHINESE), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.forLanguageTag("zh-Hans-HK")), KEY));
+        assertEquals(KEY, L10n.t(in(Locale.CHINESE), KEY));
+        assertEquals(Arrays.asList("zh-rhk", "zh-rtw", "zh"), L10n.tags(in(new Locale("zh", "HK"))));
     }
 
     @Test
@@ -325,6 +338,8 @@ public class L10nTest {
                 return new Locale("pt", "BR");
             case "in":
                 return new Locale("in", "ID");
+            case "zh-rtw":
+                return Locale.TAIWAN;
             default:
                 return new Locale(tag);
         }

@@ -127,6 +127,53 @@ public class FeatureSwitchesTest {
     }
 
     /**
+     * Hide ads answers off for the full-screen ad's two flags: the one Tumblr's interstitial manager
+     * checks before it asks for or shows an ad, and the one that lets a blog opened from a
+     * notification, a message or the notes reach that manager. The cooldown flag stays Tumblr's,
+     * since off it ends the wait between two ads.
+     */
+    @Test
+    public void hideAdsTurnsTheFullScreenAdOff() {
+        try {
+            PatchFamilyForTests.inBuild(EnumSet.allOf(PatchFamily.class));
+            for (String flag : new String[] {"MAKE_NIMBUS_INTERSTITIAL_CLIENT_AD_REQUESTS", "INTERSTITIAL_ADS_BLOG_OPENING_TRIGGERS"}) {
+                Settings.HIDE_ADS.save(true);
+                assertFalse(flag + " with Hide ads on", FeatureSwitches.isEnabled(flag(flag), true));
+                Settings.HIDE_ADS.save(false);
+                assertTrue(flag + " with Hide ads off", FeatureSwitches.isEnabled(flag(flag), true));
+                assertFalse(flag + " Tumblr had off", FeatureSwitches.isEnabled(flag(flag), false));
+            }
+            Settings.HIDE_ADS.save(true);
+            assertNull(FeatureSwitches.claimOn("INTERSTITIAL_ADS_CLIENT_COOLDOWN"));
+            assertTrue(FeatureSwitches.isEnabled(flag("INTERSTITIAL_ADS_CLIENT_COOLDOWN"), true));
+        } finally {
+            Settings.HIDE_ADS.resetToDefault();
+            PatchFamilyForTests.inBuild(null);
+        }
+    }
+
+    /** Keep Blaze posts is an option of Hide ads: on alone, it turns none of Hide ads' flags off. */
+    @Test
+    public void keepBlazePostsAloneLeavesTheAdFlagsOn() {
+        try {
+            PatchFamilyForTests.inBuild(EnumSet.allOf(PatchFamily.class));
+            Settings.HIDE_ADS.save(false);
+            Settings.KEEP_BLAZE_POSTS.save(true);
+            List<String> claimed = new ArrayList<>();
+            for (String flag : FeatureSwitches.claimedFlags()) {
+                if (!PatchFamily.HIDE_ADS.name().equals(FeatureSwitches.claimOn(flag).family)) continue;
+                claimed.add(flag);
+                assertTrue(flag + " with only Keep Blaze posts on", FeatureSwitches.isEnabled(flag(flag), true));
+            }
+            assertFalse("Hide ads claims flags", claimed.isEmpty());
+        } finally {
+            Settings.HIDE_ADS.resetToDefault();
+            Settings.KEEP_BLAZE_POSTS.resetToDefault();
+            PatchFamilyForTests.inBuild(null);
+        }
+    }
+
+    /**
      * A claimed flag asked before the settings are ready keeps Tumblr's answer and is counted under
      * its family, so a read that comes too early for the switch shows in the report. An answer
      * that's already off has nothing to turn off and isn't counted.

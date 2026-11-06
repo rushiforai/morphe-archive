@@ -164,24 +164,170 @@ public class HomeHeaderTest {
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void wordsTakeTheWordmarksColorOrItsGradient() {
-        int[] solid = HomeHeader.colors(wordmark(Color.rgb(8, 102, 255)));
+        int[] solid = HomeHeader.look(wordmark(Color.rgb(8, 102, 255))).colors;
         assertEquals(1, solid.length);
         assertFalse(HomeHeader.apart(Color.rgb(8, 102, 255), solid[0]));
 
-        int[] gradient = HomeHeader.colors(wordmark(Color.RED, Color.BLUE));
+        int[] gradient = HomeHeader.look(wordmark(Color.RED, Color.BLUE)).colors;
         assertEquals(3, gradient.length);
         assertTrue(Color.red(gradient[0]) > Color.blue(gradient[0]));
         assertTrue(Color.blue(gradient[2]) > Color.red(gradient[2]));
 
-        assertArrayEquals(new int[] {HomeHeader.MESSENGER_BLUE}, HomeHeader.colors(wordmark(Color.TRANSPARENT)));
-        assertArrayEquals(new int[] {HomeHeader.MESSENGER_BLUE}, HomeHeader.colors(new GradientDrawable()));
+        assertNull("a size but nothing drawn yet is a wordmark still loading", HomeHeader.look(wordmark(Color.TRANSPARENT)));
+        assertArrayEquals(new int[] {HomeHeader.MESSENGER_BLUE}, HomeHeader.look(new GradientDrawable()).colors);
+    }
+
+    /** Messenger's wordmark as 586 hands it over: fetched after it's asked for, blank until then, with no state to copy. */
+    private static final class Loading extends Drawable {
+        private final android.graphics.Paint paint = new android.graphics.Paint();
+        private boolean loaded;
+
+        /** Its picture arrived, which Messenger's tells its callback the same way. */
+        void load() {
+            loaded = true;
+            invalidateSelf();
+        }
+
+        @Override public void draw(Canvas canvas) {
+            if (!loaded) return;
+            // Letters in rows 6 to 18 of 60, well away from where a guess puts them.
+            Rect at = getBounds();
+            float tall = at.height() / 60f;
+            paint.setColor(Color.rgb(8, 102, 255));
+            canvas.drawRect(at.left, at.top + 6 * tall, at.right, at.top + 18 * tall, paint);
+        }
+        @Override public int getIntrinsicWidth() { return 300; }
+        @Override public int getIntrinsicHeight() { return 60; }
+        @Override public void setAlpha(int alpha) { }
+        @Override public void setColorFilter(android.graphics.ColorFilter filter) { paint.setColorFilter(filter); }
+        @Override public android.graphics.ColorFilter getColorFilter() { return paint.getColorFilter(); }
+        @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
+    }
+
+    /** [shown] drawn [width] by [height]: its first and last rows of solid ink, -1 when there's none, and the first ink's color. */
+    private static int[] ink(Drawable shown, int width, int height) {
+        Bitmap drawn = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        shown.setBounds(0, 0, width, height);
+        shown.draw(new Canvas(drawn));
+        int top = -1, bottom = -1, color = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixel = drawn.getPixel(x, y);
+                if (Color.alpha(pixel) < 160) continue;
+                if (top < 0) {
+                    top = y;
+                    color = pixel;
+                }
+                bottom = y;
+                break;
+            }
+        }
+        drawn.recycle();
+        return new int[] {top, bottom, color};
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void wordsWaitForAWordmarkStillLoadingAndTakeItsLettersOnceItArrives() {
+        words("Chats");
+        // Dark mode tints the wordmark white, so the words show white right away, where Messenger's letters usually sit.
+        Loading dark = new Loading();
+        dark.setColorFilter(new android.graphics.PorterDuffColorFilter(Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN));
+        HomeHeader.TextMark shown = (HomeHeader.TextMark) HomeHeader.dress(dark);
+        assertTrue(shown.waiting());
+        int[] redraws = {0};
+        Drawable.Callback host = new Drawable.Callback() {
+            @Override public void invalidateDrawable(Drawable who) { redraws[0]++; }
+            @Override public void scheduleDrawable(Drawable who, Runnable what, long when) { }
+            @Override public void unscheduleDrawable(Drawable who, Runnable what) { }
+        };
+        shown.setCallback(host);
+        int width = shown.getIntrinsicWidth() * 2;
+        int[] before = ink(shown, width, 120);
+        assertFalse("white, from the tint", HomeHeader.apart(Color.WHITE, before[2]));
+        // The guess, rows 45 to 91 of 120.
+        assertTrue("top " + before[0], before[0] >= 39 && before[0] <= 51);
+        assertTrue("bottom " + before[1], before[1] >= 85 && before[1] <= 97);
+
+        dark.load();
+        assertEquals("the wordmark's news reaches the header", 1, redraws[0]);
+        int[] after = ink(shown, width, 120);
+        assertFalse(shown.waiting());
+        assertEquals("the header measured it already", width / 2, shown.getIntrinsicWidth());
+        // Its letters, rows 6 to 18 of 60, come out as rows 12 to 36 of 120, give or take the small sample's rows.
+        assertTrue("top " + after[0], after[0] >= 8 && after[0] <= 16);
+        assertTrue("bottom " + after[1], after[1] >= 31 && after[1] <= 39);
+        assertFalse(HomeHeader.apart(Color.WHITE, after[2]));
+        assertSame(host, shown.getCallback());
+
+        // No tint, as in light mode: nothing shows until it loads, the way Messenger shows nothing, then its blue.
+        Loading light = new Loading();
+        HomeHeader.TextMark plain = (HomeHeader.TextMark) HomeHeader.dress(light);
+        int wide = plain.getIntrinsicWidth() * 2;
+        assertEquals(-1, ink(plain, wide, 120)[0]);
+        light.load();
+        int[] loaded = ink(plain, wide, 120);
+        assertTrue("top " + loaded[0], loaded[0] >= 8 && loaded[0] <= 16);
+        assertFalse(HomeHeader.apart(Color.rgb(8, 102, 255), loaded[2]));
+    }
+
+    /** Messenger's own wordmark: 60 tall with its letters in rows 24 to 44, tinted white in dark mode by a color filter. */
+    private static Drawable paddedWordmark() {
+        Drawable mark = new Drawable() {
+            private final android.graphics.Paint paint = new android.graphics.Paint();
+            @Override public void draw(Canvas canvas) {
+                Rect at = getBounds();
+                float tall = at.height() / 60f;
+                paint.setColor(Color.rgb(8, 102, 255));
+                canvas.drawRect(at.left, at.top + 24 * tall, at.right, at.top + 44 * tall, paint);
+            }
+            @Override public int getIntrinsicWidth() { return 300; }
+            @Override public int getIntrinsicHeight() { return 60; }
+            @Override public void setAlpha(int alpha) { }
+            @Override public void setColorFilter(android.graphics.ColorFilter filter) { paint.setColorFilter(filter); }
+            @Override public android.graphics.ColorFilter getColorFilter() { return paint.getColorFilter(); }
+            @Override public int getOpacity() { return android.graphics.PixelFormat.TRANSLUCENT; }
+        };
+        mark.setColorFilter(new android.graphics.PorterDuffColorFilter(Color.WHITE, android.graphics.PorterDuff.Mode.SRC_IN));
+        return mark;
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void wordsTakeTheWordmarksDarkModeTint() {
+        int[] colors = HomeHeader.look(paddedWordmark()).colors;
+        assertEquals(1, colors.length);
+        assertFalse("white, not the blue under the tint", HomeHeader.apart(Color.WHITE, colors[0]));
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void wordsAreAsTallAsTheWordmarksLettersNotItsWholeSlot() {
+        words("Chats");
+        Drawable shown = HomeHeader.dress(paddedWordmark());
+        assertEquals("the slot stays the wordmark's", 60, shown.getIntrinsicHeight());
+        // The header hands it bounds twice the size, the way it scales the wordmark to its row.
+        int width = shown.getIntrinsicWidth() * 2;
+        Bitmap drawn = Bitmap.createBitmap(width, 120, Bitmap.Config.ARGB_8888);
+        shown.setBounds(0, 0, width, 120);
+        shown.draw(new Canvas(drawn));
+        int top = -1, bottom = -1;
+        for (int y = 0; y < 120; y++) {
+            for (int x = 0; x < width; x++) {
+                if (Color.alpha(drawn.getPixel(x, y)) < 160) continue;
+                if (top < 0) top = y;
+                bottom = y;
+                break;
+            }
+        }
+        assertTrue("No ink drawn", top >= 0);
+        // The letters' band, rows 24 to 44 of 60, comes out as rows 48 to 88 of 120, give or take the small sample's rows.
+        assertTrue("top " + top, top >= 42 && top <= 54);
+        assertTrue("bottom " + bottom, bottom >= 82 && bottom <= 94);
     }
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void samplingTheWordmarkNeverMovesTheOneOnScreen() {
         GradientDrawable shared = wordmark(Color.RED, Color.BLUE);
         shared.setBounds(5, 6, 305, 66);
-        HomeHeader.colors(shared);
+        HomeHeader.look(shared);
         assertEquals(new Rect(5, 6, 305, 66), shared.getBounds());
         // One without a state to copy is drawn itself, then put back where it was.
         Drawable plain = new Drawable() {
@@ -193,7 +339,7 @@ public class HomeHeaderTest {
             @Override public int getOpacity() { return android.graphics.PixelFormat.OPAQUE; }
         };
         plain.setBounds(1, 2, 91, 32);
-        int[] colors = HomeHeader.colors(plain);
+        int[] colors = HomeHeader.look(plain).colors;
         assertEquals(new Rect(1, 2, 91, 32), plain.getBounds());
         assertEquals(1, colors.length);
         assertTrue(Color.green(colors[0]) > 200);
@@ -201,11 +347,12 @@ public class HomeHeaderTest {
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void longWordsShrinkToFitAndAGradientRunsStartToEnd() {
-        HomeHeader.TextMark narrow = new HomeHeader.TextMark("A much longer header", 60, 200, new int[] {Color.RED});
+        HomeHeader.TextMark narrow = new HomeHeader.TextMark("A much longer header", 60, 200, new HomeHeader.Look(new int[] {Color.RED}, 0f, 1f, 0f));
         assertTrue(narrow.getIntrinsicWidth() <= 200);
         assertEquals(60, narrow.getIntrinsicHeight());
 
-        HomeHeader.TextMark mark = new HomeHeader.TextMark("HHHHHHHH", 60, 2000, new int[] {Color.RED, Color.GREEN, Color.BLUE});
+        HomeHeader.Look gradient = new HomeHeader.Look(new int[] {Color.RED, Color.GREEN, Color.BLUE}, 0f, 1f, 0f);
+        HomeHeader.TextMark mark = new HomeHeader.TextMark("HHHHHHHH", 60, 2000, gradient);
         int width = mark.getIntrinsicWidth();
         Bitmap drawn = Bitmap.createBitmap(width, 60, Bitmap.Config.ARGB_8888);
         mark.setBounds(0, 0, width, 60);
@@ -249,14 +396,24 @@ public class HomeHeaderTest {
         }
     }
 
-    @Test public void aPictureKeepsItsShapeAtTheWordmarksHeightAndShrinksWhenTooWide() {
+    @Test public void aPictureKeepsItsShapeAtTheLettersHeightAndShrinksWhenTooWide() {
         Bitmap picture = Bitmap.createBitmap(400, 100, Bitmap.Config.ARGB_8888);
-        HomeHeader.PictureMark mark = new HomeHeader.PictureMark(picture, 50, 1000);
+        HomeHeader.Look whole = new HomeHeader.Look(new int[] {Color.BLUE}, 0f, 1f, 0f);
+        HomeHeader.PictureMark mark = new HomeHeader.PictureMark(picture, 50, 1000, whole);
         assertEquals(200, mark.getIntrinsicWidth());
         assertEquals(50, mark.getIntrinsicHeight());
-        HomeHeader.PictureMark capped = new HomeHeader.PictureMark(picture, 50, 100);
+        // Too wide: it gets smaller inside the slot, and the slot keeps the wordmark's height.
+        HomeHeader.PictureMark capped = new HomeHeader.PictureMark(picture, 50, 100, whole);
         assertEquals(100, capped.getIntrinsicWidth());
-        assertEquals(25, capped.getIntrinsicHeight());
+        assertEquals(50, capped.getIntrinsicHeight());
+        assertEquals(25f, capped.shown.height(), 0.01f);
+        // Letters in the middle fifth of a 50 tall wordmark that start 10 in: the picture is 10 tall there.
+        HomeHeader.PictureMark banded = new HomeHeader.PictureMark(picture, 50, 1000, new HomeHeader.Look(new int[] {Color.BLUE}, 0.4f, 0.6f, 10f));
+        assertEquals(10f, banded.shown.left, 0.01f);
+        assertEquals(20f, banded.shown.top, 0.01f);
+        assertEquals(50f, banded.shown.right, 0.01f);
+        assertEquals(30f, banded.shown.bottom, 0.01f);
+        assertEquals(50, banded.getIntrinsicWidth());
     }
 
     @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)

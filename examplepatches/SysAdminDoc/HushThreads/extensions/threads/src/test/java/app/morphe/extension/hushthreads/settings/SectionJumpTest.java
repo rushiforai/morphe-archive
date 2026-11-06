@@ -1,5 +1,5 @@
 /*
- * Forked from https://github.com/SysAdminDoc/Hushfacebook at c15d4f79 (GPL-3.0),
+ * Forked from https://github.com/SysAdminDoc/Hushfacebook at 837bac40 (GPL-3.0),
  * modified for HushThreads (Threads), 2026.
  *
  * Copyright 2026 Hushfacebook contributors
@@ -34,9 +34,8 @@ import java.util.List;
 import app.morphe.extension.shared.SettingsContextRule;
 
 /**
- * At a large text size the settings page runs past one screen, and the sections near its end take
- * swiping to reach. A row at the top lists the sections, a tap on one scrolls its heading to the top, and Back
- * goes back once to where the list was before closing the page as it always did.
+ * Every section stays on the main list. A requested section expands in place and scrolls into
+ * view, and Back closes settings without walking through a page history.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30, qualifiers = "w411dp-h891dp-xxhdpi")
@@ -58,42 +57,29 @@ public class SectionJumpTest {
     }
 
     @Test
-    public void theRowUnderTheStatusCardListsEverySectionInOrder() {
+    public void theMainListContainsEverySectionInOrderWithoutAMoreHeading() {
         SettingsDialog dialog = show();
         HushThreadsPreferenceFragment page = page(dialog);
         ListView list = laidOut(dialog);
 
-        // Quick setups sits between the status card and the Browse settings heading.
-        assertEquals(SettingsNavigation.QUICK_SETUPS, ((Preference) list.getItemAtPosition(1)).getKey());
-        assertEquals("Browse settings", ((Preference) list.getItemAtPosition(2)).getTitle());
-        // Every page is a row on home, under one of the two headings. Report a problem and Support
-        // HushThreads come last.
-        assertEquals(SettingsNavigation.REPORT, ((Preference) list.getItemAtPosition(list.getCount() - 2)).getKey());
-        assertEquals(HushThreadsPreferenceFragment.SUPPORT, ((Preference) list.getItemAtPosition(list.getCount() - 1)).getKey());
+        // HushThreads is on, so no status card: Quick setups leads, then one header per section.
+        assertEquals(SettingsNavigation.QUICK_SETUPS, ((Preference) list.getItemAtPosition(0)).getKey());
         List<String> titles = new ArrayList<>();
-        int more = -1;
-        for (int i = 3; i < list.getCount() - 2; i++) {
-            Preference row = (Preference) list.getItemAtPosition(i);
-            if ("More settings".contentEquals(row.getTitle())) {
-                assertEquals("two More settings headings", -1, more);
-                assertTrue("More settings opens a page of its own", row.getOnPreferenceClickListener() == null);
-                more = i;
-                continue;
-            }
-            titles.add(row.getTitle().toString());
+        for (int i = 0; i < page.sections().size(); i++) {
+            Preference header = (Preference) list.getItemAtPosition(i + 1);
+            assertTrue(header.getKey(), header.getKey().startsWith("section_"));
+            titles.add(header.getTitle().toString());
         }
-        assertTrue("no More settings heading", more > 3);
-        List<String> expected = new ArrayList<>();
-        for (Preference section : page.sections()) expected.add(section.getTitle().toString());
-        assertEquals(new java.util.HashSet<>(expected), new java.util.HashSet<>(titles));
-        assertEquals(expected.size(), titles.size());
-        assertEquals("Appearance", titles.get(more - 3));
-        assertTrue(titles.contains("Updates"));
-        assertTrue(titles.contains("Links"));
+        assertEquals(java.util.Arrays.asList("Feed", "Privacy", "Comments", "Downloads", "Posts", "Appearance", "Links",
+                "Updates", "Set when you patched", "Pause, backup and diagnostics", "About"), titles);
+        assertEquals(SettingsNavigation.SUPPORT, ((Preference) list.getItemAtPosition(12)).getKey());
+        assertEquals("Support closes the list, and the build line sits under it", 14, list.getCount());
+        assertFalse(titles.contains("More settings"));
+        assertFalse(titles.contains("Browse settings"));
     }
 
     @Test
-    public void aSectionComesToTheTopAndBackReturnsOnceBeforeClosing() {
+    public void aSectionIsRevealedInTheMainListAndBackClosesSettings() {
         SettingsDialog dialog = show();
         HushThreadsPreferenceFragment page = page(dialog);
         ListView list = laidOut(dialog);
@@ -102,18 +88,19 @@ public class SectionJumpTest {
         Preference privacy = sectionTitled(page, "Privacy");
         assertTrue(page.jumpTo(privacy));
         relayout(list);
-        assertEquals(((android.preference.PreferenceCategory) privacy).getPreferenceCount(), list.getCount());
-        assertEquals(privacy, ((Preference) list.getItemAtPosition(0)).getParent());
-
+        assertTrue(page.navigation.isExpanded("Privacy"));
+        assertEquals(14 + ((android.preference.PreferenceCategory) privacy).getPreferenceCount(), list.getCount());
+        int header = -1;
+        for (int i = 0; i < list.getCount(); i++) {
+            if ("section_Privacy".equals(((Preference) list.getItemAtPosition(i)).getKey())) header = i;
+        }
+        assertTrue("the Privacy header is off screen", header >= list.getFirstVisiblePosition()
+                && header <= list.getLastVisiblePosition());
+        assertTrue(privacy == ((Preference) list.getItemAtPosition(header + 1)).getParent());
+        assertFalse(page.backFromJump());
         dialog.getDialog().onBackPressed();
-        relayout(list);
-        assertTrue("Back closed the page instead of going back", dialog.getDialog().isShowing());
-        // The status card at 0 can't be selected while HushThreads is on, so outside touch mode
-        // the same rule lands on the row under it.
-        assertTrue("Back didn't return to the top: " + list.getFirstVisiblePosition(), list.getFirstVisiblePosition() <= 1);
-
-        dialog.getDialog().onBackPressed();
-        assertFalse("a second Back should close the page", dialog.getDialog().isShowing());
+        assertFalse("Back should close settings directly", dialog.getDialog().isShowing());
+        assertFalse("Back should leave Threads running", controller.get().isFinishing());
     }
 
     @Test

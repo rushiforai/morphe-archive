@@ -22,6 +22,15 @@ python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 python3 .github/scripts/generate_patches_readme.py pengusto/penguin-patches main
 ```
 
+The English root README is canonical. The seven localized introductions in
+`docs/readme/` cover purpose, installation, signing, limitations, a translated
+overview of every released patch and one real comparison. They link to the
+shared English catalogue and evidence gallery for the full technical details.
+When shared claims, patch lists or setup instructions change, review and update
+every translation, link and screenshot caption. Translations are AI-assisted
+and have not received fluent-speaker review. The locale test checks navigation,
+local targets and catalogue coverage, not translation quality.
+
 Use the branch and metadata belonging to the release when regenerating. The current checked-in metadata describes the stable `main` release even on `dev`. Omit `EXPANDED` from the README marker to keep the catalogue closed at every release size. The optional summary markers also update release counts and version in the introduction. Guide destinations belong to the generator; never change generated patch metadata to add documentation links.
 
 For a new patch, add a section with its explicit patch-name slug and an accurately

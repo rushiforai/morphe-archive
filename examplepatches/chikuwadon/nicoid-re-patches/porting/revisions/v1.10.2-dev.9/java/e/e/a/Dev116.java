@@ -1,0 +1,306 @@
+package e.e.a;
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
+import android.provider.DocumentsContract;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+import org.json.JSONObject;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/** Restore the native menu and image hooks for device playlists. */
+public final class Dev116 {
+    private static final ExecutorService IMAGES=Executors.newFixedThreadPool(2,r->{
+        Thread t=new Thread(r,"nicoid-playlist-artwork");t.setPriority(Thread.MIN_PRIORITY);return t;
+    });
+    private static final Map<String,String> THUMBNAILS=new LinkedHashMap<String,String>(64,.75f,true){
+        protected boolean removeEldestEntry(Map.Entry<String,String> e){return size()>400;}
+    };
+    private static final Set<String> PENDING=new HashSet<>();
+    private static final Map<PreferenceActivity,SharedPreferences.OnSharedPreferenceChangeListener> LISTENERS=new java.util.WeakHashMap<>();
+    private Dev116(){}
+
+    /** Use the actual playlist page and stored row identity, including wrapped adapters. */
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public static void playlistMenu(Activity host,Object listener,Object row,Menu menu,List actions){
+        if(host==null || row==null || menu==null || actions==null)return;
+        try{
+            Class<?> owner=Class.forName("e.e.a.LocalPlaylists");
+            Object adapter=listener==null?null:Dev112.get(listener,"e");
+            Map<?,?> registered=(Map<?,?>)Dev112.field(owner,"ADAPTER_PAGES").get(null);
+            Object page=adapter==null?null:registered.get(adapter);
+            Map<?,?> pages=(Map<?,?>)Dev112.field(owner,"PAGES").get(null);
+            if(page==null && pages!=null)page=pages.get(host);
+            if(page==null || Dev112.get(page,"folder")==null)return;
+            List<?> visible=(List<?>)Dev112.get(page,"visible");
+            String url=String.valueOf(Dev112.staticCall("e.e.a.ListActions","value",new Class<?>[]{Object.class,String.class},row,"videourl"));
+            String nativeId="";
+            try{nativeId=String.valueOf(Dev112.get(row,"b"));}catch(Exception ignored){}
+            String identity=null;
+            for(Object item:visible){
+                if(!(item instanceof JSONObject))continue;
+                JSONObject video=(JSONObject)item;
+                if(url.equals(video.optString("url")) || (!nativeId.isEmpty() && nativeId.equals(video.optString("videoId")))){
+                    identity=video.optString("id","");break;
+                }
+            }
+            if(identity==null || identity.isEmpty())return;
+            final String selected=identity;
+            int index=-1;
+            for(int n=0;n<actions.size();n++){
+                if(((Number)Dev112.get(actions.get(n),"id")).intValue()==18102){index=n;break;}
+            }
+            MenuItem move=menu.findItem(18102);
+            if(move==null)move=menu.add(0,18102,100,Dev112.tr(host,"別のプレイリストに移動","Move to another playlist","移至其他播放清單"));
+            move.setTitle(Dev112.tr(host,"別のプレイリストに移動","Move to another playlist","移至其他播放清單"));
+            Runnable onMove=()->invokeOld(host,"moveVideo",selected);
+            move.setOnMenuItemClickListener(i->{onMove.run();return true;});
+            Class<?> actionType=Class.forName("e.e.a.ListActions$Action");
+            Constructor<?> ctor=actionType.getDeclaredConstructor(MenuItem.class,Runnable.class);
+            ctor.setAccessible(true);
+            Object moveAction=ctor.newInstance(move,onMove);
+            if(index<0){index=actions.size();actions.add(moveAction);}else actions.set(index,moveAction);
+            MenuItem remove=menu.findItem(18105);
+            if(remove==null)remove=menu.add(0,18105,101,Dev112.tr(host,"プレイリストから削除","Remove from playlist","從播放清單移除"));
+            remove.setTitle(Dev112.tr(host,"プレイリストから削除","Remove from playlist","從播放清單移除"));
+            Runnable onRemove=()->invokeOld(host,"confirmRemove",selected);
+            remove.setOnMenuItemClickListener(i->{onRemove.run();return true;});
+            boolean present=false;
+            for(Object action:actions)if(((Number)Dev112.get(action,"id")).intValue()==18105){present=true;break;}
+            if(!present)actions.add(index+1,ctor.newInstance(remove,onRemove));
+        }catch(Exception e){android.util.Log.w("nicoid-playlist","Playlist menu binding failed",e);}
+    }
+    private static void invokeOld(Activity host,String method,String id){
+        try{
+            Method m=Dev112.class.getDeclaredMethod(method,Activity.class,String.class);
+            m.setAccessible(true);m.invoke(null,host,id);
+        }catch(Exception e){android.util.Log.w("nicoid-playlist","Playlist action failed",e);}
+    }
+    /** Toolbar home is a drawer toggle, never a playlist hierarchy back action. */
+    public static boolean drawer(Activity activity,MenuItem item){
+        if(activity==null || item==null || item.getItemId()!=android.R.id.home)return false;
+        boolean playlist=activity.getIntent().getBooleanExtra("nicoid_local_playlists",false);
+        if(!playlist)try{
+            Map<?,?> pages=(Map<?,?>)Dev112.field(Class.forName("e.e.a.LocalPlaylists"),"PAGES").get(null);
+            playlist=pages!=null && pages.containsKey(activity);
+        }catch(Exception ignored){}
+        if(!playlist)return false;
+        // Once the toolbar item is known to be the playlist hamburger, consume it
+        // even when the drawer has not yet finished initialization: never pop a folder.
+        try{
+            Object drawer=null;
+            try{drawer=Dev112.get(activity,"u");}catch(Exception ignored){}
+            if(drawer==null){
+                int id=activity.getResources().getIdentifier("drawer_layout","id",activity.getPackageName());
+                if(id!=0)drawer=activity.findViewById(id);
+            }
+            if(drawer==null)drawer=findDrawer(activity.getWindow().getDecorView());
+            if(drawer==null){
+                android.util.Log.w("nicoid-navigation","Playlist drawer view unavailable");
+                return true;
+            }
+            Class<?> type=drawer.getClass();
+            boolean open=false;
+            try{open=(Boolean)type.getMethod("isDrawerOpen",int.class).invoke(drawer,Gravity.START);}
+            catch(Exception ignored){}
+            type.getMethod(open?"closeDrawer":"openDrawer",int.class).invoke(drawer,Gravity.START);
+        }catch(Exception e){android.util.Log.w("nicoid-navigation","Cannot toggle playlist drawer",e);}
+        return true;
+    }
+    private static Object findDrawer(View node){
+        if(node==null)return null;
+        if("androidx.drawerlayout.widget.DrawerLayout".equals(node.getClass().getName()))return node;
+        if(node instanceof ViewGroup){
+            ViewGroup group=(ViewGroup)node;
+            for(int i=0;i<group.getChildCount();i++){
+                Object found=findDrawer(group.getChildAt(i));
+                if(found!=null)return found;
+            }
+        }
+        return null;
+    }
+
+    public static void playlistThumbnail(View row,BaseAdapter adapter,JSONObject video){
+        if(row==null||video==null)return;
+        ImageView image=thumbView(row);
+        if(image==null){android.util.Log.w("nicoid-playlist","Thumbnail ImageView missing in native video row");return;}
+        String original=video.optString("thumbnail","").trim();
+        if(!validImage(original))original=video.optString("thumbnailUrl","").trim();
+        if(!validImage(original))original=video.optString("thumbnail_url","").trim();
+        String id=video.optString("videoId","");
+        if(!id.matches("(?:sm|so|nm|ss)[0-9]+")){
+            java.util.regex.Matcher matcher=java.util.regex.Pattern.compile("(?:sm|so|nm|ss)[0-9]+").matcher(video.optString("url",""));
+            if(matcher.find())id=matcher.group();
+        }
+        String cached;
+        synchronized(THUMBNAILS){cached=THUMBNAILS.get(id);}
+        String resolved=validImage(original)?safeImage(original):cached;
+        if(resolved!=null && !resolved.isEmpty()){
+            loadImage(resolved,image);
+            return;
+        }
+        // Recycled native rows must not retain the previous video's artwork.
+        loadImage("",image);
+        if(!id.matches("(?:sm|so|nm|ss)[0-9]+"))return;
+        final String videoId=id;
+        synchronized(PENDING){if(!PENDING.add(videoId))return;}
+        WeakReference<BaseAdapter> weak=new WeakReference<>(adapter);
+        IMAGES.execute(()->{
+            String found=null;
+            try{found=lookup(videoId);}catch(Exception ignored){}
+            if(found==null)found=fallback(videoId);
+            synchronized(THUMBNAILS){THUMBNAILS.put(videoId,found);}
+            synchronized(PENDING){PENDING.remove(videoId);}
+            BaseAdapter active=weak.get();
+            if(active!=null)new android.os.Handler(android.os.Looper.getMainLooper()).post(active::notifyDataSetChanged);
+        });
+    }
+    private static void loadImage(String url,ImageView image){
+        try{
+            Method load=Class.forName("e.e.a.ShortImages").getDeclaredMethod("load",String.class,ImageView.class,TextView.class);
+            load.setAccessible(true);
+            load.invoke(null,url,image,null);
+        }catch(Exception e){android.util.Log.w("nicoid-playlist","Thumbnail image loader failed",e);}
+    }
+    /** Native thumbnail ID differs between list layouts; prefer that image and
+     * otherwise choose the largest ImageView from the video row, not its icons. */
+    private static ImageView thumbView(View root){
+        for(int id:new int[]{0x7f0800cd,0x7f0801b2}){
+            ImageView direct=firstImage(root.findViewById(id));
+            if(direct!=null)return direct;
+        }
+        ArrayList<ImageView> found=new ArrayList<>();
+        collectImages(root,found);
+        ImageView best=null;long score=-1;
+        for(ImageView image:found){
+            ViewGroup.LayoutParams p=image.getLayoutParams();
+            int width=image.getWidth()>0?image.getWidth():(p!=null&&p.width>0?p.width:1);
+            int height=image.getHeight()>0?image.getHeight():(p!=null&&p.height>0?p.height:1);
+            long area=(long)width*height;
+            if(area>score){score=area;best=image;}
+        }
+        return best;
+    }
+    private static ImageView firstImage(View v){
+        if(v instanceof ImageView)return(ImageView)v;
+        if(v instanceof ViewGroup){
+            ViewGroup g=(ViewGroup)v;
+            for(int i=0;i<g.getChildCount();i++){
+                ImageView child=firstImage(g.getChildAt(i));
+                if(child!=null)return child;
+            }
+        }
+        return null;
+    }
+    private static void collectImages(View v,List<ImageView> found){
+        if(v instanceof ImageView)found.add((ImageView)v);
+        else if(v instanceof ViewGroup){
+            ViewGroup g=(ViewGroup)v;
+            for(int i=0;i<g.getChildCount();i++)collectImages(g.getChildAt(i),found);
+        }
+    }
+    private static boolean validImage(String url){
+        return url.startsWith("https://") || url.startsWith("http://") || url.startsWith("//");
+    }
+    private static String safeImage(String url){
+        return url.startsWith("//")?"https:"+url:url.replaceFirst("^http://","https://");
+    }
+    private static String lookup(String id)throws Exception{
+        String xml=read("https://ext.nicovideo.jp/api/getthumbinfo/"+id,128*1024);
+        if(xml!=null){
+            int a=xml.indexOf("<thumbnail_url>"),b=xml.indexOf("</thumbnail_url>");
+            if(a>=0&&b>a){
+                String image=xml.substring(a+15,b).trim().replace("&amp;","&");
+                if(validImage(image))return safeImage(image);
+            }
+        }
+        return null;
+    }
+    private static String read(String path,int limit){
+        HttpURLConnection connection=null;
+        try{
+            connection=(HttpURLConnection)new URL(path).openConnection();
+            connection.setConnectTimeout(4500);connection.setReadTimeout(4500);
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestProperty("Accept","application/json, application/xml, text/xml");
+            if(connection.getResponseCode()!=200)return null;
+            try(InputStream in=connection.getInputStream();ByteArrayOutputStream data=new ByteArrayOutputStream()){
+                byte[] buffer=new byte[4096];int n;
+                while((n=in.read(buffer))!=-1){
+                    if(data.size()+n>limit)return null;
+                    data.write(buffer,0,n);
+                }
+                return data.toString("UTF-8");
+            }
+        }catch(Exception ignored){return null;}
+        finally{if(connection!=null)connection.disconnect();}
+    }
+    private static String fallback(String id){
+        String digits=id.replaceAll("\\D","");
+        return "https://nicovideo.cdn.nimg.jp/thumbnails/"+digits+"/"+digits+".M";
+    }
+
+    public static void settings(PreferenceActivity activity){
+        Preference mp4=activity.findPreference("mp4_tree_uri");
+        Preference progress=activity.findPreference("show_watch_progress");
+        if(progress!=null)progress.setSummary(Dev112.tr(activity,
+            "視聴済み動画のサムネイル下端に再生位置を示す進捗バーを表示します",
+            "Show a progress bar along the bottom of thumbnails for previously watched videos",
+            "在已觀看影片的縮圖底部顯示播放進度條"));
+        if(mp4==null)return;
+        SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(activity);
+        updateMp4Setting(activity);
+
+        SharedPreferences.OnSharedPreferenceChangeListener old=LISTENERS.remove(activity);
+        if(old!=null)prefs.unregisterOnSharedPreferenceChangeListener(old);
+        WeakReference<PreferenceActivity> weak=new WeakReference<>(activity);
+        SharedPreferences.OnSharedPreferenceChangeListener listener=(preferences,key)->{
+            if(!"mp4_tree_uri".equals(key))return;
+            PreferenceActivity a=weak.get();
+            if(a!=null&&!a.isFinishing())a.runOnUiThread(()->updateMp4Setting(a));
+        };
+        prefs.registerOnSharedPreferenceChangeListener(listener);
+        LISTENERS.put(activity,listener);
+    }
+    /** SharedPreferences listener must not retain the Activity through a closure. */
+    private static void updateMp4Setting(PreferenceActivity activity){
+        Preference mp4=activity.findPreference("mp4_tree_uri");
+        if(mp4==null)return;
+        SharedPreferences prefs=PreferenceManager.getDefaultSharedPreferences(activity);
+        mp4.setTitle(Dev112.tr(activity,"MP4の保存先フォルダ","MP4 save folder","MP4儲存資料夾"));
+        String uri=prefs.getString("mp4_tree_uri","");
+        String location=Dev112.tr(activity,"未指定（初回ダウンロード時に選択）","Not set (select when first downloading)","未設定（首次下載時選擇）");
+        if(uri!=null&&!uri.isEmpty())try{location=DocumentsContract.getTreeDocumentId(Uri.parse(uri));}catch(Exception ignored){}
+        mp4.setSummary(Dev112.tr(activity,"保存先: ","Location: ","儲存位置: ")+location+"\n"+
+            Dev112.tr(activity,
+                "保存したMP4は本アプリでは再生できません。外部の動画再生アプリをご利用ください",
+                "Saved MP4 files cannot be played in this app. Use an external video player",
+                "本應用程式無法播放儲存的MP4。請使用其他影片播放器"));
+    }
+}

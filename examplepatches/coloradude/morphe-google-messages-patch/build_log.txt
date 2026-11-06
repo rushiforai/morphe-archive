@@ -1,0 +1,46 @@
+> Task :extensions:extension:preBuild UP-TO-DATE
+> Task :patches:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :extensions:extension:preReleaseBuild UP-TO-DATE
+> Task :extensions:extension:checkReleaseDuplicateClasses UP-TO-DATE
+> Task :extensions:extension:generateReleaseResources UP-TO-DATE
+> Task :extensions:extension:packageReleaseResources UP-TO-DATE
+> Task :extensions:extension:processReleaseNavigationResources UP-TO-DATE
+> Task :extensions:extension:parseReleaseLocalResources UP-TO-DATE
+> Task :extensions:extension:generateReleaseRFile UP-TO-DATE
+> Task :extensions:extension:compileReleaseKotlin NO-SOURCE
+> Task :extensions:extension:javaPreCompileRelease UP-TO-DATE
+> Task :extensions:extension:compileReleaseJavaWithJavac UP-TO-DATE
+> Task :extensions:extension:checkReleaseAarMetadata UP-TO-DATE
+> Task :extensions:extension:mapReleaseSourceSetPaths UP-TO-DATE
+> Task :extensions:extension:compileReleaseNavigationResources UP-TO-DATE
+> Task :extensions:extension:mergeReleaseResources UP-TO-DATE
+> Task :extensions:extension:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :extensions:extension:extractDeepLinksRelease UP-TO-DATE
+> Task :extensions:extension:processReleaseMainManifest UP-TO-DATE
+> Task :extensions:extension:processReleaseManifest UP-TO-DATE
+> Task :extensions:extension:processReleaseManifestForPackage UP-TO-DATE
+> Task :extensions:extension:processReleaseResources UP-TO-DATE
+> Task :extensions:extension:dexBuilderRelease UP-TO-DATE
+> Task :extensions:extension:desugarReleaseFileDependencies UP-TO-DATE
+> Task :extensions:extension:mergeReleaseStartupProfile UP-TO-DATE
+> Task :extensions:extension:mergeExtDexRelease UP-TO-DATE
+> Task :extensions:extension:mergeDexRelease UP-TO-DATE
+> Task :extensions:extension:syncExtension UP-TO-DATE
+> Task :patches:processResources UP-TO-DATE
+> Task :patches:compileKotlin
+> Task :patches:compileJava NO-SOURCE
+> Task :patches:classes UP-TO-DATE
+> Task :patches:jar
+> Task :patches:buildAndroid
+
+[Incubating] Problems report is available at: file:///Users/stephenflorian/personal-projects/morphe-google-messages-patch/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.8.2/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 4s
+28 actionable tasks: 3 executed, 25 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html

@@ -100,7 +100,18 @@ internal fun BytecodePatchContext.addThreadsSettingsRow() {
         site.hookAt,
         "invoke-static/range { v${site.composer} .. v${site.composer} }, $ADD_SETTINGS_ROW",
     )
+    // Last, so a build refused above leaves the settings screen without the row's switch.
+    answerInBuild(SETTINGS_ROW)
 }
+
+/**
+ * Tells the extension's [type] that its part of the settings patch went in: its patchedIn() stub
+ * answers true, and the settings screen offers that way in's switch.
+ */
+internal fun BytecodePatchContext.answerInBuild(type: String) = writeStub(type, "patchedIn", 1, """
+    const/4 v0, 0x1
+    return v0
+""")
 
 /** Makes the extension's [type] a Kotlin Function0, which it already answers with invoke(). */
 internal fun BytecodePatchContext.implementFunction0(type: String, patch: String = PATCH) {

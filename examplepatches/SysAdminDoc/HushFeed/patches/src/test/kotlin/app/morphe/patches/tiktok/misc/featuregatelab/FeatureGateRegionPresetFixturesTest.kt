@@ -21,15 +21,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The native readers behind the scrolling comments and several-photos presets on TikTok 47.6.3
+ * The native readers behind the scrolling comments and several-photos presets on TikTok 47.7.2
  * (#98): which key each reads, through which AB read, and which values turn the feature on.
  */
 class FeatureGateRegionPresetFixturesTest {
     private val app by lazy {
-        val container = Fixtures.dexContainer(Fixtures.apkOf("47.6.3"), Opcodes.getDefault())
+        val container = Fixtures.dexContainer(Fixtures.apkOf("47.7.2"), Opcodes.getDefault())
         val owners = setOf(
             DANMAKU_READ, DANMAKU_HOLDER, DANMAKU_MASTER, LANDSCAPE_READ, DANMAKU_SERVICE, AWEME,
-            PHOTOS_READ, PHOTOS_GATE, PUBLISH, KEYBOARD,
+            PHOTOS_READ, PHOTOS_GATE, PUBLISH, KEYBOARD, TAB_READ, AB_READS, AB_CALLBACK,
         )
         container.dexEntryNames.flatMap { entry ->
             container.getEntry(entry)!!.dexFile.classes.filter { it.type in owners }
@@ -44,10 +44,10 @@ class FeatureGateRegionPresetFixturesTest {
 
         val holder = method(DANMAKU_HOLDER, "<clinit>")
         assertTrue("the holder's lazy group and master", holder.created().containsAll(listOf(DANMAKU_READ, DANMAKU_MASTER)))
-        assertEquals("the master is read back as a boolean", listOf("$DANMAKU_HOLDER->LIZLLL:LX/02pL;"),
+        assertEquals("the master is read back as a boolean", listOf("$DANMAKU_HOLDER->LIZLLL:LX/02pf;"),
             method(DANMAKU_HOLDER, "LIZIZ").fields())
         assertEquals("the service asks the master", "$DANMAKU_HOLDER->LIZIZ()Z",
-            method(DANMAKU_SERVICE, "LJIIIZ").calls().single().toString())
+            method(DANMAKU_SERVICE, "LJIIIIZZ").calls().single().toString())
 
         // The master keeps TikTok's own strategy switch and ends on group 1 or group 2.
         val master = method(DANMAKU_MASTER, "invoke")
@@ -77,8 +77,8 @@ class FeatureGateRegionPresetFixturesTest {
         for (master in listOf(false, true)) for (value in -1..3) {
             assertEquals("master=$master value=$value", master && value == 1, run(read) { call, _ ->
                 when (call.toString()) {
-                    "LX/08YM;->LJIIIZ()Z" -> if (master) 1 else 0
-                    "LX/032w;->LJIIIZ()LX/032w;" -> Any()
+                    "LX/0AUu;->LJIIIIZZ()Z" -> if (master) 1 else 0
+                    "LX/03OD;->LJIIIZ()LX/03OD;" -> Any()
                     AB_INT_READ -> value
                     "Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;" -> null
                     else -> error("Unexpected call: $call")
@@ -90,7 +90,7 @@ class FeatureGateRegionPresetFixturesTest {
     @Test
     fun `each video still carries its own server flag for scrolling comments`() {
         assertEquals(listOf("$AWEME->isSupportDanmaku:Z"), method(AWEME, "isSupportDanmaku").fields())
-        val perVideo = method(DANMAKU_SERVICE, "LJIIJ").calls().map { it.toString() }
+        val perVideo = method(DANMAKU_SERVICE, "LJIIIZ").calls().map { it.toString() }
         assertEquals("the video's flag is read before the master", "$AWEME->isSupportDanmaku()Z", perVideo.first())
         assertTrue("$DANMAKU_HOLDER->LIZIZ()Z" in perVideo)
     }
@@ -106,16 +106,37 @@ class FeatureGateRegionPresetFixturesTest {
         for (group in -1..4) {
             assertEquals("group $group", group == 2, run(gate) { call, _ ->
                 when (call.toString()) {
-                    "LX/02pL;->getValue()Ljava/lang/Object;" -> group
+                    "LX/02pf;->getValue()Ljava/lang/Object;" -> group
                     "Ljava/lang/Number;->intValue()I" -> group
                     else -> error("Unexpected call: $call")
                 }
             })
         }
-        for ((owner, name) in listOf(PUBLISH to "a33", KEYBOARD to "KI", KEYBOARD to "onViewCreated")) {
+        // 47.7.2 names 47.6.3's a33 and KI x53 and WI, the same signatures and the same first read.
+        for ((owner, name) in listOf(PUBLISH to "x53", KEYBOARD to "WI", KEYBOARD to "onViewCreated")) {
             assertTrue("$owner $name reads the gate", app.getValue(owner).methods.filter { it.name == name }
                 .any { candidate -> candidate.calls().any { it.toString() == "$PHOTOS_GATE->LIZ()Z" } })
         }
+    }
+
+    @Test
+    fun `the home tab rows are a TabConfig read through the typed object getter the Lab hooks`() {
+        val read = method(TAB_READ, "invoke")
+        assertEquals(listOf("tab_fcp_config_v2"), read.strings())
+        assertTrue("read as a TabConfig", read.implementation!!.instructions.any {
+            it.opcode == Opcode.CONST_CLASS && it.getReference<TypeReference>()?.type == TAB_CONFIG
+        })
+        assertEquals("$AB_READS->LJIJJLI(ZLjava/lang/String;ILjava/lang/Class;Ljava/lang/Object;I)Ljava/lang/Object;",
+            read.calls().single { it.returnType == "Ljava/lang/Object;" }.toString())
+        // That read's callback goes on to the App AB class's (String, boolean, boolean, Class, int)
+        // getter, the shape FeatureGateLabPatch hooks for OBJECT rules.
+        assertTrue("the callback reads through LJIJ", app.getValue(AB_CALLBACK).methods.any { callback ->
+            callback.implementation?.let { callback.calls() }.orEmpty()
+                .any { it.toString() == "$AB_READS->LJIJ(ZLjava/lang/String;Ljava/lang/Class;I)Ljava/lang/Object;" }
+        })
+        val typed = method(AB_READS, "LJIJ").calls().single { it.returnType == "Ljava/lang/Object;" }
+        assertEquals(listOf("Ljava/lang/String;", "Z", "Z", "Ljava/lang/Class;", "I"),
+            typed.parameterTypes.map { it.toString() })
     }
 
     private fun method(owner: String, name: String): Method = app.getValue(owner).methods.single { it.name == name }
@@ -194,17 +215,21 @@ class FeatureGateRegionPresetFixturesTest {
     }
 
     private companion object {
-        const val AB_INT_READ = "LX/032w;->LJIIJJI(IILjava/lang/String;Z)I"
-        const val DANMAKU_READ = "LX/0G4d;"
-        const val DANMAKU_HOLDER = "LX/0G4c;"
-        const val DANMAKU_MASTER = "LX/0G4g;"
-        const val LANDSCAPE_READ = "Lkotlin/jvm/internal/AFwS167S0000000_31_I1;"
-        const val LANDSCAPE_METHOD = "invoke\$768"
+        const val AB_INT_READ = "LX/03OD;->LJIIJJI(IILjava/lang/String;Z)I"
+        const val DANMAKU_READ = "LX/0IMr;"
+        const val DANMAKU_HOLDER = "LX/0IMq;"
+        const val DANMAKU_MASTER = "LX/0IMu;"
+        const val LANDSCAPE_READ = "Lkotlin/jvm/internal/AFwS156S0000000_31_I1;"
+        const val LANDSCAPE_METHOD = "invoke\$464"
         const val DANMAKU_SERVICE = "Lcom/ss/android/ugc/aweme/service/DanmakuServiceImpl;"
         const val AWEME = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
-        const val PHOTOS_READ = "LX/0FWF;"
-        const val PHOTOS_GATE = "LX/0FWE;"
+        const val PHOTOS_READ = "LX/0HT3;"
+        const val PHOTOS_GATE = "LX/0HT2;"
         const val PUBLISH = "Lcom/ss/android/ugc/aweme/commentv2/commentlist/viewmodel/CommentPublishViewModel;"
         const val KEYBOARD = "Lcom/ss/android/ugc/aweme/comment/keyboard/keyboardv2/refactor/PortraitInputKeyboard;"
+        const val TAB_READ = "LX/04TT;"
+        const val TAB_CONFIG = "Lcom/ss/android/ugc/aweme/experiment/TabConfig;"
+        const val AB_READS = "LX/03OD;"
+        const val AB_CALLBACK = "LX/03eR;"
     }
 }

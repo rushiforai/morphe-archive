@@ -8,11 +8,14 @@ import app.morphe.patcher.patch.intOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.proxypatches.patches.shared.Constants.COMPATIBILITY_REDDIT
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.w3c.dom.Element
 
 private const val EXTENSION_PACKAGE = "app.proxypatches.extension"
 private const val EXTENSION_FORWARDER = "Lapp/proxypatches/extension/ProxyForwarder;"
 private const val EXTENSION_CONFIG = "Lapp/proxypatches/extension/ProxyConfig;"
+private const val DNS_WARMUP_INITIALIZER = "Lcom/reddit/startup/dns/DnsLookupInitializer;"
 private const val SETTINGS_ACTIVITY = "$EXTENSION_PACKAGE.ProxySettingsActivity"
 
 /** Hostname, IPv4 or bracket-less IPv6. */
@@ -56,8 +59,9 @@ private val proxySettingsActivityPatch = resourcePatch {
 val proxyPatch = bytecodePatch(
     name = "Proxy",
     description = "Routes all of the app's traffic through your HTTP, HTTPS or SOCKS5 proxy, with optional " +
-        "username and password. Change it any time in the app: long-press the app icon → Proxy " +
-        "settings. Nothing goes direct, even if the proxy is down, unless you turn on \"Run without proxy\" there.",
+        "username and password. Set it up in the app: long-press the app icon → Proxy settings (the login " +
+        "is entered there, never baked into the APK). Nothing goes direct, even if the proxy is down, " +
+        "unless you turn on \"Run without proxy\" there.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
@@ -96,20 +100,9 @@ val proxyPatch = bytecodePatch(
             "(such as Caddy forward_proxy). HTTP: a plain HTTP proxy. SOCKS5: a SOCKS5 proxy (not encrypted).",
     ) { it == null || it in setOf("https", "http", "socks5") }
 
-    val username by stringOption(
-        key = "username",
-        default = "",
-        title = "Username (optional)",
-        description = "Starting value. Leave empty if the proxy has no login. " +
-            "Stored in plain text inside the patched app, so don't share the patched APK.",
-    )
-
-    val password by stringOption(
-        key = "password",
-        default = "",
-        title = "Password (optional)",
-        description = "Starting value. Leave empty if the proxy has no login.",
-    )
+    // No username/password options on purpose: patch options end up as plain text inside the APK,
+    // and installed APKs are readable by every app on the phone. The login is only ever entered
+    // in the app's Proxy settings, where it's in the app's private (sandboxed) storage.
 
     execute {
         // ---- 1. Starting values from the patch options ------------------------------------
@@ -123,8 +116,6 @@ val proxyPatch = bytecodePatch(
         body("host", "const-string v0, \"${smaliString(host)}\"\nreturn-object v0")
         body("port", "const v0, ${proxyPort ?: 443}\nreturn v0")
         body("type", "const-string v0, \"${smaliString(proxyType ?: "https")}\"\nreturn-object v0")
-        body("username", "const-string v0, \"${smaliString(username.orEmpty())}\"\nreturn-object v0")
-        body("password", "const-string v0, \"${smaliString(password.orEmpty())}\"\nreturn-object v0")
 
         // ---- 2. Start the forwarder before anything else in the app ---------------------------
         ApplicationAttachBaseContextFingerprint.method.addInstruction(
@@ -146,6 +137,24 @@ val proxyPatch = bytecodePatch(
                 ) && it.parameterTypes.size == 1 && it.parameterTypes[0] == "Z"
             }
             ?.forEach { it.addInstruction(0, "const/4 p1, 0x0") }
+
+        // ---- 4b. Reddit's startup "DNS warm-up": DnsLookupInitializer pre-resolves its API hosts
+        //          (gql-fed.reddit.com, cf.gql-fed.reddit.com) with the device's DNS, revealing them
+        //          outside the proxy. Make its create() return Unit immediately. ------------------
+        mutableClassDefByOrNull(DNS_WARMUP_INITIALIZER)?.methods
+            ?.firstOrNull { it.name == "create" && it.parameterTypes.size == 1 }
+            ?.let { create ->
+                val unit = create.implementation!!.instructions
+                    .filterIsInstance<ReferenceInstruction>()
+                    .map { it.reference }
+                    .filterIsInstance<FieldReference>()
+                    .firstOrNull { it.type == "Lkotlin/Unit;" }
+                    ?: throw PatchException("DnsLookupInitializer.create(): Unit reference not found")
+                create.addInstructions(
+                    0,
+                    "sget-object v0, ${unit.definingClass}->${unit.name}:${unit.type}\nreturn-object v0",
+                )
+            }
 
         // ---- 5. Play Services Cronet (reCAPTCHA): report unavailable -> app's own Cronet ------
         PlayServicesCronetProviderIsEnabledFingerprint.methodOrNull?.addInstructions(

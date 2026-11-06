@@ -49,7 +49,7 @@ internal class PostGapPlan(
 )
 
 /**
- * Tumblr's timeline spacing (`prl` in 46.9.1.100) is the one list decoration that leaves a gap above
+ * Tumblr's timeline spacing (`mxl` in 47.0.0.108) is the one list decoration that leaves a gap above
  * each post. Its draw goes over every row's gap only for a debug switch, painting it with a debug
  * red. The switch's answer goes through the extension here, and so does the paint call, so that
  * existing loop gives the line its place without any of the list's own obfuscated methods.

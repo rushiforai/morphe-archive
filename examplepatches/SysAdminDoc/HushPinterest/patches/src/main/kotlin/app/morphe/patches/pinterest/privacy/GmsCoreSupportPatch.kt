@@ -86,7 +86,7 @@ internal val GMS_PERMISSIONS = setOf(
 
 /**
  * Play services intent actions microG-RE serves only under its own vendor. Morphe's list, and the
- * last four, which Pinterest 14.42.0 binds and microG-RE 7.2.2 declares only as app.revanced
+ * last four, which Pinterest 14.43.0 binds and microG-RE 7.2.2 declares only as app.revanced
  * actions: Credential Manager's identity credentials, App set ID, the SMS retriever and ads.
  */
 internal val GMS_ACTIONS = setOf(
@@ -371,7 +371,7 @@ internal data class GmsCorePlan(
 )
 
 /**
- * Finds the four edits, refusing when any of them isn't exactly where 14.42.0 has it:
+ * Finds the four edits, refusing when any of them isn't exactly where 14.43.0 has it:
  *
  * - Play services' availability check, the one method taking a Context and the minimum version
  *   that reads the version metadata ("MetadataValueReader") and Play services' package. It answers
@@ -388,7 +388,7 @@ internal data class GmsCorePlan(
  *   button looks dead when microG-RE can't be reached. The extension says why first. Autologin at
  *   launch goes through the begin sign-in request instead and stays silent.
  * - Every const-string outside the extension that [gmsCoreText] rewrites, and every static String
- *   field value it rewrites (14.42.0 keeps Firebase messaging's receive action in one).
+ *   field value it rewrites (14.43.0 keeps Firebase messaging's receive action in one).
  */
 internal fun BytecodePatchContext.resolveGmsCore(): GmsCorePlan {
     val availability = mutableListOf<Method>()

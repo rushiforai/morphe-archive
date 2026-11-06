@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -102,7 +103,8 @@ internal data class InjectionSite(val index: Int, val register: Int)
 
 /**
  * `const-string "Error"`、`Bundle.getString(String)`（`BaseBundle` で参照されることもあります）、`move-result-object` の並びを 1 つだけ探し、
- * その直後の位置と、エラー文字列が入った register を返します。
+ * その直後の位置と、エラー文字列が入った register を返します。getString のキーの引数が `"Error"` を置いた register で
+ * あることも確かめ、別のキーを読む呼び出しには注入しません。
  */
 internal fun tokenErrorSite(instructions: List<Instruction>): InjectionSite? {
     val sites = instructions.indices.mapNotNull { index ->
@@ -112,8 +114,11 @@ internal fun tokenErrorSite(instructions: List<Instruction>): InjectionSite? {
         }
         val call = instructions.getOrNull(index + 1) ?: return@mapNotNull null
         val method = (call as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null
+        val keyRegister = (constString as OneRegisterInstruction).registerA
+        val arguments = call as? FiveRegisterInstruction
         val isGetString = call.opcode == Opcode.INVOKE_VIRTUAL && method.definingClass in BUNDLE_CLASSES &&
-            method.name == "getString" && method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;")
+            method.name == "getString" && method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;") &&
+            arguments?.registerCount == 2 && arguments.registerD == keyRegister
         val result = instructions.getOrNull(index + 2)
         if (!isGetString || result?.opcode != Opcode.MOVE_RESULT_OBJECT) {
             return@mapNotNull null
@@ -141,7 +146,8 @@ internal fun bindFailureSite(instructions: List<Instruction>, componentRegister:
 }
 
 /**
- * [register] に値を書き込む命令があるかどうか。[ignoreResultOf] と同じ名前の Linimal の hook の結果を受け取る
+ * [register] に値を書き込む命令があるかどうか。wide の値を書く命令は 2 つの register（A と A+1）を書き換えるため、
+ * A+1 が [register] の場合も数えます。[ignoreResultOf] と同じ名前の Linimal の hook の結果を受け取る
  * `move-result-object` は数えません。
  */
 internal fun writesRegister(
@@ -149,7 +155,10 @@ internal fun writesRegister(
     register: Int,
     ignoreResultOf: String? = null,
 ): Boolean = instructions.withIndex().any { (index, instruction) ->
-    if (!instruction.opcode.setsRegister() || (instruction as? OneRegisterInstruction)?.registerA != register) {
+    val target = (instruction as? OneRegisterInstruction)?.registerA
+    val writes = instruction.opcode.setsRegister() && target != null &&
+        (target == register || (instruction.opcode.setsWideRegister() && target + 1 == register))
+    if (!writes) {
         return@any false
     }
     val previous = (instructions.getOrNull(index - 1) as? ReferenceInstruction)?.reference as? MethodReference

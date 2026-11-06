@@ -9,24 +9,35 @@ package semicoloncolonel.mobilestream.patches.tubi.ads
 import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
-// Tubi phone build 10.43.1 (versionCode 1061).
+// Tubi phone build 10.44.1 (also matches 10.43.1).
 //
-// Fox IMA SDK. This SDK is kept un-obfuscated, and these fingerprints are
-// unchanged from ajstrick81's TV patch: all five match the phone build.
+// Fox IMA SDK. This SDK is kept un-obfuscated, and hooks 3 to 5 are
+// unchanged from ajstrick81's TV patch. Hooks 1 and 2 hook Kotlin listener
+// lambdas, whose synthetic names change between builds ($lambda$10$lambda$9
+// in 10.43.1, $lambda$0$0 in 10.44.1), so they match on the listener's
+// parameter types instead of its name.
 
-// Hook 1 — FoxImaAdListeners.adEventListener_delegate$lambda$10$lambda$9
+private const val FOX_IMA_AD_LISTENERS = "Lcom/fox/android/video/player/api/ima/listeners/FoxImaAdListeners;"
+
+// Hook 1 — the AdEventListener lambda body, (FoxImaAdListeners, AdEvent)V
 object FoxImaAdEventListenerFingerprint : Fingerprint(
-    definingClass = "Lcom/fox/android/video/player/api/ima/listeners/FoxImaAdListeners;",
-    name = "adEventListener_delegate\$lambda\$10\$lambda\$9",
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC, AccessFlags.FINAL)
+    definingClass = FOX_IMA_AD_LISTENERS,
+    returnType = "V",
+    parameters = listOf(
+        FOX_IMA_AD_LISTENERS,
+        "Lcom/google/ads/interactivemedia/v3/api/AdEvent;",
+    ),
 )
 
-// Hook 2 — FoxImaAdListeners.adsLoadedListener_delegate$lambda$4$lambda$3
+// Hook 2 — the AdsLoadedListener lambda body, (FoxImaAdListeners, AdsManagerLoadedEvent)V
 object FoxImaAdsLoadedListenerFingerprint : Fingerprint(
-    definingClass = "Lcom/fox/android/video/player/api/ima/listeners/FoxImaAdListeners;",
-    name = "adsLoadedListener_delegate\$lambda\$4\$lambda\$3",
+    definingClass = FOX_IMA_AD_LISTENERS,
+    returnType = "V",
+    parameters = listOf(
+        FOX_IMA_AD_LISTENERS,
+        "Lcom/google/ads/interactivemedia/v3/api/AdsManagerLoadedEvent;",
+    ),
     strings = listOf("onAdsManagerLoaded"),
-    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.STATIC, AccessFlags.FINAL)
 )
 
 // Hook 3 — FoxPlayer.clearVodAds()

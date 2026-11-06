@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Adds a "Michii Patches" entry to the native "Me" panel, right below "Saved posts".
+ * Adds a "Michii Patches" entry to the native "Me" panel, above its sections (Saved posts, Groups, ...).
  * It reuses the panel's own section view data, and its click is redirected to SettingsActivity.
  */
 @SuppressWarnings("unused")
@@ -44,12 +44,12 @@ public final class NavPanelPatch {
 
             Object entry = newSection(viewData, savedPosts, chevronRight);
 
-            // "Saved posts" is a section V2 in older builds and a plain section in 4.1.1261; both have a sectionType.
+            // Above the first section (Games or Saved posts), right below the profile viewers and post impressions.
+            // Sections are section V2s in older builds and plain sections in 4.1.1261; both have a sectionType.
             int index = result.size();
             for (int i = 0; i < result.size(); i++) {
-                Object item = result.get(i);
-                if (Reflect.get(item, "sectionType") == savedPosts) {
-                    index = i + 1;
+                if (Reflect.get(result.get(i), "sectionType") != null) {
+                    index = i;
                     break;
                 }
             }

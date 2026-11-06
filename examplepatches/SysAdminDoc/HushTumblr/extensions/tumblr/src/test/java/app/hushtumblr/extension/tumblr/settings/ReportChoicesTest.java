@@ -148,7 +148,10 @@ public class ReportChoicesTest {
         assertCardsShowWhole(2f);
     }
 
-    /** A card is the choice: tapping the first copies the quick report and closes the dialog. */
+    /**
+     * A card is the choice: tapping the first copies the quick report and closes the dialog. The
+     * result shows under the row, where a toast's two lines can't cut it off, until the next tap.
+     */
     @Test
     public void tappingACardRunsItsChoice() throws Exception {
         LogBufferManager.appendEvent(DiagnosticCategory.OTHER, "Probe", "INFO", "something to report");
@@ -158,7 +161,34 @@ public class ReportChoicesTest {
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
         assertFalse("the dialog stayed open", dialog.isShowing());
-        assertEquals("Diagnostic report copied to the clipboard.", ShadowToast.getTextOfLatestToast());
+        Preference export = SettingsL10nTest.pageOf((SettingsDialog) activity().getFragmentManager()
+                .findFragmentByTag("hushtumblr_settings")).findPreference(LogBufferManager.EXPORT_ROW_KEY);
+        assertEquals("Diagnostic report copied to the clipboard.", SettingsFeedbackTest.message(export));
+        assertFalse("also said in a toast",
+                "Diagnostic report copied to the clipboard.".equals(ShadowToast.getTextOfLatestToast()));
+
+        export.getOnPreferenceClickListener().onPreferenceClick(export);
+        ShadowLooper.idleMainLooper();
+        assertNull("the last report's result outlived the next tap", SettingsFeedbackTest.message(export));
+        ((AlertDialog) ShadowAlertDialog.getLatestDialog()).dismiss();
+    }
+
+    /** A clear that couldn't start says what to do under its row, not in a toast that fades. */
+    @Test
+    public void aClearThatCannotStartSaysSoUnderTheRow() throws Exception {
+        SettingsDialog settings = SettingsL10nTest.show(activity());
+        Preference clear = SettingsL10nTest.pageOf(settings).findPreference(LogBufferManager.CLEAR_ROW_KEY);
+        assertNotNull("no clear row", clear);
+        SettingsL10nTest.openPageOf(SettingsL10nTest.pageOf(settings), LogBufferManager.CLEAR_ROW_KEY);
+        try (app.hushtumblr.extension.shared.WorkerPoolForTests full =
+                     app.hushtumblr.extension.shared.WorkerPoolForTests.fill()) {
+            clear.getOnPreferenceClickListener().onPreferenceClick(clear);
+            ShadowLooper.idleMainLooper();
+        }
+        assertEquals("Couldn't start that. Try again in a moment.", SettingsFeedbackTest.message(clear));
+        assertTrue("the row stayed busy", clear.isEnabled());
+        assertFalse("also said in a toast",
+                "Couldn't start that. Try again in a moment.".equals(ShadowToast.getTextOfLatestToast()));
     }
 
     @Test @Config(sdk = {29, 30})
@@ -291,6 +321,7 @@ public class ReportChoicesTest {
         SettingsDialog settings = SettingsL10nTest.show(activity());
         Preference export = SettingsL10nTest.pageOf(settings).findPreference("action_export_diagnostic_report");
         assertNotNull("no export row", export);
+        SettingsL10nTest.openPageOf(SettingsL10nTest.pageOf(settings), "action_export_diagnostic_report");
         export.getOnPreferenceClickListener().onPreferenceClick(export);
         ShadowLooper.idleMainLooper();
         AlertDialog dialog = (AlertDialog) ShadowAlertDialog.getLatestDialog();

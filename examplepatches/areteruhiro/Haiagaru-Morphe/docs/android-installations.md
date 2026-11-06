@@ -1873,3 +1873,23 @@ API36/emulator-5580、2026-11-05 12:23〜12:25 JST。既存reporter各packageと
 - ChMate226 / 表示名Haiagaru NG確認 226 / package jp.co.airfront.android.a2chMate.haiagaru.reporter226 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/search-back-overlay226.apk / SHA256 96430c41fb45707c06860d5c3426d520d225b7948b1eff93463c523c703bf729 / 更新・起動・native合成121項目成功。
 - ChMate242 / 表示名Haiagaru NG確認 242 / package jp.co.airfront.android.a2chMate.haiagaru.reporter242 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/search-back-overlay242.apk / SHA256 90bb45659c888506ef0286354f5aa26b4726b429d458235de1b64f8fb012437b / 更新・起動・native合成121項目成功。
 同署名のapp.haiagaru.tests.thumbnail191/226/242 instrumentationも更新。build/search-overlay-inst/test{191,226,242}.apk、元ソースscripts/ThumbnailLoadingInstrumentation.java。旧版比較は各3/1/5項目、新crash buffer空。実スレ操作は自動承認拒否で未実施。AVD停止、未公開候補。
+
+## 2026-11-05 開いているタブ更新・UA・NGダイアログ候補
+端末API36/emulator-5580、最終導入/検証2026-11-05 17:35〜17:45 JST。全版既存reporter packageの証明書をpullして照合しinstall-r、削除/データ消去なし。key C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。
+共通MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/open-tabs-ua-ng-parsefix.mpp / SHA256 91ecd109f05e40c6029953dad0246fae123fd2d52fb2b59ae2e776ef2bf8ce9b。
+- ChMate191 / Haiagaru NG確認 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/open-tabs-ua-ng-parsefix191.apk / SHA256 165c2173469b0a19edb9eb786bd835b41e085a5725e5df9fbe0aa143a4bca602 / install-r・起動・合成30項目成功。
+- ChMate226 / Haiagaru NG確認 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/open-tabs-ua-ng-parsefix226.apk / SHA256 00fd972e1d0403fa5ee9f73ca2fba81f388c815c46025e60af4c5339722a04ea / install-r・起動・合成30項目成功。
+- ChMate242 / Haiagaru NG確認 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/open-tabs-ua-ng-parsefix242.apk / SHA256 d6b6139f4c005e4576f9d6f0083a225dd5a06d157d75907f1d407965c2c80c45 / install-r・起動・合成30項目成功。
+同署名試験APK build/open-tabs-inst/test{191,226,242}.apk、試験package app.haiagaru.tests.opentabs{191,226,242}、scripts/OpenTabsInstrumentation.java。最終open-tabs-core-runtime各30で通信requestをenqueueせず、最終crash buffer空。実Tablet activityの追加試験失敗とエミュレータ停止/再起動、失敗した226試験のnative tablet設定復元完了未確認はintegration-status参照。実機導入なし、未公開。
+
+
+2026-11-05 1.24.0公式公開候補・追加タブレット検証完了
+追加試験のActivity終了はテストpackageの初回StartActivity未完了が原因。初期設定を完了し、試験側の同期Activity待機を非同期起動/現在Activity取得へ修正。製品コード変更なし。API36/emulator-5580で191/226/242各33（core30+live tablet3）計99項目成功、実通信0。build/official1240-tablet191-final.log、official1240-tablet226-final.log、official1240-tablet242-async.log。最終official1240-final-crash.log空。AVDはデータ保持で正常停止。前記の失敗を成功件数に含めない。UAホスト19/native hook全版検査/最終ビルドは既記録を使用。実通信一括更新・実機連続操作未確認を公開説明に明記。既存Semantic Release CIからdev→masterの公式公開へ進む。
+
+
+## 2026-11-05 確認間隔/開タブUI更新候補
+API36/emulator-5580。既存reporter全版の証明書をpull照合後install-r、削除/データ消去なし。key C:/Users/narum/morphe-chmate-local/tools/morphe-data/morphe.keystore / alias Morphe / cert SHA256 0af4ddc1302b93481adb5c7d9657aae48d8d6733afc1e15d01129107a59c1eed。MPP C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/interval-live-tabs-final.mpp / SHA256 ba7d5e58004cb6f225d3bd674e2734dceb6665c320ee2ccb65d5ccd55055d55e。
+- ChMate191 / Haiagaru NG確認 191 / jp.co.airfront.android.a2chMate.haiagaru.reporter191 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/interval-live-tabs191.apk / SHA256 d9d5e1ab793a3585c5be392acdd776dc30ff5e3f28e9888c0f2a71f4ff9675ad / install-r成功、core33成功。
+- ChMate226 / Haiagaru NG確認 226 / jp.co.airfront.android.a2chMate.haiagaru.reporter226 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/interval-live-tabs226.apk / SHA256 74b9eca5642c432faa7a2871ccc48b86bdb71d01d6dfabcfe7f181cd4b09e035 / install-r成功、core33成功。
+- ChMate242 / Haiagaru NG確認 242 / jp.co.airfront.android.a2chMate.haiagaru.reporter242 / APK C:/Users/narum/.codex/worktrees/945d/morphe-chmate/output/haiagaru-current/build/interval-live-tabs242.apk / SHA256 d32ee1c75d7fad3690b34c4d284e8ebb7e927141204d74824fbc0caf7b80c4d9 / install-r成功、core33成功。
+試験APK build/open-tabs-inst/interval{191,226,242}.apk、app.haiagaru.tests.opentabs{191,226,242}、同署名更新。242追加NotificationNavigationInstrumentationの実UI6項目成功。初回SystemUI ANRによる失敗は再試験と区別（integration-status参照）。最終crash空、AVD正常停止、実機導入なし。

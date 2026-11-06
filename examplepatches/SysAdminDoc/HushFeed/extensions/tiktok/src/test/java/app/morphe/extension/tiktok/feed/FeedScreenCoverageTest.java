@@ -163,9 +163,10 @@ public class FeedScreenCoverageTest {
         // Profile grids only.
         put("publish_date_on_grid", NONE, NONE, NONE);
         put("video_length_on_grid", NONE, NONE, NONE);
-        // The order of the profile and Liked grids, which neither window draws (#180).
+        // The order of the profile, Liked and sound page grids, which neither window draws (#180).
         put("profile_grid_sort", NONE, NONE, NONE);
         put("liked_grid_sort", NONE, NONE, NONE);
+        put("sound_grid_sort", NONE, NONE, NONE);
         put("show_author_region", YES, YES, NONE);
         // Only how the region label shows its code, so it reaches where the label does (#157).
         put("region_as_flag", YES, YES, NONE);
@@ -285,6 +286,9 @@ public class FeedScreenCoverageTest {
         put("long_press_full_menu_on_profiles", NONE, YES, NONE);
         // The same for a video opened from search, which opens in the detail pager (#120).
         put("long_press_full_menu_in_search", NONE, YES, NONE);
+        // For You gets the compact sheet, and it wins over the two full-menu switches on opened
+        // videos, so both windows follow it (#334).
+        put("long_press_compact_menu", YES, YES, NONE);
         put("edge_seek", YES, YES, NONE);
         put("edge_seek_seconds", YES, YES, NONE);
         put("rail_hold_comment", YES, YES, NONE);
@@ -444,14 +448,14 @@ public class FeedScreenCoverageTest {
         int cellId = 0x7f0a1c01;
         Map<String, Integer> ids = new LinkedHashMap<>();
         ids.put("desc", 0x7f0a1c02);
-        ids.put("47.6.3:o7p", 0x7f0a1c03);
-        ids.put("47.6.3:ljl", 0x7f0a1c04);
-        ids.put("47.6.3:f9f", 0x7f0a1c05);
+        ids.put("47.7.2:o93", 0x7f0a1c03);
+        ids.put("47.7.2:lkj", 0x7f0a1c04);
+        ids.put("47.7.2:f9j", 0x7f0a1c05);
         Map<BooleanSetting, String> switches = new LinkedHashMap<>();
         switches.put(Settings.HIDE_FEED_CAPTION, "desc");
-        switches.put(Settings.HIDE_FEED_MUSIC, "47.6.3:o7p");
-        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.6.3:ljl");
-        switches.put(Settings.HIDE_FEED_SURVEYS, "47.6.3:f9f");
+        switches.put(Settings.HIDE_FEED_MUSIC, "47.7.2:o93");
+        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.7.2:lkj");
+        switches.put(Settings.HIDE_FEED_SURVEYS, "47.7.2:f9j");
         for (BooleanSetting setting : switches.keySet()) {
             Coverage coverage = TABLE.get(setting.key);
             assertNotNull(setting.key, coverage);

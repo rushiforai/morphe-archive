@@ -161,6 +161,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushthreads_copy_text", TRUE);
 
     /**
+     * A post's header shows the date and time it went up instead of "3h" or "2d", in the feed, an
+     * opened post and its replies ({@link app.morphe.extension.hushthreads.feed.PostTime}). A header
+     * already drawn keeps its text until it's drawn again, so no restart is needed.
+     */
+    public static final BooleanSetting EXACT_POST_TIMES =
+            new BooleanSetting("hushthreads_exact_post_times", FALSE);
+
+    /**
      * Once a day, when Threads starts, ask api.github.com whether a newer HushThreads release is
      * out, and say so on the settings screen ({@link ReleaseCheck}). It's the settings entry's own
      * switch rather than a patch's, so every build has it ({@link PatchFamily#ENTRY_SWITCHES}). Off
@@ -169,6 +177,24 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting CHECK_FOR_RELEASES =
             new BooleanSetting("hushthreads_check_releases", FALSE);
+
+    /**
+     * Replies matching one of {@link #FILTER_COMMENT_PATTERNS}'s lines are taken out of a post's
+     * replies before Threads builds its rows from them
+     * ({@link app.morphe.extension.hushthreads.comments.CommentFilter}). Off by default: a build
+     * patched with the defaults shows every reply until the switch is turned on.
+     */
+    public static final BooleanSetting FILTER_COMMENTS =
+            new BooleanSetting("hushthreads_filter_comments", FALSE);
+
+    /**
+     * A reply carrying a web link (a scheme, a www. host or a domain with a path) is taken out,
+     * whatever the patterns say; a bare domain such as shopee.vn needs a pattern
+     * ({@link app.morphe.extension.hushthreads.comments.CommentFilter}). The second switch of
+     * Filter comments.
+     */
+    public static final BooleanSetting HIDE_COMMENT_LINKS =
+            new BooleanSetting("hushthreads_hide_comment_links", FALSE);
 
     static {
         // Every switch above has loaded. One left at an earlier build's default gets that default

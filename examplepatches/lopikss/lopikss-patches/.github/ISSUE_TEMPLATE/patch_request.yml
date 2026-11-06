@@ -1,0 +1,51 @@
+name: "🎮 Request support for another game"
+description: "Ask Lopikss to investigate a patch for a different Android app"
+title: "request: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Requests are welcome! Game compatibility isn't guaranteed and no single patch works on every game.
+        Prefer a private DM? Message **@lopikss** on Discord: https://discord.com/users/493792470778511360
+        **Do not upload proprietary APKs, accounts, purchase receipts or private save data.**
+  - type: input
+    id: game
+    attributes:
+      label: Game name
+      placeholder: "Name of the game"
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Android package name
+      description: "The package ID if known (usually visible in the Play Store URL)"
+      placeholder: "com.example.game"
+  - type: input
+    id: version
+    attributes:
+      label: Exact game version
+      placeholder: "1.2.3"
+    validations:
+      required: true
+  - type: textarea
+    id: feature
+    attributes:
+      label: What would you like changed?
+      description: "Describe the menu, feature, items or prices and the result you want."
+      placeholder: "Where it appears in the game, what the original behavior is..."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or notes (optional)
+      description: "Attach screenshots of the game UI if useful; redact personal details."
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before submitting
+      options:
+        - label: "I understand support depends on the game and I won't share private or copyrighted game files."
+          required: true

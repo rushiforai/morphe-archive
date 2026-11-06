@@ -91,6 +91,31 @@ public class GameReplayTest {
     }
 
     @Test
+    public void playedWordsAreMainAndCrossWords() throws Exception {
+        GameState st = GameReplay.replay(game(ResponseParser.parseGamesDetail(fixture("detail_neigen.json")), NEIGEN_GAME));
+        // NEIGEN, then T-O-N played down onto the G: the main word is TONG (the G was already on the board).
+        assertEquals(Arrays.asList("NEIGEN", "TONG"), st.playedWords());
+    }
+
+    @Test
+    public void playedWordsIncludeCrossWordsOfEachTile() {
+        char[][] b = new char[GameState.SIZE][GameState.SIZE];
+        b[7][7] = 'K'; b[7][8] = 'A'; b[7][9] = 'T';     // KAT across on row 7
+        b[8][7] = 'O'; b[8][8] = 'p'; b[8][9] = 'S';     // new: OPS on row 8 (P is a blank)
+        java.util.Set<String> out = new java.util.LinkedHashSet<>();
+        java.util.List<int[]> pos = Arrays.asList(new int[] {7, 8}, new int[] {8, 8}, new int[] {9, 8});
+        GameReplay.collectWords(b, pos, 1, 0, out);
+        assertEquals(Arrays.asList("OPS", "KO", "AP", "TS"), new java.util.ArrayList<>(out));
+    }
+
+    @Test
+    public void unreadableGameHasNoPlayedWords() throws Exception {
+        GameState st = replayModifiedNeigen(g -> g.getJSONArray("game_log").getJSONObject(1).put("bogus", 1));
+        assertNotNull(st.unreadable());
+        assertTrue(st.playedWords().isEmpty());
+    }
+
+    @Test
     public void packedMoveSkipsOccupied() throws Exception {
         RawGame g = ResponseParser.parseMove(fixture("move_hoort.json"));
         assertEquals(NEIGEN_GAME, g.getId());

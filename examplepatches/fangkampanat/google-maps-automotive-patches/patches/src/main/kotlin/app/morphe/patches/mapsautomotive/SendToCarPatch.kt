@@ -100,7 +100,7 @@ private val pushReceiverPatch = resourcePatch {
 @Suppress("unused")
 val sendToCarPatch = bytecodePatch(
     name = "Send to car",
-    description = "Lets phone Maps send a trip to Maps Car through MicroG-RE (push routes, the notification " +
+    description = "Lets phone Maps send a trip to the head unit through MicroG-RE (push routes, the notification " +
         "service identity and maps.app.goo.gl links). Adds a Settings row for the car's name in phone Maps " +
         "(default \"Vehicle 1\").",
     default = true,

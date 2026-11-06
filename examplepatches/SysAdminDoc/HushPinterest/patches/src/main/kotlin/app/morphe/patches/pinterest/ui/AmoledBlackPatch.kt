@@ -36,7 +36,7 @@ internal const val BLUR_VIEW = "Lcom/pinterest/gestalt/design/blur/GestaltBlurVi
 /** The id of the bar that holds the reply box. Every comments screen is built by the one method that looks it up. */
 internal const val COMMENTS_SCREEN_ID = "comment_bottom_bar"
 
-/** Pinterest's rounded card. A pin's menu shows See more and See less on it, and nothing else in 14.42.0 uses it. */
+/** Pinterest's rounded card. A pin's menu shows See more and See less on it, and nothing else in 14.43.0 uses it. */
 internal const val PIN_MENU_CARD = "bento_card_background"
 
 internal const val COMMENTS_HOOK = "$AMOLED_BLACK->comments(Landroid/view/View;)V"

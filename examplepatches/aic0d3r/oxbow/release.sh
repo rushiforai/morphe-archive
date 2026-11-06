@@ -68,7 +68,9 @@ EOF
 
 if gh release view "$TAG" -R "$REPO" >/dev/null 2>&1; then
     gh release upload "$TAG" "$DIR/oxbow.apk" "$DIR/oxbow-clone.apk" "$MPP" -R "$REPO" --clobber
-    gh release edit "$TAG" -R "$REPO" --title "Oxbow $VERSION · patch bundle $CURRENT" --notes "$NOTES"
+    # --draft=false: edit never lifts the flag a previous --draft run set.
+    gh release edit "$TAG" -R "$REPO" --draft=false \
+        --title "Oxbow $VERSION · patch bundle $CURRENT" --notes "$NOTES"
 else
     gh release create "$TAG" "$DIR/oxbow.apk" "$DIR/oxbow-clone.apk" "$MPP" \
         -R "$REPO" --title "Oxbow $VERSION · patch bundle $CURRENT" --notes "$NOTES" ${DRAFT:+--draft}

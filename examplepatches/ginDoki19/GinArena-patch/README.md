@@ -2,7 +2,7 @@
 
 **GinArena Patch** is a [Morphe](https://morphe.software/) patch bundle for free **1DM**
 (`idm.internet.download.manager`), **CRICFy TV** (`com.cricfytv.sports`), **CricZ TV**
-(`com.pro.cricztv`), **PlayZ TV** (`com.playz.tv`), **MX Player** (`com.mxtech.videoplayer.ad`),
+(`com.pro.cricztv`), **CrexiFy TV** (`com.crexify.tv`), **PlayZ TV** (`com.playz.tv`), **MX Player** (`com.mxtech.videoplayer.ad`),
 **SK Tech TV** (`com.live.sktechtv`), **Playfy TV** (`com.playfy.tv`), and **APK Decompiler** (`com.apktools.app.decompile`).
 Morphe Manager automatically filters patches per app, so selecting an app shows only compatible patches.
 
@@ -19,7 +19,7 @@ github.com/ginDoki19/GinArena-patch
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v2.8.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v2.9.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -60,23 +60,24 @@ github.com/ginDoki19/GinArena-patch
 </details>
 
 <details>
-<summary>📦 PlayZ TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 CrexiFy TV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.3.1 |
+| 4.5 |
 | :---: |
-| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 8 |
+| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 12 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Remove ads, popups & restrictions](#remove-ads-popups-restrictions) | Removes ads and promo popups, and keeps channels working after patching. |  |
+| [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Hides controls when a stream opens or switches fullscreen. Tap the video to show them. |  |
+| [Remove configured startup and banner ads](#remove-configured-startup-and-banner-ads) | Suppresses configured startup/banner ads, the Telegram prompt and message ticker. |  |
 
 </details>
 
 <details>
-<summary>📦 CRICFy TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 CRICFy TV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -87,12 +88,13 @@ github.com/ginDoki19/GinArena-patch
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Hides playback controls when a stream opens or switches fullscreen. Tap the video to show them. |  |
 | [Remove ads, proxy & restrictions](#remove-ads-proxy-restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.4. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip proxy & ad native libraries |
 
 </details>
 
 <details>
-<summary>📦 CricZ TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 CricZ TV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -103,12 +105,13 @@ github.com/ginDoki19/GinArena-patch
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Hides playback controls when a stream opens or switches fullscreen. Tap the video to show them. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads, promo popups, and tracking, and keeps channels working after patching. | • Hide promo announcement bar<br>• Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat |
 
 </details>
 
 <details>
-<summary>📦 Playfy TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Playfy TV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -119,12 +122,30 @@ github.com/ginDoki19/GinArena-patch
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Hides playback controls when a stream opens or switches fullscreen. Tap the video to show them. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads and tracking, and hides the player app logo. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass sniffer-app check<br>• Strip native & telemetry bloat |
 
 </details>
 
 <details>
-<summary>📦 SK Tech TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 PlayZ TV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.3.1 |
+| :---: |
+| Universal APK (arm64-v8a / armeabi-v7a / x86 / x86_64, Android 6.0+), build 8 |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Hides playback controls when a stream opens or switches fullscreen. Tap the video to show them. |  |
+| [Remove ads, popups & restrictions](#remove-ads-popups-restrictions) | Removes ads and promo popups, and keeps channels working after patching. |  |
+
+</details>
+
+<details>
+<summary>📦 SK Tech TV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -135,6 +156,7 @@ github.com/ginDoki19/GinArena-patch
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Hides playback controls when a stream opens or switches fullscreen. Tap the video to show them. |  |
 | [Remove ads, telemetry & restrictions](#remove-ads-telemetry-restrictions) | Removes ads, tracking, and forced updates, and keeps channels working after patching. | • Remove push notifications<br>• Bypass update & force-update screen<br>• Bypass root & sniffer checks<br>• Strip native & telemetry bloat<br>• Disable WebActivity (potential ad surface) |
 
 </details>
@@ -156,6 +178,10 @@ github.com/ginDoki19/GinArena-patch
 </details>
 
 <!-- PATCHES_END -->
+
+### Hide playback controls at stream open
+
+*On by default* for CRICFy TV, CricZ TV, CrexiFy TV, PlayZ TV, SK Tech TV, and Playfy TV. Hides player controls when a stream opens and when switching between fullscreen and the embedded player. Tap the video to show them.
 
 ---
 
@@ -342,6 +368,37 @@ Options (on by default): hide the promo bar, remove push notifications, skip for
 
 ---
 
+## 📦 CrexiFy TV (4.5, build 12)
+
+<details>
+<summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
+
+### What it does
+
+#### Remove configured startup and banner ads
+
+*On by default.* Suppresses startup and banner ads, the automatic Telegram prompt, and the promotional message ticker. Manual links remain available. The ticker also carries other server notices, which are hidden with it.
+
+The patch adapts the signer-bound decoder for re-signed builds and disables its startup integrity self-test.
+
+**Hide playback controls at stream open** (on by default) keeps controls hidden when a stream opens or switches fullscreen. Tap the video to show them.
+
+### Target app (CrexiFy TV)
+
+| Field | Value |
+| --- | --- |
+| Package | `com.crexify.tv` |
+| Version | **4.5** (versionCode 12), universal APK (`arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`) |
+| Stock download | Use the exact stock **4.5** APK and verify the APK SHA-256 below before patching |
+| Signing certificate SHA-256 | `17e2ae241663794ce890f350e1e0d884c59727418bac22518a62ac2e66131062` |
+| APK SHA-256 | `76f9bac391a3b109025f465dd922b6d14555acd4806dd994e2156022c0bc76c7` |
+
+> **Version safety:** only **4.5 (12)** is supported. Other versions are refused by design — do not force-patch them in Expert Mode.
+
+</details>
+
+---
+
 ## 📦 PlayZ TV (2.3.1, build 8)
 
 <details>
@@ -355,7 +412,7 @@ Options (on by default): hide the promo bar, remove push notifications, skip for
 - **No automatic Telegram popup** (manual links are untouched).
 - **Channels keep working** after patching.
 
-Nothing else is touched: no permissions are changed and streaming behavior is left alone — stability first.
+This patch does not change permissions or streaming behavior.
 
 ### Target app (PlayZ TV)
 

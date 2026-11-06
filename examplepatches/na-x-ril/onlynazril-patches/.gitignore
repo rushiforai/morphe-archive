@@ -126,6 +126,11 @@ node_modules/
 .idea/
 local.properties
 
+# Nix: `direnv allow` writes the shell cache here, and nix build leaves result links.
+.direnv/
+result
+result-*
+
 ### Repository rules (see CONTRIBUTING.md)
 # Signing material: a leaked key lets anyone publish releases that look official.
 *.jks

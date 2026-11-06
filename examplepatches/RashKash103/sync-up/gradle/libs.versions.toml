@@ -9,7 +9,7 @@ smali = "4220ae75f7"
 morphe-patches-library = "2.1.0"
 annotation = "1.11.0"
 gson = "2.15.0"
-okhttp = "5.5.0"
+okhttp = "5.5.1"
 
 [libraries]
 morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }

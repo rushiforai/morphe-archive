@@ -60,3 +60,21 @@ class ExportTests(unittest.TestCase):
                           side_effect=subprocess.CalledProcessError(1, 'apksigner')), \
                     self.assertRaises(subprocess.CalledProcessError):
                 pull_verified_export(UI(), '/test.apk', target, Path('/apksigner'))
+
+    def test_accepts_supported_signer_formats_and_rejects_distinct_signers(self):
+        class UI:
+            def adb(self, *args, **kwargs):
+                Path(args[2]).write_bytes(b'apk')
+
+        signer = 'a' * 64
+        signatures = [f'Signer #1 certificate SHA-256 digest: {signer}\n',
+                      f'V2 Signer: certificate SHA-256 digest: {signer}\n',
+                      f'V3.0 Signer: certificate SHA-256 digest: {signer}\n']
+        with tempfile.TemporaryDirectory() as directory, patch('manager_case.wait_for_export', return_value=3):
+            target = Path(directory) / 'export.apk'
+            for signature in signatures:
+                with self.subTest(signature=signature), patch('manager_case.subprocess.check_output', return_value=signature):
+                    self.assertEqual(pull_verified_export(UI(), '/test.apk', target, Path('/apksigner'))['signer_sha256'], signer)
+            with patch('manager_case.subprocess.check_output', return_value=signatures[0] + signatures[1].replace(signer, 'b' * 64)):
+                with self.assertRaises(RuntimeError):
+                    pull_verified_export(UI(), '/test.apk', target, Path('/apksigner'))

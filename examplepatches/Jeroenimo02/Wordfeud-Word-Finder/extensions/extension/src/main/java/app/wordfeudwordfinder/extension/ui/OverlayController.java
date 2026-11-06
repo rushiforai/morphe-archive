@@ -1,5 +1,6 @@
 package app.wordfeudwordfinder.extension.ui;
 
+import app.wordfeudwordfinder.extension.core.Tiles;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
@@ -986,6 +987,12 @@ public final class OverlayController {
                 });
                 return;
             }
+            try {
+                // Words played in this game that our list lacks are reported once (wordlists/<code>/add.txt review).
+                wf.missingWords().check(rulesetId, wg, st.playedWords());
+            } catch (Throwable ignored) {
+                // reporting never affects the overlay
+            }
             final List<Move> out = MovePipeline.compute(st, bl, rs, wg,
                     l -> wf.submitter().hidden().filter(gid, wf.rejected().filter(rulesetId, l)), mode, token);
             if (out == null) return;
@@ -1220,7 +1227,7 @@ public final class OverlayController {
     private void updateInfo() {
         if (infoRow == null) return;
         Move m = selected;
-        infoWord.setText(m == null ? "" : m.word);
+        infoWord.setText(m == null ? "" : Tiles.spell(m.word));
         infoDetail.setText(m == null ? "" : OverlayFormat.detail(lang, m));
         infoDetail.setVisibility(m == null ? View.GONE : View.VISIBLE);
         infoScore.setText(m == null ? "" : OverlayFormat.scoreText(lang, m.score));

@@ -1,0 +1,11 @@
+<resources>
+    <!-- Keep screen on while playing video -->
+    <string name="piko_keep_screen_on_while_playing">Manter tela ligada ao reproduzir vídeo</string>
+    <string name="piko_keep_screen_on_while_playing_summary">Mantém a tela ligada enquanto um vídeo é reproduzido no feed, stories e outros locais</string>
+
+    <!-- Carousel auto scroll -->
+    <string name="piko_carousel_auto_scroll_enabled">Rolagem automática do carrossel ativada</string>
+    <string name="piko_carousel_auto_scroll_disabled">Rolagem automática do carrossel desativada</string>
+    <string name="piko_carousel_auto_scroll_on">Rolagem automática do carrossel: ativada</string>
+    <string name="piko_carousel_auto_scroll_off">Rolagem automática do carrossel: desativada</string>
+</resources>

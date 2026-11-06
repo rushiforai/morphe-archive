@@ -29,6 +29,7 @@ hook ai_sticker_cell LX/REu;->render(LX/2Ca;)LX/1Gk;
 hook ai_sticker_grid LX/E1C;->render(LX/2Ca;)LX/1Gk;
 hook ai_stickers LX/PFZ;->A03(LX/PFZ;)Z
 hook ai_stickers LX/bM9;->A07(LX/bM9;)Z
+hook ai_summary LX/5lp;->A04(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;JZZ)Z
 hook ai_tab LX/1qt;->A03(LX/1qt;)Z
 hook ai_toolbar LX/2NU;->A04()Z
 hook allow_screenshot LX/4wv;->A00(Landroid/view/Window;)V
@@ -145,6 +146,9 @@ hook gallery_to_chat LX/NQ9;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object
 hook growth LX/21Q;->A09()Z
 hook growth_notes Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->A01(Landroidx/fragment/app/Fragment;LX/RTk;Ljava/util/List;LX/5VR;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 hook growth_story_card Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->A16(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)Z
+hook hidden_chat_list Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;->A0F()Lcom/google/common/collect/ImmutableList;
+hook hidden_chat_row LX/Hlt;->Bt2()Ljava/util/ArrayList;
+hook hidden_chat_tap LX/Hlt;->E6u(I)V
 hook hide_call_bar LX/56Y;->A07(Landroid/content/Context;LX/0XG;Lcom/facebook/auth/usersession/FbUserSession;LX/50n;Lcom/facebook/messaging/model/threadkey/ThreadKey;LX/KOT;Lcom/facebook/mig/scheme/interfaces/MigColorScheme;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/5Pg;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/DBb;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZZZZ)Lcom/google/common/collect/ImmutableList;
 hook hide_call_bar LX/7dK;->F4t(Lcom/facebook/messaging/model/threadkey/ThreadKey;Lcom/facebook/messaging/send/trigger/NavigationTrigger;LX/7KM;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;Ljava/lang/String;Z)V
 hook hide_read_receipts LX/4oD;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/4oD;Ljava/lang/String;)V
@@ -155,6 +159,8 @@ hook inbox_search_bar LX/4Dv;->A00(Lcom/facebook/auth/usersession/FbUserSession;
 hook instants_button LX/1yu;->A0F(LX/1yu;)V
 hook instants_button LX/VyC;->A0V(LX/VyC;)V
 hook keep_unsent LX/PAv;->A02(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Ljava/util/Map;)V
+hook landscape_lock LX/090;->A0K()Z
+hook landscape_media LX/7aM;->A00(LX/7aM;I)V
 hook local_chat_search LX/Nic;->F2z(Lcom/facebook/messaging/model/threads/ThreadSummary;Ljava/lang/String;)V
 hook local_chat_search LX/Nic;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
 hook mark_read_action LX/Hlt;->A0V()Z
@@ -167,6 +173,8 @@ hook menu_settings LX/QIG;->BVO(LX/0Lw;)Ljava/util/ArrayList;
 hook menu_settings LX/QN5;->onClick(Landroid/view/View;)V
 hook menu_settings LX/Znd;->DjT(LX/4tR;I)V
 hook menu_settings LX/Zni;->A0K(Ljava/util/List;)V
+hook message_actions LX/5TH;->AYM(LX/AM6;Ljava/util/EnumMap;)LX/6Og;
+hook message_actions_more LX/63p;->E6x(LX/1Vl;LX/5Hx;LX/DMu;LX/AM6;)V
 hook message_log Lcom/facebook/messaging/notify/type/NewMessageNotification;-><init>(Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;Lcom/facebook/messaging/model/messages/Message;Lcom/facebook/messaging/model/threads/ThreadSummary;LX/9jC;LX/5hL;Lcom/facebook/messaging/push/flags/ServerMessageAlertFlags;Lcom/facebook/push/constants/PushProperty;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ZZZZZZZ)V
 hook message_log_button LX/2NU;->Cid()Ljava/util/List;
 hook message_log_click LX/2NU;->Dmb(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;I)V
@@ -206,6 +214,7 @@ hook quiet_call_ring LX/BDT;->run()V
 hook recent_media LX/Akd;->A01(LX/5Xx;Lkotlin/jvm/functions/Function0;)V
 hook reels_badge LX/4UE;->A09(LX/4UE;)Z
 hook reply_read LX/AKs;->A01(Lcom/facebook/auth/usersession/FbUserSession;LX/5BO;LX/4up;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/DB7;LX/5Et;LX/5BN;LX/D92;LX/5vd;LX/5Xx;LX/5QS;Lcom/facebook/xapp/messaging/composer/send/event/SendMessageEvent;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/4uw;Ljava/lang/String;)V
+hook restricted_notify Lcom/facebook/messaging/msys/pushnotifications/protobufparsing/MsysNotificationParser$getThreadLevelResult$2;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
 hook save_stories LX/PN4;->onClick(Landroid/view/View;)V
 hook save_voice LX/T9d;->A00(Lcom/facebook/auth/usersession/FbUserSession;LX/T9d;LX/T9k;)Landroid/net/Uri;
 hook save_voice_menu LX/63p;->E6x(LX/1Vl;LX/5Hx;LX/DMu;LX/AM6;)V

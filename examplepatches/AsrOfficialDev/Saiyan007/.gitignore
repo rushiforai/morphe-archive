@@ -1,0 +1,24 @@
+# Build outputs and local tools
+patches/build/
+.tools/
+.work/
+*.log
+
+# App files, compiled bundles, and signing material
+*.apk
+*.xapk
+*.apkm
+*.apks
+*.mpp
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+
+# Local credentials and settings
+.env
+.env.*
+local.properties
+.idea/
+.vscode/

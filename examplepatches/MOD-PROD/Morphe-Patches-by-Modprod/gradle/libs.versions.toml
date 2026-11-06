@@ -1,0 +1,16 @@
+[versions]
+morphe-patcher = "2.0.0"
+morphe-patches-library = "2.0.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.14.0"
+annotation = "1.10.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# Shared Morphe building blocks: changePackageInstallerPatch, spoofSignaturePatch, XML helpers...
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+# The Gradle plugin adds the patcher itself; declared here only so dependabot can bump it.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

@@ -32,7 +32,21 @@ public final class ThreadsLogo {
     /** The one description every draw gets, for the same reason as {@link #LONG_PRESS}. */
     static final Describe DESCRIBE = new Describe();
 
+    /** What a test says about {@link #inBuild()}, or null to take the patch's answer. */
+    static volatile Boolean inBuildForTests;
+
     private ThreadsLogo() {
+    }
+
+    /** Whether the settings patch put the long press into this build, which a Threads build it doesn't fit leaves out. */
+    static boolean inBuild() {
+        Boolean forced = inBuildForTests;
+        return forced != null ? forced : patchedIn();
+    }
+
+    /** Written by the settings patch to answer true once the long press is in. */
+    static boolean patchedIn() {
+        return false;
     }
 
     /** TalkBack names the action in the current app language each time the header is drawn. */
@@ -41,9 +55,17 @@ public final class ThreadsLogo {
     }
 
     /**
+     * The logo's long press each time the header is drawn: {@link #LONG_PRESS}, or none with its
+     * switch off, which leaves the logo with Threads' own tap and nothing for TalkBack to offer.
+     */
+    public static Object longPress() {
+        return SettingsEntry.logoPressOn() ? LONG_PRESS : null;
+    }
+
+    /**
      * Written by the settings patch, and called by Threads' feed header where it makes the logo
      * clickable: Compose's combined clickable with Threads' interaction source, indication, modifier,
-     * role, label, tap and enabled flag, {@link #LONG_PRESS} as the long press, and no double tap,
+     * role, label, tap and enabled flag, {@link #longPress()} as the long press, and no double tap,
      * then clearAndSetSemantics with {@link #DESCRIBE} when the build has it. Every parameter but
      * the label and the flag is one of Threads' own types, which this build can't name. Until the
      * patch writes it, the logo just keeps its modifier.
@@ -67,7 +89,9 @@ public final class ThreadsLogo {
      */
     public static final class LongPress {
         public Object invoke() {
-            SettingsEntry.openFromLogo();
+            // A header drawn before the switch went off keeps this long press until Threads draws
+            // it again, and then it does nothing.
+            if (SettingsEntry.logoPressOn()) SettingsEntry.openFromLogo();
             return null;
         }
     }

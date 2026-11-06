@@ -1,0 +1,42 @@
+name: "🐞 Bug report"
+description: "Report a patch error or compatibility issue"
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Do not post APK files, purchase receipts, account details, or unredacted personal information.
+  - type: input
+    id: app
+    attributes:
+      label: App and package name
+      placeholder: "XP Hero (io.supercent.weaponrpg)"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: App version, Morphe version and patch source version
+      placeholder: "26.2.0 / Morphe version / Lopikss Patches version"
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What happened?
+      description: "Include exact steps, expected behavior, and what actually happened."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (redacted)
+      description: "Paste only relevant error lines. Remove tokens, signatures, IDs and account details."
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: "I checked for an existing report and removed sensitive data."
+          required: true

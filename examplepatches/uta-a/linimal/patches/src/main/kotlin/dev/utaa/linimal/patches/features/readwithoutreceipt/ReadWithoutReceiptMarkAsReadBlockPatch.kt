@@ -83,7 +83,7 @@ val readWithoutReceiptMarkAsReadBlockPatch = bytecodePatch(
             PatchAvailability.UNAVAILABLE
         }
     }
-    dependsOn(readWithoutReceiptComposeMenuPatch)
+    dependsOn(readWithoutReceiptPreviewMenuPatch)
 
     execute {
         val sendChatCheckedMatches = sendChatCheckedFingerprint.matchAllOrNull().orEmpty()

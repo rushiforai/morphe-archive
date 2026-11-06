@@ -97,19 +97,17 @@ val tiktokProfileBgPatch = bytecodePatch(
         }
         mutableGate.findMutableMethodOf(gates.single()).forceEnabledOnEntry()
 
-        // 47.1.4 added a cached decision the fragments read: a no-arg
-        // boolean the gate fills in. Hook it too when it is there; earlier
-        // builds have none and nothing to hook.
+        // 47.7.x turned this class into a holder of four unrelated AB flags: the status-bar
+        // immersive fix, delete enable, the crash/OOM fix and the translation range fix, each a
+        // no-arg boolean over its own settings wrapper. None of them decides whether the feature
+        // runs; the gate above does. A build with several of them therefore has nothing extra to
+        // hook, and forcing them all true would switch on fixes that have nothing to do with the
+        // background. A lone no-arg boolean is the cached decision 47.1.4 carried, so it is still
+        // hooked when it is the only one.
         val cached = gate.methods.filter { method ->
             method.returnType == "Z"
                     && method.parameterTypes.isEmpty()
                     && method.implementation != null
-        }
-        if (cached.size > 1) {
-            throw PatchException(
-                "Profile background: expected at most one no-arg boolean " +
-                    "decision in ${gate.type}, found ${cached.size}.",
-            )
         }
         cached.singleOrNull()?.let {
             mutableGate.findMutableMethodOf(it).forceEnabledOnEntry()

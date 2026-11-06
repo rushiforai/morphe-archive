@@ -5,7 +5,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -23,46 +22,45 @@ import java.time.format.DateTimeFormatter;
 public final class OpenMeteoWeather {
 
     private static final String ENDPOINT = "https://api.open-meteo.com/v1/forecast";
-    private static final int CONNECT_TIMEOUT_MS = 10_000;
-    private static final int READ_TIMEOUT_MS = 15_000;
+    private static final int CONNECT_TIMEOUT_MS = 5_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
     private static final DateTimeFormatter LOCAL = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     private static final String USER_AGENT = "niagara-openmeteo-patch/1.0";
 
     /** Sentinel returned when the upstream call or decoding fails. */
     public static final String FAILED = "__openmeteo_failed__";
 
-    /** Last successful payload, reused when a refresh fails. Process-lifetime only. */
-    private static volatile String lastGood;
+    /** Last successful payload, reused when a refresh for the same place fails. */
+    private static final NiagaraWeather.Cache CACHE = new NiagaraWeather.Cache("openmeteo");
 
     private OpenMeteoWeather() {
     }
 
     /** Fetches a forecast for a Niagara coordinates object, or {@link #FAILED}. Never throws. */
     public static String forecast(Object coordinates) {
-        android.util.Log.i("OpenMeteoWeather", "forecast enter: " + coordinates);
         if (coordinates == null) {
             android.util.Log.e("OpenMeteoWeather", "coordinates null");
             return FAILED;
         }
         try {
-            Field[] floats = floatFields(coordinates.getClass());
-            if (floats.length < 2) {
+            float[] latLon = NiagaraWeather.latLonOf(coordinates);
+            if (latLon == null) {
                 android.util.Log.e("OpenMeteoWeather", "no float fields on " + coordinates.getClass());
                 return FAILED;
             }
-            float first = floats[0].getFloat(coordinates);
-            float second = floats[1].getFloat(coordinates);
-            // getDeclaredFields() order is unspecified; latitude is bounded to
-            // +/-90 so a swap is detectable.
-            final float lat = Math.abs(first) > 90f ? second : first;
-            final float lon = Math.abs(first) > 90f ? first : second;
-            android.util.Log.i("OpenMeteoWeather", "coords " + lat + "," + lon);
-            String result = fetchOffMain(lat, lon);
-            android.util.Log.i("OpenMeteoWeather", "result length: " + (result == null ? -1 : result.length()));
+            final float lat = latLon[0];
+            final float lon = latLon[1];
+            String result = NiagaraWeather.offMain("openmeteo-fetch", 20_000L,
+                () -> fetch(lat, lon));
             if (result == null) {
+                String cached = CACHE.get(lat, lon);
+                if (cached != null) {
+                    android.util.Log.e("OpenMeteoWeather", "reusing last good payload");
+                    return cached;
+                }
                 return FAILED;
             }
-            lastGood = result;
+            CACHE.put(result, lat, lon);
             return result;
         } catch (Throwable t) {
             android.util.Log.e("OpenMeteoWeather", "forecast failed", t);
@@ -70,29 +68,10 @@ public final class OpenMeteoWeather {
         }
     }
 
-    // The call site's dispatcher may be main; blocking HTTP there throws.
-    private static String fetchOffMain(final float lat, final float lon) throws Exception {
-        final String[] holder = new String[1];
-        Thread worker = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                holder[0] = fetch(lat, lon);
-            }
-        }, "openmeteo-fetch");
-        worker.start();
-        worker.join(20_000L);
-        return holder[0];
-    }
-
     /** Never throws: the patched call site has no catch, so a payload must always come back. */
     public static String requireForecast(String forecast) {
         if (forecast != null && !FAILED.equals(forecast)) {
             return forecast;
-        }
-        String cached = lastGood;
-        if (cached != null) {
-            android.util.Log.e("OpenMeteoWeather", "reusing last good payload");
-            return cached;
         }
         android.util.Log.e("OpenMeteoWeather", "returning fallback payload");
         return fallback();
@@ -101,43 +80,17 @@ public final class OpenMeteoWeather {
     private static String fallback() {
         long now = Instant.now().getEpochSecond();
         try {
-            return new JSONObject()
-                .put("timestamp", now)
-                .put("provider", "open-meteo")
-                .put("lat", "0")
-                .put("long", "0")
-                .put("lang", "en")
-                .put("forecast", new JSONObject()
-                    .put("current", new JSONObject()
-                        .put("dt", now)
-                        .put("temp", 0.0)
-                        .put("feels_like", 0.0)
-                        .put("weather", conditions(0, now, 0, Long.MAX_VALUE)))
-                    .put("minutely", new JSONArray())
-                    .put("hourly", new JSONArray())
-                    .put("daily", new JSONArray()))
-                .toString();
+            return NiagaraWeather.payload("open-meteo", "0", "0",
+                new JSONObject()
+                    .put("dt", now)
+                    .put("temp", 0.0)
+                    .put("feels_like", 0.0)
+                    .put("weather", NiagaraWeather.conditions(800, "Weather unavailable", true)),
+                new JSONArray(),
+                new JSONArray());
         } catch (Exception e) {
             return "{}";
         }
-    }
-
-    private static Field[] floatFields(Class<?> type) {
-        Field[] all = type.getDeclaredFields();
-        Field first = null;
-        Field second = null;
-        for (Field field : all) {
-            if (field.getType() != float.class) {
-                continue;
-            }
-            field.setAccessible(true);
-            if (first == null) {
-                first = field;
-            } else if (second == null) {
-                second = field;
-            }
-        }
-        return first == null || second == null ? new Field[0] : new Field[] { first, second };
     }
 
     /**
@@ -148,6 +101,7 @@ public final class OpenMeteoWeather {
         try {
             return request(lat, lon);
         } catch (Exception e) {
+            android.util.Log.e("OpenMeteoWeather", "fetch failed", e);
             return null;
         }
     }
@@ -156,24 +110,38 @@ public final class OpenMeteoWeather {
         String url = ENDPOINT
             + "?latitude=" + URLEncoder.encode(String.valueOf(lat), "UTF-8")
             + "&longitude=" + URLEncoder.encode(String.valueOf(lon), "UTF-8")
-            + "&current=temperature_2m,apparent_temperature,weather_code"
-            + "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code"
+            + "&current=temperature_2m,apparent_temperature,weather_code,is_day"
+            + "&hourly=temperature_2m,apparent_temperature,precipitation_probability,weather_code,is_day"
             + "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max,weather_code"
             + "&timezone=auto&forecast_days=7";
 
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(READ_TIMEOUT_MS);
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("User-Agent", USER_AGENT);
-        try {
-            if (connection.getResponseCode() != 200) {
-                return null;
+        // The free API answers 5xx "service is overloaded" under load; a short
+        // retry keeps the widget from dropping to the fallback on a blip.
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            if (attempt > 1) {
+                Thread.sleep(1_000L);
             }
-            return encode(read(connection.getInputStream()), lat, lon);
-        } finally {
-            connection.disconnect();
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            connection.setReadTimeout(READ_TIMEOUT_MS);
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+            try {
+                int status = connection.getResponseCode();
+                if (status == 200) {
+                    return encode(read(connection.getInputStream()), lat, lon);
+                }
+                android.util.Log.e("OpenMeteoWeather", "http " + status + " (attempt " + attempt + ")");
+                if (status < 500) {
+                    return null;
+                }
+            } catch (Exception e) {
+                android.util.Log.e("OpenMeteoWeather", "request attempt " + attempt + " failed", e);
+            } finally {
+                connection.disconnect();
+            }
         }
+        return null;
     }
 
     private static String read(InputStream stream) throws Exception {
@@ -190,62 +158,44 @@ public final class OpenMeteoWeather {
     private static String encode(String body, float lat, float lon) throws Exception {
         JSONObject source = new JSONObject(body);
         long utcOffsetSeconds = source.optLong("utc_offset_seconds", 0L);
-        JSONObject dailySource = source.optJSONObject("daily");
-        long sunriseToday = firstTime(dailySource, "sunrise", utcOffsetSeconds);
-        long sunsetToday = firstTime(dailySource, "sunset", utcOffsetSeconds);
-
-        JSONObject root = new JSONObject();
-        root.put("timestamp", Instant.now().getEpochSecond());
-        root.put("provider", "open-meteo");
-        root.put("lat", String.valueOf(lat));
-        root.put("long", String.valueOf(lon));
-        root.put("lang", "en");
-        root.put("forecast", new JSONObject()
-            .put("current", current(source, utcOffsetSeconds, sunriseToday, sunsetToday))
-            .put("minutely", new JSONArray())
-            .put("hourly", hourly(source, utcOffsetSeconds, sunriseToday, sunsetToday))
-            .put("daily", daily(source, utcOffsetSeconds)));
-        return root.toString();
+        return NiagaraWeather.payload("open-meteo", String.valueOf(lat), String.valueOf(lon),
+            current(source, utcOffsetSeconds),
+            hourly(source, utcOffsetSeconds),
+            daily(source, utcOffsetSeconds));
     }
 
-    private static JSONObject current(
-        JSONObject source,
-        long utcOffsetSeconds,
-        long sunrise,
-        long sunset
-    ) throws Exception {
+    private static JSONObject current(JSONObject source, long utcOffsetSeconds) throws Exception {
         JSONObject current = source.getJSONObject("current");
         int code = current.getInt("weather_code");
         long dt = toEpochSeconds(current.getString("time"), utcOffsetSeconds);
         return new JSONObject()
             .put("dt", dt)
-            .put("temp", round(current.getDouble("temperature_2m")))
-            .put("feels_like", round(current.getDouble("apparent_temperature")))
-            .put("weather", conditions(code, dt, sunrise, sunset));
+            .put("temp", NiagaraWeather.round(current.getDouble("temperature_2m")))
+            .put("feels_like", NiagaraWeather.round(current.getDouble("apparent_temperature")))
+            .put("weather", NiagaraWeather.conditions(
+                openWeatherMapId(code), description(code), current.optInt("is_day", 1) == 1));
     }
 
-    private static JSONArray hourly(
-        JSONObject source,
-        long utcOffsetSeconds,
-        long sunrise,
-        long sunset
-    ) throws Exception {
+    private static JSONArray hourly(JSONObject source, long utcOffsetSeconds) throws Exception {
         JSONObject hourly = source.getJSONObject("hourly");
         JSONArray time = hourly.getJSONArray("time");
         JSONArray temp = hourly.getJSONArray("temperature_2m");
         JSONArray feels = hourly.getJSONArray("apparent_temperature");
         JSONArray pop = hourly.optJSONArray("precipitation_probability");
         JSONArray code = hourly.getJSONArray("weather_code");
+        JSONArray isDay = hourly.optJSONArray("is_day");
 
         JSONArray points = new JSONArray();
         for (int i = 0; i < time.length(); i++) {
             long dt = toEpochSeconds(time.getString(i), utcOffsetSeconds);
+            boolean day = isDay == null || isDay.optInt(i, 1) == 1;
             points.put(new JSONObject()
                 .put("dt", dt)
-                .put("temp", round(temp.getDouble(i)))
-                .put("feels_like", round(feels.getDouble(i)))
-                .put("pop", pop == null ? 0.0 : round(pop.optDouble(i, 0.0) / 100.0))
-                .put("weather", conditions(code.optInt(i, 0), dt, sunrise, sunset)));
+                .put("temp", NiagaraWeather.round(temp.getDouble(i)))
+                .put("feels_like", NiagaraWeather.round(feels.getDouble(i)))
+                .put("pop", pop == null ? 0.0 : NiagaraWeather.round(pop.optDouble(i, 0.0) / 100.0))
+                .put("weather", NiagaraWeather.conditions(
+                    openWeatherMapId(code.optInt(i, 0)), description(code.optInt(i, 0)), day)));
         }
         return points;
     }
@@ -271,34 +221,17 @@ public final class OpenMeteoWeather {
                 .put("sunrise", daySunrise)
                 .put("sunset", daySunset)
                 .put("temp", new JSONObject()
-                    .put("day", round((max.optDouble(i, 0) + min.optDouble(i, 0)) / 2.0))
-                    .put("min", round(min.optDouble(i, 0)))
-                    .put("max", round(max.optDouble(i, 0)))
-                    .put("night", round(min.optDouble(i, 0)))
-                    .put("eve", round(max.optDouble(i, 0)))
-                    .put("morn", round(min.optDouble(i, 0))))
-                .put("pop", pop == null ? 0.0 : round(pop.optDouble(i, 0.0) / 100.0))
-                .put("weather", conditions(code.optInt(i, 0), noon, daySunrise, daySunset)));
+                    .put("day", NiagaraWeather.round((max.optDouble(i, 0) + min.optDouble(i, 0)) / 2.0))
+                    .put("min", NiagaraWeather.round(min.optDouble(i, 0)))
+                    .put("max", NiagaraWeather.round(max.optDouble(i, 0)))
+                    .put("night", NiagaraWeather.round(min.optDouble(i, 0)))
+                    .put("eve", NiagaraWeather.round(max.optDouble(i, 0)))
+                    .put("morn", NiagaraWeather.round(min.optDouble(i, 0))))
+                .put("pop", pop == null ? 0.0 : NiagaraWeather.round(pop.optDouble(i, 0.0) / 100.0))
+                .put("weather", NiagaraWeather.conditions(
+                    openWeatherMapId(code.optInt(i, 0)), description(code.optInt(i, 0)), true)));
         }
         return points;
-    }
-
-    private static JSONArray conditions(int wmo, long dt, long sunrise, long sunset) throws Exception {
-        String icon = dt >= sunrise && dt < sunset ? "d" : "n";
-        return new JSONArray().put(new JSONObject()
-            .put("id", openWeatherMapId(wmo))
-            .put("description", description(wmo))
-            .put("icon", icon));
-    }
-
-    private static long firstTime(JSONObject daily, String key, long utcOffsetSeconds) {
-        if (daily == null) {
-            return 0L;
-        }
-        JSONArray values = daily.optJSONArray(key);
-        return values == null || values.length() == 0
-            ? 0L
-            : toEpochSeconds(values.optString(0, ""), utcOffsetSeconds);
     }
 
     private static int openWeatherMapId(int wmo) {
@@ -420,9 +353,5 @@ public final class OpenMeteoWeather {
                 return Instant.now().getEpochSecond();
             }
         }
-    }
-
-    private static double round(double value) {
-        return Math.round(value * 10.0) / 10.0;
     }
 }

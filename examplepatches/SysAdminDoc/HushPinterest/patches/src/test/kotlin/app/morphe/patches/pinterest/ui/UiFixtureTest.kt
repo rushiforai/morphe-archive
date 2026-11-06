@@ -17,6 +17,7 @@ import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -221,6 +222,20 @@ class UiFixtureTest {
                 ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
                     ?.let { it.definingClass == owner && it.name == name } == true
             }
+            // Home's greeting header hands its button row over once the bell frame, its last button, is in.
+            val wasGreeting = classes.flatMap { it.methods }.single { method ->
+                method.fields().any { it.name == GREETING_ROW } && method.fields().any { it.name == GREETING_NEWSHUB }
+            }
+            val greeting = context.mutable(wasGreeting).instructions()
+            val greeted = greeting.indices.single { isCall(greeting[it], INTERFACE_CONTROLS, "greetingHeader") }
+            assertEquals("${build.name}: the greeting header gained the one call", wasGreeting.instructions().size + 1, greeting.size)
+            assertTrue("${build.name}: it follows the row's last addView", isCall(greeting[greeted - 1], "Landroid/view/ViewGroup;", "addView"))
+            val handed = greeting[greeted] as RegisterRangeInstruction
+            assertEquals("${build.name}: it hands over the row the views went into",
+                (greeting[greeted - 1] as FiveRegisterInstruction).registerC to 1, handed.startRegister to handed.registerCount)
+            assertTrue("${build.name}: no branch lands on the hook", (greeting[greeted] as BuilderInstruction).location.labels.isEmpty())
+            assertFalse("${build.name}: the branch for a missing row lands past it",
+                (greeting[greeted + 1] as BuilderInstruction).location.labels.isEmpty())
             val wasGlass = classes.single { it.type == BLUR_VIEW }.methods.single { it.name == "draw" }
             val glass = context.mutableClassDefBy(BLUR_VIEW).methods.single { it.name == "draw" }.instructions()
             val asked = glass.indexOfFirst { isCall(it, AMOLED_BLACK, "blurFill") }
@@ -523,10 +538,13 @@ class UiFixtureTest {
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
                         method.fields().any { it.name in FILTERABLE_PIN_MENU_TITLES ||
                             it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID ||
-                            it.name == PIN_MENU_CARD } }
+                            it.name == PIN_MENU_CARD || it.name == GREETING_ROW } }
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
         }
+        // The greeting header's ids class, which Hide navigation buttons checks for Create's id.
+        found += FixtureDex.classes(build, found.values.flatMap { it.methods }.flatMap { it.fields() }
+            .filter { it.name == GREETING_NEWSHUB }.map { it.definingClass }.toSet() - found.keys)
         // The interfaces the typing-screen row shares with the recent-search pill name its recent search bind.
         found += FixtureDex.classes(build, listOfNotNull(found[TYPEAHEAD_ROW], found[RECENT_SEARCH_PILL])
             .flatMap { it.interfaces }.toSet() - found.keys)

@@ -1,6 +1,7 @@
 package semicoloncolonel.mobilestream.extension.yttv.ads;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -36,6 +37,10 @@ import semicoloncolonel.mobilestream.extension.shared.misc.AdBreakText;
  * so their offsets are used only as a fallback when the time bar has gone
  * quiet.
  *
+ * The slots belong to one playback. When the player gets a new cue-point
+ * provider (a new channel or recording), the slots are cleared, so one
+ * channel's break never covers another.
+ *
  * The network's own commercials around that slot carry no cue points and are
  * not covered.
  */
@@ -67,6 +72,21 @@ public final class YttvLiveMask {
         playheadAtMs = SystemClock.elapsedRealtime();
     }
 
+    /** Called by YttvDaiDisabler when a new playback gets its cue-point provider. */
+    public static void reset() {
+        synchronized (slots) {
+            if (slots.isEmpty()) return;
+            slots.clear();
+        }
+        Log.i(TAG, "new playback: slots cleared");
+        MAIN.post(new Runnable() {
+            @Override
+            public void run() {
+                hide();
+            }
+        });
+    }
+
     /** Injection point: CuePointDataProviderWrapper.NativeCallback.onCuepointList. */
     public static void cuepoints(byte[] list) {
         if (list == null) return;
@@ -77,8 +97,9 @@ public final class YttvLiveMask {
                     record(cue, now);
                 }
             }
-        } catch (Exception ex) {
-            Log.e(TAG, "cue-point read failure", ex);
+        } catch (Throwable t) {
+            // Never let a malformed list reach the native caller.
+            Log.e(TAG, "cue-point read failure", t);
         }
     }
 
@@ -101,6 +122,7 @@ public final class YttvLiveMask {
         if (id == null || duration <= 0) return;
         long durationMs = Math.round(duration * 1000);
         long wallStart = Double.isNaN(offset) ? 0 : now - Math.round(offset * 1000);
+        boolean start;
         synchronized (slots) {
             long[] known = slots.get(id);
             if (known == null) {
@@ -110,11 +132,10 @@ public final class YttvLiveMask {
                 known[0] = startUtcMs;
                 known[1] = startUtcMs + durationMs;
             }
-        }
-        if (!ticking) {
+            start = !ticking;
             ticking = true;
-            MAIN.post(TICK);
         }
+        if (start) MAIN.post(TICK);
     }
 
     /** The slot's start on the broadcast clock, from the cue's inner payload (base64 protobuf). */
@@ -131,8 +152,8 @@ public final class YttvLiveMask {
                     r.skip(key & 7);
                 }
             }
-        } catch (Exception ex) {
-            Log.w(TAG, "slot start unreadable: " + ex);
+        } catch (Throwable t) {
+            Log.w(TAG, "slot start unreadable: " + t);
         }
         return 0;
     }
@@ -141,8 +162,10 @@ public final class YttvLiveMask {
         @Override
         public void run() {
             long now = SystemClock.elapsedRealtime();
-            // The time bar updates about once a second while playing. Past a
-            // few seconds of silence, fall back to the download-based timing.
+            // The time bar updates about once a second while the player is on
+            // screen. When it goes quiet (paused, or the player was left),
+            // nothing is covered, so a slot airing in real time never covers a
+            // paused frame or another screen.
             boolean onScreen = playheadUtcMs > 0 && now - playheadAtMs < 3000;
             long playhead = playheadUtcMs + (onScreen ? now - playheadAtMs : 0);
             if (onScreen && now - lastPositionLogMs >= 30_000) {
@@ -154,26 +177,30 @@ public final class YttvLiveMask {
                 Iterator<long[]> it = slots.values().iterator();
                 while (it.hasNext()) {
                     long[] slot = it.next();
-                    if (slot[1] > 0 && onScreen && playhead >= slot[0] && playhead < slot[1]) inSlot = true;
-                    else if ((slot[0] == 0 || !onScreen) && now >= slot[2] && now < slot[3]) inSlot = true;
+                    if (onScreen) {
+                        // A slot without a broadcast start falls back to the
+                        // download-based timing.
+                        if (slot[0] > 0 ? playhead >= slot[0] && playhead < slot[1]
+                                : now >= slot[2] && now < slot[3]) inSlot = true;
+                    }
                     // Keep slots for an hour, so a rewind into one is still covered.
                     if (now - slot[3] > 3_600_000) it.remove();
                 }
-                if (slots.isEmpty() && cover == null) {
+                if (slots.isEmpty() && cover == null && !muted) {
                     ticking = false;
                     return;
                 }
             }
-            if (inSlot) show();
+            Activity activity = inSlot ? currentActivity() : null;
+            if (activity != null) show(activity);
             else if (cover != null || muted) hide();
             MAIN.postDelayed(this, 250);
         }
     };
 
-    private static void show() {
+    private static void show(Activity activity) {
         try {
-            Activity activity = currentActivity();
-            if (activity == null || activity.isFinishing()) return;
+            if (activity.isFinishing()) return;
             ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
             if (cover == null || cover.getParent() != decor) {
                 if (cover != null && cover.getParent() != null) ((ViewGroup) cover.getParent()).removeView(cover);
@@ -187,8 +214,11 @@ public final class YttvLiveMask {
             // commercials can follow it, so the show may not be back then.
             label.setText(AdBreakText.untimed());
             if (!muted) {
-                audio(activity).adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
-                muted = true;
+                AudioManager audio = audio();
+                if (audio != null) {
+                    audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+                    muted = true;
+                }
             }
         } catch (Exception ex) {
             Log.e(TAG, "show failure", ex);
@@ -205,9 +235,11 @@ public final class YttvLiveMask {
                 Log.i(TAG, "Live ad slot ended");
             }
             if (muted) {
-                Activity activity = currentActivity();
-                if (activity != null) {
-                    audio(activity).adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+                // Unmuted through the application, so it works with the app
+                // in the background or in picture-in-picture.
+                AudioManager audio = audio();
+                if (audio != null) {
+                    audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
                     muted = false;
                 }
             }
@@ -216,8 +248,15 @@ public final class YttvLiveMask {
         }
     }
 
-    private static AudioManager audio(Activity activity) {
-        return (AudioManager) activity.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+    private static AudioManager audio() {
+        try {
+            Application app = (Application) Class.forName("android.app.ActivityThread")
+                    .getMethod("currentApplication").invoke(null);
+            return app == null ? null : (AudioManager) app.getSystemService(Context.AUDIO_SERVICE);
+        } catch (Throwable t) {
+            Log.w(TAG, "audio manager: " + t);
+            return null;
+        }
     }
 
     private static FrameLayout buildCover(Activity activity) {
@@ -305,25 +344,32 @@ public final class YttvLiveMask {
         }
 
         byte[] bytes() {
-            int n = (int) varint();
+            int n = length();
             byte[] out = new byte[n];
             System.arraycopy(b, i, out, 0, n);
             i += n;
             return out;
         }
 
+        /** A length prefix, rejected unless it fits in what is left. */
+        int length() {
+            long n = varint();
+            if (n < 0 || n > b.length - i) throw new IllegalArgumentException("bad length " + n);
+            return (int) n;
+        }
+
         void skip(int type) {
             switch (type) {
                 case 0: varint(); break;
-                case 1: i += 8; break;
+                case 1: i = Math.min(b.length, i + 8); break;
                 case 2: {
                     // Read the length first: in `i += varint()` Java would use
                     // the position from before the length prefix.
-                    int length = (int) varint();
+                    int length = length();
                     i += length;
                     break;
                 }
-                case 5: i += 4; break;
+                case 5: i = Math.min(b.length, i + 4); break;
                 default: i = b.length;
             }
         }

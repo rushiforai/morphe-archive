@@ -479,3 +479,33 @@ XIG07（SDK 36）、LINE 26.16.0、MicroG-RE 7.3.0。v0.10.0 に診断の patch 
 通信の遮断には `cmd connectivity set-chain3-enabled true` と `set-package-networking-enabled false app.revanced.android.gms` を使い、確認後に両方を戻した。chain を有効にしないと遮断は効かず、MicroG-RE は token を取り直して成功する。MicroG-RE は期限内の token を保存して返すため、期限（発行から 1 時間）が切れるまでは失敗を再現できない。この確認を受けて、`NetworkError` の説明に「MicroG-RE が Google に接続できなかった」場合を加えた。
 
 最初の build では、`getString` が `BaseBundle` のメソッドとして参照されていたことと、bind 先を差し替える hook が同じ register に結果を置くことから、fail-safe により注入されず ERROR になった。どちらも判定を直した。
+
+## 認証エラーの通知の見直し（2026-11-05）
+
+sol のレビューの指摘を受けて、注入の判定（wide 命令による register の上書き、getString のキー）と、通知に載せる値（英字と `_` だけのエラーコードに限る）、重複の抑止（失敗の内容ごと）を直した。XIG07（SDK 36）、LINE 26.16.0、MicroG-RE 7.3.0 に上書き install した。データ消去なし。
+
+| 確認 | 結果 |
+| --- | --- |
+| install / ART verify / 起動 | 成功。crash と VerifyError は 0 件 |
+| patch-status | 69 件すべて OK。診断の patch は `GoogleAuthDiagnosticsGuarded` で、新しい判定でも注入される |
+| token の期限切れ後に MicroG-RE の通信だけを遮断してアカウントを選び直す | LINE のダイアログと同時に通知が出た。本文は修正後の `NetworkError` の説明と `MicroG-RE 7.3.0 / LINE 26.16.0 / Android 16 (SDK 36)` |
+
+確認後に MicroG-RE の通信と chain3 を戻した。
+
+## プレビューのスクロール有効化（2026-11-05）
+
+「一般」に初期 OFF の「プレビューをスクロール可能にする」を追加。LINE 26.16.0 のプレビュー描画へ渡す boolean だけを変更し、プレビュー自体の提供条件・課金・通信は変更しない。
+
+| 確認 | 結果 |
+| --- | --- |
+| Java 17 の全テスト、`buildAndroid`、`generatePatchesList` | Pass。パッチの分岐・handler・register 検査、設定保存・再起動・独立性・設定エラー時の公式挙動を含む |
+| exact APKM preflight、Morphe Desktop 1.14.0 適用、署名検証 | Pass |
+| embedded patch-status | 全 72 件 OK。`linimal.patch.preview-scroll` は `PreviewScrollGuarded`、1/1 |
+| 全 15 DEX の `dexdump -f` と `d8 --min-api 32` | Pass |
+| 生成 DEX の注入位置 | `fk3/w0.invoke()` の公式判定結果 `v9` を hook に通して同じ register へ戻すことを確認 |
+| JVM smoke | 実 APK の status を読み、初期 OFF、再起動待ち、ON による false→true、元の true の維持、OFF 復帰、status 不在時の保存値無効化を確認 |
+| XIG07（SDK 36）の独立検証アプリ | 実 runtime と生成 APK の status で設定画面を表示。スイッチの初期 OFF・操作可能・ON/OFF 保存・再起動案内を UI 階層と撮影で確認。プロセス再起動後の hook は false→true→false、元の true は常に維持 |
+| XIG07 の LINE への上書き | Pass。同一署名・同一 versionCode でデータを保持したまま上書き。ログイン維持、cold start 成功、起動後とプレビュー操作後の FATAL EXCEPTION と VerifyError は 0件 |
+| LINE 内のプレビュー（設定 ON・再起動後） | Pass。利用者が実アカウントで操作し、問題なくスクロールできることを確認。adb からトークは操作していない |
+
+生成 APK はリポジトリ外の `/Users/uta_a/morphe/line-linimal-preview-scroll.apk`。独立検証アプリは LINE 本体とは別 package・別保存先であり、LINE 内の確認は上の 2 行で別に行った。

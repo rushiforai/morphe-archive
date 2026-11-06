@@ -148,6 +148,7 @@ public class SettingsBackupTest {
         ShadowToast.reset();
         ShadowAlertDialog.reset();
         SettingsFileProvider.install(AUTHORITY);
+        SettingsBackupPreference.forgetUnseenResultForTests();
     }
 
     @After
@@ -241,6 +242,7 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(
                 Settings.HIDE_ADS,
+                Settings.KEEP_BLAZE_POSTS,
                 Settings.HIDE_ADVERTISING_ID,
                 Settings.DISABLE_ANALYTICS,
                 Settings.HIDE_AD_FREE_BANNER,
@@ -258,6 +260,7 @@ public class SettingsBackupTest {
                 Settings.HIDE_SUGGESTED_COMMUNITIES,
                 Settings.HIDE_SUGGESTED_TAGS,
                 Settings.HIDE_WATCH_IT_ROWS,
+                Settings.HIDE_FEATURED_POSTS,
                 Settings.HIDE_HASHTAGS,
                 Settings.HIDE_FOLLOW_BUTTON,
                 Settings.HIDE_TUMBLRMART,
@@ -273,6 +276,8 @@ public class SettingsBackupTest {
                 Settings.HIDE_REBLOGS,
                 Settings.KEEP_TAGGED_REBLOGS,
                 Settings.KEEP_REBLOGS_WITH_CONTENT,
+                Settings.HIDE_OWN_REBLOGS,
+                Settings.HIDE_LIKED_POSTS,
                 Settings.HIDE_NOTIFICATION_LIKES,
                 Settings.HIDE_NOTIFICATION_REBLOGS,
                 Settings.HIDE_NOTIFICATION_REPLIES,
@@ -292,6 +297,7 @@ public class SettingsBackupTest {
                 Settings.SHOW_POST_TIMESTAMPS,
                 Settings.SHOW_IMAGE_DESCRIPTIONS,
                 Settings.SHARE_VIDEO_LINKS,
+                Settings.SHARPER_IMAGES,
                 Settings.MUTE_ROOT_POSTS,
                 Settings.REVEAL_ALLOWED_MATURE_CONTENT,
                 Settings.SHOW_MUTUAL_MARKERS,
@@ -641,19 +647,20 @@ public class SettingsBackupTest {
                 shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
                 settle();
             }
-            assertEquals("Couldn't import the settings. Nothing was changed.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Couldn't import the settings. Nothing was changed.", SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
             assertTrue("the process runs a switch the file never managed to set", Settings.HIDE_ADVERTISING_ID.savedValue());
             assertTrue(row.isChecked());
             assertFalse(store().containsKey(Settings.HIDE_ADVERTISING_ID.key));
 
             ShadowToast.reset();
-            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            click(page.findPreference(IMPORT_ROW));
+            settle();
             try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.LOST)) {
                 shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
                 settle();
             }
             assertEquals("Couldn't import the settings, and couldn't put back the ones you had. "
-                    + "Check the settings on this screen.", ShadowToast.getTextOfLatestToast());
+                    + "Check the settings on this screen.", SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
             assertEquals(false, store().get(Settings.HIDE_ADVERTISING_ID.key));
             assertFalse(Settings.HIDE_ADVERTISING_ID.savedValue());
             assertFalse("the screen shows a switch the store doesn't hold", row.isChecked());
@@ -705,7 +712,7 @@ public class SettingsBackupTest {
             settle();
             assertNull("Undo opened another confirmation", ShadowAlertDialog.getLatestAlertDialog());
             assertNull("Undo opened a picker", shadowOf(activity).getNextStartedActivityForResult());
-            assertEquals("Import undone. Your earlier settings are back.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Import undone. Your earlier settings are back.", SettingsFeedbackTest.message(page.findPreference(UNDO_ROW)));
             assertTrue(Settings.HIDE_ADVERTISING_ID.savedValue());
             assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADVERTISING_ID.key)).isChecked());
             assertFalse(undo.isEnabled());
@@ -1501,7 +1508,7 @@ public class SettingsBackupTest {
             settle();
             org.junit.Assert.assertArrayEquals(earlier, SettingsFileProvider.get(uri));
             assertEquals(words, TextSettings.HIDDEN_WORDS.savedValue());
-            assertTrue(ShadowToast.getTextOfLatestToast().contains("too large"));
+            assertTrue(SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)).contains("too large"));
         }
     }
 
@@ -1639,7 +1646,7 @@ public class SettingsBackupTest {
             shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
             settle();
 
-            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Settings exported.", SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             assertEquals(SettingsBackup.create(), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
             assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
         }
@@ -1690,7 +1697,7 @@ public class SettingsBackupTest {
                 click(page.findPreference(row));
                 ShadowLooper.idleMainLooper();
                 assertEquals(row, "This phone has no file picker, so there's no way to choose a file here.",
-                        ShadowToast.getTextOfLatestToast());
+                        SettingsFeedbackTest.message(page.findPreference(row)));
                 assertTrue(row + " stayed out of reach", page.findPreference(row).isEnabled());
             }
         } finally {
@@ -1727,7 +1734,7 @@ public class SettingsBackupTest {
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertEquals("Settings imported. 2 settings changed. Restart Tumblr to apply these settings.",
-                    ShadowToast.getTextOfLatestToast());
+                    SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
             assertFalse(Settings.HIDE_ADVERTISING_ID.savedValue());
             assertFalse(Settings.FIX_PUSH_NOTIFICATIONS.savedValue());
             assertFalse("the page still shows the switch on",
@@ -1822,7 +1829,7 @@ public class SettingsBackupTest {
             settle();
             assertFalse(Settings.FIX_PUSH_NOTIFICATIONS.savedValue());
             assertEquals("Settings imported. 1 setting changed. Restart Tumblr to apply these settings.",
-                    ShadowToast.getTextOfLatestToast());
+                    SettingsFeedbackTest.message(SettingsL10nTest.pageOf(dialogOf(controller.get())).findPreference(IMPORT_ROW)));
         }
     }
 
@@ -1837,7 +1844,7 @@ public class SettingsBackupTest {
             Uri uri = SettingsFileProvider.put(AUTHORITY, "rebuilt-export.json", new byte[0]);
             shadowOf(controller.get()).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
             settle();
-            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Settings exported.", SettingsFeedbackTest.message(SettingsL10nTest.pageOf(dialogOf(controller.get())).findPreference(EXPORT_ROW)));
             assertEquals(SettingsBackup.create(), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
         }
     }
@@ -1903,7 +1910,7 @@ public class SettingsBackupTest {
                     return null;
                 });
                 assertEquals(entry.getValue() + " said", SettingsBackupPreference.refusal(entry.getValue()),
-                        ShadowToast.getTextOfLatestToast());
+                        SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
                 assertNull(entry.getValue() + " showed a preview", ShadowAlertDialog.getLatestAlertDialog());
                 assertNull(page.pendingImport);
                 assertEquals(entry.getValue() + " opened an editor", 0, counts.edits.get());
@@ -1974,7 +1981,7 @@ public class SettingsBackupTest {
             try (WorkerPoolForTests full = WorkerPoolForTests.fill()) {
                 shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
                 ShadowLooper.idleMainLooper();
-                assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+                assertEquals("Couldn't start that. Try again in a moment.", SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
                 assertEquals("the file was read anyway", 0, SettingsFileProvider.opened.get());
                 assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
                 assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
@@ -2015,16 +2022,64 @@ public class SettingsBackupTest {
                 assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
                 assertFalse(AbstractPreferenceFragment.settingImportInProgress);
                 assertNull("the failure reached Tumblr", escaped);
-                assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+                assertEquals("Couldn't start that. Try again in a moment.", SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
                 assertTrue("a switch changed", Settings.HIDE_ADVERTISING_ID.savedValue());
             }
             settle();
 
-            // And the next import goes through.
-            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            // Retry uses the retained snapshot without reading the provider again.
+            int opened = SettingsFileProvider.opened.get();
+            assertNotNull(page.pendingImport);
+            click(page.findPreference(IMPORT_ROW));
+            settle();
+            assertNull(shadowOf(activity).getNextStartedActivityForResult());
+            assertEquals(opened, SettingsFileProvider.opened.get());
             shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertFalse(Settings.HIDE_ADVERTISING_ID.savedValue());
+        }
+    }
+
+    /**
+     * A file whose import failed waits behind the Import row, which says what happened, rather
+     * than opening over the screen each time it comes back. Its next preview offers another file.
+     */
+    @Test
+    public void aFileWhoseImportFailedWaitsForItsRowAndOffersAnotherFile() throws Exception {
+        String file = fileWith(Settings.HIDE_ADVERTISING_ID, false);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog first = shownPreview();
+            assertTrue("a first look offered another file",
+                    first.getButton(AlertDialog.BUTTON_NEUTRAL).getVisibility() != android.view.View.VISIBLE);
+            try (WorkerPoolForTests full = WorkerPoolForTests.fill()) {
+                first.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                ShadowLooper.idleMainLooper();
+            }
+            settle();
+            assertNotNull(page.pendingImport);
+
+            controller.pause().resume();
+            settle();
+            org.junit.Assert.assertSame("the failed file opened over the screen again",
+                    first, ShadowAlertDialog.getLatestAlertDialog());
+            assertEquals("Couldn't start that. Try again in a moment.",
+                    SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
+
+            click(page.findPreference(IMPORT_ROW));
+            settle();
+            AlertDialog again = shownPreview();
+            assertNotSame(first, again);
+            android.widget.Button other = again.getButton(AlertDialog.BUTTON_NEUTRAL);
+            assertEquals(android.view.View.VISIBLE, other.getVisibility());
+            assertEquals("Choose another file", other.getText().toString());
+            other.performClick();
+            settle();
+            assertNotNull("Choose another file opened no picker", shadowOf(activity).getNextStartedActivityForResult());
+            assertNull(page.pendingImport);
+            assertTrue("a switch changed", Settings.HIDE_ADVERTISING_ID.savedValue());
         }
     }
 
@@ -2055,7 +2110,7 @@ public class SettingsBackupTest {
             Activity activity = controller.get();
             HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             export(activity, page, uri);
-            assertEquals(MISMATCH, ShadowToast.getTextOfLatestToast());
+            assertEquals(MISMATCH, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             String kept = new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8);
             assertTrue("the app truncated after all", kept.startsWith(now) && kept.endsWith("{\"old\":true}"));
             assertEquals(SettingsBackup.Reason.DAMAGED, reasonFor(kept));
@@ -2063,7 +2118,7 @@ public class SettingsBackupTest {
 
             SettingsFileProvider.refusesTruncate = false;
             export(activity, page, uri);
-            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Settings exported.", SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             assertEquals(now, new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
         }
     }
@@ -2077,7 +2132,7 @@ public class SettingsBackupTest {
             Activity activity = controller.get();
             HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             export(activity, page, uri);
-            assertEquals(UNCHECKED, ShadowToast.getTextOfLatestToast());
+            assertEquals(UNCHECKED, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             assertEquals(SettingsBackup.create(), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
             assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
         }
@@ -2102,7 +2157,7 @@ public class SettingsBackupTest {
             HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             ShadowAlertDialog.reset();
             deliver(activity, tap(activity, page, IMPORT_ROW), SettingsBackup.create());
-            assertEquals(SettingsBackupPreference.refusal(SettingsBackup.Reason.UNREADABLE), ShadowToast.getTextOfLatestToast());
+            assertEquals(SettingsBackupPreference.refusal(SettingsBackup.Reason.UNREADABLE), SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
             assertNull(ShadowAlertDialog.getLatestAlertDialog());
             assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
             assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
@@ -2134,7 +2189,7 @@ public class SettingsBackupTest {
                 assertFalse(importRow.isEnabled());
                 awaitHeldOpen();
                 waitOut();
-                assertEquals(IMPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+                assertEquals(IMPORT_TIMEOUT, SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
                 assertTrue(importRow.isEnabled());
                 assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
                 assertEquals("the cancel never reached the app", 1, SettingsFileProvider.cancels.get());
@@ -2143,14 +2198,14 @@ public class SettingsBackupTest {
                 click(page.findPreference(EXPORT_ROW));
                 assertNull("a picker opened while a stuck app held a worker",
                         shadowOf(activity).getNextStartedActivityForResult());
-                assertEquals(STALLED, ShadowToast.getTextOfLatestToast());
+                assertEquals(STALLED, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             } finally {
                 release.countDown();
             }
             settle();
             assertNull("the late answer showed a preview", ShadowAlertDialog.getLatestAlertDialog());
             assertNull(page.pendingImport);
-            assertEquals("the late answer said something", STALLED, ShadowToast.getTextOfLatestToast());
+            assertEquals("the late answer said something", STALLED, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             assertTrue(Settings.HIDE_ADVERTISING_ID.savedValue());
 
             // Once the app has answered, a new read starts.
@@ -2177,10 +2232,10 @@ public class SettingsBackupTest {
             ShadowLooper.idleMainLooper();
             awaitHeldOpen();
             waitOut();
-            assertEquals(EXPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+            assertEquals(EXPORT_TIMEOUT, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             assertEquals(1, SettingsFileProvider.cancels.get());
             settle();
-            assertEquals("the cancelled export said more", EXPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+            assertEquals("the cancelled export said more", EXPORT_TIMEOUT, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             assertEquals(0, SettingsFileProvider.get(uri).length);
 
             CountDownLatch release = new CountDownLatch(1);
@@ -2190,24 +2245,93 @@ public class SettingsBackupTest {
                 shadowOf(activity).receiveResult(tap(activity, page, EXPORT_ROW).intent, Activity.RESULT_OK,
                         new Intent().setData(uri));
                 ShadowLooper.idleMainLooper();
+                assertNull("the last export's result stayed through the new one",
+                        SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
                 awaitHeldOpen();
                 waitOut();
-                assertEquals(EXPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+                assertEquals(EXPORT_TIMEOUT, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
                 ShadowToast.reset();
                 click(page.findPreference(EXPORT_ROW));
                 assertNull("a second write could reach the file", shadowOf(activity).getNextStartedActivityForResult());
-                assertEquals(STALLED, ShadowToast.getTextOfLatestToast());
+                assertEquals(STALLED, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
             } finally {
                 release.countDown();
             }
             settle();
             // Handed over after the cancel, the file is closed unwritten, and nothing is said.
             assertEquals(0, SettingsFileProvider.get(uri).length);
-            assertEquals("the late answer was called a success", STALLED, ShadowToast.getTextOfLatestToast());
+            assertEquals("the late answer was called a success", STALLED, SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
 
             SettingsFileProvider.stall = null;
             export(activity, page, uri);
+            assertEquals("Settings exported.", SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
+        }
+    }
+
+    /** An export that ends after the settings were closed says so, and the next settings screen shows it under its row. */
+    @Test
+    public void aResultWithNoScreenOpenIsSaidAndWaitsUnderItsRow() throws Exception {
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "closed.json", new byte[0]);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            SettingsDialog dialog = SettingsL10nTest.show(activity);
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(dialog);
+            CountDownLatch release = new CountDownLatch(1);
+            SettingsFileProvider.stall = release;
+            try {
+                shadowOf(activity).receiveResult(tap(activity, page, EXPORT_ROW).intent, Activity.RESULT_OK,
+                        new Intent().setData(uri));
+                ShadowLooper.idleMainLooper();
+                awaitHeldOpen();
+                dialog.dismiss();
+                activity.getFragmentManager().executePendingTransactions();
+                ShadowLooper.idleMainLooper();
+                assertFalse(page.isAdded());
+                ShadowToast.reset();
+            } finally {
+                release.countDown();
+            }
+            settle();
+            assertTrue("the export never finished", SettingsFileProvider.get(uri).length > 0);
             assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+
+            SettingsDialog reopened = SettingsL10nTest.show(activity);
+            HushTumblrPreferenceFragment next = SettingsL10nTest.pageOf(reopened);
+            assertEquals("Settings exported.", SettingsFeedbackTest.message(next.findPreference(EXPORT_ROW)));
+            assertNull("it went under the wrong row", SettingsFeedbackTest.message(next.findPreference(IMPORT_ROW)));
+
+            // Shown once, it isn't brought back by every later screen.
+            reopened.dismiss();
+            activity.getFragmentManager().executePendingTransactions();
+            ShadowLooper.idleMainLooper();
+            HushTumblrPreferenceFragment later = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            assertNull(SettingsFeedbackTest.message(later.findPreference(EXPORT_ROW)));
+        }
+    }
+
+    /**
+     * A file refused as a whole would be refused again, so it isn't kept for another try. Only an
+     * import whose write failed part way is offered again (aFailedImportSaysWhatTheStoreKeptAndTheScreenShowsIt).
+     */
+    @Test
+    public void onlyAnImportThatFailedPartWayIsOfferedAgain() throws Exception {
+        TextSettings.HIDDEN_WORDS.save(repeat('h', 40_000));
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(new JSONObject()
+                .put("format", SettingsBackup.FORMAT).put("schema", SettingsBackup.SCHEMA)
+                .put("settings", new JSONObject())
+                .put("text", new JSONObject().put(TextSettings.ALLOWED_WORDS.key, repeat('a', 40_000))).toString());
+        Map<String, ?> before = store();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(controller.get()));
+            ShadowAlertDialog.reset();
+            page.pendingImport = snapshot.toBundle();
+            SettingsBackupPreference.showPreview(page);
+            shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals(SettingsBackupPreference.refusal(SettingsBackup.Reason.SIZE),
+                    SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)));
+            assertNull("a refused file was kept for another go", page.pendingImport);
+            assertEquals(before, store());
         }
     }
 
@@ -2237,7 +2361,7 @@ public class SettingsBackupTest {
             HushTumblrPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             assertTrue("the next test started with the rows busy", page.findPreference(EXPORT_ROW).isEnabled());
             export(activity, page, SettingsFileProvider.put(AUTHORITY, "next.json", new byte[0]));
-            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("Settings exported.", SettingsFeedbackTest.message(page.findPreference(EXPORT_ROW)));
         }
     }
 
@@ -2261,7 +2385,7 @@ public class SettingsBackupTest {
             settle();
             shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
-            assertTrue(ShadowToast.getTextOfLatestToast().startsWith("Settings imported. 2 settings changed."));
+            assertTrue(SettingsFeedbackTest.message(page.findPreference(IMPORT_ROW)).startsWith("Settings imported. 2 settings changed."));
             assertEquals(HushTumblrPreferenceFragment.wordsSummary("one\ntwo"),
                     page.findPreference(HushTumblrPreferenceFragment.HIDDEN_WORDS_ROW).getSummary());
             assertEquals(HushTumblrPreferenceFragment.tabOrderSummary(order),
@@ -2385,6 +2509,52 @@ public class SettingsBackupTest {
                 .put("schema", 2).put("settings", new JSONObject().put(Settings.HIDE_ADS.key, true)).toString()));
         assertTrue(Settings.KEEP_TAGGED_REBLOGS.savedValue());
         assertTrue(Settings.KEEP_REBLOGS_WITH_CONTENT.savedValue());
+    }
+
+    /**
+     * A file from before Keep Blaze posts names Hide ads without it, from back when Hide ads took
+     * Blaze posts too, so importing it turns the option off, and undo puts it back. A file that
+     * names the option keeps its value, and one without Hide ads leaves the option alone.
+     */
+    @Test
+    public void olderHideAdsBackupsTurnKeepBlazePostsOff() throws Exception {
+        for (int schema : new int[]{1, 2, SettingsBackup.SCHEMA}) {
+            Settings.KEEP_BLAZE_POSTS.save(true);
+            SettingsBackup.apply(SettingsBackup.parse(new JSONObject().put("format", SettingsBackup.FORMAT)
+                    .put("schema", schema).put("settings", new JSONObject().put(Settings.HIDE_ADS.key, true)).toString()));
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertFalse("schema " + schema, Settings.KEEP_BLAZE_POSTS.savedValue());
+            assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
+            assertTrue(Settings.KEEP_BLAZE_POSTS.savedValue());
+        }
+        // Each value a file names lands, from the other value.
+        for (boolean named : new boolean[]{true, false}) {
+            Settings.KEEP_BLAZE_POSTS.save(!named);
+            SettingsBackup.apply(SettingsBackup.parse(new JSONObject().put("format", SettingsBackup.FORMAT)
+                    .put("schema", SettingsBackup.SCHEMA).put("settings", new JSONObject()
+                            .put(Settings.HIDE_ADS.key, true).put(Settings.KEEP_BLAZE_POSTS.key, named)).toString()));
+            assertEquals(named, Settings.KEEP_BLAZE_POSTS.savedValue());
+        }
+        Settings.KEEP_BLAZE_POSTS.save(true);
+        SettingsBackup.apply(SettingsBackup.parse(new JSONObject().put("format", SettingsBackup.FORMAT)
+                .put("schema", SettingsBackup.SCHEMA).put("settings", new JSONObject()
+                        .put(Settings.HIDE_REBLOGS.key, true)).toString()));
+        assertTrue(Settings.KEEP_BLAZE_POSTS.savedValue());
+    }
+
+    @Test
+    public void keepBlazePostsRoundTripsWithItsLabel() throws Exception {
+        Settings.KEEP_BLAZE_POSTS.save(true);
+        String file = SettingsBackup.create();
+        assertTrue(new JSONObject(file).getJSONObject("settings").getBoolean(Settings.KEEP_BLAZE_POSTS.key));
+        Settings.KEEP_BLAZE_POSTS.save(false);
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals(1, snapshot.switchChanges());
+        String preview = SettingsBackupPreference.previewMessage(snapshot);
+        assertTrue(preview, preview.contains(L10n.f("%1$s (%2$s to %3$s)", L10n.t("Keep Blaze posts"),
+                L10n.t("Off"), L10n.t("On"))));
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertTrue(Settings.KEEP_BLAZE_POSTS.savedValue());
     }
 
     @Test

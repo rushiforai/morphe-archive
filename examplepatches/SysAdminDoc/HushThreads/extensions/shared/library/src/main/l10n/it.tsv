@@ -1,0 +1,379 @@
+# Italian for HushThreads: the English key, a tab, the translation. One row per string.
+# Rows shared with https://github.com/SysAdminDoc/HushGram are taken from its Italian table.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	Build %1$s
+%1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	%1$d elemento in quel file non è un'impostazione che questa versione di HushThreads conosce, quindi verrà escluso.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	%1$d elementi in quel file non sono impostazioni che questa versione di HushThreads conosce, quindi verranno esclusi.
+%1$d switch will change.	Cambierà %1$d interruttore.
+%1$d switches will change.	Cambieranno %1$d interruttori.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. È stato impostato durante la patch, quindi Pausa non può disattivarlo. Per escluderlo, applica di nuovo la patch senza quella patch.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Sono stati impostati durante la patch, quindi Pausa non può disattivarli. Per escluderne uno, applica di nuovo la patch senza la patch indicata tra parentesi dopo di esso.
+A diagnostic report is already being saved.	Un report diagnostico è già in fase di salvataggio.
+A file named %1$s in %2$s paused HushThreads.	Un file chiamato %1$s in %2$s ha messo in pausa HushThreads.
+About	Informazioni
+Advertising ID removed	ID pubblicitario rimosso
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 e versioni precedenti non indicano quali link si aprono qui. Tocca per aprire le impostazioni di questa app, poi Apri per impostazione predefinita.
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android invia i link di Threads solo a un'app firmata da Meta. Selezionando gli indirizzi, i loro link arrivano invece qui. Le altre impostazioni dei link restano come sono.
+Android verified this app for Threads' web addresses, so their links open here.	Android ha verificato questa app per gli indirizzi web di Threads, quindi i loro link si aprono qui.
+Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	Le impostazioni di Android per questa app non si sono aperte. Apri Informazioni app dall'icona di Threads, poi Apri per impostazione predefinita.
+Back	Indietro
+Cancel	Annulla
+Changing these	Come cambiarli
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Scegli un file di impostazioni. Prima di importare qualsiasi cosa, vedrai quanti interruttori cambia.
+Clear diagnostic data	Cancella i dati diagnostici
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un report rapido o salva quello completo in Download/Morphe. Link, ID, cookie e token di accesso vengono esclusi. Controlla che non contenga altro testo privato prima di condividerlo.
+Copy quick report	Copia report rapido
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Impossibile importare le impostazioni e impossibile ripristinare quelle che avevi. Controlla gli interruttori in questa schermata.
+Couldn't import the settings. Nothing was changed.	Impossibile importare le impostazioni. Non è cambiato nulla.
+Couldn't open that file. Nothing was changed.	Impossibile aprire quel file. Non è cambiato nulla.
+Couldn't open the file picker. Try again.	Impossibile aprire il selettore di file. Riprova.
+Couldn't put back the diagnostic data. Try again.	Impossibile ripristinare i dati diagnostici. Riprova.
+Couldn't save the settings file. Try again.	Impossibile salvare il file di impostazioni. Riprova.
+Couldn't start that. Try again in a moment.	Impossibile avviarlo. Riprova tra un momento.
+Couldn't start the report export. Try again shortly.	Impossibile avviare l'esportazione del report. Riprova tra poco.
+Couldn't turn HushThreads back on. Try again.	Impossibile riattivare HushThreads. Riprova.
+Debug logging	Log di debug
+Diagnostic data cleared. Tap again to put it back.	Dati diagnostici cancellati. Tocca di nuovo per ripristinarli.
+Diagnostic data put back.	Dati diagnostici ripristinati.
+Diagnostic report copied to the clipboard.	Report diagnostico copiato negli appunti.
+Clears the saved log, patch check results and any kept crash that a report would include.	Cancella il log salvato, i risultati del controllo delle patch e qualsiasi crash conservato che un report includerebbe.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Tutti gli interruttori tranne Log di debug agiscono come se fossero disattivati, e ciò che è stato impostato durante la patch resta attivo. Le tue impostazioni restano invariate.
+Export diagnostic report	Esporta report diagnostico
+Export settings	Esporta impostazioni
+Feed	Feed
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	Disattiva tutti gli interruttori di HushThreads tranne Log di debug al prossimo avvio di Threads. Ciò che hai scelto durante la patch resta e le tue scelte vengono salvate.
+Hide ads	Nascondi gli annunci
+HushThreads %1$s on Threads %2$s	HushThreads %1$s su Threads %2$s
+HushThreads %1$s targets Threads %2$s.	HushThreads %1$s è pensato per Threads %2$s.
+HushThreads pauses when Threads restarts.	HushThreads va in pausa quando Threads si riavvia.
+HushThreads turns back on when Threads restarts.	HushThreads si riattiva quando Threads si riavvia.
+It targets Threads %1$s.	È pensato per Threads %1$s.
+None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Nessuno degli indirizzi web di Threads è selezionato per questa app, quindi i loro link si aprono altrove. Tocca per selezionarli nelle impostazioni di Android.
+Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Solo alcuni indirizzi web di Threads sono selezionati per questa app e i link agli altri si aprono altrove. Tocca per selezionarli nelle impostazioni di Android.
+Privacy	Privacy
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Salva i tuoi interruttori in un file. Pausa e Log di debug non sono inclusi, e nemmeno il controllo delle nuove versioni.
+Saved. Restart Threads to apply this change.	Salvato. Riavvia Threads per applicare la modifica.
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	Alcune schermate di Threads controllano chi ha firmato l'app e non funzionano su un'app con patch. Questa correzione le fa aprire di nuovo.
+Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Impostazioni esportate. L'app che contiene il file non ha permesso a HushThreads di rileggerlo, quindi non è stato controllato.
+# context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
+Sponsored posts come out of For you, Following and the posts you open before Threads shows them, so no gap is left.	I post sponsorizzati vengono tolti da Per te, Seguiti e dai post che apri prima che Threads li mostri, quindi non resta nessuno spazio vuoto.
+# context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
+Sponsored posts in For you and Following	Post sponsorizzati in Per te e Seguiti
+# context: Feed overview summaries when suggestions alone, or both feed rules, are selected
+Suggested accounts in your feed	Account suggeriti nel tuo feed
+Ads and suggested accounts in your feed	Annunci e account suggeriti nel tuo feed
+Stop analytics uploads	Blocca l'invio dei dati di analisi
+# context: xmt and slof are the tags' own names in the link and stay as they are
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	Toglie i tag di tracciamento come xmt e slof dai link dei post che copi o condividi. Un link breve di condivisione diventa il link diretto del post.
+The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	L'app che contiene quel file ci sta mettendo troppo, quindi HushThreads ha smesso di aspettare. Non è cambiato nulla.
+The app holding the last settings file still hasn't answered. Try again later.	L'app che contiene l'ultimo file di impostazioni non ha ancora risposto. Riprova più tardi.
+The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	L'app che contiene il file di impostazioni ci sta mettendo troppo, quindi HushThreads ha smesso di aspettare. Quell'app potrebbe comunque finire di salvarlo, quindi controlla il file prima di farci affidamento.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Impossibile rimuovere il file %1$s. Eliminalo da %2$s, poi tocca di nuovo Riprendi.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Il file di impostazioni è stato salvato, ma rileggendolo non corrisponde a quanto scritto. Salvalo di nuovo come nuovo file.
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	Impedisce alla maggior parte dei report di utilizzo di raggiungere Meta. Alcuni potrebbero comunque passare. Disattivalo per inviarli come prima.
+Analytics address coverage	Copertura degli indirizzi di analisi
+Blocked: %1$s. Not found in this build: %2$s.	Bloccati: %1$s. Non trovati in questa build: %2$s.
+This build didn't record which report types it covers. Patch again to see them.	Questa build non ha registrato quali tipi di report copre. Applica di nuovo la patch per vederli.
+none	nessuno
+Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads non può leggere l'ID pubblicitario del telefono. Il relativo permesso è stato rimosso da questa build.
+Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads si è chiuso o bloccato entro un minuto dall'avvio tre volte di fila, quindi HushThreads si è messo in pausa da solo.
+Threads' web addresses are selected for this app in Android's settings, so their links open here.	Gli indirizzi web di Threads sono selezionati per questa app nelle impostazioni di Android, quindi i loro link si aprono qui.
+Tracking in links and analytics uploads	Tracciamento nei link e invio delle analisi
+Try again, or go back to Threads.	Riprova, oppure torna a Threads.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Finché non riprendi, ogni interruttore tranne Log di debug agisce come se fosse disattivato. Le modifiche fatte durante la patch restano attive.
+Full report saved to %1$s	Report completo salvato in %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, con le note dei progetti su cui si basa
+HushThreads is on	HushThreads è attivo
+HushThreads is paused	HushThreads è in pausa
+HushThreads settings	Impostazioni di HushThreads
+HushThreads settings couldn't open	Impossibile aprire le impostazioni di HushThreads
+Import	Importa
+Import settings	Importa impostazioni
+Importing settings	Importazione delle impostazioni
+Licenses	Licenze
+Links	Link
+OK	OK
+Pause HushThreads	Metti in pausa HushThreads
+Re-signed build fix	Correzione per build rifirmate
+Reading the settings file	Lettura del file di impostazioni
+Remove tracking from shared links	Rimuovi il tracciamento dai link condivisi
+Retry	Riprova
+Save full report	Salva il report completo
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushThreads releases	Cerca nuove versioni di HushThreads
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	Una volta al giorno, all'avvio di Threads, controlla su GitHub se c'è un HushThreads più recente e te lo dice qui. Non viene scaricato nulla.
+Check now	Controlla ora
+Asks GitHub for the newest release right now, even with the switch above off.	Chiede subito a GitHub la versione più recente, anche con l'interruttore qui sopra disattivato.
+Checking GitHub now.	Controllo su GitHub in corso.
+HushThreads %1$s is out. Update it in Morphe Manager.	È uscito HushThreads %1$s. Aggiornalo in Morphe Manager.
+Version %1$s for Threads %2$s	Versione %1$s per Threads %2$s
+You have the newest HushThreads release.	Hai la versione più recente di HushThreads.
+The newest HushThreads release is %1$s.	La versione più recente di HushThreads è la %1$s.
+Couldn't reach GitHub. Try again later.	Impossibile raggiungere GitHub. Riprova più tardi.
+GitHub is turning away checks from this network for now. Try again later.	Per ora GitHub rifiuta i controlli da questa rete. Riprova più tardi.
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub ha risposto con qualcosa che HushThreads non riesce a leggere. Riprova più tardi.
+Saving the settings file	Salvataggio del file di impostazioni
+Set when you patched	Impostato durante la patch
+Settings couldn't open	Impossibile aprire le impostazioni
+Settings couldn't refresh completely. Reopen settings and try again.	Impossibile aggiornare del tutto le impostazioni. Riapri le impostazioni e riprova.
+Settings exported.	Impostazioni esportate.
+Settings imported. %1$d switch changed.	Impostazioni importate. È cambiato %1$d interruttore.
+Settings imported. %1$d switches changed.	Impostazioni importate. Sono cambiati %1$d interruttori.
+Source code and issues	Codice sorgente e segnalazioni
+Stays in while paused	Resta attivo in pausa
+Tap to turn it back on.	Tocca per riattivarlo.
+That file is too large to be a settings file. Nothing was changed.	Quel file è troppo grande per essere un file di impostazioni. Non è cambiato nulla.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Quel file non è testo leggibile, quindi potrebbe essersi danneggiato durante il trasferimento. Non è cambiato nulla.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Quel file elenca un'impostazione due volte, quindi non si sa quale valore usare. Non è cambiato nulla.
+That isn't a HushThreads settings file. Nothing was changed.	Non è un file di impostazioni di HushThreads. Non è cambiato nulla.
+That settings file holds a value HushThreads can't read. Nothing was changed.	Quel file di impostazioni contiene un valore che HushThreads non riesce a leggere. Non è cambiato nulla.
+That settings file is damaged or only partly downloaded. Nothing was changed.	Quel file di impostazioni è danneggiato o scaricato solo in parte. Non è cambiato nulla.
+That settings file was written by a newer HushThreads than this one. Nothing was changed.	Quel file di impostazioni è stato scritto da un HushThreads più recente di questo. Non è cambiato nulla.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Impossibile salvare ancora il report diagnostico. Riprova tra un attimo.
+The diagnostic report couldn't be saved. Try again.	Impossibile salvare il report diagnostico. Riprova.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.	Impossibile rimuovere il file %1$s. Eliminalo da %2$s per riattivare HushThreads.
+Your choices are saved. Tap Resume, then restart Threads.	Le tue scelte sono salvate. Tocca Riprendi, poi riavvia Threads.
+the re-signed build fix	la correzione per le build rifirmate
+The setting couldn't finish updating. Its saved value is shown.	Non è stato possibile completare l'aggiornamento dell'impostazione. Viene mostrato il valore salvato.
+There's no diagnostic data to clear.	Non ci sono dati diagnostici da cancellare.
+There's no diagnostic data to put back.	Non ci sono dati diagnostici da ripristinare.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Si scelgono in Morphe Manager quando applichi la patch e Pausa non le disattiva. Applica di nuovo la patch per cambiarle.
+This phone has no file picker, so there's no way to choose a file here.	Questo telefono non ha un selettore di file, quindi qui non è possibile scegliere un file.
+Version	Versione
+Record patch activity and show errors for a bug report. Leave off during normal use.	Registra l'attività delle patch e mostra gli errori per una segnalazione di bug. Lascia disattivato durante l'uso normale.
+You paused HushThreads.	Hai messo in pausa HushThreads.
+Your switches already match that file, so nothing will change.	I tuoi interruttori corrispondono già a quel file, quindi non cambierà nulla.
+Copy a short report to the clipboard.	Copia un report breve negli appunti.
+Save the full report in Download/Morphe.	Salva il report completo in Download/Morphe.
+Settings imported.	Impostazioni importate.
+No app on this phone can open the link. The address is %1$s.	Nessuna app su questo telefono può aprire il link. L'indirizzo è %1$s.
+Pause, backup and diagnostics	Pausa, backup e diagnostica
+Updates	Aggiornamenti
+Jump to a section	Vai a una sezione
+Go straight to one group of settings. Back returns to where you were.	Vai direttamente a un gruppo di impostazioni. Indietro ti riporta dov'eri.
+No matching settings	Nessuna impostazione corrispondente
+%1$d setting found	%1$d impostazione trovata
+%1$d settings found	%1$d impostazioni trovate
+Try a different word or clear the search.	Prova un'altra parola o cancella la ricerca.
+Search settings	Cerca nelle impostazioni
+Clear search	Cancella la ricerca
+Saves	Salvataggi
+No saves in progress.	Nessun salvataggio in corso.
+Pause	Pausa
+Resume	Riprendi
+Undo	Annulla
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Threads' web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Link supportati
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	L'apertura dei link supportati è disattivata per questa app nelle impostazioni di Android. Tocca per attivarla.
+Android didn't say which links open here. Tap to check in Android's settings.	Android non ha indicato quali link si aprono qui. Tocca per controllare nelle impostazioni di Android.
+Selecting links by hand	Selezionare i link a mano
+# context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
+the removed advertising ID permission	il permesso dell'ID pubblicitario rimosso
+
+# context: optional feed rule and its scope
+Hide suggested users	Nascondi gli utenti suggeriti
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	Rimuove le schede che suggeriscono account da seguire, nel feed e sui profili. I post normali e i repost restano.
+Keep feed position on return	Mantieni la posizione nel feed al ritorno
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	Tornando su Threads entro dieci minuti resti dov'eri. Puoi ancora trascinare verso il basso per aggiornare.
+No time limit	Nessun limite di tempo
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Con l'interruttore qui sopra attivo, resti dov'eri per quanto tempo tu stia via. Trascinare per aggiornare e un nuovo avvio caricano comunque nuovi post.
+Where you left off in your feed	Dove ti eri fermato nel feed
+Open links in your browser	Apri i link nel browser
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	I link che tocchi si aprono nel browser o nell'app del sito, saltando il tracciamento dei link di Threads. Le pagine di Threads e Instagram si aprono ancora in Threads.
+Tap to play videos	Tocca per riprodurre i video
+Videos in your feed wait for a tap instead of playing as you scroll.	I video nel feed aspettano un tocco invece di partire mentre scorri.
+Videos in your feed	Video nel tuo feed
+
+# context: overview disclosure for default patches omitted from this build (Hushfacebook 814acd23)
+Tap to see which.	Tocca per vedere quali.
+%1$d default patch isn't in this build	%1$d patch predefinita non è in questa build
+%1$d default patches aren't in this build	%1$d patch predefinite non sono in questa build
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Non in questa build: %1$s. Morphe Manager la seleziona per impostazione predefinita. Applica di nuovo la patch con questa selezionata per avere ciò che fa.
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Non in questa build: %1$s. Morphe Manager le seleziona per impostazione predefinita. Applica di nuovo la patch con queste selezionate per avere ciò che fanno.
+Appearance	Aspetto
+Pure black dark mode	Modalità scura con nero puro
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	La modalità scura usa il nero puro invece del grigio scuro. Attiva la modalità scura in Threads per vederlo. Riavvia Threads per vedere la modifica.
+Hide the Instagram button	Nascondi il pulsante di Instagram
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Toglie il pulsante di Instagram dalla parte alta dei profili, il tuo e quelli degli altri. Riavvia Threads per vedere la modifica.
+Hide ghost post bubbles	Nascondi le bolle dei post fantasma
+Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	Toglie le bolle dei post fantasma dalle immagini del profilo, sui profili e nella riga in cima al feed. Riavvia Threads per vedere la modifica.
+Turn features on or off	Attiva o disattiva le funzioni
+# Fotos und Videos speichern
+%1$d saved in lower quality than on Threads.	%1$d salvati a qualità inferiore rispetto a Threads.
+%1$d saves stopped. Reopen the post and save again.	%1$d salvataggi interrotti. Riapri il post e salva di nuovo.
+%1$d saves were interrupted	%1$d salvataggi sono stati interrotti
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s diventa la data e l'ora del salvataggio, %2$s il numero del video su Threads, %3$s chi l'ha pubblicato e %4$s il giorno di pubblicazione. Ciò che un salvataggio non conosce viene omesso, e un nome senza nessuno di questi riceve la data. Se il nome è già nella cartella, l'ora del salvataggio viene aggiunta in fondo. I caratteri non validi diventano trattini bassi. Lascia vuoto per usare il predefinito, %5$s.
+%1$s of %2$s	%1$s di %2$s
+%1$s so far	%1$s finora
+A save stopped. Reopen the post and save again.	Un salvataggio si è interrotto. Riapri il post e salva di nuovo.
+A save was interrupted	Un salvataggio è stato interrotto
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	Aggiunge Salva al menu di un post. Un post con più foto o video li salva tutti. Disattivato o in pausa, hai il menu normale di Threads.
+Best	Massima
+Cancel saving this carousel	Annulla il salvataggio di questo carosello
+Cancel saving this photo	Annulla il salvataggio di questa foto
+Cancel saving this video	Annulla il salvataggio di questo video
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carosello annullato. Salvati %1$d. Non riusciti %2$d. Saltati %3$d.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Scegli un nome di cartella sotto Movies e Pictures. I caratteri non validi diventano trattini bassi. Lascia vuoto per usare la cartella predefinita, %1$s.
+Copying to the gallery	Copia nella galleria in corso
+Download failed. Try again in a moment.	Download non riuscito. Riprova tra un momento.
+Download quality	Qualità del download
+Downloading	Download in corso
+Downloads	Download
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Ogni video viene salvato a %1$s o alla qualità più vicina sotto. Un video senza niente di così basso viene salvato alla qualità più vicina sopra.
+Each video saves at its lowest quality, for the smallest file.	Ogni video viene salvato alla qualità più bassa, per il file più piccolo.
+Each video saves at the best quality the player streams.	Ogni video viene salvato alla qualità migliore trasmessa dal player.
+Example without post details	Esempio senza dettagli del post
+File name	Nome del file
+File name set to %1$s.	Nome del file impostato su %1$s.
+Folder name	Nome della cartella
+Folder set to %1$s.	Cartella impostata su %1$s.
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	Utile se WhatsApp, un editor come CapCut o InShot, o una galleria riproduce il video salvato senza audio. Può ridurre la qualità.
+How far a photo or video you're saving has got, with a button to cancel it	A che punto è il salvataggio di una foto o di un video, con un pulsante per annullarlo
+HushThreads saves	Salvataggi di HushThreads
+Joining the picture and sound	Unione di immagine e audio
+Last carousel save	Ultimo salvataggio di un carosello
+Link expired. Reopen the post and try again	Link scaduto. Riapri il post e riprova
+Not saved: a carousel can have at most %1$d pages	Non salvato: un carosello può avere al massimo %1$d pagine
+Not saved: that isn't a Threads photo or video	Non salvato: non è una foto o un video di Threads
+Not saved: the file is over 512 MB	Non salvato: il file supera i 512 MB
+Page %1$d of %2$d	Pagina %1$d di %2$d
+Photos and videos you save from posts	Foto e video che salvi dai post
+Reopen the post and save again.	Riapri il post e salva di nuovo.
+Save	Salva
+Save all	Salva tutto
+Save cancelled	Salvataggio annullato
+Save folder	Cartella di salvataggio
+Save photo	Salva foto
+Save photos and videos	Salva foto e video
+Save video	Salva video
+Save videos other apps can open	Salva video apribili da altre app
+Saved %1$d. Failed %2$d. Skipped %3$d.	Salvati %1$d. Falliti %2$d. Saltati %3$d.
+Saved to %1$s	Salvato in %1$s
+Saved to %1$s in lower quality than on Threads	Salvato in %1$s con qualità inferiore a Threads
+Saved to the gallery	Salvato nella galleria
+Saved to the gallery in lower quality than on Threads	Salvato nella galleria a qualità inferiore rispetto a Threads
+Saving a carousel	Salvataggio di un carosello
+Saving a photo	Salvataggio di una foto
+Saving a video	Salvataggio di un video
+Saving...	Salvataggio...
+Saving... To cancel, open Downloads in HushThreads settings.	Salvataggio... Per annullare, apri Download in HushThreads.
+Smallest	Minima
+Video file name	Nome del file video
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	I video si chiamano %1$s. Le foto si chiamano sempre %2$s seguito da data e ora.
+Videos go to %1$s and photos to %2$s.	I video vanno in %1$s e le foto in %2$s.
+Version code raised	Codice di versione aumentato
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Il numero di versione è impostato al massimo consentito da Android, quindi Google Play non proporrà gli aggiornamenti di Meta sopra questa build. Threads vede comunque la sua versione reale. Per tornare a Threads originale, disinstalla prima questa, cosa che elimina i dati di Threads su questo telefono. Anche le build successive di HushThreads hanno bisogno di Change version code, altrimenti non si installano sopra questa.
+the raised version code	il codice versione aumentato
+Share sheet entry removed	Voce del menu di condivisione rimossa
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Threads non compare quando condividi da altre app. La condivisione da Threads verso altre app funziona ancora.
+the removed share sheet entry	la voce del menu di condivisione rimossa
+User certificates trusted	Certificati utente considerati attendibili
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads accetta i certificati di sicurezza che hai aggiunto al telefono. I suoi controlli sui certificati di Meta restano invariati, quindi un proxy non può comunque leggere gran parte del suo traffico.
+the user certificate trust	l'attendibilità dei certificati utente
+Hide screenshots from Threads	Nascondi gli screenshot a Threads
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads non viene avvisato quando fai uno screenshot, quindi non può registrarlo né reagire.
+Full size photos	Foto a dimensione piena
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Le foto si caricano alla dimensione più grande che Threads ha, non a una scelta per il tuo schermo. Sono più nitide e usano più dati.
+No swipe into Search	Niente scorrimento verso Cerca
+A sideways swipe on your feed no longer slides into Search. The Search button still opens it. Restart Threads to see the change.	Uno scorrimento laterale sul feed non porta più in Cerca. Il pulsante Cerca la apre ancora. Riavvia Threads per vedere la modifica.
+# context: title of the last row on the settings home page; a tap opens the maintainer's Ko-fi page in a browser
+Support HushThreads	Supporta HushThreads
+# context: reports use the app's own Downloads folder on Android 9, where the shared Downloads collection isn't available
+Copy a quick report or save the full one in Threads' own Downloads folder. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un report rapido o salva quello completo nella cartella Download di Threads. Link, ID, cookie e token di accesso vengono esclusi. Controlla che non contenga altro testo privato prima di condividerlo.
+Save the full report in Threads' own Downloads folder.	Salva il report completo nella cartella Download di Threads.
+# context: diagnostic clear row's title when its next tap restores what was cleared
+Restore diagnostic data	Ripristina i dati diagnostici
+# context: disabled backup row. The placeholder names the file action that is running on the other row
+%1$s. This action will be available when it finishes.	%1$s. Questa azione sarà disponibile quando termina.
+
+# context: TalkBack action for a long press on the Threads logo in the feed header
+Open HushThreads settings	Apri le impostazioni di HushThreads
+
+# context: the restart row's title while one change waits for a restart; a tap restarts Threads
+Restart Threads to apply this change	Riavvia Threads per applicare questa modifica
+# context: the same row with several changes waiting; %1$d is how many
+Restart Threads to apply %1$d changes	Riavvia Threads per applicare %1$d modifiche
+# context: the restart row's summary; the settings screen comes back on the page it was on
+Threads closes and reopens on this page.	Threads si chiude e si riapre su questa pagina.
+# Copy text on long press (#9): its heading, the heading's line on the main page, the switch and its summary. Copy text is the name of Threads' own menu item for copying a post, so use the name Threads shows in this language.
+Posts	Post
+Copy text when you hold a post	Copia il testo tenendo premuto un post
+Copy text on long press	Copia testo con pressione prolungata
+Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	Tenendo premuto il testo di un post si apre Copia testo, anche in un post aperto, così copi l'intero post con i suoi link invece di selezionare parole.
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	Copia testo e orari esatti dei post
+Show the date and time	Mostra data e ora
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	I post e le risposte mostrano la data e l'ora di pubblicazione invece di 3 h o 2 g, nel formato a 12 o 24 ore del telefono.
+# Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
+Quick setups	Configurazioni rapide
+Quiet	Tranquillo
+Hides ads and the cards that suggest accounts to follow.	Nasconde gli annunci e le schede che suggeriscono account da seguire.
+Stops most usage reports and takes tracking off the links you share. Threads isn't told about your screenshots either.	Blocca gran parte dei report di utilizzo e toglie il tracciamento dai link che condividi. Inoltre Threads non viene avvisato dei tuoi screenshot.
+Back to defaults	Ripristina predefiniti
+Puts every feature switch back the way it started.	Riporta ogni interruttore delle funzioni allo stato iniziale.
+Changed %1$d setting	%1$d impostazione modificata
+Changed %1$d settings	%1$d impostazioni modificate
+# Report a problem: the main page row and its summary. A tap opens a new GitHub bug report in the browser.
+Report a problem	Segnala un problema
+Opens a GitHub report with your versions and settings filled in. Add what happened.	Apre una segnalazione su GitHub con le tue versioni e impostazioni già compilate. Aggiungi cos'è successo.
+# The Links page's line beside a Meta-signed Instagram (#8): Instagram's own launcher won't hand a post or profile to a patched Threads, and the error is Instagram's.
+Instagram won't open posts here	Instagram non apre i post qui
+Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.	Il tuo Instagram è firmato da Meta e apre post e profili di Threads solo in un Threads firmato da Meta. Toccandone uno in Instagram compare un errore che dice che non è stato possibile caricare il sito web. I post che apri direttamente in Threads funzionano come al solito.
+Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	Attiva un gruppo di interruttori con un tocco o riporta ogni interruttore allo stato iniziale. Tieni premuto per nascondere questa riga.
+Quick setups on the home page	Configurazioni rapide nella pagina principale
+Hidden. Tap to show it again.	Nascoste. Tocca per mostrarle di nuovo.
+Shown. Tap to hide it.	Visibili. Tocca per nasconderle.
+Quick setups hidden. Bring it back from Pause, backup and diagnostics.	Configurazioni rapide nascoste. Riattivale da Pausa, backup e diagnostica.
+# Android 9 only, a save without Threads' Storage permission: the toast, then the same advice as the line under a carousel's counts. Storage and Permissions are the names Android's app info screen shows in this language.
+Not saved: Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	Non salvato: su Android 9 Threads ha bisogno del permesso Archiviazione per salvare. Attivalo nelle informazioni dell'app Threads, in Autorizzazioni, poi salva di nuovo.
+Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	Su Android 9 Threads ha bisogno del permesso Archiviazione per salvare. Attivalo nelle informazioni dell'app Threads, in Autorizzazioni, poi salva di nuovo.
+# A save whose download took longer than its time limit (ten minutes for one file): the toast. The connection is the phone's internet connection. Android 12 and later cut a toast after two lines, so it stays short.
+Not saved: the download was too slow. Try a faster connection.	Non salvato: download troppo lento. Prova una rete più veloce.
+Hide follow suggestions in Search	Nascondi i suggerimenti da seguire in Cerca
+Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	Toglie la riga dei suggerimenti da seguire dalla schermata Cerca. Le tue ricerche e gli argomenti restano.
+# A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
+Not saved: the proxy wants a password. Try another network.	Non salvato: il proxy chiede una password. Prova un'altra rete.
+# The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.
+The proxy wants a password. Try another network.	Il proxy chiede una password. Prova un'altra rete.
+# The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
+Settings shortcut on the app icon	Scorciatoia alle impostazioni sull'icona dell'app
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Mette le impostazioni di HushThreads nel menu che compare tenendo premuta l'icona di Threads. Se disattivato, esce da quel menu.
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Riga nelle impostazioni di Threads
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Aggiunge una riga HushThreads subito sopra Altre impostazioni nelle impostazioni di Threads. Se disattivato, la riga sparisce la prossima volta che apri le impostazioni di Threads.
+Open settings from the logo	Apri le impostazioni dal logo
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	Una pressione prolungata sul logo di Threads in cima al feed apre queste impostazioni. Se disattivato, la pressione prolungata non fa nulla.
+Stays on, since it's the only way left into these settings.	Resta attivo, perché è l'unico modo rimasto per entrare in queste impostazioni.
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	Mostra tutte le impostazioni come elenco
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	Mostra le impostazioni per categoria
+# context: what a screen reader says about a section button that is folded open
+Expanded	Espansa
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	Compressa
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	Supporto
+# context: the line under the Support section button
+Reports, restart and app information	Report, riavvio e informazioni sull'app
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	Aiuto e riavvio
+# context: small heading over the Ko-fi link in Support
+Support the project	Sostieni il progetto
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	Riavvia Threads
+Version %1$s	Versione %1$s
+Build %1$s (modified)	Build %1$s (modificata)
+Build %1$s (source known)	Build %1$s (origine nota)
+Build %1$s (source unknown)	Build %1$s (origine sconosciuta)
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	Commenti
+Spam replies by words or links	Risposte spam per parole o link
+Filter comments	Filtra commenti
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	Le risposte che corrispondono ai modelli qui sotto vengono escluse dalle risposte di un post, così una risposta spam non compare mai. Una risposta e le risposte mostrate sotto di essa vengono controllate ed escluse insieme. Le risposte normali mantengono il loro ordine.
+Blocked words and domains	Parole e domini bloccati
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	Un modello per riga, o separati da virgole. Il dominio di un negozio come shopee.vn esclude le risposte che vi rimandano.
+One pattern a line, or separated by commas. Matched whatever the letter case.	Un modello per riga, o separati da virgole. Il confronto ignora maiuscole e minuscole.
+Hide comments with links	Nascondi commenti con link
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Le risposte con un link web vengono escluse, qualunque cosa dicano i modelli. Aggiungi un semplice nome di sito come shopee.vn come modello.

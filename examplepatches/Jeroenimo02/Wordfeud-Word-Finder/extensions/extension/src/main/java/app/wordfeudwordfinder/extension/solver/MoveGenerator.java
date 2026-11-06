@@ -59,9 +59,8 @@ public final class MoveGenerator {
         Map<Character, Integer> values = new HashMap<>();
         if (rs != null) {
             for (Map.Entry<String, Integer> e : rs.getTilePoints().entrySet()) {
-                if (e.getKey() != null && e.getKey().length() == 1 && e.getValue() != null) {
-                    values.put(e.getKey().charAt(0), e.getValue());
-                }
+                char c = app.wordfeudwordfinder.extension.core.Tiles.code(e.getKey()); // "CH" -> its code
+                if (c != 0 && e.getValue() != null) values.put(c, e.getValue());
             }
         }
 

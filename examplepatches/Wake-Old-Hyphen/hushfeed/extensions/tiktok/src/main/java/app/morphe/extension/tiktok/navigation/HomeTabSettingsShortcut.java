@@ -54,6 +54,8 @@ public final class HomeTabSettingsShortcut {
         @Override public void onGone(Activity activity) {
             LAYOUT.detach();
             ProfileTabWatchHistory.release();
+            InboxTabReadReceipts.release();
+            SearchInsteadOfHome.release();
         }
     });
     /** The tab the listener is on, so a rebuilt tab gets it again and an old one is let go. */
@@ -63,6 +65,8 @@ public final class HomeTabSettingsShortcut {
 
     private static final View.OnLongClickListener OPEN_SETTINGS = view -> {
         try {
+            // Search instead of Home takes the tab's release: this one ends a long press.
+            SearchInsteadOfHome.noteLongPress();
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             TikTokActivityHook.openSettings();
         } catch (Throwable error) {
@@ -113,6 +117,8 @@ public final class HomeTabSettingsShortcut {
                 return;
             }
             ProfileTabWatchHistory.apply(activity);
+            InboxTabReadReceipts.apply(activity);
+            SearchInsteadOfHome.apply(activity);
             View home = FeedVisibility.homeTabView(activity);
             View current = attached.get();
             boolean wanted = Settings.HOME_TAB_OPENS_SETTINGS.get();
@@ -141,10 +147,22 @@ public final class HomeTabSettingsShortcut {
         }
     }
 
+    /** TikTok's main activity in front, or null. */
+    static Activity front() {
+        return FRONT.get();
+    }
+
+    /** Whether the settings long press is on this tab, which is then Hushfeed's and not TikTok's. */
+    static boolean holds(View view) {
+        return view != null && attached.get() == view;
+    }
+
     static void resetForTests() {
         LAYOUT.detach();
         FRONT.resetForTests();
         ProfileTabWatchHistory.resetForTests();
+        InboxTabReadReceipts.resetForTests();
+        SearchInsteadOfHome.resetForTests();
         attached = new WeakReference<>(null);
         refused = new WeakReference<>(null);
     }

@@ -1,3 +1,9 @@
+# [1.9.22](https://github.com/quwi26/Quwis-Patches/compare/v1.9.21...v1.9.22) (2026-11-04)
+
+### Bug Fixes
+
+* **Game Review:** moves are marked closer to chess.com. Its Blunder starts at 0.20 expected points, so a move that gives up less than that is now a Mistake, where Lichess's winning chances made it a Blunder. A move that lets go of a winning position the best move still had, or of a forced mate, is a Miss, as chess.com marks it, instead of a Blunder. The winning position and the expected points themselves are still an approximation: chess.com adjusts both to the player's rating and does not publish them. Reviews in Lichess mode keep Lichess's own rules, unchanged
+
 # [1.9.21](https://github.com/quwi26/Quwis-Patches/compare/v1.9.20...v1.9.21) (2026-11-03)
 
 ### Features

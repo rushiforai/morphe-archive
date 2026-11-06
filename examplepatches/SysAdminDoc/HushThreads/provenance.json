@@ -30,6 +30,22 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/util/PatchListGenerator.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/RookieEnough/De-Vanced",
+        "https://github.com/MorpheApp/morphe-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Moved to morphe-patcher 2.0: the default flag in place of use, the per-target compatibility list read as it is, and the old compatiblePackages map rebuilt from it (stable targets only, unless a package declares nothing else) for Manager 1.x."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/shared/compat/**"
       ],
       "origin": "ported",
@@ -37,7 +53,8 @@
       "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
       "via": [
         "https://github.com/SysAdminDoc/hushfeed",
-        "https://gitlab.com/ReVanced/revanced-patches",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/RookieEnough/De-Vanced",
         "https://github.com/andrewliang25/morphe-patches"
       ],
       "license": "GPL-3.0-only",
@@ -113,14 +130,10 @@
     },
     {
       "paths": [
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ChoiceCards.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/DialogChoices.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/FamilyNames.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseCheck.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseTransport.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ScreenColors.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/Settings.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsDialog.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsEntry.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsIcons.java",
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsStatus.java",
@@ -296,6 +309,17 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/feed/PostTime.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/feed/posttime/ExactPostTimesPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Show exact post times: the static function that writes a post header's time asks the extension first thing, and while the switch is on the extension answers the date and time from Android's own date formatter, which the function returns instead of its relative text. Found by reading PostHeaderTimestamp and the formatter it calls in 454, with no outside code."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/profile/ProfileSuggestions.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/ads/ProfileSuggestedUsers.kt"
       ],
@@ -438,8 +462,7 @@
     },
     {
       "paths": [
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment.java",
-        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java"
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment.java"
       ],
       "origin": "ported",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
@@ -450,7 +473,64 @@
         "https://github.com/SapitoSucio/FroggoMorphePatches"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Ported Hushfacebook 814acd23's overview disclosure for omitted default patches into the existing Threads settings pages. No Facebook pages, editable rows or feature families were copied. Added packaged bundle identity from Hushfacebook a788c516 while retaining these earlier Threads adaptations. The restart row, its count and the way the list keeps its place around it follow HushPinterest 44fb9338, with Threads' names."
+      "changes": "Ported Hushfacebook 814acd23's overview disclosure for omitted default patches into the existing Threads settings pages. No Facebook pages, editable rows or feature families were copied. Added packaged bundle identity from Hushfacebook a788c516 while retaining these earlier Threads adaptations. The restart row, its count and the way the list keeps its place around it follow HushPinterest 44fb9338, with Threads' names. The Subheading row, the room under the list and its link to the header column that folds over it follow Hushfacebook 837bac40e."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ChoiceCards.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/DialogChoices.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/HeaderColumn.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ScreenColors.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsDialog.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ShimmerTitle.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "837bac40e866547bd2a2147c8eecf366aa0dddbe",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's settings screen at 837bac40e, with Threads' names: the header that folds away over the list, the shimmering title, the search card with its list or category toggle, the toolbar's Pause button, sections that fold open on the one page, Support with Report a problem, Restart Threads and the Ko-fi link, the build line at the bottom, and Hushfacebook's colours and choice cards. HushThreads' own sections, Quick setups, the missing default patches line, the restart row with its live status, the long press and the Android 9 and 10 guards are kept from the earlier Threads screen."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsHeader.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "837bac40e866547bd2a2147c8eecf366aa0dddbe",
+      "via": [
+        "https://github.com/SysAdminDoc/HushGram"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "HushGram's settings header as Hushfacebook carries it at 837bac40e: the centred logo, the name in a gradient title and the version line, in the column that folds away over the list. Here the logo is HushThreads' own from the drawable SettingsLogo.kt adds, and the version line names Threads."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/settings/SettingsLogo.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "837bac40e866547bd2a2147c8eecf366aa0dddbe",
+      "via": [
+        "https://github.com/SysAdminDoc/HushGram"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's settings logo patch at 837bac40e, which came from HushGram's app icon patch: the picture the patch carries goes into drawable-nodpi as hushthreads_settings_logo, refused before any write when it's already there, by a resource patch the settings patch depends on."
+    },
+    {
+      "paths": [
+        "patches/src/main/resources/app/morphe/patches/threads/misc/settings/settings_logo.png"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "HushThreads' own logo (assets/icon.png) at 256 px with clear corners, bundled so the settings header shows it on every patched build."
     },
     {
       "paths": [
@@ -484,6 +564,19 @@
       ],
       "license": "GPL-3.0-only with the Morphe section 7 notices",
       "changes": "Kept Threads' report and installation facts, porting app-state section ordering and structured public manifest-domain redaction from Hushfacebook 4d1fec1e and c7059151. Added packaged bundle identity from Hushfacebook a788c516 while retaining these earlier Threads adaptations."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/settings/preference/JavaCrashReport.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "19c67094935e2f27a27d053f7c3c438d67f6878e",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "HushGram's crash report, moved from app.hushgram.extension.shared to app.morphe.extension.shared with Threads' names. It writes the patch build identity as patch_build, the same line the export carries, and keeps only the patches' report sections, since Supported links says nothing about a crash."
     },
     {
       "paths": [
@@ -594,6 +687,17 @@
       ],
       "license": "GPL-3.0-only",
       "changes": "HushPinterest's Quick setups and Report a problem, moved from app.hushpinterest.extension to app.morphe.extension. QuickSetupKeys picks Threads' switches (Quiet: ads and suggested accounts; Privacy: usage reports, link tracking and screenshots), ReportProblemForm names HushThreads' repository and its bug form's field ids, and the no-browser message reuses the Ko-fi row's wording with the issues address. SettingsNavigation draws both rows on the home page and the fragment shows the choices with HushThreads' ChoiceCards."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/comments/**",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/CommentSettingsRows.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/comments/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "license": "GPL-3.0-only",
+      "changes": "Filter comments: an opened post's reply list, filtered before Threads parses it into rows, with each reply's text read through Threads' own post model."
     }
   ]
 }

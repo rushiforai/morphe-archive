@@ -15,10 +15,17 @@ public final class GameState {
     private final boolean myTurn;
     private final boolean ended;
     private final WfError unreadable;
+    private final List<String> playedWords;
 
     public GameState(long gameId, char[][] board, List<String> rack, boolean myTurn, boolean ended,
                      WfError unreadable) {
+        this(gameId, board, rack, myTurn, ended, unreadable, Collections.<String>emptyList());
+    }
+
+    public GameState(long gameId, char[][] board, List<String> rack, boolean myTurn, boolean ended,
+                     WfError unreadable, List<String> playedWords) {
         this.gameId = gameId;
+        this.playedWords = Collections.unmodifiableList(new ArrayList<>(playedWords));
         this.board = copy(board);
         this.rack = Collections.unmodifiableList(new ArrayList<>(rack));
         this.myTurn = myTurn;
@@ -34,6 +41,12 @@ public final class GameState {
     public List<String> rack() { return rack; }
     public boolean myTurn() { return myTurn; }
     public boolean ended() { return ended; }
+
+    /**
+     * Every word formed by the moves in the game log (main and cross words, 2+ letters, upper case, blanks as
+     * their letter, no duplicates, in order of play). The server accepted them all, so they are valid words.
+     */
+    public List<String> playedWords() { return playedWords; }
 
     /** Null when the game could be reconstructed. */
     public WfError unreadable() { return unreadable; }

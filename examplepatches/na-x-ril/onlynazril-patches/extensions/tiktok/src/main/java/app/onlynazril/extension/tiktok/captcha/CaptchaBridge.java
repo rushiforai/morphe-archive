@@ -3,6 +3,8 @@ package app.onlynazril.extension.tiktok.captcha;
 import android.app.Activity;
 import android.content.Intent;
 
+import org.json.JSONObject;
+
 import java.util.Locale;
 
 import app.onlynazril.extension.tiktok.internal.Debug;
@@ -41,6 +43,55 @@ public final class CaptchaBridge {
     /** The older entry point, which carries only the server's error code. */
     public static boolean shouldHideLegacyCaptchaPopup(Activity activity, int errorCode) {
         return decide("error " + errorCode, activity, null);
+    }
+
+    /**
+     * The Turing (oecverify) dialog. The three entry points above do not carry it: a hybrid page
+     * or a live room is shown it by the SDK's own services, and nothing about it reaches the app
+     * classes those hooks sit on. May it be hidden?
+     *
+     * When it may, the callback is told the SDK's own "the dialog was closed" answer (code 3), so
+     * the caller's flow learns the verification did not complete instead of waiting for a dialog
+     * that will never be shown.
+     */
+    public static boolean shouldHideTuringPopup(Activity activity, Object callback) {
+        if (activity == null) {
+            report("showing turing: no activity");
+            return false;
+        }
+        if (!decide("turing at " + activity.getClass().getName(), activity, turingRiskInfo())) {
+            return false;
+        }
+        dismissTuring(callback);
+        return true;
+    }
+
+    /** Tells the SDK's callback the dialog was closed. The method name is kept on every build. */
+    private static void dismissTuring(Object callback) {
+        if (callback == null) return;
+        try {
+            callback.getClass().getMethod("onFail", int.class, JSONObject.class)
+                    .invoke(callback, 3, null);
+        } catch (Throwable t) {
+            report("turing: dismissing failed (" + t + ")");
+        }
+    }
+
+    /**
+     * The SDK's own risk info, read without a compile-time dependency on it, so its scene markers
+     * judge too. The class and the getters are real-named; when it cannot be read the activity
+     * alone decides.
+     */
+    private static String turingRiskInfo() {
+        try {
+            Class<?> turing = Class.forName("com.tts.oecverify.BdTuring");
+            Object instance = turing.getMethod("getInstance").invoke(null);
+            Object config = instance.getClass().getMethod("getConfig").invoke(instance);
+            Object risk = config.getClass().getMethod("getRiskInfo").invoke(config);
+            return risk instanceof String ? (String) risk : null;
+        } catch (Throwable t) {
+            return null;
+        }
     }
 
     private static boolean decide(String checkId, Activity activity, String detail) {

@@ -24,25 +24,25 @@
 # redoing that patch's lines.
 
 [HushTumblr settings]
-method Lapp/hushtumblr/extension/tumblr/settings/SettingsHubRow;->titleOf(Ljava/lang/Object;)I 09a04212e60fed5bfb20869bd9cf331844e87665d1350008c8492991333ac42a
+method Lapp/hushtumblr/extension/tumblr/settings/SettingsHubRow;->titleOf(Ljava/lang/Object;)I 321332d35ed669c814a9e4328d38c07848521d30055fda29d495430fd79a1817
 
 [Mute posts locally | Reveal allowed mature content | Show mutual markers]
 implements Lcom/tumblr/UserInfo; Lapp/hushtumblr/extension/tumblr/rootmute/HushAccountIdentity;
 method Lcom/tumblr/UserInfo;->hushAccountId()Ljava/lang/String; 7ddf84b382aecf3aa277bbb3a89141d858d7bc1027c0ff08f4ec48bd90311fed
 
-[Hide ads | Mute posts locally]
+[Hide ads | Hide Featured posts | Hide your own reblogs | Mute posts locally]
 field Lcom/tumblr/rumblr/model/post/Post;->hushPaidContextKnown:Z 65ff3748645d34f8d3dcdebe39b70efe464ec5875cb9d4e0a0f1e75310cc9884
 field Lcom/tumblr/rumblr/model/post/Post;->hushRootTrailPresent:Z 65ff3748645d34f8d3dcdebe39b70efe464ec5875cb9d4e0a0f1e75310cc9884
 method Lcom/tumblr/rumblr/model/post/Post;->hushSetJsonPresence(II)V 86723271decc7319912a31885f9fa313cd79f702c6480bbc948e15f61a685a23
 
-[Hide ads]
+[Hide ads | Hide Featured posts | Hide your own reblogs]
 implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushPaidPost;
 method Lcom/tumblr/rumblr/model/post/Post;->hushCanEdit()Z 76a1a339c40ab73ebaead0fd8a2d92b0bc17ecd4db9b8684b17abfa7388f2cf2
 method Lcom/tumblr/rumblr/model/post/Post;->hushFollowed()Z 5b8c5016374b67d116ea06843b204737eec793ac02ca69e6dca0a4471e5d975f
 method Lcom/tumblr/rumblr/model/post/Post;->hushHeaderIcon()Ljava/lang/String; 61d154a76d231a4e1f64a0f6b80dea1c6969336d7e4189fdf125f07b269bcb18
 method Lcom/tumblr/rumblr/model/post/Post;->hushPaidContextKnown()Z 6ddc4d8f16f370011fa2803f73833c55efeba31f1d128019db61f827f271ed4d
 
-[Hide photo posts | Hide posts with these words | Hide reblogs | Hide text posts | Hide video posts]
+[Hide photo posts | Hide posts with these words | Hide reblogs | Hide text posts | Hide video posts | Hide your own reblogs]
 implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushPost;
 implements Lcom/tumblr/rumblr/model/post/ReblogTrail; Lapp/hushtumblr/extension/tumblr/timeline/HushTrail;
 implements Lcom/tumblr/rumblr/model/post/blocks/TextBlock; Lapp/hushtumblr/extension/tumblr/timeline/HushText;
@@ -61,6 +61,10 @@ method Lcom/tumblr/rumblr/model/post/Post;->hushFiltered()Ljava/lang/Object; 074
 method Lcom/tumblr/rumblr/model/post/asset/Filtered;->hushFilteredContent()Ljava/util/List; ed795cdfaa71d86145ae42a48258012ca9a3cf7960a1d1ad514674573b6390fa
 method Lcom/tumblr/rumblr/model/post/asset/Filtered;->hushFilteredTags()Ljava/util/List; 675a397245038dedffc47bb2f60e3d55640602d13bfcbfb4757d9a2ff8723fb8
 
+[Hide liked posts]
+implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushLikedPost;
+method Lcom/tumblr/rumblr/model/post/Post;->hushLiked()Z b46508ac7839e43be1b88acd71d672605653d0abc5b8ee7caf87436faac5b666
+
 [Hide suggested blogs | Hide suggested communities | Hide suggested tags | Hide Watch it rows]
 method Lapp/hushtumblr/extension/tumblr/timeline/TimelineFilter;->carouselItems(Ljava/lang/Object;)Ljava/util/List; 2dc1b723104c35f6e3838b1abf38b7a3b90fed8a1f8a66d9c763620f651fffee
 
@@ -71,19 +75,22 @@ method Lcom/tumblr/rumblr/model/activity/ActivityNotification;->hushNotification
 [Visible image descriptions]
 implements Lcom/tumblr/rumblr/model/post/blocks/ImageBlock; Lapp/hushtumblr/extension/tumblr/ui/HushImageDescription;
 implements Lcom/tumblr/ui/widget/graywater/viewholder/PhotoContainer; Lapp/hushtumblr/extension/tumblr/ui/HushImageContainer;
-implements Lu1f; Lapp/hushtumblr/extension/tumblr/ui/HushImageRow;
+implements Ly5f; Lapp/hushtumblr/extension/tumblr/ui/HushImageRow;
 method Lcom/tumblr/rumblr/model/post/blocks/ImageBlock;->hushAltText()Ljava/lang/String; 8d33222cbb4cb49ab1b770d679b2d1fc7933b95fd51cb935dafbd4ab2480e8be
 method Lcom/tumblr/ui/widget/graywater/viewholder/PhotoContainer;->hushImageFrame()Landroid/view/View; ca84776695e72929f218a60deaa9a58b535eb61f4ab8a2078a6f27645f0d12c1
-method Lu1f;->hushImageItems()[Ljava/lang/Object; c68c78116ede5c87bce19011eface943eb21bad8c1f943791655c7e660e6cddb
+method Ly5f;->hushImageItems()[Ljava/lang/Object; 8d6e797f41701b64f425ae2fe0cc01fd79712681388034fad04d158c1cfdceb8
+
+[Sharper images]
+implements Lcom/tumblr/imageinfo/PhotoSize; Lapp/hushtumblr/extension/tumblr/ui/HushPhotoSize;
 
 [Reveal allowed mature content]
-implements Lapp/hushtumblr/extension/tumblr/mature/NativeMatureContinuation; Lox5;
+implements Lapp/hushtumblr/extension/tumblr/mature/NativeMatureContinuation; Lmz5;
 implements Lcom/tumblr/UserInfo; Lapp/hushtumblr/extension/tumblr/mature/HushMatureAccount;
 implements Lcom/tumblr/communitylabel/data/settings/CommunityLabelUserConfigResponse; Lapp/hushtumblr/extension/tumblr/mature/HushMaturePermission;
 implements Lcom/tumblr/rumblr/model/AgeVerification; Lapp/hushtumblr/extension/tumblr/mature/HushAgeVerification;
 implements Lcom/tumblr/rumblr/response/ApiResponse; Lapp/hushtumblr/extension/tumblr/mature/HushMatureResponse;
-method Lapp/hushtumblr/extension/tumblr/mature/NativeMatureContinuation;->getContext()Ll86; a60e75a0362364a971b7ae9677027ff5b04b11ae5e59de1657bfd4152b7dabdf
-method Lapp/hushtumblr/extension/tumblr/mature/NativeMatureService;->hushFetchMaturePermission(Ljava/lang/Object;)V 06fa7c810be1f977500483d41b106d171eafe9f25548689ff04bdd653ec15b83
+method Lapp/hushtumblr/extension/tumblr/mature/NativeMatureContinuation;->getContext()Lja6; fe45c57918938b5ed2481dd93d9ecfa49e31e0558d09938d59fa66a18a188996
+method Lapp/hushtumblr/extension/tumblr/mature/NativeMatureService;->hushFetchMaturePermission(Ljava/lang/Object;)V a39fc1e538b62a97834903acb9f48c2c0d4681f9e1d23923b4a2134a5b44fe5d
 method Lcom/tumblr/UserInfo;->hushAge()I 3b5fcdae071f7058a50d0bb20ee50b68537d8d0324527076af3df376fb9f8503
 method Lcom/tumblr/UserInfo;->hushAgeVerification()Ljava/lang/Object; 2d752836121947a83c6a4042b476a095316fe2bdbcfaeab34b715b0110ee7185
 method Lcom/tumblr/UserInfo;->hushCanModifySafeMode()Z f5ae600639f8638438d4266c1c4541448e7cb845a29bb8ff0aa8b3beca649da5
@@ -105,17 +112,17 @@ implements Lcom/tumblr/rumblr/response/ApiResponse; Lapp/hushtumblr/extension/tu
 implements Lcom/tumblr/rumblr/response/FollowerResponse; Lapp/hushtumblr/extension/tumblr/mutual/HushMutualPage;
 implements Lcom/tumblr/ui/widget/PostCardHeader; Lapp/hushtumblr/extension/tumblr/mutual/HushMutualHeader;
 method Lapp/hushtumblr/extension/tumblr/mutual/NativeMutualSource;->cancel(Ljava/lang/Object;)V 16aa8adaa2895fccd8490f00f859d2faf5a4db9b0f6014707ad474f1fde61911
-method Lapp/hushtumblr/extension/tumblr/mutual/NativeMutualSource;->execute(Ljava/lang/Object;J)Ljava/lang/Object; 7210fda7cfa1387a3d04e9224a241760ffab9859f0caa2b68d61c23b16d66362
+method Lapp/hushtumblr/extension/tumblr/mutual/NativeMutualSource;->execute(Ljava/lang/Object;J)Ljava/lang/Object; 86125975eaf5f3f988bc509df445cc4fe73488ce51226a3c487ea1184ed4c498
 method Lapp/hushtumblr/extension/tumblr/mutual/NativeMutualSource;->first(Ljava/lang/String;)Ljava/lang/Object; 7591179d834f2bb8c37bbf75a4f1fe912bdcccec12c2647d7e473b9e19d96fdf
 method Lapp/hushtumblr/extension/tumblr/mutual/NativeMutualSource;->next(Ljava/lang/String;)Ljava/lang/Object; 3f69d06c73c121e95e499fb0dfdf625925384e083e9728e9789b9bcf6e4c9467
 method Lcom/tumblr/UserInfo;->hushMutualBlogs()Ljava/util/List; bed187eade6ddbf1d42f5d75f5114d385e37a09ef07d96c236b743c95ef0cc03
-method Lcom/tumblr/bloginfo/BlogInfo;->hushMutualName()Ljava/lang/String; 3b7e77cf9db56ed94c96944fe322dbafc0de784788a6976475e9b9fb095d3565
+method Lcom/tumblr/bloginfo/BlogInfo;->hushMutualName()Ljava/lang/String; d574ef09a9fc87d88275f7c056fa89a93177dfed21cf0b3cbfede9026b4151ac
 method Lcom/tumblr/bloginfo/BlogInfo;->hushMutualUuid()Ljava/lang/String; 0cecb9af043f30d5ff98af5b4709cd9905519ad35cdab5b8fa468ee57df72943
 method Lcom/tumblr/rumblr/model/PaginationLink;->hushMutualNext()Ljava/lang/Object; ebf16e50155e6d985989fd79fc9c0c116ae43ba64caa9a3f21bae982e661ae0f
 method Lcom/tumblr/rumblr/model/User;->hushMutualFollowerBlog()Ljava/lang/Object; 1b692a0f54537c142a227dc29d99cebde9ad53176d5ec9326ac2d165791f16a5
 method Lcom/tumblr/rumblr/model/User;->hushMutualFollowing()Z ed46a95650e296d04da4855c9e40ba29c14c02df5f8a7666770c7eee8d198ed4
-method Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;->hushMutualName()Ljava/lang/String; 14425975a1fe1dd8a95a9ee7486f492cdfbdef2a954a30b86268e21af9f491da
-method Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;->hushMutualUuid()Ljava/lang/String; cda27ca86ef375d101e467f10ddd8c203606935be12ece06dcfc084ac4d21225
+method Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;->hushMutualName()Ljava/lang/String; 0dd780c24ccfb8ecd7530ce37ce6ca26b4dde537a9590d7fefe1088ac1cf9a7c
+method Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;->hushMutualUuid()Ljava/lang/String; ec10c40ec6f7ce9f44da47b6e5fe1bd70a47d621891631670b6bfe20507a1c9c
 method Lcom/tumblr/rumblr/model/blog/UserBlogInfo;->hushMutualPrimary()Z 6494f41e282eb24bbc5c8b820553c8db49d03a83d110e5c10c7d6d9940aca271
 method Lcom/tumblr/rumblr/model/link/LinkImpl;->hushMutualLink()Ljava/lang/String; 12266baf640e0b2daba9944f2b1610efc3c6772357412f65a9be29bcdbebbce4
 method Lcom/tumblr/rumblr/response/ApiResponse;->hushMutualResponse()Ljava/lang/Object; 81b95e4630676b6df26f7c32ea08c962182fb09199e3345ffa5c85778341d97f
@@ -126,17 +133,17 @@ method Lcom/tumblr/rumblr/response/FollowerResponse;->hushMutualUsers()Ljava/uti
 method Lcom/tumblr/ui/widget/PostCardHeader;->hushMutualNameView()Ljava/lang/Object; 80276fbf09a745b64838235d9f03ad6d1b9f255f344addf48bcfe905e5a2011d
 
 [Mute posts locally]
-field Led1;->hushCanonicalRoot:Ljava/lang/String; 01c2987b059c8dfc765747cac1285e595dd25e11018464cb658a52de0f6134b5
-implements Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMuteAction; Lag9;
+field Laf1;->hushCanonicalRoot:Ljava/lang/String; 01c2987b059c8dfc765747cac1285e595dd25e11018464cb658a52de0f6134b5
+implements Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMuteAction; Lii9;
 implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushRootPost;
 implements Lcom/tumblr/ui/fragment/TimelineFragment$a; Lapp/hushtumblr/extension/tumblr/rootmute/HushRootMenuHost;
 implements Lcom/tumblr/ui/fragment/TimelineFragment; Lapp/hushtumblr/extension/tumblr/rootmute/HushLocalTimeline;
-implements Led1; Lapp/hushtumblr/extension/tumblr/timeline/HushRootPost;
-method Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;->addNative(Ljava/lang/Object;Ljava/lang/String;Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMuteAction;)V 9d3acd2f2efcae6e916484fb4a8193064711e08d4533db7cf6dcf1c78e744896
-method Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;->cardRoot(Ljava/lang/Object;)Ljava/lang/String; 42f13173fca7f4ff9a6505f4989f638e7452dcb3a8ba95e2b8ba11eb30d34620
-method Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;->unit()Ljava/lang/Object; dc835daf8a6776b6003779b47a4966dec7484b98ec645752746c90065e8c3743
+implements Laf1; Lapp/hushtumblr/extension/tumblr/timeline/HushRootPost;
+method Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;->addNative(Ljava/lang/Object;Ljava/lang/String;Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMuteAction;)V 0f9d565c43f2f1ee67300218e10fc794872c1202d602dbc876f0f608f161e5f8
+method Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;->cardRoot(Ljava/lang/Object;)Ljava/lang/String; 428d5ff9e510b356271ffe62aa99d77c8cd399afc4db8b4a6b18c644e4c561da
+method Lapp/hushtumblr/extension/tumblr/rootmute/RootPostMenu;->unit()Ljava/lang/Object; 268ce6b509e2c44fa30c02efc7bc87c900647b1602f779d3395fd888c36cf2c6
 method Lcom/tumblr/rumblr/model/post/Post;->hushRootId()Ljava/lang/String; 38eafca1baedf6a9e85a6f04747868d09e75b0fd897a509938c06c7252b76288
 method Lcom/tumblr/ui/fragment/TimelineFragment$a;->hushTimelineOwner()Lapp/hushtumblr/extension/tumblr/rootmute/HushLocalTimeline; 035e4b19d1373f474089d03aebdbec3b57fa49134f06f3802f1993da10a3514b
-method Lcom/tumblr/ui/fragment/TimelineFragment;->hushApplyTimelineItems(Ljava/util/List;)V 940db17dba79289fe9969daa44e9741fadfd7948d66f524a32294aa48f070220
+method Lcom/tumblr/ui/fragment/TimelineFragment;->hushApplyTimelineItems(Ljava/util/List;)V c65a450fb70da167c5abfdeed5cfc0540d015b9666ea22e364fef49f2d86f333
 method Lcom/tumblr/ui/fragment/TimelineFragment;->hushTimelineItems()Ljava/util/List; b9cee394d308a3a03268954a237d6769dc56b4a07d8ecc8779072ee4e1a063a6
-method Led1;->hushRootId()Ljava/lang/String; d8c1efe984281142217e38029919cd1ccd6df6e1d9a212f1dc00ed8b11094aa6
+method Laf1;->hushRootId()Ljava/lang/String; d6e7e188f37d469e52fa281b3ba4c2fd9a171f0169bedc89a325f8c0c53fe9ff

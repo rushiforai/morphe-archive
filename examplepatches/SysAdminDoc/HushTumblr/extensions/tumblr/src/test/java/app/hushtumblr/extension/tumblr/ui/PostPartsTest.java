@@ -11,12 +11,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.view.View;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.EnumSet;
@@ -85,6 +88,51 @@ public class PostPartsTest {
         PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
         PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
         assertEquals("cats", PostParts.tvTags("cats"));
+    }
+
+    /** Tumblr TV's "... more" label goes with a line that held only tags, and only a label hidden here comes back. */
+    @Test
+    public void tumblrTvsMoreLabelGoesWithTheTagsAndComesBackOnTheNextBind() {
+        View more = new View(RuntimeEnvironment.getApplication());
+        PostParts.tvMore(more, PostParts.tvTags("cats, dogs"));
+        assertEquals("switched off, the label is Tumblr's", View.VISIBLE, more.getVisibility());
+
+        Settings.HIDE_HASHTAGS.save(true);
+        PostParts.tvMore(more, PostParts.tvTags("cats, dogs"));
+        assertEquals("the tags were the post's only text", View.GONE, more.getVisibility());
+        // A post with a description takes the other path, so tvTags isn't asked.
+        PostParts.tvMore(more, "A description");
+        assertEquals("the next post bound to that card has a description", View.VISIBLE, more.getVisibility());
+        PostParts.tvMore(more, PostParts.tvTags(""));
+        assertEquals("a post with neither tags nor a description keeps Tumblr's label", View.VISIBLE, more.getVisibility());
+
+        more.setVisibility(View.GONE);
+        PostParts.tvMore(more, PostParts.tvTags("cats"));
+        PostParts.tvMore(more, "A description");
+        assertEquals("a label Tumblr hid itself stays Tumblr's", View.GONE, more.getVisibility());
+        more.setVisibility(View.VISIBLE);
+
+        PostParts.tvMore(more, PostParts.tvTags("cats"));
+        assertEquals(View.GONE, more.getVisibility());
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        PostParts.tvMore(more, PostParts.tvTags("cats"));
+        assertEquals("paused, the next bind gets Tumblr's label back", View.VISIBLE, more.getVisibility());
+        PauseForTests.resume();
+
+        PostParts.tvTags("cats");
+        PostParts.tvMore(more, PostParts.tvTags(""));
+        assertEquals("a bind with no tags starts unmarked, whatever the bind before it did", View.VISIBLE, more.getVisibility());
+        PostParts.tvTags("cats");
+        PostParts.tvMore(more, "A description");
+        assertEquals("a line with something written keeps its label", View.VISIBLE, more.getVisibility());
+        PostParts.tvMore(more, PostParts.tvTags("cats") + " \n" + (char) 0xA0);
+        assertEquals("spaces and line breaks show nothing", View.GONE, more.getVisibility());
+        PostParts.tvMore(more, "A description");
+        assertEquals(View.VISIBLE, more.getVisibility());
+
+        PostParts.tvMore(null, PostParts.tvTags("cats"));
+        PostParts.tvMore(more, "");
+        assertEquals("a bind's mark is read once", View.VISIBLE, more.getVisibility());
     }
 
     @Test

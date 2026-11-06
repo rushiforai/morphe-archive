@@ -299,22 +299,38 @@ public final class WordListManager {
         progress(job, DOWNLOADED);
         if (raw == null || !sha256Hex(raw).equals(src.sha256.toLowerCase(Locale.ROOT))) throw WfError.wlHash();
         progress(job, VERIFIED);
-        List<String> words;
+        // Our lists are sorted and unique, so the graph is built word by word without holding the list in memory.
+        // A list that turns out unsorted for the patch (Spanish: digraph tiles become chars that sort differently)
+        // is read again into memory, sorted and built.
+        Set<String> alphabet = alphabet(rs);
+        WordGraph g;
         try {
-            java.io.InputStream in = new ByteArrayInputStream(raw);
-            if (src.gzip()) in = new java.util.zip.GZIPInputStream(in, 1 << 16);
-            words = WordListNormalizer.normalize(in, cs, alphabet(rs));
+            WordGraph.Builder b = new WordGraph.Builder();
+            WordListNormalizer.each(open(raw, src), cs, alphabet, b::add);
+            progress(job, NORMALIZED);
+            g = b.finish();
+        } catch (IllegalArgumentException unsorted) {
+            List<String> words;
+            try {
+                words = WordListNormalizer.normalize(open(raw, src), cs, alphabet);
+            } catch (IOException e) {
+                throw WfError.wlHash();
+            }
+            progress(job, NORMALIZED);
+            g = WordGraph.build(words);
         } catch (IOException e) {
             throw WfError.wlHash(); // a corrupt gzip stream (the SHA-256 matched, so not expected)
         }
-        raw = null; // let the download be collected before building
-        progress(job, NORMALIZED);
-        WordGraph g = WordGraph.build(words);
-        words = null;
+        raw = null;
         progress(job, BUILT);
         store(id, src.version, g);
         deleteOtherVersions(id, src.version);
         return g;
+    }
+
+    private static java.io.InputStream open(byte[] raw, WordListSources.Source src) throws IOException {
+        java.io.InputStream in = new ByteArrayInputStream(raw);
+        return src.gzip() ? new java.util.zip.GZIPInputStream(in, 1 << 16) : in;
     }
 
     private synchronized boolean hasCallbacks(Job job) {

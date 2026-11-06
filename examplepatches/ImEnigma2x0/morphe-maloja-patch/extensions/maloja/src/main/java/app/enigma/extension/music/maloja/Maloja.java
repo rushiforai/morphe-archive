@@ -105,45 +105,75 @@ public class Maloja {
     }
 
     /**
+     * Outcome of a submission, which decides whether a pending listen leaves the queue.
+     */
+    public enum SubmitResult {
+        /** The server stored the listen, or already had it. */
+        ACCEPTED,
+        /** The server refused the listen itself, so sending it again cannot succeed. */
+        REJECTED,
+        /** No answer, a server error or bad credentials. The listen is kept and sent again later. */
+        RETRY
+    }
+
+    /**
      * Synchronously submits a single listen.
      * Must be called from a background thread.
      */
-    public static boolean scrobble(String serverUrl, String apiKey, String artist, String track,
-                                   String album, int durationSeconds, long listenedAtSeconds) throws IOException {
+    public static SubmitResult submitListen(String serverUrl, String apiKey, String artist, String track,
+                                            String album, int durationSeconds, long listenedAtSeconds) {
         Utils.verifyOffMainThread();
         final String baseUrl = normalizeBaseUrl(serverUrl);
         if (baseUrl.isEmpty() || apiKey == null || apiKey.isBlank()) {
             Logger.printDebug(() -> "Cannot scrobble, Maloja server or API key not set");
-            return false;
+            return SubmitResult.RETRY;
         }
 
-        final byte[] bodyBytes = buildListen(artist, track, album, durationSeconds, listenedAtSeconds)
-                .getBytes(StandardCharsets.UTF_8);
-        HttpURLConnection connection = openConnection(baseUrl, "submit-listens", apiKey);
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setFixedLengthStreamingMode(bodyBytes.length);
-        connection.setDoOutput(true);
-
+        HttpURLConnection connection = null;
         try {
+            final byte[] bodyBytes = buildListen(artist, track, album, durationSeconds, listenedAtSeconds)
+                    .getBytes(StandardCharsets.UTF_8);
+            connection = openConnection(baseUrl, "submit-listens", apiKey);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setFixedLengthStreamingMode(bodyBytes.length);
+            connection.setDoOutput(true);
+
             try (OutputStream output = connection.getOutputStream()) {
                 output.write(bodyBytes);
             }
 
             final int code = connection.getResponseCode();
-            if (code == HttpURLConnection.HTTP_OK) {
-                return true;
+            if (code >= 200 && code < 300) {
+                return SubmitResult.ACCEPTED;
             }
             final String error = errorMessage(connection, code);
             if (code == HttpURLConnection.HTTP_CONFLICT) {
+                // Also what a retry gets when the first attempt reached the server but the reply was lost.
                 Logger.printDebug(() -> "Maloja already has a scrobble with this timestamp: " + error);
-                return true;
+                return SubmitResult.ACCEPTED;
             }
             Logger.printException(() -> "Maloja server returned code: " + code + ". Response: " + error);
-            return false;
+            return isRetryable(code) ? SubmitResult.RETRY : SubmitResult.REJECTED;
+        } catch (IOException ex) {
+            Logger.printDebug(() -> "Maloja not reachable, scrobble kept for later: " + ex);
+            return SubmitResult.RETRY;
         } finally {
-            connection.disconnect();
+            if (connection != null) connection.disconnect();
         }
+    }
+
+    /**
+     * A wrong API key is fixed in the settings, and a server error or rate limit passes,
+     * so only the other client errors drop the listen.
+     */
+    private static boolean isRetryable(int code) {
+        return code >= 500
+                || code == HttpURLConnection.HTTP_UNAUTHORIZED
+                || code == HttpURLConnection.HTTP_FORBIDDEN
+                || code == HttpURLConnection.HTTP_NOT_FOUND
+                || code == HttpURLConnection.HTTP_CLIENT_TIMEOUT
+                || code == 429;
     }
 
     static String buildListen(String artist, String track, String album,

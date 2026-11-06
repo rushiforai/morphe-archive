@@ -97,7 +97,8 @@ public final class LogBufferManager {
     private static final Deque<DiagnosticEvent> logBuffer = new ConcurrentLinkedDeque<>();
     private static final AtomicInteger logBufferCharSize = new AtomicInteger();
     private static final Object CRASH_FILE_LOCK = new Object();
-    private static final Object CLEAR_UNDO_LOCK = new Object();
+    /** Held by Clear diagnostic data, its Undo and {@link JavaCrashReport}, so none lands inside another. */
+    static final Object CLEAR_UNDO_LOCK = new Object();
     private static final AtomicBoolean FILE_EXPORT_RUNNING = new AtomicBoolean();
     private static ClearSnapshot lastClear;
 
@@ -347,6 +348,68 @@ public final class LogBufferManager {
         REPORT_SECTIONS.clear();
     }
 
+    /**
+     * Every registered section with lines, each under its bracketed heading: Supported links into
+     * [appState], the patches' own into [patchState], or nowhere when that one's null. Lines are
+     * redacted except Supported links' "host -> state" ones, which name only public domains. A
+     * section whose lines can't be read says so; one whose title can't be read stops the report.
+     */
+    private static void appendReportSections(StringBuilder appState, StringBuilder patchState) {
+        for (ReportSection section : REPORT_SECTIONS) {
+            boolean always = "SUPPORTED LINKS".equals(section.title());
+            if (always ? appState == null : patchState == null) continue;
+            List<String> lines;
+            try {
+                lines = section.lines();
+                if (lines == null || lines.isEmpty()) continue;
+            } catch (Throwable failure) {
+                lines = Collections.singletonList("could not be read: " + failure);
+            }
+            StringBuilder sectionText = always ? appState : patchState;
+            sectionText.append("\n[").append(section.title()).append("]\n");
+            for (String line : lines) {
+                int arrow = line == null ? -1 : line.lastIndexOf(" -> ");
+                String host = arrow < 0 ? "" : line.substring(0, arrow);
+                String state = arrow < 0 ? "" : line.substring(arrow + 4);
+                boolean domainState = always
+                        && host.matches("[\\p{L}\\p{M}\\p{N}_.*-]+")
+                        && (state.equals("verified") || state.equals("selected") || state.equals("none") || state.equals("unknown"));
+                sectionText.append(domainState ? line : DiagnosticRedactor.redact(line)).append('\n');
+            }
+        }
+    }
+
+    /**
+     * The patches' sections, as {@link JavaCrashReport} keeps them: which switches were on. Supported
+     * links stays out, since it says nothing about a crash and its hosts would not survive the
+     * crash report's own redaction.
+     */
+    static String patchSectionsText() {
+        StringBuilder patchState = new StringBuilder();
+        appendReportSections(null, patchState);
+        return patchState.toString();
+    }
+
+    /** The lines a kept crash report opens with, as {@link JavaCrashReport} writes them. */
+    private static final java.util.regex.Pattern CRASH_HEADER_LINE = java.util.regex.Pattern.compile(
+            "(schema|complete|app_version_code|patch_build): [\\w=;:.+ -]{0,400}");
+
+    /**
+     * A kept crash report as the export shows it. Its header stays as written, since the version
+     * code is a package fact and the patch build a literal the patcher embeds: the redactor read the
+     * long digit runs a hash can hold as content ids. The rest goes through the redactor again, for
+     * a report kept by an older build.
+     */
+    static String redactCrashReport(String report) {
+        int start = 0;
+        for (int line = 0; line < 4 && start < report.length(); line++) {
+            int end = report.indexOf('\n', start);
+            if (end < 0 || !CRASH_HEADER_LINE.matcher(report.substring(start, end)).matches()) break;
+            start = end + 1;
+        }
+        return report.substring(0, start) + DiagnosticRedactor.redact(report.substring(start));
+    }
+
     public static String buildExportText() {
         Export export = buildExport();
         return export.head + eventsSection(export.events, null);
@@ -430,7 +493,7 @@ public final class LogBufferManager {
     private static Export buildExport() {
         Set<String> selected = LogExportFilterPreference.parse(BaseSettings.DEBUG_LOG_FILTERS.get());
         boolean includeAll = selected.isEmpty() || selected.contains("all");
-        String crash = DiagnosticRedactor.redact(readCrashReport(Utils.getContext()));
+        String crash = redactCrashReport(readCrashReport(Utils.getContext()));
         String npthCrash = DiagnosticRedactor.redact(readNpthCrashReport(Utils.getContext()));
 
         List<DiagnosticEvent> snapshot = new ArrayList<>(logBuffer);
@@ -547,29 +610,8 @@ public final class LogBufferManager {
         // Ported from Hushfacebook 4d1fec1e with the c7059151 combining-mark correction.
         StringBuilder appState = new StringBuilder();
         StringBuilder patchState = new StringBuilder();
-        for (ReportSection section : REPORT_SECTIONS) {
-            boolean always = "SUPPORTED LINKS".equals(section.title());
-            if (!always && !includeAll && !selected.contains(
-                    app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) continue;
-            List<String> lines;
-            try {
-                lines = section.lines();
-                if (lines == null || lines.isEmpty()) continue;
-            } catch (Throwable failure) {
-                lines = Collections.singletonList("could not be read: " + failure);
-            }
-            StringBuilder sectionText = always ? appState : patchState;
-            sectionText.append("\n[").append(section.title()).append("]\n");
-            for (String line : lines) {
-                int arrow = line == null ? -1 : line.lastIndexOf(" -> ");
-                String host = arrow < 0 ? "" : line.substring(0, arrow);
-                String state = arrow < 0 ? "" : line.substring(arrow + 4);
-                boolean domainState = always
-                        && host.matches("[\\p{L}\\p{M}\\p{N}_.*-]+")
-                        && (state.equals("verified") || state.equals("selected") || state.equals("none") || state.equals("unknown"));
-                sectionText.append(domainState ? line : DiagnosticRedactor.redact(line)).append('\n');
-            }
-        }
+        appendReportSections(appState, includeAll || selected.contains(
+                app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value) ? patchState : null);
         report.append(appState);
 
 
@@ -718,7 +760,7 @@ public final class LogBufferManager {
     }
 
     /** The same stamp the report header carries, so one report does not hold two formats. */
-    private static String utcOf(long epochMillis) {
+    static String utcOf(long epochMillis) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         return format.format(new Date(epochMillis));
@@ -848,6 +890,19 @@ public final class LogBufferManager {
         Utils.showToastShort(restorable
                 ? say(clearedMessage, L10n.t("Diagnostic data cleared. Tap again to put it back."))
                 : say(nothingToClearMessage, L10n.t("There's no diagnostic data to clear.")));
+    }
+
+    /**
+     * A Clear that took the Java crash [written] along puts back [replacement] on Undo instead:
+     * {@link JavaCrashReport} gives a report back when the process lived on past its exception.
+     */
+    static void replaceClearedCrash(String written, String replacement) {
+        synchronized (CLEAR_UNDO_LOCK) {
+            ClearSnapshot cleared = lastClear;
+            if (cleared == null || !cleared.javaCrash.equals(written)) return;
+            ClearSnapshot replaced = new ClearSnapshot(cleared.events, cleared.hooks, replacement, cleared.nativeCrash);
+            lastClear = replaced.isEmpty() ? null : replaced;
+        }
     }
 
     /** True while the clear row's next tap can restore what its previous tap removed. */

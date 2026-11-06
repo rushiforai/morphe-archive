@@ -313,6 +313,8 @@ Hide Threads cards between reels	Sembunyikan kartu Threads di antara reel
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Menyembunyikan kartu “Threads yang mungkin kamu suka” di antara reel. Mati secara bawaan, karena belum dicoba di akun sungguhan.
 Only reels from accounts I follow	Hanya reel dari akun yang saya ikuti
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Tab Reels hanya menampilkan reel dari orang dan Halaman yang kamu ikuti, mulai dari kumpulan berikutnya yang dimuat Facebook. Tab ini bisa lebih lama terisi. Mati secara bawaan.
+Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook tidak punya reel lagi yang lolos filter kamu, jadi reel ini tidak disaring untuk sementara.
+Hush hid the suggested posts after this, so Home ends here.	Hush menyembunyikan postingan yang disarankan setelah ini, jadi Beranda berakhir di sini.
 Download quality	Kualitas unduhan
 Best	Terbaik
 Smallest	Terkecil
@@ -859,7 +861,7 @@ Holding a video in the feed or in Watch plays it at double speed until you let g
 Locked at 2x. Tap the video to go back.	Terkunci di 2x. Ketuk video untuk kembali.
 Hide the pull down to lock hint	Sembunyikan petunjuk tarik ke bawah untuk mengunci
 Hide the 2x popups	Sembunyikan popup 2x
-Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	Menahan video untuk 2x tidak menampilkan pil apa pun, jadi tidak ada "Kecepatan: 2x", "Lepaskan untuk mengunci", atau "Terkunci pada kecepatan 2x". Menahan dan mengunci tetap berfungsi.
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed", and feed videos drop the "2x speed" tip. The hold and the lock still work.	Menahan video untuk 2x tidak menampilkan pil apa pun, jadi tidak ada "Kecepatan: 2x", "Lepaskan untuk mengunci", atau "Terkunci pada kecepatan 2x", dan video di feed tidak lagi menampilkan tip "Kecepatan 2x". Menahan dan mengunci tetap berfungsi.
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	Menahan video untuk 2x hanya menampilkan label 2x biasa, tanpa petunjuk "Tarik ke bawah untuk mengunci kecepatan 2x". Menarik ke bawah tetap menguncinya. Ini berfungsi tanpa sakelar di atas.
 Default playback quality	Kualitas pemutaran default
@@ -2149,6 +2151,15 @@ Cast button on feed videos	Tombol transmisi di video feed
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	Menambahkan tombol transmisi ke video feed. Tombol ini menyerahkan video ke aplikasi transmisi yang kamu punya, seperti Web Video Caster, yang mengirimnya ke TV-mu. Facebook sudah tidak punya fitur transmisi sendiri.
 Cast this video	Transmisikan video ini
 Full player button on feed videos	Tombol pemutar penuh di video feed
+Skip buttons on feed videos	Tombol lompat di video feed
+Speed button on feed videos	Tombol kecepatan di video feed
+Times on the seek bar	Waktu di bilah geser
+Back 10 seconds	Mundur 10 detik
+Ahead 10 seconds	Maju 10 detik
+Playback speed	Kecepatan putar
+Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol di video feed untuk mundur atau maju 10 detik, seperti pemutar Facebook sendiri. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol di video feed yang menunjukkan kecepatannya. Setiap ketukan pindah ke kecepatan berikutnya: 1x, 1.25x, 1.5x, 2x, lalu 0.5x. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	Menampilkan berapa lama video feed sudah diputar di ujung kiri bilah gesernya, dan sisa waktunya di ujung kanan. Perlu “Bilah geser di video feed” aktif.
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	Menambahkan tombol ke video feed yang membuka video di pemutar penuh milik Facebook, lengkap dengan semua kontrolnya. Video siaran langsung juga mendapatkannya. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	Buka video layar penuh di tengah
@@ -2157,6 +2168,10 @@ Videos you open full screen, from a comment or a link, start with their details 
 Open in the full player	Buka di pemutar penuh
 Seek bar on feed videos	Bilah geser di video feed
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	Menampilkan bilah di bagian bawah video feed. Geser lalu lepaskan untuk melompat ke titik itu. Video live dan iklan tetap memakai kontrolnya sendiri. Jika “Ketuk untuk memutar” aktif, “Kontrol video di beranda” juga harus aktif.
+Fade the seek bar and speaker	Redupkan bilah geser dan speaker
+Lower the seek bar and speaker	Turunkan bilah geser dan speaker
+While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Saat video feed diputar, bilah gesernya dan tombol speaker Facebook meredup beberapa detik setelah video mulai atau setelah terakhir kali kamu menyentuhnya. Sentuh bilahnya atau jeda videonya, dan keduanya muncul lagi. Perlu “Bilah geser di video feed” aktif.
+Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Memindahkan bilah geser video feed lebih dekat ke tepi bawah, bersama tombol speaker dan orang yang ditandai milik Facebook. Perlu “Bilah geser di video feed” aktif.
 Feed video position	Posisi video feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Warna lencana
@@ -2477,8 +2492,12 @@ Restore feed sound after opened videos	Pulihkan suara Kabar Beranda setelah memb
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Video yang kamu buka tetap diputar dengan suara seperti biasa. Saat kembali ke Kabar Beranda, suaranya kembali seperti sebelum kamu membukanya, meskipun kamu menonton lama.
 Hide the Join button on posts	Sembunyikan tombol Gabung di kiriman
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Menyembunyikan tombol Gabung di samping nama grup pada kiriman dari grup yang belum kamu ikuti, serta bilah Gabung ke grup di bawah videonya. Perubahan terlihat pada kiriman yang dimuat sesudahnya.
+Hide the X on posts	Sembunyikan X di kiriman
+Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	Menghapus X di pojok atas kiriman di feed kamu. Menu titik tiga di sebelahnya tetap ada. Perubahan terlihat pada kiriman yang dimuat sesudahnya.
 Hide the Reels title	Sembunyikan judul Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Menghapus kata Reels di bagian atas tab Reels. Tombol di sebelahnya tetap ada.
+Hide Back on opened videos	Sembunyikan Kembali di video yang dibuka
+Takes the Back arrow off the top of a video or reel you open, and Menu off the top of the Reels tab. Your phone's back gesture or button still goes back.	Menghapus panah Kembali dari bagian atas video atau reel yang kamu buka, dan Menu dari bagian atas tab Reels. Gestur atau tombol kembali di ponselmu tetap berfungsi.
 Videos in search results wait for a tap	Video di hasil pencarian menunggu ketukan
 Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	Video di hasil pencarian tidak mulai sendiri. Ketuk salah satunya untuk memutarnya. Berfungsi saat Ketuk untuk memutar aktif maupun nonaktif.
 Custom color	Warna kustom
@@ -2526,9 +2545,20 @@ A tap in the middle of a story shows a play and pause button, like Reels. Taps o
 Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	Cerita hanya berganti dengan ketukan dua kali, sisi kiri ke cerita sebelumnya dan tempat lain ke berikutnya. Ketukan sekali menjeda atau memutar cerita, atau menampilkan tombol putar jika aktif.
 Pause story	Jeda cerita
 Play story	Putar cerita
+Replay story	Putar ulang cerita
 Hide song and effect credits	Sembunyikan kredit lagu dan efek
 Hide reply suggestions	Sembunyikan saran balasan
 Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	Menghapus kredit lagu dan efek dari baris di bawah nama pengunggah cerita. Berlaku mulai cerita berikutnya yang kamu buka.
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Menghapus baris saran balasan di bagian bawah cerita. Kotak balasan tetap ada. Berlaku mulai cerita berikutnya yang kamu buka.
+Hide the Subscribe button	Sembunyikan tombol Berlangganan
+Takes the Subscribe button off the top of a story. Applies from the next story you open.	Menghapus tombol Berlangganan di bagian atas cerita. Berlaku mulai cerita berikutnya yang kamu buka.
 Progress bar at the bottom	Bilah progres di bawah
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Menampilkan bilah tipis di bagian bawah cerita yang terisi saat cerita diputar, seperti di Reels.
+Seek bar on stories	Bilah geser di cerita
+Fade the story seek bar	Redupkan bilah geser cerita
+Story position	Posisi cerita
+Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Menampilkan bilah di bagian bawah cerita video yang bisa kamu geser untuk berpindah di dalamnya. Cerita menunggu selama kamu menggeser. “Bilah progres di bawah” memberi tempat untuknya di cerita video.
+With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	Dengan “Bilah geser di cerita” aktif, bilahnya meredup beberapa detik setelah cerita mulai atau setelah terakhir kali kamu menyentuhnya. Sentuhan atau jeda memunculkannya lagi.
+Clean mode	Mode bersih
+Clean mode button on reels	Tombol mode bersih di reel
+Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Menambahkan tombol mode bersih ke tombol-tombol di sisi reel. Ketuk untuk menyembunyikannya, dan mode bersih tetap aktif saat kamu menggeser. Tombol mode bersih milik Facebook sendiri memunculkannya kembali.

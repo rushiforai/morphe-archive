@@ -16,7 +16,9 @@
       search when GITLAB_TOKEN is set and -SkipGitLabCodeSearch isn't passed;
     - every ledger source's repository, licence, branches and forks. A source with watchPaths is
       read through the newest commit that touched those paths, so a busy multi-app repository only
-      counts as moved when its Threads code did.
+      counts as moved when its Threads code did. On GitLab that's one GraphQL question per 30
+      branch and path pairs, which GitLab counts apart from its hourly REST limit, and a fork
+      GitLab has scheduled for deletion isn't counted as a fork.
 
     A repository the ledger doesn't know is an addition, unless every file code search found in it
     is byte for byte a file the ledger already holds (the same git blob id), which makes it a copy
@@ -62,8 +64,9 @@ param(
     [double]$SearchDelaySeconds = 7,
     # How long to wait out a rate limit before trying again, when the answer doesn't say when it resets.
     [int]$RateLimitWaitSeconds = 61,
-    # The longest wait for a reset the answer names.
-    [int]$MaxRateLimitWaitSeconds = 900,
+    # The longest reset the answer names that a run waits for. One further off fails the source it
+    # was reading, since GitLab's hourly limit would otherwise sleep the run for most of an hour.
+    [int]$MaxRateLimitWaitSeconds = 300,
     # How much of Jman's registry list one run reads before it reports the census incomplete.
     [int]$RegistryMaxRequests = 10,
     [int]$RegistryMaxRows = 1000
@@ -182,21 +185,26 @@ Write-Step $(if ($GitLabToken) { 'GitLab reads: with a GitLab token' } else { 'G
 
 function Invoke-SourceRequest {
     <#
-        One GET, answering Status and Content. A 4xx or 5xx answer comes back as its status with no
-        content, since a repository that's gone is a finding and not a crash; only a request that
-        never got an answer throws. A rate limit is waited out, three times at most, until the reset
-        the answer names or, when it names none, for RateLimitWaitSeconds.
+        One GET, or with -Body one JSON POST, answering Status and Content. A 4xx or 5xx answer
+        comes back as its status with no content, since a repository that's gone is a finding and
+        not a crash; only a request that never got an answer throws. A rate limit is waited out,
+        three times at most, until the reset the answer names or, when it names none, for
+        RateLimitWaitSeconds. A reset further off than MaxRateLimitWaitSeconds isn't waited for at
+        all: the limit comes back as the answer, and the run log says when it resets, so a run
+        never sleeps through GitLab's hourly window with nothing to show.
     #>
-    param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain')
+    param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain', [string]$Body)
 
     $headers = @{}
     if ($Auth -eq 'github') { $headers['Authorization'] = "Bearer $GitHubToken" }
     if ($Auth -eq 'gitlab' -and $GitLabToken) { $headers['PRIVATE-TOKEN'] = $GitLabToken }
+    $post = @{}
+    if ($Body) { $post = @{ Method = 'Post'; Body = $Body; ContentType = 'application/json; charset=utf-8' } }
     for ($attempt = 1; ; $attempt++) {
         $script:requestCount++
         try {
             $response = Invoke-WebRequest -Uri $Uri -Headers $headers -UserAgent 'HushThreads-source-audit' `
-                -UseBasicParsing -TimeoutSec 120
+                -UseBasicParsing -TimeoutSec 120 @post
             $content = $null
             $raw = $response.PSObject.Properties['RawContentStream']
             if ($null -ne $raw -and $null -ne $raw.Value) {
@@ -217,9 +225,15 @@ function Invoke-SourceRequest {
             $limited = $status -eq 429 -or ($status -eq 403 -and $said -match '(?i)rate limit')
             if ($limited -and $attempt -lt 4) {
                 $reset = Get-RateLimitReset $answer.Value
-                $wait = if ($null -eq $reset) { $RateLimitWaitSeconds } else { [Math]::Min($reset, $MaxRateLimitWaitSeconds) }
+                $limitHost = ([Uri]$Uri).Host
+                if ($null -ne $reset -and $reset -gt $MaxRateLimitWaitSeconds) {
+                    $resets = [DateTime]::UtcNow.AddSeconds($reset).ToString('yyyy-MM-dd HH:mm', [Globalization.CultureInfo]::InvariantCulture)
+                    Write-Step "rate limited on $limitHost until about $resets UTC, past the $MaxRateLimitWaitSeconds s cap, so not waiting"
+                    return [pscustomobject]@{ Status = $status; Content = $null }
+                }
+                $wait = if ($null -eq $reset) { $RateLimitWaitSeconds } else { $reset }
                 $named = if ($null -eq $reset) { '' } else { " for the reset it names" }
-                Write-Step "rate limited on $([Uri]$Uri | ForEach-Object { $_.Host }), waiting $wait s$named"
+                Write-Step "rate limited on $limitHost, waiting $wait s$named"
                 Start-Sleep -Seconds $wait
                 continue
             }
@@ -367,14 +381,27 @@ $selfKey = ConvertTo-SourceKey $ledgerDocument.self.repository
 $selfOwner = ($selfKey -split '/')[1]
 $known = @{}
 $knownBlobs = @{}
+# Each lineage's own blob ids, its entries' and their mirrors'. A recorded fork or mirror is held to
+# its own lineage: a file another lineage holds is still news in it.
+$lineageBlobs = @{}
+function Add-KnownBlob {
+    param([string]$Hash, [string]$Lineage)
+    $knownBlobs[$Hash] = $Lineage
+    if (-not $lineageBlobs.ContainsKey($Lineage)) { $lineageBlobs[$Lineage] = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase) }
+    [void]$lineageBlobs[$Lineage].Add($Hash)
+}
+function Test-LineageBlob {
+    param([string]$Hash, [string]$Lineage)
+    return $lineageBlobs.ContainsKey($Lineage) -and $lineageBlobs[$Lineage].Contains($Hash)
+}
 foreach ($entry in $entries) {
     $key = ConvertTo-SourceKey $entry.repository
     $known[$key] = [pscustomobject]@{ Kind = 'entry'; Lineage = [string]$entry.lineage; Entry = $entry; Record = $entry }
     $entryHost = (Split-SourceKey $key).Host
-    foreach ($hash in @(Get-SourceProperty $entry 'contentHashes' | Where-Object { $_ })) { $knownBlobs["$hash"] = [string]$entry.lineage }
+    foreach ($hash in @(Get-SourceProperty $entry 'contentHashes' | Where-Object { $_ })) { Add-KnownBlob -Hash "$hash" -Lineage ([string]$entry.lineage) }
     foreach ($mirror in @(Get-SourceProperty $entry 'mirrors' | Where-Object { $_ })) {
         $known[(ConvertTo-SourceKey $mirror.repository)] = [pscustomobject]@{ Kind = 'mirror'; Lineage = [string]$entry.lineage; Entry = $entry; Record = $mirror }
-        foreach ($hash in @(Get-SourceProperty $mirror 'blobs' | Where-Object { $_ })) { $knownBlobs["$hash"] = [string]$entry.lineage }
+        foreach ($hash in @(Get-SourceProperty $mirror 'blobs' | Where-Object { $_ })) { Add-KnownBlob -Hash "$hash" -Lineage ([string]$entry.lineage) }
     }
     foreach ($fork in @(Get-SourceProperty $entry 'forks' | Where-Object { $_ })) {
         $forkKey = "$entryHost/$fork".ToLowerInvariant()
@@ -718,9 +745,87 @@ Invoke-Source 'GitHub code search' {
     "$($queries.Count) queries, $hits hits outside the indexes"
 }
 
+function Get-GitLabBlobIds {
+    <#
+        Each question's blob ids by path, keyed by the question's Key. A question names a Project, a
+        Ref and its Paths. GitLab's code search answers a hit's project, ref and path but no blob id,
+        and the fork and mirror checks compare blob ids. A path the ref no longer holds is left out.
+        GitLab scores a project's blobs at about 12 plus 2 a path (measured 2026-11-05) against the 200
+        a request may cost without a token and 250 with one, so small forks share a request and a
+        busy one goes 50 paths at a time. GitLab also refuses a query over 10,000 characters, so a
+        request stays under 9,000 and a fork with long paths gets smaller parts. Each request spends
+        one of the roughly 60 an hour gitlab.com allows (Get-GitLabWatchedHeads).
+    #>
+    param([object[]]$Questions)
+    $maxQuery = 9000
+    $aliasOf = {
+        param([int]$Index, [object]$Part)
+        "b${Index}: project(fullPath: $(ConvertTo-Json -Compress -InputObject $Part.Project)) { repository { " +
+            "blobs(ref: $(ConvertTo-Json -Compress -InputObject $Part.Ref), " +
+            "paths: $(ConvertTo-Json -Compress -InputObject @($Part.Paths))) { nodes { path oid } } } }"
+    }
+    $found = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
+    $parts = New-Object System.Collections.Generic.List[object]
+    foreach ($asked in @($Questions)) {
+        $found[$asked.Key] = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([StringComparer]::Ordinal)
+        $taking = New-Object System.Collections.Generic.List[string]
+        foreach ($wantedPath in @($asked.Paths)) {
+            $taking.Add([string]$wantedPath)
+            $trial = [pscustomobject]@{ Project = $asked.Project; Ref = $asked.Ref; Paths = $taking.ToArray() }
+            # 999 stands in for the widest alias index a request can hold
+            $tooLong = ('query { ' + (& $aliasOf 999 $trial) + ' }').Length -gt $maxQuery
+            if ($taking.Count -gt 50 -or ($tooLong -and $taking.Count -gt 1)) {
+                $taking.RemoveAt($taking.Count - 1)
+                $parts.Add([pscustomobject]@{ Key = $asked.Key; Project = $asked.Project; Ref = $asked.Ref; Paths = $taking.ToArray() })
+                $taking = New-Object System.Collections.Generic.List[string]
+                $taking.Add([string]$wantedPath)
+            }
+        }
+        if ($taking.Count -gt 0) {
+            $parts.Add([pscustomobject]@{ Key = $asked.Key; Project = $asked.Project; Ref = $asked.Ref; Paths = $taking.ToArray() })
+        }
+    }
+    $next = 0
+    while ($next -lt $parts.Count) {
+        $batch = New-Object System.Collections.Generic.List[object]
+        $aliases = New-Object System.Collections.Generic.List[string]
+        $cost = 0
+        $queryLength = 'query {  }'.Length
+        while ($next -lt $parts.Count) {
+            $partCost = 12 + 2 * @($parts[$next].Paths).Count
+            $alias = & $aliasOf $batch.Count $parts[$next]
+            if ($batch.Count -gt 0 -and ($cost + $partCost -gt 190 -or $queryLength + 1 + $alias.Length -gt $maxQuery)) { break }
+            $batch.Add($parts[$next])
+            $aliases.Add($alias)
+            $cost += $partCost
+            $queryLength += 1 + $alias.Length
+            $next++
+        }
+        $query = "query { $($aliases -join ' ') }"
+        $answer = Invoke-SourceRequest -Uri 'https://gitlab.com/api/graphql' -Auth gitlab -Body (ConvertTo-Json -Compress -InputObject @{ query = $query })
+        if ($answer.Status -ne 200) { throw "the blob ids of $($batch[0].Project) and $($batch.Count - 1) more answered HTTP $($answer.Status)" }
+        $document = ConvertFrom-SourceJson -Text $answer.Content -What 'GitLab blob ids'
+        $refused = @(Get-SourceProperty $document 'errors' | Where-Object { $_ } | ForEach-Object { [string]$_.message })
+        if ($refused.Count -gt 0) { throw "GitLab refused the question about blob ids: $($refused -join '; ')" }
+        $data = Get-SourceProperty $document 'data'
+        for ($index = 0; $index -lt $batch.Count; $index++) {
+            $repository = Get-SourceProperty (Get-SourceProperty $data "b$index") 'repository'
+            if ($null -eq $repository) { throw "GitLab answered the question about $($batch[$index].Project)'s blob ids with no repository" }
+            foreach ($node in @(Get-JsonItems (Get-SourceProperty (Get-SourceProperty $repository 'blobs') 'nodes'))) {
+                $found[$batch[$index].Key][[string]$node.path] = [string]$node.oid
+            }
+        }
+    }
+    return $found
+}
+
 if ($searchGitLab) {
     Invoke-Source 'GitLab code search' {
         $projects = @{}
+        $projectPaths = @{}
+        # Hits in a recorded fork or mirror, by project and ref, waiting for their blob ids. Refs and
+        # paths compare exactly, since git tells apart two that differ only by case.
+        $held = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
         $hits = 0
         foreach ($package in $packages) {
             $result = Get-PagedItems -Uri ("https://gitlab.com/api/v4/search?scope=blobs&search=" + [Uri]::EscapeDataString("`"$package`"")) -Auth gitlab
@@ -730,13 +835,35 @@ if ($searchGitLab) {
                 if (-not $projects.ContainsKey($projectId)) {
                     $project = Invoke-SourceRequest -Uri "https://gitlab.com/api/v4/projects/$projectId" -Auth gitlab
                     $projects[$projectId] = if ($project.Status -eq 200) {
-                        ConvertTo-SourceKey ('https://gitlab.com/' + (ConvertFrom-SourceJson -Text $project.Content -What "GitLab project $projectId").path_with_namespace)
+                        $projectPaths[$projectId] = [string](ConvertFrom-SourceJson -Text $project.Content -What "GitLab project $projectId").path_with_namespace
+                        ConvertTo-SourceKey ('https://gitlab.com/' + $projectPaths[$projectId])
                     } else { $null }
                 }
-                if ($projects[$projectId]) {
-                    Add-Candidate -Key $projects[$projectId] -Source 'GitLab code search' -Mentions @($package) -Path ([string]$item.path) -Blob $null
-                    $hits++
+                if (-not $projects[$projectId]) { continue }
+                $hits++
+                $record = $known[$projects[$projectId]]
+                if ($null -ne $record -and ($record.Kind -eq 'fork' -or $record.Kind -eq 'mirror')) {
+                    $group = $projectId + '|' + [string]$item.ref
+                    if (-not $held.ContainsKey($group)) { $held[$group] = New-Object System.Collections.Generic.List[object] }
+                    $held[$group].Add([pscustomobject]@{ Package = $package; Path = [string]$item.path })
+                    continue
                 }
+                Add-Candidate -Key $projects[$projectId] -Source 'GitLab code search' -Mentions @($package) -Path ([string]$item.path) -Blob $null
+            }
+        }
+        $questions = @(foreach ($group in @($held.Keys | Sort-Object -CaseSensitive)) {
+            $projectId, $ref = $group -split '\|', 2
+            $paths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+            foreach ($hit in $held[$group]) { [void]$paths.Add($hit.Path) }
+            [pscustomobject]@{ Key = $group; Project = $projectPaths[$projectId]; Ref = $ref; Paths = @($paths) }
+        })
+        $blobIds = Get-GitLabBlobIds -Questions $questions
+        foreach ($asked in $questions) {
+            $projectKey = $projects[($asked.Key -split '\|', 2)[0]]
+            $oids = $blobIds[$asked.Key]
+            foreach ($hit in $held[$asked.Key]) {
+                $blob = if ($oids.ContainsKey($hit.Path)) { $oids[$hit.Path] } else { $null }
+                Add-Candidate -Key $projectKey -Source 'GitLab code search' -Mentions @($hit.Package) -Path $hit.Path -Blob $blob
             }
         }
         "$hits hits in $(@($projects.Values | Where-Object { $_ } | Sort-Object -Unique).Count) projects"
@@ -767,13 +894,28 @@ function Test-KnownRepository {
                 -Evidence ([ordered]@{ sources = @($Candidate.Sources); features = @($Candidate.Features) })
         }
     } elseif ($Record.Kind -eq 'mirror') {
-        $diverged = @($Blobs | Where-Object { -not $knownBlobs.ContainsKey($_) })
+        $diverged = @($Blobs | Where-Object { -not (Test-LineageBlob -Hash $_ -Lineage $Record.Lineage) })
         if ($diverged.Count -gt 0) {
             Add-Finding -Kind 'mirror-changed' -Repository ([string]$Record.Record.repository) `
                 -Detail "a copy of $($Record.Lineage) now holds Threads files the lineage doesn't" `
                 -Evidence ([ordered]@{ hits = @($Candidate.Hits | Where-Object { $diverged -contains $_.blob }) })
         }
-    } elseif ($Candidate.Packages.Count -gt 0) {
+    } else {
+        if ($Record.Kind -eq 'fork') {
+            # A fork is recorded by name only, as a copy of its lineage. Threads files code search
+            # finds in it that its lineage doesn't hold are work nobody has reviewed there, even
+            # when another lineage holds them. One finding per fork, naming at most 20 of those files.
+            $diverged = @($Blobs | Where-Object { -not (Test-LineageBlob -Hash $_ -Lineage $Record.Lineage) })
+            if ($diverged.Count -gt 0) {
+                $novelHits = @($Candidate.Hits | Where-Object { $diverged -contains $_.blob } | Sort-Object path -Unique -CaseSensitive)
+                Add-Finding -Kind 'fork-changed' -Repository "https://$Key" `
+                    -Detail ("a recorded fork of $($Record.Lineage) holds $($novelHits.Count) Threads file(s) the lineage doesn't; " +
+                        "review them, then add their blob ids to the entry's contentHashes or give the fork an entry of its own") `
+                    -Evidence ([ordered]@{ sources = @($Candidate.Sources); hits = @($novelHits | Select-Object -First 20)
+                        more = [Math]::Max(0, $novelHits.Count - 20) })
+            }
+        }
+        if ($Candidate.Packages.Count -eq 0) { return }
         # An index listing a recorded fork or an out-of-scope repository for a Threads
         # package means it publishes a bundle of its own. The Morphe Archive keeps every fork's
         # patch list, so a fork only it lists counts for packages its entry doesn't target.
@@ -805,7 +947,7 @@ foreach ($candidate in @($candidates.Values | Sort-Object Key)) {
         $record = $known[$key]
         if ($candidate.Hits.Count -gt 0) {
             $knownHits.Add([pscustomobject][ordered]@{ repository = "https://$key"; kind = $record.Kind; lineage = $record.Lineage
-                hits = @($candidate.Hits | Sort-Object path -Unique) })
+                hits = @($candidate.Hits | Sort-Object path -Unique -CaseSensitive) })
         }
         Test-KnownRepository -Candidate $candidate -Key $key -Record $record -Blobs $blobs
         continue
@@ -867,29 +1009,78 @@ function Get-GitHubWatchedHead {
     return $newest.Sha
 }
 
-function Get-GitLabWatchedHead {
-    param([string]$Project, [string]$Branch, [string[]]$WatchPaths, [string]$Head)
-    if (@($WatchPaths).Count -eq 0) { return $Head }
-    $newest = $null
-    foreach ($watch in $WatchPaths) {
-        $answer = Invoke-SourceRequest -Uri ("https://gitlab.com/api/v4/projects/$Project/repository/commits?ref_name=" +
-            [Uri]::EscapeDataString($Branch) + '&path=' + [Uri]::EscapeDataString($watch) + '&per_page=1') -Auth gitlab
-        if ($answer.Status -ne 200) { throw "the commits of $Branch under $watch answered HTTP $($answer.Status)" }
-        foreach ($commit in (Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"))) {
-            $date = [datetime]::Parse("$($commit.committed_date)", [Globalization.CultureInfo]::InvariantCulture,
-                [Globalization.DateTimeStyles]::AdjustToUniversal)
-            if ($null -eq $newest -or $date -gt $newest.Date) { $newest = [pscustomobject]@{ Sha = [string]$commit.id; Date = $date } }
+function Get-GitLabWatchedHeads {
+    <#
+        Each branch's newest commit under the watched paths, or null where none has any, by branch
+        name. REST takes a request per branch and path, and gitlab.com allows an address about 60
+        an hour across every session on it, so the 35 branches and two paths of ReVanced's mirror
+        could never be read (HushGram, 2026-10-31). GraphQL shares that budget but asks about 30
+        paths in one request, which GitLab scores at 125 of the 200 it allows, so the mirror costs
+        four requests, each branch's head included, where REST needed seventy.
+    #>
+    param([string]$Project, [string[]]$Branches, [string[]]$WatchPaths)
+    $heads = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    $dates = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    foreach ($branch in $Branches) { $heads[$branch] = $null }
+    if (@($WatchPaths).Count -eq 0) { return $heads }
+    # lastCommit answers null for a ref that's gone and for a path with no commits alike, so each
+    # branch's own head is asked in the same request as its paths. A branch deleted since the branch
+    # list has no head and is left out of the answer, rather than read as moved to no Threads code.
+    $names = @($Branches)
+    $perRequest = [int][Math]::Max(1, [Math]::Floor(30 / (1 + @($WatchPaths).Count)))
+    for ($skip = 0; $skip -lt $names.Count; $skip += $perRequest) {
+        $group = @($names | Select-Object -Skip $skip -First $perRequest)
+        $question = @(foreach ($branch in $group) { foreach ($watch in $WatchPaths) { [pscustomobject]@{ Branch = $branch; Watch = $watch } } })
+        $aliases = @(for ($index = 0; $index -lt $group.Count; $index++) {
+            "h${index}: lastCommit(ref: $(ConvertTo-Json -Compress -InputObject $group[$index]), refType: HEADS) { sha }"
+        }) + @(for ($index = 0; $index -lt $question.Count; $index++) {
+            "q${index}: lastCommit(ref: $(ConvertTo-Json -Compress -InputObject $question[$index].Branch), " +
+                "path: $(ConvertTo-Json -Compress -InputObject $question[$index].Watch), refType: HEADS) { sha committedDate }"
+        })
+        $query = "query { project(fullPath: $(ConvertTo-Json -Compress -InputObject $Project)) { repository { $($aliases -join ' ') } } }"
+        $answer = Invoke-SourceRequest -Uri 'https://gitlab.com/api/graphql' -Auth gitlab -Body (ConvertTo-Json -Compress -InputObject @{ query = $query })
+        if ($answer.Status -ne 200) { throw "the commits under its watched paths answered HTTP $($answer.Status)" }
+        $document = ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"
+        $refused = @(Get-SourceProperty $document 'errors' | Where-Object { $_ } | ForEach-Object { [string]$_.message })
+        if ($refused.Count -gt 0) { throw "GitLab refused the question about its watched paths: $($refused -join '; ')" }
+        $commits = Get-SourceProperty (Get-SourceProperty (Get-SourceProperty $document 'data') 'project') 'repository'
+        # A missing project mustn't read as branches with no Threads code.
+        if ($null -eq $commits) { throw 'GitLab answered the question about its watched paths with no repository' }
+        for ($index = 0; $index -lt $group.Count; $index++) {
+            if ($null -eq (Get-SourceProperty $commits "h$index")) { [void]$heads.Remove($group[$index]) }
+        }
+        for ($index = 0; $index -lt $question.Count; $index++) {
+            $commit = Get-SourceProperty $commits "q$index"
+            if ($null -eq $commit -or -not $heads.ContainsKey($question[$index].Branch)) { continue }
+            # ConvertFrom-Json makes a DateTime of this in PowerShell 7 and leaves a string in 5.1.
+            $date = if ($commit.committedDate -is [DateTime]) { ([DateTimeOffset]$commit.committedDate).UtcDateTime } else {
+                [DateTimeOffset]::Parse([string]$commit.committedDate, [Globalization.CultureInfo]::InvariantCulture).UtcDateTime }
+            $branch = $question[$index].Branch
+            if (-not $dates.ContainsKey($branch) -or $date -gt $dates[$branch]) {
+                $dates[$branch] = $date
+                $heads[$branch] = [string]$commit.sha
+            }
         }
     }
-    if ($null -eq $newest) { return $null }
-    return $newest.Sha
+    return $heads
 }
 
+$containedAnswers = @{}
+
 function Test-CommitContained {
-    # Whether $Commit is $Within or one of its ancestors. A commit either forge can't compare (a
-    # pin rewritten away by a force push, say) counts as not contained, so it gets looked at.
+    # Whether $Commit is $Within or one of its ancestors, asked once a run: a busy repository's
+    # branches share heads, and on GitLab each comparison counts against the hourly limit. A
+    # commit either forge can't compare (a pin rewritten away by a force push, say) counts as not
+    # contained, so it gets looked at.
     param($Where, [string]$Commit, [string]$Within)
     if ($Commit -notmatch '^[0-9a-f]{40}$' -or $Within -notmatch '^[0-9a-f]{40}$') { return $false }
+    $asked = "$($Where.Host)/$($Where.Path) $Within $Commit"
+    if (-not $containedAnswers.ContainsKey($asked)) { $containedAnswers[$asked] = Read-CommitContained -Where $Where -Commit $Commit -Within $Within }
+    return $containedAnswers[$asked]
+}
+
+function Read-CommitContained {
+    param($Where, [string]$Commit, [string]$Within)
     if ($Where.Host -eq 'github.com') {
         $answer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$($Where.Path)/compare/$Within...$Commit" -Auth github
         if ($answer.Status -ne 200) { return $false }
@@ -952,13 +1143,22 @@ function Read-GitLabSource {
     $forkList = Get-PagedItems -Uri "https://gitlab.com/api/v4/projects/$project/forks" -Auth gitlab
     if ($forkList.Status -ne 200) { throw "the forks of $Path answered HTTP $($forkList.Status)" }
     $watch = @(Get-SourceProperty $Entry 'watchPaths' | Where-Object { $_ })
+    $watched = Get-GitLabWatchedHeads -Project ([string]$repo.path_with_namespace) -WatchPaths $watch `
+        -Branches @($branchList.Items | ForEach-Object { [string]$_.name })
     $branches = [ordered]@{}
     foreach ($branch in $branchList.Items) {
+        if ($watch.Count -gt 0 -and -not $watched.ContainsKey([string]$branch.name)) {
+            $notes.Add("https://gitlab.com/$Path deleted branch $([string]$branch.name) while the census read it, so it counts as gone")
+            continue
+        }
         $branches[[string]$branch.name] = [pscustomobject]@{ Head = [string]$branch.commit.id
-            Watched = (Get-GitLabWatchedHead -Project $project -Branch ([string]$branch.name) -WatchPaths $watch -Head ([string]$branch.commit.id)) }
+            Watched = $(if ($watch.Count -eq 0) { [string]$branch.commit.id } else { $watched[[string]$branch.name] }) }
     }
+    # GitLab renames a project waiting to be deleted after its own id. A scanner forks ReVanced's
+    # mirror and deletes the fork again every few hours, faster than any census could record them.
+    $keptForks = @($forkList.Items | Where-Object { [string]$_.path_with_namespace -cnotlike "*-deletion_scheduled-$($_.id)" })
     return [pscustomobject]@{ Status = 200; FullName = "gitlab.com/$($repo.path_with_namespace)".ToLowerInvariant(); Archived = [bool]$repo.archived
-        License = $license; Branches = $branches; Forks = @($forkList.Items | ForEach-Object { [string]$_.path_with_namespace }) }
+        License = $license; Branches = $branches; Forks = @($keptForks | ForEach-Object { [string]$_.path_with_namespace }) }
 }
 
 $forkCount = 0

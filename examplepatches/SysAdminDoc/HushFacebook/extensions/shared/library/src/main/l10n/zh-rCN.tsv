@@ -313,6 +313,8 @@ Hide Threads cards between reels	隐藏 Reels 之间的 Threads 卡片
 Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	隐藏 Reels 之间的“你可能喜欢的 Threads”卡片。默认关闭，因为尚未在真实账号上试过。
 Only reels from accounts I follow	只看我关注的账号的 Reels
 The Reels tab only shows reels from people and Pages you follow, starting with the next batch Facebook loads. The tab can take longer to fill. Off by default.	Reels 标签页只显示你关注的人和公共主页的 Reels，从 Facebook 加载的下一批开始。标签页可能需要更久才能填满。默认关闭。
+Facebook has no more reels your filters would keep, so these reels aren't filtered for now.	Facebook 没有更多能通过你的筛选的 Reels 了，所以这些 Reels 暂时不筛选。
+Hush hid the suggested posts after this, so Home ends here.	Hush 隐藏了之后的推荐帖子，所以主页到这里就结束了。
 Download quality	下载画质
 Best	最佳
 Smallest	最小
@@ -856,7 +858,7 @@ Holding a video in the feed or in Watch plays it at double speed until you let g
 Locked at 2x. Tap the video to go back.	已锁定 2x。点按视频即可恢复。
 Hide the pull down to lock hint	隐藏“下拉锁定”提示
 Hide the 2x popups	隐藏 2x 弹出提示
-Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed". The hold and the lock still work.	按住视频以 2x 播放时不显示任何提示，包括“速度：2x”、“松开以锁定”和“已锁定 2x 速度”。按住和锁定仍然可用。
+Holding a video for 2x shows no pill at all, so no "Speed: 2x", "Release to lock" or "Locked at 2x speed", and feed videos drop the "2x speed" tip. The hold and the lock still work.	按住视频以 2x 播放时不显示任何提示，包括“速度：2x”、“松开以锁定”和“已锁定 2x 速度”，动态中的视频也不再显示“2x 速度”提示。按住和锁定仍然可用。
 # context: summary of that switch; the quoted hint is Facebook's own text on the pill over a video held for 2x, translate it the way Facebook would; the switches above are Hold a reel for 2x's
 Holding a video for 2x shows the plain 2x pill, without the "Pull down to lock 2x speed" hint. Pulling down still locks it. It works without the switches above.	按住视频以 2 倍速播放时只显示普通的 2x 标签，不显示“下拉锁定 2 倍速”提示。下拉仍可锁定。无需开启上面的开关。
 Default playback quality	默认播放画质
@@ -2144,6 +2146,15 @@ Cast button on feed videos	动态视频上的投屏按钮
 Adds a cast button to feed videos. It hands the video to a casting app you have, such as Web Video Caster, which sends it to your TV. Facebook has no casting of its own anymore.	为动态中的视频添加投屏按钮。它会把视频交给你已安装的投屏应用（如 Web Video Caster），由它发送到电视。Facebook 已不再自带投屏功能。
 Cast this video	投屏此视频
 Full player button on feed videos	动态视频上的完整播放器按钮
+Skip buttons on feed videos	动态视频上的快进快退按钮
+Speed button on feed videos	动态视频上的倍速按钮
+Times on the seek bar	进度条上的时间
+Back 10 seconds	后退 10 秒
+Ahead 10 seconds	前进 10 秒
+Playback speed	播放速度
+Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	为动态视频添加后退或前进 10 秒的按钮，和 Facebook 自己的播放器一样。直播视频和广告仍使用它们自己的控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
+Adds a button to feed videos that shows their speed. Each tap moves to the next one: 1x, 1.25x, 1.5x, 2x, then 0.5x. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	为动态视频添加一个显示播放速度的按钮。每点一次切换到下一档：1x、1.25x、1.5x、2x，然后是 0.5x。直播视频和广告仍使用它们自己的控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
+Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. Needs Seek bar on feed videos on.	在动态视频进度条的左端显示已播放的时间，右端显示剩余时间。需要开启“动态视频上的进度条”。
 Adds a button to feed videos that opens the video in Facebook's own full player, with all its controls. Live videos get it too. With Tap to play on, it needs Inline feed video controls on too.	为动态中的视频添加一个按钮，在 Facebook 自己的完整播放器中打开视频，附带全部控件。直播视频也有。开启“点按播放”时，还需要开启“动态消息视频控件”。
 # context: a switch under Video and audio; with it on, a video opened full screen starts with its details and comments panel closed, so the video is in the middle of the screen
 Open full screen videos centered	全屏视频居中打开
@@ -2152,6 +2163,10 @@ Videos you open full screen, from a comment or a link, start with their details 
 Open in the full player	在完整播放器中打开
 Seek bar on feed videos	动态视频上的进度条
 Shows a bar along the bottom of a feed video. Drag it and let go to jump to that point. Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.	在动态视频底部显示一条进度条。拖动后松开即可跳到该位置。直播视频和广告仍使用它们自己的控件。开启“点按播放”时，还需要开启“动态消息视频控件”。
+Fade the seek bar and speaker	淡化进度条和扬声器按钮
+Lower the seek bar and speaker	降低进度条和扬声器按钮
+While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	动态视频播放时，它的进度条和 Facebook 的扬声器按钮会在视频开始或你最后一次触碰几秒后变淡。触碰进度条或暂停视频，它们就会恢复。需要开启“动态视频上的进度条”。
+Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	把动态视频的进度条移得更靠近底边，Facebook 的扬声器和标记的人按钮也一起下移。需要开启“动态视频上的进度条”。
 Feed video position	动态视频播放位置
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	徽章颜色
@@ -2472,8 +2487,12 @@ Restore feed sound after opened videos	打开视频后恢复动态的声音
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	你打开的视频照常带声音播放。回到动态后，声音会恢复到打开视频之前的状态，即使看了很久也一样。
 Hide the Join button on posts	隐藏帖子上的加入按钮
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	隐藏来自你未加入的小组的帖子中，小组名称旁边的加入按钮，以及这些小组视频下方的“加入小组”栏。更改会在之后加载的帖子上生效。
+Hide the X on posts	隐藏帖子上的 X
+Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	去掉动态中帖子右上角的 X，旁边的三点菜单保留。更改会在之后加载的帖子上生效。
 Hide the Reels title	隐藏 Reels 标题
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	去掉 Reels 标签页顶部的 Reels 字样。旁边的按钮保留。
+Hide Back on opened videos	隐藏已打开视频的返回按钮
+Takes the Back arrow off the top of a video or reel you open, and Menu off the top of the Reels tab. Your phone's back gesture or button still goes back.	去掉你打开的视频或 Reels 顶部的返回箭头，以及 Reels 标签页顶部的菜单按钮。手机的返回手势或返回键仍然可以返回。
 Videos in search results wait for a tap	搜索结果中的视频等你点按
 Videos in search results don't start by themselves. Tap one to play it. Works with Tap to play on or off.	搜索结果中的视频不会自动播放。点按某个视频即可播放。无论“点按播放”开启还是关闭都有效。
 Custom color	自定义颜色
@@ -2521,9 +2540,20 @@ A tap in the middle of a story shows a play and pause button, like Reels. Taps o
 Stories change only on a double tap, the left side for the one before and anywhere else for the next. A single tap pauses or plays the story, or shows the play button when that's on.	快拍只在双击时切换，左侧切到上一条，其他位置切到下一条。单击会暂停或播放快拍，开启播放按钮时则显示该按钮。
 Pause story	暂停快拍
 Play story	播放快拍
+Replay story	重新播放快拍
 Hide song and effect credits	隐藏歌曲和特效署名
 Hide reply suggestions	隐藏回复建议
 Takes the song and effect credits off the line under the poster's name on a story. Applies from the next story you open.	去掉快拍中发布者名字下方那行的歌曲和特效署名。从你打开的下一个快拍开始生效。
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	去掉快拍底部那一排建议回复。回复框会保留。从你打开的下一个快拍开始生效。
+Hide the Subscribe button	隐藏订阅按钮
+Takes the Subscribe button off the top of a story. Applies from the next story you open.	去掉快拍顶部的订阅按钮。从你打开的下一个快拍开始生效。
 Progress bar at the bottom	底部进度条
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	在快拍底部显示一条随播放逐渐填满的细条，和 Reels 上的一样。
+Seek bar on stories	快拍上的进度条
+Fade the story seek bar	淡化快拍进度条
+Story position	快拍播放位置
+Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	在视频快拍底部显示一条可以拖动的进度条，用来在快拍里前后移动。拖动时快拍会等你松手。在视频快拍上，“底部进度条”会给它让位。
+With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	开启“快拍上的进度条”后，进度条会在快拍开始或你最后一次触碰几秒后变淡。触碰或暂停就会恢复。
+Clean mode	简洁模式
+Clean mode button on reels	短视频上的简洁模式按钮
+Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	在短视频侧边的按钮中添加简洁模式按钮。点按它即可隐藏这些按钮，滑动时简洁模式会保持开启。Facebook 自带的简洁模式按钮可让它们重新显示。

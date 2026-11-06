@@ -5,9 +5,11 @@ import app.linkedin.patches.shared.Constants.EXTENSION_PACKAGE
 import app.linkedin.patches.shared.markIncluded
 import app.linkedin.patches.shared.settingsPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
@@ -296,8 +298,38 @@ private val materialYouBackgroundsResourcePatch = resourcePatch {
         writeColors("values-night-v31", NIGHT_BACKGROUNDS)
         writeColors("values-v34", BACKGROUNDS_V34)
         writeColors("values-night-v34", NIGHT_BACKGROUNDS_V34)
+
+        // Last, so these replace the Material You tones in the same configurations.
+        if (materialYouPatch.options[AMOLED_OLDER_SCREENS_OPTION].value == true) {
+            val black = AMOLED_BACKGROUNDS.associateWith { "black" }
+            listOf("values", "values-v31", "values-v34").forEach { writeColors(it, black) }
+            val nightBlack = AMOLED_NIGHT_BACKGROUNDS.associateWith { "black" }
+            listOf("values-night", "values-night-v31", "values-night-v34").forEach { writeColors(it, nightBlack) }
+        }
     }
 }
+
+private const val AMOLED_OLDER_SCREENS_OPTION = "amoledOlderScreens"
+
+/**
+ * Dark backgrounds of the View based screens (the top bar, the bottom bar, messages, the "Me" panel), which the
+ * "AMOLED black" switch can't reach: their colors are resources, chosen when patching.
+ */
+private val AMOLED_BACKGROUNDS = listOf(
+    "mercado_mvp_dark_color_background_canvas",
+    "mercado_mvp_dark_color_background_canvas_mobile",
+    "mercado_mvp_dark_color_background_canvas_tint",
+    "mercado_mvp_dark_color_background_canvas_dark",
+    "mercado_mvp_dark_color_background_canvas_dark_tint",
+    "mercado_mvp_dark_color_background_container",
+    "mercado_mvp_dark_color_background_container_dark",
+    // The dark theme's top and bottom bars use the dark surfaces of the light Mercado theme.
+    "mercado_mvp_color_background_canvas_dark",
+    "mercado_mvp_color_background_container_dark",
+)
+
+/** Colors that LinkedIn defines separately for dark mode: the status bar and the launch screen. */
+private val AMOLED_NIGHT_BACKGROUNDS = listOf("color_status_bar", "color_splash_canvas_background")
 
 /** Gives the window and list backgrounds, which show through the gaps of server drawn lists, the card color. */
 private val removeGapsResourcePatch = resourcePatch {
@@ -699,15 +731,24 @@ val removeGapsAndDividersPatch = bytecodePatch(
 }
 
 @Suppress("unused")
-val materialYouPatch = bytecodePatch(
+val materialYouPatch: BytecodePatch = bytecodePatch(
     name = "Material You",
     description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
         "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
-        "Some screens drawn by LinkedIn's servers may keep their own colors.",
+        "Some screens drawn by LinkedIn's servers may keep their own colors. On any Android version, an accent " +
+        "color of your choice can be set in Michii Patches.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     dependsOn(settingsPatch, materialYouResourcePatch, materialYouBackgroundsResourcePatch, sharedColorsPatch)
+
+    booleanOption(
+        key = AMOLED_OLDER_SCREENS_OPTION,
+        default = false,
+        title = "AMOLED black on older screens",
+        description = "Also makes the top bar, bottom bar, messages and the \"Me\" panel pure black in dark mode. " +
+            "Unlike the AMOLED black switch, this is chosen when patching and can't be turned off in the settings.",
+    )
 
     execute {
         var replaced = 0

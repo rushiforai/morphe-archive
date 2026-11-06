@@ -13,7 +13,9 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Kembali
 Cancel	Batal
 Clear diagnostic data	Hapus data diagnostik
+Copy link	Salin tautan
 Copy quick report	Salin laporan singkat
+Couldn't copy the link. Try again.	Tautan tidak dapat disalin. Coba lagi.
 Couldn't import the settings, and couldn't put back the ones you had. Check the settings on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa pengaturan di layar ini.
 Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
 Couldn't open that file. Nothing was changed.	File itu tidak dapat dibuka. Tidak ada yang diubah.
@@ -31,6 +33,7 @@ Clears the saved log and patch check results that a report would include.	Mengha
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
 Export settings	Ekspor pengaturan
+Link copied	Tautan disalin
 Turns off every HushTumblr switch except Debug logging the next time Tumblr starts. What you chose when you patched stays, and your choices are saved.	Mematikan semua sakelar HushTumblr kecuali Pencatatan debug saat Tumblr dibuka berikutnya. Yang Anda pilih saat menambal tetap berlaku, dan pilihan Anda tersimpan.
 Save your settings to a file, including word lists and tab order. These choices apply to all accounts in this Tumblr app. Pause, Debug logging and release checks aren't included.	Simpan pengaturan Anda ke file, termasuk daftar kata dan urutan tab. Pilihan ini berlaku untuk semua akun di aplikasi Tumblr ini. Jeda, Pencatatan debug, dan pemeriksaan rilis tidak disertakan.
 Settings exported. The app holding the file wouldn't let HushTumblr read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushTumblr membacanya kembali, jadi file itu tidak diperiksa.
@@ -126,6 +129,7 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Memilih tautan secara manual
 
 Restart Tumblr to apply this change	Mulai ulang Tumblr untuk menerapkan perubahan ini
+Restart Tumblr to apply this change.	Mulai ulang Tumblr untuk menerapkan perubahan ini.
 Restart Tumblr to apply %1$d changes	Mulai ulang Tumblr untuk menerapkan %1$d perubahan
 Tumblr closes and reopens on this page.	Tumblr ditutup lalu dibuka lagi di halaman ini.
 Android verified this app for Tumblr's web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Tumblr, jadi tautannya terbuka di sini.
@@ -222,9 +226,11 @@ Use the email on your Tumblr account and a Tumblr password. Google sign-in may n
 # context: the Feed page and its Hide ads switch.
 Feed	Feed
 Hide ads	Sembunyikan iklan
-Takes ads and paid Blaze posts out of your dashboard and other feeds. Ad requests stop after Tumblr restarts.	Menghapus iklan dan postingan Blaze berbayar dari dasbor dan feed lainnya. Permintaan iklan berhenti setelah Tumblr dimulai ulang.
+Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumblr restarts, it stops asking for ads and its ad networks don't start.	Menghapus iklan dan postingan Blaze berbayar dari dasbor dan feed lainnya. Setelah Tumblr dimulai ulang, Tumblr berhenti meminta iklan dan jaringan iklannya tidak dijalankan.
+Keep Blaze posts	Pertahankan postingan Blaze
+When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Saat iklan disembunyikan, pertahankan postingan yang dipromosikan dengan bayaran lewat Blaze. Iklan dan filter postingan lainnya tetap berlaku.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement. Firebase and Google's analytics collection stay off until you patch again without it.	Menghentikan pelacakan dan pengukuran iklan milik Tumblr. Pengumpulan data Firebase dan Google Analytics tetap mati sampai kamu menambal ulang tanpanya.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Menghentikan pelacakan dan pengukuran iklan milik Tumblr, dan mencegah pelacak LiveRamp berjalan. Pengumpulan data Firebase dan Google Analytics tetap mati sampai kamu menambal ulang tanpanya.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Sembunyikan banner bebas iklan
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Menyembunyikan banner di dasbor yang memintamu membayar untuk menjelajah tanpa iklan.
@@ -251,6 +257,7 @@ Draws a thin line in the gap between posts, so it's easier to see where one ends
 App font	Font aplikasi
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Mengganti font bawaan Tumblr dengan font ponselmu atau file font yang kamu pilih di bawah. Font yang dipilih penulis postingan tetap seperti aslinya.
 Choose a font file	Pilih file font
+Choose another file	Pilih file lain
 Uses your phone's font. Tap to pick a .ttf or .otf file.	Memakai font ponselmu. Ketuk untuk memilih file .ttf atau .otf.
 Using %1$s. Tap to pick another.	Memakai %1$s. Ketuk untuk memilih yang lain.
 Use the phone's font	Pakai font ponsel
@@ -280,6 +287,9 @@ Hide suggested tags	Sembunyikan tag yang disarankan
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Menghapus tag yang disarankan Tumblr untuk kamu ikuti, beserta judulnya, dari dasbor dan feed lainnya.
 Hide Watch it rows	Sembunyikan baris Watch it
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Menghapus baris Watch it dan kartu video hub dari Tumblr TV, beserta judulnya, dari dasbor dan feed lainnya.
+# context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
+Hide Featured posts	Sembunyikan postingan unggulan
+Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Menghapus postingan yang ditampilkan tim Tumblr di bawah judul Unggulan dari dasbor dan feed lainnya.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
 Posts	Postingan
 Hide hashtags	Sembunyikan tagar
@@ -354,9 +364,10 @@ Explore	Jelajahi
 Tumblr TV	Tumblr TV
 Communities	Komunitas
 Account	Akun
-# context: with Hide note counts on, these stand in for "3 comments" on a community post's comment button and for "12 notes" at the top of a post's notes. Tumblr's own word is used when the app has one; these are the fallback. Use Tumblr's own words in your language.
+# context: with Hide note counts on, these stand in for "3 comments" on a community post's comment button and for "12 notes" at the top of a post's notes, and Like is what TalkBack reads for a comment's like button in place of "5 likes". Tumblr's own word is used when the app has one; these are the fallback. Use Tumblr's own words in your language.
 Comments	Komentar
 Notes	Nota
+Like	Suka
 # context: the import preview of a settings file. The first is what an empty Words to hide list reads as; the second names Words to hide or Tab order when the file's value for it can't be used.
 None	Tidak ada
 %1$s: the value in that file can't be used, so it'll be left out.	%1$s: nilai dalam file itu tidak bisa dipakai, jadi tidak akan disertakan.
@@ -379,6 +390,10 @@ Keep tagged reblogs	Pertahankan reblog bertag
 When reblogs are hidden, keep ones with tags. Other post filters still apply.	Saat reblog disembunyikan, pertahankan yang memiliki tag. Filter postingan lainnya tetap berlaku.
 Keep reblogs with added content	Pertahankan reblog dengan konten tambahan
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Saat reblog disembunyikan, pertahankan yang diberi tambahan sendiri oleh pembuat reblog. Filter postingan lainnya tetap berlaku.
+Hide your own reblogs	Sembunyikan reblog milikmu
+Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Menghapus reblog yang kamu buat dari dasbor dan feed sejenisnya. Blogmu tetap menampilkannya.
+Hide liked posts	Sembunyikan postingan yang disukai
+Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Menghapus postingan yang sudah kamu sukai dari dasbor dan feed sejenisnya. Daftar sukamu dan blog tetap menampilkannya.
 Match current post text	Cocokkan teks postingan saat ini
 Match reblog trail text	Cocokkan teks rantai reblog
 Match current post tags	Cocokkan tag postingan saat ini
@@ -463,10 +478,38 @@ Changed %1$d settings	%1$d pengaturan diubah
 Couldn't update muted posts. Try again.	Tidak dapat memperbarui postingan yang dibisukan. Coba lagi.
 # context: the Share video links switch on the Posts page, and its summary
 Share video links	Bagikan tautan video
-Long-press a video in a post to share or copy its link.	Tekan lama video di postingan untuk membagikan atau menyalin tautannya.
+Long-press a video in a post to share or copy its link, or save it.	Tekan lama video di postingan untuk membagikan atau menyalin tautannya, atau menyimpannya.
+# context: the Sharper images switch on the Posts page, and its summary
+Sharper images	Gambar lebih tajam
+Loads images in posts at a higher resolution. Uses more data.	Memuat gambar di postingan dengan resolusi lebih tinggi. Memakai lebih banyak data.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Bagikan tautan video ini
 Copy video link	Salin tautan video
 Video link	Tautan video
 Video link copied	Tautan video disalin
 No app can share this link	Tidak ada aplikasi yang dapat membagikan tautan ini
+Save video	Simpan video
+Saving to Downloads	Menyimpan ke Unduhan
+Video saved to Downloads	Video disimpan ke Unduhan
+Couldn't save the video	Video gagal disimpan
+ad networks at launch	jaringan iklan saat dibuka
+LiveRamp at launch	LiveRamp saat dibuka
+# context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
+Try it on a post	Coba pada sebuah postingan
+Nothing you type here is saved.	Apa pun yang Anda ketik di sini tidak disimpan.
+Post text	Teks postingan
+Reblog trail text	Teks rantai reblog
+Tags	Tag
+Summary	Ringkasan
+Not matched while %1$s is off	Tidak dicocokkan selama “%1$s” nonaktif
+Split tags with commas	Pisahkan tag dengan koma
+Clear the example	Hapus contoh
+No fields are selected to match, so the word filter keeps every post.	Tidak ada bidang yang dipilih untuk dicocokkan, jadi filter kata mempertahankan semua postingan.
+There are no words to hide yet, so the word filter keeps every post.	Belum ada kata yang disembunyikan, jadi filter kata mempertahankan semua postingan.
+Type part of a post above to see what the word filter does with it.	Ketik sebagian postingan di atas untuk melihat apa yang dilakukan filter kata padanya.
+The word filter would hide this post for “%1$s” in %2$s.	Filter kata akan menyembunyikan postingan ini karena “%1$s” di bidang %2$s.
+The word filter would keep this post. “%1$s” in %2$s would hide it, but the allowed word “%3$s” in %4$s keeps it.	Filter kata akan mempertahankan postingan ini. “%1$s” di bidang %2$s akan menyembunyikannya, tetapi kata yang diizinkan “%3$s” di bidang %4$s mempertahankannya.
+The word filter would keep this post. None of the words to hide are in the selected fields.	Filter kata akan mempertahankan postingan ini. Tidak ada kata yang disembunyikan di bidang yang dipilih.
+Other filters can still hide it.	Filter lain masih bisa menyembunyikannya.
+Hide posts with these words is off, so the word filter hides nothing yet.	“Sembunyikan postingan dengan kata ini” nonaktif, jadi filter kata belum menyembunyikan apa pun.
+HushTumblr is paused, so the word filter hides nothing right now.	HushTumblr dijeda, jadi filter kata tidak menyembunyikan apa pun untuk saat ini.

@@ -120,28 +120,28 @@ public final class AccountDexFixture {
                 immutableField(USER, "C", "I"), immutableField(USER, "l", "Z"), immutableField(USER, "J", AGE), immutableField(USER, "E", STRING),
                 immutableField(USER, "k", "Ljava/util/List;")), user));
         List<Instruction> made = new ArrayList<>(List.of(call(Opcode.INVOKE_DIRECT, OBJECT, "<init>", "V", new int[]{0}),
-                field(Opcode.IPUT_OBJECT, 1, 0, "Lvu5;", "a", "Lou5;"), end()));
+                field(Opcode.IPUT_OBJECT, 1, 0, "Lsw5;", "a", "Llw5;"), end()));
         if (patched) made.add(2, rangeHook("requestCreated", 0));
-        List<Instruction> accept = new ArrayList<>(List.of(field(Opcode.IGET_OBJECT, 0, 0, "Lvu5;", "a", "Lou5;"),
-                type(Opcode.CHECK_CAST, 1, RESPONSE), call(Opcode.INVOKE_STATIC, "Lou5;", "v", "V", new int[]{0, 1}, "Lou5;", RESPONSE), end()));
+        List<Instruction> accept = new ArrayList<>(List.of(field(Opcode.IGET_OBJECT, 0, 0, "Lsw5;", "a", "Llw5;"),
+                type(Opcode.CHECK_CAST, 1, RESPONSE), call(Opcode.INVOKE_STATIC, "Llw5;", "v", "V", new int[]{0, 1}, "Llw5;", RESPONSE), end()));
         if (patched) {
             accept.add(3, hook("requestExited")); accept.add(0, rangeHook("requestEntered", 0));
             accept.add(new ImmutableInstruction11x(Opcode.MOVE_EXCEPTION, 1)); accept.add(hook("requestExited"));
             accept.add(new ImmutableInstruction11x(Opcode.THROW, 1));
         }
-        classes.put("Lvu5;", clazz("Lvu5;", List.of(), List.of(immutableField("Lvu5;", "a", "Lou5;")), List.of(
-                method("Lvu5;", "<init>", "V", ctor, 2, made, "Lou5;"),
-                method("Lvu5;", "accept", "V", pub, 2, accept, patched ? caught(accept, 1, 4, 6) : List.of(), OBJECT))));
-        classes.put("Lou5;", clazz("Lou5;", List.of(), List.of(immutableField("Lou5;", "e", "Lcom/tumblr/rumblr/TumblrService;")), List.of(
-                method("Lou5;", "f", "Lsm4;", pub, 3,
-                        List.of(field(Opcode.IGET_OBJECT, 0, 2, "Lou5;", "e", "Lcom/tumblr/rumblr/TumblrService;"),
-                                call(Opcode.INVOKE_STATIC, "Lhoj;", "v", "Lhoj;", new int[]{0}, OBJECT), result(0, true), type(Opcode.NEW_INSTANCE, 1, "Lvu5;"),
-                                call(Opcode.INVOKE_DIRECT, "Lvu5;", "<init>", "V", new int[]{1, 2}, "Lou5;"),
-                                call(Opcode.INVOKE_VIRTUAL, "Lhoj;", "l", "Lhoj;", new int[]{0, 1}, "Lg05;"), result(0, true),
-                                call(Opcode.INVOKE_VIRTUAL, "Lhoj;", "u", "Lsm4;", new int[]{0}), result(0, true), returns(0, true))),
-                method("Lou5;", "v", "V", pub | AccessFlags.STATIC.getValue(), 2,
-                        List.of(call(Opcode.INVOKE_DIRECT, "Lou5;", "D", "V", new int[]{0, 1}, RESPONSE), end()), "Lou5;", RESPONSE),
-                method("Lou5;", "D", "V", AccessFlags.PRIVATE.getValue(), 3,
+        classes.put("Lsw5;", clazz("Lsw5;", List.of(), List.of(immutableField("Lsw5;", "a", "Llw5;")), List.of(
+                method("Lsw5;", "<init>", "V", ctor, 2, made, "Llw5;"),
+                method("Lsw5;", "accept", "V", pub, 2, accept, patched ? caught(accept, 1, 4, 6) : List.of(), OBJECT))));
+        classes.put("Llw5;", clazz("Llw5;", List.of(), List.of(immutableField("Llw5;", "e", "Lcom/tumblr/rumblr/TumblrService;")), List.of(
+                method("Llw5;", "f", "Lpo4;", pub, 3,
+                        List.of(field(Opcode.IGET_OBJECT, 0, 2, "Llw5;", "e", "Lcom/tumblr/rumblr/TumblrService;"),
+                                call(Opcode.INVOKE_STATIC, "Lauj;", "u", "Lauj;", new int[]{0}, OBJECT), result(0, true), type(Opcode.NEW_INSTANCE, 1, "Lsw5;"),
+                                call(Opcode.INVOKE_DIRECT, "Lsw5;", "<init>", "V", new int[]{1, 2}, "Llw5;"),
+                                call(Opcode.INVOKE_VIRTUAL, "Lauj;", "l", "Lauj;", new int[]{0, 1}, "Ld25;"), result(0, true),
+                                call(Opcode.INVOKE_VIRTUAL, "Lauj;", "t", "Lpo4;", new int[]{0}), result(0, true), returns(0, true))),
+                method("Llw5;", "v", "V", pub | AccessFlags.STATIC.getValue(), 2,
+                        List.of(call(Opcode.INVOKE_DIRECT, "Llw5;", "D", "V", new int[]{0, 1}, RESPONSE), end()), "Llw5;", RESPONSE),
+                method("Llw5;", "D", "V", AccessFlags.PRIVATE.getValue(), 3,
                         List.of(type(Opcode.NEW_INSTANCE, 0, USER), call(Opcode.INVOKE_DIRECT, USER, "<init>", "V", new int[]{0, 2}, RESPONSE),
                                 call(Opcode.INVOKE_VIRTUAL, USER, "M", "V", new int[]{0}), end()), RESPONSE))));
         List<Instruction> replace = new ArrayList<>(List.of(new ImmutableInstruction11x(Opcode.MONITOR_ENTER, 2),
@@ -153,19 +153,19 @@ public final class AccountDexFixture {
                 new ImmutableInstruction11x(Opcode.MOVE_EXCEPTION, 0), new ImmutableInstruction11x(Opcode.MONITOR_EXIT, 2), new ImmutableInstruction11x(Opcode.THROW, 0)));
         if (patched) { replace.add(5, hook("credentialsChanged")); replace.add(1, hook("credentialsChanging")); }
         List<Instruction> reset = new ArrayList<>(List.of(new ImmutableInstruction11x(Opcode.MONITOR_ENTER, 2),
-                call(Opcode.INVOKE_DIRECT, "Lnw0;", "a", "V", new int[]{2}), new ImmutableInstruction11x(Opcode.MONITOR_EXIT, 2), end(),
+                call(Opcode.INVOKE_DIRECT, "Liy0;", "a", "V", new int[]{2}), new ImmutableInstruction11x(Opcode.MONITOR_EXIT, 2), end(),
                 new ImmutableInstruction11x(Opcode.MOVE_EXCEPTION, 0), new ImmutableInstruction11x(Opcode.MONITOR_EXIT, 2), new ImmutableInstruction11x(Opcode.THROW, 0)));
         if (patched) reset.add(1, hook("logout"));
-        classes.put("Lnw0;", clazz("Lnw0;", List.of(), List.of(), List.of(
-                method("Lnw0;", "r", "V", pub | AccessFlags.DECLARED_SYNCHRONIZED.getValue(), 5, replace,
+        classes.put("Liy0;", clazz("Liy0;", List.of(), List.of(), List.of(
+                method("Liy0;", "r", "V", pub | AccessFlags.DECLARED_SYNCHRONIZED.getValue(), 5, replace,
                         caught(replace, 1, patched ? 7 : 5, patched ? 9 : 7), STRING, STRING),
-                method("Lnw0;", "p", "V", pub | AccessFlags.DECLARED_SYNCHRONIZED.getValue(), 4, reset,
-                        caught(reset, 1, patched ? 3 : 2, patched ? 5 : 4), "Llsm;"),
-                method("Lnw0;", "a", "V", AccessFlags.PRIVATE.getValue(), 1, List.of(end())))));
+                method("Liy0;", "p", "V", pub | AccessFlags.DECLARED_SYNCHRONIZED.getValue(), 4, reset,
+                        caught(reset, 1, patched ? 3 : 2, patched ? 5 : 4), "Liym;"),
+                method("Liy0;", "a", "V", AccessFlags.PRIVATE.getValue(), 1, List.of(end())))));
         List<Instruction> logout = new ArrayList<>(List.of(integer(0, 0), call(Opcode.INVOKE_STATIC, "Lcom/tumblr/Remember;", "b", "V", new int[]{}), returns(0, true)));
         if (patched) logout.add(0, hook("logout"));
-        classes.put("Lo4c;", clazz("Lo4c;", List.of(), List.of(), List.of(method("Lo4c;", "i", OBJECT, AccessFlags.PRIVATE.getValue(), 13,
-                logout, "Landroid/content/Context;", "Z", "Lox5;"))));
+        classes.put("Ll8c;", clazz("Ll8c;", List.of(), List.of(), List.of(method("Ll8c;", "m", OBJECT, AccessFlags.PRIVATE.getValue(), 13,
+                logout, "Landroid/content/Context;", "Z", "Lmz5;"))));
         if (!patched) return;
         classes.put(UUID, contract(UUID, new String[]{"hushAccountId"}, new String[]{STRING}, new String[][]{new String[0]}));
         List<Method> hooks = new ArrayList<>();

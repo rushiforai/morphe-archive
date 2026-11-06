@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -67,6 +68,7 @@ public class FeedVideoControlsTest {
     private final List<Boolean> commands = new ArrayList<>();
     private final List<String> casts = new ArrayList<>();
     private final List<String> opens = new ArrayList<>();
+    private final List<Boolean> wides = new ArrayList<>();
     private final List<Integer> seeks = new ArrayList<>();
     private boolean fail;
 
@@ -77,7 +79,9 @@ public class FeedVideoControlsTest {
         String origin = "newsfeed::feed_story";
         boolean playing;
         int position, length, positionReads;
+        float speed = 1f;
     }
+    private final List<Float> speeds = new ArrayList<>();
 
     @Before public void setUp() {
         FeedVideoControls.reset();
@@ -103,9 +107,10 @@ public class FeedVideoControlsTest {
                 assertTrue(from == FeedVideoControls.showingCast(player));
                 casts.add(videoId);
             }
-            public void open(View from, String videoId) {
+            public void open(View from, String videoId, boolean wide) {
                 assertTrue(from == FeedVideoControls.showingOpen(player));
                 opens.add(videoId);
+                wides.add(wide);
             }
             public int position(Object of) {
                 if (fail) throw new IllegalStateException("unavailable player");
@@ -117,6 +122,13 @@ public class FeedVideoControlsTest {
                 assertEquals(Looper.getMainLooper(), Looper.myLooper());
                 assertTrue(of == player);
                 seeks.add(positionMs);
+            }
+            public float speed(Object of) { return ((Player) of).speed; }
+            public void speed(Object of, float speed) {
+                assertEquals(Looper.getMainLooper(), Looper.myLooper());
+                assertTrue(of == player);
+                speeds.add(speed);
+                ((Player) of).speed = speed;
             }
         };
         Settings.TAP_TO_PLAY.save(false);
@@ -143,7 +155,14 @@ public class FeedVideoControlsTest {
         Settings.INLINE_FEED_VIDEO_CONTROLS.resetToDefault();
         Settings.FEED_VIDEO_CAST_BUTTON.resetToDefault();
         Settings.FEED_VIDEO_SEEK_BAR.resetToDefault();
+        Settings.FEED_VIDEO_SEEK_BAR_FADE.resetToDefault();
+        Settings.FEED_VIDEO_SEEK_BAR_LOWER.resetToDefault();
+        Settings.STORY_SEEK_BAR.resetToDefault();
+        Settings.STORY_SEEK_BAR_FADE.resetToDefault();
         Settings.FEED_VIDEO_FULL_PLAYER_BUTTON.resetToDefault();
+        Settings.FEED_VIDEO_SKIP_BUTTONS.resetToDefault();
+        Settings.FEED_VIDEO_SPEED_BUTTON.resetToDefault();
+        Settings.FEED_VIDEO_SEEK_BAR_TIMES.resetToDefault();
         Settings.TAP_TO_PLAY.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         LogBufferManager.clearLogBuffer();
@@ -192,6 +211,25 @@ public class FeedVideoControlsTest {
 
     private void openOn() {
         Settings.FEED_VIDEO_FULL_PLAYER_BUTTON.save(true);
+        FeedVideoControls.settingsChanged();
+        drain();
+    }
+
+    private View back() { return FeedVideoControls.showingSkip(player, false); }
+
+    private View ahead() { return FeedVideoControls.showingSkip(player, true); }
+
+    private void skipOn() {
+        Settings.FEED_VIDEO_SKIP_BUTTONS.save(true);
+        FeedVideoControls.settingsChanged();
+        drain();
+    }
+
+    private FeedVideoControls.Button speed() { return (FeedVideoControls.Button) FeedVideoControls.showingSpeed(player); }
+
+    private void speedOn() {
+        FeedVideoControls.speedInBuildForTests = true;
+        Settings.FEED_VIDEO_SPEED_BUTTON.save(true);
         FeedVideoControls.settingsChanged();
         drain();
     }
@@ -262,6 +300,147 @@ public class FeedVideoControlsTest {
         assertEquals("a position past the end stays on the bar", 60000, bar.getProgress());
         assertTrue("following the player moves nothing", seeks.isEmpty());
         assertTrue(commands.isEmpty());
+    }
+
+    /** One of Facebook's buttons on the video, a 32 px image a screen reader names. */
+    private View cornerButton(int left, int top, String said) {
+        ImageView view = new ImageView(activity);
+        view.setContentDescription(said);
+        place(player.view, view, left, top, 32, 32);
+        return view;
+    }
+
+    /** A playing video moving on for [ms], a tick at a time. */
+    private void play(long ms) {
+        for (long gone = 0; gone < ms; gone += 250) {
+            if (player.playing) player.position += 250;
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250));
+        }
+    }
+
+    private static void save(app.morphe.extension.shared.settings.BooleanSetting setting, boolean value) {
+        setting.save(value);
+        FeedVideoControls.settingsChanged();
+        drain();
+    }
+
+    @Test public void lowerMovesTheBarAndFacebooksCornerButtonsDownTogetherAndPutsThemBack() {
+        View speaker = cornerButton(1040, 540, "Unmute sound");
+        View tagged = cornerButton(8, 540, "Tagged people");
+        View caption = cornerButton(8, 480, "Above the strip the bar leaves");
+        View middle = cornerButton(524, 540, "Not near a side");
+        speaker.setTranslationY(3);
+        layout();
+        barOn();
+        int edge = on(player.view)[1] + 600;
+        assertEquals(edge - FeedVideoControls.BAR_LIFT_DP, on(bar())[1] + bar().getHeight());
+        assertEquals("off, nothing of Facebook's moves", 3f, speaker.getTranslationY(), 0f);
+
+        save(Settings.FEED_VIDEO_SEEK_BAR_LOWER, true);
+        refreshAfterLayout();
+        layout();
+        assertEquals("the speaker keeps the offset Facebook gave it", 3f + FeedVideoControls.LOWER_DP, speaker.getTranslationY(), 0f);
+        assertEquals((float) FeedVideoControls.LOWER_DP, tagged.getTranslationY(), 0f);
+        assertEquals(0f, caption.getTranslationY(), 0f);
+        assertEquals(0f, middle.getTranslationY(), 0f);
+        assertEquals("the bar comes down with them", edge - FeedVideoControls.BAR_LIFT_DP + FeedVideoControls.LOWER_DP,
+                on(bar())[1] + bar().getHeight());
+        assertEquals(FeedVideoControls.BAR_DP, bar().getHeight());
+
+        // Facebook moves the speaker 10 lower itself, which leaves 11 under it above the margin.
+        speaker.setTranslationY(speaker.getTranslationY() + 10);
+        tick();
+        refreshAfterLayout();
+        layout();
+        assertEquals("all of them stop that much lower, clear of the edge", 13f + 11f, speaker.getTranslationY(), 0f);
+        assertEquals(11f, tagged.getTranslationY(), 0f);
+        assertEquals("and the bar stays clear of them", edge - FeedVideoControls.BAR_LIFT_DP + 11, on(bar())[1] + bar().getHeight());
+
+        save(Settings.FEED_VIDEO_SEEK_BAR_LOWER, false);
+        refreshAfterLayout();
+        layout();
+        assertEquals("off, Facebook's own offset is all that's left", 13f, speaker.getTranslationY(), 0f);
+        assertEquals(0f, tagged.getTranslationY(), 0f);
+        assertEquals(edge - FeedVideoControls.BAR_LIFT_DP, on(bar())[1] + bar().getHeight());
+
+        save(Settings.FEED_VIDEO_SEEK_BAR_LOWER, true);
+        refreshAfterLayout();
+        assertEquals(11f, tagged.getTranslationY(), 0f);
+        player.view.removeView(tagged);
+        assertEquals("a button that leaves the screen goes back first, so a recycled view never keeps the move",
+                0f, tagged.getTranslationY(), 0f);
+        save(Settings.FEED_VIDEO_SEEK_BAR, false);
+        assertEquals("without the bar nothing stays moved", 13f, speaker.getTranslationY(), 0f);
+    }
+
+    @Test public void fadeDimsTheBarAndTheSpeakerWhileItPlaysAndATouchOrAPauseBringsThemBack() {
+        View speaker = cornerButton(1040, 540, "Unmute sound");
+        View tagged = cornerButton(8, 540, "Tagged people");
+        layout();
+        player.playing = true;
+        barOn();
+        save(Settings.FEED_VIDEO_SEEK_BAR_FADE, true);
+        SeekBar bar = bar();
+        long fade = FeedVideoControls.FADE_AFTER_MS + FeedVideoControls.FADE_ANIMATION_MS + 250;
+        play(1000);
+        assertEquals("it stays bright a few seconds after it starts", 1f, bar.getAlpha(), 0f);
+        assertEquals(1f, speaker.getAlpha(), 0f);
+        play(fade);
+        assertEquals(FeedVideoControls.FADED_ALPHA, bar.getAlpha(), 0.01f);
+        assertEquals("the speaker fades with it", FeedVideoControls.FADED_ALPHA, speaker.getAlpha(), 0.01f);
+        assertEquals("the tagged people across from it don't", 1f, tagged.getAlpha(), 0f);
+        assertEquals("fading moves nothing", 0f, speaker.getTranslationY(), 0f);
+
+        touch(bar, MotionEvent.ACTION_DOWN, 270);
+        play(FeedVideoControls.FADE_ANIMATION_MS + 250);
+        assertEquals("a touch brings them back", 1f, bar.getAlpha(), 0.01f);
+        assertEquals(1f, speaker.getAlpha(), 0.01f);
+        play(fade);
+        assertEquals("and they stay while it's held", 1f, bar.getAlpha(), 0.01f);
+        touch(bar, MotionEvent.ACTION_UP, 270);
+        play(fade);
+        assertEquals("let go, they fade again", FeedVideoControls.FADED_ALPHA, bar.getAlpha(), 0.01f);
+
+        speaker.setContentDescription("Mute sound");
+        play(FeedVideoControls.FADE_ANIMATION_MS + 500);
+        assertEquals("a tap on the speaker brings them back", 1f, speaker.getAlpha(), 0.01f);
+        assertEquals(1f, bar.getAlpha(), 0.01f);
+        play(fade);
+        assertEquals(FeedVideoControls.FADED_ALPHA, speaker.getAlpha(), 0.01f);
+
+        player.playing = false;
+        FeedVideoControls.changed(player);
+        drain();
+        play(fade);
+        assertEquals("a paused video keeps them bright", 1f, bar.getAlpha(), 0.01f);
+        assertEquals(1f, speaker.getAlpha(), 0.01f);
+
+        player.playing = true;
+        FeedVideoControls.changed(player);
+        drain();
+        play(fade);
+        assertEquals(FeedVideoControls.FADED_ALPHA, bar.getAlpha(), 0.01f);
+        save(Settings.FEED_VIDEO_SEEK_BAR_FADE, false);
+        play(FeedVideoControls.FADE_ANIMATION_MS + 250);
+        assertEquals("off, they come back for good", 1f, bar.getAlpha(), 0.01f);
+        assertEquals(1f, speaker.getAlpha(), 0.01f);
+    }
+
+    @Test public void fadeLeavesAButtonFacebookHidItselfHidden() {
+        View speaker = cornerButton(1040, 540, "Unmute sound");
+        layout();
+        player.playing = true;
+        barOn();
+        save(Settings.FEED_VIDEO_SEEK_BAR_FADE, true);
+        play(FeedVideoControls.FADE_AFTER_MS + FeedVideoControls.FADE_ANIMATION_MS + 250);
+        assertEquals(FeedVideoControls.FADED_ALPHA, speaker.getAlpha(), 0.01f);
+        speaker.setAlpha(0f);
+        player.playing = false;
+        FeedVideoControls.changed(player);
+        drain();
+        play(FeedVideoControls.FADE_ANIMATION_MS + 250);
+        assertEquals(1f, bar().getAlpha(), 0.01f);
+        assertEquals(0f, speaker.getAlpha(), 0f);
     }
 
     @Test public void aDragMovesOnlyTheBarUntilItsLetGoThenSeeksOnceAndLeavesPlaybackAlone() {
@@ -750,15 +929,226 @@ public class FeedVideoControlsTest {
     }
 
     @Test public void theFullPlayerOpensTheVideosWatchLinkInFacebooksLinkHandler() {
-        FeedVideoControls.openFullPlayer(activity, "10153038129956772");
+        FeedVideoControls.openFullPlayer(activity, "10153038129956772", false);
         android.content.Intent opened = shadowOf(activity).getNextStartedActivity();
         assertNotNull(opened);
         assertEquals(android.content.Intent.ACTION_VIEW, opened.getAction());
         assertEquals("https://www.facebook.com/watch/?v=10153038129956772", opened.getDataString());
         assertEquals(FeedVideoControls.URI_HANDLER, opened.getComponent().getClassName());
         assertEquals(activity.getPackageName(), opened.getComponent().getPackageName());
-        FeedVideoControls.openFullPlayer(activity, "not a video");
+        FeedVideoControls.openFullPlayer(activity, "not a video", false);
         assertNull("anything but a video id opens nothing", shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void aWideVideoOpensInTheFullScreenPlayerNotTheReelsViewer() {
+        FeedVideoControls.openFullPlayer(activity, "10153038129956772", true);
+        android.content.Intent opened = shadowOf(activity).getNextStartedActivity();
+        assertNotNull(opened);
+        // Facebook's link map needs a loop value to match the link at all (without one it lands on
+        // Home), and force_fs=1 keeps its video link interceptor from sending it to the reels viewer (#239).
+        assertEquals("fb://fullscreen_video/10153038129956772?loop=false&force_fs=1", opened.getDataString());
+        assertEquals("false", opened.getData().getQueryParameter("loop"));
+        assertEquals("1", opened.getData().getQueryParameter("force_fs"));
+        assertEquals(FeedVideoControls.URI_HANDLER, opened.getComponent().getClassName());
+        FeedVideoControls.openFullPlayer(activity, "1&x=2", true);
+        assertNull("a wide video needs a real id too", shadowOf(activity).getNextStartedActivity());
+    }
+
+    @Test public void theFullPlayerButtonTellsAWideVideoFromAnUprightOne() {
+        openOn();
+        open().performClick();
+        assertEquals("the 1080 by 600 video is wide", java.util.Arrays.asList(true), wides);
+        player.view.removeAllViews();
+        place(player.view, new SurfaceView(activity), 0, 0, 600, 600);
+        layout();
+        FeedVideoControls.changed(player);
+        drain();
+        open().performClick();
+        assertEquals("a square one isn't", java.util.Arrays.asList(true, false), wides);
+        player.view.removeAllViews();
+        // A tall reel the feed crops to its container still counts as upright.
+        place(player.view, new TextureView(activity), 0, 0, 540, 960);
+        layout();
+        FeedVideoControls.changed(player);
+        drain();
+        open().performClick();
+        assertEquals(java.util.Arrays.asList(true, false, false), wides);
+        assertEquals(3, opens.size());
+    }
+
+    @Test public void skipButtonsSitBetweenPlayAndTheFullPlayerAndJumpTenSeconds() {
+        assertNull("they start off", back());
+        skipOn();
+        openOn();
+        barOn();
+        assertEquals("Back 10 seconds", back().getContentDescription());
+        assertEquals("Ahead 10 seconds", ahead().getContentDescription());
+        assertTrue(back().getParent() == button().getParent());
+        // Play, back, ahead, then the full player, 40 px buttons 4 px apart (#239).
+        assertEquals(4, at(button()).leftMargin);
+        assertEquals(4 + 44, at(back()).leftMargin);
+        assertEquals(4 + 2 * 44, at(ahead()).leftMargin);
+        assertEquals(4 + 3 * 44, at(open()).leftMargin);
+        assertEquals(at(button()).topMargin, at(ahead()).topMargin);
+        ahead().performClick();
+        assertEquals(java.util.Arrays.asList(25000), seeks);
+        assertEquals("the bar moves with it", 25000, bar().getProgress());
+        tick();
+        assertEquals("and doesn't spring back while the player catches up", 25000, bar().getProgress());
+        ahead().performClick();
+        ahead().performClick();
+        assertEquals("quick taps add up while the player still reads 0:15",
+                java.util.Arrays.asList(25000, 35000, 45000), seeks);
+        player.position = 45200;
+        back().performClick();
+        assertEquals("once it lands a tap counts from the player", 35200, (int) seeks.get(3));
+        assertTrue("playback is left alone", commands.isEmpty());
+    }
+
+    @Test public void skipsStayInsideTheVideo() {
+        skipOn();
+        player.length = 60000;
+        player.position = 55000;
+        ahead().performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(FeedVideoControls.LANDING_MS));
+        player.position = 4000;
+        back().performClick();
+        assertEquals(java.util.Arrays.asList(60000, 0), seeks);
+        player.length = 0;
+        ahead().performClick();
+        assertEquals("a video with no length yet doesn't move", 2, seeks.size());
+    }
+
+    @Test public void aSkipRightAfterADragCountsFromWhereTheBarWasLetGo() {
+        skipOn();
+        barOn();
+        touch(bar(), MotionEvent.ACTION_DOWN, 810);
+        touch(bar(), MotionEvent.ACTION_UP, 810);
+        ahead().performClick();
+        assertEquals(java.util.Arrays.asList(45000, 55000), seeks);
+    }
+
+    @Test public void skipButtonsStandAloneAndNeedTheirSwitchAndTheBuild() {
+        Settings.INLINE_FEED_VIDEO_CONTROLS.save(false);
+        skipOn();
+        assertNull(button());
+        assertEquals("alone the first takes play's spot", 4, at(back()).leftMargin);
+        assertEquals(4 + 44, at(ahead()).leftMargin);
+        View old = ahead();
+        player.length = 60000;
+        Settings.FEED_VIDEO_SKIP_BUTTONS.save(false);
+        old.performClick();
+        drain();
+        assertNull(back());
+        assertNull(ahead());
+        skipOn();
+        assertNotNull(ahead());
+        FeedVideoControls.inBuildForTests = false;
+        FeedVideoControls.settingsChanged();
+        drain();
+        assertNull(ahead());
+        assertTrue(seeks.isEmpty());
+    }
+
+    @Test public void speedButtonShowsThePlayersSpeedAndEachTapMovesToTheNext() {
+        assertNull("it starts off", speed());
+        speedOn();
+        skipOn();
+        openOn();
+        assertEquals("Playback speed", speed().getContentDescription());
+        // Play, the two skips, speed, then the full player (#239).
+        assertEquals(4 + 3 * 44, at(speed()).leftMargin);
+        assertEquals(4 + 4 * 44, at(open()).leftMargin);
+        assertEquals("1x", speed().speed);
+        assertEquals("1x", String.valueOf(speed().getStateDescription()));
+        for (int i = 0; i < 5; i++) speed().performClick();
+        assertEquals(java.util.Arrays.asList(1.25f, 1.5f, 2f, 0.5f, 1f), speeds);
+        speed().performClick();
+        assertEquals("1.25x", speed().speed);
+        assertEquals("a screen reader hears it too", "1.25x", String.valueOf(speed().getStateDescription()));
+        // Hold a reel for 2x, say.
+        player.speed = 2f;
+        FeedVideoControls.changed(player);
+        drain();
+        assertEquals("it shows a speed set elsewhere", "2x", speed().speed);
+        player.speed = 1.75f;
+        FeedVideoControls.changed(player);
+        drain();
+        assertEquals("1.75x", speed().speed);
+        speed().performClick();
+        assertEquals("one off the list goes back to 1x", 1f, player.speed, 0f);
+        assertTrue("playback is left alone", commands.isEmpty() && seeks.isEmpty());
+    }
+
+    @Test public void speedButtonNeedsHoldAReelFor2xInTheBuildAndLiveVideosGetNoSkipOrSpeed() {
+        FeedVideoControls.speedInBuildForTests = false;
+        Settings.FEED_VIDEO_SPEED_BUTTON.save(true);
+        FeedVideoControls.settingsChanged();
+        drain();
+        assertNull("its patch is what sets the speed", speed());
+        speedOn();
+        skipOn();
+        openOn();
+        assertNotNull(speed());
+        player.params.live = true;
+        FeedVideoControls.changed(player);
+        drain();
+        assertNull("a live video plays at its own pace", speed());
+        assertNull("and has no end to skip toward", back());
+        assertNull(ahead());
+        assertEquals("the full player moves up next to play", 4 + 44, at(open()).leftMargin);
+        player.params.live = false;
+        FeedVideoControls.changed(player);
+        drain();
+        assertNotNull(speed());
+        assertNotNull(back());
+    }
+
+    @Test public void theSkipAndSpeedButtonsNeedRoomToo() {
+        player.view.removeAllViews();
+        // Five 40 px buttons and their six 4 px gaps take 224 px.
+        place(player.view, new SurfaceView(activity), 0, 0, 220, 600);
+        layout();
+        skipOn();
+        speedOn();
+        openOn();
+        FeedVideoControls.changed(player);
+        drain();
+        assertNull(button());
+        assertNull(speed());
+        Settings.FEED_VIDEO_SPEED_BUTTON.save(false);
+        drain();
+        assertNotNull(button());
+        assertNotNull(ahead());
+        assertNull(speed());
+    }
+
+    @Test public void timesOnTheSeekBarShowAtItsEndsAndTheLineMakesRoomForThem() {
+        barOn();
+        SeekBar bar = bar();
+        assertEquals("they start off", 0, bar.getPaddingLeft());
+        Settings.FEED_VIDEO_SEEK_BAR_TIMES.save(true);
+        drain();
+        tick();
+        int room = bar.getPaddingLeft();
+        assertTrue("room for the text and a gap: " + room, room > 8);
+        assertEquals("the line stays centered", room, bar.getPaddingRight());
+        List<String> texts = new ArrayList<>();
+        bar.draw(new android.graphics.Canvas(android.graphics.Bitmap.createBitmap(1080, bar.getHeight(),
+                android.graphics.Bitmap.Config.ARGB_8888)) {
+            @Override public void drawText(String text, float x, float y, android.graphics.Paint paint) { texts.add(text); }
+        });
+        assertEquals(java.util.Arrays.asList("0:15", "-0:45"), texts);
+        touch(bar, MotionEvent.ACTION_DOWN, 540);
+        touch(bar, MotionEvent.ACTION_UP, 540);
+        touch(bar, MotionEvent.ACTION_DOWN, room / 2);
+        touch(bar, MotionEvent.ACTION_UP, room / 2);
+        assertEquals("a touch maps onto the shorter line, and one on a time takes that end",
+                java.util.Arrays.asList(30000, 0), seeks);
+        Settings.FEED_VIDEO_SEEK_BAR_TIMES.save(false);
+        drain();
+        tick();
+        assertEquals(0, bar().getPaddingLeft());
     }
 
     @Test public void aSurfaceTooNarrowForTwoButtonsGetsNeitherButOneFits() {
@@ -1099,5 +1489,185 @@ public class FeedVideoControlsTest {
         assertTrue(cast.getParent() == null);
         assertTrue(bar.getParent() == null);
         assertEquals(1, content.getChildCount());
+    }
+
+    private FrameLayout card;
+
+    /** The story viewer in place of the feed: a card most of the window tall, its video filling it, half a minute long. */
+    private void storyShows() {
+        root.removeAllViews();
+        card = new FrameLayout(activity);
+        place(root, card, 0, 100, 1080, 1800);
+        FrameLayout video = new FrameLayout(activity);
+        place(card, video, 0, 0, 1080, 1800);
+        place(video, new SurfaceView(activity), 0, 0, 1080, 1800);
+        player.view = video;
+        player.origin = "fb_stories_video_view";
+        player.length = 30000;
+        player.position = 3000;
+        layout();
+        attach(player);
+        layout();
+    }
+
+    private void storyBarOn() {
+        save(Settings.STORY_SEEK_BAR, true);
+        layout();
+    }
+
+    private int cardBottom() { return on(card)[1] + 1800 - FeedVideoControls.STORY_ABOVE_DP; }
+
+    @Test public void aStoryGetsOnlyItsOwnSeekBarAlongTheCardsBottom() {
+        storyShows();
+        save(Settings.FEED_VIDEO_SEEK_BAR, true);
+        layout();
+        assertNull("the feed's switch leaves stories alone", bar());
+        assertNull("and so do the feed's buttons", button());
+        assertFalse(FeedVideoControls.storyBarShowing());
+        storyBarOn();
+        SeekBar bar = bar();
+        assertNotNull(bar);
+        assertEquals("Story position", bar.getContentDescription());
+        assertNull(button());
+        assertNull(cast());
+        assertNull(open());
+        assertEquals(on(card)[0] + FeedVideoControls.STORY_SIDE_DP, on(bar)[0]);
+        assertEquals(1080 - 2 * FeedVideoControls.STORY_SIDE_DP, bar.getWidth());
+        assertEquals(FeedVideoControls.STORY_BAR_DP, bar.getHeight());
+        assertEquals("its line sits where Progress bar at the bottom draws", cardBottom(), on(bar)[1] + bar.getHeight());
+        assertEquals(30000, bar.getMax());
+        assertEquals(3000, bar.getProgress());
+        assertTrue("Progress bar at the bottom makes way", FeedVideoControls.storyBarShowing());
+        player.position = 9000;
+        tick();
+        assertEquals(9000, bar.getProgress());
+        assertTrue(seeks.isEmpty());
+        assertTrue(commands.isEmpty());
+        save(Settings.STORY_SEEK_BAR, false);
+        assertNull(bar());
+        assertFalse("and gets its spot back", FeedVideoControls.storyBarShowing());
+    }
+
+    @Test public void theStorySwitchLeavesFeedVideosAlone() {
+        save(Settings.STORY_SEEK_BAR, true);
+        player.length = 60000;
+        layout();
+        assertNull(bar());
+        barOn();
+        assertEquals("Feed video position", bar().getContentDescription());
+        assertFalse(FeedVideoControls.storyBarShowing());
+    }
+
+    @Test public void aDragHoldsAPlayingStoryAndTheLetGoSeeksThenPlaysItOn() {
+        storyShows();
+        player.playing = true;
+        storyBarOn();
+        SeekBar bar = bar();
+        int middle = bar.getWidth() / 2;
+        touch(bar, MotionEvent.ACTION_DOWN, 100);
+        assertEquals("the story waits while it's dragged", java.util.Arrays.asList(false), commands);
+        touch(bar, MotionEvent.ACTION_MOVE, middle);
+        assertTrue("and moves on the let go", seeks.isEmpty());
+        touch(bar, MotionEvent.ACTION_UP, middle);
+        assertEquals(java.util.Arrays.asList(15000), seeks);
+        assertEquals(java.util.Arrays.asList(false, true), commands);
+        assertTrue(player.playing);
+
+        commands.clear();
+        seeks.clear();
+        player.playing = false;
+        FeedVideoControls.changed(player);
+        drain();
+        touch(bar, MotionEvent.ACTION_DOWN, 100);
+        touch(bar, MotionEvent.ACTION_MOVE, middle / 2);
+        touch(bar, MotionEvent.ACTION_UP, middle / 2);
+        assertEquals(1, seeks.size());
+        assertTrue("a paused story stays paused", commands.isEmpty());
+        assertFalse(player.playing);
+
+        seeks.clear();
+        player.playing = true;
+        FeedVideoControls.changed(player);
+        drain();
+        touch(bar, MotionEvent.ACTION_DOWN, 100);
+        touch(bar, MotionEvent.ACTION_MOVE, middle);
+        touch(bar, MotionEvent.ACTION_CANCEL, middle);
+        assertTrue("a cancelled drag moves nothing", seeks.isEmpty());
+        assertEquals("but the story plays on", java.util.Arrays.asList(false, true), commands);
+    }
+
+    @Test public void aStorysBarFadesOnlyWithItsOwnSwitch() {
+        storyShows();
+        player.playing = true;
+        storyBarOn();
+        save(Settings.FEED_VIDEO_SEEK_BAR, true);
+        save(Settings.FEED_VIDEO_SEEK_BAR_FADE, true);
+        SeekBar bar = bar();
+        long fade = FeedVideoControls.FADE_AFTER_MS + FeedVideoControls.FADE_ANIMATION_MS + 250;
+        play(fade);
+        assertEquals("the feed's fade leaves stories alone", 1f, bar.getAlpha(), 0f);
+        save(Settings.STORY_SEEK_BAR_FADE, true);
+        play(fade);
+        assertEquals(FeedVideoControls.FADED_ALPHA, bar.getAlpha(), 0.01f);
+        touch(bar, MotionEvent.ACTION_DOWN, 100);
+        play(FeedVideoControls.FADE_ANIMATION_MS + 250);
+        assertEquals("a touch brings it back", 1f, bar.getAlpha(), 0.01f);
+        touch(bar, MotionEvent.ACTION_UP, 100);
+        play(fade);
+        assertEquals("it fades again as the story plays on", FeedVideoControls.FADED_ALPHA, bar.getAlpha(), 0.01f);
+        save(Settings.STORY_SEEK_BAR_FADE, false);
+        play(FeedVideoControls.FADE_ANIMATION_MS + 250);
+        assertEquals(1f, bar.getAlpha(), 0.01f);
+    }
+
+    @Test public void liveStoriesAdsMovingCardsAndTheTraysPreviewsGetNoBar() {
+        storyShows();
+        storyBarOn();
+        assertNotNull(bar());
+        player.params.live = true;
+        FeedVideoControls.changed(player);
+        drain();
+        assertNull("a live story has no end to seek to", bar());
+        player.params.live = false;
+        player.params.ordinary = false;
+        FeedVideoControls.changed(player);
+        drain();
+        assertNull(bar());
+        player.params.ordinary = true;
+        FeedVideoControls.changed(player);
+        drain();
+        assertNotNull(bar());
+
+        card.setTranslationX(400);
+        refreshAfterLayout();
+        assertNull("a card part way through a swipe", bar());
+        card.setTranslationX(0);
+        refreshAfterLayout();
+        assertNotNull(bar());
+
+        FrameLayout.LayoutParams small = (FrameLayout.LayoutParams) player.view.getLayoutParams();
+        small.width = 300;
+        small.height = 500;
+        player.view.setLayoutParams(small);
+        refreshAfterLayout();
+        assertNull("a narrow preview, like the feed's row of stories", bar());
+        small.width = 1080;
+        player.view.setLayoutParams(small);
+        refreshAfterLayout();
+        layout();
+        assertNotNull("a wide video in the viewer still gets it", bar());
+        assertEquals("along the card's bottom, not the video's", cardBottom(), on(bar())[1] + bar().getHeight());
+    }
+
+    @Test public void aStoryBarInTheGestureStripMovesUpOutOfIt() {
+        storyShows();
+        storyBarOn();
+        int strip = bar().getRootView().getHeight() - (cardBottom() - 50);
+        FeedVideoControls.insetsForTests = gestureStrip(strip);
+        refreshAfterLayout();
+        layout();
+        assertNotNull("lifted, never dropped", bar());
+        assertEquals(cardBottom() - 50, on(bar())[1] + bar().getHeight());
+        assertEquals(FeedVideoControls.STORY_BAR_DP, bar().getHeight());
     }
 }

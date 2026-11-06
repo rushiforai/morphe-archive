@@ -97,7 +97,7 @@ function Assert-ReviewedBuildGraph($Report) {
     }
     $settingsVersions = @{
         'org.bitbucket.b_c:jose4j' = '0.9.7'; 'org.jdom:jdom2' = '2.0.6.1'
-        'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.20'
+        'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.21'
         'org.bouncycastle:bcprov-jdk18on' = '1.86'; 'org.bouncycastle:bcpkix-jdk18on' = '1.86'
         'org.bouncycastle:bcutil-jdk18on' = '1.86'
     }
@@ -145,7 +145,7 @@ function New-ReviewedBuildReport {
     $modules = [ordered]@{
         'io.netty:netty-common' = '4.1.138.Final'; 'io.netty:netty-handler' = '4.1.138.Final'
         'io.netty:netty-codec-http2' = '4.1.138.Final'; 'org.bitbucket.b_c:jose4j' = '0.9.7'
-        'org.jdom:jdom2' = '2.0.6.1'; 'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.20'
+        'org.jdom:jdom2' = '2.0.6.1'; 'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.21'
         'org.bouncycastle:bcprov-jdk18on' = '1.86'; 'org.bouncycastle:bcpkix-jdk18on' = '1.86'
         'org.bouncycastle:bcutil-jdk18on' = '1.86'
         'com.google.guava:guava' = '33.7.2-jre'; 'org.apache.commons:commons-lang3' = '3.18.0'

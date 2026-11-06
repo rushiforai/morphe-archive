@@ -150,6 +150,15 @@ public final class SduiComponentFilter {
     }
 
     /** Components of LinkedIn's puzzle games: search cards (search-game-card-queens), the hub (games-sdui-hub). */
+    /**
+     * The heading above the game cards ("Wind down with a puzzle" on My Network, "Today's puzzles" in search) is a
+     * small text part without a view name, so it can't be found by name: unnamed parts that mention a puzzle.
+     */
+    private static boolean isPuzzleHeading(Object component) {
+        byte[] bytes = payload(component);
+        return bytes != null && bytes.length < 4000 && ProtoScanner.containsAscii(bytes, "uzzle");
+    }
+
     private static boolean isGameView(String viewName) {
         return viewName.startsWith("games-") || viewName.startsWith("game-") || viewName.contains("-game-")
                 || viewName.endsWith("-game") || viewName.endsWith("-games");
@@ -185,6 +194,9 @@ public final class SduiComponentFilter {
             if (Settings.hideGames() && isGameView(viewName)) {
                 return hide(true, "games: " + viewName);
             }
+            if (Settings.hideGames() && viewName.isEmpty() && isPuzzleHeading(component)) {
+                return hide(true, "games heading");
+            }
 
             switch (viewName) {
                 case "feed-full-update":
@@ -215,7 +227,7 @@ public final class SduiComponentFilter {
                     break;
             }
 
-            if (Settings.hidePremium() && viewName.contains("upsell")) {
+            if (Settings.hidePremium() && viewName.contains("upsell") && !keepViewerUpsell(viewName)) {
                 // premium-upsell-card, profile-ai-enhance-card-upsell, taj-home-upsell, ...
                 return hide(true, "premium upsell: " + viewName);
             }
@@ -228,6 +240,15 @@ public final class SduiComponentFilter {
             Diagnostics.error("shouldHide failed", t);
             return false;
         }
+    }
+
+    /**
+     * "Who viewed your profile". Free accounts see their latest viewers there, and the locked rows are wrapped in
+     * the interstitial upsell parts (who-viewed-my-profile-interstitial-upsell), so hiding those hid the list
+     * itself. The small Premium cards between the rows are still hidden.
+     */
+    private static boolean keepViewerUpsell(String viewName) {
+        return viewName.contains("interstitial") && SduiMediaDownload.resumedScreen().contains(".premium.wvmp.");
     }
 
     private static boolean hideFeedUpdate(Object component, Object viewTracking) {

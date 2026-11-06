@@ -3,6 +3,7 @@ package app.hushtumblr.extension.tumblr.settings;
 import static org.junit.Assert.*;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.SwitchPreference;
 import android.widget.ListView;
@@ -106,7 +107,7 @@ public class SettingsResumeWorkerTest {
         assertTrue(pause().isChecked());
         assertTrue(card().isEnabled());
         assertFalse(HushTumblrPreferenceFragment.hasPendingEdits());
-        assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Couldn't start that. Try again in a moment.", SettingsFeedbackTest.message(card()));
     }
 
     @Test public void aFailedCommitKeepsTheSavedPauseAndAllowsRetry() {
@@ -119,8 +120,9 @@ public class SettingsResumeWorkerTest {
         assertTrue(BaseSettings.PAUSED.savedValue());
         assertTrue(pause().isChecked());
         assertTrue(card().isEnabled());
-        assertEquals("Couldn't turn HushTumblr back on. Try again.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Couldn't turn HushTumblr back on. Try again.", SettingsFeedbackTest.message(card()));
         page.resumeFromOverview();
+        assertNull("a new tap still shows the last one's failure", SettingsFeedbackTest.message(card()));
         finish();
         assertFalse(BaseSettings.PAUSED.savedValue());
     }
@@ -140,9 +142,15 @@ public class SettingsResumeWorkerTest {
         assertTrue(BaseSettings.PAUSED.savedValue());
         assertTrue(pause().isChecked());
         assertTrue(card().isEnabled());
-        String summary = card().getSummary().toString();
-        assertTrue(summary, summary.contains("couldn't be removed") && summary.endsWith("then tap Resume again."));
-        assertEquals(summary, ShadowToast.getTextOfLatestToast());
+        // Under the card, which a rebuilt screen keeps, where the summary was rewritten by the next
+        // refresh and a toast's two lines cut the folder off.
+        String left = SettingsFeedbackTest.message(card());
+        assertTrue(left, left != null && left.contains("couldn't be removed") && left.endsWith("then tap Resume again."));
+        assertFalse("also said in a toast", left.equals(ShadowToast.getTextOfLatestToast()));
+        Bundle saved = new Bundle();
+        page.onSaveInstanceState(saved);
+        assertTrue("a rebuilt screen would lose it",
+                saved.getBundle(HushTumblrPreferenceFragment.FEEDBACK_STATE).containsKey(HushTumblrPreferenceFragment.STATUS_CARD));
     }
 
     @Test public void aResumeFinishingAfterReplacementRefreshesTheNewSavedSwitch() {

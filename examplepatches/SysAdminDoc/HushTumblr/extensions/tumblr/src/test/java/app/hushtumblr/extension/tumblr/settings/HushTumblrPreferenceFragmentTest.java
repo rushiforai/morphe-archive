@@ -108,6 +108,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_COMMUNITIES, "Hide suggested communities");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_TAGS, "Hide suggested tags");
         ROW_TITLES.put(PatchFamily.HIDE_WATCH_IT_ROWS, "Hide Watch it rows");
+        ROW_TITLES.put(PatchFamily.HIDE_FEATURED_POSTS, "Hide Featured posts");
         ROW_TITLES.put(PatchFamily.HIDE_HASHTAGS, "Hide hashtags");
         ROW_TITLES.put(PatchFamily.HIDE_FOLLOW_BUTTON, "Hide the Follow button");
         ROW_TITLES.put(PatchFamily.HIDE_TUMBLRMART, "Hide the diamond and TumblrMart");
@@ -120,6 +121,8 @@ public class HushTumblrPreferenceFragmentTest {
         // One row per tab's badge; the first stands for the patch.
         ROW_TITLES.put(PatchFamily.HIDE_UNREAD_DOTS, "Hide the Dashboard count");
         ROW_TITLES.put(PatchFamily.HIDE_REBLOGS, "Hide reblogs");
+        ROW_TITLES.put(PatchFamily.HIDE_OWN_REBLOGS, "Hide your own reblogs");
+        ROW_TITLES.put(PatchFamily.HIDE_LIKED_POSTS, "Hide liked posts");
         ROW_TITLES.put(PatchFamily.HIDE_VIDEO_POSTS, "Hide video posts");
         ROW_TITLES.put(PatchFamily.HIDE_PHOTO_POSTS, "Hide photo posts");
         ROW_TITLES.put(PatchFamily.HIDE_TEXT_POSTS, "Hide text posts");
@@ -134,6 +137,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.SHOW_POST_TIMESTAMPS, "Show post timestamps");
         ROW_TITLES.put(PatchFamily.VISIBLE_ALT_TEXT, "Visible image descriptions");
         ROW_TITLES.put(PatchFamily.SHARE_VIDEO_LINKS, "Share video links");
+        ROW_TITLES.put(PatchFamily.SHARPER_IMAGES, "Sharper images");
         ROW_TITLES.put(PatchFamily.MUTE_ROOT_POSTS, "Mute posts locally");
         ROW_TITLES.put(PatchFamily.SHOW_MUTUAL_MARKERS, "Show mutual markers");
         ROW_TITLES.put(PatchFamily.REVEAL_ALLOWED_MATURE_CONTENT, "Reveal allowed mature content");
@@ -287,8 +291,9 @@ public class HushTumblrPreferenceFragmentTest {
             assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADVERTISING_ID.key)).isChecked());
             assertTrue(((SwitchPreference) page.findPreference(Settings.FIX_PUSH_NOTIFICATIONS.key)).isChecked());
             assertEquals("Hide ads", String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getTitle()));
-            assertEquals("Takes ads and paid Blaze posts out of your dashboard and other feeds. Ad requests stop "
-                + "after Tumblr restarts.", String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
+            assertEquals("Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumblr restarts, it "
+                + "stops asking for ads and its ad networks don't start.",
+                String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertTrue(((SwitchPreference) page.findPreference(Settings.HIDE_ADS.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);

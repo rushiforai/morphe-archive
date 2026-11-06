@@ -172,6 +172,11 @@ class TimelineListHookFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val classes = FixtureDex.classes(build, FILTER_READS.keys + SPONSORED_ENUMS + ACTION_LINK)
             assertTrue("${build.name}: $ACTION_LINK", ACTION_LINK in classes)
+            assertEquals("${build.name}: what ActionLink gets its address from", "$MODEL/link/LinkImpl;",
+                classes.getValue(ACTION_LINK).superclass)
+            for (type in FILTER_READS.keys) {
+                assertTrue("${build.name}: $type is public", classes[type]?.accessFlags?.let { AccessFlags.PUBLIC.isSet(it) } == true)
+            }
             for ((type, getters) in FILTER_READS) {
                 val methods = classes[type]?.methods?.toList().orEmpty()
                 for (getter in getters) {
@@ -229,12 +234,18 @@ private val FILTER_READS = mapOf(
         "isShowSponsoredLabel()Z",
         "getDisplay()$MODEL/Display;",
         "getDisplayType()$MODEL/post/DisplayType;",
+        "getDismissal()$MODEL/Options;",
     ),
     "$MODEL/Timelineable;" to listOf("getTimelineObjectType()$MODEL/TimelineObjectType;", "getId()Ljava/lang/String;"),
     "$MODEL/Display;" to listOf("getSponsored()$MODEL/SponsoredState;"),
     "$MODEL/GenericButton;" to listOf("getButton()$MODEL/GenericButton\$Button;"),
     "$MODEL/GenericButton\$Button;" to listOf("getLinks()$MODEL/GenericButton\$Button\$Links;"),
     "$MODEL/GenericButton\$Button\$Links;" to listOf("getTap()$MODEL/link/Link;"),
+    // Hide Featured posts reads the dismiss menu: each choice's link and the address it calls,
+    // which ActionLink inherits from LinkImpl.
+    "$MODEL/Options;" to listOf("getOptions()Ljava/util/List;"),
+    "$MODEL/Option;" to listOf("getLink()$MODEL/link/Link;"),
+    "$MODEL/link/LinkImpl;" to listOf("getLink()Ljava/lang/String;"),
 )
 
 /** What a button's tap follows when it does something in place, which is following a blog. */

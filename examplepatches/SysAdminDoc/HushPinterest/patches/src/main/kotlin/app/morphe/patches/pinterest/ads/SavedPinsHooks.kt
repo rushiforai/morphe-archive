@@ -85,9 +85,15 @@ internal fun BytecodePatchContext.homePageOrNull(): HomePage? {
                 (instruction as OneRegisterInstruction).registerA in returned
         }
     }
+    // Other feeds' callbacks cast and return their page too. Home's hands the page to Home's own model
+    // first. Up to 14.42.0 the callback sat in Home's model package; 14.43.0 merged it into a shared
+    // lambda class elsewhere, so the call is the anchor, not the package.
+    fun handsToHome(method: Method) = method.calls().any { call ->
+        call.definingClass.startsWith(HOME_MODEL) && call.parameterTypes.any { it.toString() == DYNAMIC_FEED }
+    }
     val callbacks = mutableListOf<Method>()
     classDefForEach { owner ->
-        if (owner.type.startsWith(HOME_MODEL)) owner.methods.filterTo(callbacks) { it.name == "invoke" && casts(it).isNotEmpty() }
+        owner.methods.filterTo(callbacks) { it.name == "invoke" && it.implementation != null && casts(it).isNotEmpty() && handsToHome(it) }
     }
     if (callbacks.isEmpty()) return null
     val callback = callbacks.one("Home's page callback")

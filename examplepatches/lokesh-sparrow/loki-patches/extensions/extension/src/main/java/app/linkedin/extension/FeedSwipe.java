@@ -43,7 +43,7 @@ public final class FeedSwipe {
     /** Injection point, at the start of AndroidComposeView.dispatchTouchEvent. Only watches the touch. */
     public static void onTouch(View view, MotionEvent event) {
         try {
-            if (!Settings.swipeFeeds() || !isHomeFeed(SduiMediaDownload.resumedScreen())) return;
+            if (!Settings.swipeFeeds()) return;
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     downX = event.getRawX();
@@ -77,12 +77,6 @@ public final class FeedSwipe {
         }
     }
 
-    /** The home screen, or one of its feeds, which resume inside it. */
-    private static boolean isHomeFeed(String screen) {
-        return screen.endsWith(".feed.MainFeed") || screen.endsWith(".feed.ForYouFeed")
-                || screen.endsWith(".feed.NetworkFeed");
-    }
-
     /**
      * Taps tab 0 (For you) or 1 (Network), unless the swipe started on a carousel. The tabs are in the home screen's
      * header, a different Compose view than the feed, so every Compose view of the window is searched.
@@ -105,15 +99,33 @@ public final class FeedSwipe {
                 if (scrollsSideways(info) || PAGES.matcher(label(info)).find()) {
                     info.getBoundsInScreen(bounds);
                     if (bounds.contains(startX, startY)) {
-                        Settings.debugLog("feed swipe: left to a carousel or document");
+                        Settings.debugLog("feed swipe: left to a carousel or document (" + label(info) + " " + bounds + ")");
                         return false;
                     }
                 }
                 if (tabIndex(info) == tab) {
                     target = new Rect();
                     info.getBoundsInScreen(target);
-                    targetSelected = isSelected(info);
+                    targetSelected = isSelected(info) && !myNetworkTab(info);
+                    if (myNetworkTab(info)) {
+                        Settings.debugLog("feed swipe: tab " + label(info) + " " + target + " selected="
+                                + isSelected(info));
+                    }
                 }
+            }
+        }
+        if (target == null) {
+            // The tabs of My Network (Grow, Catch up) are regular views, not Compose.
+            View[] found = new View[1];
+            findNativeTab(view.getRootView(), tab, found);
+            if (found[0] != null) {
+                target = new Rect();
+                found[0].getGlobalVisibleRect(target);
+                // The tab's own state, as TalkBack would read it; the parents (the whole bar) are not reliable.
+                AccessibilityNodeInfo info = found[0].createAccessibilityNodeInfo();
+                targetSelected = false;
+                Settings.debugLog("feed swipe: native tab " + (tab == 0 ? "Grow" : "Catch up") + " at " + target
+                        + " selected=" + targetSelected);
             }
         }
         if (target == null || target.isEmpty()) {
@@ -121,16 +133,43 @@ public final class FeedSwipe {
             return false;
         }
         // Swiping toward the open tab does nothing, but it must not open a photo either.
-        if (targetSelected) return true;
+        if (targetSelected) {
+            Settings.debugLog("feed swipe: " + (tab == 0 ? "For you" : "Network") + " is open already");
+            return true;
+        }
         // Nested Compose views can each see the same swipe.
         long now = SystemClock.uptimeMillis();
-        if (now - lastSwitch < 700) return true;
+        if (now - lastSwitch < 700) {
+            Settings.debugLog("feed swipe: ignored, switched just now");
+            return true;
+        }
         lastSwitch = now;
         Settings.debugLog("feed swipe: " + (tab == 0 ? "For you" : "Network"));
         // After the swipe's own touch has finished.
         final Rect tabBounds = target;
         MAIN.post(() -> tap(view.getRootView(), tabBounds.exactCenterX(), tabBounds.exactCenterY()));
         return true;
+    }
+
+    /** A shown view labeled with a tab name (text or description), for the tabs that are not drawn by Compose. */
+    private static void findNativeTab(View view, int tab, View[] out) {
+        if (out[0] != null || view.getVisibility() != View.VISIBLE) return;
+        CharSequence text = view instanceof android.widget.TextView ? ((android.widget.TextView) view).getText() : null;
+        CharSequence description = view.getContentDescription();
+        String label = text != null && text.length() > 0 ? text.toString()
+                : description != null ? description.toString() : "";
+        boolean match = tab == 0 ? label.startsWith("Grow") : label.startsWith("Catch up");
+        if (match && view.isShown() && view.getWidth() > 0) {
+            Rect visible = new Rect();
+            if (view.getGlobalVisibleRect(visible) && !visible.isEmpty()) {
+                out[0] = view;
+                return;
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) findNativeTab(group.getChildAt(i), tab, out);
+        }
     }
 
     private static void findComposeViews(View view, List<View> out) {
@@ -161,9 +200,15 @@ public final class FeedSwipe {
     /** 0 for the For you tab, 1 for Network, -1 for anything else. Their descriptions: "For you, 1 of 2". */
     private static int tabIndex(AccessibilityNodeInfo info) {
         String label = label(info);
-        if (label.startsWith("For you") || label.contains(", 1 of 2")) return 0;
-        if (label.startsWith("Network") || label.contains(", 2 of 2")) return 1;
+        if (label.startsWith("For you") || label.startsWith("Grow") || label.contains(", 1 of 2")) return 0;
+        if (label.startsWith("Network") || label.startsWith("Catch up") || label.contains(", 2 of 2")) return 1;
         return -1;
+    }
+
+    /** The Grow and Catch up tabs of My Network. */
+    private static boolean myNetworkTab(AccessibilityNodeInfo info) {
+        String label = label(info);
+        return label.startsWith("Grow") || label.startsWith("Catch up");
     }
 
     private static boolean isSelected(AccessibilityNodeInfo info) {

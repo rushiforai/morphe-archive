@@ -62,7 +62,7 @@ private val applicationCollectionsRead = Fingerprint(
     parameters = emptyList(),
     filters = listOf(
         methodCall(
-            definingClass = "Lsh5;",
+            definingClass = "Lqr5;",
             name = "g",
             returnType = "V",
             parameters = listOf("Ljava/lang/String;"),
@@ -70,34 +70,18 @@ private val applicationCollectionsRead = Fingerprint(
     ),
 )
 
-// LocalPlayPlan.localIds in the 2.3.0 stable APK. Its callback interface is R8-renamed
-// to Ldo2;, but the method shape and descriptor are stable for the supported target.
-private val localPlayPlan = Fingerprint(
-    definingClass = "Lur2;",
-    name = "O",
-    returnType = "Ljava/util/ArrayList;",
-    parameters = listOf(
-        "Ljava/util/ArrayList;",
-        "Ljava/lang/String;",
-        "Z",
-        "Z",
-        "Z",
-        "Ldo2;",
-    ),
-)
-
 private val offlineStoreLoad = Fingerprint(
-    definingClass = "Lfj5;",
-    name = "n",
+    definingClass = "Lft5;",
+    name = "o",
     returnType = "Ljava/util/ArrayList;",
     parameters = listOf("Ljava/io/File;"),
 )
 
 private val accountClaimLiveRoot = Fingerprint(
-    definingClass = "Lmh5;",
+    definingClass = "Lkr5;",
     name = "a",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lf21;"),
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lu51;"),
     filters = listOf(
         string("offline"),
         methodCall(
@@ -110,10 +94,10 @@ private val accountClaimLiveRoot = Fingerprint(
 )
 
 private val accountParkLiveRoot = Fingerprint(
-    definingClass = "Lmh5;",
+    definingClass = "Lkr5;",
     name = "e",
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lf21;"),
+    parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Lu51;"),
     filters = listOf(
         string("offline"),
         methodCall(
@@ -127,78 +111,39 @@ private val accountParkLiveRoot = Fingerprint(
 
 
 private val settingsClassicScreen = Fingerprint(
-    definingClass = "Ldu2;",
-    name = "w",
+    definingClass = "Lpm2;",
+    name = "t",
     returnType = "V",
-    parameters = listOf("Lhb5;", "Lou0;", "I"),
-    // Each methodCall filter captures one occurrence. Repeating the filter five
-    // times records all five section-header calls in source order, so index [2]
-    // below reliably refers to the Downloads tab rather than the first header.
-    filters = listOf(
+    parameters = listOf("Lzk5;", "Lnx0;", "I"),
+    // The 2.4.0 screen is a single composable with eleven section headers.
+    // The seventh header (zero-based index 6) is Downloads.
+    filters = List(11) {
         methodCall(
-            definingClass = "Ldu2;",
-            name = "v",
+            definingClass = "Lpm2;",
+            name = "s",
             returnType = "V",
-            parameters = listOf("I", "I", "Lou0;"),
-        ),
-        methodCall(
-            definingClass = "Ldu2;",
-            name = "v",
-            returnType = "V",
-            parameters = listOf("I", "I", "Lou0;"),
-        ),
-        methodCall(
-            definingClass = "Ldu2;",
-            name = "v",
-            returnType = "V",
-            parameters = listOf("I", "I", "Lou0;"),
-        ),
-        methodCall(
-            definingClass = "Ldu2;",
-            name = "v",
-            returnType = "V",
-            parameters = listOf("I", "I", "Lou0;"),
-        ),
-        methodCall(
-            definingClass = "Ldu2;",
-            name = "v",
-            returnType = "V",
-            parameters = listOf("I", "I", "Lou0;"),
-        ),
-    ),
+            parameters = listOf("I", "I", "Lnx0;"),
+        )
+    },
 )
 
 private val immersiveSettingsPageRouter = Fingerprint(
-    definingClass = "Lrv;",
+    definingClass = "Ltx;",
     name = "invoke",
     returnType = "Ljava/lang/Object;",
     parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
     filters = listOf(
         methodCall(
-            definingClass = "Lqk3;",
-            name = "g",
+            definingClass = "Lgs3;",
+            name = "h",
             returnType = "V",
-            parameters = listOf("Lhb5;", "Ldo2;", "Lco2;", "Lou0;", "I"),
+            parameters = listOf("Lzk5;", "Lhu2;", "Lgu2;", "Lnx0;", "I"),
         ),
     ),
 )
 
 context(_: BytecodePatchContext)
 private fun applyMyspotiStorageHooks() {
-    // A downloaded selection always enters the local player, even while online
-    // and even when the surrounding playlist is only partly downloaded. The
-    // extension uses the host's existing isDownloaded callback and returns the
-    // downloaded subset in queue order; an undownloaded selection still follows
-    // the original Web Player / audio-source path.
-    localPlayPlan.method.addInstructions(
-        0,
-        """
-            invoke-static/range {p0 .. p5}, Lapp/myspoti/extension/LocalPlaybackPolicy;->localIds(Ljava/util/ArrayList;Ljava/lang/String;ZZZLjava/lang/Object;)Ljava/util/ArrayList;
-            move-result-object v0
-            return-object v0
-        """.trimIndent(),
-    )
-
     // OfflineStore.load(File) is staticized by R8. Its single File parameter is p0.
     // Replace that parameter before the original loader stores the root and scans indexes.
     offlineStoreLoad.method.addInstructions(
@@ -245,11 +190,11 @@ private fun applyMyspotiStorageHooks() {
 
 
     val sectionHeaderCalls = settingsClassicScreen.instructionMatches
-    require(sectionHeaderCalls.size == 5) {
-        "Expected five Classic Settings section headers in MySpoti 2.3.0, found ${sectionHeaderCalls.size}"
+    require(sectionHeaderCalls.size == 11) {
+        "Expected eleven Classic Settings section headers in MySpoti 2.4.0, found ${sectionHeaderCalls.size}"
     }
     settingsClassicScreen.method.addInstructions(
-        sectionHeaderCalls[2].index,
+        sectionHeaderCalls[6].index,
         """
             invoke-static {}, $EXT->showForCurrentActivity()V
         """.trimIndent(),
@@ -263,9 +208,10 @@ private fun applyMyspotiStorageHooks() {
 
 
     // The Settings page router is AnimatedContent's content lambda. Its first
-    // argument is AnimatedContentScope and its second is the page enum. Compose
-    // emits the target page last, after the outgoing page, so the final visibility
-    // update always reflects the destination rather than a page being disposed.
+    // argument is AnimatedContentScope and its second is the page enum. The Downloads
+    // branch calls Lgs3.h in 2.4.0, which anchors this otherwise shared Function4 lambda.
+    // Compose emits the target page last, after the outgoing page, so visibility follows
+    // the destination rather than a page being disposed.
     immersiveSettingsPageRouter.method.addInstructions(
         0,
         """
@@ -278,7 +224,7 @@ private fun applyMyspotiStorageHooks() {
 @Suppress("unused")
 val myspotiExportStorageStable = bytecodePatch(
     name = "MySpoti Export & Storage",
-    description = "Adds Export & storage to Settings > Downloads in MySpoti 2.3.0 in both Classic and Immersive looks, matching MySpoti's Immersive glass, grouped surfaces and selected accent; includes local-first playback for downloaded tracks, tagged audio exports, offline lyrics resolution/cache, portable LRC and JSON lyrics, embedded lyrics, playlist/album M3U8 manifests, reinstall restoration into native Downloads and lyrics caches, shared track files and offline storage migration.",
+    description = "Adds Export & storage to Settings > Downloads in MySpoti 2.4.0 in both Classic and Immersive looks, matching MySpoti's Immersive glass, grouped surfaces and selected accent; includes tagged audio exports, offline lyrics resolution/cache (including romanization), portable LRC and JSON lyrics, embedded lyrics, playlist/album M3U8 manifests, reinstall restoration into native Downloads and lyrics caches, shared track files and offline storage migration while preserving MySpoti's native playback and AutoMix planner.",
     default = true,
 ) {
     compatibleWith(MYSPOTI_STABLE)

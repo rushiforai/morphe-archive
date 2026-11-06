@@ -35,6 +35,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -107,6 +108,8 @@ public final class LiveRecordChip {
             PAGES.put(fragment, Boolean.TRUE);
             host = new WeakReference<>(activity);
             registerCallbacks(activity);
+            // Auto tap (#335) follows the same pages and keeps its own chip and checks.
+            LiveAutoTap.roomResumed(activity);
             // A page laid out on screen wins over an adjacent page resuming. During PiP
             // restoration, no full-size page may be shown yet: do not mistake a prefetched
             // neighbor for the recorded room before the layout has settled.
@@ -217,6 +220,7 @@ public final class LiveRecordChip {
         background.setColor(0xB3000000);
         view.setBackground(background);
         view.setOnClickListener(clicked -> onChipTap());
+        markStacked(view, STACK_RECORD, dp(activity, TOP_DP), dp(activity, GAP_DP));
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.TOP | Gravity.END);
@@ -234,32 +238,99 @@ public final class LiveRecordChip {
 
     /**
      * Moves the chip below anything to tap that TikTok draws where it sits, such as the avatar row
-     * of the Discover panel when that opens over the room, and back up once it's gone. A view a
-     * quarter of the screen or bigger is the room's own surface and doesn't count.
+     * of the Discover panel when that opens over the room, and back up once it's gone, with the
+     * buttons stacked under it following in the same pass.
      */
     private static void stayClear(Activity activity) {
         TextView view = chip;
-        if (view == null || !(view.getParent() instanceof ViewGroup)) return;
-        ViewGroup content = (ViewGroup) view.getParent();
+        if (view != null && view.getParent() instanceof ViewGroup) restack((ViewGroup) view.getParent());
+    }
+
+    /**
+     * Hushfeed's own buttons over a LIVE room stack top to bottom in this order: the Record chip,
+     * Auto tap, then the block button.
+     */
+    public static final int STACK_RECORD = 1;
+    public static final int STACK_AUTO_TAP = 2;
+    public static final int STACK_BLOCK = 3;
+
+    /** A stacked button's place in the stack, the top it asks for and the gap it keeps, in pixels. */
+    private static final class StackSlot {
+        final int rank;
+        final int wantedTop;
+        final int gap;
+
+        StackSlot(int rank, int wantedTop, int gap) {
+            this.rank = rank;
+            this.wantedTop = wantedTop;
+            this.gap = gap;
+        }
+    }
+
+    /**
+     * Marks {@code view} as the Hushfeed button at {@code rank} in the room's stack, sitting at
+     * {@code wantedTop} unless something to tap is there, and {@code gap} below whatever it moves under.
+     */
+    public static void markStacked(View view, int rank, int wantedTop, int gap) {
+        view.setTag(new StackSlot(rank, wantedTop, gap));
+    }
+
+    private static int stackRank(View view) {
+        Object tag = view == null ? null : view.getTag();
+        return tag instanceof StackSlot ? ((StackSlot) tag).rank : 0;
+    }
+
+    /**
+     * Puts every stacked Hushfeed button in {@code content} in its place in one pass, top of the
+     * stack first: each below the room's own tap targets and below where the shown buttons above it
+     * are going, not where they were last drawn. When each button moved on its own tick against the
+     * others' last drawn spots, a room opening or the Discover panel sliding in moved them all at
+     * once, and they sat on top of each other until later ticks sorted them out. A view a quarter
+     * of the screen or bigger is the room's own surface and doesn't count. Main thread only.
+     */
+    public static void restack(ViewGroup content) {
         Rect area = new Rect();
         if (!content.isShown() || !content.getGlobalVisibleRect(area)) return;
+        List<View> stacked = new ArrayList<>();
+        for (int i = 0; i < content.getChildCount(); i++) {
+            View child = content.getChildAt(i);
+            if (stackRank(child) > 0 && child.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                stacked.add(child);
+            }
+        }
+        if (stacked.isEmpty()) return;
+        Collections.sort(stacked, (a, b) -> Integer.compare(stackRank(a), stackRank(b)));
         List<Rect> taken = new ArrayList<>();
-        tapTargets(content, view, area, (long) area.width() * area.height() / 4, taken);
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-        int width = view.getWidth() > 0 ? view.getWidth() : dp(activity, 96);
-        int height = view.getHeight() > 0 ? view.getHeight() : dp(activity, 48);
-        int right = area.width() - params.rightMargin;
-        int top = freeTop(dp(activity, TOP_DP), height, right - width, right, taken,
-                dp(activity, GAP_DP), area.height() * 2 / 3);
-        if (top != params.topMargin) {
-            params.topMargin = top;
-            view.setLayoutParams(params);
+        collectTapTargets(content, null, true, area, (long) area.width() * area.height() / 4, taken);
+        int lowest = area.height() * 2 / 3;
+        for (View view : stacked) {
+            StackSlot slot = (StackSlot) view.getTag();
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+            float density = view.getResources().getDisplayMetrics().density;
+            int width = view.getWidth() > 0 ? view.getWidth()
+                    : params.width > 0 ? params.width : Math.round(96 * density);
+            int height = view.getHeight() > 0 ? view.getHeight()
+                    : params.height > 0 ? params.height : Math.round(48 * density);
+            int right = area.width() - params.rightMargin;
+            int top = freeTop(slot.wantedTop, height, right - width, right, taken, slot.gap, lowest);
+            if (top != params.topMargin) {
+                params.topMargin = top;
+                view.setLayoutParams(params);
+            }
+            // A hidden button keeps no room, so the ones under it move up into its spot.
+            if (view.getVisibility() == View.VISIBLE) taken.add(new Rect(right - width, top, right, top + height));
         }
     }
 
     /** Every visible view under {@code root} that takes a tap, other than {@code skip}, in {@code area}'s coordinates. */
-    static void tapTargets(View root, View skip, Rect area, long largest, List<Rect> out) {
+    public static void tapTargets(View root, View skip, Rect area, long largest, List<Rect> out) {
+        collectTapTargets(root, skip, false, area, largest, out);
+    }
+
+    private static void collectTapTargets(View root, View skip, boolean skipStacked, Rect area, long largest,
+            List<Rect> out) {
         if (root == skip || root.getVisibility() != View.VISIBLE || root.getAlpha() == 0f) return;
+        if (skipStacked && stackRank(root) > 0) return;
         Rect rect = new Rect();
         if ((root.isClickable() || root.isLongClickable()) && root.getGlobalVisibleRect(rect)
                 && (long) rect.width() * rect.height() < largest) {
@@ -269,7 +340,7 @@ public final class LiveRecordChip {
         if (root instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) root;
             for (int i = 0; i < group.getChildCount(); i++) {
-                tapTargets(group.getChildAt(i), skip, area, largest, out);
+                collectTapTargets(group.getChildAt(i), skip, skipStacked, area, largest, out);
             }
         }
     }
@@ -279,7 +350,7 @@ public final class LiveRecordChip {
      * and {@code right} covers none of {@code taken}. Past {@code lowest} the chip would sit among
      * the room's own controls, so it stays at {@code wanted} then.
      */
-    static int freeTop(int wanted, int height, int left, int right, List<Rect> taken, int gap, int lowest) {
+    public static int freeTop(int wanted, int height, int left, int right, List<Rect> taken, int gap, int lowest) {
         int top = wanted;
         boolean moved = true;
         while (moved && top <= lowest) {
@@ -307,6 +378,15 @@ public final class LiveRecordChip {
         if (view == null) return;
         view.setVisibility(hidesChip(recorder == null ? null : recorder.target(), clearScreen)
                 ? View.INVISIBLE : View.VISIBLE);
+        // The buttons stacked under the chip keep out of a screen recording too; they check
+        // filmingScreen() on their own ticks, and this hides them before the first frame.
+        if (filmingScreen() && view.getParent() instanceof ViewGroup) {
+            ViewGroup parent = (ViewGroup) view.getParent();
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                View sibling = parent.getChildAt(i);
+                if (sibling != view && stackRank(sibling) > 0) sibling.setVisibility(View.INVISIBLE);
+            }
+        }
         if (saving) {
             view.setText(L10n.t("Saving the recording"));
             view.setContentDescription(L10n.t("Saving the recording"));
@@ -326,6 +406,23 @@ public final class LiveRecordChip {
     /** Screen recordings hide the chip to avoid filming it (#265). */
     static boolean hidesChip(LiveRecorder.Target target) {
         return hidesChip(target, false);
+    }
+
+    /**
+     * Whether a recording of the room's screen is under way, so every Hushfeed button over the
+     * room stays out of it (#265). Main thread only.
+     */
+    public static boolean filmingScreen() {
+        LiveRecorder running = recorder;
+        return running != null && hidesChip(running.target());
+    }
+
+    /**
+     * Whether the room in front has LIVE Clear screen on; known only with LIVE controls patched in.
+     * Main thread only.
+     */
+    public static boolean clearScreenOn() {
+        return clearScreen;
     }
 
     /** LIVE Clear screen also hides the chip, without changing recording state. */
@@ -477,6 +574,11 @@ public final class LiveRecordChip {
      * when TikTok already holds the microphone permission, which playback capture requires.
      */
     private static void startScreen(Activity activity, Object fragment, Object room) throws Exception {
+        // Audio only stops the picture, so the screen would record a still frame (#265).
+        if (LiveAudioOnly.playing(room)) {
+            Utils.showToastLong(L10n.t("Pick a video quality to record the screen"));
+            return;
+        }
         LiveRoomStream.Pick pick = LiveRoomStream.screenTarget(room);
         if (pick.target == null) {
             Utils.showToastShort(L10n.t("No stream found to record. Reopen the LIVE."));
@@ -641,7 +743,7 @@ public final class LiveRecordChip {
     }
 
     /** The resumed room page of {@code activity} with the most of itself on screen, or null. */
-    private static Object pageInFront(Activity activity) {
+    static Object pageInFront(Activity activity) {
         if (activity.isFinishing() || activity.isDestroyed()) return null;
         View decor = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
         if (decor == null || !decor.isShown()) return null;
@@ -659,7 +761,7 @@ public final class LiveRecordChip {
     }
 
     /** How much of a room page is on screen, in pixels; 0 unless it is resumed and mostly shown. */
-    private static int heightOnScreen(Object fragment) {
+    public static int heightOnScreen(Object fragment) {
         if (Boolean.FALSE.equals(Reflect.invoke(fragment, "isResumed"))) return 0;
         if (Boolean.TRUE.equals(Reflect.invoke(fragment, "isRemoving"))) return 0;
         if (Boolean.TRUE.equals(Reflect.invoke(fragment, "isDetached"))) return 0;
@@ -697,7 +799,7 @@ public final class LiveRecordChip {
     }
 
     /** The Room-typed field on a room page or a native clear-screen controller. */
-    private static Object roomOf(Object holder) {
+    public static Object roomOf(Object holder) {
         if (holder == null) return null;
         try {
             for (Class<?> type = holder.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {

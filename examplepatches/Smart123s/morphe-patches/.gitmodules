@@ -1,0 +1,3 @@
+[submodule "libgdx"]
+	path = extensions/ricardo/native/libgdx
+	url = https://github.com/libgdx/libgdx.git

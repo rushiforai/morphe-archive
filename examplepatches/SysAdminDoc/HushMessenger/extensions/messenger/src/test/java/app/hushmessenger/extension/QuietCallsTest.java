@@ -7,6 +7,7 @@ import android.app.Person;
 import android.content.Intent;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import java.time.Duration;
 import java.util.Arrays;
@@ -212,6 +213,33 @@ public class QuietCallsTest {
             ((EditText) root.findViewWithTag("find_control")).setText("lopez");
             assertEquals(View.VISIBLE, wrapper.getVisibility());
             assertTrue(ana.isShown());
+        }
+    }
+
+    @Test public void aChatThatCalledWhileSettingsSatBehindMessengerIsListedOnReturn() {
+        Settings.preferences.edit().putBoolean(QuietCalls.KEY, true).commit();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            assertNotNull(root.findViewWithTag("quiet_calls_recent_empty"));
+            // Settings stays open under Messenger, a call comes in, then Back returns here.
+            screen.pause().stop();
+            QuietCalls.incoming("1001", 2002);
+            QuietCalls.incomingNotification(ringing("Ana Lopez"), app);
+            screen.restart().resume();
+            Switch ana = root.findViewWithTag(QuietCalls.CHAT_PREFIX + "1001");
+            assertNotNull("Listed when the page comes back", ana);
+            assertNull(root.findViewWithTag("quiet_calls_recent_empty"));
+            LinearLayout list = root.findViewWithTag("quiet_calls_recent_list");
+            assertEquals("One row for the one caller", 1, list.getChildCount());
+            ana.performClick();
+            assertTrue(Settings.preferences.getBoolean(QuietCalls.CHAT_PREFIX + "1001", false));
+            // The next return builds the row again from what was saved, still once.
+            screen.pause().stop();
+            screen.restart().resume();
+            Switch again = root.findViewWithTag(QuietCalls.CHAT_PREFIX + "1001");
+            assertNotSame(ana, again);
+            assertTrue(again.isChecked());
+            assertEquals(1, list.getChildCount());
         }
     }
 

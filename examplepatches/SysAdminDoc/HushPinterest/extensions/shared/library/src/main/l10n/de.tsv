@@ -161,6 +161,7 @@ Promoted pins	Beworbene Pins
 Removes promoted pins from your home feed, search, related pins and boards, and hides panels that only hold ads.	Entfernt beworbene Pins aus deinem Startfeed, der Suche, den ähnlichen Pins und den Pinnwänden und blendet Bereiche aus, die nur Werbung enthalten.
 ad-only views	reine Werbeansichten
 Google ad SDK start	Start des Google-Werbe-SDK
+Meta ad SDK	Meta-Werbe-SDK
 promoted pins in lists	beworbene Pins in Listen
 Privacy	Datenschutz
 Pin actions	Pin-Aktionen
@@ -325,8 +326,8 @@ Fix push notifications	Push-Benachrichtigungen reparieren
 Lets a patched Pinterest sign up for push notifications, which it can't do on its own. A change applies the next time Pinterest starts.	Lässt ein gepatchtes Pinterest sich für Push-Benachrichtigungen anmelden. Allein kann es das nicht. Eine Änderung gilt beim nächsten Start von Pinterest.
 Stops Pinterest from suggesting you share a screenshot. Screenshots still work. Restart Pinterest to see the change.	Hindert Pinterest daran, dir das Teilen eines Screenshots vorzuschlagen. Screenshots funktionieren weiterhin. Starte Pinterest neu, damit die Änderung greift.
 Hides your recent searches. It doesn't delete your account's search history. The change shows the next time the screen updates.	Blendet deine letzten Suchanfragen aus. Der Suchverlauf deines Kontos wird nicht gelöscht. Die Änderung zeigt sich, wenn sich der Bildschirm das nächste Mal aktualisiert.
-Hides Create in the bottom bar. The change shows the next time the bar updates.	Blendet Erstellen in der unteren Leiste aus. Die Änderung zeigt sich, wenn sich die Leiste das nächste Mal aktualisiert.
-Hides Notifications in the bottom bar. The change shows the next time the bar updates.	Blendet Benachrichtigungen in der unteren Leiste aus. Die Änderung zeigt sich, wenn sich die Leiste das nächste Mal aktualisiert.
+Hides Create in the bottom bar and at the top of Home. The change shows the next time they update.	Blendet Erstellen in der unteren Leiste und oben auf der Startseite aus. Die Änderung zeigt sich, wenn sie sich das nächste Mal aktualisieren.
+Hides Notifications in the bottom bar, and Notifications or Inbox at the top of Home. The change shows the next time they update.	Blendet Benachrichtigungen in der unteren Leiste und Benachrichtigungen oder Posteingang oben auf der Startseite aus. Die Änderung zeigt sich, wenn sie sich das nächste Mal aktualisieren.
 Hides Search in the bottom bar. The change shows the next time the bar updates.	Blendet Suche in der unteren Leiste aus. Die Änderung zeigt sich, wenn sich die Leiste das nächste Mal aktualisiert.
 Hides the small icon buttons at the end of the top bar. Back, text buttons and account controls stay. The change shows the next time the bar updates.	Blendet die kleinen Symbolschaltflächen am Ende der oberen Leiste aus. Zurück, Textschaltflächen und Kontosteuerung bleiben. Die Änderung zeigt sich, wenn sich die Leiste das nächste Mal aktualisiert.
 Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's already open won't change.	Blendet Zu Collage hinzufügen und Collage remixen in Pin-Menüs aus, die du ab jetzt öffnest. Ein bereits offenes Menü ändert sich nicht.
@@ -539,10 +540,10 @@ Save button color	Farbe der Merken-Schaltfläche
 Paints the red Save button on a pin you open in a color you pick. It's Pinterest's red for now.	Färbt die rote Merken-Schaltfläche auf einem geöffneten Pin in einer Farbe deiner Wahl. Im Moment ist sie Pinterest-Rot.
 Painting the Save button %1$s. Tap to change it. The change shows on the next pin you open.	Die Merken-Schaltfläche wird %1$s gefärbt. Zum Ändern tippen. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
 Type a hex color, like #3366FF, or three digits, like #36F. A light color gets dark text so the button stays readable.	Gib eine Hex-Farbe ein, etwa #3366FF, oder drei Ziffern, etwa #36F. Eine helle Farbe bekommt dunkle Schrift, damit die Schaltfläche lesbar bleibt.
-Couldn't open the Save button color. Try again.	Die Farbe der Merken-Schaltfläche ließ sich nicht öffnen. Versuche es noch einmal.
-That isn't a hex color, so nothing changed. Try one like #3366FF.	Das ist keine Hex-Farbe, deshalb hat sich nichts geändert. Versuche etwas wie #3366FF.
-Couldn't save the Save button color. Try again.	Die Farbe der Merken-Schaltfläche ließ sich nicht speichern. Versuche es noch einmal.
-The Save button is back to Pinterest's red on the next pin you open.	Die Merken-Schaltfläche ist beim nächsten Pin, den du öffnest, wieder Pinterest-Rot.
+Couldn't open the Save button color. Try again.	Konnte die Farbe der Merken-Schaltfläche nicht öffnen. Versuche es erneut.
+Not a hex color, so nothing changed. Try one like #3366FF.	Keine Hex-Farbe, also hat sich nichts geändert. Versuche etwas wie #3366FF.
+Couldn't save the Save button color. Try again.	Konnte die Farbe der Merken-Schaltfläche nicht speichern. Versuche es erneut.
+The Save button goes back to Pinterest's red on your next pin.	Die Merken-Schaltfläche ist beim nächsten Pin wieder Pinterest-Rot.
 The Save button turns %1$s on the next pin you open.	Die Merken-Schaltfläche wird beim nächsten Pin, den du öffnest, %1$s.
 # context: a third Hide closeup buttons switch on the Interface page, right under Hide lens button. Pinterest puts a Search image label on the lens button for the first two pins someone opens each day. With this on the lens stays but never wears the label or glows. The last line names this part of the patch in a build report.
 Hide Search image label on pins	Label „Bild suchen“ auf Pins ausblenden

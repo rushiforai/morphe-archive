@@ -7,6 +7,19 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 
+private const val MUSIC_ACTIVITY_CLASS_TYPE = "Lcom/google/android/apps/youtube/music/activities/MusicActivity;"
+
+/**
+ * Main activity of the app, the same start point the official shared extension uses.
+ */
+internal object MusicActivityOnCreateFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+    custom = { method, classDef ->
+        method.name == "onCreate" && classDef.type == MUSIC_ACTIVITY_CLASS_TYPE
+    }
+)
+
 internal object MediaSessionSetMetadataFingerprint : Fingerprint(
     filters = listOf(
         methodCall(

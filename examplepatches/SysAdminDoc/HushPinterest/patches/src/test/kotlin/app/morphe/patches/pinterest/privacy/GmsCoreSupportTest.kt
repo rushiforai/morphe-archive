@@ -129,7 +129,7 @@ class GmsCoreSupportTest {
                     if (names) held += owner.type
                 }
             }
-            // 14.42.0 keeps Firebase messaging's receive action in one. A build with none can drop this.
+            // 14.43.0 keeps Firebase messaging's receive action in one. A build with none can drop this.
             assertTrue("${build.name}: no static field to prove the rewrite on", held.isNotEmpty())
             val fixture = rerouted(build)
             val classes = fixture + FixtureDex.classes(build, held - fixture.map { it.type }.toSet()).values

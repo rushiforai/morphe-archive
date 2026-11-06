@@ -1,11 +1,11 @@
 name: Problem
-description: Something does not work in Maps Car
+description: Something does not work in the patched Maps
 body:
   - type: input
     id: report-id
     attributes:
       label: Report ID
-      description: Shown after you send a report from the Report Maps Car icon (or Settings › Report a problem). If no report could be sent, leave it empty and attach the crash file from Documents/Morphe below.
+      description: Shown after you send a report from the red Report icon (Report Maps unless you renamed the app) or Settings › Report a problem. If no report could be sent, leave it empty and attach the crash file from Documents/Morphe below.
       placeholder: MC-XXXX-XXXX
   - type: input
     id: car
@@ -25,7 +25,7 @@ body:
     id: bundle
     attributes:
       label: Bundle version
-      description: The patches version Morphe Desktop showed when you patched.
+      description: Shown under the report screen's title, and its QR codes fill it in for you. On builds before 0.1.5, use the patches version Morphe Desktop showed when you patched.
       placeholder: "0.1.0"
     validations:
       required: true
@@ -33,6 +33,7 @@ body:
     id: maps
     attributes:
       label: Google Maps (Android Automotive) version
+      description: Shown under the report screen's title too.
       placeholder: 26.10.120003.E
     validations:
       required: true
@@ -40,6 +41,6 @@ body:
     id: problem
     attributes:
       label: What happened
-      description: What you did, what you expected and what Maps Car did instead. Say if Maps Car was in safe mode or you turned features off.
+      description: What you did, what you expected and what the app did instead. Say if the app was in safe mode or you turned features off.
     validations:
       required: true

@@ -142,9 +142,9 @@ internal class TrailFollowSite(val method: MutableMethod, val parameter: Int) {
  * the header hands that field out. The method wanted takes the header, asks it for the button, sets
  * the button's visibility more than once (shown and hidden), and tests one object parameter, the
  * trail entry: the button shows when there is one and goes when there isn't. Tumblr calls it only
- * when the header should offer Follow. In 46.9.1.100 that's `wyg.u`, called from `wyg.P`; the
- * header's other user of the button, `wyg.O`, only ever hides it. Found by reading Tumblr
- * 46.9.1.100 (2026-11-02).
+ * when the header should offer Follow. In 47.0.0.108 that's `z3h.u`, called from `z3h.Q`; the
+ * header's other user of the button, `z3h.P`, only ever hides it. Found by reading Tumblr
+ * 47.0.0.108 (2026-11-05).
  */
 internal fun BytecodePatchContext.resolveTrailFollow(): TrailFollowSite {
     requireExtensionHook(PATCH, TRAIL_FOLLOW_HOOK)

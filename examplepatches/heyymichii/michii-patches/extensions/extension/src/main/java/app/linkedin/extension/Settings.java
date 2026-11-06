@@ -40,6 +40,12 @@ public final class Settings {
     static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
     static final String MATERIAL_YOU = "material_you";
     static final String AMOLED_BLACK = "amoled_black";
+    static final String HIDE_TAB_LABELS = "hide_tab_labels";
+    static final String ICON_ONLY_ACTIONS = "icon_only_actions";
+    static final String HIDDEN_TABS = "hidden_tabs";
+    static final String HIDE_NAV_BADGES = "hide_nav_badges";
+    static final String COPY_POST_TEXT = "copy_post_text";
+    static final String ACCENT_COLOR = "accent_color";
     static final String SANITIZE_SHARE_LINKS = "sanitize_share_links";
     static final String RESOLVE_SHORT_LINKS = "resolve_short_links";
     static final String LAST_SEEN_VERSION = "last_seen_version";
@@ -124,6 +130,69 @@ public final class Settings {
 
     static boolean materialYou() {
         return isMaterialYouIncluded() && get(MATERIAL_YOU, true);
+    }
+
+    public static boolean isBottomBarStyleIncluded() {
+        return false;
+    }
+
+    /** Part of "Bottom bar style": icons only in the bottom bar. */
+    static boolean hideTabLabels() {
+        return isBottomBarStyleIncluded() && get(HIDE_TAB_LABELS, false);
+    }
+
+    private static String hiddenTabsRaw;
+    private static java.util.Set<String> hiddenTabsParsed = java.util.Collections.emptySet();
+
+    /** Part of "Bottom bar style": the bottom bar tabs to hide, by view id name (tab_post, ...). */
+    static java.util.Set<String> hiddenTabs() {
+        if (!isBottomBarStyleIncluded()) return java.util.Collections.emptySet();
+        String raw = getString(HIDDEN_TABS, "");
+        if (!raw.equals(hiddenTabsRaw)) {
+            java.util.Set<String> tabs = new java.util.HashSet<>();
+            for (String tab : raw.split(",")) if (!tab.trim().isEmpty()) tabs.add(tab.trim());
+            hiddenTabsParsed = tabs;
+            hiddenTabsRaw = raw;
+        }
+        return hiddenTabsParsed;
+    }
+
+    /** Part of "Bottom bar style": no counts or dots on the bottom bar tabs. */
+    static boolean hideNavBadges() {
+        return isBottomBarStyleIncluded() && get(HIDE_NAV_BADGES, false);
+    }
+
+    public static boolean isCopyPostTextIncluded() {
+        return false;
+    }
+
+    static boolean copyPostText() {
+        return isCopyPostTextIncluded() && get(COPY_POST_TEXT, true);
+    }
+
+    public static boolean isIconOnlyActionsIncluded() {
+        return false;
+    }
+
+    static boolean iconOnlyActions() {
+        return isIconOnlyActionsIncluded() && get(ICON_ONLY_ACTIONS, false);
+    }
+
+    private static String accentRaw;
+    private static int accentParsed = -1;
+
+    /**
+     * Part of Material You: the chosen accent color (0xRRGGBB), or -1 for the wallpaper's. Read for every themed
+     * color, so the parsed value is kept.
+     */
+    static int accentColor() {
+        if (!isMaterialYouIncluded()) return -1;
+        String raw = getString(ACCENT_COLOR, "");
+        if (!raw.equals(accentRaw)) {
+            accentRaw = raw;
+            accentParsed = AccentPalette.parse(raw);
+        }
+        return accentParsed;
     }
 
     public static boolean isGmsCoreSupportIncluded() {
@@ -275,6 +344,32 @@ public final class Settings {
     /** Called from HomeNavPanelTransformer.toPremiumViewData (the "Me" panel upsell card). */
     public static boolean hideNavPanelUpsell() {
         return hidePremium();
+    }
+
+    /**
+     * Called at the start of AiSuggestionBar.setLockedState, which shows "Get AI suggestions with Premium" under
+     * text fields (the profile headline, for one) to members without Premium. Hides the bar and skips the method.
+     */
+    public static boolean hideLockedAiSuggestionBar(android.view.View bar) {
+        if (!hidePremium() || bar == null) return false;
+        bar.setVisibility(android.view.View.GONE);
+        debugLog("hide premium AI suggestion bar");
+        return true;
+    }
+
+    /** Full page Premium ads, such as the one LinkedIn opens at launch (PremiumUpsellFullPageTakeoverNavGraphScreen). */
+    private static final String PREMIUM_TAKEOVER_SCREEN = "PremiumUpsellFullPageTakeover";
+
+    /**
+     * When a server drawn screen opens: closes full page Premium ads like the back button would. Hiding their content
+     * alone left an empty black page.
+     */
+    static void closePremiumTakeover(android.app.Activity activity, String screen) {
+        if (activity == null || !screen.contains(PREMIUM_TAKEOVER_SCREEN) || !hidePremium()) return;
+        debugLog("close premium takeover: " + screen);
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+            if (!activity.isFinishing()) activity.onBackPressed();
+        });
     }
 
     static boolean downloadMedia() {

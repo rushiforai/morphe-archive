@@ -33,9 +33,12 @@ import java.util.Set;
 
 import app.morphe.extension.hushthreads.ads.FeedAds;
 import app.morphe.extension.hushthreads.ads.ShadowFeedAds;
+import app.morphe.extension.hushthreads.comments.CommentFilter;
+import app.morphe.extension.hushthreads.comments.CommentSettings;
 import app.morphe.extension.hushthreads.download.SavesForTests;
 import app.morphe.extension.hushthreads.feed.CopyText;
 import app.morphe.extension.hushthreads.feed.ImageQuality;
+import app.morphe.extension.hushthreads.feed.PostTime;
 import app.morphe.extension.hushthreads.feed.ReturnRefresh;
 import app.morphe.extension.hushthreads.feed.SwipeToSearch;
 import app.morphe.extension.hushthreads.feed.VideoAutoplay;
@@ -179,6 +182,18 @@ public class PausedHooksTest {
         // A ghost post bubble Threads would show, on a profile or in the feed's row, isn't shown.
         probes.put(PatchFamily.HIDE_GHOST_POST_BUBBLES, Arrays.asList(
                 () -> !GhostPostBubbles.showOnProfile(true), () -> !GhostPostBubbles.showTray(true)));
+        // A post header's time is written out in full instead of left to Threads.
+        probes.put(PatchFamily.EXACT_POST_TIMES, Collections.singletonList(
+                () -> PostTime.exact(RuntimeEnvironment.getApplication(), 1_700_000_000d) != null));
+        // A reply carrying a listed domain is taken out of the list Threads would parse.
+        probes.put(PatchFamily.FILTER_COMMENTS, Collections.singletonList(() -> {
+            CommentSettings.FILTER_COMMENT_PATTERNS.save("shopee.vn");
+            try {
+                return CommentFilter.removes("Buy it at shopee.vn/abc");
+            } finally {
+                CommentSettings.FILTER_COMMENT_PATTERNS.resetToDefault();
+            }
+        }));
         return probes;
     }
 

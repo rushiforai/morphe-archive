@@ -10,7 +10,8 @@ import java.util.Locale;
 /**
  * Consumption per speed band, measured against BYD's table (data only). Maps uses one
  * model for every route; this shows whether the table is off in town or on the highway before
- * anything sent to Maps changes. Nothing here reaches Maps.
+ * anything sent to Maps changes. The bands reach only the dialog; the whole percents also place the
+ * battery inside its percent (BydBatteryPatch.whPerPercent).
  * <p>
  * Each 10 s interval goes to the band of its mean display speed: city below 60 km/h, mixed 60–80,
  * highway 80 and above. A third band keeps the 60–80 transitions out of the other two instead of
@@ -69,7 +70,7 @@ final class BydSpeedBands {
     private static final Band[] bands = {new Band(), new Band(), new Band(), new Band()};
     // Per percent: above 90% SOC, then 90% and below.
     private static final Levels[] levels = {new Levels(), new Levels()};
-    private static String table;
+    private static String table, tableSha;
     private static BydVehicleEnergyFile predictorFile;
     private static BydVehicleEnergyFile.Predictor predictor;
     // The current chain of valid intervals.
@@ -94,6 +95,8 @@ final class BydSpeedBands {
             JSONObject state = new JSONObject(saved);
             if (state.getInt("schema") != SCHEMA) return;
             table = state.optString("table", null);
+            // Since 0.1.5: the hash of the table's prediction parts.
+            tableSha = state.optString("table_prediction_sha256", null);
             JSONArray stored = state.getJSONArray("bands");
             for (int i = 0; i < bands.length && i < stored.length(); i++) {
                 JSONObject b = stored.getJSONObject(i);
@@ -122,10 +125,23 @@ final class BydSpeedBands {
     /** One sample while BYD's table is used; the mass and outside temperature are the model's. */
     static synchronized void observe(BydEnergyReader.Sample sample, int energyWh, int capacityWh,
                                      BydVehicleEnergyFile file, int massKg, int outsideC) {
-        if (!file.name.equals(table)) {
-            if (table != null) ReportLog.i(TAG, "bands_reset;reason=table_changed;from=" + table + ";to=" + file.name);
-            clear();
+        if (!file.name.equals(table) || !file.predictionSha256.equals(tableSha)) {
+            if (!file.name.equals(table)) {
+                if (table != null) ReportLog.i(TAG, "bands_reset;reason=table_changed;from=" + table + ";to=" + file.name);
+                clear();
+            } else if (tableSha != null) {
+                // The same table with other values: its pools compared against the old ones.
+                ReportLog.i(TAG, "bands_reset;reason=table_values_changed;table=" + file.name + ";from=" + tableSha
+                        + ";to=" + file.predictionSha256);
+                clearBands();
+            } else if (file.lossesReordered) {
+                // A state from before 0.1.5 holds the name only. Kept for a table used as stored; one whose
+                // losses are now put back was compared against them transposed, so its pools start again.
+                ReportLog.i(TAG, "bands_reset;reason=table_reordered;table=" + file.name);
+                clearBands();
+            }
             table = file.name;
+            tableSha = file.predictionSha256;
             persist();
         }
         if (file != predictorFile) {
@@ -299,8 +315,13 @@ final class BydSpeedBands {
     }
 
     private static void clear() {
-        for (int i = 0; i < bands.length; i++) bands[i] = new Band();
+        clearBands();
         for (int i = 0; i < levels.length; i++) levels[i] = new Levels();
+    }
+
+    /** The pools and the chain in progress; the counted whole percents stay (they do not depend on the table). */
+    private static void clearBands() {
+        for (int i = 0; i < bands.length; i++) bands[i] = new Band();
         chained = false;
         stepLevel = -1;
         runBand = -1;
@@ -326,6 +347,7 @@ final class BydSpeedBands {
             JSONObject state = new JSONObject();
             state.put("schema", SCHEMA);
             if (table != null) state.put("table", table);
+            if (tableSha != null) state.put("table_prediction_sha256", tableSha);
             state.put("bands", stored);
             JSONArray storedLevels = new JSONArray();
             for (Levels l : levels) {

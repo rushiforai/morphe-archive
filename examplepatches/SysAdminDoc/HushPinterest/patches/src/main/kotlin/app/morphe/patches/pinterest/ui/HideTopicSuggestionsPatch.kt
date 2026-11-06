@@ -21,6 +21,7 @@ import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction
@@ -32,21 +33,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide topic suggestions"
 
 /**
  * Pinterest's log line for a topic row whose presenter is the wrong kind. It sits in the topic arm
- * of the binder, so it names the binder in the declared build.
+ * of the binder, so it names the binder and, by the one arm whose code reaches it, the topic arm.
  */
 internal const val TOPIC_BINDER_ANCHOR = "Presenter bound to BubblesListView must be of type BubblesListPresenter"
 
 /** The first instruction a discriminator with no case of its own runs: the one right after the switch. */
 internal const val TOPIC_FALL_THROUGH = 2
-
-/** Pinterest's topic row view. Obfuscation leaves its name alone, and 14.39.0 and 14.40.0 both use it. */
-internal const val TOPIC_ROW = "Lcom/pinterest/feature/search/typeahead/view/SearchTypeaheadAutoCompleteUpsellCell;"
 
 internal const val TOPIC_ROW_HOOK = "$UI_HOOKS->topicSuggestions(Ljava/lang/Object;)V"
 internal const val TOPIC_MEASURE_HOOK = "$UI_HOOKS->topicSuggestionsMeasureSpec(Landroid/view/View;I)I"
@@ -83,13 +82,15 @@ internal class TopicSuggestions(val binder: MutableMethod, val view: String, val
  * The binder, the row's view class and the places for both hooks, all found and checked before
  * anything changes.
  *
- * Every arm starts by casting the binder's view parameter to an interface, and the topic arm's is
- * the interface [TOPIC_ROW] implements, which no other class does. 14.39.0 gives the topic row the
- * arm with no case and 14.40.0 a case of its own, so the arm is found by that cast, among the
- * places the switch starts one. Its hook goes right after the cast: a case lands on the cast
- * itself, so anything put before it would be jumped over. Pinterest adds the row straight to its
- * grid, a RecyclerView, which lays out a GONE child like any other, so hiding the row takes a zero
- * measure as well as GONE. Neither declared build gives that class an onMeasure of its own.
+ * Every arm starts by casting the binder's view parameter to an interface. The topic arm is the
+ * one place the switch starts an arm whose code reaches [TOPIC_BINDER_ANCHOR]: 14.39.0 gives the
+ * row the arm with no case, 14.40.0 a case of its own, and 14.43.0 the arm with no case again. The
+ * row's view is the one class implementing the interface that arm casts to; 14.43.0 renamed it,
+ * and an earlier rule that named a search cell instead hooked an arm the row never runs. The hook
+ * goes right after the cast: a case lands on the cast itself, so anything put before it would be
+ * jumped over. Pinterest adds the row straight to its grid, a RecyclerView, which lays out a GONE
+ * child like any other, so hiding the row takes a zero measure as well as GONE. No declared build
+ * gives that class an onMeasure of its own.
  */
 internal fun BytecodePatchContext.topicSuggestions(): TopicSuggestions {
     val found = methodsWithString(TOPIC_BINDER_ANCHOR).filter { it.isTopicBinder() }
@@ -97,17 +98,18 @@ internal fun BytecodePatchContext.topicSuggestions(): TopicSuggestions {
     val instructions = binder.implementation!!.instructions
     val view = binder.parameterRegister(0)
     val viewRegister = binder.implementation!!.registerCount - binder.parameterTypes.sumOf { it.width() }
-    if (classDefByOrNull(TOPIC_ROW) == null) throw PatchException("$PATCH: no topic row view $TOPIC_ROW")
-    val row = mutableClassDefBy(TOPIC_ROW)
     val payload = (instructions[1] as? BuilderOffsetInstruction)?.target?.location?.instruction as? BuilderPackedSwitchPayload
         ?: throw PatchException("$PATCH: the binder's switch has no packed-switch table")
     val starts = (listOf(TOPIC_FALL_THROUGH) + payload.switchElements.map { it.target.location.index }).distinct()
-    val arm = starts.filter { at ->
-        val cast = instructions[at]
-        cast.opcode == Opcode.CHECK_CAST && (cast as OneRegisterInstruction).registerA == viewRegister &&
-            ((cast as ReferenceInstruction).reference as TypeReference).type in row.interfaces
-    }.one("$PATCH: topic arm")
-    val face = ((instructions[arm] as ReferenceInstruction).reference as TypeReference).type
+    val anchors = instructions.indices.filter { at ->
+        ((instructions[at] as? ReferenceInstruction)?.reference as? StringReference)?.string == TOPIC_BINDER_ANCHOR
+    }.toSet()
+    val arm = ControlFlow.of(binder).armsReaching(starts, anchors).one("$PATCH: topic arm")
+    val cast = instructions[arm]
+    if (cast.opcode != Opcode.CHECK_CAST || (cast as OneRegisterInstruction).registerA != viewRegister) {
+        throw PatchException("$PATCH: the topic arm doesn't start by casting the view parameter")
+    }
+    val face = ((cast as ReferenceInstruction).reference as TypeReference).type
     if (classDefByOrNull(face)?.let { AccessFlags.INTERFACE.isSet(it.accessFlags) } != true) {
         throw PatchException("$PATCH: the topic arm casts its view to $face, which is not an interface")
     }
@@ -115,7 +117,7 @@ internal fun BytecodePatchContext.topicSuggestions(): TopicSuggestions {
     classDefForEach { owner ->
         if (!owner.type.startsWith(EXTENSION_ROOT) && face in owner.interfaces) implementers += owner
     }
-    implementers.one("$PATCH: topic row view")
+    val row = mutableClassDefBy(implementers.one("$PATCH: topic row view").type)
     val hookAt = arm + 1
     if ((instructions[hookAt] as BuilderInstruction).location.labels.isNotEmpty()) {
         throw PatchException("$PATCH: the instruction after the topic arm's cast is also a branch target")
@@ -129,6 +131,24 @@ internal fun BytecodePatchContext.topicSuggestions(): TopicSuggestions {
         throw PatchException("$PATCH: the topic row ${row.type} measures itself, so its own onMeasure would need a different hook")
     }
     return TopicSuggestions(binder, view, row, hookAt)
+}
+
+/**
+ * The [starts] whose arm reaches one of [anchors]: from the start along branches, cases and
+ * handlers, until a return, a throw or another arm's start.
+ */
+internal fun ControlFlow.armsReaching(starts: List<Int>, anchors: Set<Int>): List<Int> = starts.filter { start ->
+    val seen = BooleanArray(instructions.size)
+    val pending = ArrayDeque(listOf(start))
+    var reached = false
+    while (pending.isNotEmpty() && !reached) {
+        val at = pending.removeFirst()
+        if (seen[at]) continue
+        seen[at] = true
+        reached = at in anchors
+        (normal[at] + exceptional[at]).filterTo(pending) { it !in starts }
+    }
+    reached
 }
 
 /** True when the class's first ancestor outside the APK is one of Android's view classes. */

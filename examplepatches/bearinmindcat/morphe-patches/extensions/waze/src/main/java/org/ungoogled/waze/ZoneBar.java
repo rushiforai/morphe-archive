@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
@@ -61,10 +62,10 @@ public final class ZoneBar {
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
-    // Main thread only.
-    private static boolean inZone;
-    private static long startAt, lastAt;
-    private static int startLeft, length, left, percent;
+    // Written on the main thread only; volatile because the car screen's pill (carPill) reads them on Waze's car thread.
+    private static volatile boolean inZone;
+    private static volatile long startAt, lastAt;
+    private static volatile int startLeft, length, left, percent;
     /** For the self-test: the time an injected update happened at, instead of now. */
     static long virtualNow = -1;
     private static volatile int limit = -1;
@@ -88,11 +89,20 @@ public final class ZoneBar {
 
     /** NavigationInfoNativeManager.onAverageSpeedCamZoneUpdate: Waze's AverageSpeedCameraZoneUpdate. Main thread. */
     public static void legacy(Object update) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            MAIN.post(() -> legacy(update));
+            return;
+        }
+        if (SelfTest.running && !SelfTest.injecting) return;
         try {
             if (update == null || !Customization.on("zoneBar")) return;
             int p = (Integer) call(update, "getPercent"), l = (Integer) call(update, "getLeftDistance");
             long now = now();
-            if (!inZone) start(l, p > 0 && p < 100 ? Math.round(l / (1f - p / 100f)) : l, now);
+            if (inZone && byInsights) return;
+            if (!inZone) {
+                start(l, p > 0 && p < 100 ? Math.round(l / (1f - p / 100f)) : l, now);
+                byInsights = false;
+            }
             progress(Math.max(0, Math.min(100, p)), l, now);
         } catch (Throwable t) {
             Log.w(TAG, "zone bar: legacy", t);
@@ -101,11 +111,22 @@ public final class ZoneBar {
 
     /** NavigationInfoNativeManager.onAverageSpeedCamZoneClear. Main thread. */
     public static void legacyClear() {
-        end("cleared");
+        // Waze 5.26 calls it from its JNI method, on Waze's native thread.
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            MAIN.post(ZoneBar::legacyClear);
+            return;
+        }
+        if (SelfTest.running && !SelfTest.injecting) return;
+        if (!byInsights) end("cleared");
     }
 
     /** InsightsInfraNativeManager.onSegmentInsightUpdated: Waze's SegmentInsightUpdate. Main thread. */
     public static void insights(Object update) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            MAIN.post(() -> insights(update));
+            return;
+        }
+        if (SelfTest.running && !SelfTest.injecting) return;
         try {
             if (update == null || !Customization.on("zoneBar")) return;
             Object infos = call(update, "getInfoList");
@@ -120,11 +141,15 @@ public final class ZoneBar {
                 }
             }
             if (remaining == null) {
-                if (inZone) end("no zone in Waze's update");
+                if (inZone && byInsights) end("no zone in Waze's update");
                 return;
             }
+            if (inZone && !byInsights) return;
             long now = now();
-            if (!inZone) start(remaining, remaining, now);
+            if (!inZone) {
+                start(remaining, remaining, now);
+                byInsights = true;
+            }
             int p = length > 0 ? Math.round(100f * (length - remaining) / length) : 0;
             progress(Math.max(0, Math.min(100, p)), remaining, now);
         } catch (Throwable t) {
@@ -132,7 +157,10 @@ public final class ZoneBar {
         }
     }
 
-    /** The speedometer's state as it draws: its toString() has the road's limit and the units. */
+    /**
+     * Each speedometer state Waze makes (its State class's constructors): its toString() has the road's limit and the
+     * units. Waze makes them for the phone and the car screen alike, so the limit is known with only Android Auto on.
+     */
     public static void speedometer(Object state) {
         try {
             if (state == null) return;
@@ -185,6 +213,12 @@ public final class ZoneBar {
 
     private static final Runnable STALE = () -> end("nothing from Waze for 90 s");
 
+    /**
+     * Which of Waze's two displays the zone under way came from. Each ends only its own: Waze 5.26 sends an insights
+     * update about once a second while it has a location, every one without a zone when the older display has it.
+     */
+    private static boolean byInsights;
+
     private static void end(String why) {
         MAIN.removeCallbacks(STALE);
         if (inZone) Log.i(TAG, "zone bar: zone over (" + why + ")");
@@ -232,14 +266,61 @@ public final class ZoneBar {
         if (view != null && view.getParent() != decor) hide();
         if (view == null) {
             view = new ZoneView(a);
-            float d = a.getResources().getDisplayMetrics().density;
-            int height = Math.round(Math.min(decor.getHeight() > 0 ? decor.getHeight() * 0.42f : 420 * d, 360 * d));
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Math.round(64 * d), height, Gravity.START | Gravity.CENTER_VERTICAL);
-            lp.leftMargin = Math.round(8 * d);
-            decor.addView(view, lp);
+            decor.addView(view, place(a, decor));
+        } else {
+            FrameLayout.LayoutParams lp = place(a, decor), now = (FrameLayout.LayoutParams) view.getLayoutParams();
+            if (lp.width != now.width || lp.height != now.height || lp.gravity != now.gravity
+                    || lp.leftMargin != now.leftMargin || lp.topMargin != now.topMargin || lp.rightMargin != now.rightMargin) {
+                view.setLayoutParams(lp);
+            }
         }
         view.night = (a.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
         view.invalidate();
+    }
+
+    /** Where the bar goes (issue #91): Customization's position -- the left edge, above the speed limit sign, or the right edge. */
+    static final String LEFT = "left", ABOVE_SPEED_LIMIT = "speedometer", RIGHT = "right";
+    private static int speedometerId;
+
+    private static FrameLayout.LayoutParams place(Activity a, ViewGroup decor) {
+        float d = a.getResources().getDisplayMetrics().density;
+        int width = Math.round(64 * d), margin = Math.round(8 * d);
+        int height = Math.round(Math.min(decor.getHeight() > 0 ? decor.getHeight() * 0.42f : 420 * d, 360 * d));
+        String where = Customization.string(Customization.ZONE_POSITION, LEFT);
+        if (ABOVE_SPEED_LIMIT.equals(where)) {
+            // Waze's speedometer (layout speedometer.xml, id Speedometer) carries the limit sign at its top right.
+            if (speedometerId == 0) speedometerId = a.getResources().getIdentifier("Speedometer", "id", a.getPackageName());
+            View speedometer = speedometerId != 0 ? decor.findViewById(speedometerId) : null;
+            if (speedometer != null && speedometer.isShown() && speedometer.getWidth() > 0) {
+                int[] at = new int[2], origin = new int[2];
+                speedometer.getLocationInWindow(at);
+                decor.getLocationInWindow(origin);
+                int top = at[1] - origin[1], room = top - margin - Math.round(48 * d);
+                if (room >= Math.round(150 * d)) {
+                    int h = Math.min(height, room);
+                    FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(width, h, Gravity.TOP | Gravity.LEFT);
+                    lp.leftMargin = Math.max(margin, at[0] - origin[0] + (speedometer.getWidth() - width) / 2);
+                    lp.topMargin = top - margin - h;
+                    return lp;
+                }
+            }
+            // No speedometer on screen, or no room above it: the left edge.
+        }
+        if (RIGHT.equals(where)) {
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(width, height, Gravity.END | Gravity.CENTER_VERTICAL);
+            lp.rightMargin = margin;
+            return lp;
+        }
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(width, height, Gravity.START | Gravity.CENTER_VERTICAL);
+        lp.leftMargin = margin;
+        return lp;
+    }
+
+    /** Customization's position was changed: move the bar now. */
+    static void moved() {
+        MAIN.post(() -> {
+            if (view != null) show();
+        });
     }
 
     private static void hide() {
@@ -330,6 +411,112 @@ public final class ZoneBar {
         }
     }
 
+    // ---- on the car screen (Android Auto, issue #99) -----------------------------------------------
+
+    /*
+     * Waze draws its Android Auto map itself, into the car's surface, and the only thing Java hands that surface is one
+     * picture: the pill at the bottom (current street, traffic, Waze's own zone countdown). Waze builds that picture in one
+     * method from the pill's state -- Context, night, pill -- every time the pill changes, which in a zone is every time
+     * the distance left changes. The patch calls carPillStart() as it starts and carPill() with what it returns: while
+     * the zone bar is on and a zone is under way, the picture becomes the bar laid flat. Waze places it, so the position
+     * option does not apply there.
+     */
+
+    private static volatile Context carContext;
+    private static volatile boolean carNight;
+
+    /** The start of Waze's car pill method: its Context (the car screen's) and whether it draws for night. */
+    public static void carPillStart(Object context, boolean night) {
+        if (context instanceof Context) carContext = (Context) context;
+        carNight = night;
+    }
+
+    /** What Waze's car pill method returns: a holder of one Bitmap. In a zone, the same kind of holder with the bar. */
+    public static Object carPill(Object holder) {
+        try {
+            if (holder == null || !inZone || !Customization.on("zoneBar")) return holder;
+            Context c = carContext;
+            if (c == null) return holder;
+            Bitmap bar = carBitmap(c, carNight);
+            Object out = holder.getClass().getConstructor(Bitmap.class).newInstance(bar);
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "zone bar: car pill " + bar.getWidth() + "x" + bar.getHeight() + " instead of " + holder.getClass().getName());
+            }
+            return out;
+        } catch (Throwable t) {
+            Log.w(TAG, "zone bar: car pill", t);
+            return holder;
+        }
+    }
+
+    /**
+     * The bar laid flat, in Waze's pill size (current_street_pill_aaos_width, 200 dp): the average and its unit on the
+     * left, the distance left on the right, the zone filling from the left under them, coloured against the limit.
+     * Made the way Waze makes its own pill pictures: 12 dp of clear margin, sides rounded up to fours, unpremultiplied.
+     */
+    static Bitmap carBitmap(Context c, boolean night) {
+        android.util.DisplayMetrics m = c.getResources().getDisplayMetrics();
+        float d = m.density;
+        int widthId = c.getResources().getIdentifier("current_street_pill_aaos_width", "dimen", c.getPackageName());
+        int w = widthId != 0 ? c.getResources().getDimensionPixelSize(widthId) : Math.round(200 * d);
+        int h = Math.round(60 * d), pad = Math.round(12 * d);
+        int bw = (w + 2 * pad + 3) & -4, bh = (h + 2 * pad + 3) & -4;
+        Bitmap drawn = Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(drawn);
+        canvas.translate((bw - w) / 2f, (bh - h) / 2f);
+
+        int text = night ? 0xFFE8EAED : 0xFF202124, sub = night ? 0xFF9AA0A6 : 0xFF5F6368;
+        int pill = night ? 0xFF202124 : 0xFFFFFFFF, track = night ? 0x66FFFFFF : 0x33000000;
+        float avg = average();
+        int fill = colour(avg);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        RectF r = new RectF(0, 0, w, h);
+        paint.setColor(0x33000000);
+        canvas.drawRoundRect(new RectF(0, 1.5f * d, w, h + 1.5f * d), h / 2f, h / 2f, paint);
+        paint.setColor(pill);
+        canvas.drawRoundRect(r, h / 2f, h / 2f, paint);
+
+        float side = 20 * d;
+        // The average, big, and its unit after it.
+        paint.setTypeface(Typeface.DEFAULT_BOLD);
+        paint.setTextAlign(Paint.Align.LEFT);
+        paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, m));
+        paint.setColor(text);
+        String number = Float.isNaN(avg) ? "–" : String.valueOf(Math.round(avg));
+        float baseline = 30 * d;
+        canvas.drawText(number, side, baseline, paint);
+        float after = side + paint.measureText(number) + 5 * d;
+        paint.setTypeface(Typeface.DEFAULT);
+        paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 11, m));
+        paint.setColor(sub);
+        canvas.drawText("avg " + (mph ? "mph" : "km/h"), after, baseline, paint);
+        // What is left of the zone.
+        paint.setTypeface(Typeface.DEFAULT_BOLD);
+        paint.setTextAlign(Paint.Align.RIGHT);
+        paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 13, m));
+        paint.setColor(text);
+        canvas.drawText(distance(left), w - side, baseline, paint);
+        // The zone: a track filling from the left.
+        float th = 10 * d, top = 40 * d;
+        r.set(side, top, w - side, top + th);
+        paint.setColor(track);
+        canvas.drawRoundRect(r, th / 2, th / 2, paint);
+        float filled = side + (w - 2 * side) * percent / 100f;
+        r.set(side, top, Math.max(filled, side + th), top + th);
+        paint.setColor(fill);
+        canvas.drawRoundRect(r, th / 2, th / 2, paint);
+        paint.setColor(0xFFFFFFFF);
+        canvas.drawCircle(Math.min(Math.max(filled, side + th / 2), w - side - th / 2), top + th / 2, th * 0.32f, paint);
+
+        int[] pixels = new int[bw * bh];
+        drawn.getPixels(pixels, 0, bw, 0, 0, bw, bh);
+        Bitmap out = Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888);
+        out.setPremultiplied(false);
+        out.setPixels(pixels, 0, bw, 0, 0, bw, bh);
+        drawn.recycle();
+        return out;
+    }
+
     // ---- reading Waze's protos --------------------------------------------------------------------
 
     private static Object call(Object o, String name) throws Exception {
@@ -346,7 +533,8 @@ public final class ZoneBar {
      * quarter of the zone), int hold (seconds per quarter, 6), boolean enable (switch the bar on first); or boolean
      * customization alone, which opens the Customization screen (the side menu is out of reach before sign-up). Each
      * quarter's updates come every half second with a made-up clock, so the averages are reached exactly; then
-     * the zone ends. Waze's real updates come the same way, through the same methods.
+     * the zone ends. boolean car also sends each update through carPill() and saves four car pills to files/;
+     * boolean speedometer places a stand-in for Waze's speedometer (for the Above the speed limit position). Waze's real updates come the same way, through the same methods.
      */
     private static final class SelfTest extends BroadcastReceiver {
         @Override public void onReceive(Context context, Intent intent) {
@@ -357,6 +545,7 @@ public final class ZoneBar {
                     return;
                 }
                 if (intent.getBooleanExtra("enable", false)) Customization.setForTest("zoneBar", true);
+                if (intent.getBooleanExtra("speedometer", false)) standIn();
                 String path = intent.getStringExtra("path");
                 if (path == null) path = "insights";
                 int len = intent.getIntExtra("length", 3000), lim = intent.getIntExtra("limit", 100);
@@ -368,6 +557,9 @@ public final class ZoneBar {
                 int[] averages = new int[parts.length];
                 for (int i = 0; i < parts.length; i++) averages[i] = Integer.parseInt(parts[i].trim());
                 int hold = intent.getIntExtra("hold", 6);
+                car = intent.getBooleanExtra("car", false);
+                carShots = 0;
+                carCalls = 0;
                 speedometer("State(speed=" + averages[0] + ", units=" + units + ", isUsStyle=false, maxSpeedRoad=" + lim
                         + ", enableSpeedometer=true, enableSpeedLimit=true, showSpeedLimit=true, overSpeedWithOffset=false)");
                 Log.i(TAG, "zone bar self-test: " + path + ", " + len + " m, limit " + lim + " " + units + ", averages " + list);
@@ -378,7 +570,15 @@ public final class ZoneBar {
         }
 
         /** Quarter k ends at (k+1)/(n+1) of the zone, reached after driving that far at averages[k]. */
+        /**
+         * While a test runs, Waze's own updates are left out (signed out, Waze still sends an insights update without a
+         * zone about once a second, which would end the made-up zone); only the test's own reach the bar.
+         */
+        static volatile boolean running;
+        static boolean injecting;
+
         private static void run(String path, int len, int[] averages, int hold, boolean milesPerHour) {
+            running = true;
             final long base = SystemClock.elapsedRealtime();
             int steps = hold * 2, n = averages.length;
             float prevDriven = 0;
@@ -398,15 +598,73 @@ public final class ZoneBar {
             }
             MAIN.postDelayed(() -> {
                 virtualNow = -1;
+                injecting = true;
                 if ("legacy".equals(path)) legacyClear();
                 else if ("real".equals(path)) callReal("onAverageSpeedCamZoneClear", null);
                 else insights(insightsUpdate(-1, len));
+                injecting = false;
+                // The real path's clear reaches the bar through the main thread (5.26): let it land first.
+                MAIN.post(() -> running = false);
                 Log.i(TAG, "zone bar self-test: done");
+                if (standIn != null && standIn.getParent() instanceof ViewGroup) ((ViewGroup) standIn.getParent()).removeView(standIn);
+                standIn = null;
             }, at + 1500L);
+        }
+
+        /**
+         * With boolean speedometer: a grey square with the id of Waze's speedometer at its place on the map, bottom left,
+         * for the "Above the speed limit" position on screens without the map (signed out); gone when the test ends.
+         */
+        private static View standIn;
+
+        private static void standIn() {
+            Activity a = Customization.activity();
+            if (a == null) return;
+            int id = a.getResources().getIdentifier("Speedometer", "id", a.getPackageName());
+            if (id == 0) return;
+            float d = a.getResources().getDisplayMetrics().density;
+            standIn = new View(a);
+            standIn.setId(id);
+            standIn.setBackgroundColor(0xFF9E9E9E);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(Math.round(110 * d), Math.round(110 * d), Gravity.BOTTOM | Gravity.START);
+            lp.leftMargin = Math.round(12 * d);
+            lp.bottomMargin = Math.round(140 * d);
+            ((ViewGroup) a.getWindow().getDecorView()).addView(standIn, lp);
+            Log.i(TAG, "zone bar self-test: speedometer stand-in placed");
+        }
+
+        /** With boolean car: each update also goes through carPill(), as Waze's car pill would, and four are saved as PNGs. */
+        private static boolean car;
+        private static int carShots, carCalls;
+
+        /** A stand-in for Waze's pill holders, which hold one Bitmap. */
+        public static final class Holder {
+            final Bitmap bitmap;
+
+            public Holder(Bitmap bitmap) {
+                this.bitmap = bitmap;
+            }
+        }
+
+        private static void carTest(int remaining) {
+            Context c = Customization.appContext();
+            if (c == null) return;
+            carPillStart(c, carShots % 2 == 1);
+            Object out = carPill(new Holder(Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)));
+            Bitmap b = out instanceof Holder ? ((Holder) out).bitmap : null;
+            Log.i(TAG, "zone bar self-test: car pill " + (b == null ? "none" : b.getWidth() + "x" + b.getHeight()) + " at " + remaining + " m");
+            if (b == null || b.getWidth() <= 4 || ++carCalls % 6 != 0 || carShots >= 4) return;
+            try (java.io.FileOutputStream f = new java.io.FileOutputStream(new java.io.File(c.getFilesDir(), "zone_car_" + carShots + ".png"))) {
+                b.compress(Bitmap.CompressFormat.PNG, 100, f);
+                carShots++;
+            } catch (Throwable t) {
+                Log.w(TAG, "zone bar self-test: car pill png", t);
+            }
         }
 
         private static void inject(String path, int p, int remaining, int len, long virtual) {
             virtualNow = virtual;
+            injecting = true;
             try {
                 if ("insights".equals(path)) {
                     insights(insightsUpdate(remaining, len));
@@ -419,10 +677,12 @@ public final class ZoneBar {
                     if ("real".equals(path)) callReal("onAverageSpeedCamZoneUpdate", update);
                     else legacy(update);
                 }
+                if (car) carTest(remaining);
             } catch (Throwable t) {
                 Log.w(TAG, "zone bar self-test: inject", t);
             } finally {
                 virtualNow = -1;
+                injecting = false;
             }
         }
 
@@ -454,8 +714,30 @@ public final class ZoneBar {
         private static void callReal(String name, Object update) {
             try {
                 Class<?> nav = Class.forName("com.waze.navigate.NavigationInfoNativeManager");
-                Object instance = nav.getMethod("getInstance").invoke(null);
-                Method m = update == null ? nav.getDeclaredMethod(name) : nav.getDeclaredMethod(name, update.getClass());
+                // Its singleton: getInstance() in 5.24, renamed in 5.26 -- the static no-argument method returning it.
+                Object instance = null;
+                for (Method x : nav.getDeclaredMethods()) {
+                    if (java.lang.reflect.Modifier.isStatic(x.getModifiers()) && x.getParameterTypes().length == 0 && x.getReturnType() == nav) {
+                        x.setAccessible(true);
+                        instance = x.invoke(null);
+                        break;
+                    }
+                }
+                if (instance == null) throw new NoSuchMethodException("NavigationInfoNativeManager singleton");
+                // The patched methods: the one taking the update (renamed in 5.26), and the clear by its name's start
+                // (onAverageSpeedCamZoneClearJNI in 5.26, in the manager's superclass).
+                Method m = null;
+                for (Class<?> c = nav; c != null && m == null; c = c.getSuperclass()) {
+                    for (Method x : c.getDeclaredMethods()) {
+                        Class<?>[] p = x.getParameterTypes();
+                        if (update != null ? p.length == 1 && p[0] == update.getClass() && x.getReturnType() == void.class
+                                : p.length == 0 && x.getName().startsWith(name)) {
+                            m = x;
+                            break;
+                        }
+                    }
+                }
+                if (m == null) throw new NoSuchMethodException(name);
                 m.setAccessible(true);
                 if (update == null) m.invoke(instance);
                 else m.invoke(instance, update);

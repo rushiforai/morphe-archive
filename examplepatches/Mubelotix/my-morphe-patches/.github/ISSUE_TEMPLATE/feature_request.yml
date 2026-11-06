@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest an improvement or a new patch.
+labels: [enhancement]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: Target app
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Feature description
+      description: Explain the expected behavior and why it would be useful.
+    validations:
+      required: true

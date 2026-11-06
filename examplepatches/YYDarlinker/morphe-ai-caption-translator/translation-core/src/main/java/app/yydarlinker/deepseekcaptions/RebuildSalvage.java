@@ -30,10 +30,7 @@ final class RebuildSalvage {
 
     private RebuildSalvage() {}
 
-    /**
-     * Returns null when no event is usable or the usable events cover less than a third of the
-     * block (a likely truncated reply should be retried, not displayed as a fragment).
-     */
+    /** Preserve every usable event at its source time; missing ranges stay explicit and uncached. */
     static RebuildProtocol.Plan parse(
             String content,
             RebuildSource s,
@@ -59,7 +56,7 @@ final class RebuildSalvage {
         JSONArray rows = root.optJSONArray("events");
         if (rows == null || rows.length() == 0 || rows.length() > b.to - b.from + 1)
             throw new RebuildProtocol.Invalid("event_count");
-        RebuildProtocol.bindQuotedEvents(root, s, b);
+        RebuildProtocol.bindQuotedEvents(root, s, b, true);
         List<RebuildProtocol.Event> accepted = new ArrayList<>();
         List<RebuildReview.Issue> issues = new ArrayList<>();
         List<int[]> holes = new ArrayList<>();
@@ -90,6 +87,7 @@ final class RebuildSalvage {
                                 "range=" + from + "-" + to + "; expected >=" + next + "; dropped"));
                 continue;
             }
+            if (from > next) holes.add(new int[] {next, from - 1});
             Object textValue = e.opt("text");
             if (!(textValue instanceof String)) {
                 issues.add(issue(from, to, "salvage_text_type", "text is not a string; dropped"));
@@ -97,10 +95,20 @@ final class RebuildSalvage {
                 next = to + 1;
                 continue;
             }
-            String text = normalizeText((String) textValue);
             String source = s.text(from, to);
-            if (from > next) holes.add(new int[] {next, from - 1});
             next = to + 1;
+            String text;
+            try {
+                text = RebuildProtocol.eventText(source, (String) textValue);
+                e.put("text", text);
+                if (!text.equals(RebuildProtocol.normalizeText((String) textValue)))
+                    issues.add(new RebuildReview.Issue(from, to, "protocol_suffix_removed",
+                            "Kept readable prefix after protocol debris; completeness unverified.", true));
+            } catch (RebuildProtocol.Invalid unusable) {
+                issues.add(issue(from, to, "salvage_" + unusable.code, "unusable event text; dropped"));
+                holes.add(new int[] {from, to});
+                continue;
+            }
             if (e.opt("source") instanceof String
                     && RebuildProtocol.quoteOverclaims(s, b, from, to, e.getString("source"))) {
                 // The text may translate either the IDs or the wider quote. Keeping it under
@@ -119,11 +127,6 @@ final class RebuildSalvage {
                             issue(from, to, "salvage_empty_translation", "empty text for speech; dropped"));
                     holes.add(new int[] {from, to});
                 }
-                continue;
-            }
-            if (text.contains("\"events\"") || text.startsWith("```")) {
-                issues.add(issue(from, to, "salvage_protocol_leak", "reply text leaked; dropped"));
-                holes.add(new int[] {from, to});
                 continue;
             }
             try {
@@ -226,10 +229,6 @@ final class RebuildSalvage {
 
     private static RebuildReview.Issue issue(int from, int to, String code, String detail) {
         return new RebuildReview.Issue(from, to, code, detail, false);
-    }
-
-    private static String normalizeText(String raw) {
-        return raw.replace('\r', ' ').replace('\n', ' ').replaceAll("[\\t ]+", " ").trim();
     }
 
     /** Stable ascending, non-overlapping hole ranges. */

@@ -44,6 +44,7 @@ public class LicenseNoticeTest {
                 "https://github.com/andrewliang25/morphe-patches",
                 "https://github.com/SapitoSucio/FroggoMorphePatches",
                 "https://github.com/SysAdminDoc/hushfeed",
+                "https://github.com/RookieEnough/De-Vanced",
                 "https://gitlab.com/ReVanced/revanced-patches"}) {
             assertTrue("NOTICE does not name " + upstream, LicenseNotice.TEXT.contains(upstream));
         }

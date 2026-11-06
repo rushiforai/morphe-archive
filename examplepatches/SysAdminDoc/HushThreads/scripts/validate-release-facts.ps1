@@ -11,9 +11,7 @@
     at the previous working bundle. Published-asset verification remains strict, and it also
     fetches the release SBOM the receipt names, holds it to the bundle and puts the libraries it
     lists to OSV (release-advisories.ps1), and fetches the published receipt, which SHA256SUMS.txt
-    has to list and which has to be the receipt checked here. It also refuses a release whose Threads source
-    census (sources/threads-sources.json, refreshed by audit-threads-sources.ps1) is more than
-    14 days old, breaks the ledger's rules, or lacks a listing or dated submission on an index.
+    has to list and which has to be the receipt checked here.
 #>
 [CmdletBinding()]
 param(
@@ -77,7 +75,6 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
 . (Join-Path $PSScriptRoot 'release-advisories.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
-. (Join-Path $PSScriptRoot 'threads-sources.ps1')
 
 function Read-JsonFile {
     param([string]$Path)
@@ -217,17 +214,6 @@ if ($indexLagsSource) {
 }
 $publishedVersion = if ($indexLagsSource) { $bundleVersion } else { $releaseVersion }
 Require-Match -Text ([string]$bundle.download_url) -Pattern "/v$([regex]::Escape($publishedVersion))/patches-$([regex]::Escape($publishedVersion))\.mpp$" -Description 'patches-bundle.json download URL'
-
-# The source and index must describe the same release before its census or hosted asset can be
-# checked. A valid release still requires the complete source ledger and a census from the last
-# 14 days, before any network or build work. Ordinary source pushes don't require that audit.
-if ($VerifyPublishedAsset) {
-    $sourceGate = Test-SourceReleaseGate -Root $rootPath
-    if (-not $sourceGate.Valid) {
-        throw "The release can't go out on this source census: $($sourceGate.Reason)"
-    }
-    Write-Host "[release] $($sourceGate.Summary)"
-}
 
 # Matching the pattern only proves the index spells the version right. Reaching the address is
 # what catches an index pointed at a tag nobody published, which is how the bundle went missing

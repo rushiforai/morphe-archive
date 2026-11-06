@@ -7,7 +7,20 @@ Patches for apps I use, built with [Morphe](https://morphe.software).
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/d0nj/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.7.0-dev.4](https://github.com/d0nj/morphe-patches/releases/tag/v1.7.0-dev.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+<details open>
+<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Custom weather provider](#custom-weather-provider) | Serves the at-a-glance weather tile without a Niagara account, using Open-Meteo, MET Norway or Breezy Weather. Breezy Weather needs version 6.1.0 or newer with at least one location, and Niagara must be granted the "Read Breezy Weather data" permission from Niagara's app info → Permissions screen. | • Weather provider |
+| [Fix home screen numbers tile](#fix-home-screen-numbers-tile) | Hides the Channels diagnostic tip that shows up as a tile of giant numbers. |  |
+| [Remove analytics](#remove-analytics) | Stops usage reports, retention events and analytics sessions. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks Pro features and skips the trial prompt. Account sync and Stripe checkout still need a real purchase. |  |
+
+</details>
+
 <details open>
 <summary>📦 Firefox&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -17,19 +30,6 @@ Patches for apps I use, built with [Morphe](https://morphe.software).
 | [Firefox Nightly app name](#firefox-nightly-app-name) | Renames the app to Firefox Nightly, or to a name of your own. | • App name |
 | [Firefox Nightly icon](#firefox-nightly-icon) | Swaps the launcher icon for the Nightly one. |  |
 | [Firefox Nightly in-app logo](#firefox-nightly-in-app-logo) | Swaps the logo and wordmark shown inside the app. |  |
-
-</details>
-
-<details open>
-<summary>📦 Niagara Launcher&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Fix home screen numbers tile](#fix-home-screen-numbers-tile) | Hides the Channels diagnostic tip that shows up as a tile of giant numbers. |  |
-| [Remove analytics](#remove-analytics) | Stops usage reports, retention events and analytics sessions. |  |
-| [Unlock Pro](#unlock-pro) | Unlocks Pro features and skips the trial prompt. Account sync and Stripe checkout still need a real purchase. |  |
-| [Use Open-Meteo for weather](#use-open-meteo-for-weather) | Sources weather from Open-Meteo so the at-a-glance tile works without an account. |  |
 
 </details>
 

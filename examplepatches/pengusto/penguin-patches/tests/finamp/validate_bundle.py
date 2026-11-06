@@ -62,7 +62,10 @@ def main():
             header = SNAPSHOT.search(new)
             if header is None or header.groups() != SNAPSHOT.search(original).groups():
                 raise ValueError('Replayed Dart snapshot format is incompatible')
-            if (b'Song artist order' in new) != bool(mask & 2) or (b'Invalid artist track count' in new) != bool(mask & 4):
+            if ((b'Song artist order' in new) != bool(mask & 2)
+                    or (b'Invalid artist track count' in new) != bool(mask & 4)
+                    or any((marker in new) != bool(mask & 128)
+                           for marker in (b'Album information', b'Track information'))):
                 raise ValueError('Wrong compiled features for the selected mask')
             report['masks'][str(mask)] = {'source': props[prefix + '.source'], 'native_sha256': sha(new),
                                          'native_bytes': len(new), 'delta_bytes': len(delta), 'verified': True}

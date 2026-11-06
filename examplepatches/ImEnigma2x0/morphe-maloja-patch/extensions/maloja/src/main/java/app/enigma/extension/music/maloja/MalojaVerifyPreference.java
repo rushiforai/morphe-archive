@@ -64,6 +64,8 @@ public class MalojaVerifyPreference extends Preference {
                 Maloja.TokenValidation validation = Maloja.validateToken(serverUrl, apiKey);
                 if (validation.valid) {
                     Utils.showToastLong(str("morphe_maloja_verify_toast_valid", validation.userName));
+                    // Scrobbles held back by a wrong URL or API key can go now.
+                    ScrobbleQueue.flush();
                 } else {
                     Utils.showToastLong(str("morphe_maloja_verify_toast_invalid", validation.message));
                 }

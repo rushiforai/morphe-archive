@@ -7,7 +7,14 @@ package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.BASE_PROFILE
+import app.hushmessenger.patches.controls.DEFAULT_STRINGS
+import app.hushmessenger.patches.controls.MANIFEST_STRINGS
+import app.hushmessenger.patches.controls.PROFILE_347215341
+import app.hushmessenger.patches.controls.SETTINGS_LABEL
+import app.hushmessenger.patches.controls.SETTINGS_LABEL_NAME
 import app.hushmessenger.patches.controls.SHORTCUTS_DIRECTORIES
+import app.hushmessenger.patches.controls.addStrings
+import app.hushmessenger.patches.controls.setString
 import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.resolveShortcutsPath
@@ -41,6 +48,8 @@ import org.w3c.dom.Element
 internal const val CLONE_PATCH_NAME = "Clone install under another package name"
 internal const val CLONE_DEFAULT_PACKAGE = "com.facebook.orca.hush"
 internal const val CLONE_DEFAULT_LABEL = "Messenger Clone"
+/** The string resource the clone's app name and launcher icons point at. */
+internal const val CLONE_LABEL = "hush_clone_label"
 private const val ORIGINAL = MessengerTarget.PACKAGE
 private const val GET_PACKAGE_NAME = "Landroid/content/Context;->getPackageName()Ljava/lang/String;"
 private const val SET_PACKAGE = "Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;"
@@ -176,13 +185,15 @@ internal fun Document.renameForClone(newPackage: String, label: String): CloneMa
         if (query.getAttribute("android:name") == ORIGINAL) query.setAttribute("android:name", newPackage)
     }
 
+    // The labels point at string resources that nameClone writes, since some launchers show text written straight into
+    // the manifest under Messenger's own name (#141). The settings screens keep their own string, which gets the name.
     var labels = 0
-    application.setAttribute("android:label", label)
+    application.setAttribute("android:label", "@string/$CLONE_LABEL")
     for (entry in application.children("activity") + application.children("activity-alias")) {
         when {
             entry.getAttribute("android:name").startsWith(SETTINGS_SCREENS) ->
-                if (entry.hasAttribute("android:label")) entry.setAttribute("android:label", "$label settings") else continue
-            entry.isLauncher() -> entry.setAttribute("android:label", label)
+                if (entry.hasAttribute("android:label")) entry.setAttribute("android:label", "@string/$SETTINGS_LABEL") else continue
+            entry.isLauncher() -> entry.setAttribute("android:label", "@string/$CLONE_LABEL")
             else -> continue
         }
         labels++
@@ -303,19 +314,21 @@ internal fun findCloneSites(classes: Iterable<ClassDef>, pools: Set<String> = ow
 
 private const val ATTACHMENT_CHECK = "->A00(Ljava/lang/String;)Z"
 private const val BROADCAST = "->A00(Landroid/content/Intent;Landroid/content/Context;)V"
-private const val NOTIFICATION = "->A04(Landroid/os/Bundle;)"
+private const val NOTIFICATION = "(Landroid/os/Bundle;)"
 private const val CLICK = "->onClick(Landroid/view/View;)V"
 
 /**
  * Each build family's backup lookup and attachment check, then every setPackage call that sends Messenger to itself:
  * the in-app broadcast sender, the push notification's click and link intents, the bulk delete link in the inbox and
- * the story link button. 586 has one arm64 build. The native test checks them on every supported build.
+ * the story link button. 586 has an arm64 and an armv7 build. The native test checks them on every supported build.
  */
 internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
     validateVersionCode(versionCode)
     return when (controlProfileFor(versionCode)) {
         BASE_PROFILE -> setOf("LX/Y7a;-><init>()V", "LX/4NY;$ATTACHMENT_CHECK", "LX/391;$BROADCAST@1",
-            "LX/93D;${NOTIFICATION}LX/9Xq;@228", "LX/93D;${NOTIFICATION}LX/9Xq;@323", "LX/Cg3;$CLICK@83", "LX/Jm8;$CLICK@155")
+            "LX/93D;->A04${NOTIFICATION}LX/9Xq;@228", "LX/93D;->A04${NOTIFICATION}LX/9Xq;@323", "LX/Cg3;$CLICK@83", "LX/Jm8;$CLICK@155")
+        PROFILE_347215341 -> setOf("LX/MJk;-><init>()V", "LX/4No;$ATTACHMENT_CHECK", "LX/39H;$BROADCAST@1",
+            "LX/947;->A05${NOTIFICATION}LX/9Z4;@186", "LX/947;->A05${NOTIFICATION}LX/9Z4;@281", "LX/Cgh;$CLICK@83", "LX/Jrm;$CLICK@151")
         else -> fail("version code $versionCode has no checked clone sites")
     }
 }
@@ -534,9 +547,23 @@ internal val cloneResources = resourcePatch(description = "Move Messenger's mani
         val request = cloneRequest ?: return@finalize
         cloneRequest = null
         val shortcutsPath = resolveShortcutsPath(decode(SHORTCUTS_DIRECTORIES)) { path -> document(path).use { it } }
+        // Settings decoded these already when it's in the patch. Decoding one again would read it back from the APK.
+        val undecoded = MANIFEST_STRINGS.keys.filterNot { get(it, false).exists() }
+        if (undecoded.isNotEmpty()) decode(*undecoded.toTypedArray())
+        if (!get(DEFAULT_STRINGS, false).exists()) fail("Messenger has no $DEFAULT_STRINGS to hold the app name")
         document("AndroidManifest.xml").use { it.renameForClone(request.packageName, request.label) }
         document(shortcutsPath).use { it.retargetShortcuts(request.packageName) }
+        for (path in MANIFEST_STRINGS.keys) if (get(path, false).exists()) document(path).use { it.nameClone(path, request.label) }
     }
+}
+
+/**
+ * The clone's name in the strings file at [path]: its own app name string in the default one, and in every one the
+ * settings label with [label] in HushMessenger's place, so the copy's settings icon reads "Copy settings".
+ */
+internal fun Document.nameClone(path: String, label: String) {
+    if (path == DEFAULT_STRINGS) addStrings(mapOf(CLONE_LABEL to label))
+    MANIFEST_STRINGS[path]?.get(SETTINGS_LABEL)?.let { setString(SETTINGS_LABEL, it.replace(SETTINGS_LABEL_NAME, label)) }
 }
 
 @Suppress("unused")

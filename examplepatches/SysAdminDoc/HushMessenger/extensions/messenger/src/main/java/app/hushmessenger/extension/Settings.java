@@ -304,8 +304,10 @@ public final class Settings {
 
     private static final Object META_AI_TAB = new Object();
 
+    /** Puts the People tab back in the bar on accounts where Messenger no longer builds it. */
+    static final String SHOW_PEOPLE_TAB = "tab_people_show";
     /** Bottom tabs with a switch of their own, held for the run like the Meta AI tab. */
-    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications"));
+    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", SHOW_PEOPLE_TAB));
     /** First answer this process gave for each of {@link #BOTTOM_TABS}, by key, once the bottom bar asked. */
     static final ConcurrentHashMap<String, Boolean> bottomTabs = new ConcurrentHashMap<>();
 
@@ -313,6 +315,12 @@ public final class Settings {
     public static boolean hideNotificationsTab() { return hideBottomTab("tab_notifications"); }
 
     private static boolean hideBottomTab(String key) {
+        boolean hidden = heldBottomTab(key);
+        if (hidden) activeAt.put(key, System.currentTimeMillis());
+        return hidden;
+    }
+
+    private static boolean heldBottomTab(String key) {
         // putIfAbsent keeps whichever answer landed first, so two first askers can't get different answers. wouldUse runs
         // outside the map's lock because it can reach HostScreens.initializeLate, which takes a lock of its own.
         Boolean held = bottomTabs.get(key);
@@ -321,25 +329,29 @@ public final class Settings {
             held = bottomTabs.putIfAbsent(key, answer);
             if (held == null) held = answer;
         }
-        boolean hidden = held;
-        if (hidden) activeAt.put(key, System.currentTimeMillis());
-        return hidden;
+        return held;
     }
 
     /**
      * Messenger's tab list for the bottom bar as it's built. The bar draws only the tabs whose gate let them in, but it
      * marks the open tab by its place in this full list, so a hidden tab ahead of it lit up its neighbor (with People
      * hidden, opening Notifications showed Menu as open). Dropping the hidden tabs here keeps the two in step; every other
-     * tab and its order stay as Messenger built them.
+     * tab and its order stay as Messenger built them. Show People tab puts People back right after Chats when the server
+     * left it out, unless Hide People tab is on too.
      */
     public static <T> List<T> visibleTabs(List<T> tabs) {
         try {
-            List<T> kept = new ArrayList<>(tabs.size());
+            List<T> kept = new ArrayList<>(tabs.size() + 1);
+            boolean hasPeople = false;
             for (T tab : tabs) {
-                String key = tab instanceof Enum ? barTabKey(((Enum<?>) tab).name()) : null;
+                String name = tab instanceof Enum ? ((Enum<?>) tab).name() : null;
+                if ("PEOPLE".equals(name)) hasPeople = true;
+                String key = name == null ? null : barTabKey(name);
                 if (key == null || !("meta_ai".equals(key) ? hideMetaAiTab() : hideBottomTab(key))) kept.add(tab);
             }
-            return kept.size() == tabs.size() ? tabs : kept;
+            boolean added = !hasPeople && heldBottomTab(SHOW_PEOPLE_TAB) && !heldBottomTab("tab_people") && addPeopleTab(kept);
+            if (added) activeAt.put(SHOW_PEOPLE_TAB, System.currentTimeMillis());
+            return added || kept.size() != tabs.size() ? kept : tabs;
         } catch (RuntimeException error) {
             // The one list serves every tab switch, so the failure goes on each switch that's on, never on one that's off.
             boolean blamed = false;
@@ -351,8 +363,28 @@ public final class Settings {
         }
     }
 
-    /** Every switch that takes a tab off the bottom bar, so each one's list goes through {@link #visibleTabs}. */
-    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "meta_ai"));
+    /**
+     * Puts the People constant of the list's own tab enum right after Chats. False, with the list untouched, when the list
+     * has no Chats tab to stand next to or the enum has no People constant.
+     */
+    private static <T> boolean addPeopleTab(List<T> tabs) {
+        for (int i = 0; i < tabs.size(); i++) {
+            T tab = tabs.get(i);
+            if (!(tab instanceof Enum) || !"INBOX".equals(((Enum<?>) tab).name())) continue;
+            for (Object constant : ((Enum<?>) tab).getDeclaringClass().getEnumConstants()) {
+                if (!"PEOPLE".equals(((Enum<?>) constant).name())) continue;
+                @SuppressWarnings("unchecked") T people = (T) constant;
+                tabs.add(i + 1, people);
+                return true;
+            }
+            break;
+        }
+        hookFailed(SHOW_PEOPLE_TAB, "Can't find the People tab", new IllegalStateException("no INBOX and PEOPLE tabs"));
+        return false;
+    }
+
+    /** Every switch that changes the bottom bar's tabs, so each one's list goes through {@link #visibleTabs}. */
+    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "meta_ai", SHOW_PEOPLE_TAB));
 
     /**
      * The switch that hides a bottom tab, by the tab's constant in Messenger's tab enum, or null for a tab with none. MUSE
@@ -506,6 +538,66 @@ public final class Settings {
     /** Messenger's own check of a server flag. The patch writes its body with this build's check. */
     static boolean searchIconFlag(Object config, long flag) { return false; }
 
+    static final String LANDSCAPE = "landscape";
+    /** First answer this process gave for landscape, or null before Messenger asked. */
+    static volatile Boolean landscape;
+    private static final Object LANDSCAPE_LOCK = new Object();
+    /** Screens that opt into Messenger's portrait lock and stay upright anyway: the Quicksnap camera and the backup QR scanner. */
+    private static final Set<String> UPRIGHT_SCREENS = Set.of(
+            "com.facebook.messaging.quicksnap.QuicksnapActivity",
+            "com.facebook.messaging.encryptedbackups.networkverification.qrcode.scanqrcode.scanner.NetworkVerificationQrCodeScannerActivity");
+
+    /**
+     * Every screen is locked or not as it's created, so a switch, Pause or safe-mode change mid-run would leave some
+     * screens turning and some not. The first answer holds until a restart.
+     */
+    private static boolean landscapeHeld() {
+        Boolean held = landscape;
+        if (held == null) {
+            if (!HostScreens.started) HostScreens.initializeLate();
+            synchronized (LANDSCAPE_LOCK) {
+                if (landscape == null) landscape = wouldUse(LANDSCAPE);
+                held = landscape;
+            }
+        }
+        if (held) activeAt.put(LANDSCAPE, System.currentTimeMillis());
+        return held;
+    }
+
+    static boolean keepsUpright(String screen) {
+        return UPRIGHT_SCREENS.contains(screen);
+    }
+
+    /**
+     * Messenger's answer to whether a screen locks to portrait, as it's created and on each orientation change it asks
+     * for later. With landscape on, a yes becomes a no, except on the cameras. A no stays a no, so a phone whose server
+     * flag is off sees nothing change and the settings row doesn't wait for a restart.
+     */
+    public static boolean portraitLock(boolean original, android.app.Activity screen) {
+        if (!original) return false;
+        try {
+            if (screen != null && keepsUpright(screen.getClass().getName())) return true;
+            return !landscapeHeld();
+        } catch (RuntimeException error) {
+            hookFailed(LANDSCAPE, "Can't let Messenger turn sideways", error);
+            return true;
+        }
+    }
+
+    /**
+     * The orientation a photo or video viewer puts back as it closes. With landscape on, portrait becomes unlocked, the
+     * way it is with Meta's flag off. Every other orientation passes through.
+     */
+    public static int mediaOrientation(int requested) {
+        if (requested != android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) return requested;
+        try {
+            return landscapeHeld() ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED : requested;
+        } catch (RuntimeException error) {
+            hookFailed(LANDSCAPE, "Can't keep a viewer from locking portrait", error);
+            return requested;
+        }
+    }
+
     /**
      * The answer a control that holds its first answer for the run is still giving, when the saved switch, Pause or
      * safe mode now says otherwise. Null when the control doesn't hold one, Messenger hasn't asked yet, or they agree.
@@ -524,7 +616,7 @@ public final class Settings {
             return shape < 0 || shape == now ? null : now == AVATAR_CIRCLE;
         }
         Boolean held = "meta_ai".equals(key) ? metaAiTab : "emoji_drawer".equals(key) ? oldEmojiDrawer
-            : SEARCH_BAR.equals(key) ? keptSearchBar : OwnFont.KEY.equals(key) ? customFont : CallRecording.KEY.equals(key) ? CallRecording.heldPlayout() : bottomTabs.get(key);
+            : SEARCH_BAR.equals(key) ? keptSearchBar : LANDSCAPE.equals(key) ? landscape : OwnFont.KEY.equals(key) ? customFont : CallRecording.KEY.equals(key) ? CallRecording.heldPlayout() : bottomTabs.get(key);
         return held == null || held == wouldUse(key) ? null : held;
     }
 
@@ -672,6 +764,7 @@ public final class Settings {
             return stock;
         }
     }
+    static final String HIDDEN_CHATS = "hidden_chats";
     /** Asked each time a chat's swipe up for disappearing messages could start; true keeps the gesture from starting. */
     public static boolean blockDisappearingSwipe() { return enabled("disappearing_swipe"); }
     /** Asked each time a chat looks for a photo or video taken just before it opened; true shows no card for it. */
@@ -692,6 +785,36 @@ public final class Settings {
      * Messenger builds for someone it can't look up, with no picture. Off, Pause and safe mode keep the picture.
      */
     public static Object blockedListPicture(Object picture) { return enabled(BLOCKED_LIST_PICTURES) ? null : picture; }
+    static final String RESTRICTED_NOTIFY = "restricted_notify";
+    /** The folder enum's INBOX constant, found once per folder type. */
+    private static volatile Enum<?> inboxFolder;
+    /**
+     * The new-message notification check reads the chat's folder before it decides. A RESTRICTED folder comes back as
+     * INBOX, so the chat gets the same mute and status checks as any other chat. Only that local read changes: the chat
+     * stays in Restricted. Off, Pause and safe mode, and every other folder, keep the folder.
+     */
+    public static Object notificationFolder(Object folder) {
+        if (!(folder instanceof Enum) || !"RESTRICTED".equals(((Enum<?>) folder).name()) || !enabled(RESTRICTED_NOTIFY)) return folder;
+        try {
+            Class<?> type = ((Enum<?>) folder).getDeclaringClass();
+            Enum<?> inbox = inboxFolder;
+            if (inbox == null || inbox.getDeclaringClass() != type) {
+                inbox = null;
+                for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                    if (!field.isEnumConstant() || field.getType() != type) continue;
+                    field.setAccessible(true);
+                    Enum<?> constant = (Enum<?>) field.get(null);
+                    if ("INBOX".equals(constant.name())) inbox = constant;
+                }
+                if (inbox == null) throw new IllegalStateException("No INBOX folder in " + type.getName());
+                inboxFolder = inbox;
+            }
+            return inbox;
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            hookFailed(RESTRICTED_NOTIFY, "Can't notify for a restricted chat", error);
+            return folder;
+        }
+    }
     static final String AVATAR_SHAPE = "avatar_shape";
     /** Under Square profile pictures: rounds the square's corners. */
     static final String AVATAR_ROUNDED = "avatar_shape_rounded";

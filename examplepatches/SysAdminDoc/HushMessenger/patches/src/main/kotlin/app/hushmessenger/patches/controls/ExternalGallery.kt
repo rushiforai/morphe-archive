@@ -289,13 +289,21 @@ internal fun Method.onlyParameter(type: String): Int? {
  *     const/16 v0, 0x458
  *     ...
  *     iget-object vIntent, pEvent, <event>->A02:Landroid/content/Intent;
+ *
+ * 586's armv7 handler reuses the event's register for the coroutine's last argument once it's done with the event. The
+ * hooks run before any of it, so that's fine while nothing from the reuse on branches or catches, and only reads ahead of
+ * it count.
  */
 internal fun Method.galleryItemsIntent(byType: Map<String, ClassDef>): FieldReference? {
     if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || onlyParameter(THREAD_KEY_TYPE) == null) return null
     val code = implementation?.instructions?.toList() ?: return null
     val event = parameterRegister(onlyParameter(ACTIVITY_RESULT_EVENT) ?: return null)
-    if (code.none { (it as? NarrowLiteralInstruction)?.narrowLiteral == EXTERNAL_MEDIA_REQUEST } || code.any { it.galleryWrites(event) }) return null
-    val intent = code.filter { it.opcode == Opcode.IGET_OBJECT && (it as TwoRegisterInstruction).registerB == event }
+    if (code.none { (it as? NarrowLiteralInstruction)?.narrowLiteral == EXTERNAL_MEDIA_REQUEST }) return null
+    val reused = code.indexOfFirst { it.galleryWrites(event) }.takeIf { it >= 0 } ?: code.size
+    if (reused < code.size && (implementation!!.tryBlocks.isNotEmpty() || code.drop(reused).any { it is OffsetInstruction })) return null
+    val reads = code.indices.filter { code[it].opcode == Opcode.IGET_OBJECT && (code[it] as TwoRegisterInstruction).registerB == event }
+    if (reads.any { it > reused }) return null
+    val intent = reads.map { code[it] }
         .mapNotNull { it.galleryField() }.filter { it.definingClass == ACTIVITY_RESULT_EVENT && it.type == "Landroid/content/Intent;" }
         .distinctBy { it.toString() }.singleOrNull() ?: return null
     byType[ACTIVITY_RESULT_EVENT]?.fields?.singleOrNull { it.name == intent.name && it.type == intent.type && !AccessFlags.STATIC.isSet(it.accessFlags) }

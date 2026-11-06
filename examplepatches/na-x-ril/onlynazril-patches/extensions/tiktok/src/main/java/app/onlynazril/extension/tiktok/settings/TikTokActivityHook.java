@@ -1,6 +1,6 @@
 package app.onlynazril.extension.tiktok.settings;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Insets;
 import android.os.Build;
@@ -16,7 +16,7 @@ import app.onlynazril.extension.tiktok.ui.TweaksScreen;
 import com.bytedance.ies.ugc.aweme.commercialize.compliance.personalization.AdPersonalizationActivity;
 
 /**
- * Hosts the Tweaks screen in TikTok's ad-personalisation activity, reached from the Settings row.
+ * Hosts the Tweaks screen in TikTok's ad-personalisation activity, reached from the Home tab.
  *
  * The screen is built directly into the activity instead of through a Fragment: the whole state
  * lives in shared preferences, so a recreate (rotation, process death) just rebuilds it, and there
@@ -87,14 +87,13 @@ public class TikTokActivityHook {
         return true;
     }
 
-    public static void open() {
-        Context context = AppContext.get();
-        if (context == null) return;
-        Intent intent = new Intent(context, AdPersonalizationActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    /** Opens the screen from the activity that has the Home tab. */
+    public static void open(Activity activity) {
+        if (activity == null) return;
+        Intent intent = new Intent(activity, AdPersonalizationActivity.class);
         intent.setAction(ACTION);
         intent.putExtra(EXTRA, true);
-        context.startActivity(intent);
+        activity.startActivity(intent);
     }
 
     private static boolean isOurs(Intent intent) {

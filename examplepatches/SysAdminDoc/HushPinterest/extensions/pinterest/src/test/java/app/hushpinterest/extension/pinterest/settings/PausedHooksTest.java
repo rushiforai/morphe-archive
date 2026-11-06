@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
@@ -196,10 +197,29 @@ public class PausedHooksTest {
         return row.getVisibility() == View.GONE;
     }
 
+    /** The id Pinterest's resources give the title row's chevron, which the test app doesn't have. */
+    private static final int TITLE_CHEVRON_ID = 0x7f0b1234;
+
     /** A closeup title module taking a pin with a date: true when a line was added under its row. */
     private static boolean addsPostedDate() {
-        LinearLayout module = new LinearLayout(RuntimeEnvironment.getApplication());
-        module.addView(new TextView(RuntimeEnvironment.getApplication()));
+        // Pinterest's resources know the title row's chevron by name; the test app's don't.
+        Context app = RuntimeEnvironment.getApplication();
+        Resources base = app.getResources();
+        Resources named = new Resources(base.getAssets(), base.getDisplayMetrics(), base.getConfiguration()) {
+            @Override public int getIdentifier(String name, String type, String owner) {
+                return "closeup_metadata_expand_chevron".equals(name) && "id".equals(type) ? TITLE_CHEVRON_ID : super.getIdentifier(name, type, owner);
+            }
+        };
+        Context pinterest = new ContextWrapper(app) {
+            @Override public Resources getResources() { return named; }
+        };
+        LinearLayout module = new LinearLayout(pinterest);
+        LinearLayout row = new LinearLayout(pinterest);
+        row.addView(new TextView(pinterest));
+        View chevron = new View(pinterest);
+        chevron.setId(TITLE_CHEVRON_ID);
+        row.addView(chevron);
+        module.addView(row);
         ProbePin pin = new ProbePin();
         pin.createdAt = new Date(1_791_806_400_000L);
         PostedDate.show(module, pin);
@@ -255,6 +275,9 @@ public class PausedHooksTest {
         return UiHooks.recentSearchRowMeasureSpec(row, MEASURE_SPEC) != MEASURE_SPEC;
     }
 
+    /** Pinterest's consent vendors, the constant the Meta ad SDK check is asked with. */
+    private enum ConsentVendor { META_AUDIENCE_NETWORK }
+
     private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
@@ -270,6 +293,7 @@ public class PausedHooksTest {
                 },
                 () -> Ads.adViewVisibility(View.VISIBLE) != View.VISIBLE,
                 Ads::skipGoogleAds,
+                () -> Ads.skipMetaConsent(ConsentVendor.META_AUDIENCE_NETWORK),
                 () -> Ads.adViewMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC));
         // A pin Pinterest labels as AI-modified leaves the page.
         probes.put(Settings.HIDE_AI_PINS, Collections.singletonList(() -> {
@@ -380,8 +404,10 @@ public class PausedHooksTest {
                 () -> UiHooks.searchHistoryVisibility(View.INVISIBLE) != View.INVISIBLE,
                 () -> UiHooks.searchHistoryMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
                 PausedHooksTest::hidesRecentSearchRow, PausedHooksTest::foldsRecentSearchRow));
-        probes.put(Settings.HIDE_NAV_CREATE, Collections.singletonList(() -> hidesNavigation(Tab.CREATE)));
-        probes.put(Settings.HIDE_NAV_NOTIFICATIONS, Collections.singletonList(() -> hidesNavigation(Tab.NOTIFICATIONS)));
+        probes.put(Settings.HIDE_NAV_CREATE, Arrays.asList(() -> hidesNavigation(Tab.CREATE),
+                () -> hidesGreetingButton("home_feed_greeting_header_create_icon")));
+        probes.put(Settings.HIDE_NAV_NOTIFICATIONS, Arrays.asList(() -> hidesNavigation(Tab.NOTIFICATIONS),
+                () -> hidesGreetingButton("home_feed_greeting_header_newshub_icon")));
         probes.put(Settings.HIDE_NAV_SEARCH, Collections.singletonList(() -> hidesNavigation(Tab.SEARCH)));
         probes.put(Settings.HIDE_HEADER_BUTTONS, Collections.singletonList(() -> {
             View header = namedView("end_container_icon_bt");
@@ -574,6 +600,15 @@ public class PausedHooksTest {
         view.setVisibility(View.INVISIBLE);
         InterfaceControls.bindNavigation(view, tab);
         return view.getVisibility() != View.INVISIBLE;
+    }
+
+    /** Home's greeting header row holding just the button [name], handed over the way its builder does. */
+    private static boolean hidesGreetingButton(String name) {
+        LinearLayout row = new LinearLayout(RuntimeEnvironment.getApplication());
+        View button = namedView(name);
+        row.addView(button);
+        InterfaceControls.greetingHeader(row);
+        return button.getVisibility() != View.INVISIBLE;
     }
 
     private static boolean hidesMenuItem(String resource) {

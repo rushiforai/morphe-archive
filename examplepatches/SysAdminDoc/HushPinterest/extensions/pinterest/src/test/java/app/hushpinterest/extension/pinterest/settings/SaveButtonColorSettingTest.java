@@ -124,7 +124,7 @@ public class SaveButtonColorSettingTest {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             ShadowLooper.idleMainLooper();
             assertEquals("#3366FF", SAVE_BUTTON_COLOR.savedValue());
-            assertEquals("That isn't a hex color, so nothing changed. Try one like #3366FF.",
+            assertEquals("Not a hex color, so nothing changed. Try one like #3366FF.",
                     ShadowToast.getTextOfLatestToast());
         });
     }
@@ -138,7 +138,7 @@ public class SaveButtonColorSettingTest {
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
             ShadowLooper.idleMainLooper();
             assertEquals("", SAVE_BUTTON_COLOR.savedValue());
-            assertEquals("The Save button is back to Pinterest's red on the next pin you open.",
+            assertEquals("The Save button goes back to Pinterest's red on your next pin.",
                     ShadowToast.getTextOfLatestToast());
             assertNull(SaveButtonColorPreference.shown);
         });

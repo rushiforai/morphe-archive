@@ -182,6 +182,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postprompts/PostXButton.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 585 (#389): finds the check that asks whether a feed post's header draws its X and sends its answer through a switch."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/StoryOverlayVideo.java"
       ],
       "origin": "original",
@@ -819,6 +828,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the Find friends card where the feed runs out of friends' posts. In Facebook 583 the end of the feed is one section whose children builder adds a part for each of its pieces, and the card is the one that names itself EndOfFeedCIUnitSection. The builder reads a string off the section's settings and builds the card only when that string isn't null. The patch finds the one String field read guarded by a null check right before the card's section is created, and hands the string to the extension, which answers null while the switch is on so the card is skipped the way some feed types already skip it."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/FeedEndHint.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the bottom of Home. In Facebook 585 Home's list ends with an empty component whose visibility handlers call one static method of its class with a visible flag, and that method opens a trace named InterruptionStateManager.onEndOfFeedUnitVisible. The patch finds the one static method holding that trace whose last parameter is a boolean and hands the flag to the extension first thing, so it can say Hush hid the suggestions after the last post it kept."
     },
     {
       "paths": [

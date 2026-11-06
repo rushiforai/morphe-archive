@@ -34,20 +34,21 @@ internal fun Document.addSettingsEntry() {
         "authorities" to MessengerTarget.PACKAGE + SETTINGS_AUTHORITY_SUFFIX, "exported" to "false")
     // Settings get their own task, so Recents left a second card for them beside Messenger's (#54). Android still shows
     // the card while settings are in front, and drops it once anything else is.
+    // Labels and the icon are the APK's own resources, which settingsResources adds (#141).
     application.child("activity", "name" to "app.hushmessenger.extension.SettingsActivity",
-        "label" to "HushMessenger settings", "exported" to "true", "excludeFromRecents" to "true",
-        "icon" to "@android:drawable/ic_menu_preferences", "taskAffinity" to "app.hushmessenger.settings")
+        "label" to "@string/$SETTINGS_LABEL", "exported" to "true", "excludeFromRecents" to "true",
+        "icon" to "@drawable/$SETTINGS_ICON", "taskAffinity" to "app.hushmessenger.settings")
     // The app drawer entry is an alias, so settings can hide it while the shortcuts and Menu tab row keep working.
     val launcher = application.child("activity-alias", "name" to "app.hushmessenger.extension.SettingsLauncher",
-        "targetActivity" to "app.hushmessenger.extension.SettingsActivity", "label" to "HushMessenger settings",
-        "icon" to "@android:drawable/ic_menu_preferences", "exported" to "true")
+        "targetActivity" to "app.hushmessenger.extension.SettingsActivity", "label" to "@string/$SETTINGS_LABEL",
+        "icon" to "@drawable/$SETTINGS_ICON", "exported" to "true")
     // Android opens the first launcher match for the package (Android Auto too), so this one sorts after Messenger's.
     val filter = launcher.child("intent-filter", "priority" to "-1")
     filter.child("action", "name" to "android.intent.action.MAIN")
     filter.child("category", "name" to "android.intent.category.LAUNCHER")
     // Launcher shortcuts start it as Messenger itself, so no other app needs a way to kill the process.
     application.child("activity", "name" to "app.hushmessenger.extension.RestartActivity",
-        "label" to "Restart Messenger", "exported" to "false", "excludeFromRecents" to "true",
+        "label" to "@string/$RESTART_LABEL", "exported" to "false", "excludeFromRecents" to "true",
         "noHistory" to "true", "configChanges" to "orientation|screenSize|keyboardHidden",
         "theme" to "@android:style/Theme.Material.NoActionBar")
 }
@@ -60,6 +61,14 @@ internal val settingsResources = resourcePatch(description = "Install HushMessen
             it.hasNativeBubbleActivity()
         }
         document("AndroidManifest.xml").use { it.addSettingsAccess() }
+        // One decode call: patcher 2 loads the whole APK again for each one.
+        decode(*MANIFEST_STRINGS.keys.toTypedArray())
+        if (!get(DEFAULT_STRINGS, false).exists()) throw PatchException("Messenger controls: Messenger has no $DEFAULT_STRINGS for the labels")
+        for ((path, strings) in MANIFEST_STRINGS) if (get(path, false).exists()) document(path).use { it.addStrings(strings) }
+        val icon = get(SETTINGS_ICON_PATH)
+        if (icon.exists()) throw PatchException("HushMessenger: $SETTINGS_ICON_PATH is already in the APK. Start with the stock APK.")
+        icon.parentFile.mkdirs()
+        icon.writeText(SETTINGS_ICON_XML)
     }
 }
 
@@ -160,6 +169,7 @@ internal fun MutableMethod.validateHook(hook: String) {
         AI_SEARCH_HINT -> validateAiSearchHint()
         AI_SEARCH_SCREEN_HINT -> validateAiSearchScreenHint()
         AI_MENTION_ROWS -> validateAiMentionRows()
+        AI_SUMMARY -> validateAiSummary()
         XHE_AUDIO -> validateXheAudio()
         XHE_TRANSCODE -> validateXheTranscode()
         DISAPPEARING_SWIPE -> validateDisappearingSwipe()
@@ -167,6 +177,8 @@ internal fun MutableMethod.validateHook(hook: String) {
         INSTANTS_BUTTON -> validateInstantsButton()
         SAVE_VOICE -> validateSaveVoice()
         SAVE_VOICE_MENU -> validateSaveVoiceMenu()
+        MESSAGE_ACTIONS -> validateMessageActions()
+        MESSAGE_ACTIONS_MORE -> validateMessageActionsMore()
         HIDE_READ_RECEIPTS -> validateChatSeen()
         REPLY_READ -> validateReplyRead()
         MARK_READ_BAR, HIDE_CALL_BAR -> validateMarkReadBar()
@@ -181,12 +193,18 @@ internal fun MutableMethod.validateHook(hook: String) {
         PIN_DROP -> if (!isPinDrop() || pinStepKey() == null) throw PatchException("Messenger controls: the unpin call changed (${hookId()})")
         PIN_FULL -> pinFullSite() ?: throw PatchException("Messenger controls: the pin limit's answer changed (${hookId()})")
         PIN_LIST -> pinListTrace() ?: throw PatchException("Messenger controls: the chat list's read changed (${hookId()})")
+        HIDDEN_CHAT_LIST -> hiddenListSite() ?: throw PatchException("Messenger controls: the chat list's walk changed (${hookId()})")
+        HIDDEN_CHAT_ROW -> hiddenRowSite() ?: throw PatchException("Messenger controls: the chat menu's rows changed (${hookId()})")
+        HIDDEN_CHAT_TAP -> hiddenTapSummary() ?: throw PatchException("Messenger controls: the chat menu's tap changed (${hookId()})")
         NEARBY_SCANS -> validateNearbyScans()
         WIFI_IDENTITY -> validateWifiIdentity()
         PHONE_ID_SYNC -> validatePhoneIdSync()
         STORY_HOLD -> validateStoryHold()
         CHAT_PREVIEW -> validateChatPreview()
+        LANDSCAPE_LOCK -> validatePortraitLock()
+        LANDSCAPE_MEDIA -> validateMediaOrientation()
         BLOCKED_LIST_PICTURES -> validateBlockedListPictures()
+        RESTRICTED_NOTIFY -> validateRestrictedNotify()
         SHARE_STORY -> validateShareStory()
         AVATAR_SHAPE -> validateAvatarShape()
         STORY_RING -> validateStoryRing()
@@ -241,7 +259,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "stories" -> method.injectSwitch("$SETTINGS->hideStories()Z", "0x0")
             "facebook" -> method.injectSwitch("$SETTINGS->hideFacebook()Z", "0x0")
             FACEBOOK_PROFILE -> method.injectSwitch("$SETTINGS->hideFacebookProfile()Z", "0x0")
-            "ai_menu", "ai_fab", "ai_toolbar", "ai_search", "ai_search_chip" -> method.injectSwitch("$SETTINGS->hideMetaAi()Z", "0x0")
+            "ai_menu", "ai_fab", "ai_toolbar", "ai_search", "ai_search_chip", AI_SUMMARY -> method.injectSwitch("$SETTINGS->hideMetaAi()Z", "0x0")
             "ai_tab", AI_MUSE_TAB -> method.injectSwitch("$SETTINGS->hideMetaAiTab()Z", "0x0")
             TAB_PEOPLE -> method.injectSwitch("$SETTINGS->hidePeopleTab()Z", "0x0")
             TAB_NOTIFICATIONS -> method.injectSwitch("$SETTINGS->hideNotificationsTab()Z", "0x0")
@@ -279,6 +297,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             INSTANTS_BUTTON -> method.injectInstantsButton()
             SAVE_VOICE -> method.injectSaveVoice()
             SAVE_VOICE_MENU -> method.injectSaveVoiceMenu()
+            MESSAGE_ACTIONS -> method.injectMessageActions()
+            MESSAGE_ACTIONS_MORE -> method.injectMessageActionsMore()
             ANALYTICS_UPLOADS -> method.injectAnalyticsUpload()
             ATTRIBUTION_UPLOADS -> method.injectAttributionUpload()
             AD_EVENTS -> method.injectAdEvent()
@@ -289,12 +309,18 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             PIN_DROP -> method.injectPinStep(UNPINNING_CALL)
             PIN_FULL -> method.injectPinFull()
             PIN_LIST -> method.injectPinList()
+            HIDDEN_CHAT_LIST -> method.injectHiddenChatList()
+            HIDDEN_CHAT_ROW -> method.injectHiddenChatRow()
+            HIDDEN_CHAT_TAP -> method.injectHiddenChatTap()
             NEARBY_SCANS -> method.injectNearbyScans()
             WIFI_IDENTITY -> method.injectWifiIdentity()
             PHONE_ID_SYNC -> method.injectPhoneIdSync()
             STORY_HOLD -> method.injectStoryHold()
             CHAT_PREVIEW -> method.injectChatPreview()
+            LANDSCAPE_LOCK -> method.injectPortraitLock()
+            LANDSCAPE_MEDIA -> method.injectMediaOrientation()
             BLOCKED_LIST_PICTURES -> method.injectBlockedListPictures()
+            RESTRICTED_NOTIFY -> method.injectRestrictedNotify()
             SHARE_STORY -> method.injectShareStory()
             AVATAR_SHAPE -> method.injectAvatarShape()
             STORY_RING -> method.injectStoryRing()
@@ -367,6 +393,10 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
             val pinRoute = if (PIN_LIST in selected) {
                 val row = discoveredControls.getValue(PIN_ROWS).first { it.definingClass == PIN_MENU_ITEM }
                 resolvePinnedChatRoute(row, discoveredControls.getValue(PIN_LIST).single()) { classDefByOrNull(it) } to pinnedChatStub()
+            } else null
+            val hiddenRoute = if (HIDDEN_CHAT_LIST in selected) {
+                resolveHiddenChatRoute(discoveredControls.getValue(HIDDEN_CHAT_LIST).single(), discoveredControls.getValue(HIDDEN_CHAT_ROW).single(),
+                    discoveredControls.getValue(HIDDEN_CHAT_TAP).single()) { classDefByOrNull(it) } to hiddenChatStub()
             } else null
             val emojiFontHolder = if ("emoji_typeface" in selected) {
                 discoveredControls.getValue("emoji_typeface").single().emojiFontHolder { classDefByOrNull(it) }
@@ -483,6 +513,7 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 injectControl(key, methods)
                 inboxRoute?.let { (route, stub) -> stub.writeInboxRefreshRoute(route) }
                 pinRoute?.let { (route, stub) -> stub.writePinnedChatRoute(route) }
+                hiddenRoute?.let { (route, stub) -> stub.writeHiddenChatRoute(route) }
                 emojiFontHolder?.let { init ->
                     mutableClassDefBy(init.substringBefore("->")).methods.single { it.hookId() == init }.injectEmojiFontHolder()
                 }
@@ -529,15 +560,19 @@ val previewChatsPatch = controlPatch("chat_preview", "Preview chats on long pres
 @Suppress("unused")
 val pinMoreChatsPatch = controlPatch("pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "Inbox", PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST)
 @Suppress("unused")
+val hideChosenChatsPatch = controlPatch("hidden_chats", "Hide chosen chats", "Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your chat list when new messages come in, and search still finds it. Hiding stays on this phone, and you can unhide chats in HushMessenger settings. It doesn't stop notifications, so mute the chat in Messenger for that.", "Inbox", HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP)
+@Suppress("unused")
 val hideFacebookPatch = controlPatch("facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "Navigation", "facebook", FACEBOOK_PROFILE, FACEBOOK_PROFILE_HEADER)
 @Suppress("unused")
-val hideMetaAiPatch = controlPatch("meta_ai", "Hide Meta AI", "Hides the Meta AI floating button, toolbar button, tab and menu entries, plus AI in search and in @ suggestions. Restart Messenger to see the tab go.", "Navigation", "ai_menu", "ai_fab", "ai_toolbar", "ai_tab", AI_MUSE_TAB, "ai_search", "ai_search_chip", AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, TAB_CONFIG)
+val hideMetaAiPatch = controlPatch("meta_ai", "Hide Meta AI", "Hides the Meta AI floating button, toolbar button, tab and menu entries, AI in search and in @ suggestions, and the offer to summarize a chat's unread messages. Restart Messenger to see the tab go.", "Navigation", "ai_menu", "ai_fab", "ai_toolbar", "ai_tab", AI_MUSE_TAB, "ai_search", "ai_search_chip", AI_MENTIONS, AI_COMMANDS, AI_SEARCH_HINT, AI_SEARCH_SCREEN_HINT, AI_MENTION_ROWS, AI_SUMMARY, TAB_CONFIG)
 @Suppress("unused")
 val hideMomentsPatch = controlPatch("moments", "Hide Chat Moments", "Hides Chat Moments in the menu.", "Navigation")
 @Suppress("unused")
 val hideReelsBadgePatch = controlPatch("reels_badge", "Hide Reels badge", "Hides the Reels notification badge.", "Navigation")
 @Suppress("unused")
 val hidePeopleTabPatch = controlPatch("tab_people", "Hide People tab", "Hides the People tab in the bar at the bottom. Restart Messenger to see the tab go.", "Navigation", TAB_PEOPLE, TAB_CONFIG)
+@Suppress("unused")
+val showPeopleTabPatch = controlPatch("tab_people_show", "Show People tab", "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Restart Messenger to see the tab.", "Navigation", TAB_CONFIG)
 @Suppress("unused")
 val hideNotificationsTabPatch = controlPatch("tab_notifications", "Hide Notifications tab", "Hides the Notifications tab in the bar at the bottom. Restart Messenger to see the tab go.", "Navigation", TAB_NOTIFICATIONS, TAB_CONFIG)
 @Suppress("unused")
@@ -586,6 +621,10 @@ val xheAudioPatch = controlPatch("xhe_audio", "Fix videos that won't send",
 val disappearingSwipePatch = controlPatch("disappearing_swipe", "Ignore the swipe up for disappearing messages",
     "Swiping up at the bottom of a chat no longer turns on disappearing messages, so a scroll can't set the timer by accident. You can still change it in the chat's settings.", "Conversations")
 @Suppress("unused")
+val messageActionsPatch = controlPatch("message_actions", "Customize message actions",
+    "Lets you choose the order of the actions you get by holding a message, and hide the ones you don't use, separately for messages you sent and messages you got. The first ones show in the row under the message and the rest under More.", "Conversations",
+    MESSAGE_ACTIONS, MESSAGE_ACTIONS_MORE)
+@Suppress("unused")
 val hideRecentMediaPatch = controlPatch("recent_media", "Hide the recent photo card",
     "Stops the card above the message box that offers to send the screenshot, photo or video you just took. You can still send it from the gallery.", "Photos and videos")
 @Suppress("unused")
@@ -619,6 +658,10 @@ val localChatSearchPatch = controlPatch("local_chat_search", "Search saved messa
 val chatJumpPatch = controlPatch("chat_jump", "Jump to the first message or a date",
     "Long press a chat's name at the top of the chat to jump to its first message or to a day you pick. Messenger loads a chat a page at a time, so it scrolls back with a count on screen until it gets there, and Cancel stops it. It can only go as far back as Messenger can load.", "Conversations",
     CHAT_JUMP)
+@Suppress("unused")
+val allowLandscapePatch = controlPatch("landscape", "Allow landscape",
+    "Lets Messenger turn sideways with your phone, for a wider keyboard and bigger photos and videos. It follows your phone's auto-rotate setting. Calls, the camera, payments and a few other screens stay upright. Restart Messenger after you change it.", "Conversations",
+    LANDSCAPE_LOCK, LANDSCAPE_MEDIA)
 @Suppress("unused")
 val callRecordingPatch = controlPatch("call_recording", "Record calls",
     "Adds a Record button over Messenger during a call. The call goes into one sound file in Recordings/Messenger Calls on your phone (Music/Messenger Calls on Android 10 and 11). While it's on, calls use Android's regular audio path instead of Messenger's own, and Messenger needs a restart after you change it. Messenger doesn't tell the other people, and recording laws differ from place to place, so get everyone's OK first.", "Calls")
@@ -669,6 +712,9 @@ val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Keeps
 @Suppress("unused")
 val blockedListPicturesPatch = controlPatch("blocked_list_pictures", "Hide pictures on the Blocked list",
     "Hides people's profile pictures on the list of people you've blocked, under Privacy and safety. Their names and Unblock stay.", "Privacy")
+@Suppress("unused")
+val restrictedNotifyPatch = controlPatch("restricted_notify", "Notify for restricted chats",
+    "Chats with people you've restricted notify you like your other chats. A chat you've muted stays quiet. Restricted people still can't see when you're active or when you've read their messages.", "Privacy")
 @Suppress("unused")
 val unlockAppIconsPatch = controlPatch("app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger still decides whether that setting shows for your account.", "Theme")
 @Suppress("unused")

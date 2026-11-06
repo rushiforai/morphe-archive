@@ -1,6 +1,7 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.controls.controlProfiles
+import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
@@ -370,6 +371,51 @@ class RestoreTrustShapesTest {
         }
     }
 
+    /** 586 armv7's string pool, cut down to the two family apps' packages under 0xc6 and 0xc7. */
+    private val linkPool = "LX/000;->A00(I)Ljava/lang/String;"
+    private val linkPoolClass = fixtureClass("LX/000;", listOf(fixtureMethod(linkPool, """
+        packed-switch p0, :keys
+        const-string v0, ""
+        return-object v0
+        :android
+        const-string v0, "com.instagram.android"
+        return-object v0
+        :barcelona
+        const-string v0, "com.instagram.barcelona"
+        return-object v0
+        :keys
+        .packed-switch 0xc6
+            :android
+            :barcelona
+        .end packed-switch
+    """.trimIndent(), 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)))
+    private val pools = { type: String -> linkPoolClass.takeIf { it.type == type } }
+
+    private fun pooled(key: String, register: String = "v2") = "const/16 $register, $key\ninvoke-static {v2}, $linkPool\nmove-result-object v2"
+
+    @Test
+    fun `a link launcher's package can come from a string pool by a constant key`() {
+        // 586's armv7 Threads launcher asks the pool for its package instead of loading the literal.
+        val method = threadsLauncher(pkg = pooled("0xc7"))
+        method.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG, pools)
+        assertEquals(1, method.linkLaunchSites("Threads").size)
+        val cases = listOf(
+            "the pool unread" to (threadsLauncher(pkg = pooled("0xc7")) to { _: String -> null }),
+            "another app's key" to (threadsLauncher(pkg = pooled("0xc6")) to pools),
+            "a key the pool lacks" to (threadsLauncher(pkg = pooled("0xc8")) to pools),
+            "a key in another register" to (threadsLauncher(pkg = pooled("0xc7", register = "v3")) to pools),
+            "a way into the lookup" to (threadsLauncher(pkg = pooled("0xc7").replace("invoke-static", ":lookup\ninvoke-static"),
+                tail = "goto :lookup") to pools),
+        )
+        for ((case, shape) in cases) {
+            val (launcher, resolver) = shape
+            val before = launcher.body()
+            val failure = assertThrows(PatchException::class.java, { launcher.requireLinkPackage("Threads", "com.instagram.barcelona", THREADS_LINK_TAG, resolver) }, case)
+            assertEquals(true, failure.message.orEmpty().contains("doesn't load com.instagram.barcelona"), case)
+            assertEquals(before, launcher.body(), case)
+        }
+    }
+
     /** Mirrors the link launcher fingerprints: `(Context, Uri)V` with the app's log tag. */
     private fun Method.isLinkLauncher(tag: String): Boolean =
         returnType == "V" && parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;", "Landroid/net/Uri;") &&
@@ -386,10 +432,11 @@ class RestoreTrustShapesTest {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val methods = classes.flatMap { it.methods }
+            val byType = classes.associateBy { it.type }
             for ((app, tag) in listOf("com.instagram.barcelona" to THREADS_LINK_TAG, "com.instagram.android" to INSTAGRAM_LINK_TAG)) {
                 val launchers = methods.filter { it.isLinkLauncher(tag) }
                 assertEquals(1, launchers.size, "$code $tag")
-                launchers.single().requireLinkPackage(tag, app, tag)
+                launchers.single().requireLinkPackage(tag, app, tag) { byType[it] }
                 val method = MutableMethod(launchers.single())
                 val before = method.body()
                 val sites = method.linkLaunchSites(tag)

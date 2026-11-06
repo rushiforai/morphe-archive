@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Single source-owned event contract. No post-translation concatenation or hidden resplit. */
 final class RebuildProtocol {
@@ -385,13 +387,11 @@ final class RebuildProtocol {
             }
             Object t = e.opt("text");
             if (!(t instanceof String)) throw new Invalid("text_type");
-            String text =
-                    ((String) t)
-                            .replace('\r', ' ')
-                            .replace('\n', ' ')
-                            .replaceAll("[\\t ]+", " ")
-                            .trim();
             String source = s.text(from, to);
+            String text = eventText(source, (String) t);
+            if (!text.equals(normalizeText((String) t)))
+                presentation.add(new RebuildReview.Issue(from, to, "protocol_suffix_removed",
+                        "Kept readable prefix after protocol debris; completeness unverified.", true));
             if (e.has("source")
                     && (!(e.opt("source") instanceof String)
                             || !sameSource(source, e.getString("source")))) {
@@ -413,8 +413,6 @@ final class RebuildProtocol {
             RebuildSemantics.validateTarget(source, text, context);
             // A long event is a presentation concern, not a reason to discard a translation;
             // page planning can split it without changing its source ownership.
-            if (text.contains("\"events\"") || text.startsWith("```"))
-                throw new Invalid("protocol_leak");
             for (int k = from + 1; k <= to; k++)
                 if (s.words.get(k).start - s.words.get(k - 1).end >= 650
                         || s.words.get(k).text.startsWith(">>"))
@@ -482,6 +480,9 @@ final class RebuildProtocol {
         // Cue alignment is not validated here: an event may leave its authored cue, and the
         // display projection publishes it as an event page instead of rejecting the whole block.
         presentation.addAll(RebuildReview.inspect(s, b, out, context));
+        // A later row may still rebind IDs and recursively reparse this root. Keep every raw
+        // text until all rebinding checks have passed, so cleanup uncertainty cannot disappear.
+        for (int i = 0; i < out.size(); i++) rows.getJSONObject(i).put("text", out.get(i).text);
         return new Plan(
                 out, root.toString(), Collections.unmodifiableList(presentation), reboundEvents);
     }
@@ -532,6 +533,12 @@ final class RebuildProtocol {
      */
     private static int alignBySource(JSONObject root, RebuildSource s, RebuildPlanner.Block b, boolean quotesOnly)
             throws Exception {
+        return alignBySource(root, s, b, quotesOnly, false);
+    }
+
+    private static int alignBySource(JSONObject root, RebuildSource s, RebuildPlanner.Block b,
+            boolean quotesOnly, boolean partial)
+            throws Exception {
         JSONArray events = root.optJSONArray("events");
         if (events == null || events.length() == 0 || events.length() > b.to - b.from + 1) return 0;
         String block = compact(s.text(b.from, b.to));
@@ -548,11 +555,15 @@ final class RebuildProtocol {
         starts[tokens] = at;
         if (at != block.length()) return 0;
         int[][] resolved = new int[events.length()][2];
+        for (int[] range : resolved) Arrays.fill(range, -1);
         boolean[] declaredCoverage = new boolean[tokens];
-        int cursor = 0, moved = 0;
+        int cursor = 0, moved = 0, bound = 0;
         for (int i = 0; i < events.length(); i++) {
             JSONObject event = events.optJSONObject(i);
-            if (event == null || !(event.opt("source") instanceof String)) return 0;
+            if (event == null || !(event.opt("source") instanceof String)) {
+                if (quotesOnly && partial) continue;
+                return 0;
+            }
             int oldFrom = -1, oldTo = -1;
             if (quotesOnly) {
                 if (event.has("from") || event.has("to")) return 0;
@@ -565,33 +576,56 @@ final class RebuildProtocol {
                 for (int k = oldFrom; k <= oldTo; k++) declaredCoverage[k - b.from] = true;
             }
             String quote = compact(event.getString("source"));
-            if (quote.isEmpty()) return 0;
-            int start = block.indexOf(quote, cursor);
-            if (start < 0 || start - cursor > MAX_HOLE_CHARS) return 0;
+            if (quote.isEmpty()) {
+                if (quotesOnly && partial) continue;
+                return 0;
+            }
+            int start, end, first, last;
+            if (quotesOnly) {
+                int[] range = quotedRange(block, quote, cursor, starts, s, b, partial);
+                if (range == null) {
+                    // A changed quote has no authority; an earlier/overlapping exact quote must
+                    // not be silently reassigned. Other exact neighbours may survive a changed row.
+                    if (partial && block.indexOf(quote) < 0) continue;
+                    return 0;
+                }
+                first = range[0]; last = range[1];
+                start = starts[first]; end = starts[last];
+            } else {
+                start = block.indexOf(quote, cursor);
+                if (start < 0) return 0;
+                end = start + quote.length();
+                first = Arrays.binarySearch(starts, start);
+                last = Arrays.binarySearch(starts, end);
+                if (first < 0 || last < 0 || last <= first) return 0;
+            }
+            if (!partial && start - cursor > MAX_HOLE_CHARS) return 0;
             // The first quote must own the start of the block; a late start dropped its opening.
-            if (i == 0 && start != 0) return 0;
-            int end = start + quote.length();
-            int first = Arrays.binarySearch(starts, start), last = Arrays.binarySearch(starts, end);
-            if (first < 0 || last < 0 || last <= first) return 0;
+            if (!partial && i == 0 && start != 0) return 0;
             resolved[i][0] = b.from + first;
             resolved[i][1] = b.from + last - 1;
+            bound++;
             if (oldFrom != resolved[i][0] || oldTo != resolved[i][1]) moved++;
             if (start > cursor) moved++;
             cursor = end;
         }
+        if (quotesOnly && bound == 0) return 0;
         if (!quotesOnly && block.length() - cursor > MAX_HOLE_CHARS) return 0;
         if (cursor < block.length()) moved++;
         if (moved == 0) return 0;
         // Preserve negligible ID mistakes under the existing hole allowance. A copied
         // whole-block quote cannot turn a substantial unclaimed range into translated coverage.
         int recoveredChars = 0;
-        for (int[] range : resolved)
+        for (int[] range : resolved) {
+            if (range[0] < 0) continue;
             for (int k = range[0]; k <= range[1]; k++)
                 if (!quotesOnly && !declaredCoverage[k - b.from]) {
                     recoveredChars += compact(s.words.get(k).text).length();
                     if (recoveredChars > MAX_HOLE_CHARS) return 0;
                 }
+        }
         for (int i = 0; i < events.length(); i++) {
+            if (resolved[i][0] < 0) continue;
             JSONObject event = events.getJSONObject(i);
             event.put("from", resolved[i][0]);
             event.put("to", resolved[i][1]);
@@ -599,16 +633,55 @@ final class RebuildProtocol {
         return moved;
     }
 
+    /** Exact token boundaries, with the existing leading speaker marker kept in its source range.
+     * A gap followed by repeated text has no unique placement and cannot acquire guessed times.
+     */
+    private static int[] quotedRange(String block, String quote, int cursor, int[] starts,
+            RebuildSource source, RebuildPlanner.Block owner, boolean partial) {
+        int[] found = null;
+        for (int at = block.indexOf(quote, cursor); at >= 0; at = block.indexOf(quote, at + 1)) {
+            int first = Arrays.binarySearch(starts, at);
+            if (first < 0) {
+                int before = -first - 2;
+                if (before < 0 || at != starts[before] + 2
+                        || !source.words.get(owner.from + before).text.startsWith(">>")) continue;
+                first = before;
+            }
+            int last = Arrays.binarySearch(starts, at + quote.length());
+            if (last <= first) continue;
+            if (first > 0 && starts[first - 1] >= cursor
+                    && compact(source.words.get(owner.from + first - 1).text).equals(">>")) first--;
+            if (starts[first] < cursor) continue;
+            if (found != null) return null;
+            found = new int[] {first, last};
+            if (!partial || starts[first] == cursor) return found;
+        }
+        return found;
+    }
+
     /** Source-only wire format: assign ranges locally, never override contradictory legacy IDs.
      * A completed stream prefix may leave a tail; full parsing/salvage still owns coverage checks.
      */
     static void bindQuotedEvents(JSONObject root, RebuildSource source, RebuildPlanner.Block block)
             throws Exception {
+        bindQuotedEvents(root, source, block, false);
+    }
+
+    static void bindQuotedEvents(JSONObject root, RebuildSource source, RebuildPlanner.Block block,
+            boolean partial)
+            throws Exception {
         JSONArray rows = root.optJSONArray("events");
         if (rows == null || rows.length() == 0) return;
-        JSONObject first = rows.optJSONObject(0);
-        if (first == null || first.has("from") || first.has("to")) return;
-        if (alignBySource(root, source, block, true) == 0)
+        boolean indexed = false, quoted = false;
+        for (int i = 0; i < rows.length(); i++) {
+            JSONObject event = rows.optJSONObject(i);
+            if (event == null) continue;
+            if (event.has("from") || event.has("to")) indexed = true;
+            else if (event.has("source")) quoted = true;
+        }
+        if (indexed && quoted) throw new Invalid("source_quote_mismatch");
+        if (indexed || !quoted) return;
+        if (alignBySource(root, source, block, true, partial) == 0)
             throw new Invalid("source_quote_mismatch", "Source-only events must quote ordered token ranges exactly.");
     }
 
@@ -622,7 +695,59 @@ final class RebuildProtocol {
     /** The same visible characters in the same order; our own token joins may add spacing only. */
     static boolean sameSource(String expected, String quoted) {
         String left = compact(expected), right = compact(quoted);
+        // Source/planner already treat this prefix as a speaker boundary. It is not spoken text.
+        if (left.startsWith(">>") && !right.startsWith(">>")) left = left.substring(2);
         return left.equals(right) || identity(left).equals(identity(right));
+    }
+
+    private static final Pattern CLOSED_EVENT_TAIL =
+            Pattern.compile("\\}\\s*\\]\\s*\\}[\\s.,;:!?。！？}\\]]*$");
+    private static final Pattern EMPTY_JSON_FENCE =
+            Pattern.compile("```(?:json)?[\\s{}\\[\\]\\\"':,;。.!?`]*");
+    private static final Pattern PROTOCOL_FIELD =
+            Pattern.compile("\\\"(?:block|events|source|text)\\\"\\s*:");
+
+    static String normalizeText(String text) {
+        return text.replace('\r', ' ').replace('\n', ' ').replaceAll("[\\t ]+", " ").trim();
+    }
+
+    /** Shared by full, streaming, salvage and cached replies. A closed, empty protocol suffix
+     * may leave a readable prefix, but callers mark it unverified and forbid cache publication.
+     * Literal fenced code must have its own exact source evidence, not just a nearby brace.
+     */
+    static String eventText(String source, String raw) throws Invalid {
+        String text = normalizeText(raw);
+        String sourceWire = compact(source);
+        int fence = text.lastIndexOf("```");
+        if (fence >= 0 && !sourceBackedFences(sourceWire, text)) {
+            String before = text.substring(0, fence).trim();
+            Matcher tail = CLOSED_EVENT_TAIL.matcher(before);
+            if (EMPTY_JSON_FENCE.matcher(text.substring(fence)).matches() && tail.find()
+                    && !before.substring(0, tail.start()).trim().isEmpty())
+                text = before.substring(0, tail.start()).trim();
+            else throw new Invalid("protocol_leak");
+            if (!sourceBackedFences(sourceWire, text)) throw new Invalid("protocol_leak");
+        }
+        if (text.contains("\"events\"") && !sourceWire.contains("\"events\""))
+            throw new Invalid("protocol_leak");
+        Matcher fields = PROTOCOL_FIELD.matcher(text);
+        while (fields.find())
+            if (!sourceWire.contains(compact(fields.group()))) throw new Invalid("protocol_leak");
+        return text;
+    }
+
+    private static boolean sourceBackedFences(String source, String text) {
+        int sourceAt = 0;
+        for (int at = text.indexOf("```"); at >= 0; ) {
+            int end = text.indexOf("```", at + 3);
+            if (end < 0) return false;
+            String code = compact(text.substring(at, end + 3));
+            int found = source.indexOf(code, sourceAt);
+            if (found < 0) return false;
+            sourceAt = found + code.length();
+            at = text.indexOf("```", end + 3);
+        }
+        return true;
     }
 
     /** A verbatim wider quote contradicts the IDs; neither proves the translation's ownership. */

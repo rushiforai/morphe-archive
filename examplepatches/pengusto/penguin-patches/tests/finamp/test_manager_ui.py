@@ -2,6 +2,7 @@
 import unittest
 import xml.etree.ElementTree as ET
 from manager_ui import ensure_install_source
+from manager_selection import content_top
 
 
 class SourceUi:
@@ -39,3 +40,21 @@ class InstallSourceTests(unittest.TestCase):
                                   ('true', 'REQUEST_INSTALL_PACKAGES: deny')]:
             with self.subTest(state=state), self.assertRaises(RuntimeError):
                 ensure_install_source(SourceUi(state, permission))
+
+    def test_selection_uses_visible_tab_bounds(self):
+        root = ET.fromstring('<root><node bounds="[42,243][466,380]">'
+                             '<node text="Penguin Patches" bounds="[158,264][434,317]"/>'
+                             '</node><node text="Fix offline artist tracks" bounds="[190,475][557,528]"/>'
+                             '</root>')
+        parents = {child: parent for parent in root.iter('node') for child in parent}
+
+        class Ui:
+            size = (1080, 1920)
+
+            def bounds(self, node):
+                import re
+                return tuple(map(int, re.findall(r'\d+', node.get('bounds'))))
+
+        limit = content_top(Ui(), root, parents)
+        self.assertGreater(limit, 412)  # Clear the observed sticky header.
+        self.assertLess(limit, 475)  # The first visible row remains reachable.

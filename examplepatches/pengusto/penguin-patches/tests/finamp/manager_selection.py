@@ -1,5 +1,16 @@
 """Select and verify patch rows through fresh Manager UI, including scrolled rows."""
 
+import time
+
+
+def content_top(ui, root, parents):
+    controls = [ui.bounds(node)[3] for node in root.iter('node')
+                if node.get('content-desc') in ('Enable all', 'Disable all')]
+    tabs = [ui.bounds(parents.get(node, node))[3] + ui.size[1] // 40
+            for node in root.iter('node')
+            if node.get('text') in ('Penguin Patches', 'Morphe Patches')]
+    return max([*controls, *tabs], default=0)
+
 
 def configure_selection(ui, names, mask):
     ordered = sorted(names.items(), key=lambda entry: entry[1])
@@ -15,17 +26,45 @@ def configure_selection(ui, names, mask):
             while footer.get('clickable') != 'true' and footer in parents:
                 footer = parents[footer]
             footer_top = ui.bounds(footer, allow_disabled=True)[1]
-            controls = [ui.bounds(node)[3] for node in root.iter('node')
-                        if node.get('content-desc') in ('Enable all', 'Disable all')]
-            content_top = max(controls, default=0)
+            top_limit = content_top(ui, root, parents)
+
+            def scroll_visible_area(scroll_direction):
+                # The sticky toolbar and Patch footer overlap the list's
+                # reported scroll bounds. Starting a swipe under either can
+                # hit a button or leave the list stationary.
+                top = max(top_limit + 30, ui.viewport[1])
+                bottom = min(footer_top - 30, ui.viewport[3])
+                if bottom - top < 200:
+                    raise RuntimeError('Manager patch list has no safe scroll area')
+                x = (ui.viewport[0] + ui.viewport[2]) // 2
+                high, low = top + (bottom - top) // 5, bottom - (bottom - top) // 5
+                ui.adb('shell', 'input', 'swipe', x, low if scroll_direction == 'up' else high,
+                       x, high if scroll_direction == 'up' else low, 350)
+                time.sleep(0.3)
+
             try:
                 caption = ui.find(root, name, class_name='android.widget.TextView')
                 _, top, _, bottom = ui.bounds(caption)
             except (RuntimeError, ValueError):
-                ui.scroll(direction)
+                visible = []
+                for _, candidate in ordered:
+                    for node in root.iter('node'):
+                        if node.get('class') != 'android.widget.TextView' or node.get('text') != candidate:
+                            continue
+                        try:
+                            _, top, _, bottom = ui.bounds(node)
+                        except ValueError:
+                            continue
+                        if top >= top_limit and bottom <= footer_top:
+                            visible.append(candidate)
+                if visible and name < min(visible):
+                    direction = 'down'
+                elif visible and name > max(visible):
+                    direction = 'up'
+                scroll_visible_area(direction)
                 continue
-            if top < content_top or bottom > footer_top:
-                ui.scroll('down' if top < content_top else 'up')
+            if top < top_limit or bottom > footer_top:
+                scroll_visible_area('down' if top < top_limit else 'up')
                 continue
             states = [node.get('content-desc') for node in root.iter('node')
                       if node.get('content-desc') in (name + ', Enabled', name + ', Disabled')]
@@ -48,11 +87,14 @@ def configure_selection(ui, names, mask):
     for bit, name in ordered:
         expected = name + (', Enabled' if mask & bit else ', Disabled')
         if current.get(name) != expected:
-            row(name)  # A readable semantic state alone is not a safe tap target.
-            ui.tap(name, class_name='android.widget.TextView')
-            current = states_in(ui.dump()[0])
-            if current.get(name) != expected:
-                raise AssertionError('Patch toggle did not apply: ' + name)
+            observed = row(name)  # A readable semantic state alone is not a safe tap target.
+            if observed != expected:
+                ui.tap(name, class_name='android.widget.TextView')
+                current = states_in(ui.dump()[0])
+                if current.get(name) != expected:
+                    raise AssertionError('Patch toggle did not apply: ' + name)
+            else:
+                current[name] = observed
 
     verified = states_in(ui.dump()[0])
     if len(verified) != len(names):

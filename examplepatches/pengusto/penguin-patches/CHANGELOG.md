@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/pengusto/penguin-patches/compare/v1.6.4...v1.7.0) (2026-11-05)
+
+### ✨ New Features
+
+* **finamp:** show album and track information ([Penguin PR #58](https://github.com/pengusto/penguin-patches/pull/58)); [upstream PR #1853](https://github.com/finamp-app/finamp/pull/1853) remains open.
+
 ## [1.6.4](https://github.com/pengusto/penguin-patches/compare/v1.6.3...v1.6.4) (2026-11-04)
 
 ### 🐛 Bug Fixes

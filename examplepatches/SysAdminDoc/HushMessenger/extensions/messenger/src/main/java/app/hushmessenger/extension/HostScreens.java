@@ -142,6 +142,11 @@ public final class HostScreens {
         return "";
     }
 
+    /** Rewritten with what Hide chosen chats reads and builds, and the chat list's refresh, once the patch proves them. */
+    static String hiddenChatRoute() {
+        return "";
+    }
+
     /** Rewritten with Messenger's own Log out, "Lowner;->name(Landroid/content/Context;)V", once the patch proves it (#88). */
     static String logoutRoute() {
         return "";

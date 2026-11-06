@@ -35,7 +35,9 @@ class OriginNoticeMirrorsTest {
             .toSortedSet()
         assertTrue("no source notice cites a mirror, so the block has nothing beside it", mirrors.isNotEmpty())
 
-        val failures = mirrors.mapNotNull { mirror ->
+        val failures = mirrors.mapIndexedNotNull { index, mirror ->
+            // Spaced out, so this run alone never trips GitLab's limit.
+            if (index > 0) Thread.sleep(REQUEST_GAP_MS)
             val status = runCatching { settled(mirror) }.getOrElse { error -> "no answer: ${error.message}" }
             if (status == "200") null else "$status  $mirror"
         }
@@ -78,5 +80,6 @@ class OriginNoticeMirrorsTest {
         const val RATE_LIMITED = "429"
         const val RATE_LIMIT_TRIES = 4
         const val RATE_LIMIT_MAX_WAIT_SECONDS = 60L
+        const val REQUEST_GAP_MS = 400L
     }
 }

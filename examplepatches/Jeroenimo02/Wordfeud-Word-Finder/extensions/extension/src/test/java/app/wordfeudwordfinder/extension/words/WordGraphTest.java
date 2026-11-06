@@ -153,4 +153,58 @@ public class WordGraphTest {
         byte[] b = out.toByteArray();
         assertTrue(WordGraph.read(new ByteArrayInputStream(b), b.length).contains("AC"));
     }
+
+    @Test
+    public void minimalGraphMatchesTheWordSetAndSharesSuffixes() throws IOException {
+        java.util.Random r = new java.util.Random(7);
+        java.util.TreeSet<String> words = new java.util.TreeSet<>();
+        String[] stems = {"TAL", "KISS", "KOIR", "AUT", "HUON"};
+        String[] ends = {"O", "OSSA", "OISSA", "OLLE", "OILLE", "AN", "ASSA", "ISSA"};
+        for (String st : stems) for (String e : ends) if (r.nextInt(4) > 0) words.add(st + e);
+        for (int i = 0; i < 3000; i++) {
+            StringBuilder sb = new StringBuilder();
+            int len = 1 + r.nextInt(9);
+            for (int k = 0; k < len; k++) sb.append((char) ('A' + r.nextInt(6)));
+            words.add(sb.toString());
+        }
+        WordGraph g = WordGraph.build(new java.util.ArrayList<>(words));
+        for (String w : words) assertTrue(w, g.contains(w));
+        for (int i = 0; i < 3000; i++) {
+            StringBuilder sb = new StringBuilder();
+            int len = 1 + r.nextInt(9);
+            for (int k = 0; k < len; k++) sb.append((char) ('A' + r.nextInt(7)));
+            String w = sb.toString();
+            assertEquals(w, words.contains(w), g.contains(w));
+        }
+        long chars = 0;
+        for (String w : words) chars += w.length();
+        assertTrue("shares nodes: " + g.nodeCount() + " < " + chars, g.nodeCount() < chars / 2);
+        // children always have higher ids (needed by read() and walking)
+        for (int n = 0; n < g.nodeCount(); n++) {
+            for (int e = g.edgeStart(n); e < g.edgeEnd(n); e++) assertTrue(g.edgeTarget(e) > n);
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        g.write(out);
+        WordGraph back = WordGraph.read(new ByteArrayInputStream(out.toByteArray()));
+        for (String w : words) assertTrue(back.contains(w));
+        assertEquals(g.nodeCount(), back.nodeCount());
+    }
+
+    @Test
+    public void builderTakesSortedInputOnlyAndMergesRepeats() {
+        WordGraph.Builder b = new WordGraph.Builder();
+        b.add("AAP");
+        b.add("AAP");
+        b.add("NOOT");
+        try {
+            b.add("MIES");
+            fail("unsorted input accepted");
+        } catch (IllegalArgumentException expected) {
+        }
+        WordGraph g = b.finish();
+        assertTrue(g.contains("AAP"));
+        assertTrue(g.contains("NOOT"));
+        assertFalse(g.contains("AA"));
+        assertFalse(new WordGraph.Builder().finish().contains("A"));
+    }
 }

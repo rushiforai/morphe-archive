@@ -3,6 +3,7 @@ package app.hushmessenger.patches
 import app.hushmessenger.patches.coexist.expectedDexSitesFor
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.ControlProfile
+import app.hushmessenger.patches.controls.PROFILE_347215341
 import app.hushmessenger.patches.controls.PROFILE_347215348
 import app.hushmessenger.patches.controls.controlProfileFor
 import com.android.tools.smali.dexlib2.Opcode
@@ -81,21 +82,27 @@ class CompatProfileTest {
         }
     }
 
-    @Test fun record347215348GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) {
-        assertSame(PROFILE_347215348, controlProfileFor("347215348"))
+    @Test fun record347215348GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) =
+        assertRecordGeneratesTheSource(347215348, PROFILE_347215348, dir)
+
+    @Test fun record347215341GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) =
+        assertRecordGeneratesTheSource(347215341, PROFILE_347215341, dir)
+
+    private fun assertRecordGeneratesTheSource(code: Int, profile: ControlProfile, dir: Path) {
+        assertSame(profile, controlProfileFor("$code"))
         // A copy of the script that knows only this record prints the blocks.
         Files.copy(Path.of("../scripts/CompatReport.java"), dir.resolve("CompatReport.java"))
         dir.resolve("profiles").createDirectories()
-        Files.copy(profiles.resolve("347215348.txt"), dir.resolve("profiles/347215348.txt"))
+        Files.copy(profiles.resolve("$code.txt"), dir.resolve("profiles/$code.txt"))
         val (exit, output) = compatReport(
-            "--kotlin", dir.resolve("profiles/347215348.txt").toString(), script = dir.resolve("CompatReport.java").toString(),
+            "--kotlin", dir.resolve("profiles/$code.txt").toString(), script = dir.resolve("CompatReport.java").toString(),
         )
         assertEquals(0, exit, output)
         val blocks = output.split("\n\n").filter { it.startsWith("internal val ") }.map { it.trimEnd() + "\n" }
         assertEquals(2, blocks.size, output)
-        assertTrue(blocks[0].startsWith("internal val PROFILE_347215348 = ControlProfile("), blocks[0])
+        assertTrue(blocks[0].startsWith("internal val PROFILE_$code = ControlProfile("), blocks[0])
         assertContains(source("controls/ControlProfiles.kt"), blocks[0])
-        assertTrue(blocks[1].startsWith("internal val expectedDexSites347215348 = mapOf("), blocks[1])
+        assertTrue(blocks[1].startsWith("internal val expectedDexSites$code = mapOf("), blocks[1])
         assertContains(source("coexist/InstallBesideMetaAppsPatch.kt"), blocks[1])
     }
 

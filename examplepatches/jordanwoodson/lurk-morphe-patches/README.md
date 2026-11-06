@@ -56,17 +56,15 @@ project. The name "Morphe" is used only to say what the patches are for (see [NO
    APKMirror or Uptodown for it; on APKMirror, take the variant listed below), choose the patches you
    want and patch. Manager installs the result.
 
-Lurk is tested on these builds. Other variants of the same version may fail to patch or
+Lurk is tested on these APKMirror variants. Other variants of the same version may fail to patch or
 to install, so take these:
 
-- **Twitch 31.9.0**: from [Google Play](https://play.google.com/store/apps/details?id=tv.twitch.android.app) or
-  [Uptodown](https://twitch.en.uptodown.com/android/versions). APKMirror lists 31.9.0 only as a beta so far, which
-  is a different build; don't use it.
+- **Twitch 31.8.0**: the [arm64-v8a bundle, 480-640dpi, Android 10+](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-android-apk-download/).
 - **Kick 40.34.0**: the arm64-v8a bundle, 480-640dpi, Android 10+, on the
   [40.34.0 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-34-0-release/)
   (not one of the two universal builds).
-- **Rumble 3.22.0**: from Google Play, since APKMirror still lists only 3.21.0 (tested with Google Play's
-  arm64-v8a split APKs).
+- **Rumble 3.21.0**: the universal bundle (all four architectures, 120-640dpi, Android 8.0+) on the
+  [3.21.0 release page](https://www.apkmirror.com/apk/rumble-inc/rumble/rumble-stream-watch-videos-3-21-0-release/).
 
 > [!IMPORTANT]
 > **Keep your signing key.** Manager signs every app it patches with a key it creates on first use,
@@ -158,7 +156,7 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide Shorts *(off)* | Removes Shorts from the bottom bar, Home, My Feed, channels, categories and search. Shorts links still open. |
 
 <!-- PATCHES_START -->
-> **[v1.16.0](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;130 patches total
+> **[v1.16.1](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.16.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;130 patches total
 <details>
 <summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
@@ -215,7 +213,7 @@ switch that starts off; the full list says which, and where to turn it on.
 
 **🎯 Supported versions:**
 
-| 3.22.0 |
+| 3.21.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -228,11 +226,11 @@ switch that starts off; the full list says which, and where to turn it on.
 | Change app name | Changes the name shown under Rumble's launcher icon and in Android's settings. | • App name |
 | Chat keywords | Highlights live chat messages that mention you or contain your highlight words with a tinted background, optionally with a vibration, and hides messages with blocked words or from blocked users. Mentions are on by default; the word and user lists start empty. On by default. Turn it off in Lurk settings > Chat. |  |
 | Chat timestamps | Shows the time each live chat message was sent in front of the sender's name. On by default. Turn it off in Lurk settings > Chat. |  |
-| Clean share links | Removes everything after the ? from Rumble links before they are shared, so tracking tags such as e9s (where you found the video) can't go out with them. Rumble 3.22.0 shares clean links; this keeps them clean if the server starts adding tags. |  |
+| Clean share links | Removes everything after the ? from Rumble links before they are shared, so tracking tags such as e9s (where you found the video) can't go out with them. Rumble 3.21.0 shares clean links; this keeps them clean if the server starts adding tags. |  |
 | Clone app | Installs Rumble under another package name, so it sits alongside the original app with its own sign-in and settings. Use "Change app name" to tell the two apart in the launcher. | • Package name |
 | Default playback speed | Starts videos at a chosen playback speed instead of 1x, until you pick another speed in the player. Live streams without rewind still play at 1x. Starts off (1x). Choose a speed in Lurk settings > Playback. |  |
 | Default startup tab | Opens Rumble on Home or My Feed every time, instead of the one you last chose. Starts off. Choose a tab in Lurk settings > Interface. |  |
-| Default video quality | Starts videos at a chosen quality, or the closest one available, instead of Rumble's Auto. A quality you pick in the player applies to that video. Starting live streams at it too, and a lower cap on mobile data, are separate settings. Starts off (Rumble's default). Choose a quality in Lurk settings > Playback. | • Quality<br>• Live streams too<br>• On mobile data |
+| Default video quality | Starts videos at a chosen quality, or the closest one available, instead of Rumble's 480p. Once you pick a quality in the player, Rumble keeps using that one. Starting live streams at it too, and a lower cap on mobile data, are separate settings. Starts off (Rumble's default). Choose a quality in Lurk settings > Playback. | • Quality<br>• Live streams too<br>• On mobile data |
 | Disable analytics | Stops Rumble's own analytics, which it sends whatever the consent setting: clicks, impressions, searches, watch progress and player state, with your user ID, username, advertising ID and AppsFlyer ID, to e.rumble.com and its debug log. Signed-in watch history may stop updating unless watch progress is kept. | • Keep watch progress |
 | Disable autoplay | Stops Rumble from playing the next video when one ends, and from playing muted previews in feeds, including the featured video on Home. Only the defaults change: Settings > Playback can turn either back on. Starts off. Turn them on in Lurk settings > Playback. | • Next video<br>• Feed previews |
 | Disable tracking SDKs | Switches Firebase Analytics and Firebase Performance off for good, so recorded consent can't turn them on, and stops the Facebook SDK from initializing itself fully, logging app events or reading the advertising ID by default. Crashlytics and AppsFlyer have no such switch and still follow consent; Block cookie notice keeps them off. Changes the APK when patching, so it has no switch in Lurk settings. |  |
@@ -269,7 +267,7 @@ switch that starts off; the full list says which, and where to turn it on.
 
 **🎯 Supported versions:**
 
-| 31.9.0 |
+| 31.8.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

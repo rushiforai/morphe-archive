@@ -955,7 +955,7 @@
         "naijun0403/ReVancedXposed",
         "BoBppy/ReVancedXposed",
         "sad25kag/ReVancedXposed",
-        "gnadgnaoh/NexAlloy-XES",
+        "gnadgnaoh/SexAlloy",
         "TTT158368/ReVancedXposed",
         "kessejay1-glitch/ReVancedXposed",
         "chalau/ReVancedXposed",
@@ -1059,6 +1059,101 @@
       ],
       "mirrors": [],
       "lastChecked": "2026-10-18"
+    },
+    {
+      "id": "nexalloy-xes",
+      "repository": "https://github.com/gnadgnaoh/SexAlloy",
+      "lineage": "chsbuffer-revancedxposed",
+      "upstream": "https://github.com/NexAlloy/NexAlloy",
+      "kind": "xposed-module",
+      "packages": [
+        "com.instagram.android",
+        "com.instagram.barcelona"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": []
+      },
+      "features": [
+        "Hide ads",
+        "Block ads and analytics",
+        "Sanitize tracking links",
+        "Disable screenshot detection",
+        "Save videos",
+        "Hide read receipts",
+        "Hide typing indicator",
+        "Show a post's exact time",
+        "Profile picture menu"
+      ],
+      "branches": [
+        {
+          "name": "nonroot",
+          "commit": "0c6cff85d67b4e520d91bb2a83bf07d8ed91a895",
+          "head": "d4073b84faf31ddc8518ea7429a6d6b3b705ad6f",
+          "headChecked": "2026-11-05"
+        },
+        {
+          "name": "root",
+          "commit": "0c6cff85d67b4e520d91bb2a83bf07d8ed91a895",
+          "head": "79acad234eadf0d291f3a46d7bd2a85557444589",
+          "headChecked": "2026-11-05"
+        }
+      ],
+      "watchPaths": [
+        "app/src/main/java/io/github/nexalloy/AppPatchInfo.kt",
+        "app/src/main/java/io/github/nexalloy/MainHook.kt",
+        "app/src/main/java/io/github/nexalloy/revanced/threads",
+        "app/src/main/resources/META-INF/xposed/scope.list"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/gnadgnaoh/SexAlloy/blob/79acad234eadf0d291f3a46d7bd2a85557444589/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "rejected",
+      "reason": "Was gnadgnaoh/NexAlloy-XES. A GPL-3.0 fork of NexAlloy whose Threads hook adds eight patches to NexAlloy's Hide ads: Block ads and analytics, Sanitize tracking links, Disable screenshot detection, Save videos, Hide read receipts, Hide typing indicator, Show a post's exact time and Profile picture menu. Its Sanitize tracking links description rewords HushThreads' Sanitize sharing links, and Block ads and analytics hooks the same analytics_endpoint, logging URL and Pigeon reads as HushThreads' Disable analytics, so its Threads work reads as HushThreads' behavior carried over to Xposed. Reviewed by its file list and patch bodies at 0c6cff8 on 2026-11-05. Nothing to take, and no code has been adopted.",
+      "archived": false,
+      "forks": [
+        "TheFloresto/NexAlloy-XES",
+        "ahtuaan309/NexAlloy-XES",
+        "trangkyanh17/NexAlloy-XES",
+        "a092devs/NexAlloy-XES",
+        "wszmx332650748/SexAlloy",
+        "siritami/SexAlloy",
+        "asizon/SexAlloy",
+        "Rainy-PlayGround/SexAlloy",
+        "dotarma/Armalloy",
+        "FiorenMas/NexAlloy",
+        "49ronind/NexAlloy",
+        "peerkaiser8-create/NexAlloy",
+        "thinhzero/NexAlloy"
+      ],
+      "contentHashes": [
+        "044e3cc6ff62f8a78b8c8ce4cc7368ab62297357",
+        "089cc5614e8ba223909bdb32e03ba77964f48546",
+        "133df9c456932506bc883c731813334fe4dfd0fe",
+        "1a257bdb0a4c61a7695e29d5d6fa7d5f29152b25",
+        "32fb84a896188c505213ffc996cc8fa3eee68348",
+        "347a77e59ab2b63f3c6122e0ee2c8062aed03a2d",
+        "4569ad80f7fa7651c8426e3238e951ce3621f161",
+        "4aa6f3c4a518652242fcf01d0407a34a9c4dea73",
+        "5d4f9b64411dad17cfc96adbdcac6c235346ac92",
+        "600bd0af5244addec0f8d37213149230fc180905",
+        "77d3d933284a9b5bbd23601f09ddee687798d957",
+        "919bf8f0d7e15f1677f434da444c2d9c4e17c4d0",
+        "9df6a3ccabf7bd665228924d8d5dae2d5c91c40a",
+        "9ecbb98a0ebe20e83483bb1a858efc7fd5a187a5",
+        "af18ad451f14457f6b49b8c0dec630df22214e9f",
+        "c19f3e2fceeac68eb827c792edb20c95320d9c9d",
+        "c6ca25c574ad817bac1f66936a52fdaaac87cd9e",
+        "cd337abd0fa1bbe800132a8773f27e37a73d5937",
+        "dc9d59653d71b9b1a0bfa3e9f67b6832b83976a0",
+        "debacbd619a1ccfb7437d2090251e3ce7001a20a",
+        "e07b5134b7926c70941a987d2a32ab84540e2d53",
+        "ffcb4fad44b40e49064d862c62795f1af4568eab"
+      ],
+      "mirrors": [],
+      "lastChecked": "2026-11-05"
     },
     {
       "id": "joel-revancedxposed",

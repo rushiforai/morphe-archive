@@ -5,8 +5,13 @@ import android.app.AlertDialog;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputFilter;
@@ -21,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -32,6 +38,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,8 +55,8 @@ import app.morphe.extension.BuildConfig;
 import app.morphe.extension.shared.Utils;
 
 /**
- * The problem report: the "Report Maps Car" screen ({@link ReportActivity}) and its row in Maps'
- * Settings, after BYD battery. The user builds a report of Maps Car's own state and logs
+ * The problem report: the report screen ({@link ReportActivity}, "Report" and the app's name in the
+ * launcher) and its row in Maps' Settings, after BYD battery. The user builds a report of the app's own state and logs
  * ({@link ReportBuilder}), sees all of it, and only Send queues it for the developer's server
  * ({@link ReportUploader}). The screen lists queued and sent reports with their IDs and deletes them,
  * and holds the feature switches and safe mode ({@link SafeMode}). The server URL and app key are set
@@ -63,13 +72,21 @@ import app.morphe.extension.shared.Utils;
 public final class ReportPatch {
     static final String TAG = "MorpheReport";
     static final String URL = BuildConfig.MAPS_CAR_REPORT_URL, KEY = BuildConfig.MAPS_CAR_REPORT_KEY;
+    /** The public repository (Gradle property projectUrl), shown at the top of the report screen. */
+    private static final String PROJECT_URL = BuildConfig.MAPS_CAR_PROJECT_URL;
     /** The launcher alias the patch adds for {@link ReportActivity}. */
     private static final String LAUNCHER_ENTRY = "app.morphe.extension.mapsautomotive.patches.ReportLauncher";
     private static final long CRASH_TOAST_DELAY_MS = 8000;
     private static final String[] REDACTION_KEYS = {"coordinates", "map_links", "url_queries", "send_to_car_extras",
             "emails", "vins", "ip_addresses", "long_ids"};
+    /** The report screen's label from the manifest, read once. */
+    private static volatile String reportName;
     /** The open report screen's refresh, which a status dialog over it keeps running. */
     private static Runnable screenRefresh;
+    /** The open report ID dialog's refresh, which the screen hands to the uploader again when it resumes. Main thread. */
+    private static Runnable statusRefresh;
+    /** The screen these belong to. */
+    private static WeakReference<Activity> screenHost;
     /** Switches changed on the screen and not yet applied, so a refresh keeps them. */
     private static final Map<String, Boolean> pendingSwitches = new HashMap<>();
 
@@ -99,8 +116,8 @@ public final class ReportPatch {
     }
 
     /**
-     * The "Report Maps Car" launcher entry, off in the manifest and turned on here, except on DiLink 5:
-     * its launcher shows one entry per app, showed this one instead of Maps Car (issue #3) and keeps
+     * The report's launcher entry, off in the manifest and turned on here, except on DiLink 5: its
+     * launcher shows one entry per app, showed this one instead of the app (issue #3) and keeps
      * what it read at install, so the entry must be off from the install. Maps' Settings row and the
      * crash notification still open the report there. Set at each start, so a later build can change it.
      * On a background thread, so any error is caught: the entry then keeps its state.
@@ -113,16 +130,40 @@ public final class ReportPatch {
             int state = on ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
             if (manager.getComponentEnabledSetting(entry) == state) return;
             manager.setComponentEnabledSetting(entry, state, PackageManager.DONT_KILL_APP);
-            ReportLog.i(TAG, "Report Maps Car launcher entry " + (on ? "on" : "off (TS car adapter, one entry per app)"));
+            ReportLog.i(TAG, "Report launcher entry " + (on ? "on" : "off (TS car adapter, one entry per app)"));
         } catch (Throwable error) {
             ReportLog.w(TAG, "launcher entry not set", error);
         }
     }
 
-    /** Where the report screen opens from: its launcher entry, or Maps' Settings row where that is off. */
-    private static String reportPlace(boolean thai) {
-        if (!BydBatteryPatch.tsAdapterCar()) return "Report Maps Car";
+    /**
+     * Where the report screen opens from, for texts that send the user there: its launcher entry ("Report"
+     * and the app's name the patch was given), or Maps' Settings row where the entry is off or its label
+     * cannot be read.
+     */
+    static String reportPlace(Context context, boolean thai) {
+        if (!BydBatteryPatch.tsAdapterCar()) {
+            String name = reportName(context);
+            if (name != null) return name;
+        }
         return thai ? "การตั้งค่า > รายงานปัญหา" : "Settings > Report a problem";
+    }
+
+    /** The report screen's label in the manifest, the same as its launcher entry's; null when unreadable. */
+    static String reportName(Context context) {
+        String name = reportName;
+        if (name != null) return name;
+        try {
+            PackageManager manager = context.getPackageManager();
+            CharSequence label = manager.getActivityInfo(new ComponentName(context, ReportActivity.class), 0).loadLabel(manager);
+            if (label == null || label.length() == 0) return null;
+            name = label.toString();
+            reportName = name;
+            return name;
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "report label unreadable", error);
+            return null;
+        }
     }
 
     // One toast per start: safe mode ended by an update, safe mode, or the last crash (once).
@@ -131,16 +172,16 @@ public final class ReportPatch {
             boolean thai = UiDensityPatch.isThai(context);
             String text = null;
             if (SafeMode.takeClearedByUpdate(context)) {
-                text = thai ? "Maps Car อัปเดตแล้ว ออกจาก safe mode และเปิดฟีเจอร์เสริมอีกครั้ง"
-                        : "Maps Car was updated: safe mode ended and the extra features are back on.";
+                text = thai ? "อัปเดตแล้ว ออกจาก safe mode และเปิดฟีเจอร์เสริมอีกครั้ง"
+                        : "Updated: safe mode ended and the extra features are back on.";
             } else if (SafeMode.automatic()) {
                 ReportStore.takeCrashToast(context);
                 ReportNotice.safeMode(context);
-                text = thai ? "Maps Car อยู่ใน safe mode ฟีเจอร์เสริมปิดอยู่ ดูที่ " + reportPlace(true)
-                        : "Maps Car is in safe mode: extra features are off. See " + reportPlace(false) + ".";
+                text = thai ? "อยู่ใน safe mode ฟีเจอร์เสริมปิดอยู่ ดูที่ " + reportPlace(context, true)
+                        : "Safe mode: extra features are off. See " + reportPlace(context, false) + ".";
             } else if (ReportStore.takeCrashToast(context)) {
-                text = thai ? "Maps Car ปิดตัวผิดปกติครั้งก่อน ส่งรายงานได้ที่ " + reportPlace(true)
-                        : "Maps Car closed unexpectedly last time. Open " + reportPlace(false) + " to send a report.";
+                text = thai ? "แอปปิดตัวผิดปกติครั้งก่อน ส่งรายงานได้ที่ " + reportPlace(context, true)
+                        : "The app closed unexpectedly last time. Open " + reportPlace(context, false) + " to send a report.";
             }
             if (text != null) Toast.makeText(context, text, Toast.LENGTH_LONG).show();
         } catch (Throwable error) {
@@ -164,13 +205,13 @@ public final class ReportPatch {
             }
             int off = SafeMode.switchedOff();
             if (off > 0) return thai ? "ปิดฟีเจอร์อยู่ " + off + " รายการ · แตะเพื่อดู" : off + (off == 1 ? " feature" : " features") + " off · tap to see";
-            if (!configured()) return thai ? "ไม่ได้ตั้งค่าการส่งรายงานใน build นี้ · ฟีเจอร์ของ Maps Car" : "Not set up in this build · Maps Car features";
+            if (!configured()) return thai ? "ไม่ได้ตั้งค่าการส่งรายงานใน build นี้ · ฟีเจอร์เสริม" : "Not set up in this build · extra features";
             int queued = ReportStore.queuedCount(context);
             if (queued > 0) return thai ? "รอส่ง " + queued + " รายงาน" : queued + " waiting to send";
         } catch (RuntimeException error) {
             ReportLog.w(TAG, "report state unreadable", error);
         }
-        return thai ? "ส่งบันทึกให้ผู้พัฒนา ดูได้ก่อนส่ง · ฟีเจอร์ของ Maps Car" : "Send logs to the developer, reviewed first · Maps Car features";
+        return thai ? "ส่งบันทึกให้ผู้พัฒนาแพตช์ ดูได้ก่อนส่ง · ฟีเจอร์เสริม" : "Send logs to the patch developer, reviewed first · extra features";
     }
 
     /** Injection point: the row's click action, which opens the report screen. */
@@ -193,6 +234,7 @@ public final class ReportPatch {
             if (!host.isFinishing() && !host.isDestroyed()) fillScreen(host, views, content, thai, refresh[0]);
         };
         screenRefresh = refresh[0];
+        screenHost = new WeakReference<>(host);
         // A native crash since the last check shows as a new crash.
         Context app = host.getApplicationContext();
         Utils.runOnBackgroundThread(() -> {
@@ -202,12 +244,25 @@ public final class ReportPatch {
         return refresh[0];
     }
 
+    /** The uploader's listener while the screen shows: the report ID dialog over it, if open, then the screen. */
+    static Runnable onUploadChange(Runnable screen) {
+        return () -> {
+            Runnable status = statusRefresh;
+            if (status != null) status.run();
+            if (screen != null) screen.run();
+        };
+    }
+
+    /** Only for the screen that attached last: a screen opened again can attach before the old one is destroyed. */
     static void detachScreen(Activity host) {
+        if (screenHost == null || screenHost.get() != host) return;
+        screenHost = null;
         screenRefresh = null;
+        statusRefresh = null;
         pendingSwitches.clear();
     }
 
-    // The screen: safe mode, a new report, the queued, sent, failed and expired ones, then the switches.
+    // The screen: safe mode, the GitHub link, a new report, the queued, sent, failed and expired ones, then the switches.
     private static void fillScreen(Activity host, Views views, LinearLayout content, boolean thai, Runnable refresh) {
         content.removeAllViews();
         Context app = host.getApplicationContext();
@@ -219,21 +274,23 @@ public final class ReportPatch {
             content.addView(safeMode);
             SimpleDateFormat local = new SimpleDateFormat("d MMM HH:mm", Locale.getDefault());
             content.addView(views.paragraph(thai
-                    ? "Maps Car เด้ง 2 ครั้งภายใน 10 นาที (" + local.format(new Date(SafeMode.automaticSince()))
-                    + ") ส่งรายงานด้านล่าง แล้วเปิดฟีเจอร์กลับที่ \"ฟีเจอร์ของ Maps Car\""
-                    : "Maps Car crashed twice within 10 minutes (" + local.format(new Date(SafeMode.automaticSince()))
-                    + "). Send a report below, then turn features back on under \"Maps Car features\"."));
+                    ? "แอปเด้ง 2 ครั้งภายใน 10 นาที (" + local.format(new Date(SafeMode.automaticSince()))
+                    + ") ส่งรายงานด้านล่าง แล้วเปิดฟีเจอร์กลับที่ \"ฟีเจอร์เสริม\""
+                    : "The app crashed twice within 10 minutes (" + local.format(new Date(SafeMode.automaticSince()))
+                    + "). Send a report below, then turn features back on under \"Extra features\"."));
             content.addView(views.divider());
         }
+        addGitHubRow(host, views, content, thai);
+        content.addView(views.divider());
         TextView intro = views.paragraph(thai
-                ? "ส่งบันทึกการทำงานของ Maps Car ให้ผู้พัฒนาเพื่อแก้ปัญหา คุณจะเห็นข้อมูลทั้งหมดก่อนส่ง และลบได้ทุกเมื่อ"
-                : "Send Maps Car's own logs to the developer to fix a problem. You see everything before it is sent and can delete it any time.");
+                ? "ส่งบันทึกการทำงานของแอปให้ผู้พัฒนาแพตช์เพื่อแก้ปัญหา คุณจะเห็นข้อมูลทั้งหมดก่อนส่ง และลบได้ทุกเมื่อ"
+                : "Send the app's own logs to the patch developer to fix a problem. You see everything before it is sent and can delete it any time.");
         content.addView(intro);
         List<ReportStore.Entry> entries = ReportStore.entries(app);
         if (!configured()) {
             content.addView(views.paragraph(thai
-                    ? "Build นี้ไม่ได้ตั้งค่าเซิร์ฟเวอร์รายงาน จึงส่งไม่ได้ แจ้งปัญหาได้ที่ GitHub Issues ของโปรเจกต์"
-                    : "This build has no report server, so reports cannot be sent. Use the project's GitHub Issues."));
+                    ? "Build นี้ไม่ได้ตั้งค่าเซิร์ฟเวอร์รายงาน จึงส่งไม่ได้ แจ้งปัญหาที่ GitHub ตามลิงก์ด้านบนแทน"
+                    : "This build has no report server, so reports cannot be sent. Report the problem on GitHub with the link above."));
         } else {
             int queued = 0;
             for (ReportStore.Entry entry : entries) if (ReportStore.QUEUED.equals(entry.state)) queued++;
@@ -263,6 +320,13 @@ public final class ReportPatch {
             texts.addView(title);
             texts.addView(sub);
             row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            if (ReportStore.SENT.equals(entry.state) && entry.id != null) {
+                // The issue QR code with this report's ID, also after its status dialog was closed.
+                Button qr = new Button(views.themed, null, android.R.attr.buttonBarButtonStyle);
+                qr.setText(thai ? "แสดง QR" : "QR code");
+                qr.setOnClickListener(view -> showGitHub(host, entry.id, entry.patchesVersion, entry.appVersion, thai));
+                row.addView(qr, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            }
             Button delete = new Button(views.themed, null, android.R.attr.buttonBarButtonStyle);
             delete.setText(thai ? "ลบ" : "Delete");
             delete.setOnClickListener(view -> confirmDelete(host, entry, thai, refresh));
@@ -272,19 +336,190 @@ public final class ReportPatch {
         addFeatures(host, views, content, thai);
     }
 
-    // The feature switches. They apply when Maps Car starts again, so the screen restarts it.
+    // The project's link, with a button for the QR code of a new issue.
+    private static void addGitHubRow(Activity host, Views views, LinearLayout content, boolean thai) {
+        LinearLayout row = views.horizontal();
+        row.setMinimumHeight(views.px(56));
+        row.setPadding(views.px(24), views.px(4), views.px(8), views.px(4));
+        LinearLayout texts = views.vertical();
+        TextView title = views.text(16, views.primary, false);
+        title.setText(thai ? "ซอร์สโค้ดและแจ้งปัญหา" : "Source code and issues");
+        TextView link = views.text(13, views.secondary, false);
+        link.setText(PROJECT_URL.replaceFirst("^https://", ""));
+        texts.addView(title);
+        texts.addView(link);
+        row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        Button qr = new Button(views.themed, null, android.R.attr.buttonBarButtonStyle);
+        qr.setText(thai ? "แสดง QR" : "QR code");
+        qr.setOnClickListener(view -> showGitHub(host, null, Utils.getPatchesReleaseVersion(), appVersion(host), thai));
+        row.addView(qr, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        row.setOnClickListener(view -> showGitHub(host, null, Utils.getPatchesReleaseVersion(), appVersion(host), thai));
+        content.addView(row);
+    }
+
+    /** "Patches 0.1.5 · Google Maps 26.10.120003.E", this build's: the report screen's subtitle. */
+    static String versions(Context context, boolean thai) {
+        return versionLine(Utils.getPatchesReleaseVersion(), appVersion(context), thai);
+    }
+
+    private static String versionLine(String patches, String maps, boolean thai) {
+        return (thai ? "แพตช์ " : "Patches ") + patches + " · Google Maps " + maps;
+    }
+
+    private static String appVersion(Context context) {
+        try {
+            String name = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+            if (name != null && !name.isEmpty()) return name;
+        } catch (Throwable error) {
+            ReportLog.w(TAG, "app version unreadable", error);
+        }
+        return "unknown";
+    }
+
+    /**
+     * Fills a field of the problem form for a new issue (its id in .github/ISSUE_TEMPLATE/problem.yml) when the
+     * value is known; true if it did.
+     */
+    private static boolean field(StringBuilder url, String id, String value) {
+        if (value == null || value.isEmpty() || "unknown".equals(value)) return false;
+        try {
+            url.append('&').append(id).append('=').append(URLEncoder.encode(value, "UTF-8"));
+            return true;
+        } catch (UnsupportedEncodingException impossible) {
+            return false; // every Android has UTF-8
+        }
+    }
+
+    /**
+     * The QR code of a new GitHub issue (the report ID and versions filled in where known), for a phone to
+     * scan: the head unit may have no browser, and a phone has the user's GitHub sign-in. A browser on this
+     * device gets a button too. Beside the text in landscape, so the dialog stays low on a wide screen.
+     * For a report, patches and maps are the versions it was made with (null in entries from older builds).
+     */
+    private static void showGitHub(Activity host, String reportId, String patches, String maps, boolean thai) {
+        String form = PROJECT_URL + "/issues/new?template=problem.yml";
+        StringBuilder filledForm = new StringBuilder(form);
+        boolean idFilled = field(filledForm, "report-id", reportId);
+        boolean bundleFilled = field(filledForm, "bundle", patches);
+        boolean mapsFilled = field(filledForm, "maps", maps);
+        String url = filledForm.toString();
+        QrCode code = QrCode.encode(url);
+        if (code == null) {
+            url = form; // too long for a version 10 code
+            code = QrCode.encode(url);
+            idFilled = bundleFilled = mapsFilled = false;
+        }
+        // Both, or the text does not say "versions".
+        boolean versionsFilled = bundleFilled && mapsFilled;
+        AlertDialog.Builder builder = new AlertDialog.Builder(host).setTitle(thai ? "แจ้งปัญหาที่ GitHub" : "Report on GitHub");
+        Views views = new Views(builder.getContext());
+        boolean landscape = host.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        LinearLayout content = landscape ? views.horizontal() : views.vertical();
+        content.setPadding(views.px(24), views.px(8), views.px(24), views.px(8));
+        if (code != null) {
+            int screen = Math.min(host.getResources().getDisplayMetrics().widthPixels, host.getResources().getDisplayMetrics().heightPixels);
+            ImageView image = new ImageView(views.themed);
+            image.setImageBitmap(qrBitmap(code, Math.min(views.px(280), screen / 2)));
+            image.setContentDescription(thai ? "QR code ของ issue ใหม่" : "QR code of a new issue");
+            LinearLayout.LayoutParams imageLayout = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            imageLayout.gravity = Gravity.CENTER_HORIZONTAL;
+            content.addView(image, imageLayout);
+        }
+        boolean both = idFilled && versionsFilled;
+        StringBuilder text = new StringBuilder(thai
+                ? "สแกนด้วยมือถือ เพื่อเปิด issue ใหม่ที่ GitHub" + (idFilled || versionsFilled ? " ซึ่งกรอก" + (idFilled ? "รหัสรายงาน" : "")
+                        + (both ? "และ" : "") + (versionsFilled ? "เวอร์ชัน" : "") + "ไว้ให้แล้ว" : "")
+                : "Scan it with your phone to open a new GitHub issue" + (idFilled || versionsFilled ? " with " + (idFilled ? "the report ID" : "")
+                        + (both ? " and " : "") + (versionsFilled ? "the versions" : "") + " filled in" : "") + ".");
+        if (reportId == null && configured()) {
+            text.append(thai ? " ถ้าส่งรายงานได้ ให้ส่งก่อน QR ของรายงานที่ส่งแล้ว (หลังกดส่ง หรือที่แถวของรายงานในหน้านี้) จะกรอกรหัสรายงานให้ด้วย"
+                    : " If you can, send a report first: a sent report's QR code (after sending, or on its row on this screen) fills in its ID too.");
+        }
+        text.append("\n\n");
+        if (reportId != null) text.append(thai ? "รหัสรายงาน " : "Report ID ").append(reportId).append('\n');
+        if (reportId != null && patches == null && maps == null) {
+            // An entry from a build before 0.1.5 stored no versions.
+            text.append(thai ? "รายงานนี้มาจาก build ก่อนหน้า จึงไม่ได้กรอกเวอร์ชันไว้ ใส่เวอร์ชันที่ใช้ตอนเกิดปัญหา"
+                    + " หรือเวอร์ชันปัจจุบันใต้ชื่อหน้าจอถ้ายังเกิดอยู่"
+                    : "This report is from an earlier build, so the versions are not filled in. Enter the ones you had when the"
+                    + " problem happened, or the current ones under the screen's title if it still happens.");
+        } else {
+            text.append(versionLine(patches != null ? patches : "unknown", maps != null ? maps : "unknown", thai));
+        }
+        text.append("\n\n").append(PROJECT_URL.replaceFirst("^https://", ""));
+        TextView message = views.text(15, views.secondary, false);
+        message.setLineSpacing(0, 1.2f);
+        message.setText(text);
+        if (landscape) {
+            message.setPadding(views.px(24), 0, 0, 0);
+            content.addView(message, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        } else {
+            message.setPadding(0, views.px(12), 0, 0);
+            content.addView(message);
+        }
+        ScrollView root = new ScrollView(views.themed);
+        root.addView(content);
+        builder.setView(root).setPositiveButton(thai ? "ปิดหน้าต่าง" : "Close", null);
+        Intent view = new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        boolean browser = hasBrowser(host, view);
+        if (browser) builder.setNeutralButton(thai ? "เปิดในเบราว์เซอร์" : "Open in browser", (dialog, which) -> openLink(host, view, thai));
+        ReportLog.i(TAG, "GitHub dialog: " + (code == null ? "no QR code" : "QR version " + code.version + ", mask " + code.mask)
+                + ", filled:" + (idFilled ? " report-id" : "") + (bundleFilled ? " bundle" : "") + (mapsFilled ? " maps" : "")
+                + (idFilled || bundleFilled || mapsFilled ? "" : " none") + (browser ? ", browser" : ", no browser"));
+        builder.show();
+    }
+
+    private static boolean hasBrowser(Context context, Intent view) {
+        try {
+            return view.resolveActivity(context.getPackageManager()) != null;
+        } catch (RuntimeException error) {
+            return false;
+        }
+    }
+
+    private static void openLink(Activity host, Intent view, boolean thai) {
+        try {
+            host.startActivity(view);
+        } catch (RuntimeException error) {
+            ReportLog.w(TAG, "link not opened", error);
+            Toast.makeText(host, thai ? "เปิดเบราว์เซอร์ไม่ได้ ใช้ QR code แทน" : "No browser opened it. Scan the QR code instead.",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // Black on white with the four-module quiet zone, whole pixels per module and no density scaling, so it stays sharp.
+    private static Bitmap qrBitmap(QrCode code, int maxSide) {
+        int modules = code.size + 8, scale = Math.max(1, maxSide / modules), side = modules * scale;
+        int[] pixels = new int[side * side];
+        Arrays.fill(pixels, Color.WHITE);
+        for (int y = 0; y < code.size; y++) {
+            for (int x = 0; x < code.size; x++) {
+                if (!code.isDark(x, y)) continue;
+                int left = (x + 4) * scale;
+                for (int row = (y + 4) * scale; row < (y + 5) * scale; row++) {
+                    Arrays.fill(pixels, row * side + left, row * side + left + scale, Color.BLACK);
+                }
+            }
+        }
+        Bitmap bitmap = Bitmap.createBitmap(pixels, side, side, Bitmap.Config.ARGB_8888);
+        bitmap.setDensity(Bitmap.DENSITY_NONE);
+        return bitmap;
+    }
+
+    // The feature switches. They apply when the app starts again, so the screen restarts it.
     private static void addFeatures(Activity host, Views views, LinearLayout content, boolean thai) {
         content.addView(views.divider());
         TextView heading = views.text(17, views.primary, true);
-        heading.setText(thai ? "ฟีเจอร์ของ Maps Car" : "Maps Car features");
+        heading.setText(thai ? "ฟีเจอร์เสริม" : "Extra features");
         heading.setPadding(views.px(24), views.px(8), views.px(24), 0);
         content.addView(heading);
         content.addView(views.paragraph(SafeMode.automatic()
-                ? (thai ? "Safe mode ปิดทุกฟีเจอร์อยู่ เลือกฟีเจอร์ที่จะเปิด แล้วเริ่ม Maps Car ใหม่ ถ้าเด้งอีก 2 ครั้งใน 10 นาที safe mode จะกลับมา"
-                : "Safe mode has turned every feature off. Choose the ones to turn on, then restart Maps Car. "
+                ? (thai ? "Safe mode ปิดทุกฟีเจอร์อยู่ เลือกฟีเจอร์ที่จะเปิด แล้วเริ่มแอปใหม่ ถ้าเด้งอีก 2 ครั้งใน 10 นาที safe mode จะกลับมา"
+                : "Safe mode has turned every feature off. Choose the ones to turn on, then restart the app. "
                 + "Two more crashes within 10 minutes bring safe mode back.")
-                : (thai ? "ปิดฟีเจอร์ที่สงสัยว่าทำให้เกิดปัญหา แล้วเริ่ม Maps Car ใหม่ ส่วนหลัก (MicroG-RE, Android 10, รายงานปัญหา) เปิดอยู่เสมอ"
-                : "Turn off a feature you suspect, then restart Maps Car. The core (MicroG-RE, Android 10 support, "
+                : (thai ? "ปิดฟีเจอร์ที่สงสัยว่าทำให้เกิดปัญหา แล้วเริ่มแอปใหม่ ส่วนหลัก (MicroG-RE, Android 10, รายงานปัญหา) เปิดอยู่เสมอ"
+                : "Turn off a feature you suspect, then restart the app. The core (MicroG-RE, Android 10 support, "
                 + "this report) is always on.")));
         List<Switch> switches = new ArrayList<>();
         for (String feature : SafeMode.FEATURES) {
@@ -316,14 +551,14 @@ public final class ReportPatch {
             for (Switch toggle : switches) toggle.setChecked(true);
         });
         content.addView(allOn);
-        TextView restart = views.action(thai ? "เริ่ม Maps Car ใหม่ด้วยฟีเจอร์ที่เลือก" : "Restart Maps Car with these features");
+        TextView restart = views.action(thai ? "เริ่มแอปใหม่ด้วยฟีเจอร์ที่เลือก" : "Restart the app with these features");
         restart.setOnClickListener(view -> {
             Map<String, Boolean> chosen = new HashMap<>();
             for (Switch toggle : switches) chosen.put((String) toggle.getTag(), toggle.isChecked());
             new AlertDialog.Builder(host)
-                    .setTitle(thai ? "เริ่ม Maps Car ใหม่?" : "Restart Maps Car?")
-                    .setMessage(thai ? "Maps Car จะปิดแล้วเปิดใหม่ด้วยฟีเจอร์ที่เลือก การนำทางที่กำลังทำงานจะหยุด"
-                            : "Maps Car closes and opens again with the chosen features. Active navigation stops.")
+                    .setTitle(thai ? "เริ่มแอปใหม่?" : "Restart the app?")
+                    .setMessage(thai ? "แอปจะปิดแล้วเปิดใหม่ด้วยฟีเจอร์ที่เลือก การนำทางที่กำลังทำงานจะหยุด"
+                            : "The app closes and opens again with the chosen features. Active navigation stops.")
                     .setPositiveButton(thai ? "เริ่มใหม่" : "Restart", (dialog, which) -> {
                         if (SafeMode.apply(host.getApplicationContext(), chosen)) {
                             pendingSwitches.clear();
@@ -349,7 +584,7 @@ public final class ReportPatch {
             case SafeMode.BYD_NAVIGATION_VOLUME: return thai ? "ระดับเสียงนำทางของ BYD" : "BYD navigation volume";
             case SafeMode.TTS_WARMUP: return thai ? "เตรียมเสียงนำทางล่วงหน้า (TTS)" : "Voice guidance warm-up (TTS)";
             case SafeMode.WINDOW_REFRESH: return thai ? "ปรับเลย์เอาต์เมื่อแบ่งจอ" : "Split-screen layout refresh";
-            default: return thai ? "แถวของ Maps Car ใน Settings" : "Maps Car rows in Settings";
+            default: return thai ? "แถวเสริมใน Settings" : "Extra rows in Settings";
         }
     }
 
@@ -364,7 +599,7 @@ public final class ReportPatch {
             case SafeMode.BYD_NAVIGATION_VOLUME: return thai ? "เสียงนำทางใช้ระดับเสียงเพลง" : "voice guidance follows the media volume";
             case SafeMode.TTS_WARMUP: return thai ? "เสียงนำทางแรกอาจเป็นเสียงสำรอง" : "the first prompt may use the canned voice";
             case SafeMode.WINDOW_REFRESH: return thai ? "การ์ดอาจใหญ่เกินหลังแบ่งจอ" : "cards may stay too large after a split-screen change";
-            default: return thai ? "Settings ของ Maps ไม่มีแถวของ Maps Car" : "Maps' Settings without Maps Car's rows";
+            default: return thai ? "Settings ของ Maps ไม่มีแถวเสริม" : "Maps' Settings without the extra rows";
         }
     }
 
@@ -380,7 +615,7 @@ public final class ReportPatch {
                 return thai ? "หมดอายุ ไม่ได้ส่ง" : "Expired, not sent";
             default:
                 if ("bad_key".equals(entry.error) || "schema_unsupported".equals(entry.error)) {
-                    return thai ? "ส่งไม่ได้ · อัปเดต Maps Car เพื่อส่งรายงาน" : "Not sent · update Maps Car to send reports";
+                    return thai ? "ส่งไม่ได้ · อัปเดตแอปเพื่อส่งรายงาน" : "Not sent · update the app to send reports";
                 }
                 if ("too_large".equals(entry.error)) return thai ? "ส่งไม่ได้ · ใหญ่เกิน สร้างรายงานใหม่" : "Not sent · too large, make a new report";
                 return (thai ? "ส่งไม่ได้ (" : "Not sent (") + entry.error + ")";
@@ -477,19 +712,19 @@ public final class ReportPatch {
             JSONArray systemLines = mainLogcat.optJSONArray("lines");
             int systemCount = systemLines == null ? 0 : systemLines.length();
             boolean now = "running".equals(mainLogcat.optString("source"));
-            TextView systemRow = views.action((thai ? "log ระบบของ Maps Car " + systemCount + " บรรทัด" : "Maps Car system log: " + systemCount + " lines")
+            TextView systemRow = views.action((thai ? "log ระบบของแอป " + systemCount + " บรรทัด" : "App system log: " + systemCount + " lines")
                     + (now ? (thai ? " (ตอนนี้)" : " (now)") : (thai ? " (ตอนเริ่มครั้งล่าสุด)" : " (from its last start)"))
                     + (thai ? " · ดู" : " · view"));
-            systemRow.setOnClickListener(view -> showLines(host, thai ? "log ระบบของ Maps Car (คำเตือนและข้อผิดพลาด)"
-                    : "Maps Car system log (warnings and errors)", strings(systemLines), thai));
+            systemRow.setOnClickListener(view -> showLines(host, thai ? "log ระบบของแอป (คำเตือนและข้อผิดพลาด)"
+                    : "App system log (warnings and errors)", strings(systemLines), thai));
             content.addView(systemRow);
         }
 
         JSONArray exits = draft.report.optJSONArray("exits");
         if (exits != null && exits.length() > 0) {
-            TextView exitRow = views.action((thai ? "เหตุที่ปิดครั้งล่าสุด " + exits.length() + " รายการ" : "Why Maps Car closed: " + exits.length() + " entries")
+            TextView exitRow = views.action((thai ? "เหตุที่ปิดครั้งล่าสุด " + exits.length() + " รายการ" : "Why the app closed: " + exits.length() + " entries")
                     + (thai ? " · ดู" : " · view"));
-            exitRow.setOnClickListener(view -> showLines(host, thai ? "เหตุที่ Maps Car ปิด" : "Why Maps Car closed", exitLines(exits), thai));
+            exitRow.setOnClickListener(view -> showLines(host, thai ? "เหตุที่แอปปิด" : "Why the app closed", exitLines(exits), thai));
             content.addView(exitRow);
         }
 
@@ -532,7 +767,7 @@ public final class ReportPatch {
         content.addView(comment, commentLayout);
 
         content.addView(views.divider());
-        content.addView(views.paragraph(consentText(thai)));
+        content.addView(views.paragraph(consentText(host, thai)));
 
         builder.setView(root)
                 .setPositiveButton(thai ? "ส่ง" : "Send", null)
@@ -610,36 +845,41 @@ public final class ReportPatch {
         }
     }
 
-    /** The consent text, version 5: version 4 with the main process's system log lines, page size, car platform and exits. */
-    private static CharSequence consentText(boolean thai) {
+    /**
+     * The consent text, version 6: version 5 without the app's name, which a patch option now sets: "the
+     * app", the patch developer, Google Maps as the other app, and the report screen's actual name.
+     */
+    private static CharSequence consentText(Context context, boolean thai) {
         SpannableStringBuilder text = new SpannableStringBuilder();
-        String heading = thai ? "ส่งรายงานปัญหาให้ผู้พัฒนา Maps Car" : "Send a problem report to the Maps Car developer";
+        String heading = thai ? "ส่งรายงานปัญหาให้ผู้พัฒนาแพตช์" : "Send a problem report to the patch developer";
         text.append(heading);
         text.setSpan(new StyleSpan(Typeface.BOLD), 0, heading.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         text.append('\n').append(thai
                 ? "ข้อมูลที่ส่ง: รุ่นแอปและแพตช์ รุ่นอุปกรณ์และ Android ขนาด memory page ระบบรถของเครื่อง (Android Automotive,"
                 + " SDK ของรถ, system library) รหัสรุ่นและเวอร์ชันซอฟต์แวร์ของรถ BYD สถานะ BYD battery และหน้าจอ"
-                + " การตั้งค่าฟีเจอร์ของ Maps Car แอปที่อาจรบกวน (Maps, Google Play services) บันทึกการทำงานของ Maps Car"
-                + " ย้อนหลังไม่เกิน 3 วัน บรรทัดคำเตือนและข้อผิดพลาดใน log ระบบของ process หลักของ Maps Car (รวมของ Maps เอง"
-                + " แม้ไม่ crash) ไฟล์ crash (ถ้ามี) พร้อมบรรทัดแบบเดียวกันของ process ที่ crash เหตุที่ process ของ Maps Car"
+                + " การตั้งค่าฟีเจอร์เสริม แอปที่อาจรบกวน (Google Maps, Google Play services) บันทึกการทำงานของแอป"
+                + " ย้อนหลังไม่เกิน 3 วัน บรรทัดคำเตือนและข้อผิดพลาดใน log ระบบของ process หลักของแอป (รวมของโค้ด Maps"
+                + " ของ Google แม้ไม่ crash) ไฟล์ crash (ถ้ามี) พร้อมบรรทัดแบบเดียวกันของ process ที่ crash เหตุที่ process ของแอป"
                 + " ปิดครั้งล่าสุด (Android 11 ขึ้นไป) และข้อความที่คุณพิมพ์\n"
                 + "ตำแหน่ง พิกัด ลิงก์แผนที่ อีเมล VIN IP และเลขรหัสยาว ถูกลบออกบนเครื่องนี้แล้วก่อนแสดงด้านบน\n"
-                + "ใช้เพื่อแก้ปัญหาของ Maps Car เท่านั้น เก็บบน Cloudflare (อาจประมวลผลนอกประเทศไทย) 14 วันแล้วลบอัตโนมัติ"
+                + "ใช้เพื่อแก้ปัญหาของแอปนี้เท่านั้น เก็บบน Cloudflare (อาจประมวลผลนอกประเทศไทย) 14 วันแล้วลบอัตโนมัติ"
                 + " ไม่บันทึก IP ไว้กับรายงาน\n"
-                + "ลบรายงานได้ทุกเมื่อที่ Report Maps Car หรือแจ้งรหัสรายงานที่ GitHub Issues ของโปรเจกต์\n"
+                + "ลบรายงานได้ทุกเมื่อที่ " + reportPlace(context, true) + " หรือแจ้งรหัสรายงานที่ GitHub Issues ของโปรเจกต์\n"
                 + "กด \"ส่ง\" เพื่อยินยอม"
                 : "Sent: app and patch versions, device and Android version, memory page size, the car platform (Android"
                 + " Automotive, car SDKs, system libraries), BYD model id and head unit software version, BYD battery and"
-                + " window state, Maps Car's feature settings, other apps that may interfere (Maps, Google Play services),"
-                + " Maps Car's own logs from the last 3 days at most, the warning and error lines Maps Car's main process"
-                + " wrote to the system log (Maps' own included, even without a crash), crash files (if any) with the same"
-                + " lines from the crashed process, why Maps Car's processes last closed (Android 11 and newer), and your"
+                + " window state, the extra features' settings, other apps that may interfere (Google Maps, Google Play"
+                + " services), the app's own logs from the last 3 days at most, the warning and error lines the app's main"
+                + " process wrote to the system log (Google's Maps code included, even without a crash), crash files (if"
+                + " any) with the same lines from the crashed process, why the app's processes last closed (Android 11"
+                + " and newer), and your"
                 + " comment.\n"
                 + "Locations, coordinates, map links, e-mail addresses, VINs, IP addresses and long ID numbers were removed"
                 + " on this device before the preview above.\n"
-                + "Used only to fix Maps Car. Stored on Cloudflare (possibly outside Thailand) for 14 days, then deleted"
+                + "Used only to fix this app. Stored on Cloudflare (possibly outside Thailand) for 14 days, then deleted"
                 + " automatically. Your IP address is not stored with the report.\n"
-                + "Delete it any time in Report Maps Car, or send the report ID through the project's GitHub Issues.\n"
+                + "Delete it any time in " + reportPlace(context, false) + ", or send the report ID through the project's"
+                + " GitHub Issues.\n"
                 + "Tap \"Send\" to agree.");
         return text;
     }
@@ -657,7 +897,8 @@ public final class ReportPatch {
                     problem = thai ? "รายงานใหญ่เกินแม้ตัดบันทึกออกแล้ว ลดข้อความแล้วลองอีกครั้ง"
                             : "The report is too large even without its logs. Shorten the comment and try again.";
                 } else {
-                    queued = ReportStore.enqueue(app, body, draft.crash);
+                    JSONObject appInfo = object(draft.report, "app");
+                    queued = ReportStore.enqueue(app, body, draft.crash, text(appInfo, "patches_version"), text(appInfo, "version_name"));
                     problem = queued != null ? null : thai ? "บันทึกรายงานไม่ได้ หรือรอส่งครบ " + ReportStore.MAX_QUEUED + " รายงานแล้ว"
                             : "The report could not be saved, or " + ReportStore.MAX_QUEUED + " reports are waiting already.";
                 }
@@ -683,7 +924,7 @@ public final class ReportPatch {
         });
     }
 
-    // Sending, then the report ID in large text.
+    // Sending, then the report ID in large text and a button for the QR code of an issue with it.
     private static void showStatus(Activity host, String key, boolean thai) {
         AlertDialog.Builder builder = new AlertDialog.Builder(host).setTitle(getSettingsTitle(host));
         Views views = new Views(builder.getContext());
@@ -698,39 +939,60 @@ public final class ReportPatch {
         content.addView(status);
         content.addView(id);
         content.addView(note);
-        builder.setView(content).setPositiveButton(thai ? "ปิดหน้าต่าง" : "Close", null);
+        builder.setView(content).setPositiveButton(thai ? "ปิดหน้าต่าง" : "Close", null)
+                .setNeutralButton(thai ? "QR สำหรับ GitHub" : "GitHub QR code", null);
         AlertDialog dialog = builder.create();
+        // Creates the buttons now, so the QR button is hidden or shown before the first frame.
+        dialog.create();
         Context app = host.getApplicationContext();
+        // The sent entry with its ID, for the QR button.
+        ReportStore.Entry[] sentEntry = new ReportStore.Entry[1];
+        Button qr = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+        // Its own listener keeps the status open under the QR code.
+        if (qr != null) qr.setOnClickListener(view -> {
+            ReportStore.Entry shown = sentEntry[0];
+            if (shown != null) showGitHub(host, shown.id, shown.patchesVersion, shown.appVersion, thai);
+        });
         Runnable refresh = () -> {
             ReportStore.Entry entry = null;
             for (ReportStore.Entry candidate : ReportStore.entries(app)) if (candidate.key.equals(key)) entry = candidate;
             boolean sent = entry != null && ReportStore.SENT.equals(entry.state);
+            sentEntry[0] = sent && entry.id != null ? entry : null;
             id.setVisibility(sent ? View.VISIBLE : View.GONE);
+            if (qr != null) qr.setVisibility(sentEntry[0] != null ? View.VISIBLE : View.GONE);
             if (entry == null) {
                 status.setText(thai ? "ลบรายงานแล้ว" : "The report was deleted.");
                 note.setText("");
             } else if (sent) {
                 status.setText(thai ? "ส่งแล้ว · รหัสรายงาน" : "Sent · report ID");
                 id.setText(entry.id);
-                note.setText(thai ? "แจ้งรหัสนี้เมื่อเปิด issue ที่ GitHub ดูหรือลบได้ที่ Report Maps Car ลบอัตโนมัติใน 14 วัน"
-                        : "Give this ID when you open a GitHub issue. View or delete it in Report Maps Car."
+                note.setText(thai ? "แจ้งรหัสนี้เมื่อเปิด issue ที่ GitHub หรือกด QR สำหรับ GitHub แล้วสแกนด้วยมือถือ จะได้ issue ที่กรอกรหัสไว้ให้"
+                        + " ดูหรือลบรายงานได้ที่ " + reportPlace(host, true) + " ลบอัตโนมัติใน 14 วัน"
+                        : "Give this ID when you open a GitHub issue, or tap GitHub QR code and scan it with your phone for an"
+                        + " issue with the ID filled in. View or delete it in " + reportPlace(host, false) + "."
                         + " It is deleted automatically after 14 days.");
             } else if (ReportStore.QUEUED.equals(entry.state)) {
                 status.setText(entry.attempts == 0 ? (thai ? "กำลังส่ง…" : "Sending…") : stateText(entry, thai));
-                note.setText(thai ? "Maps Car ส่งเองเมื่อมีอินเทอร์เน็ตขณะเปิดแอปอยู่ ปิดหน้าต่างนี้ได้"
-                        : "Maps Car sends it when it has internet while the app is open. You can close this.");
+                note.setText(thai ? "แอปส่งเองเมื่อมีอินเทอร์เน็ตขณะเปิดแอปอยู่ ปิดหน้าต่างนี้ได้"
+                        : "The app sends it when it has internet while it is open. You can close this.");
             } else {
                 status.setText(stateText(entry, thai));
                 note.setText("");
             }
         };
-        // The screen below keeps refreshing too, and alone again once this closes.
+        // The screen below keeps refreshing too, and alone again once this closes. statusRefresh keeps this one
+        // refreshing after the screen pauses and resumes (ReportActivity.onResume).
         Runnable screen = screenRefresh;
-        dialog.setOnShowListener(shown -> ReportUploader.setListener(() -> {
+        dialog.setOnShowListener(shown -> {
+            statusRefresh = refresh;
+            // The listener first, so a send that ends in between still refreshes this.
+            ReportUploader.setListener(onUploadChange(screen));
             refresh.run();
-            if (screen != null) screen.run();
-        }));
-        dialog.setOnDismissListener(dismissed -> ReportUploader.setListener(screen));
+        });
+        dialog.setOnDismissListener(dismissed -> {
+            if (statusRefresh == refresh) statusRefresh = null;
+            ReportUploader.setListener(screen);
+        });
         refresh.run();
         dialog.show();
     }
@@ -800,6 +1062,10 @@ public final class ReportPatch {
             for (String line : strings(exit.optJSONArray("trace"))) list.add("  " + line);
         }
         return list;
+    }
+
+    private static String text(JSONObject json, String name) {
+        return json.isNull(name) ? null : json.optString(name, null);
     }
 
     private static JSONObject object(JSONObject parent, String name) {

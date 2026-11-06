@@ -77,8 +77,10 @@ val blockAdsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
-        // Display ads (phone build only).
-        AdsInitializeFingerprint.methodOrNull?.returnEarly(
+        // Display ads (phone build only). Where the module exists, every hook
+        // must match, so a renamed one fails the patch instead of leaving ads.
+        val phone = AdsInitializeFingerprint.methodOrNull != null
+        if (phone) AdsInitializeFingerprint.method.returnEarly(
             """
                 invoke-static {}, Lcom/facebook/react/bridge/Arguments;->createArray()Lcom/facebook/react/bridge/WritableArray;
                 move-result-object v0
@@ -88,7 +90,7 @@ val blockAdsPatch = bytecodePatch(
         )
 
         // load(adUnitId, requestOptions, promise)
-        NativeAdLoadFingerprint.methodOrNull?.returnEarly(
+        if (phone) NativeAdLoadFingerprint.method.returnEarly(
             """
                 const-string v0, "no-fill"
                 invoke-interface { p3, v0, v0 }, $PROMISE->reject(Ljava/lang/String;Ljava/lang/String;)V
@@ -96,7 +98,7 @@ val blockAdsPatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        BannerRequestFingerprint.methodOrNull?.returnEarly(
+        if (phone) BannerRequestFingerprint.method.returnEarly(
             """
                 const/16 v0, 0x8
                 invoke-virtual { p1, v0 }, Landroid/view/View;->setVisibility(I)V
@@ -104,7 +106,7 @@ val blockAdsPatch = bytecodePatch(
             """.trimIndent(),
         )
 
-        FullScreenAdLoadFingerprint.methodOrNull?.returnEarly("return-void")
+        if (phone) FullScreenAdLoadFingerprint.method.returnEarly("return-void")
 
         // Video ads (both builds).
         AdScheduleFingerprint.method.returnEarly(

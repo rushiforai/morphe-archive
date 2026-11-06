@@ -437,7 +437,8 @@ public final class GestureActions {
     static final String SEARCH_PAGE_URI = "snssdk1233://search?enter_from=home_screen_icon&enter_method=enter"
             + "&enter_blank_page=1&enter_from_sub=app_outside&set_hint_by_sug_word=1";
 
-    static boolean openSearchPage(Context context) {
+    /** Also the Home tab's tap under Search instead of Home (#338). */
+    public static boolean openSearchPage(Context context) {
         if (context == null) context = Utils.getContext();
         if (context == null) return false;
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(SEARCH_PAGE_URI))
@@ -987,7 +988,7 @@ public final class GestureActions {
     /**
      * How far a horizontal movement goes toward the profile page: to the left in a left-to-right
      * layout, to the right in a right-to-left one, where TikTok's pager runs the other way. Decided
-     * the way TikTok decides it (X.05QH.LIZJ): the layout direction of the configuration.
+     * the way TikTok decides it (X.06be.LIZJ): the layout direction of the configuration.
      */
     static float towardProfile(Object pager, float dx) {
         boolean rtl = pager instanceof View

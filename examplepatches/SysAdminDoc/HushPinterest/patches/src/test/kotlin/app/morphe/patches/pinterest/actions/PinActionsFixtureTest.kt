@@ -235,7 +235,7 @@ class PinActionsFixtureTest {
             }.let { (it as ReferenceInstruction).reference.toString() }
             val id = stored(Opcode.IPUT_OBJECT, registers - 2)
             val kind = stored(Opcode.IPUT, registers - 1)
-            if (build.name.startsWith("pinterest-14.42.0-")) {
+            if (build.name.startsWith("pinterest-14.43.0-")) {
                 assertEquals("$SENDABLE_TYPE->a:Ljava/lang/String;", id)
                 assertEquals("$SENDABLE_TYPE->c:I", kind)
             }
@@ -253,7 +253,7 @@ class PinActionsFixtureTest {
             // The extension makes a pin link only for kind 0, and the patch applied, so the
             // sendable's model constructor gives the overflow menu's pin model that kind.
             val pin = classes.single { it.type == PIN_MENU }.fields.single { it.name == "pin" }.type
-            if (build.name.startsWith("pinterest-14.42.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
+            if (build.name.startsWith("pinterest-14.43.0-")) assertEquals("${build.name} pin model", "Lcom/pinterest/api/model/pe;", pin)
             println("${build.name}: a pin ($pin) is sendable kind 0")
         }
     }

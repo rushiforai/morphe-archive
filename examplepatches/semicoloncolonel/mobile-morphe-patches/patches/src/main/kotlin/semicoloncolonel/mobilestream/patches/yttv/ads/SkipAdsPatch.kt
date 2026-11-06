@@ -55,19 +55,13 @@ internal object PlayerBytesAdLayoutFingerprint : Fingerprint(
     strings = listOf("Bootstrapped layout construction resulted in non PlayerBytesLayout. PlayerAds count: "),
 )
 
-@Suppress("unused")
-val skipAdsPatch = bytecodePatch(
-    name = "Skip ads",
-    description = "Turns off the ads in on-demand videos and DVR recordings, and overlay and pause ads.",
-) {
-    compatibleWith(Constants.COMPATIBILITY)
-
+// Hands every cue-point provider PlaybackControllerWrapper stores (field p)
+// to YttvDaiDisabler, with the controller. Shared by Skip ads, which turns DAI
+// off there, and Mask live ad breaks, which clears its slots there.
+internal val cuePointProviderHookPatch = bytecodePatch {
     extendWith("extensions/extension.mpe")
 
     execute {
-        LoadVideoAdsFingerprint.method.addInstructions(0, "return-void")
-        PlayerBytesAdLayoutFingerprint.method.addInstructions(0, "return-void")
-
         var hooked = 0
         mutableClassDefBy(CONTROLLER).methods.forEach { method ->
             val instructions = method.implementation?.instructions?.toList() ?: return@forEach
@@ -89,17 +83,23 @@ val skipAdsPatch = bytecodePatch(
             }
         }
         if (hooked == 0) throw PatchException("cue-point provider store not found")
+    }
+}
 
-        // Let YttvDaiDisabler read the stream type, so "Mask live ad breaks" can
-        // keep DAI on for live streams. The names are renamed in each build:
-        // the controller's playback field is the one whose type holds a
-        // VideoStreamingData, and the label method returns "windowed-live".
+// Lets YttvDaiDisabler read the stream type, so Mask live ad breaks can keep
+// DAI on for live streams only. The names are renamed in each build: the
+// controller's playback field is the one whose type holds a VideoStreamingData,
+// and the label method returns "windowed-live".
+internal val streamTypePatch = bytecodePatch {
+    extendWith("extensions/extension.mpe")
+
+    execute {
         val labelMethod = classDefBy(STREAMING_DATA).methods.firstOrNull { method ->
             method.returnType == "Ljava/lang/String;" && method.parameterTypes.isEmpty() &&
                 method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "windowed-live"
                 } == true
-        }?.name
+        }?.name ?: throw PatchException("stream type label method not found")
         var playbackField: String? = null
         var streamField: String? = null
         mutableClassDefBy(CONTROLLER).fields.forEach { field ->
@@ -110,16 +110,35 @@ val skipAdsPatch = bytecodePatch(
                 streamField = it.name
             }
         }
-        if (labelMethod != null && playbackField != null && streamField != null) {
-            val disabler = mutableClassDefBy(DISABLER)
-            mapOf(
-                "playbackField" to playbackField!!,
-                "streamField" to streamField!!,
-                "streamLabelMethod" to labelMethod,
-            ).forEach { (getter, value) ->
-                disabler.methods.first { it.name == getter }
-                    .addInstructions(0, "const-string v0, \"$value\"\nreturn-object v0")
-            }
+        if (playbackField == null || streamField == null) throw PatchException("playback stream field not found")
+        val disabler = mutableClassDefBy(DISABLER)
+        mapOf(
+            "playbackField" to playbackField!!,
+            "streamField" to streamField!!,
+            "streamLabelMethod" to labelMethod,
+        ).forEach { (getter, value) ->
+            disabler.methods.first { it.name == getter }
+                .addInstructions(0, "const-string v0, \"$value\"\nreturn-object v0")
         }
+    }
+}
+
+@Suppress("unused")
+val skipAdsPatch = bytecodePatch(
+    name = "Skip ads",
+    description = "Turns off the ads in on-demand videos and DVR recordings, and overlay and pause ads.",
+) {
+    compatibleWith(Constants.COMPATIBILITY)
+
+    dependsOn(cuePointProviderHookPatch)
+
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        LoadVideoAdsFingerprint.method.addInstructions(0, "return-void")
+        PlayerBytesAdLayoutFingerprint.method.addInstructions(0, "return-void")
+
+        mutableClassDefBy(DISABLER).methods.first { it.name == "disableDai" }
+            .addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }
 }

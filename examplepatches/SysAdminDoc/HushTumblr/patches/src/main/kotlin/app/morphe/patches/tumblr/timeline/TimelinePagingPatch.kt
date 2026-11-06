@@ -165,10 +165,17 @@ internal fun BytecodePatchContext.resolveTimelinePaging(): TimelinePagingPlan {
             paging.definingClass == mode && compared == setOf(type, (constant as OneRegisterInstruction).registerA),
         "the page delivery no longer compares its load type with $PAGINATION on an empty page",
     )
-    // Nothing branches before the hook or into it, so it runs once a page, right after the answer.
+    // Nothing branches past the question or into the hook, so it runs once a page, right after the
+    // answer. 47.0.0.108 skips one call on the last parameter first (`if-nez`, then `k6(Map)`), a
+    // forward branch that lands at or before the question, so every path still meets the hook once.
+    val addresses = body.runningFold(0) { address, instruction -> address + instruction.codeUnits }
     requireShape(
         PATCH,
-        (0 until at).none { body[it] is OffsetInstruction || !body[it].opcode.canContinue() } && !delivery.isJumpTarget(at),
+        (0 until at).all { index ->
+            val instruction = body[index]
+            instruction.opcode.canContinue() && (instruction !is OffsetInstruction ||
+                addresses.indexOf(addresses[index] + instruction.codeOffset) in (index + 1)..asked)
+        } && !delivery.isJumpTarget(at),
         "the page delivery branches before it has asked whether its items are empty",
     )
     requireShape(PATCH, scratch != empty && empty !in setOf(self, type, links), "the page delivery keeps the answer over a value the hook reads")
@@ -178,7 +185,6 @@ internal fun BytecodePatchContext.resolveTimelinePaging(): TimelinePagingPlan {
     delivery.requireParameterIntact(PATCH, 2, listOf(at))
 
     // Tumblr's branch for an empty first page: no more pages, then the empty view. The hook runs a copy.
-    val addresses = body.runningFold(0) { address, instruction -> address + instruction.codeUnits }
     val first = addresses.indexOf(addresses[at + 3] + (compare as OffsetInstruction).codeOffset)
     requireShape(PATCH, first > at + 3 && first + 2 < body.size, "the empty first page's branch moved")
     val flag = body[first]

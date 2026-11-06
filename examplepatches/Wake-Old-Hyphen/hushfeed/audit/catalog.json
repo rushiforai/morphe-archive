@@ -156,6 +156,40 @@
   "notes": "The lane file lists TikTok original #FE2C55 (no change), Blue #2D7FF9, Green #1DA153, Purple #8B5CF6, Orange #F26411, Teal #0F9E8E or a typed code, plus Follow the wallpaper. With the default option the patch changes nothing visible, so accent-visible names the Blue option in buildOptions and runs only on a build patched with it (scripts/patch-for-device.ps1 -Option 'Accent color|accentColor=#2D7FF9'), into tiktok-<version>-options.json. Icons with the red drawn into a PNG are recolored for solid colors only; the follow plus under an avatar and soft see-through reds are documented as unchanged."
  },
  {
+  "name": "Account cleanup",
+  "category": "Privacy",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/privacy/AccountCleanupPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/AccountCleanup.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/AccountCleanupSources.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/CleanupRunner.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/TikTokCalls.java"
+  ],
+  "settings": [],
+  "surface": "settings",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.accountCleanupEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "accountCleanupEnabled"
+      },
+      "expect": "\\baccountCleanupEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "The three rows (Remove all reposts, Remove all likes, Clear Favorites) change the signed-in account, so no automatic check presses them. Run them by hand on the S22 test account after seeding a few reposts, likes and Favorites: each shows a five second countdown with Cancel, then a running count with Stop, then the count it reached, and the profile tabs come back empty."
+ },
+ {
   "name": "Advanced downloads",
   "category": "Downloads",
   "default": true,
@@ -680,7 +714,7 @@
     "auto": true
    }
   ],
-  "notes": "SecurePopupProbe builds one of TikTok's own Compose popups with its obfuscated classes (X.011c, X.01ov, X.011a, X.01tr on 47.6.3), so a TikTok build that renames them makes the action fail with an exception line instead of 'ok'; that means the probe needs updating, not that the patch is broken. The popup is shown on top of the feed for a moment and removed by secure-popup-close; it is a controlled test view, not a screen capture. Circle to Search itself is a system gesture and is a review item."
+  "notes": "SecurePopupProbe builds one of TikTok's own Compose popups with its obfuscated classes (X.011Y, X.01o5, X.011W, X.01sv on 47.7.2), so a TikTok build that renames them makes the action fail with an exception line instead of 'ok'; that means the probe needs updating, not that the patch is broken. The popup is shown on top of the feed for a moment and removed by secure-popup-close; it is a controlled test view, not a screen capture. Circle to Search itself is a system gesture and is a review item."
  },
  {
   "name": "Always show publish date",
@@ -740,6 +774,12 @@
     "default": "profile",
     "type": "string",
     "row": "Sort loaded videos on Liked grids"
+   },
+   {
+    "key": "sound_grid_sort",
+    "default": "off",
+    "type": "string",
+    "row": "Sort loaded videos on sound pages"
    }
   ],
   "surface": "feed",
@@ -5253,6 +5293,18 @@
     "row": "Long-press Home for Hushfeed settings"
    },
    {
+    "key": "inbox_tab_flips_read_receipts",
+    "default": false,
+    "type": "bool",
+    "row": "Long-press Inbox for read receipts"
+   },
+   {
+    "key": "search_instead_of_home",
+    "default": false,
+    "type": "bool",
+    "row": "Search instead of Home"
+   },
+   {
     "key": "keep_for_you_on_tab_tap",
     "default": false,
     "type": "bool",
@@ -6273,6 +6325,12 @@
     "default": false,
     "type": "bool",
     "row": "Keep my own watch history"
+   },
+   {
+    "key": "for_you_hold_opens_watch_history",
+    "default": false,
+    "type": "bool",
+    "row": "Long press on For You opens my watch history"
    }
   ],
   "surface": "feed",
@@ -7328,9 +7386,13 @@
   "kind": "runtime",
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxFilterPatch.kt",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/InboxFilterTabs.kt",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/inbox/MessageSearchRebuild.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilter.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxModelFilter.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxControls.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxControls.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/InboxFilterTabs.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/inbox/MessageSearchRebuild.java"
   ],
   "settings": [
    {
@@ -7434,6 +7496,12 @@
     "default": false,
     "type": "bool",
     "row": "Search loaded activity"
+   },
+   {
+    "key": "show_inbox_filters",
+    "default": false,
+    "type": "bool",
+    "row": "Show inbox filters"
    }
   ],
   "surface": "inbox",
@@ -7971,7 +8039,8 @@
   "kind": "runtime",
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/searchsuggestions/HideSearchSuggestionsPatch.kt",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/search/SearchSuggestions.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/search/SearchSuggestions.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/search/DiscoverSearchBarOnly.java"
   ],
   "settings": [
    {
@@ -7986,6 +8055,12 @@
     "type": "bool",
     "row": "Hide search rewards",
     "restart": true
+   },
+   {
+    "key": "discover_search_bar_only",
+    "default": false,
+    "type": "bool",
+    "row": "Show only the search bar on Discover"
    },
    {
     "key": "hide_search_shop",
@@ -8592,6 +8667,12 @@
     "default": false,
     "type": "bool",
     "row": "Hide the comment bar on opened videos"
+   },
+   {
+    "key": "see_through_bottom_bar",
+    "default": false,
+    "type": "bool",
+    "row": "See-through bottom bar"
    }
   ],
   "surface": "feed",
@@ -9071,6 +9152,55 @@
     "auto": true
    },
    {
+    "id": "see-through-fills-to-bottom",
+    "what": "See-through bottom bar grows the playing video until it reaches the bottom of its player, so the tabs sit on the picture and not on black, and switching it off gives back TikTok's own size.",
+    "steps": [
+     {
+      "set": {
+       "see_through_bottom_bar": "true"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 2500
+     },
+     {
+      "probe": "fill",
+      "expect": "ok fill players=\\d+ pictures=\\d+ covers=true",
+      "retrySwipe": 2
+     },
+     {
+      "shot": "see-through-bottom-on",
+      "review": "The band above the tabs shows the video, not black."
+     },
+     {
+      "set": {
+       "see_through_bottom_bar": "false"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "wait": 2500
+     },
+     {
+      "probe": "fill",
+      "expect": "scale=1\\.0 ",
+      "expectNot": "scale=1\\.[0-9]*[1-9]"
+     }
+    ],
+    "auto": true
+   },
+   {
     "id": "registered",
     "what": "The patch registered its three switches in the APK.",
     "steps": [
@@ -9090,7 +9220,7 @@
     "auto": true
    }
   ],
-  "notes": "Nineteen switches in one patch; the checks above cover the ones with a view id or a HookStatus line. Not automated: Hide surveys (f98) and location labels / effect tags only exist on videos that carry them (naturally served; Roadmap_Blocked lists the visual-search and survey surfaces as unserved), and Hide full screen button needs a landscape video. Both are covered only by the registered check and the hookdetails 'overlay' family. View ids are 47.1.4 names read from VideoOverlayHider's id lists (obfuscated, they change every TikTok build). A hider acts on layout passes, so each 'on' phase swipes once and waits before it reads. 'morphe_debug' is the Log diagnostics setting; the Music disc log line only prints with it on. The right column list rows (hide_rail_*) have no row title of their own, they are items in the Right column checklist. Some videos have no music line (TikTok puts a search suggestion bar there and collapses ey3), so the music check first swipes to a video that shows one, and the hidden state it asks for is o7p GONE under a visible ey3 (2026-10-16; o97 under exn on 47.1.4). Keep the music disc still records 'held the disc' only when TikTok's music_animation_close_exp would let the disc turn; an account that gets 1 or 3 (the S22's gets 3, which the spin phase's log line names) is already held, so its hold phase shows installed alone (2026-10-16). music-line-hidden is inconclusive on 47.1.4 when TikTok shows no music line at all: on 2026-10-16 every video in eight swipes had `exn` (the music line's parent) gone and `o97` at 0x0 with the switch off, and the caption ran into a Search bar where the line used to be. That says nothing about the patch; rerun it on another day. opened-video-like-count-clear opens the first video on the official @tiktok profile and asks the probe's overlap action whether the like count row (g9h) crosses the progress row (video_seek_bar) where they're drawn; the heart's count sits beside g9f rather than inside it, as it sat beside g85 on 47.1.4, which is what put it on the time before the rail's lift counted it (2026-10-16, #145)."
+  "notes": "Nineteen switches in one patch; the checks above cover the ones with a view id or a HookStatus line. Not automated: Hide surveys (f98) and location labels / effect tags only exist on videos that carry them (naturally served; Roadmap_Blocked lists the visual-search and survey surfaces as unserved), and Hide full screen button needs a landscape video. Both are covered only by the registered check and the hookdetails 'overlay' family. View ids are 47.1.4 names read from VideoOverlayHider's id lists (obfuscated, they change every TikTok build). A hider acts on layout passes, so each 'on' phase swipes once and waits before it reads. 'morphe_debug' is the Log diagnostics setting; the Music disc log line only prints with it on. The right column list rows (hide_rail_*) have no row title of their own, they are items in the Right column checklist. Some videos have no music line (TikTok puts a search suggestion bar there and collapses ey3), so the music check first swipes to a video that shows one, and the hidden state it asks for is o7p GONE under a visible ey3 (2026-10-16; o97 under exn on 47.1.4). Keep the music disc still records 'held the disc' only when TikTok's music_animation_close_exp would let the disc turn; an account that gets 1 or 3 (the S22's gets 3, which the spin phase's log line names) is already held, so its hold phase shows installed alone (2026-10-16). music-line-hidden is inconclusive on 47.1.4 when TikTok shows no music line at all: on 2026-10-16 every video in eight swipes had `exn` (the music line's parent) gone and `o97` at 0x0 with the switch off, and the caption ran into a Search bar where the line used to be. That says nothing about the patch; rerun it on another day. opened-video-like-count-clear opens the first video on the official @tiktok profile and asks the probe's overlap action whether the like count row (g9h) crosses the progress row (video_seek_bar) where they're drawn; the heart's count sits beside g9f rather than inside it, as it sat beside g85 on 47.1.4, which is what put it on the time before the rail's lift counted it (2026-10-16, #145). see-through-fills-to-bottom reads the probe's fill action, which maps each surface through its own matrix the way SurfaceFlinger frames the layer; a view's getTop alone misses TikTok's translation, and on 47.6.3 the S22's surface sat 70.5 px high, so the picture stopped 70 px short of the tabs with every view measurement saying it fit (2026-11-05, #218)."
  },
  {
   "name": "Hold-and-slide 2x lock",
@@ -9183,7 +9313,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1200"
       },
@@ -9246,7 +9376,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1200"
       },
@@ -9568,7 +9698,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -10338,6 +10468,18 @@
     "default": false,
     "type": "bool",
     "row": "Record LIVEs you watch"
+   },
+   {
+    "key": "live_auto_tap",
+    "default": false,
+    "type": "bool",
+    "row": "Auto tap in LIVE rooms"
+   },
+   {
+    "key": "live_audio_only",
+    "default": false,
+    "type": "bool",
+    "row": "Offer Audio only in LIVE quality"
    }
   ],
   "surface": "live-room",
@@ -10607,7 +10749,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -10742,6 +10884,12 @@
     "default": false,
     "type": "bool",
     "row": "Full long-press menu in search results"
+   },
+   {
+    "key": "long_press_compact_menu",
+    "default": false,
+    "type": "bool",
+    "row": "Compact long-press menu everywhere"
    },
    {
     "key": "long_press_full_menu_on_profiles",
@@ -11346,6 +11494,12 @@
     "row": "Hide message streaks"
    },
    {
+    "key": "hide_streak_popups",
+    "default": false,
+    "type": "bool",
+    "row": "Hide streak pop-ups"
+   },
+   {
     "key": "turn_off_push_notifications",
     "default": false,
     "type": "bool",
@@ -11547,7 +11701,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -11833,7 +11987,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1000"
       },
@@ -11862,7 +12016,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "1000"
       },
@@ -13186,7 +13340,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.038s",
+       "holder": "X.03Yl",
        "getter": "LJIILIIL",
        "gap": "300"
       },
@@ -14519,7 +14673,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0EV1",
+       "class": "X.0GCi",
        "method": "LIZIZ",
        "count": "123456"
       },
@@ -14528,7 +14682,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0FR0",
+       "class": "X.0HJS",
        "method": "LIZ",
        "count": "123456"
       },
@@ -14542,7 +14696,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0EV1",
+       "class": "X.0GCi",
        "method": "LIZIZ",
        "count": "123456"
       },
@@ -14551,7 +14705,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0FR0",
+       "class": "X.0HJS",
        "method": "LIZ",
        "count": "123456"
       },

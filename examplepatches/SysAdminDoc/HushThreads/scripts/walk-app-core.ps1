@@ -40,24 +40,32 @@ $WalkSettingsPath = @(
     [pscustomobject]@{ Name = "the HushThreads row in Threads' settings"; Id = 'ig_text'; Text = 'HushThreads'; Desc = ''; Beside = 'SettingsScreen'; Shows = "Threads' settings"; Scrolls = $true }
 )
 
+# The toggle under the settings search, by what it offers: the list view while the sections show
+# as headers, and the headers again while the list shows.
+$WalkListToggle = 'Show all settings as a list'
+$WalkCategoryToggle = 'Show settings by category'
+
 function Get-WalkSections {
     <#
     .SYNOPSIS
-        The HushThreads settings pages, by their English names, in the order the home page lists
-        them, read from SettingsNavigation.java's section(...) calls.
+        The HushThreads settings sections, by their English names, in the order the main page
+        lists their headers, read from SettingsNavigation.java: each section(...) call, then the
+        Support header, which folds open the same way.
     #>
     param([Parameter(Mandatory = $true)][string]$Root)
     $path = Join-Path $Root 'extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java'
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "There's no SettingsNavigation.java at $path to read the settings pages from." }
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "There's no SettingsNavigation.java at $path to read the settings sections from." }
     $source = [IO.File]::ReadAllText($path, [Text.Encoding]::UTF8)
     $names = @([regex]::Matches($source, '(?m)^\s*section\(\s*"((?:[^"\\]|\\.)+)"\s*,') | ForEach-Object { [regex]::Unescape($_.Groups[1].Value) })
-    if ($names.Count -eq 0) { throw "SettingsNavigation.java names no settings pages: $path" }
-    $names
+    if ($names.Count -eq 0) { throw "SettingsNavigation.java names no settings sections: $path" }
+    $support = [regex]::Match($source, '(?m)^\s*support\s*=\s*link\(\s*context\s*,\s*L10n\.t\(\s*"((?:[^"\\]|\\.)+)"\s*\)')
+    if (-not $support.Success) { throw "SettingsNavigation.java has no Support header: $path" }
+    $names + [regex]::Unescape($support.Groups[1].Value)
 }
 
 function Get-WalkExpectedScreens {
     param([Parameter(Mandatory = $true)][string]$Root)
-    @($WalkScreens | ForEach-Object { $_.Name }) + @("Threads' settings", 'Settings: home') +
+    @($WalkScreens | ForEach-Object { $_.Name }) + @("Threads' settings", 'Settings: home', 'Settings: list view') +
         @(Get-WalkSections -Root $Root | ForEach-Object { "Settings: $_" })
 }
 
@@ -101,23 +109,75 @@ function Find-UiNode {
 function Find-WalkSectionRow {
     <#
     .SYNOPSIS
-        The row on the HushThreads home page that opens the page named -Section, or nothing.
+        The header on the HushThreads main page that folds the section named -Section open, or
+        nothing.
     .DESCRIPTION
-        Only a row title (id "title", Threads' package) whose text is the page's name exactly and
-        that is big enough to tap. Each row also carries a one-pixel copy of its title for screen
+        Only a row title (id "title", Threads' package) whose text is the section's name exactly
+        and that is big enough to tap. A one-pixel line over the list holds words for screen
         readers, which a tap would miss.
     #>
     param([AllowEmptyCollection()][object[]]$Nodes = @(), [Parameter(Mandatory = $true)][string]$Section)
-    @($Nodes | Where-Object { Test-WalkTapAllowed -Node $_ -Sections @($Section) }) | Select-Object -First 1
+    @($Nodes | Where-Object { Test-WalkTapAllowed -Node $_ -Sections @($Section) } | Sort-Object Top) | Select-Object -First 1
+}
+
+function Get-WalkSectionState {
+    <#
+    .SYNOPSIS
+        Whether the section named -Section shows open ('open') or folded ('closed') on this dump,
+        or nothing when its header isn't on screen.
+    .DESCRIPTION
+        A section opens in place: its rows go in right under its header, and the screen keeps
+        some of them in view. So it's open when the first row title under the header is one of
+        its rows, and folded when that's the next header (-Sections, or Quick setups) or nothing.
+        The state Android gives the header for screen readers isn't in a uiautomator dump. The
+        list view heads each section with its name in capitals instead, which the dump shows as
+        capitals; that heading only reads here, it's never a row to tap.
+    #>
+    param(
+        [AllowEmptyCollection()][object[]]$Nodes = @(), [Parameter(Mandatory = $true)][string]$Section,
+        [Parameter(Mandatory = $true)][string[]]$Sections
+    )
+    $titles = @($Nodes | Where-Object {
+            $_.Package -ceq $WalkPackage -and $_.Id -ceq 'title' -and $_.Text -and ($_.Bottom - $_.Top) -ge 10
+        } | Sort-Object Top)
+    $header = Find-WalkSectionRow -Nodes $Nodes -Section $Section
+    if (-not $header) { $header = @($titles | Where-Object Text -ceq $Section.ToUpperInvariant()) | Select-Object -First 1 }
+    if (-not $header) { return $null }
+    $headers = @($Sections) + 'Quick setups'
+    $headers += @($headers | ForEach-Object { $_.ToUpperInvariant() })
+    $next = @($titles | Where-Object Top -ge $header.Bottom) | Select-Object -First 1
+    if ($next -and -not ($headers -ccontains $next.Text)) { 'open' } else { 'closed' }
+}
+
+function Find-WalkViewToggle {
+    <#
+    .SYNOPSIS
+        The label of the toggle under the settings search, which reads $WalkListToggle or
+        $WalkCategoryToggle, or nothing when the main page isn't showing it.
+    .DESCRIPTION
+        Once the list scrolls, the toggle slides up under the bar, which draws over it. The dump
+        still lists it there, but a tap on it would land on the bar, so it only counts below the
+        bar's Back button.
+    #>
+    param([AllowEmptyCollection()][object[]]$Nodes = @())
+    if ((Get-WalkSettingsPage -Nodes $Nodes) -cne 'home') { return $null }
+    $barBottom = (@($Nodes | Where-Object { $_.Package -ceq $WalkPackage -and -not $_.Id -and $_.Desc -ceq 'Back' }) |
+            Measure-Object -Property Bottom -Maximum).Maximum
+    @($Nodes | Where-Object {
+            $_.Package -ceq $WalkPackage -and -not $_.Id -and $_.Class -ceq 'android.widget.TextView' -and
+            ($_.Text -ceq $WalkListToggle -or $_.Text -ceq $WalkCategoryToggle) -and ($_.Right - $_.Left) -ge 10 -and ($_.Bottom - $_.Top) -ge 10 -and
+            $_.Top -ge $barBottom
+        }) | Select-Object -First 1
 }
 
 function Test-WalkTapAllowed {
     <#
     .SYNOPSIS
-        Whether the walk may tap this node: the title of a HushThreads settings page row, or a
-        step of $WalkSettingsPath on its own screen (-Nodes is the dump the node came from). The
-        walk opens Threads' screens by link and taps nothing else in Threads, so it can't follow,
-        like, reply, post or message anyone, whatever a lookup hands it.
+        Whether the walk may tap this node: the title of a HushThreads settings section header,
+        the toggle under the settings search (on the dump it came from), or a step of
+        $WalkSettingsPath on its own screen (-Nodes is the dump the node came from). The walk opens
+        Threads' screens by link and taps nothing else in Threads, so it can't follow, like,
+        reply, post or message anyone, whatever a lookup hands it.
     #>
     param(
         [Parameter(Mandatory = $true)]$Node, [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Sections,
@@ -125,6 +185,8 @@ function Test-WalkTapAllowed {
     )
     if ($Node.Package -cne $WalkPackage -or ($Node.Right - $Node.Left) -lt 10 -or ($Node.Bottom - $Node.Top) -lt 10) { return $false }
     if ($Node.Id -ceq 'title' -and $Sections -ccontains $Node.Text) { return $true }
+    $toggle = Find-WalkViewToggle -Nodes $Nodes
+    if ($toggle -and $Node.Text -ceq $toggle.Text -and $Node.Top -eq $toggle.Top -and $Node.Left -eq $toggle.Left -and -not $Node.Id) { return $true }
     foreach ($step in $WalkSettingsPath) {
         if ($Node.Id -ceq $step.Id -and $Node.Text -ceq $step.Text -and $Node.Desc -ceq $step.Desc -and
             @($Nodes | Where-Object { $_.Id -ceq $step.Beside -and $_.Package -ceq $WalkPackage }).Count -gt 0) { return $true }
@@ -210,22 +272,23 @@ function Wait-WalkScreen {
 function Get-WalkSettingsPage {
     <#
     .SYNOPSIS
-        Which HushThreads settings page a dump shows: 'home', the name of a page, or nothing when
-        it isn't the settings screen.
+        'home' when a dump shows the HushThreads settings main page, and nothing otherwise.
     .DESCRIPTION
-        The screen's header is two lines: "HushThreads", and under it "Settings" on home or the
-        page's own name. Home also has the search box, which a page hides. Read in English: the
-        walk devices run Threads in English.
+        The screen has a bar pinned at the top: a Back button (no id, read as a Button) and the
+        page's name beside it. On the main page the name is "HushThreads", hidden while the
+        header under the bar shows "HushThreads" itself, so one of the two is always there, at or
+        below the Back button. Every section opens in place on that page; the pages it opens
+        (Quick setups) have their own name in the bar and no header. Read in English: the walk
+        devices run Threads in English.
     #>
-    param([AllowEmptyCollection()][object[]]$Nodes = @(), [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Sections)
+    param([AllowEmptyCollection()][object[]]$Nodes = @())
     $ours = @($Nodes | Where-Object { $_.Package -ceq $WalkPackage -and -not $_.Id })
-    $search = @($ours | Where-Object { $_.Class -ceq 'android.widget.EditText' -and $_.Desc -ceq 'Search settings' }).Count -gt 0
-    foreach ($brand in @($ours | Where-Object { $_.Text -ceq 'HushThreads' -and $_.Class -ceq 'android.widget.TextView' })) {
-        $title = @($ours | Where-Object { $_.Class -ceq 'android.widget.TextView' -and $_.Top -eq $brand.Bottom -and $_.Left -eq $brand.Left }) |
-            Select-Object -First 1
-        if (-not $title) { continue }
-        if ($title.Text -ceq 'Settings' -and $search) { return 'home' }
-        if ($Sections -ccontains $title.Text -and -not $search) { return $title.Text }
+    foreach ($back in @($ours | Where-Object {
+                $_.Desc -ceq 'Back' -and $_.Clickable -and ($_.Class -ceq 'android.widget.Button' -or $_.Class -ceq 'android.widget.ImageButton')
+            })) {
+        if (@($ours | Where-Object { $_.Text -ceq 'HushThreads' -and $_.Class -ceq 'android.widget.TextView' -and $_.Top -ge $back.Top }).Count -gt 0) {
+            return 'home'
+        }
     }
     $null
 }

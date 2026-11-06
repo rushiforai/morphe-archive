@@ -37,6 +37,8 @@ public final class Settings {
     static final String POST_MENU = "post_menu";
     static final String VIEWER_TAP_TO_HIDE = "viewer_tap_to_hide";
     static final String SWIPE_FEEDS = "swipe_feeds";
+    static final String HIDE_TAB_NETWORK = "hide_tab_network";
+    static final String HIDE_TAB_JOBS = "hide_tab_jobs";
     static final String MUTED_WORDS = "muted_words";
     static final String ANONYMOUS_PROFILE_VIEWING = "anonymous_profile_viewing";
     static final String OPEN_LINKS_DIRECTLY = "open_links_directly";
@@ -289,6 +291,20 @@ public final class Settings {
 
     static boolean hideAi() {
         return isFeedFiltersIncluded() && get(HIDE_AI, false);
+    }
+
+    public static boolean isHideTabsIncluded() {
+        return false;
+    }
+
+    /** Takes My Network out of the bottom bar. */
+    static boolean hideTabNetwork() {
+        return isHideTabsIncluded() && get(HIDE_TAB_NETWORK, false);
+    }
+
+    /** Takes Jobs out of the bottom bar. */
+    static boolean hideTabJobs() {
+        return isHideTabsIncluded() && get(HIDE_TAB_JOBS, false);
     }
 
     public static boolean isSwipeFeedsIncluded() {

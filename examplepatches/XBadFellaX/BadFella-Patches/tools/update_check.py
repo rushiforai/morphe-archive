@@ -171,6 +171,13 @@ def source_contracts(root=ROOT):
     push = (root / "patches/src/main/kotlin/app/badfella/patches/ticktick/misc/RestorePushPatch.kt").read_text()
     certificate = re.search(r'const-string v0, "([0-9A-F]{40})"', push)[1]
     versions = re.findall(r'AppTarget\(version\s*=\s*"([^"]+)"', (root / "patches/src/main/kotlin/app/badfella/patches/ticktick/shared/Constants.kt").read_text())
+    if not versions:
+        # Version-agnostic patches have no pinned AppTarget. The reviewed baseline files then
+        # define which stock versions have been validated.
+        versions = sorted(
+            path.stem.removeprefix("ticktick-")
+            for path in (root / "tools/baselines").glob("ticktick-*.json")
+        )
     return {"schema": 1, "fingerprints": fingerprints, "reflection": list(reflection.values()),
             "config": config, "source_hashes": source_hashes, "retained": retained,
             "removals": removals, "certificate_sha1": certificate, "supported_versions": versions}

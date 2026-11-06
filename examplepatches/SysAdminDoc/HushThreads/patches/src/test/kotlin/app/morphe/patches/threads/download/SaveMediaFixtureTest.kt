@@ -404,6 +404,8 @@ class SaveMediaFixtureTest {
             "454.0.0.54.79-512408625" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
             "454.0.0.54.79-512408635" to Expected("LX/Rau;", "LX/Rau;->A0G:$MEDIA", "LX/Rau;->A0D:LX/6DB;", "LX/6DB;->A19()V"),
             "454.0.0.54.79-512408636" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
+            "454.0.0.54.79-512408645" to Expected("LX/Rau;", "LX/Rau;->A0G:$MEDIA", "LX/Rau;->A0D:LX/6DB;", "LX/6DB;->A19()V"),
+            "454.0.0.54.79-512408647" to Expected("LX/Qyp;", "LX/Qyp;->A0G:$MEDIA", "LX/Qyp;->A0D:LX/69p;", "LX/69p;->A19()V"),
             "454.0.0.54.79-512408648" to Expected("LX/Sas;", "LX/Sas;->A0G:$MEDIA", "LX/Sas;->A0D:LX/75U;", "LX/75U;->A19()V"),
         )
     }

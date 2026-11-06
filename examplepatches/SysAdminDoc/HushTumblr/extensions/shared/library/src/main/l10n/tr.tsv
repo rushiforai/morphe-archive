@@ -13,7 +13,9 @@ Android 11 and older don't say which links open here. Tap to open this app's set
 Back	Geri
 Cancel	İptal
 Clear diagnostic data	Tanılama verilerini temizle
+Copy link	Bağlantıyı kopyala
 Copy quick report	Hızlı raporu kopyala
+Couldn't copy the link. Try again.	Bağlantı kopyalanamadı. Yeniden dene.
 Couldn't import the settings, and couldn't put back the ones you had. Check the settings on this screen.	Ayarlar içe aktarılamadı ve önceki ayarların geri yüklenemedi. Bu ekrandaki ayarları kontrol et.
 Couldn't import the settings. Nothing was changed.	Ayarlar içe aktarılamadı. Hiçbir şey değiştirilmedi.
 Couldn't open that file. Nothing was changed.	Bu dosya açılamadı. Hiçbir şey değiştirilmedi.
@@ -31,6 +33,7 @@ Clears the saved log and patch check results that a report would include.	Bir ra
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Hata ayıklama günlüğü dışındaki her anahtar kapalıymış gibi davranır, yamaladığında ayarlananlar ise devrede kalır. Ayarların olduğu gibi kalır.
 Export diagnostic report	Tanılama raporunu dışa aktar
 Export settings	Ayarları dışa aktar
+Link copied	Bağlantı kopyalandı
 Turns off every HushTumblr switch except Debug logging the next time Tumblr starts. What you chose when you patched stays, and your choices are saved.	Tumblr bir sonraki açılışında Hata ayıklama günlüğü dışındaki tüm HushTumblr anahtarlarını kapatır. Yamalarken seçtiklerin kalır ve tercihlerin kayıtlı kalır.
 Save your settings to a file, including word lists and tab order. These choices apply to all accounts in this Tumblr app. Pause, Debug logging and release checks aren't included.	Sözcük listeleri ve sekme sırası dahil ayarlarını bir dosyaya kaydet. Bu seçimler Tumblr uygulamasındaki tüm hesaplar için geçerlidir. Duraklatma, Hata ayıklama günlüğü ve sürüm denetimi dahil edilmez.
 Settings exported. The app holding the file wouldn't let HushTumblr read it back, so it wasn't checked.	Ayarlar dışa aktarıldı. Dosyayı tutan uygulama HushTumblr'ın onu geri okumasına izin vermedi, bu yüzden kontrol edilmedi.
@@ -126,6 +129,7 @@ Android didn't say which links open here. Tap to check in Android's settings.	An
 Selecting links by hand	Bağlantıları elle seçme
 
 Restart Tumblr to apply this change	Bu değişikliği uygulamak için Tumblr'ı yeniden başlat
+Restart Tumblr to apply this change.	Bu değişikliği uygulamak için Tumblr'ı yeniden başlat.
 Restart Tumblr to apply %1$d changes	%1$d değişikliği uygulamak için Tumblr'ı yeniden başlat
 Tumblr closes and reopens on this page.	Tumblr kapanır ve bu sayfada yeniden açılır.
 Android verified this app for Tumblr's web addresses, so their links open here.	Android bu uygulamayı Tumblr'ın web adresleri için doğruladı, bu yüzden bağlantıları burada açılır.
@@ -222,9 +226,11 @@ Use the email on your Tumblr account and a Tumblr password. Google sign-in may n
 # context: the Feed page and its Hide ads switch.
 Feed	Akış
 Hide ads	Reklamları gizle
-Takes ads and paid Blaze posts out of your dashboard and other feeds. Ad requests stop after Tumblr restarts.	Reklamları ve ücretli Blaze gönderilerini panondan ve diğer akışlardan kaldırır. Reklam istekleri Tumblr yeniden başladıktan sonra durur.
+Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumblr restarts, it stops asking for ads and its ad networks don't start.	Reklamları ve ücretli Blaze gönderilerini panondan ve diğer akışlardan kaldırır. Tumblr yeniden başladıktan sonra reklam istemeyi bırakır ve reklam ağları başlamaz.
+Keep Blaze posts	Blaze gönderilerini tut
+When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Reklamlar gizlenirken birinin Blaze ile tanıtmak için ödeme yaptığı gönderileri tutar. Diğer reklamlar ve gönderi filtreleri uygulanmaya devam eder.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement. Firebase and Google's analytics collection stay off until you patch again without it.	Tumblr'ın kendi izlemesini ve reklam ölçümünü durdurur. Firebase ve Google Analytics veri toplama, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Tumblr'ın kendi izlemesini ve reklam ölçümünü durdurur, LiveRamp izleyicisinin başlamasını da engeller. Firebase ve Google Analytics veri toplama, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Reklamsız gezinme banner'ını gizle
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Panoda reklamsız gezinme için ödeme yapmanı isteyen banner'ı gizler.
@@ -251,6 +257,7 @@ Draws a thin line in the gap between posts, so it's easier to see where one ends
 App font	Uygulama yazı tipi
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Tumblr'ın kendi yazı tipini telefonunun yazı tipiyle veya aşağıdan seçtiğin bir yazı tipi dosyasıyla değiştirir. Gönderi yazarının seçtiği yazı tipleri olduğu gibi kalır.
 Choose a font file	Yazı tipi dosyası seç
+Choose another file	Başka bir dosya seç
 Uses your phone's font. Tap to pick a .ttf or .otf file.	Telefonunun yazı tipini kullanır. Bir .ttf veya .otf dosyası seçmek için dokun.
 Using %1$s. Tap to pick another.	%1$s kullanılıyor. Başka birini seçmek için dokun.
 Use the phone's font	Telefonun yazı tipini kullan
@@ -280,6 +287,9 @@ Hide suggested tags	Önerilen etiketleri gizle
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Tumblr'ın takip etmeni önerdiği etiketleri ve başlıklarını panondan ve diğer akışlardan kaldırır.
 Hide Watch it rows	Watch it satırlarını gizle
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Tumblr TV'nin Watch it satırlarını ve video kartlarını, başlıklarıyla birlikte panondan ve diğer akışlardan kaldırır.
+# context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
+Hide Featured posts	Öne çıkan gönderileri gizle
+Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Tumblr ekibinin Öne çıkanlar başlığı altında gösterdiği gönderileri panondan ve diğer akışlardan kaldırır.
 # context: the Posts page and its two switches. Posts is the page's title in HushTumblr settings; Follow is the label on Tumblr's own button, so use the word Tumblr shows in your language.
 Posts	Gönderiler
 Hide hashtags	Hashtag'leri gizle
@@ -354,9 +364,10 @@ Explore	Keşfet
 Tumblr TV	Tumblr TV
 Communities	Topluluklar
 Account	Hesap
-# context: with Hide note counts on, these stand in for "3 comments" on a community post's comment button and for "12 notes" at the top of a post's notes. Tumblr's own word is used when the app has one; these are the fallback. Use Tumblr's own words in your language.
+# context: with Hide note counts on, these stand in for "3 comments" on a community post's comment button and for "12 notes" at the top of a post's notes, and Like is what TalkBack reads for a comment's like button in place of "5 likes". Tumblr's own word is used when the app has one; these are the fallback. Use Tumblr's own words in your language.
 Comments	Yorumlar
 Notes	Notlar
+Like	Beğen
 # context: the import preview of a settings file. The first is what an empty Words to hide list reads as; the second names Words to hide or Tab order when the file's value for it can't be used.
 None	Yok
 %1$s: the value in that file can't be used, so it'll be left out.	%1$s: o dosyadaki değer kullanılamıyor, bu yüzden atlanacak.
@@ -379,6 +390,10 @@ Keep tagged reblogs	Etiketli yeniden bloglamaları tut
 When reblogs are hidden, keep ones with tags. Other post filters still apply.	Yeniden bloglamalar gizlenirken etiketli olanları tutar. Diğer gönderi filtreleri uygulanmaya devam eder.
 Keep reblogs with added content	Eklenen içeriği olan yeniden bloglamaları tut
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Yeniden bloglamalar gizlenirken, yeniden bloglayanın kendi eklemesi olanları tutar. Diğer gönderi filtreleri uygulanmaya devam eder.
+Hide your own reblogs	Kendi yeniden bloglarını gizle
+Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Yaptığın yeniden blogları panondan ve benzeri akışlardan kaldırır. Blogun onları göstermeye devam eder.
+Hide liked posts	Beğenilen gönderileri gizle
+Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Zaten beğendiğin gönderileri panondan ve benzeri akışlardan kaldırır. Beğenilerin ve bloglar onları göstermeye devam eder.
 Match current post text	Geçerli gönderi metninde eşleştir
 Match reblog trail text	Yeniden bloglama zinciri metninde eşleştir
 Match current post tags	Geçerli gönderi etiketlerinde eşleştir
@@ -463,10 +478,38 @@ Changed %1$d settings	%1$d ayar değiştirildi
 Couldn't update muted posts. Try again.	Susturulan gönderiler güncellenemedi. Tekrar dene.
 # context: the Share video links switch on the Posts page, and its summary
 Share video links	Video bağlantılarını paylaş
-Long-press a video in a post to share or copy its link.	Bağlantısını paylaşmak veya kopyalamak için gönderideki bir videoya uzun basın.
+Long-press a video in a post to share or copy its link, or save it.	Bağlantısını paylaşmak, kopyalamak ya da videoyu kaydetmek için gönderideki bir videoya uzun basın.
+# context: the Sharper images switch on the Posts page, and its summary
+Sharper images	Daha net resimler
+Loads images in posts at a higher resolution. Uses more data.	Gönderilerdeki resimleri daha yüksek çözünürlükte yükler. Daha fazla veri kullanır.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Video bağlantısını paylaş
 Copy video link	Video bağlantısını kopyala
 Video link	Video bağlantısı
 Video link copied	Video bağlantısı kopyalandı
 No app can share this link	Bu bağlantıyı paylaşabilecek bir uygulama yok
+Save video	Videoyu kaydet
+Saving to Downloads	İndirilenler'e kaydediliyor
+Video saved to Downloads	Video İndirilenler'e kaydedildi
+Couldn't save the video	Video kaydedilemedi
+ad networks at launch	açılışta reklam ağları
+LiveRamp at launch	açılışta LiveRamp
+# context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
+Try it on a post	Bir gönderide dene
+Nothing you type here is saved.	Buraya yazdıkların kaydedilmez.
+Post text	Gönderi metni
+Reblog trail text	Yeniden bloglama zinciri metni
+Tags	Etiketler
+Summary	Özet
+Not matched while %1$s is off	“%1$s” kapalıyken eşleştirilmez
+Split tags with commas	Etiketleri virgülle ayır
+Clear the example	Örneği temizle
+No fields are selected to match, so the word filter keeps every post.	Eşleştirmek için seçili alan yok, bu yüzden kelime filtresi her gönderiyi tutar.
+There are no words to hide yet, so the word filter keeps every post.	Henüz gizlenecek kelime yok, bu yüzden kelime filtresi her gönderiyi tutar.
+Type part of a post above to see what the word filter does with it.	Kelime filtresinin ne yapacağını görmek için yukarıya bir gönderinin bir kısmını yaz.
+The word filter would hide this post for “%1$s” in %2$s.	Kelime filtresi bu gönderiyi %2$s alanındaki “%1$s” yüzünden gizlerdi.
+The word filter would keep this post. “%1$s” in %2$s would hide it, but the allowed word “%3$s” in %4$s keeps it.	Kelime filtresi bu gönderiyi tutardı. %2$s alanındaki “%1$s” onu gizlerdi, ama %4$s alanındaki izin verilen “%3$s” kelimesi onu tutuyor.
+The word filter would keep this post. None of the words to hide are in the selected fields.	Kelime filtresi bu gönderiyi tutardı. Gizlenecek kelimelerin hiçbiri seçili alanlarda yok.
+Other filters can still hide it.	Diğer filtreler yine de onu gizleyebilir.
+Hide posts with these words is off, so the word filter hides nothing yet.	“Bu kelimeleri içeren gönderileri gizle” kapalı, bu yüzden kelime filtresi henüz hiçbir şeyi gizlemiyor.
+HushTumblr is paused, so the word filter hides nothing right now.	HushTumblr duraklatıldı, bu yüzden kelime filtresi şu anda hiçbir şeyi gizlemiyor.

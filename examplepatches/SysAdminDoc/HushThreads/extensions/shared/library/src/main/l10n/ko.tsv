@@ -1,0 +1,379 @@
+# Korean for HushThreads: the English key, a tab, the translation. One row per string.
+# Rows shared with https://github.com/SysAdminDoc/HushGram are taken from its Korean table.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+Build %1$s	빌드 %1$s
+%1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	이 파일의 항목 %1$d개는 이 버전의 HushThreads가 알지 못하는 설정이므로 제외됩니다.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	이 파일의 항목 %1$d개는 이 버전의 HushThreads가 알지 못하는 설정이므로 제외됩니다.
+%1$d switch will change.	스위치 %1$d개가 바뀝니다.
+%1$d switches will change.	스위치 %1$d개가 바뀝니다.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. 패치할 때 적용되어 일시 정지로는 끌 수 없습니다. 이 기능이 원인인지 확인하려면 해당 패치를 빼고 다시 패치하세요.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. 패치할 때 적용되어 일시 정지로는 끌 수 없습니다. 원인인지 확인하려면 뒤의 괄호에 표시된 패치를 빼고 다시 패치하세요.
+A diagnostic report is already being saved.	진단 보고서를 이미 저장하고 있습니다.
+A file named %1$s in %2$s paused HushThreads.	%2$s에 있는 %1$s 파일 때문에 HushThreads가 일시 정지되었습니다.
+About	정보
+Advertising ID removed	광고 ID 제거됨
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 이하에서는 어떤 링크가 여기서 열리는지 알려 주지 않습니다. 탭해서 이 앱의 설정을 연 다음 기본으로 열기를 선택하세요.
+Android only sends Threads links to an app signed by Meta. Selecting the addresses sends their links here instead. Your other link settings stay as they are.	Android는 Threads 링크를 Meta가 서명한 앱에만 보냅니다. 주소를 선택하면 해당 링크가 대신 여기로 옵니다. 다른 링크 설정은 그대로 유지됩니다.
+Android verified this app for Threads' web addresses, so their links open here.	Android가 이 앱을 Threads 웹 주소용으로 인증했으므로 해당 링크는 여기서 열립니다.
+Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	이 앱의 Android 설정이 열리지 않았습니다. Threads 아이콘에서 앱 정보를 연 다음 기본으로 열기를 선택하세요.
+Back	뒤로
+Cancel	취소
+Changing these	변경 방법
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	설정 파일을 선택하세요. 가져오기 전에 스위치가 몇 개 바뀌는지 보여 줍니다.
+Clear diagnostic data	진단 데이터 지우기
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	간단한 보고서를 복사하거나 전체 보고서를 Download/Morphe에 저장합니다. 링크, ID, 쿠키, 로그인 토큰은 제외됩니다. 공유하기 전에 다른 개인적인 내용이 없는지 확인하세요.
+Copy quick report	빠른 보고서 복사
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	설정을 가져오지 못했고 기존 설정도 복원하지 못했습니다. 이 화면의 스위치를 확인하세요.
+Couldn't import the settings. Nothing was changed.	설정을 가져오지 못했습니다. 아무것도 변경되지 않았습니다.
+Couldn't open that file. Nothing was changed.	그 파일을 열지 못했습니다. 아무것도 변경되지 않았습니다.
+Couldn't open the file picker. Try again.	파일 선택기를 열지 못했습니다. 다시 시도하세요.
+Couldn't put back the diagnostic data. Try again.	진단 데이터를 복원하지 못했습니다. 다시 시도하세요.
+Couldn't save the settings file. Try again.	설정 파일을 저장하지 못했습니다. 다시 시도하세요.
+Couldn't start that. Try again in a moment.	시작하지 못했습니다. 잠시 후 다시 시도하세요.
+Couldn't start the report export. Try again shortly.	보고서 내보내기를 시작하지 못했습니다. 잠시 후 다시 시도하세요.
+Couldn't turn HushThreads back on. Try again.	HushThreads를 다시 켜지 못했습니다. 다시 시도하세요.
+Debug logging	디버그 로그
+Diagnostic data cleared. Tap again to put it back.	진단 데이터를 지웠습니다. 복원하려면 다시 탭하세요.
+Diagnostic data put back.	진단 데이터를 복원했습니다.
+Diagnostic report copied to the clipboard.	진단 보고서를 클립보드에 복사했습니다.
+Clears the saved log, patch check results and any kept crash that a report would include.	보고서에 포함될 저장된 로그, 패치 확인 결과, 보관된 충돌 기록을 지웁니다.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	디버그 로그를 제외한 모든 스위치가 꺼진 것처럼 작동하며, 패치할 때 적용된 내용은 그대로 유지됩니다. 설정은 바뀌지 않습니다.
+Export diagnostic report	진단 보고서 내보내기
+Export settings	설정 내보내기
+Feed	피드
+Turns off every HushThreads switch except Debug logging the next time Threads starts. What you chose when you patched stays, and your choices are saved.	다음에 Threads를 시작할 때 디버그 로그를 제외한 모든 HushThreads 스위치를 끕니다. 패치할 때 선택한 내용은 유지되며 선택 사항도 저장됩니다.
+Hide ads	광고 숨기기
+HushThreads %1$s on Threads %2$s	Threads %2$s의 HushThreads %1$s
+HushThreads %1$s targets Threads %2$s.	HushThreads %1$s는 Threads %2$s용입니다.
+HushThreads pauses when Threads restarts.	Threads를 다시 시작하면 HushThreads가 일시 정지됩니다.
+HushThreads turns back on when Threads restarts.	Threads를 다시 시작하면 HushThreads가 다시 켜집니다.
+It targets Threads %1$s.	Threads %1$s용입니다.
+None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	이 앱에 선택된 Threads 웹 주소가 없어서 해당 링크가 다른 곳에서 열립니다. 탭해서 Android 설정에서 선택하세요.
+Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	이 앱에 일부 Threads 웹 주소만 선택되어 있어서 나머지 링크는 다른 곳에서 열립니다. 탭해서 Android 설정에서 선택하세요.
+Privacy	개인정보 보호
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	스위치를 파일로 저장합니다. 일시 정지와 디버그 로그는 포함되지 않으며 새 버전 확인도 포함되지 않습니다.
+Saved. Restart Threads to apply this change.	저장되었습니다. 이 변경 사항을 적용하려면 Threads를 다시 시작하세요.
+Some Threads screens check who signed the app and fail on a patched one. This fix makes them open again.	일부 Threads 화면은 앱 서명자를 확인하므로 패치된 앱에서는 열리지 않습니다. 이 수정으로 다시 열립니다.
+Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	설정을 내보냈습니다. 파일을 보관하는 앱이 HushThreads가 다시 읽도록 허용하지 않아 확인하지 못했습니다.
+# context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
+Sponsored posts come out of For you, Following and the posts you open before Threads shows them, so no gap is left.	Threads가 표시하기 전에 추천, 팔로잉 피드와 사용자가 연 게시물에서 스폰서 게시물을 제거하므로 빈 공간이 남지 않습니다.
+# context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
+Sponsored posts in For you and Following	추천 및 팔로잉의 스폰서 게시물
+# context: Feed overview summaries when suggestions alone, or both feed rules, are selected
+Suggested accounts in your feed	피드의 추천 계정
+Ads and suggested accounts in your feed	피드의 광고와 추천 계정
+Stop analytics uploads	분석 데이터 전송 중지
+# context: xmt and slof are the tags' own names in the link and stay as they are
+Takes tracking tags such as xmt and slof off the post links you copy or share. A short share link becomes the post's own link.	복사하거나 공유하는 게시물 링크에서 xmt, slof 같은 추적 태그를 제거합니다. 짧은 공유 링크는 게시물 원래 링크로 바뀝니다.
+The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	그 파일을 보관하는 앱의 응답이 너무 늦어 HushThreads가 기다리기를 멈췄습니다. 아무것도 변경되지 않았습니다.
+The app holding the last settings file still hasn't answered. Try again later.	마지막 설정 파일을 보관하는 앱이 아직 응답하지 않았습니다. 나중에 다시 시도하세요.
+The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	설정 파일을 보관하는 앱의 응답이 너무 늦어 HushThreads가 기다리기를 멈췄습니다. 그 앱이 저장을 마칠 수도 있으니 파일을 사용하기 전에 확인하세요.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	%1$s 파일을 제거하지 못했습니다. %2$s에서 삭제한 다음 다시 재개를 탭하세요.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	설정 파일이 저장되었지만 다시 읽은 내용이 기록한 내용과 다릅니다. 새 파일로 다시 저장하세요.
+Stops most usage reports from reaching Meta. Some may still get through. Turn this off to send them as before.	대부분의 사용 보고서가 Meta에 전달되지 않게 합니다. 일부는 여전히 전달될 수 있습니다. 이전처럼 보내려면 끄세요.
+Analytics address coverage	분석 주소 적용 범위
+Blocked: %1$s. Not found in this build: %2$s.	차단됨: %1$s. 이 빌드에서 찾지 못함: %2$s.
+This build didn't record which report types it covers. Patch again to see them.	이 빌드는 어떤 보고서 유형을 다루는지 기록하지 않았습니다. 확인하려면 다시 패치하세요.
+none	없음
+Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads가 휴대전화의 광고 ID를 읽을 수 없습니다. 이 빌드에서 해당 권한이 제거되었습니다.
+Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads가 시작 후 1분 안에 세 번 연속으로 충돌하거나 멈춰서 HushThreads가 스스로 일시 정지했습니다.
+Threads' web addresses are selected for this app in Android's settings, so their links open here.	Android 설정에서 이 앱에 Threads 웹 주소가 선택되어 있으므로 해당 링크가 여기서 열립니다.
+Tracking in links and analytics uploads	링크 추적과 분석 데이터 전송
+Try again, or go back to Threads.	다시 시도하거나 Threads로 돌아가세요.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	재개할 때까지 디버그 로그를 제외한 모든 스위치가 꺼진 것처럼 작동합니다. 패치할 때 적용된 변경 사항은 유지됩니다.
+Full report saved to %1$s	전체 보고서가 %1$s에 저장되었습니다
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0 라이선스를 적용하며, 이 프로그램이 기반으로 사용하는 프로젝트의 고지 사항을 포함합니다
+HushThreads is on	HushThreads 실행 중
+HushThreads is paused	HushThreads 일시 정지됨
+HushThreads settings	HushThreads 설정
+HushThreads settings couldn't open	HushThreads 설정을 열 수 없습니다
+Import	가져오기
+Import settings	설정 가져오기
+Importing settings	설정을 가져오는 중
+Licenses	라이선스
+Links	링크
+OK	확인
+Pause HushThreads	HushThreads 일시 정지
+Re-signed build fix	재서명 빌드 수정
+Reading the settings file	설정 파일을 읽는 중
+Remove tracking from shared links	공유 링크에서 추적 제거
+Retry	다시 시도
+Save full report	전체 보고서 저장
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushThreads releases	새 HushThreads 릴리스 확인
+Once a day, when Threads starts, checks GitHub for a newer HushThreads and tells you here. Nothing is downloaded.	하루에 한 번 Threads를 시작할 때 GitHub에서 새 HushThreads가 있는지 확인하고 여기에 알려 줍니다. 아무것도 다운로드하지 않습니다.
+Check now	지금 확인
+Asks GitHub for the newest release right now, even with the switch above off.	위 스위치가 꺼져 있어도 지금 바로 GitHub에 최신 릴리스를 확인합니다.
+Checking GitHub now.	지금 GitHub를 확인하는 중입니다.
+HushThreads %1$s is out. Update it in Morphe Manager.	HushThreads %1$s이(가) 나왔습니다. Morphe Manager에서 업데이트하세요.
+Version %1$s for Threads %2$s	Threads %2$s용 버전 %1$s
+You have the newest HushThreads release.	최신 HushThreads 릴리스를 사용 중입니다.
+The newest HushThreads release is %1$s.	최신 HushThreads 릴리스는 %1$s입니다.
+Couldn't reach GitHub. Try again later.	GitHub에 연결하지 못했습니다. 나중에 다시 시도하세요.
+GitHub is turning away checks from this network for now. Try again later.	GitHub가 지금은 이 네트워크의 확인 요청을 거부하고 있습니다. 나중에 다시 시도하세요.
+GitHub sent back something HushThreads couldn't read. Try again later.	GitHub가 HushThreads가 읽을 수 없는 응답을 보냈습니다. 나중에 다시 시도하세요.
+Saving the settings file	설정 파일을 저장하는 중
+Set when you patched	패치할 때 설정되는 기능
+Settings couldn't open	설정을 열 수 없습니다
+Settings couldn't refresh completely. Reopen settings and try again.	설정을 완전히 새로 고치지 못했습니다. 설정을 다시 열고 다시 시도하세요.
+Settings exported.	설정을 내보냈습니다.
+Settings imported. %1$d switch changed.	설정을 가져왔습니다. 스위치 %1$d개가 바뀌었습니다.
+Settings imported. %1$d switches changed.	설정을 가져왔습니다. 스위치 %1$d개가 바뀌었습니다.
+Source code and issues	소스 코드 및 이슈
+Stays in while paused	일시 정지 중에 유지되는 기능
+Tap to turn it back on.	다시 켜려면 탭하세요.
+That file is too large to be a settings file. Nothing was changed.	설정 파일이라고 하기에는 파일이 너무 큽니다. 아무것도 변경되지 않았습니다.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	읽을 수 있는 텍스트 파일이 아니어서 전송 중에 손상되었을 수 있습니다. 아무것도 변경되지 않았습니다.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	파일에 같은 설정이 두 번 있어서 어떤 값을 써야 할지 알 수 없습니다. 아무것도 변경되지 않았습니다.
+That isn't a HushThreads settings file. Nothing was changed.	HushThreads 설정 파일이 아닙니다. 아무것도 변경되지 않았습니다.
+That settings file holds a value HushThreads can't read. Nothing was changed.	설정 파일에 HushThreads가 읽을 수 없는 값이 있습니다. 아무것도 변경되지 않았습니다.
+That settings file is damaged or only partly downloaded. Nothing was changed.	설정 파일이 손상되었거나 일부만 다운로드되었습니다. 아무것도 변경되지 않았습니다.
+That settings file was written by a newer HushThreads than this one. Nothing was changed.	이 설정 파일은 이 버전보다 최신 HushThreads에서 작성되었습니다. 아무것도 변경되지 않았습니다.
+The diagnostic report couldn't be saved yet. Try again in a moment.	아직 진단 보고서를 저장할 수 없습니다. 잠시 후 다시 시도하세요.
+The diagnostic report couldn't be saved. Try again.	진단 보고서를 저장하지 못했습니다. 다시 시도하세요.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.	%1$s 파일을 제거하지 못했습니다. HushThreads를 다시 켜려면 %2$s에서 이 파일을 삭제하세요.
+Your choices are saved. Tap Resume, then restart Threads.	선택 사항이 저장되었습니다. 재개를 탭한 다음 Threads를 다시 시작하세요.
+the re-signed build fix	다시 서명된 빌드 수정
+The setting couldn't finish updating. Its saved value is shown.	설정 업데이트를 마치지 못했습니다. 저장된 값이 표시됩니다.
+There's no diagnostic data to clear.	지울 진단 데이터가 없습니다.
+There's no diagnostic data to put back.	복원할 진단 데이터가 없습니다.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	패치할 때 Morphe Manager에서 선택하며 일시 정지로는 끌 수 없습니다. 바꾸려면 다시 패치하세요.
+This phone has no file picker, so there's no way to choose a file here.	이 휴대전화에는 파일 선택기가 없어서 여기서 파일을 선택할 수 없습니다.
+Version	버전
+Record patch activity and show errors for a bug report. Leave off during normal use.	버그 신고용으로 패치 동작을 기록하고 오류를 표시합니다. 평소에는 꺼 두세요.
+You paused HushThreads.	HushThreads를 일시 정지했습니다.
+Your switches already match that file, so nothing will change.	스위치가 이미 그 파일과 같으므로 아무것도 바뀌지 않습니다.
+Copy a short report to the clipboard.	간단한 보고서를 클립보드에 복사합니다.
+Save the full report in Download/Morphe.	전체 보고서를 Download/Morphe에 저장합니다.
+Settings imported.	설정을 가져왔습니다.
+No app on this phone can open the link. The address is %1$s.	이 휴대전화에는 이 링크를 열 수 있는 앱이 없습니다. 주소는 %1$s입니다.
+Pause, backup and diagnostics	일시 정지, 백업 및 진단
+Updates	업데이트
+Jump to a section	섹션으로 이동
+Go straight to one group of settings. Back returns to where you were.	설정 그룹 하나로 바로 이동합니다. 뒤로를 누르면 원래 위치로 돌아갑니다.
+No matching settings	일치하는 설정이 없습니다
+%1$d setting found	설정 %1$d개 찾음
+%1$d settings found	설정 %1$d개 찾음
+Try a different word or clear the search.	다른 단어로 검색하거나 검색어를 지우세요.
+Search settings	설정 검색
+Clear search	검색 지우기
+Saves	저장 작업
+No saves in progress.	진행 중인 저장 작업이 없습니다.
+Pause	일시 정지
+Resume	재개
+Undo	실행 취소
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Threads' web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	지원되는 링크
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	Android 설정에서 이 앱의 지원되는 링크 열기가 꺼져 있습니다. 탭해서 켜세요.
+Android didn't say which links open here. Tap to check in Android's settings.	Android가 어떤 링크가 여기서 열리는지 알려 주지 않았습니다. 탭해서 Android 설정에서 확인하세요.
+Selecting links by hand	링크 직접 선택하기
+# context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
+the removed advertising ID permission	제거된 광고 ID 권한
+
+# context: optional feed rule and its scope
+Hide suggested users	추천 사용자 숨기기
+Removes the cards that suggest accounts to follow, in your feed and on profiles. Normal posts and reposts stay.	피드와 프로필에서 팔로우할 계정을 추천하는 카드를 제거합니다. 일반 게시물과 리포스트는 그대로 표시됩니다.
+Keep feed position on return	돌아올 때 피드 위치 유지
+Returning to Threads within ten minutes keeps your place. Pull to refresh still works.	10분 안에 Threads로 돌아오면 보던 위치가 유지됩니다. 당겨서 새로고침은 그대로 작동합니다.
+No time limit	시간 제한 없음
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	위 스위치가 켜져 있으면 얼마나 오래 떠나 있어도 보던 위치가 유지됩니다. 당겨서 새로고침하거나 새로 시작하면 새 게시물을 불러옵니다.
+Where you left off in your feed	피드에서 마지막으로 보던 위치
+Open links in your browser	링크를 브라우저에서 열기
+Links you tap open in your browser or the site's app, skipping Threads' link tracking. Threads and Instagram pages still open in Threads.	탭한 링크가 Threads의 링크 추적을 건너뛰고 브라우저나 해당 사이트의 앱에서 열립니다. Threads와 Instagram 페이지는 계속 Threads에서 열립니다.
+Tap to play videos	탭해서 동영상 재생
+Videos in your feed wait for a tap instead of playing as you scroll.	피드의 동영상이 스크롤할 때 자동으로 재생되지 않고 탭할 때까지 기다립니다.
+Videos in your feed	피드의 동영상
+
+# context: overview disclosure for default patches omitted from this build (Hushfacebook 814acd23)
+Tap to see which.	탭해서 확인하세요.
+%1$d default patch isn't in this build	기본 패치 %1$d개가 이 빌드에 없음
+%1$d default patches aren't in this build	기본 패치 %1$d개가 이 빌드에 없음
+Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	이 빌드에 없음: %1$s. Morphe Manager에서 기본으로 선택되는 패치입니다. 이 기능을 쓰려면 이 패치를 선택하고 다시 패치하세요.
+Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	이 빌드에 없음: %1$s. Morphe Manager에서 기본으로 선택되는 패치입니다. 이 기능을 쓰려면 이 패치들을 선택하고 다시 패치하세요.
+Appearance	모양
+Pure black dark mode	완전한 검은색 다크 모드
+Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. Restart Threads to see the change.	다크 모드에서 어두운 회색 대신 완전한 검은색을 사용합니다. 보려면 Threads에서 다크 모드를 켜세요. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Hide the Instagram button	Instagram 버튼 숨기기
+Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	내 프로필과 다른 사람의 프로필 상단에서 Instagram 버튼을 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Hide ghost post bubbles	고스트 게시물 말풍선 숨기기
+Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	프로필과 피드 상단 줄의 프로필 사진에서 고스트 게시물 말풍선을 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Turn features on or off	기능 켜기 또는 끄기
+# Fotos und Videos speichern
+%1$d saved in lower quality than on Threads.	%1$d개가 Threads보다 낮은 화질로 저장되었습니다.
+%1$d saves stopped. Reopen the post and save again.	저장 %1$d개가 중단되었습니다. 게시물을 다시 열고 다시 저장하세요.
+%1$d saves were interrupted	저장 작업 %1$d개가 중단되었습니다
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s는 저장한 날짜와 시간, %2$s는 Threads에서 동영상의 번호, %3$s는 게시한 사람, %4$s는 게시된 날짜가 됩니다. 저장할 때 알 수 없는 정보는 빠지며, 이 중 아무것도 없는 이름에는 날짜가 붙습니다. 같은 이름이 이미 폴더에 있으면 저장한 시간이 끝에 붙습니다. 사용할 수 없는 문자는 밑줄로 바뀝니다. 비워 두면 기본값인 %5$s를 사용합니다.
+%1$s of %2$s	%2$s 중 %1$s
+%1$s so far	현재까지 %1$s
+A save stopped. Reopen the post and save again.	저장이 중단되었습니다. 게시물을 다시 열고 다시 저장하세요.
+A save was interrupted	저장 작업이 중단되었습니다
+Adds Save to a post's menu. A post with several photos or videos saves them all. Off or paused, you get Threads' normal menu.	게시물 메뉴에 저장을 추가합니다. 사진이나 동영상이 여러 개인 게시물은 모두 저장됩니다. 꺼져 있거나 일시 정지 중이면 Threads의 기본 메뉴가 표시됩니다.
+Best	최상
+Cancel saving this carousel	이 캐러셀 저장 취소
+Cancel saving this photo	이 사진 저장 취소
+Cancel saving this video	이 동영상 저장 취소
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	캐러셀 취소됨. 저장 %1$d개. 실패 %2$d개. 건너뜀 %3$d개.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Movies와 Pictures 아래에 쓸 폴더 이름을 정하세요. 사용할 수 없는 문자는 밑줄로 바뀝니다. 비워 두면 기본 폴더인 %1$s를 사용합니다.
+Copying to the gallery	갤러리에 복사하는 중
+Download failed. Try again in a moment.	다운로드하지 못했습니다. 잠시 후 다시 시도하세요.
+Download quality	다운로드 화질
+Downloading	다운로드하는 중
+Downloads	다운로드
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	각 동영상은 %1$s 또는 그보다 낮은 화질 중 가장 가까운 화질로 저장됩니다. 그만큼 낮은 화질이 없는 동영상은 그보다 높은 화질 중 가장 가까운 화질로 저장됩니다.
+Each video saves at its lowest quality, for the smallest file.	각 동영상은 파일이 가장 작도록 가장 낮은 화질로 저장됩니다.
+Each video saves at the best quality the player streams.	각 동영상은 플레이어가 스트리밍하는 가장 높은 화질로 저장됩니다.
+Example without post details	게시물 정보가 없는 예시
+File name	파일 이름
+File name set to %1$s.	파일 이름을 %1$s(으)로 설정했습니다.
+Folder name	폴더 이름
+Folder set to %1$s.	폴더를 %1$s(으)로 설정했습니다.
+Helps if WhatsApp, an editor like CapCut or InShot, or a gallery plays your saved video without sound. May lower quality.	WhatsApp, CapCut이나 InShot 같은 편집기 또는 갤러리에서 저장한 동영상이 소리 없이 재생될 때 도움이 됩니다. 화질이 낮아질 수 있습니다.
+How far a photo or video you're saving has got, with a button to cancel it	저장 중인 사진 또는 동영상의 진행 상황을 보여주며, 취소할 수 있는 버튼을 표시합니다
+HushThreads saves	HushThreads 저장 작업
+Joining the picture and sound	영상과 소리를 합치는 중
+Last carousel save	마지막 캐러셀 저장
+Link expired. Reopen the post and try again	링크가 만료되었습니다. 게시물을 다시 열고 다시 시도하세요
+Not saved: a carousel can have at most %1$d pages	저장되지 않음: 캐러셀은 최대 %1$d페이지까지 가능합니다
+Not saved: that isn't a Threads photo or video	저장되지 않음: Threads 사진이나 동영상이 아닙니다
+Not saved: the file is over 512 MB	저장되지 않음: 파일 크기가 512MB를 초과함
+Page %1$d of %2$d	%2$d 페이지 중 %1$d 페이지
+Photos and videos you save from posts	게시물에서 저장하는 사진과 동영상
+Reopen the post and save again.	게시물을 다시 열고 다시 저장하세요.
+Save	저장
+Save all	모두 저장
+Save cancelled	저장 취소됨
+Save folder	저장 폴더
+Save photo	사진 저장
+Save photos and videos	사진 및 동영상 저장
+Save video	동영상 저장
+Save videos other apps can open	다른 앱에서 열 수 있도록 동영상 저장
+Saved %1$d. Failed %2$d. Skipped %3$d.	저장 %1$d개. 실패 %2$d개. 건너뜀 %3$d개.
+Saved to %1$s	%1$s에 저장됨
+Saved to %1$s in lower quality than on Threads	Threads보다 낮은 화질로 %1$s에 저장됨
+Saved to the gallery	갤러리에 저장됨
+Saved to the gallery in lower quality than on Threads	Threads보다 낮은 화질로 갤러리에 저장됨
+Saving a carousel	캐러셀을 저장하는 중
+Saving a photo	사진을 저장하는 중
+Saving a video	동영상을 저장하는 중
+Saving...	저장하는 중...
+Saving... To cancel, open Downloads in HushThreads settings.	저장 중... 취소하려면 HushThreads 설정에서 다운로드를 여세요.
+Smallest	최소
+Video file name	동영상 파일 이름
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	동영상 이름은 %1$s입니다. 사진 이름은 항상 %2$s 뒤에 날짜와 시간이 붙습니다.
+Videos go to %1$s and photos to %2$s.	동영상은 %1$s에, 사진은 %2$s에 저장됩니다.
+Version code raised	버전 코드 높임
+The version number is set as high as Android allows, so Google Play won't offer Meta's updates over this build. Threads still sees its real version. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	버전 번호가 Android가 허용하는 최댓값으로 설정되어 Google Play가 이 빌드 위에 Meta의 업데이트를 제안하지 않습니다. Threads에는 실제 버전이 그대로 보입니다. 기본 Threads로 돌아가려면 먼저 이 앱을 제거해야 하며, 이 경우 이 휴대전화의 Threads 데이터가 삭제됩니다. 이후 HushThreads 빌드에도 Change version code가 필요하며, 없으면 이 빌드 위에 설치되지 않습니다.
+the raised version code	높인 버전 코드
+Share sheet entry removed	공유 시트 항목 제거됨
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	다른 앱에서 공유할 때 Threads가 표시되지 않습니다. Threads에서 다른 앱으로 공유하는 기능은 그대로 작동합니다.
+the removed share sheet entry	제거된 공유 시트 항목
+User certificates trusted	사용자 인증서 신뢰됨
+Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads가 휴대전화에 추가한 보안 인증서를 허용합니다. Meta 인증서에 대한 자체 검사는 그대로이므로 프록시는 여전히 대부분의 트래픽을 읽을 수 없습니다.
+the user certificate trust	사용자 인증서 신뢰
+Hide screenshots from Threads	Threads에 스크린샷 숨기기
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	스크린샷을 찍어도 Threads에 알려지지 않으므로 기록하거나 반응할 수 없습니다.
+Full size photos	원본 크기 사진
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	화면에 맞춘 크기가 아니라 Threads가 가진 가장 큰 크기로 사진을 불러옵니다. 더 선명하지만 데이터를 더 많이 사용합니다.
+No swipe into Search	검색으로 스와이프하지 않기
+A sideways swipe on your feed no longer slides into Search. The Search button still opens it. Restart Threads to see the change.	피드에서 옆으로 스와이프해도 더 이상 검색으로 넘어가지 않습니다. 검색 버튼으로는 계속 열 수 있습니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+# context: title of the last row on the settings home page; a tap opens the maintainer's Ko-fi page in a browser
+Support HushThreads	HushThreads 후원하기
+# context: reports use the app's own Downloads folder on Android 9, where the shared Downloads collection isn't available
+Copy a quick report or save the full one in Threads' own Downloads folder. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	간단한 보고서를 복사하거나 전체 보고서를 Threads 자체 다운로드 폴더에 저장합니다. 링크, ID, 쿠키, 로그인 토큰은 제외됩니다. 공유하기 전에 다른 개인적인 내용이 없는지 확인하세요.
+Save the full report in Threads' own Downloads folder.	전체 보고서를 Threads 자체 다운로드 폴더에 저장합니다.
+# context: diagnostic clear row's title when its next tap restores what was cleared
+Restore diagnostic data	진단 데이터 복원
+# context: disabled backup row. The placeholder names the file action that is running on the other row
+%1$s. This action will be available when it finishes.	%1$s. 끝나면 이 작업을 사용할 수 있습니다.
+
+# context: TalkBack action for a long press on the Threads logo in the feed header
+Open HushThreads settings	HushThreads 설정 열기
+
+# context: the restart row's title while one change waits for a restart; a tap restarts Threads
+Restart Threads to apply this change	이 변경 사항을 적용하려면 Threads 다시 시작
+# context: the same row with several changes waiting; %1$d is how many
+Restart Threads to apply %1$d changes	변경 사항 %1$d개를 적용하려면 Threads 다시 시작
+# context: the restart row's summary; the settings screen comes back on the page it was on
+Threads closes and reopens on this page.	Threads가 닫혔다가 이 페이지에서 다시 열립니다.
+# Copy text on long press (#9): its heading, the heading's line on the main page, the switch and its summary. Copy text is the name of Threads' own menu item for copying a post, so use the name Threads shows in this language.
+Posts	게시물
+Copy text when you hold a post	게시물을 길게 눌러 텍스트 복사
+Copy text on long press	길게 눌러 텍스트 복사
+Holding a post's text opens Copy text, on an opened post too, so you get the whole post with its links instead of picking out words.	게시물의 텍스트를 길게 누르면 열린 게시물에서도 텍스트 복사가 열리므로 단어를 골라내는 대신 링크를 포함한 게시물 전체를 복사할 수 있습니다.
+# Show exact post times: the Posts heading's line on the main page when the patch is in the build, the switch and its summary. 3h and 2d stand for the short "how long ago" Threads shows on a post; say it the way this language's Threads does, or describe it.
+Copy text and exact post times	텍스트 복사와 정확한 게시 시간
+Show the date and time	날짜와 시간 표시
+Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's 12 or 24-hour format.	게시물과 답글에 3시간이나 2일 대신 게시된 날짜와 시간이 휴대전화의 12시간 또는 24시간 형식으로 표시됩니다.
+# Quick setups: the main page row and its summary, the three choices, the toast after one applies (%1$d is how many switches changed). Quiet, Privacy and Back to defaults are names of a set of switches.
+Quick setups	빠른 설정
+Quiet	조용히
+Hides ads and the cards that suggest accounts to follow.	광고와 팔로우할 계정을 추천하는 카드를 숨깁니다.
+Stops most usage reports and takes tracking off the links you share. Threads isn't told about your screenshots either.	대부분의 사용 보고서를 막고 공유하는 링크에서 추적을 제거합니다. 스크린샷도 Threads에 알려지지 않습니다.
+Back to defaults	기본값으로 되돌리기
+Puts every feature switch back the way it started.	모든 기능 스위치를 처음 상태로 되돌립니다.
+Changed %1$d setting	설정 %1$d개 변경됨
+Changed %1$d settings	설정 %1$d개 변경됨
+# Report a problem: the main page row and its summary. A tap opens a new GitHub bug report in the browser.
+Report a problem	문제 신고하기
+Opens a GitHub report with your versions and settings filled in. Add what happened.	버전과 설정이 미리 채워진 GitHub 신고를 엽니다. 무슨 일이 있었는지 적어 주세요.
+# The Links page's line beside a Meta-signed Instagram (#8): Instagram's own launcher won't hand a post or profile to a patched Threads, and the error is Instagram's.
+Instagram won't open posts here	Instagram에서 게시물이 여기서 열리지 않음
+Your Instagram is signed by Meta, and it only opens Threads posts and profiles in a Threads signed by Meta. Tapping one in Instagram shows an error saying it couldn't load the website. Posts you open in Threads itself work as usual.	사용 중인 Instagram은 Meta가 서명했으며 Threads 게시물과 프로필을 Meta가 서명한 Threads에서만 엽니다. Instagram에서 탭하면 웹사이트를 불러올 수 없다는 오류가 표시됩니다. Threads에서 직접 연 게시물은 평소처럼 작동합니다.
+Turn on a set of switches in one tap, or put every switch back the way it started. Press and hold to hide this row.	탭 한 번으로 스위치 묶음을 켜거나 모든 스위치를 처음 상태로 되돌립니다. 이 줄을 숨기려면 길게 누르세요.
+Quick setups on the home page	홈 페이지의 빠른 설정
+Hidden. Tap to show it again.	숨겨짐. 다시 표시하려면 탭하세요.
+Shown. Tap to hide it.	표시됨. 숨기려면 탭하세요.
+Quick setups hidden. Bring it back from Pause, backup and diagnostics.	빠른 설정을 숨겼습니다. 일시 정지, 백업 및 진단에서 다시 표시할 수 있습니다.
+# Android 9 only, a save without Threads' Storage permission: the toast, then the same advice as the line under a carousel's counts. Storage and Permissions are the names Android's app info screen shows in this language.
+Not saved: Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	저장되지 않음: Android 9에서 저장하려면 Threads에 저장공간 권한이 필요합니다. Threads 앱 정보의 권한에서 켠 다음 다시 저장하세요.
+Threads needs the Storage permission to save on Android 9. Turn it on in Threads' app info under Permissions, then save again.	Android 9에서 저장하려면 Threads에 저장공간 권한이 필요합니다. Threads 앱 정보의 권한에서 켠 다음 다시 저장하세요.
+# A save whose download took longer than its time limit (ten minutes for one file): the toast. The connection is the phone's internet connection. Android 12 and later cut a toast after two lines, so it stays short.
+Not saved: the download was too slow. Try a faster connection.	저장되지 않음: 다운로드가 너무 느립니다. 더 빠른 연결로 시도하세요.
+Hide follow suggestions in Search	검색에서 팔로우 추천 숨기기
+Takes the Follow suggestions row off the Search screen. Your searches and topics stay.	검색 화면에서 팔로우 추천 줄을 제거합니다. 검색 기록과 주제는 그대로 남습니다.
+# A save stopped because a proxy server on the phone's network (Wi-Fi or global proxy setting) asked for a user name and password: the toast. HushThreads never sends one for a download. Android 12 and later cut a toast after two lines, so it stays short.
+Not saved: the proxy wants a password. Try another network.	저장되지 않음: 프록시 비밀번호 필요. 다른 네트워크를 쓰세요.
+# The same, as an extra line under a carousel's 'Saved %1$d. Failed %2$d. Skipped %3$d.' summary. Android 12 and later cut a toast after two lines, so it stays short.
+The proxy wants a password. Try another network.	프록시가 비밀번호를 요구합니다. 다른 네트워크를 사용해 보세요.
+# The switch on the Pause, backup and diagnostics page that adds or takes away the HushThreads settings shortcut in the menu a long press on Threads' launcher icon shows.
+Settings shortcut on the app icon	앱 아이콘의 설정 바로가기
+Puts HushThreads settings in the menu you get by holding Threads' icon. Off, it leaves that menu.	Threads 아이콘을 길게 누르면 나오는 메뉴에 HushThreads 설정을 넣습니다. 끄면 그 메뉴에서 빠집니다.
+# The switches on the same page for the HushThreads row in Threads' own settings and for the long press on the Threads logo, then what a switch says while it's the last way in that's on, which can't be turned off
+Settings row in Threads' settings	Threads 설정의 행
+Adds a HushThreads row just above More settings in Threads' settings. Off, the row is gone the next time you open Threads' settings.	Threads 설정의 추가 설정 바로 위에 HushThreads 행을 추가합니다. 끄면 다음에 Threads 설정을 열 때 행이 사라집니다.
+Open settings from the logo	로고에서 설정 열기
+A long press on the Threads logo at the top of the feed opens these settings. Off, the long press does nothing.	피드 상단의 Threads 로고를 길게 누르면 이 설정이 열립니다. 끄면 길게 눌러도 아무 일도 일어나지 않습니다.
+Stays on, since it's the only way left into these settings.	이 설정에 들어올 수 있는 마지막 방법이므로 켜진 상태로 유지됩니다.
+# context: the toggle under search that shows every section's rows on one page
+Show all settings as a list	모든 설정을 목록으로 보기
+# context: the same toggle while the list view shows, back to one button per section
+Show settings by category	카테고리별로 설정 보기
+# context: what a screen reader says about a section button that is folded open
+Expanded	펼쳐짐
+# context: what a screen reader says about a section button that is folded shut
+Collapsed	접힘
+# context: the last section button: Report a problem, Restart Threads and the Ko-fi link
+Support	지원
+# context: the line under the Support section button
+Reports, restart and app information	보고서, 다시 시작 및 앱 정보
+# context: small heading over Report a problem and Restart Threads in Support
+Help and restart	도움말 및 다시 시작
+# context: small heading over the Ko-fi link in Support
+Support the project	프로젝트 후원
+# context: a row in Support that closes Threads and reopens it on the settings page
+Restart Threads	Threads 다시 시작
+Version %1$s	버전 %1$s
+Build %1$s (modified)	빌드 %1$s (수정됨)
+Build %1$s (source known)	빌드 %1$s (출처 확인됨)
+Build %1$s (source unknown)	빌드 %1$s (출처 알 수 없음)
+# The Comments page: the section title, Filter comments' switch and summary, and the words and domains row with its dialog text and the Hide comments row.
+Comments	댓글
+Spam replies by words or links	단어나 링크로 거르는 스팸 답글
+Filter comments	댓글 필터
+Replies matching the patterns below are left out of a post's replies, so a spam reply never shows. A reply and the replies shown under it are checked and left out as one. Normal replies keep their order.	아래 패턴과 일치하는 답글은 게시물의 답글에서 빠지므로 스팸 답글이 보이지 않습니다. 답글과 그 아래에 보이는 답글은 함께 확인되고 함께 빠집니다. 일반 답글은 순서가 그대로 유지됩니다.
+Blocked words and domains	차단할 단어와 도메인
+One pattern a line, or separated by commas. A shop's domain such as shopee.vn takes out the replies linking to it.	한 줄에 패턴 하나씩, 또는 쉼표로 구분해 입력합니다. shopee.vn 같은 쇼핑몰 도메인을 넣으면 그곳으로 연결되는 답글이 빠집니다.
+One pattern a line, or separated by commas. Matched whatever the letter case.	한 줄에 패턴 하나씩, 또는 쉼표로 구분해 입력합니다. 대소문자는 구분하지 않습니다.
+Hide comments with links	링크가 있는 댓글 숨기기
+Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	웹 링크가 들어 있는 답글은 패턴과 관계없이 빠집니다. shopee.vn처럼 사이트 이름만 있는 주소는 패턴으로 추가하세요.

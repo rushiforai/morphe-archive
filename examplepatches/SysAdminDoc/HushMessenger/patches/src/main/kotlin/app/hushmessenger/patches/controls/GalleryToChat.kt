@@ -77,7 +77,7 @@ internal class GalleryChatSite(val at: Int, val intent: Int, val media: Int, val
  *     sget-object vU, <Unit>
  *     return-object vU
  *
- * The run of code into it, with no branch out and none landing inside, reads the intent's type and casts the chat to
+ * The copy may also be the MediaResource constructor inlined ([copiedMedia]). The run of code into it, with no branch out and none landing inside, reads the intent's type and casts the chat to
  * one of [chats], and neither register changes after. The hook at the builder uses all four registers, so each is a
  * local a plain invoke reaches, and no try covers it. A branch that lands on the builder itself skips the hook, which is
  * the coroutine's way round the copy when the result has no item.
@@ -86,11 +86,7 @@ internal fun Method.galleryChatSite(chats: Set<String>): GalleryChatSite? {
     val code = implementation?.instructions?.toList() ?: return null
     val at = code.indices.filter { code[it].opcode == Opcode.NEW_INSTANCE && code[it].galleryType() == EDITOR_BUILDER }.singleOrNull()
         ?: return null
-    if (at < 2 || code[at - 1].opcode != Opcode.MOVE_RESULT_OBJECT) return null
-    val copied = code[at - 2].galleryMethod() ?: return null
-    if (code[at - 2].opcode != Opcode.INVOKE_STATIC && code[at - 2].opcode != Opcode.INVOKE_STATIC_RANGE) return null
-    if (copied.parameterTypes.size != 1 || copied.returnType != AUTO_REPLY_MEDIA) return null
-    val media = (code[at - 1] as OneRegisterInstruction).registerA
+    val media = copiedMedia(code, at) ?: return null
     val params = (code[at] as OneRegisterInstruction).registerA
     // On from the builder, straight to the editor and the return after it.
     var open = at + 1
@@ -126,6 +122,33 @@ internal fun Method.galleryChatSite(chats: Set<String>): GalleryChatSite? {
     val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
     if (implementation!!.tryBlocks.any { addresses[at] - it.startCodeAddress in 0 until it.codeUnitCount }) return null
     return GalleryChatSite(at, intent, media, chat, code[cast].galleryType()!!, params, unit.toString())
+}
+
+/**
+ * The register holding the item's MediaResource copy right before the builder at [at]: a static copy with one parameter
+ * and its move-result (586 arm64), or the copy's constructor inlined (586 armv7):
+ *
+ *     new-instance vX, MediaResource
+ *     invoke-direct {vX, vY}, MediaResource-><init>(?)V
+ *     move-object vMedia, vX
+ */
+private fun copiedMedia(code: List<Instruction>, at: Int): Int? {
+    if (at < 2) return null
+    val copy = code[at - 2]
+    if (code[at - 1].opcode == Opcode.MOVE_RESULT_OBJECT) {
+        val copied = copy.galleryMethod() ?: return null
+        if (copy.opcode != Opcode.INVOKE_STATIC && copy.opcode != Opcode.INVOKE_STATIC_RANGE) return null
+        if (copied.parameterTypes.size != 1 || copied.returnType != AUTO_REPLY_MEDIA) return null
+        return (code[at - 1] as OneRegisterInstruction).registerA
+    }
+    if (at < 3 || code[at - 1].opcode != Opcode.MOVE_OBJECT || code[at - 3].opcode != Opcode.NEW_INSTANCE ||
+        code[at - 3].galleryType() != AUTO_REPLY_MEDIA || copy.opcode != Opcode.INVOKE_DIRECT) return null
+    val made = copy as? FiveRegisterInstruction ?: return null
+    val init = copy.galleryMethod() ?: return null
+    if (made.registerCount != 2 || init.name != "<init>" || init.definingClass != AUTO_REPLY_MEDIA || init.parameterTypes.size != 1) return null
+    val moved = code[at - 1] as TwoRegisterInstruction
+    val built = (code[at - 3] as OneRegisterInstruction).registerA
+    return moved.registerA.takeIf { made.registerC == built && moved.registerB == built }
 }
 
 /**

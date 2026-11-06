@@ -905,6 +905,18 @@ try {
         'feature-font-choice-wrong-row' = $false
         'feature-review-missing' = $false
         'feature-review-jump-to-injected-return' = $false
+        'feature-sdk-startup-good' = $true
+        'feature-sdk-startup-ads-only' = $true
+        'feature-sdk-startup-missing' = $false
+        'feature-sdk-startup-wrong-return' = $false
+        'feature-sdk-startup-not-first' = $false
+        'feature-sdk-startup-provider-not-first' = $false
+        'feature-sdk-startup-context-inverted' = $false
+        'feature-sdk-startup-context-register' = $false
+        'feature-sdk-startup-fallback-null' = $false
+        'feature-sdk-startup-wrong-fallback' = $false
+        'feature-sdk-startup-false-capability' = $false
+        'feature-sdk-startup-liveramp-missing' = $false
         'feature-activity-good' = $true
         'feature-activity-missing-hook' = $false
         'feature-activity-wrong-list' = $false
@@ -942,6 +954,7 @@ try {
             elseif ($name.StartsWith('feature-mature-')) { 'mature-clean' }
             elseif ($name.StartsWith('feature-root-mute-')) { 'root-mute-clean' }
             elseif ($name.StartsWith('feature-mutual-')) { 'mutual-clean' }
+            elseif ($name.StartsWith('feature-sdk-startup-')) { 'sdk-startup-clean' }
             else { 'feature-clean' }
         $result = Invoke-DexDiff -Clean (Get-FeatureApk $cleanName) -Patched (Get-FeatureApk $name) `
             -Allowlist $emptyAllowlist -Name $name -Contracts $featureContracts -Selected (Join-Path $dexDir "$name.selected")
@@ -1006,6 +1019,16 @@ try {
             'feature-font-choice-missing-row' { 'has 0 calls' }
             'feature-font-choice-wrong-row' { "doesn't go through the font hook" }
             'feature-review-jump-to-injected-return' { 'routes an original branch or handler into the middle of an injected block' }
+            'feature-sdk-startup-missing' { 'vungle(Landroid/content/ContentProvider;)Z has 0 calls' }
+            'feature-sdk-startup-wrong-return' { "isn't asked first thing" }
+            'feature-sdk-startup-not-first' { "with Tumblr's own code run on the context it hands back" }
+            'feature-sdk-startup-provider-not-first' { "isn't asked first thing" }
+            'feature-sdk-startup-context-inverted' { "with Tumblr's own code run on the context it hands back" }
+            'feature-sdk-startup-context-register' { "mobileAds(Landroid/content/Context;)Landroid/content/Context; isn't asked first thing" }
+            'feature-sdk-startup-fallback-null' { 'returned in its place on null' }
+            'feature-sdk-startup-wrong-fallback' { 'makeFallbackLoader()Lcom/facebook/ads/internal/dynamicloading/DynamicLoader; returned in its place on null' }
+            'feature-sdk-startup-false-capability' { 'adSdkStartup flag is false, clean target requires true' }
+            'feature-sdk-startup-liveramp-missing' { 'liveRamp(Landroid/content/ContentProvider;)Z has 0 calls' }
             'feature-activity-missing-hook' { 'has 0 calls' }
             'feature-activity-wrong-list' { "doesn't take what its rule hands it" }
             'feature-activity-push-hook' { 'changed on the excluded push-notification path' }

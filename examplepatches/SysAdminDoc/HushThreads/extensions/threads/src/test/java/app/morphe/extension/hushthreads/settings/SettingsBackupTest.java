@@ -116,7 +116,7 @@ public class SettingsBackupTest {
                 BaseSettings.CAPTURE_JAVA_CRASHES, BaseSettings.MORPHE_LANGUAGE, BaseSettings.SHOW_MENU_ICONS,
                 BaseSettings.FIRST_TIME_APP_LAUNCHED, BaseSettings.EXPERIMENTAL_APP_CONFIRMED,
                 BaseSettings.CHECK_ENVIRONMENT_WARNINGS_ISSUED, BaseSettings.HIDE_QUICK_SETUPS,
-                BaseSettings.SETTINGS_SHORTCUT);
+                BaseSettings.SETTINGS_SHORTCUT, BaseSettings.SETTINGS_ROW, BaseSettings.SETTINGS_LOGO_PRESS);
     }
 
     private static final String EXPORT_ROW = "action_export_settings";
@@ -188,7 +188,8 @@ public class SettingsBackupTest {
                 Settings.RETURN_REFRESH_NO_LIMIT, Settings.DISABLE_VIDEO_AUTOPLAY, Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SWIPE_TO_SEARCH,
                 Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY,
                 Settings.DISABLE_ANALYTICS, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK,
-                Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.SAVE_MEDIA, Settings.DOWNLOAD_COMPATIBLE,
+                Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.EXACT_POST_TIMES,
+                Settings.FILTER_COMMENTS, Settings.HIDE_COMMENT_LINKS, Settings.SAVE_MEDIA, Settings.DOWNLOAD_COMPATIBLE,
                 Settings.COPY_TEXT),
                 SettingsBackup.ALLOWLIST);
     }

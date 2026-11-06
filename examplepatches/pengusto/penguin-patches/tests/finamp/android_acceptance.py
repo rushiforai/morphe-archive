@@ -1022,7 +1022,7 @@ def make_parser():
     for command in ("verify", "launch", "restart", "back", "hide-ime", "self-check"):
         sub.add_parser(command)
     fixture_parser = sub.add_parser("start-fixture")
-    fixture_parser.add_argument("--profile", choices=("credits", "navigation", "player"), default="credits")
+    fixture_parser.add_argument("--profile", choices=("credits", "navigation", "player", "notes"), default="credits")
     inspect = sub.add_parser("inspect")
     inspect.add_argument("--limit", type=int, choices=range(1, 51), default=12)
     inspect.add_argument("--contains", default="")

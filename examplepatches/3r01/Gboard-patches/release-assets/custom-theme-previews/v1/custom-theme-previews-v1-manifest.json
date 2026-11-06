@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "bundleVersion": "v1",
+  "asset": "custom-theme-previews-v1.zip",
+  "sha256": "368af5064b2e8ed62800417efd6fa015d12c74a94553002823eade85d8213ee9",
+  "compressedBytes": 7957397,
+  "previewCount": 483,
+  "totalUncompressedBytes": 8954262,
+  "source": "https://github.com/GboardThemes/PackRepoBeta",
+  "sourceCommit": "4a8187dbe6b530c012e5996089c6a6246f42c65b",
+  "attribution": "Rboard PackRepoBeta theme previews, redistributed with permission."
+}

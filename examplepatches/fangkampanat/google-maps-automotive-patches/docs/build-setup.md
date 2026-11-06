@@ -20,7 +20,7 @@ If authentication fails, check that the token is valid and can read the required
 
 ## Problem report server (optional)
 
-Maps Car's "Report a problem" sends reports to a server that is set when the bundle is built. Without it the app shows the reports screen without a send button. To set it, add both to your user-level Gradle properties:
+The app's "Report a problem" sends reports to a server that is set when the bundle is built. Without it the app shows the reports screen without a send button. To set it, add both to your user-level Gradle properties:
 
 ```properties
 mapsCarReportUrl=https://reports.example.com
@@ -33,7 +33,7 @@ The key file's first line is the app key, 32 or more URL-safe base64 characters.
 
 Requires JDK 21 and the Android SDK.
 
-1. Set the same version in `gradle.properties` and `patches-bundle.json`. `created_at` is the release time in UTC without an offset or `Z` (for example `2026-10-29T10:00:00`); Morphe Manager cannot read other formats. The build checks both.
+1. Set the same version in `gradle.properties` and `patches-bundle.json`. `created_at` is the release time in UTC without an offset or `Z` (for example `2026-10-29T10:00:00`); Morphe Manager cannot read other formats. The build checks both. `projectUrl` in `gradle.properties` is the repository that the bundle's links and the app's report screen point to; a fork sets its own.
 2. Build the bundle and regenerate `patches-list.json`:
 
    ```powershell

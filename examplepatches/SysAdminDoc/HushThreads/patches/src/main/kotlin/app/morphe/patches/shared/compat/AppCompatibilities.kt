@@ -3,7 +3,12 @@
  * modified for HushThreads (Threads), 2026.
  *
  * Forked from:
- * https://gitlab.com/ReVanced/revanced-patches/-/blob/main/patches/src/main/kotlin/app/revanced/patches/shared/compat/AppCompatibilities.kt
+ * https://github.com/RookieEnough/De-Vanced/blob/9ac979883a6b6eeab5cefb4fc5d955073f2f2bc2/patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt
+ * (GPL-3.0), by way of
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe/blob/ebf6296845cb889608cdc6681348ccb2e550f2bc/patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt
+ * and Hushfeed. The tiktok-patches-for-morphe and Hushfacebook c15d4f79 copies, and Hushfeed's
+ * until 7e3f278bd, cite a ReVanced path that never held this file; De-Vanced's cites none.
+ * `AppTarget` and `ApkFileType` are Morphe's own API.
  *
  * Modified for Hushfacebook (Facebook), 2026. The Facebook target followed
  * https://github.com/andrewliang25/morphe-patches/blob/5db2e57e133aede5297c48b419168cf30fd89953/patches/src/main/kotlin/app/andrewliang/patches/shared/Constants.kt
@@ -58,9 +63,11 @@ internal object AppCompatibilities {
 
     /**
      * Every version code APKMirror shipped for [THREADS_TARGET_VERSION] when it was read
-     * (2026-11-02, its release day): three arm64-v8a density variants, one armeabi-v7a, one x86_64
-     * and one x86. The bundle names the version without pinning a code, so any genuine build of
-     * this version patches, including a variant APKMirror adds later.
+     * (2026-11-02, its release day, plus the two added 2026-11-03): three arm64-v8a density
+     * variants, two armeabi-v7a, one x86_64 and two x86. The bundle names the version without
+     * pinning a code, so any genuine build of this version patches, including a variant APKMirror
+     * adds later. 512408645 and 512408647 carry the same code as 635 and 622, with only the
+     * version-code literal in classes.dex changed.
      */
     internal val THREADS_TARGET_VERSION_CODES = setOf(
         512408621, // arm64-v8a, 160dpi
@@ -68,6 +75,8 @@ internal object AppCompatibilities {
         512408625, // arm64-v8a, 240dpi
         512408635, // armeabi-v7a, 480dpi, Android 8.0+
         512408636, // arm64-v8a, 480dpi
+        512408645, // armeabi-v7a, 320-480dpi, Android 8.0+
+        512408647, // x86, 213-480dpi, Android 8.0+
         512408648, // x86_64, 480dpi
     )
 

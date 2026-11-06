@@ -7,7 +7,11 @@
 package semicoloncolonel.mobilestream.patches.tubi.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import semicoloncolonel.mobilestream.patches.shared.misc.disableAutoUpdatesPatch
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants
 
@@ -55,19 +59,33 @@ val skipAdsPatch = bytecodePatch(
         // Hook 6 — Rainmaker ad-break fetch. Same approach as the TV patch:
         // return an immediate error result instead of suspending, so the
         // coroutine completes and the caller takes its existing error branch.
-        // The callers test only `instance-of p9d$d` (success); anything else
-        // is treated as "no ad breaks". p9d$c(Throwable) is the generic error
-        // subtype of the NetworkResponse wrapper in 10.43.1. R8 renames the
-        // wrapper per release (10.42.0: u9d, TV 10.40: Bn/d), so re-pin it on
-        // bumps.
-        PhoneGetAdBreaksFingerprint.method.addInstructions(
+        // The callers test only the wrapper's success subtype; anything else
+        // is treated as "no ad breaks". The error result is the wrapper's
+        // generic error subtype, the one built from a Throwable. R8 renames the
+        // wrapper in every release (10.42.0: u9d, 10.43.1: p9d, 10.44.1: l8d),
+        // so it is found here rather than named: the fetch method itself tests
+        // its result with instance-of against the wrapper's subtypes, and only
+        // the generic error subtype has a (Throwable) constructor.
+        val getAdBreaks = PhoneGetAdBreaksFingerprint.method
+        val errorResult = getAdBreaks.implementation!!.instructions
+            .filter { it.opcode == Opcode.INSTANCE_OF }
+            .map { ((it as ReferenceInstruction).reference as TypeReference).type }
+            .distinct()
+            .firstOrNull { type ->
+                classDefByOrNull(type)?.methods?.any { method ->
+                    method.name == "<init>" &&
+                        method.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Throwable;")
+                } == true
+            } ?: throw PatchException("Ad-break error result type not found")
+
+        getAdBreaks.addInstructions(
             0,
             """
                 new-instance v0, Ljava/io/IOException;
                 const-string v1, "ads_blocked"
                 invoke-direct {v0, v1}, Ljava/io/IOException;-><init>(Ljava/lang/String;)V
-                new-instance v1, Lp9d${"$"}c;
-                invoke-direct {v1, v0}, Lp9d${"$"}c;-><init>(Ljava/lang/Throwable;)V
+                new-instance v1, $errorResult
+                invoke-direct {v1, v0}, $errorResult-><init>(Ljava/lang/Throwable;)V
                 return-object v1
             """
         )

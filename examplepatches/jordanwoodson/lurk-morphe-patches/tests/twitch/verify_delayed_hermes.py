@@ -2,7 +2,6 @@
 """Independent HBC98 append verifier; no APK or third-party disassembler implementation required."""
 import hashlib
 import json
-import re
 from pathlib import Path
 import struct
 import sys
@@ -18,12 +17,8 @@ def header(data, position):
     assert full + 37 <= len(data) - 20 and body + size <= len(data) - 20
     return full, body, size, frame, data[full + 36]
 
-# The supported version's stock bundle, as pinned in the patch sources (bin/hermes-pin rewrites it there).
-HERMES_KT = Path(__file__).resolve().parents[2] / 'patches/src/main/kotlin/io/github/jordanwoodson/patches/twitch/shared/Hermes.kt'
-SOURCE_SHA256 = re.search(r'SOURCE_SHA256 = "([0-9a-f]{64})"', HERMES_KT.read_text()).group(1)
-
 def verify(stock, patched, manifest):
-    assert hashlib.sha256(stock).hexdigest() == SOURCE_SHA256
+    assert hashlib.sha256(stock).hexdigest() == '059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583'
     assert hashlib.sha256(patched).hexdigest() == manifest['embeddedSha256']
     assert u32(patched, 8) == 98 and u32(patched, 32) == len(patched)
     assert hashlib.sha1(patched[:-20]).digest() == patched[-20:]

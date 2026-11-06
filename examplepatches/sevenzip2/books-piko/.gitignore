@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+**/build/
+!src/**/build/
+.kotlin/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Patch outputs and Google's APKs. Do not commit APKs to a public repository.
+*.mpp
+*.mpe
+*.apks
+*.apkm
+*.xapk
+patched/

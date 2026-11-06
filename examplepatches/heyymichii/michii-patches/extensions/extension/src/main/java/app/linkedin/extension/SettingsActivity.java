@@ -15,6 +15,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.text.Editable;
@@ -151,8 +152,13 @@ public final class SettingsActivity extends Activity {
             categories.add(ads);
         }
 
-        if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()) {
+        if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
+                || Settings.isCopyPostTextIncluded()) {
             Category feed = new Category("Feed", IconDrawable.FEED);
+            if (Settings.isCopyPostTextIncluded()) {
+                feed.toggle(Settings.COPY_POST_TEXT, true, "Copy post text",
+                        "Long press a post's text to copy all of it.");
+            }
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Disable double-tap like",
                         "Double tapping a post or photo no longer likes it.");
@@ -180,7 +186,8 @@ public final class SettingsActivity extends Activity {
             categories.add(feed);
         }
 
-        if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()) {
+        if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()
+                || Settings.isBottomBarStyleIncluded() || Settings.isIconOnlyActionsIncluded()) {
             Category appearance = new Category("Appearance", IconDrawable.PALETTE);
             if (Settings.isRemoveGapsAndDividersIncluded()) {
                 appearance.toggle(Settings.REMOVE_GAPS_AND_DIVIDERS, true, "Remove gaps and dividers",
@@ -190,9 +197,46 @@ public final class SettingsActivity extends Activity {
                 appearance.toggle(Settings.MATERIAL_YOU, true, "Material You",
                         "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to "
                                 + "apply. Older screens keep the colors chosen when patching.");
+                appearance.value("Accent color", new ValueRow() {
+                    public String currentValue() {
+                        return accentName(Settings.accentColor());
+                    }
+
+                    public Runnable onClick() {
+                        return SettingsActivity.this::chooseAccent;
+                    }
+
+                    public boolean enabled() {
+                        return true;
+                    }
+                });
                 appearance.toggle(Settings.AMOLED_BLACK, false, "AMOLED black",
                         "Pure black backgrounds and cards in dark mode, to save battery on AMOLED screens. Restart "
                                 + "LinkedIn to apply.");
+            }
+            if (Settings.isBottomBarStyleIncluded()) {
+                appearance.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels",
+                        "Shows only the icons in the bottom bar. Restart LinkedIn to apply.");
+                appearance.value("Hidden tabs", new ValueRow() {
+                    public String currentValue() {
+                        return hiddenTabsSummary();
+                    }
+
+                    public Runnable onClick() {
+                        return SettingsActivity.this::chooseHiddenTabs;
+                    }
+
+                    public boolean enabled() {
+                        return true;
+                    }
+                });
+                appearance.toggle(Settings.HIDE_NAV_BADGES, false, "Hide notification badges",
+                        "No counts or dots on the bottom bar tabs. Restart LinkedIn to apply.");
+            }
+            if (Settings.isIconOnlyActionsIncluded()) {
+                appearance.toggle(Settings.ICON_ONLY_ACTIONS, false, "Icon-only post actions",
+                        "Like, Comment, Repost and Send under posts without their labels. Restart LinkedIn to "
+                                + "apply.");
             }
             categories.add(appearance);
         }
@@ -745,6 +789,9 @@ public final class SettingsActivity extends Activity {
                 {"Block tracking", Settings.isBlockTrackingIncluded()},
                 {"Remove gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
                 {"Material You", Settings.isMaterialYouIncluded()},
+                {"Bottom bar style", Settings.isBottomBarStyleIncluded()},
+                {"Icon-only post actions", Settings.isIconOnlyActionsIncluded()},
+                {"Copy post text", Settings.isCopyPostTextIncluded()},
                 {"GmsCore support", Settings.isGmsCoreSupportIncluded()},
         };
     }
@@ -1034,6 +1081,114 @@ public final class SettingsActivity extends Activity {
                 })
                 .setNegativeButton(I18n.tr("Cancel"), null)
                 .show();
+    }
+
+    /** The name of the accent [rgb] (-1 for the wallpaper's), as the accent dialog lists it. */
+    private static String accentName(int rgb) {
+        if (rgb < 0) {
+            return I18n.tr(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? "Wallpaper" : "LinkedIn blue");
+        }
+        for (int i = 0; i < AccentPalette.PRESET_COLORS.length; i++) {
+            if (AccentPalette.PRESET_COLORS[i] == rgb) return I18n.tr(AccentPalette.PRESET_NAMES[i]);
+        }
+        return AccentPalette.format(rgb);
+    }
+
+    private void chooseAccent() {
+        int presets = AccentPalette.PRESET_COLORS.length;
+        String[] names = new String[presets + 2];
+        names[0] = accentName(-1);
+        for (int i = 0; i < presets; i++) names[i + 1] = I18n.tr(AccentPalette.PRESET_NAMES[i]);
+        names[presets + 1] = I18n.tr("Custom…");
+
+        int current = Settings.accentColor();
+        int checked = current < 0 ? 0 : presets + 1;
+        for (int i = 0; i < presets; i++) if (AccentPalette.PRESET_COLORS[i] == current) checked = i + 1;
+
+        new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Accent color"))
+                .setSingleChoiceItems(names, checked, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (which == 0) setAccent("");
+                    else if (which <= presets) setAccent(AccentPalette.format(AccentPalette.PRESET_COLORS[which - 1]));
+                    else editAccent();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show();
+    }
+
+    private void editAccent() {
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        int current = Settings.accentColor();
+        input.setText(current < 0 ? "" : AccentPalette.format(current));
+        input.setHint("#0A66C2");
+        input.setSelection(input.getText().length());
+
+        TextView help = text("A color as #RRGGBB. Light and dark shades are made from it.", 13, textSecondary,
+                false);
+        help.setPadding(0, dp(8), 0, 0);
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input);
+        box.addView(help);
+
+        new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Accent color"))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    int rgb = AccentPalette.parse(input.getText().toString());
+                    if (rgb >= 0) setAccent(AccentPalette.format(rgb));
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show();
+    }
+
+    private String hiddenTabsSummary() {
+        java.util.Set<String> hidden = Settings.hiddenTabs();
+        StringBuilder names = new StringBuilder();
+        for (int i = 0; i < BottomBarStyle.HIDEABLE_TABS.length; i++) {
+            if (!hidden.contains(BottomBarStyle.HIDEABLE_TABS[i])) continue;
+            if (names.length() > 0) names.append(", ");
+            names.append(I18n.tr(BottomBarStyle.HIDEABLE_TAB_NAMES[i]));
+        }
+        return names.length() == 0 ? I18n.tr("None") : names.toString();
+    }
+
+    private void chooseHiddenTabs() {
+        String[] tabs = BottomBarStyle.HIDEABLE_TABS;
+        String[] names = new String[tabs.length];
+        boolean[] checked = new boolean[tabs.length];
+        java.util.Set<String> hidden = Settings.hiddenTabs();
+        for (int i = 0; i < tabs.length; i++) {
+            names[i] = I18n.tr(BottomBarStyle.HIDEABLE_TAB_NAMES[i]);
+            checked[i] = hidden.contains(tabs[i]);
+        }
+        new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Hidden tabs"))
+                .setMultiChoiceItems(names, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    StringBuilder value = new StringBuilder();
+                    for (int i = 0; i < tabs.length; i++) {
+                        if (!checked[i]) continue;
+                        if (value.length() > 0) value.append(',');
+                        value.append(tabs[i]);
+                    }
+                    Settings.setString(Settings.HIDDEN_TABS, value.toString());
+                    refresh();
+                    showRestartBanner();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show();
+    }
+
+    private void setAccent(String value) {
+        Settings.setString(Settings.ACCENT_COLOR, value);
+        refresh();
+        showRestartBanner();
     }
 
     private void editFolder() {

@@ -291,15 +291,8 @@ function Assert-BuiltBundle {
     # checksum, a stamp pinned to the commit (a tree with changes stamps 0) and the classes.dex
     # Morphe Manager loads.
     param([string]$Bundle, [string]$Commit)
-    $folder = Split-Path -Parent $Bundle
-    foreach ($path in $Bundle, (Join-Path $folder $sbomName)) {
-        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "No $(Split-Path -Leaf $path) in $folder after :patches:buildAndroid." }
-    }
-    $recorded = Join-Path $folder 'bundle.sha256'
-    if ((Test-Path -LiteralPath $recorded -PathType Leaf) -and
-            [IO.File]::ReadAllText($recorded).Trim().ToLowerInvariant() -ne (Get-Sha256 $Bundle)) {
-        throw "bundle.sha256 doesn't match $bundleName, so the bundle changed after the build wrote it."
-    }
+    # bundle.sha256 and morphe-signing.pub's signature, read off the copy that's tagged and published.
+    Invoke-ReleaseText -Arguments @('signed', '--version', $Version, '--bundle', $Bundle)
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [IO.Compression.ZipFile]::OpenRead($Bundle)
     try {
@@ -337,8 +330,7 @@ function Assert-AssetSums {
 # The hook imports these from the user's registry the same way: a shell opened before they were
 # set doesn't have them. What this run sets or imports is put back at the end, so the shell isn't
 # left at release priority or holding a token it didn't have.
-$touched = @('HUSHTHREADS_FIXTURE_DIR', 'HUSHTHREADS_BUILD_WRAPPER', 'HUSHTHREADS_DESKTOP_JAR', 'HUSHTHREADS_WORKDIR',
-    'HUSHTHREADS_PYTHON', 'BUILD_QUEUE_SCRIPT', 'BUILD_QUEUE_PRIORITY', 'GITHUB_ACTOR', 'GITHUB_TOKEN')
+$touched = @('HUSHTHREADS_FIXTURE_DIR', 'HUSHTHREADS_BUILD_WRAPPER', 'HUSHTHREADS_DESKTOP_JAR', 'HUSHTHREADS_WORKDIR', 'HUSHTHREADS_PYTHON', 'HUSHTHREADS_BUNDLE_SIGNING_KEY', 'BUILD_QUEUE_SCRIPT', 'BUILD_QUEUE_PRIORITY', 'GITHUB_ACTOR', 'GITHUB_TOKEN')
 $before = @{}
 foreach ($name in $touched) { $before[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
 try {
@@ -477,28 +469,29 @@ try {
                     'patch list is stale. Nothing was built or tagged.')
             }
 
-            Step 'bundle'
+            Step "bundle, copied to $assets as it's checked, so a later build in the checkout can't swap it"
             Invoke-Gradle @(':patches:buildAndroid')
-            $bundle = Join-Path $releaseFolder $bundleName
-            Assert-BuiltBundle -Bundle $bundle -Commit $head
-
+            if (Test-Path -LiteralPath $assets) { Remove-Item -LiteralPath $assets -Recurse -Force }
+            New-Item -ItemType Directory -Force -Path $assets | Out-Null
+            Copy-Item -LiteralPath (Join-Path $releaseFolder $bundleName), (Join-Path $releaseFolder $sbomName) -Destination $assets
+            Assert-BuiltBundle -Bundle (Join-Path $assets $bundleName) -Commit $head
+            # The fixture runs and the receipt read that copy too, so the receipt describes the bundle that's tagged.
             $applied = Join-Path $root 'patches/build/fixture-apply'
-            $work = Join-Path ([IO.Path]::GetTempPath()) ("hushthreads-release-$Version-" + [guid]::NewGuid().ToString('N'))
-            New-Item -ItemType Directory -Force -Path $work | Out-Null
+            $work = (New-Item -ItemType Directory -Force -Path (Join-Path ([IO.Path]::GetTempPath()) ("hushthreads-release-$Version-" + [guid]::NewGuid().ToString('N')))).FullName
             try {
                 foreach ($fixturePath in $fixtures) {
                     $fixtureName = Split-Path -Leaf $fixturePath
                     Step "patching $fixtureName once, kept for the receipt"
                     Invoke-HeavyJob -Label "release verify $fixtureName" -ScriptBlock {
-                        & (Join-Path $root 'scripts/verify-all-patches.ps1') -Apk $fixturePath -DesktopJar $desktopJar `
-                            -WorkDir (Join-Path $work 'verify') -KeepIn (Join-Path $applied $fixtureName)
+                        & (Join-Path $root 'scripts/verify-all-patches.ps1') -Apk $fixturePath -Bundle (Join-Path $assets $bundleName) `
+                            -DesktopJar $desktopJar -WorkDir (Join-Path $work 'verify') -KeepIn (Join-Path $applied $fixtureName)
                     }
                     if ($LASTEXITCODE -ne 0) { throw "verify-all-patches.ps1 did not pass on $fixtureName (exit $LASTEXITCODE)." }
                 }
                 Step 'release receipt, read from the kept runs'
                 Invoke-HeavyJob -Label 'release receipt' -ScriptBlock {
-                    & (Join-Path $root 'scripts/build-release-receipt.ps1') -Fixture $fixtures -WorkDir (Join-Path $work 'receipt') `
-                        -AppliedDir $applied -DesktopJar $desktopJar
+                    & (Join-Path $root 'scripts/build-release-receipt.ps1') -Fixture $fixtures -Bundle (Join-Path $assets $bundleName) `
+                        -WorkDir (Join-Path $work 'receipt') -AppliedDir $applied -DesktopJar $desktopJar
                 }
                 if ($LASTEXITCODE -ne 0) { throw "build-release-receipt.ps1 did not pass (exit $LASTEXITCODE)." }
             } finally {
@@ -509,10 +502,7 @@ try {
             $receiptCommit = [string](Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json).release.commit
             if ($receiptCommit -ne $head) { throw "$receiptName names $receiptCommit, not $head." }
 
-            Step "assets in $assets"
-            if (Test-Path -LiteralPath $assets) { Remove-Item -LiteralPath $assets -Recurse -Force }
-            New-Item -ItemType Directory -Force -Path $assets | Out-Null
-            Copy-Item -LiteralPath $bundle, (Join-Path $releaseFolder $sbomName), $receiptPath -Destination $assets
+            Copy-Item -LiteralPath $receiptPath -Destination $assets
             $sums = foreach ($name in $bundleName, $sbomName, $receiptName) { '{0}  {1}' -f (Get-Sha256 (Join-Path $assets $name)), $name }
             [IO.File]::WriteAllText((Join-Path $assets 'SHA256SUMS.txt'), (($sums -join "`n") + "`n"), (New-Object Text.UTF8Encoding($false)))
             $sums | ForEach-Object { Step $_ }
@@ -604,8 +594,9 @@ try {
             $head = Get-GitLine @('rev-parse', 'HEAD') 'HEAD'
             $originMain = Get-RemoteRef 'refs/heads/main'
 
-            # The index push is checked against the bundle, receipt and test results built here.
-            $bundle = Join-Path $root "patches/build/release/$bundleName"
+            # The index push is checked against the bundle -Stage build tagged (its copy in $assets, never
+            # patches/build/release, which a later build can replace), its receipt and the test results.
+            $bundle = Join-Path $assets $bundleName
             $receiptPath = Join-Path $root $receiptName
             foreach ($path in $bundle, $receiptPath) {
                 if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
@@ -614,10 +605,6 @@ try {
             }
             if ([string](Get-Content -LiteralPath $receiptPath -Raw | ConvertFrom-Json).release.commit -ne $tagCommit) {
                 throw "$receiptName isn't the receipt of $tag ($tagCommit)."
-            }
-            if ((Test-Path -LiteralPath (Join-Path $assets $bundleName) -PathType Leaf) -and
-                    (Get-Sha256 $bundle) -ne (Get-Sha256 (Join-Path $assets $bundleName))) {
-                throw "patches/build/release/$bundleName isn't the bundle $tag published."
             }
 
             $committed = @(Invoke-Git @('show', 'HEAD:patches-bundle.json'))

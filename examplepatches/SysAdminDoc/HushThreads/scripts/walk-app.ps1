@@ -6,22 +6,24 @@
     release/release.ps1's publish stage refuses a bundle without a receipt that a whole-app walk
     of that exact bundle left (walk-receipt.ps1). This runs the walk. It patches Threads from the
     repo's release bundle with Manager's default selection (the catalog's off-by-default patches,
-    Change version code among them, stay out) and installs it with patch-for-device.ps1, opens each Threads screen in
-    walk-app-core.ps1's list by its link, then goes the user's way into Threads' own settings and
-    through its HushThreads row to every HushThreads settings page, reads the crash and system logs for a Threads crash or ANR since the walk began, and
-    writes walk-receipt.json with New-WalkReceipt. The receipt names the SHA-256 of the .mpp the
-    walked APK was patched with, which is what publish holds it to.
+    Change version code among them, stay out) and installs it with patch-for-device.ps1, opens
+    each Threads screen in walk-app-core.ps1's list by its link, then goes the user's way into
+    Threads' own settings and through its HushThreads row to the HushThreads settings. There it
+    shows the list view and goes back, then opens every section in place and folds it again. It
+    reads the crash and system logs for a Threads crash or ANR since the walk began and writes
+    walk-receipt.json with New-WalkReceipt. The receipt names the SHA-256 of the .mpp the walked
+    APK was patched with, which is what publish holds it to.
 
     The result the walk writes:
-      PASS      every settings page and screen opened, Threads stayed up, no crash.
-      PARTIAL   a page or screen was skipped or never found, so it wasn't the whole app.
+      PASS      every settings section and screen opened, Threads stayed up, no crash.
+      PARTIAL   a section or screen was skipped or never found, so it wasn't the whole app.
       FAIL      a Threads crash or ANR, a screen that wouldn't open, or Threads leaving the front.
     Only a PASS backs a release.
 
     Screens open by link. The only taps are the Profile tab, the own profile's Settings button,
-    the HushThreads row in Threads' settings and the HushThreads settings page rows, each on its
-    own screen (walk-app-core.ps1's Test-WalkTapAllowed), so it can't follow, like, post or
-    message anyone. It needs the device lease HushThreads' device scripts check
+    the HushThreads row in Threads' settings, the HushThreads settings section headers and the
+    view toggle under their search, each on its own screen (walk-app-core.ps1's
+    Test-WalkTapAllowed), so it can't follow, like, post or message anyone. It needs the device lease HushThreads' device scripts check
     (HUSHTHREADS_DEVICE_LEASE_DIR, _TOKEN and _IDENTITY, see device-install.ps1), held for the
     whole walk. It never uninstalls or clears Threads, never turns off stay awake and never sends
     sleep or power. An install that can't update Threads in place stops the walk.
@@ -156,6 +158,18 @@ function Invoke-WalkApp {
         [void](Invoke-WalkAdb @('shell', 'input', 'keyevent', 'KEYCODE_BACK'))
         Start-Sleep -Milliseconds 1500
     }
+    # Taps the toggle under the settings search and waits for it to offer $Then, which it does
+    # once the other view shows.
+    function Invoke-WalkToggle($Toggle, [object[]]$OnScreen, [string]$Then) {
+        Invoke-WalkTap -Row $Toggle -OnScreen $OnScreen
+        Wait-WalkScreen -Seconds 10 -PauseMilliseconds 1000 -Read { Get-WalkDump } -Test { param($dump) (Find-WalkViewToggle -Nodes $dump).Text -ceq $Then }
+    }
+    # Taps a section's header and reads the page again once the section has opened or folded.
+    function Invoke-WalkHeader([string]$Name, [object[]]$OnScreen) {
+        Invoke-WalkTap -Row (Find-WalkSectionRow -Nodes $OnScreen -Section $Name) -OnScreen $OnScreen
+        Start-Sleep -Milliseconds 1500
+        @(Get-WalkDump)
+    }
 
     if (-not $SkipPatch) {
         if ($PatchReceipt) { throw '-PatchReceipt is for -SkipPatch; a fresh patch writes its own provenance.' }
@@ -259,51 +273,98 @@ function Invoke-WalkApp {
             Close-WalkKeyboard
             $openedBy = 'the settings intent'
         }
-        $nodes = (Wait-WalkScreen -Read { Get-WalkDump } -Test { param($dump) (Get-WalkSettingsPage -Nodes $dump -Sections $sections) -ceq 'home' }).Nodes
-        if ((Get-WalkSettingsPage -Nodes $nodes -Sections $sections) -ceq 'home') {
+        $nodes = (Wait-WalkScreen -Read { Get-WalkDump } -Test { param($dump) (Get-WalkSettingsPage -Nodes $dump) -ceq 'home' }).Nodes
+        if ((Get-WalkSettingsPage -Nodes $nodes) -ceq 'home') {
             $reached.Add('Settings: home')
             Write-WalkLog 'opened HushThreads settings'
-            $remaining =[Collections.Generic.List[string]]::new([string[]]$sections)
+            # The toggle under search puts every section's rows on one list and back. The
+            # sections get walked as headers, and the phone gets back the view it was on.
+            $toggle = Find-WalkViewToggle -Nodes $nodes
+            $startedInList = $toggle -and $toggle.Text -ceq $WalkCategoryToggle
+            if (-not $toggle) { $faults.Add('the settings main page had no toggle for the list view') }
+            if ($toggle -and -not $startedInList) { $nodes = @((Invoke-WalkToggle $toggle $nodes $WalkCategoryToggle).Nodes) }
+            $toggle = Find-WalkViewToggle -Nodes $nodes
+            if ($toggle -and $toggle.Text -ceq $WalkCategoryToggle) {
+                if ((Get-WalkSectionState -Nodes $nodes -Section $sections[0] -Sections $sections) -ceq 'open') {
+                    $reached.Add('Settings: list view')
+                    Write-WalkLog 'showed every setting in one list'
+                } else {
+                    $faults.Add("the list view didn't show $($sections[0]) with its settings under it")
+                }
+                $nodes = @((Invoke-WalkToggle $toggle $nodes $WalkListToggle).Nodes)
+            } elseif ($toggle) {
+                $faults.Add("the toggle didn't change to '$WalkCategoryToggle'")
+            }
+            $remaining = [Collections.Generic.List[string]]::new([string[]]$sections)
+            if ($toggle -and (Find-WalkViewToggle -Nodes $nodes).Text -cne $WalkListToggle) {
+                # Every row shows in the list view, so no section there can show whether its header opens it.
+                $faults.Add("the settings didn't go back to showing sections, with $($remaining -join ', ') still to open")
+                $remaining.Clear()
+            }
             $swipes = 0
             while ($remaining.Count -gt 0) {
-                if ((Get-WalkSettingsPage -Nodes $nodes -Sections $sections) -cne 'home') {
-                    $faults.Add("the settings home page wasn't showing with $($remaining -join ', ') still to open")
+                if ((Get-WalkSettingsPage -Nodes $nodes) -cne 'home') {
+                    $faults.Add("the settings main page wasn't showing with $($remaining -join ', ') still to open")
                     break
                 }
-                $row = $null; $name = $null
-                foreach ($candidate in $remaining) {
-                    $row = Find-WalkSectionRow -Nodes $nodes -Section $candidate
-                    if ($row) { $name = $candidate; break }
-                }
-                if (-not $row) {
+                $name = @($remaining | Where-Object { Find-WalkSectionRow -Nodes $nodes -Section $_ }) | Select-Object -First 1
+                if (-not $name) {
                     # The rest are further down the list. A swipe that changes nothing hit the end.
                     if ($swipes -ge 12) { break }
                     $before = Get-UiFingerprint -Nodes $nodes
-                    $x = [int]($width / 2)
-                    [void](Invoke-WalkAdb @('shell', 'input', 'swipe', "$x", "$([int]($height * 0.7))", "$x", "$([int]($height * 0.35))", '450'))
+                    & $swipeList
                     $swipes++
-                    Start-Sleep -Milliseconds 1200
                     $nodes = @(Get-WalkDump)
                     if ((Get-UiFingerprint -Nodes $nodes) -ceq $before) { break }
                     continue
                 }
                 [void]$remaining.Remove($name)
-                Invoke-WalkTap -Row $row -OnScreen $nodes
-                Start-Sleep -Seconds 2
-                $shown = Get-WalkSettingsPage -Nodes @(Get-WalkDump) -Sections $sections
-                if ($shown -ceq $name) {
-                    $reached.Add("Settings: $name")
-                    Write-WalkLog "opened the $name page"
-                } else {
-                    $faults.Add("the $name row opened $(if ($shown) { "'$shown'" } else { 'something else' })")
+                # A section left open folds first, so the tap that's checked is the one that opens it.
+                if ((Get-WalkSectionState -Nodes $nodes -Section $name -Sections $sections) -ceq 'open') {
+                    $nodes = @(Invoke-WalkHeader $name $nodes)
+                    if ((Get-WalkSectionState -Nodes $nodes -Section $name -Sections $sections) -cne 'closed') {
+                        $faults.Add("the $name section was open and its header didn't fold it")
+                        continue
+                    }
                 }
-                if (-not (Test-WalkAlive)) { $faults.Add("Threads died on the $name page"); break }
-                Invoke-WalkBack
-                Close-WalkKeyboard
-                $nodes = @(Get-WalkDump)
+                $nodes = @(Invoke-WalkHeader $name $nodes)
+                $shown = Get-WalkSectionState -Nodes $nodes -Section $name -Sections $sections
+                if ($shown -ceq 'open') {
+                    $reached.Add("Settings: $name")
+                    Write-WalkLog "opened the $name section"
+                } else {
+                    $faults.Add("the $name header $(if ($shown) { "left its section $shown" } else { 'went off the screen' })")
+                }
+                if (-not (Test-WalkAlive)) { $faults.Add("Threads died with the $name section open"); break }
+                if ($shown -ceq 'open') {
+                    $nodes = @(Invoke-WalkHeader $name $nodes)
+                    if ((Get-WalkSectionState -Nodes $nodes -Section $name -Sections $sections) -cne 'closed') {
+                        $faults.Add("the $name header didn't fold its section")
+                    }
+                }
+            }
+            if ($startedInList) {
+                # The toggle sits over the first header, at the top of the page.
+                for ($i = 0; $i -lt 12 -and -not (Find-WalkViewToggle -Nodes $nodes); $i++) {
+                    $before = Get-UiFingerprint -Nodes $nodes
+                    $x = [int]($width / 2)
+                    [void](Invoke-WalkAdb @('shell', 'input', 'swipe', "$x", "$([int]($height * 0.35))", "$x", "$([int]($height * 0.7))", '450'))
+                    Start-Sleep -Milliseconds 1200
+                    $nodes = @(Get-WalkDump)
+                    if ((Get-UiFingerprint -Nodes $nodes) -ceq $before) { break }
+                }
+                $toggle = Find-WalkViewToggle -Nodes $nodes
+                if ($toggle -and $toggle.Text -ceq $WalkListToggle) {
+                    $toggle = Find-WalkViewToggle -Nodes @((Invoke-WalkToggle $toggle $nodes $WalkCategoryToggle).Nodes)
+                }
+                if ($toggle -and $toggle.Text -ceq $WalkCategoryToggle) {
+                    Write-WalkLog 'put the list view back'
+                } else {
+                    Write-WalkLog "couldn't put the list view back"
+                }
             }
             # Back out of the settings screen to Threads.
-            for ($i = 0; $i -lt 3 -and (Get-WalkSettingsPage -Nodes @(Get-WalkDump) -Sections $sections); $i++) { Invoke-WalkBack }
+            for ($i = 0; $i -lt 3 -and (Get-WalkSettingsPage -Nodes @(Get-WalkDump)); $i++) { Invoke-WalkBack }
         } else {
             $faults.Add("HushThreads settings didn't open from $openedBy")
         }

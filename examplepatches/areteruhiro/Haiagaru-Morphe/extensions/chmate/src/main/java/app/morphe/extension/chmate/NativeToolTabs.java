@@ -219,6 +219,25 @@ public final class NativeToolTabs {
         }catch(NoSuchFieldException ignored){}
         throw new NoSuchFieldException(owner.getClass().getName()+"."+name);
     }
+    /** Snapshot both panes without selecting, creating or closing a page. */
+    static java.util.List<?> openPages(Activity activity)throws Exception{
+        if(!tablet(activity))throw new IllegalArgumentException("タブレット表示で使用してください");
+        String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+        java.util.ArrayList<Object> pages=new java.util.ArrayList<>();
+        if(version.contains("191")){
+            for(String key:new String[]{"k","I"})pages.addAll((java.util.List<?>)tabField(tabField(tabField(activity,key),"d"),"a"));
+        }else{
+            boolean middle=version.contains("226");
+            if(!middle&&!version.contains("242"))throw new IllegalArgumentException("未対応のChMateです");
+            Object panes=tabField(activity,middle?"r":"w");
+            for(int i=0;i<Array.getLength(panes);i++){
+                Object model=tabField(Array.get(panes,i),middle?"a":"e");
+                Object state=tabCall(tabField(model,middle?"d":"e"),middle?"c":"d",new Class<?>[0]);
+                pages.addAll((java.util.List<?>)tabField(state,middle?"b":"a"));
+            }
+        }
+        return pages;
+    }
     private static Object tabCall(Object owner,String name,Class<?>[] types,Object...args)throws ReflectiveOperationException{
         Method method=owner.getClass().getMethod(name,types);method.setAccessible(true);return method.invoke(owner,args);
     }

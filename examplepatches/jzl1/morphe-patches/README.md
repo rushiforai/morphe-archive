@@ -7,7 +7,7 @@ Patches for some apps I use myself.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.1](https://github.com/jzl1/morphe-patches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.2.0](https://github.com/jzl1/morphe-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
 <summary>📦 Network Signal Guru&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -26,19 +26,20 @@ Patches for some apps I use myself.
 </details>
 
 <details open>
-<summary>📦 analiti&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 analiti&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2026.10.98884 | 2026.10.98554 |
-| :---: | :---: |
+| 2026.10.99133 | 2026.10.98884 | 2026.10.98554 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Disable telemetry](#disable-telemetry) | Forces Firebase analytics and crash reporting off, ignoring the in-app privacy toggles and their defaults. |  |
 | [Hide sign-in banner](#hide-sign-in-banner) | Removes the orange "Sign in" prompt below the toolbar. The account screen stays reachable from the drawer. |  |
 | [Neutralize tamper fork bomb](#neutralize-tamper-fork-bomb) | Stops the native anti-tamper response that spawns unbounded threads and crashes the app a few seconds after launch on a repackaged build. |  |
+| [Skip update attestation](#skip-update-attestation) | Stops the app updater from sending the client key and Android Keystore attestation chain to analiti.com during its version check. Other backend calls are unaffected. |  |
 | [Unlock Expert](#unlock-expert) | Unlocks the Expert tier and disables the PairIP licence check. |  |
 
 </details>

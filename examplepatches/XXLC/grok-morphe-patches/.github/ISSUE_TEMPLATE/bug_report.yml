@@ -1,0 +1,24 @@
+name: Báo lỗi
+description: Báo lỗi của XXLC Grok Patches.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Kiểm tra [các báo lỗi hiện có](https://github.com/XXLC/grok-morphe-patches/issues?q=label%3A%22Bug+report%22) trước khi tạo báo lỗi mới.
+        Chỉ hỗ trợ Grok 1.2.53-release.00, versionCode 11253200, đầu vào APKM.
+  - type: textarea
+    attributes:
+      label: Mô tả và cách tái hiện lỗi
+      description: Ghi phiên bản Morphe Manager, bản bundle, patch đã chọn và các bước gây lỗi.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Nhật ký lỗi
+      description: Đính kèm nhật ký Morphe hoặc AndroidRuntime đã loại thông tin riêng tư.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Thông tin bổ sung

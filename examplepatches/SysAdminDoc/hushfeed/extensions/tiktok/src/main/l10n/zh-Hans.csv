@@ -631,6 +631,7 @@ Forgotten. Tap to put them back.,被遗忘了。点击将它们放回去.
 Found %1$s in your chats.,在你的聊天中发现%1$s.
 Frame saved to %1$s,帧保存到 %1$s
 Friends,朋友
+Discover,发现
 Friends tab name,好友选项卡名称
 "Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.",当你处于 TikTok 时，朋友现在不会看到绿点或“活动”。需要开启幽灵模式。他们的状态可能会停止为你更新，并且你的最后状态可能会持续存在.
 Full changelog,完整变更日志
@@ -801,6 +802,8 @@ Hide the playlist bar,隐藏播放列表栏
 Hide the playlist bar along the bottom of videos that belong to a series.,隐藏属于系列的视频底部的播放列表栏.
 Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.,隐藏右栏中创建者图片下方的加号按钮。勾选上面的头像和关注按钮即可隐藏其图片.
 "Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.",隐藏搜索框下方的积分横幅和浮动在搜索结果上方的硬币计数器，在某些地区会显示 TikTok。搜索工作与以前一样.
+Show only the search bar on Discover,发现页只显示搜索栏
+"On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.",在 TikTok 部分地区显示的“发现”标签页上，隐藏热门话题标签、横幅和搜索框下方的标签页。搜索框保留，用法不变.
 Hide the profile views button at the top of your profile. Your profile view history setting doesn't change.,隐藏个人资料顶部的个人资料视图按钮。你的个人资料查看历史记录设置不会更改.
 Hide the purple rewards button beside Add friends on your profile.,隐藏个人资料中“添加朋友”旁边的紫色奖励按钮.
 Hide the question cards TikTok sometimes puts in a comment list to ask what you think.,隐藏问题卡 TikTok 有时会放入评论列表来询问你的想法.
@@ -1279,6 +1282,8 @@ Press and hold a comment to find Block this commenter in its menu. Their comment
 Press and hold a profile picture to save the full size original to your photo destination.,按住个人资料图片可将全尺寸原件保存到你的照片目的地.
 "Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.",按住一个故事即可保存它。故事没有自己的保存按钮，按住一个按钮就是 TikTok 暂停它的方式，所以这会接管该手势.
 Press and hold the Home tab to open these settings. A tap on Home works as before.,按住“主页”选项卡可打开这些设置。点击“主页”即可像以前一样工作.
+Search instead of Home,用搜索替换主页
+"The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.",“主页”选项卡变成搜索按钮。它的图标和名称显示为“搜索”，点击会打开 TikTok 的搜索，而不是“为你推荐”。TikTok 启动时打开收件箱，收件箱被隐藏时打开个人资料，因此打开时不会播放推荐内容.
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.,按住屏幕的左侧或右侧三分之一可向后或向前跳。中间三分之一保持长按动作.
 Preview a translation from a received text message's menu. The original message stays unchanged.,从收到的短信菜单中预览翻译。原始消息保持不变.
 Preview a translation of your draft before sending it.,在发送之前预览草稿的翻译.
@@ -1702,6 +1707,14 @@ Speed menu choices,速度菜单选项
 "Speed up this video, double tap again to undo",加快该视频的速度，再次双击即可撤消
 Speed while you hold the video,按住视频时速度
 Slide to change the hold speed,滑动更改按住时的速度
+Hold speed bubble style,按住速度气泡样式
+Pill,胶囊
+Circle,圆形
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,胶囊是速度下方带一排圆点的宽气泡。圆形是一个小圆盘，边缘为每个速度标有刻度.
+Hold speed slide direction,按住速度滑动方向
+Sideways,左右
+Up and down,上下
+"With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.",选择左右时，向左或向右滑动来改变速度，向下拉来锁定。选择上下时，向上滑动加快，向下滑动减慢，向一侧滑动来锁定，这样在靠近边缘处按住也能调到每个速度.
 Spin the music disc,旋转音乐光盘
 Split comment minimum width,分割评论最小宽度
 Start each new video at your default. A manual choice lasts until the video changes.,以默认值开始每个新视频。手动选择将持续到视频发生变化为止.
@@ -1790,7 +1803,7 @@ Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tap
 Open the Story when a creator is LIVE,创作者在 LIVE 时打开故事
 "When a creator who's LIVE also has a Story, tapping their picture on their profile or on your chat with them in the Inbox opens the Story. Tap the picture again to join the LIVE.",如果正在 LIVE 的创作者也有故事，在其个人资料或收件箱的聊天中点按头像会打开故事。再次点按头像即可进入 LIVE.
 "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.",将故事圈从信息流、评论和个人资料中的个人资料照片中删除。点击图片会打开个人资料而不是故事.
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.,从视频面板中移除 TikTok 自己的自动滚动操作，并移除平板和展开的折叠屏上视频旁的自动滚动开关。关闭自动前进时也有效.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.,从视频面板中移除 TikTok 自己的自动滚动操作，并去掉视频顶部的自动滚动标签。平板和展开的折叠屏上视频旁的自动滚动开关也会移除。关闭自动前进时也有效.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,在 %1$d 秒内点击视频下方栏上的重新发布两次。带注释的转发将被保留.
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,在 %1$d 秒内点击评论的心两次。双击评论还需要第二次。立即删除点赞.
 Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.,在 %1$d 秒内点击故事的核心两次。立即删除点赞.
@@ -2258,6 +2271,8 @@ Most liked first,点赞最多的在前
 Least liked first,点赞最少的在前
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",对个人资料或喜欢网格排序，置顶视频仍排在最前。选择排序后，网格会自动继续加载，最多 300 个视频，让排序覆盖的不只是第一屏。网格顶部角落的按钮可直接更改排序.
 Sort loaded videos on Liked grids,对“喜欢”网格中已加载的视频排序
+Sort loaded videos on sound pages,对声音页中已加载的视频排序
+"Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.",以同样方式对声音页面上的视频排序，选定顺序时最多加载 300 个视频.
 Same as profile grids,与个人资料网格相同
 Sort this grid,排序此网格
 Blur the video behind the bar,模糊栏后面的视频
@@ -2432,3 +2447,51 @@ Hide streak pop-ups,隐藏连续互动弹窗
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,停止在 TikTok 上方滑入的连续互动提醒，以及它加入聊天的连续互动消息和提示.
 Long press on For You opens my watch history,长按“为你推荐”打开我的观看历史
 Instead of these settings. The list has a button that brings you back here.,代替这些设置。列表里有一个按钮可以带你回到这里.
+Long press on Profile opens my watch history,长按“个人主页”打开我的观看历史
+"Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.",代替 TikTok 的观看历史。点击“个人主页”仍像以前一样工作。如果按住“个人主页”会为你切换账号，此选项会接管该操作.
+Auto tap in LIVE rooms,LIVE 房间自动点击
+"Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.",在 LIVE 房间添加一个自动点击按钮。点击它即可以稳定的节奏点击直播画面，再次点击即可停止。当你离开或滑到其他房间、离开 TikTok 或锁屏时，它也会停止.
+Auto tap speed,自动点击速度
+2 taps a second,每秒 2 次
+4 taps a second,每秒 4 次
+6 taps a second,每秒 6 次
+8 taps a second,每秒 8 次
+Auto tap,自动点击
+Start tapping this LIVE,开始点击此 LIVE
+Stop tapping this LIVE,停止点击此 LIVE
+Auto tap stopped,自动点击已停止
+Clean up your account,清理你的账号
+Remove all reposts,移除所有转发
+Deletes all reposts from your account sequentially.,逐一删除你账号中的所有转发.
+Remove all likes,取消所有点赞
+Unlikes every video one after another.,逐个取消每个视频的点赞.
+Clear Favorites,清空收藏
+Removes every video from Favorites one after another.,逐个将视频移出收藏.
+Removing all reposts in %1$d,%1$d 秒后移除所有转发
+Removing all likes in %1$d,%1$d 秒后取消所有点赞
+Clearing Favorites in %1$d,%1$d 秒后清空收藏
+Reposts removed: %1$d,已移除转发：%1$d
+Likes removed: %1$d,已取消点赞：%1$d
+Favorites removed: %1$d,已移出收藏：%1$d
+Nothing to remove,没有可移除的内容
+Done. %1$d removed.,完成。已移除 %1$d 项.
+Stopped. %1$d removed.,已停止。已移除 %1$d 项.
+TikTok refused. %1$d removed.,TikTok 拒绝了请求。已移除 %1$d 项.
+Network error. %1$d removed.,网络错误。已移除 %1$d 项.
+Not available on this TikTok version,此 TikTok 版本不支持
+Sign in to TikTok first,请先登录 TikTok
+A removal is already running,已有移除任务在进行
+Cancelled,已取消
+Show inbox filters,显示收件箱筛选
+"Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.",在聊天列表上方添加“主要”“请求”“未读”和“星标”标签，也就是 TikTok 给创作者账号的那些.
+Rebuild message search,重建消息搜索
+"Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.",清空 TikTok 的消息搜索，并把这部手机上保存的每条消息重新加入，从最新的开始。离开搜索后仍会继续.
+Rebuilding message search,正在重建消息搜索
+Stopped. Search carries on later.,已停止。搜索稍后会继续.
+Couldn't stop it. Try again.,无法停止。再试一次.
+Couldn't rebuild search. Try again.,无法重建搜索。再试一次.
+Message search isn't on for this account,此账号未开启消息搜索
+Offer Audio only in LIVE quality,在 LIVE 画质中提供仅音频
+Audio only,仅音频
+"Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.",在 LIVE 的视频画质列表中加入仅音频。直播间只播放声音、不显示画面，流量少得多，直到你选择其他画质或离开。从直播流录制仍会保存视频.
+Pick a video quality to record the screen,请选择视频画质再录屏

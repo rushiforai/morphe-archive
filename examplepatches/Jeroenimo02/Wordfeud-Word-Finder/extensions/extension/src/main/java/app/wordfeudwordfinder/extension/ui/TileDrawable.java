@@ -1,5 +1,6 @@
 package app.wordfeudwordfinder.extension.ui;
 
+import app.wordfeudwordfinder.extension.core.Tiles;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -54,7 +55,8 @@ public final class TileDrawable extends Drawable {
      * @param badge score badge text for a NEW tile, or null for none
      */
     public void set(String letter, int points, State state, String badge) {
-        this.letter = letter == null ? "" : letter;
+        // A digraph tile (one internal char) shows as Wordfeud writes it: CH, LL, RR.
+        this.letter = letter == null ? "" : Tiles.spell(letter);
         this.points = points;
         this.state = state == null ? State.NORMAL : state;
         this.badge = badge;
@@ -89,7 +91,7 @@ public final class TileDrawable extends Drawable {
         int textColor = isNew ? theme.tileNewText : theme.tileText;
         letterPaint.setColor(textColor);
         letterPaint.setAlpha(a);
-        letterPaint.setTextSize(s * 0.58f);
+        letterPaint.setTextSize(s * (letter.length() > 1 ? 0.40f : 0.58f));
         float cx = b.left + w * (points > 0 ? 0.46f : 0.5f);
         float cy = b.top + h * 0.5f - (letterPaint.descent() + letterPaint.ascent()) / 2f;
         canvas.drawText(letter, cx, cy, letterPaint);

@@ -215,11 +215,21 @@ public final class SelectorDexFixture {
                         field(Opcode.SGET_OBJECT, 3, "Ljava/util/Collections;", "EMPTY_LIST", LIST))));
         put(classes, TAGS, List.of(method(TAGS, "draw", "V", false, 4, draw, STRING, LIST)));
         List<Instruction> tv = body(literal(1, ", "), constant(2, 0),
-                staticCall(FIXTURE + "Strings;", "split", LIST, new String[]{STRING, STRING, "Z"}, 4, 1, 2), moved(0, true), end());
+                staticCall(FIXTURE + "Strings;", "split", LIST, new String[]{STRING, STRING, "Z"}, 4, 1, 2), moved(0, true),
+                instanceField(Opcode.IGET_OBJECT, 1, 3, TV, "z", TEXT),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(TEXT, "setText", "V", "Ljava/lang/CharSequence;"), 1, 4),
+                invoke(Opcode.INVOKE_VIRTUAL, ref(OBJECT, "getClass", "Ljava/lang/Class;"), 1), end());
+        // The label's hook goes right after the line is written, before the tag hook shifts the body.
+        // It borrows v0, which nothing reads from there on; v1 is still read and v3 is the view.
+        int label = fault.equals("tags-more-parameter-scratch") ? 3 : fault.equals("tags-more-live-scratch") ? 1 : 0;
+        if (patched) tv.addAll(fault.equals("tags-early-more") ? 5 : 6, body(instanceField(Opcode.IGET_OBJECT, label,
+                        fault.equals("tags-more-wrong-view") ? 1 : 3, TV, fault.equals("tags-more-reads-line") ? "z" : "A", TEXT),
+                staticCall(owner, "tvMore", "V", new String[]{VIEW, "Ljava/lang/CharSequence;"}, label, fault.equals("tags-wrong-more") ? 1 : 4)));
         if (patched) tv.addAll(fault.equals("tags-late-tv") ? 4 : 2, body(staticCall(owner, "tvTags", STRING, new String[]{STRING},
                 fault.equals("tags-wrong-tv") ? 1 : 4), moved(4, true)));
-        put(classes, TV, List.of(method(TV, "bind", "V", false, 5, tv, STRING)));
-        if (patched) put(classes, owner, List.of(hook(owner, "hideTags", "Z", -1), hook(owner, "tvTags", STRING, 0, STRING)));
+        put(classes, TV, List.of(method(TV, "bind", "V", false, 5, tv, STRING)), member(TV, "z", TEXT), member(TV, "A", TEXT));
+        if (patched) put(classes, owner, List.of(hook(owner, "hideTags", "Z", -1), hook(owner, "tvTags", STRING, 0, STRING),
+                hook(owner, "tvMore", "V", -1, VIEW, "Ljava/lang/CharSequence;")));
     }
 
     private static void noteCounts(Map<String, ClassDef> classes, boolean patched, String fault) {
@@ -275,7 +285,25 @@ public final class SelectorDexFixture {
                 body(literal(0, fault.equals("notes-tab-not-blank") ? "12" : ""), returned(0, true))));
         put(classes, tabs, List.of(method(tabs, "make", fragment, false, 3, make, "I"),
                 method(tabs, "count", "Ljava/lang/CharSequence;", false, 3, count, "I")));
-        if (patched) put(classes, hooks, List.of(hook(hooks, "noteCount", "I", 0, "I"),
+        // A comment on a post's notes writes its reply and like counts, each through its View's (I)V,
+        // which also sets the button's spoken description from the count.
+        String chars = "Ljava/lang/CharSequence;";
+        for (Map.Entry<String, String> view : List.of(Map.entry("Lcom/tumblr/ui/widget/RepliesCountView;", "comments_count"),
+                Map.entry("Lcom/tumblr/ui/widget/ReplyLikeButtonView;", "like_count_show"))) {
+            boolean replies = view.getKey().endsWith("RepliesCountView;");
+            List<Instruction> render = body(field(Opcode.SGET, 0, PLURALS, view.getValue(), "I"),
+                    new ImmutableInstruction21t(Opcode.IF_LEZ, 2, 2), literal(0, "3"),
+                    invoke(Opcode.INVOKE_VIRTUAL, ref(VIEW, "setContentDescription", "V", chars), 1, 0), end());
+            if (patched && !replies) render.addAll(3, body(staticCall(hooks, "commentLikesDescription", chars, new String[]{chars}, 0),
+                    moved(fault.equals("notes-wrong-comment-likes") ? 2 : 0, true)));
+            if (patched) render.addAll(0, body(staticCall(hooks, "commentCount", "I", new String[]{"I"}, 2),
+                    moved(fault.equals("notes-wrong-comment-card") ? 0 : 2, false)));
+            if (patched && replies) render.add(2, staticCall(hooks, "commentRepliesDescription", "V", new String[]{VIEW},
+                    fault.equals("notes-wrong-comment-replies") ? 0 : 1));
+            put(classes, view.getKey(), VIEW, List.of(method(view.getKey(), "render", "V", false, 3, render, "I")));
+        }
+        if (patched) put(classes, hooks, List.of(hook(hooks, "noteCount", "I", 0, "I"), hook(hooks, "commentCount", "I", 0, "I"),
+                hook(hooks, "commentRepliesDescription", "V", -1, VIEW), hook(hooks, "commentLikesDescription", chars, 0, chars),
                 hook(hooks, "communityCommentsText", STRING, 0, STRING), hook(hooks, "textCount", STRING, 0, STRING),
                 hook(hooks, "notesTitle", STRING, 0, STRING), hook(hooks, "communityReactionsText", STRING, 0, STRING, "I"),
                 hook(hooks, "hideNotesTabCounts", "Z", -1)));
@@ -519,12 +547,21 @@ public final class SelectorDexFixture {
         fixture(root, "tags-not-empty", "hideTags()Z isn't asked first thing", "hideHashtags");
         fixture(root, "tags-late-tv", "tvTags(Ljava/lang/String;)Ljava/lang/String; is not where its rule puts it", "hideHashtags");
         fixture(root, "tags-wrong-tv", "tvTags(Ljava/lang/String;)Ljava/lang/String; doesn't take what its rule hands it", "hideHashtags");
+        fixture(root, "tags-early-more", "tvMore(Landroid/view/View;Ljava/lang/CharSequence;)V is not where its rule puts it", "hideHashtags");
+        fixture(root, "tags-wrong-more", "tvMore(Landroid/view/View;Ljava/lang/CharSequence;)V doesn't take what its rule hands it", "hideHashtags");
+        fixture(root, "tags-more-reads-line", "tvMore(Landroid/view/View;Ljava/lang/CharSequence;)V doesn't take what its rule hands it", "hideHashtags");
+        fixture(root, "tags-more-wrong-view", "tvMore(Landroid/view/View;Ljava/lang/CharSequence;)V doesn't take what its rule hands it", "hideHashtags");
+        fixture(root, "tags-more-parameter-scratch", "tvMore(Landroid/view/View;Ljava/lang/CharSequence;)V doesn't take what its rule hands it", "hideHashtags");
+        fixture(root, "tags-more-live-scratch", "tvMore(Landroid/view/View;Ljava/lang/CharSequence;)V doesn't take what its rule hands it", "hideHashtags");
         fixture(root, "notes-good", "", "hideNoteCounts");
         fixture(root, "notes-wrong-formatter", "noteCount(I)I doesn't take what its rule hands it", "hideNoteCounts");
         fixture(root, "notes-wrong-comment-count", "communityCommentsText(Ljava/lang/String;)Ljava/lang/String; doesn't take the community comment text, then its count", "hideNoteCounts");
         fixture(root, "notes-late-title", "notesTitle(Ljava/lang/String;)Ljava/lang/String; is not where its rule puts it", "hideNoteCounts");
         fixture(root, "notes-wrong-reactions", "communityReactionsText(Ljava/lang/String;I)Ljava/lang/String; doesn't take what its rule hands it", "hideNoteCounts");
         fixture(root, "notes-tab-not-blank", "hideNotesTabCounts()Z isn't asked first thing", "hideNoteCounts");
+        fixture(root, "notes-wrong-comment-card", "commentCount(I)I doesn't take what its rule hands it", "hideNoteCounts");
+        fixture(root, "notes-wrong-comment-replies", "commentRepliesDescription(Landroid/view/View;)V doesn't take what its rule hands it", "hideNoteCounts");
+        fixture(root, "notes-wrong-comment-likes", "commentLikesDescription(Ljava/lang/CharSequence;)Ljava/lang/CharSequence; doesn't take what its rule hands it", "hideNoteCounts");
         String[] tabs = {"hideExploreTab", "hideNotificationsTab", "reorderTabs"};
         fixture(root, "tabs-good", "", tabs);
         fixture(root, "tabs-late-freeze", "arrangeTabs(Ljava/util/List;)V is not where its rule puts it", tabs);

@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@v6.0.0
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -134,6 +134,42 @@ jobs:
 
       - name: Patch bundled npm dependency
         run: node .github/scripts/patch-bundled-undici.cjs
+
+      # A manual approval must not accidentally publish v1.11.0 if development
+      # commits contain minor-release types. Preview the exact next tag first.
+      - name: Confirm approved release target
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          expected=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*$/\1/p' gradle.properties)
+          test -n "$expected"
+          test -s ".github/release-notes/v$expected.md"
+          if git show-ref --verify --quiet "refs/tags/v$expected"; then
+            echo "Existing release tag must not be republished: v$expected" >&2
+            exit 1
+          fi
+          EXPECTED_RELEASE_VERSION="$expected" node --input-type=module <<'NODE'
+          import semanticRelease from 'semantic-release';
+          const expected = process.env.EXPECTED_RELEASE_VERSION;
+          const plan = await semanticRelease({ dryRun: true, ci: false });
+          const actual = plan && plan.nextRelease && plan.nextRelease.version;
+          if (actual !== expected) {
+            throw new Error('Release version mismatch: approved v' + expected + ', planned v' + String(actual));
+          }
+          console.log('Approved release version verified: v' + expected);
+          NODE
+
+      - name: Build and verify approved release payload
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ./gradlew :patches:buildAndroid --no-daemon
+          python3 porting/revisions/v1.10.2/verify-mpp.py 1.10.2
 
       # Use the verified project dependency tree, not an action that installs
       # its own separate (unpatched) semantic-release toolchain.

@@ -89,6 +89,10 @@ the test probes and how releases work. Read it first, then:
 - **App versions live in `shared/Constants.kt` only.** Code and messages that need the version
   read it from `COMPATIBILITY_<APP>.targets`. `bin/test-host` fails on a literal like `"31.7.0"`
   anywhere else under `patches/src`.
+- **Target only versions APKMirror lists as stable.** Manager's download button asks Morphe's
+  API for the target version, and the API finds versions through APKMirror: a Google Play release
+  APKMirror hasn't posted yet sends people to a beta with the same number or to a web search.
+  `bin/manager-link <app> <version>` shows where the link ends; wait until it passes.
 - **Describe honestly.** The patch description is what users read in Manager: say what it
   does and what it doesn't. "Blocks the requests for display ads; ads stitched into the
   stream by the server still play" beats "Blocks ads".

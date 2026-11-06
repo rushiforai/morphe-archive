@@ -17,6 +17,18 @@ object Constants {
         )
     )
 
+    val COMPATIBILITY_HUME = Compatibility(
+        name = "Hume",
+        packageName = "com.elink.fittrackhealth.pro",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x2EC4B6,
+        targets = listOf(
+            AppTarget(
+                version = "9.29.2"
+            )
+        )
+    )
+
     val COMPATIBILITY_WAKING_UP = Compatibility(
         name = "Waking Up",
         packageName = "org.wakingup.android",

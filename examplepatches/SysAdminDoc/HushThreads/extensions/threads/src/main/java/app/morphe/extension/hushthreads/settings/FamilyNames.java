@@ -32,12 +32,14 @@ public final class FamilyNames {
     public static final String PURE_BLACK = "Pure black dark mode";
     public static final String HIDE_INSTAGRAM_BUTTON = "Hide the Instagram button";
     public static final String HIDE_GHOST_POST_BUBBLES = "Hide ghost post bubbles";
+    public static final String EXACT_POST_TIMES = "Show exact post times";
     public static final String SAVE_MEDIA = "Save photos and videos";
     public static final String REMOVE_AD_ID = "Remove the advertising ID";
     public static final String RESTORE_TRUST = "Restore screens on re-signed builds";
     public static final String VERSION_CODE = "Change version code";
     public static final String REMOVE_SHARE_TARGETS = "Remove share targets";
     public static final String TRUST_USER_CERTIFICATES = "Trust user-added certificates";
+    public static final String FILTER_COMMENTS = "Filter comments";
 
     private FamilyNames() {
     }

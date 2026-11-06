@@ -421,6 +421,8 @@ Disable	Desactivar
 Stop analytics and tracking	Detener la analítica y el seguimiento
 Long-press Home for Hushfeed settings	Mantener pulsado Inicio para abrir los ajustes de Hushfeed
 Press and hold the Home tab to open these settings. A tap on Home works as before.	Mantén pulsada la pestaña Inicio para abrir estos ajustes. Tocar Inicio funciona como antes.
+Search instead of Home	Buscar en lugar de Inicio
+The Home tab becomes a search button. Its icon and name say Search, and a tap opens TikTok's search instead of For You. TikTok starts on Inbox, or on Profile when Inbox is hidden, so the feed doesn't play when you open it.	La pestaña Inicio se convierte en un botón de búsqueda. Su icono y su nombre dicen Buscar, y al tocarla se abre la búsqueda de TikTok en lugar de Para ti. TikTok se abre en Bandeja de entrada, o en Perfil si la Bandeja de entrada está oculta, así el feed no se reproduce al abrirlo.
 Keep For You on a Home tap	Mantener Para ti al tocar Inicio
 Keep For You on a pull down	Mantener Para ti al deslizar hacia abajo
 Keep long press from quick sharing	Que la pulsación larga no comparta rápido
@@ -516,6 +518,7 @@ Forget seen videos after	Olvidar los vídeos vistos después de
 Forget the %1$s seen videos.	Olvidar los %1$s vídeos vistos.
 Forget what has been counted today and end any hold. The budgets themselves are left alone.	Olvidar lo que se ha contado hoy y terminar cualquier pausa. Los presupuestos en sí se quedan como están.
 Friends	Amigos
+Discover	Descubrir
 Full comment sort options	Opciones completas de orden de los comentarios
 Full license	Licencia completa
 Full report saved to %1$s	Informe completo guardado en %1$s
@@ -1355,6 +1358,8 @@ Hide the Report button on videos	Ocultar el botón Denunciar en los videos
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	Oculta el botón con la bandera que TikTok pone encima de la foto del creador en algunas regiones. Puedes seguir denunciando un video desde el menú de compartir.
 Hide search rewards	Ocultar las recompensas de búsqueda
 Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.	Oculta el aviso de puntos debajo del cuadro de búsqueda y el contador de monedas que flota sobre los resultados, que TikTok muestra en algunas regiones. La búsqueda funciona como antes.
+Show only the search bar on Discover	Mostrar solo la barra de búsqueda en Descubrir
+On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.	En la pestaña Descubrir, que TikTok muestra en algunas regiones, oculta los hashtags en tendencia, los banners y las pestañas bajo el cuadro de búsqueda. El cuadro de búsqueda se queda y funciona como antes.
 %1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.	%1$s ocultó todo lo que TikTok envió, %2$d veces seguidas. Desactívalo si no era lo que querías.
 Show the switch	Mostrar el ajuste
 
@@ -1398,11 +1403,19 @@ The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder 
 Hide TikTok Shop in search	Ocultar TikTok Shop en la búsqueda
 Hide the Products block and product cards in search results.	Ocultar el bloque de Productos y las tarjetas de producto en los resultados de búsqueda.
 Hide TikTok's Auto scroll button	Ocultar el botón Auto scroll de TikTok
-Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll switch beside videos on tablets and unfolded foldables. Works with Auto-advance off too.	Quita la acción Auto scroll de TikTok del panel del vídeo y el interruptor Auto scroll junto al vídeo en tabletas y plegables abiertos. Funciona también con el avance automático desactivado.
+Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.	Quita la acción Auto scroll de TikTok del panel del vídeo y la etiqueta Auto scroll de la parte superior del vídeo. En tabletas y plegables abiertos también quita el interruptor Auto scroll junto al vídeo. Funciona también con el avance automático desactivado.
 Hide the unread badges on the bottom tabs	Ocultar las insignias de no leídos en las pestañas inferiores
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Oculta los contadores y puntos rojos de todas las pestañas inferiores, incluidas Bandeja de entrada y Perfil, y la burbuja sobre Bandeja de entrada que cuenta los nuevos me gusta, seguidores, comentarios y quién está en LIVE. La bandeja de entrada sigue mostrando lo que ha llegado.
 Speed while you hold the video	Velocidad mientras mantienes pulsado el vídeo
 Slide to change the hold speed	Desliza para cambiar la velocidad al mantener
+Hold speed bubble style	Estilo de la burbuja de velocidad al mantener
+Pill	Píldora
+Circle	Círculo
+Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	Píldora es la burbuja ancha con una fila de puntos bajo la velocidad. Círculo es un pequeño dial redondo con una marca por cada velocidad en el borde.
+Hold speed slide direction	Dirección del deslizamiento de velocidad al mantener
+Sideways	De lado
+Up and down	Arriba y abajo
+With Sideways, slide left or right to change the speed and pull down to lock it. With Up and down, slide up for faster and down for slower, and slide to the side to lock it, so a hold near the edge still reaches every speed.	Con De lado, desliza a la izquierda o a la derecha para cambiar la velocidad y tira hacia abajo para fijarla. Con Arriba y abajo, desliza hacia arriba para ir más rápido y hacia abajo para ir más lento, y desliza hacia un lado para fijarla, así que mantener cerca del borde también llega a todas las velocidades.
 Hide mini dramas	Ocultar minidramas
 Hide TikTok's short drama episodes and the cards that promote them.	Ocultar los episodios de dramas cortos de TikTok y las tarjetas que los promocionan.
 Mini dramas	Minidramas
@@ -2282,6 +2295,8 @@ Most liked first	Con más me gusta primero
 Least liked first	Con menos me gusta primero
 Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Ordena una cuadrícula de perfil o de Me gusta, con los vídeos fijados primero. Mientras haya un orden elegido, la cuadrícula sigue cargando sola hasta 300 vídeos, así el orden abarca más que la primera pantalla. Un botón en la esquina superior de la cuadrícula cambia el orden ahí mismo.
 Sort loaded videos on Liked grids	Ordenar los vídeos cargados en las cuadrículas de Me gusta
+Sort loaded videos on sound pages	Ordenar los vídeos cargados en las páginas de sonidos
+Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	Ordena del mismo modo los vídeos de la página de un sonido y carga hasta 300 mientras haya un orden elegido.
 Same as profile grids	Igual que las cuadrículas de perfil
 Sort this grid	Ordenar esta cuadrícula
 Blur the video behind the bar	Desenfocar el vídeo detrás de la barra
@@ -2453,3 +2468,59 @@ Hide typing	Ocultar que estás escribiendo
 People you chat with won't see that you're typing. Needs Ghost mode on.	Las personas con las que chateas no verán que estás escribiendo. Necesita el modo fantasma activado.
 Show all settings as a list	Mostrar todos los ajustes en una lista
 Show settings by category	Mostrar los ajustes por categoría
+Long-press Inbox for read receipts	Mantener pulsado Bandeja para confirmaciones de lectura
+Press and hold the Inbox tab to turn Hide read receipts on or off. A message says which. A tap on Inbox works as before. If holding Inbox does something for you already, this takes that press.	Mantén pulsada la pestaña Bandeja de entrada para activar o desactivar Ocultar confirmaciones de lectura. Un aviso indica cuál es el estado. Tocar Bandeja de entrada funciona como siempre. Si mantenerla pulsada ya hace algo en tu cuenta, esto toma esa pulsación.
+Read receipts hidden	Confirmaciones de lectura ocultas
+Read receipts shown	Confirmaciones de lectura visibles
+Compact long-press menu everywhere	Menú compacto al mantener pulsado en todas partes
+A long press on a video opens TikTok's small share sheet on For You too, the same one a creator's videos get. It wins over the two full-menu switches above. It needs Long press on TikTok default.	Mantener pulsado un video abre la hoja pequeña de compartir de TikTok también en Para ti, la misma que tienen los videos de un creador. Tiene prioridad sobre los dos interruptores de menú completo de arriba. Necesita que Pulsación larga esté en el valor de TikTok.
+Hide streak pop-ups	Ocultar avisos de rachas
+Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	Detiene los avisos de rachas que aparecen sobre TikTok y los mensajes y consejos de rachas que añade a tus chats.
+Long press on For You opens my watch history	Una pulsación larga en Para ti abre mi historial de visualización
+Instead of these settings. The list has a button that brings you back here.	En lugar de estos ajustes. La lista tiene un botón que te trae de vuelta aquí.
+Auto tap in LIVE rooms	Toque automático en salas LIVE
+Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.	Añade un botón Toque automático a las salas LIVE. Tócalo para enviar toques a la transmisión a un ritmo constante y vuelve a tocarlo para parar. También se detiene cuando sales o deslizas a otra sala, sales de TikTok o bloqueas la pantalla.
+Auto tap speed	Velocidad del toque automático
+2 taps a second	2 toques por segundo
+4 taps a second	4 toques por segundo
+6 taps a second	6 toques por segundo
+8 taps a second	8 toques por segundo
+Auto tap	Toque automático
+Start tapping this LIVE	Empezar a tocar este LIVE
+Stop tapping this LIVE	Dejar de tocar este LIVE
+Auto tap stopped	Toque automático detenido
+Clean up your account	Limpia tu cuenta
+Remove all reposts	Quitar todos los reposts
+Deletes all reposts from your account sequentially.	Elimina uno a uno todos los reposts de tu cuenta.
+Remove all likes	Quitar todos los Me gusta
+Unlikes every video one after another.	Quita el Me gusta de cada video, uno tras otro.
+Clear Favorites	Vaciar Favoritos
+Removes every video from Favorites one after another.	Quita cada video de Favoritos, uno tras otro.
+Removing all reposts in %1$d	Quitando todos los reposts en %1$d
+Removing all likes in %1$d	Quitando todos los Me gusta en %1$d
+Clearing Favorites in %1$d	Vaciando Favoritos en %1$d
+Reposts removed: %1$d	Reposts quitados: %1$d
+Likes removed: %1$d	Me gusta quitados: %1$d
+Favorites removed: %1$d	Quitados de Favoritos: %1$d
+Nothing to remove	No hay nada que quitar
+Done. %1$d removed.	Listo. Se quitaron %1$d.
+Stopped. %1$d removed.	Detenido. Se quitaron %1$d.
+TikTok refused. %1$d removed.	TikTok lo rechazó. Se quitaron %1$d.
+Network error. %1$d removed.	Error de red. Se quitaron %1$d.
+Not available on this TikTok version	No disponible en esta versión de TikTok
+Sign in to TikTok first	Primero inicia sesión en TikTok
+A removal is already running	Ya hay una eliminación en curso
+Cancelled	Cancelado
+Show inbox filters	Mostrar filtros de la bandeja de entrada
+Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Añade sobre tus chats las pestañas Principal, Solicitudes, No leídos y Destacados, las que TikTok da a las cuentas de creador.
+Rebuild message search	Reconstruir la búsqueda de mensajes
+Clears TikTok's message search and adds back every message saved on this phone, newest first. It keeps going after you leave search.	Vacía la búsqueda de mensajes de TikTok y vuelve a añadir cada mensaje guardado en este teléfono, del más reciente al más antiguo. Sigue aunque salgas de la búsqueda.
+Rebuilding message search	Reconstruyendo la búsqueda de mensajes
+Stopped. Search carries on later.	Detenido. La búsqueda seguirá luego.
+Couldn't stop it. Try again.	No se detuvo. Reintenta.
+Couldn't rebuild search. Try again.	No se reconstruyó la búsqueda. Reintenta.
+Message search isn't on for this account	La búsqueda de mensajes no está activa en esta cuenta
+Offer Audio only in LIVE quality	Ofrecer Solo audio en la calidad del LIVE
+Audio only	Solo audio
+Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.	Añade Solo audio a la lista de calidad de video de un LIVE. La sala reproduce el sonido sin la imagen, lo que usa muchos menos datos, hasta que elijas otra calidad o salgas. Grabar desde la transmisión sigue guardando el video.
+Pick a video quality to record the screen	Elige una calidad de video para grabar la pantalla

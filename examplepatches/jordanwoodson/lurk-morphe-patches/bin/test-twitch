@@ -18,6 +18,4 @@ adb -s "$serial" shell mkdir -p "$remote"
 trap 'adb -s "$serial" shell rm -rf "$remote" >/dev/null 2>&1 || true' EXIT
 adb -s "$serial" push "$1" "$remote/app.apk" >/dev/null
 adb -s "$serial" push "$out/probe.jar" "$remote/probe.jar" >/dev/null
-stock=$(sed -n 's/.*const val SOURCE_SHA256 = "\([0-9a-f]\{64\}\)".*/\1/p' "$PATCHES_SRC/twitch/shared/Hermes.kt")
-[[ -n "$stock" ]] || die "no SOURCE_SHA256 in twitch/shared/Hermes.kt"
-adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app_process /system/bin BundleProbe $remote/app.apk $remote/cache $stock"
+adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app_process /system/bin BundleProbe $remote/app.apk $remote/cache"

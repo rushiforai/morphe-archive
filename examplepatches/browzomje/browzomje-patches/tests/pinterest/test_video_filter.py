@@ -10,6 +10,7 @@ import tempfile
 
 src = Path(__file__).resolve().parents[2] / 'extensions/extension/src/main/java/app/template/extension/pinterest'
 utils = (src / 'PinterestUtils.java').read_text()
+consent = utils[utils.index('    public static boolean denyMetaAdsConsent('):utils.index('    /** @return true se almeno')]
 methods = utils[utils.index('    private static void removeAdsFrom('):utils.index('    // ------------------------------------------------------------- screenshot')]
 files = {
 'MorpheLog.java': '''package app.browzomje.extension.pinterest;
@@ -18,8 +19,9 @@ static void d(String a,String b){} static void i(String a,String b){} static voi
 static void w(String a,String b,Throwable t){}static void e(String a,String b,Throwable t){}
 static void setStatus(String a,String b){}}''',
 'MorpheSettingsStore.java': '''package app.browzomje.extension.pinterest;
-class MorpheSettingsStore {static String KEY_HIDE_VIDEO_PINS="video";static boolean video,ads,shopping;
-static boolean effective(String k){return video;} static boolean isAdsDisabled(){return ads;}
+class MorpheSettingsStore {static String KEY_HIDE_VIDEO_PINS="video",KEY_HIDE_AI_PINS="ai";static boolean video,ai,ads,shopping;static String words="";
+static String mutedPinWords(){return words;}
+static boolean effective(String k){return k.equals(KEY_HIDE_VIDEO_PINS)?video:ai;} static boolean isAdsDisabled(){return ads;}
 static boolean isShoppingPinsHidden(){return shopping;}static boolean isSearchBoardModulesHidden(){return false;}}''',
 'SearchModuleDetector.java': '''package app.browzomje.extension.pinterest;
 class SearchModuleDetector {static boolean isUnwantedSearchModule(Object o){return false;}}''',
@@ -29,18 +31,26 @@ class FilterHarness {
 static final int MAX_FILTER_DEPTH=4;static int totalAdsRemoved,totalShoppingPinsRemoved;
 static void filterRecursive(Object o,int depth,IdentityHashMap<Object,Boolean> seen){}
 static void filter(List<?> list){removeAdsFrom(list,0);}
-''' + methods + '\n}',
+''' + consent + methods + '\n}',
 'VideoTest.java': '''package app.browzomje.extension.pinterest;
 import java.lang.annotation.*;import java.util.*;
 public class VideoTest {
 @Retention(RetentionPolicy.RUNTIME)public @interface Wire {String value();}
 static class Pin { @Wire("is_video") private Object renamed; @Wire("is_promoted") boolean ad;
  @Wire("images") Object thumbnail=new Object(); Pin(Object value){renamed=value;} }
+enum Vendor { META_AUDIENCE_NETWORK, GOOGLE_MOBILE_ADS }
+enum SourceType { DETECTED_TRAINED_ALGORITHMIC_MEDIA, UNKNOWN }
 static class Inherited extends Pin {Inherited(){super(true);}}
 static class Gif {@Wire("is_animated") boolean animated=true; @Wire("videos") Object videos=new Object();}
 static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);}
 public static void main(String[] args){
  Pin image=new Pin(false),video=new Pin(true);Gif gif=new Gif();
+ check(!FilterHarness.denyMetaAdsConsent(Vendor.META_AUDIENCE_NETWORK),"ads off uses native Meta consent");
+ MorpheSettingsStore.ads=true;
+ check(FilterHarness.denyMetaAdsConsent(Vendor.META_AUDIENCE_NETWORK),"ads filter blocks Meta consent");
+ check(!FilterHarness.denyMetaAdsConsent(Vendor.GOOGLE_MOBILE_ADS)
+       && !FilterHarness.denyMetaAdsConsent("META_AUDIENCE_NETWORK"),"other vendors and non-enums use native consent");
+ MorpheSettingsStore.ads=false;
  check(AdDetector.isVideoPin(video),"video flag");check(AdDetector.isVideoPin(new Inherited()),"inherited private field");
  for(Object o:new Object[]{null,image,gif,new Object(),new Pin(null),new Pin("true"),new Pin(1)})
  check(!AdDetector.isVideoPin(o),"unknown/image/GIF preserved");
@@ -73,7 +83,28 @@ public static void main(String[] args){
  check(VideoFeedFilter.filter(List.of(video)).isEmpty(),"legacy all-video list empty");
  check(VideoFeedFilter.filter(List.of(image)).equals(List.of(image)),"legacy image retained");
  MorpheSettingsStore.video=false;check(VideoFeedFilter.filter(cached)==cached,"legacy OFF returns original list");
- System.out.println("PASS video classification, OFF/ON, mixed/second/all-video/immutable pages, ad composition");
+ Object labeled=Map.of("digital_media_source_type",SourceType.DETECTED_TRAINED_ALGORITHMIC_MEDIA);
+ Object legacy=Map.of("ai_disclosures",List.of(2));
+ Object unknown=Map.of("digital_media_source_type",SourceType.UNKNOWN,"ai_disclosures",List.of(0),"digital_media_source_type_label"," ");
+ Object label=Map.of("digital_media_source_type_label","AI modified");
+ List<Object> aiItems=List.of(labeled,legacy,unknown,label,image);
+ check(VideoFeedFilter.filter(aiItems)==aiItems,"AI opt-in preserves the page by default");
+ MorpheSettingsStore.ai=true;
+ check(VideoFeedFilter.filter(aiItems).equals(List.of(unknown,image)),"AI grid and search honor disclosed labels only");
+ List<Object> aiFeed=new ArrayList<>(aiItems);FilterHarness.filter(aiFeed);
+ check(aiFeed.equals(List.of(unknown,image)),"AI feed path agrees with grid filter");
+ MorpheSettingsStore.words="café\\niced tea";
+ Object accent=Map.of("images",Map.of(),"title","A CAFE\\u0301 recipe");
+ Object phrase=Map.of("grid_title","Iced tea.");
+ Object substring=Map.of("grid_title","Caféine and spiced tea");
+ Object noTitle=Map.of("images",Map.of());
+ List<Object> words=List.of(accent,phrase,substring,noTitle);
+ check(VideoFeedFilter.filter(words).equals(List.of(substring,noTitle)),"muted words normalize accents and match whole phrases");
+ List<Object> mutableWords=new ArrayList<>(words);FilterHarness.filter(mutableWords);
+ check(mutableWords.equals(List.of(substring,noTitle)),"muted words apply to existing feed lists");
+ MorpheSettingsStore.words="";
+ check(VideoFeedFilter.filter(words)==words,"empty muted words retain original list");
+ System.out.println("PASS video and AI classification, OFF/ON, mixed/second/all-video/immutable pages, ad composition");
 }}
 '''
 }
@@ -81,5 +112,5 @@ with tempfile.TemporaryDirectory(prefix='pinterest-video-test-') as tmp:
     paths=[]
     for name, body in files.items():
         p=Path(tmp)/name;p.write_text(body);paths.append(str(p))
-    subprocess.run(['javac','-d',tmp,*paths,str(src/'AdDetector.java'),str(src/'VideoFeedFilter.java')],check=True)
+    subprocess.run(['javac','-d',tmp,*paths,str(src/'AdDetector.java'),str(src/'VideoFeedFilter.java'),str(src/'MutedPinWords.java')],check=True)
     subprocess.run(['java','-cp',tmp,'app.browzomje.extension.pinterest.VideoTest'],check=True)

@@ -66,6 +66,12 @@ private val EDITOR_BODY = """
     return-object v5
 """.trimIndent()
 
+private val EDITOR_COPY ="invoke-static {v3}, LX/5Gx;->A00(Ljava/lang/String;)$AUTO_REPLY_MEDIA\nmove-result-object v0"
+
+/** 586 armv7's coroutine: the copy's MediaResource constructor inlined ahead of the builder and moved into place. */
+private val EDITOR_BODY_ARMV7 = EDITOR_BODY.replace(EDITOR_COPY,
+    "new-instance v5, $AUTO_REPLY_MEDIA\ninvoke-direct {v5, v3}, $AUTO_REPLY_MEDIA-><init>(Ljava/lang/String;)V\nmove-object v0, v5")
+
 private val FINAL_PUBLIC = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
 private val PUBLIC_STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
 
@@ -167,6 +173,11 @@ class GalleryToChatTest {
         val site = found[1].galleryChatSite(setOf(CHAT))!!
         assertEquals(listOf(9, 1, 0, 2, 4, CHAT, UNIT), listOf(site.at, site.intent, site.media, site.chat, site.params, site.chatType, site.unit))
         assertEquals(3, found.last().traySite())
+        // 586's armv7 coroutine builds the MediaResource in place, one instruction longer.
+        val armv7 = found(chatClasses(coroutineClass(EDITOR_BODY_ARMV7)))
+        assertEquals(listOf(GALLERY_ITEMS, GALLERY_CHAT_EDITOR, GALLERY_TRAY_GATE), armv7.map { it.hookId() })
+        val inlined = armv7[1].galleryChatSite(setOf(CHAT))!!
+        assertEquals(listOf(10, 1, 0, 2, 4, CHAT, UNIT), listOf(inlined.at, inlined.intent, inlined.media, inlined.chat, inlined.params, inlined.chatType, inlined.unit))
     }
 
     @Test fun anotherComposerBehindAGateItDoesntOverrideIsLeftAlone() {
@@ -228,8 +239,12 @@ class GalleryToChatTest {
     }
 
     @Test fun theCoroutinePutsTheCopiedItemInTheTrayInsteadOfOpeningTheEditor() {
-        findGalleryToChat(chatClasses())
-        val editor = MutableMethod(coroutineClass().methods.single())
+        for (body in listOf(EDITOR_BODY, EDITOR_BODY_ARMV7)) trayInsteadOfEditor(body)
+    }
+
+    private fun trayInsteadOfEditor(body: String) {
+        findGalleryToChat(chatClasses(coroutineClass(body)))
+        val editor = MutableMethod(coroutineClass(body).methods.single())
         val before = editor.code()
         val site = editor.galleryChatSite(setOf(CHAT))!!
         injectControl(GALLERY_TO_CHAT, mapOf(GALLERY_TO_CHAT to listOf(editor)))
@@ -305,6 +320,14 @@ class GalleryToChatTest {
             "no unit" to chatClasses(editor(EDITOR_BODY.replace("sget-object v5, $UNIT", "sget-object v5, LX/0Bs;->A00:Ljava/lang/Object;"))),
             "two builders" to chatClasses(editor(EDITOR_BODY.replace("sget-object v6,", "new-instance v6, $EDITOR_BUILDER\nsget-object v6,"))),
             "media in this" to chatClasses(editor(EDITOR_BODY.replace("v0", "v7"))),
+            // An inlined copy counts only as a MediaResource built with one argument and moved straight to the builder.
+            "inlined copy of another type" to chatClasses(editor(EDITOR_BODY_ARMV7.replace("new-instance v5, $AUTO_REPLY_MEDIA", "new-instance v5, LX/5Gy;"))),
+            "inlined copy built by another class" to chatClasses(editor(EDITOR_BODY_ARMV7.replace("$AUTO_REPLY_MEDIA-><init>", "LX/5Gy;-><init>"))),
+            "inlined copy with two arguments" to chatClasses(editor(EDITOR_BODY_ARMV7.replace("invoke-direct {v5, v3}, $AUTO_REPLY_MEDIA-><init>(Ljava/lang/String;)V",
+                "invoke-direct {v5, v3, v1}, $AUTO_REPLY_MEDIA-><init>(Ljava/lang/String;Landroid/content/Intent;)V"))),
+            "inlined copy moved from elsewhere" to chatClasses(editor(EDITOR_BODY_ARMV7.replace("move-object v0, v5", "move-object v0, v6"))),
+            "inlined copy built elsewhere" to chatClasses(editor(EDITOR_BODY_ARMV7.replace("invoke-direct {v5, v3}", "invoke-direct {v6, v3}"))),
+            "inlined copy not moved" to chatClasses(editor(EDITOR_BODY_ARMV7.replace("move-object v0, v5", "nop"))),
             // The tray gate: the plugin the gate guards takes the tray insert, the gate is the factory's own, and its answer
             // comes back from one return.
             "no tray plugin" to chatClasses().filter { it.type != TRAY_PLUGIN },

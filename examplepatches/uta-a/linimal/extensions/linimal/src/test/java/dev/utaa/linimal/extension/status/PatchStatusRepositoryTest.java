@@ -203,6 +203,33 @@ public final class PatchStatusRepositoryTest {
     }
 
     @Test
+    public void previewScrollRequiresItsOwnSafePatchIndependentlyOfPromotion() {
+        String promotion = patchJson("linimal.patch.premium-preview-promotion",
+                "linimal.premium-preview-promotion", "OK", 1, 1);
+        String scroll = patchJson("linimal.patch.preview-scroll",
+                "linimal.preview-scroll", "OK", 1, 1);
+        String unsafe = patchJson("linimal.patch.preview-scroll",
+                "linimal.preview-scroll", "ERROR", 1, 1);
+        String wrongPatch = patchJson("linimal.patch.other",
+                "linimal.preview-scroll", "OK", 1, 1);
+
+        PatchStatusReport missing = parser.parse(
+                "{\"schemaVersion\":1,\"patches\":[" + promotion + "]}");
+        PatchStatusReport complete = parser.parse(
+                "{\"schemaVersion\":1,\"patches\":[" + promotion + "," + scroll + "]}");
+        PatchStatusReport unsafeReport = parser.parse(
+                "{\"schemaVersion\":1,\"patches\":[" + promotion + "," + unsafe + "]}");
+        PatchStatusReport mismatched = parser.parse(
+                "{\"schemaVersion\":1,\"patches\":[" + wrongPatch + "]}");
+
+        assertNull(missing.getFeatureStatus("linimal.preview-scroll"));
+        assertEquals(PatchStatus.OK, complete.getFeatureStatus("linimal.preview-scroll"));
+        assertEquals(PatchStatus.ERROR, unsafeReport.getFeatureStatus("linimal.preview-scroll"));
+        assertEquals(PatchStatus.OK, unsafeReport.getFeatureStatus("linimal.premium-preview-promotion"));
+        assertEquals(PatchStatus.ERROR, mismatched.getFeatureStatus("linimal.preview-scroll"));
+    }
+
+    @Test
     public void homeFeaturedCollectionsResolvesFromItsOwnRequiredPatch() {
         String featured = patchJson(
                 "linimal.patch.home-featured-collections",

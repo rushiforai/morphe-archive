@@ -1,3 +1,45 @@
+## [1.7.0-dev.4](https://github.com/d0nj/morphe-patches/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-11-04)
+
+### ✨ New Features
+
+* add MET Norway as a Niagara weather provider ([f146c00](https://github.com/d0nj/morphe-patches/commit/f146c009dcb82bebcb37e8111cdb991c6818146b))
+
+## [1.7.0-dev.3](https://github.com/d0nj/morphe-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* use Breezy sourceFeelsLike for feels-like temperature ([9add906](https://github.com/d0nj/morphe-patches/commit/9add9065e08fd7e9db21e6c7ce2acfe6f10c9a9a))
+
+## [1.7.0-dev.2](https://github.com/d0nj/morphe-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* harden weather provider failure handling ([d54c528](https://github.com/d0nj/morphe-patches/commit/d54c528140d6241a600348a447a48f0d1baf1370))
+
+## [1.7.0-dev.1](https://github.com/d0nj/morphe-patches/compare/v1.6.1-dev.3...v1.7.0-dev.1) (2026-11-03)
+
+### ✨ New Features
+
+* add Breezy Weather as a Niagara weather provider ([1942a72](https://github.com/d0nj/morphe-patches/commit/1942a726b10b4c89a18c33003827a9e55a86497d)), closes [#21](https://github.com/d0nj/morphe-patches/issues/21)
+
+## [1.6.1-dev.3](https://github.com/d0nj/morphe-patches/compare/v1.6.1-dev.2...v1.6.1-dev.3) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* retry weather fetch on upstream overload ([b6b61cb](https://github.com/d0nj/morphe-patches/commit/b6b61cb38e251eac134fa4f75b0c4b8b6a99bff5))
+
+## [1.6.1-dev.2](https://github.com/d0nj/morphe-patches/compare/v1.6.1-dev.1...v1.6.1-dev.2) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* read weather coordinates by field name ([3631ffc](https://github.com/d0nj/morphe-patches/commit/3631ffce49117fccd488630b5f93677e0bbeacdb))
+
+## [1.6.1-dev.1](https://github.com/d0nj/morphe-patches/compare/v1.6.0...v1.6.1-dev.1) (2026-11-02)
+
+### 🐛 Bug Fixes
+
+* use hourly daylight flags for weather icons ([2c0dd58](https://github.com/d0nj/morphe-patches/commit/2c0dd58e105bd9004bd8049e5a9ed24b526577b6))
+
 ## [1.6.0](https://github.com/d0nj/morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-02)
 
 ### ✨ New Features
