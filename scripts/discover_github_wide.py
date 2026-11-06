@@ -37,8 +37,19 @@ FALLBACK_BRANCHES = ("main", "master")
 
 
 def request_with_backoff(url, params=None):
+    last_error = None
     for attempt in range(1, 4):
-        resp = requests.get(url, headers=HEADERS, params=params, timeout=30)
+        try:
+            resp = requests.get(url, headers=HEADERS, params=params, timeout=30)
+        except requests.RequestException as error:
+            # api.github.com drops connections under load. Unhandled, one such blip
+            # aborted the whole discovery run, so nothing was published that day and
+            # the notification slipped to the next run.
+            last_error = error
+            wait = attempt * 5
+            print(f"Request failed for {url} ({error}); retrying in {wait}s...")
+            time.sleep(wait)
+            continue
         if resp.status_code == 200:
             return resp
         if resp.status_code in (403, 429):
@@ -49,8 +60,16 @@ def request_with_backoff(url, params=None):
             print(f"Rate limited, waiting {wait}s...")
             time.sleep(wait)
             continue
+        if resp.status_code >= 500:
+            last_error = f"HTTP {resp.status_code}"
+            wait = attempt * 5
+            print(f"Server error {resp.status_code} for {url}; retrying in {wait}s...")
+            time.sleep(wait)
+            continue
         print(f"Error {resp.status_code} for {url}: {resp.text}")
         return None
+    if last_error is not None:
+        print(f"Gave up on {url} after 3 attempts: {last_error}")
     return None
 
 
