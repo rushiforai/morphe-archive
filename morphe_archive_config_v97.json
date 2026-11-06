@@ -4107,14 +4107,6 @@
                 "updatedAt": 1793943518878
             },
             {
-                "name": "Pixel-Camera",
-                "source": "https://raw.githubusercontent.com/Akshayykadam/Pixel-Camera/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 574,
-                "createdAt": 1793943519275,
-                "updatedAt": 1793943519275
-            },
-            {
                 "name": "AppleMusic-DiLink",
                 "source": "https://raw.githubusercontent.com/andersonlucasg3/AppleMusic-DiLink/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4587,14 +4579,6 @@
                 "updatedAt": 1793943551663
             },
             {
-                "name": "bakalari-morphe",
-                "source": "https://raw.githubusercontent.com/voznyiarsen/bakalari-morphe/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 634,
-                "createdAt": 1793943552232,
-                "updatedAt": 1793943552232
-            },
-            {
                 "name": "instagram-patches",
                 "source": "https://raw.githubusercontent.com/warleysr/instagram-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4649,6 +4633,38 @@
                 "sortOrder": 641,
                 "createdAt": 1793943554991,
                 "updatedAt": 1793943554991
+            },
+            {
+                "name": "apple-music-morphe-patches",
+                "source": "https://raw.githubusercontent.com/andersonlucasg3/apple-music-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 642,
+                "createdAt": 1794001938643,
+                "updatedAt": 1794001938643
+            },
+            {
+                "name": "ayufa-patches-jp",
+                "source": "https://raw.githubusercontent.com/Ayufa/ayufa-patches-jp/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 643,
+                "createdAt": 1794001940421,
+                "updatedAt": 1794001940421
+            },
+            {
+                "name": "morphe-yt-music-discord-rpc",
+                "source": "https://raw.githubusercontent.com/Dyskal/morphe-yt-music-discord-rpc/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 644,
+                "createdAt": 1794001943749,
+                "updatedAt": 1794001943749
+            },
+            {
+                "name": "nik-morphe-patches",
+                "source": "https://raw.githubusercontent.com/nikhilbadyal/nik-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 645,
+                "createdAt": 1794001954814,
+                "updatedAt": 1794001954814
             }
         ]
     }
