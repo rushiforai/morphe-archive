@@ -30,10 +30,12 @@ env:
 
 jobs:
   notify:
-    # Only the run that actually published something is worth reporting on, plus
-    # manual runs, which exist so the PR path can be exercised without waiting for a
-    # real discovery (the fetch run takes an hour).
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    # A failed fetch run still publishes whatever part of the index it managed to
+    # gather, and the diff below is self-gating: when nothing new arrived it records
+    # the baseline and stops. Skipping the job on failure instead held the batch back
+    # a whole day until the next green run. Manual runs exist so the PR path can be
+    # exercised without waiting for a real discovery (the fetch run takes an hour).
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
